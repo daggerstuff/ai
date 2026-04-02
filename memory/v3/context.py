@@ -8,17 +8,23 @@ Thread-safe. Async-safe. No globals.
 """
 
 import asyncio
-import copy
-import json
 import logging
-import re
 from contextvars import ContextVar, Token
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, List, Optional
 
+from .conversation_manager import ConversationManager
 from .constants import MAX_QUERY_LENGTH
 from .config import SubconsciousConfig, UserConfig
-from .provider import LocalHindsightProvider, Memory, MemoryProvider
+from .memory_enrichment import enrich_user_message
+from .provider import (
+    Memory,
+    MemoryProvider,
+    close_memory_provider,
+    create_memory_provider,
+    flush_memory_provider,
+)
+from .reflection import reflect_conversation
 
 __all__ = [
     "SubconsciousState",
@@ -49,22 +55,13 @@ class SubconsciousState:
 
     config: UserConfig
     _provider: Optional[MemoryProvider] = None
-    _conversation: List[dict] = field(default_factory=list)
+    _conversation_manager: ConversationManager = field(default_factory=ConversationManager)
     _closed: bool = False
 
     async def _ensure_provider(self) -> MemoryProvider:
         """Lazy init of memory provider."""
         if self._provider is None:
-            if self.config.base.memory_provider == "mock":
-                from .provider import MockProvider
-
-                self._provider = MockProvider()
-            else:
-                self._provider = LocalHindsightProvider(
-                    self.config.base.bank_id,
-                    max_retries=self.config.base.max_retries,
-                    retry_delay_ms=self.config.base.retry_delay_ms,
-                )
+            self._provider = create_memory_provider(self.config.base)
         return self._provider
 
     async def enrich(self, message: str) -> str:
@@ -94,23 +91,20 @@ class SubconsciousState:
                 logger.debug("Empty message, skipping enrichment")
                 return message
 
-            memories = await asyncio.wait_for(
-                provider.recall(
-                    query=message[:MAX_QUERY_LENGTH],
-                    user_id=self.config.user_id,
-                    limit=self.config.base.max_memories,
-                ),
-                timeout=self.config.base.query_timeout_ms / 1000,
-            )
+            memories = await self._recall_memories(provider, message)
 
             if not memories:
                 logger.debug("No memories found, returning original message")
                 return message
 
             # Format memories as XML block
-            memory_xml = self._format_memories(memories)
             logger.info(f"Enriched message with {len(memories)} memories")
-            return f"{memory_xml}\\n\\n{message}"
+            return enrich_user_message(
+                conversation_manager=self._conversation_manager,
+                message=message,
+                memories=memories,
+                max_memories=self.config.base.max_memories,
+            )
 
         except asyncio.TimeoutError:
             logger.warning(
@@ -127,23 +121,28 @@ class SubconsciousState:
                 return message
             raise
 
-    def _format_memories(self, memories: List[Memory]) -> str:
-        """Format memories for LLM injection."""
-        if not memories:
-            return ""
+    def _recall_timeout_seconds(self, provider: MemoryProvider) -> float:
+        """Give provider-native timeouts room to fail cleanly before outer cancellation."""
+        base_timeout = self.config.base.query_timeout_ms / 1000
+        provider_timeout_ms = getattr(provider, "timeout_ms", None)
+        if isinstance(provider_timeout_ms, int) and provider_timeout_ms > 0:
+            return max(base_timeout, (provider_timeout_ms / 1000) + 1.0)
+        return base_timeout
 
-        lines = ["<subconscious_context>"]
-        lines.append("  <relevant_memories>")
-        for mem in memories[: self.config.base.max_memories]:
-            # Truncate long memories
-            content = mem.content[:200]
-            if len(mem.content) > 200:
-                content += "..."
-            lines.append(f"    - {content}")
-        lines.append("  </relevant_memories>")
-        lines.append("</subconscious_context>")
-
-        return "\\n".join(lines)
+    async def _recall_memories(
+        self,
+        provider: MemoryProvider,
+        message: str,
+    ) -> List[Memory]:
+        """Recall scoped memories with an explicit timeout contract."""
+        return await asyncio.wait_for(
+            provider.recall(
+                query=message[:MAX_QUERY_LENGTH],
+                user_id=self.config.user_id,
+                limit=self.config.base.max_memories,
+            ),
+            timeout=self._recall_timeout_seconds(provider),
+        )
 
     def record(self, role: str, content: str) -> None:
         """
@@ -163,8 +162,7 @@ class SubconsciousState:
             )
             return
 
-        # Deep copy to prevent mutation
-        self._conversation.append({"role": role, "content": copy.deepcopy(content)})
+        self._conversation_manager.record_message(role, content)
 
     async def reflect(self):
         """
@@ -176,101 +174,32 @@ class SubconsciousState:
             logger.warning("Attempted to reflect after state closed")
             return
 
-        if not self._conversation:
+        if not self._conversation_manager.conversation:
             logger.debug("No conversation to reflect on")
             return
 
         provider = await self._ensure_provider()
 
-        # Build conversation text for analysis
-        conv_text = "\\n".join(
-            f"{m['role']}: {m['content']}" for m in self._conversation
+        stored_count = await reflect_conversation(
+            provider=provider,
+            user_id=self.config.user_id,
+            conversation=self._conversation_manager.conversation,
+            api_key=self.config.base.api_key,
+            base_url=self.config.base.base_url,
+            model=self.config.base.model,
+            focus_prompt=(
+                "Extract learnings from conversation.\n\n"
+                "Focus on:\n"
+                "- User preferences and patterns\n"
+                "- Project-specific knowledge\n"
+                "- Important decisions or context"
+            ),
         )
-
-        # Extract learnings using LLM
-        learnings = await self._extract_learnings(conv_text)
-
-        # Store new memories
-        stored_count = 0
-        for learning in learnings:
-            # Validate learning before storing
-            if not learning or not isinstance(learning, str):
-                logger.warning(f"Skipping invalid learning: {type(learning)}")
-                continue
-            if len(learning) < 10:
-                logger.debug(f"Skipping short learning: '{learning[:50]}'")
-                continue
-            try:
-                await provider.store(
-                    content=learning[:1000],  # Cap learning length
-                    user_id=self.config.user_id,
-                    metadata={"source": "reflection"},
-                )
-                stored_count += 1
-            except Exception as e:
-                logger.error(f"Failed to store memory: {e}", exc_info=True)
 
         logger.info(
-            f"Reflected on {len(self._conversation)} messages, "
-            f"stored {stored_count}/{len(learnings)} memories"
+            f"Reflected on {len(self._conversation_manager.conversation)} messages, "
+            f"stored {stored_count} memories"
         )
-
-    async def _extract_learnings(self, conversation: str) -> List[str]:
-        """Use LLM to extract learnings from conversation."""
-        # Skip if no API key
-        if not self.config.base.api_key:
-            logger.warning("No API key configured, skipping reflection")
-            return []
-
-        try:
-            import openai
-
-            client = openai.AsyncOpenAI(
-                api_key=self.config.base.api_key,
-                base_url=self.config.base.base_url,
-            )
-
-            prompt = f"""Extract learnings from conversation.
-
-Focus on:
-- User preferences and patterns
-- Project-specific knowledge
-- Important decisions or context
-
-Conversation:
-{conversation[:3000]}
-
-Respond with a JSON array of learnings. Each learning should be a single string.
-Example: ["User prefers TypeScript over JavaScript", "Project uses pnpm not npm"]
-"""
-
-            response = await client.chat.completions.create(
-                model=self.config.base.model,
-                messages=[{"role": "user", "content": prompt}],
-                max_tokens=500,
-            )
-
-            content = response.choices[0].message.content or "[]"
-
-            # Try to parse JSON
-            try:
-                return json.loads(content)
-            except json.JSONDecodeError:
-                # Extract array if wrapped in markdown code blocks or text
-                # Use regex for more robust extraction
-                match = re.search(r"\[[\s\S]*?\]", content)
-                if match:
-                    try:
-                        return json.loads(match.group(0))
-                    except json.JSONDecodeError:
-                        logger.warning(
-                            f"JSON parse failed: {match.group(0)[:50]}"
-                        )
-                return []
-
-        except Exception as e:
-            logger.error(f"LLM reflection failed: {e}", exc_info=True)
-            return []
 
     async def close(self):
         """
@@ -282,18 +211,18 @@ Example: ["User prefers TypeScript over JavaScript", "Project uses pnpm not npm"
             logger.debug("State already closed")
             return
 
-        self._closed = True
         logger.debug(f"Closing subconscious state for user {self.config.user_id}")
 
-        if self.config.base.reflect_on_close and self._conversation:
+        if self.config.base.reflect_on_close and self._conversation_manager.conversation:
             await self.reflect()
 
+        await flush_memory_provider(self._provider)
         # Close provider connection if it has one
-        if self._provider and hasattr(self._provider, "close"):
-            await self._provider.close()
+        await close_memory_provider(self._provider)
 
         # Clear conversation
-        self._conversation.clear()
+        self._conversation_manager.clear()
+        self._closed = True
 
 
 def set_subconscious(config: SubconsciousConfig, user_id: str) -> Token:

@@ -40,17 +40,12 @@ def _fallback_scoped_search_candidates(
         requested_limit=requested_limit,
         aggressive=True,
     )
-    candidates = search_with_overfetch(
+    return search_with_overfetch(
         manager=manager,
         query=query,
         user_id=user_id,
         requested_limit=candidate_limit,
-    )
-    if not candidates:
-        return []
-    return _filter_scoped_candidates(
         scope=scope,
-        candidates=candidates,
     )
 
 

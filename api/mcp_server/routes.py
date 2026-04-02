@@ -396,11 +396,7 @@ def _search_memory_response(manager: Any, request: SearchMemoryRequest) -> Dict[
         query=request.query,
         user_id=request.user_id,
         requested_limit=limit,
-    )
-    memories = filter_memories_by_scope(
         scope=scope,
-        memories=memories or [],
-        limit=limit,
     )
     return {"success": True, "memories": memories, "count": len(memories)}
 

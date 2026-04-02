@@ -140,11 +140,7 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
                 query=arguments["query"],
                 user_id=arguments["user_id"],
                 requested_limit=limit,
-            )
-            memories = filter_memories_by_scope(
                 scope=scope,
-                memories=memories or [],
-                limit=limit,
             )
 
             if not memories:

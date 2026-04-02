@@ -20,6 +20,8 @@ DEFAULT_MEMORY_PROVIDER = "local_hindsight"
 DEFAULT_BANK_ID = "pixelated"
 DEFAULT_MODEL = "z-ai/glm4.7"
 DEFAULT_BASE_URL = "https://integrate.api.nvidia.com/v1"
+DEFAULT_MEMORY_SERVICE_BASE_URL = "http://127.0.0.1:5003"
+DEFAULT_MEMORY_SERVICE_TIMEOUT_MS = 5000
 
 # Environment variable names
 ENV_MODEL = "SUBCONSCIOUS_MODEL"
@@ -27,6 +29,11 @@ ENV_API_KEY = "NVIDIA_API_KEY"
 ENV_BASE_URL = "SUBCONSCIOUS_BASE_URL"
 ENV_ENABLED = "SUBCONSCIOUS_ENABLED"
 ENV_BANK_ID = "HINDSIGHT_BANK_ID"
+ENV_MEMORY_PROVIDER = "SUBCONSCIOUS_MEMORY_PROVIDER"
+ENV_MEMORY_SERVICE_BASE_URL = "SUBCONSCIOUS_MEMORY_BASE_URL"
+ENV_MEMORY_SERVICE_ACTOR_ID = "SUBCONSCIOUS_MEMORY_ACTOR_ID"
+ENV_MEMORY_SERVICE_ACTOR_SECRET = "SUBCONSCIOUS_MEMORY_ACTOR_SECRET"
+ENV_MEMORY_SERVICE_TIMEOUT_MS = "SUBCONSCIOUS_MEMORY_TIMEOUT_MS"
 
 
 @dataclass(frozen=True)
@@ -39,24 +46,22 @@ class SubconsciousConfig:
     """
 
     # LLM Backend (for enrichment/reflection)
-    model: str = field(default_factory=lambda: os.environ.get(ENV_MODEL, DEFAULT_MODEL))
-    api_key: str = field(default_factory=lambda: os.environ.get(ENV_API_KEY, ""))
-    base_url: str = field(
-        default_factory=lambda: os.environ.get(ENV_BASE_URL, DEFAULT_BASE_URL)
-    )
+    model: str = DEFAULT_MODEL
+    api_key: str = ""
+    base_url: str = DEFAULT_BASE_URL
 
     # Memory Backend
-    memory_provider: Literal["local_hindsight", "mock"] = DEFAULT_MEMORY_PROVIDER
-    bank_id: str = field(
-        default_factory=lambda: os.environ.get(ENV_BANK_ID, DEFAULT_BANK_ID)
-    )
+    memory_provider: Literal["local_hindsight", "shared_service", "mock"] = DEFAULT_MEMORY_PROVIDER
+    bank_id: str = DEFAULT_BANK_ID
+    memory_service_base_url: str = DEFAULT_MEMORY_SERVICE_BASE_URL
+    memory_service_actor_id: str = ""
+    memory_service_actor_secret: str = ""
+    memory_service_timeout_ms: int = DEFAULT_MEMORY_SERVICE_TIMEOUT_MS
 
     # Enrichment behavior
     max_memories: int = DEFAULT_MAX_MEMORIES  # Max memories to inject
     fail_open: bool = True  # Continue without memory on failure
-    enabled: bool = field(
-        default_factory=lambda: os.environ.get(ENV_ENABLED, "true").lower() == "true"
-    )
+    enabled: bool = True
 
     # Reflection behavior
     reflect_on_close: bool = True  # Auto-reflect when state closes
@@ -88,13 +93,30 @@ class SubconsciousConfig:
                 f"query_timeout_ms must be >= 100, got {self.query_timeout_ms}"
             )
 
-        if self.memory_provider not in ("local_hindsight", "mock"):
+        if self.memory_provider not in ("local_hindsight", "shared_service", "mock"):
             raise ValueError(
                 f"memory_provider invalid: {self.memory_provider}"
             )
 
+        if self.memory_service_timeout_ms < 100:
+            raise ValueError(
+                "memory_service_timeout_ms must be >= 100"
+            )
+
         if self.max_retries < 0:
             raise ValueError(f"max_retries must be >= 0, got {self.max_retries}")
+
+        if self.memory_provider == "shared_service":
+            if not self.memory_service_base_url.strip():
+                raise ValueError("memory_service_base_url cannot be empty")
+            if not self.memory_service_actor_id.strip():
+                raise ValueError(
+                    f"{ENV_MEMORY_SERVICE_ACTOR_ID} cannot be empty when using shared_service"
+                )
+            if not self.memory_service_actor_secret.strip():
+                raise ValueError(
+                    f"{ENV_MEMORY_SERVICE_ACTOR_SECRET} cannot be empty when using shared_service"
+                )
 
         # Warn if API key missing but enabled
         if self.enabled and not self.api_key and self.reflect_on_close:
@@ -105,7 +127,30 @@ class SubconsciousConfig:
     @classmethod
     def from_env(cls) -> "SubconsciousConfig":
         """Create from environment variables."""
-        return cls()
+        return cls(
+            model=os.environ.get(ENV_MODEL, DEFAULT_MODEL),
+            api_key=os.environ.get(ENV_API_KEY, ""),
+            base_url=os.environ.get(ENV_BASE_URL, DEFAULT_BASE_URL),
+            memory_provider=os.environ.get(
+                ENV_MEMORY_PROVIDER, DEFAULT_MEMORY_PROVIDER
+            ),
+            bank_id=os.environ.get(ENV_BANK_ID, DEFAULT_BANK_ID),
+            memory_service_base_url=os.environ.get(
+                ENV_MEMORY_SERVICE_BASE_URL,
+                DEFAULT_MEMORY_SERVICE_BASE_URL,
+            ),
+            memory_service_actor_id=os.environ.get(ENV_MEMORY_SERVICE_ACTOR_ID, ""),
+            memory_service_actor_secret=os.environ.get(
+                ENV_MEMORY_SERVICE_ACTOR_SECRET, ""
+            ),
+            memory_service_timeout_ms=int(
+                os.environ.get(
+                    ENV_MEMORY_SERVICE_TIMEOUT_MS,
+                    str(DEFAULT_MEMORY_SERVICE_TIMEOUT_MS),
+                )
+            ),
+            enabled=os.environ.get(ENV_ENABLED, "true").lower() == "true",
+        )
 
     def with_user(self, user_id: str) -> "UserConfig":
         """
