@@ -34,7 +34,7 @@ class LocalHindsightMemoryManager(BaseMemoryManager):
         )
         self.records = LocalHindsightMemoryRecordService(
             default_bank_id=self.default_bank_id,
-            repository=self.repository,
+            document_store=self.repository.documents,
             writes=self.writes,
             provider_name=self.get_provider_name(),
         )
@@ -42,17 +42,6 @@ class LocalHindsightMemoryManager(BaseMemoryManager):
             default_bank_id=self.default_bank_id,
             repository=self.repository,
         )
-        self.retain_items = self.protocol.retain_items
-        self.recall = self.protocol.recall
-        self.recall_for_user = self.protocol.recall_for_user
-        self.can_write_document = self.protocol.can_write_document
-        self.prepare_retained_items = self.protocol.prepare_retained_items
-        self.add_memory_scoped = self.writes.add_memory
-        self.search_memories_scoped = self.queries.search_memories_scoped
-        self.get_all_memories_scoped = self.queries.get_all_memories_scoped
-        self.count_memories_by_category_scoped = self.queries.count_memories_by_category_scoped
-        self.get_memories_by_category = self.queries.get_memories_by_category
-        self.delete_memories = self._delete_memories
 
     def list_documents(
         self,
@@ -107,6 +96,23 @@ class LocalHindsightMemoryManager(BaseMemoryManager):
             category=category,
         )
 
+    def add_memory_scoped(
+        self,
+        *,
+        content: str,
+        user_id: str,
+        metadata: Optional[Any] = None,
+        category: Optional[str] = None,
+        scope_metadata: Optional[Dict[str, Any]] = None,
+    ) -> str:
+        return self.writes.add_memory(
+            content=content,
+            user_id=user_id,
+            metadata=metadata,
+            category=category,
+            scope_metadata=scope_metadata,
+        )
+
     def search_memories(self, query: str, user_id: str, limit: int = 10) -> List[Dict[str, Any]]:
         return self.recall(
             self.default_bank_id,
@@ -156,3 +162,15 @@ class LocalHindsightMemoryManager(BaseMemoryManager):
 
     def close(self) -> None:
         self.repository.close()
+
+    def __getattr__(self, name: str) -> Any:
+        for service in (
+            self.protocol,
+            self.writes,
+            self.queries,
+            self.records,
+        ):
+            attr = getattr(service, name, None)
+            if attr:
+                return attr
+        raise AttributeError(f"{self.__class__.__name__} has no attribute '{name}'")
