@@ -1,28 +1,40 @@
 from __future__ import annotations
 
+from typing import Optional
+
 from mcp.server.fastmcp import FastMCP
 
 from ai.api.memory.memory_status_service import build_memory_status_summary
 
-from .fastmcp_shared import authorized_tool_context_from_json
+from .fastmcp_shared import (
+    _stdio_trust_enabled,
+    authorized_tool_context_from_json,
+    stdio_trusted_tool_context,
+)
 
 
 async def memory_status(
     user_id: str,
-    auth_context: str,
-    scope_context: str | None = None,
+    auth_context: Optional[str] = None,
+    scope_context: Optional[str] = None,
 ) -> str:
     """Get high-level statistics for the user's stored memories."""
-    context = authorized_tool_context_from_json(
-        tool_name="memory_status",
-        user_id=user_id,
-        auth_context=auth_context,
-        scope_context=scope_context,
-        payload={
-            "user_id": user_id,
-            "scope_context": scope_context,
-        },
-    )
+    if not auth_context and _stdio_trust_enabled():
+        context = stdio_trusted_tool_context(
+            user_id=user_id,
+            scope_context=scope_context,
+        )
+    else:
+        context = authorized_tool_context_from_json(
+            tool_name="memory_status",
+            user_id=user_id,
+            auth_context=auth_context,
+            scope_context=scope_context,
+            payload={
+                "user_id": user_id,
+                "scope_context": scope_context,
+            },
+        )
     authorized_user_id = context.scope.user_id
     summary = build_memory_status_summary(
         manager=context.manager,

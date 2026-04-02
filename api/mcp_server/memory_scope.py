@@ -47,7 +47,7 @@ def scope_metadata_dict(scope: Any) -> Dict[str, Any]:
 
 def build_scope_metadata(
     *,
-    scope: MemoryScope,
+    scope: Any,
     incoming_metadata: Optional[Dict[str, Any]] = None,
     category: Optional[str] = None,
 ) -> Dict[str, Any]:
@@ -196,6 +196,10 @@ class _MemorySearchAdapter:
         if isinstance(manager, LegacyMemorySearcher):
             return _LegacyMemorySearchAdapter(manager)
         raise TypeError("Memory manager does not support search operations.")
+
+    def run_search(self, query: str, user_id: str, limit: int) -> Any:
+        raise NotImplementedError  # subclasses must override
+
 
 
 @dataclass(frozen=True)

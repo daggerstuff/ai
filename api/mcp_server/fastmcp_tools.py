@@ -6,11 +6,11 @@ from mcp.server.fastmcp import FastMCP
 
 from ai.api.mcp_server.memory_scope import memory_in_scope
 
-from .fastmcp_parsing import parse_auth_context, parse_metadata, parse_scope_context
+from .fastmcp_parsing import parse_metadata, parse_scope_context
 from .fastmcp_presenters import memory_store_success_message
 from .fastmcp_protocols import MemoryRemover, MemoryUpdater
 from .fastmcp_search import search_scoped_memories
-from .fastmcp_shared import authorized_tool_context_from_json, authorized_tool_context_from_parts
+from .fastmcp_shared import authorized_tool_context_from_json
 from .fastmcp_store import (
     ScopeEnrichedMemoryCreator,
     build_memory_store_plan,
@@ -39,19 +39,18 @@ def _search_scoped_memories(
 async def memory_store(
     content: str,
     user_id: str,
-    auth_context: str,
+    auth_context: Optional[str] = None,
     category: str = "fact",
     metadata: Optional[str] = None,
     scope_context: Optional[str] = None,
 ) -> str:
     """Store a significant fact, preference, or insight in long-term memory."""
-    auth = parse_auth_context(auth_context)
     metadata_dict = parse_metadata(metadata)
-    context = authorized_tool_context_from_parts(
+    context = authorized_tool_context_from_json(
         tool_name="memory_store",
         user_id=user_id,
-        auth=auth,
-        scope=parse_scope_context(scope_context),
+        auth_context=auth_context,
+        scope_context=scope_context,
         payload={
             "content": content,
             "user_id": user_id,
@@ -88,7 +87,7 @@ async def memory_store(
 async def memory_query(
     query: str,
     user_id: str,
-    auth_context: str,
+    auth_context: Optional[str] = None,
     limit: int = 5,
     scope_context: Optional[str] = None,
 ) -> str:
@@ -115,11 +114,12 @@ async def memory_query(
         )
         if not results:
             return (
-                f"🔍 No relevant matches for '{query}' within the requested memory scope "
-                f"for {user_id}."
+                f"🔍 No relevant matches for '{query}' within the"
+                f" requested memory scope for {user_id}."
             )
         formatted = [
-            f"- [{item.get('score', 0.0):.2f}] {item.get('memory') or item.get('content', 'N/A')}"
+            f"- [{item.get('score', 0.0):.2f}] "
+            f"{item.get('memory') or item.get('content', 'N/A')}"
             for item in results[:limit]
         ]
         return f"### Memory Retrieval for {user_id}\n\n" + "\n".join(formatted)
@@ -131,7 +131,7 @@ async def memory_update(
     memory_id: str,
     content: str,
     user_id: str,
-    auth_context: str,
+    auth_context: Optional[str] = None,
     metadata: Optional[str] = None,
     scope_context: Optional[str] = None,
 ) -> str:
@@ -155,7 +155,11 @@ async def memory_update(
         authorized_user_id = context.scope.user_id
         if not isinstance(context.manager, MemoryUpdater):
             return "❌ Update failed: memory backend is not writable."
-        if not memory_in_scope(manager=context.manager, scope=context.scope, memory_id=memory_id):
+        if not memory_in_scope(
+            manager=context.manager,
+            scope=context.scope,
+            memory_id=memory_id,
+        ):
             return "❌ Update denied: memory not found in provided scope."
         if context.manager.update_memory(
             memory_id,
@@ -172,7 +176,7 @@ async def memory_update(
 async def memory_delete(
     memory_id: str,
     user_id: str,
-    auth_context: str,
+    auth_context: Optional[str] = None,
     scope_context: Optional[str] = None,
 ) -> str:
     """Purge an obsolete or incorrect memory entry."""
@@ -191,7 +195,11 @@ async def memory_delete(
         authorized_user_id = context.scope.user_id
         if not isinstance(context.manager, MemoryRemover):
             return "❌ Deletion failed: memory backend is not writable."
-        if not memory_in_scope(manager=context.manager, scope=context.scope, memory_id=memory_id):
+        if not memory_in_scope(
+            manager=context.manager,
+            scope=context.scope,
+            memory_id=memory_id,
+        ):
             return "❌ Delete denied: memory not found in provided scope."
         if context.manager.delete_memory(memory_id, user_id=authorized_user_id):
             return f"🗑️ **Memory Released** (ID: {memory_id})"

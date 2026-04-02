@@ -8,7 +8,7 @@ This is the correct implementation for MCP client integration.
 
 import asyncio
 import logging
-from typing import Any, Dict, Optional
+from typing import Any
 
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
@@ -38,7 +38,10 @@ def get_memory_client():
     global _memory_client
     if _memory_client is None:
         _memory_client = get_required_memory_manager()
-        logger.info("Initialized shared memory manager: %s", type(_memory_client).__name__)
+        logger.info(
+            "Initialized shared memory manager: %s",
+            type(_memory_client).__name__,
+        )
     return _memory_client
 
 

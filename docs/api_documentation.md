@@ -1,959 +1,398 @@
-# Pixelated Empathy AI - API Documentation
+# Pixelated Empathy AI - Enhanced API Documentation
 
-**Version:** 1.0.0  
-**Generated:** 2025-08-03T21:11:11.151244  
+**Version:** 2.0.0  
+**Updated:** 2025-08-12T20:56:05.349119  
 **Base URL:** https://api.pixelatedempathy.com/v1
 
-## Table of Contents
-
-- [Overview](#overview)
-- [Authentication](#authentication)
-- [Dataset Access](#dataset_access)
-- [Quality Metrics](#quality_metrics)
-- [Processing](#processing)
-- [Export Formats](#export_formats)
-- [Search](#search)
-- [Statistics](#statistics)
-- [Error Handling](#error_handling)
-- [Rate Limits](#rate_limits)
-- [Sdk Examples](#sdk_examples)
-
----
-
-## Overview {#overview}
-
-### Description
-
-RESTful API for accessing the Pixelated Empathy AI dataset and processing system
-
-### Version
-
-1.0.0
-
-### Base Url
-
-https://api.pixelatedempathy.com/v1
-
-### Protocols
-
-- HTTPS
-
-### Data Formats
-
-- JSON
-- JSONL
-- CSV
-- Parquet
+## 🚀 Quick Start
 
 ### Authentication
 
-API Key based authentication
+```bash
+# Get API key from dashboard
+export API_KEY="your_api_key_here"
 
-### Rate Limits
-
-1000 requests per hour for standard users
-
-### Key Features
-
-- Dataset access and filtering
-- Quality metrics and validation
-- Real-time processing capabilities
-- Multiple export formats
-- Advanced search and filtering
-- Comprehensive statistics and analytics
-
-### Supported Operations
-
-- GET - Retrieve data and information
-- POST - Submit processing requests
-- PUT - Update configurations
-- DELETE - Remove data (with appropriate permissions)
-
-## Authentication {#authentication}
-
-### Method
-
-API Key Authentication
-
-### Header
-
-Authorization: Bearer YOUR_API_KEY
-
-### Obtaining Key
-
-#### Registration
-
-Register at https://api.pixelatedempathy.com/register
-
-#### Verification
-
-Email verification required
-
-#### Approval
-
-Manual approval for research and commercial use
-
-#### Key Generation
-
-API key generated upon approval
-
-### Key Management
-
-#### Rotation
-
-Keys should be rotated every 90 days
-
-#### Storage
-
-Store keys securely, never in code repositories
-
-#### Sharing
-
-Never share API keys with unauthorized users
-
-#### Revocation
-
-Keys can be revoked immediately if compromised
-
-### Authentication Example
-
-#### Curl
-
-curl -H 'Authorization: Bearer YOUR_API_KEY'
-https://api.pixelatedempathy.com/v1/datasets
-
-#### Python
-
+# Or use JWT token
+export JWT_TOKEN="your_jwt_token_here"
 ```
+
+### Basic Usage
+
+```bash
+# Health check
+curl -X GET "https://api.pixelatedempathy.com/v1/" \
+  -H "X-API-Key: $API_KEY"
+
+# Transcribe audio
+curl -X POST "https://api.pixelatedempathy.com/v1/transcribe" \
+  -H "X-API-Key: $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "audio_url": "https://example.com/audio.mp3",
+    "language": "en",
+    "model": "whisper-1"
+  }'
+```
+
+## 📋 API Endpoints
+
+### Health Check
+
+**GET** `/`
+
+Returns API health status and version information.
+
+**Response:**
+
+```json
+{
+  "status": "healthy",
+  "version": "2.0.0",
+  "timestamp": "2025-08-12T20:00:00Z",
+  "uptime": 3600
+}
+```
+
+### Transcription
+
+**POST** `/transcribe`
+
+Transcribe audio content using AI models.
+
+**Request Body:**
+
+```json
+{
+  "audio_url": "string",
+  "language": "string (optional, default: 'en')",
+  "model": "string (optional, default: 'whisper-1')",
+  "options": {
+    "timestamps": true,
+    "word_level": false,
+    "speaker_detection": false
+  }
+}
+```
+
+**Response:**
+
+```json
+{
+  "transcript": "string",
+  "confidence": 0.95,
+  "language": "en",
+  "duration": 120.5,
+  "timestamps": [{ "start": 0.0, "end": 5.2, "text": "Hello world" }]
+}
+```
+
+**Example:**
+
+```python
 import requests
 
-headers = {
-    'Authorization': 'Bearer YOUR_API_KEY',
-    'Content-Type': 'application/json'
+response = requests.post(
+    "https://api.pixelatedempathy.com/v1/transcribe",
+    headers={"X-API-Key": "your_api_key"},
+    json={
+        "audio_url": "https://example.com/audio.mp3",
+        "language": "en",
+        "options": {"timestamps": True}
+    }
+)
+print(response.json())
+```
+
+### Pipeline Jobs
+
+**POST** `/pipeline/jobs`
+
+Create a new pipeline processing job.
+
+**Request Body:**
+
+```json
+{
+  "job_type": "transcription|analysis|processing",
+  "input_data": {
+    "url": "string",
+    "format": "string"
+  },
+  "config": {
+    "language": "string",
+    "model": "string",
+    "options": {}
+  }
 }
-
-response = requests.get('https://api.pixelatedempathy.com/v1/datasets', headers=headers)
 ```
 
-#### Javascript
+**Response:**
 
-```
-const headers = {
-    'Authorization': 'Bearer YOUR_API_KEY',
-    'Content-Type': 'application/json'
-};
-
-fetch('https://api.pixelatedempathy.com/v1/datasets', { headers })
-    .then(response => response.json())
-    .then(data => console.log(data));
+```json
+{
+  "job_id": "uuid",
+  "status": "queued",
+  "created_at": "2025-08-12T20:00:00Z",
+  "estimated_completion": "2025-08-12T20:05:00Z"
+}
 ```
 
-## Dataset Access {#dataset_access}
+**GET** `/pipeline/jobs`
 
-### Endpoints
+List all jobs for the authenticated user.
 
-#### List Datasets
+**Response:**
 
-##### Method
+```json
+[
+  {
+    "job_id": "uuid",
+    "job_type": "transcription",
+    "status": "completed",
+    "created_at": "2025-08-12T20:00:00Z",
+    "completed_at": "2025-08-12T20:03:00Z",
+    "result_url": "https://api.example.com/results/uuid"
+  }
+]
+```
 
-GET
+**GET** `/pipeline/jobs/{job_id}`
 
-##### Path
+Get specific job details.
 
-/datasets
+**DELETE** `/pipeline/jobs/{job_id}`
 
-##### Description
+Cancel a running job.
 
-List all available datasets
+### Data Access
 
-##### Parameters
+**GET** `/data/{data_type}/latest`
 
-###### Tier
+Get latest data of specified type.
 
-Filter by tier (1, 2, 3)
+**GET** `/data/{data_type}/files`
 
-###### Quality Min
+List available data files.
 
-Minimum quality score (0.0-1.0)
+## 🔐 Authentication
 
-###### Limit
+### API Key Authentication
 
-Number of results to return (default: 100)
+```bash
+curl -H "X-API-Key: your_api_key" https://api.pixelatedempathy.com/v1/
+```
 
-###### Offset
+### JWT Token Authentication
 
-Offset for pagination (default: 0)
+```bash
+curl -H "Authorization: Bearer your_jwt_token" https://api.pixelatedempathy.com/v1/
+```
 
-##### Response
+### Role-Based Access Control
 
-###### Datasets
+| Role         | Permissions                             |
+| ------------ | --------------------------------------- |
+| **readonly** | Read access to data and job status      |
+| **standard** | Create jobs, read data, manage own jobs |
+| **premium**  | Higher rate limits, priority processing |
+| **admin**    | Full system access, user management     |
 
-- **id**: priority_1
-- **name**: Priority Dataset Tier 1
-- **description**: High-priority therapeutic conversations
-- **conversation_count**: 102594
-- **average_quality**: 0.637
-- **tier**: 1
-- **created_at**: 2024-08-01T00:00:00Z
+## ⚡ Rate Limits
 
-###### Total
+| Tier           | Requests/Minute | Requests/Hour | Requests/Day |
+| -------------- | --------------- | ------------- | ------------ |
+| **Free**       | 60              | 1,000         | 10,000       |
+| **Standard**   | 120             | 5,000         | 50,000       |
+| **Premium**    | 300             | 15,000        | 150,000      |
+| **Enterprise** | Unlimited       | Unlimited     | Unlimited    |
 
-25
+### Rate Limit Headers
 
-###### Limit
+```
+X-RateLimit-Limit: 60
+X-RateLimit-Remaining: 45
+X-RateLimit-Reset: 1692742800
+```
 
-100
+## 🚨 Error Handling
 
-###### Offset
+### HTTP Status Codes
 
-0
+- **200** - Success
+- **201** - Created
+- **202** - Accepted (async processing)
+- **400** - Bad Request
+- **401** - Unauthorized
+- **403** - Forbidden
+- **404** - Not Found
+- **422** - Validation Error
+- **429** - Rate Limited
+- **500** - Internal Server Error
 
-#### Get Dataset
+### Error Response Format
 
-##### Method
-
-GET
-
-##### Path
-
-/datasets/{dataset_id}
-
-##### Description
-
-Get detailed information about a specific dataset
-
-##### Parameters
-
-###### Dataset Id
-
-Unique dataset identifier
-
-##### Response
-
-###### Id
-
-priority_1
-
-###### Name
-
-Priority Dataset Tier 1
-
-###### Description
-
-High-priority therapeutic conversations
-
-###### Conversation Count
-
-102594
-
-###### Average Quality
-
-0.637
-
-###### Tier
-
-1
-
-###### Metadata
-
-####### Source
-
-Multiple therapeutic conversation sources
-
-####### Processing Date
-
-2024-08-01T00:00:00Z
-
-####### Quality Validation
-
-Real NLP-based validation
-
-#### Get Conversations
-
-##### Method
-
-GET
-
-##### Path
-
-/datasets/{dataset_id}/conversations
-
-##### Description
-
-Get conversations from a specific dataset
-
-##### Parameters
-
-###### Dataset Id
-
-Unique dataset identifier
-
-###### Quality Min
-
-Minimum quality score
-
-###### Quality Max
-
-Maximum quality score
-
-###### Limit
-
-Number of conversations to return
-
-###### Offset
-
-Offset for pagination
-
-###### Format
-
-Response format (json, jsonl, csv)
-
-##### Response
-
-###### Conversations
-
-- **id**: conv_12345
-- **turns**: [{'speaker': 'user', 'text': "I've been feeling really anxious
-  lately..."}, {'speaker': 'assistant', 'text': 'I understand that anxiety can
-  be overwhelming...'}]
-- **quality_score**: 0.75
-- **metadata**: {'tier': 1, 'topic': 'anxiety', 'length': 8}
-
-###### Total
-
-102594
-
-###### Limit
-
-100
-
-###### Offset
-
-0
-
-## Quality Metrics {#quality_metrics}
-
-### Endpoints
-
-#### Get Quality Metrics
-
-##### Method
-
-GET
-
-##### Path
-
-/quality/metrics
-
-##### Description
-
-Get overall quality metrics for all datasets
-
-##### Response
-
-###### Overall Metrics
-
-####### Average Quality
-
-0.687
-
-####### Total Conversations
-
-2592223
-
-####### High Quality Count
-
-1234567
-
-####### Quality Distribution
-
-######## 0.8-1.0
-
-456789
-
-######## 0.6-0.8
-
-777778
-
-######## 0.4-0.6
-
-357656
-
-######## 0.0-0.4
-
-0
-
-#### Validate Conversation
-
-##### Method
-
-POST
-
-##### Path
-
-/quality/validate
-
-##### Description
-
-Validate quality of a conversation
-
-##### Request Body
-
-###### Conversation
-
-####### Turns
-
-- **speaker**: user
-- **text**: I'm feeling depressed
-- **speaker**: assistant
-- **text**: I'm sorry to hear you're feeling this way...
-
-##### Response
-
-###### Quality Score
-
-0.75
-
-###### Quality Breakdown
-
-####### Therapeutic Accuracy
-
-0.8
-
-####### Conversation Coherence
-
-0.85
-
-####### Emotional Authenticity
-
-0.7
-
-####### Clinical Compliance
-
-0.75
-
-####### Personality Consistency
-
-0.65
-
-####### Language Quality
-
-0.9
-
-###### Recommendations
-
-- Consider more specific therapeutic techniques
-- Enhance emotional validation
-
-## Processing {#processing}
-
-### Endpoints
-
-#### Submit Processing Job
-
-##### Method
-
-POST
-
-##### Path
-
-/processing/jobs
-
-##### Description
-
-Submit a new processing job
-
-##### Request Body
-
-###### Job Type
-
-dataset_processing
-
-###### Input Data
-
-####### Source
-
-url_or_file_reference
-
-####### Format
-
-jsonl
-
-###### Processing Options
-
-####### Quality Validation
-
-True
-
-####### Deduplication
-
-True
-
-####### Tier Assignment
-
-True
-
-##### Response
-
-###### Job Id
-
-job_12345
-
-###### Status
-
-queued
-
-###### Estimated Completion
-
-2024-08-03T15:30:00Z
-
-###### Created At
-
-2024-08-03T14:00:00Z
-
-#### Get Job Status
-
-##### Method
-
-GET
-
-##### Path
-
-/processing/jobs/{job_id}
-
-##### Description
-
-Get status of a processing job
-
-##### Response
-
-###### Job Id
-
-job_12345
-
-###### Status
-
-processing
-
-###### Progress
-
-0.65
-
-###### Processed Items
-
-6500
-
-###### Total Items
-
-10000
-
-###### Estimated Completion
-
-2024-08-03T15:30:00Z
-
-###### Results
-
-####### Output Dataset Id
-
-processed_12345
-
-####### Quality Report
-
-Available upon completion
-
-## Export Formats {#export_formats}
-
-### Supported Formats
-
-#### Jsonl
-
-##### Description
-
-JSON Lines format for streaming processing
-
-##### Mime Type
-
-application/jsonl
-
-##### Use Cases
-
-- Model training
-- Data processing
-- Streaming
-
-#### Parquet
-
-##### Description
-
-Columnar storage format for analytics
-
-##### Mime Type
-
-application/parquet
-
-##### Use Cases
-
-- Data analysis
-- Big data processing
-- Analytics
-
-#### Csv
-
-##### Description
-
-Comma-separated values for human readability
-
-##### Mime Type
-
-text/csv
-
-##### Use Cases
-
-- Manual review
-- Spreadsheet analysis
-- Simple processing
-
-#### Huggingface
-
-##### Description
-
-HuggingFace datasets format
-
-##### Mime Type
-
-application/json
-
-##### Use Cases
-
-- HuggingFace model training
-- Transformers library
-
-### Endpoints
-
-#### Export Dataset
-
-##### Method
-
-POST
-
-##### Path
-
-/export
-
-##### Description
-
-Export dataset in specified format
-
-##### Request Body
-
-###### Dataset Ids
-
-- priority_1
-- priority_2
-
-###### Format
-
-jsonl
-
-###### Filters
-
-####### Quality Min
-
-0.7
-
-####### Tier
-
-- 1
-- 2
-
-###### Split
-
-####### Train
-
-0.7
-
-####### Validation
-
-0.15
-
-####### Test
-
-0.15
-
-##### Response
-
-###### Export Id
-
-export_12345
-
-###### Status
-
-processing
-
-###### Estimated Completion
-
-2024-08-03T16:00:00Z
-
-#### Download Export
-
-##### Method
-
-GET
-
-##### Path
-
-/export/{export_id}/download
-
-##### Description
-
-Download completed export
-
-##### Response
-
-Binary file download or redirect to download URL
-
-## Search {#search}
-
-### Endpoints
-
-#### Search Conversations
-
-##### Method
-
-GET
-
-##### Path
-
-/search/conversations
-
-##### Description
-
-Search conversations using full-text search
-
-##### Parameters
-
-###### Q
-
-Search query string
-
-###### Filters
-
-JSON object with filters
-
-###### Limit
-
-Number of results (default: 20)
-
-###### Offset
-
-Offset for pagination
-
-##### Response
-
-###### Results
-
-- **conversation_id**: conv_12345
-- **relevance_score**: 0.95
-- **snippet**: ...feeling anxious lately...
-- **metadata**: {'quality_score': 0.75, 'tier': 1, 'dataset': 'priority_1'}
-
-###### Total
-
-1234
-
-###### Query Time
-
-0.045
-
-## Statistics {#statistics}
-
-### Endpoints
-
-#### Get Statistics
-
-##### Method
-
-GET
-
-##### Path
-
-/statistics
-
-##### Description
-
-Get comprehensive dataset statistics
-
-##### Response
-
-###### Total Conversations
-
-2592223
-
-###### Average Quality
-
-0.687
-
-###### Tier Distribution
-
-####### Tier 1
-
-297917
-
-####### Tier 2
-
-1234567
-
-####### Tier 3
-
-1059739
-
-###### Quality Distribution
-
-####### High Quality
-
-1234567
-
-####### Medium Quality
-
-777778
-
-####### Low Quality
-
-579878
-
-## Error Handling {#error_handling}
-
-### Error Format
-
-#### Error
-
-##### Code
-
-ERROR_CODE
-
-##### Message
-
-Human readable error message
-
-##### Details
-
-Additional error details
-
-##### Timestamp
-
-2024-08-03T14:00:00Z
-
-### Status Codes
-
-#### 200
-
-Success
-
-#### 400
-
-Bad Request - Invalid parameters
-
-#### 401
-
-Unauthorized - Invalid API key
-
-#### 403
-
-Forbidden - Insufficient permissions
-
-#### 404
-
-Not Found - Resource not found
-
-#### 429
-
-Too Many Requests - Rate limit exceeded
-
-#### 500
-
-Internal Server Error
-
-## Rate Limits {#rate_limits}
-
-### Limits
-
-#### Standard
-
-1000 requests per hour
-
-#### Premium
-
-10000 requests per hour
-
-#### Enterprise
-
-Unlimited with fair use
-
-### Headers
-
-#### X-Ratelimit-Limit
-
-Request limit per hour
-
-#### X-Ratelimit-Remaining
-
-Remaining requests
-
-#### X-Ratelimit-Reset
-
-Reset time (Unix timestamp)
-
-## Sdk Examples {#sdk_examples}
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid request parameters",
+    "details": {
+      "field": "audio_url",
+      "issue": "URL is not accessible"
+    },
+    "request_id": "uuid"
+  }
+}
+```
+
+## 📚 SDK Examples
 
 ### Python
 
-#### Installation
+```python
+import requests
+from typing import Optional, Dict, Any
 
-pip install pixelated-empathy-sdk
+class PixelatedEmpathyAPI:
+    def __init__(self, api_key: str, base_url: str = "https://api.pixelatedempathy.com/v1"):
+        self.api_key = api_key
+        self.base_url = base_url
+        self.session = requests.Session()
+        self.session.headers.update({"X-API-Key": api_key})
 
-#### Example
+    def transcribe(self, audio_url: str, language: str = "en", **options) -> Dict[str, Any]:
+        response = self.session.post(
+            f"{self.base_url}/transcribe",
+            json={
+                "audio_url": audio_url,
+                "language": language,
+                "options": options
+            }
+        )
+        response.raise_for_status()
+        return response.json()
 
+    def create_job(self, job_type: str, input_data: Dict, config: Dict) -> str:
+        response = self.session.post(
+            f"{self.base_url}/pipeline/jobs",
+            json={
+                "job_type": job_type,
+                "input_data": input_data,
+                "config": config
+            }
+        )
+        response.raise_for_status()
+        return response.json()["job_id"]
+
+    def get_job(self, job_id: str) -> Dict[str, Any]:
+        response = self.session.get(f"{self.base_url}/pipeline/jobs/{job_id}")
+        response.raise_for_status()
+        return response.json()
+
+# Usage
+api = PixelatedEmpathyAPI("your_api_key")
+result = api.transcribe("https://example.com/audio.mp3", timestamps=True)
+print(result["transcript"])
 ```
-from pixelated_empathy import PixelatedEmpathyClient
 
-client = PixelatedEmpathyClient(api_key="YOUR_API_KEY")
+### JavaScript/Node.js
 
-# Get datasets
-datasets = client.get_datasets()
+```javascript
+class PixelatedEmpathyAPI {
+  constructor(apiKey, baseUrl = 'https://api.pixelatedempathy.com/v1') {
+    this.apiKey = apiKey
+    this.baseUrl = baseUrl
+  }
 
-# Get conversations
-conversations = client.get_conversations(
-    dataset_id="priority_1",
-    quality_min=0.7,
-    limit=100
-)
+  async transcribe(audioUrl, options = {}) {
+    const response = await fetch(`${this.baseUrl}/transcribe`, {
+      method: 'POST',
+      headers: {
+        'X-API-Key': this.apiKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        audio_url: audioUrl,
+        ...options,
+      }),
+    })
 
-# Validate conversation quality
-quality = client.validate_conversation(conversation_data)
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status}`)
+    }
+
+    return await response.json()
+  }
+
+  async createJob(jobType, inputData, config) {
+    const response = await fetch(`${this.baseUrl}/pipeline/jobs`, {
+      method: 'POST',
+      headers: {
+        'X-API-Key': this.apiKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        job_type: jobType,
+        input_data: inputData,
+        config: config,
+      }),
+    })
+
+    const result = await response.json()
+    return result.job_id
+  }
+}
+
+// Usage
+const api = new PixelatedEmpathyAPI('your_api_key')
+const result = await api.transcribe('https://example.com/audio.mp3', {
+  language: 'en',
+  timestamps: true,
+})
+console.log(result.transcript)
 ```
 
-### Javascript
+## 🔧 Advanced Features
 
-#### Installation
+### Webhooks
 
-npm install pixelated-empathy-sdk
+Configure webhooks to receive job completion notifications:
 
-#### Example
-
+```json
+{
+  "webhook_url": "https://your-app.com/webhooks/pixelated",
+  "events": ["job.completed", "job.failed"],
+  "secret": "your_webhook_secret"
+}
 ```
-const PixelatedEmpathy = require('pixelated-empathy-sdk');
 
-const client = new PixelatedEmpathy({
-    apiKey: 'YOUR_API_KEY'
-});
+### Batch Processing
 
-// Get datasets
-const datasets = await client.getDatasets();
+Process multiple files in a single request:
 
-// Get conversations
-const conversations = await client.getConversations({
-    datasetId: 'priority_1',
-    qualityMin: 0.7,
-    limit: 100
-});
+```json
+{
+  "job_type": "batch_transcription",
+  "input_data": {
+    "files": [
+      "https://example.com/audio1.mp3",
+      "https://example.com/audio2.mp3"
+    ]
+  },
+  "config": {
+    "language": "en",
+    "parallel": true
+  }
+}
 ```
+
+## 📞 Support
+
+- **Documentation**: https://docs.pixelatedempathy.com
+- **API Status**: https://status.pixelatedempathy.com
+- **Support**: support@pixelatedempathy.com
+- **Community**: https://community.pixelatedempathy.com
+
+---
+
+_Last updated: 2025-08-12T20:56:05.349119_
