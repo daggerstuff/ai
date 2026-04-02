@@ -9,6 +9,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Dict, Iterable, List, Optional
 
+from .fastmcp_protocols import (
+    BasicMemorySearcher,
+    LegacyMemorySearcher,
+    MemoryReader,
+)
+
 
 @dataclass(frozen=True)
 class MemoryScope:
@@ -25,20 +31,18 @@ class MemoryScope:
 
     def to_metadata(self) -> Dict[str, Any]:
         """Convert scope to normalized metadata."""
-        metadata: Dict[str, Any] = {
-            "visibility": self.visibility,
-        }
-        if self.org_id:
-            metadata["org_id"] = self.org_id
-        if self.project_id:
-            metadata["project_id"] = self.project_id
-        if self.agent_id:
-            metadata["agent_id"] = self.agent_id
-        if self.run_id:
-            metadata["run_id"] = self.run_id
-        if self.session_id:
-            metadata["session_id"] = self.session_id
-        return metadata
+        return scope_metadata_dict(self)
+
+
+def scope_metadata_dict(scope: Any) -> Dict[str, Any]:
+    metadata: Dict[str, Any] = {
+        "visibility": getattr(scope, "visibility", "private"),
+    }
+    for key in ("org_id", "project_id", "agent_id", "run_id", "session_id"):
+        value = getattr(scope, key, None)
+        if value:
+            metadata[key] = value
+    return metadata
 
 
 def build_scope_metadata(
@@ -49,7 +53,7 @@ def build_scope_metadata(
 ) -> Dict[str, Any]:
     """Merge normalized scope metadata with caller-provided metadata."""
     metadata = dict(incoming_metadata or {})
-    metadata.update(scope.to_metadata())
+    metadata.update(scope_metadata_dict(scope))
     if category:
         metadata.setdefault("category", category)
     return metadata
@@ -115,28 +119,36 @@ def _is_shared(visibility: Optional[str]) -> bool:
     return (visibility or "").lower() in {"shared", "org", "project", "system"}
 
 
+def _matches_shared_scope(scope: MemoryScope, metadata: Dict[str, Any]) -> bool:
+    if not _matches_value(scope.org_id, metadata.get("org_id")):
+        return False
+    if not _matches_value(scope.project_id, metadata.get("project_id")):
+        return False
+    return True
+
+
+def _matches_private_scope(scope: MemoryScope, metadata: Dict[str, Any]) -> bool:
+    if not _matches_shared_scope(scope, metadata):
+        return False
+    if not _matches_value(scope.agent_id, metadata.get("agent_id")):
+        return False
+    if not _matches_value(scope.run_id, metadata.get("run_id")):
+        return False
+    if not _matches_value(scope.session_id, metadata.get("session_id")):
+        return False
+    return True
+
+
 def _scope_matches(scope: MemoryScope, metadata: Dict[str, Any]) -> bool:
     visibility = (metadata.get("visibility") or "private").lower()
     is_shared = _is_shared(visibility)
 
     if not scope.include_shared and is_shared:
         return False
+    if is_shared:
+        return _matches_shared_scope(scope, metadata)
 
-    if not _matches_value(scope.org_id, metadata.get("org_id")):
-        return False
-    if not _matches_value(scope.project_id, metadata.get("project_id")):
-        return False
-
-    # Shared records ignore agent/run/session constraints unless explicitly set.
-    if not is_shared:
-        if not _matches_value(scope.agent_id, metadata.get("agent_id")):
-            return False
-        if not _matches_value(scope.run_id, metadata.get("run_id")):
-            return False
-        if not _matches_value(scope.session_id, metadata.get("session_id")):
-            return False
-
-    return True
+    return _matches_private_scope(scope, metadata)
 
 
 def filter_memories_by_scope(
@@ -157,30 +169,104 @@ def filter_memories_by_scope(
     return filtered
 
 
+@dataclass(frozen=True)
+class SearchCandidateFetchPolicy:
+    initial_multiplier: int = 4
+    max_candidates: int = 100
+
+    def initial_limit(self, requested_limit: int) -> int:
+        minimum = max(requested_limit, 1)
+        return min(
+            max(minimum * self.initial_multiplier, minimum + 8),
+            self.max_candidates,
+        )
+
+
+_DEFAULT_SEARCH_FETCH_POLICY = SearchCandidateFetchPolicy()
+
+
+@dataclass(frozen=True)
+class _MemorySearchAdapter:
+    manager: Any
+
+    @classmethod
+    def from_manager(cls, manager: Any) -> "_MemorySearchAdapter":
+        if isinstance(manager, BasicMemorySearcher):
+            return _BasicMemorySearchAdapter(manager)
+        if isinstance(manager, LegacyMemorySearcher):
+            return _LegacyMemorySearchAdapter(manager)
+        raise TypeError("Memory manager does not support search operations.")
+
+
+@dataclass(frozen=True)
+class _BasicMemorySearchAdapter(_MemorySearchAdapter):
+    manager: BasicMemorySearcher
+
+    def run_search(self, query: str, user_id: str, limit: int):
+        return self.manager.search_memories(query, user_id, limit)
+
+
+@dataclass(frozen=True)
+class _LegacyMemorySearchAdapter(_MemorySearchAdapter):
+    manager: LegacyMemorySearcher
+
+    def run_search(self, query: str, user_id: str, limit: int):
+        return self.manager.search(query, user_id=user_id, limit=limit)
+
+
+def _progressive_fetch_limits(
+    *,
+    requested_limit: int,
+    fetch_policy: SearchCandidateFetchPolicy,
+):
+    fetch_limit = fetch_policy.initial_limit(requested_limit)
+    yield fetch_limit
+    if fetch_limit < fetch_policy.max_candidates:
+        yield fetch_policy.max_candidates
+
+
 def search_with_overfetch(
     *,
     manager: Any,
     query: str,
     user_id: str,
     requested_limit: int,
+    scope: MemoryScope | None = None,
 ) -> List[Dict[str, Any]]:
     """
-    Fetch extra search candidates before in-process scope filtering.
+    Fetch candidates using a bounded progressive window so restrictive scopes
+    can still fill the requested result count without a fixed 5x overfetch.
     """
-    fetch_limit = max(requested_limit * 5, 50)
-    try:
-        result = manager.search_memories(query, user_id=user_id, limit=fetch_limit)
-    except (TypeError, AttributeError):
-        if hasattr(manager, "search_memories"):
-            result = manager.search_memories(query, user_id)
-        else:
-            result = manager.search(query, user_id=user_id, limit=fetch_limit)
+    adapter = _MemorySearchAdapter.from_manager(manager)
+    fetch_policy = _DEFAULT_SEARCH_FETCH_POLICY
+    best_match: List[Dict[str, Any]] = []
 
-    if isinstance(result, dict):
-        return result.get("results", [])
-    if isinstance(result, list):
-        return result
-    return []
+    for fetch_limit in _progressive_fetch_limits(
+        requested_limit=requested_limit,
+        fetch_policy=fetch_policy,
+    ):
+        result = adapter.run_search(query, user_id, fetch_limit)
+        candidates: List[Dict[str, Any]]
+        if isinstance(result, dict):
+            candidates = result.get("results", [])
+        elif isinstance(result, list):
+            candidates = result
+        else:
+            candidates = []
+        if not candidates:
+            return []
+
+        if scope is None:
+            return candidates
+
+        best_match = filter_memories_by_scope(
+            scope=scope,
+            memories=candidates,
+            limit=requested_limit,
+        )
+        if len(best_match) >= requested_limit:
+            return best_match
+    return best_match
 
 
 def memory_in_scope(
@@ -192,6 +278,8 @@ def memory_in_scope(
     """
     Verify memory ownership/scope using direct lookup metadata.
     """
+    if not isinstance(manager, MemoryReader):
+        return False
     try:
         record = manager.get_memory(memory_id)
     except Exception:

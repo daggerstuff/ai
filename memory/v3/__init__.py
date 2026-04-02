@@ -31,7 +31,7 @@ from .context import (
     set_subconscious,
     subconscious_context,
 )
-from .provider import LocalHindsightProvider, MemoryProvider
+from .provider import LocalHindsightProvider, MemoryProvider, SharedMemoryServiceProvider
 
 __all__ = [
     # Context API
@@ -47,4 +47,5 @@ __all__ = [
     # Provider API
     "MemoryProvider",
     "LocalHindsightProvider",
+    "SharedMemoryServiceProvider",
 ]

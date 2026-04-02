@@ -130,16 +130,13 @@ def test_memory_query_refills_candidates_after_scope_filtering(
 
     attempts: list[int] = []
 
-    def fake_search_with_overfetch(*, manager, query: str, user_id: str, requested_limit: int):
+    def fake_search_with_overfetch(*, manager, query: str, user_id: str, requested_limit: int, scope):
         del manager, query, user_id
         attempts.append(requested_limit)
+        assert scope.project_id == "pixelated"
         if requested_limit == 2:
-            return [
-                {"memory": "wrong project", "score": 0.9, "metadata": {"project_id": "other"}},
-                {"memory": "still wrong", "score": 0.8, "metadata": {"project_id": "other"}},
-            ]
+            return []
         return [
-            {"memory": "wrong project", "score": 0.9, "metadata": {"project_id": "other"}},
             {"memory": "project one", "score": 0.8, "metadata": {"project_id": "pixelated"}},
             {"memory": "project two", "score": 0.7, "metadata": {"project_id": "pixelated"}},
         ]
