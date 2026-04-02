@@ -277,8 +277,10 @@ class DataNormalizer:
 
         Args:
             input_path: Path to input JSONL file.
-            output_path: Path for normalized output JSONL. Defaults to input_path with .normalized.jsonl suffix.
-            reject_path: Path for rejected records JSONL. Defaults to input_path with .rejected.jsonl suffix.
+            output_path: Path for normalized output JSONL. Defaults to
+                input_path with .normalized.jsonl suffix.
+            reject_path: Path for rejected records JSONL. Defaults to
+                input_path with .rejected.jsonl suffix.
 
         Returns:
             NormalizationResult with counts and rejection reasons.

@@ -5,29 +5,38 @@ Route factories for the shared memory server.
 from __future__ import annotations
 
 import logging
-from typing import Any, Callable, Dict, List, Optional, Protocol, cast
+from typing import Any, Callable, Dict, List, Optional
 
-from fastapi import APIRouter, Header, HTTPException, Request, Response
+from fastapi import APIRouter, Header, HTTPException, Query, Request, Response
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
-
 from ai.api.mcp_server.memory_auth import (
     MemoryAccessContext,
     authorize_memory_access,
     readiness_details,
     required_user_id,
 )
-from ai.api.mcp_server.memory_query_service import get_scoped_memories
-from ai.api.mcp_server.memory_query_service import recall_memories_for_user
+from ai.api.mcp_server.memory_query_service import (
+    get_scoped_memories,
+    get_scoped_memory_stats,
+    recall_memories_for_user,
+)
+from ai.api.mcp_server.schemas import (
+    AddMemoryRequest,
+    HindsightRecallRequest,
+    HindsightRetainRequest,
+    ScopeRequest,
+    SearchMemoryRequest,
+    UpdateMemoryRequest,
+)
 from ai.api.mcp_server.memory_scope import (
     build_scope_metadata,
-    filter_memories_by_scope,
     memory_in_scope,
     scope_from_kwargs,
     search_with_overfetch,
 )
 from ai.memory.base import (
+    CategoryScopedMemoryManager,
     HealthReportingMemoryManager,
     HindsightCompatibleMemoryManager,
     ScopedMemoryManager,
@@ -47,7 +56,6 @@ _ALLOWED_USER_PROFILE_METADATA_KEYS = {
     "project_id",
     "notes",
 }
-
 
 def _route_call(action: str, handler: Callable[[], Any]) -> Any:
     try:
@@ -94,13 +102,42 @@ async def _run_authorized(
     return await run_in_threadpool(_route_call, action, _handler)
 
 
+async def _run_authorized_for_expected_user(
+    *,
+    action: str,
+    request: Request,
+    actor_id: Optional[str],
+    scoped_user_id: Optional[str],
+    timestamp: Optional[str],
+    nonce: Optional[str],
+    signature: Optional[str],
+    expected_user_id: str,
+    callback: Callable[[MemoryAccessContext], Any],
+) -> Any:
+    return await _run_authorized(
+        action=action,
+        request=request,
+        actor_id=actor_id,
+        user_id=scoped_user_id,
+        timestamp=timestamp,
+        nonce=nonce,
+        signature=signature,
+        handler=lambda access: _guard_user_scope(
+            access=access,
+            expected_user_id=expected_user_id,
+            scoped_user_id=scoped_user_id,
+            callback=lambda: callback(access),
+        ),
+    )
+
+
 def _require_scoped_manager(manager: Any) -> ScopedMemoryManager:
     if not isinstance(manager, ScopedMemoryManager):
         raise HTTPException(
             status_code=503,
             detail="Configured memory manager does not support scoped memory listing",
         )
-    return cast(ScopedMemoryManager, manager)
+    return manager
 
 
 def _require_hindsight_manager(manager: Any) -> HindsightCompatibleMemoryManager:
@@ -109,16 +146,69 @@ def _require_hindsight_manager(manager: Any) -> HindsightCompatibleMemoryManager
             status_code=503,
             detail="Configured memory manager does not support Hindsight-compatible operations",
         )
-    return cast(HindsightCompatibleMemoryManager, manager)
+    return manager
 
 
-def _ensure_memory_owner(manager: Any, memory_id: str, user_id: str) -> None:
+def _require_category_scoped_manager(manager: Any) -> CategoryScopedMemoryManager:
+    if not isinstance(manager, CategoryScopedMemoryManager):
+        raise HTTPException(
+            status_code=503,
+            detail="Configured memory manager does not support scoped memory stats",
+        )
+    return manager
+
+
+def _scope_for_memory(
+    *,
+    user_id: str,
+    org_id: Optional[str],
+    project_id: Optional[str],
+    session_id: Optional[str],
+    agent_id: Optional[str],
+    run_id: Optional[str],
+    include_shared: bool,
+):
+    return scope_from_kwargs(
+        user_id=user_id,
+        org_id=org_id,
+        project_id=project_id,
+        session_id=session_id,
+        agent_id=agent_id,
+        run_id=run_id,
+        include_shared=include_shared,
+    )
+
+
+def _get_authorized_memory_record(
+    manager: Any,
+    *,
+    memory_id: str,
+    user_id: str,
+    org_id: Optional[str],
+    project_id: Optional[str],
+    session_id: Optional[str],
+    agent_id: Optional[str],
+    run_id: Optional[str],
+    include_shared: bool,
+) -> Dict[str, Any]:
+    scope = _scope_for_memory(
+        user_id=user_id,
+        org_id=org_id,
+        project_id=project_id,
+        session_id=session_id,
+        agent_id=agent_id,
+        run_id=run_id,
+        include_shared=include_shared,
+    )
+    if not memory_in_scope(manager=manager, scope=scope, memory_id=memory_id):
+        raise HTTPException(status_code=404, detail="Memory not found in provided scope")
     record = manager.get_memory(memory_id, user_id=user_id)
     if not record:
         raise HTTPException(status_code=404, detail="Memory not found")
     owner = record.get("user_id")
     if owner and owner != user_id:
         raise HTTPException(status_code=404, detail="Memory not found in provided scope")
+    return record
 
 
 def _enforce_user_scope(
@@ -136,72 +226,6 @@ def _enforce_user_scope(
     return access.assert_user_scope(resolved_user_id)
 
 
-class AddMemoryRequest(BaseModel):
-    content: str
-    user_id: str
-    org_id: Optional[str] = None
-    project_id: Optional[str] = None
-    session_id: Optional[str] = None
-    agent_id: Optional[str] = None
-    run_id: Optional[str] = None
-    visibility: Optional[str] = "private"
-    include_shared: Optional[bool] = True
-    category: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
-
-
-class SearchMemoryRequest(BaseModel):
-    query: str
-    user_id: str
-    org_id: Optional[str] = None
-    project_id: Optional[str] = None
-    session_id: Optional[str] = None
-    agent_id: Optional[str] = None
-    run_id: Optional[str] = None
-    include_shared: Optional[bool] = True
-    limit: Optional[int] = 10
-
-
-class UpdateMemoryRequest(BaseModel):
-    text: str
-    user_id: str
-    org_id: Optional[str] = None
-    project_id: Optional[str] = None
-    session_id: Optional[str] = None
-    agent_id: Optional[str] = None
-    run_id: Optional[str] = None
-    include_shared: Optional[bool] = True
-    metadata: Optional[Dict[str, Any]] = None
-
-
-class HindsightRetainItem(BaseModel):
-    content: str
-    document_id: Optional[str] = None
-    context: Optional[str] = None
-    tags: List[str] = Field(default_factory=list)
-
-
-class HindsightRetainRequest(BaseModel):
-    items: List[HindsightRetainItem]
-
-
-class HindsightRecallRequest(BaseModel):
-    query: str
-    limit: Optional[int] = 10
-    tags: Optional[List[str]] = None
-    tags_match: Optional[str] = "any"
-
-
-class _ScopeRequest(Protocol):
-    user_id: str
-    org_id: Optional[str]
-    project_id: Optional[str]
-    session_id: Optional[str]
-    agent_id: Optional[str]
-    run_id: Optional[str]
-    include_shared: Optional[bool]
-
-
 def _ensure_document_write_access(
     manager: Any,
     *,
@@ -212,6 +236,25 @@ def _ensure_document_write_access(
     hindsight_manager = _require_hindsight_manager(manager)
     if not hindsight_manager.can_write_document(bank_id, document_id, user_id=user_id):
         raise HTTPException(status_code=404, detail="Document not found")
+
+
+def _get_authorized_hindsight_document(
+    manager: HindsightCompatibleMemoryManager,
+    *,
+    bank_id: str,
+    document_id: str,
+    user_id: str,
+) -> Dict[str, Any]:
+    _ensure_document_write_access(
+        manager,
+        bank_id=bank_id,
+        document_id=document_id,
+        user_id=user_id,
+    )
+    document = manager.get_document(bank_id, document_id, user_id=user_id)
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found")
+    return document
 
 
 def _prepare_hindsight_retain_items(
@@ -255,7 +298,7 @@ def _prepare_hindsight_retain_items(
         raise
 
 
-def _build_scope_from_request(request: _ScopeRequest, *, visibility: Optional[str] = None):
+def _build_scope_from_request(request: ScopeRequest, *, visibility: Optional[str] = None):
     return scope_from_kwargs(
         user_id=request.user_id,
         org_id=request.org_id,
@@ -408,14 +451,23 @@ def _update_memory_response(
     *,
     access: MemoryAccessContext,
 ) -> Dict[str, Any]:
-    scope = _build_scope_from_request(request)
-    allowed = memory_in_scope(manager=manager, scope=scope, memory_id=memory_id)
-    if not allowed:
-        raise HTTPException(status_code=404, detail="Memory not found in provided scope")
-    _ensure_memory_owner(manager, memory_id, request.user_id)
+    _get_authorized_memory_record(
+        manager,
+        memory_id=memory_id,
+        user_id=request.user_id,
+        org_id=request.org_id,
+        project_id=request.project_id,
+        session_id=request.session_id,
+        agent_id=request.agent_id,
+        run_id=request.run_id,
+        include_shared=request.include_shared is not False,
+    )
+    new_content = request.content
+    if not new_content:
+        raise HTTPException(status_code=400, detail="Update content is required")
     success = manager.update_memory(
         memory_id=memory_id,
-        new_content=request.text,
+        new_content=new_content,
         metadata=_merge_actor_metadata(metadata=request.metadata, access=access),
         user_id=request.user_id,
     )
@@ -436,7 +488,9 @@ def _delete_memory_response(
     run_id: Optional[str],
     include_shared: bool,
 ) -> Dict[str, Any]:
-    scope = scope_from_kwargs(
+    _get_authorized_memory_record(
+        manager,
+        memory_id=memory_id,
         user_id=user_id,
         org_id=org_id,
         project_id=project_id,
@@ -445,14 +499,35 @@ def _delete_memory_response(
         run_id=run_id,
         include_shared=include_shared,
     )
-    allowed = memory_in_scope(manager=manager, scope=scope, memory_id=memory_id)
-    if not allowed:
-        raise HTTPException(status_code=404, detail="Memory not found in provided scope")
-    _ensure_memory_owner(manager, memory_id, user_id)
     deleted = manager.delete_memory(memory_id=memory_id, user_id=user_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Memory not found")
     return {"success": True, "message": "Memory deleted"}
+
+
+def _get_memory_response(
+    manager: Any,
+    *,
+    memory_id: str,
+    user_id: str,
+    org_id: Optional[str],
+    project_id: Optional[str],
+    session_id: Optional[str],
+    agent_id: Optional[str],
+    run_id: Optional[str],
+    include_shared: bool,
+) -> Dict[str, Any]:
+    return _get_authorized_memory_record(
+        manager,
+        memory_id=memory_id,
+        user_id=user_id,
+        org_id=org_id,
+        project_id=project_id,
+        session_id=session_id,
+        agent_id=agent_id,
+        run_id=run_id,
+        include_shared=include_shared,
+    )
 
 
 def _get_all_memories_response(
@@ -466,6 +541,9 @@ def _get_all_memories_response(
     run_id: Optional[str],
     include_shared: bool,
     limit: Optional[int],
+    offset: int,
+    category: Optional[str],
+    tags: Optional[List[str]],
 ) -> Dict[str, Any]:
     requested_limit = limit or 100
     memories = get_scoped_memories(
@@ -478,10 +556,41 @@ def _get_all_memories_response(
         run_id=run_id,
         include_shared=include_shared,
         limit=requested_limit,
+        offset=offset,
+        category=category,
+        tags=tags,
     )
     if isinstance(memories, dict) and "results" in memories:
         memories = memories["results"]
     return {"success": True, "memories": memories, "count": len(memories)}
+
+
+def _get_memory_stats_response(
+    manager: Any,
+    *,
+    user_id: str,
+    org_id: Optional[str],
+    project_id: Optional[str],
+    session_id: Optional[str],
+    agent_id: Optional[str],
+    run_id: Optional[str],
+    include_shared: bool,
+) -> Dict[str, Any]:
+    category_counts = get_scoped_memory_stats(
+        _require_category_scoped_manager(manager),
+        user_id=user_id,
+        org_id=org_id,
+        project_id=project_id,
+        session_id=session_id,
+        agent_id=agent_id,
+        run_id=run_id,
+        include_shared=include_shared,
+    )
+    return {
+        "success": True,
+        "totalMemories": sum(category_counts.values()),
+        "categoryCounts": category_counts,
+    }
 
 
 def _hindsight_document_response(
@@ -491,10 +600,12 @@ def _hindsight_document_response(
     document_id: str,
     user_id: str,
 ) -> Dict[str, Any]:
-    document = manager.get_document(bank_id, document_id, user_id=user_id)
-    if not document:
-        raise HTTPException(status_code=404, detail="Document not found")
-    return document
+    return _get_authorized_hindsight_document(
+        manager,
+        bank_id=bank_id,
+        document_id=document_id,
+        user_id=user_id,
+    )
 
 
 def _hindsight_delete_document_response(
@@ -504,6 +615,12 @@ def _hindsight_delete_document_response(
     document_id: str,
     user_id: str,
 ) -> Response:
+    _get_authorized_hindsight_document(
+        manager,
+        bank_id=bank_id,
+        document_id=document_id,
+        user_id=user_id,
+    )
     deleted = manager.delete_document(bank_id, document_id, user_id=user_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Document not found")
@@ -523,24 +640,20 @@ def create_mcp_router(get_manager: ManagerGetter) -> APIRouter:
         x_memory_nonce: Optional[str] = Header(default=None),
         x_memory_signature: Optional[str] = Header(default=None),
     ):
-        return await _run_authorized(
+        return await _run_authorized_for_expected_user(
             action="adding memory",
             request=request_context,
             actor_id=x_memory_actor_id,
-            user_id=x_memory_user_id,
+            scoped_user_id=x_memory_user_id,
             timestamp=x_memory_timestamp,
             nonce=x_memory_nonce,
             signature=x_memory_signature,
-            handler=lambda access: _guard_user_scope(
+            expected_user_id=request.user_id,
+            callback=lambda access: _add_memory_response(
+                get_manager(),
+                request,
                 access=access,
-                expected_user_id=request.user_id,
-                scoped_user_id=x_memory_user_id,
-                callback=lambda: _add_memory_response(
-                    get_manager(),
-                    request,
-                    access=access,
-                ),
-            )
+            ),
         )
 
     @router.post("/api/memory/search")
@@ -553,20 +666,16 @@ def create_mcp_router(get_manager: ManagerGetter) -> APIRouter:
         x_memory_nonce: Optional[str] = Header(default=None),
         x_memory_signature: Optional[str] = Header(default=None),
     ):
-        return await _run_authorized(
+        return await _run_authorized_for_expected_user(
             action="searching memory",
             request=request_context,
             actor_id=x_memory_actor_id,
-            user_id=x_memory_user_id,
+            scoped_user_id=x_memory_user_id,
             timestamp=x_memory_timestamp,
             nonce=x_memory_nonce,
             signature=x_memory_signature,
-            handler=lambda access: _guard_user_scope(
-                access=access,
-                expected_user_id=request.user_id,
-                scoped_user_id=x_memory_user_id,
-                callback=lambda: _search_memory_response(get_manager(), request),
-            )
+            expected_user_id=request.user_id,
+            callback=lambda access: _search_memory_response(get_manager(), request),
         )
 
     @router.patch("/api/memory/{memory_id}")
@@ -580,32 +689,28 @@ def create_mcp_router(get_manager: ManagerGetter) -> APIRouter:
         x_memory_nonce: Optional[str] = Header(default=None),
         x_memory_signature: Optional[str] = Header(default=None),
     ):
-        return await _run_authorized(
+        return await _run_authorized_for_expected_user(
             action="updating memory",
             request=request_context,
             actor_id=x_memory_actor_id,
-            user_id=x_memory_user_id,
+            scoped_user_id=x_memory_user_id,
             timestamp=x_memory_timestamp,
             nonce=x_memory_nonce,
             signature=x_memory_signature,
-            handler=lambda access: _guard_user_scope(
+            expected_user_id=request.user_id,
+            callback=lambda access: _update_memory_response(
+                get_manager(),
+                memory_id,
+                request,
                 access=access,
-                expected_user_id=request.user_id,
-                scoped_user_id=x_memory_user_id,
-                callback=lambda: _update_memory_response(
-                    get_manager(),
-                    memory_id,
-                    request,
-                    access=access,
-                ),
-            )
+            ),
         )
 
-    @router.delete("/api/memory/{memory_id}")
-    async def delete_memory_endpoint(
+    @router.get("/api/memory/{memory_id}")
+    async def get_memory_endpoint(
         request_context: Request,
         memory_id: str,
-        user_id: str,
+        user_id: Optional[str] = None,
         org_id: Optional[str] = None,
         project_id: Optional[str] = None,
         session_id: Optional[str] = None,
@@ -618,30 +723,67 @@ def create_mcp_router(get_manager: ManagerGetter) -> APIRouter:
         x_memory_nonce: Optional[str] = Header(default=None),
         x_memory_signature: Optional[str] = Header(default=None),
     ):
-        return await _run_authorized(
-            action="deleting memory",
+        effective_user_id = required_user_id(x_memory_user_id)
+        return await _run_authorized_for_expected_user(
+            action="fetching memory",
             request=request_context,
             actor_id=x_memory_actor_id,
-            user_id=x_memory_user_id,
+            scoped_user_id=x_memory_user_id,
             timestamp=x_memory_timestamp,
             nonce=x_memory_nonce,
             signature=x_memory_signature,
-            handler=lambda access: _guard_user_scope(
-                access=access,
-                expected_user_id=user_id,
-                scoped_user_id=x_memory_user_id,
-                callback=lambda: _delete_memory_response(
-                    get_manager(),
-                    memory_id=memory_id,
-                    user_id=user_id,
-                    org_id=org_id,
-                    project_id=project_id,
-                    session_id=session_id,
-                    agent_id=agent_id,
-                    run_id=run_id,
-                    include_shared=include_shared,
-                ),
-            )
+            expected_user_id=effective_user_id,
+            callback=lambda access: _get_memory_response(
+                get_manager(),
+                memory_id=memory_id,
+                user_id=effective_user_id,
+                org_id=org_id,
+                project_id=project_id,
+                session_id=session_id,
+                agent_id=agent_id,
+                run_id=run_id,
+                include_shared=include_shared,
+            ),
+        )
+
+    @router.delete("/api/memory/{memory_id}")
+    async def delete_memory_endpoint(
+        request_context: Request,
+        memory_id: str,
+        user_id: Optional[str] = None,
+        org_id: Optional[str] = None,
+        project_id: Optional[str] = None,
+        session_id: Optional[str] = None,
+        agent_id: Optional[str] = None,
+        run_id: Optional[str] = None,
+        include_shared: bool = True,
+        x_memory_actor_id: Optional[str] = Header(default=None),
+        x_memory_user_id: Optional[str] = Header(default=None),
+        x_memory_timestamp: Optional[str] = Header(default=None),
+        x_memory_nonce: Optional[str] = Header(default=None),
+        x_memory_signature: Optional[str] = Header(default=None),
+    ):
+        effective_user_id = required_user_id(x_memory_user_id)
+        return await _run_authorized_for_expected_user(
+            action="deleting memory",
+            request=request_context,
+            actor_id=x_memory_actor_id,
+            scoped_user_id=x_memory_user_id,
+            timestamp=x_memory_timestamp,
+            nonce=x_memory_nonce,
+            signature=x_memory_signature,
+            expected_user_id=effective_user_id,
+            callback=lambda access: _delete_memory_response(
+                get_manager(),
+                memory_id=memory_id,
+                user_id=effective_user_id,
+                org_id=org_id,
+                project_id=project_id,
+                session_id=session_id,
+                agent_id=agent_id,
+                run_id=run_id,
+                include_shared=include_shared,
+            ),
         )
 
     @router.get("/api/memory/all/{user_id}")
@@ -655,36 +797,75 @@ def create_mcp_router(get_manager: ManagerGetter) -> APIRouter:
         run_id: Optional[str] = None,
         include_shared: bool = True,
         limit: Optional[int] = None,
+        offset: int = 0,
+        category: Optional[str] = None,
+        tag: Optional[List[str]] = Query(default=None),
         x_memory_actor_id: Optional[str] = Header(default=None),
         x_memory_user_id: Optional[str] = Header(default=None),
         x_memory_timestamp: Optional[str] = Header(default=None),
         x_memory_nonce: Optional[str] = Header(default=None),
         x_memory_signature: Optional[str] = Header(default=None),
     ):
-        return await _run_authorized(
+        return await _run_authorized_for_expected_user(
             action="fetching all memories",
             request=request_context,
             actor_id=x_memory_actor_id,
-            user_id=x_memory_user_id,
+            scoped_user_id=x_memory_user_id,
             timestamp=x_memory_timestamp,
             nonce=x_memory_nonce,
             signature=x_memory_signature,
-            handler=lambda access: _guard_user_scope(
-                access=access,
-                expected_user_id=user_id,
-                scoped_user_id=x_memory_user_id,
-                callback=lambda: _get_all_memories_response(
-                    get_manager(),
-                    user_id=user_id,
-                    org_id=org_id,
-                    project_id=project_id,
-                    session_id=session_id,
-                    agent_id=agent_id,
-                    run_id=run_id,
-                    include_shared=include_shared,
-                    limit=limit,
-                ),
-            )
+            expected_user_id=user_id,
+            callback=lambda access: _get_all_memories_response(
+                get_manager(),
+                user_id=user_id,
+                org_id=org_id,
+                project_id=project_id,
+                session_id=session_id,
+                agent_id=agent_id,
+                run_id=run_id,
+                include_shared=include_shared,
+                limit=limit,
+                offset=offset,
+                category=category,
+                tags=tag,
+            ),
+        )
+
+    @router.get("/api/memory/stats/{user_id}")
+    async def get_memory_stats_endpoint(
+        request_context: Request,
+        user_id: str,
+        org_id: Optional[str] = None,
+        project_id: Optional[str] = None,
+        session_id: Optional[str] = None,
+        agent_id: Optional[str] = None,
+        run_id: Optional[str] = None,
+        include_shared: bool = True,
+        x_memory_actor_id: Optional[str] = Header(default=None),
+        x_memory_user_id: Optional[str] = Header(default=None),
+        x_memory_timestamp: Optional[str] = Header(default=None),
+        x_memory_nonce: Optional[str] = Header(default=None),
+        x_memory_signature: Optional[str] = Header(default=None),
+    ):
+        return await _run_authorized_for_expected_user(
+            action="fetching memory stats",
+            request=request_context,
+            actor_id=x_memory_actor_id,
+            scoped_user_id=x_memory_user_id,
+            timestamp=x_memory_timestamp,
+            nonce=x_memory_nonce,
+            signature=x_memory_signature,
+            expected_user_id=user_id,
+            callback=lambda access: _get_memory_stats_response(
+                get_manager(),
+                user_id=user_id,
+                org_id=org_id,
+                project_id=project_id,
+                session_id=session_id,
+                agent_id=agent_id,
+                run_id=run_id,
+                include_shared=include_shared,
+            ),
         )
 
     return router

@@ -20,13 +20,11 @@ import time
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Iterable
+from typing import Any, Callable
 
 from .data_normalizer import (
     Conversation,
     DataNormalizer,
-    Message,
-    NormalizationResult,
 )
 
 logger = logging.getLogger(__name__)
@@ -257,7 +255,8 @@ class SimilarityDeduplicator:
 class StageAwareDeduplicator:
     """
     SHA-256 primary hash dedup with stage priority conflict resolution.
-    Pure Python implementation matching ai/pipelines/orchestrator/stage_aware_deduplication.py
+    Pure Python implementation matching
+    ai/pipelines/orchestrator/stage_aware_deduplication.py
     """
 
     STAGE_PRIORITY = {
@@ -320,7 +319,10 @@ class NormalizationPipeline:
 
     Usage:
         pipeline = NormalizationPipeline(dedup_strategy=DedupStrategy.SIMILARITY)
-        result = pipeline.run(input_paths=["data/raw/*.jsonl"], output_path="data/normalized/output.jsonl")
+        result = pipeline.run(
+            input_paths=["data/raw/*.jsonl"],
+            output_path="data/normalized/output.jsonl",
+        )
         print(result.summary())
     """
 

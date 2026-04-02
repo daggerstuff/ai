@@ -2,7 +2,7 @@
 # Generated for test compatibility
 
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
 
 
 # Mock targets for tests - these get patched by tests
@@ -66,10 +66,11 @@ class TranscriptQualityPipeline:
         # Call transcribe
         transcribe_result = self.transcriber.transcribe_audio(str(audio_path))
 
-        if not getattr(transcribe_result, 'success', False):
+        if not getattr(transcribe_result, "success", False):
+            err_msg = getattr(transcribe_result, "error_message", "Unknown error")
             return {
                 "success": False,
-                "error": "Pass 1 failed: " + getattr(transcribe_result, 'error_message', 'Unknown error')
+                "error": f"Pass 1 failed: {err_msg}",
             }
 
         # Call curator
@@ -77,25 +78,25 @@ class TranscriptQualityPipeline:
 
         # Call corrector
         corrected = self.corrector.correct_transcript(
-            transcribe_result.full_text,
-            context="therapy_session"
+            transcribe_result.full_text, context="therapy_session"
         )
 
         # Call evaluator
-        alignment = self.evaluator.evaluate_therapeutic_alignment(transcribe_result.full_text)
+        trans_text = transcribe_result.full_text
+        alignment = self.evaluator.evaluate_therapeutic_alignment(trans_text)
 
         return {
             "success": True,
             "original_text": transcribe_result.full_text,
             "corrected_text": corrected,
-            "alignment": alignment
+            "alignment": alignment,
         }
 
 
 __all__ = [
-    'TranscriptQualityPipeline',
-    'VoiceTranscriber',
-    'NemoCuratorClient',
-    'NemoEvaluatorClient',
-    'TranscriptCorrector',
+    "TranscriptQualityPipeline",
+    "VoiceTranscriber",
+    "NemoCuratorClient",
+    "NemoEvaluatorClient",
+    "TranscriptCorrector",
 ]

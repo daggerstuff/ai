@@ -1,19 +1,17 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, Tuple
+from typing import Dict, Optional, Tuple
 
 from .hindsight_local_adapter import memory_record_from_storage, parse_context_payload
-from .hindsight_local_domain import resolve_category_for_update
-from .local_hindsight_repository import LocalHindsightRepository
+from .hindsight_local_domain import resolve_category_for_update, resolve_user_id_from_record
 
 
 def build_updated_document_payload(
     *,
-    repository: LocalHindsightRepository,
     existing_record: Dict[str, Any],
     metadata: Optional[Dict[str, Any]],
 ) -> Tuple[str, Dict[str, Any], Optional[str]]:
-    owner_user_id = repository.resolve_user_id(existing_record)
+    owner_user_id = resolve_user_id_from_record(existing_record)
     existing = memory_record_from_storage(existing_record)
     merged_metadata = dict(existing.get("metadata") or {})
     next_metadata = dict(metadata or {})

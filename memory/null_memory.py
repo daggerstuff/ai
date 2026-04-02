@@ -152,7 +152,11 @@ class NullMemoryManager(BaseMemoryManager):
         result = self.get_all(user_id)
         return result["results"]
 
-    def get_memory(self, memory_id: str) -> Optional[Dict[str, Any]]:
+    def get_memory(
+        self,
+        memory_id: str,
+        user_id: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
         """Get specific memory by ID."""
         return self.get(memory_id)
 
@@ -161,11 +165,12 @@ class NullMemoryManager(BaseMemoryManager):
         memory_id: str,
         new_content: str,
         metadata: Optional[Dict[str, Any]] = None,
+        user_id: Optional[str] = None,
     ) -> bool:
         """Update memory content."""
         return self.update(memory_id, new_content, metadata=metadata)
 
-    def delete_memory(self, memory_id: str) -> bool:
+    def delete_memory(self, memory_id: str, user_id: Optional[str] = None) -> bool:
         """Delete specific memory."""
         return self.delete(memory_id)
 
