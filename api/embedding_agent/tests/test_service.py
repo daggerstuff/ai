@@ -11,6 +11,8 @@ Tests cover:
 
 import pytest
 from pathlib import Path
+from unittest.mock import MagicMock, patch
+import api.embedding_agent.service
 
 from ..models import (
     EmbeddingAgentConfig,
@@ -286,6 +288,39 @@ class TestEdgeCases:
         """Test that empty batch raises validation error."""
         with pytest.raises(ValueError):
             BatchEmbeddingRequest(texts=[])
+
+
+class TestKnowledgeBase:
+    """Tests for knowledge base loading."""
+
+    def test_load_knowledge_base_not_available(self, config: EmbeddingAgentConfig):
+        """Test loading when clinical embedder is not available."""
+        with patch.object(api.embedding_agent.service, 'CLINICAL_EMBEDDER_AVAILABLE', False):
+            service = EmbeddingAgentService(config)
+            assert service.load_knowledge_base() == 0
+
+    def test_load_knowledge_base_available(self, config: EmbeddingAgentConfig):
+        """Test loading when clinical embedder is available."""
+        with patch('app.api.embedding_agent.service.CLINICAL_EMBEDDER_AVAILABLE', True, create=True):
+            with patch('api.embedding_agent.service.CLINICAL_EMBEDDER_AVAILABLE', True):
+                with patch.object(EmbeddingAgentService, '_initialize_clinical_embedder'):
+                    service = EmbeddingAgentService(config)
+                    service._clinical_embedder = MagicMock()
+                    service._clinical_embedder.process_all_knowledge.return_value = (["item1", "item2"], None)
+
+                    assert service.load_knowledge_base() == 2
+                    assert service._knowledge_items == ["item1", "item2"]
+
+    def test_load_knowledge_base_exception(self, config: EmbeddingAgentConfig):
+        """Test exception handling during knowledge base loading."""
+        with patch('app.api.embedding_agent.service.CLINICAL_EMBEDDER_AVAILABLE', True, create=True):
+            with patch('api.embedding_agent.service.CLINICAL_EMBEDDER_AVAILABLE', True):
+                with patch.object(EmbeddingAgentService, '_initialize_clinical_embedder'):
+                    service = EmbeddingAgentService(config)
+                    service._clinical_embedder = MagicMock()
+                    service._clinical_embedder.process_all_knowledge.side_effect = Exception("Test error")
+
+                    assert service.load_knowledge_base() == 0
 
 
 if __name__ == "__main__":
