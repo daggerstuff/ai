@@ -165,7 +165,9 @@ class ConversationRecommendationOptimizer:
 
         # Calculate quality scores for all conversations
         quality_scores = []
-        for _, conv in conversations.iterrows():
+        # ⚡ Bolt Performance Optimization:
+        # Replaced slow .iterrows() with .to_dict("records") to bypass row-generation overhead and speed up iteration.
+        for conv in conversations.to_dict("records"):
             score = self._calculate_conversation_quality_score(conv)
             quality_scores.append(score)
 
@@ -204,7 +206,9 @@ class ConversationRecommendationOptimizer:
 
         # Content quality benchmarks
         content_metrics = []
-        for _, conv in top_10_percent.iterrows():
+        # ⚡ Bolt Performance Optimization:
+        # Replaced slow .iterrows() with .to_dict("records") to bypass row-generation overhead and speed up iteration.
+        for conv in top_10_percent.to_dict("records"):
             text = conv["conversation_text"]
 
             # Calculate content metrics
@@ -326,7 +330,9 @@ class ConversationRecommendationOptimizer:
 
         # Content analysis
         content_scores = []
-        for _, conv in conversations.iterrows():
+        # ⚡ Bolt Performance Optimization:
+        # Replaced slow .iterrows() with .to_dict("records") to bypass row-generation overhead and speed up iteration.
+        for conv in conversations.to_dict("records"):
             text = conv["conversation_text"]
 
             try:
@@ -387,7 +393,9 @@ class ConversationRecommendationOptimizer:
 
         # Performance categories
         conversations_needing_improvement = 0
-        for _, conv in conversations.iterrows():
+        # ⚡ Bolt Performance Optimization:
+        # Replaced slow .iterrows() with .to_dict("records") to bypass row-generation overhead and speed up iteration.
+        for conv in conversations.to_dict("records"):
             quality_score = self._calculate_conversation_quality_score(conv)
             if quality_score < benchmarks["overall_quality_threshold"]:
                 conversations_needing_improvement += 1
@@ -421,7 +429,9 @@ class ConversationRecommendationOptimizer:
 
         # Analyze readability issues
         low_readability_count = 0
-        for _, conv in conversations.iterrows():
+        # ⚡ Bolt Performance Optimization:
+        # Replaced slow .iterrows() with .to_dict("records") to bypass row-generation overhead and speed up iteration.
+        for conv in conversations.to_dict("records"):
             try:
                 flesch_score = flesch_reading_ease(conv["conversation_text"])
                 if flesch_score < benchmarks["readability"]["acceptable_range"][0]:
@@ -498,7 +508,9 @@ class ConversationRecommendationOptimizer:
         formal_indicators = 0
         informal_indicators = 0
 
-        for _, conv in conversations.iterrows():
+        # ⚡ Bolt Performance Optimization:
+        # Replaced slow .iterrows() with .to_dict("records") to bypass row-generation overhead and speed up iteration.
+        for conv in conversations.to_dict("records"):
             text = conv["conversation_text"].lower()
 
             formal_words = len(
@@ -545,7 +557,7 @@ class ConversationRecommendationOptimizer:
                     conv["conversation_text"].lower(),
                 )
             )
-            for _, conv in conversations.iterrows()
+            for conv in conversations.to_dict("records")
         )
         avg_empathy_density = current_empathy / conversations["word_count"].sum() * 100
 
@@ -576,7 +588,9 @@ class ConversationRecommendationOptimizer:
 
         # Analyze structure patterns
         structured_conversations = 0
-        for _, conv in conversations.iterrows():
+        # ⚡ Bolt Performance Optimization:
+        # Replaced slow .iterrows() with .to_dict("records") to bypass row-generation overhead and speed up iteration.
+        for conv in conversations.to_dict("records"):
             text = conv["conversation_text"]
 
             has_lists = bool(re.search(r"\n\s*[-*•]\s+", text))
@@ -627,7 +641,7 @@ class ConversationRecommendationOptimizer:
 
         # Analyze question usage
         total_questions = sum(
-            conv["conversation_text"].count("?") for _, conv in conversations.iterrows()
+            conv["conversation_text"].count("?") for conv in conversations.to_dict("records")
         )
         avg_question_density = total_questions / conversations["word_count"].sum() * 100
 
@@ -643,7 +657,9 @@ class ConversationRecommendationOptimizer:
 
         # Analyze personal pronoun usage
         personal_engagement = 0
-        for _, conv in conversations.iterrows():
+        # ⚡ Bolt Performance Optimization:
+        # Replaced slow .iterrows() with .to_dict("records") to bypass row-generation overhead and speed up iteration.
+        for conv in conversations.to_dict("records"):
             text = conv["conversation_text"].lower()
             personal_pronouns = len(re.findall(r"\b(you|your|we|us|our)\b", text))
             personal_engagement += personal_pronouns
@@ -763,7 +779,7 @@ class ConversationRecommendationOptimizer:
             avg_quality = np.mean(
                 [
                     self._calculate_conversation_quality_score(conv)
-                    for _, conv in dataset_convs.iterrows()
+                    for conv in dataset_convs.to_dict("records")
                 ]
             )
 
@@ -774,7 +790,7 @@ class ConversationRecommendationOptimizer:
                 avg_flesch = np.mean(
                     [
                         flesch_reading_ease(conv["conversation_text"])
-                        for _, conv in dataset_convs.iterrows()
+                        for conv in dataset_convs.to_dict("records")
                         if len(conv["conversation_text"]) > 10
                     ]
                 )
@@ -787,7 +803,7 @@ class ConversationRecommendationOptimizer:
                 avg_questions = np.mean(
                     [
                         conv["conversation_text"].count("?") / conv["word_count"] * 100
-                        for _, conv in dataset_convs.iterrows()
+                        for conv in dataset_convs.to_dict("records")
                     ]
                 )
 
@@ -807,7 +823,7 @@ class ConversationRecommendationOptimizer:
             avg_quality = np.mean(
                 [
                     self._calculate_conversation_quality_score(conv)
-                    for _, conv in tier_convs.iterrows()
+                    for conv in tier_convs.to_dict("records")
                 ]
             )
 
@@ -1286,7 +1302,7 @@ class ConversationRecommendationOptimizer:
         """Analyze the distribution of performance levels"""
         quality_scores = [
             self._calculate_conversation_quality_score(conv)
-            for _, conv in conversations.iterrows()
+            for conv in conversations.to_dict("records")
         ]
 
         threshold = benchmarks["overall_quality_threshold"]
