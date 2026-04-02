@@ -110,9 +110,25 @@ class NullMemoryQueryService:
         run_id: Optional[str] = None,
         include_shared: bool = True,
         limit: int = 100,
+        offset: int = 0,
+        category: Optional[str] = None,
+        tags: Optional[List[str]] = None,
     ) -> List[Dict[str, Any]]:
-        return self.scoped_memories(
-            records=self.store.list_records(user_id=user_id),
+        records = self.store.list_records(user_id=user_id)
+        if category or tags:
+            filtered: List[Dict[str, Any]] = []
+            for record in records:
+                metadata = record.get("metadata") or {}
+                if category and metadata.get("category") != category:
+                    continue
+                if tags:
+                    record_tags = normalize_tags(metadata.get("tags") or [])
+                    if not set(tags).issubset(set(record_tags)):
+                        continue
+                filtered.append(record)
+            records = filtered
+        scoped = self.scoped_memories(
+            records=records,
             user_id=user_id,
             org_id=org_id,
             project_id=project_id,
@@ -120,8 +136,9 @@ class NullMemoryQueryService:
             agent_id=agent_id,
             run_id=run_id,
             include_shared=include_shared,
-            limit=limit,
+            limit=None if limit is None else (offset + limit),
         )
+        return scoped[offset : offset + limit]
 
     def search_memories_scoped(
         self,
@@ -135,9 +152,25 @@ class NullMemoryQueryService:
         run_id: Optional[str] = None,
         include_shared: bool = True,
         limit: int = 10,
+        offset: int = 0,
+        category: Optional[str] = None,
+        tags: Optional[List[str]] = None,
     ) -> List[Dict[str, Any]]:
-        return self.scoped_memories(
-            records=self.store.search_records(query=query, user_id=user_id),
+        records = self.store.search_records(query=query, user_id=user_id)
+        if category or tags:
+            filtered: List[Dict[str, Any]] = []
+            for record in records:
+                metadata = record.get("metadata") or {}
+                if category and metadata.get("category") != category:
+                    continue
+                if tags:
+                    record_tags = normalize_tags(metadata.get("tags") or [])
+                    if not set(tags).issubset(set(record_tags)):
+                        continue
+                filtered.append(record)
+            records = filtered
+        scoped = self.scoped_memories(
+            records=records,
             user_id=user_id,
             org_id=org_id,
             project_id=project_id,
@@ -145,8 +178,9 @@ class NullMemoryQueryService:
             agent_id=agent_id,
             run_id=run_id,
             include_shared=include_shared,
-            limit=limit,
+            limit=None if limit is None else (offset + limit),
         )
+        return scoped[offset : offset + limit]
 
     def count_records_by_category(
         self,
