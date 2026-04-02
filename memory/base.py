@@ -68,6 +68,13 @@ class BaseMemoryManager(ABC):
     def get_provider_name(self) -> str:
         return self.__class__.__name__
 
+    def close(self) -> None:
+        """Release any resources held by this manager.
+
+        Subclasses may override to perform teardown (e.g. closing DB
+        connections). The default is a no-op.
+        """
+
 
 @runtime_checkable
 class ScopedMemoryManager(Protocol):
@@ -87,6 +94,7 @@ class ScopedMemoryManager(Protocol):
         tags: Optional[List[str]] = None,
     ) -> List[Dict[str, Any]]:
         """Return memories visible to the supplied user and scope."""
+        ...
 
 
 @runtime_checkable
@@ -103,12 +111,16 @@ class CategoryScopedMemoryManager(ScopedMemoryManager, Protocol):
         include_shared: bool = True,
     ) -> Dict[str, int]:
         """Return scoped memory counts grouped by category."""
+        ...
 
 
 @runtime_checkable
 class HindsightCompatibleMemoryManager(Protocol):
-    def retain_items(self, bank_id: str, items: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def retain_items(
+        self, bank_id: str, items: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         """Store Hindsight-compatible memory items."""
+        ...
 
     def recall(
         self,
@@ -120,6 +132,7 @@ class HindsightCompatibleMemoryManager(Protocol):
         tags_match: str = "any",
     ) -> Dict[str, Any]:
         """Recall Hindsight-compatible memory items."""
+        ...
 
     def recall_for_user(
         self,
@@ -132,6 +145,7 @@ class HindsightCompatibleMemoryManager(Protocol):
         tags_match: str = "any",
     ) -> Dict[str, Any]:
         """Recall Hindsight-compatible memory items constrained to one user."""
+        ...
 
     def list_documents(
         self,
@@ -142,6 +156,7 @@ class HindsightCompatibleMemoryManager(Protocol):
         offset: int = 0,
     ) -> Dict[str, Any]:
         """List Hindsight-compatible documents for one user."""
+        ...
 
     def get_document(
         self,
@@ -151,6 +166,7 @@ class HindsightCompatibleMemoryManager(Protocol):
         user_id: Optional[str] = None,
     ) -> Optional[Dict[str, Any]]:
         """Fetch a Hindsight-compatible document by ID."""
+        ...
 
     def delete_document(
         self,
@@ -160,6 +176,7 @@ class HindsightCompatibleMemoryManager(Protocol):
         user_id: Optional[str] = None,
     ) -> bool:
         """Delete a Hindsight-compatible document by ID."""
+        ...
 
     def can_write_document(
         self,
@@ -169,6 +186,7 @@ class HindsightCompatibleMemoryManager(Protocol):
         user_id: str,
     ) -> bool:
         """Return whether the user may mutate the target document."""
+        ...
 
     def prepare_retained_items(
         self,
@@ -179,9 +197,12 @@ class HindsightCompatibleMemoryManager(Protocol):
         base_metadata: Dict[str, Any],
     ) -> List[Dict[str, Any]]:
         """Prepare scoped Hindsight items for retention."""
+        ...
 
 
 @runtime_checkable
 class HealthReportingMemoryManager(Protocol):
     def get_health_status(self) -> Dict[str, Any]:
         """Return a health payload for the memory manager."""
+        ...
+

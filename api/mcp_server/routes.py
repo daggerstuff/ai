@@ -15,6 +15,7 @@ from ai.api.mcp_server.memory_auth import (
     authorize_memory_access,
     readiness_details,
     required_user_id,
+    resolve_authorized_user_id,
 )
 from ai.api.mcp_server.memory_query_service import (
     get_scoped_memories,
@@ -96,6 +97,7 @@ async def _run_authorized(
             timestamp=timestamp,
             nonce=nonce,
             signature=signature,
+            authorization=request.headers.get("Authorization"),
         )
         return handler(access)
 
@@ -217,7 +219,7 @@ def _enforce_user_scope(
     expected_user_id: Optional[str] = None,
     scoped_user_id: Optional[str] = None,
 ) -> str:
-    resolved_user_id = required_user_id(scoped_user_id)
+    resolved_user_id = resolve_authorized_user_id(access, scoped_user_id)
     if expected_user_id is not None and resolved_user_id != expected_user_id:
         raise HTTPException(
             status_code=400,
@@ -627,6 +629,26 @@ def _hindsight_delete_document_response(
     return Response(status_code=204)
 
 
+def _hindsight_retain_response(
+    *,
+    manager: HindsightCompatibleMemoryManager,
+    bank_id: str,
+    items: List[Dict[str, Any]],
+) -> Dict[str, Any]:
+    response = manager.retain_items(bank_id, items)
+    if isinstance(response, dict):
+        results = response.get("results", [])
+        items_count = len(results) if isinstance(results, list) else 0
+        response = {
+            "success": True,
+            "bank_id": bank_id,
+            "async": False,
+            "items_count": items_count,
+            **response,
+        }
+    return response
+
+
 def _register_add_memory(router: APIRouter, get_manager: ManagerGetter) -> None:
     @router.post("/api/memory/add")
     async def add_memory(
@@ -730,20 +752,18 @@ def _register_memory_get(router: APIRouter, get_manager: ManagerGetter) -> None:
         x_memory_nonce: Optional[str] = Header(default=None),
         x_memory_signature: Optional[str] = Header(default=None),
     ):
-        effective_user_id = required_user_id(x_memory_user_id)
-        return await _run_authorized_for_expected_user(
+        return await _run_authorized(
             action="fetching memory",
             request=request_context,
             actor_id=x_memory_actor_id,
-            scoped_user_id=x_memory_user_id,
+            user_id=x_memory_user_id,
             timestamp=x_memory_timestamp,
             nonce=x_memory_nonce,
             signature=x_memory_signature,
-            expected_user_id=effective_user_id,
-            callback=lambda access: _get_memory_response(
+            handler=lambda access: _get_memory_response(
                 get_manager(),
                 memory_id=memory_id,
-                user_id=effective_user_id,
+                user_id=_enforce_user_scope(access=access, scoped_user_id=x_memory_user_id),
                 org_id=org_id,
                 project_id=project_id,
                 session_id=session_id,
@@ -772,20 +792,18 @@ def _register_memory_delete(router: APIRouter, get_manager: ManagerGetter) -> No
         x_memory_nonce: Optional[str] = Header(default=None),
         x_memory_signature: Optional[str] = Header(default=None),
     ):
-        effective_user_id = required_user_id(x_memory_user_id)
-        return await _run_authorized_for_expected_user(
+        return await _run_authorized(
             action="deleting memory",
             request=request_context,
             actor_id=x_memory_actor_id,
-            scoped_user_id=x_memory_user_id,
+            user_id=x_memory_user_id,
             timestamp=x_memory_timestamp,
             nonce=x_memory_nonce,
             signature=x_memory_signature,
-            expected_user_id=effective_user_id,
-            callback=lambda access: _delete_memory_response(
+            handler=lambda access: _delete_memory_response(
                 get_manager(),
                 memory_id=memory_id,
-                user_id=effective_user_id,
+                user_id=_enforce_user_scope(access=access, scoped_user_id=x_memory_user_id),
                 org_id=org_id,
                 project_id=project_id,
                 session_id=session_id,
@@ -922,9 +940,10 @@ def create_hindsight_router(get_manager: ManagerGetter) -> APIRouter:
             timestamp=x_memory_timestamp,
             nonce=x_memory_nonce,
             signature=x_memory_signature,
-            handler=lambda access: _require_hindsight_manager(get_manager()).retain_items(
-                bank_id,
-                _prepare_hindsight_retain_items(
+            handler=lambda access: _hindsight_retain_response(
+                manager=_require_hindsight_manager(get_manager()),
+                bank_id=bank_id,
+                items=_prepare_hindsight_retain_items(
                     get_manager(),
                     bank_id=bank_id,
                     items=[item.model_dump() for item in request.items],

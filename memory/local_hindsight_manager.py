@@ -7,11 +7,12 @@ from .local_hindsight_document_service import LocalHindsightDocumentService
 from .local_hindsight_memory_query_service import LocalHindsightMemoryQueryService
 from .local_hindsight_memory_record_service import LocalHindsightMemoryRecordService
 from .local_hindsight_memory_write_service import LocalHindsightMemoryWriteService
+from .local_hindsight_compat_mixin import LocalHindsightCompatibilityMixin
 from .local_hindsight_protocol_adapter import LocalHindsightProtocolAdapter
 from .local_hindsight_repository import LocalHindsightRepository
 
 
-class LocalHindsightMemoryManager(BaseMemoryManager):
+class LocalHindsightMemoryManager(LocalHindsightCompatibilityMixin, BaseMemoryManager):
     """Persistent local Hindsight-compatible store backed by SQLite."""
 
     def __init__(
@@ -43,45 +44,6 @@ class LocalHindsightMemoryManager(BaseMemoryManager):
             repository=self.repository,
         )
 
-    def list_documents(
-        self,
-        bank_id: str,
-        *,
-        user_id: Optional[str] = None,
-        limit: int = 100,
-        offset: int = 0,
-    ) -> Dict[str, Any]:
-        if not user_id:
-            raise ValueError("user_id is required when listing documents")
-        return self.protocol.list_documents(
-            bank_id,
-            user_id=user_id,
-            limit=limit,
-            offset=offset,
-        )
-
-    def get_document(
-        self,
-        bank_id: str,
-        document_id: str,
-        *,
-        user_id: Optional[str] = None,
-    ) -> Optional[Dict[str, Any]]:
-        if not user_id:
-            raise ValueError("user_id is required when fetching documents")
-        return self.protocol.get_document(bank_id, document_id, user_id=user_id)
-
-    def delete_document(
-        self,
-        bank_id: str,
-        document_id: str,
-        *,
-        user_id: Optional[str] = None,
-    ) -> bool:
-        if not user_id:
-            raise ValueError("user_id is required when deleting documents")
-        return self.protocol.delete_document(bank_id, document_id, user_id=user_id)
-
     def add_memory(
         self,
         content: str,
@@ -112,15 +74,6 @@ class LocalHindsightMemoryManager(BaseMemoryManager):
             category=category,
             scope_metadata=scope_metadata,
         )
-
-    def search_memories(self, query: str, user_id: str, limit: int = 10) -> List[Dict[str, Any]]:
-        return self.recall(
-            self.default_bank_id,
-            query=query,
-            limit=limit,
-            tags=[f"user:{user_id}"],
-            tags_match="any",
-        )["results"]
 
     def get_all_memories(self, user_id: str, limit: int = 100) -> List[Dict[str, Any]]:
         return self.queries.get_all_memories(user_id=user_id, limit=limit)
@@ -162,15 +115,3 @@ class LocalHindsightMemoryManager(BaseMemoryManager):
 
     def close(self) -> None:
         self.repository.close()
-
-    def __getattr__(self, name: str) -> Any:
-        for service in (
-            self.protocol,
-            self.writes,
-            self.queries,
-            self.records,
-        ):
-            attr = getattr(service, name, None)
-            if attr:
-                return attr
-        raise AttributeError(f"{self.__class__.__name__} has no attribute '{name}'")

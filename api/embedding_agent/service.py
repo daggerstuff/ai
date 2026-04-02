@@ -15,7 +15,10 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 from threading import Lock
-from typing import Any, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
+
+if TYPE_CHECKING:
+    from sentence_transformers import SentenceTransformer as _SentenceTransformerType
 
 try:
     import numpy as np
@@ -32,10 +35,10 @@ except ImportError:
     TRANSFORMERS_AVAILABLE = False
 
 try:
-    import faiss
+    import importlib.util
 
-    FAISS_AVAILABLE = True
-except ImportError:
+    FAISS_AVAILABLE = importlib.util.find_spec("faiss") is not None
+except Exception:
     FAISS_AVAILABLE = False
 
 from .models import (
@@ -121,8 +124,8 @@ class EmbeddingAgentService:
         self._embedding_cache: Dict[str, Tuple[List[float], str]] = {}
 
         # Initialize models
-        self._embedding_model: Optional[SentenceTransformer] = None
-        self._clinical_embedder: Optional[ClinicalKnowledgeEmbedder] = None
+        self._embedding_model: Optional["_SentenceTransformerType"] = None
+        self._clinical_embedder: Optional[Any] = None
         self._faiss_index = None
         self._knowledge_items: List[Any] = []
 
@@ -164,13 +167,15 @@ class EmbeddingAgentService:
 
             # Update dimension from actual model
             actual_dim = self._embedding_model.get_sentence_embedding_dimension()
-            if actual_dim != self.config.embedding_dimension:
+            if actual_dim is not None and actual_dim != self.config.embedding_dimension:
                 logger.info(
-                    f"Updating embedding dimension from {self.config.embedding_dimension} "
+                    "Updating embedding dimension from "
+                    f"{self.config.embedding_dimension} "
                     f"to {actual_dim} based on loaded model"
                 )
-
-                self.config.embedding_dimension = actual_dim
+                self.config = self.config.model_copy(
+                    update={"embedding_dimension": int(actual_dim)}
+                )
 
             logger.info(
                 f"Loaded embedding model: {self.config.model_name.value} "
@@ -188,6 +193,12 @@ class EmbeddingAgentService:
             return
 
         try:
+            if EmbeddingConfig is None or ClinicalKnowledgeEmbedder is None:
+                logger.warning(
+                    "EmbeddingConfig or ClinicalKnowledgeEmbedder is None"
+                )
+                return
+
             embedding_config = EmbeddingConfig(
                 model_name=self.config.model_name.value,
                 batch_size=self.config.batch_size,
@@ -308,8 +319,8 @@ class EmbeddingAgentService:
 
             # Convert to list
             if hasattr(embedding, "tolist"):
-                return embedding.tolist()
-            return list(embedding)
+                return [float(v) for v in embedding.tolist()]
+            return [float(v) for v in embedding]
 
         except Exception as e:
             logger.error(f"Error generating embedding: {e}")

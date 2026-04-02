@@ -19,6 +19,10 @@ class MemoryScopeConfig:
     include_shared: bool = True
     visibility: str = "private"
 
+    def to_metadata(self) -> dict[str, Any] | None:
+        """Satisfy MemoryScopeProvider protocol."""
+        return scope_metadata_dict(self)
+
 
 @dataclass(frozen=True)
 class MemoryStorePlan:
@@ -131,7 +135,9 @@ def _scope_metadata(scope: MemoryScopeProvider) -> dict | None:
     return metadata
 
 
-def persist_memory_store_plan(*, creator: MemoryStoreCreator, plan: MemoryStorePlan) -> str:
+def persist_memory_store_plan(
+    *, creator: MemoryStoreCreator, plan: MemoryStorePlan
+) -> str:
     return creator.create_memory(plan)
 
 

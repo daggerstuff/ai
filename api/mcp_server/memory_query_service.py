@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 
 from ai.memory.base import (
     CategoryScopedMemoryManager,
@@ -38,7 +38,7 @@ def get_scoped_memories(
         tags=tags,
     )
     if isinstance(result, dict) and "results" in result:
-        return result["results"]
+        return cast(Dict[str, Any], result)["results"]
     return result or []
 
 
