@@ -36,7 +36,11 @@ class BaseMemoryManager(ABC):
         """Retrieve all memories for a user."""
 
     @abstractmethod
-    def get_memory(self, memory_id: str) -> Optional[Dict[str, Any]]:
+    def get_memory(
+        self,
+        memory_id: str,
+        user_id: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
         """Retrieve a specific memory by ID."""
 
     @abstractmethod
@@ -45,11 +49,16 @@ class BaseMemoryManager(ABC):
         memory_id: str,
         new_content: str,
         metadata: Optional[Any] = None,
+        user_id: Optional[str] = None,
     ) -> bool:
         """Update an existing memory."""
 
     @abstractmethod
-    def delete_memory(self, memory_id: str) -> bool:
+    def delete_memory(
+        self,
+        memory_id: str,
+        user_id: Optional[str] = None,
+    ) -> bool:
         """Delete a memory by ID."""
 
     @abstractmethod
@@ -73,8 +82,27 @@ class ScopedMemoryManager(Protocol):
         run_id: Optional[str] = None,
         include_shared: bool = True,
         limit: int = 100,
+        offset: int = 0,
+        category: Optional[str] = None,
+        tags: Optional[List[str]] = None,
     ) -> List[Dict[str, Any]]:
         """Return memories visible to the supplied user and scope."""
+
+
+@runtime_checkable
+class CategoryScopedMemoryManager(ScopedMemoryManager, Protocol):
+    def count_memories_by_category_scoped(
+        self,
+        *,
+        user_id: str,
+        org_id: Optional[str] = None,
+        project_id: Optional[str] = None,
+        session_id: Optional[str] = None,
+        agent_id: Optional[str] = None,
+        run_id: Optional[str] = None,
+        include_shared: bool = True,
+    ) -> Dict[str, int]:
+        """Return scoped memory counts grouped by category."""
 
 
 @runtime_checkable

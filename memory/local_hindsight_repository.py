@@ -71,6 +71,8 @@ class LocalHindsightRepository:
         agent_id: Optional[str] = None,
         run_id: Optional[str] = None,
         include_shared: bool = True,
+        category: Optional[str] = None,
+        tags: Optional[List[str]] = None,
         limit: int = 100,
         offset: int = 0,
     ) -> List[Dict[str, Any]]:
@@ -83,6 +85,8 @@ class LocalHindsightRepository:
             agent_id=agent_id,
             run_id=run_id,
             include_shared=include_shared,
+            category=category,
+            tags=tags,
             limit=limit,
             offset=offset,
         )
@@ -156,11 +160,43 @@ class LocalHindsightRepository:
         required_tags: List[str],
         tags_match: str,
     ) -> List[sqlite3.Row]:
-        rows: List[sqlite3.Row] = []
         fts_query = build_fts_query(query)
         if fts_query:
-            try:
-                rows = LocalHindsightQueryExecutor.execute_fts_query(
+            rows = self._recall_rows_via_fts(
+                conn,
+                bank_id=bank_id,
+                fts_query=fts_query,
+                fetch_limit=fetch_limit,
+                normalized_tags=normalized_tags,
+                required_tags=required_tags,
+                tags_match=tags_match,
+            )
+            if rows:
+                return rows
+
+        return self._recall_rows_via_like(
+            conn,
+            bank_id=bank_id,
+            query=query,
+            fetch_limit=fetch_limit,
+            tags=normalized_tags,
+            required_tags=required_tags,
+            tags_match=tags_match,
+        )
+
+    def _recall_rows_via_fts(
+        self,
+        conn: sqlite3.Connection,
+        *,
+        bank_id: str,
+        fts_query: str,
+        fetch_limit: int,
+        normalized_tags: List[str],
+        required_tags: List[str],
+        tags_match: str,
+    ) -> List[sqlite3.Row]:
+        try:
+            return LocalHindsightQueryExecutor.execute_fts_query(
                 conn,
                 bank_id=bank_id,
                 fts_query=fts_query,
@@ -169,11 +205,20 @@ class LocalHindsightRepository:
                 required_tags=required_tags,
                 tags_match=tags_match,
             )
-            except sqlite3.OperationalError:
-                rows = []
-        if rows:
-            return rows
+        except sqlite3.OperationalError:
+            return []
 
+    def _recall_rows_via_like(
+        self,
+        conn: sqlite3.Connection,
+        *,
+        bank_id: str,
+        query: str,
+        fetch_limit: int,
+        normalized_tags: List[str],
+        required_tags: List[str],
+        tags_match: str,
+    ) -> List[sqlite3.Row]:
         return LocalHindsightQueryExecutor.execute_like_query(
             conn,
             bank_id=bank_id,
@@ -221,6 +266,7 @@ class LocalHindsightRepository:
         user_id: str,
         query: str,
         limit: int,
+        offset: int = 0,
         org_id: Optional[str] = None,
         project_id: Optional[str] = None,
         session_id: Optional[str] = None,
@@ -235,6 +281,7 @@ class LocalHindsightRepository:
                 user_id=user_id,
                 query=query,
                 fetch_limit=limit,
+                offset=offset,
                 org_id=org_id,
                 project_id=project_id,
                 session_id=session_id,
