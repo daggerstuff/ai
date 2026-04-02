@@ -394,8 +394,8 @@ def _get_user_response(
         expected_user_id=requested_user_id,
         scoped_user_id=scoped_user_id,
     )
-    memories = manager.get_all_memories(resolved_user_id, limit=100)
-    has_history = len(memories) > 0
+    memories = manager.get_all_memories(resolved_user_id, limit=1)
+    has_history = bool(memories)
     return {
         "success": True,
         "user_id": resolved_user_id,
@@ -627,9 +627,7 @@ def _hindsight_delete_document_response(
     return Response(status_code=204)
 
 
-def create_mcp_router(get_manager: ManagerGetter) -> APIRouter:
-    router = APIRouter(tags=["MCP Tools"])
-
+def _register_add_memory(router: APIRouter, get_manager: ManagerGetter) -> None:
     @router.post("/api/memory/add")
     async def add_memory(
         request_context: Request,
@@ -656,6 +654,8 @@ def create_mcp_router(get_manager: ManagerGetter) -> APIRouter:
             ),
         )
 
+
+def _register_memory_search(router: APIRouter, get_manager: ManagerGetter) -> None:
     @router.post("/api/memory/search")
     async def search_memory(
         request_context: Request,
@@ -678,6 +678,11 @@ def create_mcp_router(get_manager: ManagerGetter) -> APIRouter:
             callback=lambda access: _search_memory_response(get_manager(), request),
         )
 
+
+def _register_memory_update(
+    router: APIRouter,
+    get_manager: ManagerGetter,
+) -> None:
     @router.patch("/api/memory/{memory_id}")
     async def update_memory(
         request_context: Request,
@@ -706,6 +711,8 @@ def create_mcp_router(get_manager: ManagerGetter) -> APIRouter:
             ),
         )
 
+
+def _register_memory_get(router: APIRouter, get_manager: ManagerGetter) -> None:
     @router.get("/api/memory/{memory_id}")
     async def get_memory_endpoint(
         request_context: Request,
@@ -746,6 +753,8 @@ def create_mcp_router(get_manager: ManagerGetter) -> APIRouter:
             ),
         )
 
+
+def _register_memory_delete(router: APIRouter, get_manager: ManagerGetter) -> None:
     @router.delete("/api/memory/{memory_id}")
     async def delete_memory_endpoint(
         request_context: Request,
@@ -786,6 +795,8 @@ def create_mcp_router(get_manager: ManagerGetter) -> APIRouter:
             ),
         )
 
+
+def _register_memory_list(router: APIRouter, get_manager: ManagerGetter) -> None:
     @router.get("/api/memory/all/{user_id}")
     async def get_all_memories_endpoint(
         request_context: Request,
@@ -831,6 +842,8 @@ def create_mcp_router(get_manager: ManagerGetter) -> APIRouter:
             ),
         )
 
+
+def _register_memory_stats(router: APIRouter, get_manager: ManagerGetter) -> None:
     @router.get("/api/memory/stats/{user_id}")
     async def get_memory_stats_endpoint(
         request_context: Request,
@@ -868,6 +881,16 @@ def create_mcp_router(get_manager: ManagerGetter) -> APIRouter:
             ),
         )
 
+
+def create_mcp_router(get_manager: ManagerGetter) -> APIRouter:
+    router = APIRouter(tags=["MCP Tools"])
+    _register_add_memory(router, get_manager)
+    _register_memory_search(router, get_manager)
+    _register_memory_update(router, get_manager)
+    _register_memory_get(router, get_manager)
+    _register_memory_delete(router, get_manager)
+    _register_memory_list(router, get_manager)
+    _register_memory_stats(router, get_manager)
     return router
 
 

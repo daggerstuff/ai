@@ -15,17 +15,17 @@ class LocalHindsightMemoryRecordService:
         self,
         *,
         default_bank_id: str,
-        documents: LocalHindsightDocumentStore,
+        document_store: LocalHindsightDocumentStore,
         writes: LocalHindsightMemoryWriteService,
         provider_name: str,
     ) -> None:
         self.default_bank_id = default_bank_id
-        self.documents = documents
+        self.document_store = document_store
         self.writes = writes
         self.provider_name = provider_name
 
     def get_memory(self, memory_id: str, user_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
-        record = self.documents.get_document(
+        record = self.document_store.get_document(
             self.default_bank_id,
             memory_id,
             user_id=user_id,
@@ -41,7 +41,7 @@ class LocalHindsightMemoryRecordService:
         metadata: Optional[Any] = None,
         user_id: Optional[str] = None,
     ) -> bool:
-        existing_record = self.documents.get_document(
+        existing_record = self.document_store.get_document(
             self.default_bank_id,
             memory_id,
             user_id=user_id,
@@ -52,7 +52,7 @@ class LocalHindsightMemoryRecordService:
             existing_record=existing_record,
             metadata=self.writes.coerce_metadata(metadata),
         )
-        self.documents.upsert_document(
+        self.document_store.upsert_document(
             bank_id=self.default_bank_id,
             document_id=memory_id,
             content=new_content,
@@ -70,7 +70,7 @@ class LocalHindsightMemoryRecordService:
         return True
 
     def delete_memory(self, memory_id: str, user_id: Optional[str] = None) -> bool:
-        deleted_count = self.documents.delete_documents(
+        deleted_count = self.document_store.delete_documents(
             self.default_bank_id,
             [memory_id],
             user_id=user_id,
@@ -78,17 +78,17 @@ class LocalHindsightMemoryRecordService:
         return deleted_count > 0
 
     def delete_memories(self, memory_ids: List[str], user_id: Optional[str] = None) -> int:
-        return self.documents.delete_documents(
+        return self.document_store.delete_documents(
             self.default_bank_id,
             memory_ids,
             user_id=user_id,
         )
 
     def clear_memory(self, user_id: str) -> bool:
-        return self.documents.delete_documents_for_user(self.default_bank_id, user_id=user_id)
+        return self.document_store.delete_documents_for_user(self.default_bank_id, user_id=user_id)
 
     def get_health_status(self) -> Dict[str, Any]:
-        db_health = self.documents.db.health_details()
+        db_health = self.document_store.db.health_details()
         return {
             "status": "healthy" if db_health.get("db_ready") else "degraded",
             "provider": self.provider_name,
