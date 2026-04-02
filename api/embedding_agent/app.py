@@ -14,7 +14,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from fastapi import FastAPI, HTTPException, Query, Request, status
+from fastapi import APIRouter, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -57,7 +57,9 @@ def get_embedding_service() -> EmbeddingAgentService:
             cache_embeddings=os.getenv("EMBEDDING_CACHE", "true").lower() == "true",
             use_gpu=os.getenv("EMBEDDING_USE_GPU", "false").lower() == "true",
         )
-        project_root = Path(os.getenv("PROJECT_ROOT", Path(__file__).parent.parent.parent.parent))
+        project_root = Path(
+            os.getenv("PROJECT_ROOT", str(Path(__file__).parent.parent.parent.parent))
+        )
         _embedding_service = EmbeddingAgentService(
             config=config,
             project_root=project_root,
@@ -111,7 +113,6 @@ app.add_middleware(
 
 
 # Router for embedding endpoints (can be included in other apps)
-from fastapi import APIRouter
 
 embedding_router = APIRouter(prefix="/api/v1/embeddings", tags=["Embeddings"])
 
@@ -460,12 +461,12 @@ async def list_models() -> Dict[str, Any]:
 def _get_model_description(model: EmbeddingModel) -> str:
     """Get description for an embedding model."""
     descriptions = {
-        EmbeddingModel.MINILM_L6_V2: "Fast, lightweight model with good quality (384 dim)",
-        EmbeddingModel.MINILM_L12_V2: "Slightly larger MiniLM variant (384 dim)",
+        EmbeddingModel.MINILM_L6_V2: "Fast, light model with good quality (384 dim)",
+        EmbeddingModel.MINILM_L12_V2: "Lighter MiniLM variant (384 dim)",
         EmbeddingModel.MPNET_BASE_V2: "Higher quality, larger model (768 dim)",
         EmbeddingModel.BGE_SMALL: "BAAI small English model (384 dim)",
         EmbeddingModel.BGE_BASE: "BAAI base English model (768 dim)",
-        EmbeddingModel.CLINICAL_BERT: "Clinical domain-specific BERT (768 dim)",
+        EmbeddingModel.CLINICAL_BERT: "Clinical BERT (768 dim)",
     }
     return descriptions.get(model, "Embedding model")
 

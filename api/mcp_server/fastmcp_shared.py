@@ -2,18 +2,26 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 from dataclasses import dataclass
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
-from ai.api.mcp_server.memory_auth import authorize_memory_access
+from fastapi import HTTPException
+
+from ai.api.mcp_server.memory_auth import (
+    authorize_memory_access,
+    configured_actor_policies,
+    configured_actor_tokens,
+)
 from ai.api.mcp_server.memory_scope import MemoryScope, scope_from_kwargs
+from ai.memory.manager_factory import get_required_memory_manager
+
 from .fastmcp_parsing import (
     ParsedAuthContext,
     ParsedScopeContext,
     parse_auth_context,
     parse_scope_context,
 )
-from ai.memory.manager_factory import get_required_memory_manager
 
 logger = logging.getLogger("mcp_server")
 _manager_instance = None
@@ -53,7 +61,9 @@ def authorize_tool_access(
     payload: Dict[str, Any],
 ):
     """Authorize MCP tool invocations with the shared actor-policy model."""
-    request_body = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    request_body = (
+        json.dumps(payload, sort_keys=True, separators=(",", ":")
+    ).encode("utf-8"))
     return authorize_memory_access(
         actor_id=actor_id,
         user_id=user_id,
@@ -134,15 +144,120 @@ def authorized_tool_context_from_parts(
     )
 
 
+def _stdio_trust_enabled() -> bool:
+    """Return True when the server allows unauthenticated MCP stdio calls."""
+    flag = os.environ.get("HINDSIGHT_MCP_STDIO_TRUST", "").strip().lower()
+    return flag in ("1", "true", "yes")
+
+
+def _stdio_trusted_user() -> str:
+    """Resolve the implicit user identity for stdio-trusted calls."""
+    for key in (
+        "HINDSIGHT_COMPAT_DEFAULT_USER_ID",
+        "SUBCONSCIOUS_USER_ID",
+        "USER",
+        "USERNAME",
+    ):
+        value = os.environ.get(key, "").strip()
+        if value:
+            return value
+    raise HTTPException(
+        status_code=503,
+        detail=(
+            "HINDSIGHT_MCP_STDIO_TRUST is enabled but no user identity is configured. "
+            "Set HINDSIGHT_COMPAT_DEFAULT_USER_ID."
+        ),
+    )
+
+
+def _stdio_trusted_actor() -> str:
+    """Resolve the implicit actor identity for stdio-trusted calls."""
+    configured = os.environ.get("HINDSIGHT_COMPAT_BEARER_ACTOR_ID", "").strip()
+    if configured:
+        return configured
+    tokens = configured_actor_tokens()
+    if len(tokens) == 1:
+        return next(iter(tokens))
+    raise HTTPException(
+        status_code=503,
+        detail=(
+            "HINDSIGHT_MCP_STDIO_TRUST is enabled with multiple actors configured. "
+            "Set HINDSIGHT_COMPAT_BEARER_ACTOR_ID to select one."
+        ),
+    )
+
+
+def stdio_trusted_tool_context(
+    *,
+    user_id: Optional[str],
+    scope_context: Optional[str] = None,
+    visibility_default: str = "private",
+) -> AuthorizedToolContext:
+    """Create an AuthorizedToolContext without HMAC auth for stdio-trusted callers.
+
+    Only callable when HINDSIGHT_MCP_STDIO_TRUST=true.  The actor identity and
+    user identity are resolved from environment variables so that the transport
+    boundary (stdio) is the trust boundary.
+    """
+    actor_id = _stdio_trusted_actor()
+    resolved_user = (user_id or "").strip() or _stdio_trusted_user()
+    policies = configured_actor_policies()
+    actor_key = actor_id
+    if actor_key not in policies:
+        actor_key = actor_id.lower().replace("-", "_")
+    policy = policies.get(actor_key)
+    if policy is not None and not policy.allows_user(resolved_user):
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                f"Stdio-trusted actor '{actor_id}' is not permitted"
+                f" to act for user '{resolved_user}'."
+            ),
+        )
+    logger.info(
+        "stdio-trusted MCP call accepted: actor=%s user=%s",
+        actor_id,
+        resolved_user,
+    )
+    scope = parse_scope_context(scope_context)
+    return AuthorizedToolContext(
+        manager=get_manager(),
+        scope=scope_from_kwargs(
+            user_id=resolved_user,
+            org_id=scope.org_id,
+            project_id=scope.project_id,
+            agent_id=scope.agent_id,
+            run_id=scope.run_id,
+            session_id=scope.session_id,
+            include_shared=scope.include_shared,
+            visibility=scope.visibility or visibility_default,
+        ),
+    )
+
+
 def authorized_tool_context_from_json(
     *,
     tool_name: str,
     user_id: str,
-    auth_context: str,
+    auth_context: Optional[str],
     scope_context: str | None,
     payload: Dict[str, Any],
     visibility_default: str = "private",
 ) -> AuthorizedToolContext:
+    if not auth_context:
+        if _stdio_trust_enabled():
+            return stdio_trusted_tool_context(
+                user_id=user_id,
+                scope_context=scope_context,
+                visibility_default=visibility_default,
+            )
+        raise HTTPException(
+            status_code=401,
+            detail=(
+                "auth_context is required when"
+                " HINDSIGHT_MCP_STDIO_TRUST is not enabled."
+            ),
+        )
     auth = parse_auth_context(auth_context)
     scope = parse_scope_context(scope_context)
     return authorized_tool_context_from_parts(

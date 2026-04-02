@@ -67,6 +67,7 @@ class MemoryAccessContext:
     auth_mode: str = "internal_service_hmac"
     actor_type: str = "service"
     policy: MemoryActorPolicy = MemoryActorPolicy()
+    effective_user_id: Optional[str] = None
 
     def audit_metadata(self) -> Dict[str, str]:
         return {
@@ -120,6 +121,13 @@ def _required_header(value: Optional[str], header_name: str) -> str:
     if not normalized:
         raise HTTPException(status_code=400, detail=f"Missing {header_name} header")
     return normalized
+
+
+def _env_flag(name: str, default: bool = False) -> bool:
+    raw_value = os.environ.get(name)
+    if raw_value is None:
+        return default
+    return raw_value.strip().lower() in {"1", "true", "yes", "on"}
 
 
 def _canonical_request(
@@ -263,6 +271,9 @@ def readiness_details() -> Dict[str, object]:
         "actor_policy_mode": "scoped" if actor_policies else "invalid",
         "actor_policies_configured": bool(actor_policies),
         "actor_policies_valid": policy_error is None,
+        "hindsight_bearer_compat_enabled": _env_flag(
+            "HINDSIGHT_COMPAT_ENABLE_BEARER", False
+        ),
         "configuration_error": policy_error,
         "signature_required": True,
         "nonce_ttl_seconds": _NONCE_TTL_SECONDS,
@@ -282,10 +293,129 @@ def validate_memory_auth_configuration() -> None:
     configured_actor_policies()
 
 
-def authorize_memory_access(
+def _default_compat_user_id() -> str:
+    candidates = (
+        os.environ.get("HINDSIGHT_COMPAT_DEFAULT_USER_ID"),
+        os.environ.get("SUBCONSCIOUS_USER_ID"),
+        os.environ.get("USER"),
+        os.environ.get("USERNAME"),
+    )
+    for candidate in candidates:
+        value = (candidate or "").strip()
+        if value:
+            return value
+    raise HTTPException(
+        status_code=400,
+        detail=(
+            "Missing X-Memory-User-Id header. "
+            "Set HINDSIGHT_COMPAT_DEFAULT_USER_ID for bearer-compatible local callers."
+        ),
+    )
+
+
+def _resolve_compat_actor_id(actor_tokens: Mapping[str, str]) -> str:
+    configured_actor_id = (os.environ.get("HINDSIGHT_COMPAT_BEARER_ACTOR_ID") or "").strip()
+    if configured_actor_id:
+        return configured_actor_id
+    if len(actor_tokens) == 1:
+        return next(iter(actor_tokens))
+    raise HTTPException(
+        status_code=503,
+        detail=(
+            "Multiple memory actors are configured. "
+            "Set HINDSIGHT_COMPAT_BEARER_ACTOR_ID for bearer-compatible local callers."
+        ),
+    )
+
+
+def _compat_policy_for_actor(
+    actor_id: str,
+    actor_policies: Mapping[str, MemoryActorPolicy],
+) -> MemoryActorPolicy:
+    policy = actor_policies.get(actor_id)
+    if policy is None:
+        normalized_actor = _normalize_actor_env_key(actor_id).lower()
+        policy = actor_policies.get(normalized_actor)
+    if policy is None:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Missing policy configuration for actor '{actor_id}'",
+        )
+    return policy
+
+
+def _resolve_compat_user_id(user_id: Optional[str]) -> str:
+    return (user_id or "").strip() or _default_compat_user_id()
+
+
+def _validate_compat_bearer_token(
+    *,
+    authorization: Optional[str],
+    actor_id: str,
+    actor_tokens: Mapping[str, str],
+) -> None:
+    value = (authorization or "").strip()
+    if not value:
+        raise HTTPException(status_code=400, detail="Missing Authorization header")
+    scheme, _, token = value.partition(" ")
+    if scheme.lower() != "bearer" or not token.strip():
+        raise HTTPException(status_code=400, detail="Invalid Authorization header")
+
+    expected_secret = _actor_secret_for(actor_id, actor_tokens)
+    if not expected_secret:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Unknown compatibility actor '{actor_id}'",
+        )
+    if not hmac.compare_digest(token.strip(), expected_secret):
+        raise HTTPException(status_code=403, detail="Invalid memory bearer token")
+
+
+def _authorize_bearer_compat(
+    *,
+    authorization: Optional[str],
+    user_id: Optional[str],
+    actor_tokens: Mapping[str, str],
+    actor_policies: Mapping[str, MemoryActorPolicy],
+) -> Optional[MemoryAccessContext]:
+    if not _env_flag("HINDSIGHT_COMPAT_ENABLE_BEARER", False):
+        return None
+
+    if not (authorization or "").strip():
+        return None
+
+    compat_actor_id = _resolve_compat_actor_id(actor_tokens)
+    _validate_compat_bearer_token(
+        authorization=authorization,
+        actor_id=compat_actor_id,
+        actor_tokens=actor_tokens,
+    )
+    resolved_user_id = _resolve_compat_user_id(user_id)
+    policy = _compat_policy_for_actor(compat_actor_id, actor_policies)
+    if not policy.allows_user(resolved_user_id):
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                f"Actor '{compat_actor_id}' is not allowed to act for user "
+                f"'{resolved_user_id}'"
+            ),
+        )
+
+    return MemoryAccessContext(
+        actor_id=compat_actor_id,
+        auth_mode="hindsight_bearer_compat",
+        actor_type="compat_cli",
+        policy=policy,
+        effective_user_id=resolved_user_id,
+    )
+
+
+def _authorize_signed_request(
     *,
     actor_id: Optional[str],
     user_id: Optional[str],
+    actor_tokens: Mapping[str, str],
+    actor_policies: Mapping[str, MemoryActorPolicy],
     request_method: str,
     request_target: str,
     request_body: bytes,
@@ -293,9 +423,6 @@ def authorize_memory_access(
     nonce: Optional[str],
     signature: Optional[str],
 ) -> MemoryAccessContext:
-    actor_tokens = configured_actor_tokens()
-    if not actor_tokens:
-        raise HTTPException(status_code=503, detail="Memory actor credentials are not configured")
     value = (actor_id or "").strip()
     if not value:
         raise HTTPException(status_code=400, detail="Missing X-Memory-Actor-Id header")
@@ -326,22 +453,54 @@ def authorize_memory_access(
     if not hmac.compare_digest(signature_value, expected_signature):
         raise HTTPException(status_code=403, detail="Invalid memory request signature")
     _REPLAY_PROTECTION.validate(actor_id=value, nonce=nonce_value, now_epoch=now_epoch)
-    actor_policies = configured_actor_policies()
-    policy = actor_policies.get(value)
-    if policy is None:
-        normalized_actor = _normalize_actor_env_key(value).lower()
-        policy = actor_policies.get(normalized_actor)
-    if policy is None:
-        raise HTTPException(
-            status_code=503,
-            detail=f"Missing policy configuration for actor '{value}'",
-        )
+    policy_actor_id = value
+    if policy_actor_id not in actor_policies:
+        policy_actor_id = _normalize_actor_env_key(value).lower()
+    policy = _compat_policy_for_actor(policy_actor_id, actor_policies)
     if not policy.allows_user(user_scope):
         raise HTTPException(
             status_code=403,
             detail=f"Actor '{value}' is not allowed to act for user '{user_scope}'",
         )
-    return MemoryAccessContext(actor_id=value, policy=policy)
+    return MemoryAccessContext(actor_id=value, policy=policy, effective_user_id=user_scope)
+
+
+def authorize_memory_access(
+    *,
+    actor_id: Optional[str],
+    user_id: Optional[str],
+    request_method: str,
+    request_target: str,
+    request_body: bytes,
+    timestamp: Optional[str],
+    nonce: Optional[str],
+    signature: Optional[str],
+    authorization: Optional[str] = None,
+) -> MemoryAccessContext:
+    actor_tokens = configured_actor_tokens()
+    if not actor_tokens:
+        raise HTTPException(status_code=503, detail="Memory actor credentials are not configured")
+    actor_policies = configured_actor_policies()
+    compat_access = _authorize_bearer_compat(
+        authorization=authorization,
+        user_id=user_id,
+        actor_tokens=actor_tokens,
+        actor_policies=actor_policies,
+    )
+    if compat_access is not None:
+        return compat_access
+    return _authorize_signed_request(
+        actor_id=actor_id,
+        user_id=user_id,
+        actor_tokens=actor_tokens,
+        actor_policies=actor_policies,
+        request_method=request_method,
+        request_target=request_target,
+        request_body=request_body,
+        timestamp=timestamp,
+        nonce=nonce,
+        signature=signature,
+    )
 
 
 def required_user_id(user_id: Optional[str]) -> str:
@@ -349,3 +508,14 @@ def required_user_id(user_id: Optional[str]) -> str:
     if not value:
         raise HTTPException(status_code=400, detail="Missing X-Memory-User-Id header")
     return value
+
+
+def resolve_authorized_user_id(
+    access: MemoryAccessContext,
+    user_id: Optional[str],
+) -> str:
+    resolved_user_id = (user_id or "").strip() or access.effective_user_id or ""
+    if not resolved_user_id and access.auth_mode == "hindsight_bearer_compat":
+        resolved_user_id = _default_compat_user_id()
+    resolved_user_id = required_user_id(resolved_user_id)
+    return access.assert_user_scope(resolved_user_id)

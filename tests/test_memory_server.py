@@ -23,6 +23,26 @@ def _configure_memory_auth(monkeypatch) -> None:
     )
 
 
+def _configure_memory_auth_with_compat(monkeypatch) -> None:
+    memory_auth.configured_actor_tokens.cache_clear()
+    memory_auth.configured_actor_policies.cache_clear()
+    memory_auth.readiness_details.cache_clear()
+    monkeypatch.setenv(
+        "LOCAL_MEMORY_ACTOR_TOKENS_JSON",
+        '{"api-server":"actor-token","local-hindsight-cli":"compat-token"}',
+    )
+    monkeypatch.setenv(
+        "LOCAL_MEMORY_ACTOR_POLICIES_JSON",
+        (
+            '{"api-server":{"allowed_user_prefixes":["vivi","mallory","service-"]},'
+            '"local-hindsight-cli":{"allowed_users":["vivi"]}}'
+        ),
+    )
+    monkeypatch.setenv("HINDSIGHT_COMPAT_ENABLE_BEARER", "true")
+    monkeypatch.setenv("HINDSIGHT_COMPAT_BEARER_ACTOR_ID", "local-hindsight-cli")
+    monkeypatch.setenv("HINDSIGHT_COMPAT_DEFAULT_USER_ID", "vivi")
+
+
 def _signed_request(
     client: TestClient,
     method: str,
@@ -226,6 +246,39 @@ def test_hindsight_recall_treats_empty_tag_list_as_no_extra_filter(tmp_path, mon
     )
     assert recall.status_code == 200
     assert recall.json()["results"][0]["document_id"] == "doc-empty-tags"
+
+
+def test_hindsight_routes_accept_local_bearer_compatibility(tmp_path, monkeypatch) -> None:
+    _configure_memory_auth_with_compat(monkeypatch)
+    app = create_memory_server()
+    manager = LocalHindsightMemoryManager(db_path=str(tmp_path / "local-hindsight.db"))
+    app.state.memory_manager = manager
+
+    client = TestClient(app)
+    retain = client.post(
+        "/v1/default/banks/pixeldated/memories",
+        json={
+            "items": [
+                {
+                    "content": "Vivi stores local CLI memories in the shared service",
+                    "document_id": "compat-doc-1",
+                    "context": '{"metadata":{"project_id":"pixelated"}}',
+                    "tags": ["project_id:pixelated"],
+                }
+            ]
+        },
+        headers={"Authorization": "Bearer compat-token"},
+    )
+    assert retain.status_code == 200
+    assert retain.json()["results"][0]["id"] == "compat-doc-1"
+
+    recall = client.post(
+        "/v1/default/banks/pixeldated/memories/recall",
+        json={"query": "local CLI memories"},
+        headers={"Authorization": "Bearer compat-token"},
+    )
+    assert recall.status_code == 200
+    assert recall.json()["results"][0]["document_id"] == "compat-doc-1"
 
 
 def test_hindsight_document_routes_enforce_user_scope(tmp_path, monkeypatch) -> None:

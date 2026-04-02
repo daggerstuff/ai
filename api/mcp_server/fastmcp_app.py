@@ -20,9 +20,6 @@ from mcp.server.fastmcp import FastMCP
 
 from ai.api.mcp_server.fastmcp_context import register_context_surfaces
 from ai.api.mcp_server.fastmcp_tools import register_memory_tools
-from ai.api.mcp_server.fastmcp_shared import get_manager
-from ai.api.mcp_server.fastmcp_context import memory_status
-from ai.api.mcp_server.fastmcp_tools import memory_delete, memory_query, memory_store, memory_update
 
 logging.basicConfig(level=logging.INFO)
 

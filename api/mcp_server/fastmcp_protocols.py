@@ -138,12 +138,26 @@ class MemoryQueryServiceProvider(Protocol):
 
 @runtime_checkable
 class MemoryScopeProvider(Protocol):
-    org_id: str | None
-    project_id: str | None
-    agent_id: str | None
-    run_id: str | None
-    session_id: str | None
-    include_shared: bool
-    visibility: str
+    @property
+    def org_id(self) -> str | None: ...
+
+    @property
+    def project_id(self) -> str | None: ...
+
+    @property
+    def agent_id(self) -> str | None: ...
+
+    @property
+    def run_id(self) -> str | None: ...
+
+    @property
+    def session_id(self) -> str | None: ...
+
+    @property
+    def include_shared(self) -> bool: ...
+
+    @property
+    def visibility(self) -> str: ...
 
     def to_metadata(self) -> dict[str, Any] | None: ...
+
