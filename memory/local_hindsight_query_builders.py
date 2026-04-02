@@ -7,9 +7,6 @@ from .hindsight_local_adapter import encode_tags_json, normalize_tags
 from .local_hindsight_queries import query_tokens
 
 
-MAX_SCOPE_TAGS = 5
-
-
 @dataclass(frozen=True)
 class BuiltQuery:
     sql: str
@@ -163,28 +160,23 @@ def scope_tags(
 
 
 def required_tags_clause(tag_count: int) -> str:
-    if tag_count < 1 or tag_count > MAX_SCOPE_TAGS:
+    if tag_count < 1:
         raise ValueError("Scope tag count is outside the supported range")
-    selects = [
-        """
-        SELECT t.document_id
-        FROM document_tags t
-        WHERE t.bank_id = d.bank_id
-          AND t.tag = ?
-        """.strip()
-        for _ in range(tag_count)
-    ]
-    joined = "\nINTERSECT\n".join(selects)
     return f"""
         d.id IN (
-            {joined}
+            SELECT t.document_id
+            FROM document_tags t
+            JOIN json_each(?) jt ON jt.value = t.tag
+            WHERE t.bank_id = d.bank_id
+            GROUP BY t.document_id
+            HAVING COUNT(DISTINCT t.tag) = {tag_count}
         )
     """
 
 
 def non_shared_visibility_clause(tag_count: int) -> str:
     placeholders = ", ".join("?" for _ in range(tag_count))
-    return """
+    return f"""
         NOT EXISTS (
             SELECT 1
             FROM document_tags t
@@ -192,7 +184,7 @@ def non_shared_visibility_clause(tag_count: int) -> str:
               AND t.document_id = d.id
               AND t.tag IN ({placeholders})
         )
-    """.format(placeholders=placeholders)
+    """
 
 
 def build_scoped_search_query(
@@ -204,6 +196,7 @@ def build_scoped_search_query(
     include_shared: bool,
     non_private_visibility_tags: Optional[List[str]],
     fetch_limit: int,
+    offset: int,
     leading_params: List[Any],
 ) -> BuiltQuery:
     layout = query_layout(fts=fts)
@@ -213,6 +206,7 @@ def build_scoped_search_query(
         conditions=conditions,
         params=params,
         required_scope_tags=required_scope_tags,
+        required_filter_tags=[],
         include_shared=include_shared,
         non_private_visibility_tags=non_private_visibility_tags,
     )
@@ -225,9 +219,9 @@ def build_scoped_search_query(
         SELECT {layout.table_alias}.*, {layout.rank_expression} AS rank
         {source}{where_suffix}
         ORDER BY {layout.order_column}
-        LIMIT ?
+        LIMIT ? OFFSET ?
     """
-    params.append(fetch_limit)
+    params.extend([fetch_limit, offset])
     return BuiltQuery(sql=sql, params=tuple(params))
 
 
@@ -236,6 +230,7 @@ def build_scope_listing_query(
     bank_id: str,
     user_id: str,
     required_scope_tags: List[str],
+    required_filter_tags: Optional[List[str]],
     include_shared: bool,
     non_private_visibility_tags: Optional[List[str]],
     limit: int,
@@ -247,6 +242,7 @@ def build_scope_listing_query(
         conditions=conditions,
         params=params,
         required_scope_tags=required_scope_tags,
+        required_filter_tags=required_filter_tags or [],
         include_shared=include_shared,
         non_private_visibility_tags=non_private_visibility_tags,
     )
@@ -276,21 +272,29 @@ def build_scope_category_count_query(
         conditions=conditions,
         params=params,
         required_scope_tags=required_scope_tags,
+        required_filter_tags=[],
         include_shared=include_shared,
         non_private_visibility_tags=non_private_visibility_tags,
     )
     where_clause = " AND ".join(f"({condition.strip()})" for condition in conditions)
     sql = f"""
         SELECT
-            COALESCE(SUBSTR(category_tags.tag, 10), 'general') AS category,
-            COUNT(*) AS total
+            COALESCE(SUBSTR(category_tags.category_tag, 10), 'general') AS category,
+            COUNT(DISTINCT d.id) AS total
         FROM documents d
-        LEFT JOIN document_tags category_tags
+        LEFT JOIN (
+            SELECT
+                bank_id,
+                document_id,
+                MIN(tag) AS category_tag
+            FROM document_tags
+            WHERE tag GLOB 'category:*'
+            GROUP BY bank_id, document_id
+        ) category_tags
           ON category_tags.bank_id = d.bank_id
          AND category_tags.document_id = d.id
-         AND category_tags.tag LIKE 'category:%'
         WHERE {where_clause}
-        GROUP BY COALESCE(SUBSTR(category_tags.tag, 10), 'general')
+        GROUP BY COALESCE(SUBSTR(category_tags.category_tag, 10), 'general')
         ORDER BY total DESC, category ASC
     """
     return BuiltQuery(sql=sql, params=tuple(params))
@@ -299,16 +303,16 @@ def build_scope_category_count_query(
 def _scoped_conditions_and_params(
     *,
     required_scope_tags: List[str],
+    required_filter_tags: List[str],
     include_shared: bool,
     non_private_visibility_tags: Optional[List[str]],
 ) -> tuple[List[str], List[Any]]:
-    if len(required_scope_tags) > MAX_SCOPE_TAGS:
-        raise ValueError("Scope tag count is outside the supported range")
+    all_required_tags = [*required_scope_tags, *required_filter_tags]
     conditions: List[str] = []
     params: List[Any] = []
-    if required_scope_tags:
-        conditions.append(required_tags_clause(len(required_scope_tags)))
-        params.extend(required_scope_tags)
+    if all_required_tags:
+        conditions.append(required_tags_clause(len(all_required_tags)))
+        params.append(encode_tags_json(all_required_tags))
     if not include_shared and non_private_visibility_tags:
         conditions.append(non_shared_visibility_clause(len(non_private_visibility_tags)))
         params.extend(non_private_visibility_tags)
@@ -320,11 +324,13 @@ def _apply_scope_filters(
     conditions: List[str],
     params: List[Any],
     required_scope_tags: List[str],
+    required_filter_tags: List[str],
     include_shared: bool,
     non_private_visibility_tags: Optional[List[str]],
 ) -> None:
     scoped_conditions, scoped_params = _scoped_conditions_and_params(
         required_scope_tags=required_scope_tags,
+        required_filter_tags=required_filter_tags,
         include_shared=include_shared,
         non_private_visibility_tags=non_private_visibility_tags,
     )

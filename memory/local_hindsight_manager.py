@@ -3,15 +3,10 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional
 
 from .base import BaseMemoryManager
-from .hindsight_local_adapter import (
-    memory_record_from_storage,
-    metadata_to_tags,
-    serialize_context,
-)
 from .local_hindsight_document_service import LocalHindsightDocumentService
 from .local_hindsight_memory_query_service import LocalHindsightMemoryQueryService
+from .local_hindsight_memory_record_service import LocalHindsightMemoryRecordService
 from .local_hindsight_memory_write_service import LocalHindsightMemoryWriteService
-from .local_hindsight_memory_update import build_updated_document_payload
 from .local_hindsight_protocol_adapter import LocalHindsightProtocolAdapter
 from .local_hindsight_repository import LocalHindsightRepository
 
@@ -37,49 +32,27 @@ class LocalHindsightMemoryManager(BaseMemoryManager):
             protocol=self.protocol,
             default_bank_id=self.default_bank_id,
         )
+        self.records = LocalHindsightMemoryRecordService(
+            default_bank_id=self.default_bank_id,
+            repository=self.repository,
+            writes=self.writes,
+            provider_name=self.get_provider_name(),
+        )
         self.queries = LocalHindsightMemoryQueryService(
             default_bank_id=self.default_bank_id,
             repository=self.repository,
         )
-
-    def retain_items(self, bank_id: str, items: List[Dict[str, Any]]) -> Dict[str, Any]:
-        return self.protocol.retain_items(bank_id, items)
-
-    def recall(
-        self,
-        bank_id: str,
-        *,
-        query: str,
-        limit: int = 10,
-        tags: Optional[List[str]] = None,
-        tags_match: str = "any",
-    ) -> Dict[str, Any]:
-        return self.protocol.recall(
-            bank_id,
-            query=query,
-            limit=limit,
-            tags=tags,
-            tags_match=tags_match,
-        )
-
-    def recall_for_user(
-        self,
-        bank_id: str,
-        *,
-        user_id: str,
-        query: str,
-        limit: int = 10,
-        tags: Optional[List[str]] = None,
-        tags_match: str = "any",
-    ) -> Dict[str, Any]:
-        return self.protocol.recall_for_user(
-            bank_id,
-            user_id=user_id,
-            query=query,
-            limit=limit,
-            tags=tags,
-            tags_match=tags_match,
-        )
+        self.retain_items = self.protocol.retain_items
+        self.recall = self.protocol.recall
+        self.recall_for_user = self.protocol.recall_for_user
+        self.can_write_document = self.protocol.can_write_document
+        self.prepare_retained_items = self.protocol.prepare_retained_items
+        self.add_memory_scoped = self.writes.add_memory
+        self.search_memories_scoped = self.queries.search_memories_scoped
+        self.get_all_memories_scoped = self.queries.get_all_memories_scoped
+        self.count_memories_by_category_scoped = self.queries.count_memories_by_category_scoped
+        self.get_memories_by_category = self.queries.get_memories_by_category
+        self.delete_memories = self._delete_memories
 
     def list_documents(
         self,
@@ -120,30 +93,6 @@ class LocalHindsightMemoryManager(BaseMemoryManager):
             raise ValueError("user_id is required when deleting documents")
         return self.protocol.delete_document(bank_id, document_id, user_id=user_id)
 
-    def can_write_document(
-        self,
-        bank_id: str,
-        document_id: str,
-        *,
-        user_id: str,
-    ) -> bool:
-        return self.protocol.can_write_document(bank_id, document_id, user_id=user_id)
-
-    def prepare_retained_items(
-        self,
-        *,
-        bank_id: str,
-        items: List[Dict[str, Any]],
-        user_id: str,
-        base_metadata: Dict[str, Any],
-    ) -> List[Dict[str, Any]]:
-        return self.protocol.prepare_retained_items(
-            bank_id=bank_id,
-            items=items,
-            user_id=user_id,
-            base_metadata=base_metadata,
-        )
-
     def add_memory(
         self,
         content: str,
@@ -158,23 +107,6 @@ class LocalHindsightMemoryManager(BaseMemoryManager):
             category=category,
         )
 
-    def add_memory_scoped(
-        self,
-        *,
-        content: str,
-        user_id: str,
-        metadata: Optional[Any] = None,
-        category: Optional[str] = None,
-        scope_metadata: Optional[Dict[str, Any]] = None,
-    ) -> str:
-        return self.writes.add_memory(
-            content=content,
-            user_id=user_id,
-            metadata=metadata,
-            category=category,
-            scope_metadata=scope_metadata,
-        )
-
     def search_memories(self, query: str, user_id: str, limit: int = 10) -> List[Dict[str, Any]]:
         return self.recall(
             self.default_bank_id,
@@ -184,99 +116,11 @@ class LocalHindsightMemoryManager(BaseMemoryManager):
             tags_match="any",
         )["results"]
 
-    def search_memories_scoped(
-        self,
-        *,
-        query: str,
-        user_id: str,
-        org_id: Optional[str] = None,
-        project_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        agent_id: Optional[str] = None,
-        run_id: Optional[str] = None,
-        include_shared: bool = True,
-        limit: int = 10,
-    ) -> List[Dict[str, Any]]:
-        return self.queries.search_memories_scoped(
-            query=query,
-            user_id=user_id,
-            org_id=org_id,
-            project_id=project_id,
-            session_id=session_id,
-            agent_id=agent_id,
-            run_id=run_id,
-            include_shared=include_shared,
-            limit=limit,
-        )
-
     def get_all_memories(self, user_id: str, limit: int = 100) -> List[Dict[str, Any]]:
         return self.queries.get_all_memories(user_id=user_id, limit=limit)
 
-    def get_all_memories_scoped(
-        self,
-        *,
-        user_id: str,
-        org_id: Optional[str] = None,
-        project_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        agent_id: Optional[str] = None,
-        run_id: Optional[str] = None,
-        include_shared: bool = True,
-        limit: int = 100,
-    ) -> List[Dict[str, Any]]:
-        return self.queries.get_all_memories_scoped(
-            user_id=user_id,
-            org_id=org_id,
-            project_id=project_id,
-            session_id=session_id,
-            agent_id=agent_id,
-            run_id=run_id,
-            include_shared=include_shared,
-            limit=limit,
-        )
-
-    def count_memories_by_category_scoped(
-        self,
-        *,
-        user_id: str,
-        org_id: Optional[str] = None,
-        project_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        agent_id: Optional[str] = None,
-        run_id: Optional[str] = None,
-        include_shared: bool = True,
-    ) -> Dict[str, int]:
-        return self.queries.count_memories_by_category_scoped(
-            user_id=user_id,
-            org_id=org_id,
-            project_id=project_id,
-            session_id=session_id,
-            agent_id=agent_id,
-            run_id=run_id,
-            include_shared=include_shared,
-        )
-
-    def get_memories_by_category(
-        self,
-        user_id: str,
-        category: str,
-        limit: int = 100,
-    ) -> List[Dict[str, Any]]:
-        return self.queries.get_memories_by_category(
-            user_id=user_id,
-            category=category,
-            limit=limit,
-        )
-
     def get_memory(self, memory_id: str, user_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
-        record = self.repository.get_document(
-            self.default_bank_id,
-            memory_id,
-            user_id=user_id,
-        )
-        if not record:
-            return None
-        return memory_record_from_storage(record)
+        return self.records.get_memory(memory_id, user_id=user_id)
 
     def update_memory(
         self,
@@ -285,61 +129,30 @@ class LocalHindsightMemoryManager(BaseMemoryManager):
         metadata: Optional[Any] = None,
         user_id: Optional[str] = None,
     ) -> bool:
-        existing_record = self.repository.get_document(
-            self.default_bank_id,
-            memory_id,
+        return self.records.update_memory(
+            memory_id=memory_id,
+            new_content=new_content,
+            metadata=metadata,
             user_id=user_id,
         )
-        if existing_record is None:
-            return False
-        owner_user_id, merged_metadata, category = build_updated_document_payload(
-            repository=self.repository,
-            existing_record=existing_record,
-            metadata=self.writes.coerce_metadata(metadata),
-        )
-        self.repository.upsert_document(
-            bank_id=self.default_bank_id,
-            document_id=memory_id,
-            content=new_content,
-            context=serialize_context(
-                user_id=owner_user_id,
-                metadata=merged_metadata,
-                category=category,
-            ),
-            tags=metadata_to_tags(
-                user_id=owner_user_id,
-                metadata=merged_metadata,
-                category=category,
-            ),
-        )
-        return True
 
     def delete_memory(self, memory_id: str, user_id: Optional[str] = None) -> bool:
-        deleted_count = self.repository.delete_documents(
-            self.default_bank_id,
-            [memory_id],
+        return self.records.delete_memory(
+            memory_id=memory_id,
             user_id=user_id,
         )
-        return deleted_count > 0
 
-    def delete_memories(self, memory_ids: List[str], user_id: Optional[str] = None) -> int:
-        """Delete multiple memories and return the number of removed records."""
-        return self.repository.delete_documents(
-            self.default_bank_id,
+    def _delete_memories(self, memory_ids: List[str], user_id: Optional[str] = None) -> int:
+        return self.records.delete_memories(
             memory_ids,
             user_id=user_id,
         )
 
     def clear_memory(self, user_id: str) -> bool:
-        return self.repository.delete_documents_for_user(self.default_bank_id, user_id=user_id)
+        return self.records.clear_memory(user_id)
 
     def get_health_status(self) -> Dict[str, Any]:
-        db_health = self.repository.db.health_details()
-        return {
-            "status": "healthy" if db_health.get("db_ready") else "degraded",
-            "provider": self.get_provider_name(),
-            "readiness": db_health,
-        }
+        return self.records.get_health_status()
 
     def close(self) -> None:
         self.repository.close()

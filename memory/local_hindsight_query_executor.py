@@ -5,7 +5,6 @@ from typing import Any, List, Optional
 
 from .hindsight_local_adapter import normalize_tags
 from .local_hindsight_query_builders import (
-    MAX_SCOPE_TAGS,
     base_query,
     build_scope_listing_query,
     build_scoped_search_query,
@@ -110,6 +109,7 @@ class LocalHindsightQueryExecutor:
         user_id: str,
         query: str,
         fetch_limit: int,
+        offset: int = 0,
         org_id: Optional[str] = None,
         project_id: Optional[str] = None,
         session_id: Optional[str] = None,
@@ -137,6 +137,7 @@ class LocalHindsightQueryExecutor:
             include_shared=include_shared,
             non_private_visibility_tags=non_private_visibility_tags,
             fetch_limit=fetch_limit,
+            offset=offset,
             leading_params=[bank_id, query_value],
         )
         return conn.execute(built_query.sql, built_query.params).fetchall()
@@ -154,6 +155,7 @@ class LocalHindsightQueryExecutor:
         run_id: Optional[str] = None,
         include_shared: bool = True,
         non_private_visibility_tags: Optional[List[str]] = None,
+        required_tags: Optional[List[str]] = None,
         limit: int = 100,
         offset: int = 0,
     ) -> List[sqlite3.Row]:
@@ -168,6 +170,7 @@ class LocalHindsightQueryExecutor:
             bank_id=bank_id,
             user_id=user_id,
             required_scope_tags=required_scope_tags,
+            required_filter_tags=normalize_tags(required_tags),
             include_shared=include_shared,
             non_private_visibility_tags=non_private_visibility_tags,
             limit=limit,

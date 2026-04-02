@@ -59,6 +59,58 @@ class LocalHindsightDocumentStore:
                 [(bank_id, document_id, tag) for tag in tags],
             )
 
+    @staticmethod
+    def _json_payload(values: List[str]) -> str:
+        return json.dumps(values, separators=(",", ":"))
+
+    def _document_ids_matching_payload(
+        self,
+        conn: sqlite3.Connection,
+        *,
+        bank_id: str,
+        payload: str,
+        user_id: Optional[str] = None,
+    ) -> List[str]:
+        rows = conn.execute(
+            """
+            SELECT id
+            FROM documents
+            WHERE bank_id = ?
+              AND id IN (SELECT value FROM json_each(?))
+              AND (? IS NULL OR user_id = ?)
+            """,
+            (bank_id, payload, user_id, user_id),
+        ).fetchall()
+        return [str(row["id"]) for row in rows]
+
+    def _delete_documents_by_ids_tx(
+        self,
+        conn: sqlite3.Connection,
+        *,
+        bank_id: str,
+        document_ids: List[str],
+    ) -> int:
+        if not document_ids:
+            return 0
+        payload = self._json_payload(document_ids)
+        conn.execute(
+            """
+            DELETE FROM document_tags
+            WHERE bank_id = ?
+              AND document_id IN (SELECT value FROM json_each(?))
+            """,
+            (bank_id, payload),
+        )
+        cursor = conn.execute(
+            """
+            DELETE FROM documents
+            WHERE bank_id = ?
+              AND id IN (SELECT value FROM json_each(?))
+            """,
+            (bank_id, payload),
+        )
+        return cursor.rowcount
+
     def _upsert_document_tx(
         self,
         conn: sqlite3.Connection,
@@ -210,9 +262,14 @@ class LocalHindsightDocumentStore:
         agent_id: Optional[str] = None,
         run_id: Optional[str] = None,
         include_shared: bool = True,
+        category: Optional[str] = None,
+        tags: Optional[List[str]] = None,
         limit: int = 100,
         offset: int = 0,
     ) -> List[Dict[str, Any]]:
+        required_tags = [*normalize_tags(tags)]
+        if category:
+            required_tags.append(f"category:{category}")
         with self.db.lease() as conn:
             rows = LocalHindsightQueryExecutor.execute_scope_query(
                 conn,
@@ -225,6 +282,7 @@ class LocalHindsightDocumentStore:
                 run_id=run_id,
                 include_shared=include_shared,
                 non_private_visibility_tags=list(NON_PRIVATE_VISIBILITY_TAGS),
+                required_tags=required_tags,
                 limit=limit,
                 offset=offset,
             )
@@ -296,32 +354,19 @@ class LocalHindsightDocumentStore:
     ) -> int:
         if not document_ids:
             return 0
-        payload = json.dumps(document_ids, separators=(",", ":"))
         with self.db.lease() as conn:
-            conn.execute(
-                """
-                DELETE FROM document_tags
-                WHERE bank_id = ?
-                  AND document_id IN (
-                    SELECT id
-                    FROM documents
-                    WHERE bank_id = ?
-                      AND id IN (SELECT value FROM json_each(?))
-                      AND (? IS NULL OR user_id = ?)
-                  )
-                """,
-                (bank_id, bank_id, payload, user_id, user_id),
+            payload = self._json_payload(document_ids)
+            matching_ids = self._document_ids_matching_payload(
+                conn,
+                bank_id=bank_id,
+                payload=payload,
+                user_id=user_id,
             )
-            cursor = conn.execute(
-                """
-                DELETE FROM documents
-                WHERE bank_id = ?
-                  AND id IN (SELECT value FROM json_each(?))
-                  AND (? IS NULL OR user_id = ?)
-                """,
-                (bank_id, payload, user_id, user_id),
+            return self._delete_documents_by_ids_tx(
+                conn,
+                bank_id=bank_id,
+                document_ids=matching_ids,
             )
-            return cursor.rowcount
 
     def delete_documents_for_user(self, bank_id: str, *, user_id: str) -> bool:
         user_tag = f"user:{user_id}"
@@ -330,25 +375,35 @@ class LocalHindsightDocumentStore:
                 """
                 DELETE FROM document_tags
                 WHERE bank_id = ?
-                  AND document_id IN (
-                    SELECT id
-                    FROM documents
-                    WHERE bank_id = ?
-                      AND (user_id = ? OR id IN (
-                        SELECT document_id FROM document_tags WHERE bank_id = ? AND tag = ?
-                      ))
+                  AND EXISTS (
+                    SELECT 1
+                    FROM documents d
+                    LEFT JOIN document_tags owner_tag
+                      ON owner_tag.bank_id = d.bank_id
+                     AND owner_tag.document_id = d.id
+                     AND owner_tag.tag = ?
+                    WHERE d.bank_id = document_tags.bank_id
+                      AND d.id = document_tags.document_id
+                      AND (d.user_id = ? OR owner_tag.document_id IS NOT NULL)
                   )
                 """,
-                (bank_id, bank_id, user_id, bank_id, user_tag),
+                (bank_id, user_tag, user_id),
             )
             deleted = conn.execute(
                 """
                 DELETE FROM documents
                 WHERE bank_id = ?
-                  AND (user_id = ? OR id IN (
-                    SELECT document_id FROM document_tags WHERE bank_id = ? AND tag = ?
-                  ))
+                  AND (
+                    user_id = ?
+                    OR EXISTS (
+                        SELECT 1
+                        FROM document_tags t
+                        WHERE t.bank_id = documents.bank_id
+                          AND t.document_id = documents.id
+                          AND t.tag = ?
+                    )
+                  )
                 """,
-                (bank_id, user_id, bank_id, user_tag),
+                (bank_id, user_id, user_tag),
             )
             return deleted.rowcount > 0

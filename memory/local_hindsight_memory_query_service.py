@@ -38,6 +38,9 @@ class LocalHindsightMemoryQueryService:
         run_id: Optional[str] = None,
         include_shared: bool = True,
         limit: int = 100,
+        offset: int = 0,
+        category: Optional[str] = None,
+        tags: Optional[List[str]] = None,
     ) -> List[Dict[str, Any]]:
         records = self.repository.list_documents_for_scope(
             self.default_bank_id,
@@ -48,8 +51,10 @@ class LocalHindsightMemoryQueryService:
             agent_id=agent_id,
             run_id=run_id,
             include_shared=include_shared,
+            category=category,
+            tags=tags,
             limit=limit,
-            offset=0,
+            offset=offset,
         )
         return [memory_record_from_storage(record) for record in records]
 
@@ -81,12 +86,14 @@ class LocalHindsightMemoryQueryService:
         run_id: Optional[str] = None,
         include_shared: bool = True,
         limit: int = 10,
+        offset: int = 0,
     ) -> List[Dict[str, Any]]:
         records = self.repository.search_documents_for_scope(
             self.default_bank_id,
             user_id=user_id,
             query=query,
             limit=limit,
+            offset=offset,
             org_id=org_id,
             project_id=project_id,
             session_id=session_id,

@@ -46,6 +46,13 @@ class LocalHindsightSchemaManager:
         )
         conn.execute(
             """
+            CREATE INDEX IF NOT EXISTS idx_document_tags_category_lookup
+            ON document_tags(bank_id, document_id, tag)
+            WHERE tag GLOB 'category:*'
+            """
+        )
+        conn.execute(
+            """
             CREATE VIRTUAL TABLE IF NOT EXISTS documents_fts
             USING fts5(
                 bank_id UNINDEXED,

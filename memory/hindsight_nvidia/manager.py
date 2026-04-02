@@ -135,6 +135,7 @@ Maintain professional boundaries and safety protocols at all times."""
         memory_id: str,
         new_content: str,
         metadata: Optional[Dict[str, Any]] = None,
+        user_id: Optional[str] = None,
     ) -> bool:
         filtered_content = self._filter_for_storage(new_content)
         if not filtered_content:
@@ -144,10 +145,11 @@ Maintain professional boundaries and safety protocols at all times."""
             memory_id=memory_id,
             new_content=filtered_content,
             metadata=self._memory_metadata(metadata),
+            user_id=user_id,
         )
 
-    def delete_memory(self, memory_id: str) -> bool:
-        return self.memory.delete_memory(memory_id)
+    def delete_memory(self, memory_id: str, user_id: Optional[str] = None) -> bool:
+        return self.memory.delete_memory(memory_id, user_id=user_id)
 
     def clear_memory(self, user_id: str) -> None:
         self.memory.clear_memory(user_id)
@@ -161,12 +163,27 @@ Maintain professional boundaries and safety protocols at all times."""
     def get_all_memories(
         self, user_id: str, limit: int = 100, page: int = 1
     ) -> List[Dict[str, Any]]:
+        offset = max(page - 1, 0) * limit
+        if hasattr(self.memory, "get_all_memories_scoped"):
+            return self.memory.get_all_memories_scoped(
+                user_id=user_id,
+                limit=limit,
+                offset=offset,
+            )
         memories = self.memory.get_all_memories(user_id=user_id, limit=limit * max(page, 1))
         return self._paginate(memories, limit, page)
 
     def search_memories(
         self, query: str, user_id: str, limit: int = 10, page: int = 1
     ) -> List[Dict[str, Any]]:
+        offset = max(page - 1, 0) * limit
+        if hasattr(self.memory, "search_memories_scoped"):
+            return self.memory.search_memories_scoped(
+                query=query,
+                user_id=user_id,
+                limit=limit,
+                offset=offset,
+            )
         memories = self.memory.search_memories(query=query, user_id=user_id, limit=limit * max(page, 1))
         return self._paginate(memories, limit, page)
 
@@ -177,8 +194,12 @@ Maintain professional boundaries and safety protocols at all times."""
         end = start + limit
         return items[start:end]
 
-    def get_memory(self, memory_id: str) -> Optional[Dict[str, Any]]:
-        return self.memory.get_memory(memory_id)
+    def get_memory(
+        self,
+        memory_id: str,
+        user_id: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        return self.memory.get_memory(memory_id, user_id=user_id)
 
     def add_memory(
         self,
