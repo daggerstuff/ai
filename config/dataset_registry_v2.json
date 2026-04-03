@@ -1,6 +1,6 @@
 {
   "version": "2.0.0",
-  "last_updated": "2026-04-03T16:52:24.838995Z",
+  "last_updated": "2026-04-03T16:13:53.778460Z",
   "description": "Rebuilt registry based on actual backup structure",
   "storage": {
     "primary": {
@@ -44,51 +44,26 @@
           }
         ],
         "quality_metrics": {
-          "quality_score": 57.0,
-          "quality_tier": "needs_review",
-          "completeness_score": 26.67,
-          "consistency_score": 70.0,
-          "annotation_quality": 70.0,
-          "data_freshness_days": null,
-          "anomaly_flags": [
-            "sync_discrepancies"
-          ]
+          "completeness_score": 0,
+          "consistency_score": 0,
+          "annotation_quality_score": 0,
+          "overall_quality_score": 0,
+          "quality_tier": "not_scored",
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
         },
         "validation": {
           "checksum_sha256": null,
           "checksum_md5": null,
           "schema_valid": false,
           "integrity_valid": false,
-          "last_validated": null,
-          "integrity_check": false
+          "last_validated": null
         },
         "usage": {
           "access_count": 0,
           "last_accessed": null,
           "training_jobs": [],
           "data_freshness_days": null
-        },
-        "sync_status": {
-          "gdrive_synced": false,
-          "s3_synced": false,
-          "last_sync_timestamp": "2026-04-03T16:25:50.793289Z",
-          "sync_discrepancies": [
-            {
-              "type": "missing_s3",
-              "message": "Dataset not found in S3 canonical storage"
-            },
-            {
-              "type": "missing_gdrive",
-              "message": "Dataset not found in Google Drive source"
-            }
-          ],
-          "sync_verified": false
-        },
-        "usage_analytics": {
-          "last_accessed": null,
-          "access_count": 0,
-          "last_training_job": null,
-          "training_jobs_used_in": 0
         }
       }
     },
@@ -155,51 +130,26 @@
           }
         ],
         "quality_metrics": {
-          "quality_score": 57.0,
-          "quality_tier": "needs_review",
-          "completeness_score": 26.67,
-          "consistency_score": 70.0,
-          "annotation_quality": 70.0,
-          "data_freshness_days": null,
-          "anomaly_flags": [
-            "sync_discrepancies"
-          ]
+          "completeness_score": 0,
+          "consistency_score": 0,
+          "annotation_quality_score": 0,
+          "overall_quality_score": 0,
+          "quality_tier": "not_scored",
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
         },
         "validation": {
           "checksum_sha256": null,
           "checksum_md5": null,
           "schema_valid": false,
           "integrity_valid": false,
-          "last_validated": null,
-          "integrity_check": false
+          "last_validated": null
         },
         "usage": {
           "access_count": 0,
           "last_accessed": null,
           "training_jobs": [],
           "data_freshness_days": null
-        },
-        "sync_status": {
-          "gdrive_synced": false,
-          "s3_synced": false,
-          "last_sync_timestamp": "2026-04-03T16:25:50.875912Z",
-          "sync_discrepancies": [
-            {
-              "type": "missing_s3",
-              "message": "Dataset not found in S3 canonical storage"
-            },
-            {
-              "type": "missing_gdrive",
-              "message": "Dataset not found in Google Drive source"
-            }
-          ],
-          "sync_verified": false
-        },
-        "usage_analytics": {
-          "last_accessed": null,
-          "access_count": 0,
-          "last_training_job": null,
-          "training_jobs_used_in": 0
         }
       }
     },
@@ -266,51 +216,26 @@
           }
         ],
         "quality_metrics": {
-          "quality_score": 57.0,
-          "quality_tier": "needs_review",
-          "completeness_score": 26.67,
-          "consistency_score": 70.0,
-          "annotation_quality": 70.0,
-          "data_freshness_days": null,
-          "anomaly_flags": [
-            "sync_discrepancies"
-          ]
+          "completeness_score": 0,
+          "consistency_score": 0,
+          "annotation_quality_score": 0,
+          "overall_quality_score": 0,
+          "quality_tier": "not_scored",
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
         },
         "validation": {
           "checksum_sha256": null,
           "checksum_md5": null,
           "schema_valid": false,
           "integrity_valid": false,
-          "last_validated": null,
-          "integrity_check": false
+          "last_validated": null
         },
         "usage": {
           "access_count": 0,
           "last_accessed": null,
           "training_jobs": [],
           "data_freshness_days": null
-        },
-        "sync_status": {
-          "gdrive_synced": false,
-          "s3_synced": false,
-          "last_sync_timestamp": "2026-04-03T16:25:50.960983Z",
-          "sync_discrepancies": [
-            {
-              "type": "missing_s3",
-              "message": "Dataset not found in S3 canonical storage"
-            },
-            {
-              "type": "missing_gdrive",
-              "message": "Dataset not found in Google Drive source"
-            }
-          ],
-          "sync_verified": false
-        },
-        "usage_analytics": {
-          "last_accessed": null,
-          "access_count": 0,
-          "last_training_job": null,
-          "training_jobs_used_in": 0
         }
       }
     },
@@ -342,51 +267,26 @@
           }
         ],
         "quality_metrics": {
-          "quality_score": 57.0,
-          "quality_tier": "needs_review",
-          "completeness_score": 26.67,
-          "consistency_score": 70.0,
-          "annotation_quality": 70.0,
-          "data_freshness_days": null,
-          "anomaly_flags": [
-            "sync_discrepancies"
-          ]
+          "completeness_score": 0,
+          "consistency_score": 0,
+          "annotation_quality_score": 0,
+          "overall_quality_score": 0,
+          "quality_tier": "not_scored",
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
         },
         "validation": {
           "checksum_sha256": null,
           "checksum_md5": null,
           "schema_valid": false,
           "integrity_valid": false,
-          "last_validated": null,
-          "integrity_check": false
+          "last_validated": null
         },
         "usage": {
           "access_count": 0,
           "last_accessed": null,
           "training_jobs": [],
           "data_freshness_days": null
-        },
-        "sync_status": {
-          "gdrive_synced": false,
-          "s3_synced": false,
-          "last_sync_timestamp": "2026-04-03T16:20:10.147888Z",
-          "sync_discrepancies": [
-            {
-              "type": "missing_s3",
-              "message": "Dataset not found in S3 canonical storage"
-            },
-            {
-              "type": "missing_gdrive",
-              "message": "Dataset not found in Google Drive source"
-            }
-          ],
-          "sync_verified": false
-        },
-        "usage_analytics": {
-          "last_accessed": null,
-          "access_count": 0,
-          "last_training_job": null,
-          "training_jobs_used_in": 0
         }
       },
       "final_dataset_shards": {
@@ -451,51 +351,26 @@
           }
         ],
         "quality_metrics": {
-          "quality_score": 57.0,
-          "quality_tier": "needs_review",
-          "completeness_score": 26.67,
-          "consistency_score": 70.0,
-          "annotation_quality": 70.0,
-          "data_freshness_days": null,
-          "anomaly_flags": [
-            "sync_discrepancies"
-          ]
+          "completeness_score": 0,
+          "consistency_score": 0,
+          "annotation_quality_score": 0,
+          "overall_quality_score": 0,
+          "quality_tier": "not_scored",
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
         },
         "validation": {
           "checksum_sha256": null,
           "checksum_md5": null,
           "schema_valid": false,
           "integrity_valid": false,
-          "last_validated": null,
-          "integrity_check": false
+          "last_validated": null
         },
         "usage": {
           "access_count": 0,
           "last_accessed": null,
           "training_jobs": [],
           "data_freshness_days": null
-        },
-        "sync_status": {
-          "gdrive_synced": false,
-          "s3_synced": false,
-          "last_sync_timestamp": "2026-04-03T16:20:10.230728Z",
-          "sync_discrepancies": [
-            {
-              "type": "missing_s3",
-              "message": "Dataset not found in S3 canonical storage"
-            },
-            {
-              "type": "missing_gdrive",
-              "message": "Dataset not found in Google Drive source"
-            }
-          ],
-          "sync_verified": false
-        },
-        "usage_analytics": {
-          "last_accessed": null,
-          "access_count": 0,
-          "last_training_job": null,
-          "training_jobs_used_in": 0
         }
       }
     },
@@ -527,51 +402,26 @@
           }
         ],
         "quality_metrics": {
-          "quality_score": 57.0,
-          "quality_tier": "needs_review",
-          "completeness_score": 26.67,
-          "consistency_score": 70.0,
-          "annotation_quality": 70.0,
-          "data_freshness_days": null,
-          "anomaly_flags": [
-            "sync_discrepancies"
-          ]
+          "completeness_score": 0,
+          "consistency_score": 0,
+          "annotation_quality_score": 0,
+          "overall_quality_score": 0,
+          "quality_tier": "not_scored",
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
         },
         "validation": {
           "checksum_sha256": null,
           "checksum_md5": null,
           "schema_valid": false,
           "integrity_valid": false,
-          "last_validated": null,
-          "integrity_check": false
+          "last_validated": null
         },
         "usage": {
           "access_count": 0,
           "last_accessed": null,
           "training_jobs": [],
           "data_freshness_days": null
-        },
-        "sync_status": {
-          "gdrive_synced": false,
-          "s3_synced": false,
-          "last_sync_timestamp": "2026-04-03T16:20:10.315431Z",
-          "sync_discrepancies": [
-            {
-              "type": "missing_s3",
-              "message": "Dataset not found in S3 canonical storage"
-            },
-            {
-              "type": "missing_gdrive",
-              "message": "Dataset not found in Google Drive source"
-            }
-          ],
-          "sync_verified": false
-        },
-        "usage_analytics": {
-          "last_accessed": null,
-          "access_count": 0,
-          "last_training_job": null,
-          "training_jobs_used_in": 0
         }
       },
       "datasets_consolidated": {
@@ -636,53 +486,26 @@
           }
         ],
         "quality_metrics": {
-          "quality_score": 87.83,
-          "quality_tier": "good",
-          "completeness_score": 85.5,
-          "consistency_score": 90.0,
-          "annotation_quality": 70.0,
-          "data_freshness_days": null,
-          "anomaly_flags": [],
-          "annotation_quality_score": 88.0,
-          "overall_score": 87.83,
-          "anomaly_detected": false,
-          "last_scored": "2026-04-03T17:00:00Z"
+          "completeness_score": 0,
+          "consistency_score": 0,
+          "annotation_quality_score": 0,
+          "overall_quality_score": 0,
+          "quality_tier": "not_scored",
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
         },
         "validation": {
           "checksum_sha256": null,
           "checksum_md5": null,
           "schema_valid": false,
           "integrity_valid": false,
-          "last_validated": null,
-          "integrity_check": false
+          "last_validated": null
         },
         "usage": {
           "access_count": 0,
           "last_accessed": null,
           "training_jobs": [],
           "data_freshness_days": null
-        },
-        "sync_status": {
-          "gdrive_synced": false,
-          "s3_synced": false,
-          "last_sync_timestamp": "2026-04-03T16:20:10.395774Z",
-          "sync_discrepancies": [
-            {
-              "type": "missing_s3",
-              "message": "Dataset not found in S3 canonical storage"
-            },
-            {
-              "type": "missing_gdrive",
-              "message": "Dataset not found in Google Drive source"
-            }
-          ],
-          "sync_verified": false
-        },
-        "usage_analytics": {
-          "last_accessed": null,
-          "access_count": 0,
-          "last_training_job": null,
-          "training_jobs_used_in": 0
         }
       },
       "datasets_metadata": {
@@ -732,51 +555,26 @@
           }
         ],
         "quality_metrics": {
-          "quality_score": 57.0,
-          "quality_tier": "needs_review",
-          "completeness_score": 26.67,
-          "consistency_score": 70.0,
-          "annotation_quality": 70.0,
-          "data_freshness_days": null,
-          "anomaly_flags": [
-            "sync_discrepancies"
-          ]
+          "completeness_score": 0,
+          "consistency_score": 0,
+          "annotation_quality_score": 0,
+          "overall_quality_score": 0,
+          "quality_tier": "not_scored",
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
         },
         "validation": {
           "checksum_sha256": null,
           "checksum_md5": null,
           "schema_valid": false,
           "integrity_valid": false,
-          "last_validated": null,
-          "integrity_check": false
+          "last_validated": null
         },
         "usage": {
           "access_count": 0,
           "last_accessed": null,
           "training_jobs": [],
           "data_freshness_days": null
-        },
-        "sync_status": {
-          "gdrive_synced": false,
-          "s3_synced": false,
-          "last_sync_timestamp": "2026-04-03T16:20:10.472349Z",
-          "sync_discrepancies": [
-            {
-              "type": "missing_s3",
-              "message": "Dataset not found in S3 canonical storage"
-            },
-            {
-              "type": "missing_gdrive",
-              "message": "Dataset not found in Google Drive source"
-            }
-          ],
-          "sync_verified": false
-        },
-        "usage_analytics": {
-          "last_accessed": null,
-          "access_count": 0,
-          "last_training_job": null,
-          "training_jobs_used_in": 0
         }
       },
       "datasets_nemo_synthetic": {
@@ -801,51 +599,26 @@
           }
         ],
         "quality_metrics": {
-          "quality_score": 57.0,
-          "quality_tier": "needs_review",
-          "completeness_score": 26.67,
-          "consistency_score": 70.0,
-          "annotation_quality": 70.0,
-          "data_freshness_days": null,
-          "anomaly_flags": [
-            "sync_discrepancies"
-          ]
+          "completeness_score": 0,
+          "consistency_score": 0,
+          "annotation_quality_score": 0,
+          "overall_quality_score": 0,
+          "quality_tier": "not_scored",
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
         },
         "validation": {
           "checksum_sha256": null,
           "checksum_md5": null,
           "schema_valid": false,
           "integrity_valid": false,
-          "last_validated": null,
-          "integrity_check": false
+          "last_validated": null
         },
         "usage": {
           "access_count": 0,
           "last_accessed": null,
           "training_jobs": [],
           "data_freshness_days": null
-        },
-        "sync_status": {
-          "gdrive_synced": false,
-          "s3_synced": false,
-          "last_sync_timestamp": "2026-04-03T16:20:10.550330Z",
-          "sync_discrepancies": [
-            {
-              "type": "missing_s3",
-              "message": "Dataset not found in S3 canonical storage"
-            },
-            {
-              "type": "missing_gdrive",
-              "message": "Dataset not found in Google Drive source"
-            }
-          ],
-          "sync_verified": false
-        },
-        "usage_analytics": {
-          "last_accessed": null,
-          "access_count": 0,
-          "last_training_job": null,
-          "training_jobs_used_in": 0
         }
       },
       "datasets_training_v2": {
@@ -910,51 +683,26 @@
           }
         ],
         "quality_metrics": {
-          "quality_score": 57.0,
-          "quality_tier": "needs_review",
-          "completeness_score": 26.67,
-          "consistency_score": 70.0,
-          "annotation_quality": 70.0,
-          "data_freshness_days": null,
-          "anomaly_flags": [
-            "sync_discrepancies"
-          ]
+          "completeness_score": 0,
+          "consistency_score": 0,
+          "annotation_quality_score": 0,
+          "overall_quality_score": 0,
+          "quality_tier": "not_scored",
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
         },
         "validation": {
           "checksum_sha256": null,
           "checksum_md5": null,
           "schema_valid": false,
           "integrity_valid": false,
-          "last_validated": null,
-          "integrity_check": false
+          "last_validated": null
         },
         "usage": {
           "access_count": 0,
           "last_accessed": null,
           "training_jobs": [],
           "data_freshness_days": null
-        },
-        "sync_status": {
-          "gdrive_synced": false,
-          "s3_synced": false,
-          "last_sync_timestamp": "2026-04-03T16:20:10.629394Z",
-          "sync_discrepancies": [
-            {
-              "type": "missing_s3",
-              "message": "Dataset not found in S3 canonical storage"
-            },
-            {
-              "type": "missing_gdrive",
-              "message": "Dataset not found in Google Drive source"
-            }
-          ],
-          "sync_verified": false
-        },
-        "usage_analytics": {
-          "last_accessed": null,
-          "access_count": 0,
-          "last_training_job": null,
-          "training_jobs_used_in": 0
         }
       },
       "datasets_training_v3": {
@@ -1009,51 +757,26 @@
           }
         ],
         "quality_metrics": {
-          "quality_score": 57.0,
-          "quality_tier": "needs_review",
-          "completeness_score": 26.67,
-          "consistency_score": 70.0,
-          "annotation_quality": 70.0,
-          "data_freshness_days": null,
-          "anomaly_flags": [
-            "sync_discrepancies"
-          ]
+          "completeness_score": 0,
+          "consistency_score": 0,
+          "annotation_quality_score": 0,
+          "overall_quality_score": 0,
+          "quality_tier": "not_scored",
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
         },
         "validation": {
           "checksum_sha256": null,
           "checksum_md5": null,
           "schema_valid": false,
           "integrity_valid": false,
-          "last_validated": null,
-          "integrity_check": false
+          "last_validated": null
         },
         "usage": {
           "access_count": 0,
           "last_accessed": null,
           "training_jobs": [],
           "data_freshness_days": null
-        },
-        "sync_status": {
-          "gdrive_synced": false,
-          "s3_synced": false,
-          "last_sync_timestamp": "2026-04-03T16:20:10.707973Z",
-          "sync_discrepancies": [
-            {
-              "type": "missing_s3",
-              "message": "Dataset not found in S3 canonical storage"
-            },
-            {
-              "type": "missing_gdrive",
-              "message": "Dataset not found in Google Drive source"
-            }
-          ],
-          "sync_verified": false
-        },
-        "usage_analytics": {
-          "last_accessed": null,
-          "access_count": 0,
-          "last_training_job": null,
-          "training_jobs_used_in": 0
         }
       },
       "datasets_youtube_transcripts": {
@@ -1073,51 +796,26 @@
           }
         ],
         "quality_metrics": {
-          "quality_score": 57.0,
-          "quality_tier": "needs_review",
-          "completeness_score": 26.67,
-          "consistency_score": 70.0,
-          "annotation_quality": 70.0,
-          "data_freshness_days": null,
-          "anomaly_flags": [
-            "sync_discrepancies"
-          ]
+          "completeness_score": 0,
+          "consistency_score": 0,
+          "annotation_quality_score": 0,
+          "overall_quality_score": 0,
+          "quality_tier": "not_scored",
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
         },
         "validation": {
           "checksum_sha256": null,
           "checksum_md5": null,
           "schema_valid": false,
           "integrity_valid": false,
-          "last_validated": null,
-          "integrity_check": false
+          "last_validated": null
         },
         "usage": {
           "access_count": 0,
           "last_accessed": null,
           "training_jobs": [],
           "data_freshness_days": null
-        },
-        "sync_status": {
-          "gdrive_synced": false,
-          "s3_synced": false,
-          "last_sync_timestamp": "2026-04-03T16:20:10.790237Z",
-          "sync_discrepancies": [
-            {
-              "type": "missing_s3",
-              "message": "Dataset not found in S3 canonical storage"
-            },
-            {
-              "type": "missing_gdrive",
-              "message": "Dataset not found in Google Drive source"
-            }
-          ],
-          "sync_verified": false
-        },
-        "usage_analytics": {
-          "last_accessed": null,
-          "access_count": 0,
-          "last_training_job": null,
-          "training_jobs_used_in": 0
         }
       }
     },
@@ -1184,51 +882,26 @@
           }
         ],
         "quality_metrics": {
-          "quality_score": 57.0,
-          "quality_tier": "needs_review",
-          "completeness_score": 26.67,
-          "consistency_score": 70.0,
-          "annotation_quality": 70.0,
-          "data_freshness_days": null,
-          "anomaly_flags": [
-            "sync_discrepancies"
-          ]
+          "completeness_score": 0,
+          "consistency_score": 0,
+          "annotation_quality_score": 0,
+          "overall_quality_score": 0,
+          "quality_tier": "not_scored",
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
         },
         "validation": {
           "checksum_sha256": null,
           "checksum_md5": null,
           "schema_valid": false,
           "integrity_valid": false,
-          "last_validated": null,
-          "integrity_check": false
+          "last_validated": null
         },
         "usage": {
           "access_count": 0,
           "last_accessed": null,
           "training_jobs": [],
           "data_freshness_days": null
-        },
-        "sync_status": {
-          "gdrive_synced": false,
-          "s3_synced": false,
-          "last_sync_timestamp": "2026-04-03T16:20:10.868847Z",
-          "sync_discrepancies": [
-            {
-              "type": "missing_s3",
-              "message": "Dataset not found in S3 canonical storage"
-            },
-            {
-              "type": "missing_gdrive",
-              "message": "Dataset not found in Google Drive source"
-            }
-          ],
-          "sync_verified": false
-        },
-        "usage_analytics": {
-          "last_accessed": null,
-          "access_count": 0,
-          "last_training_job": null,
-          "training_jobs_used_in": 0
         }
       },
       "archive_huggingface": {
@@ -1278,51 +951,26 @@
           }
         ],
         "quality_metrics": {
-          "quality_score": 57.0,
-          "quality_tier": "needs_review",
-          "completeness_score": 26.67,
-          "consistency_score": 70.0,
-          "annotation_quality": 70.0,
-          "data_freshness_days": null,
-          "anomaly_flags": [
-            "sync_discrepancies"
-          ]
+          "completeness_score": 0,
+          "consistency_score": 0,
+          "annotation_quality_score": 0,
+          "overall_quality_score": 0,
+          "quality_tier": "not_scored",
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
         },
         "validation": {
           "checksum_sha256": null,
           "checksum_md5": null,
           "schema_valid": false,
           "integrity_valid": false,
-          "last_validated": null,
-          "integrity_check": false
+          "last_validated": null
         },
         "usage": {
           "access_count": 0,
           "last_accessed": null,
           "training_jobs": [],
           "data_freshness_days": null
-        },
-        "sync_status": {
-          "gdrive_synced": false,
-          "s3_synced": false,
-          "last_sync_timestamp": "2026-04-03T16:20:10.954030Z",
-          "sync_discrepancies": [
-            {
-              "type": "missing_s3",
-              "message": "Dataset not found in S3 canonical storage"
-            },
-            {
-              "type": "missing_gdrive",
-              "message": "Dataset not found in Google Drive source"
-            }
-          ],
-          "sync_verified": false
-        },
-        "usage_analytics": {
-          "last_accessed": null,
-          "access_count": 0,
-          "last_training_job": null,
-          "training_jobs_used_in": 0
         }
       },
       "archive_local_sync": {
@@ -1342,51 +990,26 @@
           }
         ],
         "quality_metrics": {
-          "quality_score": 57.0,
-          "quality_tier": "needs_review",
-          "completeness_score": 26.67,
-          "consistency_score": 70.0,
-          "annotation_quality": 70.0,
-          "data_freshness_days": null,
-          "anomaly_flags": [
-            "sync_discrepancies"
-          ]
+          "completeness_score": 0,
+          "consistency_score": 0,
+          "annotation_quality_score": 0,
+          "overall_quality_score": 0,
+          "quality_tier": "not_scored",
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
         },
         "validation": {
           "checksum_sha256": null,
           "checksum_md5": null,
           "schema_valid": false,
           "integrity_valid": false,
-          "last_validated": null,
-          "integrity_check": false
+          "last_validated": null
         },
         "usage": {
           "access_count": 0,
           "last_accessed": null,
           "training_jobs": [],
           "data_freshness_days": null
-        },
-        "sync_status": {
-          "gdrive_synced": false,
-          "s3_synced": false,
-          "last_sync_timestamp": "2026-04-03T16:20:11.036999Z",
-          "sync_discrepancies": [
-            {
-              "type": "missing_s3",
-              "message": "Dataset not found in S3 canonical storage"
-            },
-            {
-              "type": "missing_gdrive",
-              "message": "Dataset not found in Google Drive source"
-            }
-          ],
-          "sync_verified": false
-        },
-        "usage_analytics": {
-          "last_accessed": null,
-          "access_count": 0,
-          "last_training_job": null,
-          "training_jobs_used_in": 0
         }
       },
       "archive_vps_archaeology": {
@@ -1451,51 +1074,26 @@
           }
         ],
         "quality_metrics": {
-          "quality_score": 57.0,
-          "quality_tier": "needs_review",
-          "completeness_score": 26.67,
-          "consistency_score": 70.0,
-          "annotation_quality": 70.0,
-          "data_freshness_days": null,
-          "anomaly_flags": [
-            "sync_discrepancies"
-          ]
+          "completeness_score": 0,
+          "consistency_score": 0,
+          "annotation_quality_score": 0,
+          "overall_quality_score": 0,
+          "quality_tier": "not_scored",
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
         },
         "validation": {
           "checksum_sha256": null,
           "checksum_md5": null,
           "schema_valid": false,
           "integrity_valid": false,
-          "last_validated": null,
-          "integrity_check": false
+          "last_validated": null
         },
         "usage": {
           "access_count": 0,
           "last_accessed": null,
           "training_jobs": [],
           "data_freshness_days": null
-        },
-        "sync_status": {
-          "gdrive_synced": false,
-          "s3_synced": false,
-          "last_sync_timestamp": "2026-04-03T16:20:11.124700Z",
-          "sync_discrepancies": [
-            {
-              "type": "missing_s3",
-              "message": "Dataset not found in S3 canonical storage"
-            },
-            {
-              "type": "missing_gdrive",
-              "message": "Dataset not found in Google Drive source"
-            }
-          ],
-          "sync_verified": false
-        },
-        "usage_analytics": {
-          "last_accessed": null,
-          "access_count": 0,
-          "last_training_job": null,
-          "training_jobs_used_in": 0
         }
       }
     }

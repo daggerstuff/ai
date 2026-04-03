@@ -1,10 +1,8 @@
-"""
-Compatibility shim for older code paths that still import HindsightMemoryManager.
+"""Compatibility shim for older code paths that still import HindsightMemoryManager.
 
 The shared memory architecture is now local-only. This class preserves the old
 import path while delegating directly to the local Hindsight-compatible manager.
 """
-
 from __future__ import annotations
 
 from typing import Optional

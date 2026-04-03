@@ -105,137 +105,170 @@
         "quality_profile": "cot_reasoning"
       },
       "RPSD": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/RPSD.json",
+        "path": "s3://pixel-data/archive/gdrive/tier3_cot_reasoning/cot_reasoning_conversations_consolidated.jsonl",
         "fallback_paths": {
-          "local": "~/datasets/consolidated/cot_reasoning/RPSD.json"
+          "local": "~/datasets/consolidated/cot_reasoning/RPSD.json",
+          "s3_archive": "archive/gdrive/tier3_cot_reasoning/cot_reasoning_conversations_consolidated.jsonl"
         },
         "size_mb": 653,
         "type": "chain_of_thought",
         "focus": "reasoning and problem solving dataset",
         "stage": "stage2_therapeutic_expertise",
         "quality_profile": "cot_reasoning",
-        "status": "pending_sync"
+        "status": "active",
+        "sync_status": "completed",
+        "last_sync": "2026-04-03"
       },
       "ToT-RPSD-V2": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/ToT-RPSD-V2.json",
+        "path": "s3://pixel-data/archive/gdrive/tier3_cot_reasoning/ToT-RPSD-V2.json",
         "fallback_paths": {
-          "local": "~/datasets/consolidated/cot_reasoning/ToT-RPSD-V2.json"
+          "local": "~/datasets/consolidated/cot_reasoning/ToT-RPSD-V2.json",
+          "s3_archive": "archive/gdrive/tier3_cot_reasoning/ToT-RPSD-V2.json"
         },
         "size_mb": 230,
         "type": "chain_of_thought",
         "focus": "tree-of-thought reasoning dataset",
         "stage": "stage2_therapeutic_expertise",
         "quality_profile": "cot_reasoning",
-        "status": "pending_sync"
+        "status": "active",
+        "sync_status": "completed",
+        "last_sync": "2026-04-03"
       },
       "CoT_Rare_Diseases_Health_Conditions": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/CoT_Rare_Disseases_Health_Conditions_9.8k.json",
+        "path": "s3://pixel-data/archive/gdrive/tier3_cot_reasoning/CoT_Rare Disseases_Health Conditions_9.8k.json",
         "fallback_paths": {
-          "local": "~/datasets/consolidated/cot_reasoning/CoT_Rare_Disseases_Health_Conditions_9.8k.json"
+          "local": "~/datasets/consolidated/cot_reasoning/CoT_Rare_Disseases_Health_Conditions_9.8k.json",
+          "s3_archive": "archive/gdrive/tier3_cot_reasoning/CoT_Rare Disseases_Health Conditions_9.8k.json"
         },
         "size_mb": 65,
         "type": "chain_of_thought",
         "focus": "rare diseases and health conditions reasoning",
         "stage": "stage2_therapeutic_expertise",
         "quality_profile": "cot_reasoning",
-        "status": "pending_sync"
+        "status": "active",
+        "sync_status": "completed",
+        "last_sync": "2026-04-03"
       },
       "CoT_Breakups_and_heartbreak": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/CoT-Breakups_and_heartbreak-9.8k.json",
+        "path": "s3://pixel-data/archive/gdrive/tier3_cot_reasoning/CoT_Heartbreak_and_Breakups_downloaded.json",
         "fallback_paths": {
           "gdrive": "/mnt/gdrive/datasets/CoT_Heartbreak_and_Breakups_downloaded.json",
-          "local": "~/datasets/consolidated/cot_reasoning/CoT-Breakups_and_heartbreak-9.8k.json"
+          "local": "~/datasets/consolidated/cot_reasoning/CoT-Breakups_and_heartbreak-9.8k.json",
+          "s3_archive": "archive/gdrive/tier3_cot_reasoning/CoT_Heartbreak_and_Breakups_downloaded.json"
         },
         "size_mb": 37,
         "type": "chain_of_thought",
         "focus": "emotional intelligence, relationship therapy",
         "stage": "stage2_therapeutic_expertise",
         "quality_profile": "cot_reasoning",
-        "status": "pending_sync"
+        "status": "active",
+        "sync_status": "completed",
+        "last_sync": "2026-04-03"
       },
       "General_Inquiry_Thinking_Chain_Of_Thought": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/General_Inquiry_Thinking-Chain-Of-Thought_6K.json",
+        "path": "s3://pixel-data/archive/gdrive/tier3_cot_reasoning/phase_3_cot_reasoning_consolidated.jsonl",
         "fallback_paths": {
-          "local": "~/datasets/consolidated/cot_reasoning/General_Inquiry_Thinking-Chain-Of-Thought_6K.json"
+          "local": "~/datasets/consolidated/cot_reasoning/General_Inquiry_Thinking-Chain-Of-Thought_6K.json",
+          "s3_archive": "archive/gdrive/tier3_cot_reasoning/phase_3_cot_reasoning_consolidated.jsonl"
         },
         "size_mb": 37,
         "type": "chain_of_thought",
         "focus": "general inquiry reasoning",
         "stage": "stage2_therapeutic_expertise",
         "quality_profile": "cot_reasoning",
-        "status": "pending_sync"
+        "status": "active",
+        "sync_status": "completed",
+        "last_sync": "2026-04-03"
       },
       "CoT_Reasoning_The_Ancient_Past": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/CoT_Reasoning_The_Ancient_Past.json",
+        "path": "s3://pixel-data/archive/gdrive/tier3_cot_reasoning/phase_3_cot_reasoning_consolidated.jsonl",
         "fallback_paths": {
-          "local": "~/datasets/consolidated/cot_reasoning/CoT_Reasoning_The_Ancient_Past.json"
+          "local": "~/datasets/consolidated/cot_reasoning/CoT_Reasoning_The_Ancient_Past.json",
+          "s3_archive": "archive/gdrive/tier3_cot_reasoning/phase_3_cot_reasoning_consolidated.jsonl"
         },
         "size_mb": 30,
         "type": "chain_of_thought",
         "focus": "historical and existential reasoning",
         "stage": "stage2_therapeutic_expertise",
         "quality_profile": "cot_reasoning",
-        "status": "pending_sync"
+        "status": "active",
+        "sync_status": "completed",
+        "last_sync": "2026-04-03"
       },
       "CoT_Legal_Issues_And_Laws": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/CoT_Legal_Issues_And_Laws.json",
+        "path": "s3://pixel-data/archive/gdrive/tier3_cot_reasoning/phase_3_cot_reasoning_consolidated.jsonl",
         "fallback_paths": {
-          "local": "~/datasets/consolidated/cot_reasoning/CoT_Legal_Issues_And_Laws.json"
+          "local": "~/datasets/consolidated/cot_reasoning/CoT_Legal_Issues_And_Laws.json",
+          "s3_archive": "archive/gdrive/tier3_cot_reasoning/phase_3_cot_reasoning_consolidated.jsonl"
         },
         "size_mb": 25,
         "type": "chain_of_thought",
         "focus": "legal reasoning for therapeutic boundaries",
         "stage": "stage2_therapeutic_expertise",
         "quality_profile": "cot_reasoning",
-        "status": "pending_sync"
+        "status": "active",
+        "sync_status": "completed",
+        "last_sync": "2026-04-03"
       },
       "CoT_Reasoning_Scientific_Discovery_and_Research": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/CoT_Reasoning_Scientific_Discovery_and_Research.json",
+        "path": "s3://pixel-data/archive/gdrive/tier3_cot_reasoning/phase_3_cot_reasoning_consolidated.jsonl",
         "fallback_paths": {
-          "local": "~/datasets/consolidated/cot_reasoning/CoT_Reasoning_Scientific_Discovery_and_Research.json"
+          "local": "~/datasets/consolidated/cot_reasoning/CoT_Reasoning_Scientific_Discovery_and_Research.json",
+          "s3_archive": "archive/gdrive/tier3_cot_reasoning/phase_3_cot_reasoning_consolidated.jsonl"
         },
         "size_mb": 25,
         "type": "chain_of_thought",
         "focus": "scientific reasoning patterns",
         "stage": "stage2_therapeutic_expertise",
         "quality_profile": "cot_reasoning",
-        "status": "pending_sync"
+        "status": "active",
+        "sync_status": "completed",
+        "last_sync": "2026-04-03"
       },
       "CoT_Medical_Diagnosis": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/CoT_Medical_Diagnosis_3k.json",
+        "path": "s3://pixel-data/archive/gdrive/tier3_cot_reasoning/phase_3_cot_reasoning_consolidated.jsonl",
         "fallback_paths": {
-          "local": "~/datasets/consolidated/cot_reasoning/CoT_Medical_Diagnosis_3k.json"
+          "local": "~/datasets/consolidated/cot_reasoning/CoT_Medical_Diagnosis_3k.json",
+          "s3_archive": "archive/gdrive/tier3_cot_reasoning/phase_3_cot_reasoning_consolidated.jsonl"
         },
         "size_mb": 21,
         "type": "chain_of_thought",
         "focus": "medical diagnosis reasoning",
         "stage": "stage2_therapeutic_expertise",
         "quality_profile": "cot_reasoning",
-        "status": "pending_sync"
+        "status": "active",
+        "sync_status": "completed",
+        "last_sync": "2026-04-03"
       },
       "CoT_Reasoning_First_Responders_Triage_And_Emergencies": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/CoT_Reasoning_First_Responders_Triage_And_Emergencies.json",
+        "path": "s3://pixel-data/archive/gdrive/tier3_cot_reasoning/phase_3_cot_reasoning_consolidated.jsonl",
         "fallback_paths": {
-          "local": "~/datasets/consolidated/cot_reasoning/CoT_Reasoning_First_Responders_Triage_And_Emergencies.json"
+          "local": "~/datasets/consolidated/cot_reasoning/CoT_Reasoning_First_Responders_Triage_And_Emergencies.json",
+          "s3_archive": "archive/gdrive/tier3_cot_reasoning/phase_3_cot_reasoning_consolidated.jsonl"
         },
         "size_mb": 18,
         "type": "chain_of_thought",
         "focus": "crisis triage and emergency reasoning",
         "stage": "stage2_therapeutic_expertise",
         "quality_profile": "cot_reasoning",
-        "status": "pending_sync"
+        "status": "active",
+        "sync_status": "completed",
+        "last_sync": "2026-04-03"
       },
       "CoT_Reasoning_Quantum_Physics_And_Computing": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/CoT_Reasoning_Quantum_Physics_And_Computing.json",
+        "path": "s3://pixel-data/archive/gdrive/tier3_cot_reasoning/phase_3_cot_reasoning_consolidated.jsonl",
         "fallback_paths": {
-          "local": "~/datasets/consolidated/cot_reasoning/CoT_Reasoning_Quantum_Physics_And_Computing.json"
+          "local": "~/datasets/consolidated/cot_reasoning/CoT_Reasoning_Quantum_Physics_And_Computing.json",
+          "s3_archive": "archive/gdrive/tier3_cot_reasoning/phase_3_cot_reasoning_consolidated.jsonl"
         },
         "size_mb": 17,
         "type": "chain_of_thought",
         "focus": "complex systems reasoning",
         "stage": "stage2_therapeutic_expertise",
         "quality_profile": "cot_reasoning",
-        "status": "pending_sync"
+        "status": "active",
+        "sync_status": "completed",
+        "last_sync": "2026-04-03"
       },
       "cot_reasoning_consolidated": {
         "path": "s3://pixel-data/datasets/consolidated/datasets/cot_reasoning_filtered.json",
@@ -688,19 +721,26 @@
       "recommended_epochs": "2-3"
     },
     "stage_2_therapeutic_expertise": {
-      "datasets": ["cot_reasoning", "academic_psychology_books"],
+      "datasets": [
+        "cot_reasoning",
+        "academic_psychology_books"
+      ],
       "purpose": "Clinical reasoning patterns",
       "recommended_epochs": "1-2",
       "note": "Different style - teaches HOW to think clinically"
     },
     "stage_3_edge_stress_test": {
-      "datasets": ["edge_case_sources"],
+      "datasets": [
+        "edge_case_sources"
+      ],
       "purpose": "Nightmare-fuel crisis rehearsal, scenario prompts, Reddit realism",
       "recommended_epochs": "1",
       "note": "Lenient safety; retain crisis intensity, only strip PII"
     },
     "stage_4_voice_persona": {
-      "datasets": ["voice_persona"],
+      "datasets": [
+        "voice_persona"
+      ],
       "purpose": "Tim Fletcher teaching style/personality",
       "recommended_epochs": "1-2",
       "status": "Transcripts available; synthetic expansion in progress"

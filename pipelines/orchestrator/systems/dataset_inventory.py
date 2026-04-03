@@ -7,7 +7,7 @@ import os
 
 import pandas as pd
 
-from .logger import get_logger
+from ai.pipelines.orchestrator.utils.logger import get_logger
 
 logger = get_logger("dataset_pipeline.dataset_inventory")
 
@@ -46,13 +46,14 @@ def scan_datasets(directory: str, pattern: str = ".csv") -> list[dict]:
     Args:
         directory (str): Directory to scan.
         pattern (str): File extension or pattern to match (default: '.csv').
+        If pattern is empty string, scan all files.
     Returns:
         List of metadata dicts for each dataset file found.
     """
     inventory = []
     for root, _, files in os.walk(directory):
         for fname in files:
-            if fname.endswith(pattern):
+            if pattern == "" or fname.endswith(pattern):
                 fpath = os.path.join(root, fname)
                 meta = get_dataset_metadata(fpath)
                 if meta:
