@@ -1,0 +1,14 @@
+{
+  "release_version": "v2026-04-03",
+  "output_directory": "ai/data/releases/v2026-04-03",
+  "artifacts": {
+    "manifest": "ai/data/releases/v2026-04-03/manifest.json",
+    "compiled_export": "ai/data/releases/v2026-04-03/compiled_export.jsonl",
+    "routing_config": "ai/data/releases/v2026-04-03/routing_config.json"
+  },
+  "summary": {
+    "families_processed": 3,
+    "total_records": 2161,
+    "total_size_mb": 16.6
+  }
+}

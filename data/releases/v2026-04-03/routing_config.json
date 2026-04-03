@@ -1,0 +1,47 @@
+{
+  "metadata": {
+    "release_version": "v2026-04-03",
+    "generated_at": "2026-04-03T23:31:01.757877+00:00",
+    "config_version": "1.0.0"
+  },
+  "curriculum": {
+    "stage1_foundation": {
+      "families": [
+        "stage1_foundation"
+      ],
+      "purpose": "Natural therapeutic dialogue patterns",
+      "recommended_epochs": 3,
+      "weight": 0.4
+    },
+    "stage2_therapeutic_expertise": {
+      "families": [
+        "stage2_therapeutic_expertise"
+      ],
+      "purpose": "Clinical reasoning patterns",
+      "recommended_epochs": 2,
+      "weight": 0.25
+    },
+    "stage3_edge_stress_test": {
+      "families": [
+        "stage3_edge_stress_test"
+      ],
+      "purpose": "Crisis scenarios and edge cases",
+      "recommended_epochs": 1,
+      "weight": 0.2,
+      "status": "missing_source_data"
+    },
+    "stage4_voice_persona": {
+      "families": [
+        "stage4_voice_persona"
+      ],
+      "purpose": "Voice and persona training",
+      "recommended_epochs": 2,
+      "weight": 0.15
+    }
+  },
+  "family_mapping": {
+    "stage1_foundation": "stage1_foundation",
+    "stage2_therapeutic_expertise": "stage2_therapeutic_expertise",
+    "stage4_voice_persona": "stage4_voice_persona"
+  }
+}
