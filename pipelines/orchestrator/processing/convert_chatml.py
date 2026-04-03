@@ -47,10 +47,8 @@ def convert_to_chatml(df: pd.DataFrame) -> List[Dict[str, str]]:
 
     chatml_messages = []
 
-    for _, row in df.iterrows():
-        prompt = row.get("prompt")
-        response = row.get("response")
-
+    # Performance optimization: iterating over zipped columns is significantly faster than df.iterrows()
+    for prompt, response in zip(df["prompt"], df["response"]):
         # Validation: skip nulls or non-strings
         if pd.isna(prompt) or pd.isna(response):
             continue
