@@ -5,12 +5,11 @@ Loads multi-persona therapeutic interaction data
 """
 
 import json
+import logging
 from dataclasses import dataclass
 from pathlib import Path
 
-from ai.pipelines.orchestrator.utils.logger import get_logger
-
-logger = get_logger("dataset_pipeline.dual_persona_loader")
+logger = logging.getLogger("dataset_pipeline.dual_persona_loader")
 
 
 @dataclass
@@ -69,7 +68,9 @@ class DualPersonaConfig:
 class DualPersonaLoader:
     """Loader for dual persona training data"""
 
-    def __init__(self, config: DualPersonaConfig | None = None, file_path: Path | None = None):
+    def __init__(
+        self, config: DualPersonaConfig | None = None, file_path: Path | None = None
+    ):
         self.config = config or DualPersonaConfig()
 
         if file_path:
@@ -87,7 +88,9 @@ class DualPersonaLoader:
             else:
                 self.training_file = path
         else:
-            self.training_file = Path(self.config.output_path) / "dual_persona_training_data.jsonl"
+            self.training_file = (
+                Path(self.config.output_path) / "dual_persona_training_data.jsonl"
+            )
 
         # The original line `self.config_file = self.pipeline_dir / "training_config.json"`
         # is removed as per the user's implied change, and the problematic line
@@ -97,7 +100,9 @@ class DualPersonaLoader:
     def load_dialogues(self) -> list[DualPersonaDialogue]:
         """Load dual persona dialogues"""
         if not self.training_file.exists():
-            logger.warning(f"Dual persona training file not found: {self.training_file}")
+            logger.warning(
+                f"Dual persona training file not found: {self.training_file}"
+            )
             logger.info("Generating synthetic dual persona data...")
             return self._generate_synthetic_data()
 
@@ -194,7 +199,7 @@ class DualPersonaLoader:
     def _save_dialogues(self, dialogues: list[DualPersonaDialogue]):
         """Save dialogues to file"""
         try:
-            self.pipeline_dir.mkdir(parents=True, exist_ok=True)
+            self.training_file.parent.mkdir(parents=True, exist_ok=True)
             with open(self.training_file, "w") as f:
                 for dialogue in dialogues:
                     data = {
@@ -252,7 +257,9 @@ class DualPersonaLoader:
             dialogues = self.load_dialogues()
 
         training_data = [dialogue.to_training_format() for dialogue in dialogues]
-        logger.info(f"Converted {len(training_data)} dual persona dialogues to training format")
+        logger.info(
+            f"Converted {len(training_data)} dual persona dialogues to training format"
+        )
         return training_data
 
     def check_data_exists(self) -> bool:
@@ -270,7 +277,11 @@ def load_dual_persona_training_data(pipeline_dir: str | None = None) -> list[dic
     Returns:
         List of training examples in standard format
     """
-    loader = DualPersonaLoader(pipeline_dir) if pipeline_dir else DualPersonaLoader()
+    if pipeline_dir:
+        config = DualPersonaConfig(output_path=pipeline_dir)
+        loader = DualPersonaLoader(config=config)
+    else:
+        loader = DualPersonaLoader()
     return loader.convert_to_training_format()
 
 
