@@ -1,0 +1,72 @@
+{
+  "metadata": {
+    "release_version": "v2026-04-03",
+    "generated_at": "2026-04-03T23:31:01.669807+00:00",
+    "generator": "release_0_local.py",
+    "generator_version": "1.0.0",
+    "description": "Release 0: Mental Health Datasets - Local Build"
+  },
+  "summary": {
+    "total_families": 3,
+    "total_records": 2161,
+    "total_size_bytes": 17407656,
+    "total_size_mb": 16.6
+  },
+  "families": {
+    "stage1_foundation": {
+      "record_count": 2029,
+      "size_bytes": 11663264,
+      "output_file": "stage1_foundation_redacted.jsonl",
+      "sha256": "8248f28e65754155656e0d01d0e3af5b552911ab82084bcbbd53a8142cbe354b",
+      "split": "train",
+      "provenance": {
+        "source": "local_redacted_datasets",
+        "dact07_redacted": true,
+        "dact06_sliced": true
+      }
+    },
+    "stage2_therapeutic_expertise": {
+      "record_count": 1,
+      "size_bytes": 2309,
+      "output_file": "stage2_therapeutic_expertise_redacted.jsonl",
+      "sha256": "ffa98ad8b049ee00ca634fb0c43b9a5525fedb018c459463477e9e87e6cc9c77",
+      "split": "train",
+      "provenance": {
+        "source": "local_redacted_datasets",
+        "dact07_redacted": true,
+        "dact06_sliced": true
+      }
+    },
+    "stage4_voice_persona": {
+      "record_count": 131,
+      "size_bytes": 5742083,
+      "output_file": "stage4_voice_persona_redacted.jsonl",
+      "sha256": "9a31a0216665cfcea5f7b013468c5fa152cd5985243420fd3a4984c7df7a528a",
+      "split": "train",
+      "provenance": {
+        "source": "local_redacted_datasets",
+        "dact07_redacted": true,
+        "dact06_sliced": true
+      }
+    }
+  },
+  "gates": {
+    "privacy": {
+      "status": "pass",
+      "details": "PII redaction applied via DACT-07 (223,197 instances redacted)"
+    },
+    "provenance": {
+      "status": "pass",
+      "details": "All artifacts have provenance metadata"
+    },
+    "dedup_leakage": {
+      "status": "pass",
+      "details": "0 exact duplicates (0%), no cross-split leakage"
+    },
+    "distribution": {
+      "status": "pass",
+      "details": "Distribution stats recorded for 9 families"
+    }
+  },
+  "gate_validation_report": "gate_validation_report.json"
+}

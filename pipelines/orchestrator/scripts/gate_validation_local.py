@@ -160,17 +160,21 @@ class GateValidator:
         logger.info("🔍 Running cross-split leakage check...")
 
         # For local build: all data is train split
-        # Check for any val/test markers in the data
+        # Check for actual split assignment markers (not just the word "split")
         leakage_indicators = []
 
         for i, record in enumerate(records):
-            text = json.dumps(record, ensure_ascii=False).lower()
+            # Check for explicit val/test split assignments in metadata
+            metadata = record.get('metadata', {})
+            record_split = metadata.get('split', 'train')
 
-            # Check for split markers
-            if 'split' in text and ('val' in text or 'test' in text):
+            # Flag if explicitly assigned to val/test (would indicate leakage)
+            if record_split in ['val', 'test', 'validation']:
                 leakage_indicators.append({
                     'record_index': i,
-                    'type': 'split_marker',
+                    'type': 'wrong_split_assignment',
+                    'expected': 'train',
+                    'found': record_split,
                 })
 
         leakage_detected = len(leakage_indicators) > 0
@@ -181,7 +185,7 @@ class GateValidator:
             'passed': not leakage_detected,
             'leakage_indicators': leakage_indicators[:10],
             'total_indicators': len(leakage_indicators),
-            'note': 'All local data assigned to train split',
+            'note': 'All local data assigned to train split - checking for wrong assignments',
         }
 
         logger.info(f"  Leakage indicators: {len(leakage_indicators)}")
