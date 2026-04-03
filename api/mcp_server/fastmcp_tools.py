@@ -119,7 +119,7 @@ async def memory_query(
             )
         formatted = [
             f"- [{item.get('score', 0.0):.2f}] "
-            f"{item.get('memory') or item.get('content', 'N/A')}"
+            f"{item.get('memory') or item.get('content') or item.get('text', 'N/A')}"
             for item in results[:limit]
         ]
         return f"### Memory Retrieval for {user_id}\n\n" + "\n".join(formatted)
