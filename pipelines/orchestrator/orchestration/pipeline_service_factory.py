@@ -26,6 +26,9 @@ from ai.pipelines.orchestrator.orchestration.data_ingestion_coordinator import (
 from ai.pipelines.orchestrator.orchestration.dataset_assembler import (
     DatasetAssembler,
 )
+from ai.pipelines.orchestrator.orchestration.dataset_asana_sync_service import (
+    DatasetAsanaSyncService,
+)
 from ai.pipelines.orchestrator.orchestration.dataset_output_service import (
     DatasetOutputService,
 )
@@ -54,6 +57,7 @@ class PipelineServiceBundle:
     asana_client: AsanaTrackerClient
     curriculum_enforcement_service: CurriculumEnforcementService
     asana_progress_service: AsanaProgressSyncService
+    dataset_asana_sync_service: DatasetAsanaSyncService
     standard_therapeutic_loader_service: StandardTherapeuticLoaderService
     source_loader_service: SourceLoaderService
     dataset_quality_service: DatasetQualityService
@@ -86,6 +90,11 @@ def build_pipeline_services(
         stage_quality_profiles=stage_quality_profiles,
     )
     asana_progress_service = AsanaProgressSyncService(
+        config=config,
+        stats=stats,
+        asana_client=asana_client,
+    )
+    dataset_asana_sync_service = DatasetAsanaSyncService(
         config=config,
         stats=stats,
         asana_client=asana_client,
@@ -157,6 +166,7 @@ def build_pipeline_services(
         asana_client=asana_client,
         curriculum_enforcement_service=curriculum_enforcement_service,
         asana_progress_service=asana_progress_service,
+        dataset_asana_sync_service=dataset_asana_sync_service,
         standard_therapeutic_loader_service=standard_therapeutic_loader_service,
         source_loader_service=source_loader_service,
         dataset_quality_service=dataset_quality_service,
