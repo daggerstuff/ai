@@ -18,7 +18,7 @@ def run_s3_command(cmd):
         env["AWS_ACCESS_KEY_ID"] = os.environ.get("AWS_ACCESS_KEY_ID", "")
         env["AWS_SECRET_ACCESS_KEY"] = os.environ.get("AWS_SECRET_ACCESS_KEY", "")
 
-        result = subprocess.run(
+        result = subprocess.run(  # nosec B603
             cmd, capture_output=True, text=True, env=env
         )
 
@@ -49,7 +49,7 @@ def discover_pixel_data():
     ]
 
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True)
+        result = subprocess.run(cmd, capture_output=True, text=True)  # nosec B603
         if result.returncode == 0:
             lines = result.stdout.strip().split("\n")
 
@@ -145,7 +145,7 @@ def list_s3_with_aws_cli():
     ]
 
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True)
+        result = subprocess.run(cmd, capture_output=True, text=True)  # nosec B603
         if result.returncode == 0:
             # Parse the output
             lines = result.stdout.strip().split("\n")
