@@ -6,17 +6,17 @@ FastAPI/Starlette are ASGI-native and work with any ASGI server.
 """
 import json
 import logging
+import os
 from contextlib import asynccontextmanager
-
-from fastapi import HTTPException
-from starlette.applications import Starlette
-from starlette.responses import JSONResponse
-from starlette.middleware import Middleware
-from starlette.middleware.cors import CORSMiddleware
-from starlette.routing import Route
 
 from ai.api.mcp_server.memory_auth import authorize_memory_access
 from ai.memory.reflection_bootstrap import create_and_start
+from fastapi import HTTPException
+from starlette.applications import Starlette
+from starlette.middleware import Middleware
+from starlette.middleware.cors import CORSMiddleware
+from starlette.responses import JSONResponse
+from starlette.routing import Route
 
 logger = logging.getLogger(__name__)
 
@@ -148,12 +148,15 @@ routes = [
     Route("/reflect", reflect, methods=["POST"]),
 ]
 
+allowed_origins = os.environ.get(
+    "ALLOWED_ORIGINS",
+    "http://localhost:3000,http://localhost:4321,http://localhost:5000"
+).split(",")
+
 middleware = [
-    # NOTE: For production, restrict allow_origins to known frontend domains
-    # Current wildcard is for development convenience
     Middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=allowed_origins,
         allow_methods=["*"],
         allow_headers=["*"],
     )
