@@ -19,7 +19,7 @@ def run_s3_command(cmd):
         env["AWS_SECRET_ACCESS_KEY"] = os.environ.get("AWS_SECRET_ACCESS_KEY", "")
 
         result = subprocess.run(
-            cmd, shell=True, capture_output=True, text=True, env=env
+            cmd, capture_output=True, text=True, env=env
         )
 
         if result.returncode == 0:
@@ -43,10 +43,13 @@ def discover_pixel_data():
     endpoint = "https://s3.us-east-va.io.cloud.ovh.us"
 
     # List objects with AWS CLI
-    cmd = f"aws s3 ls s3://{bucket} --recursive --endpoint-url {endpoint} --human-readable --summarize"
+    cmd = [
+        "aws", "s3", "ls", f"s3://{bucket}", "--recursive",
+        "--endpoint-url", endpoint, "--human-readable", "--summarize"
+    ]
 
     try:
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+        result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode == 0:
             lines = result.stdout.strip().split("\n")
 
@@ -135,16 +138,19 @@ def list_s3_with_aws_cli():
     """Use AWS CLI to list S3 bucket contents"""
     print("🔍 Using AWS CLI to discover pixel-data...")
 
-    cmd = "aws s3 ls s3://pixel-data --recursive --endpoint-url https://s3.us-east-va.io.cloud.ovh.us --human-readable --summarize"
+    cmd = [
+        "aws", "s3", "ls", "s3://pixel-data", "--recursive",
+        "--endpoint-url", "https://s3.us-east-va.io.cloud.ovh.us",
+        "--human-readable", "--summarize"
+    ]
 
     try:
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+        result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode == 0:
             # Parse the output
             lines = result.stdout.strip().split("\n")
 
-            total_line = [l for l in lines if "Total Objects:" in l]
-            size_line = [l for l in lines if "Total Size:" in l]
+            # Removed unused total_line and size_line
 
             print("📊 S3 Discovery Results:")
             for line in lines:
@@ -208,8 +214,11 @@ def main():
         # Generate download commands
         print("\n🚀 Download commands:")
         for file_info in files[:5]:
-            cmd = f"aws s3 cp s3://pixel-data/{file_info['path']} {download_dir}/ --endpoint-url https://s3.us-east-va.io.cloud.ovh.us"
-            print(f"   {cmd}")
+            cmd = [
+                "aws", "s3", "cp", f"s3://pixel-data/{file_info['path']}",
+                f"{download_dir}/", "--endpoint-url", "https://s3.us-east-va.io.cloud.ovh.us"
+            ]
+            print(f"   {' '.join(cmd)}")
     else:
         print("❌ No files found - checking with discovery...")
         discover_pixel_data()
