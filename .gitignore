@@ -81,6 +81,9 @@
 bin/model/**.json
 bin/model/**.pkl.model
 infrastructure/production/models/*
+lightning/*.jsonl
+pipelines/*/output/
+training_data_consolidated/
 
 # === SECRETS & ENVIRONMENT ===
 **/.aws/config
