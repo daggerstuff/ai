@@ -84,6 +84,14 @@ class AsanaProgressSyncService:
         timestamp = str(checklist.get("generated_at", datetime.now(timezone.utc).isoformat()))
         drift_ok = bool(checklist.get("stage_drift_within_tolerance", False))
         total_samples = checklist.get("total_samples", 0)
+
+        # Extract dataset metadata
+        dataset_info = checklist.get("dataset_info", {})
+        dataset_size = dataset_info.get("size_bytes", 0)
+        dataset_version = dataset_info.get("version", "unknown")
+        data_quality_score = dataset_info.get("quality_score", 0.0)
+        validation_passed = dataset_info.get("validation_passed", False)
+
         status_icon = "✅" if drift_ok else "⚠️"
         task_name = f"{status_icon} Training Checklist {timestamp}"
 
@@ -91,6 +99,10 @@ class AsanaProgressSyncService:
             "Automated training checklist sync from integrated pipeline.",
             f"Generated at: {timestamp}",
             f"Total samples: {total_samples}",
+            f"Dataset version: {dataset_version}",
+            f"Dataset size: {dataset_size / (1024**2):.2f} MB",
+            f"Data quality score: {data_quality_score:.2f}",
+            f"Validation passed: {validation_passed}",
             f"Stage drift within tolerance: {drift_ok}",
             f"Checklist artifact: {checklist_path}",
         ]
