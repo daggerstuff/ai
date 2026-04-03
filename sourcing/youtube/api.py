@@ -11,6 +11,8 @@ Provides tools for:
 import logging
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Set
+from googleapiclient.discovery import build
+
 from dataclasses import dataclass, field as dataclass_field
 
 from ai.sourcing.youtube.models import (
@@ -292,7 +294,7 @@ class YouTubeAPI:
     def __init__(self, api_key: Optional[str] = None):
         """Initialize YouTube API client."""
         self.api_key = api_key
-        # TODO: Initialize YouTube client with api_key
+        self.youtube = build("youtube", "v3", developerKey=self.api_key) if self.api_key else None
 
     def search_channels(
         self, query: str, max_results: int = 25
