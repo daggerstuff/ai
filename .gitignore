@@ -164,3 +164,4 @@ training_ready/
 
 # === SECURITY: never commit generated security configs with real keys ===
 config/emergency_security_config.json
+*.jsonl
