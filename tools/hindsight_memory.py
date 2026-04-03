@@ -7,9 +7,6 @@ They wrap the MCP server calls as native Python functions.
 """
 
 import asyncio
-import os
-from typing import Optional
-
 from mcp.client.session import ClientSession
 from mcp.client.stdio import StdioServerParameters, stdio_client
 
