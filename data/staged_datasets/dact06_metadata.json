@@ -1,0 +1,130 @@
+{
+  "version": "1.0.0",
+  "created_at": "2026-04-03T21:06:59.482524+00:00",
+  "dact": "DACT-06",
+  "description": "Stage-based dataset slices for curriculum training",
+  "stages": [
+    "stage1_foundation",
+    "stage2_therapeutic_expertise",
+    "stage3_edge_stress_test",
+    "stage4_voice_persona"
+  ],
+  "total_records": 2161,
+  "total_size_bytes": 21521580,
+  "stage_details": {
+    "stage1_foundation": {
+      "stage_id": "stage1_foundation",
+      "stage_name": "Stage 1 – Foundation & Rapport",
+      "target_share": 0.4,
+      "source_files": [
+        {
+          "path": "ai/data/normalized/mental_health_counseling_normalized.jsonl",
+          "status": "processed",
+          "records": 2029
+        },
+        {
+          "path": "ai/data/raw/additional_specialized_filtered.json",
+          "status": "not_found",
+          "records": 0
+        },
+        {
+          "path": "ai/data/raw/Psychology-6K.json",
+          "status": "not_found",
+          "records": 0
+        }
+      ],
+      "records_processed": 2029,
+      "records_written": 2029,
+      "output_file": "ai/data/staged_datasets/stage1_foundation.jsonl",
+      "size_bytes": 14121876
+    },
+    "stage2_therapeutic_expertise": {
+      "stage_id": "stage2_therapeutic_expertise",
+      "stage_name": "Stage 2 – Therapeutic Expertise & Reasoning",
+      "target_share": 0.25,
+      "source_files": [
+        {
+          "path": "ai/data/normalized/cot_reasoning_normalized.jsonl",
+          "status": "processed",
+          "records": 1
+        },
+        {
+          "path": "ai/data/raw/clinical_diagnosis_mental_health.json",
+          "status": "not_found",
+          "records": 0
+        },
+        {
+          "path": "ai/data/raw/cultural_nuances.json",
+          "status": "not_found",
+          "records": 0
+        }
+      ],
+      "records_processed": 1,
+      "records_written": 1,
+      "output_file": "ai/data/staged_datasets/stage2_therapeutic_expertise.jsonl",
+      "size_bytes": 2374
+    },
+    "stage3_edge_stress_test": {
+      "stage_id": "stage3_edge_stress_test",
+      "stage_name": "Stage 3 – Edge Stress Test & Scenario Bank",
+      "target_share": 0.2,
+      "source_files": [
+        {
+          "path": "ai/data/raw/edge_cases/",
+          "status": "not_found",
+          "records": 0
+        }
+      ],
+      "records_processed": 0,
+      "records_written": 0,
+      "output_file": "ai/data/staged_datasets/stage3_edge_stress_test.jsonl",
+      "size_bytes": 0
+    },
+    "stage4_voice_persona": {
+      "stage_id": "stage4_voice_persona",
+      "stage_name": "Stage 4 – Voice, Persona & Delivery",
+      "target_share": 0.15,
+      "source_files": [
+        {
+          "path": "ai/data/tim_fletcher_voice/exports/tim_fletcher_conversations.jsonl",
+          "status": "processed",
+          "records": 91
+        },
+        {
+          "path": "ai/data/heidi_priebe_voice/exports/heidi_priebe_conversations.jsonl",
+          "status": "processed",
+          "records": 4
+        },
+        {
+          "path": "ai/data/doctorramani_voice/exports/doctorramani_conversations.jsonl",
+          "status": "processed",
+          "records": 8
+        },
+        {
+          "path": "ai/data/therapy_in_a_nutshell_voice/exports/therapy_in_a_nutshell_conversations.jsonl",
+          "status": "processed",
+          "records": 6
+        },
+        {
+          "path": "ai/data/patrick_teahan_voice/exports/patrick_teahan__conversations.jsonl",
+          "status": "processed",
+          "records": 11
+        },
+        {
+          "path": "ai/data/crappy_childhood_fairy_voice/exports/crappy_childhood_fairy_conversations.jsonl",
+          "status": "processed",
+          "records": 7
+        },
+        {
+          "path": "ai/data/doc_snipes_voice/exports/doc_snipes_conversations.jsonl",
+          "status": "processed",
+          "records": 4
+        }
+      ],
+      "records_processed": 131,
+      "records_written": 131,
+      "output_file": "ai/data/staged_datasets/stage4_voice_persona.jsonl",
+      "size_bytes": 7397330
+    }
+  }
+}
