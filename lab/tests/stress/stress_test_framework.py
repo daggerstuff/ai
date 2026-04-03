@@ -12,6 +12,7 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Dict, List
 
 import psycopg2
+import psycopg2.extras
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -124,45 +125,50 @@ class StressTestFramework:
             conversations_inserted = 0
             messages_inserted = 0
 
+            conv_data = []
+            msg_data = []
+
             for conv in conversations:
-                # Insert conversation
-                cursor.execute(
+                conv_data.append((
+                    conv["id"],
+                    conv["metadata"]["source_dataset"],
+                    f"TIER_{conv['metadata']['tier']}",
+                    conv["metadata"]["category"],
+                    conv["metadata"]["quality_score"],
+                ))
+
+                for i, msg in enumerate(conv["conversation"]):
+                    msg_data.append((
+                        f"{conv['id']}_msg_{i}",
+                        conv["id"],
+                        msg["role"],
+                        msg["content"],
+                        len(msg["content"].split()),
+                    ))
+
+            if conv_data:
+                psycopg2.extras.execute_batch(
+                    cursor,
                     """
                     INSERT INTO conversations (id, source, tier, category, quality_score)
                     VALUES (%s, %s, %s, %s, %s)
                     ON CONFLICT (id) DO NOTHING
-                """,
-                    (
-                        conv["id"],
-                        conv["metadata"]["source_dataset"],
-                        f"TIER_{conv['metadata']['tier']}",
-                        conv["metadata"]["category"],
-                        conv["metadata"]["quality_score"],
-                    ),
-                )
-
-                if cursor.rowcount > 0:
-                    conversations_inserted += 1
-
-                # Insert messages
-                for i, msg in enumerate(conv["conversation"]):
-                    cursor.execute(
-                        """
-                        INSERT INTO messages (id, conversation_id, role, content, word_count)
-                        VALUES (%s, %s, %s, %s, %s)
-                        ON CONFLICT (id) DO NOTHING
                     """,
-                        (
-                            f"{conv['id']}_msg_{i}",
-                            conv["id"],
-                            msg["role"],
-                            msg["content"],
-                            len(msg["content"].split()),
-                        ),
-                    )
+                    conv_data
+                )
+                conversations_inserted = len(conv_data) # roughly
 
-                    if cursor.rowcount > 0:
-                        messages_inserted += 1
+            if msg_data:
+                psycopg2.extras.execute_batch(
+                    cursor,
+                    """
+                    INSERT INTO messages (id, conversation_id, role, content, word_count)
+                    VALUES (%s, %s, %s, %s, %s)
+                    ON CONFLICT (id) DO NOTHING
+                    """,
+                    msg_data
+                )
+                messages_inserted = len(msg_data)
 
             conn.commit()
             cursor.close()
