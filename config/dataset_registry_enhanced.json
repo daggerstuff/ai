@@ -1,6 +1,6 @@
 {
   "version": "2.0.0",
-  "last_updated": "2026-04-03T16:52:24.838995Z",
+  "last_updated": "2026-04-03T16:41:19.951017Z",
   "description": "Rebuilt registry based on actual backup structure",
   "storage": {
     "primary": {
@@ -350,7 +350,9 @@
           "data_freshness_days": null,
           "anomaly_flags": [
             "sync_discrepancies"
-          ]
+          ],
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
         },
         "validation": {
           "checksum_sha256": null,
@@ -459,7 +461,9 @@
           "data_freshness_days": null,
           "anomaly_flags": [
             "sync_discrepancies"
-          ]
+          ],
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
         },
         "validation": {
           "checksum_sha256": null,
@@ -535,7 +539,9 @@
           "data_freshness_days": null,
           "anomaly_flags": [
             "sync_discrepancies"
-          ]
+          ],
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
         },
         "validation": {
           "checksum_sha256": null,
@@ -636,17 +642,17 @@
           }
         ],
         "quality_metrics": {
-          "quality_score": 87.83,
-          "quality_tier": "good",
-          "completeness_score": 85.5,
-          "consistency_score": 90.0,
+          "quality_score": 57.0,
+          "quality_tier": "needs_review",
+          "completeness_score": 26.67,
+          "consistency_score": 70.0,
           "annotation_quality": 70.0,
           "data_freshness_days": null,
-          "anomaly_flags": [],
-          "annotation_quality_score": 88.0,
-          "overall_score": 87.83,
-          "anomaly_detected": false,
-          "last_scored": "2026-04-03T17:00:00Z"
+          "anomaly_flags": [
+            "sync_discrepancies"
+          ],
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
         },
         "validation": {
           "checksum_sha256": null,
@@ -740,7 +746,9 @@
           "data_freshness_days": null,
           "anomaly_flags": [
             "sync_discrepancies"
-          ]
+          ],
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
         },
         "validation": {
           "checksum_sha256": null,
@@ -809,7 +817,9 @@
           "data_freshness_days": null,
           "anomaly_flags": [
             "sync_discrepancies"
-          ]
+          ],
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
         },
         "validation": {
           "checksum_sha256": null,
@@ -918,7 +928,9 @@
           "data_freshness_days": null,
           "anomaly_flags": [
             "sync_discrepancies"
-          ]
+          ],
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
         },
         "validation": {
           "checksum_sha256": null,
@@ -1017,7 +1029,9 @@
           "data_freshness_days": null,
           "anomaly_flags": [
             "sync_discrepancies"
-          ]
+          ],
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
         },
         "validation": {
           "checksum_sha256": null,
@@ -1081,7 +1095,9 @@
           "data_freshness_days": null,
           "anomaly_flags": [
             "sync_discrepancies"
-          ]
+          ],
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
         },
         "validation": {
           "checksum_sha256": null,
@@ -1192,7 +1208,9 @@
           "data_freshness_days": null,
           "anomaly_flags": [
             "sync_discrepancies"
-          ]
+          ],
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
         },
         "validation": {
           "checksum_sha256": null,
@@ -1286,7 +1304,9 @@
           "data_freshness_days": null,
           "anomaly_flags": [
             "sync_discrepancies"
-          ]
+          ],
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
         },
         "validation": {
           "checksum_sha256": null,
@@ -1350,7 +1370,9 @@
           "data_freshness_days": null,
           "anomaly_flags": [
             "sync_discrepancies"
-          ]
+          ],
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
         },
         "validation": {
           "checksum_sha256": null,
@@ -1459,7 +1481,9 @@
           "data_freshness_days": null,
           "anomaly_flags": [
             "sync_discrepancies"
-          ]
+          ],
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
         },
         "validation": {
           "checksum_sha256": null,
@@ -1505,5 +1529,31 @@
     "total_size_bytes": 26803254402,
     "total_size_gb": 24.962,
     "total_files": 587
+  },
+  "registry_statistics": {
+    "total_datasets": 16,
+    "datasets_by_stage": {
+      "stage1_foundation": 0,
+      "stage2_therapeutic_expertise": 0,
+      "stage3_edge_stress_test": 0,
+      "stage4_voice_persona": 0,
+      "stage5_rl_alignment": 0
+    },
+    "datasets_by_quality": {
+      "excellent": 0,
+      "good": 0,
+      "acceptable": 0,
+      "needs_review": 16
+    },
+    "validation_summary": {
+      "validated": 0,
+      "pending_validation": 16,
+      "validation_failed": 0
+    },
+    "sync_summary": {
+      "in_sync": 0,
+      "out_of_sync": 0,
+      "sync_unknown": 16
+    }
   }
 }

@@ -31,21 +31,26 @@ class StreamingS3Processor:
         self,
         source_bucket: str = "pixel-data",
         output_bucket: str = "pixel-data-cleaned",
-        endpoint_url: str = "https://s3.us-east-va.io.cloud.ovh.us",
+        endpoint_url: str | None = None,
         chunk_size: int = 10 * 1024 * 1024,  # 10MB chunks
     ):
         self.source_bucket = source_bucket
         self.output_bucket = output_bucket
-        self.endpoint_url = endpoint_url
+        # Use provided endpoint or read from environment, default to Digital Ocean (bucket name should NOT be in endpoint)
+        endpoint = endpoint_url or os.environ.get("AWS_S3_ENDPOINT", "https://sfo3.digitaloceanspaces.com")
+        # Remove bucket name from endpoint if present
+        if "pixel-data" in endpoint:
+            endpoint = endpoint.replace("pixel-data.", "")
+        self.endpoint_url = endpoint
         self.chunk_size = chunk_size
 
         # Initialize S3 client
         self.s3_client = boto3.client(
             "s3",
-            endpoint_url=endpoint_url,
+            endpoint_url=self.endpoint_url,
             aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID"),
             aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY"),
-            region_name="us-east-va",
+            region_name="sfo3",
         )
 
         # Ensure output bucket exists

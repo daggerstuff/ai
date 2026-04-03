@@ -136,14 +136,24 @@ class IntegratedPipelineConfig:
     enable_beads_sync: bool = True
     enable_jira_sync: bool = True
     enable_linear_sync: bool = True
+    enable_dataset_asana_sync: bool = True  # New: Dataset inventory sync to Asana
     asana_project_gid: str | None = None
     asana_section_gid: str | None = None
+    asana_dataset_section_gid: str | None = None  # New: Section for dataset tasks
     asana_parent_task_gid: str | None = None
     asana_task_gid_output_path: str = "ai/lightning/training_run_asana_task_gid.txt"
     asana_task_key_mapping_output_path: str = "ai/lightning/asana_task_key_mapping.json"
     asana_task_transition_output_path: str = (
         "ai/lightning/asana_task_transition_results.json"
     )
+    asana_dataset_mapping_output_path: str = (
+        "ai/lightning/asana_dataset_task_mapping.json"  # New: Dataset task mapping
+    )
+    dataset_scan_directory: str = "ai/datasets"  # New: Directory to scan for datasets
+    dataset_file_patterns: list[str] = field(
+        default_factory=lambda: [".jsonl", ".json", ".csv", ".parquet"]
+    )  # New: File patterns to include
+    dataset_task_prefix: str = "DATASET"  # New: Prefix for dataset task names
     stage_health_report_output_path: str = (
         "ai/lightning/integrated_stage_health_report.json"
     )
@@ -206,6 +216,7 @@ class IntegratedTrainingPipeline:
         self.asana_client = services.asana_client
         self.curriculum_enforcement_service = services.curriculum_enforcement_service
         self.asana_progress_service = services.asana_progress_service
+        self.dataset_asana_sync_service = services.dataset_asana_sync_service
         self.standard_therapeutic_loader_service = (
             services.standard_therapeutic_loader_service
         )
@@ -213,9 +224,7 @@ class IntegratedTrainingPipeline:
         self.dataset_quality_service = services.dataset_quality_service
         self.dataset_output_service = services.dataset_output_service
         self.run_artifact_service = services.run_artifact_service
-        self.checklist_tracker_sync_service = (
-            services.checklist_tracker_sync_service
-        )
+        self.checklist_tracker_sync_service = services.checklist_tracker_sync_service
         self.dataset_assembler = services.dataset_assembler
         self.data_ingestion = services.data_ingestion
 
@@ -334,6 +343,10 @@ class IntegratedTrainingPipeline:
 
         assembly = self.dataset_assembler.assemble(all_training_data)
         balanced_data = assembly["training_data"]
+
+        # MTGC-07: Explicit stage ratio validation
+        self.curriculum_enforcement_service.validate_final_stage_balance(balanced_data)
+
         output_path = assembly["output_path"]
         report = assembly["report"]
         stage_health_report = assembly["stage_health_report"]
