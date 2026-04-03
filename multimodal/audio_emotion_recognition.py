@@ -283,15 +283,19 @@ class AudioEmotionRecognizer:
             return EmotionalState(0.5, 0.5, 0.5, 0.0, "neutral", {})
 
         # Average VAD
-        valences = [e.valence for e in emotions]
-        arousals = [e.arousal for e in emotions]
-        dominances = [e.dominance for e in emotions]
-        confidences = [e.confidence for e in emotions]
+        # ⚡ Bolt: Consolidated multiple loops into a single pass for performance
+        sum_v = sum_a = sum_d = sum_c = 0.0
+        for e in emotions:
+            sum_v += e.valence
+            sum_a += e.arousal
+            sum_d += e.dominance
+            sum_c += e.confidence
 
-        avg_valence = np.mean(valences)
-        avg_arousal = np.mean(arousals)
-        avg_dominance = np.mean(dominances)
-        avg_confidence = np.mean(confidences)
+        n = len(emotions)
+        avg_valence = sum_v / n
+        avg_arousal = sum_a / n
+        avg_dominance = sum_d / n
+        avg_confidence = sum_c / n
 
         # Determine primary emotion by averaging probabilities
         avg_probs = {}
@@ -388,10 +392,21 @@ class EmotionTrajectory:
             return {"valence_trend": 0.0, "arousal_trend": 0.0, "dominance_trend": 0.0}
 
         # Calculate linear trends
-        timestamps = np.array([e[0] for e in window])
-        valences = np.array([e[1].valence for e in window])
-        arousals = np.array([e[1].arousal for e in window])
-        dominances = np.array([e[1].dominance for e in window])
+        # ⚡ Bolt: Consolidated multiple loops into a single pass for performance
+        timestamps_list = []
+        valences_list = []
+        arousals_list = []
+        dominances_list = []
+        for e in window:
+            timestamps_list.append(e[0])
+            valences_list.append(e[1].valence)
+            arousals_list.append(e[1].arousal)
+            dominances_list.append(e[1].dominance)
+
+        timestamps = np.array(timestamps_list)
+        valences = np.array(valences_list)
+        arousals = np.array(arousals_list)
+        dominances = np.array(dominances_list)
 
         # Linear regression slopes
         valence_trend = float(np.polyfit(timestamps, valences, 1)[0])
@@ -409,8 +424,12 @@ class EmotionTrajectory:
         if not self.emotions:
             return {}
 
-        valences = [e[1].valence for e in self.emotions]
-        arousals = [e[1].arousal for e in self.emotions]
+        # ⚡ Bolt: Consolidated multiple loops into a single pass for performance
+        valences = []
+        arousals = []
+        for e in self.emotions:
+            valences.append(e[1].valence)
+            arousals.append(e[1].arousal)
 
         return {
             "mean_valence": float(np.mean(valences)),
