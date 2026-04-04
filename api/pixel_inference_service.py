@@ -137,8 +137,8 @@ class PixelInferenceEngine:
         """Load Pixel model from disk"""
         try:
             return self._extracted_from_load_model_4()
-        except Exception as e:
-            logger.error(f"Error loading model: {e}")
+        except Exception:
+            logger.exception("Error loading model")
             self.model_loaded = False
             return False
 
@@ -235,8 +235,8 @@ class PixelInferenceEngine:
                 warning=warning,
             )
 
-        except Exception as e:
-            logger.error(f"Error during inference: {e}")
+        except Exception:
+            logger.exception("Error during inference")
             raise
 
     def _detect_persona_mode(self, context_type: Optional[str]) -> str:
@@ -404,9 +404,9 @@ async def infer(request: PixelInferenceRequest, background_tasks: BackgroundTask
 
     try:
         return await inference_engine.generate_response(request)
-    except Exception as e:
-        logger.error(f"Inference error: {e}")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+    except Exception:
+        logger.exception("Inference error")
+        raise HTTPException(status_code=500, detail="Internal server error") from None
 
 
 @app.post("/batch-infer")
@@ -420,9 +420,9 @@ async def batch_infer(requests: list[PixelInferenceRequest]):
         try:
             response = await inference_engine.generate_response(req)
             responses.append(response)
-        except Exception as e:
-            logger.error(f"Batch inference error: {e}")
-            responses.append({"error": str(e)})
+        except Exception:
+            logger.exception("Batch inference error")
+            responses.append({"error": "Internal server error"})
 
     return {"results": responses}
 
@@ -435,9 +435,11 @@ async def reload_model():
         if inference_engine.load_model():
             return {"status": "success", "message": "Model reloaded"}
         raise HTTPException(status_code=500, detail="Failed to reload model")
-    except Exception as e:
-        logger.error(f"Reload error: {e}")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+    except HTTPException:
+        raise
+    except Exception:
+        logger.exception("Reload error")
+        raise HTTPException(status_code=500, detail="Internal server error") from None
 
 
 if __name__ == "__main__":
