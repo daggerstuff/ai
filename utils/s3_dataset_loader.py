@@ -83,27 +83,31 @@ class S3DatasetLoader:
                 "Install with: uv pip install boto3"
             )
 
-        # Always allow env to override bucket for OVH S3
-        # This ensures OVH_S3_BUCKET is always used when set
-        self.bucket = os.getenv("OVH_S3_BUCKET", bucket)
-        print(
-            f"[DEBUG] S3Loader: env OVH_S3_BUCKET={os.getenv('OVH_S3_BUCKET')}, "
-            f"input bucket={bucket}, final={self.bucket}",
-            flush=True,
+        # Prefer Gozunga, then OVH, then direct params
+        self.bucket = (
+            os.getenv("GOZUNGA_S3_BUCKET")
+            or os.getenv("OVH_S3_BUCKET")
+            or bucket
         )
         self.endpoint_url = endpoint_url or os.getenv(
+            "GOZUNGA_S3_ENDPOINT"
+        ) or os.getenv(
             "OVH_S3_ENDPOINT", "https://s3.us-east-va.io.cloud.ovh.us"
         )
 
         # Get credentials from params or environment
         access_key = (
             aws_access_key_id
+            or os.getenv("GONZUNGA_ACCESS_KEY")
+            or os.getenv("GOZUNGA_S3_ACCESS_KEY")
             or os.getenv("OVH_S3_ACCESS_KEY")
             or os.getenv("OVH_ACCESS_KEY")
             or os.getenv("AWS_ACCESS_KEY_ID")
         )
         secret_key = (
             aws_secret_access_key
+            or os.getenv("GONZUNGA_SECRET_KEY")
+            or os.getenv("GOZUNGA_S3_SECRET_KEY")
             or os.getenv("OVH_S3_SECRET_KEY")
             or os.getenv("OVH_SECRET_KEY")
             or os.getenv("AWS_SECRET_ACCESS_KEY")

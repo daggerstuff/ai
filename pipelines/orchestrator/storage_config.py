@@ -12,6 +12,50 @@ from pathlib import Path
 from typing import Optional
 
 
+def _find_workspace_root(start: Path) -> Path:
+    """
+    Best-effort detection of the outer Pixelated workspace root.
+
+    We prefer the parent repo root (contains both `pyproject.toml` and
+    `pnpm-lock.yaml`) so dataset pipeline outputs land in the top-level ignored
+    `tmp/` directory.
+
+    Falls back to the closest parent that looks like a git repo; finally falls back
+    to `start.parent`.
+    """
+    for candidate in [start, *start.parents]:
+        if (candidate / "pyproject.toml").exists() and (
+            candidate / "pnpm-lock.yaml"
+        ).exists():
+            return candidate
+
+    return next(
+        (
+            candidate
+            for candidate in [start, *start.parents]
+            if (candidate / ".git").exists()
+        ),
+        start.parent,
+    )
+
+
+def get_dataset_pipeline_output_root() -> Path:
+    """
+    Root directory for all dataset pipeline *runtime artifacts* (logs, reports,
+    caches, exports).
+
+    By default, outputs go to
+    `<workspace>/tmp/dataset_pipeline` (outside the package tree).
+    Override with `DATASET_PIPELINE_OUTPUT_DIR`.
+    """
+    if env_override := os.getenv("DATASET_PIPELINE_OUTPUT_DIR"):
+        return Path(env_override).expanduser()
+
+    here = Path(__file__).resolve()
+    workspace_root = _find_workspace_root(here)
+    return workspace_root / "tmp" / "dataset_pipeline"
+
+
 class StorageBackend(Enum):
     """Supported storage backends"""
 
@@ -206,7 +250,6 @@ _default_config: Optional[StorageConfig] = None
 
 
 def get_storage_config() -> StorageConfig:
-    """Get the default storage configuration"""
     global _default_config
     if _default_config is None:
         _default_config = StorageConfig.from_env()
@@ -214,50 +257,5 @@ def get_storage_config() -> StorageConfig:
 
 
 def set_storage_config(config: StorageConfig) -> None:
-    """Set the default storage configuration"""
     global _default_config
     _default_config = config
-
-
-def _find_workspace_root(start: Path) -> Path:
-    """
-    Best-effort detection of the outer Pixelated workspace root.
-
-    We prefer the parent repo root (contains both `pyproject.toml` and
-    `pnpm-lock.yaml`) so dataset pipeline outputs land in the top-level ignored
-    `tmp/` directory.
-
-    Falls back to the closest parent that looks like a git repo; finally falls back
-    to `start.parent`.
-    """
-    for candidate in [start, *start.parents]:
-        if (candidate / "pyproject.toml").exists() and (
-            candidate / "pnpm-lock.yaml"
-        ).exists():
-            return candidate
-
-    return next(
-        (
-            candidate
-            for candidate in [start, *start.parents]
-            if (candidate / ".git").exists()
-        ),
-        start.parent,
-    )
-
-
-def get_dataset_pipeline_output_root() -> Path:
-    """
-    Root directory for all dataset pipeline *runtime artifacts* (logs, reports,
-    caches, exports).
-
-    By default, outputs go to
-    `<workspace>/tmp/dataset_pipeline` (outside the package tree).
-    Override with `DATASET_PIPELINE_OUTPUT_DIR`.
-    """
-    if env_override := os.getenv("DATASET_PIPELINE_OUTPUT_DIR"):
-        return Path(env_override).expanduser()
-
-    here = Path(__file__).resolve()
-    workspace_root = _find_workspace_root(here)
-    return workspace_root / "tmp" / "dataset_pipeline"

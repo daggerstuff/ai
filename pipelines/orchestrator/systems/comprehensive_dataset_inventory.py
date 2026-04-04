@@ -428,7 +428,8 @@ class DatasetInventoryDB:
                 cursor = conn.execute(query, params)
                 dataset_ids = [row[0] for row in cursor.fetchall()]
 
-                return [self.get_dataset(dataset_id) for dataset_id in dataset_ids]
+                datasets = [self.get_dataset(dataset_id) for dataset_id in dataset_ids]
+                return [d for d in datasets if d is not None]
 
             finally:
                 conn.close()
@@ -462,23 +463,23 @@ class ComprehensiveDatasetInventory:
     ) -> str:
         """Register a new dataset."""
 
-        file_path = Path(file_path).resolve()
+        file_path_obj = Path(file_path).resolve()
 
-        if not file_path.exists():
-            raise FileNotFoundError(f"Dataset file not found: {file_path}")
+        if not file_path_obj.exists():
+            raise FileNotFoundError(f"Dataset file not found: {file_path_obj}")
 
         # Generate dataset ID
-        dataset_id = self._generate_dataset_id(name, file_path)
+        dataset_id = self._generate_dataset_id(name, file_path_obj)
 
         # Calculate file metrics
-        file_size = file_path.stat().st_size
-        checksum = self._calculate_checksum(file_path)
+        file_size = file_path_obj.stat().st_size
+        checksum = self._calculate_checksum(file_path_obj)
 
         # Create initial version
         initial_version = DatasetVersion(
             version="1.0.0",
             created_date=datetime.now(),
-            file_path=str(file_path),
+            file_path=str(file_path_obj),
             file_size=file_size,
             checksum=checksum,
             changes="Initial version",
@@ -494,9 +495,9 @@ class ComprehensiveDatasetInventory:
             status=DatasetStatus.AVAILABLE,
             created_date=datetime.now(),
             updated_date=datetime.now(),
-            file_path=str(file_path),
+            file_path=str(file_path_obj),
             file_size=file_size,
-            format=file_path.suffix.lower().lstrip("."),
+            format=file_path_obj.suffix.lower().lstrip("."),
             source=source,
             license=license,
             tags=tags or [],
@@ -521,9 +522,9 @@ class ComprehensiveDatasetInventory:
             logger.error(f"Dataset not found: {dataset_id}")
             return False
 
-        file_path = Path(file_path)
-        if not file_path.exists():
-            logger.error(f"New version file not found: {file_path}")
+        file_path_obj = Path(file_path)
+        if not file_path_obj.exists():
+            logger.error(f"New version file not found: {file_path_obj}")
             return False
 
         # Mark current version as not current
@@ -534,16 +535,16 @@ class ComprehensiveDatasetInventory:
         new_version = DatasetVersion(
             version=version,
             created_date=datetime.now(),
-            file_path=str(file_path),
-            file_size=file_path.stat().st_size,
-            checksum=self._calculate_checksum(file_path),
+            file_path=str(file_path_obj),
+            file_size=file_path_obj.stat().st_size,
+            checksum=self._calculate_checksum(file_path_obj),
             changes=changes,
             is_current=True,
         )
 
         record.versions.append(new_version)
         record.updated_date = datetime.now()
-        record.file_path = str(file_path)
+        record.file_path = str(file_path_obj)
         record.file_size = new_version.file_size
 
         # Re-analyze quality
@@ -619,18 +620,18 @@ class ComprehensiveDatasetInventory:
     ) -> list[dict[str, Any]]:
         """Discover datasets in a directory."""
 
-        directory = Path(directory)
+        directory_path = Path(directory)
         discovered = []
 
-        if not directory.exists():
-            logger.warning(f"Directory not found: {directory}")
+        if not directory_path.exists():
+            logger.warning(f"Directory not found: {directory_path}")
             return discovered
 
         # Common dataset file patterns
         dataset_patterns = ["*.json", "*.jsonl", "*.csv", "*.parquet", "*.pkl"]
 
         for pattern in dataset_patterns:
-            for file_path in directory.rglob(pattern):
+            for file_path in directory_path.rglob(pattern):
                 if file_path.is_file() and file_path.stat().st_size > 1024:  # > 1KB
                     dataset_info = {
                         "file_path": str(file_path),
@@ -650,14 +651,14 @@ class ComprehensiveDatasetInventory:
                             self.register_dataset(
                                 str(file_path),
                                 file_path.stem,
-                                f"Auto-discovered dataset from {directory}",
+                                f"Auto-discovered dataset from {directory_path}",
                                 dataset_info["inferred_type"],
                                 source="auto_discovery",
                             )
                         except Exception as e:
                             logger.error(f"Failed to auto-register {file_path}: {e}")
 
-        logger.info(f"Discovered {len(discovered)} datasets in {directory}")
+        logger.info(f"Discovered {len(discovered)} datasets in {directory_path}")
         return discovered
 
     def generate_inventory_report(
