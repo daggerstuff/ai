@@ -761,6 +761,7 @@
               type="button"
               class="btn-close"
               data-bs-dismiss="alert"
+              aria-label="Close"
             ></button>
           </div>
           {% endif %} {% if success %}
@@ -773,6 +774,7 @@
               type="button"
               class="btn-close"
               data-bs-dismiss="alert"
+              aria-label="Close"
             ></button>
           </div>
           {% endif %} {% block content %}{% endblock %}
@@ -837,7 +839,7 @@
         alertDiv.style.zIndex = '9999'
         alertDiv.innerHTML = `
                 ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             `
 
         document.body.appendChild(alertDiv)
