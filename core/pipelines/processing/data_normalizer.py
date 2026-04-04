@@ -13,6 +13,7 @@ Canonical JSONL schema fields:
 
 from __future__ import annotations
 
+import functools
 import hashlib
 import logging
 import re
@@ -23,6 +24,14 @@ from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Pre-compiled regular expressions for snake_case conversion optimization
+# ---------------------------------------------------------------------------
+_RE_SPACE_DASH = re.compile(r"[\s\-]+")
+_RE_CAMEL = re.compile(r"(?<!^)(?=[A-Z])")
+_RE_MULTI_UNDERSCORE = re.compile(r"_+")
 
 
 # ---------------------------------------------------------------------------
@@ -390,15 +399,21 @@ class DataNormalizer:
     # ------------------------------------------------------------------
 
     @staticmethod
+    @functools.lru_cache(maxsize=1024)
     def _to_snake_case(key: str) -> str:
-        """Convert a string key to lower_snake_case."""
+        """
+        Convert a string key to lower_snake_case.
+        Optimized with lru_cache and pre-compiled regex to drastically reduce
+        overhead during large-scale JSONL processing.
+        """
         key = key.strip().lower()
         # Replace spaces and hyphens with underscores
-        key = re.sub(r"[\s\-]+", "_", key)
+        key = _RE_SPACE_DASH.sub("_", key)
         # Insert underscore before uppercase letters (camelCase → camel_case)
-        key = re.sub(r"(?<!^)(?=[A-Z])", "_", key)
+        # (Note: Preserved original logic where lower() is called first, making this step functionally a no-op)
+        key = _RE_CAMEL.sub("_", key)
         # Collapse multiple underscores
-        key = re.sub(r"_+", "_", key)
+        key = _RE_MULTI_UNDERSCORE.sub("_", key)
         return key
 
     def _normalize_message(self, message: dict[str, Any]) -> dict[str, Any]:
