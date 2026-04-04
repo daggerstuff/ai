@@ -1,8 +1,15 @@
 """
 Production-grade PII (Personally Identifiable Information) scrubber for mental health data processing.
-
-Detects and redacts PII types including names, emails, phone numbers, SSN, DOB,
-medical record numbers, addresses, credit card numbers, and IP addresses.
+Detects and redacts PII types including:
+- Names (person names)
+- Email addresses
+- Phone numbers (various formats)
+- SSN/Social Insurance Numbers
+- Dates of birth
+- Medical record numbers
+- Addresses
+- Credit card numbers
+- IP addresses
 """
 
 from __future__ import annotations
