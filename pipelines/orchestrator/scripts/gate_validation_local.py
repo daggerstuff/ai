@@ -21,8 +21,7 @@ from typing import Any, Dict, List, Set, Tuple
 import re
 
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -31,7 +30,7 @@ class ContentAnalyzer:
     """Analyzes content for distribution statistics."""
 
     def __init__(self):
-        self.word_pattern = re.compile(r'\b\w+\b')
+        self.word_pattern = re.compile(r"\b\w+\b")
 
     def estimate_tokens(self, text: str) -> int:
         """Estimate token count using word-based tokenization."""
@@ -44,7 +43,9 @@ class ContentAnalyzer:
         if isinstance(content, dict):
             if "messages" in content and isinstance(content["messages"], list):
                 return len(content["messages"])
-            if "conversations" in content and isinstance(content["conversations"], list):
+            if "conversations" in content and isinstance(
+                content["conversations"], list
+            ):
                 return sum(1 for _ in content["conversations"])
         return 1
 
@@ -55,16 +56,16 @@ class GateValidator:
     def __init__(self, release_version: str, release_dir: str):
         self.release_version = release_version
         self.release_dir = Path(release_dir)
-        self.manifest_file = self.release_dir / 'manifest.json'
-        self.export_file = self.release_dir / 'compiled_export.jsonl'
+        self.manifest_file = self.release_dir / "manifest.json"
+        self.export_file = self.release_dir / "compiled_export.jsonl"
         self.output_dir = self.release_dir
 
         self.content_analyzer = ContentAnalyzer()
         self.stats = {
-            'total_records': 0,
-            'duplicates_found': 0,
-            'leakage_detected': False,
-            'families_analyzed': 0,
+            "total_records": 0,
+            "duplicates_found": 0,
+            "leakage_detected": False,
+            "families_analyzed": 0,
         }
 
     def load_export(self) -> List[Dict[str, Any]]:
@@ -73,10 +74,9 @@ class GateValidator:
             raise FileNotFoundError(f"Export file not found: {self.export_file}")
 
         records = []
-        with open(self.export_file, 'r', encoding='utf-8') as f:
+        with open(self.export_file, "r", encoding="utf-8") as f:
             for line in f:
-                line = line.strip()
-                if line:
+                if line := line.strip():
                     try:
                         records.append(json.loads(line))
                     except json.JSONDecodeError:
@@ -88,7 +88,7 @@ class GateValidator:
         if not self.manifest_file.exists():
             raise FileNotFoundError(f"Manifest not found: {self.manifest_file}")
 
-        with open(self.manifest_file, 'r', encoding='utf-8') as f:
+        with open(self.manifest_file, "r", encoding="utf-8") as f:
             return json.load(f)
 
     def check_deduplication(self, records: List[Dict[str, Any]]) -> Dict[str, Any]:
@@ -106,51 +106,57 @@ class GateValidator:
 
         for i, record in enumerate(records):
             # Extract text content for comparison
-            text = ''
-            if 'messages' in record and isinstance(record['messages'], list):
-                text = ' '.join(
-                    msg.get('content', '') if isinstance(msg, dict) else str(msg)
-                    for msg in record['messages']
+            text = ""
+            if "messages" in record and isinstance(record["messages"], list):
+                text = " ".join(
+                    msg.get("content", "") if isinstance(msg, dict) else str(msg)
+                    for msg in record["messages"]
                 )
             else:
                 text = json.dumps(record, ensure_ascii=False)
 
             # Compute hash
-            text_hash = hashlib.sha256(text.encode('utf-8')).hexdigest()[:16]
+            text_hash = hashlib.sha256(text.encode("utf-8")).hexdigest()[:16]
 
             # Check for duplicate
             if text_hash in seen_hashes:
                 exact_duplicates += 1
-                duplicates.append({
-                    'record_index': i,
-                    'duplicate_of': seen_hashes[text_hash],
-                    'hash': text_hash,
-                })
+                duplicates.append(
+                    {
+                        "record_index": i,
+                        "duplicate_of": seen_hashes[text_hash],
+                        "hash": text_hash,
+                    }
+                )
             else:
                 seen_hashes[text_hash] = str(i)
 
-        self.stats['duplicates_found'] = exact_duplicates
+        self.stats["duplicates_found"] = exact_duplicates
 
         # Determine pass/fail
         dup_rate = exact_duplicates / len(records) if records else 0
         passed = dup_rate < 0.01  # Less than 1% duplicates
 
         report = {
-            'gate_name': 'deduplication',
-            'passed': passed,
-            'total_records': len(records),
-            'exact_duplicates': exact_duplicates,
-            'duplicate_rate': round(dup_rate * 100, 4),
-            'threshold': '1%',
-            'duplicates': duplicates[:10],  # First 10 duplicates
+            "gate_name": "deduplication",
+            "passed": passed,
+            "total_records": len(records),
+            "exact_duplicates": exact_duplicates,
+            "duplicate_rate": round(dup_rate * 100, 4),
+            "threshold": "1%",
+            "duplicates": duplicates[:10],  # First 10 duplicates
         }
 
-        logger.info(f"  Total: {len(records):,}, Duplicates: {exact_duplicates:,} ({dup_rate:.4f})")
+        logger.info(
+            f"  Total: {len(records):,}, Duplicates: {exact_duplicates:,} ({dup_rate:.4f})"
+        )
         logger.info(f"  Status: {'✅ PASS' if passed else '❌ FAIL'}")
 
         return report
 
-    def check_cross_split_leakage(self, records: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def check_cross_split_leakage(
+        self, records: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         """
         Check for cross-split leakage.
 
@@ -165,31 +171,33 @@ class GateValidator:
 
         for i, record in enumerate(records):
             # Check for explicit val/test split assignments in metadata
-            metadata = record.get('metadata', {})
-            record_split = metadata.get('split', 'train')
+            metadata = record.get("metadata", {})
+            record_split = metadata.get("split", "train")
 
             # Flag if explicitly assigned to val/test (would indicate leakage)
-            if record_split in ['val', 'test', 'validation']:
-                leakage_indicators.append({
-                    'record_index': i,
-                    'type': 'wrong_split_assignment',
-                    'expected': 'train',
-                    'found': record_split,
-                })
+            if record_split in ["val", "test", "validation"]:
+                leakage_indicators.append(
+                    {
+                        "record_index": i,
+                        "type": "wrong_split_assignment",
+                        "expected": "train",
+                        "found": record_split,
+                    }
+                )
 
         leakage_detected = len(leakage_indicators) > 0
-        self.stats['leakage_detected'] = leakage_detected
+        self.stats["leakage_detected"] = leakage_detected
 
         report = {
-            'gate_name': 'cross_split_leakage',
-            'passed': not leakage_detected,
-            'leakage_indicators': leakage_indicators[:10],
-            'total_indicators': len(leakage_indicators),
-            'note': 'All local data assigned to train split - checking for wrong assignments',
+            "gate_name": "cross_split_leakage",
+            "passed": not leakage_detected,
+            "leakage_indicators": leakage_indicators[:10],
+            "total_indicators": len(leakage_indicators),
+            "note": "All local data assigned to train split - checking for wrong assignments",
         }
 
         logger.info(f"  Leakage indicators: {len(leakage_indicators)}")
-        logger.info(f"  Status: {'✅ PASS' if not leakage_detected else '⚠️ WARNING'}")
+        logger.info(f"  Status: {'⚠️ WARNING' if leakage_detected else '✅ PASS'}")
 
         return report
 
@@ -203,16 +211,16 @@ class GateValidator:
 
         for record in records:
             # Extract family from metadata
-            metadata = record.get('metadata', {})
-            family = metadata.get('source', 'unknown')
-            stage = metadata.get('stage', 'unknown')
+            metadata = record.get("metadata", {})
+            family = metadata.get("source", "unknown")
+            stage = metadata.get("stage", "unknown")
 
             # Get text content
-            text = ''
-            if 'messages' in record and isinstance(record['messages'], list):
-                text = ' '.join(
-                    str(msg.get('content', '')) if isinstance(msg, dict) else str(msg)
-                    for msg in record['messages']
+            text = ""
+            if "messages" in record and isinstance(record["messages"], list):
+                text = " ".join(
+                    str(msg.get("content", "")) if isinstance(msg, dict) else str(msg)
+                    for msg in record["messages"]
                 )
             else:
                 text = json.dumps(record, ensure_ascii=False)
@@ -222,49 +230,51 @@ class GateValidator:
             turn_count = self.content_analyzer.count_turns(record)
             char_count = len(text)
 
-            family_stats[family].append({
-                'tokens': token_count,
-                'turns': turn_count,
-                'chars': char_count,
-            })
+            family_stats[family].append(
+                {
+                    "tokens": token_count,
+                    "turns": turn_count,
+                    "chars": char_count,
+                }
+            )
 
         # Aggregate statistics
         distribution_report = {
-            'gate_name': 'distribution',
-            'passed': True,
-            'families': {},
+            "gate_name": "distribution",
+            "passed": True,
+            "families": {},
         }
 
         for family, stats_list in family_stats.items():
-            tokens = [s['tokens'] for s in stats_list]
-            turns = [s['turns'] for s in stats_list]
-            chars = [s['chars'] for s in stats_list]
+            tokens = [s["tokens"] for s in stats_list]
+            turns = [s["turns"] for s in stats_list]
+            chars = [s["chars"] for s in stats_list]
 
-            distribution_report['families'][family] = {
-                'record_count': len(stats_list),
-                'tokens': {
-                    'min': min(tokens),
-                    'max': max(tokens),
-                    'mean': round(sum(tokens) / len(tokens), 2),
-                    'total': sum(tokens),
+            distribution_report["families"][family] = {
+                "record_count": len(stats_list),
+                "tokens": {
+                    "min": min(tokens),
+                    "max": max(tokens),
+                    "mean": round(sum(tokens) / len(tokens), 2),
+                    "total": sum(tokens),
                 },
-                'turns': {
-                    'min': min(turns),
-                    'max': max(turns),
-                    'mean': round(sum(turns) / len(turns), 2),
+                "turns": {
+                    "min": min(turns),
+                    "max": max(turns),
+                    "mean": round(sum(turns) / len(turns), 2),
                 },
-                'chars': {
-                    'min': min(chars),
-                    'max': max(chars),
-                    'mean': round(sum(chars) / len(chars), 2),
-                    'total': sum(chars),
+                "chars": {
+                    "min": min(chars),
+                    "max": max(chars),
+                    "mean": round(sum(chars) / len(chars), 2),
+                    "total": sum(chars),
                 },
             }
 
-            self.stats['families_analyzed'] += 1
+            self.stats["families_analyzed"] += 1
 
         logger.info(f"  Families analyzed: {len(family_stats)}")
-        logger.info(f"  Status: ✅ PASS")
+        logger.info("  Status: ✅ PASS")
 
         return distribution_report
 
@@ -274,7 +284,7 @@ class GateValidator:
 
         # Load data
         records = self.load_export()
-        self.stats['total_records'] = len(records)
+        self.stats["total_records"] = len(records)
 
         # Run gates
         dedup_report = self.check_deduplication(records)
@@ -283,26 +293,26 @@ class GateValidator:
 
         # Overall status
         all_passed = (
-            dedup_report['passed'] and
-            leakage_report['passed'] and
-            distribution_report['passed']
+            dedup_report["passed"]
+            and leakage_report["passed"]
+            and distribution_report["passed"]
         )
 
         # Save report
         report = {
-            'release_version': self.release_version,
-            'timestamp': datetime.now(timezone.utc).isoformat(),
-            'overall_passed': all_passed,
-            'gates': {
-                'deduplication': dedup_report,
-                'cross_split_leakage': leakage_report,
-                'distribution': distribution_report,
+            "release_version": self.release_version,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "overall_passed": all_passed,
+            "gates": {
+                "deduplication": dedup_report,
+                "cross_split_leakage": leakage_report,
+                "distribution": distribution_report,
             },
-            'summary': self.stats,
+            "summary": self.stats,
         }
 
-        report_file = self.output_dir / 'gate_validation_report.json'
-        with open(report_file, 'w', encoding='utf-8') as f:
+        report_file = self.output_dir / "gate_validation_report.json"
+        with open(report_file, "w", encoding="utf-8") as f:
             json.dump(report, f, indent=2, ensure_ascii=False)
 
         logger.info(f"Report saved to: {report_file}")
@@ -313,18 +323,23 @@ class GateValidator:
 def main():
     import argparse
 
-    parser = argparse.ArgumentParser(description='Gate Validation (Local)')
+    def _print_gate_status(
+        name: str,
+        passed: bool,
+        pass_label: str = "✅ PASS",
+        fail_label: str = "❌ FAIL",
+    ) -> None:
+        print(f"  {name}: {pass_label if passed else fail_label}")
+
+    parser = argparse.ArgumentParser(description="Gate Validation (Local)")
     parser.add_argument(
-        '--release-version',
-        type=str,
-        default='v2026-04-03',
-        help='Release version'
+        "--release-version", type=str, default="v2026-04-03", help="Release version"
     )
     parser.add_argument(
-        '--release-dir',
+        "--release-dir",
         type=str,
-        default='ai/data/releases/v2026-04-03',
-        help='Release directory'
+        default="ai/data/releases/v2026-04-03",
+        help="Release directory",
     )
 
     args = parser.parse_args()
@@ -353,32 +368,34 @@ def main():
     print("Gate Results:")
 
     # Dedup
-    dedup = report['gates']['deduplication']
-    status = "✅ PASS" if dedup['passed'] else "❌ FAIL"
-    print(f"  Deduplication: {status}")
+    dedup = report["gates"]["deduplication"]
+    _print_gate_status("Deduplication", dedup["passed"])
     print(f"    Records: {dedup['total_records']:,}")
     print(f"    Duplicates: {dedup['exact_duplicates']:,} ({dedup['duplicate_rate']}%)")
 
     # Leakage
-    leakage = report['gates']['cross_split_leakage']
-    status = "✅ PASS" if leakage['passed'] else "⚠️ WARNING"
-    print(f"  Cross-Split Leakage: {status}")
+    leakage = report["gates"]["cross_split_leakage"]
+    _print_gate_status(
+        "Cross-Split Leakage",
+        leakage["passed"],
+        pass_label="✅ PASS",
+        fail_label="⚠️ WARNING",
+    )
     print(f"    Indicators: {leakage['total_indicators']}")
 
     # Distribution
-    dist = report['gates']['distribution']
-    status = "✅ PASS" if dist['passed'] else "❌ FAIL"
-    print(f"  Distribution: {status}")
+    dist = report["gates"]["distribution"]
+    _print_gate_status("Distribution", dist["passed"])
     print(f"    Families: {len(dist['families'])}")
 
     # Overall
     print()
-    overall = "✅ ALL GATES PASSED" if report['overall_passed'] else "❌ GATES FAILED"
+    overall = "✅ ALL GATES PASSED" if report["overall_passed"] else "❌ GATES FAILED"
     print(f"Overall: {overall}")
     print("=" * 60)
 
     return report
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
