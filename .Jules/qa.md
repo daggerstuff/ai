@@ -1,1 +1,0 @@
-## 2026-03-27 - Mocking File I/O for TranscriptCorrector | Pattern: Explicitly mock Path.exists and builtins.open when initializing utilities that read config files to avoid FileNotFoundError | Action: Use @patch('pathlib.Path.exists', return_value=True) and @patch('builtins.open', new_callable=mock_open) with a valid JSON string
