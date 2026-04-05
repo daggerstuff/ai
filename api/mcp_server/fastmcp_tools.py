@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from typing import Optional
-
-from mcp.server.fastmcp import FastMCP
+from fastmcp import FastMCP
+from pydantic import BaseModel, Field
 
 from ai.api.mcp_server.memory_scope import memory_in_scope
 
@@ -35,38 +34,48 @@ def _search_scoped_memories(
         limit=limit,
     )
 
+class MemoryStoreRequest(BaseModel):
+    content: str = Field(description="The significant fact, preference, or insight to store.")
+    user_id: str = Field(description="Unique identifier for the user.")
+    auth_context: str | None = Field(default=None, description="HMAC authentication context.")
+    category: str = Field(default="fact", description="Category for the memory (e.g., 'fact', 'preference').")
+    metadata: str | None = Field(default=None, description="Additional metadata context as a JSON string.")
+    scope_context: str | None = Field(default=None, description="Detailed scope context as a JSON string.")
 
-async def memory_store(
-    content: str,
-    user_id: str,
-    auth_context: Optional[str] = None,
-    category: str = "fact",
-    metadata: Optional[str] = None,
-    scope_context: Optional[str] = None,
-) -> str:
+
+class MemoryUpdateRequest(BaseModel):
+    memory_id: str = Field(description="The unique identifier of the memory entry to update.")
+    content: str = Field(description="The updated text content for the memory entry.")
+    user_id: str = Field(description="Unique identifier for the user.")
+    auth_context: str | None = Field(default=None, description="HMAC authentication context.")
+    metadata: str | None = Field(default=None, description="Updated metadata context as a JSON string.")
+    scope_context: str | None = Field(default=None, description="Updated scope context as a JSON string.")
+
+
+async def memory_store(req: MemoryStoreRequest) -> str:
     """Store a significant fact, preference, or insight in long-term memory."""
-    metadata_dict = parse_metadata(metadata)
+    metadata_dict = parse_metadata(req.metadata)
     context = authorized_tool_context_from_json(
         tool_name="memory_store",
-        user_id=user_id,
-        auth_context=auth_context,
-        scope_context=scope_context,
+        user_id=req.user_id,
+        auth_context=req.auth_context,
+        scope_context=req.scope_context,
         payload={
-            "content": content,
-            "user_id": user_id,
-            "category": category,
+            "content": req.content,
+            "user_id": req.user_id,
+            "category": req.category,
             "metadata": metadata_dict,
         },
         visibility_default="private",
     )
     authorized_user_id = context.scope.user_id
-    scope_config = scope_config_from_parsed(parse_scope_context(scope_context))
+    scope_config = scope_config_from_parsed(parse_scope_context(req.scope_context))
 
     try:
         plan = build_memory_store_plan(
-            content=content,
+            content=req.content,
             user_id=authorized_user_id,
-            category=category,
+            category=req.category,
             metadata_dict=metadata_dict,
             scope=scope_config,
         )
@@ -87,9 +96,9 @@ async def memory_store(
 async def memory_query(
     query: str,
     user_id: str,
-    auth_context: Optional[str] = None,
+    auth_context: str | None = None,
     limit: int = 5,
-    scope_context: Optional[str] = None,
+    scope_context: str | None = None,
 ) -> str:
     """Search long-term memory for relevant information."""
     context = authorized_tool_context_from_json(
@@ -113,13 +122,9 @@ async def memory_query(
             limit=limit,
         )
         if not results:
-            return (
-                f"🔍 No relevant matches for '{query}' within the"
-                f" requested memory scope for {user_id}."
-            )
+            return f"🔍 No relevant matches for '{query}' within the requested memory scope for {user_id}."
         formatted = [
-            f"- [{item.get('score', 0.0):.2f}] "
-            f"{item.get('memory') or item.get('content') or item.get('text', 'N/A')}"
+            f"- [{item.get('score', 0.0):.2f}] {item.get('memory') or item.get('content') or item.get('text', 'N/A')}"
             for item in results[:limit]
         ]
         return f"### Memory Retrieval for {user_id}\n\n" + "\n".join(formatted)
@@ -127,27 +132,20 @@ async def memory_query(
         return f"❌ Error querying memory: {exc}"
 
 
-async def memory_update(
-    memory_id: str,
-    content: str,
-    user_id: str,
-    auth_context: Optional[str] = None,
-    metadata: Optional[str] = None,
-    scope_context: Optional[str] = None,
-) -> str:
+async def memory_update(req: MemoryUpdateRequest) -> str:
     """Refine or correct an existing memory entry."""
-    metadata_dict = parse_metadata(metadata)
+    metadata_dict = parse_metadata(req.metadata)
     context = authorized_tool_context_from_json(
         tool_name="memory_update",
-        user_id=user_id,
-        auth_context=auth_context,
-        scope_context=scope_context,
+        user_id=req.user_id,
+        auth_context=req.auth_context,
+        scope_context=req.scope_context,
         payload={
-            "memory_id": memory_id,
-            "content": content,
-            "user_id": user_id,
+            "memory_id": req.memory_id,
+            "content": req.content,
+            "user_id": req.user_id,
             "metadata": metadata_dict,
-            "scope_context": scope_context,
+            "scope_context": req.scope_context,
         },
     )
 
@@ -158,16 +156,16 @@ async def memory_update(
         if not memory_in_scope(
             manager=context.manager,
             scope=context.scope,
-            memory_id=memory_id,
+            memory_id=req.memory_id,
         ):
             return "❌ Update denied: memory not found in provided scope."
         if context.manager.update_memory(
-            memory_id,
-            new_content=content,
+            req.memory_id,
+            new_content=req.content,
             metadata=metadata_dict,
             user_id=authorized_user_id,
         ):
-            return f"🔄 **Memory Updated** (ID: {memory_id})"
+            return f"🔄 **Memory Updated** (ID: {req.memory_id})"
         return "❌ Update failed or not supported."
     except Exception as exc:
         return f"❌ Error: {exc}"
@@ -176,8 +174,8 @@ async def memory_update(
 async def memory_delete(
     memory_id: str,
     user_id: str,
-    auth_context: Optional[str] = None,
-    scope_context: Optional[str] = None,
+    auth_context: str | None = None,
+    scope_context: str | None = None,
 ) -> str:
     """Purge an obsolete or incorrect memory entry."""
     context = authorized_tool_context_from_json(
