@@ -24,7 +24,7 @@ def _get_server_params() -> StdioServerParameters:
             "HINDSIGHT_MCP_STDIO_TRUST": "true",
             "HINDSIGHT_COMPAT_DEFAULT_USER_ID": "vivi",
             "HINDSIGHT_COMPAT_BEARER_ACTOR_ID": "local-hindsight-cli",
-        }
+        },
     )
 
 
