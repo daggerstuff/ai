@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -11,6 +12,7 @@ from ai.pipelines.orchestrator.orchestration.runtime_policy_service import (
 class _ConfigStub:
     asana_project_gid: str | None = None
     asana_section_gid: str | None = None
+    asana_dataset_section_gid: str | None = None
     asana_parent_task_gid: str | None = None
     enable_asana_sync: bool = True
     enable_beads_sync: bool = True
@@ -44,6 +46,7 @@ def test_runtime_policy_service_hydrates_tracker_env(monkeypatch):
 
     monkeypatch.setenv("ASANA_PROJECT_GID", "123")
     monkeypatch.setenv("ASANA_SECTION_GID", "456")
+    monkeypatch.setenv("ASANA_DATASET_SECTION_GID", "789")
     monkeypatch.setenv("ENABLE_BEADS_SYNC", "false")
     monkeypatch.setenv("TRACKER_SYNC_STATE_PATH", "/tmp/custom-state.json")
 
@@ -51,8 +54,69 @@ def test_runtime_policy_service_hydrates_tracker_env(monkeypatch):
 
     assert config.asana_project_gid == "123"
     assert config.asana_section_gid == "456"
+    assert config.asana_dataset_section_gid == "789"
     assert config.enable_beads_sync is False
     assert config.tracker_sync_state_output_path == "/tmp/custom-state.json"
+
+
+def test_runtime_policy_service_hydrates_legacy_asana_project_id(monkeypatch):
+    config = _ConfigStub()
+    warnings = _WarningSink()
+    service = RuntimePolicyService(
+        manifest_path=Path("missing.json"),
+        warning_sink=warnings,
+        default_stage_distribution=config.stage_distribution,
+        default_stage_drift_tolerance=0.02,
+    )
+
+    monkeypatch.delenv("ASANA_PROJECT_GID", raising=False)
+    monkeypatch.setenv("ASANA_PROJECT_ID", "321")
+
+    service.hydrate_tracker_config(config)
+
+    assert config.asana_project_gid == "321"
+
+
+def test_runtime_policy_service_hydrates_project_gid_from_internal_config(
+    monkeypatch, tmp_path: Path
+):
+    config_path = tmp_path / "config.json"
+    config_path.write_text(
+        """
+        {
+          "integration": {
+            "asana": {
+              "project_id": "111",
+              "task_sync_projects": {
+                "active_sprint": "222",
+                "master_training_gap_closure": "333"
+              },
+              "all_projects": {
+                "master_training_epic": "444"
+              }
+            }
+          }
+        }
+        """,
+        encoding="utf-8",
+    )
+
+    config = _ConfigStub()
+    warnings = _WarningSink()
+    service = RuntimePolicyService(
+        manifest_path=Path("missing.json"),
+        warning_sink=warnings,
+        default_stage_distribution=config.stage_distribution,
+        default_stage_drift_tolerance=0.02,
+    )
+
+    monkeypatch.delenv("ASANA_PROJECT_GID", raising=False)
+    monkeypatch.delenv("ASANA_PROJECT_ID", raising=False)
+    monkeypatch.setenv("PIXELATED_INTERNAL_CONFIG_PATH", str(config_path))
+
+    service.hydrate_tracker_config(config)
+
+    assert config.asana_project_gid == "333"
 
 
 def test_runtime_policy_service_loads_manifest_policy(tmp_path: Path):
