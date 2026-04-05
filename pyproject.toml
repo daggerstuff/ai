@@ -61,6 +61,7 @@ dependencies = [
   "google-genai>=1.62.0",
   "qdrant-client>=1.16.2",
   "mcp>=1.26.0",
+  "fastmcp>=3.2.0",
   "e2b>=1.4.0",
   "yt-dlp>=2026.2.21",
   "flask>=3.1.3",
@@ -122,10 +123,51 @@ torchvision = [{ index = "pytorch-cpu" }]
 torchaudio = [{ index = "pytorch-cpu" }]
 
 [tool.ruff]
-# Exclude Jupyter notebooks from direct linting
-extend-exclude = ["*.ipynb"]
-
+target-version = "py313"
+line-length = 120
+exclude = [
+  "node_modules",
+  "stubs",
+  "venv",
+  ".venv",
+  "env",
+  "build",
+  "dist",
+  ".coveragerc",
+  ".git",
+  "dist",
+  "**/__pycache__",
+  "**/.*",
+  "*.ipynb"
+]
 [tool.ruff.lint]
-# Add any lint rules you want here
-select = ["E", "F", "I"]
-ignore = []
+select = [
+  "E",
+  "F",
+  "W",
+  "I",
+  "N",
+  "UP",
+  "B",
+  "A",
+  "C4",
+  "DTZ",
+  "PIE",
+  "PT",
+  "Q",
+  "RET",
+  "SIM",
+  "T20",
+  "TID",
+  "ARG",
+  "PL",
+  "RUF",
+]
+ignore = ["E501", "UP017", "PLR2004"]
+[tool.ruff.lint.per-file-ignores]
+"scripts/verify_stage2_persona_quality.py" = ["E402", "PLC0415"]
+"Stage1_Training_Notebook.ipynb" = ["E402", "PLC0415", "Q000", "I001", "T201"]
+[tool.ruff.lint.isort]
+known-first-party = ["ai", "src"]
+combine-as-imports = true
+force-single-line = false
