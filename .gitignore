@@ -5,6 +5,7 @@
 .idea/
 .vscode/
 .~*
+.Jules/
 
 # === VIRTUAL ENVIRONMENTS ===
 **/.venv/
@@ -166,3 +167,21 @@ training_ready/
 config/emergency_security_config.json
 *.jsonl
 data/staged_datasets/stage2_therapeutic_expertise.jsonl
+AGENTS.md
+.autoswitch_venv
+.venv
+training_data_consolidated
+psydefdetect
+ARCHITECTURE.md
+.Jules/
+datasets/
+data/
+compiled_dataset/
+lightning/
+training/compiled_dataset/
+training/models/
+training/ready_packages/
+training/long_running_therapy/
+training/promoter_agent.py
+training/train_*.py
+training/data/
