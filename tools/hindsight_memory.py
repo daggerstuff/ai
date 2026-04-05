@@ -7,6 +7,7 @@ They wrap the MCP server calls as native Python functions.
 """
 
 import asyncio
+
 from mcp.client.session import ClientSession
 from mcp.client.stdio import StdioServerParameters, stdio_client
 
@@ -36,9 +37,7 @@ async def _call_mcp_tool(tool_name: str, params: dict) -> str:
         async with ClientSession(read, write) as session:
             await session.initialize()
             result = await session.call_tool(tool_name, params)
-            if result.content:
-                return result.content[0].text
-            return "No result"
+            return result.content[0].text if result.content else "No result"
 
 
 def memory_store(content: str, user_id: str = "vivi", category: str = "fact") -> str:
