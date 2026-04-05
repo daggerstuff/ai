@@ -77,6 +77,43 @@ def test_runtime_policy_service_hydrates_legacy_asana_project_id(monkeypatch):
     assert config.asana_project_gid == "321"
 
 
+def test_runtime_policy_service_prefers_internal_project_over_legacy_env(
+    monkeypatch, tmp_path: Path
+):
+    config_path = tmp_path / "config.json"
+    config_path.write_text(
+        """
+        {
+          "integration": {
+            "asana": {
+              "task_sync_projects": {
+                "master_training_gap_closure": "333"
+              }
+            }
+          }
+        }
+        """,
+        encoding="utf-8",
+    )
+
+    config = _ConfigStub()
+    warnings = _WarningSink()
+    service = RuntimePolicyService(
+        manifest_path=Path("missing.json"),
+        warning_sink=warnings,
+        default_stage_distribution=config.stage_distribution,
+        default_stage_drift_tolerance=0.02,
+    )
+
+    monkeypatch.delenv("ASANA_PROJECT_GID", raising=False)
+    monkeypatch.setenv("ASANA_PROJECT_ID", "321")
+    monkeypatch.setenv("PIXELATED_INTERNAL_CONFIG_PATH", str(config_path))
+
+    service.hydrate_tracker_config(config)
+
+    assert config.asana_project_gid == "333"
+
+
 def test_runtime_policy_service_hydrates_project_gid_from_internal_config(
     monkeypatch, tmp_path: Path
 ):

@@ -64,8 +64,9 @@ class RuntimePolicyService:
         """Load tracker-related runtime config from environment when unset."""
         config.asana_project_gid = self._resolve_gid(
             current_value=config.asana_project_gid,
-            env_names=("ASANA_PROJECT_GID", "ASANA_PROJECT_ID"),
+            env_names=("ASANA_PROJECT_GID",),
             resolver=self.integration_config_resolver.resolve_training_asana_project_gid,
+            fallback_env_names=("ASANA_PROJECT_ID",),
         )
         config.asana_section_gid = self._resolve_gid(
             current_value=config.asana_section_gid,
@@ -250,6 +251,7 @@ class RuntimePolicyService:
         current_value: str | None,
         env_names: tuple[str, ...],
         resolver: Callable[[], str | None] | None = None,
+        fallback_env_names: tuple[str, ...] = (),
     ) -> str | None:
         normalized_current = self._normalize_gid(current_value)
         if normalized_current is not None:
@@ -261,9 +263,19 @@ class RuntimePolicyService:
                 return normalized_env
 
         if resolver is None:
-            return None
+            return self._resolve_gid_from_env(fallback_env_names)
 
-        return self._normalize_gid(resolver())
+        normalized_resolved = self._normalize_gid(resolver())
+        if normalized_resolved is not None:
+            return normalized_resolved
+        return self._resolve_gid_from_env(fallback_env_names)
+
+    def _resolve_gid_from_env(self, env_names: tuple[str, ...]) -> str | None:
+        for env_name in env_names:
+            normalized_env = self._normalize_gid(os.getenv(env_name))
+            if normalized_env is not None:
+                return normalized_env
+        return None
 
     @staticmethod
     def _normalize_gid(value: str | None) -> str | None:
