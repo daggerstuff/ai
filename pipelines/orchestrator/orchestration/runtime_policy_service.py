@@ -9,12 +9,17 @@ import os
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Any, Callable, Protocol
+
+from ai.pipelines.orchestrator.orchestration.integration_config_resolver import (
+    IntegrationConfigResolver,
+)
 
 
 class RuntimeConfigProtocol(Protocol):
     asana_project_gid: str | None
     asana_section_gid: str | None
+    asana_dataset_section_gid: str | None
     asana_parent_task_gid: str | None
     enable_asana_sync: bool
     enable_beads_sync: bool
@@ -45,20 +50,35 @@ class RuntimePolicyService:
         warning_sink: WarningSinkProtocol,
         default_stage_distribution: dict[str, float],
         default_stage_drift_tolerance: float,
+        integration_config_resolver: IntegrationConfigResolver | None = None,
     ) -> None:
         self.manifest_path = manifest_path
         self.warning_sink = warning_sink
         self.default_stage_distribution = dict(default_stage_distribution)
         self.default_stage_drift_tolerance = default_stage_drift_tolerance
+        self.integration_config_resolver = (
+            integration_config_resolver or IntegrationConfigResolver()
+        )
 
     def hydrate_tracker_config(self, config: RuntimeConfigProtocol) -> None:
         """Load tracker-related runtime config from environment when unset."""
-        if config.asana_project_gid is None:
-            config.asana_project_gid = os.getenv("ASANA_PROJECT_GID")
-        if config.asana_section_gid is None:
-            config.asana_section_gid = os.getenv("ASANA_SECTION_GID")
-        if config.asana_parent_task_gid is None:
-            config.asana_parent_task_gid = os.getenv("ASANA_PARENT_TASK_GID")
+        config.asana_project_gid = self._resolve_gid(
+            current_value=config.asana_project_gid,
+            env_names=("ASANA_PROJECT_GID", "ASANA_PROJECT_ID"),
+            resolver=self.integration_config_resolver.resolve_training_asana_project_gid,
+        )
+        config.asana_section_gid = self._resolve_gid(
+            current_value=config.asana_section_gid,
+            env_names=("ASANA_SECTION_GID",),
+        )
+        config.asana_dataset_section_gid = self._resolve_gid(
+            current_value=config.asana_dataset_section_gid,
+            env_names=("ASANA_DATASET_SECTION_GID",),
+        )
+        config.asana_parent_task_gid = self._resolve_gid(
+            current_value=config.asana_parent_task_gid,
+            env_names=("ASANA_PARENT_TASK_GID",),
+        )
 
         config.enable_asana_sync = self._env_flag(
             "ENABLE_ASANA_SYNC", config.enable_asana_sync
@@ -78,7 +98,7 @@ class RuntimePolicyService:
             config.tracker_sync_state_output_path = tracker_sync_state_path
 
     def load_stage_policy(self) -> StagePolicyBundle:
-        """Load stage distribution, quality profiles, and drift waivers from manifest."""
+        """Load stage distribution, quality profiles, and drift waivers."""
         if not self.manifest_path.exists():
             return StagePolicyBundle(
                 stage_distribution=dict(self.default_stage_distribution),
@@ -99,7 +119,9 @@ class RuntimePolicyService:
         manifest_stages = manifest.get("stages", {})
         stage_distribution = self._load_stage_distribution(manifest_stages)
         quality_profiles = self._load_stage_quality_profiles(manifest_stages)
-        drift_waivers = self._load_stage_drift_waivers(manifest.get("stage_drift_waivers", {}))
+        drift_waivers = self._load_stage_drift_waivers(
+            manifest.get("stage_drift_waivers", {})
+        )
 
         return StagePolicyBundle(
             stage_distribution=stage_distribution,
@@ -125,7 +147,8 @@ class RuntimePolicyService:
         expires_at = self._parse_iso_timestamp(waiver.get("expires_at"))
         if expires_at is not None and datetime.now(timezone.utc) > expires_at:
             self._warn(
-                f"Drift waiver for stage '{stage}' is expired at {expires_at.isoformat()}"
+                "Drift waiver for stage "
+                f"'{stage}' is expired at {expires_at.isoformat()}"
             )
             return self.default_stage_drift_tolerance, False
 
@@ -133,14 +156,47 @@ class RuntimePolicyService:
 
     def collect_ops_freshness(self) -> dict[str, Any]:
         """Collect freshness status for inventory, prompt mirror, and voice exports."""
+        threshold_hours = self._resolve_ops_freshness_threshold_hours()
+        now = datetime.now(timezone.utc)
+        targets = self._resolve_ops_freshness_targets()
+
+        checks: dict[str, Any] = {}
+        all_fresh = True
+        for key, path in targets.items():
+            check = self._build_ops_freshness_check(
+                path=path,
+                checked_at=now,
+                threshold_hours=threshold_hours,
+            )
+            checks[key] = check
+            if not check["fresh"]:
+                all_fresh = False
+
+        return {
+            "checked_at": now.isoformat(),
+            "threshold_hours": threshold_hours,
+            "all_fresh": all_fresh,
+            "checks": checks,
+        }
+
+    @staticmethod
+    def _env_flag(name: str, default: bool) -> bool:
+        raw_value = os.getenv(name)
+        if raw_value is None:
+            return default
+        return raw_value.strip().lower() in {"1", "true", "yes", "on"}
+
+    @staticmethod
+    def _resolve_ops_freshness_threshold_hours() -> float:
         threshold_hours_raw = os.getenv("TRAINING_OPS_FRESHNESS_HOURS", "24").strip()
         try:
-            threshold_hours = float(threshold_hours_raw)
+            return float(threshold_hours_raw)
         except ValueError:
-            threshold_hours = 24.0
+            return 24.0
 
-        now = datetime.now(timezone.utc)
-        targets = {
+    @staticmethod
+    def _resolve_ops_freshness_targets() -> dict[str, Path]:
+        return {
             "inventory": Path(
                 os.getenv(
                     "TRAINING_OPS_INVENTORY_PATH",
@@ -161,46 +217,62 @@ class RuntimePolicyService:
             ),
         }
 
-        checks: dict[str, Any] = {}
-        all_fresh = True
-        for key, path in targets.items():
-            if not path.exists():
-                checks[key] = {
-                    "path": str(path),
-                    "exists": False,
-                    "fresh": False,
-                    "reason": "missing",
-                }
-                all_fresh = False
-                continue
-
-            modified_at = datetime.fromtimestamp(path.stat().st_mtime, tz=timezone.utc)
-            age_hours = (now - modified_at).total_seconds() / 3600.0
-            fresh = age_hours <= threshold_hours
-            checks[key] = {
+    @staticmethod
+    def _build_ops_freshness_check(
+        *,
+        path: Path,
+        checked_at: datetime,
+        threshold_hours: float,
+    ) -> dict[str, Any]:
+        if not path.exists():
+            return {
                 "path": str(path),
-                "exists": True,
-                "fresh": fresh,
-                "modified_at": modified_at.isoformat(),
-                "age_hours": round(age_hours, 3),
-                "threshold_hours": threshold_hours,
+                "exists": False,
+                "fresh": False,
+                "reason": "missing",
             }
-            if not fresh:
-                all_fresh = False
 
+        modified_at = datetime.fromtimestamp(path.stat().st_mtime, tz=timezone.utc)
+        age_hours = (checked_at - modified_at).total_seconds() / 3600.0
+        fresh = age_hours <= threshold_hours
         return {
-            "checked_at": now.isoformat(),
+            "path": str(path),
+            "exists": True,
+            "fresh": fresh,
+            "modified_at": modified_at.isoformat(),
+            "age_hours": round(age_hours, 3),
             "threshold_hours": threshold_hours,
-            "all_fresh": all_fresh,
-            "checks": checks,
         }
 
+    def _resolve_gid(
+        self,
+        *,
+        current_value: str | None,
+        env_names: tuple[str, ...],
+        resolver: Callable[[], str | None] | None = None,
+    ) -> str | None:
+        normalized_current = self._normalize_gid(current_value)
+        if normalized_current is not None:
+            return normalized_current
+
+        for env_name in env_names:
+            normalized_env = self._normalize_gid(os.getenv(env_name))
+            if normalized_env is not None:
+                return normalized_env
+
+        if resolver is None:
+            return None
+
+        return self._normalize_gid(resolver())
+
     @staticmethod
-    def _env_flag(name: str, default: bool) -> bool:
-        raw_value = os.getenv(name)
-        if raw_value is None:
-            return default
-        return raw_value.strip().lower() in {"1", "true", "yes", "on"}
+    def _normalize_gid(value: str | None) -> str | None:
+        if not isinstance(value, str):
+            return None
+        normalized = value.strip().strip("'\"")
+        if not normalized or not normalized.isdigit():
+            return None
+        return normalized
 
     def _load_stage_distribution(
         self, manifest_stages: Any
@@ -221,7 +293,8 @@ class RuntimePolicyService:
             return stage_distribution
         if stage_distribution:
             self._warn(
-                f"Ignoring manifest stage distribution (sum {total:.4f} != 1.0): {stage_distribution}"
+                "Ignoring manifest stage distribution "
+                f"(sum {total:.4f} != 1.0): {stage_distribution}"
             )
         return dict(self.default_stage_distribution)
 
