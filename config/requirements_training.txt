@@ -24,4 +24,4 @@ pydantic>=2.4.0
 omegaconf>=2.3.0
 
 # Security: Pin transitive dependencies to secure versions
-urllib3>=2.6.0  # Fixes GHSA-gm62-xv2j-4w53, GHSA-2xpw-w6gg-jr37 (CVE-2025-66418, CVE-2025-66471)
+urllib3>=2.6.2  # Fixes GHSA-gm62-xv2j-4w53, GHSA-2xpw-w6gg-jr37 (CVE-2025-66418, CVE-2025-66471) — 2.6.2 is the minimum that enforces the decompression bomb limit
