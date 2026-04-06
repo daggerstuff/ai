@@ -256,7 +256,7 @@ def test_hindsight_routes_accept_local_bearer_compatibility(tmp_path, monkeypatc
 
     client = TestClient(app)
     retain = client.post(
-        "/v1/default/banks/pixeldated/memories",
+        "/v1/default/banks/pixelated/memories",
         json={
             "items": [
                 {
@@ -273,7 +273,7 @@ def test_hindsight_routes_accept_local_bearer_compatibility(tmp_path, monkeypatc
     assert retain.json()["results"][0]["id"] == "compat-doc-1"
 
     recall = client.post(
-        "/v1/default/banks/pixeldated/memories/recall",
+        "/v1/default/banks/pixelated/memories/recall",
         json={"query": "local CLI memories"},
         headers={"Authorization": "Bearer compat-token"},
     )
