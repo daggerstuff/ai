@@ -338,7 +338,7 @@ class MCPConfig:
 
     # Memory Server Configuration
     MEMORY_SERVER_PORT: int = field(
-        default_factory=lambda: int(os.environ.get("MEMORY_SERVER_PORT", "5003"))
+        default_factory=lambda: int(os.environ.get("MEMORY_SERVER_PORT", "54321"))
     )
     MEMORY_SERVER_HOST: str = field(
         default_factory=lambda: os.environ.get("MEMORY_SERVER_HOST", "0.0.0.0")

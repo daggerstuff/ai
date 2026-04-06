@@ -57,5 +57,5 @@ app = create_memory_server()
 if __name__ == "__main__":
     import uvicorn
 
-    port = int(os.environ.get("MEMORY_SERVER_PORT", 5003))
+    port = int(os.environ.get("MEMORY_SERVER_PORT", 54321))
     uvicorn.run(app, host="0.0.0.0", port=port)
