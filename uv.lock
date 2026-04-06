@@ -14,7 +14,7 @@ resolution-markers = [
 
 [manifest]
 constraints = [
-    { name = "aiohttp", specifier = ">=3.13.3" },
+    { name = "aiohttp", specifier = ">=3.13.5" },
     { name = "dynaconf", specifier = ">=3.2.13" },
     { name = "filelock", specifier = ">=3.20.3" },
     { name = "nbconvert", specifier = ">=7.17.0" },
