@@ -1,29 +1,23 @@
-    def start(self):
-        """Start the resume orchestrator"""
-        self.resume_engine.start()
-        self.orchestrator_active = True
-        
-        # Store a reference to the loop for thread-safe operations (Review suggestion)
-        try:
-            self._loop = asyncio.get_running_loop()
-        except RuntimeError:
-            self._loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(self._loop)
+    def _orchestration_loop(self):
+        """Main orchestration loop running in background thread"""
 
-        # Start orchestration thread
-        self.orchestrator_thread = threading.Thread(
-            target=self._orchestration_loop, daemon=True
-        )
-        self.orchestrator_thread.start()
-        logger.info("Resume orchestrator started")
+        while self.orchestrator_active:
+            try:
+                # Process resume queue
+                if (
+                    self.resume_queue
+                    and len(self.active_resumes) < self.max_concurrent_resumes
+                ):
+                    self._dispatch_next_resume()
 
-    def stop(self):
-        """Stop the resume orchestrator"""
-        self.orchestrator_active = False
-        
-        if self.orchestrator_thread:
-            # Join thread with timeout to allow graceful exit
-            self.orchestrator_thread.join(timeout=10)
+                # Adaptive sleep based on queue state
+                sleep_time = 0.5 if self.resume_queue else 2.0
+                time.sleep(sleep_time)
 
-        self.resume_engine.stop()
-        logger.info("Resume orchestrator stopped")
+            except asyncio.CancelledError:
+                # Handle cancellation explicitly to allow responsive shutdown (Review suggestion)
+                logger.info("Orchestration loop cancelled")
+                break
+            except Exception as e:
+                logger.error(f"Error in orchestration loop: {e}")
+                time.sleep(5)  # Backoff on error
