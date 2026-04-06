@@ -9,8 +9,8 @@ import tempfile
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-import pytest
 import click
+import pytest
 from click.testing import CliRunner
 
 from ai.sourcing.journal.cli.cli import cli, setup_logging
@@ -131,7 +131,7 @@ class TestCommandHandler:
         """Test integrate command."""
         orchestrator = command_handler._get_orchestrator()
         orchestrator.integration_engine = mock_integration_engine
-        
+
         # Create a session with the acquired dataset
         session = orchestrator.start_research_session(
             target_sources=[],

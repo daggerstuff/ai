@@ -10,8 +10,9 @@ from typing import Any, Dict, List, Optional
 
 import evaluate
 import numpy as np
-from datasets import Dataset
 from transformers import PreTrainedModel, PreTrainedTokenizer
+
+from datasets import Dataset
 
 logger = logging.getLogger(__name__)
 
@@ -642,8 +643,9 @@ def run_model_evaluation(
     model_path: str, tokenizer_path: str, dataset_path: str
 ) -> EvaluationResults:
     """Helper function to run evaluation from file paths"""
-    from datasets import load_dataset
     from transformers import AutoModelForCausalLM, AutoTokenizer
+
+    from datasets import load_dataset
 
     # Load model and tokenizer
     model = AutoModelForCausalLM.from_pretrained(model_path)

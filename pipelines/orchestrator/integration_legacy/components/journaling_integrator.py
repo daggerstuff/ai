@@ -5,11 +5,11 @@ Integrates long-term therapy progress tracking into training datasets
 """
 
 import json
-import sqlite3
-from pathlib import Path
-from typing import Dict, List, Any, Optional
-from dataclasses import dataclass
 import logging
+import sqlite3
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -25,17 +25,17 @@ class ProgressPattern:
 
 class JournalingIntegrator:
     """Integrates long-term journaling system with training datasets"""
-    
+
     def __init__(self, db_path: Optional[str] = None):
         self.db_path = db_path or "db/session-progress.sql"
         self.progress_patterns = []
-        
+
     def extract_progress_patterns(self) -> List[ProgressPattern]:
         """Extract therapeutic progress patterns from database schema"""
-        
+
         # Parse the SQL schema to understand structure
         schema_content = self._read_schema()
-        
+
         # Create sample progress patterns based on real therapeutic frameworks
         patterns = [
             ProgressPattern(
@@ -63,27 +63,27 @@ class JournalingIntegrator:
                 continuity_markers=["milestone_celebrations", "progress_reviews", "treatment_planning"]
             )
         ]
-        
+
         self.progress_patterns = patterns
         return patterns
-    
+
     def generate_continuity_datasets(self) -> List[Dict[str, Any]]:
         """Generate training data with long-term therapeutic continuity"""
-        
+
         datasets = []
-        
+
         for pattern in self.progress_patterns:
             # Create conversation sequences that show progression
             conversation_sequence = self._create_progression_conversation(pattern)
             datasets.extend(conversation_sequence)
-            
+
         return datasets
-    
+
     def _create_progression_conversation(self, pattern: ProgressPattern) -> List[Dict[str, Any]]:
         """Create conversation showing therapeutic progression"""
-        
+
         conversations = []
-        
+
         # Early sessions - building rapport, assessment
         conversations.append({
             "session_number": 1,
@@ -99,7 +99,7 @@ class JournalingIntegrator:
                 }
             }
         })
-        
+
         # Middle sessions - skill development, deeper work
         for session in range(2, pattern.session_count - 3):
             conversations.append({
@@ -116,7 +116,7 @@ class JournalingIntegrator:
                     }
                 }
             })
-        
+
         # Later sessions - integration, setback recovery
         conversations.append({
             "session_number": pattern.session_count - 1,
@@ -132,38 +132,38 @@ class JournalingIntegrator:
                 }
             }
         })
-        
+
         return conversations
-    
+
     def _read_schema(self) -> str:
         """Read the database schema file"""
         try:
-            with open(self.db_path, 'r') as f:
+            with open(self.db_path) as f:
                 return f.read()
         except FileNotFoundError:
             logger.warning(f"Schema file not found: {self.db_path}")
             return ""
-    
+
     def create_integrated_datasets(self, output_path: str = "ai/training_data_consolidated/journaling_enhanced/"):
         """Create final integrated datasets with journaling component"""
-        
+
         # Extract patterns
         patterns = self.extract_progress_patterns()
-        
+
         # Generate continuity datasets
         datasets = self.generate_continuity_datasets()
-        
+
         # Ensure output directory exists
         Path(output_path).mkdir(parents=True, exist_ok=True)
-        
+
         # Save datasets
         output_file = Path(output_path) / "long_term_progress_datasets.jsonl"
         with open(output_file, 'w') as f:
             for dataset in datasets:
                 f.write(json.dumps(dataset) + '\n')
-        
+
         logger.info(f"Created {len(datasets)} journaling-enhanced datasets at {output_file}")
-        
+
         return datasets
 
 def main():

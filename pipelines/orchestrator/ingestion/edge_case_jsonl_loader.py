@@ -59,6 +59,7 @@ class EdgeCaseJSONLLoader:
 
     def __init__(self, config: EdgeCaseConfig | None = None, file_path: Path | None = None):
         self.config = config or EdgeCaseConfig()
+        self._cached_examples: list[EdgeCaseExample] | None = None
 
         # Allow overriding the file path (e.g. from S3 cache)
         if file_path:
@@ -68,6 +69,9 @@ class EdgeCaseJSONLLoader:
 
     def load_edge_cases(self) -> list[EdgeCaseExample]:
         """Load all edge case examples from JSONL file"""
+        if self._cached_examples is not None:
+            return self._cached_examples
+
         if not self.training_file.exists():
             logger.warning(f"Edge case training file not found: {self.training_file}")
             logger.info("Run the edge case pipeline first to generate training data")
@@ -79,27 +83,106 @@ class EdgeCaseJSONLLoader:
                 for line_num, line in enumerate(f, 1):
                     try:
                         data = json.loads(line.strip())
-                        example = EdgeCaseExample(
-                            prompt=data["prompt"],
-                            response=data["response"],
-                            category=data["category"],
-                            difficulty_level=data["difficulty_level"],
-                            expected_challenges=data["expected_challenges"],
-                            purpose=data.get("purpose", "difficult_client"),
-                            source=data.get("source", "edge_case_generation"),
-                            generated_at=data.get("generated_at", ""),
-                        )
+                        example = self._example_from_record(data)
+                        if example is None:
+                            logger.error(
+                                f"Error parsing line {line_num}: unsupported edge-case schema"
+                            )
+                            continue
                         examples.append(example)
                     except (json.JSONDecodeError, KeyError) as e:
                         logger.error(f"Error parsing line {line_num}: {e}")
                         continue
 
             logger.info(f"Loaded {len(examples)} edge case examples from {self.training_file}")
+            self._cached_examples = examples
             return examples
 
         except Exception as e:
             logger.error(f"Failed to load edge case training data: {e}")
             return []
+
+    def _example_from_record(self, data: dict) -> EdgeCaseExample | None:
+        prompt = data.get("prompt", "")
+        response = data.get("response", "")
+        if isinstance(prompt, str) and isinstance(response, str) and prompt and response:
+            return EdgeCaseExample(
+                prompt=prompt,
+                response=response,
+                category=data.get("category", "unspecified_edge_case"),
+                difficulty_level=data.get("difficulty_level", "high"),
+                expected_challenges=data.get(
+                    "expected_challenges", ["edge_case_training"]
+                ),
+                purpose=data.get("purpose", "difficult_client"),
+                source=data.get("source", "edge_case_generation"),
+                generated_at=data.get("generated_at", ""),
+            )
+
+        messages = data.get("messages")
+        if isinstance(messages, list):
+            prompt, response = self._extract_user_assistant(messages)
+            if prompt and response:
+                metadata = data.get("metadata", {}) if isinstance(data.get("metadata"), dict) else {}
+                return EdgeCaseExample(
+                    prompt=prompt,
+                    response=response,
+                    category=metadata.get(
+                        "edge_case_category",
+                        data.get("category", "unspecified_edge_case"),
+                    ),
+                    difficulty_level=metadata.get(
+                        "crisis_intensity",
+                        data.get("difficulty_level", "high"),
+                    ),
+                    expected_challenges=metadata.get(
+                        "expected_challenges",
+                        [metadata.get("edge_case_category", "edge_case_training")],
+                    ),
+                    purpose=metadata.get("phase", data.get("purpose", "difficult_client")),
+                    source=metadata.get(
+                        "source_family",
+                        data.get("source", "edge_case_generation"),
+                    ),
+                    generated_at=metadata.get("generated_at", data.get("generated_at", "")),
+                )
+
+        conversation = data.get("conversation")
+        if isinstance(conversation, list):
+            prompt, response = self._extract_user_assistant(conversation)
+            if prompt and response:
+                subtype = data.get("subtype", data.get("category", "edge_case"))
+                return EdgeCaseExample(
+                    prompt=prompt,
+                    response=response,
+                    category=str(data.get("scenario", subtype)),
+                    difficulty_level=str(data.get("intensity", "high")),
+                    expected_challenges=list(data.get("tags", [subtype])),
+                    purpose=str(subtype),
+                    source=str(data.get("type", "edge_case_generation")),
+                    generated_at=str(data.get("generated_at", "")),
+                )
+
+        return None
+
+    @staticmethod
+    def _extract_user_assistant(messages: list[dict]) -> tuple[str, str]:
+        prompt = ""
+        response = ""
+        for message in messages:
+            if not isinstance(message, dict):
+                continue
+            role = message.get("role")
+            content = message.get("content", "")
+            if role in {"user", "client"} and not prompt and isinstance(content, str):
+                prompt = content
+            elif role in {"assistant", "therapist"} and not response and isinstance(
+                content, str
+            ):
+                response = content
+            if prompt and response:
+                break
+        return prompt, response
 
     def load_by_category(self, category: str) -> list[EdgeCaseExample]:
         """Load edge cases filtered by category"""

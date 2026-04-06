@@ -47,7 +47,7 @@ def extract_prompts(md_path, log_file=None):
     if not os.path.exists(md_path):
         log(f"[FATAL ERROR] Prompt file '{md_path}' not found.", log_file)
         sys.exit(1)
-    with open(md_path, "r", encoding="utf-8") as f:
+    with open(md_path, encoding="utf-8") as f:
         lines = f.readlines()
     current_prompt = None
     current_id = None
@@ -85,7 +85,7 @@ def extract_prompts_jsonl(jsonl_path, log_file=None):
     if not os.path.exists(jsonl_path):
         log(f"[FATAL ERROR] Prompt file '{jsonl_path}' not found.", log_file)
         sys.exit(1)
-    with open(jsonl_path, "r", encoding="utf-8") as f:
+    with open(jsonl_path, encoding="utf-8") as f:
         for line in f:
             if not line.strip():
                 continue
@@ -105,7 +105,7 @@ def extract_prompts_jsonl(jsonl_path, log_file=None):
 def load_templates(path):
     if not path:
         return [{"id": "default", "template": "{scenario}"}]
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         data = json.load(f)
     return data
 
@@ -132,7 +132,7 @@ def load_chain_templates(path, chain_type):
             ]
         else:
             return [{"id": chain_type, "template": f"{chain_type}: {{dialogue}}"}]
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         data = json.load(f)
     return data
 

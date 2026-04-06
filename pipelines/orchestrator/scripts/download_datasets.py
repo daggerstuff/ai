@@ -20,8 +20,9 @@ from typing import Any
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 try:
-    from datasets import load_dataset, Dataset
     from huggingface_hub import HfApi
+
+    from datasets import Dataset, load_dataset
 except ImportError:
     print("Error: Required packages not installed.")
     print("Run: uv pip install datasets huggingface-hub")

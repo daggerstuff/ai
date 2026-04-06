@@ -5,10 +5,10 @@ Scores datasets based on completeness, consistency, and annotation quality.
 """
 
 import json
-from pathlib import Path
-from datetime import datetime
-from typing import Dict, Any, List, Optional
 import sys
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 sys.path.insert(0, str(Path(__file__).parent))
 
@@ -214,7 +214,7 @@ def main():
     print(f"Limit: {args.limit or 'None (all datasets)'}")
     print()
 
-    with open(args.registry, "r") as f:
+    with open(args.registry) as f:
         registry = json.load(f)
 
     # Collect datasets

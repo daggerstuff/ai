@@ -29,7 +29,7 @@ def process_v2_enhanced_data():
 
         print(f"Processing {enhanced_file.name}...")
 
-        with open(enhanced_file, "r", encoding="utf-8") as f:
+        with open(enhanced_file, encoding="utf-8") as f:
             segments = json.load(f)
 
         # Convert to training pairs

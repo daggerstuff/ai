@@ -6,9 +6,9 @@ API to power the reflection subagent with qwen/qwen3.5-397b-a17b.
 
 Uses NVIDIA_API_KEY from environment (already present in .env).
 """
+import logging
 import os
 from typing import Optional
-import logging
 
 logger = logging.getLogger(__name__)
 

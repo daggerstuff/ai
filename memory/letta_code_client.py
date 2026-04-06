@@ -219,8 +219,8 @@ class LettaCodeClient:
         """Initialize PII filter and crisis detector middleware."""
         # Import Hindsight components for middleware
         try:
-            from .letta_pii_middleware import LettaPIIMiddleware
             from .letta_crisis_handler import LettaCrisisHandler
+            from .letta_pii_middleware import LettaPIIMiddleware
 
             if self.config.pii_filter_enabled:
                 self._pii_filter = LettaPIIMiddleware(

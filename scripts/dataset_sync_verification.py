@@ -6,11 +6,12 @@ source (Google Drive) and canonical (S3) storage.
 
 import json
 import subprocess
-from pathlib import Path
-from typing import Dict, Any, List, Optional
 from datetime import datetime
-from s3_client_helper import get_s3_client
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 from botocore.exceptions import ClientError
+from s3_client_helper import get_s3_client
 
 
 class DatasetSyncVerifier:
@@ -22,7 +23,7 @@ class DatasetSyncVerifier:
 
     def load_registry(self) -> Dict[str, Any]:
         """Load the dataset registry."""
-        with open(self.registry_path, "r") as f:
+        with open(self.registry_path) as f:
             return json.load(f)
 
     def save_registry(self, registry: Dict[str, Any]) -> None:

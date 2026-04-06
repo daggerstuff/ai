@@ -9,6 +9,8 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from conversation_schema import Conversation
+
 from ai.pipelines.orchestrator.ingestion.tier_loaders import (
     Tier1PriorityLoader,
     Tier2ProfessionalLoader,
@@ -17,7 +19,6 @@ from ai.pipelines.orchestrator.ingestion.tier_loaders import (
     Tier5ResearchLoader,
     Tier6KnowledgeLoader,
 )
-from conversation_schema import Conversation
 
 logger = logging.getLogger(__name__)
 

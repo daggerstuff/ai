@@ -37,7 +37,7 @@ def check_output_progress():
 
     for file in files:
         try:
-            with open(file, "r") as f:
+            with open(file) as f:
                 data = json.load(f)
                 if isinstance(data, list):
                     total_conversations += len(data)
@@ -78,7 +78,7 @@ def main():
 
             config_file = get_unified_training_dir() / "unified_lightning_config.json"
             if config_file.exists():
-                with open(config_file, "r") as f:
+                with open(config_file) as f:
                     config = json.load(f)
 
                 stats = config.get("dataset_stats", {}).get("processing_stats", {})

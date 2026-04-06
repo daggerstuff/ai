@@ -11,8 +11,8 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 from ai.memory.hindsight_local_adapter import normalize_tags
-from ai.memory.local_memory_settings import resolve_local_memory_settings
 from ai.memory.local_hindsight_manager import LocalHindsightMemoryManager
+from ai.memory.local_memory_settings import resolve_local_memory_settings
 
 logger = logging.getLogger("multi_agent_memory")
 
@@ -208,10 +208,10 @@ class MultiAgentMemory:
         try:
             agent = context.current_agent
             disposition = disposition_override or (agent.role.value if agent else "neutral")
-            
+
             # Construct a disposition-aware query
             disposition_query = f"[Act with a {disposition} disposition] {query}"
-            
+
             # If the underlying client supports native reflect (e.g., HindsightMemoryManager)
             memories = await self.get_shared_context(context)
             return {

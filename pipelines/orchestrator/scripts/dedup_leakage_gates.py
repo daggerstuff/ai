@@ -646,7 +646,7 @@ class EnterpriseDedupLeakageGates:
                 gate_results["summary"]["families_with_leakage"] += 1
                 gate_results["summary"]["total_leakage_instances"] += (
                     len(leakage_result["exact_leakage"]) + len(leakage_result["near_leakage"])
-                t(f"✓ Gate report saved: {report_url}")
+                )
 
         # Enterprise readiness assessment
         enterprise_families = sum(1 for result in gate_results["family_results"].values()
@@ -863,7 +863,7 @@ class EnterpriseDedupLeakageGates:
             print(f"  {gate_name}: {gate_info.get('report_url', 'N/A')}")
 
         if "combined_report_url" in results:
-f"  Combined Report: {results['combined_report_url']}")
+            print(f"  Combined Report: {results['combined_report_url']}")
 
         print("\n" + "=" * 70)
 

@@ -319,7 +319,7 @@ def validate_jsonl_file(filepath: str, strict_mode: bool = True) -> dict[str, An
     cases = []
 
     try:
-        with open(filepath, "r") as f:
+        with open(filepath) as f:
             cases.extend(json.loads(line) for line in f if line.strip())
     except Exception as e:
         logger.error(f"Error reading JSONL file {filepath}: {e}")

@@ -10,12 +10,12 @@ Usage:
 """
 
 import argparse
-import json
 import hashlib
-from pathlib import Path
+import json
 from dataclasses import dataclass, field
-from typing import Dict, List, Any
 from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List
 
 
 @dataclass
@@ -94,7 +94,7 @@ def load_jsonl_file(file_path: Path) -> List[Dict[str, Any]]:
         return []
 
     records = []
-    with open(file_path, "r", encoding="utf-8") as f:
+    with open(file_path, encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if line:
@@ -110,7 +110,7 @@ def load_json_file(file_path: Path) -> List[Dict[str, Any]]:
     if not file_path.exists():
         return []
 
-    with open(file_path, "r", encoding="utf-8") as f:
+    with open(file_path, encoding="utf-8") as f:
         data = json.load(f)
         if isinstance(data, list):
             return data

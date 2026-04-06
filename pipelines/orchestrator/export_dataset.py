@@ -7,23 +7,17 @@ Produces versioned dataset exports with checksums, manifests, and storage upload
 import json
 import sys
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
+
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-from .orchestration.integrated_training_pipeline import (
-    IntegratedTrainingPipeline,
-    IntegratedPipelineConfig
-)
-from .config_lock import lock_config, LockedConfig
-from .export_manifest import (
-    DatasetManifest,
-    FileManifest,
-    QualitySummary
-)
-from .storage_manager import StorageManager
+from .config_lock import LockedConfig, lock_config
+from .export_manifest import DatasetManifest, FileManifest, QualitySummary
+from .orchestration.integrated_training_pipeline import IntegratedPipelineConfig, IntegratedTrainingPipeline
 from .storage_config import get_dataset_pipeline_output_root, get_storage_config
+from .storage_manager import StorageManager
 
 
 def export_to_jsonl(data: list, output_path: Path) -> int:
@@ -74,7 +68,7 @@ def export_dataset_v1(
     """Export dataset v1.0 with full manifest and storage upload"""
 
     print(f"🚀 Starting dataset export v{version}")
-    print(f"   Target samples: {target_samples}")
+    print(f"   Assembly target samples: {target_samples}")
     print(f"   Seed: {seed if seed else 'random'}")
 
     # Setup output directory
@@ -83,6 +77,8 @@ def export_dataset_v1(
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    # target_samples is the requested export-run budget only. It does not
+    # describe total source inventory, freeze size, or prior training volume.
     # Create pipeline configuration
     pipeline_config = IntegratedPipelineConfig(
         target_total_samples=target_samples,
@@ -129,11 +125,11 @@ def export_dataset_v1(
     result = pipeline.run()
 
     # Load generated dataset
-    dataset_path = Path(result['output_file'])
+    dataset_path = Path(result['output_path'])
     if not dataset_path.exists():
         raise FileNotFoundError(f"Dataset file not found: {dataset_path}")
 
-    with open(dataset_path, 'r') as f:
+    with open(dataset_path) as f:
         dataset_data = json.load(f)
 
     conversations = dataset_data.get('conversations', [])
@@ -278,4 +274,3 @@ if __name__ == "__main__":
         import traceback
         traceback.print_exc()
         sys.exit(1)
-

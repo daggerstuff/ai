@@ -174,7 +174,7 @@ def main(
     print(f"📖 Loading prompts from {prompts_path}...")
 
     try:
-        with open(prompts_path, "r") as f:
+        with open(prompts_path) as f:
             data = json.load(f)
             if isinstance(data, list) and len(data) > 0:
                 # Support both ["prompt", ...] and [{"prompt": "...", ...}, ...] formats
@@ -199,7 +199,7 @@ def main(
 
     if resume and output_path.exists():
         try:
-            with open(output_path, "r") as f:
+            with open(output_path) as f:
                 existing_results = json.load(f)
             start_idx = len(existing_results)
             remaining = len(prompts) - start_idx

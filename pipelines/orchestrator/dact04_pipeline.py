@@ -31,13 +31,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from ai.pipelines.orchestrator.cross_source_dedup import dedup_files
 from ai.pipelines.orchestrator.normalizers import (
     NormalizationConfig,
     detect_format,
     get_normalizer,
     normalize_file,
 )
-from ai.pipelines.orchestrator.cross_source_dedup import dedup_files
 
 logger = logging.getLogger(__name__)
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
 import re
+from dataclasses import dataclass, replace
 from typing import Any
 
 from ai.memory.hindsight_local_adapter import normalize_tags

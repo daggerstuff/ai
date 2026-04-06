@@ -52,10 +52,11 @@ class TrainingPipelineService:
             return
 
         try:
+            from pathlib import Path
+
             from ai.pipelines.orchestrator.orchestration.pipeline_orchestrator import (
                 PipelineConfig,
             )
-            from pathlib import Path
 
             config = PipelineConfig(
                 output_directory=Path("data/processed"),

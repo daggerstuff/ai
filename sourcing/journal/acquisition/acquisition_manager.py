@@ -11,7 +11,7 @@ import shutil
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Optional, Callable
+from typing import Callable, Dict, List, Optional
 
 import requests
 from requests.adapters import HTTPAdapter

@@ -4,20 +4,21 @@ Quality Validation Result Aggregation System for Pixelated Empathy AI
 Aggregates and analyzes results from distributed quality validation workers
 """
 
-import os
-import sys
 import json
 import logging
-from typing import Dict, List, Any, Optional, Tuple
-from pathlib import Path
-from dataclasses import dataclass, asdict
-from datetime import datetime, timezone
-import statistics
-import numpy as np
-from collections import defaultdict, Counter
+import os
 import sqlite3
+import statistics
+import sys
 import threading
 import time
+from collections import Counter, defaultdict
+from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+import numpy as np
 
 # Configure logging
 logging.basicConfig(
@@ -41,7 +42,7 @@ class AggregatedResult:
     processing_time_stats: Dict[str, float]
     worker_performance: Dict[str, Dict[str, float]]
     timestamp: str
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return asdict(self)
@@ -49,15 +50,15 @@ class AggregatedResult:
 
 class ResultAggregator:
     """Aggregates quality validation results"""
-    
+
     def __init__(self, db_path: str = None):
         self.db_path = db_path or "quality_results.db"
         self.results_cache: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
         self.lock = threading.Lock()
-        
+
         # Initialize database
         self._init_database()
-    
+
     def _init_database(self):
         """Initialize SQLite database for storing results"""
         with sqlite3.connect(self.db_path) as conn:
@@ -78,7 +79,7 @@ class ResultAggregator:
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
                 )
             """)
-            
+
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS aggregated_results (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -96,21 +97,21 @@ class ResultAggregator:
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
                 )
             """)
-            
+
             # Create indexes for better performance
             conn.execute("CREATE INDEX IF NOT EXISTS idx_batch_id ON validation_results(batch_id)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_timestamp ON validation_results(timestamp)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_worker_id ON validation_results(worker_id)")
-    
+
     def add_result(self, batch_id: str, result: Dict[str, Any]):
         """Add a validation result to the aggregation"""
         with self.lock:
             # Store in cache
             self.results_cache[batch_id].append(result)
-            
+
             # Store in database
             self._store_result_in_db(batch_id, result)
-    
+
     def _store_result_in_db(self, batch_id: str, result: Dict[str, Any]):
         """Store result in database"""
         try:
@@ -136,7 +137,7 @@ class ResultAggregator:
                 ))
         except Exception as e:
             logger.error(f"Failed to store result in database: {e}")
-    
+
     def aggregate_results(self, batch_id: str, force_refresh: bool = False) -> Optional[AggregatedResult]:
         """Aggregate results for a batch"""
         # Get results from cache or database
@@ -144,19 +145,19 @@ class ResultAggregator:
             results = self.results_cache[batch_id]
         else:
             results = self._load_results_from_db(batch_id)
-        
+
         if not results:
             logger.warning(f"No results found for batch: {batch_id}")
             return None
-        
+
         # Perform aggregation
         aggregated = self._perform_aggregation(batch_id, results)
-        
+
         # Store aggregated results
         self._store_aggregated_result(aggregated)
-        
+
         return aggregated
-    
+
     def _load_results_from_db(self, batch_id: str) -> List[Dict[str, Any]]:
         """Load results from database"""
         try:
@@ -169,7 +170,7 @@ class ResultAggregator:
                     WHERE batch_id = ?
                     ORDER BY timestamp
                 """, (batch_id,))
-                
+
                 results = []
                 for row in cursor.fetchall():
                     result = {
@@ -185,44 +186,44 @@ class ResultAggregator:
                         'timestamp': row[9]
                     }
                     results.append(result)
-                
+
                 return results
-                
+
         except Exception as e:
             logger.error(f"Failed to load results from database: {e}")
             return []
-    
+
     def _perform_aggregation(self, batch_id: str, results: List[Dict[str, Any]]) -> AggregatedResult:
         """Perform the actual aggregation of results"""
         total_files = len(results)
         successful_results = [r for r in results if r.get('success', False)]
         processed_files = len(successful_results)
-        
+
         # Calculate success rate
         success_rate = processed_files / total_files if total_files > 0 else 0.0
-        
+
         # Calculate overall quality score
         if successful_results:
             quality_scores = [r.get('quality_score', 0.0) for r in successful_results]
             overall_quality_score = statistics.mean(quality_scores)
         else:
             overall_quality_score = 0.0
-        
+
         # Quality distribution
         quality_distribution = self._calculate_quality_distribution(successful_results)
-        
+
         # Metric statistics
         metric_statistics = self._calculate_metric_statistics(successful_results)
-        
+
         # Common issues
         common_issues = self._analyze_common_issues(results)
-        
+
         # Processing time statistics
         processing_time_stats = self._calculate_processing_time_stats(results)
-        
+
         # Worker performance
         worker_performance = self._analyze_worker_performance(results)
-        
+
         return AggregatedResult(
             batch_id=batch_id,
             total_files=total_files,
@@ -236,7 +237,7 @@ class ResultAggregator:
             worker_performance=worker_performance,
             timestamp=datetime.now(timezone.utc).isoformat()
         )
-    
+
     def _calculate_quality_distribution(self, results: List[Dict[str, Any]]) -> Dict[str, int]:
         """Calculate quality score distribution"""
         distribution = {
@@ -245,7 +246,7 @@ class ResultAggregator:
             'fair': 0,       # 0.5-0.7
             'poor': 0        # 0.0-0.5
         }
-        
+
         for result in results:
             score = result.get('quality_score', 0.0)
             if score >= 0.9:
@@ -256,20 +257,20 @@ class ResultAggregator:
                 distribution['fair'] += 1
             else:
                 distribution['poor'] += 1
-        
+
         return distribution
-    
+
     def _calculate_metric_statistics(self, results: List[Dict[str, Any]]) -> Dict[str, Dict[str, float]]:
         """Calculate statistics for each metric"""
         metric_values = defaultdict(list)
-        
+
         # Collect all metric values
         for result in results:
             metrics = result.get('metrics', {})
             for metric_name, value in metrics.items():
                 if isinstance(value, (int, float)):
                     metric_values[metric_name].append(value)
-        
+
         # Calculate statistics for each metric
         metric_stats = {}
         for metric_name, values in metric_values.items():
@@ -282,20 +283,20 @@ class ResultAggregator:
                     'max': max(values),
                     'count': len(values)
                 }
-        
+
         return metric_stats
-    
+
     def _analyze_common_issues(self, results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Analyze and identify common issues"""
         issue_counter = Counter()
         issue_details = defaultdict(list)
-        
+
         for result in results:
             issues = result.get('issues', [])
             for issue in issues:
                 issue_type = issue.get('type', 'unknown')
                 issue_message = issue.get('message', '')
-                
+
                 # Create a key for grouping similar issues
                 issue_key = f"{issue_type}:{issue_message[:50]}"
                 issue_counter[issue_key] += 1
@@ -304,12 +305,12 @@ class ResultAggregator:
                     'severity': issue.get('severity', 'unknown'),
                     'full_message': issue_message
                 })
-        
+
         # Get top 10 most common issues
         common_issues = []
         for issue_key, count in issue_counter.most_common(10):
             issue_type, message_preview = issue_key.split(':', 1)
-            
+
             common_issues.append({
                 'type': issue_type,
                 'message_preview': message_preview,
@@ -317,13 +318,13 @@ class ResultAggregator:
                 'percentage': (count / len(results)) * 100,
                 'examples': issue_details[issue_key][:3]  # First 3 examples
             })
-        
+
         return common_issues
-    
+
     def _calculate_processing_time_stats(self, results: List[Dict[str, Any]]) -> Dict[str, float]:
         """Calculate processing time statistics"""
         processing_times = [r.get('processing_time', 0.0) for r in results if r.get('processing_time')]
-        
+
         if not processing_times:
             return {
                 'mean': 0.0,
@@ -333,7 +334,7 @@ class ResultAggregator:
                 'max': 0.0,
                 'total': 0.0
             }
-        
+
         return {
             'mean': statistics.mean(processing_times),
             'median': statistics.median(processing_times),
@@ -342,7 +343,7 @@ class ResultAggregator:
             'max': max(processing_times),
             'total': sum(processing_times)
         }
-    
+
     def _analyze_worker_performance(self, results: List[Dict[str, Any]]) -> Dict[str, Dict[str, float]]:
         """Analyze performance by worker"""
         worker_stats = defaultdict(lambda: {
@@ -352,43 +353,43 @@ class ResultAggregator:
             'avg_processing_time': 0.0,
             'total_processing_time': 0.0
         })
-        
+
         worker_data = defaultdict(lambda: {
             'total_tasks': 0,
             'successful_tasks': 0,
             'quality_scores': [],
             'processing_times': []
         })
-        
+
         # Collect data by worker
         for result in results:
             worker_id = result.get('worker_id', 'unknown')
             worker_data[worker_id]['total_tasks'] += 1
-            
+
             if result.get('success', False):
                 worker_data[worker_id]['successful_tasks'] += 1
                 worker_data[worker_id]['quality_scores'].append(result.get('quality_score', 0.0))
-            
+
             processing_time = result.get('processing_time', 0.0)
             if processing_time > 0:
                 worker_data[worker_id]['processing_times'].append(processing_time)
-        
+
         # Calculate statistics for each worker
         for worker_id, data in worker_data.items():
             worker_stats[worker_id]['tasks_completed'] = data['total_tasks']
             worker_stats[worker_id]['success_rate'] = (
                 data['successful_tasks'] / data['total_tasks'] if data['total_tasks'] > 0 else 0.0
             )
-            
+
             if data['quality_scores']:
                 worker_stats[worker_id]['avg_quality_score'] = statistics.mean(data['quality_scores'])
-            
+
             if data['processing_times']:
                 worker_stats[worker_id]['avg_processing_time'] = statistics.mean(data['processing_times'])
                 worker_stats[worker_id]['total_processing_time'] = sum(data['processing_times'])
-        
+
         return dict(worker_stats)
-    
+
     def _store_aggregated_result(self, aggregated: AggregatedResult):
         """Store aggregated result in database"""
         try:
@@ -414,7 +415,7 @@ class ResultAggregator:
                 ))
         except Exception as e:
             logger.error(f"Failed to store aggregated result: {e}")
-    
+
     def get_batch_summary(self, batch_id: str) -> Optional[Dict[str, Any]]:
         """Get summary for a specific batch"""
         try:
@@ -422,7 +423,7 @@ class ResultAggregator:
                 cursor = conn.execute("""
                     SELECT * FROM aggregated_results WHERE batch_id = ?
                 """, (batch_id,))
-                
+
                 row = cursor.fetchone()
                 if row:
                     return {
@@ -438,13 +439,13 @@ class ResultAggregator:
                         'worker_performance': json.loads(row[10]),
                         'timestamp': row[11]
                     }
-                
+
                 return None
-                
+
         except Exception as e:
             logger.error(f"Failed to get batch summary: {e}")
             return None
-    
+
     def get_all_batches(self) -> List[Dict[str, Any]]:
         """Get summary of all batches"""
         try:
@@ -455,7 +456,7 @@ class ResultAggregator:
                     FROM aggregated_results
                     ORDER BY timestamp DESC
                 """)
-                
+
                 batches = []
                 for row in cursor.fetchall():
                     batches.append({
@@ -466,20 +467,20 @@ class ResultAggregator:
                         'overall_quality_score': row[4],
                         'timestamp': row[5]
                     })
-                
+
                 return batches
-                
+
         except Exception as e:
             logger.error(f"Failed to get all batches: {e}")
             return []
-    
+
     def generate_report(self, batch_id: str, output_file: str = None) -> str:
         """Generate a detailed report for a batch"""
         aggregated = self.get_batch_summary(batch_id)
-        
+
         if not aggregated:
             return f"No data found for batch: {batch_id}"
-        
+
         # Generate report content
         report_lines = [
             f"Quality Validation Report - Batch {batch_id}",
@@ -496,17 +497,17 @@ class ResultAggregator:
             "QUALITY DISTRIBUTION",
             "-" * 20
         ]
-        
+
         for category, count in aggregated['quality_distribution'].items():
             percentage = (count / aggregated['processed_files']) * 100 if aggregated['processed_files'] > 0 else 0
             report_lines.append(f"{category.capitalize()}: {count} ({percentage:.1f}%)")
-        
+
         report_lines.extend([
             "",
             "METRIC STATISTICS",
             "-" * 20
         ])
-        
+
         for metric, stats in aggregated['metric_statistics'].items():
             report_lines.append(f"{metric.capitalize()}:")
             report_lines.append(f"  Mean: {stats['mean']:.3f}")
@@ -514,17 +515,17 @@ class ResultAggregator:
             report_lines.append(f"  Std Dev: {stats['std_dev']:.3f}")
             report_lines.append(f"  Range: {stats['min']:.3f} - {stats['max']:.3f}")
             report_lines.append("")
-        
+
         report_lines.extend([
             "COMMON ISSUES",
             "-" * 20
         ])
-        
+
         for issue in aggregated['common_issues'][:5]:  # Top 5 issues
             report_lines.append(f"• {issue['type']}: {issue['message_preview']}")
             report_lines.append(f"  Occurrences: {issue['count']} ({issue['percentage']:.1f}%)")
             report_lines.append("")
-        
+
         report_lines.extend([
             "PROCESSING PERFORMANCE",
             "-" * 20,
@@ -535,7 +536,7 @@ class ResultAggregator:
             "WORKER PERFORMANCE",
             "-" * 20
         ])
-        
+
         for worker_id, stats in aggregated['worker_performance'].items():
             report_lines.append(f"Worker: {worker_id}")
             report_lines.append(f"  Tasks: {stats['tasks_completed']}")
@@ -543,69 +544,69 @@ class ResultAggregator:
             report_lines.append(f"  Avg Quality: {stats['avg_quality_score']:.3f}")
             report_lines.append(f"  Avg Time: {stats['avg_processing_time']:.2f}s")
             report_lines.append("")
-        
+
         report_content = "\n".join(report_lines)
-        
+
         # Save to file if specified
         if output_file:
             with open(output_file, 'w') as f:
                 f.write(report_content)
             logger.info(f"Report saved to: {output_file}")
-        
+
         return report_content
 
 
 def main():
     """Main CLI interface"""
     import argparse
-    
+
     parser = argparse.ArgumentParser(description="Quality Validation Result Aggregator")
     parser.add_argument('--db-path', help="Database path for storing results")
-    
+
     subparsers = parser.add_subparsers(dest='command', help='Available commands')
-    
+
     # Aggregate command
     aggregate_parser = subparsers.add_parser('aggregate', help='Aggregate results for a batch')
     aggregate_parser.add_argument('batch_id', help='Batch ID to aggregate')
     aggregate_parser.add_argument('--force-refresh', action='store_true', help='Force refresh from database')
-    
+
     # Report command
     report_parser = subparsers.add_parser('report', help='Generate report for a batch')
     report_parser.add_argument('batch_id', help='Batch ID for report')
     report_parser.add_argument('--output', help='Output file for report')
-    
+
     # List command
     list_parser = subparsers.add_parser('list', help='List all batches')
-    
+
     # Summary command
     summary_parser = subparsers.add_parser('summary', help='Get batch summary')
     summary_parser.add_argument('batch_id', help='Batch ID for summary')
-    
+
     args = parser.parse_args()
-    
+
     if not args.command:
         parser.print_help()
         return
-    
+
     # Create aggregator
     aggregator = ResultAggregator(args.db_path)
-    
+
     if args.command == 'aggregate':
         result = aggregator.aggregate_results(args.batch_id, args.force_refresh)
         if result:
             print(json.dumps(result.to_dict(), indent=2))
         else:
             print(f"No results found for batch: {args.batch_id}")
-    
+
     elif args.command == 'report':
         report = aggregator.generate_report(args.batch_id, args.output)
         if not args.output:
             print(report)
-    
+
     elif args.command == 'list':
         batches = aggregator.get_all_batches()
         print(json.dumps(batches, indent=2))
-    
+
     elif args.command == 'summary':
         summary = aggregator.get_batch_summary(args.batch_id)
         if summary:

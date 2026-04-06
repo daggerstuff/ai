@@ -5,6 +5,7 @@ Tests for MultiFormatConverter.
 from unittest.mock import Mock, patch
 
 import pytest
+
 from ai.pipelines.orchestrator.conversation_schema import Conversation
 from ai.pipelines.orchestrator.multi_format_converter import (
     ConversionRule,

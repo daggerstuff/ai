@@ -179,7 +179,7 @@ class MultiDatasetIntelligentPipeline:
         """Load conversation data from various file formats"""
         try:
             if source_type == "json":
-                with open(file_path, "r", encoding="utf-8") as f:
+                with open(file_path, encoding="utf-8") as f:
                     data = json.load(f)
 
                 # Handle different JSON formats
@@ -195,7 +195,7 @@ class MultiDatasetIntelligentPipeline:
 
             elif source_type == "transcript":
                 # Convert transcript to conversation format for intelligent processing
-                with open(file_path, "r", encoding="utf-8") as f:
+                with open(file_path, encoding="utf-8") as f:
                     text = f.read()
 
                 # Create a segment for intelligent processing

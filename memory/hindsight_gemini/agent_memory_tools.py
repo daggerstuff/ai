@@ -11,8 +11,8 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
-from ai.memory.local_memory_settings import resolve_local_memory_settings
 from ai.memory.local_hindsight_manager import LocalHindsightMemoryManager
+from ai.memory.local_memory_settings import resolve_local_memory_settings
 
 logger = logging.getLogger("agent_memory_tools")
 

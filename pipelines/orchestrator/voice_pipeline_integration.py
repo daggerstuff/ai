@@ -12,7 +12,6 @@ from datetime import datetime
 from pathlib import Path
 
 from .audio_processor import AudioProcessor
-
 from .logger import setup_logger
 from .personality_extractor import PersonalityExtractor
 from .voice_conversation_converter import ConversionResult, VoiceConversationConverter

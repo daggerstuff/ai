@@ -4,8 +4,8 @@ Reflection Prompts - Crisis-aware prompts for reflection subagent.
 This module provides prompts for the reflection subagent that ensure
 crisis content is handled appropriately during memory consolidation.
 """
-from typing import List
 from dataclasses import dataclass
+from typing import List
 
 
 @dataclass

@@ -209,7 +209,7 @@ def load_annotations(file_path: Path) -> Dict[str, Dict[str, Any]]:
     """Load annotations from JSONL file"""
     annotations = {}
 
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         for line in f:
             if not line.strip():
                 continue

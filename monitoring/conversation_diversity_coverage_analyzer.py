@@ -84,14 +84,14 @@ class ConversationDiversityCoverageAnalyzer:
         """Load conversation data for diversity analysis"""
         with self.connect_db() as conn:
             query = """
-            SELECT 
-                conversation_id, dataset_source as dataset, tier, conversations_json, 
+            SELECT
+                conversation_id, dataset_source as dataset, tier, conversations_json,
                 character_count as text_length,
                 word_count,
                 turn_count,
                 created_at
-            FROM conversations 
-            WHERE conversations_json IS NOT NULL 
+            FROM conversations
+            WHERE conversations_json IS NOT NULL
             AND length(conversations_json) > 10
             """
             df = pd.read_sql_query(query, conn)

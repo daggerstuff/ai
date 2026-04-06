@@ -305,7 +305,7 @@ class DatasetExporter:
         suffix = source_path.suffix.lower()
 
         if suffix == ".jsonl":
-            with open(source_path, "r", encoding="utf-8") as f:
+            with open(source_path, encoding="utf-8") as f:
                 for line in f:
                     try:
                         yield json.loads(line.strip())
@@ -314,7 +314,7 @@ class DatasetExporter:
                         continue
 
         elif suffix == ".json":
-            with open(source_path, "r", encoding="utf-8") as f:
+            with open(source_path, encoding="utf-8") as f:
                 data = json.load(f)
 
                 if isinstance(data, list):
@@ -687,7 +687,7 @@ def list_exported_datasets(
 
     for manifest_path in manifest_files:
         try:
-            with open(manifest_path, "r", encoding="utf-8") as f:
+            with open(manifest_path, encoding="utf-8") as f:
                 manifest = json.load(f)
                 datasets.append(manifest)
         except Exception as e:
@@ -716,7 +716,7 @@ def get_dataset_status(
         return None
 
     try:
-        with open(manifest_path, "r", encoding="utf-8") as f:
+        with open(manifest_path, encoding="utf-8") as f:
             return json.load(f)
     except Exception as e:
         logger.warning(f"Failed to read manifest {manifest_path}: {e}")

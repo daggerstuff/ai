@@ -241,7 +241,7 @@ For more information, see the KDD 2022 paper:
         sessions = []
 
         try:
-            with open(filepath, "r", encoding="utf-8") as f:
+            with open(filepath, encoding="utf-8") as f:
                 data = json.load(f)
 
             # Handle both list and dict formats

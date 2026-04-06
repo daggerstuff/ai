@@ -9,16 +9,17 @@ Tests cover:
 - Status reporting
 """
 
-import pytest
 from pathlib import Path
 
+import pytest
+
 from ..models import (
+    BatchEmbeddingRequest,
     EmbeddingAgentConfig,
     EmbeddingModel,
     EmbeddingRequest,
-    BatchEmbeddingRequest,
-    SimilaritySearchRequest,
     KnowledgeType,
+    SimilaritySearchRequest,
 )
 from ..service import EmbeddingAgentService
 

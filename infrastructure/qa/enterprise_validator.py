@@ -30,8 +30,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-import numpy as np
 import httpx
+import numpy as np
 
 # Configure logging
 logging.basicConfig(

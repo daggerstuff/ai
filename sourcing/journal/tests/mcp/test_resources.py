@@ -4,20 +4,20 @@ from typing import Any, Dict, List, Optional
 
 import pytest
 
-from ai.sourcing.journal.mcp.protocol import MCPError, JSONRPCErrorCode
+from ai.sourcing.journal.mcp.protocol import JSONRPCErrorCode, MCPError
+from ai.sourcing.journal.mcp.resources.metrics import SessionMetricsResource
 from ai.sourcing.journal.mcp.resources.progress import (
-    ProgressMetricsResource,
     ProgressHistoryResource,
+    ProgressMetricsResource,
 )
 from ai.sourcing.journal.mcp.resources.sessions import SessionStateResource
-from ai.sourcing.journal.mcp.resources.metrics import SessionMetricsResource
 from ai.sourcing.journal.models.dataset_models import (
-    ResearchProgress,
     ResearchLog,
+    ResearchProgress,
 )
 from ai.sourcing.journal.orchestrator.types import (
-    SessionState,
     ProgressSnapshot,
+    SessionState,
 )
 
 

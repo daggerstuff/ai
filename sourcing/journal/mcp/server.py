@@ -10,7 +10,15 @@ import json
 import logging
 from typing import Any, Dict, Optional
 
+from ai.sourcing.journal.api.services.command_handler_service import (
+    CommandHandlerService,
+)
 from ai.sourcing.journal.mcp.config import MCPConfig, load_mcp_config
+from ai.sourcing.journal.mcp.prompts import PromptRegistry
+from ai.sourcing.journal.mcp.prompts.acquisition import AcquireDatasetsPrompt
+from ai.sourcing.journal.mcp.prompts.discovery import DiscoverSourcesPrompt
+from ai.sourcing.journal.mcp.prompts.evaluation import EvaluateSourcesPrompt
+from ai.sourcing.journal.mcp.prompts.integration import CreateIntegrationPlansPrompt
 from ai.sourcing.journal.mcp.protocol import (
     JSONRPCErrorCode,
     MCPError,
@@ -19,30 +27,22 @@ from ai.sourcing.journal.mcp.protocol import (
     MCPRequest,
     MCPResponse,
 )
-from ai.sourcing.journal.api.services.command_handler_service import (
-    CommandHandlerService,
-)
 from ai.sourcing.journal.mcp.resources import (
-  ProgressHistoryResource,
-  ProgressMetricsResource,
-  ResourceRegistry,
-  SessionMetricsResource,
-  SessionStateResource,
+    ProgressHistoryResource,
+    ProgressMetricsResource,
+    ResourceRegistry,
+    SessionMetricsResource,
+    SessionStateResource,
 )
-from ai.sourcing.journal.mcp.prompts import PromptRegistry
-from ai.sourcing.journal.mcp.prompts.discovery import DiscoverSourcesPrompt
-from ai.sourcing.journal.mcp.prompts.evaluation import EvaluateSourcesPrompt
-from ai.sourcing.journal.mcp.prompts.acquisition import AcquireDatasetsPrompt
-from ai.sourcing.journal.mcp.prompts.integration import CreateIntegrationPlansPrompt
+from ai.sourcing.journal.mcp.tools.acquisition import (
+    AcquireDatasetsTool,
+    GetAcquisitionsTool,
+    GetAcquisitionTool,
+    UpdateAcquisitionTool,
+)
 from ai.sourcing.journal.mcp.tools.executor import ToolExecutor
 from ai.sourcing.journal.mcp.tools.registry import ToolRegistry
 from ai.sourcing.journal.mcp.utils.progress_streaming import ProgressStreamer
-from ai.sourcing.journal.mcp.tools.acquisition import (
-    AcquireDatasetsTool,
-    GetAcquisitionTool,
-    GetAcquisitionsTool,
-    UpdateAcquisitionTool,
-)
 
 # Optional pipeline bridge integration
 try:
@@ -53,23 +53,27 @@ try:
 except ImportError:
     PIPELINE_BRIDGE_AVAILABLE = False
     MCPPipelineBridge = None  # type: ignore
+from ai.sourcing.journal.mcp.auth import (
+    create_auth_handler,
+    create_authorization_handler,
+)
 from ai.sourcing.journal.mcp.tools.discovery import (
     DiscoverSourcesTool,
     FilterSourcesTool,
-    GetSourceTool,
     GetSourcesTool,
+    GetSourceTool,
 )
 from ai.sourcing.journal.mcp.tools.evaluation import (
     EvaluateSourcesTool,
-    GetEvaluationTool,
     GetEvaluationsTool,
+    GetEvaluationTool,
     UpdateEvaluationTool,
 )
 from ai.sourcing.journal.mcp.tools.integration import (
     CreateIntegrationPlansTool,
     GeneratePreprocessingScriptTool,
-    GetIntegrationPlanTool,
     GetIntegrationPlansTool,
+    GetIntegrationPlanTool,
 )
 from ai.sourcing.journal.mcp.tools.reports import (
     GenerateReportTool,
@@ -83,6 +87,10 @@ from ai.sourcing.journal.mcp.tools.sessions import (
     ListSessionsTool,
     UpdateSessionTool,
 )
+from ai.sourcing.journal.mcp.utils.audit_logging import (
+    AuditLogger,
+    create_audit_logger,
+)
 from ai.sourcing.journal.mcp.utils.error_handling import MCPErrorHandler
 from ai.sourcing.journal.mcp.utils.logging import get_logger, setup_logging
 from ai.sourcing.journal.mcp.utils.rate_limiting import (
@@ -90,18 +98,10 @@ from ai.sourcing.journal.mcp.utils.rate_limiting import (
     check_rate_limit as check_rate_limit_request,
 )
 from ai.sourcing.journal.mcp.utils.security import (
+    SecurityError,
     sanitize_input,
     sanitize_json_output,
     validate_and_sanitize_input,
-    SecurityError,
-)
-from ai.sourcing.journal.mcp.utils.audit_logging import (
-    AuditLogger,
-    create_audit_logger,
-)
-from ai.sourcing.journal.mcp.auth import (
-    create_auth_handler,
-    create_authorization_handler,
 )
 
 logger = get_logger(__name__)
@@ -153,7 +153,7 @@ class MCPServer:
 
         # Initialize audit logging (Phase 14)
         self.audit_logger = create_audit_logger(self.config.logging)
-        
+
         # Initialize pipeline bridge (optional, for training pipeline integration)
         self.pipeline_bridge: Optional[MCPPipelineBridge] = None
         if PIPELINE_BRIDGE_AVAILABLE:
@@ -996,13 +996,13 @@ class MCPServer:
         self.tools.register(GetAcquisitionTool(self.command_handler_service))
         self.tools.register(UpdateAcquisitionTool(self.command_handler_service))
         logger.info("Registered dataset acquisition tools")
-    
+
     def register_pipeline_orchestrator(self, orchestrator: Any) -> None:
         """
         Register pipeline orchestrator with the pipeline bridge.
-        
+
         This enables automatic integration of acquired datasets into the training pipeline.
-        
+
         Args:
             orchestrator: PipelineOrchestrator instance
         """

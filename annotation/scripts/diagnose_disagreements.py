@@ -9,7 +9,7 @@ from pathlib import Path
 def load_annotations(filepath):
     """Load annotations from JSONL file"""
     annotations = {}
-    with open(filepath, "r") as f:
+    with open(filepath) as f:
         for line in f:
             if not line.strip():
                 continue

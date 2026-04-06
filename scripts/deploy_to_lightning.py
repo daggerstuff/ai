@@ -244,7 +244,7 @@ python scripts/launch_training.py
 ## 📈 **Step 4: Monitor Training**
 
 ### Real-time Monitoring
-- **Lightning Logs:** `./lightning_logs/` 
+- **Lightning Logs:** `./lightning_logs/`
 - **WandB Dashboard:** Real-time loss, perplexity, expert utilization
 - **GPU Utilization:** Should maintain >90% on H100
 

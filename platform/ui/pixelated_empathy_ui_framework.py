@@ -12,10 +12,10 @@ This creates the web-based interface for:
 
 import json
 import logging
-from typing import Dict, List, Optional, Any
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -42,19 +42,19 @@ class UILayout:
 
 class PixelatedEmpathyUIFramework:
     """Complete UI/UX framework for Pixelated Empathy platform"""
-    
+
     def __init__(self):
         self.ui_components = {}
         self.layouts = {}
         self.theme_config = self._initialize_theme()
-        
+
         # Initialize all UI components
         self._initialize_trainee_components()
         self._initialize_supervisor_components()
         self._initialize_admin_components()
-        
+
         logger.info("🎨 Pixelated Empathy UI Framework initialized")
-    
+
     def _initialize_theme(self) -> Dict[str, str]:
         """Initialize platform visual theme"""
         return {
@@ -65,36 +65,36 @@ class PixelatedEmpathyUIFramework:
             "warning_color": "#f59e0b",        # Caution amber
             "danger_color": "#ef4444",         # Crisis red
             "neutral_color": "#6b7280",        # Calm gray
-            
+
             # Therapeutic Colors
             "therapeutic_blue": "#3b82f6",     # Trust and calm
             "empathy_purple": "#8b5cf6",       # Understanding
             "growth_green": "#22c55e",         # Progress and hope
             "crisis_red": "#dc2626",           # Emergency attention
             "neutral_warm": "#f3f4f6",         # Safe background
-            
+
             # Typography
             "font_primary": "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
             "font_therapeutic": "'Source Sans Pro', sans-serif",
             "font_monospace": "'JetBrains Mono', monospace",
-            
+
             # Spacing
             "spacing_xs": "0.25rem",
-            "spacing_sm": "0.5rem", 
+            "spacing_sm": "0.5rem",
             "spacing_md": "1rem",
             "spacing_lg": "1.5rem",
             "spacing_xl": "2rem",
-            
+
             # Borders & Shadows
             "border_radius": "0.5rem",
             "shadow_sm": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
             "shadow_md": "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
             "shadow_lg": "0 10px 15px -3px rgba(0, 0, 0, 0.1)"
         }
-    
+
     def _initialize_trainee_components(self):
         """Initialize UI components for trainee interface"""
-        
+
         # Client Information Panel
         self.ui_components["client_info_panel"] = UIComponent(
             component_id="client_info_panel",
@@ -110,7 +110,7 @@ class PixelatedEmpathyUIFramework:
                         "fields": ["name", "age", "gender", "background"]
                     },
                     {
-                        "title": "Presenting Problem", 
+                        "title": "Presenting Problem",
                         "fields": ["presenting_problem", "duration", "severity"]
                     },
                     {
@@ -131,7 +131,7 @@ class PixelatedEmpathyUIFramework:
                 {"event": "info_hover", "action": "show_detailed_tooltip"}
             ]
         )
-        
+
         # Conversation Interface
         self.ui_components["conversation_interface"] = UIComponent(
             component_id="conversation_interface",
@@ -161,7 +161,7 @@ class PixelatedEmpathyUIFramework:
                 {"event": "message_receive", "action": "display_client_response"}
             ]
         )
-        
+
         # Client Visual Representation
         self.ui_components["client_avatar"] = UIComponent(
             component_id="client_avatar",
@@ -191,7 +191,7 @@ class PixelatedEmpathyUIFramework:
                 {"event": "hover_avatar", "action": "show_nonverbal_details"}
             ]
         )
-        
+
         # Real-time Feedback Panel
         self.ui_components["feedback_panel"] = UIComponent(
             component_id="feedback_panel",
@@ -201,7 +201,7 @@ class PixelatedEmpathyUIFramework:
             props={
                 "skill_meters": [
                     "rapport_building",
-                    "active_listening", 
+                    "active_listening",
                     "empathy",
                     "therapeutic_response"
                 ],
@@ -222,7 +222,7 @@ class PixelatedEmpathyUIFramework:
                 {"event": "feedback_receive", "action": "highlight_new_feedback"}
             ]
         )
-        
+
         # Session Controls
         self.ui_components["session_controls"] = UIComponent(
             component_id="session_controls",
@@ -252,10 +252,10 @@ class PixelatedEmpathyUIFramework:
                 {"event": "call_supervisor", "action": "notify_supervisor"}
             ]
         )
-    
+
     def _initialize_supervisor_components(self):
         """Initialize UI components for supervisor dashboard"""
-        
+
         # Real-time Session Monitor
         self.ui_components["session_monitor"] = UIComponent(
             component_id="session_monitor",
@@ -285,7 +285,7 @@ class PixelatedEmpathyUIFramework:
                 {"event": "update_rating", "action": "update_skill_assessment"}
             ]
         )
-        
+
         # Competency Assessment Grid
         self.ui_components["competency_grid"] = UIComponent(
             component_id="competency_grid",
@@ -321,7 +321,7 @@ class PixelatedEmpathyUIFramework:
                 {"event": "add_evidence", "action": "record_skill_evidence"}
             ]
         )
-        
+
         # Intervention Panel
         self.ui_components["intervention_panel"] = UIComponent(
             component_id="intervention_panel",
@@ -348,7 +348,7 @@ class PixelatedEmpathyUIFramework:
                 {"event": "emergency_intervention", "action": "take_session_control"}
             ]
         )
-        
+
         # Analytics Dashboard
         self.ui_components["analytics_dashboard"] = UIComponent(
             component_id="analytics_dashboard",
@@ -376,10 +376,10 @@ class PixelatedEmpathyUIFramework:
                 {"event": "drill_down", "action": "show_detailed_analysis"}
             ]
         )
-    
+
     def _initialize_admin_components(self):
         """Initialize UI components for administrative interface"""
-        
+
         # Training Program Manager
         self.ui_components["program_manager"] = UIComponent(
             component_id="program_manager",
@@ -406,7 +406,7 @@ class PixelatedEmpathyUIFramework:
                 {"event": "configure_assessment", "action": "setup_evaluation_criteria"}
             ]
         )
-        
+
         # User Management
         self.ui_components["user_management"] = UIComponent(
             component_id="user_management",
@@ -433,10 +433,10 @@ class PixelatedEmpathyUIFramework:
                 {"event": "view_progress", "action": "display_user_analytics"}
             ]
         )
-    
+
     def create_trainee_layout(self) -> UILayout:
         """Create complete layout for trainee interface"""
-        
+
         trainee_layout = UILayout(
             layout_id="trainee_main",
             layout_type="trainee",
@@ -455,7 +455,7 @@ class PixelatedEmpathyUIFramework:
                 },
                 "tablet": {
                     "min_width": "769px",
-                    "max_width": "1024px", 
+                    "max_width": "1024px",
                     "layout": "two_column",
                     "main_column": ["conversation_interface", "session_controls"],
                     "side_column": ["client_info_panel", "client_avatar", "feedback_panel"]
@@ -470,12 +470,12 @@ class PixelatedEmpathyUIFramework:
             },
             theme_config=self.theme_config
         )
-        
+
         return trainee_layout
-    
+
     def create_supervisor_layout(self) -> UILayout:
         """Create complete layout for supervisor dashboard"""
-        
+
         supervisor_layout = UILayout(
             layout_id="supervisor_dashboard",
             layout_type="supervisor",
@@ -497,7 +497,7 @@ class PixelatedEmpathyUIFramework:
                     "layout": "dashboard_grid",
                     "grid_areas": {
                         "session_monitor": "1 / 1 / 3 / 3",
-                        "competency_grid": "1 / 3 / 2 / 4", 
+                        "competency_grid": "1 / 3 / 2 / 4",
                         "intervention_panel": "2 / 3 / 3 / 4",
                         "analytics_dashboard": "3 / 1 / 4 / 4"
                     }
@@ -505,23 +505,23 @@ class PixelatedEmpathyUIFramework:
             },
             theme_config=self.theme_config
         )
-        
+
         return supervisor_layout
-    
+
     def generate_react_components(self) -> Dict[str, str]:
         """Generate React component code for the UI framework"""
-        
+
         react_components = {}
-        
+
         # Generate trainee interface components
         react_components["TraineeInterface"] = self._generate_trainee_react_code()
         react_components["SupervisorDashboard"] = self._generate_supervisor_react_code()
         react_components["ConversationInterface"] = self._generate_conversation_react_code()
         react_components["ClientAvatar"] = self._generate_avatar_react_code()
         react_components["FeedbackPanel"] = self._generate_feedback_react_code()
-        
+
         return react_components
-    
+
     def _generate_trainee_react_code(self) -> str:
         """Generate React code for trainee interface"""
         return '''
@@ -536,54 +536,54 @@ export const TraineeInterface = ({ sessionId, clientProfile }) => {
   const [sessionState, setSessionState] = useState(null);
   const [conversationHistory, setConversationHistory] = useState([]);
   const [realTimeFeedback, setRealTimeFeedback] = useState({});
-  
+
   useEffect(() => {
     // Initialize session with AI client
     initializeTrainingSession(sessionId, clientProfile);
   }, [sessionId]);
-  
+
   const handleTherapistMessage = async (message) => {
     try {
       const response = await sendTherapistMessage(sessionId, message);
-      
-      setConversationHistory(prev => [...prev, 
+
+      setConversationHistory(prev => [...prev,
         { type: 'therapist', content: message, timestamp: new Date() },
         { type: 'client', content: response.client_response.content, timestamp: new Date() }
       ]);
-      
+
       setRealTimeFeedback(response.real_time_feedback);
       setSessionState(response.session_status);
-      
+
     } catch (error) {
       console.error('Error processing therapist message:', error);
     }
   };
-  
+
   return (
     <div className="trainee-interface">
       <div className="layout-grid">
         <div className="left-column">
           <ClientInfoPanel profile={clientProfile} />
-          <ClientAvatar 
+          <ClientAvatar
             emotionalState={sessionState?.emotional_state}
             nonverbalCues={sessionState?.nonverbal_cues}
           />
         </div>
-        
+
         <div className="center-column">
-          <ConversationInterface 
+          <ConversationInterface
             history={conversationHistory}
             onSendMessage={handleTherapistMessage}
             clientState={sessionState}
           />
-          <SessionControls 
+          <SessionControls
             sessionId={sessionId}
             sessionState={sessionState}
           />
         </div>
-        
+
         <div className="right-column">
-          <FeedbackPanel 
+          <FeedbackPanel
             feedback={realTimeFeedback}
             skillMetrics={sessionState?.skill_feedback}
             suggestions={sessionState?.intervention_suggestions}
@@ -594,13 +594,13 @@ export const TraineeInterface = ({ sessionId, clientProfile }) => {
   );
 };
 '''
-    
+
     def save_ui_framework(self) -> Path:
         """Save complete UI framework to files"""
-        
+
         ui_dir = Path("ai/platform/ui")
         ui_dir.mkdir(exist_ok=True)
-        
+
         # Save component definitions
         components_file = ui_dir / "ui_components.json"
         with open(components_file, 'w') as f:
@@ -608,12 +608,12 @@ export const TraineeInterface = ({ sessionId, clientProfile }) => {
                 "components": {k: asdict(v) for k, v in self.ui_components.items()},
                 "theme": self.theme_config
             }, f, indent=2)
-        
+
         # Save layout configurations
         layouts_file = ui_dir / "ui_layouts.json"
         trainee_layout = self.create_trainee_layout()
         supervisor_layout = self.create_supervisor_layout()
-        
+
         with open(layouts_file, 'w') as f:
             json.dump({
                 "layouts": {
@@ -621,36 +621,36 @@ export const TraineeInterface = ({ sessionId, clientProfile }) => {
                     "supervisor": asdict(supervisor_layout)
                 }
             }, f, indent=2)
-        
+
         # Save React components
         react_components = self.generate_react_components()
         react_dir = ui_dir / "react_components"
         react_dir.mkdir(exist_ok=True)
-        
+
         for component_name, component_code in react_components.items():
             component_file = react_dir / f"{component_name}.jsx"
             with open(component_file, 'w') as f:
                 f.write(component_code)
-        
+
         logger.info(f"✅ UI Framework saved to {ui_dir}")
         return ui_dir
 
 def main():
     """Generate complete Pixelated Empathy UI/UX framework"""
     logger.info("🎨 Generating Pixelated Empathy UI/UX Framework")
-    
+
     ui_framework = PixelatedEmpathyUIFramework()
-    
+
     # Create layouts
     trainee_layout = ui_framework.create_trainee_layout()
     supervisor_layout = ui_framework.create_supervisor_layout()
-    
+
     # Generate React components
     react_components = ui_framework.generate_react_components()
-    
+
     # Save framework
     saved_path = ui_framework.save_ui_framework()
-    
+
     logger.info("🎯 UI/UX Framework Complete!")
     logger.info(f"📁 Framework saved to: {saved_path}")
     logger.info(f"🎭 Components created: {len(ui_framework.ui_components)}")

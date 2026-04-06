@@ -111,7 +111,7 @@ class MonitoringBridge:
         with sqlite3.connect(self.monitoring_db_path) as conn:
             conn.execute(
                 """
-                INSERT OR REPLACE INTO alert_rules 
+                INSERT OR REPLACE INTO alert_rules
                 (rule_name, metric_name, threshold_value, comparison_operator, priority, cooldown_minutes)
                 VALUES (?, ?, ?, ?, ?, ?)
             """,
@@ -173,7 +173,7 @@ class MonitoringBridge:
         with sqlite3.connect(self.monitoring_db_path) as conn:
             conn.execute(
                 """
-                INSERT INTO system_metrics 
+                INSERT INTO system_metrics
                 (metric_name, metric_value, metric_unit, service_name, status)
                 VALUES (?, ?, ?, ?, ?)
             """,
@@ -185,9 +185,9 @@ class MonitoringBridge:
         with sqlite3.connect(self.monitoring_db_path) as conn:
             # Get all enabled alert rules
             rules = conn.execute("""
-                SELECT rule_name, metric_name, threshold_value, comparison_operator, 
+                SELECT rule_name, metric_name, threshold_value, comparison_operator,
                        priority, cooldown_minutes
-                FROM alert_rules 
+                FROM alert_rules
                 WHERE enabled = 1
             """).fetchall()
 
@@ -202,9 +202,9 @@ class MonitoringBridge:
                 latest_metric = conn.execute(
                     """
                     SELECT metric_value, timestamp, service_name
-                    FROM system_metrics 
+                    FROM system_metrics
                     WHERE metric_name = ?
-                    ORDER BY timestamp DESC 
+                    ORDER BY timestamp DESC
                     LIMIT 1
                 """,
                     (metric_name,),
@@ -336,7 +336,7 @@ class MonitoringBridge:
             # Insert alert record
             conn.execute(
                 """
-                INSERT INTO alert_history 
+                INSERT INTO alert_history
                 (alert_id, rule_name, title, message, priority, channels, metadata)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
@@ -355,7 +355,7 @@ class MonitoringBridge:
             for channel, success in results.items():
                 conn.execute(
                     """
-                    INSERT INTO notification_results 
+                    INSERT INTO notification_results
                     (alert_id, channel, success, error_message)
                     VALUES (?, ?, ?, ?)
                 """,
@@ -418,9 +418,9 @@ class MonitoringBridge:
         with sqlite3.connect(self.alert_history_db_path) as conn:
             alerts = conn.execute(
                 """
-                SELECT alert_id, rule_name, title, message, priority, 
+                SELECT alert_id, rule_name, title, message, priority,
                        triggered_at, resolved_at, status, metadata
-                FROM alert_history 
+                FROM alert_history
                 WHERE triggered_at > ?
                 ORDER BY triggered_at DESC
             """,
@@ -461,10 +461,10 @@ class MonitoringBridge:
             for metric in key_metrics:
                 latest = conn.execute(
                     """
-                    SELECT metric_value, timestamp 
-                    FROM system_metrics 
+                    SELECT metric_value, timestamp
+                    FROM system_metrics
                     WHERE metric_name = ?
-                    ORDER BY timestamp DESC 
+                    ORDER BY timestamp DESC
                     LIMIT 1
                 """,
                     (metric,),

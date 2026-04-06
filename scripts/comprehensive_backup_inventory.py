@@ -6,10 +6,10 @@ Creates a new registry based on actual backup structure.
 
 import json
 import subprocess
-from pathlib import Path
-from datetime import datetime
 from collections import defaultdict
-from typing import Dict, Any, List
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List
 
 
 def run_rclone(command: str) -> str:

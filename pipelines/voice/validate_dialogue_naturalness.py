@@ -1,6 +1,6 @@
-import os
-import json
 import glob
+import json
+import os
 
 # Configuration
 INPUT_DIR = "data/dialogue_format"
@@ -26,7 +26,7 @@ def validate_turn(turn):
 
 
 def process_file(input_path, output_path):
-    with open(input_path, "r", encoding="utf-8") as f:
+    with open(input_path, encoding="utf-8") as f:
         dialogue = [json.loads(line) for line in f]
     results = []
     for turn in dialogue:

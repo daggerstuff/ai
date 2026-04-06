@@ -4,13 +4,13 @@ Dataset deduplication using rclone.
 Works with DigitalOcean Spaces and identifies duplicate records within and across datasets.
 """
 
-import json
 import hashlib
-from pathlib import Path
-from datetime import datetime
-from typing import Dict, Any, List, Optional
-from collections import defaultdict
+import json
 import sys
+from collections import defaultdict
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 sys.path.insert(0, str(Path(__file__).parent))
 
@@ -156,7 +156,7 @@ def main():
     print(f"Key fields: {key_fields or 'All fields'}")
     print()
 
-    with open(args.registry, "r") as f:
+    with open(args.registry) as f:
         registry = json.load(f)
 
     # Collect datasets

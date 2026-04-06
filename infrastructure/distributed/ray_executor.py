@@ -47,10 +47,10 @@ from typing import (
 )
 
 import ray
+from ray.exceptions import RayActorError, RayTaskError, WorkerCrashedError
 
 # Import local checkpoint system
 from .checkpoint_system import CheckpointManager
-from ray.exceptions import RayActorError, RayTaskError, WorkerCrashedError
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -821,11 +821,11 @@ def process_dataset_parallel(
 
     if dataset_path.suffix == ".jsonl":
         items = []
-        with open(dataset_path, "r", encoding="utf-8") as f:
+        with open(dataset_path, encoding="utf-8") as f:
             for line in f:
                 items.append(json.loads(line))
     elif dataset_path.suffix == ".json":
-        with open(dataset_path, "r", encoding="utf-8") as f:
+        with open(dataset_path, encoding="utf-8") as f:
             items = json.load(f)
     else:
         with open(dataset_path, "rb") as f:

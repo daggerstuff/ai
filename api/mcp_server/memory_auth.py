@@ -13,7 +13,6 @@ from typing import Dict, Mapping, Optional
 
 from fastapi import HTTPException
 
-
 _NONCE_TTL_SECONDS = 300
 _MAX_CLOCK_SKEW_SECONDS = 300
 

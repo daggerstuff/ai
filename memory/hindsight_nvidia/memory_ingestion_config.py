@@ -34,14 +34,14 @@ class MemoryCategory(str, Enum):
     PREFERENCE = "preference"
     PROJECT_CONTEXT = "project_context"
     IDENTITY = "identity"
-    
+
     # Emotional/Therapeutic categories (maintained for core mission)
     EMOTIONAL_STATE = "emotional_state"
     INSIGHT = "insight"
     PROGRESS = "progress"
     CRISIS_CONTEXT = "crisis_context"
     SUMMARY = "summary"
-    
+
     GENERAL = "general"
 
 

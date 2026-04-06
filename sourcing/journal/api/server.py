@@ -6,6 +6,7 @@ This script starts the FastAPI server with uvicorn.
 """
 
 import uvicorn
+
 from ai.sourcing.journal.api.config import get_settings
 
 settings = get_settings()

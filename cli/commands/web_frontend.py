@@ -15,7 +15,6 @@ from typing import Any, Dict, Optional
 import click
 
 from ..auth import AuthManager
-
 from ..config import get_config
 from ..utils import (
     check_api_health,

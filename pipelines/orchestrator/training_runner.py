@@ -17,7 +17,6 @@ from typing import Any, Dict, List, Optional
 import numpy as np
 import psutil
 import torch
-from datasets import Dataset
 from tqdm import tqdm
 from transformers import (
     AutoModelForCausalLM,
@@ -27,6 +26,8 @@ from transformers import (
     TrainerCallback,
     TrainingArguments,
 )
+
+from datasets import Dataset
 
 # Import the training manifest from the previous task
 from .training_manifest import TrainingManifest
@@ -145,7 +146,7 @@ class CheckpointManager:
                 metadata_path = checkpoint_dir / "trainer_state.json"
                 if metadata_path.exists():
                     try:
-                        with open(metadata_path, "r") as f:
+                        with open(metadata_path) as f:
                             metadata = json.load(f)
                         checkpoints.append(
                             {
@@ -262,7 +263,7 @@ class TrainingRunner:
             )
 
         # Load the dataset
-        with open(self.manifest.dataset.path, "r", encoding="utf-8") as f:
+        with open(self.manifest.dataset.path, encoding="utf-8") as f:
             raw_data = json.load(f)
 
         # Extract text data for training

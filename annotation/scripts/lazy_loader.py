@@ -7,10 +7,9 @@ with zero setup - agents just access them and they load automatically.
 
 import json
 import logging
+from contextvars import ContextVar
 from pathlib import Path
 from typing import Any, Dict
-
-from contextvars import ContextVar
 
 # Setup logger before used by registry loader
 logger = logging.getLogger(__name__)
@@ -18,7 +17,7 @@ logger = logging.getLogger(__name__)
 # Load resource registry from external JSON file
 _REGISTRY_FILE = Path(__file__).parent / "resource_registry.json"
 try:
-    with open(_REGISTRY_FILE, "r") as f:
+    with open(_REGISTRY_FILE) as f:
         _RESOURCE_REGISTRY = json.load(f)
 except (FileNotFoundError, json.JSONDecodeError, TypeError) as e:
     logger.error(f"Failed to load resource registry from {_REGISTRY_FILE}: {e}")
@@ -38,7 +37,7 @@ def _load_resource(resource_type: str, resource_name: str) -> Any:
         print(f"  LAZY LOADING {resource_type.upper()}: {resource_name}")
         # Safe access to registry which might be empty if file load failed
         resource_data = _RESOURCE_REGISTRY.get(resource_type, {}).get(resource_name)
-        
+
         if resource_data:
             cache[resource_key] = resource_data
             _resource_cache.set(cache)

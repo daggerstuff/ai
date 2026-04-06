@@ -600,7 +600,7 @@ class TrainingPipelineOrchestrator:
     async def _load_dataset_content(self, dataset_path: str) -> List[Dict[str, Any]]:
         """Load dataset content for analysis"""
         try:
-            with open(dataset_path, "r", encoding="utf-8") as f:
+            with open(dataset_path, encoding="utf-8") as f:
                 if dataset_path.endswith(".jsonl"):
                     content = [json.loads(line) for line in f]
                 else:

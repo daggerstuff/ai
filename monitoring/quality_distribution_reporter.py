@@ -629,15 +629,15 @@ class QualityDistributionReporter:
         """Get executive summary template."""
         return """
         # Quality Distribution Analysis - Executive Summary
-        
+
         **Generated**: {{ generated_at }}
         **Period**: {{ report.analysis_period }}
-        
+
         ## Key Findings
         {% for item in report.executive_summary %}
         - {{ item }}
         {% endfor %}
-        
+
         ## Action Items
         {% for item in report.action_items %}
         - {{ item }}
@@ -667,7 +667,7 @@ class QualityDistributionReporter:
                 <p><strong>Generated:</strong> {{ generated_at }}</p>
                 <p><strong>Analysis Period:</strong> {{ report.analysis_period }}</p>
             </div>
-            
+
             <div class="section">
                 <h2>Executive Summary</h2>
                 <ul>
@@ -676,14 +676,14 @@ class QualityDistributionReporter:
                 {% endfor %}
                 </ul>
             </div>
-            
+
             <div class="section">
                 <h2>Overall Distribution</h2>
                 <div class="metric">
                     <strong>Sample Size:</strong> {{ report.overall_distribution.sample_size }}
                 </div>
                 <div class="metric">
-                    <strong>Distribution Type:</strong> 
+                    <strong>Distribution Type:</strong>
                     <span class="{{ report.overall_distribution.distribution_type }}">
                         {{ report.overall_distribution.distribution_type.replace('_', ' ').title() }}
                     </span>
@@ -698,11 +698,11 @@ class QualityDistributionReporter:
                     <strong>Standard Deviation:</strong> {{ "%.3f"|format(report.overall_distribution.statistics.std_dev) }}
                 </div>
                 <div class="metric">
-                    <strong>Outliers:</strong> 
+                    <strong>Outliers:</strong>
                     <span class="outliers">{{ report.overall_distribution.outliers|length }}</span>
                 </div>
             </div>
-            
+
             <div class="section">
                 <h2>Detailed Insights</h2>
                 <ul>
@@ -711,7 +711,7 @@ class QualityDistributionReporter:
                 {% endfor %}
                 </ul>
             </div>
-            
+
             <div class="section">
                 <h2>Action Items</h2>
                 <ul>
@@ -728,7 +728,7 @@ class QualityDistributionReporter:
         """Get technical report template."""
         return """
         # Technical Quality Distribution Analysis
-        
+
         ## Statistical Summary
         - Sample Size: {{ report.overall_distribution.sample_size }}
         - Mean: {{ report.overall_distribution.statistics.mean }}
@@ -736,7 +736,7 @@ class QualityDistributionReporter:
         - Standard Deviation: {{ report.overall_distribution.statistics.std_dev }}
         - Skewness: {{ report.overall_distribution.statistics.skewness }}
         - Kurtosis: {{ report.overall_distribution.statistics.kurtosis }}
-        
+
         ## Normality Tests
         {% for test in report.overall_distribution.normality_tests %}
         ### {{ test.test_name }}

@@ -9,7 +9,6 @@ generation, from sourcing to deployment. Run from project root:
 import logging
 
 import ai.training.ready_packages.scripts.upload_to_s3 as s3_uploader
-from ai.sourcing.academic import AcademicSourcingEngine
 from ai.pipelines.orchestrator.alignment.dpo_generator import DPOGenerator
 from ai.pipelines.orchestrator.orchestration.pipeline_runner import PipelineRunner
 from ai.pipelines.orchestrator.processing.transcript_ingestor import TranscriptIngestor
@@ -21,6 +20,7 @@ from ai.pipelines.orchestrator.therapies.cbt_integration import CBTIntegration
 from ai.pipelines.orchestrator.therapies.crisis_expansion import CrisisScenarioExpander
 from ai.pipelines.orchestrator.therapies.dbt_integration import DBTIntegration
 from ai.pipelines.orchestrator.therapies.emdr_integration import EMDRIntegration
+from ai.sourcing.academic import AcademicSourcingEngine
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

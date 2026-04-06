@@ -23,9 +23,9 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from .local_memory_settings import resolve_local_memory_settings
 from .hindsight_subconscious_model_provider import SubconsciousModelProvider
 from .hindsight_subconscious_security import validate_and_sanitize_content
+from .local_memory_settings import resolve_local_memory_settings
 
 logger = logging.getLogger("hindsight_subconscious")
 

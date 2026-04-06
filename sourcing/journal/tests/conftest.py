@@ -10,7 +10,7 @@ import tempfile
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List
-from unittest.mock import Mock, MagicMock
+from unittest.mock import MagicMock, Mock
 from uuid import uuid4
 
 import pandas as pd
@@ -28,7 +28,6 @@ from ai.sourcing.journal.orchestrator.research_orchestrator import (
     ResearchOrchestrator,
 )
 from ai.sourcing.journal.orchestrator.types import OrchestratorConfig
-
 
 # ============================================================================
 # Dataset Source Fixtures

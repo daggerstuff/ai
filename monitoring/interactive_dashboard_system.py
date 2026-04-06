@@ -41,19 +41,19 @@ class InteractiveDashboardSystem:
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Pixelated Empathy AI Dashboard{% endblock %}</title>
-    
+
     <!-- Chart.js for interactive charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
-    
+
     <!-- Bootstrap for responsive design -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
+
     <style>
         :root {
             --primary-color: #2c3e50;
@@ -64,13 +64,13 @@ class InteractiveDashboardSystem:
             --dark-color: #34495e;
             --light-color: #ecf0f1;
         }
-        
+
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             min-height: 100vh;
         }
-        
+
         .dashboard-header {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
@@ -78,7 +78,7 @@ class InteractiveDashboardSystem:
             padding: 20px 0;
             margin-bottom: 30px;
         }
-        
+
         .dashboard-card {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
@@ -88,36 +88,36 @@ class InteractiveDashboardSystem:
             margin-bottom: 25px;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        
+
         .dashboard-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
         }
-        
+
         .metric-card {
             text-align: center;
             padding: 25px;
         }
-        
+
         .metric-value {
             font-size: 2.5rem;
             font-weight: bold;
             margin-bottom: 10px;
         }
-        
+
         .metric-label {
             color: #7f8c8d;
             font-size: 0.9rem;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-        
+
         .chart-container {
             position: relative;
             height: 400px;
             padding: 20px;
         }
-        
+
         .status-indicator {
             display: inline-block;
             width: 12px;
@@ -125,11 +125,11 @@ class InteractiveDashboardSystem:
             border-radius: 50%;
             margin-right: 8px;
         }
-        
+
         .status-online { background-color: var(--success-color); }
         .status-warning { background-color: var(--warning-color); }
         .status-offline { background-color: var(--danger-color); }
-        
+
         .refresh-indicator {
             position: fixed;
             top: 20px;
@@ -142,30 +142,30 @@ class InteractiveDashboardSystem:
             opacity: 0;
             transition: opacity 0.3s ease;
         }
-        
+
         .refresh-indicator.show {
             opacity: 1;
         }
-        
+
         @media (max-width: 768px) {
             .chart-container {
                 height: 300px;
                 padding: 15px;
             }
-            
+
             .metric-value {
                 font-size: 2rem;
             }
         }
     </style>
-    
+
     {% block extra_css %}{% endblock %}
 </head>
 <body>
     <div class="refresh-indicator" id="refreshIndicator">
         <i class="fas fa-sync-alt fa-spin"></i> Updating data...
     </div>
-    
+
     <div class="dashboard-header">
         <div class="container">
             <div class="row align-items-center">
@@ -186,35 +186,35 @@ class InteractiveDashboardSystem:
             </div>
         </div>
     </div>
-    
+
     <div class="container-fluid">
         {% block content %}{% endblock %}
     </div>
-    
+
     <script>
         // Auto-refresh functionality
         let refreshInterval;
-        
+
         function showRefreshIndicator() {
             document.getElementById('refreshIndicator').classList.add('show');
         }
-        
+
         function hideRefreshIndicator() {
             document.getElementById('refreshIndicator').classList.remove('show');
         }
-        
+
         function updateLastRefreshTime() {
-            document.getElementById('lastUpdate').textContent = 
+            document.getElementById('lastUpdate').textContent =
                 'Last updated: ' + new Date().toLocaleTimeString();
         }
-        
+
         function startAutoRefresh(intervalMs = 30000) {
             refreshInterval = setInterval(() => {
                 showRefreshIndicator();
                 refreshDashboardData();
             }, intervalMs);
         }
-        
+
         function refreshDashboardData() {
             // This will be overridden by specific dashboard implementations
             setTimeout(() => {
@@ -222,12 +222,12 @@ class InteractiveDashboardSystem:
                 hideRefreshIndicator();
             }, 1000);
         }
-        
+
         // Start auto-refresh when page loads
         document.addEventListener('DOMContentLoaded', function() {
             startAutoRefresh();
         });
-        
+
         // Chart.js default configuration
         Chart.defaults.responsive = true;
         Chart.defaults.maintainAspectRatio = false;
@@ -238,7 +238,7 @@ class InteractiveDashboardSystem:
             weight: 'bold'
         };
     </script>
-    
+
     {% block extra_js %}{% endblock %}
 </body>
 </html>"""
@@ -267,7 +267,7 @@ class InteractiveDashboardSystem:
             </small>
         </div>
     </div>
-    
+
     <div class="col-lg-3 col-md-6 mb-4">
         <div class="dashboard-card metric-card">
             <div class="metric-value text-success" id="avgQualityScore">{{ metrics.avg_quality_score }}%</div>
@@ -277,7 +277,7 @@ class InteractiveDashboardSystem:
             </small>
         </div>
     </div>
-    
+
     <div class="col-lg-3 col-md-6 mb-4">
         <div class="dashboard-card metric-card">
             <div class="metric-value text-warning" id="systemUptime">{{ metrics.system_uptime }}%</div>
@@ -285,7 +285,7 @@ class InteractiveDashboardSystem:
             <small class="text-muted">Last 30 days</small>
         </div>
     </div>
-    
+
     <div class="col-lg-3 col-md-6 mb-4">
         <div class="dashboard-card metric-card">
             <div class="metric-value text-info" id="activeUsers">{{ metrics.active_users }}</div>
@@ -306,7 +306,7 @@ class InteractiveDashboardSystem:
             </div>
         </div>
     </div>
-    
+
     <!-- Quality Distribution -->
     <div class="col-lg-4 mb-4">
         <div class="dashboard-card">
@@ -326,7 +326,7 @@ class InteractiveDashboardSystem:
             </div>
         </div>
     </div>
-    
+
     <!-- Top Issues -->
     <div class="col-lg-6 mb-4">
         <div class="dashboard-card">
@@ -358,7 +358,7 @@ class InteractiveDashboardSystem:
 {% block extra_js %}
 <script>
     let conversationTrendsChart, qualityDistributionChart, systemPerformanceChart;
-    
+
     function initializeCharts() {
         // Conversation Trends Chart
         const trendsCtx = document.getElementById('conversationTrendsChart').getContext('2d');
@@ -388,7 +388,7 @@ class InteractiveDashboardSystem:
                 }
             }
         });
-        
+
         // Quality Distribution Chart
         const qualityCtx = document.getElementById('qualityDistributionChart').getContext('2d');
         qualityDistributionChart = new Chart(qualityCtx, {
@@ -408,7 +408,7 @@ class InteractiveDashboardSystem:
                 }
             }
         });
-        
+
         // System Performance Chart
         const performanceCtx = document.getElementById('systemPerformanceChart').getContext('2d');
         systemPerformanceChart = new Chart(performanceCtx, {
@@ -439,7 +439,7 @@ class InteractiveDashboardSystem:
             }
         });
     }
-    
+
     function refreshDashboardData() {
         fetch('/api/executive-metrics')
             .then(response => response.json())
@@ -449,17 +449,17 @@ class InteractiveDashboardSystem:
                 document.getElementById('avgQualityScore').textContent = data.avg_quality_score + '%';
                 document.getElementById('systemUptime').textContent = data.system_uptime + '%';
                 document.getElementById('activeUsers').textContent = data.active_users;
-                
+
                 // Update charts
                 conversationTrendsChart.data.datasets[0].data = data.trend_data;
                 conversationTrendsChart.update();
-                
+
                 qualityDistributionChart.data.datasets[0].data = data.quality_distribution;
                 qualityDistributionChart.update();
-                
+
                 systemPerformanceChart.data.datasets[0].data = data.performance_current;
                 systemPerformanceChart.update();
-                
+
                 updateLastRefreshTime();
                 hideRefreshIndicator();
             })
@@ -468,7 +468,7 @@ class InteractiveDashboardSystem:
                 hideRefreshIndicator();
             });
     }
-    
+
     // Initialize charts when page loads
     document.addEventListener('DOMContentLoaded', function() {
         initializeCharts();
@@ -627,7 +627,7 @@ if __name__ == '__main__':
     print("🌐 Interactive Dashboard Server Starting...")
     print("📊 Access your dashboards at:")
     print("   • Executive Dashboard: http://localhost:5000/executive")
-    print("   • Operational Dashboard: http://localhost:5000/operational") 
+    print("   • Operational Dashboard: http://localhost:5000/operational")
     print("   • Technical Dashboard: http://localhost:5000/technical")
     print("\\n🔄 Dashboards will auto-refresh every 30 seconds")
     print("🛑 Press Ctrl+C to stop the server")

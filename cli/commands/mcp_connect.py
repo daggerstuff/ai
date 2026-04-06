@@ -12,7 +12,6 @@ from typing import Any, Dict, List, Optional
 import click
 
 from ..auth import AuthManager
-
 from ..config import get_config
 from ..utils import (
     get_logger,
@@ -242,7 +241,7 @@ def execute(
 
         if params_file:
             try:
-                with open(params_file, "r") as f:
+                with open(params_file) as f:
                     file_params = json.load(f)
                     tool_params.update(file_params)
             except (json.JSONDecodeError, FileNotFoundError) as e:

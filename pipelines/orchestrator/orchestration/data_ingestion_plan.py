@@ -8,7 +8,6 @@ import os
 from dataclasses import dataclass
 from typing import Callable, Protocol, TypeAlias
 
-
 TrainingRecord: TypeAlias = dict[str, object]
 CachedSourceLoader = Callable[[object | None], list[TrainingRecord]]
 StandardSourceLoader = Callable[[object | None], list[TrainingRecord]]

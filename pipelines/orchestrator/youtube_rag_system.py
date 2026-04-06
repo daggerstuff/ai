@@ -210,7 +210,7 @@ class YouTubeRAGSystem:
     ) -> Optional[TranscriptMetadata]:
         """Extract metadata from a transcript file"""
         try:
-            with open(transcript_file, "r", encoding="utf-8") as f:
+            with open(transcript_file, encoding="utf-8") as f:
                 content = f.read()
 
             # Extract basic metadata from header
@@ -477,7 +477,7 @@ class YouTubeRAGSystem:
     ):
         """Process and index a single transcript file"""
         try:
-            with open(transcript_file, "r", encoding="utf-8") as f:
+            with open(transcript_file, encoding="utf-8") as f:
                 content = f.read()
 
             transcript_content = self._extract_transcript_content(content)
@@ -898,7 +898,7 @@ class YouTubeRAGSystem:
             return
 
         try:
-            with open(index_file, "r", encoding="utf-8") as f:
+            with open(index_file, encoding="utf-8") as f:
                 serializable_index = json.load(f)
 
             self.rag_index = []

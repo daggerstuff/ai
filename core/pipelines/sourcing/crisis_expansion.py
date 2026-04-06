@@ -621,7 +621,7 @@ class CrisisExpansion:
         if not os.path.exists(filepath):
             raise FileNotFoundError(f"File not found: {filepath}")
 
-        with open(filepath, "r", encoding="utf-8") as f:
+        with open(filepath, encoding="utf-8") as f:
             data = yaml.safe_load(f)
 
         if not isinstance(data, list):

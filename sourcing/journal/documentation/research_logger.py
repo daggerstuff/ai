@@ -236,7 +236,7 @@ class ResearchLogger:
         log_file = self._get_current_log_file()
         if log_file.exists():
             try:
-                with open(log_file, "r", encoding="utf-8") as f:
+                with open(log_file, encoding="utf-8") as f:
                     for line in f:
                         line = line.strip()
                         if line:

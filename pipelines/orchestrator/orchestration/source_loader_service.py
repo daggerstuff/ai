@@ -4,6 +4,7 @@ Source-specific loader orchestration for the integrated training pipeline.
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Any, Protocol
 
@@ -35,36 +36,61 @@ class SourceLoaderService:
     def __init__(self, *, stats: SourceLoaderStatsProtocol) -> None:
         self.stats = stats
 
-    def load_edge_cases(self, file_path: Path | None = None) -> list[dict[str, Any]]:
+    def load_edge_cases(self, file_paths: list[Path] | None = None) -> list[dict[str, Any]]:
         """Load edge case training data."""
+        candidate_paths = file_paths or [None]
+        aggregated: list[dict[str, Any]] = []
         try:
-            loader = EdgeCaseJSONLLoader(file_path=file_path)
-            if not loader.check_pipeline_output_exists():
-                warning = "Edge case data not found. Run edge case pipeline first."
-                self._warn(warning)
-                return []
-            return loader.convert_to_training_format(loader.load_edge_cases())
+            seen_outputs: set[str] = set()
+            for file_path in candidate_paths:
+                loader = EdgeCaseJSONLLoader(file_path=file_path)
+                if not loader.check_pipeline_output_exists():
+                    continue
+                for record in loader.convert_to_training_format(loader.load_edge_cases()):
+                    record_key = json.dumps(record, sort_keys=True, ensure_ascii=True)
+                    if record_key in seen_outputs:
+                        continue
+                    seen_outputs.add(record_key)
+                    aggregated.append(record)
+            if aggregated:
+                return aggregated
+            warning = "Edge case data not found. Run edge case pipeline first."
+            self._warn(warning)
+            return []
         except Exception as exc:
             self._error(f"Failed to load edge cases: {exc}")
             return []
 
-    def load_pixel_voice(self, file_path: Path | None = None) -> list[dict[str, Any]]:
+    def load_pixel_voice(self, file_paths: list[Path] | None = None) -> list[dict[str, Any]]:
         """Load Pixel Voice pipeline data."""
+        candidate_paths = file_paths or [None]
+        aggregated: list[dict[str, Any]] = []
         try:
-            loader = PixelVoiceLoader(file_path=file_path)
-            if not loader.check_pipeline_output_exists():
-                warning = "Pixel Voice data not found. Run Pixel Voice pipeline first."
-                self._warn(warning)
-                return []
-            return loader.convert_to_training_format(loader.load_therapeutic_pairs())
+            seen_texts: set[str] = set()
+            for file_path in candidate_paths:
+                loader = PixelVoiceLoader(file_path=file_path)
+                if not loader.check_pipeline_output_exists():
+                    continue
+                for record in loader.convert_to_training_format(loader.load_therapeutic_pairs()):
+                    text = str(record.get("text", ""))
+                    if text in seen_texts:
+                        continue
+                    seen_texts.add(text)
+                    aggregated.append(record)
+            if aggregated:
+                return aggregated
+            warning = "Pixel Voice data not found. Run Pixel Voice pipeline first."
+            self._warn(warning)
+            return []
         except Exception as exc:
             self._error(f"Failed to load Pixel Voice data: {exc}")
             return []
 
     def load_psychology_knowledge(
-        self, file_path: Path | None = None
+        self, file_paths: list[Path] | None = None
     ) -> list[dict[str, Any]]:
         """Load psychology knowledge base."""
+        file_path = file_paths[0] if file_paths else None
         try:
             loader = PsychologyKnowledgeLoader(file_path=file_path)
             if not loader.check_knowledge_base_exists():
@@ -76,8 +102,9 @@ class SourceLoaderService:
             self._error(f"Failed to load psychology knowledge: {exc}")
             return []
 
-    def load_dual_persona(self, file_path: Path | None = None) -> list[dict[str, Any]]:
+    def load_dual_persona(self, file_paths: list[Path] | None = None) -> list[dict[str, Any]]:
         """Load dual persona training data."""
+        file_path = file_paths[0] if file_paths else None
         try:
             loader = DualPersonaLoader(file_path=file_path)
             return loader.convert_to_training_format(loader.load_dialogues())

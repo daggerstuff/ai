@@ -470,8 +470,8 @@ class AbliteratedCrisisGenerator:
 
     def _create_system_prompt(self, scenario: CrisisScenario) -> str:
         """Create system prompt for crisis conversation generation"""
-        return f"""You are generating realistic crisis intervention training data. 
-Create authentic dialogue that demonstrates both the client's crisis state 
+        return f"""You are generating realistic crisis intervention training data.
+Create authentic dialogue that demonstrates both the client's crisis state
 and appropriate therapeutic responses.
 
 SCENARIO: {scenario.name}
@@ -488,7 +488,7 @@ Generate realistic, authentic dialogue that:
 4. Maintains clinical authenticity while being educational
 5. Shows progression through crisis intervention stages
 
-This is for training crisis counselors to recognize and respond to real 
+This is for training crisis counselors to recognize and respond to real
 crisis situations."""
 
     def _create_client_prompt(
@@ -499,7 +499,7 @@ crisis situations."""
             "initial" if exchange < 3 else "middle" if exchange < 7 else "resolution"
         )
 
-        return f"""Generate a realistic client message for a {scenario.name} 
+        return f"""Generate a realistic client message for a {scenario.name}
 crisis scenario.
 Exchange #{exchange + 1} - {stage} stage
 Intensity level: {scenario.intensity_level}/10
@@ -511,14 +511,14 @@ The client should express:
 - Specific concerns related to {", ".join(scenario.crisis_indicators)}
 - Responses that show the crisis intervention process
 
-Make this realistic and authentic for training purposes. The client is in 
+Make this realistic and authentic for training purposes. The client is in
 genuine distress and needs help."""
 
     def _create_counselor_prompt(
         self, scenario: CrisisScenario, client_message: str
     ) -> str:
         """Create prompt for counselor response generation"""
-        return f"""Generate a professional crisis counselor response to this 
+        return f"""Generate a professional crisis counselor response to this
 client message: "{client_message}"
 
 The counselor should demonstrate:
@@ -528,7 +528,7 @@ The counselor should demonstrate:
 - Therapeutic goals: {", ".join(scenario.therapeutic_goals)}
 - Professional boundaries and ethical practice
 
-Provide a realistic counselor response that shows best practices in crisis 
+Provide a realistic counselor response that shows best practices in crisis
 intervention."""
 
     def _call_model(self, messages: List[Dict], max_tokens: int = 200) -> Optional[str]:

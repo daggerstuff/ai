@@ -119,16 +119,16 @@ class QualityImprovementTracker:
             start_date = end_date - timedelta(days=days_back)
 
             query = """
-            SELECT 
+            SELECT
                 dataset_source,
                 tier,
                 turn_count,
                 word_count,
                 processing_status,
                 created_at
-            FROM conversations 
+            FROM conversations
             WHERE created_at >= ? AND created_at <= ?
-            AND turn_count IS NOT NULL 
+            AND turn_count IS NOT NULL
             AND word_count IS NOT NULL
             """
 

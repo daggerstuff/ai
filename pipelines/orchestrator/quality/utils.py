@@ -6,7 +6,7 @@ from typing import Any
 
 def read_json(path: Path) -> dict[str, Any]:
     """Read JSON file."""
-    with open(path, 'r') as f:
+    with open(path) as f:
         return json.load(f)
 
 

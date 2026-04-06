@@ -4,16 +4,16 @@ Implements dynamic scaling based on demand and provides cost optimization.
 """
 
 import json
-import time
 import logging
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Tuple
+import time
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
+
 import numpy as np
 import psutil
 import torch
-
 
 logger = logging.getLogger(__name__)
 
@@ -104,7 +104,7 @@ class CostForecast:
 
 class GPUCostModel:
     """Cost model for GPU instances"""
-    
+
     # Hourly rates for different instance types (example rates)
     INSTANCE_COSTS = {
         InstanceType.CPU_SMALL: CostModel(hourly_rate=0.05, startup_cost=0.0, idle_cost_multiplier=0.1),
@@ -117,7 +117,7 @@ class GPUCostModel:
         InstanceType.GPU_L4: CostModel(hourly_rate=0.60, startup_cost=0.8, shutdown_cost=0.2, idle_cost_multiplier=0.3),
         InstanceType.MULTI_GPU: CostModel(hourly_rate=10.0, startup_cost=5.0, shutdown_cost=1.0, idle_cost_multiplier=0.5)
     }
-    
+
     # Data transfer costs (per GB)
     DATA_TRANSFER_COST = {
         "intra_region": 0.01,
@@ -125,7 +125,7 @@ class GPUCostModel:
         "internet_egress": 0.09,
         "cdn": 0.02
     }
-    
+
     # Storage costs (per GB-hour)
     STORAGE_COST = {
         "ssd": 0.0001,
@@ -136,8 +136,8 @@ class GPUCostModel:
 
 class Autoscaler:
     """Main autoscaling system"""
-    
-    def __init__(self, 
+
+    def __init__(self,
                  model_name: str,
                  scaling_strategy: ScalingStrategy = ScalingStrategy.REACTIVE,
                  instance_type: InstanceType = InstanceType.GPU_T4,
@@ -152,20 +152,20 @@ class Autoscaler:
         self.scaling_decisions: List[ScalingDecision] = []
         self.cost_history: List[Dict[str, Any]] = []
         self.logger = logging.getLogger(__name__)
-        
+
         # Predictive modeling components
         self.request_forecaster = RequestForecaster()
         self.cost_forecaster = CostForecaster()
-    
+
     def get_current_resource_usage(self) -> ResourceUsage:
         """Get current resource usage metrics"""
         cpu_percent = psutil.cpu_percent()
         memory = psutil.virtual_memory()
         memory_percent = memory.percent
-        
+
         gpu_memory_percent = None
         gpu_utilization_percent = None
-        
+
         # Get GPU metrics if available
         if torch.cuda.is_available():
             try:
@@ -174,7 +174,7 @@ class Autoscaler:
                 gpu_utilization_percent = torch.cuda.utilization() if hasattr(torch.cuda, 'utilization') else 0
             except Exception as e:
                 self.logger.warning(f"Could not get GPU metrics: {e}")
-        
+
         usage = ResourceUsage(
             cpu_percent=cpu_percent,
             memory_percent=memory_percent,
@@ -182,20 +182,20 @@ class Autoscaler:
             gpu_utilization_percent=gpu_utilization_percent,
             timestamp=datetime.utcnow().isoformat()
         )
-        
+
         # Store in history (keep last 100 entries)
         self.usage_history.append(usage)
         if len(self.usage_history) > 100:
             self.usage_history = self.usage_history[-100:]
-        
+
         return usage
-    
-    def make_scaling_decision(self, 
+
+    def make_scaling_decision(self,
                              current_load: Optional[float] = None,
                              incoming_requests: Optional[int] = None) -> ScalingDecision:
         """Make a scaling decision based on current metrics"""
         current_time = datetime.utcnow()
-        
+
         # Check cooldown period
         if (current_time - self.last_scaling_action).total_seconds() < (self.scaling_policy.cooldown_period_minutes * 60):
             return ScalingDecision(
@@ -206,13 +206,13 @@ class Autoscaler:
                 confidence=0.9,
                 estimated_cost_impact=0.0
             )
-        
+
         # Get current usage
         usage = self.get_current_resource_usage()
-        
+
         # Determine utilization metric to use
         utilization_metric = self._get_utilization_metric(usage)
-        
+
         # Base scaling decision on current utilization
         if utilization_metric >= self.scaling_policy.scale_up_threshold:
             # Scale up
@@ -220,7 +220,7 @@ class Autoscaler:
                 int(self.current_instances * self.scaling_policy.scale_up_factor),
                 self.scaling_policy.max_instances
             )
-            
+
             decision = ScalingDecision(
                 action="scale_up",
                 current_instances=self.current_instances,
@@ -229,14 +229,14 @@ class Autoscaler:
                 confidence=0.8,
                 estimated_cost_impact=self._estimate_cost_impact(self.current_instances, target_instances)
             )
-            
+
         elif utilization_metric <= self.scaling_policy.scale_down_threshold:
             # Scale down
             target_instances = max(
                 int(self.current_instances * self.scaling_policy.scale_down_factor),
                 self.scaling_policy.min_instances
             )
-            
+
             decision = ScalingDecision(
                 action="scale_down",
                 current_instances=self.current_instances,
@@ -245,7 +245,7 @@ class Autoscaler:
                 confidence=0.7,
                 estimated_cost_impact=self._estimate_cost_impact(self.current_instances, target_instances)
             )
-            
+
         else:
             # Maintain current instances
             decision = ScalingDecision(
@@ -256,14 +256,14 @@ class Autoscaler:
                 confidence=0.95,
                 estimated_cost_impact=0.0
             )
-        
+
         # Apply predictive adjustments if using predictive or hybrid strategy
         if self.scaling_strategy in [ScalingStrategy.PREDICTIVE, ScalingStrategy.HYBRID]:
             predicted_load = self.request_forecaster.predict_future_load(
-                self.usage_history, 
+                self.usage_history,
                 horizon_minutes=self.scaling_policy.predictive_horizon_minutes
             )
-            
+
             if predicted_load > utilization_metric * 1.2:  # Predicted load is 20% higher than current
                 # Adjust scaling decision upwards
                 target_instances = min(
@@ -273,21 +273,21 @@ class Autoscaler:
                 decision.target_instances = target_instances
                 decision.reason += f" | Predictive adjustment for expected load increase"
                 decision.confidence *= 0.9  # Slightly lower confidence for predictions
-        
+
         # Record the decision
         self.scaling_decisions.append(decision)
         if len(self.scaling_decisions) > 1000:
             self.scaling_decisions = self.scaling_decisions[-1000:]
-        
+
         # Update last scaling action time if we're actually scaling
         if decision.action != "maintain":
             self.last_scaling_action = current_time
             self.current_instances = decision.target_instances
-        
+
         self.logger.info(f"Scaling decision: {decision.action} from {decision.current_instances} to {decision.target_instances} instances")
-        
+
         return decision
-    
+
     def _get_utilization_metric(self, usage: ResourceUsage) -> float:
         """Get the primary utilization metric for scaling decisions"""
         # Prioritize GPU metrics if available, otherwise use CPU
@@ -297,16 +297,16 @@ class Autoscaler:
             return usage.gpu_memory_percent
         else:
             return usage.cpu_percent
-    
+
     def _estimate_cost_impact(self, current_instances: int, target_instances: int) -> float:
         """Estimate the cost impact of a scaling decision"""
         cost_model = GPUCostModel.INSTANCE_COSTS[self.instance_type]
-        
+
         # Calculate hourly cost difference
         current_hourly_cost = current_instances * cost_model.hourly_rate
         target_hourly_cost = target_instances * cost_model.hourly_rate
         hourly_cost_difference = target_hourly_cost - current_hourly_cost
-        
+
         # Add startup/shutdown costs
         if target_instances > current_instances:
             # Scaling up
@@ -319,18 +319,18 @@ class Autoscaler:
         else:
             # Maintaining
             cost_impact = 0.0
-        
+
         return cost_impact
-    
+
     def get_cost_forecast(self, hours_ahead: int = 24) -> CostForecast:
         """Get cost forecast for the specified period"""
         current_usage = self.get_current_resource_usage()
         utilization = self._get_utilization_metric(current_usage)
-        
+
         # Calculate base costs
         cost_model = GPUCostModel.INSTANCE_COSTS[self.instance_type]
         hourly_base_cost = self.current_instances * cost_model.hourly_rate
-        
+
         # Adjust for current utilization
         if utilization < 20:
             # Low utilization - idle costs
@@ -341,22 +341,22 @@ class Autoscaler:
         else:
             # Normal utilization - proportional costs
             hourly_cost = hourly_base_cost * (0.5 + (utilization / 100) * 0.5)
-        
+
         # Calculate forecasts
         hourly_forecast = hourly_cost
         daily_forecast = hourly_forecast * 24
         weekly_forecast = daily_forecast * 7
         monthly_forecast = daily_forecast * 30
-        
+
         # Estimate potential savings from optimization
         projected_savings = 0.0
         if utilization < 30:
             # Could potentially scale down
             potential_savings = hourly_base_cost * 0.3  # Rough estimate
             projected_savings = potential_savings * hours_ahead
-        
+
         cost_drivers = self._identify_cost_drivers(utilization, hourly_base_cost)
-        
+
         return CostForecast(
             hourly_forecast=hourly_forecast,
             daily_forecast=daily_forecast,
@@ -366,11 +366,11 @@ class Autoscaler:
             cost_drivers=cost_drivers,
             forecast_period_hours=hours_ahead
         )
-    
+
     def _identify_cost_drivers(self, utilization: float, hourly_base_cost: float) -> List[Dict[str, Any]]:
         """Identify the main drivers of costs"""
         drivers = []
-        
+
         if utilization < 20:
             drivers.append({
                 "driver": "idle_capacity",
@@ -385,7 +385,7 @@ class Autoscaler:
                 "description": f"High utilization ({utilization:.1f}%) may require scaling",
                 "savings_potential": 0.0
             })
-        
+
         # Add instance type cost driver
         drivers.append({
             "driver": "instance_type",
@@ -393,9 +393,9 @@ class Autoscaler:
             "description": f"Using {self.instance_type.value} instances",
             "savings_potential": hourly_base_cost * 0.3 if self.instance_type in [InstanceType.GPU_A100, InstanceType.GPU_H100, InstanceType.MULTI_GPU] else 0.0
         })
-        
+
         return drivers
-    
+
     def optimize_instance_allocation(self) -> Dict[str, Any]:
         """Optimize instance allocation based on workload patterns"""
         if len(self.usage_history) < 10:
@@ -403,22 +403,22 @@ class Autoscaler:
                 "recommendation": "insufficient_data",
                 "message": "Need more usage data to make optimization recommendations"
             }
-        
+
         # Analyze usage patterns
         recent_usage = self.usage_history[-24:]  # Last 24 entries (if sampled hourly)
         utilizations = [self._get_utilization_metric(usage) for usage in recent_usage]
-        
+
         avg_utilization = np.mean(utilizations) if utilizations else 0
         max_utilization = np.max(utilizations) if utilizations else 0
         min_utilization = np.min(utilizations) if utilizations else 0
-        
+
         recommendation = {
             "current_instances": self.current_instances,
             "avg_utilization": avg_utilization,
             "max_utilization": max_utilization,
             "min_utilization": min_utilization
         }
-        
+
         # Make recommendations based on patterns
         if avg_utilization < 30:
             recommendation["recommendation"] = "scale_down"
@@ -432,9 +432,9 @@ class Autoscaler:
             recommendation["recommendation"] = "maintain"
             recommendation["recommended_instances"] = self.current_instances
             recommendation["reason"] = f"Utilization {avg_utilization:.1f}% is within optimal range"
-        
+
         return recommendation
-    
+
     def get_scaling_history(self, limit: int = 50) -> List[ScalingDecision]:
         """Get recent scaling decisions"""
         return self.scaling_decisions[-limit:] if self.scaling_decisions else []
@@ -442,18 +442,18 @@ class Autoscaler:
 
 class RequestForecaster:
     """Forecasts future request loads for predictive scaling"""
-    
+
     def __init__(self):
         self.model = None  # In a real implementation, this would be an ML model
         self.logger = logging.getLogger(__name__)
-    
-    def predict_future_load(self, 
-                          usage_history: List[ResourceUsage], 
+
+    def predict_future_load(self,
+                          usage_history: List[ResourceUsage],
                           horizon_minutes: int = 30) -> float:
         """Predict future load based on historical usage"""
         if not usage_history:
             return 50.0  # Default moderate utilization
-        
+
         # Simple forecasting using exponential smoothing
         recent_utils = []
         for usage in usage_history[-10:]:  # Last 10 data points
@@ -465,28 +465,28 @@ class RequestForecaster:
             else:
                 util = usage.cpu_percent
             recent_utils.append(util)
-        
+
         if not recent_utils:
             return 50.0
-        
+
         # Exponential smoothing with alpha = 0.3
         alpha = 0.3
         smoothed = recent_utils[0]
         for util in recent_utils[1:]:
             smoothed = alpha * util + (1 - alpha) * smoothed
-        
+
         # Add a small trend component
         if len(recent_utils) > 1:
             trend = recent_utils[-1] - recent_utils[0]
             forecast = smoothed + (trend / len(recent_utils)) * (horizon_minutes / 5)  # Assuming 5-min intervals
         else:
             forecast = smoothed
-        
+
         # Clamp forecast to reasonable bounds
         forecast = max(0.0, min(100.0, forecast))
-        
+
         return forecast
-    
+
     def train_model(self, historical_data: List[Dict[str, Any]]):
         """Train the forecasting model (placeholder)"""
         # In a real implementation, you would train an ML model here
@@ -496,25 +496,25 @@ class RequestForecaster:
 
 class CostForecaster:
     """Forecasts future costs and identifies optimization opportunities"""
-    
+
     def __init__(self):
         self.logger = logging.getLogger(__name__)
-    
-    def forecast_costs(self, 
+
+    def forecast_costs(self,
                       autoscaler: Autoscaler,
                       hours_ahead: int = 24) -> CostForecast:
         """Forecast costs for the specified period"""
         return autoscaler.get_cost_forecast(hours_ahead)
-    
-    def identify_optimization_opportunities(self, 
+
+    def identify_optimization_opportunities(self,
                                            autoscaler: Autoscaler) -> List[Dict[str, Any]]:
         """Identify opportunities to reduce costs"""
         current_usage = autoscaler.get_current_resource_usage()
         utilization = autoscaler._get_utilization_metric(current_usage)
         cost_model = GPUCostModel.INSTANCE_COSTS[autoscaler.instance_type]
-        
+
         opportunities = []
-        
+
         # Right-sizing opportunity
         if utilization < 30 and autoscaler.instance_type not in [InstanceType.CPU_SMALL, InstanceType.GPU_L4]:
             opportunities.append({
@@ -524,7 +524,7 @@ class CostForecaster:
                 "confidence": 0.8,
                 "implementation": "Switch to smaller GPU instances or CPU instances if workload permits"
             })
-        
+
         # Spot instance opportunity
         opportunities.append({
             "opportunity": "spot_instances",
@@ -533,7 +533,7 @@ class CostForecaster:
             "confidence": 0.7,
             "implementation": "Use spot instances with fallback to on-demand for non-critical workloads"
         })
-        
+
         # Reserved instance opportunity
         if autoscaler.current_instances >= 5:  # Threshold for reserved instances
             opportunities.append({
@@ -543,18 +543,18 @@ class CostForecaster:
                 "confidence": 0.9,
                 "implementation": "Purchase reserved instances for consistently running workloads"
             })
-        
+
         return opportunities
 
 
 class MultiModelAutoscaler:
     """Manages autoscaling for multiple models"""
-    
+
     def __init__(self):
         self.autoscalers: Dict[str, Autoscaler] = {}
         self.logger = logging.getLogger(__name__)
-    
-    def register_model(self, 
+
+    def register_model(self,
                       model_name: str,
                       instance_type: InstanceType = InstanceType.GPU_T4,
                       scaling_policy: Optional[ScalingPolicy] = None) -> Autoscaler:
@@ -567,11 +567,11 @@ class MultiModelAutoscaler:
         self.autoscalers[model_name] = autoscaler
         self.logger.info(f"Registered model {model_name} for autoscaling")
         return autoscaler
-    
+
     def get_autoscaler(self, model_name: str) -> Optional[Autoscaler]:
         """Get autoscaler for a specific model"""
         return self.autoscalers.get(model_name)
-    
+
     def make_all_scaling_decisions(self) -> Dict[str, ScalingDecision]:
         """Make scaling decisions for all registered models"""
         decisions = {}
@@ -582,7 +582,7 @@ class MultiModelAutoscaler:
             except Exception as e:
                 self.logger.error(f"Failed to make scaling decision for {model_name}: {e}")
         return decisions
-    
+
     def get_total_cost_forecast(self, hours_ahead: int = 24) -> CostForecast:
         """Get combined cost forecast for all models"""
         total_hourly = 0.0
@@ -591,7 +591,7 @@ class MultiModelAutoscaler:
         total_monthly = 0.0
         total_savings = 0.0
         all_cost_drivers = []
-        
+
         for autoscaler in self.autoscalers.values():
             try:
                 forecast = autoscaler.get_cost_forecast(hours_ahead)
@@ -603,7 +603,7 @@ class MultiModelAutoscaler:
                 all_cost_drivers.extend(forecast.cost_drivers)
             except Exception as e:
                 self.logger.error(f"Failed to get cost forecast for {autoscaler.model_name}: {e}")
-        
+
         return CostForecast(
             hourly_forecast=total_hourly,
             daily_forecast=total_daily,
@@ -650,7 +650,7 @@ def get_cost_optimization_recommendations(model_name: str) -> List[Dict[str, Any
 def test_autoscaling_system():
     """Test the autoscaling system"""
     logger.info("Testing GPU Autoscaling System...")
-    
+
     # Create a scaling policy
     policy = ScalingPolicy(
         min_instances=1,
@@ -662,7 +662,7 @@ def test_autoscaling_system():
         cooldown_period_minutes=2,  # Short for testing
         target_response_time_ms=100.0
     )
-    
+
     # Register a model
     model_name = "therapy_model_v1"
     autoscaler = register_model_for_autoscaling(
@@ -670,9 +670,9 @@ def test_autoscaling_system():
         instance_type=InstanceType.GPU_T4,
         scaling_policy=policy
     )
-    
+
     print(f"Registered model {model_name} for autoscaling")
-    
+
     # Test current resource usage
     print("\nTesting Resource Usage Collection...")
     usage = autoscaler.get_current_resource_usage()
@@ -682,25 +682,25 @@ def test_autoscaling_system():
         print(f"GPU Memory: {usage.gpu_memory_percent:.1f}%")
     if usage.gpu_utilization_percent:
         print(f"GPU Utilization: {usage.gpu_utilization_percent:.1f}%")
-    
+
     # Test scaling decisions under different conditions
     print("\nTesting Scaling Decisions...")
-    
+
     # Low utilization scenario
     print("Low utilization scenario (< 30%)")
     low_util_decision = autoscaler.make_scaling_decision(current_load=25.0)
     print(f"Decision: {low_util_decision.action} ({low_util_decision.reason})")
-    
+
     # High utilization scenario
     print("High utilization scenario (> 70%)")
     high_util_decision = autoscaler.make_scaling_decision(current_load=85.0)
     print(f"Decision: {high_util_decision.action} ({high_util_decision.reason})")
-    
+
     # Normal utilization scenario
     print("Normal utilization scenario (30-70%)")
     normal_util_decision = autoscaler.make_scaling_decision(current_load=50.0)
     print(f"Decision: {normal_util_decision.action} ({normal_util_decision.reason})")
-    
+
     # Test cost forecasting
     print("\nTesting Cost Forecasting...")
     cost_forecast = autoscaler.get_cost_forecast(hours_ahead=24)
@@ -709,7 +709,7 @@ def test_autoscaling_system():
     print(f"Weekly forecast: ${cost_forecast.weekly_forecast:.2f}")
     print(f"Monthly forecast: ${cost_forecast.monthly_forecast:.2f}")
     print(f"Projected savings: ${cost_forecast.projected_savings:.2f}")
-    
+
     # Test optimization recommendations
     print("\nTesting Optimization Recommendations...")
     recommendations = get_cost_optimization_recommendations(model_name)
@@ -717,17 +717,17 @@ def test_autoscaling_system():
     for rec in recommendations[:3]:  # Show top 3
         print(f"  - {rec.get('opportunity', 'N/A')}: {rec.get('description', 'N/A')}")
         print(f"    Potential savings: ${rec.get('potential_savings', 0):.2f}")
-    
+
     # Test instance optimization
     print("\nTesting Instance Allocation Optimization...")
     optimization = autoscaler.optimize_instance_allocation()
     print(f"Optimization recommendation: {optimization.get('recommendation', 'N/A')}")
     print(f"Reason: {optimization.get('reason', 'N/A')}")
     print(f"Recommended instances: {optimization.get('recommended_instances', 'N/A')}")
-    
+
     # Test multi-model autoscaler
     print("\nTesting Multi-Model Autoscaler...")
-    
+
     # Register another model
     model2_name = "crisis_detection_model"
     autoscaler2 = register_model_for_autoscaling(
@@ -735,19 +735,19 @@ def test_autoscaling_system():
         instance_type=InstanceType.GPU_A10,
         scaling_policy=ScalingPolicy(min_instances=2, max_instances=8)
     )
-    
+
     print(f"Registered second model {model2_name}")
-    
+
     # Make scaling decisions for all models
     all_decisions = multi_model_autoscaler.make_all_scaling_decisions()
     print(f"Made scaling decisions for {len(all_decisions)} models")
-    
+
     # Get total cost forecast
     total_forecast = multi_model_autoscaler.get_total_cost_forecast(hours_ahead=24)
     print(f"Total hourly cost for all models: ${total_forecast.hourly_forecast:.2f}")
     print(f"Total daily cost for all models: ${total_forecast.daily_forecast:.2f}")
     print(f"Total monthly cost for all models: ${total_forecast.monthly_forecast:.2f}")
-    
+
     # Test scaling history
     print("\nTesting Scaling History...")
     history = autoscaler.get_scaling_history(limit=5)
@@ -755,7 +755,7 @@ def test_autoscaling_system():
     if history:
         latest = history[-1]
         print(f"Most recent decision: {latest.action} at {latest.timestamp}")
-    
+
     print("\nGPU autoscaling system tests completed!")
 
 

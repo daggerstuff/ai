@@ -1,4 +1,5 @@
 import pytest
+
 #!/usr/bin/env python3
 """
 Integration Tests for End-to-End Processing
@@ -12,18 +13,19 @@ Tests complete workflows including:
 - Report creation
 """
 
-import unittest
-import sqlite3
-import pandas as pd
-import numpy as np
 import json
-import tempfile
 import os
+import sqlite3
 import subprocess
 import sys
-from pathlib import Path
-from datetime import datetime
+import tempfile
+import unittest
 import warnings
+from datetime import datetime
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
 
 warnings.filterwarnings("ignore")
 

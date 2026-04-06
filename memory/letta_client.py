@@ -9,11 +9,11 @@ Provides integration with Letta Code SDK for autonomous agent capabilities:
 - Multi-project memory sharing
 """
 
+import asyncio
 import json
 import logging
 import os
 import stat
-import asyncio
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path

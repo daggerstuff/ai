@@ -432,7 +432,7 @@ class MasterIntegrationPipeline:
         ]:
             if path_str:
                 try:
-                    with open(path_str, "r", encoding="utf-8") as f:
+                    with open(path_str, encoding="utf-8") as f:
                         for line in f:
                             target[0].append(json.loads(line))
                 except FileNotFoundError:

@@ -1,7 +1,8 @@
-import os
+import glob
 import json
 import logging
-import glob
+import os
+
 import numpy as np
 
 # Configuration
@@ -26,7 +27,7 @@ DIVERSITY_CLUSTER_COUNT = 5  # Minimum number of clusters to cover
 def load_json(path):
     if not os.path.exists(path):
         return []
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         return json.load(f)
 
 

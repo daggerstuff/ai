@@ -402,7 +402,7 @@ class ConfigValidator:
         security_config = self.config_dir / "security.yaml"
         if security_config.exists():
             try:
-                with open(security_config, "r") as f:
+                with open(security_config) as f:
                     config = yaml.safe_load(f)
 
                 # Check security settings
@@ -521,7 +521,7 @@ class ConfigValidator:
         backup_config = self.config_dir / "backup.yaml"
         if backup_config.exists():
             try:
-                with open(backup_config, "r") as f:
+                with open(backup_config) as f:
                     config = yaml.safe_load(f)
 
                 if not config.get("enabled", False):
@@ -552,7 +552,7 @@ class ConfigValidator:
     def _validate_config_file(self, filepath: Path):
         """Validate a configuration file"""
         try:
-            with open(filepath, "r") as f:
+            with open(filepath) as f:
                 if filepath.suffix in {".yaml", ".yml"}:
                     yaml.safe_load(f)
                 elif filepath.suffix == ".json":

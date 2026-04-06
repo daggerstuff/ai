@@ -6,8 +6,18 @@ from __future__ import annotations
 
 from typing import Any
 
+from ai.pipelines.orchestrator.configs.stages import STAGE3_ID, STAGE4_ID
 from ai.pipelines.orchestrator.data_splitter import DataSplitter
 from ai.pipelines.orchestrator.ingestion.intake_gates import OrchestratorIntakeGates
+
+_PROMOTED_FEEDER_ALLOWED_LANES: dict[str, set[str]] = {
+    "edge_case": {STAGE3_ID},
+    "nightmare_scenarios": {STAGE3_ID},
+    "cot_reasoning": {STAGE3_ID},
+    "voice_persona": {STAGE3_ID, STAGE4_ID},
+    "youtube_transcript": {STAGE3_ID, STAGE4_ID},
+    "dual_persona": {STAGE3_ID, STAGE4_ID},
+}
 
 
 def apply_intake_routing(
@@ -47,6 +57,10 @@ def apply_intake_routing(
 
         if decision.split:
             metadata["split"] = decision.split
+
+        allowed_lanes = _PROMOTED_FEEDER_ALLOWED_LANES.get(decision.source_family)
+        if allowed_lanes is not None and decision.target_lane not in allowed_lanes:
+            continue
 
         routed_records.append(record)
 

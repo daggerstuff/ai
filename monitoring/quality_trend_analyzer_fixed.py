@@ -107,7 +107,7 @@ class QualityTrendAnalyzer:
             date_threshold = datetime.now() - timedelta(days=days_back)
 
             query = """
-            SELECT 
+            SELECT
                 created_at,
                 dataset_source,
                 tier,
@@ -118,8 +118,8 @@ class QualityTrendAnalyzer:
                 processing_status,
                 batch_id,
                 processing_version
-            FROM conversations 
-            WHERE created_at >= ? 
+            FROM conversations
+            WHERE created_at >= ?
             ORDER BY created_at
             """
 

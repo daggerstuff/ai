@@ -4,12 +4,13 @@ Dataset Export Manifest
 Defines the manifest structure for dataset exports with checksums, metadata, and provenance
 """
 
-import json
 import hashlib
-from dataclasses import dataclass, asdict, field
+import json
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
+
 from .config_lock import LockedConfig
 
 
@@ -138,7 +139,7 @@ class DatasetManifest:
     @classmethod
     def load(cls, path: Path) -> "DatasetManifest":
         """Load manifest from file"""
-        with open(path, 'r') as f:
+        with open(path) as f:
             data = json.load(f)
 
         manifest = cls(

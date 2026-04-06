@@ -18,13 +18,12 @@ import json
 import os
 import statistics
 import time
-
-import numpy as np
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List
 
 import aiohttp
+import numpy as np
 from tqdm import tqdm
 
 

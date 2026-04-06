@@ -11,9 +11,9 @@ import os
 from typing import Optional
 
 from .local_hindsight_manager import LocalHindsightMemoryManager
-from .reflection_memory import LocalReflectionMemoryClient
-from .reflection_subagent import ReflectionSubagent, ReflectionConfig, ReflectionTrigger
 from .nvidia_llm_callback import create_nvidia_callback
+from .reflection_memory import LocalReflectionMemoryClient
+from .reflection_subagent import ReflectionConfig, ReflectionSubagent, ReflectionTrigger
 
 logger = logging.getLogger(__name__)
 

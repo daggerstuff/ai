@@ -6,8 +6,8 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 from ai.pipelines.orchestrator.ingestion.youtube_processor import (
-    YouTubePlaylistProcessor,
     AntiDetectionConfig,
+    YouTubePlaylistProcessor,
 )
 from ai.pipelines.orchestrator.processing.transcript_quality_pipeline import (
     TranscriptQualityPipeline,
@@ -40,7 +40,7 @@ class MassYouTubeIngestor:
             logger.error(f"Handles file not found: {handles_file}")
             return []
 
-        with open(handles_file, "r") as f:
+        with open(handles_file) as f:
             return [
                 line.strip() for line in f if line.strip() and not line.startswith("#")
             ]

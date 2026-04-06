@@ -662,15 +662,15 @@ class QualityComparisonReporter:
         """Get executive summary template."""
         return """
         # Quality Comparison Report - Executive Summary
-        
+
         **Generated**: {{ generated_at }}
         **Period**: {{ report.analysis_period }}
-        
+
         ## Key Findings
         {% for item in report.executive_summary %}
         - {{ item }}
         {% endfor %}
-        
+
         ## Action Items
         {% for item in report.action_items %}
         - {{ item }}
@@ -700,7 +700,7 @@ class QualityComparisonReporter:
                 <p><strong>Generated:</strong> {{ generated_at }}</p>
                 <p><strong>Analysis Period:</strong> {{ report.analysis_period }}</p>
             </div>
-            
+
             <div class="section">
                 <h2>Executive Summary</h2>
                 <ul>
@@ -709,7 +709,7 @@ class QualityComparisonReporter:
                 {% endfor %}
                 </ul>
             </div>
-            
+
             <div class="section">
                 <h2>Comparison Results</h2>
                 <div class="metric">
@@ -725,7 +725,7 @@ class QualityComparisonReporter:
                     <strong>Benchmark Analyses:</strong> {{ report.benchmark_analyses|length }}
                 </div>
             </div>
-            
+
             <div class="section">
                 <h2>Detailed Insights</h2>
                 <ul>
@@ -734,7 +734,7 @@ class QualityComparisonReporter:
                 {% endfor %}
                 </ul>
             </div>
-            
+
             <div class="section">
                 <h2>Action Items</h2>
                 <ul>
@@ -751,13 +751,13 @@ class QualityComparisonReporter:
         """Get technical report template."""
         return """
         # Technical Quality Comparison Analysis
-        
+
         ## Statistical Summary
         - Tier Comparisons: {{ report.tier_comparisons|length }}
         - Dataset Comparisons: {{ report.dataset_comparisons|length }}
         - Component Comparisons: {{ report.component_comparisons|length }}
         - Benchmark Analyses: {{ report.benchmark_analyses|length }}
-        
+
         ## Comparison Details
         {% for comparison in report.tier_comparisons %}
         ### {{ comparison.group1_name }} vs {{ comparison.group2_name }}

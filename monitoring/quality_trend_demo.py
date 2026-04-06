@@ -63,7 +63,7 @@ class QualityTrendDemo:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.execute("""
                 SELECT turn_count, word_count, processing_status, tier, language
-                FROM conversations 
+                FROM conversations
                 LIMIT 1000
             """)
 

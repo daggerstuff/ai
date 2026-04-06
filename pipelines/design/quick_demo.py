@@ -2,7 +2,9 @@
 """Quick demo of NeMo Data Designer - generates data and shows results immediately."""
 
 import sys
+
 from ai.pipelines.design.service import NeMoDataDesignerService
+
 
 def main():
     print("=" * 80)

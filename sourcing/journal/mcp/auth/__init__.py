@@ -12,8 +12,8 @@ from ai.sourcing.journal.mcp.auth.authentication import (
     create_auth_handler,
 )
 from ai.sourcing.journal.mcp.auth.authorization import (
-    AuthorizationHandler,
     RBAC,
+    AuthorizationHandler,
     create_authorization_handler,
 )
 

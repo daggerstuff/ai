@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from collections.abc import Callable
 import re
+from collections.abc import Callable
 
 from ai.memory.hindsight_local_adapter import normalize_tags
 

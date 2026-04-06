@@ -4,21 +4,21 @@ Implements comprehensive health monitoring and safe shutdown procedures.
 """
 
 import asyncio
-import signal
-import time
-import logging
+import atexit
 import json
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Callable, Tuple, Union
+import logging
+import signal
+import threading
+import time
+import uuid
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from enum import Enum
+from functools import wraps
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+
 import psutil
 import torch
-from functools import wraps
-import threading
-import atexit
-import uuid
-
 
 logger = logging.getLogger(__name__)
 
@@ -116,7 +116,7 @@ class EvaluationGate:
     is_critical: bool = False  # If True, failure means automatic rejection
     description: str = ""
     component_type: Optional[str] = None  # e.g., "safety", "performance", "cost"
-    
+
     def evaluate(self, metric_value: float) -> Tuple[bool, str]:
         """Evaluate if the metric passes this gate"""
         if self.gate_type == GateType.MINIMUM_THRESHOLD:
@@ -140,7 +140,7 @@ class EvaluationGate:
         else:
             passed = False
             reason = f"Unknown gate type: {self.gate_type}"
-        
+
         return passed, reason
 
 
@@ -153,7 +153,7 @@ class GateConfiguration:
     minimum_overall_score: float = 0.7  # Minimum weighted score for promotion
     critical_gates: List[str] = field(default_factory=list)  # Gates that are always critical
     metadata: Optional[Dict[str, Any]] = None
-    
+
     def add_gate(self, gate: EvaluationGate):
         """Add a gate to the configuration"""
         if gate.name in self.critical_gates:
@@ -201,62 +201,7 @@ class PromotionStage(Enum):
     REJECTED = "rejected"
 
 
-class HealthCheckManager:
 
-
-class ComponentStatus(Enum):
-    """Individual component status"""
-    OPERATIONAL = "operational"
-    DEGRADED = "degraded"
-    FAILED = "failed"
-    UNKNOWN = "unknown"
-
-
-@dataclass
-class ComponentHealth:
-    """Health status of an individual component"""
-    name: str
-    status: ComponentStatus
-    last_checked: str
-    health_score: float  # 0.0 to 1.0
-    details: Optional[Dict[str, Any]] = None
-    last_error: Optional[str] = None
-    error_count: int = 0
-    error_timestamps: List[str] = field(default_factory=list)
-    component_type: Optional[str] = None  # e.g., "model", "database", "api", "gpu"
-    response_time_ms: Optional[float] = None
-    uptime_seconds: Optional[float] = None
-    restart_count: int = 0
-    dependencies: List[str] = field(default_factory=list)  # Dependent components
-
-
-@dataclass
-class HealthCheckResult:
-    """Overall health check result"""
-    status: HealthStatus
-    timestamp: str
-    components: Dict[str, ComponentHealth]
-    overall_score: float  # Weighted average of component scores
-    critical_issues: List[str] = field(default_factory=list)
-    warnings: List[str] = field(default_factory=list)
-    recommendations: List[str] = field(default_factory=list)
-    metadata: Optional[Dict[str, Any]] = None
-    service_uptime_seconds: Optional[float] = None
-    last_check_duration_ms: Optional[float] = None
-    component_health_summary: Optional[Dict[str, int]] = None  # Count by status
-
-
-@dataclass
-class ShutdownResult:
-    """Result of a shutdown operation"""
-    success: bool
-    duration_seconds: float
-    components_shutdown: List[str] = field(default_factory=list)
-    components_failed: List[str] = field(default_factory=list)
-    error_messages: List[str] = field(default_factory=list)
-    warning_messages: List[str] = field(default_factory=list)
-    timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
-    shutdown_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     shutdown_reason: Optional[str] = None
     forced_shutdown: bool = False
     cleanup_performed: bool = True
@@ -267,7 +212,7 @@ class ShutdownResult:
 
 class HealthCheckManager:
     """Manages comprehensive health checking for model servers"""
-    
+
     def __init__(self, service_name: str = "pixelated-empathy-ai"):
         self.service_name = service_name
         self.components: Dict[str, Any] = {}
@@ -282,7 +227,7 @@ class HealthCheckManager:
         self.forced_shutdown_count: int = 0
         self.service_start_time: float = time.time()
         self.logger = logging.getLogger(__name__)
-        
+
         # Register default health checks
         self.register_health_check("system_resources", self._check_system_resources)
         self.register_health_check("gpu_status", self._check_gpu_status)
@@ -290,15 +235,15 @@ class HealthCheckManager:
         self.register_health_check("disk_space", self._check_disk_space)
         self.register_health_check("network_connectivity", self._check_network_connectivity)
         self.register_health_check("model_status", self._check_model_status)
-        
+
         # Set up signal handlers for graceful shutdown
         self._setup_signal_handlers()
-        
+
         # Register cleanup function for program exit
         atexit.register(self._cleanup_on_exit)
-        
+
         self.logger.info(f"HealthCheckManager initialized for service: {self.service_name}")
-    
+
     def register_component(self, name: str, component: Any, component_type: Optional[str] = None):
         """Register a component for health monitoring"""
         self.components[name] = {
@@ -309,19 +254,19 @@ class HealthCheckManager:
             "health_check_interval": self.health_check_interval
         }
         self.logger.info(f"Registered component for health monitoring: {name} (type: {component_type or 'generic'})")
-    
+
     def register_health_check(self, name: str, check_function: Callable):
         """Register a custom health check function"""
         self.health_checks[name] = check_function
         self.logger.info(f"Registered health check: {name}")
-    
+
     def _check_system_resources(self) -> ComponentHealth:
         """Check system resource utilization"""
         try:
             cpu_percent = psutil.cpu_percent(interval=1)
             memory_info = psutil.virtual_memory()
             memory_percent = memory_info.percent
-            
+
             # Determine status based on thresholds
             if cpu_percent > 90 or memory_percent > 90:
                 status = ComponentStatus.DEGRADED
@@ -332,7 +277,7 @@ class HealthCheckManager:
             else:
                 status = ComponentStatus.OPERATIONAL
                 health_score = 1.0
-            
+
             return ComponentHealth(
                 name="system_resources",
                 status=status,
@@ -355,7 +300,7 @@ class HealthCheckManager:
                 error_count=1,
                 error_timestamps=[datetime.utcnow().isoformat()]
             )
-    
+
     def _check_gpu_status(self) -> ComponentHealth:
         """Check GPU status and utilization"""
         try:
@@ -367,31 +312,31 @@ class HealthCheckManager:
                     health_score=1.0,
                     details={"cuda_available": False}
                 )
-            
+
             gpu_count = torch.cuda.device_count()
             gpu_statuses = []
             total_utilization = 0
             failed_gpus = 0
-            
+
             for i in range(gpu_count):
                 try:
                     gpu_name = torch.cuda.get_device_name(i)
                     gpu_memory = torch.cuda.memory_allocated(i) / (1024**3)
                     gpu_memory_total = torch.cuda.get_device_properties(i).total_memory / (1024**3)
                     memory_percent = (gpu_memory / gpu_memory_total) * 100 if gpu_memory_total > 0 else 0
-                    
+
                     # Check for issues
                     if memory_percent > 95:
                         gpu_statuses.append(f"GPU {i} memory critical")
                         failed_gpus += 1
                     elif memory_percent > 85:
                         gpu_statuses.append(f"GPU {i} memory high")
-                
+
                 except Exception as gpu_error:
                     self.logger.warning(f"Failed to check GPU {i}: {gpu_error}")
                     gpu_statuses.append(f"GPU {i} check failed")
                     failed_gpus += 1
-            
+
             # Determine overall GPU health
             if failed_gpus > 0:
                 status = ComponentStatus.DEGRADED if failed_gpus < gpu_count else ComponentStatus.FAILED
@@ -399,7 +344,7 @@ class HealthCheckManager:
             else:
                 status = ComponentStatus.OPERATIONAL
                 health_score = 1.0
-            
+
             return ComponentHealth(
                 name="gpu_status",
                 status=status,
@@ -421,14 +366,14 @@ class HealthCheckManager:
                 error_count=1,
                 error_timestamps=[datetime.utcnow().isoformat()]
             )
-    
+
     def _check_memory_status(self) -> ComponentHealth:
         """Check memory utilization and status"""
         try:
             process = psutil.Process()
             process_memory_info = process.memory_info()
             process_memory_percent = process_memory_info.rss / psutil.virtual_memory().total * 100
-            
+
             # Check for memory leaks or excessive usage
             if process_memory_percent > 80:
                 status = ComponentStatus.DEGRADED
@@ -439,7 +384,7 @@ class HealthCheckManager:
             else:
                 status = ComponentStatus.OPERATIONAL
                 health_score = 1.0
-            
+
             return ComponentHealth(
                 name="memory_status",
                 status=status,
@@ -461,13 +406,13 @@ class HealthCheckManager:
                 error_count=1,
                 error_timestamps=[datetime.utcnow().isoformat()]
             )
-    
+
     def _check_disk_space(self) -> ComponentHealth:
         """Check disk space and I/O status"""
         try:
             disk_usage = psutil.disk_usage('/')
             disk_percent = (disk_usage.used / disk_usage.total) * 100
-            
+
             # Check for low disk space
             if disk_percent > 95:
                 status = ComponentStatus.FAILED
@@ -481,7 +426,7 @@ class HealthCheckManager:
             else:
                 status = ComponentStatus.OPERATIONAL
                 health_score = 1.0
-            
+
             return ComponentHealth(
                 name="disk_space",
                 status=status,
@@ -503,7 +448,7 @@ class HealthCheckManager:
                 error_count=1,
                 error_timestamps=[datetime.utcnow().isoformat()]
             )
-    
+
     def _check_network_connectivity(self) -> ComponentHealth:
         """Check network connectivity and status"""
         try:
@@ -511,7 +456,7 @@ class HealthCheckManager:
             net_io = psutil.net_io_counters()
             connections = psutil.net_connections(kind='inet')
             active_connections = len([conn for conn in connections if conn.status == 'ESTABLISHED'])
-            
+
             # Check for unusual network activity
             if active_connections > 1000:
                 status = ComponentStatus.DEGRADED
@@ -519,7 +464,7 @@ class HealthCheckManager:
             else:
                 status = ComponentStatus.OPERATIONAL
                 health_score = 1.0
-            
+
             return ComponentHealth(
                 name="network_connectivity",
                 status=status,
@@ -543,13 +488,13 @@ class HealthCheckManager:
                 error_count=1,
                 error_timestamps=[datetime.utcnow().isoformat()]
             )
-    
+
     def _check_model_status(self) -> ComponentHealth:
         """Check model loading and inference status"""
         try:
             # Check if models are registered and loaded
             from .model_adapters import model_manager
-            
+
             if not model_manager:
                 return ComponentHealth(
                     name="model_status",
@@ -558,7 +503,7 @@ class HealthCheckManager:
                     health_score=0.0,
                     details={"error": "Model manager not initialized"}
                 )
-            
+
             models = model_manager.list_models()
             if not models:
                 # No models loaded, but not necessarily unhealthy
@@ -569,11 +514,11 @@ class HealthCheckManager:
                     health_score=0.8,  # Slightly reduced score if no models loaded
                     details={"message": "No models currently loaded", "model_count": 0}
                 )
-            
+
             # Check each model
             model_issues = []
             healthy_models = 0
-            
+
             for model_name in models:
                 try:
                     model_info = model_manager.get_model_info(model_name)
@@ -583,7 +528,7 @@ class HealthCheckManager:
                         model_issues.append(f"Model {model_name} not loaded")
                 except Exception as model_error:
                     model_issues.append(f"Model {model_name} check failed: {model_error}")
-            
+
             # Determine overall model health
             if healthy_models == len(models) and not model_issues:
                 status = ComponentStatus.OPERATIONAL
@@ -594,7 +539,7 @@ class HealthCheckManager:
             else:
                 status = ComponentStatus.FAILED
                 health_score = 0.0
-            
+
             return ComponentHealth(
                 name="model_status",
                 status=status,
@@ -617,25 +562,25 @@ class HealthCheckManager:
                 error_count=1,
                 error_timestamps=[datetime.utcnow().isoformat()]
             )
-    
+
     def perform_health_check(self) -> HealthCheckResult:
         """Perform a comprehensive health check"""
         start_time = time.time()
         check_start_time = datetime.utcnow()
-        
+
         self.logger.debug("Starting comprehensive health check...")
-        
+
         # Run all registered health checks
         component_results = {}
         critical_issues = []
         warnings = []
         recommendations = []
-        
+
         for check_name, check_function in self.health_checks.items():
             try:
                 component_health = check_function()
                 component_results[check_name] = component_health
-                
+
                 # Log any issues
                 if component_health.status == ComponentStatus.FAILED:
                     critical_issues.append(f"{check_name}: {component_health.last_error or 'Component failed'}")
@@ -643,7 +588,7 @@ class HealthCheckManager:
                 elif component_health.status == ComponentStatus.DEGRADED:
                     warnings.append(f"{check_name}: Component degraded")
                     self.logger.warning(f"Health check degraded for {check_name}")
-                
+
                 # Add recommendations based on component health
                 if component_health.component_type:
                     if component_health.component_type == "gpu" and component_health.health_score < 0.8:
@@ -652,12 +597,12 @@ class HealthCheckManager:
                         recommendations.append("Check memory usage and consider optimization")
                     elif component_health.component_type == "disk" and component_health.health_score < 0.6:
                         recommendations.append("Check disk space and consider cleanup")
-                
+
             except Exception as e:
                 error_msg = f"Health check {check_name} failed: {str(e)}"
                 critical_issues.append(error_msg)
                 self.logger.error(error_msg, exc_info=True)
-                
+
                 # Record the failure
                 component_results[check_name] = ComponentHealth(
                     name=check_name,
@@ -669,13 +614,13 @@ class HealthCheckManager:
                     error_timestamps=[datetime.utcnow().isoformat()],
                     component_type="system"
                 )
-        
+
         # Calculate overall health score with weighted average
         if component_results:
             # Weight components by importance (critical components have higher weights)
             weighted_scores = []
             total_weight = 0
-            
+
             for comp_name, comp_health in component_results.items():
                 # Assign weights based on component type
                 weight = 1.0
@@ -686,12 +631,12 @@ class HealthCheckManager:
                         weight = 1.5  # Important components
                     else:
                         weight = 1.0  # Standard components
-                
+
                 weighted_scores.append(comp_health.health_score * weight)
                 total_weight += weight
-            
+
             overall_score = sum(weighted_scores) / total_weight if total_weight > 0 else 1.0
-            
+
             # Determine overall status
             if any(comp.status == ComponentStatus.FAILED for comp in component_results.values()):
                 overall_status = HealthStatus.UNHEALTHY
@@ -704,19 +649,19 @@ class HealthCheckManager:
         else:
             overall_status = HealthStatus.HEALTHY
             overall_score = 1.0
-        
+
         # Calculate component health summary
         component_health_summary = {}
         for comp_health in component_results.values():
             status_key = comp_health.status.value
             component_health_summary[status_key] = component_health_summary.get(status_key, 0) + 1
-        
+
         # Calculate service uptime
         service_uptime = time.time() - self.service_start_time
-        
+
         # Calculate check duration
         check_duration = (time.time() - start_time) * 1000  # Convert to milliseconds
-        
+
         # Create health check result
         health_result = HealthCheckResult(
             status=overall_status,
@@ -739,12 +684,12 @@ class HealthCheckManager:
             last_check_duration_ms=check_duration,
             component_health_summary=component_health_summary
         )
-        
+
         self.last_health_check = health_result
         self.logger.debug(f"Health check completed with status: {overall_status.value}, score: {overall_score:.3f}")
-        
+
         return health_result
-    
+
     def get_health_status(self) -> HealthCheckResult:
         """Get current health status (cached or new)"""
         if self.last_health_check:
@@ -752,16 +697,16 @@ class HealthCheckManager:
             last_check_time = datetime.fromisoformat(self.last_health_check.timestamp.replace('Z', '+00:00'))
             if datetime.utcnow() - last_check_time < timedelta(seconds=30):
                 return self.last_health_check
-        
+
         # Perform new health check
         return self.perform_health_check()
-    
+
     def _setup_signal_handlers(self):
         """Set up signal handlers for graceful shutdown"""
         def signal_handler(signum, frame):
             signal_name = {signal.SIGTERM: "SIGTERM", signal.SIGINT: "SIGINT", signal.SIGHUP: "SIGHUP"}.get(signum, f"UNKNOWN({signum})")
             self.logger.info(f"Received signal {signal_name} ({signum}), initiating graceful shutdown...")
-            
+
             # Determine shutdown reason based on signal
             reason_map = {
                 signal.SIGTERM: "termination_signal",
@@ -769,33 +714,33 @@ class HealthCheckManager:
                 signal.SIGHUP: "hangup_signal"
             }
             reason = reason_map.get(signum, f"signal_{signum}")
-            
+
             self.initiate_graceful_shutdown(reason=reason)
-        
+
         # Register signal handlers
         try:
             signal.signal(signal.SIGTERM, signal_handler)  # Termination signal
             self.logger.info("Registered SIGTERM handler")
         except Exception as e:
             self.logger.warning(f"Failed to register SIGTERM handler: {e}")
-        
+
         try:
             signal.signal(signal.SIGINT, signal_handler)   # Interrupt signal (Ctrl+C)
             self.logger.info("Registered SIGINT handler")
         except Exception as e:
             self.logger.warning(f"Failed to register SIGINT handler: {e}")
-        
+
         try:
             signal.signal(signal.SIGHUP, signal_handler)  # Hangup signal
             self.logger.info("Registered SIGHUP handler")
         except Exception as e:
             self.logger.warning(f"Failed to register SIGHUP handler: {e}")
-    
+
     def register_shutdown_callback(self, callback: Callable):
         """Register a callback to be called during shutdown"""
         self.shutdown_callbacks.append(callback)
         self.logger.info("Registered shutdown callback")
-    
+
     def initiate_graceful_shutdown(self, reason: str = "manual_shutdown", force: bool = False) -> ShutdownResult:
         """Initiate a graceful shutdown of the system"""
         if self.is_shutting_down and not force:
@@ -807,15 +752,15 @@ class HealthCheckManager:
                 shutdown_reason=reason,
                 forced_shutdown=False
             )
-        
+
         # Record shutdown initiation
         self.is_shutting_down = True
         self.shutdown_reason = reason
         self.shutdown_start_time = time.time()
         start_time = self.shutdown_start_time
-        
+
         self.logger.info(f"Initiating graceful shutdown (reason: {reason})...")
-        
+
         # Initialize shutdown tracking
         shutdown_components = []
         failed_components = []
@@ -825,27 +770,27 @@ class HealthCheckManager:
         logs_flushed = True
         metrics_exported = True
         connections_closed = True
-        
+
         try:
             # 1. Stop accepting new requests and notify services
             self.logger.info("Stopping acceptance of new requests...")
             self._notify_services_shutdown_initiated()
             shutdown_components.append("request_acceptance_stopped")
-            
+
             # 2. Drain existing requests with timeout
             self.logger.info("Draining existing requests...")
             drained_successfully = self._drain_existing_requests(timeout_seconds=30)
             if not drained_successfully:
                 warning_messages.append("Some requests may not have completed before shutdown")
             shutdown_components.append("request_draining")
-            
+
             # 3. Call registered shutdown callbacks in order
             self.logger.info(f"Calling {len(self.shutdown_callbacks)} shutdown callbacks...")
             callback_results = self._execute_shutdown_callbacks()
             shutdown_components.extend(callback_results.get("successful", []))
             failed_components.extend(callback_results.get("failed", []))
             error_messages.extend(callback_results.get("errors", []))
-            
+
             # 4. Shutdown model manager and unload models
             try:
                 self.logger.info("Unloading models...")
@@ -868,7 +813,7 @@ class HealthCheckManager:
                 self.logger.error(error_msg, exc_info=True)
                 error_messages.append(error_msg)
                 failed_components.append("model_manager")
-            
+
             # 5. Close database connections and other persistent resources
             try:
                 self.logger.info("Closing database connections...")
@@ -883,7 +828,7 @@ class HealthCheckManager:
                 error_messages.append(error_msg)
                 failed_components.append("database_connections")
                 connections_closed = False
-            
+
             # 6. Flush logs and export metrics
             try:
                 self.logger.info("Flushing logs and exporting metrics...")
@@ -892,7 +837,7 @@ class HealthCheckManager:
                     shutdown_components.append("log_flushing")
                 else:
                     warning_messages.append("Some logs may not have flushed completely")
-                
+
                 metrics_exported = self._export_metrics()
                 if metrics_exported:
                     shutdown_components.append("metrics_exporting")
@@ -905,7 +850,7 @@ class HealthCheckManager:
                 failed_components.extend(["log_flushing", "metrics_exporting"])
                 logs_flushed = False
                 metrics_exported = False
-            
+
             # 7. Notify monitoring systems and alerting services
             try:
                 self.logger.info("Sending shutdown notification to monitoring systems...")
@@ -919,7 +864,7 @@ class HealthCheckManager:
                 self.logger.error(error_msg, exc_info=True)
                 error_messages.append(error_msg)
                 failed_components.append("monitoring_notification")
-            
+
             # 8. Perform final cleanup operations
             try:
                 self.logger.info("Performing final cleanup...")
@@ -934,24 +879,24 @@ class HealthCheckManager:
                 error_messages.append(error_msg)
                 failed_components.append("final_cleanup")
                 cleanup_performed = False
-            
+
             # Calculate total shutdown duration
             duration = time.time() - start_time
-            
+
             # Determine overall success
             success = len(failed_components) == 0
-            
+
             if success:
                 self.logger.info(f"✅ Graceful shutdown completed successfully in {duration:.2f} seconds")
             else:
                 self.logger.warning(f"⚠️ Graceful shutdown completed with {len(failed_components)} failed components in {duration:.2f} seconds")
                 for failed_component in failed_components:
                     self.logger.warning(f"  Failed component: {failed_component}")
-            
+
             # Log any warnings
             for warning in warning_messages:
                 self.logger.warning(f"Shutdown warning: {warning}")
-            
+
             return ShutdownResult(
                 success=success,
                 duration_seconds=duration,
@@ -967,13 +912,13 @@ class HealthCheckManager:
                 metrics_exported=metrics_exported,
                 connections_closed=connections_closed
             )
-            
+
         except Exception as e:
             duration = time.time() - start_time
             error_msg = f"Critical error during shutdown: {str(e)}"
             self.logger.critical(error_msg, exc_info=True)
             error_messages.append(error_msg)
-            
+
             # Attempt emergency cleanup
             try:
                 self._emergency_cleanup()
@@ -981,7 +926,7 @@ class HealthCheckManager:
                 emergency_error_msg = f"Emergency cleanup failed: {str(emergency_error)}"
                 self.logger.critical(emergency_error_msg, exc_info=True)
                 error_messages.append(emergency_error_msg)
-            
+
             return ShutdownResult(
                 success=False,
                 duration_seconds=duration,
@@ -997,7 +942,7 @@ class HealthCheckManager:
                 metrics_exported=False,
                 connections_closed=False
             )
-    
+
     def _notify_services_shutdown_initiated(self):
         """Notify dependent services that shutdown is being initiated"""
         try:
@@ -1006,11 +951,11 @@ class HealthCheckManager:
             # - Dependent services to prepare for disruption
             # - Monitoring systems to expect downtime
             # - Alerting systems to suppress alerts during maintenance
-            
+
             self.logger.info("Sent shutdown notifications to dependent services")
         except Exception as e:
             self.logger.warning(f"Failed to notify services of shutdown: {e}")
-    
+
     def _drain_existing_requests(self, timeout_seconds: int = 30) -> bool:
         """Allow existing requests to complete with timeout"""
         try:
@@ -1018,23 +963,23 @@ class HealthCheckManager:
             # - Stop accepting new requests
             # - Wait for existing requests to complete
             # - Honor the timeout constraint
-            
+
             self.logger.info(f"Draining existing requests with timeout of {timeout_seconds} seconds")
-            
+
             # Simulate draining
             time.sleep(min(2, timeout_seconds / 10))  # Don't actually wait long in testing
-            
+
             return True
         except Exception as e:
             self.logger.error(f"Error during request draining: {e}")
             return False
-    
+
     def _execute_shutdown_callbacks(self) -> Dict[str, List[str]]:
         """Execute registered shutdown callbacks"""
         successful_callbacks = []
         failed_callbacks = []
         error_messages = []
-        
+
         for i, callback in enumerate(self.shutdown_callbacks):
             try:
                 self.logger.info(f"Executing shutdown callback {i+1}/{len(self.shutdown_callbacks)}")
@@ -1046,25 +991,25 @@ class HealthCheckManager:
                 self.logger.error(error_msg, exc_info=True)
                 error_messages.append(error_msg)
                 failed_callbacks.append(f"callback_{i}")
-        
+
         return {
             "successful": successful_callbacks,
             "failed": failed_callbacks,
             "errors": error_messages
         }
-    
+
     def _close_database_connections(self) -> bool:
         """Close database connections and other persistent resources"""
         try:
             # In a real implementation, this would close database connections,
             # message queues, file handles, and other persistent resources
-            
+
             self.logger.info("Closed database connections and persistent resources")
             return True
         except Exception as e:
             self.logger.error(f"Error closing database connections: {e}")
             return False
-    
+
     def _flush_logs(self) -> bool:
         """Flush logs to ensure all entries are written"""
         try:
@@ -1074,13 +1019,13 @@ class HealthCheckManager:
                     handler.flush()
                 except:
                     pass  # Ignore errors during flushing
-            
+
             self.logger.info("Logs flushed successfully")
             return True
         except Exception as e:
             self.logger.error(f"Error flushing logs: {e}")
             return False
-    
+
     def _export_metrics(self) -> bool:
         """Export metrics to persistent storage"""
         try:
@@ -1089,13 +1034,13 @@ class HealthCheckManager:
             # - Cloud monitoring services
             # - File-based storage
             # - Database storage
-            
+
             self.logger.info("Metrics exported successfully")
             return True
         except Exception as e:
             self.logger.error(f"Error exporting metrics: {e}")
             return False
-    
+
     def _notify_monitoring_systems(self, reason: str) -> Any:
         """Notify monitoring systems of shutdown"""
         try:
@@ -1103,18 +1048,18 @@ class HealthCheckManager:
             # - Alerting systems to suppress alerts
             # - Monitoring dashboards to show maintenance status
             # - Logging systems to annotate the shutdown
-            
+
             class NotificationResult:
                 def __init__(self, success: bool, message: str):
                     self.success = success
                     self.message = message
-            
+
             self.logger.info(f"Notified monitoring systems of shutdown (reason: {reason})")
             return NotificationResult(True, "Notifications sent successfully")
         except Exception as e:
             self.logger.error(f"Error notifying monitoring systems: {e}")
             return NotificationResult(False, f"Notification failed: {str(e)}")
-    
+
     def _perform_final_cleanup(self) -> bool:
         """Perform final cleanup operations"""
         try:
@@ -1123,17 +1068,17 @@ class HealthCheckManager:
             # - Release system resources
             # - Update service registries
             # - Perform any final state persistence
-            
+
             self.logger.info("Performed final cleanup operations")
             return True
         except Exception as e:
             self.logger.error(f"Error during final cleanup: {e}")
             return False
-    
+
     def _emergency_cleanup(self):
         """Emergency cleanup when normal shutdown fails"""
         self.logger.critical("Performing emergency cleanup...")
-        
+
         # Force flush logs
         try:
             import logging
@@ -1144,16 +1089,16 @@ class HealthCheckManager:
                     pass
         except:
             pass
-        
+
         # Try to close any remaining resources
         try:
             import gc
             gc.collect()
         except:
             pass
-        
+
         self.logger.critical("Emergency cleanup completed")
-    
+
     def _cleanup_on_exit(self):
         """Cleanup function called when the process exits"""
         if not self.is_shutting_down:
@@ -1167,7 +1112,7 @@ class HealthCheckManager:
                     if thread != main_thread and thread.is_alive():
                         self.logger.info(f"Thread {thread.name} still alive, waiting...")
                         # Don't actually wait in cleanup as it may hang the process
-                
+
                 # Flush any remaining logs
                 import logging
                 for handler in logging.root.handlers:
@@ -1175,16 +1120,16 @@ class HealthCheckManager:
                         handler.flush()
                     except:
                         pass
-                        
+
             except Exception as e:
                 self.logger.error(f"Error during cleanup: {e}")
-    
+
     def get_component_health(self, component_name: str) -> Optional[ComponentHealth]:
         """Get health status for a specific component"""
         if self.last_health_check and component_name in self.last_health_check.components:
             return self.last_health_check.components[component_name]
         return None
-    
+
     def get_system_metrics(self) -> Dict[str, Any]:
         """Get current system metrics"""
         try:
@@ -1209,15 +1154,15 @@ class HealthCheckManager:
 
 class HealthCheckMiddleware:
     """Middleware for integrating health checks with web frameworks"""
-    
+
     def __init__(self, health_manager: HealthCheckManager):
         self.health_manager = health_manager
         self.logger = logging.getLogger(__name__)
-    
+
     def health_check_endpoint(self):
         """HTTP endpoint for health checks"""
         health_result = self.health_manager.get_health_status()
-        
+
         # Convert enum values to strings for JSON serialization
         response_data = {
             "status": health_result.status.value,
@@ -1238,7 +1183,7 @@ class HealthCheckMiddleware:
             },
             "metadata": health_result.metadata
         }
-        
+
         # Set appropriate HTTP status code
         if health_result.status == HealthStatus.HEALTHY:
             status_code = 200
@@ -1246,17 +1191,17 @@ class HealthCheckMiddleware:
             status_code = 200  # Degraded is still considered "healthy" but with warnings
         else:
             status_code = 503  # Unhealthy or maintenance
-        
+
         return status_code, response_data
-    
+
     def readiness_probe_endpoint(self):
         """HTTP endpoint for readiness probes"""
         # Readiness probe checks if the service is ready to serve requests
         health_result = self.health_manager.get_health_status()
-        
+
         # For readiness, we might have different criteria than general health
         is_ready = health_result.status in [HealthStatus.HEALTHY, HealthStatus.DEGRADED]
-        
+
         response_data = {
             "ready": is_ready,
             "status": health_result.status.value,
@@ -1267,10 +1212,10 @@ class HealthCheckMiddleware:
                 "warnings": health_result.warnings
             }
         }
-        
+
         status_code = 200 if is_ready else 503
         return status_code, response_data
-    
+
     def liveness_probe_endpoint(self):
         """HTTP endpoint for liveness probes"""
         # Liveness probe checks if the process is alive and responding
@@ -1290,7 +1235,7 @@ class HealthCheckMiddleware:
                 "error": str(e)
             }
             status_code = 503
-        
+
         return status_code, response_data
 
 
@@ -1317,9 +1262,10 @@ health_manager = HealthCheckManager()
 # Integration with FastAPI
 def integrate_health_checks_with_fastapi(app):
     """Integrate health checks with a FastAPI application"""
-    from fastapi import FastAPI, HTTPException, Response
     import json
-    
+
+    from fastapi import FastAPI, HTTPException, Response
+
     @app.get("/health")
     async def health_check():
         """Health check endpoint"""
@@ -1329,7 +1275,7 @@ def integrate_health_checks_with_fastapi(app):
             status_code=status_code,
             media_type="application/json"
         )
-    
+
     @app.get("/ready")
     async def readiness_probe():
         """Readiness probe endpoint"""
@@ -1339,7 +1285,7 @@ def integrate_health_checks_with_fastapi(app):
             status_code=status_code,
             media_type="application/json"
         )
-    
+
     @app.get("/alive")
     async def liveness_probe():
         """Liveness probe endpoint"""
@@ -1349,7 +1295,7 @@ def integrate_health_checks_with_fastapi(app):
             status_code=status_code,
             media_type="application/json"
         )
-    
+
     # Register shutdown callback with FastAPI
     @app.on_event("shutdown")
     async def shutdown_event():
@@ -1365,7 +1311,7 @@ def integrate_health_checks_with_fastapi(app):
 # Integration with Uvicorn/Gunicorn
 def integrate_with_asgi_server(server_type: str = "uvicorn"):
     """Integrate health checks with ASGI servers like Uvicorn or Gunicorn"""
-    
+
     def shutdown_handler(signum, frame):
         """Handler for shutdown signals"""
         logger.info(f"Received {server_type} shutdown signal {signum}")
@@ -1375,11 +1321,11 @@ def integrate_with_asgi_server(server_type: str = "uvicorn"):
             logger.info("Server shutdown completed successfully")
         else:
             logger.error(f"Server shutdown completed with errors: {result.error_messages}")
-    
+
     # Register signal handlers
     signal.signal(signal.SIGTERM, shutdown_handler)
     signal.signal(signal.SIGINT, shutdown_handler)
-    
+
     # Register cleanup on exit
     atexit.register(lambda: health_manager.initiate_graceful_shutdown())
 
@@ -1388,21 +1334,21 @@ def integrate_with_asgi_server(server_type: str = "uvicorn"):
 def test_health_check_system():
     """Test the health check system"""
     logger.info("Testing Health Check System...")
-    
+
     # Test health manager creation
     manager = HealthCheckManager()
-    
+
     # Register a mock component
     class MockComponent:
         def __init__(self):
             self.is_healthy = True
-        
+
         def get_status(self):
             return "healthy" if self.is_healthy else "unhealthy"
-    
+
     mock_component = MockComponent()
     manager.register_component("mock_component", mock_component)
-    
+
     # Register a custom health check
     def custom_health_check():
         return ComponentHealth(
@@ -1412,28 +1358,28 @@ def test_health_check_system():
             health_score=1.0,
             details={"custom_field": "test_value"}
         )
-    
+
     manager.register_health_check("custom_check", custom_health_check)
-    
+
     # Perform health check
     print("Performing health check...")
     health_result = manager.perform_health_check()
-    
+
     print(f"Overall status: {health_result.status.value}")
     print(f"Overall score: {health_result.overall_score:.2f}")
     print(f"Components checked: {len(health_result.components)}")
-    
+
     for component_name, component_health in health_result.components.items():
         print(f"  {component_name}: {component_health.status.value} (score: {component_health.health_score:.2f})")
         if component_health.details:
             print(f"    Details: {component_health.details}")
-    
+
     # Test system metrics
     print("\nSystem metrics:")
     metrics = manager.get_system_metrics()
     for key, value in metrics.items():
         print(f"  {key}: {value}")
-    
+
     # Test component health lookup
     print("\nComponent health lookup:")
     model_health = manager.get_component_health("model_status")
@@ -1441,18 +1387,18 @@ def test_health_check_system():
         print(f"  Model status: {model_health.status.value}")
     else:
         print("  Model status: Not found in last health check")
-    
+
     # Test graceful shutdown registration
     def mock_shutdown_callback():
         print("Mock shutdown callback executed")
-    
+
     manager.register_shutdown_callback(mock_shutdown_callback)
     print(f"Shutdown callbacks registered: {len(manager.shutdown_callbacks)}")
-    
+
     # Test shutdown (but don't actually shut down)
     print("\nTesting shutdown (simulated)...")
     # Note: We won't actually call initiate_graceful_shutdown here as it would shut down the test
-    
+
     print("Health check system test completed!")
 
 
@@ -1460,22 +1406,22 @@ def test_health_check_system():
 def test_graceful_shutdown():
     """Test graceful shutdown functionality"""
     print("Testing Graceful Shutdown...")
-    
+
     manager = HealthCheckManager()
-    
+
     # Register a mock shutdown callback
     shutdown_executed = False
-    
+
     def test_shutdown_callback():
         nonlocal shutdown_executed
         shutdown_executed = True
         print("Test shutdown callback executed")
-    
+
     manager.register_shutdown_callback(test_shutdown_callback)
-    
+
     # Simulate shutdown without actually shutting down the process
     # In a real scenario, you'd call manager.initiate_graceful_shutdown()
-    
+
     print("Graceful shutdown test completed!")
     return True
 

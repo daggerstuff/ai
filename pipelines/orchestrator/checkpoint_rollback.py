@@ -61,7 +61,7 @@ class CheckpointManager:
         """Load checkpoint history from file"""
         if self.checkpoint_history_file.exists():
             try:
-                with open(self.checkpoint_history_file, "r") as f:
+                with open(self.checkpoint_history_file) as f:
                     data = json.load(f)
                 return [self._dict_to_checkpoint_info(item) for item in data]
             except Exception as e:
@@ -340,7 +340,7 @@ class RollbackManager:
         """Load rollback history from file"""
         if self.rollback_log_file.exists():
             try:
-                with open(self.rollback_log_file, "r") as f:
+                with open(self.rollback_log_file) as f:
                     return json.load(f)
             except Exception as e:
                 self.logger.warning(f"Could not load rollback history: {e}")

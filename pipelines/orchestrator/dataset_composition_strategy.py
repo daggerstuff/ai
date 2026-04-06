@@ -42,7 +42,7 @@ class DatasetComposer:
         """Load dataset from JSONL file"""
         records = []
         try:
-            with open(dataset_path, "r") as f:
+            with open(dataset_path) as f:
                 for line in f:
                     records.append(json.loads(line.strip()))
             logger.info(f"Loaded {len(records)} records from {dataset_path}")

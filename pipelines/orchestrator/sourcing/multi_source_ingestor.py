@@ -15,9 +15,11 @@ from __future__ import annotations
 import json
 import logging
 import os
+import queue
 import tempfile
+import threading
 from collections.abc import Iterator
-from io import BytesIO
+from io import BytesIO, RawIOBase
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar
 
@@ -68,9 +70,66 @@ try:
 except ImportError:
     NGCIngestor = None  # type: ignore[assignment, misc]
 
+from ai.pipelines.orchestrator.sourcing.bootstrap_dataset_registry import (
+    HF_STREAMING_BOOTSTRAP_TARGETS,
+)
+
 load_dotenv("ai/.env")
 
 logger = logging.getLogger(__name__)
+BOOTSTRAP_STREAM_ROW_LIMIT = 500
+
+
+class _QueueStream(RawIOBase):
+    """Minimal readable stream backed by a producer queue."""
+
+    def __init__(self) -> None:
+        self._chunks: queue.SimpleQueue[bytes | None] = queue.SimpleQueue()
+        self._pending = bytearray()
+        self._closed = False
+        self._error: Exception | None = None
+        self._aborted = threading.Event()
+
+    def readable(self) -> bool:
+        return True
+
+    def close(self) -> None:
+        self._closed = True
+        self._aborted.set()
+        super().close()
+
+    def write_chunk(self, chunk: bytes) -> None:
+        if self._aborted.is_set():
+            raise RuntimeError("Queue stream aborted before producer completed")
+        if not chunk:
+            return
+        self._chunks.put(chunk)
+
+    def finish(self) -> None:
+        self._chunks.put(None)
+
+    def fail(self, error: Exception) -> None:
+        self._error = error
+        self._aborted.set()
+        self.finish()
+
+    def readinto(self, buffer: bytearray) -> int:
+        if self._closed:
+            return 0
+
+        target = memoryview(buffer)
+        while not self._pending:
+            chunk = self._chunks.get()
+            if chunk is None:
+                if self._error is not None:
+                    raise self._error
+                return 0
+            self._pending.extend(chunk)
+
+        size = min(len(target), len(self._pending))
+        target[:size] = self._pending[:size]
+        del self._pending[:size]
+        return size
 
 
 def get_s3_client() -> Any | None:
@@ -100,52 +159,51 @@ def get_s3_client() -> Any | None:
 def stream_to_s3(
     data: Iterator[dict], bucket: str, key: str, _batch_size: int = 100
 ) -> int:
-    """Streams data directly to S3 as JSONL without local storage."""
+    """Streams data to S3 as JSONL without buffering the full payload in memory."""
     s3 = get_s3_client()
     if not s3:
         return 0
 
-    buffer = BytesIO()
     count = 0
+    stream = _QueueStream()
 
-    for record in data:
-        line = json.dumps(record) + "\n"
-        buffer.write(line.encode("utf-8"))
-        count += 1
+    def producer() -> None:
+        nonlocal count
+        try:
+            for record in data:
+                line = json.dumps(record) + "\n"
+                stream.write_chunk(line.encode("utf-8"))
+                count += 1
+        except Exception as exc:
+            stream.fail(exc)
+        finally:
+            if stream._error is None:
+                stream.finish()
 
-    buffer.seek(0)
-    s3.upload_fileobj(buffer, bucket, key)
+    producer_thread = threading.Thread(target=producer, daemon=True)
+    producer_thread.start()
+    try:
+        s3.upload_fileobj(stream, bucket, key)
+    except Exception as exc:
+        stream.fail(exc)
+        producer_thread.join()
+        raise
+    producer_thread.join()
+    if stream._error is not None:
+        raise stream._error
+
     logger.info(f"Streamed {count} records to s3://{bucket}/{key}")
     return count
 
 
 class HuggingFaceIngestor:
-    """Ingests datasets from HuggingFace, streaming directly to S3."""
+    """Ingests datasets from HuggingFace, streaming directly to S3.
 
-    DATASETS: ClassVar[dict] = {
-        # Foundation
-        "Amod/mental_health_counseling_conversations": {"target": "tier2_professional"},
-        "heliosbrahma/mental_health_chatbot_dataset": {"target": "tier1_foundation"},
-        # Addiction
-        "fadodr/mental_health_therapy": {"target": "tier2_professional"},
-        # PTSD/Trauma
-        "yenopoya/thousand-voices-trauma": {"target": "tier2_professional"},
-        # Personality Disorders
-        "Kanakmi/mental-disorders": {"target": "tier2_professional"},
-        # Chain-of-Thought Reasoning (NEW - from spec, 30K+ entries)
-        "Cartinoe5930/CoT-Clinical-Reasoning": {"target": "tier3_cot_reasoning"},
-        "Cartinoe5930/CoT-Emotional-Reasoning": {"target": "tier3_cot_reasoning"},
-        "WizardLM/WizardLM-70b-V1.0-evol-cot": {"target": "tier3_cot_reasoning"},
-        "jondurbin/bagel-dpo-34b-v0.2": {"target": "tier3_cot_reasoning"},
-        # Roleplay & Persona
-        "google/Synthetic-Persona-Chat": {"target": "tier4_voice_persona"},
-        "nazlicanto/persona-based-chat": {"target": "tier4_voice_persona"},
-        "hieunguyenminh/roleplay": {"target": "tier4_voice_persona"},
-        "NousResearch/CharacterCodex": {"target": "tier4_voice_persona"},
-        # Model Selection / Evaluation
-        "HuggingFaceH4/ultrafeedback_binarized": {"target": "tier5_research"},
-        "argilla/ultrafeedback-multi-binarized": {"target": "tier5_research"},
-    }
+    This path is a bootstrap streamer. Its row cap is for bounded acquisition
+    runs and must not be read as production corpus volume.
+    """
+
+    DATASETS: ClassVar[dict] = HF_STREAMING_BOOTSTRAP_TARGETS
 
     def process_and_stream(
         self, bucket: str = "pixel-data", prefix: str = "datasets/training_v3/"
@@ -173,7 +231,7 @@ class HuggingFaceIngestor:
                 # Capture loop variables in closure defaults
                 def data_generator(dataset=ds, source_name=ds_name):
                     for i, row in enumerate(dataset):
-                        if i >= 500:  # Limit per dataset
+                        if i >= BOOTSTRAP_STREAM_ROW_LIMIT:
                             break
                         yield {"source": source_name, "data": dict(row)}
 

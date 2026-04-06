@@ -11,15 +11,16 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from ai.pipelines.orchestrator.configs.intake_routing import CONTINUITY_HOLDOUT_LANE
 from ai.pipelines.orchestrator.configs.stages import get_all_stages
 from ai.pipelines.orchestrator.data_splitter import DataSplitter
-from ai.pipelines.orchestrator.configs.intake_routing import CONTINUITY_HOLDOUT_LANE
 from ai.pipelines.orchestrator.ingestion.intake_gates import OrchestratorIntakeGates
 from ai.pipelines.orchestrator.ingestion.intake_routing_adapter import (
     apply_intake_routing,
 )
-from ai.pipelines.orchestrator.storage_config import StorageBackend, get_storage_config
-from ai.pipelines.orchestrator.storage_manager import StorageManager
+from ai.pipelines.orchestrator.orchestration.external_sync_config import (
+    ExternalSyncConfig,
+)
 from ai.pipelines.orchestrator.orchestration.pipeline_service_factory import (
     build_pipeline_services,
 )
@@ -29,11 +30,41 @@ from ai.pipelines.orchestrator.orchestration.runtime_policy_service import (
 from ai.pipelines.orchestrator.orchestration.storage_resolver import (
     StorageResolver,
 )
+from ai.pipelines.orchestrator.storage_config import StorageBackend, get_storage_config
+from ai.pipelines.orchestrator.storage_manager import StorageManager
 from ai.pipelines.orchestrator.utils.logger import get_logger
 
 logger = get_logger("dataset_pipeline.integrated_training_pipeline")
 STAGE_MANIFEST_PATH = Path("ai/data/training_policy_manifest.json")
 STAGE_DRIFT_TOLERANCE = 0.02
+# This is the assembly target for one integrated export run. It is not a claim
+# about total corpus inventory, prior model training volume, or release size.
+DEFAULT_INTEGRATED_ASSEMBLY_TARGET = 8000
+SYNC_ATTRIBUTE_NAMES = {
+    "enable_progress_tracking",
+    "progress_tracker_path",
+    "enable_tracker_sync",
+    "tracker_sync_output_path",
+    "tracker_sync_state_output_path",
+    "enable_asana_sync",
+    "enable_beads_sync",
+    "enable_jira_sync",
+    "enable_linear_sync",
+    "enable_dataset_asana_sync",
+    "asana_project_gid",
+    "asana_section_gid",
+    "asana_dataset_section_gid",
+    "asana_parent_task_gid",
+    "asana_task_gid_output_path",
+    "asana_task_key_mapping_output_path",
+    "asana_task_transition_output_path",
+    "asana_dataset_mapping_output_path",
+    "dataset_scan_directory",
+    "dataset_file_patterns",
+    "dataset_task_prefix",
+    "stage_health_report_output_path",
+    "closure_pack_output_path",
+}
 
 
 @dataclass
@@ -44,20 +75,38 @@ class DataSourceConfig:
     target_percentage: float = 0.0  # Target percentage of final dataset
     max_samples: int | None = None
     source_path: str | None = None
+    source_paths: tuple[str, ...] = ()
     fallback_paths: tuple[str, ...] = ()
 
 
 @dataclass
 class IntegratedPipelineConfig:
-    """Configuration for integrated training pipeline"""
+    """Configuration for one integrated dataset assembly run."""
 
     # Data source configurations
     edge_cases: DataSourceConfig = field(
         default_factory=lambda: DataSourceConfig(
             enabled=True,
             target_percentage=0.25,  # 25% edge cases
-            # Updated 2026-03-19: Use rclone path from dataset_registry.json
-            source_path="drive:backups/S3-Complete/gdrive/processed/edge_cases/edge_cases_training_format.jsonl",
+            # Use the large archive crisis-conversation corpus as the primary
+            # Stage 3 feeder. Smaller processed/local edge-case outputs remain
+            # as supplementary backstops, but they are too repetitive or too
+            # small to stand in as the canonical source on their own.
+            source_path=(
+                "gdrive:backups/S3-Complete/archive/gdrive/"
+                "tier3_edge_crisis/crisis_detection_conversations.jsonl"
+            ),
+            source_paths=(
+                "gdrive:backups/S3-Complete/processed_ready/"
+                "crisis_detection_conversations_processed_processed_"
+                "processed_processed_processed_processed_processed_"
+                "processed_processed_processed_processed_processed_"
+                "processed.jsonl",
+                "ai/pipelines/edge_case/output/edge_cases_training_format.jsonl",
+                "gdrive:backups/S3-Complete/datasets/consolidated/edge_cases/existing_edge_cases.jsonl",
+                "ai/data/cleaned_v3/nightmare_fuel_cleaned.jsonl",
+                "ai/training/ready_packages/datasets/synthetic/nightmare_fuel.jsonl",
+            ),
         )
     )
 
@@ -65,8 +114,27 @@ class IntegratedPipelineConfig:
         default_factory=lambda: DataSourceConfig(
             enabled=True,
             target_percentage=0.20,  # 20% voice-derived
-            # Updated 2026-03-19: Use rclone path from dataset_registry.json
-            source_path="drive:backups/S3-Complete/voice/exports",
+            # Stage 4 is an aggregate lane, not a single shard. These are the
+            # live persona corpora currently present in the training_v3 branch.
+            source_path=(
+                "gdrive:backups/S3-Complete/datasets/training_v3/"
+                "stage4_voice_persona/hieunguyenminh_roleplay.jsonl"
+            ),
+            source_paths=(
+                "gdrive:backups/S3-Complete/datasets/training_v3/"
+                "stage4_voice_persona/google_Synthetic-Persona-Chat.jsonl",
+                "gdrive:backups/S3-Complete/datasets/training_v3/"
+                "stage4_voice_persona/nazlicanto_persona-based-chat.jsonl",
+                "ai/data/tim_fletcher_voice/exports/tim_fletcher_conversations.jsonl",
+                "ai/data/doc_snipes_voice/exports/doc_snipes_conversations.jsonl",
+                "ai/data/doctorramani_voice/exports/doctorramani_conversations.jsonl",
+                "ai/data/heidi_priebe_voice/exports/heidi_priebe_conversations.jsonl",
+                "ai/data/patrick_teahan_voice/exports/patrick_teahan__conversations.jsonl",
+                "ai/data/therapy_in_a_nutshell_voice/exports/"
+                "therapy_in_a_nutshell_conversations.jsonl",
+                "ai/data/crappy_childhood_fairy_voice/exports/"
+                "crappy_childhood_fairy_conversations.jsonl",
+            ),
         )
     )
 
@@ -75,7 +143,7 @@ class IntegratedPipelineConfig:
             enabled=True,
             target_percentage=0.15,  # 15% psychology knowledge
             # Updated 2026-03-19: Use rclone path from dataset_registry.json
-            source_path="drive:backups/S3-Complete/datasets/consolidated/datasets/psychology_dataset.json",
+            source_path="gdrive:backups/S3-Complete/datasets/consolidated/psychology_knowledge/psychology_knowledge_base_optimized.json",
         )
     )
 
@@ -92,11 +160,17 @@ class IntegratedPipelineConfig:
         default_factory=lambda: DataSourceConfig(
             enabled=True,
             target_percentage=0.30,  # 30% standard conversations
-            # Updated 2026-03-19: Use rclone path - ULTIMATE_FINAL_DATASET
-            # has 420K samples
+            # The large standard corpus remains the main Stage 2 feeder, but
+            # current specialist branches should be admitted alongside it.
             source_path=(
-                "drive:backups/S3-Complete/processed_ready/"
+                "gdrive:backups/S3-Complete/processed_ready/"
                 "ULTIMATE_FINAL_DATASET_processed.jsonl"
+            ),
+            source_paths=(
+                "gdrive:backups/S3-Complete/datasets/training_v3/"
+                "stage2_specialist_addiction/fadodr_mental_health_therapy.jsonl",
+                "gdrive:backups/S3-Complete/datasets/training_v3/"
+                "stage2_specialist_personality/Kanakmi_mental-disorders.jsonl",
             ),
             fallback_paths=(
                 "ai/lightning/pixelated-training/training_dataset.json",
@@ -107,7 +181,9 @@ class IntegratedPipelineConfig:
 
     output_dir: str = "ai/lightning"
     output_filename: str = "training_dataset.json"
-    target_total_samples: int = 8000
+    # Run budget for the assembled export. Do not conflate this with source
+    # corpus size, snapshot size, or prior training corpus volume.
+    target_total_samples: int = DEFAULT_INTEGRATED_ASSEMBLY_TARGET
     stage_distribution: dict[str, float] = field(
         default_factory=lambda: {
             "stage1_foundation": 0.40,
@@ -125,39 +201,19 @@ class IntegratedPipelineConfig:
     fail_on_missing_stage_artifacts: bool = (
         True  # STRICT MODE: Default to True for production
     )
+    sync: ExternalSyncConfig = field(default_factory=ExternalSyncConfig)
 
-    # Progress tracking integration
-    enable_progress_tracking: bool = True
-    progress_tracker_path: str = "ai/lightning/therapeutic_progress_tracker.py"
-    enable_tracker_sync: bool = True
-    tracker_sync_output_path: str = "ai/lightning/training_run_checklist.json"
-    tracker_sync_state_output_path: str = "ai/lightning/tracker_sync_state.json"
-    enable_asana_sync: bool = True
-    enable_beads_sync: bool = True
-    enable_jira_sync: bool = True
-    enable_linear_sync: bool = True
-    enable_dataset_asana_sync: bool = True  # New: Dataset inventory sync to Asana
-    asana_project_gid: str | None = None
-    asana_section_gid: str | None = None
-    asana_dataset_section_gid: str | None = None  # New: Section for dataset tasks
-    asana_parent_task_gid: str | None = None
-    asana_task_gid_output_path: str = "ai/lightning/training_run_asana_task_gid.txt"
-    asana_task_key_mapping_output_path: str = "ai/lightning/asana_task_key_mapping.json"
-    asana_task_transition_output_path: str = (
-        "ai/lightning/asana_task_transition_results.json"
-    )
-    asana_dataset_mapping_output_path: str = (
-        "ai/lightning/asana_dataset_task_mapping.json"  # New: Dataset task mapping
-    )
-    dataset_scan_directory: str = "ai/datasets"  # New: Directory to scan for datasets
-    dataset_file_patterns: list[str] = field(
-        default_factory=lambda: [".jsonl", ".json", ".csv", ".parquet"]
-    )  # New: File patterns to include
-    dataset_task_prefix: str = "DATASET"  # New: Prefix for dataset task names
-    stage_health_report_output_path: str = (
-        "ai/lightning/integrated_stage_health_report.json"
-    )
-    closure_pack_output_path: str = "ai/lightning/mtgc_closure_pack.json"
+    def __getattr__(self, name: str) -> Any:
+        if name in SYNC_ATTRIBUTE_NAMES:
+            return getattr(self.sync, name)
+        raise AttributeError(name)
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        sync = self.__dict__.get("sync")
+        if name in SYNC_ATTRIBUTE_NAMES and sync is not None:
+            setattr(sync, name, value)
+            return
+        super().__setattr__(name, value)
 
 
 @dataclass
@@ -253,7 +309,7 @@ class IntegratedTrainingPipeline:
         if storage_config.backend != StorageBackend.LOCAL:
             return StorageManager(storage_config)
 
-        if any(path.startswith(("drive:", "datasets/")) for path in source_paths):
+        if any(path.startswith(("gdrive:", "datasets/")) for path in source_paths):
             rclone_config = replace(storage_config, backend=StorageBackend.RCLONE)
             return StorageManager(rclone_config)
 

@@ -5,11 +5,11 @@ This module provides comprehensive configuration management with environment-bas
 settings, validation, and secure handling of sensitive data for HIPAA++ compliance.
 """
 
-import os
 import logging
-from typing import Optional, List, Dict, Any
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 
 @dataclass

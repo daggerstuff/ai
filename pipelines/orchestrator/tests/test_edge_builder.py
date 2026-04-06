@@ -6,10 +6,11 @@ Tests for EdgeDatasetBuilder, focusing on conversation normalization and strict 
 from typing import Dict, List, Union, cast
 
 import pytest
+
 from ai.pipelines.orchestrator.edge.edge_builder import (
     EdgeDatasetBuilder,
-    RawEdgeExample,
     EdgeExample,
+    RawEdgeExample,
 )
 from ai.pipelines.orchestrator.types.edge_categories import (
     EdgeCategory,

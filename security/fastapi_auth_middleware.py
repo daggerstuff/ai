@@ -10,6 +10,8 @@ from typing import Callable, Optional
 
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer
+from starlette.middleware.base import BaseHTTPMiddleware
+
 from security.api_authentication import (
     APIKey,
     AuthenticationSystem,
@@ -17,7 +19,6 @@ from security.api_authentication import (
     User,
     UserRole,
 )
-from starlette.middleware.base import BaseHTTPMiddleware
 
 logger = logging.getLogger(__name__)
 

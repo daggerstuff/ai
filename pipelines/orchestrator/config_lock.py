@@ -4,14 +4,14 @@ Configuration Locking System
 Freezes configuration, seeds, and git commit info for reproducibility
 """
 
+import hashlib
 import json
 import random
 import subprocess
-from dataclasses import dataclass, asdict, field
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Dict, Any
-import hashlib
+from typing import Any, Dict, Optional
 
 
 @dataclass
@@ -165,7 +165,7 @@ class LockedConfig:
     @classmethod
     def load(cls, path: Path) -> "LockedConfig":
         """Load locked config from file"""
-        with open(path, 'r') as f:
+        with open(path) as f:
             data = json.load(f)
         return cls.from_dict(data)
 
@@ -173,8 +173,8 @@ class LockedConfig:
 def lock_config(config: Dict[str, Any], seed: Optional[int] = None,
                 repo_path: Optional[Path] = None) -> LockedConfig:
     """Lock a configuration with reproducibility info"""
-    import sys
     import platform
+    import sys
 
     # Generate seed if not provided
     if seed is None:

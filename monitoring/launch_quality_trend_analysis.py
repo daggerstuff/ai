@@ -175,7 +175,7 @@ class QualityTrendAnalysisLauncher:
 
             # Check if file has main classes
             try:
-                with open(filepath, "r") as f:
+                with open(filepath) as f:
                     content = f.read()
 
                 if filename == "quality_trend_analyzer.py":

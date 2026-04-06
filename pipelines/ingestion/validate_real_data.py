@@ -60,7 +60,7 @@ def process_file(file_path: Path) -> bool:
     logger.info(f"Validating {file_path}...")
 
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             valid_count = 0
             error_count = 0
 

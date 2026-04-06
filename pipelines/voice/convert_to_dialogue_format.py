@@ -1,6 +1,6 @@
-import os
-import json
 import glob
+import json
+import os
 
 # Configuration
 TRANSCRIPT_DIR = "data/voice_transcripts_filtered"
@@ -11,7 +11,7 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 
 def load_json(path):
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         return json.load(f)
 
 

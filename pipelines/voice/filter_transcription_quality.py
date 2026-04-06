@@ -1,6 +1,6 @@
-import os
-import json
 import glob
+import json
+import os
 
 # Configuration
 INPUT_DIR = "data/voice_transcripts"
@@ -20,7 +20,7 @@ def filter_segments(transcript, threshold):
 
 
 def process_file(input_path, output_path, threshold):
-    with open(input_path, "r", encoding="utf-8") as f:
+    with open(input_path, encoding="utf-8") as f:
         data = json.load(f)
     filtered_segments = filter_segments(data, threshold)
     filtered_data = dict(data)

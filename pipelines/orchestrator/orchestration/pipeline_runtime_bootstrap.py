@@ -119,7 +119,7 @@ class PipelineRuntimeBootstrap:
         if storage_config.backend != StorageBackend.LOCAL:
             return StorageManager(storage_config)
 
-        if any(path.startswith(("drive:", "datasets/")) for path in source_paths):
+        if any(path.startswith(("gdrive:", "datasets/")) for path in source_paths):
             rclone_config = replace(storage_config, backend=StorageBackend.RCLONE)
             return StorageManager(rclone_config)
 

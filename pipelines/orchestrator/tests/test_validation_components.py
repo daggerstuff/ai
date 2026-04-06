@@ -6,6 +6,7 @@ Tests for SpeakerTurn, ConversationRecord, QualityScore, and validate_record fun
 from datetime import datetime
 
 import pytest
+
 from ai.pipelines.orchestrator.ingestion_interface import IngestRecord
 from ai.pipelines.orchestrator.validation import (
     ConversationRecord,

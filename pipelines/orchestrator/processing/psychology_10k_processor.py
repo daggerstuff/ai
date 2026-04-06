@@ -48,7 +48,7 @@ class Psychology10kProcessor:
             raise FileNotFoundError(f"Dataset file not found: {dataset_file}")
 
         data = []
-        with open(dataset_file, "r", encoding="utf-8") as f:
+        with open(dataset_file, encoding="utf-8") as f:
             for line_num, line in enumerate(f, 1):
                 if not line.strip():
                     continue

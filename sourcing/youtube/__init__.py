@@ -13,23 +13,23 @@ Components:
 
 __version__ = "1.0.0"
 
+from ai.sourcing.youtube.api import (
+    ChannelAnalyzer,
+    YouTubeAPI,
+    YouTubeChannelHunter,
+)
 from ai.sourcing.youtube.models import (
     Channel,
     ChannelQualityThresholds,
-    QualityMetrics,
-    LicensingInfo,
     ChannelStatus,
     ContentCategory,
-)
-from ai.sourcing.youtube.api import (
-    YouTubeChannelHunter,
-    YouTubeAPI,
-    ChannelAnalyzer,
+    LicensingInfo,
+    QualityMetrics,
 )
 from ai.sourcing.youtube.monitoring import (
+    AlertCondition,
     ChannelMonitor,
     HealthCheck,
-    AlertCondition,
 )
 
 __all__ = [

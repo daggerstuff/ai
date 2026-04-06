@@ -10,10 +10,11 @@ import logging
 from pathlib import Path
 from typing import Any
 
+from conversation_schema import Conversation
+
 from ai.pipelines.orchestrator.ingestion.tier_loaders.base_tier_loader import (
     BaseTierLoader,
 )
-from conversation_schema import Conversation
 
 logger = logging.getLogger(__name__)
 

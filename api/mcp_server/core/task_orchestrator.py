@@ -69,7 +69,7 @@ class Task:
 
 class TaskQueue:
     """Handles task prioritizing and queuing logic."""
-    
+
     def __init__(self, mongodb_client: MCPMongoDBClient):
         self.mongodb = mongodb_client
         self.collection = "tasks"
@@ -82,7 +82,7 @@ class TaskQueue:
     async def get_pending_tasks(self) -> List[Task]:
         """Retrieve all pending tasks ordered by priority."""
         cursor = await self.mongodb.find_many(
-            self.collection, 
+            self.collection,
             {"status": TaskStatus.PENDING.value},
             sort=[("priority", -1), ("created_at", 1)]
         )
@@ -91,8 +91,8 @@ class TaskQueue:
     async def update_task(self, task: Task) -> None:
         """Update task in persistence."""
         await self.mongodb.update_one(
-            self.collection, 
-            {"id": task.id}, 
+            self.collection,
+            {"id": task.id},
             {"$set": task.to_dict()}
         )
         logger.debug(f"Task {task.id} updated in queue")
@@ -128,7 +128,7 @@ class TaskQueue:
 
 class TaskAssigner:
     """Handles logic for matching tasks to appropriate agents."""
-    
+
     async def assign_agent(self, task: Task, agents: List[Agent]) -> Optional[Agent]:
         """Select best agent for task based on requirements and load."""
         # Baseline assignment logic: find first active agent with required capabilities
@@ -142,7 +142,7 @@ class TaskAssigner:
 
 class ProgressTracker:
     """Manages real-time task progress monitoring."""
-    
+
     def __init__(self, redis_client: MCPRedisClient):
         self.redis = redis_client
 
@@ -173,7 +173,7 @@ class TaskOrchestrator:
         self.task_queue = TaskQueue(mongodb_client)
         self.task_assigner = TaskAssigner()
         self.progress_tracker = ProgressTracker(redis_client)
-        
+
     async def create_task(self, task_data: TaskCreationData) -> Task:
         """Create and enqueue task."""
         task = Task(
@@ -186,14 +186,14 @@ class TaskOrchestrator:
             status=TaskStatus.PENDING,
             created_at=datetime.utcnow()
         )
-        
+
         await self.task_queue.enqueue(task)
-        
+
         # Trigger assignment asynchronously
         asyncio.create_task(self.assign_task(task.id))
-        
+
         return task
-    
+
     async def assign_task(self, task_id: str) -> bool:
         """Assign task to appropriate agent."""
         task_data = await self.mongodb.find_one("tasks", {"id": task_id})
@@ -218,27 +218,27 @@ class TaskOrchestrator:
                 "remaining in pending state"
             )
             return False
-            
+
         # Update task status
         task.status = TaskStatus.ASSIGNED
         task.agent_id = agent.id
         task.assigned_at = datetime.utcnow()
-        
+
         await self.task_queue.update_task(task)
-        
+
         # Update agent status to BUSY
         await self.agent_manager.update_agent_status(
             agent.id, AgentStatus.BUSY
         )
-        
+
         # Notify assigned agent via Redis
         await self.redis.publish(f"agent.{agent.id}.tasks", {
             'action': 'new_task',
             'task': task.to_dict()
         })
-        
+
         return True
-    
+
     async def update_task_progress(
         self,
         task_id: str,

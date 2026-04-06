@@ -52,7 +52,7 @@ class TranscriptCorrector:
                         "common_misinterpretations": {},
                     }
 
-            with open(self.config_path, "r", encoding="utf-8") as f:
+            with open(self.config_path, encoding="utf-8") as f:
                 return json.load(f)
         except Exception as e:
             logger.error(f"Failed to load terminology config: {e}")

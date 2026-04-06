@@ -6,8 +6,8 @@ and create a clean registry based on reality.
 
 import json
 import subprocess
-from pathlib import Path
 from collections import defaultdict
+from pathlib import Path
 
 
 def run_rclone(command: str) -> str:

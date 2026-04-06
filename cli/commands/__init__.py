@@ -10,12 +10,12 @@ This package contains all the command groups for the CLI tool:
 - auth_group: Authentication commands
 """
 
-from .web_frontend import web_frontend_group
+from .auth import auth_group
 from .cli_interface import cli_interface_group
+from .config import config_group
 from .mcp_connect import mcp_connect_group
 from .pipeline import pipeline_group
-from .config import config_group
-from .auth import auth_group
+from .web_frontend import web_frontend_group
 
 __all__ = [
     'web_frontend_group',

@@ -10,15 +10,15 @@ This system provides:
 - Real-time feedback and coaching
 """
 
+import asyncio
 import json
 import logging
-import asyncio
-from typing import Dict, List, Optional, Tuple
+import random
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
-from datetime import datetime, timedelta
-import random
+from typing import Dict, List, Optional, Tuple
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -90,7 +90,7 @@ class PerformanceAssessment:
 
 class ScenarioGenerator:
     """Generate realistic training scenarios"""
-    
+
     def __init__(self):
         # Sample client profiles for training scenarios
         self.client_profiles = {
@@ -105,7 +105,7 @@ class ScenarioGenerator:
             },
             "depression_middle_aged": {
                 "age": 45,
-                "gender": "male", 
+                "gender": "male",
                 "background": "Recently divorced, works in finance",
                 "presenting_problem": "Depression following divorce and job stress",
                 "personality": "Previously outgoing, now withdrawn and irritable",
@@ -122,13 +122,13 @@ class ScenarioGenerator:
                 "session_goals": ["Process traumatic memories", "Develop safety skills", "Rebuild trust capacity"]
             }
         }
-        
+
         # Scenario templates for different training focuses
         self.scenario_templates = {
             ScenarioType.INITIAL_ASSESSMENT: {
                 "structure": [
                     "Greeting and rapport building",
-                    "Informed consent process", 
+                    "Informed consent process",
                     "Presenting problem exploration",
                     "History gathering",
                     "Mental status exam",
@@ -141,7 +141,7 @@ class ScenarioGenerator:
             ScenarioType.CRISIS_INTERVENTION: {
                 "structure": [
                     "Crisis assessment",
-                    "Safety evaluation", 
+                    "Safety evaluation",
                     "De-escalation techniques",
                     "Resource mobilization",
                     "Safety planning",
@@ -151,15 +151,15 @@ class ScenarioGenerator:
                 "common_challenges": ["High emotions", "Safety concerns", "Time pressure"]
             }
         }
-    
-    def generate_scenario(self, scenario_type: ScenarioType, difficulty: int, 
+
+    def generate_scenario(self, scenario_type: ScenarioType, difficulty: int,
                          learning_objectives: List[str]) -> TrainingScenario:
         """Generate a training scenario based on parameters"""
-        
+
         # Select appropriate client profile
         profile_key = random.choice(list(self.client_profiles.keys()))
         client_profile = self.client_profiles[profile_key].copy()
-        
+
         # Adjust difficulty based on level
         if difficulty >= 4:
             # Add complicating factors for advanced scenarios
@@ -169,9 +169,9 @@ class ScenarioGenerator:
                 "Financial stressors",
                 "Medical complications"
             ]
-        
+
         scenario_id = f"{scenario_type.value}_{difficulty}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        
+
         return TrainingScenario(
             scenario_id=scenario_id,
             title=f"{scenario_type.value.replace('_', ' ').title()} - Level {difficulty}",

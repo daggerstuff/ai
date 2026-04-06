@@ -2,7 +2,7 @@
 # Generated for test compatibility
 
 import os
-from typing import Optional, List, Dict, Any, Iterator
+from typing import Any, Dict, Iterator, List, Optional
 
 
 class S3DatasetLoader:

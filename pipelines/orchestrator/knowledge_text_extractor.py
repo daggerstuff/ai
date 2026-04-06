@@ -88,7 +88,7 @@ class KnowledgeTextExtractor:
             logger.warning(f"Registry not found: {self.registry_path}")
             return
 
-        with open(self.registry_path, "r") as f:
+        with open(self.registry_path) as f:
             self.registry = json.load(f)
 
         self._parse_sources()

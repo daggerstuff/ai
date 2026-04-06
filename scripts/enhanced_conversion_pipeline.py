@@ -165,7 +165,7 @@ class EnhancedConversionPipeline:
         """Process a complete segments file"""
         logger.info(f"Processing {input_path.name}")
 
-        with open(input_path, "r", encoding="utf-8") as f:
+        with open(input_path, encoding="utf-8") as f:
             segments = json.load(f)
 
         training_pairs = []
@@ -424,7 +424,7 @@ def main():
         all_file_stats.append(file_stats)
 
         # Load and combine training pairs
-        with open(output_file, "r", encoding="utf-8") as f:
+        with open(output_file, encoding="utf-8") as f:
             pairs = json.load(f)
         all_training_pairs.extend(pairs)
 

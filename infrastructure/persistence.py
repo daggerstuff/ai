@@ -73,7 +73,7 @@ class DatasetPersistence:
         # Check local fallback
         local_path = Path(f"ai/data/versions/{name}_{version}.json")
         if local_path.exists():
-            with open(local_path, "r") as f:
+            with open(local_path) as f:
                 return json.load(f)
         return None
 

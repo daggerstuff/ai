@@ -19,7 +19,6 @@ sys.path.insert(0, str(project_root))
 
 import torch
 import wandb
-from datasets import load_dataset
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
@@ -27,6 +26,8 @@ from transformers import (
     Trainer,
     TrainingArguments,
 )
+
+from datasets import load_dataset
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -46,7 +47,7 @@ class EmpathyAITrainer:
 
     def _load_config(self, config_path: str) -> Dict[str, Any]:
         """Load training configuration from YAML/JSON file"""
-        with open(config_path, "r") as f:
+        with open(config_path) as f:
             if config_path.endswith(".yaml") or config_path.endswith(".yml"):
                 import yaml
 

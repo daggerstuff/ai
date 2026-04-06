@@ -10,8 +10,7 @@ import logging
 # Import conversation schema
 import sys
 import uuid
-from pathlib import Path
-from pathlib import Path as PathType
+from pathlib import Path, Path as PathType
 from typing import Any, Dict, List, Optional
 
 import pypdf
