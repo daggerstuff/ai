@@ -1,14 +1,16 @@
 import json
 import time
 import uuid
+from typing import Any, cast
+from urllib.parse import urlencode
 
 import pytest
 from fastapi.testclient import TestClient
 
-from ai.api.memory.null_memory import NullMemoryManager
 from ai.api.mcp_server import memory_auth
-from ai.api.mcp_server.routes import _sanitize_user_profile_metadata
 from ai.api.mcp_server.memory_server import create_memory_server
+from ai.api.mcp_server.routes import _sanitize_user_profile_metadata
+from ai.api.memory.null_memory import NullMemoryManager
 from ai.memory.local_hindsight_manager import LocalHindsightMemoryManager
 
 
@@ -49,13 +51,26 @@ def _signed_request(
     path: str,
     *,
     user_id: str,
-    json_body=None,
-    params=None,
-    actor_id: str = "api-server",
-    secret: str = "actor-token",
-    timestamp: str | None = None,
-    nonce: str | None = None,
+    **kwargs: Any,
 ):
+    """
+    Helper to create a signed request for the memory server.
+
+    Accepts optional keyword arguments:
+    - json_body: The JSON payload
+    - params: Query parameters
+    - actor_id: The actor identity (default: "api-server")
+    - secret: The actor secret (default: "actor-token")
+    - timestamp: Override timestamp
+    - nonce: Override nonce
+    """
+    json_body = kwargs.get("json_body")
+    params = kwargs.get("params")
+    actor_id = cast(str, kwargs.get("actor_id", "api-server"))
+    secret = cast(str, kwargs.get("secret", "actor-token"))
+    timestamp = cast(str | None, kwargs.get("timestamp"))
+    nonce = cast(str | None, kwargs.get("nonce"))
+
     encoded_body = b""
     headers = {
         "X-Memory-Actor-Id": actor_id,
@@ -64,12 +79,8 @@ def _signed_request(
     if json_body is not None:
         encoded_body = json.dumps(json_body).encode("utf-8")
         headers["Content-Type"] = "application/json"
-    if params:
-        from urllib.parse import urlencode
 
-        target = f"{path}?{urlencode(params, doseq=True)}"
-    else:
-        target = path
+    target = f"{path}?{urlencode(params, doseq=True)}" if params else path
     timestamp_value = timestamp or str(int(time.time()))
     nonce_value = nonce or uuid.uuid4().hex
     headers["X-Memory-Timestamp"] = timestamp_value
@@ -142,9 +153,8 @@ def test_memory_server_requires_explicit_actor_policy_config(monkeypatch, tmp_pa
     with pytest.raises(
         RuntimeError,
         match="LOCAL_MEMORY_ACTOR_POLICIES_JSON must be configured",
-    ):
-        with TestClient(app):
-            pass
+    ), TestClient(app):
+        pass
 
 
 def test_memory_server_exposes_hindsight_compatible_routes(tmp_path, monkeypatch) -> None:
@@ -338,7 +348,7 @@ def test_route_call_maps_internal_errors_to_500(monkeypatch) -> None:
     app = create_memory_server()
 
     class BrokenManager:
-        def search_memories(self, query: str, user_id: str, limit: int = 10):
+        def search_memories(self, _query: str, _user_id: str, _limit: int = 10):
             raise RuntimeError("sqlite is on fire")
 
     app.state.memory_manager = BrokenManager()
