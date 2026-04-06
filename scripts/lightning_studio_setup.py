@@ -218,12 +218,12 @@ def check_gpu_setup():
     """Verify H100 GPU setup"""
     if not torch.cuda.is_available():
         raise RuntimeError("CUDA not available!")
-    
+
     gpu_name = torch.cuda.get_device_name(0)
     gpu_memory = torch.cuda.get_device_properties(0).total_memory / 1e9
-    
+
     logger.info(f"🚀 GPU Ready: {gpu_name} ({gpu_memory:.1f}GB)")
-    
+
     if "H100" not in gpu_name:
         logger.warning("⚠️  Expected H100 GPU, check your Lightning.ai compute settings")
 
@@ -231,7 +231,7 @@ def setup_environment():
     """Setup training environment"""
     os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
     os.environ['TORCH_USE_CUDA_DSA'] = '1'
-    
+
     # Set optimal memory settings for H100
     torch.backends.cuda.matmul.allow_tf32 = True
     torch.backends.cudnn.allow_tf32 = True
@@ -239,26 +239,26 @@ def setup_environment():
 def launch_training():
     """Launch the therapeutic AI training"""
     logger.info("🎯 Launching Therapeutic AI Training on H100...")
-    
+
     # Check prerequisites
     check_gpu_setup()
     setup_environment()
-    
+
     # Verify data is available
     if not Path("data/train.json").exists():
         raise FileNotFoundError("Training data not found! Run prepare_data.py first")
-    
+
     # Launch training
     cmd = ["python", "train_therapeutic_ai.py"]
     logger.info(f"   Executing: {' '.join(cmd)}")
-    
+
     result = subprocess.run(cmd)
-    
+
     if result.returncode == 0:
         logger.info("🎉 Training completed successfully!")
     else:
         logger.error("❌ Training failed!")
-        
+
     return result.returncode
 
 if __name__ == "__main__":
@@ -307,7 +307,7 @@ python scripts/launch_training.py
 ## 🧠 Expert Specialization
 - **Expert 0**: Therapeutic conversations
 - **Expert 1**: Educational content
-- **Expert 2**: Empathetic responses  
+- **Expert 2**: Empathetic responses
 - **Expert 3**: Practical advice
 
 ## 📈 Expected Results

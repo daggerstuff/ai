@@ -3,8 +3,9 @@ Main dataset loading and acquisition system for the dataset pipeline.
 Supports loading from HuggingFace Hub and local sources.
 """
 
-from datasets import load_dataset
 from logger import get_logger
+
+from datasets import load_dataset
 
 logger = get_logger("dataset_pipeline.data_loader")
 

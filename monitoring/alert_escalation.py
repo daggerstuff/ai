@@ -12,9 +12,7 @@ import threading
 import time
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
-
 from email.mime.multipart import MimeMultipart
-
 from email.mime.text import MimeText
 from enum import Enum
 from pathlib import Path
@@ -210,7 +208,7 @@ class AlertEscalationManager:
         """Load escalation configuration from file"""
         try:
             if Path(self.config_path).exists():
-                with open(self.config_path, "r") as f:
+                with open(self.config_path) as f:
                     config = json.load(f)
 
                 # Load escalation rules

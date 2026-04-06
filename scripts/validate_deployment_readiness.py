@@ -78,10 +78,10 @@ class DeploymentValidator:
         # Validate data quality
         try:
             # Load and validate training data
-            with open(self.unified_dataset_path / "train.json", "r") as f:
+            with open(self.unified_dataset_path / "train.json") as f:
                 train_data = json.load(f)
 
-            with open(self.unified_dataset_path / "validation.json", "r") as f:
+            with open(self.unified_dataset_path / "validation.json") as f:
                 val_data = json.load(f)
 
             validation["total_conversations"] = len(train_data) + len(val_data)
@@ -107,7 +107,7 @@ class DeploymentValidator:
             ]
 
             for expert_file in expert_files:
-                with open(self.unified_dataset_path / expert_file, "r") as f:
+                with open(self.unified_dataset_path / expert_file) as f:
                     expert_data = json.load(f)
                 expert_name = expert_file.replace("expert_", "").replace(".json", "")
                 validation["expert_balance"][expert_name] = len(expert_data)
@@ -127,7 +127,7 @@ class DeploymentValidator:
 
             # Load configuration
             with open(
-                self.unified_dataset_path / "unified_lightning_config.json", "r"
+                self.unified_dataset_path / "unified_lightning_config.json"
             ) as f:
                 config = json.load(f)
 
@@ -305,7 +305,7 @@ class DeploymentValidator:
             return validation
 
         try:
-            with open(report_path, "r") as f:
+            with open(report_path) as f:
                 report = json.load(f)
 
             validation["processing_stats"] = report

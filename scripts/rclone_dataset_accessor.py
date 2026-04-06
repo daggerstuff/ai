@@ -8,7 +8,7 @@ import json
 import subprocess
 import tempfile
 from pathlib import Path
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 
 def run_rclone(command: str, check: bool = True) -> subprocess.CompletedProcess:
@@ -112,7 +112,7 @@ def load_json_file(s3_path: str) -> Optional[Any]:
     local_file = download_file(s3_path)
     if local_file and local_file.exists():
         try:
-            with open(local_file, "r") as f:
+            with open(local_file) as f:
                 data = json.load(f)
             # Clean up temp file
             local_file.unlink()
@@ -140,7 +140,7 @@ def load_jsonl_file(s3_path: str, limit: Optional[int] = None) -> List[Dict[str,
 
     if local_file and local_file.exists():
         try:
-            with open(local_file, "r") as f:
+            with open(local_file) as f:
                 for i, line in enumerate(f):
                     if limit and i >= limit:
                         break

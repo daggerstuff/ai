@@ -164,7 +164,7 @@ class QualityAnalyticsDashboard:
 
             # Build dynamic query based on filters
             base_query = """
-            SELECT 
+            SELECT
                 c.conversation_id,
                 c.dataset_source,
                 c.tier,

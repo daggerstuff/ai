@@ -41,7 +41,7 @@ class ExecutionResult:
 
 class PipelineIntegrationManager:
     """Connect pipeline components to MCP agent orchestration."""
-    
+
     def __init__(
         self, task_orchestrator: TaskOrchestrator, agent_manager: AgentManager
     ):
@@ -58,9 +58,9 @@ class PipelineIntegrationManager:
             f"Starting pipeline execution {execution_id} with ID "
             f"{pipeline_config.pipeline_id}"
         )
-        
+
         self.active_pipelines[execution_id] = pipeline_config
-        
+
         # Sequentially or parallelly execute stages based on config
         # For now, we simulate sequential execution of defined stages
         try:
@@ -71,7 +71,7 @@ class PipelineIntegrationManager:
                     f"Dispatching stage {stage_name} for execution "
                     f"{execution_id}"
                 )
-                
+
                 # Create Task for each stage
                 task_data = TaskCreationData(
                     pipeline_id=pipeline_config.pipeline_id,
@@ -80,10 +80,10 @@ class PipelineIntegrationManager:
                     required_capabilities=stage_data.get('required_capabilities', []),
                     priority=pipeline_config.metadata.get('priority', 1)
                 )
-                
+
                 # Dispatch task via orchestrator
                 task = await self.orchestrator.create_task(task_data)
-                
+
                 # Track task completion (simulated wait)
                 # In real scenarios, this would be an event-driven or polling mechanism
                 results.append({
@@ -91,13 +91,13 @@ class PipelineIntegrationManager:
                     "task_id": task.id,
                     "status": "dispatched"
                 })
-                
+
             return ExecutionResult(
                 execution_id=execution_id,
                 status="running",
                 data={"stages_dispatched": results}
             )
-            
+
         except Exception as e:
             logger.error(
                 f"Failed to initiate pipeline execution {execution_id}: {e}"

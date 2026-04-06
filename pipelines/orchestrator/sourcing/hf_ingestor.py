@@ -3,48 +3,28 @@ import logging
 from pathlib import Path
 from typing import Dict, List
 
+from ai.pipelines.orchestrator.sourcing.bootstrap_dataset_registry import (
+    HF_BOOTSTRAP_STAGE_TARGETS,
+)
+
 logger = logging.getLogger(__name__)
+BOOTSTRAP_DATASET_ROW_LIMIT = 500
 
 
 class HuggingFaceIngestor:
     """
     Ingests public datasets from HuggingFace using the `datasets` library.
+
+    This helper is a bootstrap ingestor. Its row limit is not a statement about
+    dataset size, production inventory, or training-run sufficiency.
     """
 
-    DATASETS = {
-        # Format: "owner/name": {"target": "folder", "config": "config_name", "split": "train"}
-        # Foundation - General
-        "Amod/mental_health_counseling_conversations": {
-            "target": "stage1_foundation",
-            "split": "train",
-        },
-        "heliosbrahma/mental_health_chatbot_dataset": {
-            "target": "stage1_foundation",
-            "split": "train",
-        },
-        # Specialist - Addiction & Recovery
-        "fadodr/mental_health_therapy": {
-            "target": "stage2_specialist_addiction",
-            "split": "train",
-        },
-        # Specialist - Trauma & PTSD
-        "yenopoya/thousand-voices-trauma": {
-            "target": "stage2_specialist_ptsd",
-            "split": "train",
-        },
-        # Specialist - Personality Disorders
-        "Kanakmi/mental-disorders": {
-            "target": "stage2_specialist_personality",
-            "split": "train",
-        },
-        # Edge Cases - Crisis
-        "AIMH/SWMH": {"target": "stage3_edge_crisis", "split": "train"},
-    }
+    DATASETS = HF_BOOTSTRAP_STAGE_TARGETS
 
     def __init__(self):
         self.base_output_path = Path("ai/training/ready_packages/datasets")
 
-    def fetch_dataset(self, dataset_name: str, config: Dict) -> List[Dict]:
+    def fetch_dataset(self, dataset_name: str, config: Dict) -> tuple[List[Dict], str]:
         """
         Fetches dataset using HuggingFace `datasets` library.
         """
@@ -66,8 +46,10 @@ class HuggingFaceIngestor:
             else:
                 ds = load_dataset(dataset_name, split=split, trust_remote_code=True)
 
-            # Convert to list of dicts, limit to 500 rows for speed
-            rows = [row for row in ds.select(range(min(500, len(ds))))]
+            # Bootstrap-only cap to keep local acquisition runs bounded.
+            rows = [
+                row for row in ds.select(range(min(BOOTSTRAP_DATASET_ROW_LIMIT, len(ds))))
+            ]
             logger.info(f"  -> Loaded {len(rows)} rows.")
             return rows, target
 
@@ -75,7 +57,7 @@ class HuggingFaceIngestor:
             logger.error(f"Failed to load {dataset_name}: {e}")
             return [], config.get("target")
 
-    def process_and_save(self, limit_per_dataset: int = 500):
+    def process_and_save(self, limit_per_dataset: int = BOOTSTRAP_DATASET_ROW_LIMIT):
         """
         Downloads and saves datasets to their respective folders.
         """

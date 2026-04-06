@@ -45,8 +45,6 @@ from .multimodal_fusion import (
 )
 from .speech_recognition import (
     AudioPreprocessor as SpeechAudioPreprocessor,
-)
-from .speech_recognition import (
     SpeechRecognizer,
     TranscriptionResult,
     TranscriptionSegment,

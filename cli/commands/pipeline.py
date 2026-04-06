@@ -13,7 +13,6 @@ from typing import Any, Dict, List, Optional
 import click
 
 from ..auth import AuthManager
-
 from ..config import get_config
 from ..utils import (
     get_logger,
@@ -76,7 +75,7 @@ def start(
             return
 
         # Load pipeline configuration
-        with open(config, "r") as f:
+        with open(config) as f:
             pipeline_config = json.load(f)
 
         input_path = Path(input)
@@ -331,7 +330,7 @@ def configure(
         config_updates = {}
 
         if config_file:
-            with open(config_file, "r") as f:
+            with open(config_file) as f:
                 file_config = json.load(f)
                 config_updates.update(file_config)
 

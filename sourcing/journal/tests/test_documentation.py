@@ -174,7 +174,7 @@ class TestReportGenerator:
     def test_generate_weekly_report(self, temp_report_dir, sample_research_session):
         """Test generating a weekly report."""
         generator = ReportGenerator(output_directory=str(temp_report_dir))
-        
+
         progress = ResearchProgress(
             sources_identified=10,
             datasets_evaluated=5,
@@ -198,7 +198,7 @@ class TestReportGenerator:
     ):
         """Test generating a research summary report."""
         generator = ReportGenerator(output_directory=str(temp_report_dir))
-        
+
         evaluations = [sample_evaluation]
 
         report_path = generator.generate_research_summary_report(
@@ -314,7 +314,7 @@ class TestProgressVisualization:
     def test_generate_progress_chart_data(self, sample_research_session):
         """Test generating progress chart data."""
         viz = ProgressVisualization()
-        
+
         progress_history = [
             ResearchProgress(sources_identified=5, last_updated=datetime.now() - timedelta(days=2)),
             ResearchProgress(sources_identified=10, last_updated=datetime.now() - timedelta(days=1)),
@@ -333,7 +333,7 @@ class TestProgressVisualization:
     def test_generate_timeline_visualization(self, sample_research_session):
         """Test generating timeline visualization."""
         viz = ProgressVisualization()
-        
+
         progress_history = [
             ResearchProgress(sources_identified=i, last_updated=datetime.now() - timedelta(days=10-i))
             for i in range(10)
@@ -350,7 +350,7 @@ class TestProgressVisualization:
     def test_generate_quality_score_distribution(self, sample_evaluation, high_score_evaluation, low_score_evaluation):
         """Test generating quality score distribution."""
         viz = ProgressVisualization()
-        
+
         evaluations = [sample_evaluation, high_score_evaluation, low_score_evaluation]
 
         distribution = viz.generate_quality_score_distribution(evaluations)
@@ -362,7 +362,7 @@ class TestProgressVisualization:
     def test_export_visualization_html(self, temp_dir, sample_research_session):
         """Test exporting visualization to HTML."""
         viz = ProgressVisualization()
-        
+
         progress_history = [
             ResearchProgress(sources_identified=10, last_updated=datetime.now()),
         ]
@@ -394,7 +394,7 @@ Old progress
 """)
 
         updater = TrackingDocumentUpdater(tracking_document_path=str(tracking_file))
-        
+
         progress = ResearchProgress(
             sources_identified=10,
             datasets_evaluated=5,
@@ -419,7 +419,7 @@ Old progress
 """)
 
         updater = TrackingDocumentUpdater(tracking_document_path=str(tracking_file))
-        
+
         updater.mark_task_completed(
             task_id="task-001",
             task_description="Test task",
@@ -441,7 +441,7 @@ Old status
 """)
 
         updater = TrackingDocumentUpdater(tracking_document_path=str(tracking_file))
-        
+
         progress = ResearchProgress(
             sources_identified=10,
             datasets_evaluated=5,
@@ -462,9 +462,9 @@ Old status
 """)
 
         updater = TrackingDocumentUpdater(tracking_document_path=str(tracking_file))
-        
+
         progress = ResearchProgress(sources_identified=10)
-        
+
         weekly_report = WeeklyReport(
             week_number=1,
             start_date=datetime.now(),

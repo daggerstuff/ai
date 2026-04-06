@@ -52,47 +52,47 @@ class DashboardWebLauncher:
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             color: #333;
         }
-        
+
         .header {
             background: rgba(255, 255, 255, 0.95);
             padding: 20px 0;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             margin-bottom: 30px;
         }
-        
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 20px;
         }
-        
+
         .header h1 {
             text-align: center;
             color: #2c3e50;
             font-size: 2.5em;
             margin-bottom: 10px;
         }
-        
+
         .header p {
             text-align: center;
             color: #7f8c8d;
             font-size: 1.2em;
         }
-        
+
         .dashboard-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
             gap: 25px;
             margin-bottom: 40px;
         }
-        
+
         .dashboard-card {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 15px;
@@ -101,12 +101,12 @@ class DashboardWebLauncher:
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             border: 1px solid rgba(255,255,255,0.2);
         }
-        
+
         .dashboard-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 15px 35px rgba(0,0,0,0.15);
         }
-        
+
         .dashboard-card h3 {
             color: #2c3e50;
             margin-bottom: 15px;
@@ -114,24 +114,24 @@ class DashboardWebLauncher:
             display: flex;
             align-items: center;
         }
-        
+
         .dashboard-card .icon {
             font-size: 1.5em;
             margin-right: 10px;
         }
-        
+
         .dashboard-card p {
             color: #7f8c8d;
             margin-bottom: 20px;
             line-height: 1.6;
         }
-        
+
         .button-group {
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
         }
-        
+
         .btn {
             padding: 10px 20px;
             border: none;
@@ -144,35 +144,35 @@ class DashboardWebLauncher:
             align-items: center;
             gap: 8px;
         }
-        
+
         .btn-primary {
             background: #3498db;
             color: white;
         }
-        
+
         .btn-primary:hover {
             background: #2980b9;
             transform: translateY(-2px);
         }
-        
+
         .btn-secondary {
             background: #95a5a6;
             color: white;
         }
-        
+
         .btn-secondary:hover {
             background: #7f8c8d;
         }
-        
+
         .btn-success {
             background: #27ae60;
             color: white;
         }
-        
+
         .btn-success:hover {
             background: #229954;
         }
-        
+
         .analytics-section {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 15px;
@@ -180,36 +180,36 @@ class DashboardWebLauncher:
             margin-bottom: 30px;
             box-shadow: 0 8px 25px rgba(0,0,0,0.1);
         }
-        
+
         .analytics-section h2 {
             color: #2c3e50;
             margin-bottom: 20px;
             font-size: 1.8em;
         }
-        
+
         .analytics-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 15px;
         }
-        
+
         .analytics-item {
             background: #f8f9fa;
             padding: 15px;
             border-radius: 10px;
             border-left: 4px solid #3498db;
         }
-        
+
         .analytics-item h4 {
             color: #2c3e50;
             margin-bottom: 8px;
         }
-        
+
         .analytics-item p {
             color: #7f8c8d;
             font-size: 0.9em;
         }
-        
+
         .status-indicator {
             display: inline-block;
             width: 12px;
@@ -217,30 +217,30 @@ class DashboardWebLauncher:
             border-radius: 50%;
             margin-right: 8px;
         }
-        
+
         .status-online {
             background: #27ae60;
         }
-        
+
         .status-offline {
             background: #e74c3c;
         }
-        
+
         .footer {
             text-align: center;
             padding: 30px;
             color: rgba(255,255,255,0.8);
         }
-        
+
         @media (max-width: 768px) {
             .dashboard-grid {
                 grid-template-columns: 1fr;
             }
-            
+
             .header h1 {
                 font-size: 2em;
             }
-            
+
             .button-group {
                 justify-content: center;
             }
@@ -254,7 +254,7 @@ class DashboardWebLauncher:
             <p>Operational Dashboards & Analytics Command Center</p>
         </div>
     </div>
-    
+
     <div class="container">
         <!-- Executive Dashboards -->
         <div class="dashboard-grid">
@@ -266,7 +266,7 @@ class DashboardWebLauncher:
                     <a href="/export/executive" class="btn btn-secondary">Export PDF</a>
                 </div>
             </div>
-            
+
             <div class="dashboard-card">
                 <h3><span class="icon">⚙️</span>Operational Dashboard</h3>
                 <p>Real-time monitoring, system health, and operational metrics for daily management.</p>
@@ -275,7 +275,7 @@ class DashboardWebLauncher:
                     <a href="/refresh/operational" class="btn btn-success">Refresh Data</a>
                 </div>
             </div>
-            
+
             <div class="dashboard-card">
                 <h3><span class="icon">🔧</span>Technical Dashboard</h3>
                 <p>Detailed system metrics, performance analysis, and technical monitoring.</p>
@@ -285,7 +285,7 @@ class DashboardWebLauncher:
                 </div>
             </div>
         </div>
-        
+
         <!-- Analytics Systems -->
         <div class="analytics-section">
             <h2>🔍 Analytics Systems Status</h2>
@@ -316,7 +316,7 @@ class DashboardWebLauncher:
                 </div>
             </div>
         </div>
-        
+
         <!-- Quick Actions -->
         <div class="analytics-section">
             <h2>⚡ Quick Actions</h2>
@@ -327,7 +327,7 @@ class DashboardWebLauncher:
                 <a href="/system/health-check" class="btn btn-primary">System Health Check</a>
             </div>
         </div>
-        
+
         <!-- System Information -->
         <div class="analytics-section">
             <h2>📈 System Information</h2>
@@ -351,21 +351,21 @@ class DashboardWebLauncher:
             </div>
         </div>
     </div>
-    
+
     <div class="footer">
         <p>🎉 Pixelated Empathy AI - Operational Excellence Achieved</p>
         <p>Phase 5.6 Complete | Enterprise-Grade Analytics | Production Ready</p>
     </div>
-    
+
     <script>
         // Update last updated time
         document.getElementById('last-updated').textContent = new Date().toLocaleString();
-        
+
         // Auto-refresh every 5 minutes
         setInterval(() => {
             document.getElementById('last-updated').textContent = new Date().toLocaleString();
         }, 300000);
-        
+
         // Add click handlers for dynamic actions
         document.addEventListener('DOMContentLoaded', function() {
             // Add loading states for buttons
@@ -376,7 +376,7 @@ class DashboardWebLauncher:
                         e.preventDefault();
                         this.innerHTML = '⏳ Processing...';
                         this.style.pointerEvents = 'none';
-                        
+
                         // Simulate processing time
                         setTimeout(() => {
                             this.innerHTML = '✅ Complete';
@@ -408,7 +408,7 @@ launcher = DashboardWebLauncher()
 def index():
     """Main dashboard page"""
     template_path = launcher.create_web_interface()
-    with open(template_path, "r") as f:
+    with open(template_path) as f:
         return f.read()
 
 

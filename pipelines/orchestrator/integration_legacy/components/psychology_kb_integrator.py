@@ -40,7 +40,7 @@ class PsychologyKBIntegrator:
         # Try to load existing knowledge base
         if self.kb_path.exists():
             try:
-                with open(self.kb_path, "r") as f:
+                with open(self.kb_path) as f:
                     data = json.load(f)
                     if isinstance(data, list):
                         concepts = data

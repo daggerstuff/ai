@@ -4,9 +4,9 @@ Storage/path resolution for orchestrator dataset sources.
 
 from __future__ import annotations
 
+import os
 from contextlib import contextmanager
 from io import TextIOWrapper
-import os
 from pathlib import Path
 from typing import Iterator
 
@@ -79,7 +79,7 @@ class StorageResolver:
     @staticmethod
     def resolve_path(manifest_path: str) -> str:
         """Resolve legacy local paths to storage URIs."""
-        if manifest_path.startswith("s3://") or manifest_path.startswith("drive:"):
+        if manifest_path.startswith(("s3://", "gdrive:")):
             return manifest_path
 
         if "consolidated" in manifest_path:
@@ -99,7 +99,7 @@ class StorageResolver:
 
         storage_path = self.resolve_path(source_path)
 
-        if not storage_path.startswith(("s3://", "drive:", "datasets/")):
+        if not storage_path.startswith(("s3://", "gdrive:", "datasets/")):
             local_path = Path(os.path.expanduser(source_path))
             if local_path.exists():
                 return local_path
@@ -127,7 +127,7 @@ class StorageResolver:
                     return cached_file
 
                 logger.info("Downloading %s to cache...", storage_path)
-                if storage_path.startswith("drive:"):
+                if storage_path.startswith("gdrive:"):
                     storage.download_file(storage_path, cached_file)
                 elif storage_path.startswith("s3://"):
                     download_key = storage_path

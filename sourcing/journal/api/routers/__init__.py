@@ -14,13 +14,13 @@ def create_api_router() -> APIRouter:
 
     # Import and include sub-routers (lazy import to avoid circular dependencies)
     from ai.sourcing.journal.api.routers import (
-        sessions,
+        acquisition,
         discovery,
         evaluation,
-        acquisition,
         integration,
         progress,
         reports,
+        sessions,
         training,
         training_global,
     )

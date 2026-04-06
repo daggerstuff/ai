@@ -529,7 +529,7 @@ class DatasetTrainingMCPInterface:
             if not path.exists():
                 raise FileNotFoundError(f"Dataset not found: {dataset_path}")
 
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, encoding="utf-8") as f:
                 if path.suffix == ".jsonl":
                     content = []
                     for i, line in enumerate(f):

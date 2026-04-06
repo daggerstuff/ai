@@ -5,12 +5,13 @@ training job correlations, and data freshness.
 """
 
 import json
-from pathlib import Path
-from typing import Dict, Any, List, Optional
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timedelta
-from dataclasses import dataclass, field, asdict
-from s3_client_helper import get_s3_client
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 from botocore.exceptions import ClientError
+from s3_client_helper import get_s3_client
 
 
 @dataclass
@@ -49,7 +50,7 @@ class DatasetUsageTracker:
 
     def load_registry(self) -> Dict[str, Any]:
         """Load the dataset registry."""
-        with open(self.registry_path, "r") as f:
+        with open(self.registry_path) as f:
             return json.load(f)
 
     def save_registry(self, registry: Dict[str, Any]) -> None:
@@ -63,7 +64,7 @@ class DatasetUsageTracker:
         analytics_file = self.analytics_dir / f"{dataset_name}_analytics.json"
 
         if analytics_file.exists():
-            with open(analytics_file, "r") as f:
+            with open(analytics_file) as f:
                 return json.load(f)
 
         return {

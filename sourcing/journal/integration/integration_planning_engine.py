@@ -222,7 +222,7 @@ class IntegrationPlanningEngine:
 
             if format_type == "jsonl":
                 # Read first 1000 lines
-                with open(file_path, "r", encoding="utf-8") as f:
+                with open(file_path, encoding="utf-8") as f:
                     for i, line in enumerate(f):
                         if i >= 1000:
                             break
@@ -233,7 +233,7 @@ class IntegrationPlanningEngine:
                             quality_issues.append(f"Invalid JSON on line {i+1}")
             else:
                 # Read entire JSON file (could be array or object)
-                with open(file_path, "r", encoding="utf-8") as f:
+                with open(file_path, encoding="utf-8") as f:
                     data = json.load(f)
                     if isinstance(data, list):
                         sample_records = data[:1000]

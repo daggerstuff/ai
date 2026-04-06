@@ -324,7 +324,7 @@ class PsychologyBookLoader:
             jsonl_files = list(self.dataset_path.glob("*.jsonl"))
             if jsonl_files:
                 for jsonl_file in jsonl_files:
-                    with open(jsonl_file, "r", encoding="utf-8") as f:
+                    with open(jsonl_file, encoding="utf-8") as f:
                         for line in f:
                             try:
                                 entry = json.loads(line.strip())
@@ -336,7 +336,7 @@ class PsychologyBookLoader:
             json_files = list(self.dataset_path.glob("*.json"))
             if json_files and not entries:
                 for json_file in json_files:
-                    with open(json_file, "r", encoding="utf-8") as f:
+                    with open(json_file, encoding="utf-8") as f:
                         data = json.load(f)
                         if isinstance(data, list):
                             entries.extend(data)

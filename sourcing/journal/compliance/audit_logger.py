@@ -248,7 +248,7 @@ class AuditLogger:
             return entries
 
         try:
-            with open(self.log_file, "r", encoding="utf-8") as f:
+            with open(self.log_file, encoding="utf-8") as f:
                 for line in f:
                     if not line.strip():
                         continue
@@ -308,7 +308,7 @@ class AuditLogger:
         entries_failed = 0
 
         try:
-            with open(self.log_file, "r", encoding="utf-8") as f:
+            with open(self.log_file, encoding="utf-8") as f:
                 for line in f:
                     if not line.strip():
                         continue
@@ -416,7 +416,7 @@ class AuditLogger:
         """Load last hash from hash chain file."""
         if self.hash_chain_file.exists():
             try:
-                with open(self.hash_chain_file, "r", encoding="utf-8") as f:
+                with open(self.hash_chain_file, encoding="utf-8") as f:
                     data = json.load(f)
                     self.last_hash = data.get("last_hash")
             except Exception as e:

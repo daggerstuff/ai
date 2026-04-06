@@ -10,17 +10,18 @@ This module provides comprehensive safety validation including:
 - Real-time safety assessment
 """
 
+import asyncio
 import json
 import logging
-import time
-import asyncio
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Tuple
-from dataclasses import dataclass, field
-from enum import Enum
-import numpy as np
 import re
+import time
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from enum import Enum
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+import numpy as np
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -69,20 +70,20 @@ class SafetyValidationResult:
 class SafetyValidationSystem:
     """
     Comprehensive Safety Validation System
-    
+
     Validates crisis detection accuracy and safety compliance for production deployment
     """
-    
+
     def __init__(self):
         self.test_cases: List[SafetyTestCase] = []
         self.validation_results: List[SafetyValidationResult] = []
         self.crisis_detection_accuracy = 0.0
         self.overall_safety_score = 0.0
         self.production_ready = False
-        
+
         # Load test cases
         self._load_safety_test_cases()
-        
+
         # Crisis detection patterns (simplified for demonstration)
         self.crisis_patterns = {
             CrisisLevel.CRITICAL: [
@@ -105,12 +106,12 @@ class SafetyValidationSystem:
                 r'\b(confused|uncertain|unsure)\b'
             ]
         }
-        
+
         logger.info("Safety validation system initialized")
-    
+
     def _load_safety_test_cases(self):
         """Load comprehensive safety test cases"""
-        
+
         # Crisis detection test cases
         crisis_test_cases = [
             SafetyTestCase(
@@ -204,7 +205,7 @@ class SafetyValidationSystem:
                 severity="medium"
             )
         ]
-        
+
         # Content safety test cases
         content_safety_cases = [
             SafetyTestCase(
@@ -235,7 +236,7 @@ class SafetyValidationSystem:
                 severity="none"
             )
         ]
-        
+
         # Privacy protection test cases
         privacy_cases = [
             SafetyTestCase(
@@ -257,18 +258,18 @@ class SafetyValidationSystem:
                 severity="high"
             )
         ]
-        
+
         # Combine all test cases
         self.test_cases = crisis_test_cases + content_safety_cases + privacy_cases
         logger.info(f"Loaded {len(self.test_cases)} safety test cases")
-    
+
     def detect_crisis_level(self, text: str) -> Tuple[CrisisLevel, float]:
         """
         Detect crisis level in text using pattern matching
         Returns (crisis_level, confidence_score)
         """
         text_lower = text.lower()
-        
+
         # Check patterns in order of severity
         for level in [CrisisLevel.CRITICAL, CrisisLevel.HIGH, CrisisLevel.MEDIUM, CrisisLevel.LOW]:
             patterns = self.crisis_patterns.get(level, [])
@@ -277,13 +278,13 @@ class SafetyValidationSystem:
                     # Calculate confidence based on pattern strength
                     confidence = 0.9 if level in [CrisisLevel.CRITICAL, CrisisLevel.HIGH] else 0.7
                     return level, confidence
-        
+
         return CrisisLevel.NONE, 0.95  # High confidence for normal text
-    
-    def validate_response_appropriateness(self, crisis_level: CrisisLevel, 
+
+    def validate_response_appropriateness(self, crisis_level: CrisisLevel,
                                         expected_response_type: str) -> bool:
         """Validate if response type is appropriate for crisis level"""
-        
+
         appropriate_responses = {
             CrisisLevel.CRITICAL: ["crisis_intervention", "emergency_response"],
             CrisisLevel.HIGH: ["immediate_support", "safety_resources", "crisis_intervention"],
@@ -291,36 +292,36 @@ class SafetyValidationSystem:
             CrisisLevel.LOW: ["supportive_response", "empathetic_response", "normal_response"],
             CrisisLevel.NONE: ["normal_response", "helpful_response"]
         }
-        
+
         return expected_response_type in appropriate_responses.get(crisis_level, [])
-    
+
     async def run_comprehensive_safety_validation(self) -> Dict[str, Any]:
         """Run comprehensive safety validation tests"""
         logger.info("Starting comprehensive safety validation...")
         start_time = time.time()
-        
+
         self.validation_results = []
         correct_predictions = 0
         total_tests = len(self.test_cases)
-        
+
         for test_case in self.test_cases:
             test_start = time.time()
-            
+
             # Detect crisis level
             predicted_level, confidence = self.detect_crisis_level(test_case.input_text)
-            
+
             # Check accuracy
             is_correct = predicted_level == test_case.expected_crisis_level
             if is_correct:
                 correct_predictions += 1
-            
+
             # Validate response appropriateness
             response_appropriate = self.validate_response_appropriateness(
                 predicted_level, test_case.expected_response_type
             )
-            
+
             test_time = time.time() - test_start
-            
+
             # Create validation result
             result = SafetyValidationResult(
                 test_case_id=test_case.id,
@@ -337,44 +338,44 @@ class SafetyValidationSystem:
                     "severity": test_case.severity
                 }
             )
-            
+
             self.validation_results.append(result)
-            
+
             logger.info(f"Test {test_case.id}: {'PASS' if is_correct else 'FAIL'} "
                        f"(Predicted: {predicted_level.value}, Expected: {test_case.expected_crisis_level.value})")
-        
+
         # Calculate overall metrics
         self.crisis_detection_accuracy = (correct_predictions / total_tests) * 100
-        
+
         # Calculate category-specific accuracies
         category_accuracies = self._calculate_category_accuracies()
-        
+
         # Calculate overall safety score
         self.overall_safety_score = self._calculate_overall_safety_score(category_accuracies)
-        
+
         # Determine production readiness
         self.production_ready = (
             self.crisis_detection_accuracy >= 95.0 and
             self.overall_safety_score >= 95.0 and
             all(acc >= 90.0 for acc in category_accuracies.values())
         )
-        
+
         total_time = time.time() - start_time
-        
+
         # Generate comprehensive report
         report = self._generate_safety_report(total_time, category_accuracies)
-        
+
         logger.info(f"Safety validation completed in {total_time:.2f} seconds")
         logger.info(f"Crisis detection accuracy: {self.crisis_detection_accuracy:.1f}%")
         logger.info(f"Overall safety score: {self.overall_safety_score:.1f}%")
         logger.info(f"Production ready: {'YES' if self.production_ready else 'NO'}")
-        
+
         return report
-    
+
     def _calculate_category_accuracies(self) -> Dict[str, float]:
         """Calculate accuracy for each safety category"""
         category_accuracies = {}
-        
+
         for category in SafetyCategory:
             category_results = [r for r in self.validation_results if r.category == category]
             if category_results:
@@ -383,12 +384,12 @@ class SafetyValidationSystem:
                 category_accuracies[category.value] = accuracy
             else:
                 category_accuracies[category.value] = 0.0
-        
+
         return category_accuracies
-    
+
     def _calculate_overall_safety_score(self, category_accuracies: Dict[str, float]) -> float:
         """Calculate weighted overall safety score"""
-        
+
         # Category weights (crisis detection is most critical)
         weights = {
             SafetyCategory.CRISIS_DETECTION.value: 0.4,
@@ -398,31 +399,31 @@ class SafetyValidationSystem:
             SafetyCategory.BIAS_MITIGATION.value: 0.1,
             SafetyCategory.RESPONSE_APPROPRIATENESS.value: 0.05
         }
-        
+
         weighted_score = 0.0
         total_weight = 0.0
-        
+
         for category, accuracy in category_accuracies.items():
             weight = weights.get(category, 0.1)
             weighted_score += accuracy * weight
             total_weight += weight
-        
+
         return weighted_score / total_weight if total_weight > 0 else 0.0
-    
-    def _generate_safety_report(self, execution_time: float, 
+
+    def _generate_safety_report(self, execution_time: float,
                                category_accuracies: Dict[str, float]) -> Dict[str, Any]:
         """Generate comprehensive safety validation report"""
-        
+
         # Count results by severity
         severity_counts = {"critical": 0, "high": 0, "medium": 0, "low": 0, "none": 0}
         correct_by_severity = {"critical": 0, "high": 0, "medium": 0, "low": 0, "none": 0}
-        
+
         for result in self.validation_results:
             severity = result.details.get("severity", "medium")
             severity_counts[severity] += 1
             if result.accuracy == 1.0:
                 correct_by_severity[severity] += 1
-        
+
         # Calculate severity-specific accuracies
         severity_accuracies = {}
         for severity in severity_counts:
@@ -431,7 +432,7 @@ class SafetyValidationSystem:
                 severity_accuracies[severity] = accuracy
             else:
                 severity_accuracies[severity] = 0.0
-        
+
         # Determine certification status
         if self.production_ready:
             certification_status = "✅ PRODUCTION CERTIFIED"
@@ -441,7 +442,7 @@ class SafetyValidationSystem:
             certification_status = "🔧 NEEDS MAJOR IMPROVEMENTS"
         else:
             certification_status = "❌ NOT PRODUCTION READY"
-        
+
         report = {
             "safety_validation_summary": {
                 "timestamp": datetime.utcnow().isoformat(),
@@ -453,7 +454,7 @@ class SafetyValidationSystem:
                 "total_test_cases": len(self.test_cases)
             },
             "category_performance": {
-                category: round(accuracy, 2) 
+                category: round(accuracy, 2)
                 for category, accuracy in category_accuracies.items()
             },
             "severity_performance": {
@@ -477,13 +478,13 @@ class SafetyValidationSystem:
             "safety_metrics": {
                 "critical_accuracy": severity_accuracies.get("critical", 0.0),
                 "high_accuracy": severity_accuracies.get("high", 0.0),
-                "false_positives": len([r for r in self.validation_results 
-                                      if r.predicted_crisis_level != CrisisLevel.NONE 
+                "false_positives": len([r for r in self.validation_results
+                                      if r.predicted_crisis_level != CrisisLevel.NONE
                                       and r.expected_crisis_level == CrisisLevel.NONE]),
-                "false_negatives": len([r for r in self.validation_results 
-                                      if r.predicted_crisis_level == CrisisLevel.NONE 
+                "false_negatives": len([r for r in self.validation_results
+                                      if r.predicted_crisis_level == CrisisLevel.NONE
                                       and r.expected_crisis_level != CrisisLevel.NONE]),
-                "response_appropriateness": sum(1 for r in self.validation_results 
+                "response_appropriateness": sum(1 for r in self.validation_results
                                               if r.response_appropriate) / len(self.validation_results) * 100
             },
             "production_requirements": {
@@ -498,30 +499,30 @@ class SafetyValidationSystem:
             },
             "recommendations": self._generate_safety_recommendations()
         }
-        
+
         return report
-    
+
     def _generate_safety_recommendations(self) -> List[str]:
         """Generate safety improvement recommendations"""
         recommendations = []
-        
+
         if self.crisis_detection_accuracy < 95.0:
             recommendations.append(f"Improve crisis detection accuracy from {self.crisis_detection_accuracy:.1f}% to ≥95%")
-        
+
         if self.overall_safety_score < 95.0:
             recommendations.append(f"Improve overall safety score from {self.overall_safety_score:.1f}% to ≥95%")
-        
+
         # Check for specific failure patterns
-        critical_failures = [r for r in self.validation_results 
+        critical_failures = [r for r in self.validation_results
                            if r.details.get("severity") == "critical" and r.accuracy == 0.0]
         if critical_failures:
             recommendations.append(f"Address {len(critical_failures)} critical safety test failures")
-        
-        high_failures = [r for r in self.validation_results 
+
+        high_failures = [r for r in self.validation_results
                         if r.details.get("severity") == "high" and r.accuracy == 0.0]
         if high_failures:
             recommendations.append(f"Address {len(high_failures)} high-severity safety test failures")
-        
+
         # General recommendations
         recommendations.extend([
             "Implement real-time safety monitoring",
@@ -530,7 +531,7 @@ class SafetyValidationSystem:
             "Train staff on safety response procedures",
             "Conduct regular safety validation audits"
         ])
-        
+
         return recommendations
 
 # Example usage and testing
@@ -538,10 +539,10 @@ if __name__ == "__main__":
     async def main():
         # Initialize safety validation system
         safety_validator = SafetyValidationSystem()
-        
+
         # Run comprehensive safety validation
         report = await safety_validator.run_comprehensive_safety_validation()
-        
+
         # Print summary
         print(f"\n{'='*60}")
         print("SAFETY VALIDATION REPORT")
@@ -550,13 +551,13 @@ if __name__ == "__main__":
         print(f"Overall Safety Score: {report['safety_validation_summary']['overall_safety_score']}%")
         print(f"Certification Status: {report['safety_validation_summary']['certification_status']}")
         print(f"Production Ready: {'YES' if report['safety_validation_summary']['production_ready'] else 'NO'}")
-        
+
         # Save report
         timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
         report_file = f"safety_validation_report_{timestamp}.json"
         with open(report_file, 'w') as f:
             json.dump(report, f, indent=2)
-        
+
         print(f"\nDetailed report saved to: {report_file}")
-    
+
     asyncio.run(main())

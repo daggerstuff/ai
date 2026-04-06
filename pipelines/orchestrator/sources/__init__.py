@@ -3,18 +3,18 @@ Source data integration module for psychology, personality, and sarcasm.
 """
 
 from .psych_personality import (
-    TherapeuticApproach,
-    CommunicationStyle,
     BigFiveTrait,
-    PersonalityProfile,
+    CommunicationStyle,
     PersonalityAdapter,
-    SarcasmDetector,
-    SarcasmDetection,
+    PersonalityProfile,
     PsychologyBookLoader,
     PsychPersonalityIntegrator,
+    SarcasmDetection,
+    SarcasmDetector,
+    TherapeuticApproach,
     detect_sarcasm,
-    select_therapeutic_approach,
     select_communication_style,
+    select_therapeutic_approach,
 )
 
 __all__ = [

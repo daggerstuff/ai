@@ -191,22 +191,22 @@ class ProductionDatabaseSetup:
             monitoring_sql = """
             -- Create monitoring view for conversation statistics
             CREATE OR REPLACE VIEW conversation_stats AS
-            SELECT 
+            SELECT
                 COUNT(*) as total_conversations,
                 COUNT(DISTINCT source) as unique_sources,
                 MIN(started_at) as earliest_conversation,
                 MAX(started_at) as latest_conversation,
                 AVG((SELECT COUNT(*) FROM messages WHERE conversation_id = conversations.id)) as avg_messages_per_conversation
             FROM conversations;
-            
+
             -- Create monitoring view for data quality
             CREATE OR REPLACE VIEW data_quality_stats AS
-            SELECT 
+            SELECT
                 source,
                 COUNT(*) as conversation_count,
                 AVG(CASE WHEN tier = 'TIER_1' THEN 1.0 ELSE 0.0 END) as tier_1_percentage,
                 COUNT(DISTINCT category) as unique_categories
-            FROM conversations 
+            FROM conversations
             GROUP BY source;
             """
 

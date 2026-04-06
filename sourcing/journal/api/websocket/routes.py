@@ -15,10 +15,10 @@ from ai.sourcing.journal.api.dependencies import (
     get_command_handler_service,
     get_current_user,
 )
-from ai.sourcing.journal.api.websocket.manager import manager
 from ai.sourcing.journal.api.services.command_handler_service import (
     CommandHandlerService,
 )
+from ai.sourcing.journal.api.websocket.manager import manager
 
 logger = logging.getLogger(__name__)
 

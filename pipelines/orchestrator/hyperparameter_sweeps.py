@@ -498,10 +498,10 @@ class ArtifactManager:
         """Load an artifact"""
         path = Path(artifact_path)
         if path.suffix == ".json":
-            with open(path, "r") as f:
+            with open(path) as f:
                 return json.load(f)
         else:
-            with open(path, "r") as f:
+            with open(path) as f:
                 return f.read()
 
     def get_trial_artifacts(self, trial_id: str) -> List[Path]:

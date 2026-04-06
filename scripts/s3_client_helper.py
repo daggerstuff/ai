@@ -2,6 +2,7 @@
 """Helper for creating S3 clients with custom endpoint support (DigitalOcean Spaces, MinIO, etc)."""
 
 import os
+
 import boto3
 from botocore.config import Config
 

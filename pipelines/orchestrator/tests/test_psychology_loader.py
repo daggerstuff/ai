@@ -1,6 +1,7 @@
 import os
 
 import pandas as pd
+
 from ai.pipelines.orchestrator.psychology_loader import load_psychology_knowledge_csv
 
 TEST_CSV = "test_psychology_knowledge.csv"

@@ -438,7 +438,7 @@ class TaxonomyClassifier:
 
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        with open(input_path, "r") as infile, open(output_path, "w") as outfile:
+        with open(input_path) as infile, open(output_path, "w") as outfile:
             for line in infile:
                 if not line.strip():
                     continue

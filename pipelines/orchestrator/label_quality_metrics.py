@@ -3,12 +3,13 @@ Label quality metrics and expected minimum thresholds for the Pixelated Empathy 
 Defines standard metrics for evaluating the quality of therapeutic conversation labels.
 """
 
-from dataclasses import dataclass
-from typing import List, Dict, Any, Optional
-import statistics
-from datetime import datetime
 import logging
+import statistics
+from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
+from typing import Any, Dict, List, Optional
+
 from .label_taxonomy import LabelBundle, LabelProvenanceType
 from .quality_control import QualityController
 
@@ -49,7 +50,7 @@ class QualityScore:
 
 class LabelQualityMetrics:
     """System for calculating and tracking label quality metrics with thresholds"""
-    
+
     def __init__(self):
         self.thresholds = self._define_default_thresholds()
         self.logger = logging.getLogger(__name__)
@@ -125,7 +126,7 @@ class LabelQualityMetrics:
                 is_passing=False,
                 details={"reason": "No label bundles provided"}
             )
-        
+
         # For this therapeutic context, we'll calculate accuracy based on confidence scores
         # In a real system, this would compare against gold standard labels
         all_confidences = []
@@ -140,15 +141,15 @@ class LabelQualityMetrics:
                 all_confidences.append(bundle.mental_health_condition_label.metadata.confidence)
             if bundle.demographic_label:
                 all_confidences.append(bundle.demographic_label.metadata.confidence)
-        
+
         if not all_confidences:
             accuracy_score = 1.0  # Perfect accuracy if no labels to evaluate
         else:
             accuracy_score = statistics.mean(all_confidences)
-        
+
         threshold = self._get_threshold(QualityMetric.LABEL_ACCURACY)
         is_passing = threshold.minimum_value <= accuracy_score <= threshold.maximum_value
-        
+
         return QualityScore(
             metric=QualityMetric.LABEL_ACCURACY,
             score=accuracy_score,
@@ -156,7 +157,7 @@ class LabelQualityMetrics:
             is_passing=is_passing,
             details={
                 "total_labels": len(all_confidences),
-                "confidence_range": (min(all_confidences) if all_confidences else 0, 
+                "confidence_range": (min(all_confidences) if all_confidences else 0,
                                    max(all_confidences) if all_confidences else 1),
                 "std_deviation": statistics.stdev(all_confidences) if len(all_confidences) > 1 else 0
             }
@@ -166,10 +167,10 @@ class LabelQualityMetrics:
         """Calculate label completeness metric"""
         if len(conversations) != len(label_bundles):
             raise ValueError("Number of conversations and label bundles must match")
-        
+
         # Measure completeness as a function of labeled content vs. total content
         total_messages = sum(len(conv.messages) for conv in conversations)
-        
+
         # Count labeled messages (messages with at least one therapeutic response label)
         labeled_messages = 0
         for bundle in label_bundles:
@@ -177,12 +178,12 @@ class LabelQualityMetrics:
             # In a real implementation, this would map more directly to messages
             if bundle.therapeutic_response_labels or bundle.crisis_label:
                 labeled_messages += 1  # Simplified - in practice, map to actual messages
-        
+
         completeness_ratio = labeled_messages / len(label_bundles) if label_bundles else 0
-        
+
         threshold = self._get_threshold(QualityMetric.LABEL_COMPLETENESS)
         is_passing = threshold.minimum_value <= completeness_ratio <= threshold.maximum_value
-        
+
         return QualityScore(
             metric=QualityMetric.LABEL_COMPLETENESS,
             score=completeness_ratio,
@@ -209,15 +210,15 @@ class LabelQualityMetrics:
                 all_confidences.append(bundle.mental_health_condition_label.metadata.confidence)
             if bundle.demographic_label:
                 all_confidences.append(bundle.demographic_label.metadata.confidence)
-        
+
         if not all_confidences:
             avg_confidence = 1.0
         else:
             avg_confidence = statistics.mean(all_confidences)
-        
+
         threshold = self._get_threshold(QualityMetric.CONFIDENCE_SCORE)
         is_passing = threshold.minimum_value <= avg_confidence <= threshold.maximum_value
-        
+
         return QualityScore(
             metric=QualityMetric.CONFIDENCE_SCORE,
             score=avg_confidence,
@@ -237,7 +238,7 @@ class LabelQualityMetrics:
         for bundle in label_bundles:
             if bundle.crisis_label:
                 crisis_labels.append(bundle.crisis_label)
-        
+
         if not crisis_labels:
             # If no crisis labels exist, we consider this as perfect accuracy (no crises to detect)
             accuracy_score = 1.0
@@ -245,10 +246,10 @@ class LabelQualityMetrics:
             # Calculate based on confidence in crisis detection
             crisis_confidences = [label.metadata.confidence for label in crisis_labels]
             accuracy_score = statistics.mean(crisis_confidences) if crisis_confidences else 1.0
-        
+
         threshold = self._get_threshold(QualityMetric.CRISIS_DETECTION_ACCURACY)
         is_passing = threshold.minimum_value <= accuracy_score <= threshold.maximum_value
-        
+
         return QualityScore(
             metric=QualityMetric.CRISIS_DETECTION_ACCURACY,
             score=accuracy_score,
@@ -264,20 +265,20 @@ class LabelQualityMetrics:
         """Calculate accuracy for therapeutic response detection"""
         total_responses = 0
         response_confidences = []
-        
+
         for bundle in label_bundles:
             for label in bundle.therapeutic_response_labels:
                 total_responses += 1
                 response_confidences.append(label.metadata.confidence)
-        
+
         if total_responses == 0:
             accuracy_score = 1.0  # Perfect if no responses to label
         else:
             accuracy_score = statistics.mean(response_confidences)
-        
+
         threshold = self._get_threshold(QualityMetric.THERAPEUTIC_RESPONSE_ACCURACY)
         is_passing = threshold.minimum_value <= accuracy_score <= threshold.maximum_value
-        
+
         return QualityScore(
             metric=QualityMetric.THERAPEUTIC_RESPONSE_ACCURACY,
             score=accuracy_score,
@@ -289,7 +290,7 @@ class LabelQualityMetrics:
             }
         )
 
-    def get_comprehensive_quality_report(self, 
+    def get_comprehensive_quality_report(self,
                                        conversations: List['Conversation'],
                                        label_bundles: List[LabelBundle]) -> Dict[str, Any]:
         """Generate a comprehensive quality report with all metrics"""
@@ -299,24 +300,24 @@ class LabelQualityMetrics:
         confidence_score = self.calculate_confidence_score(label_bundles)
         crisis_score = self.calculate_crisis_detection_accuracy(label_bundles)
         response_score = self.calculate_therapeutic_response_accuracy(label_bundles)
-        
+
         # Compile all scores
         all_scores = [
             accuracy_score, completeness_score, confidence_score,
             crisis_score, response_score
         ]
-        
+
         # Calculate overall compliance rate
         passing_scores = sum(1 for score in all_scores if score.is_passing)
         total_scores = len(all_scores)
         compliance_rate = passing_scores / total_scores if total_scores > 0 else 0
-        
+
         # Identify critical failures
         critical_failures = [
-            score for score in all_scores 
+            score for score in all_scores
             if not score.is_passing and score.threshold.severity_level == "critical"
         ]
-        
+
         return {
             "timestamp": datetime.utcnow().isoformat(),
             "overall_compliance_rate": compliance_rate,
@@ -360,26 +361,30 @@ def create_label_quality_metrics() -> LabelQualityMetrics:
 # Example usage and testing
 def test_label_quality_metrics():
     """Test the label quality metrics system"""
-    from .label_taxonomy import (
-        TherapeuticResponseLabel, CrisisLabel, LabelMetadata, LabelProvenanceType,
-        TherapeuticResponseType, CrisisLevelType
-    )
     from .conversation_schema import Conversation, Message
-    
+    from .label_taxonomy import (
+        CrisisLabel,
+        CrisisLevelType,
+        LabelMetadata,
+        LabelProvenanceType,
+        TherapeuticResponseLabel,
+        TherapeuticResponseType,
+    )
+
     # Create test data
     conversations = []
     label_bundles = []
-    
+
     for i in range(20):
         # Create conversation
         conv = Conversation()
         conv.add_message("therapist", f"Therapeutic message {i}")
         conv.add_message("client", f"Client response {i}")
         conversations.append(conv)
-        
+
         # Create corresponding label bundle
         bundle = LabelBundle(conversation_id=conv.conversation_id)
-        
+
         # Add therapeutic response labels with varying confidence
         bundle.therapeutic_response_labels.append(
             TherapeuticResponseLabel(
@@ -387,32 +392,32 @@ def test_label_quality_metrics():
                 metadata=LabelMetadata(confidence=0.85 + (i * 0.01) if i < 10 else 0.75 - (i * 0.01))
             )
         )
-        
+
         # Add crisis labels
         if i % 5 == 0:
             bundle.crisis_label = CrisisLabel(
                 crisis_level=CrisisLevelType.LOW_RISK,
                 metadata=LabelMetadata(confidence=0.9 - (i * 0.02))
             )
-        
+
         label_bundles.append(bundle)
-    
+
     # Test quality metrics
     quality_metrics = create_label_quality_metrics()
-    
+
     # Calculate individual metrics
     accuracy_score = quality_metrics.calculate_label_accuracy(label_bundles)
     print(f"Label Accuracy: {accuracy_score.score:.3f}, Passing: {accuracy_score.is_passing}")
-    
+
     completeness_score = quality_metrics.calculate_label_completeness(conversations, label_bundles)
     print(f"Label Completeness: {completeness_score.score:.3f}, Passing: {completeness_score.is_passing}")
-    
+
     confidence_score = quality_metrics.calculate_confidence_score(label_bundles)
     print(f"Confidence Score: {confidence_score.score:.3f}, Passing: {confidence_score.is_passing}")
-    
+
     crisis_score = quality_metrics.calculate_crisis_detection_accuracy(label_bundles)
     print(f"Crisis Detection Accuracy: {crisis_score.score:.3f}, Passing: {crisis_score.is_passing}")
-    
+
     # Generate comprehensive report
     comprehensive_report = quality_metrics.get_comprehensive_quality_report(conversations, label_bundles)
     print(f"\nComprehensive Quality Report:")
@@ -420,7 +425,7 @@ def test_label_quality_metrics():
     print(f"  Passing Metrics: {comprehensive_report['passing_metrics']}/{comprehensive_report['total_metrics']}")
     print(f"  Critical Failures: {comprehensive_report['critical_failures']}")
     print(f"  Summary: {comprehensive_report['summary']}")
-    
+
     return comprehensive_report
 
 

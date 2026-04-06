@@ -8,7 +8,7 @@ output_file_path = "/home/vivi/pixelated/ai/annotation/batches/batch_real_001.js
 def process_file():
     records = []
 
-    with open(input_file_path, "r") as infile:
+    with open(input_file_path) as infile:
         for line in infile:
             if not line.strip():
                 continue

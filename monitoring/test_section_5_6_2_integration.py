@@ -142,10 +142,10 @@ def create_comprehensive_test_database():
     )
 
     cursor.executemany(
-        """INSERT INTO quality_metrics 
-        (id, conversation_id, therapeutic_accuracy, conversation_coherence, 
-         emotional_authenticity, clinical_compliance, personality_consistency, 
-         language_quality, safety_score, overall_quality, validated_at) 
+        """INSERT INTO quality_metrics
+        (id, conversation_id, therapeutic_accuracy, conversation_coherence,
+         emotional_authenticity, clinical_compliance, personality_consistency,
+         language_quality, safety_score, overall_quality, validated_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         quality_data,
     )

@@ -10,6 +10,7 @@ from typing import Any, Callable, Dict, List, Optional
 from fastapi import APIRouter, Header, HTTPException, Query, Request, Response
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import JSONResponse
+
 from ai.api.mcp_server.memory_auth import (
     MemoryAccessContext,
     authorize_memory_access,
@@ -22,6 +23,12 @@ from ai.api.mcp_server.memory_query_service import (
     get_scoped_memory_stats,
     recall_memories_for_user,
 )
+from ai.api.mcp_server.memory_scope import (
+    build_scope_metadata,
+    memory_in_scope,
+    scope_from_kwargs,
+    search_with_overfetch,
+)
 from ai.api.mcp_server.schemas import (
     AddMemoryRequest,
     HindsightRecallRequest,
@@ -30,20 +37,14 @@ from ai.api.mcp_server.schemas import (
     SearchMemoryRequest,
     UpdateMemoryRequest,
 )
-from ai.api.mcp_server.memory_scope import (
-    build_scope_metadata,
-    memory_in_scope,
-    scope_from_kwargs,
-    search_with_overfetch,
-)
 from ai.memory.base import (
     CategoryScopedMemoryManager,
     HealthReportingMemoryManager,
     HindsightCompatibleMemoryManager,
     ScopedMemoryManager,
 )
-from ai.memory.local_hindsight_document_service import DocumentAccessError
 from ai.memory.hindsight_local_retention import RetainScopeConflictError, scope_metadata
+from ai.memory.local_hindsight_document_service import DocumentAccessError
 
 logger = logging.getLogger(__name__)
 

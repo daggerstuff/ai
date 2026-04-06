@@ -33,7 +33,7 @@ def migrate_jsonl_file(file_path: Path) -> int:
 
         migrated_count = 0
 
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             for line_num, line in enumerate(f):
                 line = line.strip()
                 if not line:

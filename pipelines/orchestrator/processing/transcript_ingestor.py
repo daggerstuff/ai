@@ -1,9 +1,9 @@
-import logging
 import json
+import logging
 import os
-from pathlib import Path
-from typing import List, Dict, Optional
 import sys
+from pathlib import Path
+from typing import Dict, List, Optional
 
 # Adjust import for project structure
 try:
@@ -82,7 +82,7 @@ class TranscriptIngestor:
     def parse_transcript(self, file_path: Path) -> str:
         """Extracts the main body text from the transcript file."""
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 lines = f.readlines()
 
             content = []

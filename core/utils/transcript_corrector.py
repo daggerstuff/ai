@@ -4,7 +4,7 @@
 import json
 import re
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
 
 
 class TranscriptCorrector:
@@ -19,7 +19,7 @@ class TranscriptCorrector:
         """Load terms from config file."""
         if config_path and Path(config_path).exists():
             try:
-                with open(config_path, 'r') as f:
+                with open(config_path) as f:
                     data = json.load(f)
                     if isinstance(data, dict):
                         return data

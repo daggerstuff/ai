@@ -19,15 +19,20 @@ from .academic_sourcing import (
     SourcingStrategy,
     create_academic_sourcing_engine,
 )
+
+# API Integration
+from .api.main import app as AcademicSourcingAPI
+
+# DOI Resolution
+from .doi_resolution.doi_resolver import DOIResolver, DOISearcher
 from .publishers.apa_publisher import APAPublisher
+from .publishers.base_publisher import BasePublisher, BookContent, BookFormat
 from .publishers.cambridge_publisher import CambridgePublisher
 from .publishers.elsevier_publisher import ElsevierPublisher
 from .publishers.oxford_publisher import OxfordPublisher
 from .publishers.springer_publisher import SpringerPublisher
 from .publishers.taylor_francis_publisher import TaylorFrancisPublisher
 from .publishers.wiley_publisher import WileyPublisher
-from .publishers.elsevier_publisher import ElsevierPublisher
-from .publishers.base_publisher import BasePublisher, BookContent, BookFormat
 from .therapy_dataset_sourcing import (
     ConversationFormat,
     DatasetMetadata,
@@ -35,12 +40,6 @@ from .therapy_dataset_sourcing import (
     TherapyDatasetSourcing,
     find_therapy_datasets,
 )
-
-# DOI Resolution
-from .doi_resolution.doi_resolver import DOISearcher, DOIResolver
-
-# API Integration
-from .api.main import app as AcademicSourcingAPI
 
 # Note: The following modules are planned but not yet implemented in the directory structure:
 # from .metadata_extraction.metadata_extractor import MetadataExtractor

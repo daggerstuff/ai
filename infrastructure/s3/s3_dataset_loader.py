@@ -1086,7 +1086,7 @@ class S3DatasetLoader:
                 error_msg = f"Failed to download {s3_key}: {download_result.error}"
                 raise RuntimeError(error_msg)
 
-            with open(local_path, "r") as f:
+            with open(local_path) as f:
                 records = [json.loads(line) for line in f if line.strip()]
 
             return records

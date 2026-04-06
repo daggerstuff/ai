@@ -682,15 +682,15 @@ class QualityTrendReporter:
         """Get executive summary template."""
         return """
         # Quality Trend Analysis - Executive Summary
-        
+
         **Generated**: {{ generated_at }}
         **Period**: {{ report.analysis_period }}
-        
+
         ## Key Findings
         {% for item in report.executive_summary %}
         - {{ item }}
         {% endfor %}
-        
+
         ## Action Items
         {% for item in report.action_items %}
         - {{ item }}
@@ -720,7 +720,7 @@ class QualityTrendReporter:
                 <p><strong>Generated:</strong> {{ generated_at }}</p>
                 <p><strong>Analysis Period:</strong> {{ report.analysis_period }}</p>
             </div>
-            
+
             <div class="section">
                 <h2>Executive Summary</h2>
                 <ul>
@@ -729,11 +729,11 @@ class QualityTrendReporter:
                 {% endfor %}
                 </ul>
             </div>
-            
+
             <div class="section">
                 <h2>Overall Trend</h2>
                 <div class="metric">
-                    <strong>Direction:</strong> 
+                    <strong>Direction:</strong>
                     <span class="{{ report.overall_trend.trend_direction }}">
                         {{ report.overall_trend.trend_direction }}
                     </span>
@@ -748,7 +748,7 @@ class QualityTrendReporter:
                     <strong>Statistical Significance:</strong> {{ "%.3f"|format(report.overall_trend.statistical_significance) }}
                 </div>
             </div>
-            
+
             <div class="section">
                 <h2>Detailed Insights</h2>
                 <ul>
@@ -757,7 +757,7 @@ class QualityTrendReporter:
                 {% endfor %}
                 </ul>
             </div>
-            
+
             <div class="section">
                 <h2>Action Items</h2>
                 <ul>
@@ -774,12 +774,12 @@ class QualityTrendReporter:
         """Get technical report template."""
         return """
         # Technical Quality Trend Analysis
-        
+
         ## Statistical Analysis
         - R-squared: {{ report.overall_trend.r_squared }}
         - Slope: {{ report.overall_trend.slope }}
         - P-value: {{ report.overall_trend.statistical_significance }}
-        
+
         ## Component Analysis
         {% for component, trend in report.component_trends.items() %}
         ### {{ component }}

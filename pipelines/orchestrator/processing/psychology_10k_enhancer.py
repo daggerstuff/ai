@@ -7,9 +7,9 @@ to the existing psychology knowledge base.
 
 import json
 import logging
-from pathlib import Path
-from typing import Dict, List, Any
 import sys
+from pathlib import Path
+from typing import Any, Dict, List
 
 # Add the project root to the path
 project_root = Path(__file__).parent.parent.parent
@@ -35,7 +35,7 @@ class Psychology10kEnhancer:
         if not self.knowledge_base_path.exists():
             raise FileNotFoundError(f"Knowledge base not found: {self.knowledge_base_path}")
 
-        with open(self.knowledge_base_path, "r", encoding="utf-8") as f:
+        with open(self.knowledge_base_path, encoding="utf-8") as f:
             knowledge_base = json.load(f)
 
         logger.info(f"Loaded psychology knowledge base with {len(knowledge_base.get('concepts', {}))} concepts")
@@ -47,7 +47,7 @@ class Psychology10kEnhancer:
             raise FileNotFoundError(f"psychology-10k data not found: {self.psychology_10k_path}")
 
         psychology_10k_data = []
-        with open(self.psychology_10k_path, "r", encoding="utf-8") as f:
+        with open(self.psychology_10k_path, encoding="utf-8") as f:
             for line_num, line in enumerate(f, 1):
                 if not line.strip():
                     continue

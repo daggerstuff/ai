@@ -2,6 +2,7 @@
 """Compliance Validation Tests"""
 import unittest
 
+
 class TestComplianceValidation(unittest.TestCase):
     def test_compliance_validation_complete(self):
         self.assertTrue(True)

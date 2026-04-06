@@ -5,27 +5,31 @@ This module provides pytest fixtures and configuration for testing the
 six-stage pipeline communication system with HIPAA++ compliance.
 """
 
-import pytest
 import asyncio
 import json
 import time
 from datetime import datetime, timedelta
-from unittest.mock import Mock, AsyncMock, MagicMock
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional
+from unittest.mock import AsyncMock, MagicMock, Mock
 
-from ..event_bus import EventBus, EventMessage, EventType
-from ..pipeline_coordinator import PipelineCoordinator, PipelineContext
-from ..state_manager import StateManager, PipelineState, StageState
-from ..progress_tracker import ProgressTracker, ProgressUpdate
-from ..error_recovery import ErrorRecoveryManager, RecoveryStrategy, RecoveryResult
-from ..bias_integration import BiasDetectionIntegration, BiasMetrics
-from ..performance_monitor import PerformanceMonitor, PerformanceMetric
-from ..graceful_degradation import GracefulDegradationManager, DegradationLevel
-from ...integration.redis_client import RedisClient
+import pytest
+
 from ...error_handling.custom_errors import (
-    PipelineExecutionError, ValidationError, TimeoutError,
-    BiasDetectionError, ServiceUnavailableError
+    BiasDetectionError,
+    PipelineExecutionError,
+    ServiceUnavailableError,
+    TimeoutError,
+    ValidationError,
 )
+from ...integration.redis_client import RedisClient
+from ..bias_integration import BiasDetectionIntegration, BiasMetrics
+from ..error_recovery import ErrorRecoveryManager, RecoveryResult, RecoveryStrategy
+from ..event_bus import EventBus, EventMessage, EventType
+from ..graceful_degradation import DegradationLevel, GracefulDegradationManager
+from ..performance_monitor import PerformanceMetric, PerformanceMonitor
+from ..pipeline_coordinator import PipelineContext, PipelineCoordinator
+from ..progress_tracker import ProgressTracker, ProgressUpdate
+from ..state_manager import PipelineState, StageState, StateManager
 
 
 @pytest.fixture(scope='session')
@@ -40,7 +44,7 @@ def event_loop():
 def mock_redis_client():
     """Create a mock Redis client with async methods."""
     client = Mock(spec=RedisClient)
-    
+
     # Mock async methods
     client.get = AsyncMock(return_value=None)
     client.setex = AsyncMock(return_value=True)
@@ -57,7 +61,7 @@ def mock_redis_client():
     client.lpush = AsyncMock(return_value=1)
     client.lrange = AsyncMock(return_value=[])
     client.expire = AsyncMock(return_value=True)
-    
+
     return client
 
 
@@ -261,15 +265,15 @@ def mock_handler():
             self.handler_func = handler_func or self._default_handler
             self.call_count = 0
             self.received_events = []
-        
+
         async def _default_handler(self, event: EventMessage) -> Dict[str, Any]:
             self.call_count += 1
             self.received_events.append(event)
             return {'handled': True, 'timestamp': datetime.utcnow().isoformat()}
-        
+
         async def handle(self, event: EventMessage) -> Dict[str, Any]:
             return await self.handler_func(event)
-    
+
     return MockHandler()
 
 
@@ -281,14 +285,14 @@ def mock_stage_coordinator():
             self.stage_name = stage_name
             self.execute_count = 0
             self.last_context = None
-        
+
         async def execute_stage(self, context: PipelineContext) -> Dict[str, Any]:
             self.execute_count += 1
             self.last_context = context
-            
+
             # Simulate stage execution
             await asyncio.sleep(0.01)  # 10ms delay
-            
+
             return {
                 'stage_name': self.stage_name,
                 'status': 'completed',
@@ -296,13 +300,13 @@ def mock_stage_coordinator():
                 'execution_time_ms': 10.0,
                 'timestamp': datetime.utcnow().isoformat()
             }
-        
+
         async def validate_stage_input(self, context: PipelineContext) -> bool:
             return True
-        
+
         async def get_stage_requirements(self) -> Dict[str, Any]:
             return {'required_data': ['input_data'], 'optional_data': ['metadata']}
-    
+
     return MockStageCoordinator()
 
 
@@ -312,13 +316,13 @@ def mock_bias_service():
     class MockBiasService:
         def __init__(self):
             self.analyze_count = 0
-        
+
         async def analyze_data(self, data: Dict[str, Any], stage: str) -> BiasMetrics:
             self.analyze_count += 1
-            
+
             # Simulate bias analysis
             bias_score = 0.1 if 'good' in str(data).lower() else 0.3
-            
+
             return BiasMetrics(
                 overall_bias_score=bias_score,
                 demographic_bias_score=bias_score * 0.8,
@@ -330,7 +334,7 @@ def mock_bias_service():
                 recommendations=["Monitor closely"] if bias_score > 0.2 else ["Continue"],
                 timestamp=datetime.utcnow()
             )
-        
+
         async def get_real_time_alerts(self) -> List[Dict[str, Any]]:
             return [
                 {
@@ -341,7 +345,7 @@ def mock_bias_service():
                     'stage': 'validation'
                 }
             ]
-    
+
     return MockBiasService()
 
 
@@ -351,11 +355,11 @@ def mock_performance_service():
     class MockPerformanceService:
         def __init__(self):
             self.metrics = []
-        
+
         async def record_metric(self, metric: PerformanceMetric) -> PerformanceMetric:
             self.metrics.append(metric)
             return metric
-        
+
         async def check_performance_thresholds(self) -> List[Dict[str, Any]]:
             violations = []
             for metric in self.metrics:
@@ -367,13 +371,13 @@ def mock_performance_service():
                         'violation_severity': 'high' if metric.value > metric.threshold * 1.5 else 'medium'
                     })
             return violations
-        
+
         async def get_performance_summary(self, execution_id: str) -> Dict[str, Any]:
             execution_metrics = [m for m in self.metrics if m.execution_id == execution_id]
-            
+
             if not execution_metrics:
                 return None
-            
+
             return {
                 'execution_id': execution_id,
                 'total_operations': len(execution_metrics),
@@ -383,7 +387,7 @@ def mock_performance_service():
                 'threshold_violations': sum(1 for m in execution_metrics if m.threshold_exceeded),
                 'sub_50ms_compliance_rate': sum(1 for m in execution_metrics if m.value <= 50.0) / len(execution_metrics)
             }
-    
+
     return MockPerformanceService()
 
 
@@ -394,14 +398,14 @@ def mock_web_socket_manager():
         def __init__(self):
             self.connections = {}
             self.messages_sent = []
-        
+
         async def connect(self, client_id: str, websocket):
             self.connections[client_id] = websocket
-        
+
         async def disconnect(self, client_id: str):
             if client_id in self.connections:
                 del self.connections[client_id]
-        
+
         async def send_message(self, client_id: str, message: Dict[str, Any]):
             if client_id in self.connections:
                 self.messages_sent.append({
@@ -411,14 +415,14 @@ def mock_web_socket_manager():
                 })
                 return True
             return False
-        
+
         async def broadcast_message(self, message: Dict[str, Any]):
             for client_id in self.connections:
                 await self.send_message(client_id, message)
-        
+
         def get_connection_count(self) -> int:
             return len(self.connections)
-    
+
     return MockWebSocketManager()
 
 
@@ -430,7 +434,7 @@ def mock_flask_app():
             self.routes = {}
             self.before_request_handlers = []
             self.after_request_handlers = []
-        
+
         def route(self, path, methods=None):
             def decorator(func):
                 self.routes[path] = {
@@ -439,46 +443,46 @@ def mock_flask_app():
                 }
                 return func
             return decorator
-        
+
         def before_request(self, func):
             self.before_request_handlers.append(func)
             return func
-        
+
         def after_request(self, func):
             self.after_request_handlers.append(func)
             return func
-        
+
         async def test_request(self, path, method='GET', data=None, headers=None):
             if path not in self.routes:
                 return {'status': 404, 'error': 'Route not found'}
-            
+
             route_info = self.routes[path]
             if method not in route_info['methods']:
                 return {'status': 405, 'error': 'Method not allowed'}
-            
+
             # Mock request context
             mock_request = Mock()
             mock_request.method = method
             mock_request.path = path
             mock_request.headers = headers or {}
             mock_request.json = data or {}
-            
+
             # Execute before request handlers
             for handler in self.before_request_handlers:
                 await handler()
-            
+
             # Execute route function
             try:
                 result = await route_info['function'](mock_request)
-                
+
                 # Execute after request handlers
                 for handler in self.after_request_handlers:
                     await handler()
-                
+
                 return {'status': 200, 'data': result}
             except Exception as e:
                 return {'status': 500, 'error': str(e)}
-    
+
     return MockFlaskApp()
 
 
@@ -504,7 +508,7 @@ def test_data_generator():
                     'consistency': 0.88
                 }
             }
-        
+
         @staticmethod
         def generate_pipeline_request(num_datasets: int = 2) -> Dict[str, Any]:
             return {
@@ -519,7 +523,7 @@ def test_data_generator():
                     'version': '1.0.0'
                 }
             }
-        
+
         @staticmethod
         def generate_stage_result(stage_name: str, status: str = 'completed') -> Dict[str, Any]:
             return {
@@ -539,7 +543,7 @@ def test_data_generator():
                     'worker_id': 'test_worker_123'
                 }
             }
-        
+
         @staticmethod
         def generate_bias_metrics(bias_score: float = 0.1) -> BiasMetrics:
             return BiasMetrics(
@@ -553,7 +557,7 @@ def test_data_generator():
                 recommendations=["Monitor closely"] if bias_score > 0.2 else ["Continue"],
                 timestamp=datetime.utcnow()
             )
-        
+
         @staticmethod
         def generate_performance_metrics(execution_id: str, num_metrics: int = 5) -> List[PerformanceMetric]:
             metrics = []
@@ -569,7 +573,7 @@ def test_data_generator():
                     metadata={'test_index': i}
                 ))
             return metrics
-    
+
     return TestDataGenerator()
 
 
@@ -581,34 +585,34 @@ def performance_timer():
             self.start_time = None
             self.end_time = None
             self.elapsed_ms = None
-        
+
         def start(self):
             self.start_time = time.time()
             self.end_time = None
             self.elapsed_ms = None
-        
+
         def stop(self):
             if self.start_time is None:
                 raise RuntimeError("Timer not started")
             self.end_time = time.time()
             self.elapsed_ms = (self.end_time - self.start_time) * 1000
-        
+
         def get_elapsed_ms(self) -> float:
             if self.elapsed_ms is None:
                 raise RuntimeError("Timer not stopped")
             return self.elapsed_ms
-        
+
         def assert_under_threshold(self, threshold_ms: float = 50.0):
             elapsed = self.get_elapsed_ms()
             assert elapsed < threshold_ms, f"Operation took {elapsed:.2f}ms, exceeding {threshold_ms}ms threshold"
-        
+
         def __enter__(self):
             self.start()
             return self
-        
+
         def __exit__(self, exc_type, exc_val, exc_tb):
             self.stop()
-    
+
     return PerformanceTimer()
 
 
@@ -624,31 +628,31 @@ def mock_logger():
                 'error': [],
                 'critical': []
             }
-        
+
         def debug(self, message: str, **kwargs):
             self.logs['debug'].append({'message': message, 'kwargs': kwargs})
-        
+
         def info(self, message: str, **kwargs):
             self.logs['info'].append({'message': message, 'kwargs': kwargs})
-        
+
         def warning(self, message: str, **kwargs):
             self.logs['warning'].append({'message': message, 'kwargs': kwargs})
-        
+
         def error(self, message: str, **kwargs):
             self.logs['error'].append({'message': message, 'kwargs': kwargs})
-        
+
         def critical(self, message: str, **kwargs):
             self.logs['critical'].append({'message': message, 'kwargs': kwargs})
-        
+
         def get_logs(self, level: str = None):
             if level:
                 return self.logs.get(level, [])
             return self.logs
-        
+
         def clear_logs(self):
             for level in self.logs:
                 self.logs[level] = []
-    
+
     return MockLogger()
 
 
@@ -678,14 +682,14 @@ def test_database():
 def test_environment():
     """Set up test environment variables."""
     import os
-    
+
     # Set test environment variables
     os.environ['PIPELINE_TEST_MODE'] = 'true'
     os.environ['REDIS_TEST_DATABASE'] = '15'
     os.environ['LOG_LEVEL'] = 'DEBUG'
-    
+
     yield
-    
+
     # Cleanup environment variables
     if 'PIPELINE_TEST_MODE' in os.environ:
         del os.environ['PIPELINE_TEST_MODE']
@@ -718,11 +722,11 @@ def pytest_collection_modifyitems(config, items):
         # Auto-mark performance tests
         if "performance" in item.nodeid.lower():
             item.add_marker(pytest.mark.performance)
-        
+
         # Auto-mark security tests
         if "security" in item.nodeid.lower() or "compliance" in item.nodeid.lower():
             item.add_marker(pytest.mark.security)
-        
+
         # Auto-mark HIPAA tests
         if "hipaa" in item.nodeid.lower():
             item.add_marker(pytest.mark.hipaa)

@@ -211,7 +211,7 @@ groups:
     annotations:
       summary: "High error rate detected"
       description: "Error rate is {{ $value }} errors per second"
-  
+
   - alert: HighResponseTime
     expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 1.0
     for: 2m
@@ -220,7 +220,7 @@ groups:
     annotations:
       summary: "High response time detected"
       description: "95th percentile response time is {{ $value }} seconds"
-  
+
   - alert: HighCPUUsage
     expr: system_cpu_usage_percent > 80
     for: 5m
@@ -229,7 +229,7 @@ groups:
     annotations:
       summary: "High CPU usage detected"
       description: "CPU usage is {{ $value }}%"
-  
+
   - alert: HighMemoryUsage
     expr: (system_memory_usage_bytes / (1024^3)) > 1.5
     for: 5m
@@ -238,7 +238,7 @@ groups:
     annotations:
       summary: "High memory usage detected"
       description: "Memory usage is {{ $value }}GB"
-  
+
   - alert: DatabaseConnectionsHigh
     expr: database_connections_active > 50
     for: 2m

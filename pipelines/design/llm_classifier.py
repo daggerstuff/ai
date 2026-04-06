@@ -13,6 +13,8 @@ import os
 from dataclasses import dataclass
 from typing import List, Optional
 
+from openai import OpenAI
+
 from ai.pipelines.design.context_detector import ContextDetector
 from ai.pipelines.design.reasoning_parser import ReasoningOutputParser
 from ai.pipelines.design.situational_awareness import SituationalAwarenessAgent
@@ -20,7 +22,6 @@ from ai.pipelines.design.taxonomy_classifier import (
     CategoryClassification,
     TherapeuticCategory,
 )
-from openai import OpenAI
 
 logger = logging.getLogger(__name__)
 

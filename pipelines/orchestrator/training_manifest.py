@@ -366,7 +366,7 @@ class TrainingManifest:
     @classmethod
     def load_from_file(cls, filepath: str) -> "TrainingManifest":
         """Load manifest from JSON file"""
-        with open(filepath, "r") as f:
+        with open(filepath) as f:
             data = json.load(f)
         return cls.from_dict(data)
 

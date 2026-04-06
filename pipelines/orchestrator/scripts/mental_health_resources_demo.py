@@ -34,8 +34,8 @@ def demo_huggingface_loader():
 
     try:
         from ai.pipelines.orchestrator.ingestion.tier_loaders import (
-            HuggingFaceMentalHealthLoader,
             HUGGINGFACE_MENTAL_HEALTH_DATASETS,
+            HuggingFaceMentalHealthLoader,
         )
 
         print("\nAvailable datasets:")
@@ -71,9 +71,9 @@ def demo_synthetic_distillation():
 
     try:
         from ai.pipelines.orchestrator.generation.synthetic_data_distillation import (
+            DistillationStrategy,
             SyntheticDataDistillationPipeline,
             SyntheticGenerationConfig,
-            DistillationStrategy,
             create_distillation_pipeline,
         )
 
@@ -113,8 +113,8 @@ def demo_empathy_validator():
 
     try:
         from ai.pipelines.orchestrator.quality.empathy_mental_health_validator import (
-            EmpathyMentalHealthValidator,
             EmpathyLevel,
+            EmpathyMentalHealthValidator,
         )
         from ai.pipelines.orchestrator.schemas.conversation_schema import Conversation, Message
 
@@ -178,9 +178,9 @@ def demo_dpo_loader():
 
     try:
         from ai.pipelines.orchestrator.ingestion.tier_loaders import (
+            DPO_DATASETS,
             DPODatasetLoader,
             DPODatasetType,
-            DPO_DATASETS,
         )
 
         print("\nAvailable DPO datasets:")
@@ -215,12 +215,13 @@ def demo_dpo_training_style():
     print("=" * 60)
 
     try:
-        from ai.pipelines.orchestrator.training_styles import (
-            TrainingStyleManager,
-            TrainingStyle,
-            DPOConfig,
-        )
         from typing import cast
+
+        from ai.pipelines.orchestrator.training_styles import (
+            DPOConfig,
+            TrainingStyle,
+            TrainingStyleManager,
+        )
 
         manager = TrainingStyleManager()
 
@@ -259,8 +260,8 @@ def demo_memo_summarizer():
 
     try:
         from ai.pipelines.orchestrator.ingestion.memo_counseling_dataset import (
-            MEMODatasetLoader,
             CounselingSummarizer,
+            MEMODatasetLoader,
         )
         from ai.pipelines.orchestrator.schemas.conversation_schema import Conversation, Message
 

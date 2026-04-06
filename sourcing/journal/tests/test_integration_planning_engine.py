@@ -315,7 +315,7 @@ class TestPreprocessingScriptGeneration:
         assert output_path == str(script_path)
 
         # Verify script content
-        with open(output_path, "r", encoding="utf-8") as f:
+        with open(output_path, encoding="utf-8") as f:
             content = f.read()
             assert plan.source_id in content
             assert plan.complexity in content

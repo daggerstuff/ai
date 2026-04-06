@@ -5,12 +5,12 @@ and maintenance operations in sequence.
 """
 
 import argparse
+import json
 import subprocess
 import sys
-from pathlib import Path
 from datetime import datetime
-from typing import Dict, Any
-import json
+from pathlib import Path
+from typing import Any, Dict
 
 
 class DatasetRegistryOrchestrator:
@@ -228,7 +228,7 @@ class DatasetRegistryOrchestrator:
         print("\n### GENERATING FINAL REPORT ###\n")
 
         # Load final registry state
-        with open(self.registry_path, "r") as f:
+        with open(self.registry_path) as f:
             registry = json.load(f)
 
         report = {

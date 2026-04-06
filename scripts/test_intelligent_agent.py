@@ -22,7 +22,7 @@ def test_interview_extraction():
     # Exact problem case from savepoint
     problem_segment = """
     Interviewer: How can somebody begin to take that path toward healing from complex trauma.
-    
+
     Tim Fletcher: Well, that's a huge question because unfortunately, most people with complex trauma don't realize they have complex trauma. They think they're just anxious or depressed or they have relationship problems, but they don't understand the underlying root cause.
     """
 
@@ -103,7 +103,7 @@ def test_podcast_content():
 
     podcast_segment = """
     Host: Today we're discussing trauma recovery. What should people know about starting their healing journey?
-    
+
     Expert: The first thing I always tell people is that healing isn't linear. You're going to have good days and bad days, and that's completely normal.
     """
 

@@ -11,21 +11,22 @@ This module provides comprehensive security testing including:
 """
 
 import asyncio
-import aiohttp
 import hashlib
-import secrets
-import time
 import json
 import logging
-from typing import Dict, List, Optional, Any, Tuple
-from dataclasses import dataclass, field
-from enum import Enum
-from datetime import datetime
-import subprocess
+import secrets
 import socket
 import ssl
-import requests
+import subprocess
+import time
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import urljoin, urlparse
+
+import aiohttp
+import requests
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -79,17 +80,17 @@ class SecurityTestResult:
 class SecurityTestFramework:
     """
     Comprehensive Security Test Coverage Framework
-    
+
     Provides automated security testing capabilities for the Pixelated Empathy AI system
     """
-    
+
     def __init__(self, base_url: str = "http://localhost:8000", api_key: Optional[str] = None):
         self.base_url = base_url.rstrip('/')
         self.api_key = api_key
         self.session = requests.Session()
         self.vulnerabilities: List[SecurityVulnerability] = []
         self.test_results: List[SecurityTestResult] = []
-        
+
         # Common payloads for testing
         self.sql_injection_payloads = [
             "' OR '1'='1",
@@ -98,7 +99,7 @@ class SecurityTestFramework:
             "admin'--",
             "' OR 1=1#"
         ]
-        
+
         self.xss_payloads = [
             "<script>alert('XSS')</script>",
             "javascript:alert('XSS')",
@@ -106,7 +107,7 @@ class SecurityTestFramework:
             "';alert('XSS');//",
             "<svg onload=alert('XSS')>"
         ]
-        
+
         self.command_injection_payloads = [
             "; ls -la",
             "| whoami",
@@ -114,19 +115,19 @@ class SecurityTestFramework:
             "`id`",
             "$(whoami)"
         ]
-        
+
         logger.info(f"Security test framework initialized for {base_url}")
-    
+
     def add_vulnerability(self, vulnerability: SecurityVulnerability):
         """Add discovered vulnerability"""
         self.vulnerabilities.append(vulnerability)
         logger.warning(f"Vulnerability discovered: {vulnerability.title} ({vulnerability.severity.value})")
-    
+
     async def run_comprehensive_security_scan(self) -> Dict[str, Any]:
         """Run comprehensive security testing suite"""
         logger.info("Starting comprehensive security scan...")
         start_time = time.time()
-        
+
         # Run all security test categories
         test_methods = [
             self.test_authentication_security,
@@ -140,7 +141,7 @@ class SecurityTestFramework:
             self.test_cryptography_implementation,
             self.test_infrastructure_security
         ]
-        
+
         for test_method in test_methods:
             try:
                 result = await test_method()
@@ -154,21 +155,21 @@ class SecurityTestFramework:
                     passed=False,
                     details={"error": str(e)}
                 ))
-        
+
         total_time = time.time() - start_time
-        
+
         # Generate comprehensive report
         report = self.generate_security_report(total_time)
         logger.info(f"Security scan completed in {total_time:.2f} seconds")
-        
+
         return report
-    
+
     async def test_authentication_security(self) -> SecurityTestResult:
         """Test authentication security mechanisms"""
         start_time = time.time()
         vulnerabilities = []
         passed = True
-        
+
         # Test 1: Brute force protection
         try:
             for i in range(10):
@@ -176,7 +177,7 @@ class SecurityTestFramework:
                     f"{self.base_url}/auth/login",
                     json={"username": "admin", "password": f"wrong_password_{i}"}
                 )
-                
+
                 if i > 5 and response.status_code != 429:  # Should be rate limited
                     vulnerabilities.append(SecurityVulnerability(
                         id="AUTH-001",
@@ -191,7 +192,7 @@ class SecurityTestFramework:
                     break
         except Exception as e:
             logger.error(f"Brute force test failed: {e}")
-        
+
         # Test 2: Password policy enforcement
         try:
             weak_passwords = ["123", "password", "admin", ""]
@@ -200,7 +201,7 @@ class SecurityTestFramework:
                     f"{self.base_url}/auth/register",
                     json={"username": "test_user", "password": weak_password, "email": "test@example.com"}
                 )
-                
+
                 if response.status_code == 200:
                     vulnerabilities.append(SecurityVulnerability(
                         id="AUTH-002",
@@ -214,7 +215,7 @@ class SecurityTestFramework:
                     passed = False
         except Exception as e:
             logger.error(f"Password policy test failed: {e}")
-        
+
         # Test 3: JWT token security
         try:
             # Test with malformed JWT
@@ -224,11 +225,11 @@ class SecurityTestFramework:
                 "",
                 "Bearer "
             ]
-            
+
             for token in malformed_tokens:
                 headers = {"Authorization": f"Bearer {token}"}
                 response = self.session.get(f"{self.base_url}/auth/me", headers=headers)
-                
+
                 if response.status_code == 200:
                     vulnerabilities.append(SecurityVulnerability(
                         id="AUTH-003",
@@ -242,7 +243,7 @@ class SecurityTestFramework:
                     passed = False
         except Exception as e:
             logger.error(f"JWT security test failed: {e}")
-        
+
         execution_time = time.time() - start_time
         return SecurityTestResult(
             test_name="test_authentication_security",
@@ -251,13 +252,13 @@ class SecurityTestFramework:
             vulnerabilities=vulnerabilities,
             execution_time=execution_time
         )
-    
+
     async def test_authorization_security(self) -> SecurityTestResult:
         """Test authorization and access control mechanisms"""
         start_time = time.time()
         vulnerabilities = []
         passed = True
-        
+
         # Test 1: Privilege escalation
         try:
             # Try to access admin endpoints without admin privileges
@@ -266,14 +267,14 @@ class SecurityTestFramework:
                 "/auth/api-keys",
                 "/admin/system-config"
             ]
-            
+
             # Use regular user token (if available)
             headers = {"Authorization": "Bearer regular_user_token"}
-            
+
             for endpoint in admin_endpoints:
                 try:
                     response = self.session.get(f"{self.base_url}{endpoint}", headers=headers)
-                    
+
                     if response.status_code == 200:
                         vulnerabilities.append(SecurityVulnerability(
                             id="AUTHZ-001",
@@ -289,15 +290,15 @@ class SecurityTestFramework:
                     pass  # Expected for non-existent endpoints
         except Exception as e:
             logger.error(f"Authorization test failed: {e}")
-        
+
         # Test 2: Direct object reference
         try:
             # Try to access other users' data
             user_ids = ["1", "2", "admin", "test"]
-            
+
             for user_id in user_ids:
                 response = self.session.get(f"{self.base_url}/users/{user_id}")
-                
+
                 if response.status_code == 200:
                     # Check if response contains sensitive data
                     data = response.json()
@@ -314,7 +315,7 @@ class SecurityTestFramework:
                         passed = False
         except Exception as e:
             logger.error(f"Direct object reference test failed: {e}")
-        
+
         execution_time = time.time() - start_time
         return SecurityTestResult(
             test_name="test_authorization_security",
@@ -323,13 +324,13 @@ class SecurityTestFramework:
             vulnerabilities=vulnerabilities,
             execution_time=execution_time
         )
-    
+
     async def test_input_validation_security(self) -> SecurityTestResult:
         """Test input validation and sanitization"""
         start_time = time.time()
         vulnerabilities = []
         passed = True
-        
+
         # Test endpoints that accept input
         test_endpoints = [
             ("/auth/login", "POST", {"username": "", "password": ""}),
@@ -337,7 +338,7 @@ class SecurityTestFramework:
             ("/api/chat", "POST", {"message": ""}),
             ("/api/feedback", "POST", {"content": ""})
         ]
-        
+
         for endpoint, method, base_payload in test_endpoints:
             try:
                 # Test with various malicious inputs
@@ -350,18 +351,18 @@ class SecurityTestFramework:
                     "\x00\x01\x02",  # Null bytes
                     "A" * 10000,  # Buffer overflow attempt
                 ]
-                
+
                 for malicious_input in malicious_inputs:
                     # Test each field with malicious input
                     for field in base_payload.keys():
                         test_payload = base_payload.copy()
                         test_payload[field] = malicious_input
-                        
+
                         if method == "POST":
                             response = self.session.post(f"{self.base_url}{endpoint}", json=test_payload)
                         else:
                             response = self.session.get(f"{self.base_url}{endpoint}", params=test_payload)
-                        
+
                         # Check if malicious input is reflected in response
                         if response.status_code == 200 and malicious_input in response.text:
                             vulnerabilities.append(SecurityVulnerability(
@@ -375,10 +376,10 @@ class SecurityTestFramework:
                                 remediation="Implement proper input validation and output encoding"
                             ))
                             passed = False
-                            
+
             except Exception as e:
                 logger.error(f"Input validation test failed for {endpoint}: {e}")
-        
+
         execution_time = time.time() - start_time
         return SecurityTestResult(
             test_name="test_input_validation_security",
@@ -387,29 +388,29 @@ class SecurityTestFramework:
             vulnerabilities=vulnerabilities,
             execution_time=execution_time
         )
-    
+
     async def test_session_management_security(self) -> SecurityTestResult:
         """Test session management security"""
         start_time = time.time()
         vulnerabilities = []
         passed = True
-        
+
         try:
             # Test 1: Session fixation
             # Get initial session
             response1 = self.session.get(f"{self.base_url}/health")
             initial_cookies = self.session.cookies
-            
+
             # Login
             login_response = self.session.post(
                 f"{self.base_url}/auth/login",
                 json={"username": "admin", "password": "admin_password"}
             )
-            
+
             if login_response.status_code == 200:
                 # Check if session ID changed after login
                 post_login_cookies = self.session.cookies
-                
+
                 if initial_cookies == post_login_cookies:
                     vulnerabilities.append(SecurityVulnerability(
                         id="SESS-001",
@@ -421,7 +422,7 @@ class SecurityTestFramework:
                         remediation="Regenerate session ID after successful authentication"
                     ))
                     passed = False
-            
+
             # Test 2: Session timeout
             # This would require waiting or manipulating time
             # For now, just check if there's a reasonable expiration time
@@ -434,7 +435,7 @@ class SecurityTestFramework:
                     if len(token_parts) >= 2:
                         payload = base64.b64decode(token_parts[1] + "==")  # Add padding
                         payload_data = json.loads(payload)
-                        
+
                         if "exp" not in payload_data:
                             vulnerabilities.append(SecurityVulnerability(
                                 id="SESS-002",
@@ -448,10 +449,10 @@ class SecurityTestFramework:
                             passed = False
                 except Exception:
                     pass  # JWT parsing failed, might be encrypted
-                    
+
         except Exception as e:
             logger.error(f"Session management test failed: {e}")
-        
+
         execution_time = time.time() - start_time
         return SecurityTestResult(
             test_name="test_session_management_security",
@@ -460,36 +461,36 @@ class SecurityTestFramework:
             vulnerabilities=vulnerabilities,
             execution_time=execution_time
         )
-    
+
     def generate_security_report(self, total_execution_time: float) -> Dict[str, Any]:
         """Generate comprehensive security test report"""
-        
+
         # Aggregate vulnerabilities by severity
         vulnerability_counts = {level.value: 0 for level in VulnerabilityLevel}
         for vuln in self.vulnerabilities:
             vulnerability_counts[vuln.severity.value] += 1
-        
+
         # Calculate test statistics
         total_tests = len(self.test_results)
         passed_tests = sum(1 for result in self.test_results if result.passed)
         failed_tests = total_tests - passed_tests
-        
+
         # Calculate security score
         critical_weight = 10
         high_weight = 5
         medium_weight = 2
         low_weight = 1
-        
+
         total_penalty = (
             vulnerability_counts["critical"] * critical_weight +
             vulnerability_counts["high"] * high_weight +
             vulnerability_counts["medium"] * medium_weight +
             vulnerability_counts["low"] * low_weight
         )
-        
+
         max_score = 100
         security_score = max(0, max_score - total_penalty)
-        
+
         # Determine overall status
         if security_score >= 95 and vulnerability_counts["critical"] == 0:
             overall_status = "PRODUCTION READY"
@@ -499,7 +500,7 @@ class SecurityTestFramework:
             overall_status = "NEEDS MAJOR FIXES"
         else:
             overall_status = "NOT PRODUCTION READY"
-        
+
         report = {
             "scan_summary": {
                 "timestamp": datetime.utcnow().isoformat(),
@@ -547,39 +548,39 @@ class SecurityTestFramework:
             ],
             "recommendations": self._generate_recommendations(security_score, vulnerability_counts)
         }
-        
+
         return report
-    
+
     def _count_vulnerabilities_by_category(self) -> Dict[str, int]:
         """Count vulnerabilities by category"""
         category_counts = {category.value: 0 for category in TestCategory}
         for vuln in self.vulnerabilities:
             category_counts[vuln.category.value] += 1
         return category_counts
-    
+
     def _generate_recommendations(self, security_score: float, vulnerability_counts: Dict[str, int]) -> List[str]:
         """Generate security recommendations based on findings"""
         recommendations = []
-        
+
         if vulnerability_counts["critical"] > 0:
             recommendations.append("CRITICAL: Address all critical vulnerabilities immediately before production deployment")
-        
+
         if vulnerability_counts["high"] > 0:
             recommendations.append("HIGH PRIORITY: Fix high-severity vulnerabilities to improve security posture")
-        
+
         if security_score < 80:
             recommendations.append("Conduct additional security testing and code review")
-        
+
         if security_score < 95:
             recommendations.append("Implement additional security controls and monitoring")
-        
+
         recommendations.extend([
             "Implement automated security testing in CI/CD pipeline",
             "Conduct regular penetration testing",
             "Establish security monitoring and incident response procedures",
             "Provide security training for development team"
         ])
-        
+
         return recommendations
 
 # Placeholder methods for remaining test categories
@@ -587,27 +588,27 @@ class SecurityTestFramework:
         """Test API-specific security measures"""
         # Implementation for API security testing
         return SecurityTestResult("test_api_security", TestCategory.API_SECURITY, True)
-    
+
     async def test_injection_vulnerabilities(self) -> SecurityTestResult:
         """Test for injection vulnerabilities"""
         # Implementation for injection testing
         return SecurityTestResult("test_injection_vulnerabilities", TestCategory.INJECTION, True)
-    
+
     async def test_xss_vulnerabilities(self) -> SecurityTestResult:
         """Test for XSS vulnerabilities"""
         # Implementation for XSS testing
         return SecurityTestResult("test_xss_vulnerabilities", TestCategory.XSS, True)
-    
+
     async def test_csrf_protection(self) -> SecurityTestResult:
         """Test CSRF protection mechanisms"""
         # Implementation for CSRF testing
         return SecurityTestResult("test_csrf_protection", TestCategory.CSRF, True)
-    
+
     async def test_cryptography_implementation(self) -> SecurityTestResult:
         """Test cryptographic implementations"""
         # Implementation for crypto testing
         return SecurityTestResult("test_cryptography_implementation", TestCategory.CRYPTOGRAPHY, True)
-    
+
     async def test_infrastructure_security(self) -> SecurityTestResult:
         """Test infrastructure security"""
         # Implementation for infrastructure testing
@@ -618,10 +619,10 @@ if __name__ == "__main__":
     async def main():
         # Initialize security test framework
         security_tester = SecurityTestFramework("http://localhost:8000")
-        
+
         # Run comprehensive security scan
         report = await security_tester.run_comprehensive_security_scan()
-        
+
         # Print summary
         print(f"\n{'='*60}")
         print("SECURITY SCAN REPORT")
@@ -633,11 +634,11 @@ if __name__ == "__main__":
         print(f"High: {report['vulnerability_summary']['by_severity']['high']}")
         print(f"Medium: {report['vulnerability_summary']['by_severity']['medium']}")
         print(f"Low: {report['vulnerability_summary']['by_severity']['low']}")
-        
+
         # Save report to file
         with open("security_scan_report.json", "w") as f:
             json.dump(report, f, indent=2)
-        
+
         print(f"\nDetailed report saved to: security_scan_report.json")
-    
+
     asyncio.run(main())

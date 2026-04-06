@@ -1,5 +1,7 @@
 import pytest
+
 from utils.subtitle_processor import SubtitleProcessor
+
 
 def test_clean_vtt_removes_metadata_and_timestamps():
     vtt_content = """WEBVTT

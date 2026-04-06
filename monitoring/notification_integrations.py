@@ -464,7 +464,7 @@ class NotificationManager:
     def _load_config(self, config_path: Optional[str]) -> NotificationConfig:
         """Load notification configuration"""
         if config_path and os.path.exists(config_path):
-            with open(config_path, "r") as f:
+            with open(config_path) as f:
                 config_data = json.load(f)
             return NotificationConfig(**config_data)
 

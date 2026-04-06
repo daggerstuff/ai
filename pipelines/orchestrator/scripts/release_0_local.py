@@ -14,10 +14,10 @@ Usage:
 import hashlib
 import json
 import logging
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List
-from dataclasses import dataclass, asdict
 
 logging.basicConfig(
     level=logging.INFO,
@@ -75,7 +75,7 @@ class Release0Builder:
             return []
 
         records = []
-        with open(filepath, 'r', encoding='utf-8') as f:
+        with open(filepath, encoding='utf-8') as f:
             for line in f:
                 line = line.strip()
                 if line:

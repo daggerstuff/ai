@@ -1,7 +1,7 @@
 """
 System Management API Routes for MCP Server.
 
-This module provides REST API endpoints for system health monitoring, 
+This module provides REST API endpoints for system health monitoring,
 metrics collection, and baseline diagnostics.
 """
 
@@ -26,7 +26,7 @@ def get_health():
                 "redis": "unknown"
             }
         }
-        
+
         # Check MongoDB
         task_orchestrator = g.task_orchestrator
         if task_orchestrator:
@@ -36,23 +36,23 @@ def get_health():
             except Exception:
                 health_status['services']['mongodb'] = "disconnected"
                 health_status['status'] = "degraded"
-                
+
         # Check Redis
         if g.agent_manager:
             health_status['services']['redis'] = "connected"
         else:
             health_status['services']['redis'] = "disconnected"
             health_status['status'] = "degraded"
-                
+
         return jsonify({
-            "success": True, 
+            "success": True,
             "data": health_status
         }), 200
-        
+
     except Exception as e:
         logger.error(f"Error checking system health: {e}")
         return jsonify({
-            "success": False, 
+            "success": False,
             "error": str(e)
         }), 500
 
@@ -66,7 +66,7 @@ def get_metrics():
             # Stats for active agents
             if hasattr(agent_manager, 'active_agents'):
                 active_agents = len(agent_manager.active_agents)
-            
+
         metrics = {
             "agents": {
                 "active_count": active_agents
@@ -80,15 +80,15 @@ def get_metrics():
                 "failed_count": 0
             }
         }
-        
+
         return jsonify({
-            "success": True, 
+            "success": True,
             "data": metrics
         }), 200
-        
+
     except Exception as e:
         logger.error(f"Error fetching system metrics: {e}")
         return jsonify({
-            "success": False, 
+            "success": False,
             "error": str(e)
         }), 500

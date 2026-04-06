@@ -2,9 +2,8 @@
 Unit tests for ai.pipelines.orchestrator.data_loader
 """
 
-from datasets import Dataset, IterableDataset
-
 from ai.pipelines.orchestrator import data_loader
+from datasets import Dataset, IterableDataset
 
 # Test constants
 EXPECTED_DATASET_SIZE = 10

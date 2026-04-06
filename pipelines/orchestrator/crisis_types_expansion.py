@@ -8,11 +8,11 @@ The expansion follows the Phase 5: Crisis & Edge Case Development plan from the 
 adding 25 new crisis categories to reach the target of 50+ categories.
 """
 
-from enum import Enum
-from typing import List, Dict, Any
+import logging
 from dataclasses import dataclass
 from datetime import datetime
-import logging
+from enum import Enum
+from typing import Any, Dict, List
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -23,7 +23,7 @@ class CrisisType(Enum):
     Enum for all crisis types supported by the system.
     This expands from the original 25 categories to 50+ categories.
     """
-    
+
     # Original 25 categories (existing)
     SUICIDE_IDEATION = "suicide_ideation"
     SELF_HARM = "self_harm"
@@ -49,7 +49,7 @@ class CrisisType(Enum):
     DISSOCIATIVE_IDENTITY_DISORDER = "dissociative_identity_disorder"
     TRAUMATIC_STRESS = "traumatic_stress"
     GRIEF_CRISIS = "grief_crisis"
-    
+
     # New 25 categories (expansion)
     DOMESTIC_VIOLENCE_CHILDREN = "domestic_violence_children"
     SEXUAL_ASSAULT = "sexual_assault"
@@ -76,7 +76,7 @@ class CrisisType(Enum):
     SEVERE_TRAUMA = "severe_trauma"
     COMPLEX_TRAUMA = "complex_trauma"
     SEVERE_GRIEF = "severe_grief"
-    
+
     def __str__(self):
         return self.value
 
@@ -95,7 +95,7 @@ class CrisisCategory:
     cultural_considerations: List[str]
     legal_requirements: List[str]
     created_at: datetime = datetime.now()
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
         return {
@@ -116,14 +116,14 @@ class CrisisCategoryManager:
     Manages the collection of crisis categories and provides utilities for
     working with the expanded crisis detection system.
     """
-    
+
     def __init__(self):
         self.categories: Dict[str, CrisisCategory] = {}
         self._initialize_categories()
-    
+
     def _initialize_categories(self):
         """Initialize all crisis categories with their metadata."""
-        
+
         # Original 25 categories (existing)
         self._add_category(
             CrisisType.SUICIDE_IDEATION,
@@ -136,7 +136,7 @@ class CrisisCategoryManager:
             ["Cultural attitudes toward suicide vary widely", "Religious beliefs may influence risk"],
             ["Mandatory reporting in some jurisdictions", "Duty to warn if specific threat exists"]
         )
-        
+
         self._add_category(
             CrisisType.SELF_HARM,
             "Self-Harm",
@@ -148,7 +148,7 @@ class CrisisCategoryManager:
             ["Cultural norms around self-expression", "Stigma around mental health"],
             ["Medical reporting requirements", "Child protection laws if minor involved"]
         )
-        
+
         self._add_category(
             CrisisType.VIOLENCE_THREAT,
             "Violence Threat",
@@ -160,7 +160,7 @@ class CrisisCategoryManager:
             ["Cultural norms around conflict resolution", "Gender dynamics in violence"],
             ["Mandatory reporting", "Duty to warn", "Legal consequences for threats"]
         )
-        
+
         self._add_category(
             CrisisType.PSYCHOTIC_EPISODE,
             "Psychotic Episode",
@@ -172,7 +172,7 @@ class CrisisCategoryManager:
             ["Cultural interpretations of hallucinations", "Stigma around psychosis"],
             ["Involuntary commitment laws", "Mental health court procedures"]
         )
-        
+
         self._add_category(
             CrisisType.SUBSTANCE_OVERDOSE,
             "Substance Overdose",
@@ -184,7 +184,7 @@ class CrisisCategoryManager:
             ["Cultural attitudes toward substance use", "Stigma around addiction"],
             ["Good Samaritan laws", "Mandatory reporting for minors"]
         )
-        
+
         self._add_category(
             CrisisType.DOMESTIC_VIOLENCE,
             "Domestic Violence",
@@ -196,7 +196,7 @@ class CrisisCategoryManager:
             ["Cultural norms around family", "Gender roles", "Immigration status concerns"],
             ["Mandatory reporting", "Protection orders", "Child protection involvement"]
         )
-        
+
         self._add_category(
             CrisisType.CHILD_ABUSE,
             "Child Abuse",
@@ -208,7 +208,7 @@ class CrisisCategoryManager:
             ["Cultural parenting norms", "Language barriers", "Immigration status"],
             ["Mandatory reporting", "Child protection laws", "Court involvement"]
         )
-        
+
         self._add_category(
             CrisisType.SEVERE_DEPRESSION,
             "Severe Depression",
@@ -220,7 +220,7 @@ class CrisisCategoryManager:
             ["Cultural expressions of depression", "Stigma around mental health"],
             ["Involuntary commitment if suicidal", "Duty to warn"]
         )
-        
+
         self._add_category(
             CrisisType.PANIC_ATTACK,
             "Panic Attack",
@@ -232,7 +232,7 @@ class CrisisCategoryManager:
             ["Cultural interpretations of physical symptoms", "Stigma around anxiety"],
             ["No mandatory reporting", "Duty to provide reasonable accommodations"]
         )
-        
+
         self._add_category(
             CrisisType.EATING_DISORDER_CRISIS,
             "Eating Disorder Crisis",
@@ -244,7 +244,7 @@ class CrisisCategoryManager:
             ["Cultural beauty standards", "Gender norms around eating"],
             ["Involuntary hospitalization if life-threatening", "Child protection if minor"]
         )
-        
+
         # Add remaining original categories
         self._add_category(
             CrisisType.BIPOLAR_MANIA,
@@ -257,7 +257,7 @@ class CrisisCategoryManager:
             ["Cultural perceptions of high energy", "Stigma around bipolar disorder"],
             ["Involuntary commitment if dangerous", "Duty to warn"]
         )
-        
+
         self._add_category(
             CrisisType.BORDERLINE_PERSONALITY_CRISIS,
             "Borderline Personality Crisis",
@@ -269,7 +269,7 @@ class CrisisCategoryManager:
             ["Cultural norms around relationships", "Stigma around personality disorders"],
             ["Duty to warn if violence threatened", "No mandatory reporting for self-harm"]
         )
-        
+
         self._add_category(
             CrisisType.PTSD_FLASHBACK,
             "PTSD Flashback",
@@ -281,7 +281,7 @@ class CrisisCategoryManager:
             ["Cultural trauma responses", "Stigma around trauma"],
             ["No mandatory reporting", "Duty to provide reasonable accommodations"]
         )
-        
+
         self._add_category(
             CrisisType.OCD_COMPULSION,
             "OCD Compulsion",
@@ -293,7 +293,7 @@ class CrisisCategoryManager:
             ["Cultural interpretations of rituals", "Stigma around OCD"],
             ["No mandatory reporting", "Duty to provide reasonable accommodations"]
         )
-        
+
         self._add_category(
             CrisisType.ANOREXIA_NERVOSA,
             "Anorexia Nervosa",
@@ -305,7 +305,7 @@ class CrisisCategoryManager:
             ["Cultural beauty standards", "Gender norms around eating"],
             ["Involuntary hospitalization if life-threatening", "Child protection if minor"]
         )
-        
+
         self._add_category(
             CrisisType.BULIMIA_NERVOSA,
             "Bulimia Nervosa",
@@ -317,7 +317,7 @@ class CrisisCategoryManager:
             ["Cultural beauty standards", "Gender norms around eating"],
             ["No mandatory reporting", "Duty to provide reasonable accommodations"]
         )
-        
+
         self._add_category(
             CrisisType.BINGE_EATING_DISORDER,
             "Binge Eating Disorder",
@@ -329,7 +329,7 @@ class CrisisCategoryManager:
             ["Cultural attitudes toward food", "Weight stigma"],
             ["No mandatory reporting", "Duty to provide reasonable accommodations"]
         )
-        
+
         self._add_category(
             CrisisType.SUBSTANCE_WITHDRAWAL,
             "Substance Withdrawal",
@@ -341,7 +341,7 @@ class CrisisCategoryManager:
             ["Cultural attitudes toward addiction", "Stigma around substance use"],
             ["Involuntary commitment if dangerous", "Duty to warn"]
         )
-        
+
         self._add_category(
             CrisisType.PSYCHOSIS,
             "Psychosis",
@@ -353,7 +353,7 @@ class CrisisCategoryManager:
             ["Cultural interpretations of hallucinations", "Stigma around psychosis"],
             ["Involuntary commitment laws", "Mental health court procedures"]
         )
-        
+
         self._add_category(
             CrisisType.DELUSIONAL_DISORDER,
             "Delusional Disorder",
@@ -365,7 +365,7 @@ class CrisisCategoryManager:
             ["Cultural interpretations of beliefs", "Stigma around delusions"],
             ["Involuntary commitment if dangerous", "Duty to warn"]
         )
-        
+
         self._add_category(
             CrisisType.SCHIZOPHRENIA,
             "Schizophrenia",
@@ -377,7 +377,7 @@ class CrisisCategoryManager:
             ["Cultural interpretations of hallucinations", "Stigma around psychosis"],
             ["Involuntary commitment laws", "Mental health court procedures"]
         )
-        
+
         self._add_category(
             CrisisType.DISSOCIATIVE_IDENTITY_DISORDER,
             "Dissociative Identity Disorder",
@@ -389,7 +389,7 @@ class CrisisCategoryManager:
             ["Cultural interpretations of identity", "Stigma around dissociation"],
             ["No mandatory reporting", "Duty to provide reasonable accommodations"]
         )
-        
+
         self._add_category(
             CrisisType.TRAUMATIC_STRESS,
             "Traumatic Stress",
@@ -401,7 +401,7 @@ class CrisisCategoryManager:
             ["Cultural trauma responses", "Stigma around trauma"],
             ["No mandatory reporting", "Duty to provide reasonable accommodations"]
         )
-        
+
         self._add_category(
             CrisisType.GRIEF_CRISIS,
             "Grief Crisis",
@@ -413,7 +413,7 @@ class CrisisCategoryManager:
             ["Cultural mourning practices", "Religious beliefs about death"],
             ["No mandatory reporting", "Duty to provide reasonable accommodations"]
         )
-        
+
         # New 25 categories (expansion)
         self._add_category(
             CrisisType.DOMESTIC_VIOLENCE_CHILDREN,
@@ -426,7 +426,7 @@ class CrisisCategoryManager:
             ["Cultural parenting norms", "Language barriers", "Immigration status"],
             ["Mandatory reporting", "Child protection laws", "Court involvement"]
         )
-        
+
         self._add_category(
             CrisisType.SEXUAL_ASSAULT,
             "Sexual Assault",
@@ -438,7 +438,7 @@ class CrisisCategoryManager:
             ["Cultural attitudes toward sexual assault", "Stigma", "Victim-blaming"],
             ["Mandatory reporting", "Protection orders", "Legal consequences"]
         )
-        
+
         self._add_category(
             CrisisType.HOMICIDAL_IDEATION,
             "Homicidal Ideation",
@@ -450,7 +450,7 @@ class CrisisCategoryManager:
             ["Cultural norms around conflict resolution", "Gender dynamics in violence"],
             ["Mandatory reporting", "Duty to warn", "Legal consequences for threats"]
         )
-        
+
         self._add_category(
             CrisisType.STALKING,
             "Stalking",
@@ -462,7 +462,7 @@ class CrisisCategoryManager:
             ["Cultural norms around relationships", "Gender dynamics"],
             ["Mandatory reporting", "Protection orders", "Legal consequences"]
         )
-        
+
         self._add_category(
             CrisisType.KIDNAPPING_THREAT,
             "Kidnapping Threat",
@@ -474,7 +474,7 @@ class CrisisCategoryManager:
             ["Cultural norms around family", "Gender dynamics"],
             ["Mandatory reporting", "Duty to warn", "Legal consequences for threats"]
         )
-        
+
         self._add_category(
             CrisisType.TERRORISM_THREAT,
             "Terrorism Threat",
@@ -486,7 +486,7 @@ class CrisisCategoryManager:
             ["Cultural and political context", "Religious extremism"],
             ["Mandatory reporting", "Duty to warn", "Legal consequences for threats"]
         )
-        
+
         self._add_category(
             CrisisType.MASS_VIOLENCE_PLANNING,
             "Mass Violence Planning",
@@ -498,7 +498,7 @@ class CrisisCategoryManager:
             ["Cultural norms around violence", "Media influence"],
             ["Mandatory reporting", "Duty to warn", "Legal consequences for threats"]
         )
-        
+
         self._add_category(
             CrisisType.EXTREME_PARANOIA,
             "Extreme Paranoia",
@@ -510,7 +510,7 @@ class CrisisCategoryManager:
             ["Cultural interpretations of suspicion", "Stigma around paranoia"],
             ["Involuntary commitment if dangerous", "Duty to warn"]
         )
-        
+
         self._add_category(
             CrisisType.SEVERE_ANXIETY,
             "Severe Anxiety",
@@ -522,7 +522,7 @@ class CrisisCategoryManager:
             ["Cultural expressions of anxiety", "Stigma around anxiety"],
             ["No mandatory reporting", "Duty to provide reasonable accommodations"]
         )
-        
+
         self._add_category(
             CrisisType.SOCIAL_PHOBIA_CRISIS,
             "Social Phobia Crisis",
@@ -534,7 +534,7 @@ class CrisisCategoryManager:
             ["Cultural norms around social interaction", "Stigma around social anxiety"],
             ["No mandatory reporting", "Duty to provide reasonable accommodations"]
         )
-        
+
         self._add_category(
             CrisisType.AGORAPHOBIA_CRISIS,
             "Agoraphobia Crisis",
@@ -546,7 +546,7 @@ class CrisisCategoryManager:
             ["Cultural norms around independence", "Stigma around agoraphobia"],
             ["No mandatory reporting", "Duty to provide reasonable accommodations"]
         )
-        
+
         self._add_category(
             CrisisType.SEVERE_INSOMNIA,
             "Severe Insomnia",
@@ -558,7 +558,7 @@ class CrisisCategoryManager:
             ["Cultural attitudes toward sleep", "Work culture demands"],
             ["No mandatory reporting", "Duty to provide reasonable accommodations"]
         )
-        
+
         self._add_category(
             CrisisType.NIGHTMARES,
             "Nightmares",
@@ -570,7 +570,7 @@ class CrisisCategoryManager:
             ["Cultural interpretations of dreams", "Religious beliefs about dreams"],
             ["No mandatory reporting", "Duty to provide reasonable accommodations"]
         )
-        
+
         self._add_category(
             CrisisType.SEVERE_EATING_DISORDER,
             "Severe Eating Disorder",
@@ -582,7 +582,7 @@ class CrisisCategoryManager:
             ["Cultural beauty standards", "Gender norms around eating"],
             ["Involuntary hospitalization if life-threatening", "Child protection if minor"]
         )
-        
+
         self._add_category(
             CrisisType.SELF_MUTILATION,
             "Self-Mutilation",
@@ -594,7 +594,7 @@ class CrisisCategoryManager:
             ["Cultural norms around self-expression", "Stigma around mental health"],
             ["Medical reporting requirements", "Child protection laws if minor involved"]
         )
-        
+
         self._add_category(
             CrisisType.SUICIDE_ATTEMPT,
             "Suicide Attempt",
@@ -606,7 +606,7 @@ class CrisisCategoryManager:
             ["Cultural attitudes toward suicide vary widely", "Religious beliefs may influence risk"],
             ["Mandatory reporting in some jurisdictions", "Duty to warn if specific threat exists"]
         )
-        
+
         self._add_category(
             CrisisType.SUBSTANCE_INDUCED_PSYCHOSIS,
             "Substance-Induced Psychosis",
@@ -618,7 +618,7 @@ class CrisisCategoryManager:
             ["Cultural attitudes toward substance use", "Stigma around psychosis"],
             ["Involuntary commitment if dangerous", "Duty to warn"]
         )
-        
+
         self._add_category(
             CrisisType.DELIRIUM,
             "Delirium",
@@ -630,7 +630,7 @@ class CrisisCategoryManager:
             ["Cultural interpretations of confusion", "Stigma around cognitive impairment"],
             ["Mandatory medical reporting", "Duty to provide care"]
         )
-        
+
         self._add_category(
             CrisisType.SEVERE_BIPOLAR_DEPRESSION,
             "Severe Bipolar Depression",
@@ -642,7 +642,7 @@ class CrisisCategoryManager:
             ["Cultural expressions of depression", "Stigma around bipolar disorder"],
             ["Involuntary commitment if suicidal", "Duty to warn"]
         )
-        
+
         self._add_category(
             CrisisType.MANIC_EPISODE,
             "Manic Episode",
@@ -654,7 +654,7 @@ class CrisisCategoryManager:
             ["Cultural perceptions of high energy", "Stigma around bipolar disorder"],
             ["Involuntary commitment if dangerous", "Duty to warn"]
         )
-        
+
         self._add_category(
             CrisisType.PSYCHOTIC_DEPRESSION,
             "Psychotic Depression",
@@ -666,7 +666,7 @@ class CrisisCategoryManager:
             ["Cultural interpretations of hallucinations", "Stigma around psychosis"],
             ["Involuntary commitment if dangerous", "Duty to warn"]
         )
-        
+
         self._add_category(
             CrisisType.SEVERE_OCD,
             "Severe OCD",
@@ -678,7 +678,7 @@ class CrisisCategoryManager:
             ["Cultural interpretations of rituals", "Stigma around OCD"],
             ["No mandatory reporting", "Duty to provide reasonable accommodations"]
         )
-        
+
         self._add_category(
             CrisisType.SEVERE_TRAUMA,
             "Severe Trauma",
@@ -690,7 +690,7 @@ class CrisisCategoryManager:
             ["Cultural trauma responses", "Stigma around trauma"],
             ["No mandatory reporting", "Duty to provide reasonable accommodations"]
         )
-        
+
         self._add_category(
             CrisisType.COMPLEX_TRAUMA,
             "Complex Trauma",
@@ -702,7 +702,7 @@ class CrisisCategoryManager:
             ["Cultural trauma responses", "Stigma around trauma"],
             ["No mandatory reporting", "Duty to provide reasonable accommodations"]
         )
-        
+
         self._add_category(
             CrisisType.SEVERE_GRIEF,
             "Severe Grief",
@@ -714,8 +714,8 @@ class CrisisCategoryManager:
             ["Cultural mourning practices", "Religious beliefs about death"],
             ["No mandatory reporting", "Duty to provide reasonable accommodations"]
         )
-    
-    def _add_category(self, crisis_type: CrisisType, name: str, description: str, severity_level: str, 
+
+    def _add_category(self, crisis_type: CrisisType, name: str, description: str, severity_level: str,
                      risk_factors: List[str], warning_signs: List[str], recommended_interventions: List[str],
                      cultural_considerations: List[str], legal_requirements: List[str]):
         """Add a crisis category to the manager."""
@@ -731,32 +731,32 @@ class CrisisCategoryManager:
             legal_requirements=legal_requirements
         )
         self.categories[crisis_type.value] = category
-    
+
     def get_category(self, crisis_type: CrisisType) -> CrisisCategory:
         """Get a crisis category by type."""
         return self.categories.get(crisis_type.value)
-    
+
     def get_all_categories(self) -> List[CrisisCategory]:
         """Get all crisis categories."""
         return list(self.categories.values())
-    
+
     def get_categories_by_severity(self, severity_level: str) -> List[CrisisCategory]:
         """Get crisis categories by severity level."""
         return [cat for cat in self.categories.values() if cat.severity_level == severity_level]
-    
+
     def get_categories_by_type(self, crisis_type: CrisisType) -> List[CrisisCategory]:
         """Get crisis categories by type."""
         category = self.get_category(crisis_type)
         return [category] if category else []
-    
+
     def get_crisis_types(self) -> List[CrisisType]:
         """Get all crisis types."""
         return list(CrisisType)
-    
+
     def get_crisis_type_count(self) -> int:
         """Get the total number of crisis types."""
         return len(self.categories)
-    
+
     def export_categories(self, filepath: str) -> None:
         """Export all crisis categories to a JSON file."""
         import json

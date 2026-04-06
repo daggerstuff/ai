@@ -3,6 +3,7 @@ import sys
 import unittest
 from pathlib import Path
 
+
 class TestEndToEndPipeline(unittest.TestCase):
     def setUp(self):
         self.project_root = Path(__file__).parents[2]
@@ -24,7 +25,7 @@ class TestEndToEndPipeline(unittest.TestCase):
         # Simple dry-run import check
         utils_path = self.project_root / "ai/training/utils/s3_dataset_loader.py"
         self.assertTrue(utils_path.exists(), "S3DatasetLoader shim missing")
-        
+
     def test_production_script_paths(self):
         """Verify run_phase1_production.sh points to the correct ready_packages path."""
         prod_script = self.project_root / "scripts/run_phase1_production.sh"

@@ -225,7 +225,7 @@ class DataManager:
     def load_json_data(self, file_path: str) -> Optional[Dict[str, Any]]:
         """Load JSON data from a file."""
         try:
-            with open(file_path, "r") as f:
+            with open(file_path) as f:
                 return json.load(f)
         except Exception as e:
             self.logger.error(f"Error loading JSON from {file_path}: {e}")

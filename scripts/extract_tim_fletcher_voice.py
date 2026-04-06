@@ -12,11 +12,11 @@ Analyzes 913 YouTube transcripts to extract Tim Fletcher's:
 """
 
 import json
+import logging
 import re
+from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Dict, List, Tuple
-from collections import Counter, defaultdict
-import logging
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -52,7 +52,7 @@ class TimFletcherVoiceExtractor:
                 logger.info(f"   Processing transcript {i}/{len(transcript_files)}")
 
             try:
-                with open(transcript_file, 'r', encoding='utf-8') as f:
+                with open(transcript_file, encoding='utf-8') as f:
                     text = f.read()
                     all_text.append(text)
                     self._analyze_transcript(text)
@@ -216,7 +216,7 @@ class TimFletcherVoiceExtractor:
             logger.warning("Voice profile not found. Run extraction first.")
             return []
 
-        with open(profile_file, 'r') as f:
+        with open(profile_file) as f:
             profile = json.load(f)
 
         # Create conversation generation instructions

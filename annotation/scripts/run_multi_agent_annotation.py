@@ -43,7 +43,7 @@ def process_batch_multi_agent(
     processed_count = 0
     total_processing_time = 0
 
-    with open(input_path, "r") as f_in, open(output_path, "w") as f_out:
+    with open(input_path) as f_in, open(output_path, "w") as f_out:
         for line in f_in:
             if not line.strip():
                 continue

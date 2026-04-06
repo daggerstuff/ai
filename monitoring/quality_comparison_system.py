@@ -95,14 +95,14 @@ class QualityComparisonSystem:
             conn = sqlite3.connect(self.db_path)
 
             query = """
-            SELECT 
+            SELECT
                 dataset_source,
                 tier,
                 turn_count,
                 word_count,
                 processing_status
-            FROM conversations 
-            WHERE turn_count IS NOT NULL 
+            FROM conversations
+            WHERE turn_count IS NOT NULL
             AND word_count IS NOT NULL
             LIMIT 5000
             """

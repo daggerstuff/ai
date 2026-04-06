@@ -5,14 +5,14 @@ from pathlib import Path
 
 import pytest
 
+from ai.pipelines.orchestrator.orchestration.data_ingestion_coordinator import (
+    DataIngestionCoordinator,
+    SourceLoadFailure,
+)
 from ai.pipelines.orchestrator.orchestration.data_ingestion_plan import (
     build_source_definitions,
     resolve_source_load_max_workers,
     resolve_source_warm_max_workers,
-)
-from ai.pipelines.orchestrator.orchestration.data_ingestion_coordinator import (
-    DataIngestionCoordinator,
-    SourceLoadFailure,
 )
 
 

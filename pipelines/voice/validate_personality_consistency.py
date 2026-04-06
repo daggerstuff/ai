@@ -1,6 +1,7 @@
-import os
-import json
 import glob
+import json
+import os
+
 import numpy as np
 
 # Configuration
@@ -16,7 +17,7 @@ def aggregate_feature(markers, feature):
 
 
 def process_file(input_path, output_path):
-    with open(input_path, "r", encoding="utf-8") as f:
+    with open(input_path, encoding="utf-8") as f:
         markers = json.load(f)
     features = ["length", "num_words", "avg_word_length"]
     consistency = {}

@@ -110,9 +110,9 @@ class ConversationComplexityAnalyzer:
             conn = sqlite3.connect(self.db_path)
 
             query = """
-            SELECT DISTINCT dataset_source 
-            FROM conversations 
-            WHERE dataset_source IS NOT NULL 
+            SELECT DISTINCT dataset_source
+            FROM conversations
+            WHERE dataset_source IS NOT NULL
             AND dataset_source != ''
             ORDER BY dataset_source
             """
@@ -165,13 +165,13 @@ class ConversationComplexityAnalyzer:
             conn = sqlite3.connect(self.db_path)
 
             query = """
-            SELECT 
+            SELECT
                 conversation_id,
                 conversations_json,
                 word_count,
                 turn_count,
                 character_count
-            FROM conversations 
+            FROM conversations
             WHERE dataset_source = ?
             AND conversations_json IS NOT NULL
             AND word_count >= ?

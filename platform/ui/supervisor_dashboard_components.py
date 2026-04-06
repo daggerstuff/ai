@@ -9,24 +9,24 @@ with live assessment tools, intervention capabilities, and analytics.
 
 import json
 import logging
-from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 class SupervisorDashboardBuilder:
     """Builder for supervisor dashboard UI components"""
-    
+
     def __init__(self):
         self.dashboard_components = {}
         self._initialize_supervisor_components()
-    
+
     def _initialize_supervisor_components(self):
         """Initialize all supervisor dashboard components"""
-        
+
         # Real-time Session Monitor
         self.dashboard_components["session_monitor"] = {
             "component_type": "SessionMonitor",
@@ -41,7 +41,7 @@ class SupervisorDashboardBuilder:
                 "Multi-session support"
             ]
         }
-        
+
         # Competency Assessment Grid
         self.dashboard_components["competency_grid"] = {
             "component_type": "CompetencyGrid",
@@ -56,7 +56,7 @@ class SupervisorDashboardBuilder:
                 "Progress tracking"
             ]
         }
-    
+
     def _generate_session_monitor_react(self) -> str:
         """Generate React component for session monitoring"""
         return '''
@@ -65,26 +65,26 @@ import { CompetencyRating } from './CompetencyRating';
 import { InterventionPanel } from './InterventionPanel';
 import { CrisisAlert } from './CrisisAlert';
 
-export const SessionMonitor = ({ 
-  sessionId, 
-  conversationHistory, 
-  clientState, 
+export const SessionMonitor = ({
+  sessionId,
+  conversationHistory,
+  clientState,
   traineePerformance,
   onRecordObservation,
-  onTriggerIntervention 
+  onTriggerIntervention
 }) => {
   const [observations, setObservations] = useState([]);
   const [currentSkillFocus, setCurrentSkillFocus] = useState('rapport_building');
   const [interventionQueue, setInterventionQueue] = useState([]);
-  
+
   useEffect(() => {
     // Monitor for automatic alerts
     checkForInterventionNeeds(clientState, traineePerformance);
   }, [clientState, traineePerformance]);
-  
+
   const checkForInterventionNeeds = (clientState, performance) => {
     const alerts = [];
-    
+
     if (clientState?.crisisRisk > 0.6) {
       alerts.push({
         type: 'crisis',
@@ -92,18 +92,18 @@ export const SessionMonitor = ({
         message: 'Crisis risk detected - immediate intervention needed'
       });
     }
-    
+
     if (performance?.overallCompetency < 2.0) {
       alerts.push({
         type: 'skill_deficit',
-        priority: 'high', 
+        priority: 'high',
         message: 'Significant skill deficits - consider session break'
       });
     }
-    
+
     setInterventionQueue(alerts);
   };
-  
+
   const recordObservation = (skillArea, rating, evidence) => {
     const observation = {
       timestamp: new Date(),
@@ -112,22 +112,22 @@ export const SessionMonitor = ({
       evidence,
       sessionPhase: clientState?.sessionPhase
     };
-    
+
     setObservations(prev => [...prev, observation]);
     onRecordObservation(observation);
   };
-  
+
   return (
     <div className="session-monitor">
       {/* Crisis Alerts */}
       {interventionQueue.map(alert => (
-        <CrisisAlert 
+        <CrisisAlert
           key={alert.type}
           alert={alert}
           onIntervene={() => onTriggerIntervention(alert)}
         />
       ))}
-      
+
       {/* Main Monitor Layout */}
       <div className="monitor-layout">
         {/* Left: Conversation View */}
@@ -143,7 +143,7 @@ export const SessionMonitor = ({
               </span>
             </div>
           </div>
-          
+
           <div className="conversation-history">
             {conversationHistory.map((message, index) => (
               <div key={index} className={`message-item ${message.type}`}>
@@ -171,12 +171,12 @@ export const SessionMonitor = ({
             ))}
           </div>
         </div>
-        
+
         {/* Right: Assessment Panel */}
         <div className="assessment-panel">
           <div className="skill-selector">
             <h4>Focus Skill Assessment</h4>
-            <select 
+            <select
               value={currentSkillFocus}
               onChange={(e) => setCurrentSkillFocus(e.target.value)}
             >
@@ -188,14 +188,14 @@ export const SessionMonitor = ({
               <option value="boundary_setting">Boundary Setting</option>
             </select>
           </div>
-          
+
           <div className="current-performance">
             <h4>Current Performance</h4>
             <div className="performance-metrics">
               <div className="metric">
                 <span>Trust Building:</span>
                 <div className="progress-bar">
-                  <div 
+                  <div
                     className="progress-fill trust"
                     style={{ width: `${(clientState?.trustLevel || 0) * 100}%` }}
                   ></div>
@@ -204,7 +204,7 @@ export const SessionMonitor = ({
               <div className="metric">
                 <span>Resistance Level:</span>
                 <div className="progress-bar">
-                  <div 
+                  <div
                     className="progress-fill resistance"
                     style={{ width: `${(clientState?.resistanceLevel || 0) * 100}%` }}
                   ></div>
@@ -218,7 +218,7 @@ export const SessionMonitor = ({
               </div>
             </div>
           </div>
-          
+
           <div className="recent-observations">
             <h4>Recent Observations</h4>
             <div className="observations-list">
@@ -240,7 +240,7 @@ export const SessionMonitor = ({
     </div>
   );
 };'''
-    
+
     def _generate_competency_grid_react(self) -> str:
         """Generate React component for competency assessment grid"""
         return '''
@@ -248,7 +248,7 @@ import React, { useState, useEffect } from 'react';
 import { SkillRubric } from './SkillRubric';
 import { EvidenceCollector } from './EvidenceCollector';
 
-export const CompetencyGrid = ({ 
+export const CompetencyGrid = ({
   traineeId,
   sessionData,
   skillRatings,
@@ -259,7 +259,7 @@ export const CompetencyGrid = ({
   const [selectedSkill, setSelectedSkill] = useState(null);
   const [showRubric, setShowRubric] = useState(false);
   const [evidenceMode, setEvidenceMode] = useState(false);
-  
+
   const skillCategories = [
     {
       category: "Core Therapeutic Skills",
@@ -280,15 +280,15 @@ export const CompetencyGrid = ({
       ]
     }
   ];
-  
+
   const getCompetencyLabel = (rating) => {
     if (rating >= 4.5) return "Exemplary";
-    if (rating >= 3.5) return "Proficient"; 
+    if (rating >= 3.5) return "Proficient";
     if (rating >= 2.5) return "Competent";
     if (rating >= 1.5) return "Developing";
     return "Unsatisfactory";
   };
-  
+
   const getCompetencyColor = (rating) => {
     if (rating >= 4.5) return "#10b981"; // Exemplary - Green
     if (rating >= 3.5) return "#3b82f6"; // Proficient - Blue
@@ -296,28 +296,28 @@ export const CompetencyGrid = ({
     if (rating >= 1.5) return "#ef4444"; // Developing - Red
     return "#6b7280"; // Unsatisfactory - Gray
   };
-  
+
   const handleRatingChange = (skillId, newRating) => {
     onUpdateRating(skillId, newRating);
   };
-  
+
   const handleSkillClick = (skill) => {
     setSelectedSkill(skill);
     setShowRubric(true);
   };
-  
+
   return (
     <div className="competency-grid">
       <div className="grid-header">
         <h3>Skill Competency Assessment</h3>
         <div className="grid-controls">
-          <button 
+          <button
             className={`mode-button ${evidenceMode ? 'active' : ''}`}
             onClick={() => setEvidenceMode(!evidenceMode)}
           >
             📝 Evidence Mode
           </button>
-          <button 
+          <button
             className="export-button"
             onClick={() => onExportAssessment()}
           >
@@ -325,30 +325,30 @@ export const CompetencyGrid = ({
           </button>
         </div>
       </div>
-      
+
       <div className="competency-categories">
         {skillCategories.map(category => (
           <div key={category.category} className="skill-category">
             <h4 className="category-title">{category.category}</h4>
-            
+
             <div className="skills-grid">
               {category.skills.map(skill => (
                 <div key={skill.id} className="skill-item">
                   <div className="skill-header">
-                    <span 
+                    <span
                       className="skill-name"
                       onClick={() => handleSkillClick(skill)}
                     >
                       {skill.name}
                     </span>
-                    <span 
+                    <span
                       className="competency-badge"
                       style={{ backgroundColor: getCompetencyColor(skill.current) }}
                     >
                       {getCompetencyLabel(skill.current)}
                     </span>
                   </div>
-                  
+
                   <div className="rating-controls">
                     <div className="rating-scale">
                       {[1, 2, 3, 4, 5].map(rating => (
@@ -362,12 +362,12 @@ export const CompetencyGrid = ({
                         </button>
                       ))}
                     </div>
-                    
+
                     <div className="rating-visual">
                       <div className="rating-bar">
-                        <div 
+                        <div
                           className="rating-fill"
-                          style={{ 
+                          style={{
                             width: `${(skill.current / 5) * 100}%`,
                             backgroundColor: getCompetencyColor(skill.current)
                           }}
@@ -376,10 +376,10 @@ export const CompetencyGrid = ({
                       <span className="rating-value">{skill.current.toFixed(1)}/5.0</span>
                     </div>
                   </div>
-                  
+
                   {evidenceMode && (
                     <div className="evidence-section">
-                      <button 
+                      <button
                         className="collect-evidence-btn"
                         onClick={() => onCollectEvidence(skill.id)}
                       >
@@ -393,7 +393,7 @@ export const CompetencyGrid = ({
           </div>
         ))}
       </div>
-      
+
       {/* Overall Assessment Summary */}
       <div className="assessment-summary">
         <h4>Session Summary</h4>
@@ -401,7 +401,7 @@ export const CompetencyGrid = ({
           <div className="metric-item">
             <span className="metric-label">Overall Competency:</span>
             <span className="metric-value">
-              {(Object.values(skillRatings || {}).reduce((a, b) => a + b, 0) / 
+              {(Object.values(skillRatings || {}).reduce((a, b) => a + b, 0) /
                 Object.keys(skillRatings || {}).length || 0).toFixed(1)}/5.0
             </span>
           </div>
@@ -422,10 +422,10 @@ export const CompetencyGrid = ({
           </div>
         </div>
       </div>
-      
+
       {/* Skill Rubric Modal */}
       {showRubric && selectedSkill && (
-        <SkillRubric 
+        <SkillRubric
           skill={selectedSkill}
           onClose={() => setShowRubric(false)}
           onRate={(rating) => {

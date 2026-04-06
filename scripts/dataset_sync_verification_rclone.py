@@ -5,15 +5,16 @@ Verifies consistency between S3/DO Spaces and local/backup paths.
 """
 
 import json
-from pathlib import Path
-from datetime import datetime
-from typing import Dict, Any, List, Optional
 import sys
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from rclone_dataset_accessor import list_files_in_directory, s3_path_to_rclone
 import subprocess
+
+from rclone_dataset_accessor import list_files_in_directory, s3_path_to_rclone
 
 
 def run_rclone_ls(remote_path: str) -> Optional[List[Dict[str, Any]]]:
@@ -145,7 +146,7 @@ def main():
     print(f"Limit: {args.limit or 'None (all datasets)'}")
     print()
 
-    with open(args.registry, "r") as f:
+    with open(args.registry) as f:
         registry = json.load(f)
 
     # Collect datasets

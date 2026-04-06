@@ -4,13 +4,12 @@ import json
 import sqlite3
 from typing import Any, Dict, List, Optional
 
-from .hindsight_local_domain import resolve_user_id_from_record
+from .hindsight_local_adapter import normalize_tags
+from .hindsight_local_domain import NON_PRIVATE_VISIBILITY_TAGS, resolve_user_id_from_record
 from .local_hindsight_db import LocalHindsightDatabase
 from .local_hindsight_document_store import LocalHindsightDocumentStore
 from .local_hindsight_queries import build_fts_query
 from .local_hindsight_query_executor import LocalHindsightQueryExecutor
-from .hindsight_local_adapter import normalize_tags
-from .hindsight_local_domain import NON_PRIVATE_VISIBILITY_TAGS
 
 
 class LocalHindsightRepository:

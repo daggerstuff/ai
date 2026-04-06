@@ -179,7 +179,7 @@ class QualityDistributionAnalysisLauncher:
 
             # Check if file has main classes
             try:
-                with open(filepath, "r") as f:
+                with open(filepath) as f:
                     content = f.read()
 
                 if filename == "quality_distribution_analyzer.py":

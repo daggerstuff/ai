@@ -24,14 +24,14 @@ st.set_page_config(
 )
 
 # --- Load Data ---
-with open(args.data, "r", encoding="utf-8") as f:
+with open(args.data, encoding="utf-8") as f:
     data = [json.loads(line) for line in f]
 df = pd.DataFrame(data)
 
 # --- Load Logs ---
 logs = None
 if args.log:
-    with open(args.log, "r", encoding="utf-8") as f:
+    with open(args.log, encoding="utf-8") as f:
         logs = f.read()
 
 # --- Dark Mode / Kali Theme CSS ---

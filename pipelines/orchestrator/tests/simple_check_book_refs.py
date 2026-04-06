@@ -6,6 +6,7 @@ Simple test script to verify book references in enhanced psychology knowledge ba
 import json
 from pathlib import Path
 
+
 def check_book_references():
     """Check for book references in the enhanced psychology knowledge base."""
     kb_path = Path("ai/models/pixel_core/knowledge/enhanced_psychology_knowledge_base.json")
@@ -14,7 +15,7 @@ def check_book_references():
         print(f"Knowledge base not found: {kb_path}")
         return
 
-    with open(kb_path, "r", encoding="utf-8") as f:
+    with open(kb_path, encoding="utf-8") as f:
         knowledge_base = json.load(f)
 
     concepts = knowledge_base.get("concepts", {})

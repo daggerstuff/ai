@@ -47,8 +47,7 @@ import json
 import logging
 import sys
 import time
-from dataclasses import dataclass
-from dataclasses import field as dataclass_field
+from dataclasses import dataclass, field as dataclass_field
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
@@ -401,7 +400,7 @@ class EarsComplianceGate:
         # Handle JSONL format
         if dataset_path.suffix == ".jsonl":
             dataset = []
-            with open(dataset_path, "r", encoding="utf-8") as f:
+            with open(dataset_path, encoding="utf-8") as f:
                 for line in f:
                     try:
                         dataset.append(json.loads(line.strip()))
@@ -413,7 +412,7 @@ class EarsComplianceGate:
 
         # Handle JSON format
         elif dataset_path.suffix == ".json":
-            with open(dataset_path, "r", encoding="utf-8") as f:
+            with open(dataset_path, encoding="utf-8") as f:
                 data = json.load(f)
                 if isinstance(data, list):
                     dataset = data

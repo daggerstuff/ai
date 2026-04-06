@@ -6,7 +6,7 @@ Maps old stage-based paths to actual backup structure.
 
 import json
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
 
 OLD_TO_NEW_PATHS = {
     "training/v1/stage1_foundation": "datasets/training_v3/stage1_foundation",

@@ -6,18 +6,19 @@ Provides REST API endpoints for web frontend and external integrations
 import asyncio
 import json
 import logging
-from typing import Dict, List, Optional, Any, Union
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-import uuid
-from fastapi import FastAPI, HTTPException, BackgroundTasks, Request
+from typing import Any, Dict, List, Optional, Union
+
+from fastapi import BackgroundTasks, FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from .dataset_taxonomy import DatasetTaxonomy, DatasetMetadata, DatasetCategory
-from .training_styles import TrainingStyleManager, TrainingStyle, BaseTrainingConfig
-from .training_orchestrator import TrainingPipelineOrchestrator
+from .dataset_taxonomy import DatasetCategory, DatasetMetadata, DatasetTaxonomy
 from .mcp_integration import DatasetTrainingMCPInterface, MCPTask
+from .training_orchestrator import TrainingPipelineOrchestrator
+from .training_styles import BaseTrainingConfig, TrainingStyle, TrainingStyleManager
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -122,7 +123,7 @@ class TrainingResultsResponse(BaseModel):
 
 class DatasetTrainingAPI:
     """API layer for dataset training pipeline"""
-    
+
     def __init__(self, orchestrator: TrainingPipelineOrchestrator):
         self.orchestrator = orchestrator
         self.taxonomy = orchestrator.taxonomy
@@ -133,12 +134,12 @@ class DatasetTrainingAPI:
             description="API for dataset categorization and training style management",
             version="1.0.0"
         )
-        
+
         self._setup_routes()
-    
+
     def _setup_routes(self):
         """Setup API routes"""
-        
+
         @self.app.get("/health")
         async def health_check():
             """Health check endpoint"""
@@ -148,7 +149,7 @@ class DatasetTrainingAPI:
                 "service": "dataset_training_api",
                 "version": "1.0.0"
             }
-        
+
         @self.app.post("/api/datasets/categorize", response_model=DatasetCategorizeResponse)
         async def categorize_dataset(request: DatasetCategorizeRequest):
             """Categorize a dataset based on content analysis"""
@@ -164,13 +165,13 @@ class DatasetTrainingAPI:
                         "metadata": request.metadata
                     }
                 )
-                
+
                 # Process task
                 result = await self.mcp_interface.process_task(task)
-                
+
                 if result["status"] == "failed":
                     raise HTTPException(status_code=400, detail=result["error"])
-                
+
                 return DatasetCategorizeResponse(
                     category=result["results"]["recommended_category"],
                     confidence=result["results"]["confidence"],
@@ -178,11 +179,11 @@ class DatasetTrainingAPI:
                     metadata=result["results"]["metadata"],
                     analysis_summary=result["results"]["analysis_summary"]
                 )
-                
+
             except Exception as e:
                 logger.error(f"Dataset categorization failed: {e}")
                 raise HTTPException(status_code=500, detail=str(e))
-        
+
         @self.app.post("/api/datasets/validate")
         async def validate_dataset(metadata: Dict[str, Any]):
             """Validate dataset metadata"""
@@ -192,19 +193,19 @@ class DatasetTrainingAPI:
                     task_type="dataset_validate",
                     parameters={"metadata": metadata}
                 )
-                
+
                 # Process task
                 result = await self.mcp_interface.process_task(task)
-                
+
                 if result["status"] == "failed":
                     raise HTTPException(status_code=400, detail=result["error"])
-                
+
                 return result["results"]
-                
+
             except Exception as e:
                 logger.error(f"Dataset validation failed: {e}")
                 raise HTTPException(status_code=500, detail=str(e))
-        
+
         @self.app.post("/api/datasets/recommendations")
         async def get_dataset_recommendations(metadata: Dict[str, Any]):
             """Get recommendations for dataset processing"""
@@ -214,19 +215,19 @@ class DatasetTrainingAPI:
                     task_type="dataset_recommendations",
                     parameters={"metadata": metadata}
                 )
-                
+
                 # Process task
                 result = await self.mcp_interface.process_task(task)
-                
+
                 if result["status"] == "failed":
                     raise HTTPException(status_code=400, detail=result["error"])
-                
+
                 return result["results"]
-                
+
             except Exception as e:
                 logger.error(f"Dataset recommendations failed: {e}")
                 raise HTTPException(status_code=500, detail=str(e))
-        
+
         @self.app.post("/api/training/styles/select", response_model=TrainingStyleSelectResponse)
         async def select_training_style(request: TrainingStyleSelectRequest):
             """Select optimal training style for dataset"""
@@ -240,24 +241,24 @@ class DatasetTrainingAPI:
                         "available_compute": request.available_compute
                     }
                 )
-                
+
                 # Process task
                 result = await self.mcp_interface.process_task(task)
-                
+
                 if result["status"] == "failed":
                     raise HTTPException(status_code=400, detail=result["error"])
-                
+
                 return TrainingStyleSelectResponse(
                     selected_style=result["results"]["selected_style"],
                     style_info=result["results"]["style_info"],
                     config_template=result["results"]["config_template"],
                     confidence=result["results"]["selection_confidence"]
                 )
-                
+
             except Exception as e:
                 logger.error(f"Training style selection failed: {e}")
                 raise HTTPException(status_code=500, detail=str(e))
-        
+
         @self.app.post("/api/training/styles/configure", response_model=TrainingConfigResponse)
         async def configure_training_style(request: TrainingConfigRequest):
             """Configure training style parameters"""
@@ -272,24 +273,24 @@ class DatasetTrainingAPI:
                         "optimization_strategy": request.optimization_strategy
                     }
                 )
-                
+
                 # Process task
                 result = await self.mcp_interface.process_task(task)
-                
+
                 if result["status"] == "failed":
                     raise HTTPException(status_code=400, detail=result["error"])
-                
+
                 return TrainingConfigResponse(
                     config=result["results"]["config"],
                     valid=result["results"]["valid"],
                     validation_errors=result["results"]["validation_errors"],
                     optimization_applied=result["results"]["optimization_applied"]
                 )
-                
+
             except Exception as e:
                 logger.error(f"Training configuration failed: {e}")
                 raise HTTPException(status_code=500, detail=str(e))
-        
+
         @self.app.post("/api/training/execute", response_model=PipelineExecuteResponse)
         async def execute_training_pipeline(
             request: PipelineExecuteRequest,
@@ -308,33 +309,33 @@ class DatasetTrainingAPI:
                     "use_container": request.use_container,
                     "enable_monitoring": request.enable_monitoring
                 }
-                
+
                 # Execute pipeline
                 execution_id = await self.orchestrator.execute_pipeline(pipeline_config)
-                
+
                 # Start background monitoring
                 background_tasks.add_task(self._monitor_execution, execution_id)
-                
+
                 return PipelineExecuteResponse(
                     execution_id=execution_id,
                     status="started",
                     pipeline_id=execution_id,
                     estimated_duration="2-4 hours"  # This could be calculated
                 )
-                
+
             except Exception as e:
                 logger.error(f"Pipeline execution failed: {e}")
                 raise HTTPException(status_code=500, detail=str(e))
-        
+
         @self.app.get("/api/training/{execution_id}/status", response_model=PipelineStatusResponse)
         async def get_training_status(execution_id: str):
             """Get training pipeline status"""
             try:
                 status = self.orchestrator.get_execution_status(execution_id)
-                
+
                 if not status:
                     raise HTTPException(status_code=404, detail="Execution not found")
-                
+
                 return PipelineStatusResponse(
                     execution_id=status["execution_id"],
                     status=status["status"],
@@ -344,11 +345,11 @@ class DatasetTrainingAPI:
                     start_time=status["start_time"],
                     estimated_completion=self._estimate_completion(status)
                 )
-                
+
             except Exception as e:
                 logger.error(f"Status retrieval failed: {e}")
                 raise HTTPException(status_code=500, detail=str(e))
-        
+
         @self.app.get("/api/training/{execution_id}/results", response_model=TrainingResultsResponse)
         async def get_training_results(execution_id: str):
             """Get training results"""
@@ -358,15 +359,15 @@ class DatasetTrainingAPI:
                     task_type="training_results",
                     parameters={"execution_id": execution_id}
                 )
-                
+
                 # Process task
                 result = await self.mcp_interface.process_task(task)
-                
+
                 if result["status"] == "failed":
                     raise HTTPException(status_code=400, detail=result["error"])
-                
+
                 results = result["results"]
-                
+
                 return TrainingResultsResponse(
                     execution_id=results["execution_id"],
                     status=results["status"],
@@ -380,30 +381,30 @@ class DatasetTrainingAPI:
                     model_path=results["model_path"],
                     checkpoint_path=results["checkpoint_path"]
                 )
-                
+
             except Exception as e:
                 logger.error(f"Results retrieval failed: {e}")
                 raise HTTPException(status_code=500, detail=str(e))
-        
+
         @self.app.delete("/api/training/{execution_id}")
         async def cancel_training_pipeline(execution_id: str):
             """Cancel training pipeline execution"""
             try:
                 success = await self.orchestrator.cancel_execution(execution_id)
-                
+
                 if not success:
                     raise HTTPException(status_code=404, detail="Execution not found or cannot be cancelled")
-                
+
                 return {
                     "execution_id": execution_id,
                     "cancelled": True,
                     "timestamp": datetime.utcnow().isoformat()
                 }
-                
+
             except Exception as e:
                 logger.error(f"Pipeline cancellation failed: {e}")
                 raise HTTPException(status_code=500, detail=str(e))
-        
+
         @self.app.get("/api/taxonomy/categories")
         async def get_taxonomy_categories():
             """Get all available dataset categories"""
@@ -413,19 +414,19 @@ class DatasetTrainingAPI:
                     task_type="taxonomy_info",
                     parameters={}
                 )
-                
+
                 # Process task
                 result = await self.mcp_interface.process_task(task)
-                
+
                 if result["status"] == "failed":
                     raise HTTPException(status_code=400, detail=result["error"])
-                
+
                 return result["results"]
-                
+
             except Exception as e:
                 logger.error(f"Taxonomy retrieval failed: {e}")
                 raise HTTPException(status_code=500, detail=str(e))
-        
+
         @self.app.get("/api/taxonomy/categories/{category}")
         async def get_taxonomy_category(category: str):
             """Get specific category information"""
@@ -435,23 +436,23 @@ class DatasetTrainingAPI:
                     task_type="taxonomy_info",
                     parameters={"category": category}
                 )
-                
+
                 # Process task
                 result = await self.mcp_interface.process_task(task)
-                
+
                 if result["status"] == "failed":
                     raise HTTPException(status_code=400, detail=result["error"])
-                
+
                 category_info = result["results"]["category_info"]
                 if not category_info:
                     raise HTTPException(status_code=404, detail="Category not found")
-                
+
                 return category_info
-                
+
             except Exception as e:
                 logger.error(f"Category retrieval failed: {e}")
                 raise HTTPException(status_code=500, detail=str(e))
-        
+
         @self.app.get("/api/training/styles")
         async def get_training_styles():
             """Get all available training styles"""
@@ -461,19 +462,19 @@ class DatasetTrainingAPI:
                     task_type="style_info",
                     parameters={}
                 )
-                
+
                 # Process task
                 result = await self.mcp_interface.process_task(task)
-                
+
                 if result["status"] == "failed":
                     raise HTTPException(status_code=400, detail=result["error"])
-                
+
                 return result["results"]
-                
+
             except Exception as e:
                 logger.error(f"Training styles retrieval failed: {e}")
                 raise HTTPException(status_code=500, detail=str(e))
-        
+
         @self.app.get("/api/training/styles/{style}")
         async def get_training_style(style: str):
             """Get specific training style information"""
@@ -483,59 +484,59 @@ class DatasetTrainingAPI:
                     task_type="style_info",
                     parameters={"style": style}
                 )
-                
+
                 # Process task
                 result = await self.mcp_interface.process_task(task)
-                
+
                 if result["status"] == "failed":
                     raise HTTPException(status_code=400, detail=result["error"])
-                
+
                 style_info = result["results"]["specific_style_info"]
                 if not style_info:
                     raise HTTPException(status_code=404, detail="Training style not found")
-                
+
                 return {
                     "style": style,
                     "info": style_info,
                     "config_template": result["results"]["specific_config_template"]
                 }
-                
+
             except Exception as e:
                 logger.error(f"Training style retrieval failed: {e}")
                 raise HTTPException(status_code=500, detail=str(e))
-        
+
         @self.app.get("/api/executions")
         async def list_executions():
             """List all active pipeline executions"""
             try:
                 executions = self.orchestrator.list_active_executions()
-                
+
                 return {
                     "executions": executions,
                     "total": len(executions),
                     "timestamp": datetime.utcnow().isoformat()
                 }
-                
+
             except Exception as e:
                 logger.error(f"Executions listing failed: {e}")
                 raise HTTPException(status_code=500, detail=str(e))
-    
+
     def _estimate_completion(self, status: Dict[str, Any]) -> Optional[str]:
         """Estimate completion time based on current progress"""
         # This could implement sophisticated estimation logic
         # For now, return a simple estimate
         if status["status"] == "completed":
             return None
-        
+
         progress = status["progress"]
         if progress > 0:
             elapsed_time = (datetime.utcnow() - datetime.fromisoformat(status["start_time"])).total_seconds()
             estimated_total_time = elapsed_time / (progress / 100)
             remaining_time = estimated_total_time - elapsed_time
             return datetime.utcnow().isoformat() + f" (in {remaining_time/3600:.1f} hours)"
-        
+
         return "Unknown"
-    
+
     async def _monitor_execution(self, execution_id: str):
         """Background task to monitor execution"""
         # This would implement continuous monitoring
@@ -547,35 +548,35 @@ class DatasetTrainingAPI:
 def test_api_integration():
     """Test API integration"""
     print("Testing API Integration...")
-    
+
     # Create orchestrator and API
     orchestrator = TrainingPipelineOrchestrator()
     api = DatasetTrainingAPI(orchestrator)
-    
+
     # Test health check
     import httpx
     from fastapi.testclient import TestClient
-    
+
     client = TestClient(api.app)
-    
+
     # Test health endpoint
     response = client.get("/health")
     print(f"Health check: {response.status_code}")
-    
+
     # Test taxonomy categories
     response = client.get("/api/taxonomy/categories")
     print(f"Taxonomy categories: {response.status_code}")
     if response.status_code == 200:
         data = response.json()
         print(f"Available categories: {len(data['categories'])}")
-    
+
     # Test training styles
     response = client.get("/api/training/styles")
     print(f"Training styles: {response.status_code}")
     if response.status_code == 200:
         data = response.json()
         print(f"Available styles: {len(data['styles'])}")
-    
+
     print("API integration test completed!")
 
 

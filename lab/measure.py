@@ -1,9 +1,9 @@
 import asyncio
-import time
 import json
-import tempfile
 import os
 import sys
+import tempfile
+import time
 
 # set up path to resolve 'ai.' imports
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
@@ -52,7 +52,7 @@ async def test_provenance():
             return max_delay
 
         async def run_baseline():
-            with open(temp_file, "r") as f:
+            with open(temp_file) as f:
                 loaded = json.load(f)
             return len(loaded)
 
@@ -66,7 +66,7 @@ async def test_provenance():
 
         async def run_optimized_to_thread():
             def load_json():
-                with open(temp_file, "r") as f:
+                with open(temp_file) as f:
                     return json.load(f)
             loaded = await asyncio.to_thread(load_json)
             return len(loaded)

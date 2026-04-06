@@ -125,16 +125,16 @@ class QualityAnomalyDetector:
             time_threshold = datetime.now() - timedelta(hours=hours_back)
 
             query = """
-            SELECT 
+            SELECT
                 dataset_source,
                 tier,
                 turn_count,
                 word_count,
                 processing_status,
                 created_at
-            FROM conversations 
+            FROM conversations
             WHERE created_at >= ?
-            AND turn_count IS NOT NULL 
+            AND turn_count IS NOT NULL
             AND word_count IS NOT NULL
             ORDER BY created_at DESC
             LIMIT 1000
@@ -167,16 +167,16 @@ class QualityAnomalyDetector:
             start_time = end_time - timedelta(days=days_back)
 
             query = """
-            SELECT 
+            SELECT
                 dataset_source,
                 tier,
                 turn_count,
                 word_count,
                 processing_status,
                 created_at
-            FROM conversations 
+            FROM conversations
             WHERE created_at >= ? AND created_at <= ?
-            AND turn_count IS NOT NULL 
+            AND turn_count IS NOT NULL
             AND word_count IS NOT NULL
             LIMIT 5000
             """

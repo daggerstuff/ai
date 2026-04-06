@@ -38,7 +38,7 @@ def compute_file_hash(file_path: Path) -> str:
 def count_records(file_path: Path) -> int:
     """Count records in a JSONL file."""
     count = 0
-    with open(file_path, "r", encoding="utf-8") as f:
+    with open(file_path, encoding="utf-8") as f:
         for line in f:
             if line.strip():
                 count += 1
@@ -275,7 +275,7 @@ class SnapshotFreezer:
         logger.info(f"Processing: {file_path}")
 
         records = []
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             for line in f:
                 if line.strip():
                     try:

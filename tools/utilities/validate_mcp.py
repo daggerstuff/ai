@@ -47,7 +47,7 @@ class MCPValidator:
                 )
                 return False
 
-            with open(self.config_path, "r") as f:
+            with open(self.config_path) as f:
                 self.config = json.load(f)
 
             logger.info(f"✅ Loaded MCP configuration from {self.config_path}")

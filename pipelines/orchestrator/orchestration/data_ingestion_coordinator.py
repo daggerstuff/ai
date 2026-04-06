@@ -23,6 +23,7 @@ TrainingRecord: TypeAlias = dict[str, object]
 class SourceConfigProtocol(Protocol):
     enabled: bool
     source_path: str | None
+    source_paths: tuple[str, ...]
 
 
 class StandardTherapeuticConfigProtocol(Protocol):
@@ -37,7 +38,7 @@ class PipelineConfigProtocol(Protocol):
     standard_therapeutic: StandardTherapeuticConfigProtocol
 
 
-CachedSourceLoader = Callable[[Path | None], list[TrainingRecord]]
+CachedSourceLoader = Callable[[list[Path] | None], list[TrainingRecord]]
 StandardSourceLoader = Callable[[], list[TrainingRecord]]
 IntakeRoutingApplier = Callable[[list[TrainingRecord], str], list[TrainingRecord]]
 
@@ -68,34 +69,52 @@ class DataIngestionCoordinator:
         self.apply_intake_routing = apply_intake_routing
         self.samples_by_source = samples_by_source
 
-    def _warm_cached_paths(self) -> dict[str, Path | None]:
+    def _warm_cached_paths(self) -> dict[str, list[Path]]:
         """Warm remote/local cache paths for enabled sources in parallel."""
-        source_map: dict[str, str | None] = {}
+        source_map: dict[str, list[str]] = {}
         if self.config.edge_cases.enabled:
-            source_map["edge_cases"] = self.config.edge_cases.source_path
+            source_map["edge_cases"] = self._configured_source_paths(self.config.edge_cases)
         if self.config.pixel_voice.enabled:
-            source_map["pixel_voice"] = self.config.pixel_voice.source_path
+            source_map["pixel_voice"] = self._configured_source_paths(self.config.pixel_voice)
         if self.config.psychology_knowledge.enabled:
-            source_map["psychology_knowledge"] = self.config.psychology_knowledge.source_path
+            source_map["psychology_knowledge"] = self._configured_source_paths(
+                self.config.psychology_knowledge
+            )
         if self.config.dual_persona.enabled:
-            source_map["dual_persona"] = self.config.dual_persona.source_path
+            source_map["dual_persona"] = self._configured_source_paths(self.config.dual_persona)
 
-        warmed: dict[str, Path | None] = {}
+        warmed: dict[str, list[Path]] = {}
         if not source_map:
             return warmed
 
-        max_workers = min(4, len(source_map))
+        jobs: list[tuple[str, str]] = []
+        for source_name, source_paths in source_map.items():
+            for source_path in source_paths:
+                jobs.append((source_name, source_path))
+
+        max_workers = min(4, len(jobs))
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             future_map = {
-                executor.submit(self.storage_resolver.cache_data, source_path): source_name
-                for source_name, source_path in source_map.items()
+                executor.submit(self.storage_resolver.cache_data, source_path): (
+                    source_name,
+                    source_path,
+                )
+                for source_name, source_path in jobs
             }
             for future in as_completed(future_map):
-                source_name = future_map[future]
+                source_name, source_path = future_map[future]
                 try:
-                    warmed[source_name] = future.result()
+                    warmed.setdefault(source_name, [])
+                    resolved = future.result()
+                    if resolved is not None:
+                        warmed[source_name].append(resolved)
                 except StorageCacheError as exc:
-                    logger.error("Failed to warm cached path for %s: %s", source_name, exc)
+                    logger.error(
+                        "Failed to warm cached path for %s (%s): %s",
+                        source_name,
+                        source_path,
+                        exc,
+                    )
                     raise
 
         return warmed
@@ -106,32 +125,32 @@ class DataIngestionCoordinator:
         warmed_paths = self._warm_cached_paths()
 
         if self.config.edge_cases.enabled:
-            cached_path = warmed_paths.get("edge_cases")
-            edge_data = self.load_edge_cases(cached_path)
+            cached_paths = warmed_paths.get("edge_cases")
+            edge_data = self.load_edge_cases(cached_paths)
             edge_data = self.apply_intake_routing(edge_data, "edge_case")
             all_training_data.extend(edge_data)
             self.samples_by_source["edge_cases"] = len(edge_data)
             logger.info("✅ Loaded %s edge case examples", len(edge_data))
 
         if self.config.pixel_voice.enabled:
-            cached_path = warmed_paths.get("pixel_voice")
-            voice_data = self.load_pixel_voice(cached_path)
+            cached_paths = warmed_paths.get("pixel_voice")
+            voice_data = self.load_pixel_voice(cached_paths)
             voice_data = self.apply_intake_routing(voice_data, "voice_persona")
             all_training_data.extend(voice_data)
             self.samples_by_source["pixel_voice"] = len(voice_data)
             logger.info("✅ Loaded %s voice-derived examples", len(voice_data))
 
         if self.config.psychology_knowledge.enabled:
-            cached_path = warmed_paths.get("psychology_knowledge")
-            psych_data = self.load_psychology_knowledge(cached_path)
+            cached_paths = warmed_paths.get("psychology_knowledge")
+            psych_data = self.load_psychology_knowledge(cached_paths)
             psych_data = self.apply_intake_routing(psych_data, "psychology_knowledge")
             all_training_data.extend(psych_data)
             self.samples_by_source["psychology_knowledge"] = len(psych_data)
             logger.info("✅ Loaded %s psychology knowledge examples", len(psych_data))
 
         if self.config.dual_persona.enabled:
-            cached_path = warmed_paths.get("dual_persona")
-            persona_data = self.load_dual_persona(cached_path)
+            cached_paths = warmed_paths.get("dual_persona")
+            persona_data = self.load_dual_persona(cached_paths)
             persona_data = self.apply_intake_routing(persona_data, "dual_persona")
             all_training_data.extend(persona_data)
             self.samples_by_source["dual_persona"] = len(persona_data)
@@ -149,6 +168,22 @@ class DataIngestionCoordinator:
             )
 
         return all_training_data
+
+    @staticmethod
+    def _configured_source_paths(config: SourceConfigProtocol) -> list[str]:
+        configured: list[str] = []
+        if config.source_path:
+            configured.append(config.source_path)
+        configured.extend(path for path in getattr(config, "source_paths", ()) if path)
+
+        deduped: list[str] = []
+        seen: set[str] = set()
+        for path in configured:
+            if path in seen:
+                continue
+            seen.add(path)
+            deduped.append(path)
+        return deduped
 
 
 __all__ = ["DataIngestionCoordinator"]

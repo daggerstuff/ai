@@ -142,7 +142,7 @@ def organize_by_stage(input_path: Path, output_dir: Path) -> Dict[str, int]:
     total_count = 0
 
     try:
-        with open(input_path, "r") as f:
+        with open(input_path) as f:
             for line in f:
                 line = line.strip()
                 if not line:

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-""
+"""
 QA Signoff and Release Notes
 
 Implements Issue 7: Release 0: Clinician QA + bias/cultural review signoff
@@ -11,18 +11,19 @@ This script records human review signoff for Release 0: clinician QA sampling
 import json
 import os
 import sys
+import uuid
+from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Any, Dict, List, Optional, Tuple
+
 import boto3
 from botocore.exceptions import ClientError
-import uuid
-from dataclasses import dataclass, asdict
 
 # Add the dataset_pipeline to Python path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from storage_config import get_storage_config, StorageConfig
+from storage_config import StorageConfig, get_storage_config
 
 
 @dataclass

@@ -10,20 +10,20 @@ class MCPMongoDBClient:
     MongoDB client for MCP server persistent storage.
     Supports both sync and async operations if needed.
     """
-    
+
     def __init__(self, uri: str, db_name: str):
         self.uri = uri
         self.db_name = db_name
         self.logger = logging.getLogger(__name__)
-        
+
         # Initialize sync client for basic operations
         self.sync_client = MongoClient(uri)
         self.db = self.sync_client[db_name]
-        
+
         # Initialize async client for higher performance
         self.async_client = AsyncIOMotorClient(uri)
         self.async_db = self.async_client[db_name]
-        
+
         self.logger.info(f"MCP MongoDB client connected to {db_name}")
 
     def get_collection(self, name: str):

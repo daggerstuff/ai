@@ -8,8 +8,8 @@ and existing systems like bias detection and dataset pipeline.
 import logging
 from typing import Any, Optional
 
-from ai.pipelines.design.service import NeMoDataDesignerService
 from ai.pipelines.design.config import DataDesignerConfig
+from ai.pipelines.design.service import NeMoDataDesignerService
 
 logger = logging.getLogger(__name__)
 
