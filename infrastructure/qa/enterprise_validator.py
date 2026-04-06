@@ -31,7 +31,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import numpy as np
-import requests
+import httpx
 
 # Configure logging
 logging.basicConfig(
@@ -208,22 +208,25 @@ class SecurityValidator:
         start_time = time.time()
 
         try:
-            # Test unauthenticated request
-            response = requests.get(
-                "http://localhost:8000/api/v1/protected", timeout=10
-            )
-            if response.status_code != 401:
-                raise Exception(f"Expected 401, got {response.status_code}")
-
-            # Test with invalid token
-            headers = {"Authorization": "Bearer invalid_token"}
-            response = requests.get(
-                "http://localhost:8000/api/v1/protected", headers=headers, timeout=10
-            )
-            if response.status_code != 401:
-                raise Exception(
-                    f"Expected 401 for invalid token, got {response.status_code}"
+            # OPTIMIZATION: Replacing synchronous requests with httpx.AsyncClient
+            # to prevent blocking the event loop and improve throughput
+            async with httpx.AsyncClient() as client:
+                # Test unauthenticated request
+                response = await client.get(
+                    "http://localhost:8000/api/v1/protected", timeout=10
                 )
+                if response.status_code != 401:
+                    raise Exception(f"Expected 401, got {response.status_code}")
+
+                # Test with invalid token
+                headers = {"Authorization": "Bearer invalid_token"}
+                response = await client.get(
+                    "http://localhost:8000/api/v1/protected", headers=headers, timeout=10
+                )
+                if response.status_code != 401:
+                    raise Exception(
+                        f"Expected 401 for invalid token, got {response.status_code}"
+                    )
 
             # Test with valid token (simulated)
             valid_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.test"
@@ -267,16 +270,27 @@ class SecurityValidator:
             request_count = 0
             blocked_count = 0
 
-            for i in range(20):  # Send 20 rapid requests
+            # OPTIMIZATION: Replaced synchronous loop of requests.get with concurrent asyncio.gather
+            # and httpx.AsyncClient to drastically reduce execution time of multiple network calls.
+            async def make_request(client):
                 try:
-                    response = requests.get(
+                    response = await client.get(
                         "http://localhost:8000/api/v1/test", timeout=5
                     )
+                    return response.status_code
+                except httpx.RequestError:
+                    return None
+
+            async with httpx.AsyncClient() as client:
+                tasks = [make_request(client) for _ in range(20)]
+                results = await asyncio.gather(*tasks)
+
+            for status_code in results:
+                if status_code is not None:
                     request_count += 1
-                    if response.status_code == 429:  # Too Many Requests
+                    if status_code == 429:  # Too Many Requests
                         blocked_count += 1
-                except requests.exceptions.RequestException:
-                    # Connection refused or timeout indicates rate limiting
+                else:
                     blocked_count += 1
 
             execution_time = (time.time() - start_time) * 1000
@@ -522,19 +536,26 @@ class PerformanceValidator:
         try:
             response_times = []
 
-            # Make multiple requests to measure response times
-            for i in range(50):
+            # OPTIMIZATION: Replaced synchronous requests.get loop with concurrent async requests using
+            # httpx.AsyncClient to accelerate response time testing and prevent sequential blocking.
+            async def make_request(client):
                 request_start = time.time()
                 try:
-                    response = requests.get(
+                    response = await client.get(
                         "http://localhost:8000/api/v1/health", timeout=10
                     )
                     request_time = (time.time() - request_start) * 1000
                     if response.status_code == 200:
-                        response_times.append(request_time)
-                except requests.exceptions.RequestException:
-                    # Skip failed requests for response time calculation
-                    pass
+                        return request_time
+                except httpx.RequestError:
+                    return None
+                return None
+
+            async with httpx.AsyncClient() as client:
+                tasks = [make_request(client) for _ in range(50)]
+                results = await asyncio.gather(*tasks)
+
+            response_times = [r for r in results if r is not None]
 
             if not response_times:
                 raise Exception("No successful requests completed")
