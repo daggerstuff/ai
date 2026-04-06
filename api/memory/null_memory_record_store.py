@@ -5,8 +5,8 @@ from collections import OrderedDict
 from typing import Dict
 
 from .null_memory_index import NullMemoryIndex
-from .null_memory_record_factory import NullMemoryRecordFactory
 from .null_memory_record import NullMemoryRecord
+from .null_memory_record_factory import NullMemoryRecordFactory
 from .null_memory_search_index import NullMemorySearchIndex
 
 

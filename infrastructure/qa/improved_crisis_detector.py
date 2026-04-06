@@ -7,11 +7,11 @@ Target: Reduce false negative rate from 84.4% to <1%
 Focus: Comprehensive crisis pattern recognition with context awareness
 """
 
-import re
 import asyncio
 import logging
-from typing import Dict, List, Tuple, Optional
+import re
 from dataclasses import dataclass
+from typing import Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -31,15 +31,15 @@ class ImprovedCrisisDetector:
     Improved crisis detection model addressing 84.4% false negative rate
     Uses multi-layered pattern recognition with context awareness
     """
-    
+
     def __init__(self):
         self.crisis_patterns = self._initialize_crisis_patterns()
         self.context_filters = self._initialize_context_filters()
         self.risk_scoring = self._initialize_risk_scoring()
-        
+
     def _initialize_crisis_patterns(self) -> Dict[str, Dict]:
         """Initialize comprehensive crisis detection patterns"""
-        
+
         return {
             # Direct suicidal ideation (Level 5 - Immediate)
             "direct_suicidal": {
@@ -55,7 +55,7 @@ class ImprovedCrisisDetector:
                 "level": 5,
                 "weight": 1.0
             },
-            
+
             # Self-harm indicators (Level 4-5)
             "self_harm": {
                 "patterns": [
@@ -71,7 +71,7 @@ class ImprovedCrisisDetector:
                 "level": 4,
                 "weight": 0.9
             },
-            
+
             # Hopelessness and despair (Level 3-4)
             "hopelessness": {
                 "patterns": [
@@ -87,7 +87,7 @@ class ImprovedCrisisDetector:
                 "level": 3,
                 "weight": 0.7
             },
-            
+
             # Depression severity indicators (Level 2-4)
             "severe_depression": {
                 "patterns": [
@@ -102,7 +102,7 @@ class ImprovedCrisisDetector:
                 "level": 3,
                 "weight": 0.6
             },
-            
+
             # Crisis escalation indicators (Level 3-5)
             "escalation": {
                 "patterns": [
@@ -117,7 +117,7 @@ class ImprovedCrisisDetector:
                 "level": 4,
                 "weight": 0.8
             },
-            
+
             # Means and methods (Level 5)
             "means_methods": {
                 "patterns": [
@@ -132,7 +132,7 @@ class ImprovedCrisisDetector:
                 "level": 5,
                 "weight": 1.0
             },
-            
+
             # Isolation and withdrawal (Level 2-3)
             "isolation": {
                 "patterns": [
@@ -146,7 +146,7 @@ class ImprovedCrisisDetector:
                 "level": 2,
                 "weight": 0.4
             },
-            
+
             # Substance abuse crisis (Level 3-4)
             "substance_crisis": {
                 "patterns": [
@@ -161,23 +161,23 @@ class ImprovedCrisisDetector:
                 "weight": 0.6
             }
         }
-    
+
     def _initialize_context_filters(self) -> Dict[str, List[str]]:
         """Initialize context filters to prevent false positives"""
-        
+
         return {
             "negation_patterns": [
                 r"(?:not|never|don't|won't|can't|wouldn't) .{0,20}",
                 r"(?:no longer|no more|stopped|quit) .{0,20}",
                 r"(?:used to|in the past|before) .{0,20}",
             ],
-            
+
             "hypothetical_patterns": [
                 r"(?:if i|what if|imagine|suppose) .{0,30}",
                 r"(?:sometimes i (?:think|wonder|feel like)) .{0,30}",
                 r"(?:would|could|might) .{0,20}",
             ],
-            
+
             "metaphorical_patterns": [
                 r"(?:kill time|dying to (?:see|know|hear))",
                 r"(?:dead (?:tired|beat|serious))",
@@ -185,14 +185,14 @@ class ImprovedCrisisDetector:
                 r"(?:cut (?:class|corners|loose))",
                 r"(?:hurt (?:feelings|reputation))",
             ],
-            
+
             "media_references": [
                 r"(?:movie|film|book|song|game|tv|show)",
                 r"(?:character|story|plot|scene)",
                 r"(?:watched|read|played|heard)",
                 r"(?:netflix|youtube|spotify)",
             ],
-            
+
             "positive_context": [
                 r"(?:getting (?:better|help|treatment))",
                 r"(?:therapy|therapist|counselor|doctor)",
@@ -201,10 +201,10 @@ class ImprovedCrisisDetector:
                 r"(?:improving|progress|recovery)",
             ]
         }
-    
+
     def _initialize_risk_scoring(self) -> Dict[str, float]:
         """Initialize risk scoring weights"""
-        
+
         return {
             "direct_threat": 1.0,
             "immediate_plan": 0.9,
@@ -216,33 +216,33 @@ class ImprovedCrisisDetector:
             "context_mitigation": -0.3,
             "positive_factors": -0.2
         }
-    
+
     async def detect_crisis(self, text: str) -> CrisisDetectionResult:
         """
         Main crisis detection method with improved accuracy
-        
+
         Args:
             text: Conversation text to analyze
-            
+
         Returns:
             CrisisDetectionResult with detailed analysis
         """
-        
+
         # Normalize text
         normalized_text = text.lower().strip()
-        
+
         # Initialize detection variables
         detected_patterns = []
         risk_factors = []
         confidence_score = 0.0
         crisis_level = 0
-        
+
         # Pattern matching with scoring
         for category, pattern_data in self.crisis_patterns.items():
             patterns = pattern_data["patterns"]
             level = pattern_data["level"]
             weight = pattern_data["weight"]
-            
+
             for pattern in patterns:
                 matches = re.findall(pattern, normalized_text, re.IGNORECASE)
                 if matches:
@@ -250,43 +250,43 @@ class ImprovedCrisisDetector:
                     risk_factors.append(category)
                     confidence_score += weight * 0.2  # Base score per pattern
                     crisis_level = max(crisis_level, level)
-        
+
         # Context analysis
         context_analysis = self._analyze_context(normalized_text)
-        
+
         # Apply context filters
         if context_analysis["has_negation"]:
             confidence_score *= 0.7  # Reduce confidence for negated statements
-        
+
         if context_analysis["is_hypothetical"]:
             confidence_score *= 0.5  # Reduce confidence for hypothetical statements
-        
+
         if context_analysis["is_metaphorical"]:
             confidence_score *= 0.1  # Heavily reduce for metaphorical usage
-        
+
         if context_analysis["has_positive_context"]:
             confidence_score *= 0.8  # Slight reduction for positive context
-        
+
         # Boost confidence for multiple risk factors
         if len(set(risk_factors)) > 1:
             confidence_score *= 1.3  # Multiple risk factors increase confidence
-        
+
         # Boost confidence for high-level patterns
         if crisis_level >= 4:
             confidence_score *= 1.2
-        
+
         # Normalize confidence score
         confidence_score = min(1.0, confidence_score)
-        
+
         # Determine if crisis based on confidence and level
         is_crisis = (confidence_score >= 0.3 and crisis_level >= 3) or confidence_score >= 0.5
-        
+
         # Generate reasoning
         reasoning = self._generate_reasoning(
-            detected_patterns, risk_factors, context_analysis, 
+            detected_patterns, risk_factors, context_analysis,
             confidence_score, crisis_level, is_crisis
         )
-        
+
         return CrisisDetectionResult(
             is_crisis=is_crisis,
             confidence_score=confidence_score,
@@ -296,10 +296,10 @@ class ImprovedCrisisDetector:
             context_analysis=context_analysis,
             reasoning=reasoning
         )
-    
+
     def _analyze_context(self, text: str) -> Dict[str, any]:
         """Analyze context to prevent false positives"""
-        
+
         context = {
             "has_negation": False,
             "is_hypothetical": False,
@@ -309,60 +309,60 @@ class ImprovedCrisisDetector:
             "text_length": len(text),
             "sentence_count": len(text.split('.')),
         }
-        
+
         # Check for negation patterns
         for pattern in self.context_filters["negation_patterns"]:
             if re.search(pattern, text, re.IGNORECASE):
                 context["has_negation"] = True
                 break
-        
+
         # Check for hypothetical patterns
         for pattern in self.context_filters["hypothetical_patterns"]:
             if re.search(pattern, text, re.IGNORECASE):
                 context["is_hypothetical"] = True
                 break
-        
+
         # Check for metaphorical patterns
         for pattern in self.context_filters["metaphorical_patterns"]:
             if re.search(pattern, text, re.IGNORECASE):
                 context["is_metaphorical"] = True
                 break
-        
+
         # Check for media references
         for pattern in self.context_filters["media_references"]:
             if re.search(pattern, text, re.IGNORECASE):
                 context["has_media_reference"] = True
                 break
-        
+
         # Check for positive context
         for pattern in self.context_filters["positive_context"]:
             if re.search(pattern, text, re.IGNORECASE):
                 context["has_positive_context"] = True
                 break
-        
+
         return context
-    
-    def _generate_reasoning(self, detected_patterns: List[str], 
-                          risk_factors: List[str], 
+
+    def _generate_reasoning(self, detected_patterns: List[str],
+                          risk_factors: List[str],
                           context_analysis: Dict[str, any],
                           confidence_score: float,
                           crisis_level: int,
                           is_crisis: bool) -> str:
         """Generate human-readable reasoning for the decision"""
-        
+
         reasoning_parts = []
-        
+
         if is_crisis:
             reasoning_parts.append(f"CRISIS DETECTED (Level {crisis_level}, Confidence: {confidence_score:.2f})")
         else:
             reasoning_parts.append(f"NO CRISIS (Level {crisis_level}, Confidence: {confidence_score:.2f})")
-        
+
         if detected_patterns:
             reasoning_parts.append(f"Detected patterns: {len(detected_patterns)}")
-            
+
         if risk_factors:
             reasoning_parts.append(f"Risk factors: {', '.join(set(risk_factors))}")
-        
+
         # Context modifiers
         context_notes = []
         if context_analysis["has_negation"]:
@@ -373,10 +373,10 @@ class ImprovedCrisisDetector:
             context_notes.append("metaphorical usage")
         if context_analysis["has_positive_context"]:
             context_notes.append("positive context present")
-        
+
         if context_notes:
             reasoning_parts.append(f"Context modifiers: {', '.join(context_notes)}")
-        
+
         return " | ".join(reasoning_parts)
 
 # Enhanced model predictor using improved crisis detector
@@ -385,20 +385,20 @@ async def enhanced_model_predictor(conversation_text: str) -> bool:
     Enhanced model predictor using improved crisis detection
     Target: Reduce false negative rate from 84.4% to <1%
     """
-    
+
     detector = ImprovedCrisisDetector()
     result = await detector.detect_crisis(conversation_text)
-    
+
     # Log detailed analysis for debugging
     if result.confidence_score > 0.1:  # Log any significant detection
         logger.info(f"Crisis Analysis: {result.reasoning}")
-    
+
     return result.is_crisis
 
 # Test the improved detector
 async def test_improved_detector():
     """Test the improved crisis detector on sample cases"""
-    
+
     test_cases = [
         # Should detect (true positives)
         ("I can't take this anymore. I want to kill myself.", True),
@@ -406,46 +406,46 @@ async def test_improved_detector():
         ("I have a plan to end my life tonight.", True),
         ("Life is hopeless and I can't go on.", True),
         ("I'm going to overdose on these pills.", True),
-        
+
         # Should NOT detect (avoid false positives)
         ("I'm fine, just having a bad day.", False),
         ("I want to kill time until my appointment.", False),
         ("I'm dying to see that new movie.", False),
         ("I have a gun in my video game.", False),
         ("I'm going to end this conversation now.", False),
-        
+
         # Edge cases
         ("Sometimes I think about not being here anymore.", True),  # Should detect
         ("I used to think about suicide but not anymore.", False),  # Should NOT detect
         ("What if I killed myself? Just wondering.", False),  # Hypothetical - should NOT detect
         ("I'm getting help for my suicidal thoughts.", False),  # Positive context - should NOT detect
     ]
-    
+
     detector = ImprovedCrisisDetector()
-    
+
     correct = 0
     total = len(test_cases)
-    
+
     print("\n" + "="*80)
     print("TESTING IMPROVED CRISIS DETECTOR")
     print("="*80)
-    
+
     for text, expected in test_cases:
         result = await detector.detect_crisis(text)
         is_correct = result.is_crisis == expected
         correct += is_correct
-        
+
         status = "✅ CORRECT" if is_correct else "❌ WRONG"
         print(f"\n{status}")
         print(f"Text: {text}")
         print(f"Expected: {expected}, Got: {result.is_crisis}")
         print(f"Reasoning: {result.reasoning}")
-    
+
     accuracy = (correct / total) * 100
     print(f"\n{'='*80}")
     print(f"TEST RESULTS: {correct}/{total} correct ({accuracy:.1f}% accuracy)")
     print(f"{'='*80}")
-    
+
     return accuracy
 
 if __name__ == "__main__":

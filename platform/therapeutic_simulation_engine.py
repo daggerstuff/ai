@@ -619,12 +619,12 @@ class TherapeuticSimulationEngine:
         # Construct prompt for AI model
         ai_prompt = f"""
         You are role-playing as a {client_profile.personality_type.value} client in therapy.
-        
+
         Client Background: {client_profile.presenting_problem}
         Current State: {context["current_mood"]}, resistance={context["resistance_level"]:.1f}, trust={context["trust_level"]:.1f}
-        
+
         Therapist said: "{therapist_input}"
-        
+
         Respond as this client would, maintaining consistency with their personality and current emotional state.
         """
 

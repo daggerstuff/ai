@@ -23,11 +23,11 @@ from ai.pipelines.orchestrator.orchestration.curriculum_enforcement_service impo
 from ai.pipelines.orchestrator.orchestration.data_ingestion_coordinator import (
     DataIngestionCoordinator,
 )
-from ai.pipelines.orchestrator.orchestration.dataset_assembler import (
-    DatasetAssembler,
-)
 from ai.pipelines.orchestrator.orchestration.dataset_asana_sync_service import (
     DatasetAsanaSyncService,
+)
+from ai.pipelines.orchestrator.orchestration.dataset_assembler import (
+    DatasetAssembler,
 )
 from ai.pipelines.orchestrator.orchestration.dataset_output_service import (
     DatasetOutputService,

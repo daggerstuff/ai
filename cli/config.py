@@ -231,7 +231,7 @@ class CLIConfig(BaseModel):
     def _load_from_file(self, config_file: Path) -> None:
         """Load configuration from YAML file"""
         try:
-            with open(config_file, "r") as f:
+            with open(config_file) as f:
                 config_data = yaml.safe_load(f)
 
             if config_data:

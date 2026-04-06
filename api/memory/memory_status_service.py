@@ -3,8 +3,8 @@ from __future__ import annotations
 from ai.api.mcp_server.fastmcp_search import get_scoped_recent_memories
 from ai.api.mcp_server.memory_scope import MemoryScope
 
-from .memory_category_counts import count_memory_categories
 from .memory_category_counter import resolve_memory_category_counter
+from .memory_category_counts import count_memory_categories
 from .memory_health import resolve_memory_readiness
 from .memory_status_summary import MemoryStatusSummary, summarize_memory_status
 

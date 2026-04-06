@@ -497,7 +497,7 @@ def _daemonize(output_dir: Path):
     output_dir.mkdir(parents=True, exist_ok=True)
     log_path = output_dir / "orchestrator_daemon.log"
 
-    si = open(os.devnull, "r")
+    si = open(os.devnull)
     so = open(log_path, "a+")
     se = open(log_path, "a+")
 

@@ -5,9 +5,9 @@ This module provides a Python API that can be called from TypeScript/JavaScript 
 to generate edge case scenarios using NeMo Data Designer.
 """
 
+import json
 import logging
 from typing import Any, Optional
-import json
 
 from ai.pipelines.design.edge_case_generator import EdgeCaseGenerator, EdgeCaseType
 from ai.pipelines.design.service import NeMoDataDesignerService

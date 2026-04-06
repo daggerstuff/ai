@@ -29,7 +29,7 @@ def load_features(features_dir):
     all_features = []
     meta = []
     for fpath in feature_files:
-        with open(fpath, "r", encoding="utf-8") as f:
+        with open(fpath, encoding="utf-8") as f:
             feats = json.load(f)
             for seg in feats:
                 # Flatten and collect relevant features

@@ -10,8 +10,8 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
+from .letta_crisis_handler import CrisisResult, CrisisSeverity, LettaCrisisHandler
 from .letta_pii_middleware import LettaPIIMiddleware, PIIBlockedException
-from .letta_crisis_handler import LettaCrisisHandler, CrisisSeverity, CrisisResult
 
 logger = logging.getLogger(__name__)
 

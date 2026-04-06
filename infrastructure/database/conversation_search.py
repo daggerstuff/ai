@@ -374,7 +374,7 @@ class ConversationSearchEngine:
         if query.text:
             # Use FTS5 for full-text search
             base_sql = """
-                SELECT 
+                SELECT
                     c.conversation_id,
                     c.title,
                     c.dataset_source,
@@ -398,7 +398,7 @@ class ConversationSearchEngine:
         else:
             # Regular query without FTS
             base_sql = """
-                SELECT 
+                SELECT
                     c.conversation_id,
                     c.title,
                     c.dataset_source,
@@ -450,7 +450,7 @@ class ConversationSearchEngine:
                     placeholders = ",".join(["?" for _ in tag_list])
                     where_clauses.append(f"""
                         c.conversation_id IN (
-                            SELECT conversation_id FROM conversation_tags 
+                            SELECT conversation_id FROM conversation_tags
                             WHERE tag_value IN ({placeholders})
                         )
                     """)
@@ -710,32 +710,32 @@ class ConversationSearchEngine:
         try:
             # Dataset source facets
             cursor = conn.execute("""
-                SELECT dataset_source, COUNT(*) 
-                FROM conversations 
+                SELECT dataset_source, COUNT(*)
+                FROM conversations
                 GROUP BY dataset_source
             """)
             facets["dataset_source"] = dict(cursor.fetchall())
 
             # Tier facets
             cursor = conn.execute("""
-                SELECT tier, COUNT(*) 
-                FROM conversations 
+                SELECT tier, COUNT(*)
+                FROM conversations
                 GROUP BY tier
             """)
             facets["tier"] = dict(cursor.fetchall())
 
             # Processing status facets
             cursor = conn.execute("""
-                SELECT processing_status, COUNT(*) 
-                FROM conversations 
+                SELECT processing_status, COUNT(*)
+                FROM conversations
                 GROUP BY processing_status
             """)
             facets["processing_status"] = dict(cursor.fetchall())
 
             # Quality range facets
             cursor = conn.execute("""
-                SELECT 
-                    CASE 
+                SELECT
+                    CASE
                         WHEN overall_quality >= 0.8 THEN 'high'
                         WHEN overall_quality >= 0.6 THEN 'medium'
                         WHEN overall_quality >= 0.4 THEN 'low'
@@ -760,10 +760,10 @@ class ConversationSearchEngine:
                 # Get common terms from indexed content
                 cursor = conn.execute(
                     """
-                    SELECT DISTINCT tag_value 
-                    FROM conversation_tags 
-                    WHERE tag_value LIKE ? 
-                    ORDER BY tag_value 
+                    SELECT DISTINCT tag_value
+                    FROM conversation_tags
+                    WHERE tag_value LIKE ?
+                    ORDER BY tag_value
                     LIMIT ?
                 """,
                     (f"{partial_text}%", limit),

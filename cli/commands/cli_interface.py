@@ -13,7 +13,6 @@ from typing import Any, Dict, List, Optional
 import click
 
 from ..auth import AuthManager
-
 from ..config import get_config
 from ..utils import (
     format_file_size,
@@ -90,7 +89,7 @@ def run(
         # Load pipeline configuration
         pipeline_config = {}
         if config:
-            with open(config, "r") as f:
+            with open(config) as f:
                 pipeline_config = json.load(f)
 
         click.echo(f"🚀 Running {pipeline} pipeline...")
@@ -335,7 +334,7 @@ def batch(
             return
 
         # Load batch configuration
-        with open(input_path, "r") as f:
+        with open(input_path) as f:
             batch_config = json.load(f)
 
         output_path = (

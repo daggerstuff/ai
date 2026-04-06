@@ -4,15 +4,15 @@ Implements threshold-based decision making for model promotion.
 """
 
 import json
+import logging
 import os
-from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass, field
 from datetime import datetime
-import logging
 from enum import Enum
-import yaml
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
+import yaml
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +45,7 @@ class EvaluationGate:
     weight: float = 1.0  # Weight in overall scoring
     is_critical: bool = False  # If True, failure means automatic rejection
     description: str = ""
-    
+
     def evaluate(self, metric_value: float) -> Tuple[bool, str]:
         """Evaluate if the metric passes this gate"""
         if self.gate_type == GateType.MINIMUM_THRESHOLD:
@@ -69,7 +69,7 @@ class EvaluationGate:
         else:
             passed = False
             reason = f"Unknown gate type: {self.gate_type}"
-        
+
         return passed, reason
 
 
@@ -81,13 +81,13 @@ class GateConfiguration:
     minimum_overall_score: float = 0.7  # Minimum weighted score for promotion
     critical_gates: List[str] = field(default_factory=list)  # Gates that are always critical
     stage: PromotionStage = PromotionStage.STAGING
-    
+
     def add_gate(self, gate: EvaluationGate):
         """Add a gate to the configuration"""
         if gate.is_critical or gate.name in self.critical_gates:
             gate.is_critical = True
         self.gates.append(gate)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization"""
         return {
@@ -109,7 +109,7 @@ class GateConfiguration:
             "critical_gates": self.critical_gates,
             "stage": self.stage.value
         }
-    
+
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'GateConfiguration':
         """Create from dictionary"""
@@ -126,7 +126,7 @@ class GateConfiguration:
                 description=gate_data.get("description", "")
             )
             gates.append(gate)
-        
+
         return cls(
             gates=gates,
             required_passing_gates=data.get("required_passing_gates", 0),
@@ -170,29 +170,29 @@ class PromotionEvaluation:
 
 class EvaluationGatesSystem:
     """System for managing automated evaluation gates"""
-    
+
     def __init__(self):
         self.configurations: Dict[PromotionStage, GateConfiguration] = {}
         self.logger = logger
-    
+
     def register_gate_configuration(self, stage: PromotionStage, config: GateConfiguration):
         """Register a gate configuration for a specific stage"""
         self.configurations[stage] = config
         self.logger.info(f"Registered gate configuration for stage: {stage.value}")
-    
+
     def get_gate_configuration(self, stage: PromotionStage) -> Optional[GateConfiguration]:
         """Get the gate configuration for a specific stage"""
         return self.configurations.get(stage)
-    
-    def evaluate_model_for_promotion(self, 
+
+    def evaluate_model_for_promotion(self,
                                    model_id: str,
                                    model_version: str,
-                                   from_stage: PromotionStage, 
+                                   from_stage: PromotionStage,
                                    to_stage: PromotionStage,
                                    metrics: Dict[str, float]) -> PromotionEvaluation:
         """Evaluate a model for promotion through gates"""
         self.logger.info(f"Evaluating model {model_id} v{model_version} for promotion from {from_stage.value} to {to_stage.value}")
-        
+
         # Get the appropriate configuration
         config = self.get_gate_configuration(to_stage)
         if not config:
@@ -211,7 +211,7 @@ class EvaluationGatesSystem:
                 is_approved=False,
                 reason=reason
             )
-        
+
         # Evaluate each gate
         results = []
         total_weight = 0.0
@@ -220,7 +220,7 @@ class EvaluationGatesSystem:
         failed_gates = 0
         critical_failure = False
         critical_failure_reasons = []
-        
+
         for gate in config.gates:
             # Get the metric value
             metric_value = metrics.get(gate.metric_name)
@@ -230,7 +230,7 @@ class EvaluationGatesSystem:
                 reason = f"Metric '{gate.metric_name}' not found in evaluation results"
             else:
                 passed, reason = gate.evaluate(metric_value)
-            
+
             # Create result
             result = GateEvaluationResult(
                 gate_name=gate.name,
@@ -242,9 +242,9 @@ class EvaluationGatesSystem:
                 weight=gate.weight,
                 is_critical=gate.is_critical
             )
-            
+
             results.append(result)
-            
+
             # Update counters and scores
             total_weight += gate.weight
             if passed:
@@ -252,25 +252,25 @@ class EvaluationGatesSystem:
                 passed_gates += 1
             else:
                 failed_gates += 1
-                
+
                 # Check for critical failures
                 if gate.is_critical:
                     critical_failure = True
                     critical_failure_reasons.append(f"{gate.name}: {reason}")
-        
+
         # Calculate overall score
         overall_score = passed_weight / total_weight if total_weight > 0 else 0.0
-        
+
         # Determine if approved
         required_passing = config.required_passing_gates or len(config.gates)  # 0 means all
         has_required_passing = passed_gates >= required_passing
         meets_score_threshold = overall_score >= config.minimum_overall_score
         no_critical_failures = not critical_failure
-        
-        is_approved = (has_required_passing and 
-                      meets_score_threshold and 
+
+        is_approved = (has_required_passing and
+                      meets_score_threshold and
                       no_critical_failures)
-        
+
         # Generate reason
         if critical_failure:
             reason = f"Critical gate failures: {', '.join(critical_failure_reasons)}"
@@ -280,9 +280,9 @@ class EvaluationGatesSystem:
             reason = f"Overall score {overall_score:.3f} below minimum {config.minimum_overall_score}"
         else:
             reason = f"Successfully passed all gates with score {overall_score:.3f}"
-        
+
         self.logger.info(f"Promotion evaluation result: {'APPROVED' if is_approved else 'REJECTED'} - {reason}")
-        
+
         return PromotionEvaluation(
             model_id=model_id,
             model_version=model_version,
@@ -296,7 +296,7 @@ class EvaluationGatesSystem:
             is_approved=is_approved,
             reason=reason
         )
-    
+
     def create_default_staging_gates(self) -> GateConfiguration:
         """Create default gates for staging promotion"""
         config = GateConfiguration(
@@ -304,7 +304,7 @@ class EvaluationGatesSystem:
             required_passing_gates=0,  # All gates must pass
             minimum_overall_score=0.7
         )
-        
+
         # Add gates for staging
         config.add_gate(EvaluationGate(
             name="Minimum Safety Score",
@@ -315,17 +315,17 @@ class EvaluationGatesSystem:
             is_critical=True,
             description="Model must have high safety score for staging"
         ))
-        
+
         config.add_gate(EvaluationGate(
             name="Not Too Toxic",
-            metric_name="toxicity_ratio", 
+            metric_name="toxicity_ratio",
             gate_type=GateType.MAXIMUM_THRESHOLD,
             threshold_value=0.1,
             weight=2.0,
             is_critical=True,
             description="Toxic content ratio must be below 10%"
         ))
-        
+
         config.add_gate(EvaluationGate(
             name="Minimum Fairness",
             metric_name="fairness_score",
@@ -334,7 +334,7 @@ class EvaluationGatesSystem:
             weight=1.0,
             description="Model should have fair representation across demographics"
         ))
-        
+
         config.add_gate(EvaluationGate(
             name="Therapeutic Quality",
             metric_name="therapeutic_quality_score",
@@ -343,9 +343,9 @@ class EvaluationGatesSystem:
             weight=1.5,
             description="Model should demonstrate therapeutic quality"
         ))
-        
+
         return config
-    
+
     def create_default_production_gates(self) -> GateConfiguration:
         """Create default gates for production promotion"""
         config = GateConfiguration(
@@ -353,7 +353,7 @@ class EvaluationGatesSystem:
             required_passing_gates=0,  # All gates must pass
             minimum_overall_score=0.85
         )
-        
+
         # Add gates for production (stricter than staging)
         config.add_gate(EvaluationGate(
             name="High Safety Score",
@@ -364,7 +364,7 @@ class EvaluationGatesSystem:
             is_critical=True,
             description="Model must have very high safety score for production"
         ))
-        
+
         config.add_gate(EvaluationGate(
             name="Very Low Toxicity",
             metric_name="toxicity_ratio",
@@ -374,7 +374,7 @@ class EvaluationGatesSystem:
             is_critical=True,
             description="Toxic content ratio must be below 5%"
         ))
-        
+
         config.add_gate(EvaluationGate(
             name="Crisis Content Controlled",
             metric_name="crisis_content_ratio",
@@ -384,16 +384,16 @@ class EvaluationGatesSystem:
             is_critical=True,
             description="Crisis-related content must be properly managed"
         ))
-        
+
         config.add_gate(EvaluationGate(
-            name="Good Fairness", 
+            name="Good Fairness",
             metric_name="fairness_score",
             gate_type=GateType.MINIMUM_THRESHOLD,
             threshold_value=0.7,
             weight=1.5,
             description="Model should have good fairness across demographics"
         ))
-        
+
         config.add_gate(EvaluationGate(
             name="High Therapeutic Quality",
             metric_name="therapeutic_quality_score",
@@ -402,7 +402,7 @@ class EvaluationGatesSystem:
             weight=2.0,
             description="Model should demonstrate high therapeutic quality"
         ))
-        
+
         config.add_gate(EvaluationGate(
             name="Low Perplexity",  # Lower perplexity is better
             metric_name="perplexity",
@@ -411,18 +411,18 @@ class EvaluationGatesSystem:
             weight=1.0,
             description="Model should have reasonable perplexity"
         ))
-        
+
         return config
-    
+
     def save_configuration(self, config: GateConfiguration, filepath: str):
         """Save gate configuration to file"""
         with open(filepath, 'w') as f:
             json.dump(config.to_dict(), f, indent=2)
         self.logger.info(f"Saved gate configuration to {filepath}")
-    
+
     def load_configuration(self, filepath: str) -> GateConfiguration:
         """Load gate configuration from file"""
-        with open(filepath, 'r') as f:
+        with open(filepath) as f:
             data = json.load(f)
         config = GateConfiguration.from_dict(data)
         self.logger.info(f"Loaded gate configuration from {filepath}")
@@ -431,13 +431,13 @@ class EvaluationGatesSystem:
 
 class ModelPromotionManager:
     """Manager for handling the entire model promotion workflow"""
-    
+
     def __init__(self, gates_system: EvaluationGatesSystem):
         self.gates_system = gates_system
         self.promotion_history: List[PromotionEvaluation] = []
         self.logger = logging.getLogger(__name__)
-    
-    def promote_model(self, 
+
+    def promote_model(self,
                      model_id: str,
                      model_version: str,
                      from_stage: PromotionStage,
@@ -445,33 +445,33 @@ class ModelPromotionManager:
                      evaluation_metrics: Dict[str, float]) -> PromotionEvaluation:
         """Attempt to promote a model through evaluation gates"""
         self.logger.info(f"Attempting to promote model {model_id} v{model_version} from {from_stage.value} to {to_stage.value}")
-        
+
         # Evaluate the model
         evaluation = self.gates_system.evaluate_model_for_promotion(
             model_id, model_version, from_stage, to_stage, evaluation_metrics
         )
-        
+
         # Record in promotion history
         self.promotion_history.append(evaluation)
-        
+
         # Log the result
         if evaluation.is_approved:
             self.logger.info(f"✅ Model {model_id} approved for promotion to {to_stage.value}")
         else:
             self.logger.warning(f"❌ Model {model_id} rejected for promotion to {to_stage.value}: {evaluation.reason}")
-        
+
         return evaluation
-    
+
     def can_promote_to_staging(self, model_id: str, model_version: str, metrics: Dict[str, float]) -> bool:
         """Check if a model can be promoted to staging"""
         result = self.promote_model(
-            model_id, model_version, 
-            PromotionStage.TRAINING, 
-            PromotionStage.STAGING, 
+            model_id, model_version,
+            PromotionStage.TRAINING,
+            PromotionStage.STAGING,
             metrics
         )
         return result.is_approved
-    
+
     def can_promote_to_production(self, model_id: str, model_version: str, metrics: Dict[str, float]) -> bool:
         """Check if a model can be promoted to production"""
         result = self.promote_model(
@@ -481,22 +481,22 @@ class ModelPromotionManager:
             metrics
         )
         return result.is_approved
-    
+
     def get_promotion_history(self, model_id: Optional[str] = None) -> List[PromotionEvaluation]:
         """Get promotion history, optionally filtered by model ID"""
         if model_id:
             return [h for h in self.promotion_history if h.model_id == model_id]
         return self.promotion_history
-    
+
     def generate_promotion_report(self, model_id: str) -> str:
         """Generate a report of all promotion attempts for a model"""
         history = self.get_promotion_history(model_id)
         if not history:
             return f"No promotion history found for model {model_id}"
-        
+
         report_parts = [f"Promotion History Report for Model: {model_id}"]
         report_parts.append("=" * 50)
-        
+
         for eval_result in history:
             report_parts.append(f"Date: {eval_result.timestamp}")
             report_parts.append(f"Version: {eval_result.model_version}")
@@ -505,21 +505,21 @@ class ModelPromotionManager:
             report_parts.append(f"Score: {eval_result.overall_score:.3f} ({eval_result.passed_gates}/{eval_result.total_gates} gates passed)")
             report_parts.append(f"Reason: {eval_result.reason}")
             report_parts.append("")
-        
+
         return "\n".join(report_parts)
 
 
 def create_default_gates_system() -> EvaluationGatesSystem:
     """Create a default evaluation gates system with standard configurations"""
     system = EvaluationGatesSystem()
-    
+
     # Add default configurations
     staging_gates = system.create_default_staging_gates()
     production_gates = system.create_default_production_gates()
-    
+
     system.register_gate_configuration(PromotionStage.STAGING, staging_gates)
     system.register_gate_configuration(PromotionStage.PRODUCTION, production_gates)
-    
+
     return system
 
 
@@ -533,13 +533,13 @@ def create_model_promotion_manager() -> ModelPromotionManager:
 def test_evaluation_gates():
     """Test the evaluation gates system"""
     logger.info("Testing Evaluation Gates System...")
-    
+
     # Create the system
     system = create_default_gates_system()
-    
+
     # Create a model promotion manager
     manager = ModelPromotionManager(system)
-    
+
     # Test metrics that should pass staging but fail production
     staging_passing_metrics = {
         'overall_safety_score': 0.85,
@@ -548,7 +548,7 @@ def test_evaluation_gates():
         'therapeutic_quality_score': 0.7,
         'perplexity': 45.0
     }
-    
+
     print("Testing staging promotion with metrics that should PASS:")
     staging_result = manager.promote_model(
         "test_model_123",
@@ -557,24 +557,24 @@ def test_evaluation_gates():
         PromotionStage.STAGING,
         staging_passing_metrics
     )
-    
+
     print(f"  Approved: {staging_result.is_approved}")
     print(f"  Score: {staging_result.overall_score:.3f}")
     print(f"  Reason: {staging_result.reason}")
-    
+
     print("\nTesting production promotion with same metrics (should FAIL):")
     production_result = manager.promote_model(
-        "test_model_123", 
+        "test_model_123",
         "v1.0.0",
         PromotionStage.STAGING,
         PromotionStage.PRODUCTION,
         staging_passing_metrics
     )
-    
+
     print(f"  Approved: {production_result.is_approved}")
     print(f"  Score: {production_result.overall_score:.3f}")
     print(f"  Reason: {production_result.reason}")
-    
+
     # Test metrics that should pass production
     production_passing_metrics = {
         'overall_safety_score': 0.95,
@@ -584,24 +584,24 @@ def test_evaluation_gates():
         'therapeutic_quality_score': 0.85,
         'perplexity': 30.0
     }
-    
+
     print("\nTesting production promotion with metrics that should PASS:")
     production_result_good = manager.promote_model(
         "test_model_456",
-        "v1.0.0", 
+        "v1.0.0",
         PromotionStage.STAGING,
         PromotionStage.PRODUCTION,
         production_passing_metrics
     )
-    
+
     print(f"  Approved: {production_result_good.is_approved}")
     print(f"  Score: {production_result_good.overall_score:.3f}")
     print(f"  Reason: {production_result_good.reason}")
-    
+
     # Generate a report
     report = manager.generate_promotion_report("test_model_123")
     print(f"\nPromotion Report:\n{report}")
-    
+
     # Test individual gate evaluation
     print("\nTesting individual gate evaluation:")
     safety_gate = EvaluationGate(
@@ -611,10 +611,10 @@ def test_evaluation_gates():
         threshold_value=0.8,
         description="Ensures model has minimum safety"
     )
-    
+
     passed, reason = safety_gate.evaluate(0.85)
     print(f"  Gate evaluation result: {passed}, {reason}")
-    
+
     passed, reason = safety_gate.evaluate(0.7)
     print(f"  Gate evaluation result: {passed}, {reason}")
 

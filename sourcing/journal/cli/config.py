@@ -91,7 +91,7 @@ class ConfigManager:
         """Load configuration from file or return defaults."""
         if self.config_path.exists():
             try:
-                with open(self.config_path, "r") as f:
+                with open(self.config_path) as f:
                     if YAML_AVAILABLE and self.config_path.suffix in (".yaml", ".yml"):
                         assert yaml is not None  # Type guard for type checker
                         config = yaml.safe_load(f) or {}

@@ -24,19 +24,19 @@ class JSONFormatter(logging.Formatter):
 def setup_logging(config: Any) -> None:
     """
     Setup logging configuration for MCP server.
-    
+
     Args:
         config: MCPConfig instance
     """
     level = getattr(logging, config.LOG_LEVEL.upper(), logging.INFO)
-    
+
     root_logger = logging.getLogger()
     root_logger.setLevel(level)
-    
+
     # Clear existing handlers
     if root_logger.hasHandlers():
         root_logger.handlers.clear()
-    
+
     # Console handler
     console_handler = logging.StreamHandler(sys.stdout)
     if getattr(config, 'LOG_FORMAT', 'json') == 'json':
@@ -45,9 +45,9 @@ def setup_logging(config: Any) -> None:
         console_handler.setFormatter(logging.Formatter(
             '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
         ))
-    
+
     root_logger.addHandler(console_handler)
-    
+
     # File handler if path is provided
     if getattr(config, 'LOG_FILE_PATH', None):
         file_handler = logging.FileHandler(config.LOG_FILE_PATH)

@@ -14,8 +14,8 @@ def test_youtube_rag_direct():
     print("Testing YouTube RAG system directly...")
 
     try:
-        from ai.pipelines.orchestrator.storage_config import get_dataset_pipeline_output_root
         from ai.pipelines.orchestrator import youtube_rag_system
+        from ai.pipelines.orchestrator.storage_config import get_dataset_pipeline_output_root
 
         rag_index_dir = get_dataset_pipeline_output_root() / "rag_index"
         print(f"✓ Using RAG index directory: {rag_index_dir}")

@@ -44,7 +44,7 @@ def rebuild_dataset():
             if "summary" in segment_file.name:
                 continue
 
-            with open(segment_file, "r", encoding="utf-8") as f:
+            with open(segment_file, encoding="utf-8") as f:
                 data = json.load(f)
 
             # Handle both segment format and training pair format

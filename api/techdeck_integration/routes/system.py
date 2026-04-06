@@ -20,7 +20,6 @@ from ..error_handling.custom_errors import (
 )
 from ..integration.redis_client import RedisClient
 from ..utils.logger import get_request_logger
-
 from ..utils.validation import sanitize_input
 
 # Initialize blueprint

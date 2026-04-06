@@ -1,5 +1,6 @@
-from ai.memory.manager_factory import MemoryManagerFactory
 import pytest
+
+from ai.memory.manager_factory import MemoryManagerFactory
 
 
 def test_factory_creates_local_hindsight_manager_only_when_explicit(monkeypatch):

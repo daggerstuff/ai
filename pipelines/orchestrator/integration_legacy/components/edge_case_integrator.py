@@ -117,7 +117,7 @@ class EdgeCaseIntegrator:
         # Load any existing edge case files
         for file_path in self.edge_case_dir.glob("*.json*"):
             try:
-                with open(file_path, "r") as f:
+                with open(file_path) as f:
                     if file_path.suffix == ".jsonl":
                         edge_cases.extend(json.loads(line.strip()) for line in f)
                     else:

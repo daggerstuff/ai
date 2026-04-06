@@ -3,24 +3,25 @@ Quality control system for the labeling pipeline.
 Implements inter-annotator agreement metrics and label drift monitoring.
 """
 
-from dataclasses import dataclass
-from typing import List, Dict, Any, Optional, Tuple
-import statistics
-from datetime import datetime, timedelta
 import logging
-from enum import Enum
 import math
+import statistics
 from collections import Counter
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
+
 from .label_taxonomy import (
+    CrisisLevelType,
+    DemographicType,
     LabelBundle,
     LabelProvenanceType,
-    TherapeuticResponseType,
-    CrisisLevelType,
-    TherapyModalityType,
     MentalHealthConditionType,
-    DemographicType,
+    TherapeuticResponseType,
+    TherapyModalityType,
 )
-from .label_versioning import LabelVersionManager, LabelHistory, ProvenanceRecord
+from .label_versioning import LabelHistory, LabelVersionManager, ProvenanceRecord
 
 logger = logging.getLogger(__name__)
 
@@ -1008,16 +1009,16 @@ def create_quality_controller() -> QualityController:
 # Example usage
 def test_quality_control():
     """Test the quality control system"""
+    from .conversation_schema import Conversation
     from .label_taxonomy import (
-        TherapeuticResponseLabel,
         CrisisLabel,
+        CrisisLevelType,
         LabelMetadata,
         LabelProvenanceType,
+        TherapeuticResponseLabel,
         TherapeuticResponseType,
-        CrisisLevelType,
     )
-    from .conversation_schema import Conversation
-    from .label_versioning import create_version_manager, LabelVersionManager
+    from .label_versioning import LabelVersionManager, create_version_manager
 
     # Create some test label bundles for the same conversation
     bundles = []

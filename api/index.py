@@ -10,9 +10,9 @@ from contextlib import asynccontextmanager
 
 from fastapi import HTTPException
 from starlette.applications import Starlette
-from starlette.responses import JSONResponse
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
+from starlette.responses import JSONResponse
 from starlette.routing import Route
 
 from ai.api.mcp_server.memory_auth import authorize_memory_access

@@ -164,9 +164,9 @@ class QualityImprovementReporter:
 
             cursor.execute(
                 """
-            SELECT * FROM interventions 
-            WHERE status = ? 
-            AND end_date >= ? 
+            SELECT * FROM interventions
+            WHERE status = ?
+            AND end_date >= ?
             AND end_date <= ?
             """,
                 (status, start_date.isoformat(), end_date.isoformat()),
@@ -764,15 +764,15 @@ class QualityImprovementReporter:
         """Get executive summary template."""
         return """
         # Quality Improvement Report - Executive Summary
-        
+
         **Generated**: {{ generated_at }}
         **Period**: {{ report.report_period }}
-        
+
         ## Key Findings
         {% for item in report.executive_summary %}
         - {{ item }}
         {% endfor %}
-        
+
         ## Action Items
         {% for item in report.action_items %}
         - {{ item }}
@@ -802,7 +802,7 @@ class QualityImprovementReporter:
                 <p><strong>Generated:</strong> {{ generated_at }}</p>
                 <p><strong>Report Period:</strong> {{ report.report_period }}</p>
             </div>
-            
+
             <div class="section">
                 <h2>Executive Summary</h2>
                 <ul>
@@ -811,7 +811,7 @@ class QualityImprovementReporter:
                 {% endfor %}
                 </ul>
             </div>
-            
+
             <div class="section">
                 <h2>Overall Impact</h2>
                 <div class="metric">
@@ -824,7 +824,7 @@ class QualityImprovementReporter:
                     <strong>Success Rate:</strong> {{ "%.1f"|format(report.overall_impact.get('success_rate', 0) * 100) }}%
                 </div>
             </div>
-            
+
             <div class="section">
                 <h2>Detailed Insights</h2>
                 <ul>
@@ -833,7 +833,7 @@ class QualityImprovementReporter:
                 {% endfor %}
                 </ul>
             </div>
-            
+
             <div class="section">
                 <h2>Action Items</h2>
                 <ul>
@@ -850,13 +850,13 @@ class QualityImprovementReporter:
         """Get technical report template."""
         return """
         # Technical Quality Improvement Analysis
-        
+
         ## Success Metrics
         - Target Achievement Rate: {{ report.success_metrics.target_achievement_rate }}
         - Statistical Significance Rate: {{ report.success_metrics.statistical_significance_rate }}
         - Practical Significance Rate: {{ report.success_metrics.practical_significance_rate }}
         - Average Effect Size: {{ report.success_metrics.average_effect_size }}
-        
+
         ## Intervention Analysis
         {% for analysis in report.improvement_analyses %}
         ### {{ analysis.intervention_name }}

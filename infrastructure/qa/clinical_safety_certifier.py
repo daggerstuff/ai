@@ -22,11 +22,11 @@ Date: August 2025
 import asyncio
 import json
 import logging
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
-from pathlib import Path
-from typing import Dict, List, Optional, Any
-from dataclasses import dataclass, asdict
 from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 # Configure logging
 logging.basicConfig(
@@ -69,7 +69,7 @@ class ClinicalReviewer:
     board_certifications: List[str]
     contact_email: str
     signature_date: Optional[datetime] = None
-    
+
 @dataclass
 class SafetyProtocol:
     """Clinical safety protocol definition"""
@@ -83,7 +83,7 @@ class SafetyProtocol:
     response_time_sla: int  # minutes
     clinical_reviewer: str
     last_updated: datetime
-    
+
 @dataclass
 class ClinicalValidationResult:
     """Results from clinical validation"""
@@ -99,7 +99,7 @@ class ClinicalValidationResult:
     concerns: List[str]
     approval_status: CertificationStatus
     clinical_notes: str
-    
+
 @dataclass
 class MedicalAdvisoryBoardReview:
     """Medical advisory board review results"""
@@ -119,31 +119,31 @@ class MedicalAdvisoryBoardReview:
 
 class ClinicalSafetyCertifier:
     """Main clinical safety certification system"""
-    
+
     def __init__(self):
         self.cert_path = Path("/home/vivi/pixelated/ai/infrastructure/qa/clinical_certification")
         self.cert_path.mkdir(parents=True, exist_ok=True)
-        
+
         self.reviewers: List[ClinicalReviewer] = []
         self.safety_protocols: List[SafetyProtocol] = []
         self.validation_results: List[ClinicalValidationResult] = []
         self.advisory_board_reviews: List[MedicalAdvisoryBoardReview] = []
-        
+
     async def initialize_clinical_reviewers(self):
         """Initialize clinical reviewer panel"""
         logger.info("Initializing clinical reviewer panel...")
-        
+
         # Load or create clinical reviewers
         reviewers_file = self.cert_path / "clinical_reviewers.json"
         if reviewers_file.exists():
-            with open(reviewers_file, 'r') as f:
+            with open(reviewers_file) as f:
                 reviewers_data = json.load(f)
                 self.reviewers = [ClinicalReviewer(**reviewer) for reviewer in reviewers_data]
         else:
             await self._create_clinical_reviewer_panel()
-            
+
         logger.info(f"Initialized {len(self.reviewers)} clinical reviewers")
-        
+
     async def _create_clinical_reviewer_panel(self):
         """Create clinical reviewer panel"""
         # Create sample clinical reviewers (replace with actual licensed professionals)
@@ -161,7 +161,7 @@ class ClinicalSafetyCertifier:
                 contact_email="s.johnson@clinicalreview.com"
             ),
             ClinicalReviewer(
-                reviewer_id="clinical_002", 
+                reviewer_id="clinical_002",
                 name="Dr. Michael Chen, M.D.",
                 role=ClinicalRole.PSYCHIATRIST,
                 license_number="MD67890",
@@ -185,26 +185,26 @@ class ClinicalSafetyCertifier:
                 contact_email="l.rodriguez@socialwork.com"
             )
         ]
-        
+
         # Save reviewers
         reviewers_data = [asdict(reviewer) for reviewer in self.reviewers]
         with open(self.cert_path / "clinical_reviewers.json", 'w') as f:
             json.dump(reviewers_data, f, indent=2, default=str)
-            
+
     async def initialize_safety_protocols(self):
         """Initialize clinical safety protocols"""
         logger.info("Initializing clinical safety protocols...")
-        
+
         protocols_file = self.cert_path / "safety_protocols.json"
         if protocols_file.exists():
-            with open(protocols_file, 'r') as f:
+            with open(protocols_file) as f:
                 protocols_data = json.load(f)
                 self.safety_protocols = [SafetyProtocol(**protocol) for protocol in protocols_data]
         else:
             await self._create_safety_protocols()
-            
+
         logger.info(f"Initialized {len(self.safety_protocols)} safety protocols")
-        
+
     async def _create_safety_protocols(self):
         """Create clinical safety protocols"""
         self.safety_protocols = [
@@ -306,47 +306,47 @@ class ClinicalSafetyCertifier:
                 last_updated=datetime.now(timezone.utc)
             )
         ]
-        
+
         # Save protocols
         protocols_data = [asdict(protocol) for protocol in self.safety_protocols]
         with open(self.cert_path / "safety_protocols.json", 'w') as f:
             json.dump(protocols_data, f, indent=2, default=str)
-            
+
     async def conduct_clinical_validation(self) -> List[ClinicalValidationResult]:
         """Conduct clinical validation with licensed professionals"""
         logger.info("Conducting clinical validation with licensed professionals...")
-        
+
         self.validation_results = []
-        
+
         # Each reviewer conducts independent validation
         for reviewer in self.reviewers:
             result = await self._conduct_individual_validation(reviewer)
             self.validation_results.append(result)
-            
+
         # Save validation results
         results_data = [asdict(result) for result in self.validation_results]
         with open(self.cert_path / "clinical_validation_results.json", 'w') as f:
             json.dump(results_data, f, indent=2, default=str)
-            
+
         logger.info(f"Completed clinical validation with {len(self.validation_results)} reviewers")
         return self.validation_results
-        
+
     async def _conduct_individual_validation(self, reviewer: ClinicalReviewer) -> ClinicalValidationResult:
         """Conduct individual clinical validation"""
         logger.info(f"Conducting validation with {reviewer.name}")
-        
+
         # Simulate clinical validation (replace with actual review process)
         # This would involve the clinician reviewing model outputs, safety protocols, etc.
-        
+
         # Simulate realistic clinical assessment scores
         import random
         random.seed(42)  # For reproducible results
-        
+
         accuracy_assessment = random.uniform(0.92, 0.98)
         clinical_appropriateness = random.uniform(0.90, 0.96)
         safety_assessment = random.uniform(0.94, 0.99)
         bias_assessment = random.uniform(0.88, 0.95)
-        
+
         # Generate clinical recommendations
         recommendations = [
             "Implement additional bias testing for underrepresented populations",
@@ -355,14 +355,14 @@ class ClinicalSafetyCertifier:
             "Strengthen integration with emergency services protocols",
             "Improve documentation of clinical decision-making process"
         ]
-        
+
         # Generate any concerns
         concerns = []
         if bias_assessment < 0.92:
             concerns.append("Potential bias in risk assessment across demographic groups")
         if safety_assessment < 0.95:
             concerns.append("Safety protocols may need additional validation")
-            
+
         # Determine approval status
         overall_score = (accuracy_assessment + clinical_appropriateness + safety_assessment + bias_assessment) / 4
         if overall_score >= 0.95 and len(concerns) == 0:
@@ -371,7 +371,7 @@ class ClinicalSafetyCertifier:
             approval_status = CertificationStatus.REQUIRES_REVISION
         else:
             approval_status = CertificationStatus.REJECTED
-            
+
         return ClinicalValidationResult(
             validation_id=f"validation_{reviewer.reviewer_id}_{datetime.now().strftime('%Y%m%d')}",
             reviewer_id=reviewer.reviewer_id,
@@ -389,37 +389,37 @@ class ClinicalSafetyCertifier:
                           f"System demonstrates strong clinical safety measures with "
                           f"recommendations for continuous improvement."
         )
-        
+
     async def conduct_medical_advisory_board_review(self) -> MedicalAdvisoryBoardReview:
         """Conduct medical advisory board review"""
         logger.info("Conducting medical advisory board review...")
-        
+
         # Simulate medical advisory board meeting
         attendees = [reviewer.name for reviewer in self.reviewers]
         attendees.append("Dr. Patricia Williams, M.D. - Medical Director")
         attendees.append("Dr. James Thompson, Ph.D. - Chief Clinical Officer")
-        
+
         # Calculate overall approval based on individual validations
-        approved_count = sum(1 for result in self.validation_results 
+        approved_count = sum(1 for result in self.validation_results
                            if result.approval_status == CertificationStatus.APPROVED)
         total_votes = len(self.validation_results)
-        
+
         # Aggregate recommendations and concerns
         all_recommendations = []
         all_concerns = []
         for result in self.validation_results:
             all_recommendations.extend(result.recommendations)
             all_concerns.extend(result.concerns)
-            
+
         # Remove duplicates
         key_recommendations = list(set(all_recommendations))
         safety_concerns = list(set(all_concerns))
-        
+
         # Determine board decision
         approval_rate = approved_count / total_votes if total_votes > 0 else 0
         unanimous_approval = approval_rate == 1.0
         quorum_met = len(attendees) >= 3  # Minimum quorum
-        
+
         # Implementation requirements
         implementation_requirements = [
             "Complete bias testing improvements within 30 days",
@@ -428,11 +428,11 @@ class ClinicalSafetyCertifier:
             "Conduct quarterly safety audits with clinical review",
             "Maintain continuous professional development for AI safety"
         ]
-        
+
         # Follow-up requirements
         follow_up_required = len(safety_concerns) > 0 or approval_rate < 1.0
         next_review_date = datetime.now(timezone.utc).replace(month=datetime.now().month + 3) if follow_up_required else None
-        
+
         # Meeting minutes
         meeting_minutes = f"""
 Medical Advisory Board Review - Pixelated Empathy AI Safety Certification
@@ -447,7 +447,7 @@ AGENDA:
 5. Voting on certification approval
 
 DISCUSSION SUMMARY:
-The board reviewed comprehensive clinical validation results from {total_votes} licensed 
+The board reviewed comprehensive clinical validation results from {total_votes} licensed
 clinical professionals. Key areas of discussion included:
 
 - Overall system accuracy and clinical appropriateness
@@ -478,7 +478,7 @@ NEXT STEPS:
 
 Meeting adjourned: {datetime.now(timezone.utc).strftime('%H:%M UTC')}
         """
-        
+
         review = MedicalAdvisoryBoardReview(
             review_id=f"advisory_board_{datetime.now().strftime('%Y%m%d')}",
             meeting_date=datetime.now(timezone.utc),
@@ -494,35 +494,35 @@ Meeting adjourned: {datetime.now(timezone.utc).strftime('%H:%M UTC')}
             next_review_date=next_review_date,
             meeting_minutes=meeting_minutes
         )
-        
+
         self.advisory_board_reviews.append(review)
-        
+
         # Save advisory board review
         with open(self.cert_path / "medical_advisory_board_review.json", 'w') as f:
             json.dump(asdict(review), f, indent=2, default=str)
-            
+
         logger.info("Medical advisory board review completed")
         return review
-        
+
     async def generate_clinical_certification_report(self) -> Dict[str, Any]:
         """Generate comprehensive clinical certification report"""
         logger.info("Generating clinical certification report...")
-        
+
         # Calculate overall certification metrics
         total_validations = len(self.validation_results)
-        approved_validations = sum(1 for result in self.validation_results 
+        approved_validations = sum(1 for result in self.validation_results
                                  if result.approval_status == CertificationStatus.APPROVED)
-        
+
         avg_accuracy = sum(result.accuracy_assessment for result in self.validation_results) / total_validations
         avg_clinical_appropriateness = sum(result.clinical_appropriateness for result in self.validation_results) / total_validations
         avg_safety_assessment = sum(result.safety_assessment for result in self.validation_results) / total_validations
         avg_bias_assessment = sum(result.bias_assessment for result in self.validation_results) / total_validations
-        
+
         overall_clinical_score = (avg_accuracy + avg_clinical_appropriateness + avg_safety_assessment + avg_bias_assessment) / 4
-        
+
         # Get latest advisory board review
         latest_board_review = self.advisory_board_reviews[-1] if self.advisory_board_reviews else None
-        
+
         certification_report = {
             "certification_summary": {
                 "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -570,7 +570,7 @@ Meeting adjourned: {datetime.now(timezone.utc).strftime('%H:%M UTC')}
             },
             "compliance_status": {
                 "fda_samd_guidelines": "COMPLIANT",
-                "iso_14155_compliance": "COMPLIANT", 
+                "iso_14155_compliance": "COMPLIANT",
                 "ich_gcp_compliance": "COMPLIANT",
                 "clinical_oversight": "ESTABLISHED",
                 "medical_liability_assessment": "COMPLETED"
@@ -583,42 +583,42 @@ Meeting adjourned: {datetime.now(timezone.utc).strftime('%H:%M UTC')}
                 "Conduct annual certification renewal"
             ]
         }
-        
+
         # Save certification report
         with open(self.cert_path / "clinical_certification_report.json", 'w') as f:
             json.dump(certification_report, f, indent=2, default=str)
-            
+
         logger.info("Clinical certification report generated")
         return certification_report
-        
+
     async def run_clinical_certification(self) -> Dict[str, Any]:
         """Run complete clinical certification process"""
         logger.info("Starting clinical safety certification process...")
-        
+
         # Initialize clinical components
         await self.initialize_clinical_reviewers()
         await self.initialize_safety_protocols()
-        
+
         # Conduct clinical validation
         await self.conduct_clinical_validation()
-        
+
         # Conduct medical advisory board review
         await self.conduct_medical_advisory_board_review()
-        
+
         # Generate certification report
         report = await self.generate_clinical_certification_report()
-        
+
         logger.info("Clinical safety certification process completed")
         return report
 
 async def main():
     """Main execution function"""
     logger.info("Starting Clinical Safety Certification & Medical Review...")
-    
+
     # Run clinical certification
     certifier = ClinicalSafetyCertifier()
     report = await certifier.run_clinical_certification()
-    
+
     # Print results
     print("\n" + "="*70)
     print("CLINICAL SAFETY CERTIFICATION & MEDICAL REVIEW RESULTS")
@@ -628,26 +628,26 @@ async def main():
     print(f"Clinical Reviewers: {report['certification_summary']['total_clinical_reviewers']}")
     print(f"Approved Reviews: {report['certification_summary']['approved_reviews']}")
     print(f"Approval Rate: {report['certification_summary']['approval_rate']:.1%}")
-    
+
     print(f"\nClinical Validation Metrics:")
     print(f"  Accuracy Assessment: {report['clinical_validation_metrics']['average_accuracy_assessment']:.3f}")
     print(f"  Clinical Appropriateness: {report['clinical_validation_metrics']['average_clinical_appropriateness']:.3f}")
     print(f"  Safety Assessment: {report['clinical_validation_metrics']['average_safety_assessment']:.3f}")
     print(f"  Bias Assessment: {report['clinical_validation_metrics']['average_bias_assessment']:.3f}")
-    
+
     print(f"\nMedical Advisory Board:")
     board_info = report['medical_advisory_board']
     print(f"  Review Completed: {board_info['review_completed']}")
     print(f"  Approval Votes: {board_info['approval_votes']}/{board_info['total_votes']}")
     print(f"  Unanimous Approval: {board_info['unanimous_approval']}")
-    
+
     print(f"\nSafety Protocols: {len(report['safety_protocols'])} protocols established")
     print(f"Compliance Status: All requirements COMPLIANT")
-    
+
     # Certification status
     meets_requirements = report['certification_summary']['meets_clinical_requirements']
     certification_approved = report['certification_summary']['certification_status'] == "APPROVED"
-    
+
     print("\n" + "="*70)
     print("CERTIFICATION STATUS")
     print("="*70)
@@ -655,15 +655,15 @@ async def main():
     print(f"✅ Medical Advisory Board Review: {board_info['review_completed']}")
     print(f"✅ Safety Protocols Established: True")
     print(f"✅ Compliance Requirements: True")
-    
+
     print(f"\n🎯 CLINICAL CERTIFICATION: {'✅ APPROVED' if certification_approved else '⚠️ REQUIRES REVISION'}")
-    
+
     if certification_approved:
         print("\n🏆 Clinical Safety Certification COMPLETED successfully!")
         print("Ready to proceed to Task 3.3: Real-Time Safety Monitoring")
     else:
         print("\n⚠️ Certification requires revision. Address recommendations before proceeding.")
-    
+
     return certification_approved
 
 if __name__ == "__main__":

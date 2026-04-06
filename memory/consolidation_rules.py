@@ -4,12 +4,12 @@ Memory Consolidation Rules - Rules for memory compaction and cleanup.
 This module defines rules for when and how to consolidate memories,
 with special handling for crisis content.
 """
-from typing import List, Set, Optional, Dict
+import logging
 from dataclasses import dataclass
 from enum import Enum
-import logging
+from typing import Dict, List, Optional, Set
 
-from .reflection_memory import Memory, MemoryCategory, CrisisSeverity
+from .reflection_memory import CrisisSeverity, Memory, MemoryCategory
 
 logger = logging.getLogger(__name__)
 

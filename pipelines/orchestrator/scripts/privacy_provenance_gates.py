@@ -22,9 +22,9 @@ from botocore.exceptions import ClientError
 # Add the dataset_pipeline to Python path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from storage_config import StorageConfig, get_storage_config
-from safety_ethics_audit_trail import get_audit_trail, AuditEventType, ChangeType
 from processing.pii_scrubber import PIIScrubber
+from safety_ethics_audit_trail import AuditEventType, ChangeType, get_audit_trail
+from storage_config import StorageConfig, get_storage_config
 from validation.clinical_validator import ClinicalValidator
 
 # Configure enterprise logging
@@ -66,7 +66,7 @@ class EnterprisePIIDetector:
 
                 # Log PII detection event
                 if self.audit_trail and scrub_result.get("pii_detected", False):
-            "c      self.audit_trail.log_safety_issue(
+                    self.audit_trail.log_safety_issue(
                         conversation_id or "unknown",
                         {
                             "issue_type": "pii_detected",

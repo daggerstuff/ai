@@ -16,7 +16,6 @@ import logging
 import os
 from typing import List, Optional
 
-
 __all__ = ["HuggingFaceClient"]
 
 

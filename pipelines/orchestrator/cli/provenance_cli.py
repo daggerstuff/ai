@@ -54,7 +54,7 @@ async def _create_provenance(dataset_id: str, file: Optional[str], changed_by: s
 
         if file:
             # Load from file
-            with open(file, "r") as f:
+            with open(file) as f:
                 data = json.load(f)
             provenance = ProvenanceRecord.from_dict(data)
         else:

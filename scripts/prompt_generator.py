@@ -5,10 +5,11 @@ Converts therapeutic segments into authentic question-answer training pairs
 """
 
 import json
-import re
 import random
-from typing import Dict, List, Tuple
+import re
 from pathlib import Path
+from typing import Dict, List, Tuple
+
 
 class TherapeuticPromptGenerator:
     def __init__(self):
@@ -55,7 +56,7 @@ class TherapeuticPromptGenerator:
                 "Can you outline practical steps someone can take to heal from {topic}?",
             ]
         }
-        
+
         # Topic extraction patterns
         self.topic_patterns = [
             r"trauma|PTSD|complex trauma|betrayal trauma|childhood trauma",
@@ -74,12 +75,12 @@ class TherapeuticPromptGenerator:
         """Extract key therapeutic topics from segment text"""
         topics = []
         text_lower = text.lower()
-        
+
         # Extract specific topics using patterns
         for pattern in self.topic_patterns:
             matches = re.findall(pattern, text_lower)
             topics.extend(matches)
-        
+
         # Extract noun phrases that might be topics
         sentences = re.split(r'[.!?]+', text)
         for sentence in sentences[:3]:  # Focus on first few sentences
@@ -91,38 +92,38 @@ class TherapeuticPromptGenerator:
                         context = ' '.join(words[max(0, words.index(word)-2):words.index(word)+3])
                         topics.append(context.strip())
                         break
-        
+
         # Fallback topics if none found
         if not topics:
             topics = ["emotional healing", "personal growth", "mental health"]
-        
+
         return list(set(topics))[:3]  # Return up to 3 unique topics
 
     def generate_prompt(self, segment: Dict) -> str:
         """Generate an authentic therapeutic question for a segment"""
         style = segment['style']
         text = segment['text']
-        
+
         # Extract topics from the segment
         topics = self.extract_key_topics(text)
         selected_topic = random.choice(topics) if topics else "healing"
-        
+
         # Clean up topic for insertion
         topic = selected_topic.lower().strip()
-        
+
         # Select appropriate template
         templates = self.prompt_templates.get(style, self.prompt_templates['therapeutic'])
         template = random.choice(templates)
-        
+
         # Generate the prompt
         prompt = template.format(topic=topic)
-        
+
         return prompt
 
     def create_training_pair(self, segment: Dict) -> Dict:
         """Convert a segment into a training pair"""
         prompt = self.generate_prompt(segment)
-        
+
         return {
             "input": prompt,
             "output": segment['text'],
@@ -135,12 +136,12 @@ class TherapeuticPromptGenerator:
 
     def process_segments_file(self, input_path: Path, output_path: Path) -> Dict:
         """Process a segments file and convert to training pairs"""
-        with open(input_path, 'r', encoding='utf-8') as f:
+        with open(input_path, encoding='utf-8') as f:
             segments = json.load(f)
-        
+
         training_pairs = []
         stats = {"total": len(segments), "processed": 0, "errors": 0}
-        
+
         for segment in segments:
             try:
                 training_pair = self.create_training_pair(segment)
@@ -149,41 +150,41 @@ class TherapeuticPromptGenerator:
             except Exception as e:
                 print(f"Error processing segment: {e}")
                 stats["errors"] += 1
-        
+
         # Save training pairs
         with open(output_path, 'w', encoding='utf-8') as f:
             json.dump(training_pairs, f, indent=2, ensure_ascii=False)
-        
+
         return stats
 
 def main():
     """Convert all segment files to training pairs"""
     generator = TherapeuticPromptGenerator()
-    
+
     segments_dir = Path("/root/pixelated/ai/data/training_segments")
     output_dir = Path("/root/pixelated/ai/data/lora_training")
     output_dir.mkdir(exist_ok=True)
-    
+
     total_stats = {"total": 0, "processed": 0, "errors": 0}
-    
+
     # Process each segment file
     for segment_file in segments_dir.glob("*.json"):
         if segment_file.name == "enhanced_summary.json":
             continue
-            
+
         print(f"Processing {segment_file.name}...")
-        
+
         output_file = output_dir / f"training_{segment_file.name}"
         stats = generator.process_segments_file(segment_file, output_file)
-        
+
         print(f"  Processed: {stats['processed']}/{stats['total']} segments")
         if stats['errors'] > 0:
             print(f"  Errors: {stats['errors']}")
-        
+
         # Update totals
         for key in total_stats:
             total_stats[key] += stats[key]
-    
+
     print(f"\nTotal conversion complete:")
     print(f"  Processed: {total_stats['processed']}/{total_stats['total']} segments")
     print(f"  Success rate: {total_stats['processed']/total_stats['total']*100:.1f}%")

@@ -36,13 +36,13 @@ class SimpleTierDistributionOptimizer:
             conn = sqlite3.connect(self.db_path)
 
             query = """
-            SELECT 
+            SELECT
                 tier,
                 COUNT(*) as conversation_count,
                 AVG(word_count) as avg_word_count,
                 AVG(turn_count) as avg_turn_count,
                 dataset_source
-            FROM conversations 
+            FROM conversations
             WHERE tier IS NOT NULL AND tier != ''
             GROUP BY tier, dataset_source
             """

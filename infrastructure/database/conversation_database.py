@@ -764,7 +764,7 @@ class ConversationDatabase:
                     if "min_quality" in filters:
                         where_clauses.append("""
                             conversation_id IN (
-                                SELECT conversation_id FROM conversation_quality 
+                                SELECT conversation_id FROM conversation_quality
                                 WHERE overall_quality >= ?
                             )
                         """)
@@ -773,9 +773,9 @@ class ConversationDatabase:
                 where_sql = " AND ".join(where_clauses) if where_clauses else "1=1"
 
                 query = f"""
-                    SELECT conversation_id, dataset_source, tier, title, 
+                    SELECT conversation_id, dataset_source, tier, title,
                            turn_count, word_count, processing_status, created_at
-                    FROM conversations 
+                    FROM conversations
                     WHERE {where_sql}
                     ORDER BY created_at DESC
                     LIMIT ? OFFSET ?
@@ -823,7 +823,7 @@ class ConversationDatabase:
 
                 # Average quality metrics
                 cursor = conn.execute("""
-                    SELECT 
+                    SELECT
                         AVG(overall_quality) as avg_overall_quality,
                         AVG(therapeutic_accuracy) as avg_therapeutic_accuracy,
                         AVG(safety_score) as avg_safety_score

@@ -38,7 +38,7 @@ def validate_json_array_file(file_path: Path) -> dict[str, Any]:
     role_set: set[str] = set()
 
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             data = json.load(f)
     except json.JSONDecodeError as e:
         return {
@@ -93,7 +93,7 @@ def validate_jsonl_file(file_path: Path) -> dict[str, Any]:
     line_count = 0
 
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             for line_num, line in enumerate(f, start=1):
                 line = line.strip()
                 if not line:
@@ -146,7 +146,7 @@ def validate_transcript_md(file_path: Path) -> dict[str, Any]:
     errors: list[str] = []
 
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             content = f.read()
     except Exception as e:
         return {

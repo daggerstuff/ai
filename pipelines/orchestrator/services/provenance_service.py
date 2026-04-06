@@ -145,7 +145,7 @@ class ProvenanceService:
                 await self._create_tables_directly()
                 return
 
-            with open(schema_path, "r") as f:
+            with open(schema_path) as f:
                 schema_sql = f.read()
 
             async with self.pg_pool.acquire() as conn:

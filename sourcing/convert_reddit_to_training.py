@@ -59,7 +59,7 @@ def extract_conversations(data):
 def process_file(file_path):
     """Process a single JSON or JSONL file and yield message pairs."""
     try:
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with open(file_path, encoding='utf-8') as f:
             if str(file_path).endswith('.jsonl'):
                 for line_num, line in enumerate(f, 1):
                     line = line.strip()
@@ -106,18 +106,18 @@ def main():
     train_count = 0
     val_count = 0
     file_count = 0
-    
+
     try:
         with open(train_path, "w", encoding="utf-8") as f_train, \
              open(val_path, "w", encoding="utf-8") as f_val:
-            
+
             for file_path in input_dir.glob("**/*"):
                 if file_path.is_file() and file_path.suffix.lower() in [".json", ".jsonl"]:
                     file_count += 1
                     for conv in process_file(file_path):
                         line = json.dumps(conv, ensure_ascii=False) + "\n"
                         total_count += 1
-                        
+
                         if random.random() < args.val_split:
                             f_val.write(line)
                             val_count += 1
@@ -128,7 +128,7 @@ def main():
         logging.info(f"Processed {file_count} files.")
         logging.info(f"Saved {train_count} samples to {train_path}")
         logging.info(f"Saved {val_count} samples to {val_path}")
-        
+
         if total_count == 0:
             logging.warning("No conversations extracted. Check input format.")
     except Exception as e:

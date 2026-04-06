@@ -1,7 +1,8 @@
 import re
 
+
 def main():
-    with open("api/dataset_api.py", "r") as f:
+    with open("api/dataset_api.py") as f:
         content = f.read()
 
     # 1. Replace auth_system.validate_api_key with auth_system.authenticate_api_key

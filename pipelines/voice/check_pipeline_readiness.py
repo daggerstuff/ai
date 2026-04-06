@@ -7,7 +7,6 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-
 SCRIPT_DIR = Path(__file__).resolve().parent
 REPO_ROOT = SCRIPT_DIR.parents[2]
 REPORTS_DIR = SCRIPT_DIR / "reports"

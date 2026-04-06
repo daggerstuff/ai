@@ -4,7 +4,6 @@ import os
 from dataclasses import dataclass
 from typing import Optional
 
-
 CANONICAL_MEMORY_PROVIDER = "local_hindsight"
 
 

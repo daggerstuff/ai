@@ -16,8 +16,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from ai.sourcing.academic import (
     AcademicSourcingEngine,
     BookMetadata,
-    SourcingStrategy,
     SourceType,
+    SourcingStrategy,
     create_academic_sourcing_engine,
 )
 

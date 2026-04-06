@@ -116,7 +116,7 @@ class FatigueDashboard:
                 with sqlite3.connect(self.afp_system.db_path) as conn:
                     conn.execute(
                         """
-                        UPDATE fatigue_rules 
+                        UPDATE fatigue_rules
                         SET name=?, description=?, conditions=?, actions=?, enabled=?, priority=?, updated_at=?
                         WHERE rule_id=?
                     """,
@@ -226,7 +226,7 @@ class FatigueDashboard:
             suppressed_alerts = (
                 conn.execute(
                     """
-                SELECT SUM(count) FROM alert_groups 
+                SELECT SUM(count) FROM alert_groups
                 WHERE state = 'suppressed' AND last_seen > ?
             """,
                     (cutoff_24h,),
@@ -243,7 +243,7 @@ class FatigueDashboard:
             top_suppressions = conn.execute(
                 """
                 SELECT rule_id, COUNT(*) as count
-                FROM suppression_history 
+                FROM suppression_history
                 WHERE suppressed_at > ?
                 GROUP BY rule_id
                 ORDER BY count DESC
@@ -284,7 +284,7 @@ class FatigueDashboard:
                 SELECT group_id, fingerprint_hash, source, alert_type, severity,
                        first_seen, last_seen, count, state, suppression_count,
                        escalation_level, metadata
-                FROM alert_groups 
+                FROM alert_groups
                 WHERE last_seen > ?
                 ORDER BY last_seen DESC
                 LIMIT 100
@@ -356,7 +356,7 @@ class FatigueDashboard:
                 count = (
                     conn.execute(
                         """
-                    SELECT SUM(count) FROM alert_groups 
+                    SELECT SUM(count) FROM alert_groups
                     WHERE last_seen >= ? AND last_seen < ?
                 """,
                         (hour_start.isoformat(), hour_end.isoformat()),
@@ -644,7 +644,7 @@ DASHBOARD_TEMPLATE = """
             groups.forEach(function(group) {
                 const lastSeen = new Date(group.last_seen).toLocaleString();
                 const stateClass = 'status-' + group.state;
-                
+
                 tableHtml += `
                     <tr>
                         <td>${group.group_id.substring(0, 8)}...</td>

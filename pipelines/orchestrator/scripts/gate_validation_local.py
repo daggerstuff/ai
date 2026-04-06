@@ -14,11 +14,11 @@ Usage:
 import hashlib
 import json
 import logging
+import re
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Set, Tuple
-import re
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -74,7 +74,7 @@ class GateValidator:
             raise FileNotFoundError(f"Export file not found: {self.export_file}")
 
         records = []
-        with open(self.export_file, "r", encoding="utf-8") as f:
+        with open(self.export_file, encoding="utf-8") as f:
             for line in f:
                 if line := line.strip():
                     try:
@@ -88,7 +88,7 @@ class GateValidator:
         if not self.manifest_file.exists():
             raise FileNotFoundError(f"Manifest not found: {self.manifest_file}")
 
-        with open(self.manifest_file, "r", encoding="utf-8") as f:
+        with open(self.manifest_file, encoding="utf-8") as f:
             return json.load(f)
 
     def check_deduplication(self, records: List[Dict[str, Any]]) -> Dict[str, Any]:

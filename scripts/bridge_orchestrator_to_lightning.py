@@ -47,7 +47,7 @@ def transform_record(record, expert_id):
 def convert_jsonl_to_json(input_path: Path, output_path: Path, expert_id=0):
     """Convert JSONL file to transformed JSON list file"""
     records = []
-    with open(input_path, "r") as f:
+    with open(input_path) as f:
         for line in f:
             if line.strip():
                 raw_record = json.loads(line.strip())
@@ -106,7 +106,7 @@ def main():
     # 3. Create unified_lightning_config.json
     manifest_path = output_root / "training_manifest.json"
     if manifest_path.exists():
-        with open(manifest_path, "r") as f:
+        with open(manifest_path) as f:
             manifest = json.load(f)
 
         config = {
@@ -142,7 +142,7 @@ def main():
     # 4. Create comprehensive_processing_report.json
     report_path = output_root / "balanced_training_dataset_composition_report.json"
     if report_path.exists():
-        with open(report_path, "r") as f:
+        with open(report_path) as f:
             comp_report = json.load(f)
 
         full_report = {

@@ -1,6 +1,6 @@
-import os
-import json
 import glob
+import json
+import os
 
 # Configuration
 INPUT_DIR = "data/voice_transcripts_filtered"
@@ -25,7 +25,7 @@ def extract_markers_from_segment(segment):
 
 
 def process_file(input_path, output_path):
-    with open(input_path, "r", encoding="utf-8") as f:
+    with open(input_path, encoding="utf-8") as f:
         data = json.load(f)
     markers = []
     for seg in data.get("segments", []):

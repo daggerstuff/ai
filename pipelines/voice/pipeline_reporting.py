@@ -47,7 +47,7 @@ def aggregate_metrics():
             DATA_DIRS["clusters"], "personality_emotion_clusters.json"
         )
         if os.path.exists(cluster_file):
-            with open(cluster_file, "r", encoding="utf-8") as f:
+            with open(cluster_file, encoding="utf-8") as f:
                 clusters = json.load(f)
             cluster_counts = Counter([c.get("cluster") for c in clusters])
             report["cluster_counts"] = dict(cluster_counts)
@@ -59,11 +59,11 @@ def aggregate_metrics():
             DATA_DIRS["pairs"], "dialogue_pairs_validated.json"
         )
         if os.path.exists(pair_file):
-            with open(pair_file, "r", encoding="utf-8") as f:
+            with open(pair_file, encoding="utf-8") as f:
                 pairs = json.load(f)
             report["dialogue_pairs"] = len(pairs)
         if os.path.exists(validated_file):
-            with open(validated_file, "r", encoding="utf-8") as f:
+            with open(validated_file, encoding="utf-8") as f:
                 validated = json.load(f)
             report["validated_pairs"] = len(validated)
     # Therapeutic pairs
@@ -72,13 +72,13 @@ def aggregate_metrics():
             DATA_DIRS["therapeutic"], "therapeutic_pairs.json"
         )
         if os.path.exists(therapeutic_file):
-            with open(therapeutic_file, "r", encoding="utf-8") as f:
+            with open(therapeutic_file, encoding="utf-8") as f:
                 therapeutic = json.load(f)
             report["therapeutic_pairs"] = len(therapeutic)
     # Error summary from logs
     error_counts = defaultdict(int)
     for log_file in glob.glob(os.path.join(LOGS_DIR, "*.log")):
-        with open(log_file, "r", encoding="utf-8") as f:
+        with open(log_file, encoding="utf-8") as f:
             for line in f:
                 if "[ERROR]" in line:
                     error_counts[os.path.basename(log_file)] += 1

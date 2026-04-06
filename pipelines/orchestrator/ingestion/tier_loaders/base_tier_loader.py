@@ -63,7 +63,7 @@ class BaseTierLoader(ABC):
             logger.warning(f"Dataset registry not found at {self.registry_path}")
             return {}
         try:
-            with open(self.registry_path, "r", encoding="utf-8") as f:
+            with open(self.registry_path, encoding="utf-8") as f:
                 return json.load(f)
         except Exception as e:
             logger.error(f"Error loading registry: {e}")
@@ -274,6 +274,7 @@ class BaseTierLoader(ABC):
         """Download from S3 using boto3."""
         try:
             import boto3
+
             from ai.pipelines.orchestrator.storage_config import (
                 get_storage_config,
             )
@@ -377,7 +378,7 @@ class BaseTierLoader(ABC):
             return conversations
 
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 for line_num, line in enumerate(f, 1):
                     if not line.strip():
                         continue
@@ -421,7 +422,7 @@ class BaseTierLoader(ABC):
             return conversations
 
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 data_list = json.load(f)
 
                 if isinstance(data_list, dict):
@@ -661,11 +662,12 @@ class BaseTierLoader(ABC):
             import io
 
             import boto3
+            from botocore.exceptions import ClientError
+
             from ai.pipelines.orchestrator.storage_config import (
                 StorageBackend,
                 get_storage_config,
             )
-            from botocore.exceptions import ClientError
         except ImportError:
             logger.warning("boto3 not installed, cannot stream")
             raise

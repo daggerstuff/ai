@@ -13,14 +13,14 @@ from typing import List
 @dataclass
 class ContextSignals:
     """Signals indicating conversation context."""
-    
+
     is_educational: bool = False
     is_theoretical: bool = False
     is_meta_discussion: bool = False
     is_therapeutic: bool = True
     confidence: float = 0.0
     indicators: List[str] = None
-    
+
     def __post_init__(self):
         if self.indicators is None:
             self.indicators = []
@@ -34,7 +34,7 @@ class ContextDetector:
     - Training/supervision scenarios
     - Actual therapeutic conversations
     """
-    
+
     # Educational/academic indicators
     EDUCATIONAL_PATTERNS = [
         r'\b(textbook|academic|research|study|literature|article)\b',
@@ -47,7 +47,7 @@ class ContextDetector:
         r'\b(explain|describe|what is|what are)\b',
         r'\bcan you (explain|tell me about|describe)\b',
     ]
-    
+
     # Meta-discussion indicators
     META_PATTERNS = [
         r'\b(discussing|talking about|conversation about)\b',
@@ -56,7 +56,7 @@ class ContextDetector:
         r'\b(therapist would|counselor might|psychologist could)\b',
         r'\b(in therapy|in counseling|in treatment)\b',
     ]
-    
+
     # Third-person / hypothetical indicators
     HYPOTHETICAL_PATTERNS = [
         r'\b(someone|people|clients|patients) (who|that)\b',
@@ -64,7 +64,7 @@ class ContextDetector:
         r'\b(they might|they could|they would)\b',
         r'\b(one might|one could|one would)\b',
     ]
-    
+
     # Strong therapeutic indicators (override educational)
     THERAPEUTIC_PATTERNS = [
         r'\b(I feel|I\'m feeling|I have been feeling)\b',
@@ -73,28 +73,28 @@ class ContextDetector:
         r'\b(how does that make you feel)\b',
         r'\b(your (feelings|thoughts|experience))\b',
     ]
-    
+
     def __init__(self, threshold: float = 0.6):
         """
         Initialize context detector.
-        
+
         Args:
             threshold: Confidence threshold for context classification
         """
         self.threshold = threshold
-    
+
     def detect_context(self, conversation_text: str) -> ContextSignals:
         """
         Detect the context of a conversation.
-        
+
         Args:
             conversation_text: The conversation to analyze
-            
+
         Returns:
             ContextSignals with detected context
         """
         text_lower = conversation_text.lower()
-        
+
         # Count pattern matches
         educational_count = self._count_patterns(
             text_lower, self.EDUCATIONAL_PATTERNS
@@ -104,11 +104,11 @@ class ContextDetector:
             text_lower, self.HYPOTHETICAL_PATTERNS
         )
         therapeutic_count = self._count_patterns(text_lower, self.THERAPEUTIC_PATTERNS)
-        
+
         # Calculate total non-therapeutic signals
         non_therapeutic = educational_count + meta_count + hypothetical_count
         total_signals = non_therapeutic + therapeutic_count
-        
+
         if total_signals == 0:
             # No clear signals, assume therapeutic
             return ContextSignals(
@@ -116,7 +116,7 @@ class ContextDetector:
                 confidence=0.5,
                 indicators=["No clear context indicators"]
             )
-        
+
         # Calculate confidence scores
         if total_signals > 0:
             non_therapeutic_ratio = non_therapeutic / total_signals
@@ -124,7 +124,7 @@ class ContextDetector:
         else:
             non_therapeutic_ratio = 0
             therapeutic_ratio = 0
-        
+
         # Collect indicators
         indicators = []
         if educational_count > 0:
@@ -135,7 +135,7 @@ class ContextDetector:
             indicators.append(f"Hypothetical language ({hypothetical_count} matches)")
         if therapeutic_count > 0:
             indicators.append(f"Therapeutic language ({therapeutic_count} matches)")
-        
+
         # Determine context
         if therapeutic_count > non_therapeutic:
             # Strong therapeutic signals override
@@ -161,7 +161,7 @@ class ContextDetector:
                 confidence=0.5,
                 indicators=indicators + ["Mixed signals - defaulting to therapeutic"]
             )
-    
+
     def _count_patterns(self, text: str, patterns: List[str]) -> int:
         """Count how many patterns match in the text."""
         count = 0
@@ -174,7 +174,7 @@ class ContextDetector:
 # Test the detector
 if __name__ == "__main__":
     detector = ContextDetector()
-    
+
     test_cases = [
         # Educational/theoretical
         (
@@ -182,24 +182,24 @@ if __name__ == "__main__":
             "For example, EMDR is an approach therapists might use with "
             "clients who experienced assault."
         ),
-        
+
         # Actual therapy
         ("I experienced sexual abuse as a child and it's affecting my relationships. "
          "Can you help me process this trauma?"),
-        
+
         # Meta-discussion
         (
             "This technique is useful when talking about relationship "
             "issues in counseling sessions."
         ),
-        
+
         # Real therapeutic conversation
         (
             "I feel depressed and anxious. My therapist suggested "
             "cognitive behavioral therapy."
         ),
     ]
-    
+
     print("Testing Context Detector:\n")
     for i, text in enumerate(test_cases, 1):
         result = detector.detect_context(text)

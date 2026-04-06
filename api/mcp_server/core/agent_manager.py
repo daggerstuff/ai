@@ -40,7 +40,7 @@ class AgentDiscoveryCriteria:
     capabilities: Optional[List[str]] = None
     agent_type: Optional[str] = None
     status: Optional[AgentStatus] = None
-    
+
     @classmethod
     def from_request(cls, args: Dict[str, str]) -> "AgentDiscoveryCriteria":
         """Create criteria from request arguments."""
@@ -76,7 +76,7 @@ class Agent:
 
 class AgentRegistry:
     """In-memory and persistent registry for agents."""
-    
+
     def __init__(self, mongodb_client: MCPMongoDBClient):
         self.mongodb = mongodb_client
         self.collection = "agents"
@@ -92,7 +92,7 @@ class AgentRegistry:
         """Retrieve agent from registry."""
         if agent_id in self._local_cache:
             return self._local_cache[agent_id]
-        
+
         # Fallback to DB
         data = await self.mongodb.find_one(self.collection, {"id": agent_id})
         if data:
@@ -105,8 +105,8 @@ class AgentRegistry:
         """Update agent in registry and persistence."""
         self._local_cache[agent.id] = agent
         await self.mongodb.update_one(
-            self.collection, 
-            {"id": agent.id}, 
+            self.collection,
+            {"id": agent.id},
             {"$set": agent.to_dict()}
         )
         logger.debug(f"Agent {agent.id} updated in registry")
@@ -120,7 +120,7 @@ class AgentRegistry:
             query["status"] = criteria.status.value
         if criteria.capabilities:
             query["capabilities"] = {"$all": criteria.capabilities}
-        
+
         cursor = await self.mongodb.find_many(self.collection, query)
         agents = [self._from_dict(d) for d in cursor]
         return agents
@@ -144,7 +144,7 @@ class AgentRegistry:
 
 class AgentHealthChecker:
     """Handles health check logic for agents."""
-    
+
     async def check_health(self, agent: Agent) -> Dict[str, Any]:
         """Perform health check on agent."""
         # Baseline health check logic
@@ -164,10 +164,10 @@ class AgentHealthChecker:
 
 class CapabilityValidator:
     """Validates agent capabilities against system standards."""
-    
+
     def __init__(self):
         self.allowed_capabilities: Set[str] = {
-            "ingestion", "standardization", "validation", 
+            "ingestion", "standardization", "validation",
             "processing", "quality_assessment", "export",
             "bias_detection", "therapeutic_analysis"
         }
@@ -188,23 +188,23 @@ class CapabilityValidator:
 
 class AgentManager:
     """Manage agent registration, discovery, and lifecycle."""
-    
+
     def __init__(self, redis_client: MCPRedisClient, mongodb_client: MCPMongoDBClient):
         self.redis = redis_client
         self.mongodb = mongodb_client
         self.agent_registry = AgentRegistry(mongodb_client)
         self.health_checker = AgentHealthChecker()
         self.capability_validator = CapabilityValidator()
-    
+
     async def register_agent(self, agent_data: AgentRegistrationData) -> Agent:
         """Register new agent with capability validation."""
         logger.info(f"Registering new agent: {agent_data.name}")
-        
+
         # Validate agent capabilities
         validated_capabilities = await self.capability_validator.validate(
             agent_data.capabilities
         )
-        
+
         # Create agent instance
         agent = Agent(
             id=str(uuid.uuid4()),
@@ -215,19 +215,19 @@ class AgentManager:
             registered_at=datetime.utcnow(),
             metadata=agent_data.metadata
         )
-        
+
         # Store in registry
         await self.agent_registry.add_agent(agent)
-        
+
         # Publish registration event
         await self.redis.publish('agent.registered', agent.to_dict())
-        
+
         return agent
-    
+
     async def discover_agents(self, criteria: AgentDiscoveryCriteria) -> List[Agent]:
         """Discover agents based on capability criteria."""
         return await self.agent_registry.find_agents(criteria)
-    
+
     async def update_agent_status(self, agent_id: str, status: AgentStatus) -> bool:
         """Update agent status and health metrics."""
         agent = await self.agent_registry.get_agent(agent_id)
@@ -236,12 +236,12 @@ class AgentManager:
                 f"Attempted to update status for non-existent agent: {agent_id}"
             )
             return False
-        
+
         agent.status = status
         agent.last_seen = datetime.utcnow()
-        
+
         await self.agent_registry.update_agent(agent)
-        
+
         # Publish status update
         await self.redis.publish(
             "agent.status_updated",
@@ -259,5 +259,5 @@ class AgentManager:
         agent = await self.agent_registry.get_agent(agent_id)
         if not agent:
             return None
-        
+
         return await self.health_checker.check_health(agent)

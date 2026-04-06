@@ -17,7 +17,6 @@ from botocore.exceptions import ClientError, NoCredentialsError
 from .ingest_utils import RateLimiter
 from .ingestion_interface import IngestionConnector, IngestionError, IngestRecord
 from .quarantine import get_quarantine_store
-
 from .validation import validate_record
 
 

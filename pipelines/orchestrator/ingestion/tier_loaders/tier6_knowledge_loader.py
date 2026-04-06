@@ -10,10 +10,11 @@ import logging
 from pathlib import Path
 from typing import Dict, List, Optional
 
+from conversation_schema import Conversation, Message
+
 from ai.pipelines.orchestrator.ingestion.tier_loaders.base_tier_loader import (
     BaseTierLoader,
 )
-from conversation_schema import Conversation, Message
 
 logger = logging.getLogger(__name__)
 
@@ -217,7 +218,7 @@ class Tier6KnowledgeLoader(BaseTierLoader):
 
         try:
             # Load knowledge base from JSON file
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 knowledge_data = json.load(f)
 
             # Handle different JSON structures

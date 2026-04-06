@@ -87,6 +87,7 @@ class PixelVoiceLoader:
         self, config: VoiceConfig | None = None, file_path: Path | None = None
     ):
         self.config = config or VoiceConfig()
+        self._cached_pairs: list[VoiceDialoguePair] | None = None
 
         # Allow override
         if file_path:
@@ -118,12 +119,22 @@ class PixelVoiceLoader:
 
     def load_therapeutic_pairs(self) -> list[VoiceDialoguePair]:
         """Load therapeutic dialogue pairs"""
+        if self._cached_pairs is not None:
+            return list(self._cached_pairs)
+
+        if self.therapeutic_pairs_file.suffix == ".jsonl":
+            pairs = self._load_jsonl_pairs()
+            self._cached_pairs = list(pairs)
+            return pairs
+
         if not self.therapeutic_pairs_file.exists():
             logger.warning(
                 f"Therapeutic pairs file not found: {self.therapeutic_pairs_file}"
             )
             logger.info("Trying alternative: validated dialogue pairs")
-            return self._load_validated_pairs()
+            pairs = self._load_validated_pairs()
+            self._cached_pairs = list(pairs)
+            return pairs
 
         try:
             with open(self.therapeutic_pairs_file) as f:
@@ -148,11 +159,248 @@ class PixelVoiceLoader:
                     continue
 
             logger.info(f"Loaded {len(pairs)} therapeutic dialogue pairs")
+            self._cached_pairs = list(pairs)
             return pairs
 
         except Exception as e:
             logger.error(f"Failed to load therapeutic pairs: {e}")
             return []
+
+    def _load_jsonl_pairs(self) -> list[VoiceDialoguePair]:
+        """Load JSONL conversation exports and normalize them into dialogue pairs."""
+        if not self.therapeutic_pairs_file.exists():
+            logger.warning(
+                f"Therapeutic JSONL file not found: {self.therapeutic_pairs_file}"
+            )
+            return []
+
+        pairs = []
+        skipped_count = 0
+        try:
+            with open(self.therapeutic_pairs_file) as f:
+                for line_num, line in enumerate(f, 1):
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        item = json.loads(line)
+                        pair = self._pair_from_conversation_export(item)
+                        if pair is None:
+                            pair = self._pair_from_stage4_persona_record(item)
+                        if pair is not None:
+                            pairs.append(pair)
+                    except Exception as e:
+                        skipped_count += 1
+                        logger.error(
+                            "Error parsing JSONL dialogue pair line %s: %s | raw=%s",
+                            line_num,
+                            e,
+                            line[:200],
+                        )
+                        continue
+
+            logger.info(
+                "Loaded %s therapeutic dialogue pairs from JSONL export (%s skipped)",
+                len(pairs),
+                skipped_count,
+            )
+            return pairs
+
+        except Exception as e:
+            logger.error(f"Failed to load therapeutic JSONL pairs: {e}")
+            return []
+
+    def _pair_from_conversation_export(
+        self, item: dict
+    ) -> VoiceDialoguePair | None:
+        """Convert message-based exports into the legacy two-turn pair shape."""
+        messages = item.get("messages")
+        if not isinstance(messages, list):
+            return None
+
+        user_turn = ""
+        assistant_turn = ""
+        for message in messages:
+            if not isinstance(message, dict):
+                continue
+            role = message.get("role")
+            content = message.get("content", "")
+            if role == "user" and not user_turn:
+                user_turn = content
+            elif role == "assistant" and not assistant_turn:
+                assistant_turn = content
+            if user_turn and assistant_turn:
+                break
+
+        if not user_turn or not assistant_turn:
+            return None
+
+        metadata = item.get("metadata", {}) if isinstance(item.get("metadata"), dict) else {}
+        personality_markers = metadata.get("personality_markers", {})
+        quality_scores = metadata.get("quality_scores", {})
+        empathy_score = float(quality_scores.get("empathy", 0.5))
+        raw_safety = quality_scores.get("safety")
+        raw_toxicity = quality_scores.get("toxicity")
+        if raw_toxicity is not None:
+            toxicity_score = max(0.0, min(1.0, float(raw_toxicity)))
+        elif raw_safety is not None:
+            toxicity_score = max(0.0, min(1.0, 1.0 - float(raw_safety)))
+        else:
+            toxicity_score = 0.2
+
+        validation_scores = {
+            "empathy_turn_1": [{"score": empathy_score}],
+            "empathy_turn_2": [{"score": empathy_score}],
+            "toxicity_turn_1": [{"score": toxicity_score}],
+            "toxicity_turn_2": [{"score": toxicity_score}],
+        }
+
+        provenance = metadata.get("provenance") or {}
+
+        return VoiceDialoguePair(
+            turn_1=user_turn,
+            turn_2=assistant_turn,
+            personality_markers=personality_markers,
+            emotional_patterns=metadata.get("emotional_patterns", {}),
+            validation_scores=validation_scores,
+            source_url=provenance.get("original_path"),
+            transcription_quality=float(quality_scores.get("therapeutic_value", 0.0)),
+            naturalness_score=float(quality_scores.get("empathy", 0.0)),
+        )
+
+    def _pair_from_stage4_persona_record(
+        self, item: dict
+    ) -> VoiceDialoguePair | None:
+        """Convert stage-native persona JSONL records into a two-turn pair."""
+        data = item.get("data")
+        if not isinstance(data, dict):
+            return None
+
+        raw_text = data.get("text")
+        source_name = str(item.get("source", "stage4_voice_persona"))
+        character_name = str(data.get("name") or data.get("character_name") or "").strip()
+        description = str(data.get("description") or data.get("scenario") or "").strip()
+        user_turn = ""
+        assistant_turn = ""
+
+        if isinstance(raw_text, str) and "<|user|>" in raw_text:
+            user_turn = self._extract_tagged_segment(raw_text, ("<|user|>",), ("<|assistant|>",))
+            assistant_turn = self._extract_tagged_segment(
+                raw_text,
+                ("<|assistant|>",),
+                ("<|end|>", "</s>", "<|user|>"),
+            )
+        elif source_name == "google/Synthetic-Persona-Chat":
+            conversation = data.get("Best Generated Conversation", "")
+            if isinstance(conversation, str):
+                user_turn, assistant_turn = self._pair_from_speaker_transcript(
+                    conversation,
+                    "User 1:",
+                    "User 2:",
+                )
+        elif source_name == "nazlicanto/persona-based-chat":
+            dialogue = data.get("dialogue")
+            if isinstance(dialogue, list):
+                user_turn, assistant_turn = self._pair_from_dialogue_list(
+                    dialogue,
+                    "Persona A:",
+                    "Persona B:",
+                )
+
+        if not user_turn or not assistant_turn:
+            return None
+
+        personality_markers = {
+            "signature": character_name or source_name,
+            "speaker": source_name,
+        }
+        if description:
+            personality_markers["description"] = description[:500]
+
+        validation_scores = {
+            "empathy_turn_1": [{"score": 0.75}],
+            "empathy_turn_2": [{"score": 0.75}],
+            "toxicity_turn_1": [{"score": 0.15}],
+            "toxicity_turn_2": [{"score": 0.15}],
+        }
+
+        return VoiceDialoguePair(
+            turn_1=user_turn,
+            turn_2=assistant_turn,
+            personality_markers=personality_markers,
+            emotional_patterns={},
+            validation_scores=validation_scores,
+            source_url=None,
+            transcription_quality=0.8,
+            naturalness_score=0.75,
+        )
+
+    @staticmethod
+    def _extract_tagged_segment(
+        text: str,
+        start_tags: tuple[str, ...],
+        end_tags: tuple[str, ...],
+    ) -> str:
+        """Extract the first tagged segment from roleplay-style records."""
+        start_index = -1
+        matched_start = ""
+        for start_tag in start_tags:
+            candidate_index = text.find(start_tag)
+            if candidate_index == -1:
+                continue
+            if start_index == -1 or candidate_index < start_index:
+                start_index = candidate_index
+                matched_start = start_tag
+        if start_index == -1:
+            return ""
+        start_index += len(matched_start)
+        end_index = len(text)
+        for end_tag in end_tags:
+            candidate_index = text.find(end_tag, start_index)
+            if candidate_index == -1:
+                continue
+            end_index = min(end_index, candidate_index)
+        return text[start_index:end_index].replace("</s>", "").strip()
+
+    @staticmethod
+    def _pair_from_speaker_transcript(
+        transcript: str,
+        first_speaker: str,
+        second_speaker: str,
+    ) -> tuple[str, str]:
+        first_turn = ""
+        second_turn = ""
+        for raw_line in transcript.splitlines():
+            line = raw_line.strip()
+            if not line:
+                continue
+            if not first_turn and line.startswith(first_speaker):
+                first_turn = line[len(first_speaker) :].strip()
+                continue
+            if first_turn and not second_turn and line.startswith(second_speaker):
+                second_turn = line[len(second_speaker) :].strip()
+                break
+        return first_turn, second_turn
+
+    @staticmethod
+    def _pair_from_dialogue_list(
+        dialogue: list[object],
+        first_speaker: str,
+        second_speaker: str,
+    ) -> tuple[str, str]:
+        first_turn = ""
+        second_turn = ""
+        for entry in dialogue:
+            if not isinstance(entry, str):
+                continue
+            line = entry.strip()
+            if not first_turn and line.startswith(first_speaker):
+                first_turn = line[len(first_speaker) :].strip()
+                continue
+            if first_turn and not second_turn and line.startswith(second_speaker):
+                second_turn = line[len(second_speaker) :].strip()
+                break
+        return first_turn, second_turn
 
     def _load_validated_pairs(self) -> list[VoiceDialoguePair]:
         """Load validated dialogue pairs as fallback"""

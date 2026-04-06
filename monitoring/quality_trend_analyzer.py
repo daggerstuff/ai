@@ -113,7 +113,7 @@ class QualityTrendAnalyzer:
             date_threshold = datetime.now() - timedelta(days=days_back)
 
             query = """
-            SELECT 
+            SELECT
                 created_at,
                 overall_quality,
                 therapeutic_accuracy,
@@ -125,8 +125,8 @@ class QualityTrendAnalyzer:
                 safety_score,
                 tier,
                 dataset_name
-            FROM conversations 
-            WHERE created_at >= ? 
+            FROM conversations
+            WHERE created_at >= ?
             AND overall_quality IS NOT NULL
             ORDER BY created_at
             """

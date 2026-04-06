@@ -9,8 +9,8 @@ Per MasterTrainingPlan.md:
 """
 
 import json
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 # Input/output directories
 TRANSCRIPTS_DIR = Path("/home/vivi/pixelated/ai/training_data_consolidated/transcripts")
@@ -34,7 +34,7 @@ def process_transcript(transcript_path: Path) -> dict:
     title = extract_title_from_filename(transcript_path.name)
 
     # Read transcript content
-    with open(transcript_path, 'r', encoding='utf-8') as f:
+    with open(transcript_path, encoding='utf-8') as f:
         content = f.read().strip()
 
     # Create conversation record in Stage 4 format

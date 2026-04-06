@@ -405,7 +405,7 @@ class CheckpointTestSuite:
             # Create checkpoint with complex object that might cause serialization issues
             class UnserializableClass:
                 def __init__(self):
-                    self.file_handle = open(__file__, "r")  # This won't serialize
+                    self.file_handle = open(__file__)  # This won't serialize
 
             # This should either succeed or fail gracefully
             try:

@@ -3,11 +3,13 @@ API Versioning Implementation for Pixelated Empathy AI
 Provides backward compatibility and smooth API evolution.
 """
 
-from fastapi import FastAPI, Request, HTTPException
-from fastapi.routing import APIRoute
-from typing import Callable, Dict, Any
 import re
 from enum import Enum
+from typing import Any, Callable, Dict
+
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.routing import APIRoute
+
 
 class APIVersion(str, Enum):
     """Supported API versions."""
@@ -17,7 +19,7 @@ class APIVersion(str, Enum):
 
 class VersionedAPIRoute(APIRoute):
     """Custom route class that handles API versioning."""
-    
+
     def __init__(self, path: str, endpoint: Callable, **kwargs):
         # Extract version from path if present
         version_match = re.match(r'^/(v\d+)/', path)
@@ -28,23 +30,23 @@ def version_header_middleware(request: Request, call_next):
     """Middleware to handle version headers."""
     # Check for version in header
     api_version = request.headers.get("API-Version", APIVersion.LATEST)
-    
+
     # Validate version
     if api_version not in [v.value for v in APIVersion]:
         raise HTTPException(
             status_code=400,
             detail=f"Unsupported API version: {api_version}"
         )
-    
+
     # Add version to request state
     request.state.api_version = api_version
-    
+
     response = await call_next(request)
-    
+
     # Add version info to response headers
     response.headers["API-Version"] = api_version
     response.headers["API-Supported-Versions"] = ",".join([v.value for v in APIVersion])
-    
+
     return response
 
 def create_versioned_app() -> FastAPI:
@@ -56,10 +58,10 @@ def create_versioned_app() -> FastAPI:
         docs_url="/docs",
         redoc_url="/redoc"
     )
-    
+
     # Add versioning middleware
     app.middleware("http")(version_header_middleware)
-    
+
     return app
 
 # Version-specific endpoint decorators
@@ -82,7 +84,7 @@ def v2_endpoint(path: str, **kwargs):
 # Backward compatibility helpers
 class BackwardCompatibility:
     """Handle backward compatibility between API versions."""
-    
+
     @staticmethod
     def transform_v1_to_v2_request(request_data: Dict[str, Any]) -> Dict[str, Any]:
         """Transform v1 request format to v2."""
@@ -90,7 +92,7 @@ class BackwardCompatibility:
         if "audio_url" in request_data:
             request_data["input"] = {"url": request_data.pop("audio_url")}
         return request_data
-    
+
     @staticmethod
     def transform_v2_to_v1_response(response_data: Dict[str, Any]) -> Dict[str, Any]:
         """Transform v2 response format to v1."""
@@ -101,13 +103,13 @@ class BackwardCompatibility:
 
 # Usage example:
 # app = create_versioned_app()
-# 
+#
 # @app.get("/v1/transcribe")
 # @v1_endpoint("/transcribe")
 # async def transcribe_v1(request: TranscriptRequestV1):
 #     # v1 implementation
 #     pass
-# 
+#
 # @app.get("/v2/transcribe")
 # @v2_endpoint("/transcribe")
 # async def transcribe_v2(request: TranscriptRequestV2):

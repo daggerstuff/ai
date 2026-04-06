@@ -3,7 +3,7 @@
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, Any, List
+from typing import Any, Dict, List
 
 
 class CrisisLevel(Enum):

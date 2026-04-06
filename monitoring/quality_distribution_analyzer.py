@@ -124,7 +124,7 @@ class QualityDistributionAnalyzer:
             conn = sqlite3.connect(self.db_path)
 
             query = """
-            SELECT 
+            SELECT
                 dataset_source,
                 tier,
                 turn_count,
@@ -133,8 +133,8 @@ class QualityDistributionAnalyzer:
                 language,
                 processing_status,
                 created_at
-            FROM conversations 
-            WHERE turn_count IS NOT NULL 
+            FROM conversations
+            WHERE turn_count IS NOT NULL
             AND word_count IS NOT NULL
             LIMIT 10000
             """

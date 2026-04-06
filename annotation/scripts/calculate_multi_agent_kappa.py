@@ -62,7 +62,7 @@ def calculate_agreement_metrics(results_file: str) -> Dict[str, any]:
 
     # Load all results
     results = []
-    with open(results_path, "r") as f:
+    with open(results_path) as f:
         for line in f:
             if line.strip():
                 results.append(json.loads(line))

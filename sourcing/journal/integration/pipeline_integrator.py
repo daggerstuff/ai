@@ -32,12 +32,12 @@ from ai.sourcing.journal.models.dataset_models import (
 
 # Import training pipeline schemas
 try:
-    from ai.pipelines.orchestrator.schemas.conversation_schema import Conversation, Message
     from ai.pipelines.orchestrator.quality.validation import (
         ConversationRecord,
         SpeakerTurn,
         ValidationError,
     )
+    from ai.pipelines.orchestrator.schemas.conversation_schema import Conversation, Message
 except ImportError:
     # Fallback if schemas aren't available
     Conversation = None
@@ -241,7 +241,7 @@ class PipelineFormatConverter:
             df = pd.read_csv(file_path)
             return df.to_dict("records")
         elif dataset_format == "json":
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 data = json.load(f)
                 if isinstance(data, list):
                     return data
@@ -251,7 +251,7 @@ class PipelineFormatConverter:
                     raise ValueError(f"Unsupported JSON structure: {type(data)}")
         elif dataset_format == "jsonl":
             records = []
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 for line in f:
                     line = line.strip()
                     if line:
@@ -632,7 +632,7 @@ class PipelineSchemaValidator:
     def _load_dataset(self, file_path: str) -> List[Dict[str, Any]]:
         """Load dataset from JSONL file."""
         records = []
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if line:
@@ -864,7 +864,7 @@ class DatasetMerger:
     def _load_dataset(self, file_path: str) -> List[Dict[str, Any]]:
         """Load dataset from JSONL file."""
         records = []
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if line:
@@ -1159,7 +1159,7 @@ class QualityChecker:
     def _load_dataset(self, file_path: str) -> List[Dict[str, Any]]:
         """Load dataset from JSONL file."""
         records = []
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if line:

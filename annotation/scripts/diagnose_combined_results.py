@@ -16,7 +16,7 @@ def analyze_combined_results(results_file: str):
 
     total_items = 0
 
-    with open(results_path, "r") as f:
+    with open(results_path) as f:
         for line in f:
             if not line.strip():
                 continue

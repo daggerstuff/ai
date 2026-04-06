@@ -3,6 +3,7 @@
 Provides ErrorHandler with register and handle_exception used during imports.
 """
 from typing import Any
+
 from .custom_errors import TechDeckBaseError
 
 

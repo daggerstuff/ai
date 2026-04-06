@@ -13,7 +13,6 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from conversation_schema import Conversation, Message
-
 from logger import setup_logger
 from personality_extractor import PersonalityExtractor
 from voice_transcriber import TranscriptionResult, TranscriptionSegment

@@ -144,7 +144,7 @@ class QualityAnalyticsDashboardLauncher:
 
         # Check if file is readable and has main content
         try:
-            with open(dashboard_file, "r") as f:
+            with open(dashboard_file) as f:
                 content = f.read()
                 if "QualityAnalyticsDashboard" not in content:
                     logger.error("❌ Dashboard file appears to be corrupted")

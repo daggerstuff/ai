@@ -15,8 +15,8 @@ def verify_imports():
     print("Verifying imports...")
     try:
         from ai.pipelines.orchestrator.orchestration.integrated_training_pipeline import (
+            IntegratedPipelineConfig,
             IntegratedTrainingPipeline,
-            IntegratedPipelineConfig
         )
         print("✅ IntegratedTrainingPipeline imported")
 
@@ -81,8 +81,8 @@ def test_minimal_pipeline():
 
     try:
         from ai.pipelines.orchestrator.orchestration.integrated_training_pipeline import (
+            IntegratedPipelineConfig,
             IntegratedTrainingPipeline,
-            IntegratedPipelineConfig
         )
 
         # Create minimal config
@@ -91,8 +91,8 @@ def test_minimal_pipeline():
 
         # Force local storage for this verification run so it works without cloud credentials.
         from ai.pipelines.orchestrator.storage_config import (
-            StorageConfig,
             StorageBackend,
+            StorageConfig,
             set_storage_config,
         )
         set_storage_config(

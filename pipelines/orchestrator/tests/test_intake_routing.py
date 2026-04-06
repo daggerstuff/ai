@@ -8,6 +8,9 @@ from ai.pipelines.orchestrator.configs.stages import (
     STAGE3_ID,
     STAGE4_ID,
 )
+from ai.pipelines.orchestrator.ingestion.intake_routing_adapter import (
+    apply_intake_routing,
+)
 from ai.pipelines.orchestrator.ingestion.intake_gates import OrchestratorIntakeGates
 
 
@@ -90,3 +93,58 @@ def test_intake_gates_mark_low_confidence_items_for_human_review():
 
     assert decision.target_lane == STAGE2_ID
     assert decision.requires_human_review is True
+
+
+def test_apply_intake_routing_drops_off_lane_voice_persona_records():
+    routed = apply_intake_routing(
+        [
+            {
+                "messages": _messages(
+                    "What are some of your interests?",
+                    "I like to run, play video games, and read books.",
+                ),
+                "metadata": {},
+            }
+        ],
+        source_family="voice_persona",
+        intake_gates=OrchestratorIntakeGates(),
+    )
+
+    assert routed == []
+
+
+def test_apply_intake_routing_keeps_voice_persona_crisis_reroutes():
+    routed = apply_intake_routing(
+        [
+            {
+                "messages": _messages(
+                    "I want to kill myself tonight.",
+                    "I hear you and want to help keep you safe.",
+                ),
+                "metadata": {},
+            }
+        ],
+        source_family="voice_persona",
+        intake_gates=OrchestratorIntakeGates(),
+    )
+
+    assert len(routed) == 1
+    assert routed[0]["metadata"]["stage"] == STAGE3_ID
+
+
+def test_apply_intake_routing_drops_off_lane_edge_cases():
+    routed = apply_intake_routing(
+        [
+            {
+                "messages": _messages(
+                    "Can you explain attachment theory and how therapists use it in treatment?",
+                    "Attachment theory describes how early relationships shape adult bonds.",
+                ),
+                "metadata": {},
+            }
+        ],
+        source_family="edge_case",
+        intake_gates=OrchestratorIntakeGates(),
+    )
+
+    assert routed == []

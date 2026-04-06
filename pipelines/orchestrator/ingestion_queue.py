@@ -9,9 +9,9 @@ from __future__ import annotations
 import asyncio
 import json
 import time
-from dataclasses import dataclass, asdict
-from typing import Any, Dict, Optional, AsyncIterator
+from dataclasses import asdict, dataclass
 from enum import Enum
+from typing import Any, AsyncIterator, Dict, Optional
 
 try:
     import redis.asyncio as redis
@@ -73,7 +73,7 @@ class IngestionQueue:
         self.batch_size = batch_size
         self.redis_client = None
         self.internal_queue = None
-        
+
         if queue_type == QueueType.REDIS and HAS_REDIS:
             self.redis_client = redis.from_url(redis_url or "redis://localhost:6379")
         else:
@@ -97,7 +97,7 @@ class IngestionQueue:
                 queue_size = await self.redis_client.zcard(self.queue_name)
                 if queue_size >= self.max_size:
                     return False  # Backpressure - queue is full
-                
+
                 # Use priority as score (higher priority = lower score in Redis)
                 priority_score = -item.priority  # Invert so higher priority = earlier processing
                 await self.redis_client.zadd(
@@ -118,7 +118,7 @@ class IngestionQueue:
     async def dequeue_batch(self, timeout: float = 5.0) -> list[QueueItem]:
         """Dequeue a batch of items."""
         items = []
-        
+
         if self.queue_type == QueueType.REDIS and self.redis_client:
             # Get and remove a batch of items from Redis sorted set
             try:
@@ -126,10 +126,10 @@ class IngestionQueue:
                 raw_items = await self.redis_client.zrange(
                     self.queue_name, 0, self.batch_size - 1, withscores=True
                 )
-                
+
                 if not raw_items:
                     return []
-                
+
                 # Convert to QueueItem and remove from queue
                 items_to_remove = []
                 for raw_json, score in raw_items:
@@ -139,11 +139,11 @@ class IngestionQueue:
                         items_to_remove.append(raw_json)
                     except json.JSONDecodeError:
                         continue  # Skip malformed items
-                
+
                 # Remove processed items from Redis
                 if items_to_remove:
                     await self.redis_client.zrem(self.queue_name, *items_to_remove)
-                
+
                 return items
             except Exception:
                 return []
@@ -160,7 +160,7 @@ class IngestionQueue:
                         break  # No more items available
             except Exception:
                 pass
-            
+
             return items
 
     async def get_queue_size(self) -> int:
@@ -196,12 +196,12 @@ class BackpressureMonitor:
         """Check if queue is approaching capacity."""
         size = await self.queue.get_queue_size()
         is_backpressured = size >= (self.queue.max_size * self.threshold)
-        
+
         if is_backpressured and self.alert_callback:
             await self.alert_callback(
                 f"Backpressure alert: Queue at {size}/{self.queue.max_size} ({size/self.queue.max_size:.1%})"
             )
-        
+
         return is_backpressured
 
 

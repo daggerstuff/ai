@@ -1,9 +1,9 @@
-import logging
 import json
+import logging
 import random
-from pathlib import Path
-from typing import List, Dict, Any
 import sys
+from pathlib import Path
+from typing import Any, Dict, List
 
 # Adjust import for project structure
 try:
@@ -51,7 +51,7 @@ class DPOGenerator:
             return []
 
         try:
-            with open(path, "r") as f:
+            with open(path) as f:
                 data = json.load(f)
 
             for item in data:

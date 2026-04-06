@@ -5,36 +5,37 @@ Contextual Prompt Generator - Creates questions that the segment actually answer
 
 import json
 import re
-from typing import Dict, List
 from pathlib import Path
+from typing import Dict, List
+
 
 class ContextualPromptGenerator:
     def __init__(self):
         pass
-    
+
     def extract_key_concepts(self, text: str) -> List[str]:
         """Extract the main concepts the text actually discusses"""
         # Look for specific topics being explained
         concepts = []
-        
+
         # Direct explanations
         if re.search(r'what.*is|this is|here\'s what', text, re.IGNORECASE):
             concepts.append("explanation")
-        
-        # Process descriptions  
+
+        # Process descriptions
         if re.search(r'when.*happens|the process|how.*works', text, re.IGNORECASE):
             concepts.append("process")
-            
+
         # Advice/recommendations
         if re.search(r'you should|i recommend|try|do this', text, re.IGNORECASE):
             concepts.append("advice")
-            
+
         # Personal experience/examples
         if re.search(r'i\'ve seen|in my experience|for example', text, re.IGNORECASE):
             concepts.append("experience")
-            
+
         return concepts
-    
+
     def analyze_content_structure(self, text: str) -> Dict:
         """Analyze what the text is actually saying"""
         analysis = {
@@ -43,11 +44,11 @@ class ContextualPromptGenerator:
             "key_points": [],
             "context": None
         }
-        
+
         # Find the main subject being discussed
         sentences = re.split(r'[.!?]+', text)
         first_sentence = sentences[0].strip() if sentences else ""
-        
+
         # Determine what's being explained/discussed
         if "narcissist" in text.lower():
             analysis["main_topic"] = "narcissistic behavior"
@@ -64,7 +65,7 @@ class ContextualPromptGenerator:
             words = first_sentence.lower().split()
             key_nouns = [w for w in words if len(w) > 4 and w not in ['that', 'this', 'they', 'them', 'when', 'where']]
             analysis["main_topic"] = key_nouns[0] if key_nouns else "personal growth"
-        
+
         # Determine content type
         if re.search(r'because|the reason|why.*is', text, re.IGNORECASE):
             analysis["content_type"] = "explanation"
@@ -74,18 +75,18 @@ class ContextualPromptGenerator:
             analysis["content_type"] = "scenario"
         else:
             analysis["content_type"] = "insight"
-            
+
         return analysis
-    
+
     def generate_contextual_question(self, segment: Dict) -> str:
         """Generate a question that the segment actually answers"""
         text = segment['text']
         style = segment['style']
-        
+
         analysis = self.analyze_content_structure(text)
         topic = analysis["main_topic"]
         content_type = analysis["content_type"]
-        
+
         # Create questions based on what the text actually contains
         if content_type == "explanation":
             if style == "therapeutic":
@@ -96,7 +97,7 @@ class ContextualPromptGenerator:
                 return f"I'm struggling to understand {topic}. Can you help me make sense of it?"
             else:  # practical
                 return f"I need to understand {topic} better. What should I know?"
-                
+
         elif content_type == "advice":
             if style == "therapeutic":
                 return f"I'm dealing with {topic}. What guidance can you offer?"
@@ -106,7 +107,7 @@ class ContextualPromptGenerator:
                 return f"I'm struggling with {topic} and need help. What would you suggest?"
             else:  # educational
                 return f"What's the best approach for handling {topic}?"
-                
+
         elif content_type == "scenario":
             if style == "therapeutic":
                 return f"What happens when someone experiences {topic}?"
@@ -116,7 +117,7 @@ class ContextualPromptGenerator:
                 return f"I'm going through {topic}. What can I expect?"
             else:  # practical
                 return f"When {topic} occurs, what should I be aware of?"
-                
+
         else:  # insight
             if style == "therapeutic":
                 return f"What insights can you share about {topic}?"
@@ -126,11 +127,11 @@ class ContextualPromptGenerator:
                 return f"I need perspective on {topic}. Can you help?"
             else:  # practical
                 return f"What's important to know about {topic}?"
-    
+
     def create_training_pair(self, segment: Dict) -> Dict:
         """Convert segment to contextually appropriate training pair"""
         question = self.generate_contextual_question(segment)
-        
+
         return {
             "input": question,
             "output": segment['text'],
@@ -144,7 +145,7 @@ class ContextualPromptGenerator:
 def test_contextual_generation():
     """Test the contextual generator with sample segments"""
     generator = ContextualPromptGenerator()
-    
+
     # Test segments
     test_segments = [
         {
@@ -157,16 +158,16 @@ def test_contextual_generation():
         },
         {
             "text": "When you're in crisis and afraid for your life, you have to fall back on that training, on that muscle memory. You have to incorporate some level of structure and ritual. Use sensory and auditory stimuli, temperature regulation like warm baths, cold packs.",
-            "style": "practical", 
+            "style": "practical",
             "confidence": 1.0,
             "quality": 0.7,
             "source": "test",
             "file": "test.txt"
         }
     ]
-    
+
     print("=== CONTEXTUAL PROMPT GENERATION TEST ===\n")
-    
+
     for i, segment in enumerate(test_segments, 1):
         pair = generator.create_training_pair(segment)
         print(f"**Test {i}**")

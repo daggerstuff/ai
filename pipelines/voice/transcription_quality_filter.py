@@ -1,7 +1,7 @@
-import os
-import json
 import glob
+import json
 import logging
+import os
 from pathlib import Path
 
 # Configuration
@@ -30,7 +30,7 @@ def filter_segments(segments, threshold):
 
 
 def process_file(input_path, filtered_dir, report_dir, threshold):
-    with open(input_path, "r", encoding="utf-8") as f:
+    with open(input_path, encoding="utf-8") as f:
         data = json.load(f)
     segments = data.get("segments", [])
     filtered_segments = filter_segments(segments, threshold)

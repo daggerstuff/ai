@@ -8,8 +8,10 @@ import json
 import logging
 from pathlib import Path
 from typing import Dict, List, Optional
-from datasets import load_dataset
+
 from tqdm import tqdm
+
+from datasets import load_dataset
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -178,7 +180,7 @@ class TherapeuticDatasetAcquisition:
         cot_file = Path("ai/training_data_consolidated/datasets/cot_reasoning_filtered.json")
         if cot_file.exists():
             try:
-                with open(cot_file, 'r', encoding='utf-8') as f:
+                with open(cot_file, encoding='utf-8') as f:
                     data = json.load(f)
                     if "filtered_conversations" in data:
                         for item in data["filtered_conversations"]:

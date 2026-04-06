@@ -7,7 +7,7 @@ This module provides JWT token validation and authentication middleware.
 import logging
 from typing import Callable
 
-from fastapi import Request, HTTPException, status
+from fastapi import HTTPException, Request, status
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 

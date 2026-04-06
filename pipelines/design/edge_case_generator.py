@@ -11,13 +11,14 @@ import logging
 from enum import Enum
 from typing import Any, Optional
 
-from ai.pipelines.design.service import NeMoDataDesignerService
 from nemo_microservices.data_designer.essentials import (
     CategorySamplerParams,
     DataDesignerConfigBuilder,
     SamplerColumnConfig,
     UniformSamplerParams,
 )
+
+from ai.pipelines.design.service import NeMoDataDesignerService
 
 logger = logging.getLogger(__name__)
 

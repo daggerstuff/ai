@@ -49,7 +49,7 @@ class ComprehensiveDatasetProcessor:
 
             print(f"Processing v2: {enhanced_file.name}...")
 
-            with open(enhanced_file, "r", encoding="utf-8") as f:
+            with open(enhanced_file, encoding="utf-8") as f:
                 segments = json.load(f)
 
             training_pairs = []
@@ -112,7 +112,7 @@ class ComprehensiveDatasetProcessor:
             for dataset_file in filtered_dir.glob("*.json"):
                 print(f"Processing raw: {dataset_file.name}...")
 
-                with open(dataset_file, "r", encoding="utf-8") as f:
+                with open(dataset_file, encoding="utf-8") as f:
                     data = json.load(f)
 
                 segments = []
@@ -167,7 +167,7 @@ class ComprehensiveDatasetProcessor:
         if natural_file.exists():
             print(f"Processing raw: {natural_file.name}...")
 
-            with open(natural_file, "r", encoding="utf-8") as f:
+            with open(natural_file, encoding="utf-8") as f:
                 data = json.load(f)
 
             segments = []
@@ -243,7 +243,7 @@ class ComprehensiveDatasetProcessor:
                 if "summary" in training_file.name:
                     continue
 
-                with open(training_file, "r", encoding="utf-8") as f:
+                with open(training_file, encoding="utf-8") as f:
                     training_pairs = json.load(f)
 
                 for pair in training_pairs:

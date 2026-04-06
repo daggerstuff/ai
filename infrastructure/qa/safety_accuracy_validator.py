@@ -156,7 +156,7 @@ class ClinicalValidationDataset:
         # Load de-identified clinical scenarios
         scenarios_file = self.data_path / "clinical_scenarios.json"
         if scenarios_file.exists():
-            with open(scenarios_file, "r") as f:
+            with open(scenarios_file) as f:
                 scenarios_data = json.load(f)
 
             self.scenarios = [

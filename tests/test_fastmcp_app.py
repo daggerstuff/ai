@@ -6,10 +6,10 @@ from pathlib import Path
 
 import pytest
 
-from ai.api.memory.null_memory import NullMemoryManager
 from ai.api.mcp_server import fastmcp_context, fastmcp_tools
-from ai.api.mcp_server.memory_scope import scope_from_kwargs
 from ai.api.mcp_server.fastmcp_shared import AuthorizedToolContext
+from ai.api.mcp_server.memory_scope import scope_from_kwargs
+from ai.api.memory.null_memory import NullMemoryManager
 
 
 def _load_fastmcp_app_module():

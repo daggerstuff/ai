@@ -300,7 +300,7 @@ def validate_cot_dataset(file_path: Path, output_path: Path | None = None) -> di
     # Load dataset
     conversations = []
     if file_path.suffix == '.jsonl':
-        with open(file_path, 'r') as f:
+        with open(file_path) as f:
             for line in f:
                 try:
                     data = json.loads(line)
@@ -308,7 +308,7 @@ def validate_cot_dataset(file_path: Path, output_path: Path | None = None) -> di
                 except json.JSONDecodeError:
                     continue
     elif file_path.suffix == '.json':
-        with open(file_path, 'r') as f:
+        with open(file_path) as f:
             data = json.load(f)
             if isinstance(data, list):
                 conversations = data

@@ -3,20 +3,26 @@ Label versioning and provenance tracking system.
 Implements comprehensive tracking of label changes, history, and sources.
 """
 
+import hashlib
+import json
+import logging
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import List, Optional, Dict, Any, Union
-import uuid
-import json
-import hashlib
 from enum import Enum
-import logging
-from .label_taxonomy import (
-    LabelBundle, LabelMetadata, LabelProvenanceType,
-    TherapeuticResponseLabel, CrisisLabel, TherapyModalityLabel,
-    MentalHealthConditionLabel, DemographicLabel
-)
+from typing import Any, Dict, List, Optional, Union
+
 from .conversation_schema import Conversation
+from .label_taxonomy import (
+    CrisisLabel,
+    DemographicLabel,
+    LabelBundle,
+    LabelMetadata,
+    LabelProvenanceType,
+    MentalHealthConditionLabel,
+    TherapeuticResponseLabel,
+    TherapyModalityLabel,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -119,7 +125,7 @@ class LabelVersionManager:
         self.label_histories: Dict[str, LabelHistory] = {}
         self.logger = logging.getLogger(__name__)
 
-    def create_initial_version(self, label_bundle: LabelBundle, actor: str = "system", 
+    def create_initial_version(self, label_bundle: LabelBundle, actor: str = "system",
                               description: Optional[str] = None) -> LabelVersion:
         """Create the initial version for a label bundle"""
         version = LabelVersion(
@@ -131,19 +137,19 @@ class LabelVersionManager:
             actor=actor,
             description=description or "Initial label bundle creation"
         )
-        
+
         # Create provenance record
         provenance = self._create_provenance_record(label_bundle, version.version_id)
-        
+
         # Store in history
         history = self._get_or_create_history(label_bundle.label_id, label_bundle.conversation_id)
         history.add_version(version)
         history.add_provenance_record(provenance)
-        
+
         self.logger.info(f"Created initial version {version.version_number} for label bundle {label_bundle.label_id}")
         return version
 
-    def update_label_bundle(self, label_bundle: LabelBundle, 
+    def update_label_bundle(self, label_bundle: LabelBundle,
                            previous_version: LabelVersion,
                            actor: str,
                            action: VersionAction = VersionAction.UPDATED,
@@ -161,15 +167,15 @@ class LabelVersionManager:
             description=description or f"Update to label bundle version {previous_version.version_number + 1}",
             confidence_change=confidence_change
         )
-        
+
         # Create provenance record
         provenance = self._create_provenance_record(label_bundle, new_version.version_id, actor=actor)
-        
+
         # Store in history
         history = self._get_or_create_history(label_bundle.label_id, label_bundle.conversation_id)
         history.add_version(new_version)
         history.add_provenance_record(provenance)
-        
+
         self.logger.info(f"Updated label bundle {label_bundle.label_id} to version {new_version.version_number}")
         return new_version
 
@@ -182,11 +188,11 @@ class LabelVersionManager:
         history = self.get_history(label_bundle_id)
         if not history:
             return None
-        
+
         current_version = history.get_current_version()
         if not current_version:
             return None
-        
+
         return self._deserialize_label_bundle(current_version.label_data)
 
     def _get_or_create_history(self, label_bundle_id: str, conversation_id: str) -> LabelHistory:
@@ -298,10 +304,13 @@ class LabelVersionManager:
     def _deserialize_label_bundle(self, data: Dict[str, Any]) -> LabelBundle:
         """Deserialize dictionary data back to a label bundle"""
         from .label_taxonomy import (
-            TherapeuticResponseType, CrisisLevelType, TherapyModalityType,
-            MentalHealthConditionType, DemographicType
+            CrisisLevelType,
+            DemographicType,
+            MentalHealthConditionType,
+            TherapeuticResponseType,
+            TherapyModalityType,
         )
-        
+
         # Deserialize therapeutic response labels
         therapeutic_labels = []
         for label_data in data.get("therapeutic_response_labels", []):
@@ -424,13 +433,13 @@ class LabelVersionManager:
             additional_labels=data.get("additional_labels", {})
         )
 
-    def _create_provenance_record(self, label_bundle: LabelBundle, 
+    def _create_provenance_record(self, label_bundle: LabelBundle,
                                  version_id: Optional[str] = None,
                                  actor: Optional[str] = None) -> ProvenanceRecord:
         """Create a provenance record for a label bundle"""
         # Determine the primary source based on the metadata in the labels
         primary_source = LabelProvenanceType.AUTOMATED_MODEL  # Default
-        
+
         # Check the types of provenance in the bundle to determine the primary type
         all_provenances = []
         for label in label_bundle.therapeutic_response_labels:
@@ -443,7 +452,7 @@ class LabelVersionManager:
             all_provenances.append(label_bundle.mental_health_condition_label.metadata.provenance)
         if label_bundle.demographic_label:
             all_provenances.append(label_bundle.demographic_label.metadata.provenance)
-        
+
         # If any are human-related, mark as human
         if any(p in [LabelProvenanceType.HUMAN_EXPERT, LabelProvenanceType.HUMAN_IN_THE_LOOP] for p in all_provenances):
             primary_source = LabelProvenanceType.HUMAN_IN_THE_LOOP
@@ -456,7 +465,7 @@ class LabelVersionManager:
         model_name = None
         model_version = None
         human_annotator = None
-        
+
         # Find first model name/version or human annotator in the bundle
         for label in label_bundle.therapeutic_response_labels:
             if label.metadata.model_name:
@@ -481,7 +490,7 @@ class LabelVersionManager:
             human_annotator=human_annotator,
             timestamp=datetime.utcnow().isoformat()
         )
-        
+
         return record
 
     def compute_bundle_hash(self, label_bundle: LabelBundle) -> str:
@@ -536,20 +545,20 @@ class ProvenanceAnalyzer:
     def analyze_provenance_distribution(self) -> Dict[str, int]:
         """Analyze the distribution of provenance types across all label bundles"""
         provenance_counts = {}
-        
+
         for history in self.version_manager.label_histories.values():
             if history.provenance_records:
                 # Use the most recent provenance record for the bundle
                 latest_record = max(history.provenance_records, key=lambda r: r.timestamp)
                 provenance_type = latest_record.source.value
                 provenance_counts[provenance_type] = provenance_counts.get(provenance_type, 0) + 1
-        
+
         return provenance_counts
 
     def find_low_confidence_provenance_chains(self) -> List[Dict[str, Any]]:
         """Find label bundles with chains of low-confidence labels"""
         low_confidence_chains = []
-        
+
         for history in self.version_manager.label_histories.values():
             low_confidence_versions = []
             for version in history.versions:
@@ -562,14 +571,14 @@ class ProvenanceAnalyzer:
                         "timestamp": version.timestamp,
                         "confidence_issue": self._get_confidence_issues(bundle)
                     })
-            
+
             if len(low_confidence_versions) > 1:
                 low_confidence_chains.append({
                     "label_bundle_id": history.label_bundle_id,
                     "conversation_id": history.conversation_id,
                     "low_confidence_versions": low_confidence_versions
                 })
-        
+
         return low_confidence_chains
 
     def _has_low_confidence_labels(self, bundle: LabelBundle) -> bool:
@@ -631,18 +640,22 @@ def create_version_manager() -> LabelVersionManager:
 # Example usage
 def test_label_versioning():
     """Test the label versioning system"""
-    from .label_taxonomy import (
-        TherapeuticResponseLabel, CrisisLabel, LabelMetadata, LabelProvenanceType,
-        TherapeuticResponseType, CrisisLevelType
-    )
     from .conversation_schema import Conversation
-    
+    from .label_taxonomy import (
+        CrisisLabel,
+        CrisisLevelType,
+        LabelMetadata,
+        LabelProvenanceType,
+        TherapeuticResponseLabel,
+        TherapeuticResponseType,
+    )
+
     # Create a test label bundle
     conversation = Conversation()
-    
+
     # Create initial bundle
     initial_bundle = LabelBundle(conversation_id=conversation.conversation_id)
-    
+
     # Add some labels
     initial_bundle.therapeutic_response_labels.append(
         TherapeuticResponseLabel(
@@ -653,7 +666,7 @@ def test_label_versioning():
             )
         )
     )
-    
+
     initial_bundle.crisis_label = CrisisLabel(
         crisis_level=CrisisLevelType.LOW_RISK,
         metadata=LabelMetadata(
@@ -664,44 +677,44 @@ def test_label_versioning():
 
     # Create version manager
     vm = create_version_manager()
-    
+
     # Create initial version
     initial_version = vm.create_initial_version(initial_bundle, "system", "Initial automated labels")
     print(f"Created initial version: {initial_version.version_number}")
-    
+
     # Update the bundle (simulate human correction)
     updated_bundle = initial_bundle
     updated_bundle.therapeutic_response_labels[0].metadata.confidence = 0.95
     updated_bundle.therapeutic_response_labels[0].metadata.provenance = LabelProvenanceType.HUMAN_EXPERT
     updated_bundle.therapeutic_response_labels[0].metadata.annotator_id = "human_expert_123"
-    
+
     # Create updated version
     updated_version = vm.update_label_bundle(
-        updated_bundle, 
-        initial_version, 
-        "human_expert_123", 
-        VersionAction.CORRECTED, 
+        updated_bundle,
+        initial_version,
+        "human_expert_123",
+        VersionAction.CORRECTED,
         "Human expert confirmed and improved confidence"
     )
     print(f"Created updated version: {updated_version.version_number}")
-    
+
     # Get the current bundle
     current_bundle = vm.get_current_bundle(initial_bundle.label_id)
     if current_bundle:
         print(f"Current bundle has {len(current_bundle.therapeutic_response_labels)} therapeutic labels")
         print(f"First label confidence: {current_bundle.therapeutic_response_labels[0].metadata.confidence}")
         print(f"First label provenance: {current_bundle.therapeutic_response_labels[0].metadata.provenance.value}")
-    
+
     # Get history
     history = vm.get_history(initial_bundle.label_id)
     if history:
         print(f"Total versions: {len(history.versions)}")
         print(f"Total provenance records: {len(history.provenance_records)}")
-        
+
         # Get change summary
         summary = vm.get_label_change_summary(initial_bundle.label_id)
         print(f"Change summary: {summary}")
-        
+
         # Use provenance analyzer
         analyzer = ProvenanceAnalyzer(vm)
         provenance_dist = analyzer.analyze_provenance_distribution()

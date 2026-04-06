@@ -12,8 +12,8 @@ This script processes ALL speakers in tier4_voice_persona, not just Tim Fletcher
 
 import json
 import os
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 from typing import Dict, List
 
 # Base directories
@@ -95,7 +95,7 @@ def process_transcript(transcript_path: Path, persona_name: str, config: dict) -
     title = extract_title_from_filename(transcript_path.name)
 
     # Read transcript content
-    with open(transcript_path, 'r', encoding='utf-8') as f:
+    with open(transcript_path, encoding='utf-8') as f:
         content = f.read().strip()
 
     # Create conversation record in Stage 4 format

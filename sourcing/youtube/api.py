@@ -9,17 +9,17 @@ Provides tools for:
 """
 
 import logging
+from dataclasses import dataclass, field as dataclass_field
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Set
-from dataclasses import dataclass, field as dataclass_field
 
 from ai.sourcing.youtube.models import (
     Channel,
     ChannelQualityThresholds,
     ChannelStatus,
     ContentCategory,
-    QualityMetrics,
     LicensingInfo,
+    QualityMetrics,
 )
 
 logger = logging.getLogger(__name__)

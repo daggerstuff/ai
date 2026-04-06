@@ -21,9 +21,10 @@ class TestActualProductionCoverage(unittest.TestCase):
         try:
             # Test importing key modules that exist
 
-            from dataset_pipeline import config
             from dataset_pipeline.data_loader import DataLoader
             from dataset_pipeline.logger import Logger
+
+            from dataset_pipeline import config
 
             # Basic instantiation tests
             loader = DataLoader()

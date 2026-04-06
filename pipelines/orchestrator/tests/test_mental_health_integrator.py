@@ -8,6 +8,7 @@ import tempfile
 from unittest.mock import Mock, patch
 
 import pytest
+
 from ai.pipelines.orchestrator.mental_health_integrator import (
     MentalHealthDatasetConfig,
     MentalHealthIntegrator,

@@ -2,17 +2,17 @@ import asyncio
 import json
 import logging
 import os
-from pathlib import Path
-from datetime import datetime
-import sys
 import re
+import sys
+from datetime import datetime
+from pathlib import Path
 
 # Add repo root to sys.path
 repo_root = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(repo_root))
 
-from ai.utils.subtitle_processor import SubtitleProcessor
 from ai.pipelines.orchestrator.logger import setup_logger
+from ai.utils.subtitle_processor import SubtitleProcessor
 
 
 class MassSubtitleIngestor:
@@ -30,7 +30,7 @@ class MassSubtitleIngestor:
         self.logger.info(f"Ingesting local file: {txt_file.name}")
 
         try:
-            with open(txt_file, "r", encoding="utf-8") as f:
+            with open(txt_file, encoding="utf-8") as f:
                 content = f.read()
 
             video_title = txt_file.stem

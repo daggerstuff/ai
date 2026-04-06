@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 class WebSocketManager:
     """Manage WebSocket connections and real-time events."""
-    
+
     def __init__(self, socket_io: SocketIO, config: MCPConfig):
         self.socketio = socket_io
         self.config = config
@@ -32,10 +32,10 @@ class WebSocketManager:
                 "without agent_id"
             )
             return
-            
+
         join_room(f"agent_status_{agent_id}", sid=sid)
         logger.info(f"Client {sid} subscribed to agent {agent_id} status updates")
-        
+
         # Initial status could be fetched and emitted here
         emit('subscription_confirmed', {'target': f'agent_status_{agent_id}'}, to=sid)
 
@@ -48,13 +48,13 @@ class WebSocketManager:
                 "without task_id"
             )
             return
-            
+
         join_room(f"task_progress_{task_id}", sid=sid)
         logger.info(f"Client {sid} subscribed to task {task_id} progress updates")
-        
+
         emit(
-            'subscription_confirmed', 
-            {'target': f'task_progress_{task_id}'}, 
+            'subscription_confirmed',
+            {'target': f'task_progress_{task_id}'},
             to=sid
         )
 
@@ -67,15 +67,15 @@ class WebSocketManager:
                 "without execution_id"
             )
             return
-            
+
         join_room(f"pipeline_updates_{execution_id}", sid=sid)
         logger.info(
             f"Client {sid} subscribed to pipeline {execution_id} status updates"
         )
-        
+
         emit(
-            'subscription_confirmed', 
-            {'target': f'pipeline_updates_{execution_id}'}, 
+            'subscription_confirmed',
+            {'target': f'pipeline_updates_{execution_id}'},
             to=sid
         )
 
@@ -84,8 +84,8 @@ class WebSocketManager:
     ) -> None:
         """Broadcast agent status update to registered observers."""
         self.socketio.emit(
-            'agent_status_update', 
-            update_data, 
+            'agent_status_update',
+            update_data,
             to=f"agent_status_{agent_id}"
         )
         logger.debug(f"Broadcasted status update for agent {agent_id}")
@@ -93,8 +93,8 @@ class WebSocketManager:
     def broadcast_task_update(self, task_id: str, update_data: Dict[str, Any]) -> None:
         """Broadcast task progress update to registered observers."""
         self.socketio.emit(
-            'task_progress_update', 
-            update_data, 
+            'task_progress_update',
+            update_data,
             to=f"task_progress_{task_id}"
         )
         logger.debug(f"Broadcasted progress update for task {task_id}")
@@ -104,8 +104,8 @@ class WebSocketManager:
     ) -> None:
         """Broadcast pipeline update to registered observers."""
         self.socketio.emit(
-            'pipeline_update', 
-            update_data, 
+            'pipeline_update',
+            update_data,
             to=f"pipeline_updates_{execution_id}"
         )
         logger.debug(f"Broadcasted update for pipeline {execution_id}")

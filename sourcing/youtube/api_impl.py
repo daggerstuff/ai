@@ -8,7 +8,7 @@ replacing the TODO stubs in api.py.
 import logging
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
-from urllib.parse import urlencode, urlparse, parse_qs
+from urllib.parse import parse_qs, urlencode, urlparse
 
 import requests
 
@@ -16,8 +16,8 @@ from ai.sourcing.youtube.models import (
     Channel,
     ChannelStatus,
     ContentCategory,
-    QualityMetrics,
     LicensingInfo,
+    QualityMetrics,
 )
 
 logger = logging.getLogger(__name__)
@@ -72,6 +72,7 @@ class YouTubeAPI:
             return api_key
 
         import os
+
         from dotenv import load_dotenv
 
         load_dotenv('.env.youtube.example', override=True)
@@ -448,6 +449,7 @@ def get_api_quota_status() -> tuple[bool, int, int]:
     """
     try:
         import os
+
         from dotenv import load_dotenv
 
         load_dotenv('.env.youtube.example', override=True)

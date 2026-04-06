@@ -4,11 +4,11 @@ Enhanced Crisis Detector V2 - Fixed
 Target: Close 33.8% accuracy gap and reduce false negative rate from 73.33% to <1%
 """
 
-import re
 import asyncio
 import logging
-from typing import Dict, List, Tuple, Optional
+import re
 from dataclasses import dataclass
+from typing import Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -24,19 +24,19 @@ class CrisisDetectionResult:
 
 class EnhancedCrisisDetectorV2Fixed:
     """Enhanced Crisis Detector V2 - Fixed regex patterns"""
-    
+
     def __init__(self):
         self.crisis_patterns = self._initialize_patterns()
-        
+
     def _initialize_patterns(self) -> Dict[str, Dict]:
         """Initialize crisis detection patterns with fixed regex"""
-        
+
         return {
             # LEVEL 5: IMMEDIATE CRISIS
             "immediate_suicidal": {
                 "patterns": [
                     r"want to kill myself",
-                    r"going to kill myself", 
+                    r"going to kill myself",
                     r"plan to kill myself",
                     r"will kill myself",
                     r"commit suicide",
@@ -56,7 +56,7 @@ class EnhancedCrisisDetectorV2Fixed:
                 "level": 5,
                 "weight": 1.0
             },
-            
+
             # LEVEL 5: ACTIVE SELF-HARM
             "active_self_harm": {
                 "patterns": [
@@ -77,7 +77,7 @@ class EnhancedCrisisDetectorV2Fixed:
                 "level": 5,
                 "weight": 1.0
             },
-            
+
             # LEVEL 4: SEVERE HOPELESSNESS
             "severe_hopelessness": {
                 "patterns": [
@@ -105,7 +105,7 @@ class EnhancedCrisisDetectorV2Fixed:
                 "level": 4,
                 "weight": 0.8
             },
-            
+
             # LEVEL 3: SEVERE DEPRESSION
             "severe_depression": {
                 "patterns": [
@@ -130,7 +130,7 @@ class EnhancedCrisisDetectorV2Fixed:
                 "level": 3,
                 "weight": 0.7
             },
-            
+
             # LEVEL 4: ESCALATION
             "crisis_escalation": {
                 "patterns": [
@@ -156,7 +156,7 @@ class EnhancedCrisisDetectorV2Fixed:
                 "level": 4,
                 "weight": 0.8
             },
-            
+
             # LEVEL 2: ISOLATION
             "isolation": {
                 "patterns": [
@@ -182,7 +182,7 @@ class EnhancedCrisisDetectorV2Fixed:
                 "level": 2,
                 "weight": 0.5
             },
-            
+
             # LEVEL 3: SUBSTANCE CRISIS
             "substance_crisis": {
                 "patterns": [
@@ -203,7 +203,7 @@ class EnhancedCrisisDetectorV2Fixed:
                 "level": 3,
                 "weight": 0.6
             },
-            
+
             # LEVEL 3: EMOTIONAL PAIN
             "emotional_pain": {
                 "patterns": [
@@ -227,7 +227,7 @@ class EnhancedCrisisDetectorV2Fixed:
                 "level": 3,
                 "weight": 0.6
             },
-            
+
             # LEVEL 2: SUBTLE CRISIS
             "subtle_crisis": {
                 "patterns": [
@@ -253,51 +253,51 @@ class EnhancedCrisisDetectorV2Fixed:
                 "weight": 0.4
             }
         }
-    
+
     async def detect_crisis(self, text: str) -> CrisisDetectionResult:
         """Enhanced crisis detection with aggressive sensitivity"""
-        
+
         # Normalize text
         normalized_text = text.lower().strip()
-        
+
         # Initialize detection variables
         detected_patterns = []
         risk_factors = []
         confidence_score = 0.0
         crisis_level = 0
-        
+
         # Pattern matching
         for category, pattern_data in self.crisis_patterns.items():
             patterns = pattern_data["patterns"]
             level = pattern_data["level"]
             weight = pattern_data["weight"]
-            
+
             category_matches = 0
             for pattern in patterns:
                 if pattern in normalized_text:  # Simple substring matching
                     detected_patterns.append(f"{category}: {pattern}")
                     category_matches += 1
-            
+
             if category_matches > 0:
                 risk_factors.append(category)
                 # Boost confidence for multiple matches in same category
                 category_boost = min(category_matches * 0.1, 0.3)
                 confidence_score += (weight * 0.15) + category_boost
                 crisis_level = max(crisis_level, level)
-        
+
         # Context filtering - check for clear negations and metaphors
         has_strong_negation = any(neg in normalized_text for neg in [
             "not going to", "don't want to", "never want to", "won't", "not anymore"
         ])
-        
+
         has_metaphor = any(meta in normalized_text for meta in [
             "kill time", "dying to see", "dead tired", "video game", "movie"
         ])
-        
+
         has_positive = any(pos in normalized_text for pos in [
             "getting help", "feeling better", "therapy", "treatment", "improving"
         ])
-        
+
         # Apply context filters
         if has_strong_negation:
             confidence_score *= 0.3
@@ -305,23 +305,23 @@ class EnhancedCrisisDetectorV2Fixed:
             confidence_score *= 0.1
         elif has_positive:
             confidence_score *= 0.6
-        
+
         # Boost for multiple risk factors
         unique_risk_factors = len(set(risk_factors))
         if unique_risk_factors >= 2:
             confidence_score *= 1.4
         elif unique_risk_factors >= 3:
             confidence_score *= 1.7
-        
+
         # Boost for high-level patterns
         if crisis_level >= 4:
             confidence_score *= 1.3
         elif crisis_level >= 5:
             confidence_score *= 1.5
-        
+
         # Normalize confidence score
         confidence_score = min(1.0, confidence_score)
-        
+
         # AGGRESSIVE DETECTION THRESHOLDS
         is_crisis = (
             (confidence_score >= 0.1 and crisis_level >= 3) or
@@ -330,19 +330,19 @@ class EnhancedCrisisDetectorV2Fixed:
             (unique_risk_factors >= 3) or
             (crisis_level >= 5 and confidence_score >= 0.05)
         )
-        
+
         # Generate reasoning
         reasoning = f"{'🚨 CRISIS' if is_crisis else '✅ NO CRISIS'} (L{crisis_level}, C{confidence_score:.2f}) | "
         reasoning += f"Patterns: {len(detected_patterns)} | "
         reasoning += f"Factors: {', '.join(set(risk_factors))}"
-        
+
         if has_strong_negation:
             reasoning += " | Strong negation"
         if has_metaphor:
             reasoning += " | Metaphor"
         if has_positive:
             reasoning += " | Positive context"
-        
+
         return CrisisDetectionResult(
             is_crisis=is_crisis,
             confidence_score=confidence_score,
@@ -355,20 +355,20 @@ class EnhancedCrisisDetectorV2Fixed:
 # Enhanced model predictor
 async def enhanced_model_predictor_v2_fixed(conversation_text: str) -> bool:
     """Enhanced model predictor V2 with fixed patterns"""
-    
+
     detector = EnhancedCrisisDetectorV2Fixed()
     result = await detector.detect_crisis(conversation_text)
-    
+
     # Log analysis
     if result.confidence_score > 0.05 or result.is_crisis:
         logger.info(f"Crisis Analysis V2: {result.reasoning}")
-    
+
     return result.is_crisis
 
 # Test function
 async def test_enhanced_detector_v2_fixed():
     """Test the enhanced V2 crisis detector with fixed patterns"""
-    
+
     test_cases = [
         # Should detect (high sensitivity)
         ("I can't take this anymore. I want to kill myself.", True),
@@ -384,7 +384,7 @@ async def test_enhanced_detector_v2_fixed():
         ("I don't know how much longer I can do this.", True),
         ("I'm so tired of everything.", True),
         ("Maybe it would be better if I wasn't here.", True),
-        
+
         # Should NOT detect
         ("I'm fine, just having a bad day.", False),
         ("I want to kill time until my appointment.", False),
@@ -394,32 +394,32 @@ async def test_enhanced_detector_v2_fixed():
         ("I used to think about suicide but not anymore.", False),
         ("I'm getting help for my depression.", False),
     ]
-    
+
     detector = EnhancedCrisisDetectorV2Fixed()
-    
+
     correct = 0
     total = len(test_cases)
-    
+
     print("\n" + "="*80)
     print("TESTING ENHANCED CRISIS DETECTOR V2 - FIXED")
     print("="*80)
-    
+
     for text, expected in test_cases:
         result = await detector.detect_crisis(text)
         is_correct = result.is_crisis == expected
         correct += is_correct
-        
+
         status = "✅ CORRECT" if is_correct else "❌ WRONG"
         print(f"\n{status}")
         print(f"Text: {text}")
         print(f"Expected: {expected}, Got: {result.is_crisis}")
         print(f"Reasoning: {result.reasoning}")
-    
+
     accuracy = (correct / total) * 100
     print(f"\n{'='*80}")
     print(f"TEST RESULTS: {correct}/{total} correct ({accuracy:.1f}% accuracy)")
     print(f"{'='*80}")
-    
+
     return accuracy
 
 if __name__ == "__main__":

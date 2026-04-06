@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from collections import defaultdict
 
 from .null_memory_record import NullMemoryRecord

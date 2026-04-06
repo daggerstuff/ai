@@ -100,7 +100,7 @@ class DatasetPerformanceImpactAnalyzer:
         """Load comprehensive dataset information with performance indicators"""
         with self.connect_db() as conn:
             query = """
-            SELECT 
+            SELECT
                 dataset_source as dataset,
                 tier,
                 conversation_id,
@@ -111,8 +111,8 @@ class DatasetPerformanceImpactAnalyzer:
                 created_at,
                 processing_status,
                 processed_at
-            FROM conversations 
-            WHERE conversations_json IS NOT NULL 
+            FROM conversations
+            WHERE conversations_json IS NOT NULL
             AND length(conversations_json) > 10
             """
             df = pd.read_sql_query(query, conn)

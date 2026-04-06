@@ -12,7 +12,6 @@ from pathlib import Path
 
 from ai.tools.hf_client import HuggingFaceClient
 
-
 logger = logging.getLogger("ai.examples.download_model")
 
 

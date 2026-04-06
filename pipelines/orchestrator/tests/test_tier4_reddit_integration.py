@@ -13,8 +13,9 @@ import logging
 from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
-from ai.pipelines.orchestrator.orchestration.tier_processor import TierProcessor
 from conversation_schema import Conversation, Message
+
+from ai.pipelines.orchestrator.orchestration.tier_processor import TierProcessor
 
 logger = logging.getLogger(__name__)
 

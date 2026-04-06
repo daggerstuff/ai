@@ -66,7 +66,7 @@ class TestInfrastructureFixer:
     def fix_import_paths(self, test_file: Path) -> bool:
         """Fix import paths in a test file."""
         try:
-            with open(test_file, "r") as f:
+            with open(test_file) as f:
                 content = f.read()
 
             original_content = content
@@ -150,7 +150,7 @@ class TestInfrastructureFixer:
     def fix_common_test_issues(self, test_file: Path) -> bool:
         """Fix common issues in test files."""
         try:
-            with open(test_file, "r") as f:
+            with open(test_file) as f:
                 content = f.read()
 
             original_content = content

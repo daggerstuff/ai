@@ -11,7 +11,7 @@ def prepare_batches(input_file, output_dir, batch_size=100, num_batches=1):
 
     print(f"Reading from {input_path}...")
     data = []
-    with open(input_path, "r") as f:
+    with open(input_path) as f:
         for line in f:
             if line.strip():
                 try:

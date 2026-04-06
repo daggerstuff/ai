@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 class ConversionMonitor:
     """
     Monitor conversion operations for journal research datasets.
-    
+
     Provides:
     1. Real-time conversion status tracking
     2. Progress reporting
@@ -28,26 +28,26 @@ class ConversionMonitor:
     def __init__(self, status_file: Path = Path("data/journal_research/conversion_status.json")):
         """
         Initialize conversion monitor.
-        
+
         Args:
             status_file: Path to status persistence file
         """
         self.status_file = Path(status_file)
         self.status_file.parent.mkdir(parents=True, exist_ok=True)
-        
+
         # In-memory status tracking
         self.conversion_status: Dict[str, Dict[str, Any]] = {}
-        
+
         # Load existing status if available
         self._load_status()
-        
+
         logger.info(f"Initialized ConversionMonitor: status_file={status_file}")
 
     def _load_status(self) -> None:
         """Load conversion status from file."""
         if self.status_file.exists():
             try:
-                with open(self.status_file, "r", encoding="utf-8") as f:
+                with open(self.status_file, encoding="utf-8") as f:
                     self.conversion_status = json.load(f)
                 logger.info(f"Loaded {len(self.conversion_status)} conversion statuses")
             except Exception as e:
@@ -65,7 +65,7 @@ class ConversionMonitor:
     def start_conversion(self, source_id: str, metadata: Optional[Dict[str, Any]] = None) -> None:
         """
         Mark conversion as started.
-        
+
         Args:
             source_id: Source ID of the dataset
             metadata: Optional metadata about the conversion
@@ -86,7 +86,7 @@ class ConversionMonitor:
     ) -> None:
         """
         Update conversion progress.
-        
+
         Args:
             source_id: Source ID of the dataset
             progress: Progress percentage (0.0-1.0)
@@ -94,15 +94,15 @@ class ConversionMonitor:
         """
         if source_id not in self.conversion_status:
             self.start_conversion(source_id)
-        
+
         self.conversion_status[source_id].update({
             "progress": progress,
             "updated_at": datetime.now().isoformat(),
         })
-        
+
         if message:
             self.conversion_status[source_id]["message"] = message
-        
+
         self._save_status()
         logger.debug(f"Updated progress for {source_id}: {progress:.1%}")
 
@@ -111,14 +111,14 @@ class ConversionMonitor:
     ) -> None:
         """
         Mark conversion as completed.
-        
+
         Args:
             source_id: Source ID of the dataset
             result: Conversion result dictionary
         """
         if source_id not in self.conversion_status:
             self.start_conversion(source_id)
-        
+
         self.conversion_status[source_id].update({
             "status": "completed" if result.get("success") else "failed",
             "progress": 1.0,
@@ -126,10 +126,10 @@ class ConversionMonitor:
             "updated_at": datetime.now().isoformat(),
             "result": result,
         })
-        
+
         if not result.get("success"):
             self.conversion_status[source_id]["error"] = result.get("error")
-        
+
         self._save_status()
         logger.info(
             f"Completed conversion tracking for {source_id}: "
@@ -139,10 +139,10 @@ class ConversionMonitor:
     def get_status(self, source_id: str) -> Optional[Dict[str, Any]]:
         """
         Get conversion status for a dataset.
-        
+
         Args:
             source_id: Source ID of the dataset
-            
+
         Returns:
             Status dictionary or None if not found
         """
@@ -155,35 +155,35 @@ class ConversionMonitor:
     ) -> List[Dict[str, Any]]:
         """
         List all conversions with optional filtering.
-        
+
         Args:
             status_filter: Optional status filter ("in_progress", "completed", "failed")
             limit: Optional limit on number of results
-            
+
         Returns:
             List of conversion status dictionaries
         """
         conversions = list(self.conversion_status.values())
-        
+
         if status_filter:
             conversions = [
                 c for c in conversions if c.get("status") == status_filter
             ]
-        
+
         # Sort by updated_at (most recent first)
         conversions.sort(
             key=lambda x: x.get("updated_at", ""), reverse=True
         )
-        
+
         if limit:
             conversions = conversions[:limit]
-        
+
         return conversions
 
     def get_dashboard_data(self) -> Dict[str, Any]:
         """
         Get data for conversion dashboard.
-        
+
         Returns:
             Dictionary with dashboard statistics and data
         """
@@ -200,13 +200,13 @@ class ConversionMonitor:
             1 for s in self.conversion_status.values()
             if s.get("status") == "failed"
         )
-        
+
         # Calculate average progress
         total_progress = sum(
             s.get("progress", 0.0) for s in self.conversion_status.values()
         )
         avg_progress = total_progress / total if total > 0 else 0.0
-        
+
         return {
             "total": total,
             "in_progress": in_progress,

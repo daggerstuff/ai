@@ -247,7 +247,7 @@ class TestExportFormatValidation(unittest.TestCase):
                     json.dump(data, f, indent=2, default=str)
 
                 # Validate by reading back
-                with open(output_path, "r") as f:
+                with open(output_path) as f:
                     loaded_data = json.load(f)
 
                 # Check structure

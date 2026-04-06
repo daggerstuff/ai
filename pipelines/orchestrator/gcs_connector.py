@@ -18,7 +18,6 @@ from google.oauth2 import service_account
 from .ingest_utils import RateLimiter
 from .ingestion_interface import IngestionConnector, IngestionError, IngestRecord
 from .quarantine import get_quarantine_store
-
 from .validation import validate_record
 
 

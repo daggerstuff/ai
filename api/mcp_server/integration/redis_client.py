@@ -10,7 +10,7 @@ class MCPRedisClient:
     Redis client for MCP server event bus and caching.
     Uses redis-py's asyncio support.
     """
-    
+
     def __init__(self, url: str, db: int = 0, password: Optional[str] = None):
         self.url = url
         self.db = db

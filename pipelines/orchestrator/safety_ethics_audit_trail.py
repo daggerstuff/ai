@@ -6,13 +6,13 @@ tracking all validation decisions, interventions, and dataset changes with
 reproducible logging and change tracking.
 """
 
-import json
 import hashlib
-from datetime import datetime
-from typing import Dict, List, Any, Optional
-from dataclasses import dataclass, field
-from enum import Enum
+import json
 import logging
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -87,11 +87,11 @@ class RemediationAction:
 class SafetyEthicsAuditTrail:
     """
     Comprehensive audit trail system for safety and ethics validation.
-    
+
     Tracks all validation activities, interventions, manual reviews,
     dataset changes, and remediation actions with full reproducibility.
     """
-    
+
     def __init__(self, audit_log_path: Optional[str] = None):
         """Initialize the audit trail system."""
         self.audit_events: List[AuditEvent] = []
@@ -99,10 +99,10 @@ class SafetyEthicsAuditTrail:
         self.remediation_actions: List[RemediationAction] = []
         self.audit_log_path = audit_log_path
         self.enabled = True
-        
+
         logger.info("SafetyEthicsAuditTrail initialized")
-    
-    def log_validation_started(self, conversation_id: str, 
+
+    def log_validation_started(self, conversation_id: str,
                               user_id: Optional[str] = None,
                               session_id: Optional[str] = None) -> str:
         """Log validation start event."""
@@ -118,7 +118,7 @@ class SafetyEthicsAuditTrail:
         )
         self._add_audit_event(event)
         return event_id
-    
+
     def log_safety_issue(self, conversation_id: str,
                         safety_issue: Dict[str, Any],
                         user_id: Optional[str] = None) -> str:
@@ -134,7 +134,7 @@ class SafetyEthicsAuditTrail:
         )
         self._add_audit_event(event)
         return event_id
-    
+
     def log_ethics_violation(self, conversation_id: str,
                            ethics_violation: Dict[str, Any],
                            user_id: Optional[str] = None) -> str:
@@ -150,7 +150,7 @@ class SafetyEthicsAuditTrail:
         )
         self._add_audit_event(event)
         return event_id
-    
+
     def log_intervention_required(self, conversation_id: str,
                                 reason: str,
                                 urgency_level: str,
@@ -170,7 +170,7 @@ class SafetyEthicsAuditTrail:
         )
         self._add_audit_event(event)
         return event_id
-    
+
     def log_manual_review_request(self, conversation_id: str,
                                   reviewer_id: str,
                                   reason: str,
@@ -190,7 +190,7 @@ class SafetyEthicsAuditTrail:
         )
         self._add_audit_event(event)
         return event_id
-    
+
     def log_manual_review_completion(self, conversation_id: str,
                                     reviewer_id: str,
                                     decision: str,
@@ -212,7 +212,7 @@ class SafetyEthicsAuditTrail:
         )
         self._add_audit_event(event)
         return event_id
-    
+
     def log_dataset_change(self, conversation_id: str,
                           change_type: ChangeType,
                           details: Dict[str, Any],
@@ -234,7 +234,7 @@ class SafetyEthicsAuditTrail:
             change_reason=change_reason
         )
         self.dataset_changes.append(change)
-        
+
         # Also log as audit event
         event = AuditEvent(
             event_id=change_id,
@@ -251,10 +251,10 @@ class SafetyEthicsAuditTrail:
             new_state={"content": new_content} if new_content else None
         )
         self._add_audit_event(event)
-        
+
         logger.info(f"Dataset change logged: {change_id} for conversation {conversation_id}")
         return change_id
-    
+
     def log_configuration_change(self, config_key: str,
                                old_value: Any,
                                new_value: Any,
@@ -279,7 +279,7 @@ class SafetyEthicsAuditTrail:
         )
         self._add_audit_event(event)
         return event_id
-    
+
     def log_alert_trigger(self, alert_type: str,
                          severity: str,
                          conversation_id: str,
@@ -301,7 +301,7 @@ class SafetyEthicsAuditTrail:
         )
         self._add_audit_event(event)
         return event_id
-    
+
     def log_remediation_action(self, conversation_id: str,
                               action_type: str,
                               details: Dict[str, Any],
@@ -321,7 +321,7 @@ class SafetyEthicsAuditTrail:
             follow_up_required=follow_up_required
         )
         self.remediation_actions.append(action)
-        
+
         # Also log as audit event
         event = AuditEvent(
             event_id=action_id,
@@ -337,10 +337,10 @@ class SafetyEthicsAuditTrail:
             }
         )
         self._add_audit_event(event)
-        
+
         logger.info(f"Remediation action logged: {action_id} for conversation {conversation_id}")
         return action_id
-    
+
     def log_validation_completion(self, conversation_id: str,
                                  validation_result: Dict[str, Any],
                                  user_id: Optional[str] = None) -> str:
@@ -356,14 +356,14 @@ class SafetyEthicsAuditTrail:
         )
         self._add_audit_event(event)
         return event_id
-    
+
     def _add_audit_event(self, event: AuditEvent) -> None:
         """Add audit event to the trail."""
         if not self.enabled:
             return
-        
+
         self.audit_events.append(event)
-        
+
         # Log to file if configured
         if self.audit_log_path:
             try:
@@ -381,35 +381,35 @@ class SafetyEthicsAuditTrail:
                     f.write('\n')
             except Exception as e:
                 logger.error(f"Failed to write audit event to log: {e}")
-        
+
         logger.info(f"Audit event logged: {event.event_type.value} for {event.conversation_id}")
-    
+
     def _generate_event_id(self) -> str:
         """Generate unique event ID."""
         timestamp = datetime.now().timestamp()
         return hashlib.sha256(f"{timestamp}".encode()).hexdigest()[:16]
-    
+
     def get_conversation_audit_trail(self, conversation_id: str) -> List[AuditEvent]:
         """Get audit trail for specific conversation."""
         return [
             event for event in self.audit_events
             if event.conversation_id == conversation_id
         ]
-    
+
     def get_user_audit_trail(self, user_id: str) -> List[AuditEvent]:
         """Get audit trail for specific user."""
         return [
             event for event in self.audit_events
             if event.user_id == user_id
         ]
-    
+
     def get_events_by_type(self, event_type: AuditEventType) -> List[AuditEvent]:
         """Get audit events by type."""
         return [
             event for event in self.audit_events
             if event.event_type == event_type
         ]
-    
+
     def get_dataset_changes(self, conversation_id: Optional[str] = None) -> List[DatasetChange]:
         """Get dataset changes, optionally filtered by conversation."""
         if conversation_id:
@@ -418,7 +418,7 @@ class SafetyEthicsAuditTrail:
                 if change.conversation_id == conversation_id
             ]
         return self.dataset_changes
-    
+
     def get_remediation_actions(self, conversation_id: Optional[str] = None) -> List[RemediationAction]:
         """Get remediation actions, optionally filtered by conversation."""
         if conversation_id:
@@ -427,7 +427,7 @@ class SafetyEthicsAuditTrail:
                 if action.conversation_id == conversation_id
             ]
         return self.remediation_actions
-    
+
     def export_audit_trail(self, output_path: str) -> bool:
         """Export complete audit trail to JSON file."""
         try:
@@ -476,39 +476,39 @@ class SafetyEthicsAuditTrail:
                     for action in self.remediation_actions
                 ]
             }
-            
+
             with open(output_path, 'w') as f:
                 json.dump(audit_data, f, indent=2)
-            
+
             logger.info(f"Audit trail exported to {output_path}")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to export audit trail: {e}")
             return False
-    
+
     def get_audit_summary(self) -> Dict[str, Any]:
         """Get audit trail summary statistics."""
         if not self.audit_events:
             return {"message": "No audit events recorded"}
-        
+
         # Count events by type
         event_type_counts = {}
         for event in self.audit_events:
             event_type = event.event_type.value
             event_type_counts[event_type] = event_type_counts.get(event_type, 0) + 1
-        
+
         # Count dataset changes by type
         change_type_counts = {}
         for change in self.dataset_changes:
             change_type = change.change_type.value
             change_type_counts[change_type] = change_type_counts.get(change_type, 0) + 1
-        
+
         # Calculate time range
         timestamps = [event.timestamp for event in self.audit_events]
         first_event = min(timestamps) if timestamps else None
         last_event = max(timestamps) if timestamps else None
-        
+
         return {
             "total_events": len(self.audit_events),
             "total_dataset_changes": len(self.dataset_changes),
@@ -520,12 +520,12 @@ class SafetyEthicsAuditTrail:
             "last_event": last_event.isoformat() if last_event else None,
             "conversations_affected": len(set(event.conversation_id for event in self.audit_events))
         }
-    
+
     def enable_auditing(self) -> None:
         """Enable audit trail recording."""
         self.enabled = True
         logger.info("Audit trail recording enabled")
-    
+
     def disable_auditing(self) -> None:
         """Disable audit trail recording."""
         self.enabled = False
@@ -554,13 +554,13 @@ def initialize_audit_trail(audit_log_path: Optional[str] = None) -> SafetyEthics
 if __name__ == "__main__":
     # Example usage
     audit_trail = get_audit_trail()
-    
+
     # Simulate validation workflow
     conversation_id = "test_conv_001"
-    
+
     # Log validation start
     audit_trail.log_validation_started(conversation_id, user_id="system")
-    
+
     # Log safety issue detection
     safety_issue = {
         "issue_type": "self_harm",
@@ -569,21 +569,21 @@ if __name__ == "__main__":
         "content_snippet": "I have a plan to kill myself tonight"
     }
     audit_trail.log_safety_issue(conversation_id, safety_issue)
-    
+
     # Log intervention requirement
     audit_trail.log_intervention_required(
-        conversation_id, 
+        conversation_id,
         reason="Critical safety risk detected",
         urgency_level="immediate"
     )
-    
+
     # Log manual review request
     audit_trail.log_manual_review_request(
         conversation_id,
         reviewer_id="dr_smith",
         reason="Suicidal ideation with detailed plan"
     )
-    
+
     # Log dataset change
     audit_trail.log_dataset_change(
         conversation_id,
@@ -592,7 +592,7 @@ if __name__ == "__main__":
         previous_content="I have a plan to kill myself tonight",
         change_reason="Suicide risk mitigation"
     )
-    
+
     # Log remediation action
     audit_trail.log_remediation_action(
         conversation_id,
@@ -601,17 +601,17 @@ if __name__ == "__main__":
         effectiveness_score=0.95,
         follow_up_required=True
     )
-    
+
     # Log validation completion
     audit_trail.log_validation_completion(
         conversation_id,
         {"final_status": "flagged_for_review", "safety_score": 0.1}
     )
-    
+
     # Get audit summary
     summary = audit_trail.get_audit_summary()
     print("Audit Summary:", json.dumps(summary, indent=2))
-    
+
     # Export audit trail
     audit_trail.export_audit_trail("safety_audit_trail.json")
     print("✅ Safety Ethics Audit Trail - VALIDATION COMPLETE")

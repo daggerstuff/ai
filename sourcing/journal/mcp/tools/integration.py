@@ -467,7 +467,7 @@ class GeneratePreprocessingScriptTool(MCPTool):
             )
 
             # Read script content
-            with open(script_path, "r", encoding="utf-8") as f:
+            with open(script_path, encoding="utf-8") as f:
                 script_content = f.read()
 
             return {

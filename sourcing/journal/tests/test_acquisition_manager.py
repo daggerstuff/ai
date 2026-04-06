@@ -2,10 +2,11 @@
 Unit tests for the Access & Acquisition Manager.
 """
 
-import pytest
 from datetime import datetime, timedelta
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 
 from ai.sourcing.journal.acquisition.acquisition_manager import (
     AccessAcquisitionManager,
@@ -13,9 +14,9 @@ from ai.sourcing.journal.acquisition.acquisition_manager import (
     DownloadProgress,
 )
 from ai.sourcing.journal.models.dataset_models import (
-    DatasetSource,
     AccessRequest,
     AcquiredDataset,
+    DatasetSource,
 )
 
 

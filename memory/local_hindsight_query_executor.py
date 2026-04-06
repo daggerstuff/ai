@@ -4,6 +4,7 @@ import sqlite3
 from typing import Any, List, Optional
 
 from .hindsight_local_adapter import normalize_tags
+from .local_hindsight_queries import build_fts_query
 from .local_hindsight_query_builders import (
     base_query,
     build_scope_listing_query,
@@ -16,7 +17,6 @@ from .local_hindsight_query_builders import (
     required_tags_clause,
     scope_tags,
 )
-from .local_hindsight_queries import build_fts_query
 
 
 class LocalHindsightQueryExecutor:

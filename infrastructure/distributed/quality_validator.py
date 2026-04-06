@@ -173,7 +173,7 @@ class ConversationQualityValidator(QualityValidator):
 
         try:
             # Load conversation data
-            with open(data_path, "r", encoding="utf-8") as f:
+            with open(data_path, encoding="utf-8") as f:
                 if data_path.endswith(".json"):
                     data = json.load(f)
                 else:

@@ -3,11 +3,11 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional
 
 from .base import BaseMemoryManager
+from .local_hindsight_compat_mixin import LocalHindsightCompatibilityMixin
 from .local_hindsight_document_service import LocalHindsightDocumentService
 from .local_hindsight_memory_query_service import LocalHindsightMemoryQueryService
 from .local_hindsight_memory_record_service import LocalHindsightMemoryRecordService
 from .local_hindsight_memory_write_service import LocalHindsightMemoryWriteService
-from .local_hindsight_compat_mixin import LocalHindsightCompatibilityMixin
 from .local_hindsight_protocol_adapter import LocalHindsightProtocolAdapter
 from .local_hindsight_repository import LocalHindsightRepository
 

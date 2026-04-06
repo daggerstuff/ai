@@ -125,7 +125,7 @@ class QualityValidationAnalyzer:
 
             query = """
             SELECT conversation_id
-            FROM conversations 
+            FROM conversations
             LIMIT 1000
             """
 

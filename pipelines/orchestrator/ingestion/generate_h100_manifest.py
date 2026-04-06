@@ -1,15 +1,16 @@
-import os
 import json
-from pathlib import Path
+import os
 from datetime import datetime
+from pathlib import Path
+
 from ai.pipelines.orchestrator.training_manifest import (
-    TrainingManifest,
+    ComputeTarget,
     DatasetReference,
     Hyperparameters,
-    ComputeTarget,
-    TrainingFramework,
     ResourceRequirements,
     SafetyMetrics,
+    TrainingFramework,
+    TrainingManifest,
 )
 
 
@@ -31,7 +32,7 @@ def generate_h100_optimized_manifest(dataset_path: str, version: str = "2.0"):
     if dataset_path_obj.exists():
         dataset.size_bytes = dataset_path_obj.stat().st_size
         # Estimate record count (rough for JSONL)
-        with open(dataset_path_obj, "r") as f:
+        with open(dataset_path_obj) as f:
             dataset.record_count = sum(1 for _ in f)
 
     # H100 Optimized Hyperparameters

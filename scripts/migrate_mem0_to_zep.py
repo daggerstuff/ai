@@ -40,7 +40,7 @@ logger = logging.getLogger(__name__)
 def load_mem0_data(data_file: str) -> Dict[str, Any]:
     """Load mem0 export data from JSON file."""
     try:
-        with open(data_file, "r") as f:
+        with open(data_file) as f:
             return json.load(f)
     except Exception as e:
         logger.error(f"Failed to load mem0 data: {e}")

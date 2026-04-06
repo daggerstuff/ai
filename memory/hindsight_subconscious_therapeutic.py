@@ -17,7 +17,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from ai.memory.hindsight_subconscious import SubconsciousAgent, MemoryBlock
+from ai.memory.hindsight_subconscious import MemoryBlock, SubconsciousAgent
 
 logger = logging.getLogger("therapeutic_subconscious")
 

@@ -248,7 +248,7 @@ class QAIntegrationTestSuite(unittest.TestCase):
         self.assertTrue(export_file.exists())
 
         # Verify exported content
-        with open(output_path, "r", encoding="utf-8") as f:
+        with open(output_path, encoding="utf-8") as f:
             exported_data = json.load(f)
 
         self.assertIn("qa_results", exported_data)
@@ -354,7 +354,7 @@ class QAIntegrationTestSuite(unittest.TestCase):
         self.assertTrue(success)
 
         # 4. Validate exported data integrity
-        with open(output_path, "r", encoding="utf-8") as f:
+        with open(output_path, encoding="utf-8") as f:
             exported_data = json.load(f)
 
         # Verify data integrity

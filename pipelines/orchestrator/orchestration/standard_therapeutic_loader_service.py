@@ -17,6 +17,7 @@ logger = get_logger("dataset_pipeline.standard_therapeutic_loader")
 
 class StandardTherapeuticConfigProtocol(Protocol):
     source_path: str | None
+    source_paths: tuple[str, ...]
     fallback_paths: tuple[str, ...]
 
 
@@ -43,38 +44,30 @@ class StandardTherapeuticLoaderService:
         self.cache_data = cache_data
 
     def load(self) -> list[dict[str, Any]]:
-        """Load standard therapeutic data from drive-backed JSONL or local JSON files."""
-        source_root = self.config.source_path or ""
-
-        if source_root.startswith("drive:") and source_root.endswith(".jsonl"):
-            try:
-                cached_path = self.cache_data(source_root)
-            except StorageCacheError as exc:
-                self._error(f"Failed to cache standard therapeutic source: {exc}")
-                return []
-            if cached_path and cached_path.exists():
-                return self._load_jsonl_file(cached_path)
-            self._warn(f"Could not cache rclone file: {source_root}")
-            return []
-
-        possible_files = self._possible_json_files(source_root)
-
+        """Load standard therapeutic data from gdrive-backed JSONL or local JSON files."""
+        candidate_paths = self._candidate_source_paths()
         raw_conversations: list[Any] = []
         last_error: Exception | None = None
-        for standard_file in possible_files:
-            if not standard_file.exists():
-                continue
-            logger.info("Attempting to load from: %s", standard_file)
+        for candidate_path in candidate_paths:
             try:
-                raw_conversations = self._try_load_json_file(standard_file)
+                standard_file = self._resolve_candidate_path(candidate_path)
             except Exception as exc:
                 last_error = exc
                 continue
-            if raw_conversations:
-                break
+            if standard_file is None or not standard_file.exists():
+                continue
+            logger.info("Attempting to load from: %s", standard_file)
+            try:
+                if standard_file.suffix == ".jsonl":
+                    raw_conversations.extend(self._load_jsonl_file(standard_file))
+                else:
+                    raw_conversations.extend(self._try_load_json_file(standard_file))
+            except Exception as exc:
+                last_error = exc
+                continue
 
         if not raw_conversations:
-            self._handle_load_error(possible_files, last_error)
+            self._handle_load_error(candidate_paths, last_error)
             return []
 
         return self._normalize_conversations(raw_conversations)
@@ -139,23 +132,41 @@ class StandardTherapeuticLoaderService:
         )
         return []
 
-    def _possible_json_files(self, source_root: str) -> list[Path]:
-        candidates: list[Path] = []
-        if source_root:
-            source_root_path = Path(source_root)
-            candidates.append(source_root_path / "training_dataset.json")
-            if source_root_path.suffix == ".json":
-                candidates.append(source_root_path)
-        fallback_paths = getattr(self.config, "fallback_paths", ())
-        candidates.extend(Path(path) for path in fallback_paths)
-        deduped: list[Path] = []
-        seen: set[Path] = set()
-        for candidate in candidates:
+    def _candidate_source_paths(self) -> list[str]:
+        configured: list[str] = []
+        if self.config.source_path:
+            configured.append(self.config.source_path)
+        configured.extend(path for path in getattr(self.config, "source_paths", ()) if path)
+        configured.extend(path for path in getattr(self.config, "fallback_paths", ()) if path)
+
+        deduped: list[str] = []
+        seen: set[str] = set()
+        for candidate in configured:
             if candidate in seen:
                 continue
             seen.add(candidate)
             deduped.append(candidate)
         return deduped
+
+    def _resolve_candidate_path(self, candidate_path: str) -> Path | None:
+        if candidate_path.startswith(("gdrive:", "s3://", "datasets/")):
+            try:
+                cached_path = self.cache_data(candidate_path)
+            except StorageCacheError as exc:
+                raise RuntimeError(
+                    f"Failed to cache standard therapeutic source {candidate_path}: {exc}"
+                ) from exc
+            if cached_path and cached_path.exists():
+                return cached_path
+            self._warn(f"Could not cache remote standard therapeutic path: {candidate_path}")
+            return None
+
+        source_root_path = Path(candidate_path)
+        if source_root_path.is_dir():
+            nested_dataset = source_root_path / "training_dataset.json"
+            if nested_dataset.exists():
+                return nested_dataset
+        return source_root_path
 
     @staticmethod
     def _first_json_token(file_path: Path) -> str:
@@ -315,7 +326,7 @@ class StandardTherapeuticLoaderService:
         return buffer[index:] + chunk, 0
 
     def _handle_load_error(
-        self, possible_files: list[Path], last_error: Exception | None
+        self, possible_files: list[str], last_error: Exception | None
     ) -> None:
         if last_error:
             self._error(
@@ -371,7 +382,28 @@ class StandardTherapeuticLoaderService:
                 return "\n".join(parts)
 
         content = conv.get("content", "")
-        return content if isinstance(content, str) else ""
+        if isinstance(content, str) and content:
+            return content
+
+        data = conv.get("data")
+        if isinstance(data, dict):
+            instruction = data.get("instruction", "")
+            user_input = data.get("input", "")
+            output = data.get("output", "")
+            if isinstance(user_input, str) and isinstance(output, str) and user_input and output:
+                parts: list[str] = []
+                if isinstance(instruction, str) and instruction:
+                    parts.append(f"System: {instruction}")
+                parts.append(f"User: {user_input}")
+                parts.append(f"Assistant: {output}")
+                return "\n".join(parts)
+
+        prompt = conv.get("prompt", "")
+        response = conv.get("response", "")
+        if isinstance(prompt, str) and isinstance(response, str) and prompt and response:
+            return f"User: {prompt}\nAssistant: {response}"
+
+        return ""
 
     @staticmethod
     def _parts_from_messages(messages: list[Any]) -> list[str]:

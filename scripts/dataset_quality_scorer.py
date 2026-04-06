@@ -5,9 +5,10 @@ and assigns quality tiers based on configurable thresholds.
 """
 
 import json
-from pathlib import Path
-from typing import Dict, Any, Optional, List
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 from s3_client_helper import get_s3_client
 
 
@@ -28,7 +29,7 @@ class DatasetQualityScorer:
 
     def load_registry(self) -> Dict[str, Any]:
         """Load the dataset registry."""
-        with open(self.registry_path, "r") as f:
+        with open(self.registry_path) as f:
             return json.load(f)
 
     def save_registry(self, registry: Dict[str, Any]) -> None:

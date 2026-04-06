@@ -8,23 +8,24 @@ Tests verify:
 4. Target dedup rate < 1%
 """
 
-import pytest
+import os
+import sys
 from unittest.mock import Mock
 
-import sys
-import os
+import pytest
+
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from stage_aware_deduplication import (
+    STAGE_PRIORITY,
     compute_primary_hash,
     compute_secondary_hash,
-    get_stage_priority,
-    get_stage_name,
-    resolve_conflict,
     deduplicate_conversations,
     deduplicate_with_secondary_hash,
+    get_stage_name,
+    get_stage_priority,
+    resolve_conflict,
     validate_deduplication,
-    STAGE_PRIORITY,
 )
 
 

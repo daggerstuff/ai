@@ -142,12 +142,12 @@ class StatePersistenceManager:
             """)
 
             conn.execute("""
-                CREATE INDEX IF NOT EXISTS idx_process_task 
+                CREATE INDEX IF NOT EXISTS idx_process_task
                 ON persistent_states (process_id, task_id)
             """)
 
             conn.execute("""
-                CREATE INDEX IF NOT EXISTS idx_scope_updated 
+                CREATE INDEX IF NOT EXISTS idx_scope_updated
                 ON persistent_states (scope, updated_at)
             """)
 
@@ -272,7 +272,7 @@ class StatePersistenceManager:
             with sqlite3.connect(self.db_path) as conn:
                 # Get all active persistent states
                 states = conn.execute("""
-                    SELECT state_id, scope, process_id, task_id, state_data, 
+                    SELECT state_id, scope, process_id, task_id, state_data,
                            metadata, created_at, updated_at, version, checksum, file_path
                     FROM persistent_states
                     ORDER BY updated_at DESC
@@ -411,7 +411,7 @@ class StatePersistenceManager:
                 with gzip.open(snapshot_path, "rt") as f:
                     system_state = json.load(f)
             else:
-                with open(snapshot_path, "r") as f:
+                with open(snapshot_path) as f:
                     system_state = json.load(f)
 
             # Clear current active states
@@ -687,7 +687,7 @@ class StatePersistenceManager:
         should_backup = True
         if last_backup_file.exists():
             try:
-                with open(last_backup_file, "r") as f:
+                with open(last_backup_file) as f:
                     last_backup_str = f.read().strip()
                 last_backup = datetime.fromisoformat(last_backup_str)
 

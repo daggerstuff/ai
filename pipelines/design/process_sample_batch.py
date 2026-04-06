@@ -10,13 +10,13 @@ Usage:
 """
 
 import argparse
-import json
-import logging
-from pathlib import Path
-from typing import List, Dict, Any
 
 # Direct imports to avoid NeMo dependency in __init__.py
 import importlib.util
+import json
+import logging
+from pathlib import Path
+from typing import Any, Dict, List
 
 script_dir = Path(__file__).parent
 
@@ -204,7 +204,7 @@ def analyze_results(stats, output_path: Path) -> None:
     print("\n📝 Sample Classified Records:")
     print("-" * 80)
 
-    with open(output_path, "r") as f:
+    with open(output_path) as f:
         for i, line in enumerate(f, 1):
             if i > 3:  # Show first 3 records
                 break

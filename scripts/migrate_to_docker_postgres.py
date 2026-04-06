@@ -114,14 +114,14 @@ def migrate_json_file(file_path: Path) -> int:
 
         if file_path.suffix == ".jsonl":
             # Handle JSONL files (one JSON object per line)
-            with open(file_path, "r") as f:
+            with open(file_path) as f:
                 for line in f:
                     line = line.strip()
                     if line:
                         conversations.append(json.loads(line))
         else:
             # Handle regular JSON files
-            with open(file_path, "r") as f:
+            with open(file_path) as f:
                 data = json.load(f)
 
             # Handle different JSON structures

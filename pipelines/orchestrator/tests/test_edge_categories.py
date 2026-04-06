@@ -4,16 +4,17 @@ Tests for edge category and profile types.
 """
 
 import pytest
+
+from ai.pipelines.orchestrator.style.less_chipper import Tone
 from ai.pipelines.orchestrator.types.edge_categories import (
     EdgeCategory,
-    IntensityLevel,
     EdgeProfile,
+    IntensityLevel,
     get_all_edge_categories,
     get_all_intensity_levels,
     get_categories_by_intensity,
     validate_edge_profile,
 )
-from ai.pipelines.orchestrator.style.less_chipper import Tone
 
 
 def test_edge_category_enum():

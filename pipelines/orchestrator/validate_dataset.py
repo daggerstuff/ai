@@ -3,19 +3,20 @@ Dataset Quality Validation Script
 Validates the final integrated dataset quality
 """
 
-import sys
-import os
-import json
-from pathlib import Path
-from typing import Dict, List, Any
 import hashlib
+import json
+import os
+import sys
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List
 
 # Ensure the outer workspace root is on sys.path so `ai.*` imports work reliably
 workspace_root = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(workspace_root))
 
 from ai.pipelines.orchestrator.storage_config import get_dataset_pipeline_output_root
+
 
 def validate_dataset_quality(dataset_path: str) -> Dict[str, Any]:
     """
@@ -64,7 +65,7 @@ def validate_dataset_quality(dataset_path: str) -> Dict[str, Any]:
             "text": 0
         }
 
-        with open(dataset_path, 'r') as f:
+        with open(dataset_path) as f:
             for line_num, line in enumerate(f, 1):
                 if not line.strip():
                     continue

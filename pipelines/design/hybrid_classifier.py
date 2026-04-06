@@ -13,20 +13,20 @@ Strategy:
 
 import json
 import logging
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-from dataclasses import dataclass, asdict
 
+from ai.pipelines.design.context_detector import ContextDetector
+from ai.pipelines.design.llm_classifier import (
+    LLMClassificationConfig,
+    LLMTaxonomyClassifier,
+)
 from ai.pipelines.design.taxonomy_classifier import (
+    CategoryClassification,
     TaxonomyClassifier,
     TherapeuticCategory,
-    CategoryClassification,
 )
-from ai.pipelines.design.llm_classifier import (
-    LLMTaxonomyClassifier,
-    LLMClassificationConfig,
-)
-from ai.pipelines.design.context_detector import ContextDetector
 
 logger = logging.getLogger(__name__)
 
@@ -254,7 +254,7 @@ class HybridTaxonomyClassifier:
 
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        with open(input_path, "r") as infile, open(output_path, "w") as outfile:
+        with open(input_path) as infile, open(output_path, "w") as outfile:
             for line_num, line in enumerate(infile, 1):
                 if not line.strip():
                     continue

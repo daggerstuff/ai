@@ -189,7 +189,7 @@ def process_batch(input_file: str, output_file: str, agent: AnnotationAgent):
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     processed_count = 0
-    with open(input_path, "r") as f_in, open(output_path, "w") as f_out:
+    with open(input_path) as f_in, open(output_path, "w") as f_out:
         for line in f_in:
             if not line.strip():
                 continue

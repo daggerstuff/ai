@@ -88,21 +88,21 @@ class AcquireDatasetsTool(MCPTool):
 
             # Get acquired datasets
             acquisitions_list = self.service.get_acquisitions(session_id)
-            
+
             # Auto-integrate with training pipeline if bridge is configured
             integration_results = []
             auto_integrate = params.get("auto_integrate", True)
-            
+
             if self.pipeline_bridge and auto_integrate:
                 logger.info(
                     f"Auto-integrating {len(acquisitions_list)} acquired datasets "
                     "into training pipeline"
                 )
-                
+
                 # Get orchestrator to access evaluations and integration plans
                 orchestrator = self.service.orchestrator
                 state = orchestrator.get_session_state(session_id)
-                
+
                 for acquisition in acquisitions_list:
                     try:
                         # Get evaluation if available
@@ -111,14 +111,14 @@ class AcquireDatasetsTool(MCPTool):
                             if eval_item.source_id == acquisition.source_id:
                                 evaluation = eval_item
                                 break
-                        
+
                         # Get integration plan if available
                         integration_plan = None
                         for plan in state.integration_plans:
                             if plan.source_id == acquisition.source_id:
                                 integration_plan = plan
                                 break
-                        
+
                         # Trigger pipeline integration
                         integration_result = self.pipeline_bridge.on_dataset_acquired(
                             dataset=acquisition,
@@ -130,7 +130,7 @@ class AcquireDatasetsTool(MCPTool):
                             "integration_status": integration_result.get("status"),
                             "auto_integrated": integration_result.get("auto_integrated", False),
                         })
-                        
+
                     except Exception as e:
                         logger.error(
                             f"Error auto-integrating dataset {acquisition.source_id}: {e}",

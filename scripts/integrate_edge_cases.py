@@ -107,7 +107,7 @@ class EdgeCaseIntegrator:
 
         for file_path in existing_files:
             if file_path.exists():
-                with open(file_path, "r") as f:
+                with open(file_path) as f:
                     for line in f:
                         existing_data.append(json.loads(line))
 

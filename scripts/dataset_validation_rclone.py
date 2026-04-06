@@ -4,20 +4,20 @@ Simplified dataset validation using rclone.
 Works with DigitalOcean Spaces and handles directories properly.
 """
 
-import json
 import hashlib
-from pathlib import Path
-from datetime import datetime
-from typing import Dict, Any, List, Optional
+import json
 import sys
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from rclone_dataset_accessor import (
     RcloneDatasetAccessor,
-    list_files_in_directory,
     calculate_checksum,
+    list_files_in_directory,
 )
 
 
@@ -134,7 +134,7 @@ def main():
     print()
 
     # Load registry
-    with open(args.registry, "r") as f:
+    with open(args.registry) as f:
         registry = json.load(f)
 
     # Collect all datasets

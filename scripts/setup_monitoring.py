@@ -4,13 +4,14 @@ Production Monitoring Setup
 Deploys Prometheus, Grafana, and AlertManager for system monitoring.
 """
 
-import os
-import yaml
 import json
+import logging
+import os
 import subprocess
 from pathlib import Path
-import logging
-from typing import Dict, Any
+from typing import Any, Dict
+
+import yaml
 
 # Configure logging
 logging.basicConfig(
@@ -25,17 +26,17 @@ logger = logging.getLogger(__name__)
 
 class MonitoringSetup:
     """Production monitoring setup orchestrator."""
-    
+
     def __init__(self):
         self.monitoring_dir = Path("monitoring")
         self.monitoring_dir.mkdir(exist_ok=True)
-        
+
         # Create subdirectories
         (self.monitoring_dir / "prometheus").mkdir(exist_ok=True)
         (self.monitoring_dir / "grafana").mkdir(exist_ok=True)
         (self.monitoring_dir / "alertmanager").mkdir(exist_ok=True)
         (self.monitoring_dir / "docker-compose").mkdir(exist_ok=True)
-    
+
     def create_prometheus_config(self) -> bool:
         """Create Prometheus configuration."""
         try:
@@ -91,18 +92,18 @@ class MonitoringSetup:
                     }
                 ]
             }
-            
+
             config_path = self.monitoring_dir / "prometheus" / "prometheus.yml"
             with open(config_path, 'w') as f:
                 yaml.dump(prometheus_config, f, default_flow_style=False)
-            
+
             logger.info("✅ Prometheus configuration created")
             return True
-            
+
         except Exception as e:
             logger.error(f"❌ Prometheus config creation failed: {e}")
             return False
-    
+
     def create_alert_rules(self) -> bool:
         """Create Prometheus alert rules."""
         try:
@@ -165,18 +166,18 @@ class MonitoringSetup:
                     }
                 ]
             }
-            
+
             rules_path = self.monitoring_dir / "prometheus" / "alert_rules.yml"
             with open(rules_path, 'w') as f:
                 yaml.dump(alert_rules, f, default_flow_style=False)
-            
+
             logger.info("✅ Alert rules created")
             return True
-            
+
         except Exception as e:
             logger.error(f"❌ Alert rules creation failed: {e}")
             return False
-    
+
     def create_grafana_config(self) -> bool:
         """Create Grafana configuration and dashboards."""
         try:
@@ -193,11 +194,11 @@ class MonitoringSetup:
                     }
                 ]
             }
-            
+
             datasource_path = self.monitoring_dir / "grafana" / "datasources.yml"
             with open(datasource_path, 'w') as f:
                 yaml.dump(datasource_config, f, default_flow_style=False)
-            
+
             # Create basic dashboard
             dashboard = {
                 "dashboard": {
@@ -259,18 +260,18 @@ class MonitoringSetup:
                     "refresh": "5s"
                 }
             }
-            
+
             dashboard_path = self.monitoring_dir / "grafana" / "dashboard.json"
             with open(dashboard_path, 'w') as f:
                 json.dump(dashboard, f, indent=2)
-            
+
             logger.info("✅ Grafana configuration created")
             return True
-            
+
         except Exception as e:
             logger.error(f"❌ Grafana config creation failed: {e}")
             return False
-    
+
     def create_docker_compose(self) -> bool:
         """Create Docker Compose configuration for monitoring stack."""
         try:
@@ -348,18 +349,18 @@ class MonitoringSetup:
                     "grafana_data": {}
                 }
             }
-            
+
             compose_path = self.monitoring_dir / "docker-compose.yml"
             with open(compose_path, 'w') as f:
                 yaml.dump(docker_compose, f, default_flow_style=False)
-            
+
             logger.info("✅ Docker Compose configuration created")
             return True
-            
+
         except Exception as e:
             logger.error(f"❌ Docker Compose creation failed: {e}")
             return False
-    
+
     def deploy_monitoring_stack(self) -> bool:
         """Deploy the monitoring stack using Docker Compose."""
         try:
@@ -400,32 +401,32 @@ class MonitoringSetup:
 def main():
     """Main monitoring setup orchestrator."""
     logger.info("🔍 STARTING MONITORING SETUP")
-    
+
     setup = MonitoringSetup()
-    
+
     # Create configurations
     if not setup.create_prometheus_config():
         return False
-    
+
     if not setup.create_alert_rules():
         return False
-    
+
     if not setup.create_grafana_config():
         return False
-    
+
     if not setup.create_docker_compose():
         return False
-    
+
     # Deploy stack
     if not setup.deploy_monitoring_stack():
         return False
-    
+
     logger.info("✅ MONITORING SETUP COMPLETED SUCCESSFULLY!")
     logger.info("Access URLs:")
     logger.info("  - Prometheus: http://localhost:9090")
     logger.info("  - Grafana: http://localhost:3000 (admin/admin123)")
     logger.info("  - AlertManager: http://localhost:9093")
-    
+
     return True
 
 if __name__ == "__main__":

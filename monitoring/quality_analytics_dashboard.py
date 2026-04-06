@@ -94,7 +94,7 @@ class QualityAnalyticsDashboard:
 
             # Load conversation quality data
             query = """
-            SELECT 
+            SELECT
                 c.id,
                 c.tier,
                 c.dataset_name,

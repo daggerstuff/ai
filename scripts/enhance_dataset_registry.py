@@ -5,9 +5,9 @@ lineage tracking, quality metrics, sync verification, and version control fields
 """
 
 import json
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict
-from datetime import datetime
 
 
 def create_enhanced_dataset_entry(original_entry: Dict[str, Any]) -> Dict[str, Any]:
@@ -112,7 +112,7 @@ def enhance_registry(
     Returns:
         Statistics about the enhancement process
     """
-    with open(input_path, "r") as f:
+    with open(input_path) as f:
         registry = json.load(f)
 
     stats = {
