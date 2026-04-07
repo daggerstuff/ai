@@ -104,7 +104,7 @@ def build_pipeline_services(
         stats=stats,
         cache_data=cache_data,
     )
-    source_loader_service = SourceLoaderService(stats=stats)
+    source_loader_service = SourceLoaderService(stats=stats, config=config)
     dataset_quality_service = DatasetQualityService(
         stats=stats,
         curriculum_enforcement_service=curriculum_enforcement_service,
