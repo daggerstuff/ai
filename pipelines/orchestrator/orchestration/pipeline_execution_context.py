@@ -1,6 +1,4 @@
-"""
-Execution context for the integrated training pipeline.
-"""
+"""Execution context for dataset assembly workflows."""
 
 from __future__ import annotations
 

@@ -1,6 +1,4 @@
-"""
-Rebuild stage health artifacts from persisted integrated pipeline outputs.
-"""
+"""Rebuild stage health artifacts from persisted dataset assembly outputs."""
 
 from __future__ import annotations
 
@@ -17,7 +15,7 @@ from ai.pipelines.orchestrator.orchestration.run_artifact_service import (
 
 @dataclass
 class PersistedRunStats:
-    """Minimal stats view backed by a persisted integrated pipeline report."""
+    """Minimal stats view backed by a persisted dataset assembly report."""
 
     total_samples: int
     samples_by_source: dict[str, int] = field(default_factory=dict)

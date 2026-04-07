@@ -1,6 +1,4 @@
-"""
-Run artifact generation and persistence for the integrated training pipeline.
-"""
+"""Run artifact generation and persistence for dataset assembly workflows."""
 
 from __future__ import annotations
 

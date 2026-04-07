@@ -1,6 +1,4 @@
-"""
-Source-loading coordinator for the integrated training pipeline.
-"""
+"""Source-loading coordinator for dataset assembly workflows."""
 
 from __future__ import annotations
 

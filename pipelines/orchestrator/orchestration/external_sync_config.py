@@ -1,6 +1,4 @@
-"""
-External tracker and artifact sync configuration for integrated training runs.
-"""
+"""External tracker and artifact sync configuration for dataset assembly runs."""
 
 from __future__ import annotations
 

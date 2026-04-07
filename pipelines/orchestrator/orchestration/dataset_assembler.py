@@ -1,6 +1,4 @@
-"""
-Dataset assembly coordinator for the integrated training pipeline.
-"""
+"""Dataset assembly coordinator for dataset assembly workflows."""
 
 from __future__ import annotations
 
