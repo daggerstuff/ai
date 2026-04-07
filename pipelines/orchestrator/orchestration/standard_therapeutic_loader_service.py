@@ -19,6 +19,7 @@ class StandardTherapeuticConfigProtocol(Protocol):
     source_path: str | None
     source_paths: tuple[str, ...]
     fallback_paths: tuple[str, ...]
+    max_samples: int | None
 
 
 class LoaderStatsProtocol(Protocol):
@@ -46,9 +47,13 @@ class StandardTherapeuticLoaderService:
     def load(self) -> list[dict[str, Any]]:
         """Load standard therapeutic data from gdrive-backed JSONL or local JSON files."""
         candidate_paths = self._candidate_source_paths()
+        max_samples = getattr(self.config, "max_samples", None)
         raw_conversations: list[Any] = []
         last_error: Exception | None = None
         for candidate_path in candidate_paths:
+            remaining_samples = None if max_samples is None else max_samples - len(raw_conversations)
+            if remaining_samples is not None and remaining_samples <= 0:
+                break
             try:
                 standard_file = self._resolve_candidate_path(candidate_path)
             except Exception as exc:
@@ -59,9 +64,21 @@ class StandardTherapeuticLoaderService:
             logger.info("Attempting to load from: %s", standard_file)
             try:
                 if standard_file.suffix == ".jsonl":
-                    raw_conversations.extend(self._load_jsonl_file(standard_file))
+                    loaded_records = self._load_jsonl_file(
+                        standard_file,
+                        max_samples=remaining_samples,
+                    )
                 else:
-                    raw_conversations.extend(self._try_load_json_file(standard_file))
+                    loaded_records = self._try_load_json_file(standard_file)
+                    if remaining_samples is not None:
+                        loaded_records = loaded_records[:remaining_samples]
+                raw_conversations.extend(loaded_records)
+                if max_samples is not None and len(raw_conversations) >= max_samples:
+                    logger.info(
+                        "✅ Applied standard therapeutic max_samples cap at %s records",
+                        max_samples,
+                    )
+                    break
             except Exception as exc:
                 last_error = exc
                 continue

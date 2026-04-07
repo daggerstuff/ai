@@ -30,11 +30,28 @@ class SourceLoaderStatsProtocol(Protocol):
     errors: list[str]
 
 
+class SourceConfigProtocol(Protocol):
+    max_samples: int | None
+
+
+class SourceLoaderConfigProtocol(Protocol):
+    edge_cases: SourceConfigProtocol
+    pixel_voice: SourceConfigProtocol
+    psychology_knowledge: SourceConfigProtocol
+    dual_persona: SourceConfigProtocol
+
+
 class SourceLoaderService:
     """Own non-standard source loading so the pipeline stays orchestration-only."""
 
-    def __init__(self, *, stats: SourceLoaderStatsProtocol) -> None:
+    def __init__(
+        self,
+        *,
+        stats: SourceLoaderStatsProtocol,
+        config: SourceLoaderConfigProtocol,
+    ) -> None:
         self.stats = stats
+        self.config = config
 
     def load_edge_cases(self, file_paths: list[Path] | None = None) -> list[dict[str, Any]]:
         """Load edge case training data."""
@@ -46,12 +63,17 @@ class SourceLoaderService:
                 loader = EdgeCaseJSONLLoader(file_path=file_path)
                 if not loader.check_pipeline_output_exists():
                     continue
-                for record in loader.convert_to_training_format(loader.load_edge_cases()):
+                source_cap = self.config.edge_cases.max_samples
+                for record in loader.convert_to_training_format(
+                    loader.load_edge_cases(max_samples=source_cap)
+                ):
                     record_key = json.dumps(record, sort_keys=True, ensure_ascii=True)
                     if record_key in seen_outputs:
                         continue
                     seen_outputs.add(record_key)
                     aggregated.append(record)
+                    if source_cap is not None and len(aggregated) >= source_cap:
+                        return aggregated[:source_cap]
             if aggregated:
                 return aggregated
             warning = "Edge case data not found. Run edge case pipeline first."

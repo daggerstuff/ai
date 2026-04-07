@@ -16,7 +16,9 @@ from ai.pipelines.orchestrator.orchestration.standard_therapeutic_loader_service
 @dataclass
 class _LoaderConfigStub:
     source_path: str | None
+    source_paths: tuple[str, ...] = ()
     fallback_paths: tuple[str, ...] = ()
+    max_samples: int | None = None
 
 
 @dataclass
@@ -75,6 +77,33 @@ def test_standard_therapeutic_loader_service_loads_and_normalizes_json(tmp_path:
     assert len(records) == 2
     assert records[0]["metadata"]["source"] == "standard_therapeutic"
     assert "User: I feel overwhelmed." in records[1]["text"]
+
+
+def test_standard_therapeutic_loader_service_honors_max_samples_across_sources(tmp_path: Path):
+    primary = tmp_path / "primary.jsonl";
+    primary.write_text("\n".join([json.dumps({"prompt": "p1", "response": "r1"}), json.dumps({"prompt": "p2", "response": "r2"})]) + "\n", encoding="utf-8")
+    secondary = tmp_path / "secondary.jsonl";
+    secondary.write_text("\n".join([json.dumps({"prompt": "p3", "response": "r3"}), json.dumps({"prompt": "p4", "response": "r4"})]) + "\n", encoding="utf-8")
+
+    stats = _StatsStub()
+    service = StandardTherapeuticLoaderService(
+        config=_LoaderConfigStub(
+            source_path=str(primary),
+            source_paths=(str(secondary),),
+            max_samples=3,
+        ),
+        stats=stats,
+        cache_data=lambda path: None,
+    )
+
+    records = service.load()
+
+    assert len(records) == 3
+    assert [record["text"] for record in records] == [
+        "User: p1\nAssistant: r1",
+        "User: p2\nAssistant: r2",
+        "User: p3\nAssistant: r3",
+    ]
 
 
 def test_dataset_output_service_writes_dataset_and_split_artifacts(
