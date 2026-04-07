@@ -48,6 +48,12 @@ def _parse_args() -> argparse.Namespace:
         )
     )
     parser.add_argument(
+        "--preset",
+        choices=("full-capped-1k",),
+        default=None,
+        help="Named probe preset for repeatable operational runs.",
+    )
+    parser.add_argument(
         "--target-total",
         type=int,
         default=1000,
@@ -90,6 +96,12 @@ def _parse_args() -> argparse.Namespace:
 
 
 def _build_config(args: argparse.Namespace) -> IntegratedPipelineConfig:
+    if args.preset == "full-capped-1k":
+        args.target_total = 1000
+        args.standard_max_samples = 2000
+        args.edge_max_samples = 2000
+        args.specialists_first = True
+
     config = IntegratedPipelineConfig(
         target_total_samples=args.target_total,
         enable_bias_detection=False,
