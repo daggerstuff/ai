@@ -7,19 +7,15 @@ import pytest
 
 from ai.pipelines.orchestrator.orchestration.data_ingestion_coordinator import (
     DataIngestionCoordinator,
-    SourceLoadFailure,
 )
-from ai.pipelines.orchestrator.orchestration.data_ingestion_plan import (
-    build_source_definitions,
-    resolve_source_load_max_workers,
-    resolve_source_warm_max_workers,
-)
+from ai.pipelines.orchestrator.orchestration.storage_resolver import StorageCacheError
 
 
 @dataclass
 class _SourceConfigStub:
     enabled: bool = True
     source_path: str | None = None
+    source_paths: tuple[str, ...] = ()
 
 
 @dataclass
@@ -34,157 +30,103 @@ class _PipelineConfigStub:
 class _StorageResolverStub:
     def __init__(self, resolved_paths: dict[str, Path | None]):
         self.resolved_paths = resolved_paths
-        self.calls: list[str | None] = []
+        self.calls: list[str] = []
 
     def cache_data(self, source_path: str | None) -> Path | None:
-        self.calls.append(source_path)
-        return self.resolved_paths[source_path or ""]
+        key = source_path or ""
+        self.calls.append(key)
+        return self.resolved_paths[key]
 
 
-def test_data_ingestion_coordinator_warms_and_passes_standard_therapeutic_cached_path(
+def test_data_ingestion_coordinator_warms_cached_sources_and_updates_counts(
     tmp_path: Path,
 ):
-    edge_path = "s3://pixel-data/curated_sources/consolidated/edge_cases/existing_edge_cases.jsonl"
-    standard_path = (
-        "s3://pixel-data/curated_sources/consolidated/final_datasets/"
-        "ULTIMATE_FINAL_DATASET.jsonl"
-    )
-    cached_edge = tmp_path / "edge.jsonl"
-    cached_standard = tmp_path / "standard.jsonl"
+    edge_path = "s3://pixel-data/edge.jsonl"
+    voice_path = "s3://pixel-data/voice.jsonl"
     resolver = _StorageResolverStub(
         {
-            edge_path: cached_edge,
-            standard_path: cached_standard,
+            edge_path: tmp_path / "edge.jsonl",
+            voice_path: tmp_path / "voice.jsonl",
         }
     )
-    standard_loader_calls: list[Path | None] = []
+    routing_calls: list[tuple[str, int]] = []
+
     config = _PipelineConfigStub(
         edge_cases=_SourceConfigStub(enabled=True, source_path=edge_path),
-        pixel_voice=_SourceConfigStub(enabled=False, source_path=None),
-        psychology_knowledge=_SourceConfigStub(enabled=False, source_path=None),
-        dual_persona=_SourceConfigStub(enabled=False, source_path=None),
-        standard_therapeutic=_SourceConfigStub(
-            enabled=True,
-            source_path=standard_path,
-        ),
+        pixel_voice=_SourceConfigStub(enabled=True, source_path=voice_path),
+        psychology_knowledge=_SourceConfigStub(enabled=False),
+        dual_persona=_SourceConfigStub(enabled=False),
+        standard_therapeutic=_SourceConfigStub(enabled=False),
     )
+
     coordinator = DataIngestionCoordinator(
+        config=config,
         storage_resolver=resolver,
-        source_definitions=build_source_definitions(
-            config=config,
-            loaders={
-                "edge_cases": lambda path: [],
-                "pixel_voice": lambda path: [],
-                "psychology_knowledge": lambda path: [],
-                "dual_persona": lambda path: [],
-                "standard_therapeutic": (
-                    lambda path: standard_loader_calls.append(path) or []
-                ),
-            },
+        load_edge_cases=lambda paths: [{"text": str(paths[0])}] if paths else [],
+        load_pixel_voice=lambda paths: [{"text": str(paths[0])}] if paths else [],
+        load_psychology_knowledge=lambda paths: [],
+        load_dual_persona=lambda paths: [],
+        load_standard_therapeutic=lambda: [],
+        apply_intake_routing=(
+            lambda records, source_family: routing_calls.append(
+                (source_family, len(records))
+            )
+            or records
         ),
-        apply_intake_routing=lambda records, source_family: records,
         samples_by_source={},
     )
 
-    list(coordinator.load_all_sources())
+    loaded = coordinator.load_all_sources()
 
-    assert resolver.calls == [edge_path, standard_path]
-    assert standard_loader_calls == [cached_standard]
-
-
-def test_resolve_source_warm_max_workers_uses_env_cap(monkeypatch):
-    monkeypatch.setenv("PIXELATED_SOURCE_WARM_MAX_WORKERS", "2")
-
-    assert resolve_source_warm_max_workers(5) == 2
-
-
-def test_resolve_source_load_max_workers_uses_env_cap(monkeypatch):
-    monkeypatch.setenv("PIXELATED_SOURCE_LOAD_MAX_WORKERS", "3")
-
-    assert resolve_source_load_max_workers(5) == 3
-
-
-def test_data_ingestion_coordinator_iter_loaded_sources_yields_batches(
-    tmp_path: Path,
-):
-    edge_path = "s3://pixel-data/curated_sources/consolidated/edge_cases/existing_edge_cases.jsonl"
-    standard_path = (
-        "s3://pixel-data/curated_sources/consolidated/final_datasets/"
-        "ULTIMATE_FINAL_DATASET.jsonl"
-    )
-    cached_edge = tmp_path / "edge.jsonl"
-    cached_standard = tmp_path / "standard.jsonl"
-    resolver = _StorageResolverStub(
-        {
-            edge_path: cached_edge,
-            standard_path: cached_standard,
-        }
-    )
-    config = _PipelineConfigStub(
-        edge_cases=_SourceConfigStub(enabled=True, source_path=edge_path),
-        pixel_voice=_SourceConfigStub(enabled=False, source_path=None),
-        psychology_knowledge=_SourceConfigStub(enabled=False, source_path=None),
-        dual_persona=_SourceConfigStub(enabled=False, source_path=None),
-        standard_therapeutic=_SourceConfigStub(
-            enabled=True,
-            source_path=standard_path,
-        ),
-    )
-    coordinator = DataIngestionCoordinator(
-        storage_resolver=resolver,
-        source_definitions=build_source_definitions(
-            config=config,
-            loaders={
-                "edge_cases": lambda path: [{"text": "edge"}],
-                "pixel_voice": lambda path: [],
-                "psychology_knowledge": lambda path: [],
-                "dual_persona": lambda path: [],
-                "standard_therapeutic": lambda path: [{"text": "standard"}],
-            },
-        ),
-        apply_intake_routing=lambda records, source_family: records,
-        samples_by_source={},
-    )
-
-    batches = list(coordinator.iter_loaded_sources())
-
-    assert {definition.key for definition, _ in batches} == {
-        "edge_cases",
-        "standard_therapeutic",
+    assert len(loaded) == 2
+    assert resolver.calls == [edge_path, voice_path]
+    assert routing_calls == [("edge_case", 1), ("voice_persona", 1)]
+    assert coordinator.samples_by_source == {
+        "edge_cases": 1,
+        "pixel_voice": 1,
     }
-    assert sum(len(records) for _, records in batches) == 2
 
 
-def test_data_ingestion_coordinator_records_zero_samples_for_failed_source(
-    tmp_path: Path,
-):
-    edge_path = "s3://pixel-data/curated_sources/consolidated/edge_cases/existing_edge_cases.jsonl"
-    resolver = _StorageResolverStub({edge_path: tmp_path / "edge.jsonl"})
-    samples_by_source: dict[str, int] = {}
-    config = _PipelineConfigStub(
-        edge_cases=_SourceConfigStub(enabled=True, source_path=edge_path),
-        pixel_voice=_SourceConfigStub(enabled=False, source_path=None),
-        psychology_knowledge=_SourceConfigStub(enabled=False, source_path=None),
-        dual_persona=_SourceConfigStub(enabled=False, source_path=None),
-        standard_therapeutic=_SourceConfigStub(enabled=False, source_path=None),
-    )
-    coordinator = DataIngestionCoordinator(
-        storage_resolver=resolver,
-        source_definitions=build_source_definitions(
-            config=config,
-            loaders={
-                "edge_cases": lambda path: (_ for _ in ()).throw(RuntimeError("boom")),
-                "pixel_voice": lambda path: [],
-                "psychology_knowledge": lambda path: [],
-                "dual_persona": lambda path: [],
-                "standard_therapeutic": lambda path: [],
-            },
+def test_data_ingestion_coordinator_dedupes_configured_source_paths():
+    config = _SourceConfigStub(
+        enabled=True,
+        source_path="s3://pixel-data/edge.jsonl",
+        source_paths=(
+            "s3://pixel-data/edge.jsonl",
+            "s3://pixel-data/edge-2.jsonl",
         ),
-        apply_intake_routing=lambda records, source_family: records,
-        samples_by_source=samples_by_source,
     )
 
-    with pytest.raises(SourceLoadFailure, match="edge_cases: boom"):
-        list(coordinator.iter_loaded_sources())
+    assert DataIngestionCoordinator._configured_source_paths(config) == [
+        "s3://pixel-data/edge.jsonl",
+        "s3://pixel-data/edge-2.jsonl",
+    ]
 
-    assert samples_by_source["edge_cases"] == 0
+
+def test_data_ingestion_coordinator_raises_storage_cache_errors(tmp_path: Path):
+    edge_path = "s3://pixel-data/edge.jsonl"
+
+    class _FailingResolver:
+        def cache_data(self, source_path: str | None) -> Path | None:
+            raise StorageCacheError(source_path or "", "failed to cache")
+
+    coordinator = DataIngestionCoordinator(
+        config=_PipelineConfigStub(
+            edge_cases=_SourceConfigStub(enabled=True, source_path=edge_path),
+            pixel_voice=_SourceConfigStub(enabled=False),
+            psychology_knowledge=_SourceConfigStub(enabled=False),
+            dual_persona=_SourceConfigStub(enabled=False),
+            standard_therapeutic=_SourceConfigStub(enabled=False),
+        ),
+        storage_resolver=_FailingResolver(),
+        load_edge_cases=lambda paths: [],
+        load_pixel_voice=lambda paths: [],
+        load_psychology_knowledge=lambda paths: [],
+        load_dual_persona=lambda paths: [],
+        load_standard_therapeutic=lambda: [],
+        apply_intake_routing=lambda records, source_family: records,
+        samples_by_source={},
+    )
+
+    with pytest.raises(StorageCacheError, match="failed to cache"):
+        coordinator.load_all_sources()

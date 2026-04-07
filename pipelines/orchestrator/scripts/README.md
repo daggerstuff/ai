@@ -69,41 +69,41 @@ The legacy integrated probe runner has been removed. Do not treat any old
 
 ```bash
 # Run complete Release 0 process
-python scripts/release_orchestrator.py
+uv run python scripts/release_orchestrator.py
 
 # Run with custom release version
-python scripts/release_orchestrator.py --release-version v2025-01-02
+uv run python scripts/release_orchestrator.py --release-version v2025-01-02
 
 # Dry run to see execution plan
-python scripts/release_orchestrator.py --dry-run
+uv run python scripts/release_orchestrator.py --dry-run
 
 # Continue on non-blocking failures
-python scripts/release_orchestrator.py --no-fail-fast
+uv run python scripts/release_orchestrator.py --no-fail-fast
 ```
 
 ### Run Individual Issues
 
 ```bash
 # Issue 2: Coverage Matrix
-python scripts/build_coverage_matrix.py
+uv run python scripts/build_coverage_matrix.py
 
 # Issue 3: Manifest + Export
-python scripts/build_release_manifest.py v2025-01-02
+uv run python scripts/build_release_manifest.py v2025-01-02
 
 # Issue 4: Privacy + Provenance Gates
-python scripts/privacy_provenance_gates.py v2025-01-02
+uv run python scripts/privacy_provenance_gates.py v2025-01-02
 
 # Issue 5: Dedup + Leakage Gates
-python scripts/dedup_leakage_gates.py v2025-01-02
+uv run python scripts/dedup_leakage_gates.py v2025-01-02
 
 # Issue 6: Distribution Gate
-python scripts/distribution_gate.py v2025-01-02
+uv run python scripts/distribution_gate.py v2025-01-02
 
 # Issue 7: Human QA Signoff
-python scripts/human_qa_signoff.py v2025-01-02
+uv run python scripts/human_qa_signoff.py v2025-01-02
 
 # Issue 8: Training Consumption Test
-python scripts/training_consumption_test.py v2025-01-02
+uv run python scripts/training_consumption_test.py v2025-01-02
 ```
 
 ## Release Artifacts
@@ -355,7 +355,7 @@ for testing and development.
 Run individual scripts with verbose output to diagnose issues:
 
 ```bash
-python scripts/build_coverage_matrix.py 2>&1 | tee debug.log
+uv run python scripts/build_coverage_matrix.py 2>&1 | tee debug.log
 ```
 
 ## Future Enhancements
