@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { PixelatedEmpathyAPI, PixelatedEmpathyAPIError, RateLimitError } from './javascript_client';
 
 describe('PixelatedEmpathyAPI Error Handling', () => {
@@ -47,5 +47,29 @@ describe('PixelatedEmpathyAPI Constructor', () => {
         expect(api.baseUrl).toBe('https://test.api.com/v1');
         expect(api.timeout).toBe(15000);
         expect(api.maxRetries).toBe(5);
+    });
+});
+
+describe('PixelatedEmpathyAPI Methods', () => {
+    describe('healthCheck', () => {
+        it('should return true when API returns success', async () => {
+            const api = new PixelatedEmpathyAPI('test_key');
+            // Mock _makeRequest to return { success: true }
+            vi.spyOn(api, '_makeRequest').mockResolvedValue({ success: true });
+
+            const result = await api.healthCheck();
+            expect(api._makeRequest).toHaveBeenCalledWith('GET', '/health');
+            expect(result).toBe(true);
+        });
+
+        it('should return false when API throws an error', async () => {
+            const api = new PixelatedEmpathyAPI('test_key');
+            // Mock _makeRequest to throw an error
+            vi.spyOn(api, '_makeRequest').mockRejectedValue(new Error('Network error'));
+
+            const result = await api.healthCheck();
+            expect(api._makeRequest).toHaveBeenCalledWith('GET', '/health');
+            expect(result).toBe(false);
+        });
     });
 });
