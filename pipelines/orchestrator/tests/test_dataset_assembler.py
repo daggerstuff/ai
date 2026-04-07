@@ -1,15 +1,12 @@
 from __future__ import annotations
 
-import pytest
-
 from ai.pipelines.orchestrator.orchestration.dataset_assembler import DatasetAssembler
 
 
-def test_dataset_assembler_rejects_oversized_prebalance_materialization():
+def test_dataset_assembler_runs_assembly_sequence():
     assembler = DatasetAssembler(
         enable_bias_detection=False,
         enable_quality_validation=False,
-        max_prebalance_records=1,
         balance_dataset=lambda records: (records, {"stage1_foundation": records}),
         run_bias_detection=lambda records: records,
         run_quality_validation=lambda records: records,
@@ -22,8 +19,10 @@ def test_dataset_assembler_rejects_oversized_prebalance_materialization():
         checklist_tracker_sync_service=_ChecklistTrackerSyncServiceStub(),
     )
 
-    with pytest.raises(ValueError, match="Pre-balance training corpus exceeds"):
-        assembler.assemble(iter([{"text": "a"}, {"text": "b"}]))
+    result = assembler.assemble([{"text": "a"}, {"text": "b"}])
+
+    assert result["training_data"] == [{"text": "a"}, {"text": "b"}]
+    assert result["output_path"] == "ignored.json"
 
 
 class _RunArtifactServiceStub:

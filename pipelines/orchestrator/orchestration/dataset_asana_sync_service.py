@@ -103,13 +103,13 @@ class DatasetAsanaSyncService:
                 for dataset_meta, task_key in work_items
             }
             for future in as_completed(future_map):
-                dataset_path, task_key, update_result = future.result()
+                dataset_path, update_result, warning = future.result()
                 if update_result:
                     self._update_task_mapping(
-                        task_key, update_result["gid"], project_gid
+                        update_result["task_key"], update_result["gid"], project_gid
                     )
-                if update_result.get("warning"):
-                    self._warn(update_result["warning"])
+                if warning:
+                    self._warn(warning)
 
         # Save updated task mapping
         self._save_dataset_task_mapping(task_mapping, project_gid)

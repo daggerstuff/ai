@@ -34,6 +34,14 @@ class _WarningSink:
     warnings: list[str] = field(default_factory=list)
 
 
+class _ResolverStub:
+    def __init__(self, training_gid: str | None = None) -> None:
+        self.training_gid = training_gid
+
+    def resolve_training_asana_project_gid(self) -> str | None:
+        return self.training_gid
+
+
 def test_runtime_policy_service_hydrates_tracker_env(monkeypatch):
     config = _ConfigStub()
     warnings = _WarningSink()
@@ -67,6 +75,7 @@ def test_runtime_policy_service_hydrates_legacy_asana_project_id(monkeypatch):
         warning_sink=warnings,
         default_stage_distribution=config.stage_distribution,
         default_stage_drift_tolerance=0.02,
+        integration_config_resolver=_ResolverStub(),
     )
 
     monkeypatch.delenv("ASANA_PROJECT_GID", raising=False)
