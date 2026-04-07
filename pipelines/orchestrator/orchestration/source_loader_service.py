@@ -1,6 +1,4 @@
-"""
-Source-specific loader orchestration for the integrated training pipeline.
-"""
+"""Source-specific loader orchestration for dataset assembly flows."""
 
 from __future__ import annotations
 

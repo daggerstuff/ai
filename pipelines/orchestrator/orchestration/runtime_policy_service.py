@@ -1,6 +1,4 @@
-"""
-Runtime policy and operational freshness helpers for the integrated pipeline.
-"""
+"""Runtime policy and operational freshness helpers for dataset assembly flows."""
 
 from __future__ import annotations
 

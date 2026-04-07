@@ -40,15 +40,6 @@ multiple strategic points.
 - **Behavior**: Uses QualityFilterV1 for batch filtering
 - **Fallback**: Falls back to quality_score attribute check
 
-### ✅ 4. Integrated Training Pipeline
-**File**: `ai/pipelines/orchestrator/orchestration/integrated_training_pipeline.py`
-
-- **Location**: `_run_quality_validation` method
-- **Behavior**: Validates and filters training data using Quality Scoring v1
-- **Output**: Adds quality scoring results to metadata
-
----
-
 ## Components Created
 
 1. **QualityScoringV1** (`quality_scoring_v1.py`)
@@ -77,7 +68,6 @@ Quality Scoring v1 is now automatically used in:
 - Pipeline orchestrator quality validation
 - Unified preprocessing record enhancement
 - Production pipeline quality filtering
-- Integrated training pipeline validation
 
 No additional code needed - it's integrated transparently with fallbacks.
 

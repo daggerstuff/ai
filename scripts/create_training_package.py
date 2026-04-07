@@ -43,7 +43,6 @@ def _get_package_config():
             ],
             # Data pipeline scripts
             "data_pipeline": [
-                "ai/pipelines/orchestrator/orchestration/integrated_training_pipeline.py",
                 "ai/pipelines/orchestrator/ingestion/edge_case_jsonl_loader.py",
                 "ai/pipelines/orchestrator/ingestion/dual_persona_loader.py",
                 "ai/pipelines/orchestrator/ingestion/psychology_knowledge_loader.py",
@@ -170,7 +169,6 @@ def _create_package_readme(package_dir, copied_files, missing_files):
 - `IMPLEMENTATION_COMPLETE.md` - System summary
 
 ### Data Pipeline (`data_pipeline/`)
-- `integrated_training_pipeline.py` - Main data orchestrator
 - `edge_case_jsonl_loader.py` - Edge case loader
 - `dual_persona_loader.py` - Dual persona loader
 - `psychology_knowledge_loader.py` - Psychology knowledge loader
@@ -222,16 +220,7 @@ else:
 "
 ```
 
-### 4. Generate Training Data (if needed)
-
-```bash
-# If training data is missing, generate it
-python data_pipeline/integrated_training_pipeline.py
-
-# This will create training_dataset.json with 8,000 samples
-```
-
-### 5. Start Training
+### 4. Start Training
 
 ```bash
 # Copy training script to working directory
@@ -253,7 +242,7 @@ python train_optimized.py
 # - Output to ./therapeutic_moe_model/
 ```
 
-### 6. Monitor Training
+### 5. Monitor Training
 
 ```bash
 # Watch training log

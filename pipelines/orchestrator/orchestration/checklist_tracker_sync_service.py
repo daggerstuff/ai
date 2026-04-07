@@ -1,6 +1,4 @@
-"""
-Checklist emission and tracker synchronization for integrated training runs.
-"""
+"""Checklist emission and tracker synchronization for dataset assembly runs."""
 
 from __future__ import annotations
 
@@ -139,7 +137,7 @@ class ChecklistTrackerSyncService:
 
         generated_at = str(checklist.get("generated_at", datetime.now(timezone.utc).isoformat()))
         event = TrackerSyncEvent(
-            source="integrated_training_pipeline",
+            source="dataset_assembly_workflow",
             source_id=generated_at,
             title=f"Training Checklist {generated_at}",
             body=json.dumps(checklist, indent=2),

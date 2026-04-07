@@ -1,6 +1,4 @@
-"""
-Factory helpers for wiring integrated pipeline services.
-"""
+"""Factory helpers for wiring dataset assembly services."""
 
 from __future__ import annotations
 
@@ -80,7 +78,7 @@ def build_pipeline_services(
     cache_data: Callable[[str | None], Path | None],
     apply_intake_routing: Callable[[list[dict], str], list[dict]],
 ) -> PipelineServiceBundle:
-    """Build the service graph for the integrated training pipeline."""
+    """Build the service graph for dataset assembly workflows."""
     asana_client = AsanaTrackerClient()
     curriculum_enforcement_service = CurriculumEnforcementService(
         config=config,

@@ -19,10 +19,6 @@ sys.path.insert(0, str(workspace_root))
 # from ai.pipelines.orchestrator.ingestion.psychology_knowledge_loader import (
 #     PsychologyKnowledgeLoader,
 # )
-# from ai.pipelines.orchestrator.orchestration.integrated_training_pipeline import (
-#     IntegratedPipelineConfig,
-#     IntegratedTrainingPipeline,
-# )
 # from ai.pipelines.orchestrator.storage_config import get_dataset_pipeline_output_root
 
 
@@ -67,7 +63,7 @@ def test_individual_loaders():
 
 
 def test_integrated_pipeline():
-    """Test the complete integrated pipeline"""
+    """Legacy integrated pipeline remains intentionally removed."""
     print("\n" + "=" * 80)
     print("TESTING INTEGRATED TRAINING PIPELINE")
     print("=" * 80)
@@ -79,7 +75,7 @@ def test_integrated_pipeline():
     print("✅ END-TO-END TEST COMPLETE (SKIPPED - Modules not implemented)")
     print("=" * 80)
 
-    return True
+    assert True
 
 
 def test_progress_tracker_integration():
@@ -131,13 +127,13 @@ def test_progress_tracker_integration():
 
         print("\n⚠️  Progress tracker module not yet implemented")
         print("    Skipping progress tracker test")
-        return True
+        assert True
 
     except Exception as e:
         print(f"\n❌ Progress tracker test failed: {e}")
         import traceback
         traceback.print_exc()
-        return False
+        raise AssertionError("Progress tracker integration test failed") from e
 
 
 def main():
@@ -188,12 +184,7 @@ def main():
         print("1. Run edge case generator to create actual data:")
         print("   cd ai/pipelines/edge_case/")
         print("   python quick_start.py")
-        print("\n2. Run full integrated pipeline:")
-        print(
-            "   python ai/pipelines/orchestrator/orchestration/"
-            "integrated_training_pipeline.py"
-        )
-        print("\n3. Start training on H100:")
+        print("\n2. Start training on H100:")
         print("   cd ai/lightning/")
         print("   python train_optimized.py")
     else:

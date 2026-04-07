@@ -1,6 +1,4 @@
-"""
-Standard therapeutic source loading and normalization for the integrated pipeline.
-"""
+"""Standard therapeutic source loading and normalization for dataset assembly."""
 
 from __future__ import annotations
 

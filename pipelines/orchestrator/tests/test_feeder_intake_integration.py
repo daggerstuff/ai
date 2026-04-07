@@ -4,8 +4,10 @@ from ai.pipelines.orchestrator.knowledge_text_extractor import (
     KnowledgeSourceMetadata,
     KnowledgeTextExtractor,
 )
-from ai.pipelines.orchestrator.orchestration.integrated_training_pipeline import (
-    IntegratedTrainingPipeline,
+from ai.pipelines.orchestrator.ingestion.intake_gates import OrchestratorIntakeGates
+from ai.pipelines.orchestrator.ingestion.intake_routing_adapter import (
+    apply_intake_routing,
+    split_records_with_preferences,
 )
 from ai.training.scripts.extract_long_running_therapy import _build_output_record
 
@@ -55,9 +57,7 @@ def test_long_running_therapy_records_are_stamped_as_continuity_holdout():
 
 
 def test_pipeline_routing_and_split_preferences_preserve_continuity_holdouts():
-    pipeline = IntegratedTrainingPipeline()
-
-    educational = pipeline._apply_intake_routing(
+    educational = apply_intake_routing(
         [
             {
                 "text": "Explain transference in therapy.",
@@ -71,9 +71,10 @@ def test_pipeline_routing_and_split_preferences_preserve_continuity_holdouts():
                 "metadata": {},
             }
         ],
+        intake_gates=OrchestratorIntakeGates(),
         source_family="psychology_knowledge",
     )
-    holdout = pipeline._apply_intake_routing(
+    holdout = apply_intake_routing(
         [
             {
                 "text": "Long session",
@@ -84,6 +85,7 @@ def test_pipeline_routing_and_split_preferences_preserve_continuity_holdouts():
                 "metadata": {"source_family": "long_running_therapy"},
             }
         ],
+        intake_gates=OrchestratorIntakeGates(),
         source_family="long_running_therapy",
     )
 
@@ -91,7 +93,7 @@ def test_pipeline_routing_and_split_preferences_preserve_continuity_holdouts():
     assert holdout[0]["metadata"]["stage"] == CONTINUITY_HOLDOUT_LANE
     assert holdout[0]["metadata"]["split"] == "test"
 
-    aggregate_split = pipeline._split_records_with_preferences(educational + holdout)
+    aggregate_split = split_records_with_preferences(educational + holdout)
 
     assert aggregate_split.metadata["forced_counts"]["test"] == 1
     assert any(
