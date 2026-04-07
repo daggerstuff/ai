@@ -73,7 +73,7 @@ class DataSourceConfig:
 
     enabled: bool = True
     target_percentage: float = 0.0  # Target percentage of final dataset
-    max_samples: int | None = None
+    max_samples: int | None = None  # Explicit probe cap; leave unset for production runs
     source_path: str | None = None
     source_paths: tuple[str, ...] = ()
     fallback_paths: tuple[str, ...] = ()

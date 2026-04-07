@@ -67,9 +67,9 @@ class EdgeCaseJSONLLoader:
         else:
             self.training_file = Path(self.config.output_path) / "edge_cases_training_format.jsonl"
 
-    def load_edge_cases(self) -> list[EdgeCaseExample]:
+    def load_edge_cases(self, max_samples: int | None = None) -> list[EdgeCaseExample]:
         """Load all edge case examples from JSONL file"""
-        if self._cached_examples is not None:
+        if self._cached_examples is not None and max_samples is None:
             return self._cached_examples
 
         if not self.training_file.exists():
@@ -81,6 +81,8 @@ class EdgeCaseJSONLLoader:
         try:
             with open(self.training_file) as f:
                 for line_num, line in enumerate(f, 1):
+                    if max_samples is not None and len(examples) >= max_samples:
+                        break
                     try:
                         data = json.loads(line.strip())
                         example = self._example_from_record(data)
@@ -95,7 +97,8 @@ class EdgeCaseJSONLLoader:
                         continue
 
             logger.info(f"Loaded {len(examples)} edge case examples from {self.training_file}")
-            self._cached_examples = examples
+            if max_samples is None:
+                self._cached_examples = examples
             return examples
 
         except Exception as e:
