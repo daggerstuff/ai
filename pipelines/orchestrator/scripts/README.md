@@ -41,6 +41,30 @@ privacy, compliance, and quality gates for mental health training datasets.
 | Script                    | Purpose                                              |
 | ------------------------- | ---------------------------------------------------- |
 | `release_orchestrator.py` | Master orchestrator that runs all issues in sequence |
+| `run_integrated_probe.py` | Non-writing integrated sufficiency probe for stage debugging |
+
+### Integrated Probe
+
+Use the integrated probe runner when you need to inspect source sufficiency and
+stage balance without writing dataset artifacts or syncing external trackers.
+
+Canonical capped probe for operational debugging:
+
+```bash
+uv run python ai/pipelines/orchestrator/scripts/run_integrated_probe.py \
+  --preset full-capped-1k \
+  --output .agent/internal/research/integrated_probe_full_capped.json
+```
+
+What this preset does:
+
+- uses a `1000`-sample probe budget
+- caps `standard_therapeutic` at `2000` probe records
+- caps `edge_cases` at `2000` probe records
+- loads Stage 2 specialist shards before the monolithic standard source
+- disables artifact writing and tracker sync
+
+This is a probe mode only. It must not be treated as production corpus truth.
 
 ## Quick Start
 
