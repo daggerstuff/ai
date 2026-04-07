@@ -187,7 +187,7 @@ def test_sync_dataset_inventory_no_datasets(mock_scan, service):
     assert "No datasets found to sync to Asana" in service.stats.warnings[0]
 
 
-@patch("ai.pipelines.orchestrator.systems.dataset_inventory.scan_datasets")
+@patch("ai.pipelines.orchestrator.orchestration.dataset_asana_sync_service.scan_datasets")
 def test_sync_dataset_inventory_success(mock_scan, service, mock_asana_client):
     """Test successful dataset sync."""
     # Set scan directory to match what we'll return
@@ -209,7 +209,7 @@ def test_sync_dataset_inventory_success(mock_scan, service, mock_asana_client):
         # First call: get tasks for mapping (returns empty list)
         [],
         # Second call: create task
-        {"gid": "task123"},
+        {"gid": "12345"},
         # Third call: add story
         {},
     ]
@@ -218,11 +218,12 @@ def test_sync_dataset_inventory_success(mock_scan, service, mock_asana_client):
 
     # Verify Asana calls were made
     assert mock_asana_client.request.call_count >= 2
-    # Check that task was created with correct parameters
-    create_call = mock_asana_client.request.call_args_list[1]
-    assert create_call[0][0] == "POST"  # method
-    assert create_call[0][1] == "/tasks"  # path
-    assert "test.csv" in create_call[1]["name"]  # payload contains dataset name
+    create_call = next(
+        call
+        for call in mock_asana_client.request.call_args_list
+        if call[0][0] == "POST" and call[0][1] == "/tasks"
+    )
+    assert "test.csv" in create_call[0][2]["name"]
 
     # Verify task mapping was updated
     assert service.stats.warnings == []  # No warnings on success
