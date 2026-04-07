@@ -1,6 +1,4 @@
-"""
-Dataset and split artifact persistence for the integrated pipeline.
-"""
+"""Dataset and split artifact persistence for assembled training data."""
 
 from __future__ import annotations
 

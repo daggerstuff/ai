@@ -1,6 +1,4 @@
-"""
-Quality filtering and aggregate stats helpers for the integrated training pipeline.
-"""
+"""Quality filtering and aggregate stats helpers for dataset assembly workflows."""
 
 from __future__ import annotations
 

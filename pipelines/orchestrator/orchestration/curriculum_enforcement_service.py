@@ -1,6 +1,4 @@
-"""
-Curriculum and stage-quality enforcement for integrated training datasets.
-"""
+"""Curriculum and stage-quality enforcement for assembled training datasets."""
 
 from __future__ import annotations
 

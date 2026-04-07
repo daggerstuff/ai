@@ -1,6 +1,4 @@
-"""
-Runtime bootstrap helpers for the integrated training pipeline.
-"""
+"""Runtime bootstrap helpers for dataset assembly workflows."""
 
 from __future__ import annotations
 

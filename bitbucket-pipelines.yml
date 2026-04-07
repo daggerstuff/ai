@@ -126,12 +126,6 @@ definitions:
               uv run python dual_persona_loader.py || echo "Dual persona loader test completed"
               cd ../..
             fi
-          # Validate data pipeline orchestration
-          - |
-            if [ -f "dataset_pipeline/orchestration/integrated_training_pipeline.py" ]; then
-              echo "Data pipeline validation would run here (skipped in CI)"
-            fi
-
     - step: &model-validation
         name: Model Architecture Validation
         caches:
