@@ -33,12 +33,12 @@ multiple strategic points.
   `metadata.quality_scoring_v1`
 - **Fallback**: Falls back to `estimate_quality_score` if unavailable
 
-### ✅ 3. Production Pipeline Orchestrator
-**File**: `ai/pipelines/orchestrator/orchestration/production_pipeline_orchestrator.py`
+### ✅ 3. Standalone Quality Filter
+**File**: `ai/pipelines/orchestrator/quality/quality_filter_v1.py`
 
-- **Location**: `_filter_by_quality` method (Step 2: Quality filtering)
-- **Behavior**: Uses QualityFilterV1 for batch filtering
-- **Fallback**: Falls back to quality_score attribute check
+- **Location**: direct batch filtering surface
+- **Behavior**: Uses QualityFilterV1 for explicit quality filtering
+- **Fallback**: callers can fall back to stored `quality_score` metadata when needed
 
 ## Components Created
 
@@ -67,7 +67,7 @@ Quality Scoring v1 is now automatically used in:
 
 - Pipeline orchestrator quality validation
 - Unified preprocessing record enhancement
-- Production pipeline quality filtering
+- Standalone quality filtering workflows
 
 No additional code needed - it's integrated transparently with fallbacks.
 
@@ -135,8 +135,8 @@ config = PipelineConfig(
 - `ai/pipelines/orchestrator/quality/quality_scoring_v1.py` - Pipeline adapter
 - `ai/pipelines/orchestrator/quality/quality_filter_v1.py` - Standalone filter
 - `ai/pipelines/orchestrator/quality/INTEGRATION_GUIDE.md` - Usage guide
-- `ai/pipelines/orchestrator/orchestration/pipeline_orchestrator.py` - Main orchestrator
 - `ai/pipelines/orchestrator/unified_preprocessing_pipeline.py` - Preprocessing pipeline
+- `ai/pipelines/orchestrator/quality/quality_filter_v1.py` - Standalone filter surface
 
 ---
 

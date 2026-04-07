@@ -102,26 +102,6 @@ filtered, results = filter.filter_batch(conversations)
 
 ## Usage Examples
 
-### In Pipeline Orchestrator
-
-```python
-from ai.pipelines.orchestrator.orchestration.pipeline_orchestrator import (
-    PipelineOrchestrator,
-    PipelineConfig,
-)
-
-# Configure with Quality Scoring v1
-config = PipelineConfig(
-    enable_quality_scoring_v1=True,
-    quality_threshold=0.65,  # Minimum composite score
-)
-
-orchestrator = PipelineOrchestrator(config)
-
-# Execute pipeline - Quality Scoring v1 will be used automatically
-result = await orchestrator.execute_pipeline()
-```
-
 ### Direct Usage
 
 ```python
