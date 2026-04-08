@@ -13,6 +13,7 @@ Canonical JSONL schema fields:
 
 from __future__ import annotations
 
+import functools
 import hashlib
 import logging
 import re
@@ -23,6 +24,12 @@ from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger(__name__)
+
+
+# Pre-compiled regular expressions for snake_case conversion
+SPACE_HYPHEN_RE = re.compile(r"[\s\-]+")
+CAMEL_CASE_RE = re.compile(r"(?<!^)(?=[A-Z])")
+MULTI_UNDERSCORE_RE = re.compile(r"_+")
 
 
 # ---------------------------------------------------------------------------
@@ -199,7 +206,7 @@ class DataNormalizer:
 
         return normalized
 
-    def record_to_conversation(self, record: dict[str, Any]) -> "Conversation":
+    def record_to_conversation(self, record: dict[str, Any]) -> Conversation:
         """
         Convert a normalized JSONL record into a Conversation dataclass instance.
 
@@ -390,15 +397,17 @@ class DataNormalizer:
     # ------------------------------------------------------------------
 
     @staticmethod
+    @functools.lru_cache(maxsize=1024)
     def _to_snake_case(key: str) -> str:
         """Convert a string key to lower_snake_case."""
+        # ⚡ Bolt: Cache repetitive key normalizations and use pre-compiled regex for speed
         key = key.strip().lower()
         # Replace spaces and hyphens with underscores
-        key = re.sub(r"[\s\-]+", "_", key)
+        key = SPACE_HYPHEN_RE.sub("_", key)
         # Insert underscore before uppercase letters (camelCase → camel_case)
-        key = re.sub(r"(?<!^)(?=[A-Z])", "_", key)
+        key = CAMEL_CASE_RE.sub("_", key)
         # Collapse multiple underscores
-        key = re.sub(r"_+", "_", key)
+        key = MULTI_UNDERSCORE_RE.sub("_", key)
         return key
 
     def _normalize_message(self, message: dict[str, Any]) -> dict[str, Any]:
@@ -500,7 +509,7 @@ class Conversation:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "Conversation":
+    def from_dict(cls, data: dict[str, Any]) -> Conversation:
         """Creates a Conversation instance from a dictionary."""
         messages = [Message(**msg_data) for msg_data in data.get("messages", [])]
         return cls(
@@ -519,11 +528,11 @@ class Conversation:
 
 
 __all__ = [
-    "DataNormalizer",
-    "ValidationResult",
-    "NormalizationResult",
-    "Message",
-    "Conversation",
     "REQUIRED_FIELDS",
     "REQUIRED_METADATA_FIELDS",
+    "Conversation",
+    "DataNormalizer",
+    "Message",
+    "NormalizationResult",
+    "ValidationResult",
 ]
