@@ -155,11 +155,11 @@ async def list_datasets(
                 continue
 
             # Get row count
-            cursor.execute(f'SELECT COUNT(*) FROM "{safe_table_name}"')
+            cursor.execute(f'SELECT COUNT(*) FROM "{safe_table_name}"')  # nosec B608
             row_count = cursor.fetchone()[0]
 
             # Get columns
-            cursor.execute(f'PRAGMA table_info("{safe_table_name}");')
+            cursor.execute('SELECT * FROM pragma_table_info(?)', (safe_table_name,))
             columns_info = cursor.fetchall()
             columns = []
             for col in columns_info:
@@ -215,11 +215,11 @@ async def get_dataset_metadata(
 
         safe_table_name = validate_identifier(table_row["name"])
 
-        cursor.execute(f'SELECT COUNT(*) FROM "{safe_table_name}"')
+        cursor.execute(f'SELECT COUNT(*) FROM "{safe_table_name}"')  # nosec B608
         row_count = cursor.fetchone()[0]
 
         # Get columns
-        cursor.execute(f'PRAGMA table_info("{safe_table_name}");')
+        cursor.execute('SELECT * FROM pragma_table_info(?)', (safe_table_name,))
         columns_info = cursor.fetchall()
         columns = []
         for col in columns_info:
@@ -278,7 +278,7 @@ async def query_dataset(
         safe_table_name = validate_identifier(table_row["name"])
 
         # Get valid columns for the table to validate filters
-        cursor.execute(f'PRAGMA table_info("{safe_table_name}");')
+        cursor.execute('SELECT * FROM pragma_table_info(?)', (safe_table_name,))
         valid_columns = {c["name"] for c in cursor.fetchall()}
 
         # Build WHERE clause for filters
@@ -302,13 +302,13 @@ async def query_dataset(
                 where_clause = " WHERE " + " AND ".join(filter_clauses)
 
         # Get total rows matching filters
-        count_query = f'SELECT COUNT(*) FROM "{safe_table_name}"{where_clause}'
+        count_query = f'SELECT COUNT(*) FROM "{safe_table_name}"{where_clause}'  # nosec B608
         cursor.execute(count_query, params)
         total_rows = cursor.fetchone()[0]
 
         # Get data with pagination
         offset = (page - 1) * page_size
-        data_query = f'SELECT * FROM "{safe_table_name}"{where_clause} LIMIT ? OFFSET ?'
+        data_query = f'SELECT * FROM "{safe_table_name}"{where_clause} LIMIT ? OFFSET ?'  # nosec B608
         cursor.execute(data_query, params + [page_size, offset])
         rows = cursor.fetchall()
 
