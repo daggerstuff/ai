@@ -54,7 +54,7 @@ def check_database_connection():
             "host": "localhost",
             "port": "5432",
             "user": "postgres",
-            "password": "postgres",
+            "password": os.getenv("POSTGRES_PASSWORD"),
             "database": "postgres",
         },
         # Try with different port in case Docker is running
@@ -62,7 +62,7 @@ def check_database_connection():
             "host": "localhost",
             "port": "5433",
             "user": "postgres",
-            "password": "postgres",
+            "password": os.getenv("POSTGRES_PASSWORD"),
             "database": "postgres",
         },
     ]
@@ -107,7 +107,7 @@ def create_database():
             host="localhost",
             port="5432",
             user="postgres",
-            password="postgres",
+            password=os.getenv("POSTGRES_PASSWORD"),
             database="postgres",
         )
         conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
@@ -141,7 +141,7 @@ def test_database_schema():
             host="localhost",
             port="5432",
             user="postgres",
-            password="postgres",
+            password=os.getenv("POSTGRES_PASSWORD"),
             database="pixelated_empathy",
         )
         cursor = conn.cursor()
