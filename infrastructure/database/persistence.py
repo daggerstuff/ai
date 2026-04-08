@@ -910,10 +910,10 @@ class DatabaseManager:
         if self.config.enable_foreign_keys:
             conn.execute("PRAGMA foreign_keys=ON")
 
-        conn.execute(f"PRAGMA cache_size=-{int(self.config.cache_size_mb) * 1024}")
+        conn.execute(f"PRAGMA cache_size=-{int(self.config.cache_size_mb) * 1024}")  # nosec B608
         conn.execute("PRAGMA synchronous=NORMAL")
         conn.execute("PRAGMA temp_store=MEMORY")
-        conn.execute(f"PRAGMA page_size={int(self.config.page_size)}")
+        conn.execute(f"PRAGMA page_size={int(self.config.page_size)}")  # nosec B608
 
         return conn
 
