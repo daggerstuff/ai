@@ -21,8 +21,8 @@ def run_s3_command(cmd):
         if isinstance(cmd, str):
             import shlex
             cmd = shlex.split(cmd)
-        result = subprocess.run(
-            cmd, shell=False, capture_output=True, text=True, env=env  # nosec B603
+        result = subprocess.run(  # nosec B603
+            cmd, shell=False, capture_output=True, text=True, env=env
         )
 
         if result.returncode == 0:
