@@ -13,14 +13,17 @@ def test_run_s3_command_json_success():
     }
     mock_stdout = json.dumps([{"path": "file1.json", "size": 100}])
 
-    with patch.dict(os.environ, mock_env, clear=True), patch("subprocess.run") as mock_run:
-        mock_run.return_value = MagicMock(returncode=0, stdout=mock_stdout, stderr="")
-        result = run_s3_command(cmd)
+    with patch.dict(os.environ, mock_env, clear=True):
+        with patch("subprocess.run") as mock_run:
+            mock_run.return_value = MagicMock(
+                returncode=0, stdout=mock_stdout, stderr=""
+            )
+            result = run_s3_command(cmd)
 
-        mock_run.assert_called_once()
-        called_cmd = mock_run.call_args[0][0]
-        assert called_cmd == cmd
-        assert result == [{"path": "file1.json", "size": 100}]
+            mock_run.assert_called_once()
+            called_cmd = mock_run.call_args[0][0]
+            assert called_cmd == cmd
+            assert result == [{"path": "file1.json", "size": 100}]
 
 
 def test_run_s3_command_raw_string():
@@ -31,12 +34,15 @@ def test_run_s3_command_raw_string():
     }
     mock_stdout = "2024-01-01 12:00:00 1.2G file1.json"
 
-    with patch.dict(os.environ, mock_env, clear=True), patch("subprocess.run") as mock_run:
-        mock_run.return_value = MagicMock(returncode=0, stdout=mock_stdout, stderr="")
-        result = run_s3_command(cmd)
+    with patch.dict(os.environ, mock_env, clear=True):
+        with patch("subprocess.run") as mock_run:
+            mock_run.return_value = MagicMock(
+                returncode=0, stdout=mock_stdout, stderr=""
+            )
+            result = run_s3_command(cmd)
 
-        mock_run.assert_called_once()
-        assert result == "2024-01-01 12:00:00 1.2G file1.json"
+            mock_run.assert_called_once()
+            assert result == "2024-01-01 12:00:00 1.2G file1.json"
 
 
 def test_run_s3_command_error_return_code():
@@ -46,12 +52,15 @@ def test_run_s3_command_error_return_code():
         "AWS_SECRET_ACCESS_KEY": "mock_secret",
     }
 
-    with patch.dict(os.environ, mock_env, clear=True), patch("subprocess.run") as mock_run:
-        mock_run.return_value = MagicMock(returncode=1, stdout="", stderr="Access Denied")
-        result = run_s3_command(cmd)
+    with patch.dict(os.environ, mock_env, clear=True):
+        with patch("subprocess.run") as mock_run:
+            mock_run.return_value = MagicMock(
+                returncode=1, stdout="", stderr="Access Denied"
+            )
+            result = run_s3_command(cmd)
 
-        mock_run.assert_called_once()
-        assert result == []
+            mock_run.assert_called_once()
+            assert result == []
 
 
 def test_run_s3_command_exception():
@@ -61,9 +70,7 @@ def test_run_s3_command_exception():
         "AWS_SECRET_ACCESS_KEY": "mock_secret",
     }
 
-    with (
-        patch.dict(os.environ, mock_env, clear=True),
-        patch("subprocess.run", side_effect=Exception("Mocked subprocess error")),
-    ):
-        result = run_s3_command(cmd)
-        assert result == []
+    with patch.dict(os.environ, mock_env, clear=True):
+        with patch("subprocess.run", side_effect=Exception("Mocked subprocess error")):
+            result = run_s3_command(cmd)
+            assert result == []
