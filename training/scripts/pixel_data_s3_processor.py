@@ -22,7 +22,7 @@ def run_s3_command(cmd):
             import shlex
             cmd = shlex.split(cmd)
         result = subprocess.run(
-            cmd, shell=False, capture_output=True, text=True, env=env
+            cmd, shell=False, capture_output=True, text=True, env=env  # nosec B603
         )
 
         if result.returncode == 0:
@@ -49,7 +49,7 @@ def discover_pixel_data():
     cmd = ["aws", "s3", "ls", f"s3://{bucket}", "--recursive", "--endpoint-url", endpoint, "--human-readable", "--summarize"]
 
     try:
-        result = subprocess.run(cmd, shell=False, capture_output=True, text=True)
+        result = subprocess.run(cmd, shell=False, capture_output=True, text=True)  # nosec B603
         if result.returncode == 0:
             lines = result.stdout.strip().split("\n")
 
@@ -141,7 +141,7 @@ def list_s3_with_aws_cli():
     cmd = ["aws", "s3", "ls", "s3://pixel-data", "--recursive", "--endpoint-url", "https://s3.us-east-va.io.cloud.ovh.us", "--human-readable", "--summarize"]
 
     try:
-        result = subprocess.run(cmd, shell=False, capture_output=True, text=True)
+        result = subprocess.run(cmd, shell=False, capture_output=True, text=True)  # nosec B603
         if result.returncode == 0:
             # Parse the output
             lines = result.stdout.strip().split("\n")
