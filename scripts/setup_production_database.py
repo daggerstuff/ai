@@ -74,7 +74,7 @@ class ProductionDatabaseSetup:
 
             if not exists:
                 logger.info(f"Creating database: {self.db_config['database']}")
-                cursor.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(self.db_config["database"])))
+                cursor.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(self.db_config["database"])))  # nosec B608
                 logger.info("✅ Database created successfully")
             else:
                 logger.info("✅ Database already exists")
@@ -137,7 +137,7 @@ class ProductionDatabaseSetup:
             # Run the migration script
             migration_script = Path(__file__).parent.parent / "dataset_pipeline" / "migrate_conversations_to_db.py"
 
-            result = subprocess.run([sys.executable, str(migration_script)], capture_output=True, text=True)
+            result = subprocess.run([sys.executable, str(migration_script)], capture_output=True, text=True)  # nosec B603
 
             if result.returncode == 0:
                 logger.info("✅ Data migration completed successfully")
