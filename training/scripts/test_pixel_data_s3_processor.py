@@ -6,7 +6,7 @@ from training.scripts.pixel_data_s3_processor import run_s3_command
 
 
 def test_run_s3_command_json_success():
-    cmd = "aws s3 ls s3://pixel-data --recursive"
+    cmd = ["aws", "s3", "ls", "s3://pixel-data", "--recursive"]
     mock_env = {
         "AWS_ACCESS_KEY_ID": "mock_access",
         "AWS_SECRET_ACCESS_KEY": "mock_secret",
@@ -27,7 +27,7 @@ def test_run_s3_command_json_success():
 
 
 def test_run_s3_command_raw_string():
-    cmd = "aws s3 ls s3://pixel-data --recursive"
+    cmd = ["aws", "s3", "ls", "s3://pixel-data", "--recursive"]
     mock_env = {
         "AWS_ACCESS_KEY_ID": "mock_access",
         "AWS_SECRET_ACCESS_KEY": "mock_secret",
@@ -46,7 +46,7 @@ def test_run_s3_command_raw_string():
 
 
 def test_run_s3_command_error_return_code():
-    cmd = "aws s3 ls s3://pixel-data --recursive"
+    cmd = ["aws", "s3", "ls", "s3://pixel-data", "--recursive"]
     mock_env = {
         "AWS_ACCESS_KEY_ID": "mock_access",
         "AWS_SECRET_ACCESS_KEY": "mock_secret",
@@ -64,7 +64,7 @@ def test_run_s3_command_error_return_code():
 
 
 def test_run_s3_command_exception():
-    cmd = "aws s3 ls s3://pixel-data --recursive"
+    cmd = ["aws", "s3", "ls", "s3://pixel-data", "--recursive"]
     mock_env = {
         "AWS_ACCESS_KEY_ID": "mock_access",
         "AWS_SECRET_ACCESS_KEY": "mock_secret",
