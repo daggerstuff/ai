@@ -279,3 +279,21 @@ describe('PixelatedEmpathyAPI Method healthCheck', () => {
         expect(isHealthy).toBe(false);
     });
 });
+
+describe('PixelatedEmpathyAPI healthCheck', () => {
+    it('should return success status when API is healthy', async () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        api._makeRequest = async () => ({ success: true });
+
+        const isHealthy = await api.healthCheck();
+        expect(isHealthy).toBe(true);
+    });
+
+    it('should return false when API is unhealthy or throws error', async () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        api._makeRequest = async () => { throw new Error('Network error'); };
+
+        const isHealthy = await api.healthCheck();
+        expect(isHealthy).toBe(false);
+    });
+});
