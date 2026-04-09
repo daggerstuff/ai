@@ -9,6 +9,14 @@ from typing import Any, Literal
 type CorpusLane = Literal["simulation", "policy", "evaluator", "benchmark"]
 type InventoryDecision = Literal["keep", "defer", "reject"]
 type RightsStatus = Literal["cleared", "review_required", "restricted", "unknown"]
+type ExpansionArtifactKind = Literal[
+    "scenario",
+    "state_profile",
+    "therapist_move",
+    "benchmark_spec",
+    "preference_pair",
+]
+type ExpansionDraftStatus = Literal["queued", "drafted", "reviewed", "promoted", "discarded"]
 
 
 @dataclass(frozen=True)
@@ -65,3 +73,21 @@ class CorpusManifest:
     by_corpus: dict[str, int]
     by_lane: dict[str, int]
     by_family: dict[str, int]
+
+
+@dataclass(frozen=True)
+class ExpansionQueueEntry:
+    queue_id: str
+    source_ref: str
+    source_family: str
+    artifact_kind: ExpansionArtifactKind
+    draft_status: ExpansionDraftStatus
+    target_pack: str
+    title: str | None = None
+    prompt_excerpt: str | None = None
+    source_excerpt: str | None = None
+    provenance_notes: tuple[str, ...] = field(default_factory=tuple)
+    governance_flags: tuple[str, ...] = field(default_factory=tuple)
+    candidate_payload: dict[str, Any] = field(default_factory=dict)
+    review_notes: tuple[str, ...] = field(default_factory=tuple)
+    metadata: dict[str, Any] = field(default_factory=dict)

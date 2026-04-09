@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 from collections.abc import Iterable
 from typing import Any
 
@@ -23,6 +24,26 @@ _ROLE_TO_BUCKET = {
 _ENTRY_PROMPT_KEYS = ("input", "prompt", "instruction", "user")
 _ENTRY_RESPONSE_KEYS = ("output", "response", "completion", "assistant")
 _LANE_VALUES = {"benchmark", "evaluator", "policy", "simulation"}
+_SYNTHESIS_OBJECT_KEYS = (
+    "scenario_archetype",
+    "client_state_profile",
+    "benchmark_spec",
+)
+_SYNTHESIS_SEQUENCE_KEYS = (
+    "therapist_moves",
+    "therapist_move_inventory",
+)
+_SYNTHESIS_SCALAR_KEYS = (
+    "hidden_driver",
+    "difficulty",
+    "rupture_risk",
+)
+_SYNTHESIS_LIST_KEYS = (
+    "repair_opportunities",
+    "safety_flags",
+    "must_detect",
+    "likely_therapist_mistakes",
+)
 
 
 def _clean_text(value: Any) -> str:
@@ -184,6 +205,81 @@ def _copy_scalar_attributes(raw: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _sanitize_attribute_value(value: Any) -> Any:
+    try:
+        return json.loads(json.dumps(value))
+    except (TypeError, ValueError):
+        return None
+
+
+def _structured_candidate(raw: dict[str, Any], metadata: dict[str, Any], key: str) -> Any:
+    candidate = raw.get(key)
+    if candidate is None:
+        candidate = metadata.get(key)
+    return _sanitize_attribute_value(candidate)
+
+
+def _normalize_string_list(value: Any) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    result: list[str] = []
+    for item in value:
+        if not isinstance(item, str):
+            continue
+        cleaned = item.strip()
+        if cleaned:
+            result.append(cleaned)
+    return result
+
+
+def _synthesis_attributes(raw: dict[str, Any], metadata: dict[str, Any]) -> dict[str, Any]:
+    attributes: dict[str, Any] = {}
+
+    for key in _SYNTHESIS_OBJECT_KEYS:
+        candidate = _structured_candidate(raw, metadata, key)
+        if isinstance(candidate, dict) and candidate:
+            attributes[key] = candidate
+
+    for key in _SYNTHESIS_SEQUENCE_KEYS:
+        candidate = _structured_candidate(raw, metadata, key)
+        if isinstance(candidate, list) and candidate:
+            normalized_key = "therapist_moves" if key == "therapist_move_inventory" else key
+            attributes[normalized_key] = candidate
+
+    for key in _SYNTHESIS_SCALAR_KEYS:
+        candidate = raw.get(key)
+        if candidate is None:
+            candidate = metadata.get(key)
+        if isinstance(candidate, str) and candidate.strip():
+            attributes[key] = candidate.strip()
+
+    for key in _SYNTHESIS_LIST_KEYS:
+        candidate = raw.get(key)
+        if candidate is None:
+            candidate = metadata.get(key)
+        normalized = _normalize_string_list(candidate)
+        if normalized:
+            attributes[key] = normalized
+
+    benchmark_spec = attributes.get("benchmark_spec")
+    if isinstance(benchmark_spec, dict):
+        benchmark_slice = benchmark_spec.get("benchmark_slice")
+        if isinstance(benchmark_slice, str) and benchmark_slice.strip():
+            attributes["benchmark_slice"] = benchmark_slice.strip()
+        for key in _SYNTHESIS_SCALAR_KEYS:
+            candidate = benchmark_spec.get(key)
+            if isinstance(candidate, str) and candidate.strip() and key not in attributes:
+                attributes[key] = candidate.strip()
+        for key in _SYNTHESIS_LIST_KEYS:
+            if key in attributes:
+                continue
+            normalized = _normalize_string_list(benchmark_spec.get(key))
+            if normalized:
+                attributes[key] = normalized
+
+    return attributes
+
+
 def make_entry(source: CorpusSource, raw: dict[str, Any], split_seed: str) -> CorpusEntry | None:
     prompt, response = _resolve_prompt_response(raw)
     if not prompt or not response:
@@ -201,6 +297,7 @@ def make_entry(source: CorpusSource, raw: dict[str, Any], split_seed: str) -> Co
     clinician_review = normalize_clinician_review(raw, lane)
     if clinician_review is not None:
         attributes["clinician_review"] = clinician_review
+    attributes.update(_synthesis_attributes(raw, metadata))
     attributes.update(_continuity_attributes(raw, metadata))
     attributes.update(_persona_attributes(raw, metadata))
     attributes.update(_copy_scalar_attributes(raw))

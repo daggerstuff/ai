@@ -14,42 +14,77 @@ def _metadata(raw: dict[str, Any]) -> dict[str, Any]:
     return metadata
 
 
+def _nested_rubric_items(container: Any) -> list[Any] | None:
+    if not isinstance(container, dict):
+        return None
+    nested_items = container.get("items")
+    return nested_items if isinstance(nested_items, list) else None
+
+
+def _resolve_rubric_candidates(raw: dict[str, Any], metadata: dict[str, Any]) -> list[Any]:
+    direct_candidates = (
+        metadata.get("rubric_items"),
+        raw.get("rubric_items"),
+        metadata.get("criteria"),
+        raw.get("criteria"),
+        _nested_rubric_items(metadata.get("rubric")),
+        _nested_rubric_items(raw.get("rubric")),
+    )
+    for candidate in direct_candidates:
+        if isinstance(candidate, list):
+            return candidate
+
+    benchmark_spec = metadata.get("benchmark_spec")
+    if not isinstance(benchmark_spec, dict):
+        benchmark_spec = raw.get("benchmark_spec")
+    if isinstance(benchmark_spec, dict):
+        nested_items = benchmark_spec.get("rubric_items")
+        if isinstance(nested_items, list):
+            return nested_items
+    return []
+
+
+def _normalize_rubric_item(item: Any, lane: CorpusLane, index: int) -> dict[str, Any] | None:
+    if isinstance(item, str):
+        name = item.strip()
+        if not name:
+            return None
+        return {
+            "criterion_id": f"{lane}-{index + 1}",
+            "name": name,
+            "weight": 1.0,
+            "required": True,
+            "notes": "",
+        }
+
+    if not isinstance(item, dict):
+        return None
+
+    name = item.get("name") or item.get("criterion") or item.get("label")
+    if not isinstance(name, str) or not name.strip():
+        return None
+    weight = item.get("weight", 1.0)
+    return {
+        "criterion_id": str(item.get("criterion_id") or f"{lane}-{index + 1}"),
+        "name": name.strip(),
+        "weight": weight if isinstance(weight, (int, float)) else 1.0,
+        "required": bool(item.get("required", True)),
+        "notes": str(item.get("notes") or "").strip(),
+    }
+
+
 def normalize_rubric_items(raw: dict[str, Any], lane: CorpusLane) -> list[dict[str, Any]]:
     metadata = _metadata(raw)
 
     if lane not in {"evaluator", "benchmark"}:
         return []
 
-    candidates = metadata.get("rubric_items")
-    if not isinstance(candidates, list):
-        candidates = metadata.get("criteria")
-    if not isinstance(candidates, list):
-        rubric = metadata.get("rubric")
-        if isinstance(rubric, dict):
-            nested_items = rubric.get("items")
-            if isinstance(nested_items, list):
-                candidates = nested_items
-
+    candidates = _resolve_rubric_candidates(raw, metadata)
     normalized: list[dict[str, Any]] = []
-    if not isinstance(candidates, list):
-        return normalized
-
     for index, item in enumerate(candidates):
-        if not isinstance(item, dict):
-            continue
-        name = item.get("name") or item.get("criterion") or item.get("label")
-        if not isinstance(name, str) or not name.strip():
-            continue
-        weight = item.get("weight", 1.0)
-        normalized.append(
-            {
-                "criterion_id": str(item.get("criterion_id") or f"{lane}-{index + 1}"),
-                "name": name.strip(),
-                "weight": weight if isinstance(weight, (int, float)) else 1.0,
-                "required": bool(item.get("required", True)),
-                "notes": str(item.get("notes") or "").strip(),
-            }
-        )
+        normalized_item = _normalize_rubric_item(item, lane, index)
+        if normalized_item is not None:
+            normalized.append(normalized_item)
     return normalized
 
 
