@@ -123,6 +123,14 @@ def _training_v3_decision(
 def _edge_case_decision(
     dataset_name: str,
 ) -> tuple[str, str, tuple[CorpusLane, ...], CorpusLane | None, tuple[str, ...]]:
+    if dataset_name.endswith("_seed_benchmark"):
+        return (
+            "keep",
+            "review_required",
+            ("benchmark",),
+            "benchmark",
+            ("Synthesized benchmark seeds remain eligible as benchmark-only holdout assets.",),
+        )
     if dataset_name.startswith(("edge_case_generator", "edge_simulation", "edge_benchmark")):
         return (
             "keep",
@@ -193,6 +201,14 @@ def _edge_case_decision(
 def _supplementary_decision(
     dataset_name: str,
 ) -> tuple[str, str, tuple[CorpusLane, ...], CorpusLane | None, tuple[str, ...]]:
+    if dataset_name.endswith("_seed_evaluator"):
+        return (
+            "keep",
+            "review_required",
+            ("evaluator", "benchmark"),
+            "evaluator",
+            ("Synthesized evaluator seeds remain eligible for rubric and benchmark enrichment.",),
+        )
     if dataset_name.startswith(("psychology_10k", "evaluator_psychology")):
         return (
             "keep",

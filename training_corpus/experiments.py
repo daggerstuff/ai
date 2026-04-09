@@ -10,13 +10,53 @@ from pathlib import Path
 from typing import Any
 
 from .builder import CorpusBuildConfig, CorpusBuilder, CorpusBuildResult
+from .synthesis import (
+    DEFAULT_WAVE1_SEED_PACK_PATH,
+    DEFAULT_WAVE2_SEED_PACK_PATH,
+    DEFAULT_WAVE3_SEED_PACK_PATH,
+    DEFAULT_WAVE4_SEED_PACK_PATH,
+    ensure_wave1_seed_sources_materialized,
+    ensure_wave2_seed_sources_materialized,
+    ensure_wave3_seed_sources_materialized,
+    ensure_wave4_seed_sources_materialized,
+)
 
+DEFAULT_EXPERIMENT_OUTPUT_DIR = (
+    Path(__file__).resolve().parents[2]
+    / ".agent/internal/research/training_corpus_experiments_2026-04-08"
+)
+DEFAULT_EXPERIMENT_REPORT_PATH = DEFAULT_EXPERIMENT_OUTPUT_DIR / "experiment_matrix_report.json"
 _PII_PATTERNS = (
     re.compile(r"\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b", re.IGNORECASE),
     re.compile(r"\b(?:\+?1[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?){2}\d{4}\b"),
     re.compile(r"\b\d{3}-\d{2}-\d{4}\b"),
 )
 _TAGGED_TURN_RE = re.compile(r"<\|(?P<role>user|assistant)\|>(?P<content>.*?)(?:</s>|$)", re.DOTALL)
+_WAVE1_SOURCE_IDS = {
+    "wave1_seed_simulation": "professional_therapeutic.wave1_seed_simulation",
+    "wave1_seed_evaluator": "supplementary.wave1_seed_evaluator",
+    "wave1_seed_benchmark": "edge_case_sources.wave1_seed_benchmark",
+}
+_WAVE1_SOURCE_NAMES = frozenset(_WAVE1_SOURCE_IDS)
+_WAVE2_SOURCE_IDS = {
+    "wave2_seed_simulation": "professional_therapeutic.wave2_seed_simulation",
+    "wave2_seed_evaluator": "supplementary.wave2_seed_evaluator",
+    "wave2_seed_benchmark": "edge_case_sources.wave2_seed_benchmark",
+}
+_WAVE2_SOURCE_NAMES = frozenset(_WAVE2_SOURCE_IDS)
+_WAVE3_SOURCE_IDS = {
+    "wave3_seed_simulation": "professional_therapeutic.wave3_seed_simulation",
+    "wave3_seed_evaluator": "supplementary.wave3_seed_evaluator",
+    "wave3_seed_benchmark": "edge_case_sources.wave3_seed_benchmark",
+}
+_WAVE3_SOURCE_NAMES = frozenset(_WAVE3_SOURCE_IDS)
+_WAVE4_SOURCE_IDS = {
+    "wave4_seed_simulation": "professional_therapeutic.wave4_seed_simulation",
+    "wave4_seed_evaluator": "supplementary.wave4_seed_evaluator",
+    "wave4_seed_benchmark": "edge_case_sources.wave4_seed_benchmark",
+}
+_WAVE4_SOURCE_NAMES = frozenset(_WAVE4_SOURCE_IDS)
+_HELD_OUT_RELEASE_FAMILIES = frozenset({"J", "K", "L"})
 
 
 @dataclass(frozen=True)
@@ -67,6 +107,21 @@ def run_experiment_matrix(output_root: Path) -> dict[str, Any]:
     _write_json(output_root / "experiment_matrix_report.json", report)
     (output_root / "experiment_matrix_report.md").write_text(_report_markdown(report), encoding="utf-8")
     return report
+
+
+def load_experiment_report(report_path: Path = DEFAULT_EXPERIMENT_REPORT_PATH) -> dict[str, Any]:
+    payload = json.loads(report_path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError(f"Expected JSON object at {report_path}")
+    return payload
+
+
+def release_candidate_source_limits_from_report(report: dict[str, Any]) -> dict[str, int]:
+    return _release_candidate_source_limits_from_variant_ids(_winner_variant_ids(report))
+
+
+def release_candidate_delta_source_limits_from_report(report: dict[str, Any]) -> dict[str, int]:
+    return _release_candidate_delta_source_limits_from_variant_ids(_winner_variant_ids(report))
 
 
 def build_local_source_catalog() -> dict[str, PreparedSource]:
@@ -248,6 +303,10 @@ def build_local_source_catalog() -> dict[str, PreparedSource]:
         source_type="conversation",
         records=_with_rubric_metadata(catalog["foundation_amod"].records, visible=True),
     )
+    catalog.update(_wave1_seed_sources(DEFAULT_WAVE1_SEED_PACK_PATH))
+    catalog.update(_wave2_seed_sources(DEFAULT_WAVE2_SEED_PACK_PATH))
+    catalog.update(_wave3_seed_sources(DEFAULT_WAVE3_SEED_PACK_PATH))
+    catalog.update(_wave4_seed_sources(DEFAULT_WAVE4_SEED_PACK_PATH))
     return catalog
 
 
@@ -260,6 +319,33 @@ def _experiment_variants() -> tuple[ExperimentVariant, ...]:
         "edge_simulation": 60,
         "persona_google": 40,
         "persona_nazli": 40,
+    }
+    wave1_control = {
+        "foundation_amod": 80,
+        "foundation_helios": 40,
+        "specialist_fadodr": 80,
+        "edge_simulation": 100,
+        "edge_policy": 50,
+        "edge_benchmark": 40,
+        "long_running_benchmark": 12,
+        "long_running_simulation": 24,
+        "persona_google": 40,
+        "persona_nazli": 40,
+        "simulation_hidden_rubrics": 40,
+        "benchmark_cross_cultural": 30,
+        "evaluator_psychology": 60,
+    }
+    wave2_control = {
+        **wave1_control,
+        "wave1_seed_simulation": 6,
+        "wave1_seed_evaluator": 6,
+        "wave1_seed_benchmark": 10,
+    }
+    wave3_control = {
+        **wave2_control,
+    }
+    wave4_control = {
+        **wave3_control,
     }
     return (
         ExperimentVariant("A", "A1.1", "simulation only train mix", {**common_base, **benchmark_base}),
@@ -417,6 +503,106 @@ def _experiment_variants() -> tuple[ExperimentVariant, ...]:
                 "persona_codex": 30,
             },
         ),
+        ExperimentVariant(
+            "I",
+            "I1.1",
+            "release-candidate control without wave1 synthesis overlay",
+            wave1_control,
+        ),
+        ExperimentVariant(
+            "I",
+            "I1.2",
+            "release-candidate control plus wave1 simulation overlay",
+            {**wave1_control, "wave1_seed_simulation": 6},
+        ),
+        ExperimentVariant(
+            "I",
+            "I1.3",
+            "release-candidate control plus full wave1 synthesis overlay",
+            {
+                **wave1_control,
+                "wave1_seed_simulation": 6,
+                "wave1_seed_evaluator": 6,
+                "wave1_seed_benchmark": 10,
+            },
+        ),
+        ExperimentVariant(
+            "J",
+            "J1.1",
+            "wave-two control with wave1 baseline only",
+            wave2_control,
+        ),
+        ExperimentVariant(
+            "J",
+            "J1.2",
+            "wave-two simulation overlay on top of wave1 baseline",
+            {**wave2_control, "wave2_seed_simulation": 9},
+        ),
+        ExperimentVariant(
+            "J",
+            "J1.3",
+            "wave-two full overlay on top of wave1 baseline",
+            {
+                **wave2_control,
+                "wave2_seed_simulation": 9,
+                "wave2_seed_evaluator": 9,
+                "wave2_seed_benchmark": 10,
+            },
+        ),
+        ExperimentVariant(
+            "K",
+            "K1.1",
+            "wave-three control with release baseline only",
+            wave3_control,
+        ),
+        ExperimentVariant(
+            "K",
+            "K1.2",
+            "wave-three evaluator and benchmark overlay on release baseline",
+            {
+                **wave3_control,
+                "wave3_seed_evaluator": 6,
+                "wave3_seed_benchmark": 8,
+            },
+        ),
+        ExperimentVariant(
+            "K",
+            "K1.3",
+            "wave-three full overlay on release baseline",
+            {
+                **wave3_control,
+                "wave3_seed_simulation": 6,
+                "wave3_seed_evaluator": 6,
+                "wave3_seed_benchmark": 8,
+            },
+        ),
+        ExperimentVariant(
+            "L",
+            "L1.1",
+            "wave-four control with release baseline only",
+            wave4_control,
+        ),
+        ExperimentVariant(
+            "L",
+            "L1.2",
+            "wave-four evaluator and benchmark overlay on release baseline",
+            {
+                **wave4_control,
+                "wave4_seed_evaluator": 8,
+                "wave4_seed_benchmark": 10,
+            },
+        ),
+        ExperimentVariant(
+            "L",
+            "L1.3",
+            "wave-four full overlay on release baseline",
+            {
+                **wave4_control,
+                "wave4_seed_simulation": 8,
+                "wave4_seed_evaluator": 8,
+                "wave4_seed_benchmark": 10,
+            },
+        ),
     )
 
 
@@ -426,7 +612,7 @@ def _run_variant(
     variant: ExperimentVariant,
 ) -> VariantOutcome:
     artifact_dir = output_root / f"{variant.family}_{variant.variant_id.replace('.', '_')}"
-    registry_path = _materialize_variant_registry(artifact_dir, catalog, variant)
+    registry_path = materialize_variant_registry(artifact_dir, catalog, variant)
     build_result = CorpusBuilder(
         CorpusBuildConfig(
             name=f"pixelated-experiment-{variant.family.lower()}",
@@ -449,25 +635,11 @@ def _build_release_candidate(
     variant = ExperimentVariant(
         family="RC",
         variant_id="release_candidate",
-        description="Composed from winning settings across A-H",
-        source_limits={
-            "foundation_amod": 80,
-            "foundation_helios": 40,
-            "specialist_fadodr": 80,
-            "edge_simulation": 100,
-            "edge_policy": 50,
-            "edge_benchmark": 40,
-            "long_running_benchmark": 12,
-            "long_running_simulation": 24,
-            "persona_google": 40,
-            "persona_nazli": 40,
-            "simulation_hidden_rubrics": 40,
-            "benchmark_cross_cultural": 30,
-            "evaluator_psychology": 60,
-        },
+        description="Composed from winning settings across release families with held-out wave-two, wave-three, and wave-four families excluded",
+        source_limits=_release_candidate_source_limits(winners),
     )
     artifact_dir = output_root / "release_candidate"
-    registry_path = _materialize_variant_registry(artifact_dir, catalog, variant)
+    registry_path = materialize_variant_registry(artifact_dir, catalog, variant)
     build_result = CorpusBuilder(
         CorpusBuildConfig(
             name="pixelated-training-corpus-release-candidate",
@@ -479,12 +651,19 @@ def _build_release_candidate(
         )
     ).build()
     metrics = _variant_metrics(build_result)
-    metrics["winner_inputs"] = {family: outcome.variant.variant_id for family, outcome in winners.items()}
-    score = round(sum(outcome.score for outcome in winners.values()) / max(len(winners), 1), 4)
+    participating_winners = _participating_release_winners(winners)
+    metrics["winner_inputs"] = {
+        family: outcome.variant.variant_id for family, outcome in participating_winners.items()
+    }
+    score = round(
+        sum(outcome.score for outcome in participating_winners.values())
+        / max(len(participating_winners), 1),
+        4,
+    )
     return VariantOutcome(variant=variant, score=score, metrics=metrics, artifact_dir=artifact_dir / "build")
 
 
-def _materialize_variant_registry(
+def materialize_variant_registry(
     artifact_root: Path,
     catalog: dict[str, PreparedSource],
     variant: ExperimentVariant,
@@ -519,6 +698,7 @@ def _materialize_variant_registry(
 
 def _variant_metrics(build_result: CorpusBuildResult) -> dict[str, Any]:
     entries = build_result.entries
+    source_counts = Counter(entry.source_id for entry in entries)
     simulation_entries = [entry for entry in entries if entry.lane == "simulation"]
     synthetic_entries = [
         entry for entry in simulation_entries if str(entry.attributes.get("source_origin", "")) != "sourced"
@@ -545,6 +725,22 @@ def _variant_metrics(build_result: CorpusBuildResult) -> dict[str, Any]:
         for entry in entries
         if entry.lane == "benchmark" and isinstance(entry.attributes.get("benchmark_slice"), str)
     )
+    wave1_simulation_entries = source_counts.get(_WAVE1_SOURCE_IDS["wave1_seed_simulation"], 0)
+    wave1_evaluator_entries = source_counts.get(_WAVE1_SOURCE_IDS["wave1_seed_evaluator"], 0)
+    wave1_benchmark_entries = source_counts.get(_WAVE1_SOURCE_IDS["wave1_seed_benchmark"], 0)
+    wave1_total_entries = wave1_simulation_entries + wave1_evaluator_entries + wave1_benchmark_entries
+    wave2_simulation_entries = source_counts.get(_WAVE2_SOURCE_IDS["wave2_seed_simulation"], 0)
+    wave2_evaluator_entries = source_counts.get(_WAVE2_SOURCE_IDS["wave2_seed_evaluator"], 0)
+    wave2_benchmark_entries = source_counts.get(_WAVE2_SOURCE_IDS["wave2_seed_benchmark"], 0)
+    wave2_total_entries = wave2_simulation_entries + wave2_evaluator_entries + wave2_benchmark_entries
+    wave3_simulation_entries = source_counts.get(_WAVE3_SOURCE_IDS["wave3_seed_simulation"], 0)
+    wave3_evaluator_entries = source_counts.get(_WAVE3_SOURCE_IDS["wave3_seed_evaluator"], 0)
+    wave3_benchmark_entries = source_counts.get(_WAVE3_SOURCE_IDS["wave3_seed_benchmark"], 0)
+    wave3_total_entries = wave3_simulation_entries + wave3_evaluator_entries + wave3_benchmark_entries
+    wave4_simulation_entries = source_counts.get(_WAVE4_SOURCE_IDS["wave4_seed_simulation"], 0)
+    wave4_evaluator_entries = source_counts.get(_WAVE4_SOURCE_IDS["wave4_seed_evaluator"], 0)
+    wave4_benchmark_entries = source_counts.get(_WAVE4_SOURCE_IDS["wave4_seed_benchmark"], 0)
+    wave4_total_entries = wave4_simulation_entries + wave4_evaluator_entries + wave4_benchmark_entries
     cross_cultural_sim_entries = [
         entry for entry in simulation_entries if bool(entry.attributes.get("cross_cultural"))
     ]
@@ -567,6 +763,42 @@ def _variant_metrics(build_result: CorpusBuildResult) -> dict[str, Any]:
         "benchmark_crisis_entries": benchmark_slices.get("benchmark_crisis", 0),
         "benchmark_persona_entries": benchmark_slices.get("benchmark_persona_texture", 0),
         "benchmark_long_running_entries": benchmark_slices.get("benchmark_long_running_continuity", 0),
+        "benchmark_internal_parts_entries": benchmark_slices.get("benchmark_internal_parts", 0),
+        "benchmark_transformational_affect_entries": benchmark_slices.get(
+            "benchmark_transformational_affect", 0
+        ),
+        "benchmark_challenge_calibration_entries": benchmark_slices.get(
+            "benchmark_challenge_calibration", 0
+        ),
+        "benchmark_hidden_driver_discovery_entries": benchmark_slices.get(
+            "benchmark_hidden_driver_discovery", 0
+        ),
+        "benchmark_overcontrol_entries": benchmark_slices.get("benchmark_overcontrol", 0),
+        "benchmark_somatic_hidden_driver_entries": benchmark_slices.get(
+            "benchmark_somatic_hidden_driver", 0
+        ),
+        "benchmark_process_targeting_entries": benchmark_slices.get("benchmark_process_targeting", 0),
+        "benchmark_revision_loop_entries": benchmark_slices.get("benchmark_revision_loop", 0),
+        "wave1_seed_simulation_entries": wave1_simulation_entries,
+        "wave1_seed_evaluator_entries": wave1_evaluator_entries,
+        "wave1_seed_benchmark_entries": wave1_benchmark_entries,
+        "wave1_seed_total_entries": wave1_total_entries,
+        "wave1_seed_share": _share(wave1_total_entries, len(entries)),
+        "wave2_seed_simulation_entries": wave2_simulation_entries,
+        "wave2_seed_evaluator_entries": wave2_evaluator_entries,
+        "wave2_seed_benchmark_entries": wave2_benchmark_entries,
+        "wave2_seed_total_entries": wave2_total_entries,
+        "wave2_seed_share": _share(wave2_total_entries, len(entries)),
+        "wave3_seed_simulation_entries": wave3_simulation_entries,
+        "wave3_seed_evaluator_entries": wave3_evaluator_entries,
+        "wave3_seed_benchmark_entries": wave3_benchmark_entries,
+        "wave3_seed_total_entries": wave3_total_entries,
+        "wave3_seed_share": _share(wave3_total_entries, len(entries)),
+        "wave4_seed_simulation_entries": wave4_simulation_entries,
+        "wave4_seed_evaluator_entries": wave4_evaluator_entries,
+        "wave4_seed_benchmark_entries": wave4_benchmark_entries,
+        "wave4_seed_total_entries": wave4_total_entries,
+        "wave4_seed_share": _share(wave4_total_entries, len(entries)),
         "clinician_hook_entries": len(clinician_hook_entries),
         "reproducibility_verified": _reproducibility_status(build_result.artifacts),
     }
@@ -582,6 +814,10 @@ def _score_variant(variant: ExperimentVariant, metrics: dict[str, Any]) -> float
         "F": _score_family_f,
         "G": _score_family_g,
         "H": _score_family_h,
+        "I": _score_family_i,
+        "J": _score_family_j,
+        "K": _score_family_k,
+        "L": _score_family_l,
         "RC": _score_release_candidate,
     }
     return scorers[variant.family](variant, metrics)
@@ -626,6 +862,50 @@ def _score_family_g(_variant: ExperimentVariant, metrics: dict[str, Any]) -> flo
 
 def _score_family_h(_variant: ExperimentVariant, metrics: dict[str, Any]) -> float:
     return 55 + metrics["persona_share"] * 18 - metrics["high_risk_persona_entries"] * 0.2
+
+
+def _score_family_i(_variant: ExperimentVariant, metrics: dict[str, Any]) -> float:
+    simulation_bonus = min(metrics["wave1_seed_simulation_entries"] / 6, 1) * 8
+    evaluator_bonus = min(metrics["wave1_seed_evaluator_entries"] / 6, 1) * 6
+    benchmark_bonus = min(metrics["wave1_seed_benchmark_entries"] / 10, 1) * 8
+    clinician_bonus = min(metrics["clinician_hook_entries"] / 20, 1) * 4
+    benchmark_bonus += min(metrics["benchmark_persona_entries"] / 10, 1) * 2
+    overuse_penalty = max(metrics["wave1_seed_share"] - 0.15, 0) * 40
+    return 58 + simulation_bonus + evaluator_bonus + benchmark_bonus + clinician_bonus - overuse_penalty
+
+
+def _score_family_j(_variant: ExperimentVariant, metrics: dict[str, Any]) -> float:
+    simulation_bonus = min(metrics["wave2_seed_simulation_entries"] / 9, 1) * 9
+    evaluator_bonus = min(metrics["wave2_seed_evaluator_entries"] / 9, 1) * 7
+    benchmark_bonus = min(metrics["wave2_seed_benchmark_entries"] / 10, 1) * 8
+    clinician_bonus = min(metrics["clinician_hook_entries"] / 24, 1) * 3
+    benchmark_bonus += min(metrics["benchmark_crisis_entries"] / 18, 1) * 2
+    overuse_penalty = max(metrics["wave2_seed_share"] - 0.18, 0) * 35
+    return 59 + simulation_bonus + evaluator_bonus + benchmark_bonus + clinician_bonus - overuse_penalty
+
+
+def _score_family_k(_variant: ExperimentVariant, metrics: dict[str, Any]) -> float:
+    simulation_bonus = min(metrics["wave3_seed_simulation_entries"] / 6, 1) * 4
+    evaluator_bonus = min(metrics["wave3_seed_evaluator_entries"] / 6, 1) * 9
+    benchmark_bonus = min(metrics["wave3_seed_benchmark_entries"] / 8, 1) * 10
+    calibration_bonus = min(metrics["benchmark_crisis_entries"] / 18, 1) * 2
+    calibration_bonus += min(metrics["benchmark_long_running_entries"] / 10, 1) * 2
+    clinician_bonus = min(metrics["clinician_hook_entries"] / 24, 1) * 3
+    overuse_penalty = max(metrics["wave3_seed_share"] - 0.16, 0) * 35
+    return 60 + simulation_bonus + evaluator_bonus + benchmark_bonus + calibration_bonus + clinician_bonus - overuse_penalty
+
+
+def _score_family_l(_variant: ExperimentVariant, metrics: dict[str, Any]) -> float:
+    simulation_bonus = min(metrics["wave4_seed_simulation_entries"] / 8, 1) * 8
+    evaluator_bonus = min(metrics["wave4_seed_evaluator_entries"] / 8, 1) * 8
+    benchmark_bonus = min(metrics["wave4_seed_benchmark_entries"] / 10, 1) * 8
+    method_bonus = min(metrics["benchmark_internal_parts_entries"] / 2, 1) * 3
+    method_bonus += min(metrics["benchmark_challenge_calibration_entries"], 1) * 2
+    method_bonus += min(metrics["benchmark_process_targeting_entries"], 1) * 2
+    method_bonus += min(metrics["benchmark_revision_loop_entries"], 1) * 2
+    clinician_bonus = min(metrics["clinician_hook_entries"] / 28, 1) * 3
+    overuse_penalty = max(metrics["wave4_seed_share"] - 0.18, 0) * 35
+    return 61 + simulation_bonus + evaluator_bonus + benchmark_bonus + method_bonus + clinician_bonus - overuse_penalty
 
 
 def _score_release_candidate(_variant: ExperimentVariant, metrics: dict[str, Any]) -> float:
@@ -701,6 +981,148 @@ def _reproducibility_status(artifacts: dict[str, Path]) -> bool:
 
 def _share(numerator: int, denominator: int) -> float:
     return 0.0 if denominator == 0 else numerator / denominator
+
+
+def _release_candidate_source_limits(winners: dict[str, VariantOutcome]) -> dict[str, int]:
+    return _release_candidate_source_limits_from_variant_ids(
+        {family: outcome.variant.variant_id for family, outcome in _participating_release_winners(winners).items()}
+    )
+
+
+def _release_candidate_source_limits_from_variant_ids(winner_variant_ids: dict[str, str]) -> dict[str, int]:
+    source_limits = {
+        "foundation_amod": 80,
+        "foundation_helios": 40,
+        "specialist_fadodr": 80,
+        "edge_simulation": 100,
+        "edge_policy": 50,
+        "edge_benchmark": 40,
+        "long_running_benchmark": 12,
+        "long_running_simulation": 24,
+        "persona_google": 40,
+        "persona_nazli": 40,
+        "simulation_hidden_rubrics": 40,
+        "benchmark_cross_cultural": 30,
+        "evaluator_psychology": 60,
+    }
+    wave1_winner_id = winner_variant_ids.get("I")
+    if wave1_winner_id is None:
+        return source_limits
+    if wave1_winner_id in {"I1.2", "I1.3"}:
+        source_limits["wave1_seed_simulation"] = 6
+    if wave1_winner_id == "I1.3":
+        source_limits["wave1_seed_evaluator"] = 6
+        source_limits["wave1_seed_benchmark"] = 10
+    return source_limits
+
+
+def _release_candidate_delta_source_limits_from_variant_ids(
+    winner_variant_ids: dict[str, str],
+) -> dict[str, int]:
+    return {
+        source_name: limit
+        for source_name, limit in _release_candidate_source_limits_from_variant_ids(winner_variant_ids).items()
+        if source_name not in _WAVE1_SOURCE_NAMES
+        and source_name not in _WAVE2_SOURCE_NAMES
+        and source_name not in _WAVE3_SOURCE_NAMES
+        and source_name not in _WAVE4_SOURCE_NAMES
+    }
+
+
+def _winner_variant_ids(report: dict[str, Any]) -> dict[str, str]:
+    families = report.get("families")
+    if not isinstance(families, dict):
+        return {}
+
+    winners: dict[str, str] = {}
+    for family, payload in families.items():
+        if not isinstance(payload, dict):
+            continue
+        winner = payload.get("winner")
+        if not isinstance(winner, dict):
+            continue
+        variant_id = winner.get("variant_id")
+        if isinstance(family, str) and isinstance(variant_id, str) and variant_id:
+            winners[family] = variant_id
+    return winners
+
+
+def _participating_release_winners(winners: dict[str, VariantOutcome]) -> dict[str, VariantOutcome]:
+    return {
+        family: outcome for family, outcome in winners.items() if family not in _HELD_OUT_RELEASE_FAMILIES
+    }
+
+
+def _wave1_seed_sources(seed_pack_path: Path) -> dict[str, PreparedSource]:
+    materialized_paths = ensure_wave1_seed_sources_materialized(seed_pack_path=seed_pack_path)
+    return _seed_sources(
+        materialized_paths,
+        simulation_name="wave1_seed_simulation",
+        evaluator_name="wave1_seed_evaluator",
+        benchmark_name="wave1_seed_benchmark",
+    )
+
+
+def _wave2_seed_sources(seed_pack_path: Path) -> dict[str, PreparedSource]:
+    materialized_paths = ensure_wave2_seed_sources_materialized(seed_pack_path=seed_pack_path)
+    return _seed_sources(
+        materialized_paths,
+        simulation_name="wave2_seed_simulation",
+        evaluator_name="wave2_seed_evaluator",
+        benchmark_name="wave2_seed_benchmark",
+    )
+
+
+def _wave3_seed_sources(seed_pack_path: Path) -> dict[str, PreparedSource]:
+    materialized_paths = ensure_wave3_seed_sources_materialized(seed_pack_path=seed_pack_path)
+    return _seed_sources(
+        materialized_paths,
+        simulation_name="wave3_seed_simulation",
+        evaluator_name="wave3_seed_evaluator",
+        benchmark_name="wave3_seed_benchmark",
+    )
+
+
+def _wave4_seed_sources(seed_pack_path: Path) -> dict[str, PreparedSource]:
+    materialized_paths = ensure_wave4_seed_sources_materialized(seed_pack_path=seed_pack_path)
+    return _seed_sources(
+        materialized_paths,
+        simulation_name="wave4_seed_simulation",
+        evaluator_name="wave4_seed_evaluator",
+        benchmark_name="wave4_seed_benchmark",
+    )
+
+
+def _seed_sources(
+    materialized_paths: dict[str, Path],
+    *,
+    simulation_name: str,
+    evaluator_name: str,
+    benchmark_name: str,
+) -> dict[str, PreparedSource]:
+    return {
+        simulation_name: PreparedSource(
+            name=simulation_name,
+            group="professional_therapeutic",
+            stage="stage1_foundation",
+            source_type="conversation",
+            records=tuple(_read_jsonl(materialized_paths["simulation"])),
+        ),
+        evaluator_name: PreparedSource(
+            name=evaluator_name,
+            group="supplementary",
+            stage="stage2_therapeutic_expertise",
+            source_type="knowledge_base",
+            records=tuple(_read_jsonl(materialized_paths["evaluator"])),
+        ),
+        benchmark_name: PreparedSource(
+            name=benchmark_name,
+            group="edge_case_sources",
+            stage="stage3_edge_stress_test",
+            source_type="synthetic_edge",
+            records=tuple(_read_jsonl(materialized_paths["benchmark"])),
+        ),
+    }
 
 
 def _prepare_amod(path: Path) -> tuple[dict[str, Any], ...]:
