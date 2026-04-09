@@ -13,6 +13,7 @@ Canonical JSONL schema fields:
 
 from __future__ import annotations
 
+import functools
 import hashlib
 import logging
 import re
@@ -24,6 +25,11 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+
+# ⚡ Bolt Optimization: Pre-compile regexes used in to_snake_case to eliminate regex compilation overhead in high-throughput parsing loops.
+_SNAKE_CASE_SPACES_RE = re.compile(r"[\s\-]+")
+_SNAKE_CASE_CAMEL_RE = re.compile(r"(?<!^)(?=[A-Z])")
+_SNAKE_CASE_UNDERSCORE_RE = re.compile(r"_+")
 
 # ---------------------------------------------------------------------------
 # Required fields for the PIX-30 canonical JSONL schema
@@ -390,15 +396,17 @@ class DataNormalizer:
     # ------------------------------------------------------------------
 
     @staticmethod
+    # ⚡ Bolt Optimization: Cache repeated lower_snake_case conversions. JSONL datasets exhibit high key repetition (e.g., 'id', 'source'), so LRU caching skips redundant string manipulations and regex passes.
+    @functools.lru_cache(maxsize=1024)
     def _to_snake_case(key: str) -> str:
         """Convert a string key to lower_snake_case."""
         key = key.strip().lower()
         # Replace spaces and hyphens with underscores
-        key = re.sub(r"[\s\-]+", "_", key)
+        key = _SNAKE_CASE_SPACES_RE.sub("_", key)
         # Insert underscore before uppercase letters (camelCase → camel_case)
-        key = re.sub(r"(?<!^)(?=[A-Z])", "_", key)
+        key = _SNAKE_CASE_CAMEL_RE.sub("_", key)
         # Collapse multiple underscores
-        key = re.sub(r"_+", "_", key)
+        key = _SNAKE_CASE_UNDERSCORE_RE.sub("_", key)
         return key
 
     def _normalize_message(self, message: dict[str, Any]) -> dict[str, Any]:
