@@ -13,6 +13,7 @@ Canonical JSONL schema fields:
 
 from __future__ import annotations
 
+import functools
 import hashlib
 import logging
 import re
@@ -21,6 +22,28 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+# Pre-compiled regex patterns for snake_case conversion
+_SNAKE_CASE_SPACES_RE = re.compile(r"[\s\-]+")
+_SNAKE_CASE_CAMEL_RE = re.compile(r"(?<!^)(?=[A-Z])")
+_SNAKE_CASE_COLLAPSE_RE = re.compile(r"_+")
+
+# ⚡ Bolt: Added @functools.lru_cache and pre-compiled regex to optimize
+# repetitive key and text normalization during large dataset processing.
+@functools.lru_cache(maxsize=4096)
+def _cached_to_snake_case(key: str) -> str:
+    """Convert a string key to lower_snake_case (cached)."""
+    key = key.strip().lower()
+    key = _SNAKE_CASE_SPACES_RE.sub("_", key)
+    key = _SNAKE_CASE_CAMEL_RE.sub("_", key)
+    return _SNAKE_CASE_COLLAPSE_RE.sub("_", key)
+
+@functools.lru_cache(maxsize=4096)
+def _cached_normalize_text(text: str) -> str:
+    """Normalize unicode characters and whitespace in a string (cached)."""
+    normalized = unicodedata.normalize("NFKC", text)
+    normalized = " ".join(normalized.split())
+    return normalized.strip()
 
 logger = logging.getLogger(__name__)
 
@@ -157,9 +180,7 @@ class DataNormalizer:
         """Normalize unicode characters and whitespace in a string."""
         if not text or not isinstance(text, str):
             return text
-        normalized = unicodedata.normalize("NFKC", text)
-        normalized = " ".join(normalized.split())
-        return normalized.strip()
+        return _cached_normalize_text(text)
 
     def standardize_keys(self, data: dict[str, Any]) -> dict[str, Any]:
         """Convert all dict keys to lower_snake_case recursively."""
@@ -199,7 +220,7 @@ class DataNormalizer:
 
         return normalized
 
-    def record_to_conversation(self, record: dict[str, Any]) -> "Conversation":
+    def record_to_conversation(self, record: dict[str, Any]) -> Conversation:
         """
         Convert a normalized JSONL record into a Conversation dataclass instance.
 
@@ -392,14 +413,7 @@ class DataNormalizer:
     @staticmethod
     def _to_snake_case(key: str) -> str:
         """Convert a string key to lower_snake_case."""
-        key = key.strip().lower()
-        # Replace spaces and hyphens with underscores
-        key = re.sub(r"[\s\-]+", "_", key)
-        # Insert underscore before uppercase letters (camelCase → camel_case)
-        key = re.sub(r"(?<!^)(?=[A-Z])", "_", key)
-        # Collapse multiple underscores
-        key = re.sub(r"_+", "_", key)
-        return key
+        return _cached_to_snake_case(key)
 
     def _normalize_message(self, message: dict[str, Any]) -> dict[str, Any]:
         """Normalize a single message dict."""
@@ -500,7 +514,7 @@ class Conversation:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "Conversation":
+    def from_dict(cls, data: dict[str, Any]) -> Conversation:
         """Creates a Conversation instance from a dictionary."""
         messages = [Message(**msg_data) for msg_data in data.get("messages", [])]
         return cls(
@@ -519,11 +533,11 @@ class Conversation:
 
 
 __all__ = [
-    "DataNormalizer",
-    "ValidationResult",
-    "NormalizationResult",
-    "Message",
-    "Conversation",
     "REQUIRED_FIELDS",
     "REQUIRED_METADATA_FIELDS",
+    "Conversation",
+    "DataNormalizer",
+    "Message",
+    "NormalizationResult",
+    "ValidationResult",
 ]
