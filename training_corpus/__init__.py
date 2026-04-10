@@ -73,6 +73,15 @@ from .synthesis import (
     load_synthesis_seed_pack,
     materialize_seed_pack_records,
 )
+from .wave5_package import (
+    DEFAULT_WAVE5_MANIFEST_PATH,
+    DEFAULT_WAVE5_REGISTRY_PATH,
+    DEFAULT_WAVE5_SOURCE_PATHS,
+    build_wave5_authored_corpus,
+    build_wave5_authored_records,
+    ensure_wave5_authored_registry_materialized,
+    materialize_wave5_authored_sources,
+)
 
 __all__ = [
     "DEFAULT_WAVE1_MANIFEST_PATH",
@@ -97,7 +106,10 @@ __all__ = [
     "DEFAULT_WAVE5_EXPANSION_DRAFT_PACK_PATH",
     "DEFAULT_WAVE5_EXPANSION_QUEUE_PATH",
     "DEFAULT_WAVE5_EXPANSION_TICKET_QUEUE_PATH",
+    "DEFAULT_WAVE5_MANIFEST_PATH",
+    "DEFAULT_WAVE5_REGISTRY_PATH",
     "DEFAULT_WAVE5_SOURCE_DOSSIER_PATH",
+    "DEFAULT_WAVE5_SOURCE_PATHS",
     "CorpusBuildConfig",
     "CorpusBuilder",
     "ExpansionCandidateArtifacts",
@@ -117,6 +129,8 @@ __all__ = [
     "build_wave2_seed_registry",
     "build_wave3_seed_registry",
     "build_wave4_seed_registry",
+    "build_wave5_authored_corpus",
+    "build_wave5_authored_records",
     "ensure_default_expansion_draft_pack_materialized",
     "ensure_seed_pack_registry_materialized",
     "ensure_seed_pack_sources_materialized",
@@ -128,6 +142,7 @@ __all__ = [
     "ensure_wave3_seed_sources_materialized",
     "ensure_wave4_seed_registry_materialized",
     "ensure_wave4_seed_sources_materialized",
+    "ensure_wave5_authored_registry_materialized",
     "ensure_wave5_expansion_packets_materialized",
     "expansion_draft_status_counts",
     "expansion_queue_lane_targets",
@@ -142,6 +157,7 @@ __all__ = [
     "materialize_expansion_authoring_packets",
     "materialize_expansion_draft_pack",
     "materialize_seed_pack_records",
+    "materialize_wave5_authored_sources",
     "write_expansion_draft_ledger",
     "write_expansion_draft_report",
 ]
