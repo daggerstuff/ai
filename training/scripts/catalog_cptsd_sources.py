@@ -9,6 +9,7 @@ It identifies all CPTSD sources, downloads them, and creates a comprehensive inv
 import json
 import logging
 import os
+HETZNER_AI_CLI = os.environ.get("HETZNER_AI_CLI", "ovhai")
 import subprocess
 from dataclasses import asdict, dataclass
 from datetime import datetime
@@ -104,13 +105,13 @@ class CPTSDSourceCataloger:
         self.sources: List[CPTSDSource] = []
 
     def run_hetzner_cli_command(self, command: List[str]) -> str:
-        """Execute an ovhai CLI command and return output."""
+        """Execute HETZNER CLI command and return output."""
         try:
             import shlex
 
             logger.debug(f"Executing command: {shlex.join(command)}")
             # SECURITY: Always hardcode the base command and validate arguments
-            if command[0] != "ovhai":
+            if command[0] != HETZNER_AI_CLI:
                 raise ValueError(f"Unauthorized command: {command[0]}")
 
             result = subprocess.run(
@@ -128,7 +129,7 @@ class CPTSDSourceCataloger:
         """List objects in S3 with given prefix."""
         output = self.run_hetzner_cli_command(
             [
-                "ovhai",
+                HETZNER_AI_CLI,
                 "bucket",
                 "object",
                 "list",
