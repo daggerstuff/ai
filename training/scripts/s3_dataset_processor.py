@@ -27,7 +27,7 @@ class S3DatasetProcessor:
     def __init__(
         self,
         bucket_name: str = "pixel-data",
-        endpoint_url: str = "https://s3.us-east-va.io.cloud.ovh.us",
+        endpoint_url: str = "https://hel1.your-objectstorage.com",
         local_cache_dir: str = "/tmp/s3_dataset_cache",
     ):
         self.bucket_name = bucket_name
@@ -41,7 +41,7 @@ class S3DatasetProcessor:
             endpoint_url=endpoint_url,
             aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID"),
             aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY"),
-            region_name="us-east-va",
+            region_name='hel1',
         )
 
         self.stats = {

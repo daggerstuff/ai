@@ -370,11 +370,11 @@ def _load_s3_config(manifest_path: Path) -> tuple[str, str]:
         try:
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
             bucket = manifest.get("bucket", "pixel-data")
-            endpoint = manifest.get("endpoint", "https://s3.us-east-va.io.cloud.ovh.us")
+            endpoint = manifest.get("endpoint", "https://hel1.your-objectstorage.com")
             return bucket, endpoint
         except (OSError, json.JSONDecodeError):
             pass
-    return "pixel-data", "https://s3.us-east-va.io.cloud.ovh.us"
+    return "pixel-data", "https://hel1.your-objectstorage.com"
 
 
 def _build_arg_parser() -> argparse.ArgumentParser:

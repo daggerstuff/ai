@@ -2,7 +2,7 @@
 """
 Consolidated S3 Dataset Loader for Pixelated Empathy AI
 
-This module provides a comprehensive S3 interface for OVH object storage:
+This module provides a comprehensive S3 interface for Hetzner object storage:
 - Idempotent upload and download operations
 - Batch processing with parallel support
 - Progress tracking and monitoring
@@ -101,7 +101,7 @@ class S3Config:
         if self.secret_access_key is None:
             self.secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
         if self.endpoint_url is None:
-            self.endpoint_url = os.getenv("OVH_S3_ENDPOINT")
+            self.endpoint_url = os.getenv("HETZNER_S3_ENDPOINT")
 
 
 @dataclass
@@ -230,10 +230,10 @@ class ProgressTracker:
 
 class S3DatasetLoader:
     """
-    Consolidated S3 dataset loader for OVH object storage.
+    Consolidated S3 dataset loader for Hetzner object storage.
 
     Provides idempotent operations for uploading and downloading datasets
-    from S3-compatible storage (OVH, AWS, MinIO, etc.).
+    from S3-compatible storage (Hetzner, AWS, MinIO, etc.).
     """
 
     def __init__(self, config: S3Config):
@@ -1165,7 +1165,7 @@ def download_dataset_artifact(
 if __name__ == "__main__":
     # Example usage
     config = S3Config(
-        endpoint_url=os.getenv("OVH_S3_ENDPOINT"),
+        endpoint_url=os.getenv("HETZNER_S3_ENDPOINT"),
         bucket_name="pixelated-datasets",
         verify_checksums=True,
     )

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Download CPTSD source transcripts from OVH S3 using boto3.
+"""Download CPTSD source transcripts from HETZNER S3 using boto3.
 
 Reads the source inventory and download catalog, then pulls each
 file into local cptsd_sources/ subdirectories.
@@ -27,8 +27,8 @@ REPO_ROOT = Path(__file__).resolve().parents[4]
 
 
 def _load_env() -> None:
-    """Load OVH_S3_ vars from .env.staging if not already set."""
-    if os.getenv("OVH_S3_ACCESS_KEY"):
+    """Load HETZNER_S3_ vars from .env.staging if not already set."""
+    if os.getenv("HETZNER_S3_ACCESS_KEY"):
         return
     for name in (".env.staging", ".env.local", ".env.production"):
         env_file = REPO_ROOT / name
@@ -41,7 +41,7 @@ def _load_env() -> None:
                         stripped
                         and not stripped.startswith("#")
                         and "=" in stripped
-                        and stripped.startswith("OVH_S3_")
+                        and stripped.startswith("HETZNER_S3_")
                     ):
                         key, _, val = stripped.partition("=")
                         val = val.strip("'\"")
@@ -50,22 +50,22 @@ def _load_env() -> None:
 
 
 def _get_s3_client():
-    """Build a boto3 S3 client for OVH."""
+    """Build a boto3 S3 client for HETZNER."""
     try:
         import boto3
     except ImportError:
         logger.error("boto3 is required. Install: uv add boto3")
         sys.exit(1)
 
-    endpoint = os.getenv("OVH_S3_ENDPOINT")
-    access_key = os.getenv("OVH_S3_ACCESS_KEY")
-    secret_key = os.getenv("OVH_S3_SECRET_KEY")
-    region = os.getenv("OVH_S3_REGION", "us-east-va")
+    endpoint = os.getenv("HETZNER_S3_ENDPOINT")
+    access_key = os.getenv("HETZNER_S3_ACCESS_KEY")
+    secret_key = os.getenv("HETZNER_S3_SECRET_KEY")
+    region = os.getenv("HETZNER_S3_REGION", 'hel1')
 
     if not all([endpoint, access_key, secret_key]):
         logger.error(
-            "Missing S3 credentials. Set OVH_S3_ENDPOINT, "
-            "OVH_S3_ACCESS_KEY, OVH_S3_SECRET_KEY"
+            "Missing S3 credentials. Set HETZNER_S3_ENDPOINT, "
+            "HETZNER_S3_ACCESS_KEY, HETZNER_S3_SECRET_KEY"
         )
         sys.exit(1)
 
@@ -137,7 +137,7 @@ def download_all() -> dict:
     """Download all CPTSD sources from S3."""
     _load_env()
 
-    bucket = os.getenv("OVH_S3_BUCKET", "pixel-data")
+    bucket = os.getenv("HETZNER_S3_BUCKET", "pixel-data")
     client = _get_s3_client()
     files_to_download = _collect_s3_keys()
 

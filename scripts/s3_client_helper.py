@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Helper for creating S3 clients with custom endpoint support (DigitalOcean Spaces, MinIO, etc)."""
+"""Helper for creating S3 clients with custom endpoint support (Hetzner Object Storage, MinIO, etc)."""
 
 import os
 
@@ -13,12 +13,12 @@ def get_s3_client() -> boto3.client:
 
     Supports:
     - AWS S3 (default)
-    - DigitalOcean Spaces (via AWS_S3_ENDPOINT or DO_S3_ENDPOINT)
+    - Hetzner Object Storage (via AWS_S3_ENDPOINT or HETZNER_S3_ENDPOINT)
     - MinIO (via MINIO_ENDPOINT)
 
     Environment variables:
     - AWS_S3_ENDPOINT: Custom S3 endpoint URL
-    - DO_S3_ENDPOINT: DigitalOcean Spaces endpoint
+    - HETZNER_S3_ENDPOINT: Hetzner Object Storage endpoint
     - MINIO_ENDPOINT: MinIO endpoint
     - AWS_ACCESS_KEY_ID: Access key
     - AWS_SECRET_ACCESS_KEY: Secret key
@@ -29,9 +29,9 @@ def get_s3_client() -> boto3.client:
     """
     endpoint_url = (
         os.environ.get("AWS_S3_ENDPOINT")
-        or os.environ.get("DO_S3_ENDPOINT")
+        or os.environ.get("HETZNER_S3_ENDPOINT")
         or os.environ.get("MINIO_ENDPOINT")
-        or "https://sfo3.digitaloceanspaces.com"
+        or "https://hel1.your-objectstorage.com"
     )
 
     region = os.environ.get("AWS_REGION", "sfo3")
@@ -56,7 +56,7 @@ def get_s3_bucket_name() -> str:
     Get the S3 bucket name from environment or default.
 
     Checks:
-    - DO_S3_BUCKET (for DigitalOcean)
+    - HETZNER_S3_BUCKET
     - AWS_S3_BUCKET
     - Or defaults to 'pixel-data'
 
@@ -64,7 +64,7 @@ def get_s3_bucket_name() -> str:
         Bucket name
     """
     return (
-        os.environ.get("DO_S3_BUCKET")
+        os.environ.get("HETZNER_S3_BUCKET")
         or os.environ.get("AWS_S3_BUCKET")
         or "pixel-data"
     )

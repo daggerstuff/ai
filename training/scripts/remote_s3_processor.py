@@ -21,7 +21,7 @@ set -e
 AWS_ACCESS_KEY_ID=${1:-$AWS_ACCESS_KEY_ID}
 AWS_SECRET_ACCESS_KEY=${2:-$AWS_SECRET_ACCESS_KEY}
 AWS_DEFAULT_REGION=us-east-va
-ENDPOINT_URL=https://s3.us-east-va.io.cloud.ovh.us
+ENDPOINT_URL=https://hel1.your-objectstorage.com
 BUCKET=pixel-data
 
 if [[ -z "$AWS_ACCESS_KEY_ID" || -z "$AWS_SECRET_ACCESS_KEY" ]]; then
@@ -58,7 +58,7 @@ cat > training_ready/data/remote_s3_discovery/process_60gb_datasets.sh << 'EOF'
 set -e
 
 BUCKET=pixel-data
-ENDPOINT_URL=https://s3.us-east-va.io.cloud.ovh.us
+ENDPOINT_URL=https://hel1.your-objectstorage.com
 DOWNLOAD_DIR=training_ready/data/remote_60gb_corpus
 TEMP_DIR=/tmp/s3_processing
 MAX_PARALLEL=4
@@ -123,7 +123,7 @@ cat > training_ready/data/remote_s3_discovery/README.md << 'EOF'
 
 ## Overview
 - **Bucket**: pixel-data
-- **Endpoint**: https://s3.us-east-va.io.cloud.ovh.us
+- **Endpoint**: https://hel1.your-objectstorage.com
 - **Size**: 60GB therapeutic corpus
 - **Format**: JSON/JSONL/CSV therapeutic conversations
 
@@ -135,7 +135,7 @@ cat > training_ready/data/remote_s3_discovery/README.md << 'EOF'
 ## Streaming Processing
 For memory-efficient processing without full download:
 ```bash
-aws s3 cp s3://pixel-data/path/to/file.jsonl - --endpoint-url https://s3.us-east-va.io.cloud.ovh.us | python3 your_processor.py
+aws s3 cp s3://pixel-data/path/to/file.jsonl - --endpoint-url https://hel1.your-objectstorage.com | python3 your_processor.py
 ```
 EOF
 
@@ -169,10 +169,10 @@ def generate_process_commands():
         "discovery": "training_ready/scripts/remote_s3_processor.sh",
         "stream_process": """
 # Stream-process 60GB without full download
-aws s3 ls s3://pixel-data --recursive --endpoint-url https://s3.us-east-va.io.cloud.ovh.us | \
+aws s3 ls s3://pixel-data --recursive --endpoint-url https://hel1.your-objectstorage.com | \
     grep '\.jsonl$' | \
     awk '{print $4}' | \
-    xargs -I {} -P 4 -n 1 sh -c 'aws s3 cp s3://pixel-data/{} - --endpoint-url https://s3.us-east-va.io.cloud.ovh.us | python3 -c "
+    xargs -I {} -P 4 -n 1 sh -c 'aws s3 cp s3://pixel-data/{} - --endpoint-url https://hel1.your-objectstorage.com | python3 -c "
 import json, sys
 for line in sys.stdin:
     try:
@@ -185,12 +185,12 @@ for line in sys.stdin:
         """,
         "download_top": """
 # Download top 10GB of therapeutic data
-aws s3 ls s3://pixel-data --recursive --endpoint-url https://s3.us-east-va.io.cloud.ovh.us | \
+aws s3 ls s3://pixel-data --recursive --endpoint-url https://hel1.your-objectstorage.com | \
     grep '\.json' | \
     sort -k3 -hr | \
     head -20 | \
     awk '{print $4}' | \
-    xargs -I {} aws s3 cp s3://pixel-data/{} training_ready/data/remote_60gb_corpus/ --endpoint-url https://s3.us-east-va.io.cloud.ovh.us
+    xargs -I {} aws s3 cp s3://pixel-data/{} training_ready/data/remote_60gb_corpus/ --endpoint-url https://hel1.your-objectstorage.com
         """,
     }
 
@@ -206,7 +206,7 @@ def main():
     print("🚀 Remote 60GB S3 Processor")
     print("=" * 50)
     print("📍 Target: pixel-data bucket (60GB)")
-    print("🔗 Endpoint: https://s3.us-east-va.io.cloud.ovh.us")
+    print("🔗 Endpoint: https://hel1.your-objectstorage.com")
     print("")
 
     create_remote_processor_script()

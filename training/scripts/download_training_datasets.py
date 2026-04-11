@@ -22,11 +22,11 @@ def download_tier1_datasets():
         with open(manifest_path) as f:
             manifest = json.load(f)
             bucket = manifest.get("bucket", "pixel-data")
-            endpoint = manifest.get("endpoint", "https://s3.us-east-va.io.cloud.ovh.us")
+            endpoint = manifest.get("endpoint", "https://hel1.your-objectstorage.com")
             print(f"Loaded config from manifest: Bucket={bucket}, Endpoint={endpoint}")
     else:
         bucket = "pixel-data"
-        endpoint = "https://s3.us-east-va.io.cloud.ovh.us"
+        endpoint = "https://hel1.your-objectstorage.com"
         print(
             f"Manifest not found, using defaults: Bucket={bucket}, Endpoint={endpoint}"
         )

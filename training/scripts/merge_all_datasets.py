@@ -221,12 +221,12 @@ def _load_s3_config(manifest_path: Path) -> tuple[str, str]:
             with open(manifest_path, "r", encoding="utf-8") as f:
                 manifest = json.load(f)
             bucket = manifest.get("bucket", "pixel-data")
-            endpoint = manifest.get("endpoint", "https://s3.us-east-va.io.cloud.ovh.us")
+            endpoint = manifest.get("endpoint", "https://hel1.your-objectstorage.com")
             return bucket, endpoint
         except (OSError, json.JSONDecodeError) as e:
             logger.warning(f"Failed to read manifest: {e}")
     
-    return "pixel-data", "https://s3.us-east-va.io.cloud.ovh.us"
+    return "pixel-data", "https://hel1.your-objectstorage.com"
 
 
 def _get_s3_loader(bucket: str, endpoint: str) -> Any:

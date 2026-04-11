@@ -272,11 +272,11 @@ def main() -> int:
 
     bucket, endpoint = _load_s3_manifest(Path(args.manifest))
 
-    # Allow environment to override bucket for OVH S3
+    # Allow environment to override bucket for HETZNER S3
     import os
 
-    bucket = os.getenv("OVH_S3_BUCKET", bucket)
-    endpoint = os.getenv("OVH_S3_ENDPOINT", endpoint)
+    bucket = os.getenv("HETZNER_S3_BUCKET", bucket)
+    endpoint = os.getenv("HETZNER_S3_ENDPOINT", endpoint)
 
     loader = S3DatasetLoader(bucket=bucket, endpoint_url=endpoint)
 

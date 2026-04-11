@@ -65,17 +65,17 @@ class S3DatasetLoader:
         endpoint_url: str | None = None,
         aws_access_key_id: str | None = None,
         aws_secret_access_key: str | None = None,
-        region_name: str = "us-east-va",
+        region_name: str = "hel1",
     ):
         """
         Initialize S3 client for dataset loading.
 
         Args:
             bucket: S3 bucket name (default: pixel-data)
-            endpoint_url: S3 endpoint URL (default: OVH S3 endpoint)
+            endpoint_url: S3 endpoint URL (default: Hetzner S3 endpoint)
             aws_access_key_id: AWS access key (from env if not provided)
             aws_secret_access_key: AWS secret key (from env if not provided)
-            region_name: AWS region (default: us-east-va for OVH)
+            region_name: AWS region (default: hel1)
         """
         if boto3 is None:
             raise ImportError(
@@ -83,48 +83,45 @@ class S3DatasetLoader:
                 "Install with: uv pip install boto3"
             )
 
-        # Prefer Gozunga, then OVH, then direct params
+        # Prefer Hetzner, then direct params
         self.bucket = (
-            os.getenv("GOZUNGA_S3_BUCKET")
-            or os.getenv("OVH_S3_BUCKET")
+            os.getenv("HETZNER_S3_BUCKET")
+            or os.getenv("HETZNER_S3_BUCKET")
             or bucket
         )
         self.endpoint_url = endpoint_url or os.getenv(
-            "GOZUNGA_S3_ENDPOINT"
+            "HETZNER_S3_ENDPOINT"
         ) or os.getenv(
-            "OVH_S3_ENDPOINT", "https://s3.us-east-va.io.cloud.ovh.us"
+            "HETZNER_S3_ENDPOINT", "https://hel1.your-objectstorage.com"
         )
 
         # Get credentials from params or environment
         access_key = (
             aws_access_key_id
-            or os.getenv("GONZUNGA_ACCESS_KEY")
-            or os.getenv("GOZUNGA_S3_ACCESS_KEY")
-            or os.getenv("OVH_S3_ACCESS_KEY")
-            or os.getenv("OVH_ACCESS_KEY")
+            or os.getenv("HETZNER_S3_ACCESS_KEY")
+            or os.getenv("HETZNER_ACCESS_KEY")
+            or os.getenv("HETZNER_S3_ACCESS_KEY")
+            or os.getenv("HETZNER_ACCESS_KEY")
             or os.getenv("AWS_ACCESS_KEY_ID")
         )
         secret_key = (
             aws_secret_access_key
-            or os.getenv("GONZUNGA_SECRET_KEY")
-            or os.getenv("GOZUNGA_S3_SECRET_KEY")
-            or os.getenv("OVH_S3_SECRET_KEY")
-            or os.getenv("OVH_SECRET_KEY")
+            or os.getenv("HETZNER_S3_SECRET_KEY")
+            or os.getenv("HETZNER_SECRET_KEY")
+            or os.getenv("HETZNER_S3_SECRET_KEY")
+            or os.getenv("HETZNER_SECRET_KEY")
             or os.getenv("AWS_SECRET_ACCESS_KEY")
         )
 
         if not access_key or not secret_key:
             raise ValueError(
-                "S3 credentials not found. Set OVH_S3_ACCESS_KEY/OVH_S3_SECRET_KEY "
-                "(or OVH_ACCESS_KEY/OVH_SECRET_KEY, "
+                "S3 credentials not found. Set HETZNER_S3_ACCESS_KEY/HETZNER_S3_SECRET_KEY "
+                "(or HETZNER_ACCESS_KEY/HETZNER_SECRET_KEY, "
                 "or AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY)."
             )
 
-        # Initialize S3 client (OVH S3 compatible)
-        # OVH uses self-signed certificates, so verify=False is required
-        # Initialize S3 client (OVH S3 compatible)
-        # OVH uses self-signed certificates, so verify=False is required
-        verify_ssl = os.getenv("OVH_S3_CA_BUNDLE", True)
+        # Initialize S3 client (Hetzner S3 compatible)
+        verify_ssl = os.getenv("HETZNER_S3_CA_BUNDLE", True)
         # Handle string "False" or "0" from env
         if str(verify_ssl).lower() in {"false", "0", "no"}:
             verify_ssl = False
@@ -139,7 +136,7 @@ class S3DatasetLoader:
             endpoint_url=self.endpoint_url,
             aws_access_key_id=access_key,
             aws_secret_access_key=secret_key,
-            region_name=region_name or os.getenv("OVH_S3_REGION", "us-east-va"),
+            region_name=region_name or os.getenv("HETZNER_S3_REGION", "hel1"),
             verify=verify_ssl,
         )
 

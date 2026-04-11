@@ -13,8 +13,8 @@ from rich.text import Text
 
 # --- Configuration ---
 BUCKET_NAME = "pixel-data"
-ENDPOINT_URL = "https://s3.us-east-va.io.cloud.ovh.us"
-REGION_NAME = "us-east-va"
+ENDPOINT_URL = "https://hel1.your-objectstorage.com"
+REGION_NAME = "hel1"
 UPLOAD_PREFIX = "full_ai_sweep/"
 SIZE_THRESHOLD = 100 * 1024 * 1024  # 100 MB
 
@@ -30,11 +30,11 @@ for env_path in env_paths:
 
 
 def get_s3_client():
-    access_key = os.environ.get("OVH_S3_ACCESS_KEY")
-    secret_key = os.environ.get("OVH_S3_SECRET_KEY")
+    access_key = os.environ.get("HETZNER_S3_ACCESS_KEY")
+    secret_key = os.environ.get("HETZNER_S3_SECRET_KEY")
     if not access_key or not secret_key:
         console.print(
-            "[red]❌ Error: Missing credentials (OVH_S3_ACCESS_KEY/SECRET_KEY).[/red]"
+            "[red]❌ Error: Missing credentials (HETZNER_S3_ACCESS_KEY/SECRET_KEY).[/red]"
         )
         sys.exit(1)
     return boto3.client(

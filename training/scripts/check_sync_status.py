@@ -149,7 +149,7 @@ def main() -> int:
         "   ✅ processed tier: DONE",
         "   ⏳ raw tier: IN PROGRESS",
         "   🔄 Running in tmux session:",
-        "      rclone copy gdrive:datasets ovh:pixel-data/datasets/gdrive/raw",
+        "      rclone copy gdrive:datasets hetzner:pixel-data/datasets/gdrive/raw",
         "   📋 Log: upload_raw_final.log",
         "",
         "⚠️  Note: Sync uses bucket 'pixel-data',",

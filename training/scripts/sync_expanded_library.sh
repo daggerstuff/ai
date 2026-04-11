@@ -3,14 +3,14 @@
 
 # Source environment variables carefully
 if [ -f "ai/.env" ]; then
-    # Parse OVH_S3 specifically to avoid issues with other variables
-    export AWS_ACCESS_KEY_ID=$(grep OVH_S3_ACCESS_KEY ai/.env | cut -d'"' -f2)
-    export AWS_SECRET_ACCESS_KEY=$(grep OVH_S3_SECRET_KEY ai/.env | cut -d'"' -f2)
-    export AWS_DEFAULT_REGION="us-east-va"
+    # Parse HETZNER_S3 specifically to avoid issues with other variables
+    export AWS_ACCESS_KEY_ID=$(grep HETZNER_S3_ACCESS_KEY ai/.env | cut -d'"' -f2)
+    export AWS_SECRET_ACCESS_KEY=$(grep HETZNER_S3_SECRET_KEY ai/.env | cut -d'"' -f2)
+    export AWS_DEFAULT_REGION='hel1'
 fi
 
 BUCKET="pixel-data"
-ENDPOINT="https://s3.us-east-va.io.cloud.ovh.us"
+ENDPOINT="https://hel1.your-objectstorage.com"
 
 DOWNLOAD_DIR="ai/training_ready/data/generated"
 mkdir -p "$DOWNLOAD_DIR/nightmare_scenarios"

@@ -18,10 +18,10 @@ def download_fletcher_transcripts():
         with open(manifest_path) as f:
             manifest = json.load(f)
             bucket = manifest.get("bucket", "pixel-data")
-            endpoint = manifest.get("endpoint", "https://s3.us-east-va.io.cloud.ovh.us")
+            endpoint = manifest.get("endpoint", "https://hel1.your-objectstorage.com")
     else:
         bucket = "pixel-data"
-        endpoint = "https://s3.us-east-va.io.cloud.ovh.us"
+        endpoint = "https://hel1.your-objectstorage.com"
 
     loader = S3DatasetLoader(bucket=bucket, endpoint_url=endpoint)
 

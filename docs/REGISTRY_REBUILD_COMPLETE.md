@@ -7,7 +7,7 @@
 
 ## Summary
 
-Successfully inventoried the actual backup in DigitalOcean Spaces and rebuilt the dataset registry to match reality.
+Successfully inventoried the actual backup in Hetzner Object Storage and rebuilt the dataset registry to match reality.
 
 ---
 
@@ -177,6 +177,6 @@ uv run python scripts/dataset_validation.py
 ## Notes
 
 - All paths now use `s3://pixel-data/` prefix
-- DigitalOcean Spaces endpoint configured
+- Hetzner Object Storage endpoint configured
 - Scripts ready to run (need AWS credentials for actual S3 access)
 - Quality scoring, deduplication, and validation can now proceed
