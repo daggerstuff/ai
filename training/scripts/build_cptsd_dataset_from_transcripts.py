@@ -596,11 +596,11 @@ def _load_s3_manifest(manifest_path: Path) -> tuple[str, str, dict | None]:
     """Load S3 manifest and return bucket, endpoint, and manifest dict."""
     if not manifest_path.exists():
         logger.warning(f"Manifest not found: {manifest_path}")
-        return "pixel-data", "https://s3.us-east-va.io.cloud.ovh.us", None
+        return "pixel-data", "https://hel1.your-objectstorage.com", None
 
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     bucket = manifest.get("bucket", "pixel-data")
-    endpoint = manifest.get("endpoint", "https://s3.us-east-va.io.cloud.ovh.us")
+    endpoint = manifest.get("endpoint", "https://hel1.your-objectstorage.com")
     return bucket, endpoint, manifest
 
 

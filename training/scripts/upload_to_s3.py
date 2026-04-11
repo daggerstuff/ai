@@ -16,14 +16,14 @@ logger = logging.getLogger("S3Uploader")
 
 
 def get_s3_client():
-    """Creates an S3 client configured for OVH Object Storage."""
-    endpoint = os.environ.get("OVH_S3_ENDPOINT")
-    access_key = os.environ.get("OVH_S3_ACCESS_KEY")
-    secret_key = os.environ.get("OVH_S3_SECRET_KEY")
-    region = os.environ.get("OVH_S3_REGION", "us-east-va")
+    """Creates an S3 client configured for HETZNER Object Storage."""
+    endpoint = os.environ.get("HETZNER_S3_ENDPOINT")
+    access_key = os.environ.get("HETZNER_S3_ACCESS_KEY")
+    secret_key = os.environ.get("HETZNER_S3_SECRET_KEY")
+    region = os.environ.get("HETZNER_S3_REGION", 'hel1')
 
     if not all([endpoint, access_key, secret_key]):
-        logger.error("Missing OVH S3 credentials in environment. Check ai/.env")
+        logger.error("Missing HETZNER S3 credentials in environment. Check ai/.env")
         return None
 
     return boto3.client(
@@ -37,9 +37,9 @@ def get_s3_client():
 
 def upload_final_artifacts(prefix="datasets/training_v2/"):
     """
-    Uploads the contents of final dataset directories to OVH S3.
+    Uploads the contents of final dataset directories to HETZNER S3.
     """
-    bucket_name = os.environ.get("OVH_S3_BUCKET", "pixel-data")
+    bucket_name = os.environ.get("HETZNER_S3_BUCKET", "pixel-data")
 
     # Directories to upload
     source_dirs = [

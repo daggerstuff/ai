@@ -29,7 +29,7 @@ logger = logging.getLogger("MentalHealthPipeline")
 
 # --- Phase 0: External Acquisition (Direct S3 Stream) ---
 def run_external_ingestion():
-    """Run External Data Ingestion - streams directly to OVH S3."""
+    """Run External Data Ingestion - streams directly to Hetzner S3."""
     return run_all_ingestors(bucket="pixel-data", prefix="datasets/training_v3/")
 
 

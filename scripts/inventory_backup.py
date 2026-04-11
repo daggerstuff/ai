@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Inventory actual dataset files in DigitalOcean Spaces backup
+Inventory actual dataset files in Hetzner Object Storage backup
 and create a clean registry based on reality.
 """
 

@@ -94,9 +94,9 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
-# OVH AI Training runs as UID 42420
-RUN groupadd -g 42420 ovhcloud && \
-    useradd -u 42420 -g 42420 -m -s /bin/bash ovhcloud
+# Container runtime runs as a fixed non-root UID for deployment consistency.
+RUN groupadd -g 42420 appuser && \
+    useradd -u 42420 -g 42420 -m -s /bin/bash appuser
 
 # Create application directory
 WORKDIR /app
@@ -107,7 +107,7 @@ COPY --from=deps /app/.venv /app/.venv
 # Copy application code
 COPY --chown=ubuntu:ubuntu . .
 
-# Switch to OVH user
+# Switch to non-root runtime user
 USER 42420
 
 # Health check

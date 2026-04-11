@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Dataset deduplication using rclone.
-Works with DigitalOcean Spaces and identifies duplicate records within and across datasets.
+Works with Hetzner Object Storage and identifies duplicate records within and across datasets.
 """
 
 import hashlib

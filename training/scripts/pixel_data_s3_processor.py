@@ -11,9 +11,9 @@ from pathlib import Path
 
 
 def run_s3_command(cmd):
-    """Run AWS S3 command with OVH credentials"""
+    """Run AWS S3 command with HETZNER credentials"""
     try:
-        # Use AWS CLI with OVH S3 endpoint
+        # Use AWS CLI with HETZNER S3 endpoint
         env = os.environ.copy()
         env["AWS_ACCESS_KEY_ID"] = os.environ.get("AWS_ACCESS_KEY_ID", "")
         env["AWS_SECRET_ACCESS_KEY"] = os.environ.get("AWS_SECRET_ACCESS_KEY", "")
@@ -40,7 +40,7 @@ def discover_pixel_data():
     print("🔍 Discovering 60GB pixel-data S3 bucket...")
 
     bucket = "pixel-data"
-    endpoint = "https://s3.us-east-va.io.cloud.ovh.us"
+    endpoint = "https://hel1.your-objectstorage.com"
 
     # List objects with AWS CLI
     cmd = f"aws s3 ls s3://{bucket} --recursive --endpoint-url {endpoint} --human-readable --summarize"
@@ -135,7 +135,7 @@ def list_s3_with_aws_cli():
     """Use AWS CLI to list S3 bucket contents"""
     print("🔍 Using AWS CLI to discover pixel-data...")
 
-    cmd = "aws s3 ls s3://pixel-data --recursive --endpoint-url https://s3.us-east-va.io.cloud.ovh.us --human-readable --summarize"
+    cmd = "aws s3 ls s3://pixel-data --recursive --endpoint-url https://hel1.your-objectstorage.com --human-readable --summarize"
 
     try:
         result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
@@ -192,7 +192,7 @@ def main():
         print("🔧 Set these environment variables:")
         print("   export AWS_ACCESS_KEY_ID=your-s3-access-key")
         print("   export AWS_SECRET_ACCESS_KEY=your-s3-secret-key")
-        print("   export AWS_DEFAULT_REGION=us-east-va")
+        print("   export AWS_DEFAULT_REGION=hel1")
         return
 
     print(f"✅ Using credentials: {access_key[:8]}...")
@@ -208,7 +208,7 @@ def main():
         # Generate download commands
         print("\n🚀 Download commands:")
         for file_info in files[:5]:
-            cmd = f"aws s3 cp s3://pixel-data/{file_info['path']} {download_dir}/ --endpoint-url https://s3.us-east-va.io.cloud.ovh.us"
+            cmd = f"aws s3 cp s3://pixel-data/{file_info['path']} {download_dir}/ --endpoint-url https://hel1.your-objectstorage.com"
             print(f"   {cmd}")
     else:
         print("❌ No files found - checking with discovery...")

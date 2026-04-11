@@ -2,7 +2,7 @@
 """
 batch_regenerate.py - PIX-148 Persona Re-Generation GPU Batch Job
 
-Entry point for the OVH Phase 3 training job. Reads Stage 2 dataset from S3,
+Entry point for the HETZNER Phase 3 training job. Reads Stage 2 dataset from S3,
 streams it through the GestaltSimulator (GPU-accelerated PsyDefDetect + Gemini
 API), re-generates assistant responses to include defense-aware persona
 behaviors, and uploads the configured number of valid regenerated records back
@@ -704,7 +704,7 @@ def main() -> None:
         "--s3-bucket",
         type=str,
         default="pixel-data",
-        help="The OVH Object Storage bucket to use.",
+        help="The HETZNER Object Storage bucket to use.",
     )
     parser.add_argument(
         "--nim-only",
@@ -721,11 +721,11 @@ def main() -> None:
     if args.checkpoint_frequency < 0:
         args.checkpoint_frequency = 0
 
-    if not os.environ.get("OVH_S3_ACCESS_KEY") or not os.environ.get(
-        "OVH_S3_SECRET_KEY"
+    if not os.environ.get("HETZNER_S3_ACCESS_KEY") or not os.environ.get(
+        "HETZNER_S3_SECRET_KEY"
     ):
         logger.warning(
-            "OVH_S3_ACCESS_KEY / OVH_S3_SECRET_KEY not set. "
+            "HETZNER_S3_ACCESS_KEY / HETZNER_S3_SECRET_KEY not set. "
             "S3 operations will fail if not using instance roles."
         )
 

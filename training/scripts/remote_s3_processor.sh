@@ -6,8 +6,8 @@ set -e
 
 AWS_ACCESS_KEY_ID=${1:-$AWS_ACCESS_KEY_ID}
 AWS_SECRET_ACCESS_KEY=${2:-$AWS_SECRET_ACCESS_KEY}
-AWS_DEFAULT_REGION=us-east-va
-ENDPOINT_URL=https://s3.us-east-va.io.cloud.ovh.us
+AWS_DEFAULT_REGION=hel1
+ENDPOINT_URL=https://hel1.your-objectstorage.com
 BUCKET=pixel-data
 
 if [[ -z "$AWS_ACCESS_KEY_ID" || -z "$AWS_SECRET_ACCESS_KEY" ]]; then
@@ -41,7 +41,7 @@ cat > training_ready/data/remote_s3_discovery/process_60gb_datasets.sh << 'EOF'
 set -e
 
 BUCKET=pixel-data
-ENDPOINT_URL=https://s3.us-east-va.io.cloud.ovh.us
+ENDPOINT_URL=https://hel1.your-objectstorage.com
 DOWNLOAD_DIR=training_ready/data/remote_60gb_corpus
 TEMP_DIR=/tmp/s3_processing
 MAX_PARALLEL=4
@@ -103,7 +103,7 @@ cat > training_ready/data/remote_s3_discovery/README.md << 'EOF'
 
 ## Overview
 - **Bucket**: pixel-data
-- **Endpoint**: https://s3.us-east-va.io.cloud.ovh.us
+- **Endpoint**: https://hel1.your-objectstorage.com
 - **Size**: 60GB therapeutic corpus
 - **Format**: JSON/JSONL/CSV therapeutic conversations
 
@@ -115,7 +115,7 @@ cat > training_ready/data/remote_s3_discovery/README.md << 'EOF'
 ## Streaming Processing
 For memory-efficient processing without full download:
 ```bash
-aws s3 cp s3://pixel-data/path/to/file.jsonl - --endpoint-url https://s3.us-east-va.io.cloud.ovh.us | python3 your_processor.py
+aws s3 cp s3://pixel-data/path/to/file.jsonl - --endpoint-url https://hel1.your-objectstorage.com | python3 your_processor.py
 ```
 EOF
 

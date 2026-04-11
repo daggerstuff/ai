@@ -27,15 +27,15 @@ logger = logging.getLogger("ConsolidationUploader")
 
 
 def get_s3_client():
-    """Creates an S3 client configured for OVH Object Storage."""
-    endpoint = os.environ.get("OVH_S3_ENDPOINT")
-    access_key = os.environ.get("OVH_S3_ACCESS_KEY")
-    secret_key = os.environ.get("OVH_S3_SECRET_KEY")
-    region = os.environ.get("OVH_S3_REGION", "us-east-va")
+    """Creates an S3 client configured for HETZNER Object Storage."""
+    endpoint = os.environ.get("HETZNER_S3_ENDPOINT")
+    access_key = os.environ.get("HETZNER_S3_ACCESS_KEY")
+    secret_key = os.environ.get("HETZNER_S3_SECRET_KEY")
+    region = os.environ.get("HETZNER_S3_REGION", 'hel1')
 
     if not all([endpoint, access_key, secret_key]):
-        logger.error("Missing OVH S3 credentials in environment.")
-        logger.error("Required: OVH_S3_ENDPOINT, OVH_S3_ACCESS_KEY, OVH_S3_SECRET_KEY")
+        logger.error("Missing HETZNER S3 credentials in environment.")
+        logger.error("Required: HETZNER_S3_ENDPOINT, HETZNER_S3_ACCESS_KEY, HETZNER_S3_SECRET_KEY")
         logger.error("Check ai/.env or .env files")
         return None
 
@@ -160,7 +160,7 @@ def upload_consolidation_artifacts(
 
     Returns dict with upload results.
     """
-    bucket_name = os.environ.get("OVH_S3_BUCKET", "pixel-data")
+    bucket_name = os.environ.get("HETZNER_S3_BUCKET", "pixel-data")
 
     s3_client = get_s3_client()
     if not s3_client:

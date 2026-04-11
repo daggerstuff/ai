@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Restore S3 backup from Google Drive to DigitalOcean Spaces.
+Restore S3 backup from Google Drive to Hetzner Object Storage.
 
 Syncs gdrive:backups/S3-Complete/* to BackupStorageS3:pixel-data/
 """

@@ -106,7 +106,7 @@ def upload_and_remove(local_path: Path, s3_key: str, s3_client: Any, bucket: str
 
 def main() -> int:
     """Main entry point"""
-    bucket = os.getenv("OVH_S3_BUCKET", "pixel-data")
+    bucket = os.getenv("HETZNER_S3_BUCKET", "pixel-data")
 
     # Initialize S3 loader
     try:
@@ -114,7 +114,7 @@ def main() -> int:
         s3_client = s3_loader.s3_client
     except Exception as e:
         logger.error(f"Failed to initialize S3 client: {e}")
-        logger.error("Make sure OVH_S3_ACCESS_KEY, OVH_S3_SECRET_KEY, and OVH_S3_ENDPOINT are set")
+        logger.error("Make sure HETZNER_S3_ACCESS_KEY, HETZNER_S3_SECRET_KEY, and HETZNER_S3_ENDPOINT are set")
         return 1
 
     # Get datasets to upload

@@ -14,7 +14,7 @@ while [ $count -lt $MAX_RESTARTS ]; do
     
     # Run the uploader
     # We use 'uv run' but pass the env vars in.
-    OVH_S3_ACCESS_KEY=$OVH_S3_ACCESS_KEY OVH_S3_SECRET_KEY=$OVH_S3_SECRET_KEY PYTHONUNBUFFERED=1 uv run --with boto3 $SCRIPT_PATH
+    HETZNER_S3_ACCESS_KEY=$HETZNER_S3_ACCESS_KEY HETZNER_S3_SECRET_KEY=$HETZNER_S3_SECRET_KEY PYTHONUNBUFFERED=1 uv run --with boto3 $SCRIPT_PATH
     
     EXIT_CODE=$?
     
