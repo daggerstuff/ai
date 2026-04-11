@@ -23,6 +23,53 @@ describe('PixelatedEmpathyAPI Error Handling', () => {
     });
 });
 
+describe('PixelatedEmpathyAPI Methods', () => {
+    it('should correctly pass options in getQualityMetrics', async () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+
+        // Mock _makeRequest to capture arguments and avoid network calls
+        let capturedMethod, capturedEndpoint, capturedOptions;
+        api._makeRequest = async (method, endpoint, options) => {
+            capturedMethod = method;
+            capturedEndpoint = endpoint;
+            capturedOptions = options;
+            return { data: { success: true } };
+        };
+
+        const result = await api.getQualityMetrics({
+            dataset: 'test-dataset',
+            tier: 'professional'
+        });
+
+        expect(result).toEqual({ success: true });
+        expect(capturedMethod).toBe('GET');
+        expect(capturedEndpoint).toBe('/quality/metrics');
+        expect(capturedOptions).toEqual({
+            params: {
+                dataset: 'test-dataset',
+                tier: 'professional'
+            }
+        });
+    });
+
+    it('should correctly handle getQualityMetrics without options', async () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+
+        // Mock _makeRequest
+        let capturedOptions;
+        api._makeRequest = async (method, endpoint, options) => {
+            capturedOptions = options;
+            return { data: { success: true } };
+        };
+
+        await api.getQualityMetrics();
+
+        expect(capturedOptions).toEqual({
+            params: {}
+        });
+    });
+});
+
 describe('PixelatedEmpathyAPI Constructor', () => {
     it('should initialize with default options', () => {
         const api = new PixelatedEmpathyAPI('test_key');
