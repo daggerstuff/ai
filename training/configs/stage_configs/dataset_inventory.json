@@ -5,7 +5,7 @@
   "vps_host": "vivi@146.71.78.184",
   "vps_ssh_key": "planet",
   "s3_bucket": "pixelated-training-data",
-  "s3_endpoint": "s3.gra.io.cloud.ovh.net",
+  "s3_endpoint": "hel1.your-objectstorage.com",
   "datasets": {
     "huggingface": {
       "description": "HuggingFace datasets to download via huggingface_hub",

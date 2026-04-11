@@ -103,7 +103,7 @@ class CPTSDSourceCataloger:
         self.catalog_file = self.output_dir / "cptsd_source_catalog.json"
         self.sources: List[CPTSDSource] = []
 
-    def run_ovhai_command(self, command: List[str]) -> str:
+    def run_hetzner_cli_command(self, command: List[str]) -> str:
         """Execute an ovhai CLI command and return output."""
         try:
             import shlex
@@ -126,13 +126,13 @@ class CPTSDSourceCataloger:
 
     def list_s3_objects(self, prefix: str) -> List[Dict]:
         """List objects in S3 with given prefix."""
-        output = self.run_ovhai_command(
+        output = self.run_hetzner_cli_command(
             [
                 "ovhai",
                 "bucket",
                 "object",
                 "list",
-                "pixel-data@US-EAST-VA",
+                "pixel-data@hel1",
                 "--prefix",
                 prefix,
             ]

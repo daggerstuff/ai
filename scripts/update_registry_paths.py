@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Update dataset registry to match actual backup paths in DigitalOcean Spaces.
+Update dataset registry to match actual backup paths in Hetzner Object Storage.
 Maps old stage-based paths to actual backup structure.
 """
 

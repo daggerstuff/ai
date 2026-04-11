@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Comprehensive inventory of actual datasets in DigitalOcean Spaces backup.
+Comprehensive inventory of actual datasets in Hetzner Object Storage backup.
 Creates a new registry based on actual backup structure.
 """
 
@@ -189,7 +189,7 @@ def main():
                 "type": "s3",
                 "bucket": "pixel-data",
                 "endpoint": "${AWS_S3_ENDPOINT}",
-                "region": "sfo3",
+                "region": "hel1",
             }
         },
         "datasets": {},

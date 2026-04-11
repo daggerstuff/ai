@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Verify S3 Access - Quick test for OVH S3 connectivity
+Verify S3 Access - Quick test for HETZNER S3 connectivity
 Tests that credentials are loaded and S3 access works
 """
 
@@ -32,7 +32,7 @@ def print_dataset_info(datasets: list, prefix: str) -> None:
 
 def main():
     """Verify S3 access and list available datasets"""
-    print("🔍 Verifying S3 Access (OVH)")
+    print("🔍 Verifying S3 Access (HETZNER)")
     print("=" * 60)
 
     try:
@@ -42,12 +42,12 @@ def main():
         from ai.training.utils.s3_dataset_loader import S3DatasetLoader
 
         print("\n1. Initializing S3DatasetLoader...")
-        access_key = os.environ.get('OVH_S3_ACCESS_KEY')
-        secret_key = os.environ.get('OVH_S3_SECRET_KEY')
-        print(f"   - OVH_S3_ACCESS_KEY: {'[SET]' if access_key else '[NOT SET]'}")
-        print(f"   - OVH_S3_SECRET_KEY: {'[SET]' if secret_key else '[NOT SET]'}")
-        print(f"   - OVH_S3_BUCKET: {os.environ.get('OVH_S3_BUCKET', 'Not set')}")
-        print(f"   - OVH_S3_ENDPOINT: {os.environ.get('OVH_S3_ENDPOINT', 'Not set')}")
+        access_key = os.environ.get('HETZNER_S3_ACCESS_KEY')
+        secret_key = os.environ.get('HETZNER_S3_SECRET_KEY')
+        print(f"   - HETZNER_S3_ACCESS_KEY: {'[SET]' if access_key else '[NOT SET]'}")
+        print(f"   - HETZNER_S3_SECRET_KEY: {'[SET]' if secret_key else '[NOT SET]'}")
+        print(f"   - HETZNER_S3_BUCKET: {os.environ.get('HETZNER_S3_BUCKET', 'Not set')}")
+        print(f"   - HETZNER_S3_ENDPOINT: {os.environ.get('HETZNER_S3_ENDPOINT', 'Not set')}")
 
         loader = S3DatasetLoader()
         print("   ✅ Loader initialized")
@@ -93,11 +93,11 @@ def main():
     except ValueError as e:
         print(f"\n❌ Configuration Error: {e}")
         print("\n💡 Make sure your .env file has:")
-        print("   OVH_S3_ACCESS_KEY=...")
-        print("   OVH_S3_SECRET_KEY=...")
+        print("   HETZNER_S3_ACCESS_KEY=...")
+        print("   HETZNER_S3_SECRET_KEY=...")
         print("\n   Or set environment variables:")
-        print("   export OVH_S3_ACCESS_KEY=...")
-        print("   export OVH_S3_SECRET_KEY=...")
+        print("   export HETZNER_S3_ACCESS_KEY=...")
+        print("   export HETZNER_S3_SECRET_KEY=...")
         return 1
 
     except ImportError as e:

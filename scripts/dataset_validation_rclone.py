@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Simplified dataset validation using rclone.
-Works with DigitalOcean Spaces and handles directories properly.
+Works with Hetzner Object Storage and handles directories properly.
 """
 
 import hashlib

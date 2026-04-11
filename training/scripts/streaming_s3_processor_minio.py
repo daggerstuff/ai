@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Streaming S3 Dataset Processor - MinIO client for OVH S3
+Streaming S3 Dataset Processor - MinIO client for HETZNER S3
 """
 
 import json
@@ -24,13 +24,13 @@ logger = logging.getLogger(__name__)
 
 class MinIOS3Processor:
     """
-    Stream-processes dataset using HTTP requests for OVH S3
+    Stream-processes dataset using HTTP requests for HETZNER S3
     """
 
     def __init__(
         self,
         bucket: str = "pixel-data",
-        endpoint: str = "https://s3.us-east-va.io.cloud.ovh.us",
+        endpoint: str = "https://hel1.your-objectstorage.com",
         access_key: str = None,
         secret_key: str = None,
     ):
@@ -117,7 +117,7 @@ class MinIOS3Processor:
 
     def process_datasets(self) -> None:
         """Discover and report on datasets"""
-        print("🔍 Discovering datasets in OVH S3...")
+        print("🔍 Discovering datasets in HETZNER S3...")
 
         result = self.discover_datasets()
 

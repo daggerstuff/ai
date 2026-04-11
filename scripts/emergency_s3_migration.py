@@ -7,8 +7,8 @@ import boto3
 
 # --- Configuration ---
 BUCKET_NAME = "pixel-data"
-ENDPOINT_URL = "https://s3.us-east-va.io.cloud.ovh.us"
-REGION_NAME = "us-east-va"
+ENDPOINT_URL = "https://hel1.your-objectstorage.com"
+REGION_NAME = "hel1"
 UPLOAD_PREFIX = "legacy_local_backup/"
 MAX_WORKERS = 1
 
@@ -34,17 +34,17 @@ PROJECT_ROOT = Path("/home/vivi/pixelated")
 
 def get_s3_client():
     # Attempt to get credentials from env vars
-    access_key = os.environ.get("OVH_S3_ACCESS_KEY") or os.environ.get(
+    access_key = os.environ.get("HETZNER_S3_ACCESS_KEY") or os.environ.get(
         "AWS_ACCESS_KEY_ID"
     )
-    secret_key = os.environ.get("OVH_S3_SECRET_KEY") or os.environ.get(
+    secret_key = os.environ.get("HETZNER_S3_SECRET_KEY") or os.environ.get(
         "AWS_SECRET_ACCESS_KEY"
     )
 
     if not access_key or not secret_key:
         print(
-            "❌ Error: Missing credentials. Please set OVH_S3_ACCESS_KEY and "
-            "OVH_S3_SECRET_KEY."
+            "❌ Error: Missing credentials. Please set HETZNER_S3_ACCESS_KEY and "
+            "HETZNER_S3_SECRET_KEY."
         )
         sys.exit(1)
 

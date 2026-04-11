@@ -476,8 +476,8 @@ def _setup_environment(args: argparse.Namespace) -> tuple[str, str, S3DatasetLoa
     from ai.training.utils.s3_dataset_loader import S3DatasetLoader
 
     bucket, endpoint = _load_s3_manifest(Path(args.manifest))
-    bucket = os.getenv("OVH_S3_BUCKET", bucket)
-    endpoint = os.getenv("OVH_S3_ENDPOINT", endpoint)
+    bucket = os.getenv("HETZNER_S3_BUCKET", bucket)
+    endpoint = os.getenv("HETZNER_S3_ENDPOINT", endpoint)
     loader = S3DatasetLoader(bucket=bucket, endpoint_url=endpoint)
     return bucket, endpoint, loader
 

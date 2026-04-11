@@ -14,8 +14,8 @@ class S3DatasetLoader:
         if aws_access_key_id is None and aws_secret_access_key is None:
             # Check environment variables
             cred_keys = [
-                "OVH_S3_ACCESS_KEY", "OVH_ACCESS_KEY", "AWS_ACCESS_KEY_ID",
-                "OVH_S3_SECRET_KEY", "OVH_SECRET_KEY", "AWS_SECRET_ACCESS_KEY"
+                "HETZNER_S3_ACCESS_KEY", "HETZNER_ACCESS_KEY", "AWS_ACCESS_KEY_ID",
+                "HETZNER_S3_SECRET_KEY", "HETZNER_SECRET_KEY", "AWS_SECRET_ACCESS_KEY"
             ]
             has_credentials = any(os.environ.get(key) for key in cred_keys)
             if not has_credentials:

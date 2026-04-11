@@ -18,10 +18,10 @@ def main():
     
     # Check environment variables
     print("Environment variables:")
-    print(f"  OVH_S3_ACCESS_KEY: {'SET' if os.environ.get('OVH_S3_ACCESS_KEY') else 'NOT_SET'}")
-    print(f"  OVH_S3_SECRET_KEY: {'SET' if os.environ.get('OVH_S3_SECRET_KEY') else 'NOT_SET'}")
-    print(f"  OVH_S3_ENDPOINT: {os.environ.get('OVH_S3_ENDPOINT', 'NOT_SET')}")
-    print(f"  OVH_S3_BUCKET: {os.environ.get('OVH_S3_BUCKET', 'NOT_SET')}")
+    print(f"  HETZNER_S3_ACCESS_KEY: {'SET' if os.environ.get('HETZNER_S3_ACCESS_KEY') else 'NOT_SET'}")
+    print(f"  HETZNER_S3_SECRET_KEY: {'SET' if os.environ.get('HETZNER_S3_SECRET_KEY') else 'NOT_SET'}")
+    print(f"  HETZNER_S3_ENDPOINT: {os.environ.get('HETZNER_S3_ENDPOINT', 'NOT_SET')}")
+    print(f"  HETZNER_S3_BUCKET: {os.environ.get('HETZNER_S3_BUCKET', 'NOT_SET')}")
     print()
     
     try:

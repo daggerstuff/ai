@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Shared utilities for accessing datasets via rclone.
-Uses rclone instead of boto3 to work with DigitalOcean Spaces.
+Uses rclone instead of boto3 to work with Hetzner Object Storage.
 """
 
 import json
