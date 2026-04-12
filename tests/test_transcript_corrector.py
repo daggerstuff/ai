@@ -1,7 +1,5 @@
 from unittest.mock import mock_open, patch
 
-import pytest
-
 from utils.transcript_corrector import TranscriptCorrector
 
 

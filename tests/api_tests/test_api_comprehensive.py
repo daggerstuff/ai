@@ -7,12 +7,11 @@ Enterprise-grade test suite for the Pixelated Empathy AI API.
 Separates real integration tests from mock data tests.
 """
 
+from datetime import datetime, timedelta, timezone
+
 import asyncio
-import json
 import os
 import time
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
 
 import httpx
 import pytest
@@ -27,7 +26,7 @@ class APITestClient:
     """Enhanced test client for API testing."""
 
     def __init__(self, base_url: str, api_key: str):
-        self.base_url = base_url.rstrip('/')
+        self.base_url = base_url.rstrip("/")
         self.api_key = api_key
         self.client = httpx.AsyncClient(
             base_url=self.base_url,
@@ -90,7 +89,7 @@ def advanced_query():
         "min_quality": 0.7,
         "min_therapeutic_accuracy": 0.75,
         "min_safety_score": 0.9,
-        "created_after": (datetime.now() - timedelta(days=30)).isoformat(),
+        "created_after": (datetime.now(timezone.utc) - timedelta(days=30)).isoformat(),
         "sort_by": "quality_score",
         "sort_order": "desc",
         "limit": 10,

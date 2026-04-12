@@ -7,10 +7,10 @@ This tests both the Hugging Face authentication fix and ONNX export fix.
 import logging
 import os
 import sys
-from typing import Any, Dict
+from typing import Any
 
 import torch
-import torch.nn as nn
+from torch import nn
 
 # Configure logging
 logging.basicConfig(
@@ -74,9 +74,8 @@ class TestTrainingPipelineFixes:
                 file_size = os.path.getsize(output_path)
                 logger.info(f"✅ ONNX file created successfully: {file_size} bytes")
                 return True
-            else:
-                logger.error("❌ ONNX file was not created")
-                return False
+            logger.error("❌ ONNX file was not created")
+            return False
 
         except Exception as e:
             logger.error(f"❌ ONNX export test failed: {e}")
@@ -137,15 +136,14 @@ class TestTrainingPipelineFixes:
             if os.path.exists(fallback_path):
                 logger.info(f"✅ Fallback ONNX export successful: {fallback_path}")
                 return True
-            else:
-                logger.error("❌ Fallback ONNX export failed")
-                return False
+            logger.error("❌ Fallback ONNX export failed")
+            return False
 
         except Exception as e:
             logger.error(f"❌ Fallback strategies test failed: {e}")
             return False
 
-    def run_all_tests(self) -> Dict[str, Any]:
+    def run_all_tests(self) -> dict[str, Any]:
         """Run all tests for the fixes."""
         logger.info("Running comprehensive tests for training pipeline fixes...")
 

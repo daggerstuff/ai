@@ -1,4 +1,3 @@
-import pytest
 
 from utils.subtitle_processor import SubtitleProcessor
 
