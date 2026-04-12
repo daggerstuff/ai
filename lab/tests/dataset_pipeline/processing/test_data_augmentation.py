@@ -37,9 +37,7 @@ class TestDataAugmentation(unittest.TestCase):
         # Check if it used one of the templates (e.g., "I can see why that would be difficult")
         # Template: ("I understand how you feel", "I can see why that would be difficult")
         # Template: ("That must be hard", "I imagine that's challenging")
-        self.assertTrue(
-            augmented != text or "difficult" in augmented or "challenging" in augmented
-        )
+        assert augmented != text or "difficult" in augmented or "challenging" in augmented
 
     def test_noise_injection(self):
         """Test injection of filler words and spelling variations."""
@@ -52,20 +50,14 @@ class TestDataAugmentation(unittest.TestCase):
             if augmented != text:
                 break
 
-        self.assertNotEqual(
-            text,
-            augmented,
-            "Noise injection should have changed the text in 10 attempts",
-        )
+        assert text != augmented, "Noise injection should have changed the text in 10 attempts"
 
         # Check for expected noise patterns if possible
         lowered = augmented.lower()
         has_noise = any(
             noise in lowered for noise in ["um", "uh", "you know", "like", "therapyst"]
         )
-        self.assertTrue(
-            has_noise or any(punc in augmented for punc in ["...", "!", "?"])
-        )
+        assert has_noise or any(punc in augmented for punc in ["...", "!", "?"])
 
     def test_safety_guardrails_preservation(self):
         """Test that critical crisis keywords are preserved during augmentation."""
@@ -78,8 +70,8 @@ class TestDataAugmentation(unittest.TestCase):
         )
 
         assert not is_valid
-        self.assertTrue(any("CRITICAL" in issue for issue in issues))
-        self.assertTrue(any("crisis" in issue.lower() for issue in issues))
+        assert any("CRITICAL" in issue for issue in issues)
+        assert any("crisis" in issue.lower() for issue in issues)
 
     def test_safety_guardrails_reversion(self):
         """Test that augmenter reverts to original content when critical keywords are lost."""
@@ -98,18 +90,14 @@ class TestDataAugmentation(unittest.TestCase):
         # Since "kill myself" doesn't have a paraphrase template in data_augmentation.py,
         # it shouldn't be changed by paraphrasing, but other augmentations might.
         # Critical keywords should be present in the output.
-        self.assertIn("kill myself", augmented_conv.messages[0].content)
+        assert "kill myself" in augmented_conv.messages[0].content
 
     def test_demographic_variation(self):
         """Test swapping of gender-coded terms."""
         text = "He is a good man and he loves his father."
         augmented = self.augmenter.demographic_variation(text)
         # Check if gendered terms were swapped (e.g., he -> she, man -> woman, father -> mother)
-        self.assertTrue(
-            "she" in augmented.lower()
-            or "woman" in augmented.lower()
-            or "mother" in augmented.lower()
-        )
+        assert "she" in augmented.lower() or "woman" in augmented.lower() or "mother" in augmented.lower()
 
     def test_batch_augmentation(self):
         """Test augmenting multiple conversations."""
@@ -122,7 +110,7 @@ class TestDataAugmentation(unittest.TestCase):
         augmented_batch, _ = self.augmenter.batch_augment(batch)
 
         assert len(augmented_batch) == 2
-        self.assertTrue(all("_aug" in c.conversation_id for c in augmented_batch))
+        assert all("_aug" in c.conversation_id for c in augmented_batch)
 
 
 if __name__ == "__main__":

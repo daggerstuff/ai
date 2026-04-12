@@ -1,7 +1,8 @@
 
+from datetime import datetime, timezone
+
 import html
 import json
-from datetime import datetime, timezone
 from typing import Any
 
 import pytest

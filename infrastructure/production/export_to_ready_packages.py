@@ -29,6 +29,8 @@ Usage:
     result = exporter.export()
 """
 
+from datetime import datetime, timezone
+
 import fcntl
 import hashlib
 import json
@@ -38,7 +40,6 @@ import time
 from collections.abc import Iterator
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 

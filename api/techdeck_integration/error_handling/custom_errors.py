@@ -5,8 +5,9 @@ This module defines comprehensive error types for different failure scenarios
 with HIPAA++ compliant error handling and audit logging capabilities.
 """
 
-import logging
 from datetime import datetime, timezone
+
+import logging
 from typing import Any
 
 

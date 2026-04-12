@@ -4,11 +4,12 @@ Alert Fatigue Dashboard and Management Interface
 Web-based dashboard for monitoring and managing alert fatigue prevention
 """
 
+from datetime import datetime, timedelta, timezone
+
 import asyncio
 import json
 import logging
 import sqlite3
-from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import plotly.graph_objs as go

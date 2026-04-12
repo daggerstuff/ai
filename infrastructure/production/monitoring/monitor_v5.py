@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Enhanced V5 Production Monitor"""
 
+from datetime import datetime, timezone
+
 import json
 import time
-from datetime import datetime, timezone
 from pathlib import Path
 
 

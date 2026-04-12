@@ -10,13 +10,14 @@ Implements advanced search capabilities for conversations:
 - Performance optimization
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import re
 import sqlite3
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from typing import Any, TypeVar
 
 # Enterprise imports - disabled, modules not available

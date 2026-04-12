@@ -5,8 +5,9 @@ This module implements the Flask application factory pattern with comprehensive
 configuration management, middleware registration, and blueprint initialization.
 """
 
-import logging
 from datetime import datetime, timezone
+
+import logging
 
 from flask import Flask, g, request
 from flask_cors import CORS

@@ -4,6 +4,8 @@ Quality Validation Progress Tracking System for Pixelated Empathy AI
 Tracks progress of distributed quality validation across multiple workers
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import os
@@ -12,7 +14,6 @@ import threading
 from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 

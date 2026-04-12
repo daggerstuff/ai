@@ -5,8 +5,9 @@ Tests research logger, report generator, dataset catalog, tracking updater,
 and progress visualization components.
 """
 
-import json
 from datetime import datetime, timedelta, timezone
+
+import json
 
 import pytest
 

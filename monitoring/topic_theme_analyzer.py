@@ -4,12 +4,13 @@ Conversation Topic and Theme Analysis System
 Analyzes conversation topics, themes, and provides insights about content patterns
 """
 
+from datetime import datetime, timezone
+
 import json
 import sqlite3
 import warnings
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 

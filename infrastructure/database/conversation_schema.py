@@ -10,9 +10,10 @@ Designs comprehensive database schema for conversation storage and management:
 - Scalable architecture for 2.59M+ conversations
 """
 
+from datetime import datetime, timezone
+
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any

@@ -5,8 +5,9 @@ This module handles JWT token management, authentication flows, and secure
 credential storage with HIPAA++ compliance.
 """
 
-import logging
 from datetime import datetime, timedelta, timezone
+
+import logging
 from typing import Any
 
 import requests

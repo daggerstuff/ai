@@ -3,12 +3,13 @@
 Unit tests for Health Check and Disaster Recovery Systems
 """
 
+from datetime import datetime, timezone
+
 import asyncio
 
 # Add parent directory to path for imports
 import sys
 import unittest
-from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent.parent))
@@ -44,8 +45,8 @@ class TestHealthCheckSystem(unittest.TestCase):
             "test_service", ComponentType.API, mock_check
         )
 
-        self.assertIn("test_service", self.health_manager.health_checks)
-        self.assertIn("test_service", self.health_manager.component_configs)
+        assert "test_service" in self.health_manager.health_checks
+        assert "test_service" in self.health_manager.component_configs
 
     def test_run_health_check_success(self):
         """Test running a successful health check"""
@@ -69,7 +70,7 @@ class TestHealthCheckSystem(unittest.TestCase):
         assert result.component_name == "test_service"
         assert result.status == HealthStatus.HEALTHY
         assert result.message == "Service is healthy"
-        self.assertGreater(result.response_time_ms, 0)
+        assert result.response_time_ms > 0
 
     def test_run_health_check_failure(self):
         """Test running a failing health check"""
@@ -85,7 +86,7 @@ class TestHealthCheckSystem(unittest.TestCase):
 
         assert result.component_name == "failing_service"
         assert result.status == HealthStatus.UNHEALTHY
-        self.assertIn("Service unavailable", result.message)
+        assert "Service unavailable" in result.message
 
     def test_run_all_health_checks(self):
         """Test running all health checks"""
@@ -121,7 +122,7 @@ class TestHealthCheckSystem(unittest.TestCase):
         assert len(report.component_checks) == 2
         assert report.overall_status == HealthStatus.DEGRADED
         assert report.system_metrics is not None
-        self.assertGreater(len(report.recommendations), 0)
+        assert len(report.recommendations) > 0
 
     def test_calculate_overall_health(self):
         """Test overall health calculation"""
@@ -193,10 +194,10 @@ class TestDisasterRecoverySystem(unittest.TestCase):
 
     def test_initialize_default_plans(self):
         """Test initialization of default recovery plans"""
-        self.assertGreater(len(self.dr_manager.recovery_plans), 0)
-        self.assertIn("db_failure_recovery", self.dr_manager.recovery_plans)
-        self.assertIn("data_corruption_recovery", self.dr_manager.recovery_plans)
-        self.assertIn("security_breach_recovery", self.dr_manager.recovery_plans)
+        assert len(self.dr_manager.recovery_plans) > 0
+        assert "db_failure_recovery" in self.dr_manager.recovery_plans
+        assert "data_corruption_recovery" in self.dr_manager.recovery_plans
+        assert "security_breach_recovery" in self.dr_manager.recovery_plans
 
     def test_get_recovery_plan(self):
         """Test getting recovery plan by disaster type"""
@@ -214,7 +215,7 @@ class TestDisasterRecoverySystem(unittest.TestCase):
             DisasterType.HARDWARE_FAILURE
         )
         assert session_id is not None
-        self.assertIn(session_id, self.dr_manager.active_sessions)
+        assert session_id in self.dr_manager.active_sessions
 
         session = self.dr_manager.active_sessions[session_id]
         assert session.disaster_type == DisasterType.HARDWARE_FAILURE
@@ -235,7 +236,7 @@ class TestDisasterRecoverySystem(unittest.TestCase):
         # Check session status
         session = self.dr_manager.active_sessions[session_id]
         assert session.status == RecoveryStatus.IN_PROGRESS
-        self.assertIn("db_001", session.completed_steps)
+        assert "db_001" in session.completed_steps
 
     def test_execute_recovery_plan(self):
         """Test executing complete recovery plan"""
@@ -247,7 +248,7 @@ class TestDisasterRecoverySystem(unittest.TestCase):
         final_status = asyncio.run(self.dr_manager.execute_recovery_plan(session_id))
 
         # Session should be moved to history
-        self.assertNotIn(session_id, self.dr_manager.active_sessions)
+        assert session_id not in self.dr_manager.active_sessions
 
         # Check that a session with this ID exists in history
         session_found = False

@@ -4,6 +4,8 @@ Circuit Breaker System for Pixelated Empathy AI
 Implements circuit breaker patterns for external dependencies and fault isolation
 """
 
+from datetime import datetime, timedelta, timezone
+
 import asyncio
 import json
 import logging
@@ -12,7 +14,6 @@ import threading
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any
 

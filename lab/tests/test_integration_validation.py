@@ -41,8 +41,7 @@ class TestIntegrationValidation(unittest.TestCase):
                     results = json.load(f)
 
                 if score_key in results:
-                    self.assertGreaterEqual(results[score_key], threshold,
-                                          f"{filename} score {results[score_key]} below threshold {threshold}")
+                    assert results[score_key] >= threshold, f"{filename} score {results[score_key]} below threshold {threshold}"
 
     def test_production_readiness_flags(self):
         """Test that production readiness flags are set correctly"""
@@ -58,8 +57,7 @@ class TestIntegrationValidation(unittest.TestCase):
                     results = json.load(f)
 
                 if "production_ready" in results:
-                    self.assertTrue(results["production_ready"],
-                                  f"{filename} not marked as production ready")
+                    assert results["production_ready"], f"{filename} not marked as production ready"
 
 if __name__ == "__main__":
     unittest.main()

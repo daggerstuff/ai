@@ -3,12 +3,13 @@ Integration tests for health check and graceful shutdown functionality.
 Tests that health checks work correctly and shutdown is graceful.
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import threading
 import time
 import unittest
-from datetime import datetime, timezone
 
 from ..inference.inference_api import app
 
@@ -44,17 +45,17 @@ class TestHealthCheckSystem(unittest.TestCase):
     def test_health_manager_initialization(self):
         """Test that health manager initializes correctly"""
         assert self.health_manager is not None
-        self.assertIsInstance(self.health_manager, HealthCheckManager)
+        assert isinstance(self.health_manager, HealthCheckManager)
         assert not self.health_manager.is_shutting_down
         assert len(self.health_manager.health_checks) == 6
 
         # Check that default components are registered
-        self.assertIn("system_resources", self.health_manager.health_checks)
-        self.assertIn("gpu_status", self.health_manager.health_checks)
-        self.assertIn("memory_status", self.health_manager.health_checks)
-        self.assertIn("disk_space", self.health_manager.health_checks)
-        self.assertIn("network_connectivity", self.health_manager.health_checks)
-        self.assertIn("model_status", self.health_manager.health_checks)
+        assert "system_resources" in self.health_manager.health_checks
+        assert "gpu_status" in self.health_manager.health_checks
+        assert "memory_status" in self.health_manager.health_checks
+        assert "disk_space" in self.health_manager.health_checks
+        assert "network_connectivity" in self.health_manager.health_checks
+        assert "model_status" in self.health_manager.health_checks
 
     def test_component_registration(self):
         """Test that components can be registered for health monitoring"""
@@ -74,10 +75,8 @@ class TestHealthCheckSystem(unittest.TestCase):
         self.health_manager.register_component("test_component", mock_component)
 
         # Verify registration
-        self.assertIn("test_component", self.health_manager.components)
-        self.assertEqual(
-            self.health_manager.components["test_component"], mock_component
-        )
+        assert "test_component" in self.health_manager.components
+        assert self.health_manager.components["test_component"] == mock_component
 
     def test_custom_health_check_registration(self):
         """Test that custom health checks can be registered"""
@@ -95,161 +94,125 @@ class TestHealthCheckSystem(unittest.TestCase):
         self.health_manager.register_health_check("custom_test", custom_check)
 
         # Verify registration
-        self.assertIn("custom_test", self.health_manager.health_checks)
+        assert "custom_test" in self.health_manager.health_checks
         assert self.health_manager.health_checks["custom_test"] == custom_check
 
     def test_system_resources_health_check(self):
         """Test system resources health check"""
         component_health = self.health_manager._check_system_resources()
 
-        self.assertIsInstance(component_health, ComponentHealth)
+        assert isinstance(component_health, ComponentHealth)
         assert component_health.name == "system_resources"
-        self.assertIn(
-            component_health.status,
-            [ComponentStatus.OPERATIONAL, ComponentStatus.DEGRADED],
-        )
-        self.assertGreaterEqual(component_health.health_score, 0.0)
-        self.assertLessEqual(component_health.health_score, 1.0)
+        assert component_health.status in [ComponentStatus.OPERATIONAL, ComponentStatus.DEGRADED]
+        assert component_health.health_score >= 0.0
+        assert component_health.health_score <= 1.0
         assert component_health.last_checked is not None
 
         # Check that details contain expected fields
         assert component_health.details is not None
-        self.assertIn("cpu_percent", component_health.details)
-        self.assertIn("memory_percent", component_health.details)
-        self.assertIn("memory_available_gb", component_health.details)
-        self.assertIn("memory_total_gb", component_health.details)
+        assert "cpu_percent" in component_health.details
+        assert "memory_percent" in component_health.details
+        assert "memory_available_gb" in component_health.details
+        assert "memory_total_gb" in component_health.details
 
     def test_gpu_status_health_check(self):
         """Test GPU status health check"""
         component_health = self.health_manager._check_gpu_status()
 
-        self.assertIsInstance(component_health, ComponentHealth)
+        assert isinstance(component_health, ComponentHealth)
         assert component_health.name == "gpu_status"
-        self.assertIn(
-            component_health.status,
-            [ComponentStatus.OPERATIONAL, ComponentStatus.FAILED],
-        )
-        self.assertGreaterEqual(component_health.health_score, 0.0)
-        self.assertLessEqual(component_health.health_score, 1.0)
+        assert component_health.status in [ComponentStatus.OPERATIONAL, ComponentStatus.FAILED]
+        assert component_health.health_score >= 0.0
+        assert component_health.health_score <= 1.0
         assert component_health.last_checked is not None
 
         # Check that details contain expected fields
         assert component_health.details is not None
-        self.assertIn("cuda_available", component_health.details)
+        assert "cuda_available" in component_health.details
 
     def test_memory_status_health_check(self):
         """Test memory status health check"""
         component_health = self.health_manager._check_memory_status()
 
-        self.assertIsInstance(component_health, ComponentHealth)
+        assert isinstance(component_health, ComponentHealth)
         assert component_health.name == "memory_status"
-        self.assertIn(
-            component_health.status,
-            [ComponentStatus.OPERATIONAL, ComponentStatus.DEGRADED],
-        )
-        self.assertGreaterEqual(component_health.health_score, 0.0)
-        self.assertLessEqual(component_health.health_score, 1.0)
+        assert component_health.status in [ComponentStatus.OPERATIONAL, ComponentStatus.DEGRADED]
+        assert component_health.health_score >= 0.0
+        assert component_health.health_score <= 1.0
         assert component_health.last_checked is not None
 
         # Check that details contain expected fields
         assert component_health.details is not None
-        self.assertIn("process_memory_mb", component_health.details)
-        self.assertIn("process_memory_percent", component_health.details)
-        self.assertIn("virtual_memory_percent", component_health.details)
+        assert "process_memory_mb" in component_health.details
+        assert "process_memory_percent" in component_health.details
+        assert "virtual_memory_percent" in component_health.details
 
     def test_disk_space_health_check(self):
         """Test disk space health check"""
         component_health = self.health_manager._check_disk_space()
 
-        self.assertIsInstance(component_health, ComponentHealth)
+        assert isinstance(component_health, ComponentHealth)
         assert component_health.name == "disk_space"
-        self.assertIn(
-            component_health.status,
-            [
-                ComponentStatus.OPERATIONAL,
-                ComponentStatus.DEGRADED,
-                ComponentStatus.FAILED,
-            ],
-        )
-        self.assertGreaterEqual(component_health.health_score, 0.0)
-        self.assertLessEqual(component_health.health_score, 1.0)
+        assert component_health.status in [ComponentStatus.OPERATIONAL, ComponentStatus.DEGRADED, ComponentStatus.FAILED]
+        assert component_health.health_score >= 0.0
+        assert component_health.health_score <= 1.0
         assert component_health.last_checked is not None
 
         # Check that details contain expected fields
         assert component_health.details is not None
-        self.assertIn("disk_percent_used", component_health.details)
-        self.assertIn("disk_free_gb", component_health.details)
-        self.assertIn("disk_total_gb", component_health.details)
+        assert "disk_percent_used" in component_health.details
+        assert "disk_free_gb" in component_health.details
+        assert "disk_total_gb" in component_health.details
 
     def test_network_connectivity_health_check(self):
         """Test network connectivity health check"""
         component_health = self.health_manager._check_network_connectivity()
 
-        self.assertIsInstance(component_health, ComponentHealth)
+        assert isinstance(component_health, ComponentHealth)
         assert component_health.name == "network_connectivity"
-        self.assertIn(
-            component_health.status,
-            [ComponentStatus.OPERATIONAL, ComponentStatus.DEGRADED],
-        )
-        self.assertGreaterEqual(component_health.health_score, 0.0)
-        self.assertLessEqual(component_health.health_score, 1.0)
+        assert component_health.status in [ComponentStatus.OPERATIONAL, ComponentStatus.DEGRADED]
+        assert component_health.health_score >= 0.0
+        assert component_health.health_score <= 1.0
         assert component_health.last_checked is not None
 
         # Check that details contain expected fields
         assert component_health.details is not None
-        self.assertIn("active_connections", component_health.details)
-        self.assertIn("bytes_sent_mb", component_health.details)
-        self.assertIn("bytes_received_mb", component_health.details)
+        assert "active_connections" in component_health.details
+        assert "bytes_sent_mb" in component_health.details
+        assert "bytes_received_mb" in component_health.details
 
     def test_model_status_health_check(self):
         """Test model status health check"""
         component_health = self.health_manager._check_model_status()
 
-        self.assertIsInstance(component_health, ComponentHealth)
+        assert isinstance(component_health, ComponentHealth)
         assert component_health.name == "model_status"
-        self.assertIn(
-            component_health.status,
-            [
-                ComponentStatus.OPERATIONAL,
-                ComponentStatus.DEGRADED,
-                ComponentStatus.FAILED,
-            ],
-        )
-        self.assertGreaterEqual(component_health.health_score, 0.0)
-        self.assertLessEqual(component_health.health_score, 1.0)
+        assert component_health.status in [ComponentStatus.OPERATIONAL, ComponentStatus.DEGRADED, ComponentStatus.FAILED]
+        assert component_health.health_score >= 0.0
+        assert component_health.health_score <= 1.0
         assert component_health.last_checked is not None
 
     def test_comprehensive_health_check(self):
         """Test comprehensive health check"""
         health_result = self.health_manager.perform_health_check()
 
-        self.assertIsInstance(health_result, HealthCheckResult)
-        self.assertIn(
-            health_result.status,
-            [HealthStatus.HEALTHY, HealthStatus.DEGRADED, HealthStatus.UNHEALTHY],
-        )
+        assert isinstance(health_result, HealthCheckResult)
+        assert health_result.status in [HealthStatus.HEALTHY, HealthStatus.DEGRADED, HealthStatus.UNHEALTHY]
         assert health_result.timestamp is not None
-        self.assertGreaterEqual(health_result.overall_score, 0.0)
-        self.assertLessEqual(health_result.overall_score, 1.0)
-        self.assertIsInstance(health_result.components, dict)
+        assert health_result.overall_score >= 0.0
+        assert health_result.overall_score <= 1.0
+        assert isinstance(health_result.components, dict)
 
         # Check that components are included
-        self.assertGreater(len(health_result.components), 0)
+        assert len(health_result.components) > 0
 
         # Check component health results
         for component_name, component_health in health_result.components.items():
-            self.assertIsInstance(component_health, ComponentHealth)
+            assert isinstance(component_health, ComponentHealth)
             assert component_health.name == component_name
-            self.assertIn(
-                component_health.status,
-                [
-                    ComponentStatus.OPERATIONAL,
-                    ComponentStatus.DEGRADED,
-                    ComponentStatus.FAILED,
-                ],
-            )
-            self.assertGreaterEqual(component_health.health_score, 0.0)
-            self.assertLessEqual(component_health.health_score, 1.0)
+            assert component_health.status in [ComponentStatus.OPERATIONAL, ComponentStatus.DEGRADED, ComponentStatus.FAILED]
+            assert component_health.health_score >= 0.0
+            assert component_health.health_score <= 1.0
             assert component_health.last_checked is not None
 
     def test_health_check_caching(self):
@@ -274,7 +237,7 @@ class TestHealthCheckSystem(unittest.TestCase):
         component_health = self.health_manager.get_component_health("system_resources")
 
         if component_health:
-            self.assertIsInstance(component_health, ComponentHealth)
+            assert isinstance(component_health, ComponentHealth)
             assert component_health.name == "system_resources"
         else:
             # Component may not have been checked yet
@@ -284,19 +247,19 @@ class TestHealthCheckSystem(unittest.TestCase):
         """Test system metrics collection"""
         metrics = self.health_manager.get_system_metrics()
 
-        self.assertIsInstance(metrics, dict)
-        self.assertIn("cpu_percent", metrics)
-        self.assertIn("memory_percent", metrics)
-        self.assertIn("disk_percent", metrics)
-        self.assertIn("timestamp", metrics)
+        assert isinstance(metrics, dict)
+        assert "cpu_percent" in metrics
+        assert "memory_percent" in metrics
+        assert "disk_percent" in metrics
+        assert "timestamp" in metrics
 
         # Check that metrics are reasonable values
-        self.assertGreaterEqual(metrics["cpu_percent"], 0.0)
-        self.assertLessEqual(metrics["cpu_percent"], 100.0)
-        self.assertGreaterEqual(metrics["memory_percent"], 0.0)
-        self.assertLessEqual(metrics["memory_percent"], 100.0)
-        self.assertGreaterEqual(metrics["disk_percent"], 0.0)
-        self.assertLessEqual(metrics["disk_percent"], 100.0)
+        assert metrics["cpu_percent"] >= 0.0
+        assert metrics["cpu_percent"] <= 100.0
+        assert metrics["memory_percent"] >= 0.0
+        assert metrics["memory_percent"] <= 100.0
+        assert metrics["disk_percent"] >= 0.0
+        assert metrics["disk_percent"] <= 100.0
 
     def test_shutdown_callback_registration(self):
         """Test that shutdown callbacks can be registered"""
@@ -310,7 +273,7 @@ class TestHealthCheckSystem(unittest.TestCase):
         self.health_manager.register_shutdown_callback(test_callback)
 
         # Verify registration
-        self.assertIn(test_callback, self.health_manager.shutdown_callbacks)
+        assert test_callback in self.health_manager.shutdown_callbacks
         assert len(self.health_manager.shutdown_callbacks) == 1
 
     def test_health_check_middleware(self):
@@ -320,53 +283,53 @@ class TestHealthCheckSystem(unittest.TestCase):
         # Test health check endpoint
         status_code, response_data = middleware.health_check_endpoint()
 
-        self.assertIsInstance(status_code, int)
-        self.assertIn(status_code, [200, 503])  # Healthy or unhealthy
-        self.assertIsInstance(response_data, dict)
-        self.assertIn("status", response_data)
-        self.assertIn("timestamp", response_data)
-        self.assertIn("overall_score", response_data)
+        assert isinstance(status_code, int)
+        assert status_code in [200, 503]  # Healthy or unhealthy
+        assert isinstance(response_data, dict)
+        assert "status" in response_data
+        assert "timestamp" in response_data
+        assert "overall_score" in response_data
 
         # Test readiness probe
         status_code, response_data = middleware.readiness_probe_endpoint()
-        self.assertIsInstance(status_code, int)
-        self.assertIn(status_code, [200, 503])
-        self.assertIsInstance(response_data, dict)
-        self.assertIn("ready", response_data)
+        assert isinstance(status_code, int)
+        assert status_code in [200, 503]
+        assert isinstance(response_data, dict)
+        assert "ready" in response_data
 
         # Test liveness probe
         status_code, response_data = middleware.liveness_probe_endpoint()
-        self.assertIsInstance(status_code, int)
-        self.assertIn(status_code, [200, 503])
-        self.assertIsInstance(response_data, dict)
-        self.assertIn("alive", response_data)
+        assert isinstance(status_code, int)
+        assert status_code in [200, 503]
+        assert isinstance(response_data, dict)
+        assert "alive" in response_data
 
     def test_api_health_endpoints(self):
         """Test that API health endpoints work"""
         # Test health endpoint
         response = self.test_client.get("/health")
-        self.assertIn(response.status_code, [200, 503])
+        assert response.status_code in [200, 503]
 
         data = json.loads(response.data)
-        self.assertIn("status", data)
-        self.assertIn("timestamp", data)
-        self.assertIn("overall_score", data)
+        assert "status" in data
+        assert "timestamp" in data
+        assert "overall_score" in data
 
         # Test readiness endpoint
         response = self.test_client.get("/ready")
-        self.assertIn(response.status_code, [200, 503])
+        assert response.status_code in [200, 503]
 
         data = json.loads(response.data)
-        self.assertIn("ready", data)
-        self.assertIn("status", data)
+        assert "ready" in data
+        assert "status" in data
 
         # Test liveness endpoint
         response = self.test_client.get("/alive")
-        self.assertIn(response.status_code, [200, 503])
+        assert response.status_code in [200, 503]
 
         data = json.loads(response.data)
-        self.assertIn("alive", data)
-        self.assertIn("status", data)
+        assert "alive" in data
+        assert "status" in data
 
 
 class TestGracefulShutdown(unittest.TestCase):
@@ -395,12 +358,10 @@ class TestGracefulShutdown(unittest.TestCase):
             timestamp=datetime.now(timezone.utc).isoformat(),
         )
 
-        self.assertIsInstance(shutdown_result, ShutdownResult)
+        assert isinstance(shutdown_result, ShutdownResult)
         assert shutdown_result.success
         assert shutdown_result.duration_seconds == 1.5
-        self.assertEqual(
-            shutdown_result.components_shutdown, ["component1", "component2"]
-        )
+        assert shutdown_result.components_shutdown == ["component1", "component2"]
         assert shutdown_result.components_failed == []
         assert shutdown_result.error_messages == []
         assert shutdown_result.timestamp is not None
@@ -472,7 +433,7 @@ class TestGracefulShutdown(unittest.TestCase):
             callback()
 
         # Verify execution order (callbacks should execute in registration order)
-        self.assertEqual(execution_order, ["callback1", "callback2", "callback3"])
+        assert execution_order == ["callback1", "callback2", "callback3"]
 
     def test_shutdown_with_failing_callbacks(self):
         """Test shutdown behavior with failing callbacks"""
@@ -502,9 +463,9 @@ class TestGracefulShutdown(unittest.TestCase):
                 execution_log.append(f"callback_{i}_failed: {e!s}")
 
         # Verify execution log
-        self.assertIn("successful_callback_executed", execution_log)
-        self.assertIn("failing_callback_executed", execution_log)
-        self.assertIn("another_successful_callback_executed", execution_log)
+        assert "successful_callback_executed" in execution_log
+        assert "failing_callback_executed" in execution_log
+        assert "another_successful_callback_executed" in execution_log
 
         # Verify that all callbacks were attempted despite failures
         success_count = sum(1 for log in execution_log if "_success" in log)
@@ -531,9 +492,9 @@ class TestHealthCheckPerformance(unittest.TestCase):
         end_time = time.time()
         duration = end_time - start_time
 
-        self.assertIsInstance(health_result, HealthCheckResult)
-        self.assertLess(duration, 5.0)  # Should complete within 5 seconds
-        self.assertGreater(duration, 0.0)  # Should take some time
+        assert isinstance(health_result, HealthCheckResult)
+        assert duration < 5.0  # Should complete within 5 seconds
+        assert duration > 0.0  # Should take some time
 
         logger.info(f"Health check completed in {duration:.3f} seconds")
 
@@ -559,7 +520,7 @@ class TestHealthCheckPerformance(unittest.TestCase):
         # Verify all checks completed
         assert len(results) == 5
         for result in results:
-            self.assertIsInstance(result, HealthCheckResult)
+            assert isinstance(result, HealthCheckResult)
 
     def test_health_check_caching_performance(self):
         """Test that health check caching improves performance"""
@@ -574,7 +535,7 @@ class TestHealthCheckPerformance(unittest.TestCase):
         second_duration = time.time() - start_time
 
         # Second check should be faster (cached)
-        self.assertLess(second_duration, first_duration * 0.1)  # Should be much faster
+        assert second_duration < first_duration * 0.1  # Should be much faster
 
         # Results should be the same (or at least from the same time period)
         assert first_result.timestamp == second_result.timestamp

@@ -5,9 +5,10 @@ Provides search functionality for mental health and therapy-related datasets
 with support for MeSH terms, open access filtering, and pagination.
 """
 
+from datetime import datetime, timezone
+
 import logging
 import xml.etree.ElementTree as ET
-from datetime import datetime, timezone
 from typing import Any
 
 from ..models import DatasetSource

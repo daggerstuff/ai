@@ -37,10 +37,10 @@ class TestCleaningComponents(unittest.TestCase):
         """Test identification of PII columns based on names."""
         cols = ["id", "text", "user_email", "phone_number", "ssn_field"]
         pii_cols = find_pii_columns(cols)
-        self.assertIn("user_email", pii_cols)
-        self.assertIn("phone_number", pii_cols)
-        self.assertIn("ssn_field", pii_cols)
-        self.assertNotIn("text", pii_cols)
+        assert "user_email" in pii_cols
+        assert "phone_number" in pii_cols
+        assert "ssn_field" in pii_cols
+        assert "text" not in pii_cols
 
     def test_normalize_text(self):
         """Test whitespace stripping and lowercasing."""
@@ -53,8 +53,8 @@ class TestCleaningComponents(unittest.TestCase):
         """Test regex-based redaction of SSNs in text content."""
         df = pd.DataFrame({"content": ["My SSN is 123-45-6789", "Just a number 12345"]})
         redacted = redact_pii_in_text_fields(df, ["content"])
-        self.assertIn("[REDACTED-SSN]", redacted["content"][0])
-        self.assertNotIn("123-45-6789", redacted["content"][0])
+        assert "[REDACTED-SSN]" in redacted["content"][0]
+        assert "123-45-6789" not in redacted["content"][0]
         assert redacted["content"][1] == "Just a number 12345"
 
     def test_pii_removal(self):
@@ -62,9 +62,9 @@ class TestCleaningComponents(unittest.TestCase):
         df = pd.DataFrame({"id": [1], "name": ["Alice"], "ssn": ["secret"]})
         pii_cols = {"name", "ssn"}
         cleaned = remove_pii(df, pii_cols, self.logger)
-        self.assertNotIn("name", cleaned.columns)
-        self.assertNotIn("ssn", cleaned.columns)
-        self.assertIn("id", cleaned.columns)
+        assert "name" not in cleaned.columns
+        assert "ssn" not in cleaned.columns
+        assert "id" in cleaned.columns
 
     def test_full_clean_and_deduplicate(self):
         """Test end-to-end cleaning and deduplication logic."""
@@ -81,8 +81,8 @@ class TestCleaningComponents(unittest.TestCase):
 
         # 'hello' is duplicated across df1 and df2, should have 3 unique rows: hello, world, third
         assert len(result) == 3
-        self.assertNotIn("email", result.columns)  # email matches pii pattern 'email'
-        self.assertTrue(all(col in result.columns for col in ["text"]))
+        assert "email" not in result.columns  # email matches pii pattern 'email'
+        assert all(col in result.columns for col in ["text"])
 
 
 if __name__ == "__main__":

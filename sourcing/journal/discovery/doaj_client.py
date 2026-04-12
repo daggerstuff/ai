@@ -5,9 +5,10 @@ Implements search integration with DOAJ API for discovering therapeutic
 datasets from open access psychology journals.
 """
 
+from datetime import datetime, timezone
+
 import logging
 import time
-from datetime import datetime, timezone
 
 import requests
 

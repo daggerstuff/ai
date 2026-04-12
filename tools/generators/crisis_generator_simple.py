@@ -3,10 +3,11 @@
 Simplified Crisis Generator - Uses minimal prompts to avoid timeouts
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import time
-from datetime import datetime, timezone
 
 import requests
 

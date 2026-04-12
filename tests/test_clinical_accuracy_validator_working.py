@@ -332,8 +332,8 @@ class TestClinicalAccuracyValidator(unittest.TestCase):
     def test_initialization(self):
         """Test validator initialization."""
         assert self.validator is not None
-        self.assertIsInstance(self.validator.clinical_standards, dict)
-        self.assertIsInstance(self.validator.severity_levels, list)
+        assert isinstance(self.validator.clinical_standards, dict)
+        assert isinstance(self.validator.severity_levels, list)
         assert len(self.validator.validation_history) == 0
 
     def test_excellent_clinical_responses(self):
@@ -342,11 +342,11 @@ class TestClinicalAccuracyValidator(unittest.TestCase):
             with self.subTest(response=response):
                 result = self.validator.validate_clinical_accuracy(response, self.test_context)
 
-                self.assertGreaterEqual(result["clinical_accuracy"], 0.8)
-                self.assertIn(result["severity"], ["excellent", "good", "acceptable"])
+                assert result["clinical_accuracy"] >= 0.8
+                assert result["severity"] in ["excellent", "good", "acceptable"]
                 assert result["dsm5_compliance"]
                 assert result["evidence_based"]
-                self.assertGreaterEqual(result["therapeutic_appropriateness"], 0.7)
+                assert result["therapeutic_appropriateness"] >= 0.7
 
     def test_good_clinical_responses(self):
         """Test validation of good clinical responses."""
@@ -354,9 +354,9 @@ class TestClinicalAccuracyValidator(unittest.TestCase):
             with self.subTest(response=response):
                 result = self.validator.validate_clinical_accuracy(response, self.test_context)
 
-                self.assertGreaterEqual(result["clinical_accuracy"], 0.7)
-                self.assertIn(result["severity"], ["excellent", "good", "acceptable"])
-                self.assertGreaterEqual(result["therapeutic_appropriateness"], 0.6)
+                assert result["clinical_accuracy"] >= 0.7
+                assert result["severity"] in ["excellent", "good", "acceptable"]
+                assert result["therapeutic_appropriateness"] >= 0.6
 
     def test_concerning_clinical_responses(self):
         """Test validation of concerning clinical responses."""
@@ -364,10 +364,10 @@ class TestClinicalAccuracyValidator(unittest.TestCase):
             with self.subTest(response=response):
                 result = self.validator.validate_clinical_accuracy(response, self.test_context)
 
-                self.assertLess(result["clinical_accuracy"], 0.80)
-                self.assertIn(result["severity"], ["concerning", "unacceptable", "acceptable"])
-                self.assertGreaterEqual(len(result["violations"]), 0)
-                self.assertGreater(len(result["recommendations"]), 0)
+                assert result["clinical_accuracy"] < 0.8
+                assert result["severity"] in ["concerning", "unacceptable", "acceptable"]
+                assert len(result["violations"]) >= 0
+                assert len(result["recommendations"]) > 0
 
     def test_unacceptable_clinical_responses(self):
         """Test validation of unacceptable clinical responses."""
@@ -375,9 +375,9 @@ class TestClinicalAccuracyValidator(unittest.TestCase):
             with self.subTest(response=response):
                 result = self.validator.validate_clinical_accuracy(response, self.test_context)
 
-                self.assertLess(result["clinical_accuracy"], 0.9)
-                self.assertIn(result["severity"], ["unacceptable", "acceptable"])
-                self.assertGreaterEqual(len(result["violations"]), 0)
+                assert result["clinical_accuracy"] < 0.9
+                assert result["severity"] in ["unacceptable", "acceptable"]
+                assert len(result["violations"]) >= 0
                 # Check that violations contain expected violation types
                 expected_violations = ["safety_violation", "boundary_violation", "inappropriate_diagnosis"]
                 violation_found = any(violation in expected_violations for violation in result["violations"])
@@ -398,11 +398,11 @@ class TestClinicalAccuracyValidator(unittest.TestCase):
             with self.subTest(case=case):
                 result = self.validator.validate_clinical_accuracy(case, self.test_context)
 
-                self.assertIsInstance(result, dict)
-                self.assertIn("clinical_accuracy", result)
-                self.assertIn("severity", result)
-                self.assertIn(result["severity"], ["unacceptable", "acceptable"])
-                self.assertLessEqual(result["clinical_accuracy"], 0.8)
+                assert isinstance(result, dict)
+                assert "clinical_accuracy" in result
+                assert "severity" in result
+                assert result["severity"] in ["unacceptable", "acceptable"]
+                assert result["clinical_accuracy"] <= 0.8
 
     def test_dsm5_compliance_assessment(self):
         """Test DSM-5 compliance assessment."""
@@ -433,25 +433,25 @@ class TestClinicalAccuracyValidator(unittest.TestCase):
         # Appropriate therapeutic response
         appropriate_response = "I understand this is difficult. What do you think might be helpful?"
         result = self.validator.validate_clinical_accuracy(appropriate_response, self.test_context)
-        self.assertGreaterEqual(result["therapeutic_appropriateness"], 0.8)
+        assert result["therapeutic_appropriateness"] >= 0.8
 
         # Inappropriate therapeutic response
         inappropriate_response = "You should just get over it. I would never feel that way."
         result = self.validator.validate_clinical_accuracy(inappropriate_response, self.test_context)
-        self.assertLess(result["therapeutic_appropriateness"], 0.6)
+        assert result["therapeutic_appropriateness"] < 0.6
 
     def test_professional_boundaries_assessment(self):
         """Test professional boundaries assessment."""
         # Good boundaries
         good_boundaries = "Let's focus on your therapeutic goals in our sessions."
         result = self.validator.validate_clinical_accuracy(good_boundaries, self.test_context)
-        self.assertGreaterEqual(result["professional_boundaries"], 0.8)
+        assert result["professional_boundaries"] >= 0.8
 
         # Boundary violations
         boundary_violation = "We should be friends. Here's my personal phone number."
         result = self.validator.validate_clinical_accuracy(boundary_violation, self.test_context)
-        self.assertLess(result["professional_boundaries"], 0.6)
-        self.assertIn("boundary_violation", result["violations"])
+        assert result["professional_boundaries"] < 0.6
+        assert "boundary_violation" in result["violations"]
 
     def test_treatment_plan_validation(self):
         """Test treatment plan validation."""
@@ -463,14 +463,14 @@ class TestClinicalAccuracyValidator(unittest.TestCase):
             "outcomes": ["Symptom reduction", "Improved functioning"]
         }
         result = self.validator.validate_treatment_plan(complete_plan)
-        self.assertGreaterEqual(result["plan_accuracy"], 0.75)
-        self.assertIn(result["severity"], ["excellent", "good", "acceptable"])
+        assert result["plan_accuracy"] >= 0.75
+        assert result["severity"] in ["excellent", "good", "acceptable"]
 
         # Incomplete treatment plan
         incomplete_plan = {"goals": ["Feel better"]}
         result = self.validator.validate_treatment_plan(incomplete_plan)
-        self.assertLess(result["plan_accuracy"], 0.5)
-        self.assertGreater(len(result["violations"]), 0)
+        assert result["plan_accuracy"] < 0.5
+        assert len(result["violations"]) > 0
 
     def test_validation_statistics(self):
         """Test validation statistics collection."""
@@ -487,29 +487,29 @@ class TestClinicalAccuracyValidator(unittest.TestCase):
 
         stats = self.validator.get_validation_statistics()
 
-        assert stats["total_validations"] == len(test_responses
-        self.assertIn("average_accuracy", stats)
-        self.assertIn("severity_distribution", stats)
-        self.assertIn("dsm5_compliance_rate", stats)
-        self.assertIn("evidence_based_rate", stats)
+        assert stats["total_validations"] == len(test_responses)
+        assert "average_accuracy" in stats
+        assert "severity_distribution" in stats
+        assert "dsm5_compliance_rate" in stats
+        assert "evidence_based_rate" in stats
 
     def test_component_scores(self):
         """Test individual component scoring."""
         response = "I understand your concerns. Research shows CBT is effective. Let's work together."
         result = self.validator.validate_clinical_accuracy(response, self.test_context)
 
-        self.assertIn("component_scores", result)
+        assert "component_scores" in result
         components = result["component_scores"]
 
-        self.assertIn("dsm5_compliance", components)
-        self.assertIn("evidence_based_practice", components)
-        self.assertIn("therapeutic_appropriateness", components)
-        self.assertIn("professional_boundaries", components)
+        assert "dsm5_compliance" in components
+        assert "evidence_based_practice" in components
+        assert "therapeutic_appropriateness" in components
+        assert "professional_boundaries" in components
 
         # All scores should be between 0 and 1
         for score in components.values():
-            self.assertGreaterEqual(score, 0.0)
-            self.assertLessEqual(score, 1.0)
+            assert score >= 0.0
+            assert score <= 1.0
 
 
 class TestClinicalAccuracyValidatorIntegration(unittest.TestCase):
@@ -547,9 +547,9 @@ class TestClinicalAccuracyValidatorIntegration(unittest.TestCase):
         stats = self.validator.get_validation_statistics()
 
         # Verify complete workflow
-        self.assertGreaterEqual(validation_result["clinical_accuracy"], 0.7)
-        self.assertGreaterEqual(plan_result["plan_accuracy"], 0.7)
-        self.assertGreater(stats["total_validations"], 0)
+        assert validation_result["clinical_accuracy"] >= 0.7
+        assert plan_result["plan_accuracy"] >= 0.7
+        assert stats["total_validations"] > 0
 
     def test_batch_clinical_validation(self):
         """Test batch validation of multiple responses."""
@@ -566,11 +566,11 @@ class TestClinicalAccuracyValidatorIntegration(unittest.TestCase):
             results.append(result)
 
         # Verify batch processing
-        assert len(results) == len(responses
+        assert len(results) == len(responses)
 
         # Check accuracy distribution
         accuracies = [r["clinical_accuracy"] for r in results]
-        self.assertGreater(max(accuracies), min(accuracies))  # Should have variation
+        assert max(accuracies) > min(accuracies)  # Should have variation
 
 
 if __name__ == "__main__":

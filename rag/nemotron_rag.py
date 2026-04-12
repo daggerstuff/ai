@@ -26,12 +26,13 @@ Usage:
     response = await pipeline.query("What are CBT techniques for anxiety?")
 """
 
+from datetime import datetime, timezone
+
 import asyncio
 import hashlib
 import logging
 import os
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 

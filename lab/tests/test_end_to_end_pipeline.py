@@ -28,8 +28,8 @@ class TestEndToEndPipeline(unittest.TestCase):
         """Verify run_phase1_production.sh points to the correct ready_packages path."""
         prod_script = self.project_root / "scripts/run_phase1_production.sh"
         content = prod_script.read_text()
-        self.assertIn("ai/training/scripts", content)
-        self.assertNotIn("ai/training_ready/scripts", content, "Legacy path detected in production script")
+        assert "ai/training/scripts" in content
+        assert "ai/training_ready/scripts" not in content, "Legacy path detected in production script"
 
 if __name__ == "__main__":
     unittest.main()

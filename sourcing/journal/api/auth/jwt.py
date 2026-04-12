@@ -4,8 +4,9 @@ JWT token utilities for authentication.
 This module provides JWT token creation, validation, and decoding.
 """
 
-import logging
 from datetime import datetime, timedelta, timezone
+
+import logging
 from typing import Any
 
 import jwt as pyjwt
