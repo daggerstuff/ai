@@ -2,6 +2,12 @@
 Health check and graceful shutdown handlers for Pixelated Empathy AI model servers.
 Implements comprehensive health monitoring and safe shutdown procedures.
 """
+from .model_adapters import model_manager
+from fastapi import Response
+import gc
+import logging
+import threading
+
 
 import atexit
 import json
@@ -491,7 +497,6 @@ class HealthCheckManager:
         """Check model loading and inference status"""
         try:
             # Check if models are registered and loaded
-            from .model_adapters import model_manager
 
             if not model_manager:
                 return ComponentHealth(
@@ -790,7 +795,6 @@ class HealthCheckManager:
             # 4. Shutdown model manager and unload models
             try:
                 self.logger.info("Unloading models...")
-                from .model_adapters import model_manager
                 if model_manager:
                     unload_result = model_manager.unload_all_models()
                     if unload_result.success:
@@ -1009,7 +1013,7 @@ class HealthCheckManager:
     def _flush_logs(self) -> bool:
         """Flush logs to ensure all entries are written"""
         try:
-            import logging
+            pass
             for handler in logging.root.handlers:
                 try:
                     handler.flush()
@@ -1077,7 +1081,7 @@ class HealthCheckManager:
 
         # Force flush logs
         try:
-            import logging
+            pass
             for handler in logging.root.handlers:
                 try:
                     handler.close()
@@ -1088,7 +1092,7 @@ class HealthCheckManager:
 
         # Try to close any remaining resources
         try:
-            import gc
+            pass
             gc.collect()
         except:
             pass
@@ -1102,7 +1106,6 @@ class HealthCheckManager:
             # Perform any final cleanup that wasn't done during normal shutdown
             try:
                 # Ensure all threads are joined
-                import threading
                 main_thread = threading.main_thread()
                 for thread in threading.enumerate():
                     if thread != main_thread and thread.is_alive():
@@ -1110,7 +1113,6 @@ class HealthCheckManager:
                         # Don't actually wait in cleanup as it may hang the process
 
                 # Flush any remaining logs
-                import logging
                 for handler in logging.root.handlers:
                     try:
                         handler.flush()
@@ -1259,7 +1261,6 @@ health_manager = HealthCheckManager()
 def integrate_health_checks_with_fastapi(app):
     """Integrate health checks with a FastAPI application"""
 
-    from fastapi import Response
 
     @app.get("/health")
     async def health_check():

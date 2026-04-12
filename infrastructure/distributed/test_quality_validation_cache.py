@@ -2,6 +2,8 @@
 """
 Unit tests for Quality Validation Caching System
 """
+import shutil
+
 
 import json
 import os
@@ -36,7 +38,6 @@ class TestQualityValidationCache(unittest.TestCase):
 
     def tearDown(self):
         """Clean up test fixtures"""
-        import shutil
 
         if os.path.exists(self.temp_dir):
             shutil.rmtree(self.temp_dir)
@@ -193,7 +194,6 @@ class TestCachedQualityValidator(unittest.TestCase):
 
     def tearDown(self):
         """Clean up test fixtures"""
-        import shutil
 
         if os.path.exists(self.temp_dir):
             shutil.rmtree(self.temp_dir)

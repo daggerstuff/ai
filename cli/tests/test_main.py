@@ -1,6 +1,8 @@
 """
 Tests for main CLI functionality and integration.
 """
+import time
+
 
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -597,7 +599,7 @@ class TestCLIPerformance:
         with runner.isolated_filesystem():
             # Mock slow API response
             def slow_response(*_args, **_kwargs):
-                import time
+                pass
 
                 time.sleep(0.1)  # Simulate slow response
                 response = MagicMock()

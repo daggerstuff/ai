@@ -5,6 +5,8 @@ Task 3B.1: Execute end-to-end testing with complete 4.2M conversation dataset
 
 Enterprise-grade system validation testing for production readiness.
 """
+import httpx
+
 
 import asyncio
 import json
@@ -169,7 +171,7 @@ class FullSystemValidator:
         for service_name, endpoint in services:
             try:
                 if service_name == "API":
-                    import httpx
+                    pass
                     async with httpx.AsyncClient() as client:
                         response = await client.get(endpoint, timeout=10)
                         if response.status_code == 200:
@@ -258,7 +260,7 @@ class FullSystemValidator:
         logger.info("Phase 3: API Performance Testing")
 
         try:
-            import httpx
+            pass
 
             # Test various API endpoints
             endpoints = [

@@ -1,3 +1,5 @@
+import traceback
+
 import asyncio
 import json
 import os
@@ -81,7 +83,6 @@ async def test_provenance():
 
     except Exception as e:
         print(f"Error: {e}")
-        import traceback
         traceback.print_exc()
     finally:
         os.remove(temp_file)

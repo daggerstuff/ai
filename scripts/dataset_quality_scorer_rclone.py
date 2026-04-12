@@ -3,6 +3,8 @@
 Dataset quality scorer using rclone.
 Scores datasets based on completeness, consistency, and annotation quality.
 """
+import argparse
+
 
 import json
 import sys
@@ -190,7 +192,7 @@ def score_dataset_quality(
 
 
 def main():
-    import argparse
+    pass
 
     parser = argparse.ArgumentParser(description="Score dataset quality using rclone")
     parser.add_argument(

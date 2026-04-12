@@ -3,6 +3,8 @@
 Stress Testing Framework
 Tests system performance under heavy load with large datasets.
 """
+import psutil
+
 
 import logging
 import random
@@ -332,7 +334,6 @@ class StressTestFramework:
         """Test memory usage with large datasets."""
         logger.info(f"Starting memory usage test with {dataset_size} conversations")
 
-        import psutil
 
         process = psutil.Process()
 

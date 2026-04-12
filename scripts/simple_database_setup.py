@@ -3,6 +3,9 @@
 Simple Database Setup
 Lightweight database setup without heavy migration.
 """
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+import psycopg2
+
 
 import logging
 import os
@@ -18,7 +21,7 @@ logger = logging.getLogger(__name__)
 def check_postgresql():
     """Check if PostgreSQL is available."""
     try:
-        import psycopg2
+        pass
 
         logger.info("✅ psycopg2 available")
         return True
@@ -30,7 +33,6 @@ def check_postgresql():
 def check_database_connection():
     """Check database connection with multiple auth methods."""
 
-    import psycopg2
 
     # Try different connection configurations
     connection_configs = [
@@ -99,8 +101,7 @@ def check_database_connection():
 def create_database():
     """Create the pixelated_empathy database."""
     try:
-        import psycopg2
-        from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+        pass
 
         # Connect to postgres database
         conn = psycopg2.connect(
@@ -135,7 +136,7 @@ def create_database():
 def test_database_schema():
     """Test if we can create a simple table."""
     try:
-        import psycopg2
+        pass
 
         conn = psycopg2.connect(
             host="localhost",

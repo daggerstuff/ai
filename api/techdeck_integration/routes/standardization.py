@@ -4,6 +4,8 @@ Standardization API routes for TechDeck-Python Pipeline Integration.
 This module implements REST API endpoints for data standardization operations,
 including schema validation, format conversion, and data normalization.
 """
+import re
+
 
 import logging
 from datetime import datetime, timezone
@@ -883,7 +885,6 @@ def _is_valid_date(date_string: str) -> bool:
 
 def _is_valid_email(email: str) -> bool:
     """Check if a string is a valid email address."""
-    import re
 
     pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
     return bool(re.match(pattern, email))
@@ -891,7 +892,6 @@ def _is_valid_email(email: str) -> bool:
 
 def _matches_pattern(value: str, pattern: str) -> bool:
     """Check if a string matches a regex pattern."""
-    import re
 
     return bool(re.match(pattern, value))
 

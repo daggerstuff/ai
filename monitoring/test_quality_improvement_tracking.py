@@ -5,6 +5,10 @@ Test Suite for Quality Improvement Tracking System (Task 5.6.2.4)
 Comprehensive testing of improvement tracking, analysis, and reporting
 functionality with intervention simulation and impact validation.
 """
+from .quality_improvement_reporter import QualityImprovementReporter
+from .quality_improvement_tracker import QualityImprovementTracker
+import time
+
 
 import json
 import os
@@ -143,8 +147,6 @@ def run_comprehensive_test():
         conn.close()
 
         # Import and test the improvement tracker
-        from .quality_improvement_reporter import QualityImprovementReporter
-        from .quality_improvement_tracker import QualityImprovementTracker
 
         tracker = QualityImprovementTracker(db_path=main_db_path)
 
@@ -217,7 +219,6 @@ def run_comprehensive_test():
         # Test 5: Complete Intervention
         try:
             # Add a small delay to avoid database locking
-            import time
 
             time.sleep(0.1)
             success = tracker.complete_intervention(intervention_id)

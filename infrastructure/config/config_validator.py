@@ -3,6 +3,8 @@
 Configuration Validation System for Pixelated Empathy AI
 Validates all configuration files and environment variables
 """
+import argparse
+
 
 import base64
 import contextlib
@@ -617,7 +619,6 @@ class ConfigValidator:
 
 def main():
     """Main entry point for configuration validation"""
-    import argparse
 
     parser = argparse.ArgumentParser(
         description="Validate Pixelated Empathy AI configuration"

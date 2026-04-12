@@ -5,6 +5,10 @@ Test Suite for Quality Distribution Analysis System (Task 5.6.2.3)
 Comprehensive testing of distribution analysis, comparative analysis,
 and reporting functionality with statistical validation.
 """
+from .quality_distribution_analyzer import QualityDistributionAnalyzer
+from .quality_distribution_comparator import QualityDistributionComparator
+from .quality_distribution_reporter import QualityDistributionReporter
+
 
 import json
 import os
@@ -148,9 +152,6 @@ def run_comprehensive_test():
         conn.close()
 
         # Import and test the distribution analyzer
-        from .quality_distribution_analyzer import QualityDistributionAnalyzer
-        from .quality_distribution_comparator import QualityDistributionComparator
-        from .quality_distribution_reporter import QualityDistributionReporter
 
         analyzer = QualityDistributionAnalyzer(db_path=db_path)
         comparator = QualityDistributionComparator(analyzer)

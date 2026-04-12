@@ -36,6 +36,9 @@ Usage:
         s3_prefix="datasets/batch1"
     )
 """
+import json
+import tempfile
+
 
 import hashlib
 import logging
@@ -1075,8 +1078,6 @@ class S3DatasetLoader:
         Returns:
             List of dictionaries
         """
-        import json
-        import tempfile
 
         with tempfile.NamedTemporaryFile(suffix=".jsonl", delete=False) as tmp:
             local_path = Path(tmp.name)
@@ -1106,8 +1107,6 @@ class S3DatasetLoader:
         Returns:
             UploadResult
         """
-        import json
-        import tempfile
 
         with tempfile.NamedTemporaryFile(
             mode="w", suffix=".jsonl", delete=False

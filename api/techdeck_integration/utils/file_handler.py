@@ -4,6 +4,8 @@ File handling utilities for TechDeck-Python Pipeline Integration.
 This module provides secure file handling, storage management, and file processing
 capabilities with HIPAA++ compliance and encryption support.
 """
+import mimetypes
+
 
 import hashlib
 import logging
@@ -405,7 +407,7 @@ def calculate_file_hash(file_path: str, algorithm: str = "sha256") -> str:
 def get_file_type_info(file_path: str) -> dict[str, Any]:
     """Get file type information."""
     try:
-        import mimetypes
+        pass
 
         filename = os.path.basename(file_path)
         file_extension = os.path.splitext(filename)[1].lower()

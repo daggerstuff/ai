@@ -4,6 +4,8 @@ CommandHandler service for API endpoints.
 This module provides a service layer that wraps CommandHandler functionality
 for use by API endpoints.
 """
+from ai.sourcing.journal.api.websocket.manager import manager
+
 
 import logging
 from datetime import datetime, timezone
@@ -697,7 +699,7 @@ class CommandHandlerService:
     async def _async_broadcast_progress_update(self, session_id: str) -> None:
         """Async helper to broadcast progress update to WebSocket connections."""
         try:
-            from ai.sourcing.journal.api.websocket.manager import manager
+            pass
 
             # Get current progress
             progress_data = self.get_progress(session_id)

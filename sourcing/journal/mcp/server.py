@@ -4,6 +4,8 @@ MCP Server implementation.
 This module provides the main MCP server class that handles protocol requests,
 tool execution, resource access, and prompt rendering.
 """
+import time
+
 
 import json
 from typing import Any
@@ -487,7 +489,7 @@ class MCPServer:
                     )
 
                 try:
-                    import time
+                    pass
                     start_time = time.time()
                     result = await self.tool_executor.execute_tool(
                         tool_name,

@@ -9,6 +9,8 @@ Configured for:
 - H100 GPU optimization
 - Production-ready deployment
 """
+from path_utils import get_lightning_dir, get_unified_training_dir
+
 
 import json
 import logging
@@ -26,7 +28,7 @@ class LightningH100Deployer:
     """Lightning.ai H100 deployment system for therapeutic AI training"""
 
     def __init__(self, unified_dataset_path: Path = None):
-        from path_utils import get_lightning_dir, get_unified_training_dir
+        pass
 
         self.unified_dataset_path = unified_dataset_path or get_unified_training_dir()
         self.lightning_workspace = get_lightning_dir() / "production"

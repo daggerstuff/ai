@@ -4,6 +4,8 @@ Report Generator
 Generates structured markdown reports for dataset evaluations, weekly progress,
 and final research summaries.
 """
+from ai.sourcing.journal.models.dataset_models import ResearchProgress
+
 
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -196,7 +198,6 @@ class ReportGenerator:
         if weekly_report is None:
             # Create WeeklyReport from parameters
 
-            from ai.sourcing.journal.models.dataset_models import ResearchProgress
 
             end_date = datetime.now(timezone.utc)
             start_date = end_date - timedelta(days=7)

@@ -10,6 +10,9 @@ Coordinates the full PIX-32 pipeline:
   5. Provenance metadata attachment
   6. Output to normalized JSONL with rejection report
 """
+from collections import defaultdict
+import glob as glob_mod
+
 
 from __future__ import annotations
 
@@ -276,7 +279,6 @@ class StageAwareDeduplicator:
         if not conversations:
             return []
 
-        from collections import defaultdict
 
         hash_groups: dict[str, list[Conversation]] = defaultdict(list)
         for conv in conversations:
@@ -478,7 +480,7 @@ class NormalizationPipeline:
             elif p.is_dir():
                 files.extend(sorted(p.rglob("*.jsonl")))
             elif "*" in str(p) or "?" in str(p):
-                import glob as glob_mod
+                pass
 
                 for match in sorted(glob_mod.glob(str(p))):
                     mp = Path(match)

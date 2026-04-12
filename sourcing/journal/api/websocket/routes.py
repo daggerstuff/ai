@@ -3,6 +3,8 @@ WebSocket routes for real-time updates.
 
 This module provides WebSocket endpoints for streaming progress updates.
 """
+from ai.sourcing.journal.api.auth.jwt import get_user_from_token
+
 
 import asyncio
 import json
@@ -37,7 +39,7 @@ async def websocket_progress(
     token = websocket.query_params.get("token")
     if token:
         try:
-            from ai.sourcing.journal.api.auth.jwt import get_user_from_token
+            pass
 
             user = get_user_from_token(token)
             logger.info(f"WebSocket authenticated for user {user.get('user_id')}")
@@ -132,7 +134,7 @@ async def websocket_progress_poll(
     token = websocket.query_params.get("token")
     if token:
         try:
-            from ai.sourcing.journal.api.auth.jwt import get_user_from_token
+            pass
 
             user = get_user_from_token(token)
             logger.info(f"WebSocket authenticated for user {user.get('user_id')}")

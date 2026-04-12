@@ -1,6 +1,8 @@
 """
 Unit tests for the Research Orchestrator.
 """
+import time
+
 
 from collections.abc import Callable
 from datetime import datetime, timedelta, timezone
@@ -342,7 +344,7 @@ class TestResearchOrchestrator:
         assert target_info["remaining"] == 2
 
     def test_exponential_backoff_in_retry_logic(self, sample_sources):
-        import time
+        pass
 
         config = OrchestratorConfig(
             max_retries=3,

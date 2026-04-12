@@ -1,3 +1,10 @@
+from contextlib import suppress
+from vllm import LLM, SamplingParams
+from vllm.distributed.parallel_state import destroy_model_parallel
+import gc
+import sys
+import torch
+
 import json
 import os
 from pathlib import Path
@@ -41,7 +48,6 @@ class EvaluationRunner:
     @modal.enter()
     def load_model(self):
         print("🚀 Loading model into vLLM...")
-        from vllm import LLM, SamplingParams
 
         model_path = os.path.join(MODEL_MOUNT_PATH, "merged-v2")
 
@@ -50,7 +56,6 @@ class EvaluationRunner:
             print(f"❌ Model path not found: {model_path}")
             # List directory to help debug
             print(f"Contents of {MODEL_MOUNT_PATH}:")
-            from contextlib import suppress
 
             with suppress(Exception):
                 print(os.listdir(MODEL_MOUNT_PATH))
@@ -83,13 +88,11 @@ class EvaluationRunner:
     def stop_engine(self):
         print("🧹 Cleaning up vLLM engine to prevent shutdown errors...")
         if hasattr(self, "llm"):
-            from vllm.distributed.parallel_state import destroy_model_parallel
+            pass
 
             destroy_model_parallel()
             del self.llm
-        import gc
 
-        import torch
 
         gc.collect()
         torch.cuda.empty_cache()
@@ -273,6 +276,6 @@ def main(
     print("================================")
 
     if has_errors:
-        import sys
+        pass
 
         sys.exit(1)

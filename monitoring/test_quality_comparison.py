@@ -5,6 +5,9 @@ Test Suite for Quality Comparison System (Task 5.6.2.5)
 Comprehensive testing of quality comparison, benchmarking, and reporting
 functionality with statistical validation and performance testing.
 """
+from .quality_comparator import QualityComparator
+from .quality_comparison_reporter import QualityComparisonReporter
+
 
 import json
 import os
@@ -163,8 +166,6 @@ def run_comprehensive_test():
         conn.close()
 
         # Import and test the quality comparator
-        from .quality_comparator import QualityComparator
-        from .quality_comparison_reporter import QualityComparisonReporter
 
         comparator = QualityComparator(db_path=db_path)
 

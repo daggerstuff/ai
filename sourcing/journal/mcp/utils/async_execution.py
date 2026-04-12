@@ -4,6 +4,8 @@ Async tool execution handler for MCP Server.
 This module provides async tool execution with operation status tracking,
 cancellation support, and timeout handling.
 """
+import inspect
+
 
 import asyncio
 import logging
@@ -242,7 +244,6 @@ class AsyncToolExecutor:
         # Otherwise, just call it directly
         try:
             # Check if tool_executor accepts progress_callback parameter
-            import inspect
 
             sig = inspect.signature(tool_executor)
             if "progress_callback" in sig.parameters:

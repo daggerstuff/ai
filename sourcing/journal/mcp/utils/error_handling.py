@@ -3,6 +3,10 @@ Error handling utilities for MCP Server.
 
 This module provides error handling, classification, formatting, and recovery utilities.
 """
+import asyncio
+import functools
+import time
+
 
 import logging
 import traceback
@@ -354,8 +358,6 @@ class MCPErrorHandler:
         Returns:
             Wrapped function with error recovery
         """
-        import asyncio
-        import functools
 
         if recoverable_errors is None:
             recoverable_errors = (
@@ -396,7 +398,7 @@ class MCPErrorHandler:
                     if asyncio.iscoroutinefunction(func):
                         await asyncio.sleep(retry_delay * (attempt + 1))
                     else:
-                        import time
+                        pass
                         time.sleep(retry_delay * (attempt + 1))
 
             # Should not reach here, but just in case

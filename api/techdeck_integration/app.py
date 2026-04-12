@@ -4,6 +4,9 @@ Main Flask application factory for TechDeck-Python Pipeline Integration Service.
 This module implements the Flask application factory pattern with comprehensive
 configuration management, middleware registration, and blueprint initialization.
 """
+from .routes.datasets import datasets_bp
+from .routes.pipeline import pipeline_bp
+
 
 import logging
 from datetime import datetime, timezone
@@ -131,8 +134,6 @@ def _register_blueprints(app: Flask) -> None:
     logger = logging.getLogger(__name__)
 
     # Import and register blueprints
-    from .routes.datasets import datasets_bp
-    from .routes.pipeline import pipeline_bp
 
     blueprints = [
         (datasets_bp, "/api/v1/datasets"),

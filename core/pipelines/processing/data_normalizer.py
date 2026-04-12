@@ -10,6 +10,8 @@ Canonical JSONL schema fields:
   metadata (title, authors, doi, topic_tags, therapeutic_modality, quality_score),
   phi_scan_passed, phi_scan_date, pull_date, pix_ticket
 """
+import json
+
 
 from __future__ import annotations
 
@@ -293,7 +295,6 @@ class DataNormalizer:
 
         result = NormalizationResult()
 
-        import json
 
         with (
             input_path.open("r", encoding="utf-8") as infile,

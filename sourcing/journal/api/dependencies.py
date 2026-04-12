@@ -3,6 +3,8 @@ FastAPI dependencies for authentication and authorization.
 
 This module provides dependency injection for authentication and authorization.
 """
+from ai.sourcing.journal.api.config import get_settings
+
 
 
 from fastapi import Depends, HTTPException, Request, status
@@ -27,7 +29,6 @@ async def get_current_user(
 ) -> dict | None:
     """Get current user from JWT token."""
     # Check if authentication is enabled
-    from ai.sourcing.journal.api.config import get_settings
 
     settings = get_settings()
     if not settings.auth_enabled:

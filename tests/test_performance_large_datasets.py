@@ -1,3 +1,9 @@
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.model_selection import train_test_split
+import queue
+import threading
+
 
 #!/usr/bin/env python3
 """
@@ -386,9 +392,7 @@ class TestAnalyticsPerformance(PerformanceTestBase):
         y = np.random.randn(n_samples)
 
         def train_and_evaluate_model():
-            from sklearn.ensemble import RandomForestRegressor
-            from sklearn.metrics import mean_squared_error, r2_score
-            from sklearn.model_selection import train_test_split
+            pass
 
             # Split data
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -480,8 +484,6 @@ class TestScalabilityLimits(PerformanceTestBase):
         """Test concurrent processing simulation"""
         print("📊 Testing concurrent processing simulation...")
 
-        import queue
-        import threading
 
         def worker_function(work_queue, result_queue):
             """Worker function for concurrent processing"""

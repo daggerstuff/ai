@@ -5,6 +5,16 @@ Section 5.6.2 Integration Test Suite
 Tests the complete quality monitoring and analytics system integration
 across all five components to ensure they work together seamlessly.
 """
+from .quality_analytics_dashboard import QualityAnalyticsDashboard
+from .quality_comparator import QualityComparator
+from .quality_comparison_reporter import QualityComparisonReporter
+from .quality_distribution_analyzer import QualityDistributionAnalyzer
+from .quality_distribution_comparator import QualityDistributionComparator
+from .quality_distribution_reporter import QualityDistributionReporter
+from .quality_improvement_reporter import QualityImprovementReporter
+from .quality_improvement_tracker import QualityImprovementTracker
+from .quality_trend_analyzer import QualityTrendAnalyzer
+
 
 import json
 import os
@@ -181,7 +191,7 @@ def run_integration_test():
 
         # Test 1: Quality Analytics Dashboard Integration
         try:
-            from .quality_analytics_dashboard import QualityAnalyticsDashboard
+            pass
 
             dashboard = QualityAnalyticsDashboard(db_path=db_path)
 
@@ -208,7 +218,7 @@ def run_integration_test():
 
         # Test 2: Trend Analysis Integration (simplified)
         try:
-            from .quality_trend_analyzer import QualityTrendAnalyzer
+            pass
 
             analyzer = QualityTrendAnalyzer(db_path=db_path)
 
@@ -240,8 +250,7 @@ def run_integration_test():
 
         # Test 3: Distribution Analysis Integration
         try:
-            from .quality_distribution_analyzer import QualityDistributionAnalyzer
-            from .quality_distribution_comparator import QualityDistributionComparator
+            pass
 
             dist_analyzer = QualityDistributionAnalyzer(db_path=db_path)
             comparator = QualityDistributionComparator(dist_analyzer)
@@ -274,7 +283,7 @@ def run_integration_test():
 
         # Test 4: Improvement Tracking Integration
         try:
-            from .quality_improvement_tracker import QualityImprovementTracker
+            pass
 
             # Use correct constructor (no interventions_db_path parameter)
             tracker = QualityImprovementTracker(db_path=db_path)
@@ -313,7 +322,7 @@ def run_integration_test():
 
         # Test 5: Comparison System Integration
         try:
-            from .quality_comparator import QualityComparator
+            pass
 
             comparator = QualityComparator(db_path=db_path)
 
@@ -381,9 +390,6 @@ def run_integration_test():
             temp_dir = tempfile.mkdtemp()
 
             # Generate reports from all components (simplified to avoid data type issues)
-            from .quality_comparison_reporter import QualityComparisonReporter
-            from .quality_distribution_reporter import QualityDistributionReporter
-            from .quality_improvement_reporter import QualityImprovementReporter
 
             # Initialize reporters
             dist_reporter = QualityDistributionReporter(output_dir=temp_dir)

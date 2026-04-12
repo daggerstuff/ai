@@ -9,6 +9,8 @@ This module provides complete API implementation including:
 - API documentation complete
 - RESTful API standards compliance
 """
+import random
+
 
 import asyncio
 import json
@@ -357,7 +359,6 @@ class CompleteAPISystem:
         """Test individual API endpoint"""
 
         # Simulate API endpoint testing
-        import random
 
         # Most endpoints should pass (95% success rate)
         success = random.random() > 0.05

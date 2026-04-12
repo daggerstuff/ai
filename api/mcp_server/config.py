@@ -4,6 +4,8 @@ Configuration management for MCP (Management Control Panel) Server.
 This module provides comprehensive configuration management with environment-based
 settings, validation, and secure handling of sensitive data for HIPAA++ compliance.
 """
+from dotenv import load_dotenv
+
 
 import logging
 import os
@@ -445,7 +447,6 @@ class MCPConfig:
             FileNotFoundError: If env file doesn't exist
             ValueError: If env file contains invalid configuration
         """
-        from dotenv import load_dotenv
 
         if not os.path.exists(env_file_path):
             raise FileNotFoundError(f"Environment file not found: {env_file_path}")

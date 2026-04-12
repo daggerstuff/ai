@@ -3,6 +3,9 @@
 Validation & Quality Assurance System - Task 5.7.2 Complete Implementation
 Comprehensive system implementing all remaining subtasks for Task 5.7.2.
 """
+import hashlib
+import re
+
 
 import json
 import logging
@@ -531,7 +534,6 @@ class ValidationQualityAssuranceSystem:
     # Helper methods for automated checks
     def _generate_cache_key(self, conversation: dict[str, Any]) -> str:
         """Generate cache key for conversation"""
-        import hashlib
 
         content = str(conversation.get("conversation", ""))
         return hashlib.md5(content.encode()).hexdigest()
@@ -640,7 +642,6 @@ class ValidationQualityAssuranceSystem:
     def _check_privacy_violations(self, text: str) -> bool:
         """Check for privacy violations"""
         # Simplified privacy check
-        import re
 
         phone_pattern = r"\b\d{3}-\d{3}-\d{4}\b"
         email_pattern = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"

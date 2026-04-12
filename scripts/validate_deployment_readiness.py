@@ -3,6 +3,15 @@
 Deployment Readiness Validation Script
 Comprehensive validation that everything is ready for Lightning.ai H100 deployment.
 """
+from lightning_h100_deployment import LightningH100Deployer
+from path_utils import get_lightning_dir
+from path_utils import get_lightning_dir, get_unified_training_dir
+from path_utils import get_scripts_dir
+from path_utils import get_workspace_root
+import psutil
+import shutil
+import sys
+
 
 import json
 import logging
@@ -18,7 +27,7 @@ class DeploymentValidator:
     """Validate all components for Lightning.ai H100 deployment"""
 
     def __init__(self):
-        from path_utils import get_lightning_dir, get_unified_training_dir
+        pass
 
         self.unified_dataset_path = get_unified_training_dir()
         self.lightning_workspace = get_lightning_dir() / "production"
@@ -176,7 +185,6 @@ class DeploymentValidator:
 
         # Check for required scripts in ai/scripts
 
-        from path_utils import get_scripts_dir
 
         script_dir = get_scripts_dir()
         missing_scripts = []
@@ -196,11 +204,9 @@ class DeploymentValidator:
         # Check if we can generate deployment files
         try:
             # Try importing the deployment module
-            import sys
 
             sys.path.append(str(script_dir))
 
-            from lightning_h100_deployment import LightningH100Deployer
 
             LightningH100Deployer()
             validation["deployment_config_valid"] = True
@@ -227,12 +233,10 @@ class DeploymentValidator:
         }
 
         try:
-            import shutil
+            pass
 
-            import psutil
 
             # Check disk space (need at least 10GB for dataset processing)
-            from path_utils import get_workspace_root
 
             disk_usage = shutil.disk_usage(str(get_workspace_root()))
             free_gb = disk_usage.free / (1024**3)
@@ -255,7 +259,6 @@ class DeploymentValidator:
                 )
 
             # Check Python environment
-            import sys
 
             if sys.version_info >= (3, 8):
                 validation["python_environment_valid"] = True
@@ -456,7 +459,6 @@ class DeploymentValidator:
     def save_readiness_report(self, report: dict) -> Path:
         """Save readiness report to file"""
 
-        from path_utils import get_lightning_dir
 
         report_path = get_lightning_dir() / "deployment_readiness_report.json"
         report_path.parent.mkdir(parents=True, exist_ok=True)

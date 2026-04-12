@@ -1,3 +1,5 @@
+from ai.sourcing.journal.mcp import server as server_module
+
 
 import html
 import json
@@ -46,7 +48,6 @@ def integration_server(
         report=report,
     )
 
-    from ai.sourcing.journal.mcp import server as server_module
 
     monkeypatch.setattr(
         server_module,

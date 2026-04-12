@@ -3,6 +3,8 @@
 Dataset validation script that computes checksums, validates schemas,
 and updates the dataset registry with validation results.
 """
+import argparse
+
 
 import hashlib
 import json
@@ -240,7 +242,6 @@ class DatasetValidator:
 
 def main():
     """Main entry point."""
-    import argparse
 
     parser = argparse.ArgumentParser(
         description="Validate datasets and update registry"

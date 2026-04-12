@@ -3,6 +3,9 @@
 EMERGENCY PRODUCTION HOTFIX
 Critical fixes for live production system with security vulnerabilities
 """
+import json
+import secrets
+
 
 import logging
 import os
@@ -28,7 +31,6 @@ class EmergencyProductionHotfix:
 
         try:
             # Generate emergency encryption key
-            import secrets
             encryption_key = secrets.token_urlsafe(32)
 
             # Create emergency config
@@ -40,7 +42,6 @@ class EmergencyProductionHotfix:
             }
 
             # Write emergency config
-            import json
             with open("/home/vivi/pixelated/ai/emergency_security_config.json", "w") as f:
                 json.dump(emergency_config, f, indent=2)
 

@@ -4,6 +4,8 @@ Validation utilities for TechDeck Flask service.
 This module provides comprehensive input validation, data sanitization,
 and security measures for HIPAA++ compliance.
 """
+import json
+
 
 import mimetypes
 import os
@@ -523,7 +525,7 @@ class DatasetValidator:
             ValidationError: If validation fails
         """
         try:
-            import json
+            pass
 
             with open(file_path, encoding="utf-8") as f:
                 data = json.load(f)

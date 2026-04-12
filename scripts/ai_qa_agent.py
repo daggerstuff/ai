@@ -2,6 +2,8 @@
 """
 AI Q/A Agent - Uses actual AI to intelligently analyze content and generate appropriate Q/A pairs
 """
+from transformers import pipeline
+
 
 import json
 import os
@@ -115,7 +117,7 @@ Be very careful to ensure the question and response actually match and make logi
 class LocalAIQAAgent:
     def __init__(self):
         try:
-            from transformers import pipeline
+            pass
 
             self.analyzer = pipeline(
                 "text-generation", model="microsoft/DialoGPT-medium"

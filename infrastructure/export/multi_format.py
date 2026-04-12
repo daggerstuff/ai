@@ -31,6 +31,9 @@ Usage:
         format=ExportFormat.PARQUET
     )
 """
+import pandas as pd
+import pyarrow
+
 
 import csv
 import json
@@ -377,7 +380,7 @@ class MultiFormatExporter:
     ) -> ExportResult:
         """Export to Parquet format."""
         try:
-            import pandas as pd
+            pass
         except ImportError:
             return ExportResult(
                 success=False,
@@ -389,7 +392,7 @@ class MultiFormatExporter:
             )
 
         try:
-            import pyarrow
+            pass
         except ImportError:
             return ExportResult(
                 success=False,

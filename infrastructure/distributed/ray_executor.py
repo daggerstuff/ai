@@ -25,6 +25,11 @@ Usage:
             checkpoint_interval=100
         )
 """
+from pathlib import Path
+from typing import TYPE_CHECKING
+import pickle
+import psutil
+
 
 import json
 import logging
@@ -244,10 +249,9 @@ class WorkerActor:
         kwargs: dict[str, Any],
     ) -> TaskResult:
         """Execute a single task and return result."""
-        from typing import TYPE_CHECKING
 
         if TYPE_CHECKING:
-            import psutil
+            pass
 
         start_time = time.time()
         memory_usage_mb = 0.0
@@ -801,8 +805,6 @@ def process_dataset_parallel(
     Returns:
         List of processed results
     """
-    import pickle
-    from pathlib import Path
 
     dataset_path = Path(dataset_path)
     output_path = Path(output_path)
