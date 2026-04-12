@@ -5,9 +5,6 @@ Task 5.6.2.3: Quality Distribution Comparative Analysis
 Enterprise-grade comparative analysis system for quality distributions
 across different dimensions (tiers, datasets, components, time periods).
 """
-from quality_distribution_analyzer import QualityDistributionAnalyzer
-
-
 import logging
 import warnings
 from typing import Any

@@ -2,18 +2,12 @@
 Integration tests and performance benchmarks for Pixelated Empathy AI inference system.
 Tests API endpoints, validates functionality, and measures performance.
 """
-from ai.lab.explainability.model_explainability import get_limited_explanation
-from ai.lab.inference.model_adapters import BaseModelAdapter
-from ai.lab.monitoring.observability import ObservabilityManager
-from ai.lab.safety.content_filter import SafetyFilter
-import concurrent.futures
-import shutil
-
-
 import asyncio
+import concurrent.futures
 import json
 import logging
 import os
+import shutil
 import tempfile
 import time
 import unittest
@@ -22,13 +16,13 @@ from unittest.mock import patch
 import pytest
 
 from ai.lab.autoscaling.gpu_autoscaler import InstanceType, ScalingPolicy, register_model_for_autoscaling
-from ai.lab.explainability.model_explainability import explainability_engine
+from ai.lab.explainability.model_explainability import explainability_engine, get_limited_explanation
 
 # Import our modules
 from ai.lab.inference.inference_api import UserTier, app, create_api_key_for_user
-from ai.lab.inference.model_adapters import ModelConfig, create_model_adapter
-from ai.lab.monitoring.observability import observability
-from ai.lab.safety.content_filter import safety_filter
+from ai.lab.inference.model_adapters import BaseModelAdapter, ModelConfig, create_model_adapter
+from ai.lab.monitoring.observability import ObservabilityManager, observability
+from ai.lab.safety.content_filter import SafetyFilter, safety_filter
 
 logger = logging.getLogger(__name__)
 

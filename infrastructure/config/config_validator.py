@@ -4,8 +4,6 @@ Configuration Validation System for Pixelated Empathy AI
 Validates all configuration files and environment variables
 """
 import argparse
-
-
 import base64
 import contextlib
 import json

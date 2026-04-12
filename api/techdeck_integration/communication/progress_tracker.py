@@ -10,9 +10,14 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from typing import Any
 
-from ai.api.techdeck_integration.error_handling.custom_errors import ProgressTrackingError, ResourceNotFoundError, ValidationError
+from ai.api.techdeck_integration.error_handling.custom_errors import (
+    ProgressTrackingError,
+    ResourceNotFoundError,
+    ValidationError,
+)
 from ai.api.techdeck_integration.integration.redis_client import RedisClient
 from ai.api.techdeck_integration.utils.logger import get_request_logger
+
 from .event_bus import EventBus, EventMessage, EventType
 from .state_manager import StateManager
 

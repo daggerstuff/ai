@@ -4,14 +4,13 @@ Configuration management for TechDeck-Python Pipeline Integration Service.
 This module provides comprehensive configuration management with environment-based
 settings, validation, and secure handling of sensitive data for HIPAA++ compliance.
 """
-from dotenv import load_dotenv
-
-
 import logging
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
+
+from dotenv import load_dotenv
 
 
 @dataclass

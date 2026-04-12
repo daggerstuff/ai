@@ -5,21 +5,19 @@ This module provides utility functions for logging setup, environment validation
 banner printing, and other common operations.
 """
 import base64
-import platform
-import psutil
-import re
-
-
 import json
 import logging
 import logging.handlers
 import os
+import platform
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 import click
+import psutil
 import requests
 
 from cli.config import CLIConfig

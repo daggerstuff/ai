@@ -4,12 +4,10 @@ Bias Detection Integration for Pipeline Communication - HIPAA++ Compliant Bias M
 This module provides comprehensive bias detection integration with real-time monitoring,
 HIPAA++ compliant data handling, and seamless integration with the six-stage pipeline.
 """
-import hashlib
-import random
-
-
 import asyncio
+import hashlib
 import json
+import random
 import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -18,6 +16,7 @@ from typing import Any
 from ai.api.techdeck_integration.error_handling.custom_errors import BiasDetectionError, ValidationError
 from ai.api.techdeck_integration.utils.logger import get_request_logger
 from ai.api.techdeck_integration.utils.validation import sanitize_input
+
 from .event_bus import EventMessage, EventType
 
 

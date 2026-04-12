@@ -4,8 +4,6 @@ Dataset sync verification using rclone.
 Verifies consistency between S3/DO Spaces and local/backup paths.
 """
 import argparse
-
-
 import json
 import sys
 from datetime import datetime, timezone

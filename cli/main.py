@@ -4,13 +4,12 @@ Main CLI entry point for Pixelated AI CLI
 This module provides the main command-line interface using Click framework
 with three primary entry points: web-frontend, cli-interface, and mcp-connect.
 """
-from cli import __author__, __description__, __version__
-
-
 import sys
 from pathlib import Path
 
 import click
+
+from cli import __author__, __description__, __version__
 
 # Add the ai directory to Python path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))

@@ -4,8 +4,6 @@ Bottleneck Resolution Orchestrator
 Master script to execute the complete 3-week emergency resolution plan.
 """
 import json
-
-
 import logging
 import subprocess
 import sys

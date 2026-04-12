@@ -4,8 +4,6 @@ Script to enhance dataset registry with automated validation, usage analytics,
 lineage tracking, quality metrics, sync verification, and version control fields.
 """
 import argparse
-
-
 import json
 from datetime import datetime, timezone
 from pathlib import Path

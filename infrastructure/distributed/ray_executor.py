@@ -25,15 +25,10 @@ Usage:
             checkpoint_interval=100
         )
 """
-from pathlib import Path
-from typing import TYPE_CHECKING
-import pickle
-import psutil
-
-
 import json
 import logging
 import os
+import pickle
 import time
 import traceback
 from collections.abc import Callable, Iterable
@@ -41,10 +36,12 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import (
+    TYPE_CHECKING,
     Any,
     TypeVar,
 )
 
+import psutil
 import ray
 from ray.exceptions import RayActorError, RayTaskError, WorkerCrashedError
 

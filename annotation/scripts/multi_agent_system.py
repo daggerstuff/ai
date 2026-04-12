@@ -5,12 +5,10 @@ Inspired by NVIDIA AI Blueprints architecture
 This module implements a sophisticated multi-agent system for annotating
 therapeutic conversations with high reliability and psychological safety.
 """
-import os
-import random
-
-
 import concurrent.futures
 import json
+import os
+import random
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field

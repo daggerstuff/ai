@@ -3,11 +3,6 @@
 COMPREHENSIVE PRODUCTION FIX
 Addresses all critical infrastructure issues identified in audit
 """
-from caching_system import CacheManager
-from database_optimization import DatabaseOptimizationSystem
-from monitoring_system import ProductionMonitor
-
-
 import json
 import logging
 import os
@@ -16,6 +11,10 @@ import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+
+from caching_system import CacheManager
+from database_optimization import DatabaseOptimizationSystem
+from monitoring_system import ProductionMonitor
 
 # Setup logging
 logging.basicConfig(

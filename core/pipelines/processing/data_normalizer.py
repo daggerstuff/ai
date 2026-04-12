@@ -10,12 +10,10 @@ Canonical JSONL schema fields:
   metadata (title, authors, doi, topic_tags, therapeutic_modality, quality_score),
   phi_scan_passed, phi_scan_date, pull_date, pix_ticket
 """
-import json
-
-
 from __future__ import annotations
 
 import hashlib
+import json
 import logging
 import re
 import unicodedata

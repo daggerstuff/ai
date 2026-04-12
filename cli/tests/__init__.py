@@ -9,19 +9,18 @@ This package contains comprehensive tests for all CLI components including:
 - Error handling
 - Integration tests
 """
-from cli.auth import AuthManager
-from cli.config import CLIConfig
-from cli.pipeline import PipelineManager
-from cli.progress import ProgressTracker
-from click.testing import CliRunner
-
-
 import os
 import tempfile
 from pathlib import Path
 from typing import Any, Dict
 
 import pytest
+from cli.pipeline import PipelineManager
+from click.testing import CliRunner
+
+from cli.auth import AuthManager
+from cli.config import CLIConfig
+from cli.progress import ProgressTracker
 
 # Test configuration
 TEST_CONFIG = {

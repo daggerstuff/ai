@@ -4,16 +4,13 @@ Alert Escalation System for Pixelated Empathy AI
 Implements intelligent alert escalation procedures based on severity levels
 """
 import argparse
-import requests
-import uuid
-
-
 import json
 import logging
 import smtplib
 import sqlite3
 import threading
 import time
+import uuid
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from email.mime.multipart import MimeMultipart
@@ -21,6 +18,8 @@ from email.mime.text import MimeText
 from enum import Enum
 from pathlib import Path
 from typing import Any
+
+import requests
 
 # Configure logging
 logging.basicConfig(

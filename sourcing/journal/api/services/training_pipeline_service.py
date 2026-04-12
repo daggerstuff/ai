@@ -3,12 +3,10 @@ Training Pipeline Service
 
 Service layer for connecting journal research system to training pipeline orchestrator.
 """
+import logging
 from datetime import datetime
 from pathlib import Path
 from types import SimpleNamespace
-
-
-import logging
 from typing import Any
 
 logger = logging.getLogger(__name__)

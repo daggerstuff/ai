@@ -12,12 +12,9 @@ Analyzes diversity and coverage patterns across conversations:
 - Content gap identification
 """
 import json
-import traceback
-
-
-import json
 import re
 import sqlite3
+import traceback
 import warnings
 from collections import Counter, defaultdict
 from datetime import datetime, timezone

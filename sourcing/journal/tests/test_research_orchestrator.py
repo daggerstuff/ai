@@ -2,8 +2,6 @@
 Unit tests for the Research Orchestrator.
 """
 import time
-
-
 from collections.abc import Callable
 from datetime import datetime, timedelta, timezone
 

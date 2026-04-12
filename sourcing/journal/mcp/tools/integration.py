@@ -3,10 +3,8 @@ Integration planning tools for MCP Server.
 
 This module provides tools for creating and managing integration plans through the MCP protocol.
 """
-from pathlib import Path
-
-
 import logging
+from pathlib import Path
 from typing import Any
 
 from ai.sourcing.journal.api.services.command_handler_service import (

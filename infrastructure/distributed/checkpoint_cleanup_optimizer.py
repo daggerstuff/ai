@@ -3,9 +3,6 @@
 Checkpoint Cleanup and Optimization System for Pixelated Empathy AI
 Advanced cleanup, optimization, and lifecycle management for checkpoints
 """
-from checkpoint_system import CheckpointManager
-
-
 import asyncio
 import gzip
 import json
@@ -17,6 +14,8 @@ from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any
+
+from checkpoint_system import CheckpointManager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

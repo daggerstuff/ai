@@ -4,10 +4,8 @@ Progress Visualization
 Generates progress metrics charts, timeline visualizations, and quality score
 distributions for research activities.
 """
-import warnings
-
-
 import json
+import warnings
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any

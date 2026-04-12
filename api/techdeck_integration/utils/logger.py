@@ -6,8 +6,6 @@ audit trail capabilities, and performance monitoring.
 """
 import functools
 import inspect
-
-
 import json
 import logging
 import os

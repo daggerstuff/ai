@@ -4,12 +4,10 @@ Unit tests for documentation module.
 Tests research logger, report generator, dataset catalog, tracking updater,
 and progress visualization components.
 """
-import pandas as pd
-
-
 import json
 from datetime import datetime, timedelta, timezone
 
+import pandas as pd
 import pytest
 
 from ai.sourcing.journal.documentation.dataset_catalog import DatasetCatalog

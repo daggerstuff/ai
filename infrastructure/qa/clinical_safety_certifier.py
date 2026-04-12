@@ -18,12 +18,10 @@ Author: Pixelated Empathy AI Team
 Version: 1.0.0
 Date: August 2025
 """
-import random
-
-
 import asyncio
 import json
 import logging
+import random
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from enum import Enum

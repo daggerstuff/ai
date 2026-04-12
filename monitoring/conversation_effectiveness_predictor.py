@@ -11,12 +11,9 @@ Predicts conversation effectiveness using machine learning models:
 - Effectiveness improvement recommendations
 """
 import json
-import traceback
-
-
-import json
 import re
 import sqlite3
+import traceback
 import warnings
 from collections import Counter
 from datetime import datetime, timezone

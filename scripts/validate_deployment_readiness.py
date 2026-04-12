@@ -3,19 +3,15 @@
 Deployment Readiness Validation Script
 Comprehensive validation that everything is ready for Lightning.ai H100 deployment.
 """
-from lightning_h100_deployment import LightningH100Deployer
-from path_utils import get_lightning_dir
-from path_utils import get_lightning_dir, get_unified_training_dir
-from path_utils import get_scripts_dir
-from path_utils import get_workspace_root
-import psutil
-import shutil
-import sys
-
-
 import json
 import logging
+import shutil
+import sys
 from pathlib import Path
+
+import psutil
+from lightning_h100_deployment import LightningH100Deployer
+from path_utils import get_lightning_dir, get_scripts_dir, get_unified_training_dir, get_workspace_root
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"

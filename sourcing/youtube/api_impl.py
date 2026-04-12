@@ -4,14 +4,12 @@ YouTube Data API v3 implementation.
 This module provides the actual YouTube API integration functions
 replacing the TODO stubs in api.py.
 """
-from dotenv import load_dotenv
-import os
-
-
 import logging
+import os
 from datetime import datetime, timezone
 
 import requests
+from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
 

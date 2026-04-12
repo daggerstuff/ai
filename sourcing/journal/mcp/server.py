@@ -4,10 +4,8 @@ MCP Server implementation.
 This module provides the main MCP server class that handles protocol requests,
 tool execution, resource access, and prompt rendering.
 """
-import time
-
-
 import json
+import time
 from typing import Any
 
 from ai.sourcing.journal.api.services.command_handler_service import (

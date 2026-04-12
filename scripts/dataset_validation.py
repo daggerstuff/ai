@@ -4,8 +4,6 @@ Dataset validation script that computes checksums, validates schemas,
 and updates the dataset registry with validation results.
 """
 import argparse
-
-
 import hashlib
 import json
 from datetime import datetime, timezone

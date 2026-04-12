@@ -3,13 +3,13 @@
 Lightning.ai Studio Setup Script
 Automated setup for H100 therapeutic AI training in Lightning.ai Studio environment.
 """
-import lightning
-import torch
-
-
 import logging
 import subprocess
 from pathlib import Path
+
+import torch
+
+import lightning
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"

@@ -4,11 +4,9 @@ EMERGENCY PRODUCTION HOTFIX
 Critical fixes for live production system with security vulnerabilities
 """
 import json
-import secrets
-
-
 import logging
 import os
+import secrets
 from datetime import datetime, timezone
 
 # Setup logging

@@ -2,8 +2,6 @@
 Tests for main CLI functionality and integration.
 """
 import time
-
-
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 

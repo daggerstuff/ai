@@ -26,14 +26,11 @@ Usage:
         max_results=50
     )
 """
-import io
-import pdfplumber
-
-
 from __future__ import annotations
 
 import asyncio
 import hashlib
+import io
 import json
 import logging
 import re
@@ -46,6 +43,7 @@ from pathlib import Path
 from typing import Any
 
 import aiohttp
+import pdfplumber
 from pydantic import BaseModel, Field, HttpUrl
 
 # Configure logging

@@ -9,10 +9,6 @@ This script orchestrates the complete deployment pipeline:
 3. Generates all required scripts and configurations
 4. Provides upload instructions for Lightning.ai Studio
 """
-from lightning_h100_deployment import LightningH100Deployer
-from validate_deployment_readiness import DeploymentValidator
-
-
 import json
 import logging
 import shutil
@@ -21,6 +17,8 @@ import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 
+from lightning_h100_deployment import LightningH100Deployer
+
 # Import path utilities
 from path_utils import (
     get_lightning_dir,
@@ -28,6 +26,7 @@ from path_utils import (
     get_unified_training_dir,
     get_workspace_root,
 )
+from validate_deployment_readiness import DeploymentValidator
 
 # Configure logging
 logging.basicConfig(

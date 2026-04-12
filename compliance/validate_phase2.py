@@ -5,13 +5,6 @@ Tasks 2.1, 2.2, 2.3: Validate Regulatory Compliance Implementation
 
 Comprehensive validation script to verify Phase 2 regulatory compliance implementation is enterprise-ready.
 """
-from gdpr_validator import DataSubjectRequest
-from gdpr_validator import ProcessingPurpose
-from gdpr_validator import gdpr_validator
-from hipaa_validator import hipaa_validator
-from soc2_validator import soc2_validator
-
-
 import json
 import logging
 import os
@@ -21,6 +14,10 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+from gdpr_validator import DataSubjectRequest, ProcessingPurpose, gdpr_validator
+from hipaa_validator import hipaa_validator
+from soc2_validator import soc2_validator
 
 # Configure logging
 logging.basicConfig(

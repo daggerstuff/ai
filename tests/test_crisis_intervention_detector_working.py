@@ -12,9 +12,6 @@ This test suite validates the crisis intervention detector's ability to:
 """
 import threading
 import time
-
-
-import time
 import unittest
 from typing import Any
 

@@ -4,17 +4,19 @@ Standardization API routes for TechDeck-Python Pipeline Integration.
 This module implements REST API endpoints for data standardization operations,
 including schema validation, format conversion, and data normalization.
 """
-import re
-
-
 import logging
+import re
 from datetime import datetime, timezone
 from typing import Any
 
 from flask import Blueprint, g, jsonify, request
 
 from ai.api.techdeck_integration.auth.decorators import require_auth
-from ai.api.techdeck_integration.error_handling.custom_errors import ResourceNotFoundError, StandardizationError, ValidationError
+from ai.api.techdeck_integration.error_handling.custom_errors import (
+    ResourceNotFoundError,
+    StandardizationError,
+    ValidationError,
+)
 from ai.api.techdeck_integration.integration.redis_client import RedisClient
 from ai.api.techdeck_integration.utils.logger import get_request_logger
 from ai.api.techdeck_integration.utils.validation import sanitize_input, validate_standardization_request

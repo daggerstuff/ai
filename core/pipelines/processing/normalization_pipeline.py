@@ -10,16 +10,14 @@ Coordinates the full PIX-32 pipeline:
   5. Provenance metadata attachment
   6. Output to normalized JSONL with rejection report
 """
-from collections import defaultdict
-import glob as glob_mod
-
-
 from __future__ import annotations
 
+import glob as glob_mod
 import hashlib
 import json
 import logging
 import time
+from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum

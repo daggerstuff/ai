@@ -3,9 +3,6 @@
 Automatic Resume Engine for Pixelated Empathy AI
 Provides seamless recovery and resumption of interrupted processing operations
 """
-from checkpoint_system import CheckpointManager
-
-
 import asyncio
 import json
 import logging

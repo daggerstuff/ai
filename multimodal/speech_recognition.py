@@ -19,11 +19,6 @@ Example:
     >>> print(f"Text: {result['text']}")
     >>> print(f"Confidence: {result['confidence']:.2f}")
 """
-import librosa
-import torch
-import torchaudio
-
-
 import asyncio
 import logging
 import time

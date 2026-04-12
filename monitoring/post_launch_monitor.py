@@ -5,11 +5,9 @@ Enterprise Production Readiness Framework - Task 6.3
 
 24/7 monitoring with comprehensive dashboards and operational handover.
 """
-import random
-
-
 import json
 import logging
+import random
 import sqlite3
 import threading
 import time

@@ -3,9 +3,6 @@
 Resume Orchestrator for Pixelated Empathy AI
 Manages coordination and orchestration of multiple resumable processes
 """
-from checkpoint_system import CheckpointManager
-
-
 import asyncio
 import json
 import logging

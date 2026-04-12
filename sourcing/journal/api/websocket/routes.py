@@ -3,9 +3,6 @@ WebSocket routes for real-time updates.
 
 This module provides WebSocket endpoints for streaming progress updates.
 """
-from ai.sourcing.journal.api.auth.jwt import get_user_from_token
-
-
 import asyncio
 import json
 import logging
@@ -13,6 +10,7 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, status
 
+from ai.sourcing.journal.api.auth.jwt import get_user_from_token
 from ai.sourcing.journal.api.services.command_handler_service import (
     CommandHandlerService,
 )
