@@ -66,9 +66,9 @@ class TestHealthCheckSystem(unittest.TestCase):
 
         result = asyncio.run(self.health_manager.run_health_check("test_service"))
 
-        self.assertEqual(result.component_name, "test_service")
-        self.assertEqual(result.status, HealthStatus.HEALTHY)
-        self.assertEqual(result.message, "Service is healthy")
+        assert result.component_name == "test_service"
+        assert result.status == HealthStatus.HEALTHY
+        assert result.message == "Service is healthy"
         self.assertGreater(result.response_time_ms, 0)
 
     def test_run_health_check_failure(self):
@@ -83,8 +83,8 @@ class TestHealthCheckSystem(unittest.TestCase):
 
         result = asyncio.run(self.health_manager.run_health_check("failing_service"))
 
-        self.assertEqual(result.component_name, "failing_service")
-        self.assertEqual(result.status, HealthStatus.UNHEALTHY)
+        assert result.component_name == "failing_service"
+        assert result.status == HealthStatus.UNHEALTHY
         self.assertIn("Service unavailable", result.message)
 
     def test_run_all_health_checks(self):
@@ -118,9 +118,9 @@ class TestHealthCheckSystem(unittest.TestCase):
 
         report = asyncio.run(self.health_manager.run_all_health_checks())
 
-        self.assertEqual(len(report.component_checks), 2)
-        self.assertEqual(report.overall_status, HealthStatus.DEGRADED)
-        self.assertIsNotNone(report.system_metrics)
+        assert len(report.component_checks) == 2
+        assert report.overall_status == HealthStatus.DEGRADED
+        assert report.system_metrics is not None
         self.assertGreater(len(report.recommendations), 0)
 
     def test_calculate_overall_health(self):
@@ -143,7 +143,7 @@ class TestHealthCheckSystem(unittest.TestCase):
             ),
         ]
         status = self.health_manager._calculate_overall_health(results_healthy)
-        self.assertEqual(status, HealthStatus.HEALTHY)
+        assert status == HealthStatus.HEALTHY
 
         # One degraded
         results_degraded = [
@@ -163,7 +163,7 @@ class TestHealthCheckSystem(unittest.TestCase):
             ),
         ]
         status = self.health_manager._calculate_overall_health(results_degraded)
-        self.assertEqual(status, HealthStatus.DEGRADED)
+        assert status == HealthStatus.DEGRADED
 
         # Critical component unhealthy
         results_critical_unhealthy = [
@@ -181,7 +181,7 @@ class TestHealthCheckSystem(unittest.TestCase):
         status = self.health_manager._calculate_overall_health(
             results_critical_unhealthy
         )
-        self.assertEqual(status, HealthStatus.UNHEALTHY)
+        assert status == HealthStatus.UNHEALTHY
 
 
 class TestDisasterRecoverySystem(unittest.TestCase):
@@ -201,24 +201,24 @@ class TestDisasterRecoverySystem(unittest.TestCase):
     def test_get_recovery_plan(self):
         """Test getting recovery plan by disaster type"""
         plan = self.dr_manager.get_recovery_plan(DisasterType.HARDWARE_FAILURE)
-        self.assertIsNotNone(plan)
-        self.assertEqual(plan.plan_id, "db_failure_recovery")
+        assert plan is not None
+        assert plan.plan_id == "db_failure_recovery"
 
         # Test for non-existent plan
         plan = self.dr_manager.get_recovery_plan(DisasterType.NATURAL_DISASTER)
-        self.assertIsNone(plan)
+        assert plan is None
 
     def test_start_recovery_session(self):
         """Test starting a recovery session"""
         session_id = self.dr_manager.start_recovery_session(
             DisasterType.HARDWARE_FAILURE
         )
-        self.assertIsNotNone(session_id)
+        assert session_id is not None
         self.assertIn(session_id, self.dr_manager.active_sessions)
 
         session = self.dr_manager.active_sessions[session_id]
-        self.assertEqual(session.disaster_type, DisasterType.HARDWARE_FAILURE)
-        self.assertEqual(session.status, RecoveryStatus.NOT_STARTED)
+        assert session.disaster_type == DisasterType.HARDWARE_FAILURE
+        assert session.status == RecoveryStatus.NOT_STARTED
 
     def test_execute_recovery_step(self):
         """Test executing a recovery step"""
@@ -230,11 +230,11 @@ class TestDisasterRecoverySystem(unittest.TestCase):
         success = asyncio.run(
             self.dr_manager.execute_recovery_step(session_id, "db_001")
         )
-        self.assertTrue(success)
+        assert success
 
         # Check session status
         session = self.dr_manager.active_sessions[session_id]
-        self.assertEqual(session.status, RecoveryStatus.IN_PROGRESS)
+        assert session.status == RecoveryStatus.IN_PROGRESS
         self.assertIn("db_001", session.completed_steps)
 
     def test_execute_recovery_plan(self):
@@ -256,7 +256,7 @@ class TestDisasterRecoverySystem(unittest.TestCase):
                 session_found = True
                 break
 
-        self.assertTrue(session_found)
+        assert session_found
 
 
 if __name__ == "__main__":

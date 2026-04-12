@@ -396,10 +396,10 @@ class TestAnalyticsDashboard(unittest.TestCase):
 
     def test_initialization(self):
         """Test dashboard initialization."""
-        self.assertIsNotNone(self.dashboard)
+        assert self.dashboard is not None
         self.assertIsInstance(self.dashboard.metrics_data, dict)
         self.assertIsInstance(self.dashboard.alert_thresholds, dict)
-        self.assertTrue(self.dashboard.monitoring_active)
+        assert self.dashboard.monitoring_active
 
     def test_successful_metrics_collection(self):
         """Test successful collection of various metric types."""
@@ -407,10 +407,10 @@ class TestAnalyticsDashboard(unittest.TestCase):
             with self.subTest(metric_type=metric_type):
                 result = self.dashboard.collect_metrics(metric_type, data)
 
-                self.assertTrue(result["success"])
-                self.assertIsNone(result["error"])
-                self.assertEqual(result["metrics_collected"], 1)
-                self.assertEqual(result["metric_type"], metric_type)
+                assert result["success"]
+                assert result["error"] is None
+                assert result["metrics_collected"] == 1
+                assert result["metric_type"] == metric_type
 
     def test_invalid_metrics_collection(self):
         """Test handling of invalid metrics data."""
@@ -427,8 +427,8 @@ class TestAnalyticsDashboard(unittest.TestCase):
             with self.subTest(metric_type=metric_type, data=data):
                 result = self.dashboard.collect_metrics(metric_type, data)
 
-                self.assertFalse(result["success"])
-                self.assertIsNotNone(result["error"])
+                assert not result["success"]
+                assert result["error"] is not None
 
     def test_performance_report_generation(self):
         """Test generation of performance reports."""
@@ -439,9 +439,9 @@ class TestAnalyticsDashboard(unittest.TestCase):
         # Generate report
         result = self.dashboard.generate_performance_report("last_24h")
 
-        self.assertTrue(result["success"])
-        self.assertIsNone(result["error"])
-        self.assertIsNotNone(result["report"])
+        assert result["success"]
+        assert result["error"] is None
+        assert result["report"] is not None
 
         report = result["report"]
         self.assertIn("report_id", report)
@@ -453,19 +453,19 @@ class TestAnalyticsDashboard(unittest.TestCase):
         """Test report generation with no metrics data."""
         result = self.dashboard.generate_performance_report()
 
-        self.assertFalse(result["success"])
-        self.assertIsNotNone(result["error"])
-        self.assertIsNone(result["report"])
+        assert not result["success"]
+        assert result["error"] is not None
+        assert result["report"] is None
 
     def test_real_time_monitoring(self):
         """Test real-time metrics monitoring."""
         result = self.dashboard.monitor_real_time_metrics()
 
-        self.assertTrue(result["success"])
-        self.assertIsNone(result["error"])
-        self.assertIsNotNone(result["metrics"])
+        assert result["success"]
+        assert result["error"] is None
+        assert result["metrics"] is not None
         self.assertIsInstance(result["alerts"], list)
-        self.assertEqual(result["monitoring_status"], "active")
+        assert result["monitoring_status"] == "active"
 
     def test_monitoring_inactive(self):
         """Test monitoring when inactive."""
@@ -473,9 +473,9 @@ class TestAnalyticsDashboard(unittest.TestCase):
 
         result = self.dashboard.monitor_real_time_metrics()
 
-        self.assertFalse(result["success"])
-        self.assertIsNotNone(result["error"])
-        self.assertIsNone(result["metrics"])
+        assert not result["success"]
+        assert result["error"] is not None
+        assert result["metrics"] is None
 
     def test_custom_dashboard_creation(self):
         """Test creation of custom dashboards."""
@@ -490,10 +490,10 @@ class TestAnalyticsDashboard(unittest.TestCase):
 
         result = self.dashboard.create_custom_dashboard(dashboard_config)
 
-        self.assertTrue(result["success"])
-        self.assertIsNone(result["error"])
-        self.assertIsNotNone(result["dashboard_id"])
-        self.assertIsNotNone(result["dashboard"])
+        assert result["success"]
+        assert result["error"] is None
+        assert result["dashboard_id"] is not None
+        assert result["dashboard"] is not None
 
     def test_invalid_dashboard_creation(self):
         """Test creation with invalid dashboard configuration."""
@@ -509,9 +509,9 @@ class TestAnalyticsDashboard(unittest.TestCase):
             with self.subTest(config=config):
                 result = self.dashboard.create_custom_dashboard(config)
 
-                self.assertFalse(result["success"])
-                self.assertIsNotNone(result["error"])
-                self.assertIsNone(result["dashboard_id"])
+                assert not result["success"]
+                assert result["error"] is not None
+                assert result["dashboard_id"] is None
 
     def test_user_analytics(self):
         """Test user-specific analytics."""
@@ -529,29 +529,29 @@ class TestAnalyticsDashboard(unittest.TestCase):
         # Get user analytics
         result = self.dashboard.get_user_analytics(user_id)
 
-        self.assertTrue(result["success"])
-        self.assertIsNone(result["error"])
-        self.assertIsNotNone(result["analytics"])
+        assert result["success"]
+        assert result["error"] is None
+        assert result["analytics"] is not None
 
         analytics = result["analytics"]
-        self.assertEqual(analytics["user_id"], user_id)
+        assert analytics["user_id"] == user_id
         self.assertGreater(analytics["total_interactions"], 0)
 
     def test_user_analytics_no_data(self):
         """Test user analytics with no data."""
         result = self.dashboard.get_user_analytics("nonexistent_user")
 
-        self.assertTrue(result["success"])
-        self.assertIsNone(result["error"])
-        self.assertEqual(result["analytics"]["total_interactions"], 0)
+        assert result["success"]
+        assert result["error"] is None
+        assert result["analytics"]["total_interactions"] == 0
 
     def test_user_analytics_invalid_id(self):
         """Test user analytics with invalid user ID."""
         result = self.dashboard.get_user_analytics("")
 
-        self.assertFalse(result["success"])
-        self.assertIsNotNone(result["error"])
-        self.assertIsNone(result["analytics"])
+        assert not result["success"]
+        assert result["error"] is not None
+        assert result["analytics"] is None
 
     def test_analytics_data_export(self):
         """Test export of analytics data."""
@@ -566,18 +566,18 @@ class TestAnalyticsDashboard(unittest.TestCase):
             with self.subTest(format=format):
                 result = self.dashboard.export_analytics_data(format)
 
-                self.assertTrue(result["success"])
-                self.assertIsNone(result["error"])
-                self.assertIsNotNone(result["export_path"])
-                self.assertEqual(result["export_format"], format)
+                assert result["success"]
+                assert result["error"] is None
+                assert result["export_path"] is not None
+                assert result["export_format"] == format
 
     def test_invalid_export_format(self):
         """Test export with invalid format."""
         result = self.dashboard.export_analytics_data("invalid_format")
 
-        self.assertFalse(result["success"])
-        self.assertIsNotNone(result["error"])
-        self.assertIsNone(result["export_path"])
+        assert not result["success"]
+        assert result["error"] is not None
+        assert result["export_path"] is None
 
     def test_alert_thresholds_configuration(self):
         """Test setting custom alert thresholds."""
@@ -589,10 +589,10 @@ class TestAnalyticsDashboard(unittest.TestCase):
 
         result = self.dashboard.set_alert_thresholds(new_thresholds)
 
-        self.assertTrue(result["success"])
-        self.assertIsNone(result["error"])
-        self.assertEqual(result["updated_thresholds"]["response_time"], 150)
-        self.assertEqual(result["updated_thresholds"]["error_rate"], 0.03)
+        assert result["success"]
+        assert result["error"] is None
+        assert result["updated_thresholds"]["response_time"] == 150
+        assert result["updated_thresholds"]["error_rate"] == 0.03
 
     def test_invalid_alert_thresholds(self):
         """Test setting invalid alert thresholds."""
@@ -602,8 +602,8 @@ class TestAnalyticsDashboard(unittest.TestCase):
             with self.subTest(thresholds=thresholds):
                 result = self.dashboard.set_alert_thresholds(thresholds)
 
-                self.assertFalse(result["success"])
-                self.assertIsNotNone(result["error"])
+                assert not result["success"]
+                assert result["error"] is not None
 
     def test_dashboard_statistics(self):
         """Test dashboard statistics retrieval."""
@@ -620,8 +620,8 @@ class TestAnalyticsDashboard(unittest.TestCase):
         self.assertIn("metric_types", stats)
         self.assertIn("reports_generated", stats)
         self.assertIn("monitoring_status", stats)
-        self.assertEqual(stats["metric_types"], 3)
-        self.assertEqual(stats["reports_generated"], 1)
+        assert stats["metric_types"] == 3
+        assert stats["reports_generated"] == 1
 
     def test_batch_metrics_collection(self):
         """Test collection of multiple metrics in batch."""
@@ -638,13 +638,13 @@ class TestAnalyticsDashboard(unittest.TestCase):
             results.append(result)
 
         # All should succeed
-        self.assertEqual(len(results), 4)
+        assert len(results) == 4
         for result in results:
-            self.assertTrue(result["success"])
+            assert result["success"]
 
         # Check data accumulation
-        self.assertEqual(len(self.dashboard.metrics_data["system_performance"]), 2)
-        self.assertEqual(len(self.dashboard.metrics_data["user_engagement"]), 2)
+        assert len(self.dashboard.metrics_data["system_performance"]) == 2
+        assert len(self.dashboard.metrics_data["user_engagement"]) == 2
 
 
 class TestAnalyticsDashboardIntegration(unittest.TestCase):
@@ -665,19 +665,19 @@ class TestAnalyticsDashboardIntegration(unittest.TestCase):
 
         for metric_type, data in metrics_to_collect:
             result = self.dashboard.collect_metrics(metric_type, data)
-            self.assertTrue(result["success"])
+            assert result["success"]
 
         # Step 2: Generate performance report
         report_result = self.dashboard.generate_performance_report()
-        self.assertTrue(report_result["success"])
+        assert report_result["success"]
 
         # Step 3: Monitor real-time metrics
         monitoring_result = self.dashboard.monitor_real_time_metrics()
-        self.assertTrue(monitoring_result["success"])
+        assert monitoring_result["success"]
 
         # Step 4: Export data
         export_result = self.dashboard.export_analytics_data("json")
-        self.assertTrue(export_result["success"])
+        assert export_result["success"]
 
         # Verify complete workflow
         stats = self.dashboard.get_dashboard_statistics()
@@ -701,13 +701,13 @@ class TestAnalyticsDashboardIntegration(unittest.TestCase):
         user_analytics = []
         for user_id in users:
             result = self.dashboard.get_user_analytics(user_id)
-            self.assertTrue(result["success"])
+            assert result["success"]
             user_analytics.append(result["analytics"])
 
         # Verify multi-user tracking
-        self.assertEqual(len(user_analytics), 3)
+        assert len(user_analytics) == 3
         for analytics in user_analytics:
-            self.assertEqual(analytics["total_interactions"], 3)
+            assert analytics["total_interactions"] == 3
 
 
 if __name__ == "__main__":

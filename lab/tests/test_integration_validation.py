@@ -25,7 +25,7 @@ class TestIntegrationValidation(unittest.TestCase):
 
         for filename in required_files:
             file_path = Path(f"/home/vivi/pixelated/ai/{filename}")
-            self.assertTrue(file_path.exists(), f"Missing validation file: {filename}")
+            assert file_path.exists(), f"Missing validation file: {filename}"
 
     def test_validation_scores_meet_thresholds(self):
         """Test that validation scores meet production thresholds"""

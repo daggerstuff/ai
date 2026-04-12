@@ -45,7 +45,7 @@ class TestComprehensiveValidation(unittest.TestCase):
         ]
 
         for dir_path in required_dirs:
-            self.assertTrue(Path(dir_path).exists(), f"Missing directory: {dir_path}")
+            assert Path(dir_path).exists(), f"Missing directory: {dir_path}"
 
     def test_validation_completeness(self):
         """Test validation completeness"""

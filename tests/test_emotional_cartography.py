@@ -14,25 +14,25 @@ class TestEmotionalCartography(unittest.TestCase):
     def test_identify_primary_dyads(self):
         # Joy + Trust = Love
         dyad = self.cartographer.identify_dyad(PlutchikEmotion.JOY, PlutchikEmotion.TRUST)
-        self.assertEqual(dyad, "Love")
+        assert dyad == "Love"
 
         # Anger + Disgust = Contempt
         dyad = self.cartographer.identify_dyad(PlutchikEmotion.ANGER, PlutchikEmotion.DISGUST)
-        self.assertEqual(dyad, "Contempt")
+        assert dyad == "Contempt"
 
     def test_identify_secondary_dyads(self):
         # Joy + Fear = Guilt
         dyad = self.cartographer.identify_dyad(PlutchikEmotion.JOY, PlutchikEmotion.FEAR)
-        self.assertEqual(dyad, "Guilt")
+        assert dyad == "Guilt"
 
         # Anticipation + Trust = Fatalism
         dyad = self.cartographer.identify_dyad(PlutchikEmotion.ANTICIPATION, PlutchikEmotion.TRUST)
-        self.assertEqual(dyad, "Fatalism")
+        assert dyad == "Fatalism"
 
     def test_identify_dyad_order_independence(self):
         # Trust + Joy should also be Love
         dyad = self.cartographer.identify_dyad(PlutchikEmotion.TRUST, PlutchikEmotion.JOY)
-        self.assertEqual(dyad, "Love")
+        assert dyad == "Love"
 
     def test_map_complex_state(self):
         states = [
@@ -41,12 +41,12 @@ class TestEmotionalCartography(unittest.TestCase):
         ]
 
         result = self.cartographer.map_complex_state(states)
-        self.assertEqual(result["primary_state"], "joy")
+        assert result["primary_state"] == "joy"
         self.assertIn("Love", result["complex_states"])
 
     def test_map_complex_state_empty(self):
         result = self.cartographer.map_complex_state([])
-        self.assertEqual(result["primary_state"], "Neutral")
+        assert result["primary_state"] == "Neutral"
 
 
 if __name__ == "__main__":

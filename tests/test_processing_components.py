@@ -94,13 +94,13 @@ class TestDatabaseOperations(unittest.TestCase):
     def test_database_connection(self):
         """Test database connection functionality"""
         conn = sqlite3.connect(self.test_db_path)
-        self.assertIsNotNone(conn)
+        assert conn is not None
 
         # Test query execution
         cursor = conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM conversations")
         count = cursor.fetchone()[0]
-        self.assertEqual(count, 3)
+        assert count == 3
 
         conn.close()
 
@@ -110,7 +110,7 @@ class TestDatabaseOperations(unittest.TestCase):
 
         # Test pandas integration
         df = pd.read_sql_query("SELECT * FROM conversations", conn)
-        self.assertEqual(len(df), 3)
+        assert len(df) == 3
         self.assertIn("conversation_id", df.columns)
         self.assertIn("dataset_source", df.columns)
 
@@ -125,14 +125,14 @@ class TestDatabaseOperations(unittest.TestCase):
             "SELECT * FROM conversations WHERE dataset_source = 'test_dataset'",
             conn
         )
-        self.assertEqual(len(df), 2)
+        assert len(df) == 2
 
         # Test filtering by tier
         df = pd.read_sql_query(
             "SELECT * FROM conversations WHERE tier = 'priority_1'",
             conn
         )
-        self.assertEqual(len(df), 2)
+        assert len(df) == 2
 
         conn.close()
 
@@ -174,12 +174,12 @@ class TestDataProcessingFunctions(unittest.TestCase):
         json_input = '[{"human": "Hello", "assistant": "Hi there!"}]'
         expected_output = "human: Hello\nassistant: Hi there!"
         result = extract_text_from_json(json_input)
-        self.assertEqual(result, expected_output)
+        assert result == expected_output
 
         # Test invalid JSON
         invalid_json = "invalid json string"
         result = extract_text_from_json(invalid_json)
-        self.assertEqual(result, invalid_json)
+        assert result == invalid_json
 
     def test_quality_score_calculation(self):
         """Test quality score calculation functions"""
@@ -204,7 +204,7 @@ class TestDataProcessingFunctions(unittest.TestCase):
 
         # Test with empty text
         score = calculate_basic_quality_score("", 0)
-        self.assertEqual(score, 0)
+        assert score == 0
 
     def test_data_aggregation(self):
         """Test data aggregation functions"""
@@ -214,7 +214,7 @@ class TestDataProcessingFunctions(unittest.TestCase):
             "character_count": "mean"
         })
 
-        self.assertEqual(len(dataset_stats), 2)  # Two unique datasets
+        assert len(dataset_stats) == 2
 
         # Test tier aggregation
         tier_stats = self.sample_conversations.groupby("tier").size()
@@ -227,7 +227,7 @@ class TestDataProcessingFunctions(unittest.TestCase):
 
         # Test basic statistics
         mean_val = np.mean(data)
-        self.assertEqual(mean_val, 5.5)
+        assert mean_val == 5.5
 
         std_val = np.std(data)
         assert std_val == pytest.approx(2.8722813232690143, abs=1e-05)
@@ -235,8 +235,8 @@ class TestDataProcessingFunctions(unittest.TestCase):
         # Test percentiles
         percentile_25 = np.percentile(data, 25)
         percentile_75 = np.percentile(data, 75)
-        self.assertEqual(percentile_25, 3.25)
-        self.assertEqual(percentile_75, 7.75)
+        assert percentile_25 == 3.25
+        assert percentile_75 == 7.75
 
 class TestAnalyticsCalculations(unittest.TestCase):
     """Test analytics and metrics calculations"""
@@ -328,7 +328,7 @@ class TestUtilityFunctions(unittest.TestCase):
         with open(temp_file) as f:
             loaded_data = json.load(f)
 
-        self.assertEqual(loaded_data, test_data)
+        assert loaded_data == test_data
 
         # Cleanup
         os.unlink(temp_file)
@@ -357,12 +357,12 @@ class TestUtilityFunctions(unittest.TestCase):
             "tier": "priority_1"
         }
         is_valid, message = validate_conversation_data(valid_data)
-        self.assertTrue(is_valid)
+        assert is_valid
 
         # Test invalid data
         invalid_data = {"conversation_id": ""}
         is_valid, message = validate_conversation_data(invalid_data)
-        self.assertFalse(is_valid)
+        assert not is_valid
 
     def test_text_processing(self):
         """Test text processing utility functions"""
@@ -378,15 +378,15 @@ class TestUtilityFunctions(unittest.TestCase):
         # Test text cleaning
         messy_text = "  Hello   world  \n\n  "
         cleaned = clean_text(messy_text)
-        self.assertEqual(cleaned, "Hello world")
+        assert cleaned == "Hello world"
 
         # Test empty text
         cleaned = clean_text("")
-        self.assertEqual(cleaned, "")
+        assert cleaned == ""
 
         # Test None input
         cleaned = clean_text(None)
-        self.assertEqual(cleaned, "")
+        assert cleaned == ""
 
     def test_date_time_operations(self):
         """Test date and time utility functions"""
@@ -404,7 +404,7 @@ class TestUtilityFunctions(unittest.TestCase):
         # Test invalid datetime
         invalid_date = "not a date"
         parsed = parse_datetime(invalid_date)
-        self.assertIsNone(parsed)
+        assert parsed is None
 
 class TestErrorHandling(unittest.TestCase):
     """Test error handling and edge cases"""
@@ -424,8 +424,8 @@ class TestErrorHandling(unittest.TestCase):
 
         # Test with non-existent database
         result, error = safe_database_operation("/nonexistent/path.db", "SELECT 1")
-        self.assertIsNone(result)
-        self.assertIsNotNone(error)
+        assert result is None
+        assert error is not None
 
         # Test with invalid query
         with tempfile.NamedTemporaryFile(suffix=".db") as temp_db:
@@ -434,8 +434,8 @@ class TestErrorHandling(unittest.TestCase):
             conn.close()
 
             result, error = safe_database_operation(temp_db.name, "INVALID SQL")
-            self.assertIsNone(result)
-            self.assertIsNotNone(error)
+            assert result is None
+            assert error is not None
 
     def test_data_processing_errors(self):
         """Test data processing error handling"""
@@ -449,13 +449,13 @@ class TestErrorHandling(unittest.TestCase):
 
         # Test division by zero
         result, error = safe_division(10, 0)
-        self.assertIsNone(result)
-        self.assertEqual(error, "Division by zero")
+        assert result is None
+        assert error == "Division by zero"
 
         # Test valid division
         result, error = safe_division(10, 2)
-        self.assertEqual(result, 5.0)
-        self.assertIsNone(error)
+        assert result == 5.0
+        assert error is None
 
     def test_json_parsing_errors(self):
         """Test JSON parsing error handling"""
@@ -469,12 +469,12 @@ class TestErrorHandling(unittest.TestCase):
 
         # Test valid JSON
         result, error = safe_json_parse('{"key": "value"}')
-        self.assertEqual(result, {"key": "value"})
-        self.assertIsNone(error)
+        assert result == {"key": "value"}
+        assert error is None
 
         # Test invalid JSON
         result, error = safe_json_parse("invalid json")
-        self.assertIsNone(result)
+        assert result is None
         self.assertIn("JSON decode error", error)
 
 class TestSystemIntegration(unittest.TestCase):
@@ -498,7 +498,7 @@ class TestSystemIntegration(unittest.TestCase):
             return cursor.fetchall()
 
         result = get_data_from_db("test.db")
-        self.assertEqual(result, [("test_data",)])
+        assert result == [("test_data",)]
         mock_connect.assert_called_once_with("test.db")
 
     def test_configuration_loading(self):
@@ -521,7 +521,7 @@ class TestSystemIntegration(unittest.TestCase):
             "processing_settings": {"batch_size": 100}
         }
         result = load_config(valid_config)
-        self.assertEqual(result, valid_config)
+        assert result == valid_config
 
         # Test invalid config
         with self.assertRaises(KeyError):

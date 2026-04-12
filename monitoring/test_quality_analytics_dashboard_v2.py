@@ -230,7 +230,7 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
     def test_01_dashboard_initialization(self):
         """Test dashboard initialization with correct database."""
         self.assertIsInstance(self.dashboard, QualityAnalyticsDashboard)
-        self.assertEqual(str(self.dashboard.db_path), self.test_db_path)
+        assert str(self.dashboard.db_path) == self.test_db_path
         self.assertIsInstance(self.dashboard.quality_components, dict)
         self.assertIn("overall_quality", self.dashboard.quality_components)
 
@@ -249,11 +249,11 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
         # Check data exists
         cursor.execute("SELECT COUNT(*) FROM conversations")
         conv_count = cursor.fetchone()[0]
-        self.assertEqual(conv_count, 5)
+        assert conv_count == 5
 
         cursor.execute("SELECT COUNT(*) FROM conversation_quality")
         qual_count = cursor.fetchone()[0]
-        self.assertEqual(qual_count, 5)
+        assert qual_count == 5
 
         conn.close()
 
@@ -262,8 +262,8 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
         df = self.dashboard.load_quality_data()
 
         self.assertIsInstance(df, pd.DataFrame)
-        self.assertFalse(df.empty)
-        self.assertEqual(len(df), 5)
+        assert not df.empty
+        assert len(df) == 5
 
         # Check required columns exist
         required_columns = [
@@ -285,18 +285,18 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
         """Test data loading with various filters."""
         # Test tier filter
         df_priority = self.dashboard.load_quality_data(tier_filter=["priority_1"])
-        self.assertEqual(len(df_priority), 2)  # conv_1 and conv_5
+        assert len(df_priority) == 2
         self.assertTrue(all(df_priority["tier"] == "priority_1"))
 
         # Test date range filter
         start_date = datetime(2025, 8, 2)
         end_date = datetime(2025, 8, 4)
         df_date = self.dashboard.load_quality_data(date_range=(start_date, end_date))
-        self.assertEqual(len(df_date), 3)  # conv_2, conv_3, conv_4
+        assert len(df_date) == 3
 
         # Test quality threshold filter
         df_quality = self.dashboard.load_quality_data(min_quality=0.7)
-        self.assertEqual(len(df_quality), 3)  # conv_1, conv_3, conv_5
+        assert len(df_quality) == 3
         self.assertTrue(all(df_quality["overall_quality"] >= 0.7))
 
     def test_05_calculate_quality_analytics_basic(self):
@@ -305,7 +305,7 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
         analytics = self.dashboard.calculate_quality_analytics(df)
 
         self.assertIsInstance(analytics, QualityAnalytics)
-        self.assertEqual(analytics.total_conversations, 5)
+        assert analytics.total_conversations == 5
         self.assertAlmostEqual(
             analytics.average_quality, 0.73, places=2
         )  # (0.85+0.65+0.92+0.45+0.78)/5
@@ -325,10 +325,10 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
         empty_df = pd.DataFrame()
         analytics = self.dashboard.calculate_quality_analytics(empty_df)
 
-        self.assertEqual(analytics.total_conversations, 0)
-        self.assertEqual(analytics.average_quality, 0.0)
-        self.assertEqual(analytics.quality_distribution, {})
-        self.assertEqual(analytics.tier_performance, {})
+        assert analytics.total_conversations == 0
+        assert analytics.average_quality == 0.0
+        assert analytics.quality_distribution == {}
+        assert analytics.tier_performance == {}
         self.assertIn("No quality data available", analytics.recommendations[0])
 
     def test_07_anomaly_detection(self):
@@ -412,13 +412,13 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
 
         # Test overview chart
         overview_fig = self.dashboard.create_quality_overview_chart(analytics)
-        self.assertIsNotNone(overview_fig)
+        assert overview_fig is not None
         self.assertGreater(len(overview_fig.data), 0)
 
         # Test detailed charts
         heatmap_fig, corr_fig = self.dashboard.create_detailed_analysis_charts(df)
-        self.assertIsNotNone(heatmap_fig)
-        self.assertIsNotNone(corr_fig)
+        assert heatmap_fig is not None
+        assert corr_fig is not None
 
     def test_11_error_handling(self):
         """Test error handling with invalid database."""
@@ -429,7 +429,7 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
         # Test with corrupted data
         df_corrupted = pd.DataFrame({"invalid_column": [1, 2, 3]})
         analytics = self.dashboard.calculate_quality_analytics(df_corrupted)
-        self.assertEqual(analytics.total_conversations, 0)
+        assert analytics.total_conversations == 0
 
     def test_12_component_performance_calculation(self):
         """Test component performance calculation."""

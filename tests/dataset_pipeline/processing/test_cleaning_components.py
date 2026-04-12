@@ -46,8 +46,8 @@ class TestCleaningComponents(unittest.TestCase):
         """Test whitespace stripping and lowercasing."""
         df = pd.DataFrame({"msg": ["  Mixed CASE  ", "\tTabs\nNewline  "]})
         normalized = normalize_text_columns(df, ["msg"])
-        self.assertEqual(normalized["msg"][0], "mixed case")
-        self.assertEqual(normalized["msg"][1], "tabs newline")
+        assert normalized["msg"][0] == "mixed case"
+        assert normalized["msg"][1] == "tabs newline"
 
     def test_pii_redaction(self):
         """Test regex-based redaction of SSNs in text content."""
@@ -55,7 +55,7 @@ class TestCleaningComponents(unittest.TestCase):
         redacted = redact_pii_in_text_fields(df, ["content"])
         self.assertIn("[REDACTED-SSN]", redacted["content"][0])
         self.assertNotIn("123-45-6789", redacted["content"][0])
-        self.assertEqual(redacted["content"][1], "Just a number 12345")
+        assert redacted["content"][1] == "Just a number 12345"
 
     def test_pii_removal(self):
         """Test dropping of identified PII columns."""
@@ -80,7 +80,7 @@ class TestCleaningComponents(unittest.TestCase):
         result = clean_and_deduplicate([df1, df2], config=config)
 
         # 'hello' is duplicated across df1 and df2, should have 3 unique rows: hello, world, third
-        self.assertEqual(len(result), 3)
+        assert len(result) == 3
         self.assertNotIn("email", result.columns)  # email matches pii pattern 'email'
         self.assertTrue(all(col in result.columns for col in ["text"]))
 

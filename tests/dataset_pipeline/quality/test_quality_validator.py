@@ -98,10 +98,10 @@ class TestQualityValidator(unittest.TestCase):
     def test_full_validation(self):
         """Test end-to-end validation resulting in QualityResult."""
         result = self.validator.validate_conversation(self.high_quality_conv)
-        self.assertEqual(result.conversation_id, "high_001")
+        assert result.conversation_id == "high_001"
         self.assertGreater(result.overall_score, 0.6)
         self.assertGreater(result.coherence_score, 0.6)
-        self.assertTrue(len(result.strengths) > 0)
+        assert len(result.strengths) > 0
 
 
 if __name__ == "__main__":
