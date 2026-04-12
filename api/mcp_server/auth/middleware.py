@@ -5,8 +5,6 @@ from typing import Any
 import jwt
 from flask import Request, current_app, g, jsonify, request
 
-from ai.api.mcp_server.routes.agents import asyncio_run
-
 
 class AuthenticationError(Exception):
     """Raised when authentication fails."""
@@ -172,10 +170,12 @@ def require_mcp_auth(f):
             ), 500
 
         try:
-            # Note: authenticate_agent is async in MCPAuthMiddleware
-            # We use the asyncio_run helper from the route file or similar
+            import asyncio
 
-            context = asyncio_run(auth_middleware.authenticate_agent(request))
+            # Note: authenticate_agent is async in MCPAuthMiddleware
+            # We use asyncio.run to execute it synchronously here
+
+            context = asyncio.run(auth_middleware.authenticate_agent(request))
 
             g.agent_context = context
             return f(*args, **kwargs)

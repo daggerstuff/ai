@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 Gemini-oriented memory manager backed by the shared local memory service.
 
@@ -5,8 +7,6 @@ This module preserves the historical import path while removing the old cloud
 split. Gemini-specific code now writes into the same local
 SQLite-backed service used by the rest of the repository.
 """
-
-from __future__ import annotations
 
 from typing import Any
 
