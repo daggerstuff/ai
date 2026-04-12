@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
 
@@ -15,8 +15,8 @@ engine = AcademicSourcingEngine()
 async def search_literature(
     q: str = Query(..., min_length=3, description="Search query"),
     limit: int = Query(20, ge=1, le=100),
-    sources: Optional[List[str]] = Query(None, description="Filter by source type"),
-) -> Dict[str, Any]:
+    sources: list[str] | None = Query(None, description="Filter by source type"),
+) -> dict[str, Any]:
     """
     Search for academic literature across multiple sources.
     """
@@ -29,11 +29,11 @@ async def search_literature(
 
 @router.get("/datasets")
 async def search_datasets(
-    q: Optional[str] = Query(None, min_length=3, description="Search query"),
+    q: str | None = Query(None, min_length=3, description="Search query"),
     min_turns: int = 20,
     min_quality: float = 0.5,
     limit: int = 20,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Search for therapy conversation datasets.
     """

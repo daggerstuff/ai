@@ -7,7 +7,7 @@ This module provides rate limiting for API endpoints.
 import logging
 import time
 from collections import defaultdict
-from typing import Callable, Dict, Tuple
+from collections.abc import Callable
 
 from fastapi import Request, Response, status
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -22,7 +22,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     """Rate limiting middleware using token bucket algorithm."""
 
     # Rate limit storage: {client_id: (tokens, last_update)}
-    rate_limits: Dict[str, Tuple[float, float]] = defaultdict(
+    rate_limits: dict[str, tuple[float, float]] = defaultdict(
         lambda: (settings.rate_limit_per_minute, time.time())
     )
 
@@ -51,7 +51,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         client_host = request.client.host if request.client else "unknown"
         return f"ip:{client_host}"
 
-    def _check_rate_limit(self, client_id: str) -> Tuple[bool, Dict[str, str]]:
+    def _check_rate_limit(self, client_id: str) -> tuple[bool, dict[str, str]]:
         """Check if client has exceeded rate limit."""
         if not settings.rate_limit_enabled:
             return True, {}

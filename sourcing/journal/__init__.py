@@ -13,4 +13,4 @@ from ai.sourcing.journal.orchestrator import (
     SessionState,
 )
 
-__all__ = ["ResearchOrchestrator", "OrchestratorConfig", "SessionState"]
+__all__ = ["OrchestratorConfig", "ResearchOrchestrator", "SessionState"]

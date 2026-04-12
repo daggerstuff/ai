@@ -5,9 +5,10 @@ Tests license checking, privacy verification, HIPAA validation, audit logging,
 and encryption functionality.
 """
 
-import os
+from datetime import datetime, timezone
+
+
 import tempfile
-from datetime import datetime
 from pathlib import Path
 
 import pytest
@@ -337,7 +338,7 @@ class TestComplianceChecker:
             source_id="test-1",
             title="Test Dataset",
             authors=["Author 1"],
-            publication_date=datetime.now(),
+            publication_date=datetime.now(timezone.utc),
             source_type="journal",
             url="https://example.com/dataset",
             open_access=True,
@@ -361,7 +362,7 @@ class TestComplianceChecker:
                 source_id="test-2",
                 title="Test Dataset",
                 authors=["Author 1"],
-                publication_date=datetime.now(),
+                publication_date=datetime.now(timezone.utc),
                 source_type="clinical_trial",
                 url="https://example.com/dataset",
                 abstract="Patient therapy session data",
@@ -383,7 +384,7 @@ class TestComplianceChecker:
                 source_id="test-3",
                 title="Test Dataset",
                 authors=["Author 1"],
-                publication_date=datetime.now(),
+                publication_date=datetime.now(timezone.utc),
                 source_type="repository",
                 url="https://example.com/dataset",
             )

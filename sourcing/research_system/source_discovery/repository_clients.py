@@ -7,10 +7,12 @@ Provides clients for:
 - ClinicalTrials.gov
 """
 
+from datetime import datetime, timezone
+
+
 import hashlib
 import logging
-from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from ..models import DatasetSource
 from .base_client import APIError, BaseAPIClient
@@ -72,7 +74,7 @@ class DryadClient(BaseAPIClient):
             logger.error(f"Unexpected error in Dryad search: {e}")
             return []
 
-    def get_dataset_details(self, dataset_id: str) -> Optional[dict[str, Any]]:
+    def get_dataset_details(self, dataset_id: str) -> dict[str, Any] | None:
         """
         Get detailed information for a specific dataset.
 
@@ -93,7 +95,7 @@ class DryadClient(BaseAPIClient):
             logger.error(f"Unexpected error fetching Dryad dataset {dataset_id}: {e}")
             return None
 
-    def convert_to_dataset_source(self, dataset: dict) -> Optional[DatasetSource]:
+    def convert_to_dataset_source(self, dataset: dict) -> DatasetSource | None:
         """
         Convert Dryad dataset to DatasetSource object.
 
@@ -121,7 +123,7 @@ class DryadClient(BaseAPIClient):
             try:
                 pub_date = datetime.fromisoformat(pub_date_str.replace("Z", "+00:00"))
             except (ValueError, AttributeError):
-                pub_date = datetime.now()
+                pub_date = datetime.now(timezone.utc)
 
             # Extract identifiers
             doi = dataset.get("identifier", "")
@@ -148,7 +150,7 @@ class DryadClient(BaseAPIClient):
                 keywords=keywords,
                 open_access=True,  # Dryad is open access
                 data_availability="available",
-                discovery_date=datetime.now(),
+                discovery_date=datetime.now(timezone.utc),
                 discovery_method="repository_api"
             )
 
@@ -245,7 +247,7 @@ class ZenodoClient(BaseAPIClient):
             logger.error(f"Unexpected error in Zenodo search: {e}")
             return []
 
-    def get_record_details(self, record_id: str) -> Optional[dict[str, Any]]:
+    def get_record_details(self, record_id: str) -> dict[str, Any] | None:
         """
         Get detailed information for a specific record.
 
@@ -266,7 +268,7 @@ class ZenodoClient(BaseAPIClient):
             logger.error(f"Unexpected error fetching Zenodo record {record_id}: {e}")
             return None
 
-    def convert_to_dataset_source(self, record: dict) -> Optional[DatasetSource]:
+    def convert_to_dataset_source(self, record: dict) -> DatasetSource | None:
         """
         Convert Zenodo record to DatasetSource object.
 
@@ -295,7 +297,7 @@ class ZenodoClient(BaseAPIClient):
             try:
                 pub_date = datetime.fromisoformat(pub_date_str)
             except (ValueError, AttributeError):
-                pub_date = datetime.now()
+                pub_date = datetime.now(timezone.utc)
 
             # Extract identifiers
             doi = metadata.get("doi", "")
@@ -324,7 +326,7 @@ class ZenodoClient(BaseAPIClient):
                 keywords=keywords,
                 open_access=open_access,
                 data_availability="available" if open_access else "restricted",
-                discovery_date=datetime.now(),
+                discovery_date=datetime.now(timezone.utc),
                 discovery_method="repository_api"
             )
 
@@ -417,7 +419,7 @@ class ClinicalTrialsClient(BaseAPIClient):
             logger.error(f"Unexpected error in ClinicalTrials.gov search: {e}")
             return []
 
-    def get_study_details(self, nct_id: str) -> Optional[dict[str, Any]]:
+    def get_study_details(self, nct_id: str) -> dict[str, Any] | None:
         """
         Get detailed information for a specific study.
 
@@ -439,7 +441,7 @@ class ClinicalTrialsClient(BaseAPIClient):
             logger.error(f"Unexpected error fetching clinical trial {nct_id}: {e}")
             return None
 
-    def convert_to_dataset_source(self, study: dict) -> Optional[DatasetSource]:
+    def convert_to_dataset_source(self, study: dict) -> DatasetSource | None:
         """
         Convert clinical trial to DatasetSource object.
 
@@ -477,12 +479,12 @@ class ClinicalTrialsClient(BaseAPIClient):
             try:
                 # Parse date in format "YYYY-MM-DD" or "YYYY-MM" or "YYYY"
                 parts = start_date_str.split("-")
-                year = int(parts[0]) if len(parts) > 0 else datetime.now().year
+                year = int(parts[0]) if len(parts) > 0 else datetime.now(timezone.utc).year
                 month = int(parts[1]) if len(parts) > 1 else 1
                 day = int(parts[2]) if len(parts) > 2 else 1
                 pub_date = datetime(year, month, day)
             except (ValueError, IndexError):
-                pub_date = datetime.now()
+                pub_date = datetime.now(timezone.utc)
 
             # Extract keywords/conditions
             conditions_module = protocol.get("conditionsModule", {})
@@ -512,7 +514,7 @@ class ClinicalTrialsClient(BaseAPIClient):
                 keywords=keywords,
                 open_access=data_available,
                 data_availability="available" if data_available else "upon_request",
-                discovery_date=datetime.now(),
+                discovery_date=datetime.now(timezone.utc),
                 discovery_method="repository_api"
             )
 

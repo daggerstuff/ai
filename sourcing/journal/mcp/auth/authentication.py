@@ -6,7 +6,7 @@ This module provides authentication handlers for API key and JWT token authentic
 
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional
+from typing import Any
 
 import jwt as pyjwt
 from jwt.exceptions import DecodeError, ExpiredSignatureError, InvalidTokenError
@@ -30,7 +30,7 @@ class AuthenticationHandler(ABC):
         self.config = config
 
     @abstractmethod
-    async def authenticate(self, request: MCPRequest) -> Dict[str, Any]:
+    async def authenticate(self, request: MCPRequest) -> dict[str, Any]:
         """
         Authenticate a request and return user information.
 
@@ -43,9 +43,8 @@ class AuthenticationHandler(ABC):
         Raises:
             MCPError: If authentication fails
         """
-        pass
 
-    def extract_auth_header(self, request: MCPRequest) -> Optional[str]:
+    def extract_auth_header(self, request: MCPRequest) -> str | None:
         """
         Extract authentication header from request.
 
@@ -84,7 +83,7 @@ class AuthenticationHandler(ABC):
 class APIKeyAuth(AuthenticationHandler):
     """API key authentication handler."""
 
-    async def authenticate(self, request: MCPRequest) -> Dict[str, Any]:
+    async def authenticate(self, request: MCPRequest) -> dict[str, Any]:
         """
         Authenticate request using API key.
 
@@ -116,9 +115,7 @@ class APIKeyAuth(AuthenticationHandler):
 
         # Extract API key from header (format: "Bearer <key>" or just "<key>")
         api_key = auth_header
-        if auth_header.startswith("Bearer "):
-            api_key = auth_header[7:].strip()
-        elif auth_header.startswith("ApiKey "):
+        if auth_header.startswith("Bearer ") or auth_header.startswith("ApiKey "):
             api_key = auth_header[7:].strip()
 
         # Validate API key
@@ -148,7 +145,7 @@ class APIKeyAuth(AuthenticationHandler):
 class JWTAuth(AuthenticationHandler):
     """JWT token authentication handler."""
 
-    async def authenticate(self, request: MCPRequest) -> Dict[str, Any]:
+    async def authenticate(self, request: MCPRequest) -> dict[str, Any]:
         """
         Authenticate request using JWT token.
 
@@ -203,13 +200,13 @@ class JWTAuth(AuthenticationHandler):
         except InvalidTokenError as e:
             raise MCPError(
                 MCPErrorCode.AUTHENTICATION_ERROR,
-                f"Invalid JWT token: {str(e)}",
+                f"Invalid JWT token: {e!s}",
             )
         except Exception as e:
             logger.exception("Unexpected error during JWT authentication")
             raise MCPError(
                 MCPErrorCode.AUTHENTICATION_ERROR,
-                f"JWT authentication failed: {str(e)}",
+                f"JWT authentication failed: {e!s}",
             )
 
         # Extract user information from payload
@@ -250,7 +247,7 @@ class CompositeAuth(AuthenticationHandler):
         self.api_key_auth = APIKeyAuth(config)
         self.jwt_auth = JWTAuth(config)
 
-    async def authenticate(self, request: MCPRequest) -> Dict[str, Any]:
+    async def authenticate(self, request: MCPRequest) -> dict[str, Any]:
         """
         Authenticate request using multiple methods.
 
@@ -284,7 +281,7 @@ class CompositeAuth(AuthenticationHandler):
             )
 
 
-def create_auth_handler(config: AuthConfig) -> Optional[AuthenticationHandler]:
+def create_auth_handler(config: AuthConfig) -> AuthenticationHandler | None:
     """
     Create appropriate authentication handler based on configuration.
 

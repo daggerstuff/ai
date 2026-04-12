@@ -1,5 +1,6 @@
+
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import pytest
 
@@ -27,14 +28,14 @@ class _SessionServiceStub:
 
     def __init__(self, session: ResearchSession) -> None:
         self._session = session
-        self.called_with: Dict[str, Any] = {}
+        self.called_with: dict[str, Any] = {}
 
     def create_session(
         self,
         target_sources,
         search_keywords,
         weekly_targets=None,
-        session_id: Optional[str] = None,
+        session_id: str | None = None,
     ) -> ResearchSession:
         self.called_with = {
             "target_sources": target_sources,
@@ -48,16 +49,16 @@ class _SessionServiceStub:
 class _DiscoveryServiceStub:
     """Stub for discovery tool tests."""
 
-    def __init__(self, sources: List[DatasetSource]) -> None:
+    def __init__(self, sources: list[DatasetSource]) -> None:
         self.sources = sources
-        self.request_log: Dict[str, Any] = {}
+        self.request_log: dict[str, Any] = {}
 
     def initiate_discovery(
         self,
         session_id: str,
-        keywords: List[str],
-        sources: List[str],
-    ) -> Dict[str, Any]:
+        keywords: list[str],
+        sources: list[str],
+    ) -> dict[str, Any]:
         self.request_log = {
             "session_id": session_id,
             "keywords": keywords,
@@ -65,7 +66,7 @@ class _DiscoveryServiceStub:
         }
         return {"session_id": session_id, "total_sources": len(self.sources)}
 
-    def get_sources(self, session_id: str) -> List[DatasetSource]:
+    def get_sources(self, session_id: str) -> list[DatasetSource]:
         self.request_log["get_sources_for"] = session_id
         return self.sources
 
@@ -73,52 +74,52 @@ class _DiscoveryServiceStub:
 class _EvaluationServiceStub:
     """Stub for evaluation tool tests."""
 
-    def __init__(self, evaluations: List[Dict[str, Any]]) -> None:
+    def __init__(self, evaluations: list[dict[str, Any]]) -> None:
         self.evaluations = evaluations
 
     def initiate_evaluation(
         self,
         session_id: str,
-        source_ids: Optional[List[str]] = None,
-    ) -> Dict[str, Any]:
+        source_ids: list[str] | None = None,
+    ) -> dict[str, Any]:
         return {"session_id": session_id, "evaluations": self.evaluations}
 
 
 class _AcquisitionServiceStub:
     """Stub for acquisition tool tests."""
 
-    def __init__(self, acquisitions: List[AcquiredDataset]) -> None:
+    def __init__(self, acquisitions: list[AcquiredDataset]) -> None:
         self.acquisitions = acquisitions
 
     def initiate_acquisition(
         self,
         session_id: str,
-        source_ids: Optional[List[str]] = None,
-    ) -> Dict[str, Any]:
+        source_ids: list[str] | None = None,
+    ) -> dict[str, Any]:
         return {"session_id": session_id, "acquired": source_ids or []}
 
-    def get_acquisitions(self, session_id: str) -> List[AcquiredDataset]:
+    def get_acquisitions(self, session_id: str) -> list[AcquiredDataset]:
         return self.acquisitions
 
 
 class _IntegrationServiceStub:
     """Stub for integration planning tests."""
 
-    def __init__(self, plans: List[IntegrationPlan]) -> None:
+    def __init__(self, plans: list[IntegrationPlan]) -> None:
         self.plans = plans
 
     def initiate_integration(
         self,
         session_id: str,
-        source_ids: Optional[List[str]] = None,
+        source_ids: list[str] | None = None,
         target_format: str = "chatml",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         return {
             "session_id": session_id,
             "plans": [{"source_id": plan.source_id, "target_format": target_format} for plan in self.plans],
         }
 
-    def get_integration_plans(self, session_id: str) -> List[IntegrationPlan]:
+    def get_integration_plans(self, session_id: str) -> list[IntegrationPlan]:
         return self.plans
 
 
@@ -126,15 +127,15 @@ class _ReportServiceStub:
     """Stub for report generation tests."""
 
     def __init__(self) -> None:
-        self.last_params: Dict[str, Any] = {}
+        self.last_params: dict[str, Any] = {}
 
     def generate_report(
         self,
         session_id: str,
         report_type: str,
         format: str,
-        date_range: Optional[Dict[str, str]] = None,
-    ) -> Dict[str, Any]:
+        date_range: dict[str, str] | None = None,
+    ) -> dict[str, Any]:
         self.last_params = {
             "session_id": session_id,
             "report_type": report_type,
@@ -306,7 +307,7 @@ class _EchoTool(MCPTool):
             },
         )
 
-    async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute(self, params: dict[str, Any]) -> dict[str, Any]:
         return {"echo": params["message"]}
 
 

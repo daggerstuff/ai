@@ -1,7 +1,8 @@
+
+from datetime import datetime, timezone
 import html
 import json
-from datetime import datetime
-from typing import Any, Dict, Tuple
+from typing import Any
 
 import pytest
 
@@ -25,14 +26,14 @@ def integration_server(
     sample_evaluation,
     sample_acquired_dataset,
     sample_integration_plan,
-) -> Tuple[MCPServer, FakeCommandHandlerService]:
+) -> tuple[MCPServer, FakeCommandHandlerService]:
     """Provide an MCPServer instance wired with the fake command handler service."""
     report = {
         "report_id": f"report_{sample_research_session.session_id}",
         "session_id": sample_research_session.session_id,
         "report_type": "summary_report",
         "format": "json",
-        "generated_date": datetime.utcnow().isoformat(),
+        "generated_date": datetime.now(timezone.utc).isoformat(),
         "content": {"summary": "Test summary"},
         "file_path": None,
     }
@@ -66,18 +67,18 @@ def integration_server(
     return server, fake_service
 
 
-def _decode_response(payload: str) -> Dict[str, Any]:
+def _decode_response(payload: str) -> dict[str, Any]:
     """Parse JSON-RPC response string."""
     return json.loads(payload)
 
 
-def _load_text_content(payload: Dict[str, Any]) -> Dict[str, Any]:
+def _load_text_content(payload: dict[str, Any]) -> dict[str, Any]:
     """Extract and decode JSON payload stored as text content."""
     text = payload["result"]["content"][0]["text"]
     return json.loads(html.unescape(text))
 
 
-def _load_resource_content(payload: Dict[str, Any]) -> Dict[str, Any]:
+def _load_resource_content(payload: dict[str, Any]) -> dict[str, Any]:
     text = payload["result"]["contents"][0]["text"]
     return json.loads(html.unescape(text))
 
@@ -165,7 +166,7 @@ async def test_progress_streaming_broadcast(integration_server):
             status=ProgressStatus.RUNNING,
             progress_percent=50.0,
             message="Half way",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             metadata={"step": "testing"},
         )
     )

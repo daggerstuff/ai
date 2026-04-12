@@ -129,10 +129,9 @@ Preserve the number of messages and the speaker roles.""",
                     )
                 current_role = "assistant"
                 current_content = [line[10:].strip()]
-            else:
-                # Continuation of previous message
-                if current_content:
-                    current_content.append(line)
+            # Continuation of previous message
+            elif current_content:
+                current_content.append(line)
 
         # Save last message
         if current_role and current_content:

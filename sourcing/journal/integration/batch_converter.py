@@ -7,7 +7,7 @@ Converts multiple acquired datasets to training format in batch operations.
 
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ai.sourcing.journal.integration.pipeline_integration_service import (
     PipelineIntegrationService,
@@ -33,7 +33,7 @@ class BatchConverter:
 
     def __init__(
         self,
-        integration_service: Optional[PipelineIntegrationService] = None,
+        integration_service: PipelineIntegrationService | None = None,
         output_directory: Path = Path("data/processed/journal_research/batch"),
         max_concurrent: int = 3,
     ):
@@ -59,12 +59,12 @@ class BatchConverter:
 
     def convert_batch(
         self,
-        datasets: List[AcquiredDataset],
-        integration_plans: Dict[str, IntegrationPlan],
-        existing_dataset_path: Optional[Path] = None,
+        datasets: list[AcquiredDataset],
+        integration_plans: dict[str, IntegrationPlan],
+        existing_dataset_path: Path | None = None,
         target_format: str = "chatml",
-        progress_callback: Optional[callable] = None,
-    ) -> Dict[str, Any]:
+        progress_callback: callable | None = None,
+    ) -> dict[str, Any]:
         """
         Convert multiple datasets in batch.
 
@@ -193,9 +193,9 @@ class BatchConverter:
         dataset: AcquiredDataset,
         integration_plan: IntegrationPlan,
         max_retries: int = 3,
-        existing_dataset_path: Optional[Path] = None,
+        existing_dataset_path: Path | None = None,
         target_format: str = "chatml",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Convert a single dataset with retry logic.
 
@@ -236,11 +236,10 @@ class BatchConverter:
                         f"Successfully converted {dataset.source_id} on attempt {attempt + 1}"
                     )
                     return result
-                else:
-                    last_error = result.get("error", "Unknown error")
-                    logger.warning(
-                        f"Conversion failed for {dataset.source_id} on attempt {attempt + 1}: {last_error}"
-                    )
+                last_error = result.get("error", "Unknown error")
+                logger.warning(
+                    f"Conversion failed for {dataset.source_id} on attempt {attempt + 1}: {last_error}"
+                )
 
             except Exception as e:
                 last_error = str(e)

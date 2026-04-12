@@ -5,9 +5,11 @@ This module provides integration with the American Psychological Association (AP
 for sourcing psychology and therapy books for AI training data expansion.
 """
 
+from datetime import datetime, timezone
+
+
 import logging
-from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from .base_publisher import BasePublisher, BookContent, BookFormat, BookMetadata
 
@@ -77,7 +79,7 @@ class APAPublisher(BasePublisher):
             "mindfulness": ["mindfulness", "meditation", "stress reduction"],
         }
 
-    def _authenticate(self, api_key: Optional[str] = None, **kwargs) -> bool:
+    def _authenticate(self, api_key: str | None = None, **kwargs) -> bool:
         """
         Authenticate with APA API
 
@@ -107,9 +109,8 @@ class APAPublisher(BasePublisher):
             if auth_response and "access_token" in auth_response:
                 self._auth_token = auth_response["access_token"]
                 return True
-            else:
-                logger.error("APA authentication failed: Invalid response")
-                return False
+            logger.error("APA authentication failed: Invalid response")
+            return False
 
         except Exception as e:
             logger.error(f"APA authentication error: {e}")
@@ -118,11 +119,11 @@ class APAPublisher(BasePublisher):
     def search_books(
         self,
         query: str,
-        year_range: Optional[Tuple[int, int]] = None,
-        therapeutic_topics: Optional[List[str]] = None,
+        year_range: tuple[int, int] | None = None,
+        therapeutic_topics: list[str] | None = None,
         limit: int = 20,
         offset: int = 0,
-    ) -> List[BookMetadata]:
+    ) -> list[BookMetadata]:
         """
         Search for books in APA's catalog
 
@@ -185,7 +186,7 @@ class APAPublisher(BasePublisher):
             logger.error(f"Error searching APA books: {e}")
             return []
 
-    def get_book_metadata(self, identifier: str) -> Optional[BookMetadata]:
+    def get_book_metadata(self, identifier: str) -> BookMetadata | None:
         """
         Get metadata for a specific book from APA
 
@@ -228,7 +229,7 @@ class APAPublisher(BasePublisher):
 
     def get_book_content(
         self, identifier: str, format: BookFormat = BookFormat.PLAIN_TEXT
-    ) -> Optional[BookContent]:
+    ) -> BookContent | None:
         """
         Get content for a specific book from APA
 
@@ -296,7 +297,7 @@ class APAPublisher(BasePublisher):
             logger.error(f"Error getting APA book content: {e}")
             return None
 
-    def get_chapter_content(self, identifier: str, chapter_id: str) -> Optional[str]:
+    def get_chapter_content(self, identifier: str, chapter_id: str) -> str | None:
         """
         Get content for a specific chapter of a book from APA
 
@@ -335,7 +336,7 @@ class APAPublisher(BasePublisher):
             logger.error(f"Error getting APA chapter content: {e}")
             return None
 
-    def _parse_book_metadata(self, book_data: Dict[str, Any]) -> Optional[BookMetadata]:
+    def _parse_book_metadata(self, book_data: dict[str, Any]) -> BookMetadata | None:
         """
         Parse APA book data into BookMetadata object
 
@@ -379,16 +380,16 @@ class APAPublisher(BasePublisher):
                 title=book_data.get("title", "Unknown Title"),
                 authors=authors,
                 publisher="American Psychological Association",
-                publication_year=book_data.get("publication_year", datetime.now().year),
-                isbn=book_data.get("isbn", None),
-                doi=book_data.get("doi", None),
-                abstract=book_data.get("abstract", None),
+                publication_year=book_data.get("publication_year", datetime.now(timezone.utc).year),
+                isbn=book_data.get("isbn"),
+                doi=book_data.get("doi"),
+                abstract=book_data.get("abstract"),
                 keywords=keywords,
                 chapters=chapters,
-                page_count=book_data.get("page_count", None),
+                page_count=book_data.get("page_count"),
                 language=book_data.get("language", "en"),
-                license=book_data.get("license", None),
-                copyright_status=book_data.get("copyright_status", None),
+                license=book_data.get("license"),
+                copyright_status=book_data.get("copyright_status"),
                 source_publisher="apa",
                 raw_metadata=book_data,
             )
@@ -399,7 +400,7 @@ class APAPublisher(BasePublisher):
             logger.error(f"Error parsing APA book metadata: {e}")
             return None
 
-    def _download_content(self, content_url: str) -> Optional[bytes]:
+    def _download_content(self, content_url: str) -> bytes | None:
         """
         Download content from a URL
 
@@ -421,7 +422,7 @@ class APAPublisher(BasePublisher):
             logger.error(f"Error downloading content from {content_url}: {e}")
             return None
 
-    def get_therapeutic_topics(self) -> Dict[str, List[str]]:
+    def get_therapeutic_topics(self) -> dict[str, list[str]]:
         """
         Get the mapping of therapeutic topics to APA search terms
 

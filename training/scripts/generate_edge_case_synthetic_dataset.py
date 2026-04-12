@@ -11,6 +11,8 @@ Design notes:
 - Generates SAFE therapeutic responses (no self-harm instruction, no doxxing/PII).
 """
 
+from datetime import datetime, timezone
+
 from __future__ import annotations
 
 import argparse
@@ -19,7 +21,6 @@ import logging
 import re
 from collections import Counter
 from contextlib import suppress
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 

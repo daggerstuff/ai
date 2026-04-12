@@ -9,7 +9,6 @@ import logging
 import re
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -33,8 +32,8 @@ class LicenseCheckResult:
     ai_training_compatible: LicenseCompatibility
     commercial_use_compatible: LicenseCompatibility
     attribution_required: bool
-    conditions: List[str]
-    issues: List[str]
+    conditions: list[str]
+    issues: list[str]
     confidence: float  # 0.0-1.0
 
     def is_usable(self) -> bool:
@@ -56,7 +55,7 @@ class LicenseChecker:
     """
 
     # License patterns and their compatibility
-    LICENSE_PATTERNS: Dict[str, Dict[str, any]] = {
+    LICENSE_PATTERNS: dict[str, dict[str, any]] = {
         # Permissive licenses - fully compatible
         "MIT": {
             "patterns": [r"\bmit\b", r"mit\s+license"],
@@ -254,7 +253,7 @@ class LicenseChecker:
     def __init__(self):
         """Initialize the license checker."""
         # Compile regex patterns for performance
-        self._compiled_patterns: Dict[str, List[re.Pattern]] = {}
+        self._compiled_patterns: dict[str, list[re.Pattern]] = {}
         for license_name, license_info in self.LICENSE_PATTERNS.items():
             self._compiled_patterns[license_name] = [
                 re.compile(pattern, re.IGNORECASE) for pattern in license_info["patterns"]
@@ -268,7 +267,7 @@ class LicenseChecker:
         ]
 
     def check_license(
-        self, license_text: Optional[str], license_name: Optional[str] = None
+        self, license_text: str | None, license_name: str | None = None
     ) -> LicenseCheckResult:
         """
         Check license compatibility for AI training and commercial use.
@@ -318,7 +317,7 @@ class LicenseChecker:
 
         return result
 
-    def _identify_license(self, text: str) -> Optional[str]:
+    def _identify_license(self, text: str) -> str | None:
         """Identify license from text patterns."""
         # Check more specific licenses first (e.g., CC-BY-NC before CC-BY)
         # to avoid partial matches

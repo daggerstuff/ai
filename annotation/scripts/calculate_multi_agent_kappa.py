@@ -7,12 +7,11 @@ import argparse
 import json
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List
 
 import numpy as np
 
 
-def calculate_cohens_kappa(annotations_a: List[int], annotations_b: List[int]) -> float:
+def calculate_cohens_kappa(annotations_a: list[int], annotations_b: list[int]) -> float:
     """
     Calculate Cohen's Kappa for two annotators
 
@@ -51,7 +50,7 @@ def calculate_cohens_kappa(annotations_a: List[int], annotations_b: List[int]) -
     return kappa
 
 
-def calculate_agreement_metrics(results_file: str) -> Dict[str, any]:
+def calculate_agreement_metrics(results_file: str) -> dict[str, any]:
     """
     Calculate comprehensive agreement metrics from multi-agent results
     """
@@ -138,7 +137,7 @@ def calculate_agreement_metrics(results_file: str) -> Dict[str, any]:
     }
 
 
-def calculate_agreement_statistics(results: List[Dict]) -> Dict:
+def calculate_agreement_statistics(results: list[dict]) -> dict:
     """Calculate overall agreement statistics"""
     crisis_agreements = []
     emotion_agreements = []
@@ -166,7 +165,7 @@ def calculate_agreement_statistics(results: List[Dict]) -> Dict:
     }
 
 
-def calculate_consensus_quality(results: List[Dict]) -> Dict:
+def calculate_consensus_quality(results: list[dict]) -> dict:
     """Calculate quality metrics for consensus annotations"""
     consensus_annotations = []
 
@@ -201,7 +200,7 @@ def calculate_consensus_quality(results: List[Dict]) -> Dict:
     }
 
 
-def print_metrics_report(metrics: Dict):
+def print_metrics_report(metrics: dict):
     """Print formatted metrics report"""
     print("\n" + "=" * 70)
     print("📊 MULTI-AGENT INTER-ANNOTATOR AGREEMENT REPORT")

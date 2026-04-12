@@ -5,9 +5,9 @@ Generates structured markdown reports for dataset evaluations, weekly progress,
 and final research summaries.
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
+
 from pathlib import Path
-from typing import Dict, List, Optional
 
 from ai.sourcing.journal.models.dataset_models import (
     DatasetEvaluation,
@@ -39,7 +39,7 @@ class ReportGenerator:
         self,
         source: DatasetSource,
         evaluation: DatasetEvaluation,
-        output_path: Optional[Path] = None,
+        output_path: Path | None = None,
     ) -> Path:
         """
         Generate an evaluation report for a dataset.
@@ -55,13 +55,13 @@ class ReportGenerator:
         if output_path is None:
             output_path = (
                 self.output_directory
-                / f"evaluation_{source.source_id}_{datetime.now().strftime('%Y%m%d')}.md"
+                / f"evaluation_{source.source_id}_{datetime.now(timezone.utc).strftime('%Y%m%d')}.md"
             )
 
         lines = [
             "# Dataset Evaluation Report",
             "",
-            f"**Generated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            f"**Generated**: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}",
             "",
             "## Dataset Information",
             "",
@@ -174,11 +174,11 @@ class ReportGenerator:
 
     def generate_weekly_report(
         self,
-        weekly_report: Optional[WeeklyReport] = None,
-        session: Optional[ResearchSession] = None,
-        progress: Optional[Dict] = None,
-        week_number: Optional[int] = None,
-        output_path: Optional[Path] = None,
+        weekly_report: WeeklyReport | None = None,
+        session: ResearchSession | None = None,
+        progress: dict | None = None,
+        week_number: int | None = None,
+        output_path: Path | None = None,
     ) -> Path:
         """
         Generate a weekly progress report.
@@ -196,11 +196,10 @@ class ReportGenerator:
         # Support both WeeklyReport object and individual parameters
         if weekly_report is None:
             # Create WeeklyReport from parameters
-            from datetime import timedelta
 
             from ai.sourcing.journal.models.dataset_models import ResearchProgress
 
-            end_date = datetime.now()
+            end_date = datetime.now(timezone.utc)
             start_date = end_date - timedelta(days=7)
 
             # Handle both dict and ResearchProgress object
@@ -242,7 +241,7 @@ class ReportGenerator:
             "",
             f"**Week Number**: {weekly_report.week_number}",
             f"**Report Period**: {weekly_report.start_date.strftime('%Y-%m-%d')} to {weekly_report.end_date.strftime('%Y-%m-%d')}",
-            f"**Generated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            f"**Generated**: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}",
             "",
             "## Progress Metrics",
             "",
@@ -295,11 +294,11 @@ class ReportGenerator:
 
     def generate_research_summary_report(
         self,
-        sources: List[DatasetSource],
-        evaluations: List[DatasetEvaluation],
+        sources: list[DatasetSource],
+        evaluations: list[DatasetEvaluation],
         start_date: datetime,
         end_date: datetime,
-        output_path: Optional[Path] = None,
+        output_path: Path | None = None,
     ) -> Path:
         """
         Generate a research summary report.
@@ -324,7 +323,7 @@ class ReportGenerator:
             "# Research Summary Report",
             "",
             f"**Report Period**: {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}",
-            f"**Generated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            f"**Generated**: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}",
             "",
             "## Summary",
             "",
@@ -365,9 +364,9 @@ class ReportGenerator:
     def generate_final_summary_report(
         self,
         session: ResearchSession,
-        sources: List[DatasetSource],
-        evaluations: List[DatasetEvaluation],
-        output_path: Optional[Path] = None,
+        sources: list[DatasetSource],
+        evaluations: list[DatasetEvaluation],
+        output_path: Path | None = None,
     ) -> Path:
         """
         Generate a final research summary report.
@@ -384,7 +383,7 @@ class ReportGenerator:
         if output_path is None:
             output_path = (
                 self.output_directory
-                / f"final_summary_{session.session_id}_{datetime.now().strftime('%Y%m%d')}.md"
+                / f"final_summary_{session.session_id}_{datetime.now(timezone.utc).strftime('%Y%m%d')}.md"
             )
 
         lines = [
@@ -392,7 +391,7 @@ class ReportGenerator:
             "",
             f"**Session ID**: {session.session_id}",
             f"**Session Start**: {session.start_date.strftime('%Y-%m-%d %H:%M:%S')}",
-            f"**Generated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            f"**Generated**: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}",
             "",
             "## Executive Summary",
             "",
@@ -404,7 +403,7 @@ class ReportGenerator:
         ]
 
         # Sources by type
-        source_types: Dict[str, int] = {}
+        source_types: dict[str, int] = {}
         for source in sources:
             source_types[source.source_type] = (
                 source_types.get(source.source_type, 0) + 1
@@ -421,7 +420,7 @@ class ReportGenerator:
             lines.append("")
 
             # Priority breakdown
-            priority_counts: Dict[str, int] = {}
+            priority_counts: dict[str, int] = {}
             for eval in evaluations:
                 priority_counts[eval.priority_tier] = (
                     priority_counts.get(eval.priority_tier, 0) + 1
@@ -489,9 +488,9 @@ class ReportGenerator:
 
     def generate_batch_evaluation_report(
         self,
-        sources: List[DatasetSource],
-        evaluations: List[DatasetEvaluation],
-        output_path: Optional[Path] = None,
+        sources: list[DatasetSource],
+        evaluations: list[DatasetEvaluation],
+        output_path: Path | None = None,
     ) -> Path:
         """
         Generate a batch evaluation report for multiple datasets.
@@ -507,13 +506,13 @@ class ReportGenerator:
         if output_path is None:
             output_path = (
                 self.output_directory
-                / f"batch_evaluation_{datetime.now().strftime('%Y%m%d')}.md"
+                / f"batch_evaluation_{datetime.now(timezone.utc).strftime('%Y%m%d')}.md"
             )
 
         lines = [
             "# Batch Dataset Evaluation Report",
             "",
-            f"**Generated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            f"**Generated**: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}",
             f"**Total Datasets Evaluated**: {len(evaluations)}",
             "",
             "## Summary Statistics",
@@ -529,7 +528,7 @@ class ReportGenerator:
             lines.append("")
 
         # Priority breakdown
-        priority_counts: Dict[str, int] = {}
+        priority_counts: dict[str, int] = {}
         for eval in evaluations:
             priority_counts[eval.priority_tier] = (
                 priority_counts.get(eval.priority_tier, 0) + 1

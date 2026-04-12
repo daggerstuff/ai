@@ -4,9 +4,11 @@ JWT token utilities for authentication.
 This module provides JWT token creation, validation, and decoding.
 """
 
+from datetime import datetime, timedelta, timezone
+
+
 import logging
-from datetime import datetime, timedelta
-from typing import Any, Dict, Optional
+from typing import Any
 
 import jwt as pyjwt
 from jwt.exceptions import DecodeError, ExpiredSignatureError, InvalidTokenError
@@ -18,24 +20,24 @@ settings = get_settings()
 
 
 def create_access_token(
-    data: Dict[str, Any], expires_delta: Optional[timedelta] = None
+    data: dict[str, Any], expires_delta: timedelta | None = None
 ) -> str:
     """Create a JWT access token."""
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(
+        expire = datetime.now(timezone.utc) + timedelta(
             minutes=settings.jwt_expiration_minutes
         )
-    to_encode.update({"exp": expire, "iat": datetime.utcnow()})
+    to_encode.update({"exp": expire, "iat": datetime.now(timezone.utc)})
     encoded_jwt = pyjwt.encode(
         to_encode, settings.jwt_secret, algorithm=settings.jwt_algorithm
     )
     return encoded_jwt
 
 
-def decode_access_token(token: str) -> Dict[str, Any]:
+def decode_access_token(token: str) -> dict[str, Any]:
     """Decode a JWT access token."""
     try:
         payload = pyjwt.decode(
@@ -47,10 +49,10 @@ def decode_access_token(token: str) -> Dict[str, Any]:
     except DecodeError:
         raise ValueError("Invalid token format")
     except InvalidTokenError as e:
-        raise ValueError(f"Invalid token: {str(e)}")
+        raise ValueError(f"Invalid token: {e!s}")
 
 
-def verify_token(token: str) -> Dict[str, Any]:
+def verify_token(token: str) -> dict[str, Any]:
     """Verify and decode a JWT token."""
     try:
         payload = decode_access_token(token)
@@ -60,7 +62,7 @@ def verify_token(token: str) -> Dict[str, Any]:
         raise
 
 
-def get_user_from_token(token: str) -> Dict[str, Any]:
+def get_user_from_token(token: str) -> dict[str, Any]:
     """Get user information from a JWT token."""
     payload = verify_token(token)
     return {

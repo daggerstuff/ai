@@ -19,7 +19,7 @@ import xml.etree.ElementTree as ET
 from dataclasses import asdict, dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import requests
 from bs4 import BeautifulSoup
@@ -76,21 +76,21 @@ class BookMetadata:
     """Unified book metadata structure"""
 
     title: str
-    authors: List[str]
+    authors: list[str]
     publisher: str
     publication_year: int
-    isbn: Optional[str] = None
-    doi: Optional[str] = None
-    url: Optional[str] = None
+    isbn: str | None = None
+    doi: str | None = None
+    url: str | None = None
     source: str = "unknown"
-    abstract: Optional[str] = None
-    subject_areas: Optional[List[str]] = None
+    abstract: str | None = None
+    subject_areas: list[str] | None = None
     confidence_score: float = 0.0
-    therapeutic_relevance_score: Optional[float] = None
-    stage_assignment: Optional[str] = None
+    therapeutic_relevance_score: float | None = None
+    stage_assignment: str | None = None
     validation_status: str = "sourced_external"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary"""
         return asdict(self)
 
@@ -111,7 +111,7 @@ class AcademicSourcingEngine:
 
     def __init__(
         self,
-        output_base_path: Optional[str] = None,
+        output_base_path: str | None = None,
         strategy: SourcingStrategy = SourcingStrategy.HYBRID,
     ):
         self.output_base_path = Path(
@@ -142,7 +142,7 @@ class AcademicSourcingEngine:
         self.europe_pmc_endpoint = "https://www.ebi.ac.uk/europepmc/webservices/rest"
 
         # Initialize publisher integrations
-        self.publishers: Dict[SourceType, BasePublisher] = {}
+        self.publishers: dict[SourceType, BasePublisher] = {}
         self._init_publishers()
 
         # Web scraping configuration
@@ -224,7 +224,7 @@ class AcademicSourcingEngine:
 
     def fetch_arxiv_papers(
         self, query: str = "psychotherapy", limit: int = 10
-    ) -> List[BookMetadata]:
+    ) -> list[BookMetadata]:
         """
         Fetch papers from ArXiv API (Open Access)
 
@@ -296,7 +296,7 @@ class AcademicSourcingEngine:
             logger.error(f"ArXiv Exception: {e}")
             return []
 
-    def fetch_semantic_scholar(self, query: str, limit: int = 10) -> List[BookMetadata]:
+    def fetch_semantic_scholar(self, query: str, limit: int = 10) -> list[BookMetadata]:
         """
         Fetch papers from Semantic Scholar API
 
@@ -380,7 +380,7 @@ class AcademicSourcingEngine:
             logger.error(f"Semantic Scholar Exception: {e}")
             return []
 
-    def fetch_crossref(self, query: str, limit: int = 10) -> List[BookMetadata]:
+    def fetch_crossref(self, query: str, limit: int = 10) -> list[BookMetadata]:
         """
         Fetch books/papers from CrossRef API (DOI resolution)
 
@@ -460,7 +460,7 @@ class AcademicSourcingEngine:
             logger.error(f"CrossRef Exception: {e}")
             return []
 
-    def fetch_pubmed(self, query: str, limit: int = 10) -> List[BookMetadata]:
+    def fetch_pubmed(self, query: str, limit: int = 10) -> list[BookMetadata]:
         """
         Fetch papers from PubMed API
 
@@ -574,7 +574,7 @@ class AcademicSourcingEngine:
             logger.error(f"PubMed Exception: {e}")
             return []
 
-    def fetch_openalex(self, query: str, limit: int = 10) -> List[BookMetadata]:
+    def fetch_openalex(self, query: str, limit: int = 10) -> list[BookMetadata]:
         """
         Fetch papers from OpenAlex API (open bibliographic database)
 
@@ -658,7 +658,7 @@ class AcademicSourcingEngine:
             logger.error(f"OpenAlex Exception: {e}")
             return []
 
-    def fetch_core(self, query: str, limit: int = 10) -> List[BookMetadata]:
+    def fetch_core(self, query: str, limit: int = 10) -> list[BookMetadata]:
         """
         Fetch papers from CORE API (aggregator of open access research)
 
@@ -742,7 +742,7 @@ class AcademicSourcingEngine:
             logger.error(f"CORE Exception: {e}")
             return []
 
-    def fetch_europe_pmc(self, query: str, limit: int = 10) -> List[BookMetadata]:
+    def fetch_europe_pmc(self, query: str, limit: int = 10) -> list[BookMetadata]:
         """
         Fetch papers from Europe PMC API
 
@@ -825,7 +825,7 @@ class AcademicSourcingEngine:
 
     def fetch_from_publisher(
         self, publisher: SourceType, query: str, limit: int = 10
-    ) -> List[BookMetadata]:
+    ) -> list[BookMetadata]:
         """
         Fetch books from a specific publisher integration
 
@@ -877,7 +877,7 @@ class AcademicSourcingEngine:
 
     # ==================== Web Scraping Fallback ====================
 
-    def scrape_google_scholar(self, query: str, limit: int = 10) -> List[BookMetadata]:
+    def scrape_google_scholar(self, query: str, limit: int = 10) -> list[BookMetadata]:
         """
         Scrape Google Scholar for books (fallback method)
 
@@ -973,9 +973,9 @@ class AcademicSourcingEngine:
         self,
         query: str,
         limit: int = 10,
-        strategy: Optional[SourcingStrategy] = None,
-        sources: Optional[List[str]] = None,
-    ) -> List[BookMetadata]:
+        strategy: SourcingStrategy | None = None,
+        sources: list[str] | None = None,
+    ) -> list[BookMetadata]:
         """
         Search for academic literature using specified strategy
 
@@ -1093,7 +1093,7 @@ class AcademicSourcingEngine:
 
         return min(score, 1.0)
 
-    def _deduplicate_results(self, results: List[BookMetadata]) -> List[BookMetadata]:
+    def _deduplicate_results(self, results: list[BookMetadata]) -> list[BookMetadata]:
         """
         Deduplicate results by title and first author
 
@@ -1121,7 +1121,7 @@ class AcademicSourcingEngine:
         return deduplicated
 
     def export_data(
-        self, data: List[BookMetadata], filename: str = "academic_batch_001.json"
+        self, data: list[BookMetadata], filename: str = "academic_batch_001.json"
     ) -> Path:
         """
         Export literature data to JSON file
@@ -1150,7 +1150,7 @@ class AcademicSourcingEngine:
             raise
 
     def run_sourcing_pipeline(
-        self, queries: Optional[List[str]] = None, limit_per_query: int = 10
+        self, queries: list[str] | None = None, limit_per_query: int = 10
     ) -> Path:
         """
         Run complete sourcing pipeline
@@ -1194,7 +1194,7 @@ class AcademicSourcingEngine:
 
 # Convenience function for backward compatibility
 def create_academic_sourcing_engine(
-    output_path: Optional[str] = None, strategy: str = "hybrid"
+    output_path: str | None = None, strategy: str = "hybrid"
 ) -> AcademicSourcingEngine:
     """
     Create AcademicSourcingEngine with specified configuration

@@ -4,6 +4,8 @@ Streaming PII Cleaner for Large Datasets
 Processes GB-scale datasets without loading into memory
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import re
@@ -11,7 +13,6 @@ import sys
 from pathlib import Path
 from typing import Dict, Any, Generator, Tuple
 import hashlib
-from datetime import datetime
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -129,7 +130,7 @@ class StreamingPIICleaner:
             # Update metadata
             metadata = cleaned.get("metadata", {})
             metadata["pii_cleaned"] = has_pii
-            metadata["cleaned_at"] = datetime.now().isoformat()
+            metadata["cleaned_at"] = datetime.now(timezone.utc).isoformat()
             cleaned["metadata"] = metadata
 
             return cleaned, has_pii

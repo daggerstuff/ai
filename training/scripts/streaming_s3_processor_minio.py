@@ -3,13 +3,14 @@
 Streaming S3 Dataset Processor - MinIO client for HETZNER S3
 """
 
+from datetime import datetime
+
 import json
 import logging
 import re
 import hashlib
 import sys
 from pathlib import Path
-from datetime import datetime
 import requests
 import os
 import tempfile

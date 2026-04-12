@@ -5,11 +5,8 @@ Tests command-line interface functionality, configuration management,
 and interactive mode.
 """
 
-import tempfile
-from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
-import click
 import pytest
 from click.testing import CliRunner
 
@@ -213,7 +210,6 @@ class TestInteractiveMode:
     @patch("ai.sourcing.journal.cli.interactive.console")
     def test_prompt_for_session_config(self, mock_console, mock_prompt):
         """Test prompting for session configuration."""
-        from ai.sourcing.journal.cli.interactive import prompt_for_session_config
 
         mock_prompt.side_effect = [
             "pubmed,zenodo",  # target_sources
@@ -235,7 +231,6 @@ class TestInteractiveMode:
     @patch("ai.sourcing.journal.cli.interactive.Prompt.ask")
     def test_interactive_mode_handles_cancellation(self, mock_prompt):
         """Test that interactive mode handles user cancellation."""
-        from ai.sourcing.journal.cli.interactive import prompt_for_session_config
 
         mock_prompt.side_effect = KeyboardInterrupt()
         with pytest.raises(KeyboardInterrupt):

@@ -6,7 +6,7 @@ and therapy books.
 """
 
 import logging
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from .base_publisher import BasePublisher, BookContent, BookFormat, BookMetadata
 
@@ -83,9 +83,8 @@ class CambridgePublisher(BasePublisher):
             if response.status_code == 200:
                 logger.info("✅ Cambridge authentication successful")
                 return True
-            else:
-                logger.error(f"Cambridge auth failed: {response.status_code}")
-                return False
+            logger.error(f"Cambridge auth failed: {response.status_code}")
+            return False
 
         except Exception as e:
             logger.error(f"Cambridge authentication error: {e}")
@@ -94,11 +93,11 @@ class CambridgePublisher(BasePublisher):
     def search_books(
         self,
         query: str,
-        year_range: Optional[Tuple[int, int]] = None,
-        therapeutic_topics: Optional[List[str]] = None,
+        year_range: tuple[int, int] | None = None,
+        therapeutic_topics: list[str] | None = None,
         limit: int = 20,
         offset: int = 0,
-    ) -> List[BookMetadata]:
+    ) -> list[BookMetadata]:
         """
         Search for books in Cambridge's catalog
 
@@ -172,8 +171,8 @@ class CambridgePublisher(BasePublisher):
             return []
 
     def _parse_cambridge_record(
-        self, record: Dict[str, Any], original_query: str
-    ) -> Optional[BookMetadata]:
+        self, record: dict[str, Any], original_query: str
+    ) -> BookMetadata | None:
         """Parse a Cambridge API record into BookMetadata"""
         try:
             # Extract basic info
@@ -262,7 +261,7 @@ class CambridgePublisher(BasePublisher):
             logger.warning(f"Error parsing Cambridge record: {e}")
             return None
 
-    def get_book_metadata(self, book_id: str) -> Optional[BookMetadata]:
+    def get_book_metadata(self, book_id: str) -> BookMetadata | None:
         """
         Get detailed metadata for a specific book
 
@@ -296,10 +295,9 @@ class CambridgePublisher(BasePublisher):
             data = response.json()
 
             # Handle search response vs direct product response
-            if "items" in data and data["items"]:
+            if data.get("items"):
                 return self._parse_cambridge_record(data["items"][0], "")
-            else:
-                return self._parse_cambridge_record(data, "")
+            return self._parse_cambridge_record(data, "")
 
         except Exception as e:
             logger.error(f"Error getting Cambridge metadata: {e}")
@@ -307,7 +305,7 @@ class CambridgePublisher(BasePublisher):
 
     def get_book_content(
         self, book_id: str, format: BookFormat = BookFormat.PDF
-    ) -> Optional[BookContent]:
+    ) -> BookContent | None:
         """
         Get book content (Note: Requires institutional access)
 
@@ -343,7 +341,7 @@ class CambridgePublisher(BasePublisher):
 
     def get_chapter_content(
         self, book_id: str, chapter_id: str, format: BookFormat = BookFormat.PDF
-    ) -> Optional[BookContent]:
+    ) -> BookContent | None:
         """
         Get chapter content (Note: Requires institutional access)
 

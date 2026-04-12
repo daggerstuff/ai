@@ -5,10 +5,8 @@ This module provides the main MCP server class that handles protocol requests,
 tool execution, resource access, and prompt rendering.
 """
 
-import asyncio
 import json
-import logging
-from typing import Any, Dict, Optional
+from typing import Any
 
 from ai.sourcing.journal.api.services.command_handler_service import (
     CommandHandlerService,
@@ -88,7 +86,6 @@ from ai.sourcing.journal.mcp.tools.sessions import (
     UpdateSessionTool,
 )
 from ai.sourcing.journal.mcp.utils.audit_logging import (
-    AuditLogger,
     create_audit_logger,
 )
 from ai.sourcing.journal.mcp.utils.error_handling import MCPErrorHandler
@@ -99,7 +96,6 @@ from ai.sourcing.journal.mcp.utils.rate_limiting import (
 )
 from ai.sourcing.journal.mcp.utils.security import (
     SecurityError,
-    sanitize_input,
     sanitize_json_output,
     validate_and_sanitize_input,
 )
@@ -110,7 +106,7 @@ logger = get_logger(__name__)
 class MCPServer:
     """Main MCP server implementation."""
 
-    def __init__(self, config: Optional[MCPConfig] = None) -> None:
+    def __init__(self, config: MCPConfig | None = None) -> None:
         """
         Initialize MCP server.
 
@@ -144,10 +140,10 @@ class MCPServer:
         # Initialize authentication and authorization (Phase 11)
         self.auth_handler = create_auth_handler(self.config.auth)
         self.authorization_handler = create_authorization_handler()
-        self.current_user: Optional[Dict[str, Any]] = None
+        self.current_user: dict[str, Any] | None = None
 
         # Initialize rate limiting (Phase 14)
-        self.rate_limiter: Optional[RateLimitManager] = None
+        self.rate_limiter: RateLimitManager | None = None
         if self.config.rate_limits.enabled:
             self.rate_limiter = RateLimitManager(self.config.rate_limits)
 
@@ -155,7 +151,7 @@ class MCPServer:
         self.audit_logger = create_audit_logger(self.config.logging)
 
         # Initialize pipeline bridge (optional, for training pipeline integration)
-        self.pipeline_bridge: Optional[MCPPipelineBridge] = None
+        self.pipeline_bridge: MCPPipelineBridge | None = None
         if PIPELINE_BRIDGE_AVAILABLE:
             try:
                 self.pipeline_bridge = MCPPipelineBridge(auto_integrate=True)
@@ -201,7 +197,7 @@ class MCPServer:
         Returns:
             JSON string response
         """
-        request_id: Optional[Any] = None
+        request_id: Any | None = None
 
         try:
             # Parse request
@@ -346,28 +342,27 @@ class MCPServer:
         # Handle MCP initialization methods
         if method == "initialize":
             return await self._handle_initialize(request)
-        elif method == "notifications/initialized":
+        if method == "notifications/initialized":
             return await self._handle_initialized(request)
 
         # Handle tool methods
-        elif method.startswith("tools/"):
+        if method.startswith("tools/"):
             return await self._handle_tool_request(request)
 
         # Handle resource methods
-        elif method.startswith("resources/"):
+        if method.startswith("resources/"):
             return await self._handle_resource_request(request)
 
         # Handle prompt methods
-        elif method.startswith("prompts/"):
+        if method.startswith("prompts/"):
             return await self._handle_prompt_request(request)
 
         # Unknown method
-        else:
-            return MCPResponse.error(
-                JSONRPCErrorCode.METHOD_NOT_FOUND,
-                f"Method not found: {method}",
-                id=request.id,
-            )
+        return MCPResponse.error(
+            JSONRPCErrorCode.METHOD_NOT_FOUND,
+            f"Method not found: {method}",
+            id=request.id,
+        )
 
     async def _handle_initialize(self, request: MCPRequest) -> MCPResponse:
         """
@@ -430,7 +425,7 @@ class MCPServer:
                 tools = self.tool_executor.list_tools()
                 return MCPResponse.success({"tools": tools}, id=request.id)
 
-            elif method == "tools/call":
+            if method == "tools/call":
                 # Execute a tool
                 tool_name = params.get("name")
                 if not tool_name:
@@ -584,7 +579,7 @@ class MCPServer:
                 resources = self.resources.get_resource_schemas()
                 return MCPResponse.success({"resources": resources}, id=request.id)
 
-            elif method == "resources/read":
+            if method == "resources/read":
                 # Read a resource
                 uri = params.get("uri")
                 if not uri:
@@ -667,12 +662,11 @@ class MCPServer:
                                 e.data,
                                 id=request.id,
                             )
-                        else:
-                            return MCPResponse.error(
-                                MCPErrorCode.RESOURCE_NOT_FOUND,
-                                f"Invalid resource parameters: {str(e)}",
-                                id=request.id,
-                            )
+                        return MCPResponse.error(
+                            MCPErrorCode.RESOURCE_NOT_FOUND,
+                            f"Invalid resource parameters: {e!s}",
+                            id=request.id,
+                        )
 
                 # Extract session_id from URI or params for audit logging
                 session_id = read_params.get("session_id") if read_params else None
@@ -764,7 +758,7 @@ class MCPServer:
                 prompts = self.prompts.get_prompt_schemas()
                 return MCPResponse.success({"prompts": prompts}, id=request.id)
 
-            elif method == "prompts/get":
+            if method == "prompts/get":
                 # Get a specific prompt
                 prompt_name = params.get("name")
                 if not prompt_name:
@@ -800,12 +794,11 @@ class MCPServer:
                             e.data,
                             id=request.id,
                         )
-                    else:
-                        return MCPResponse.error(
-                            JSONRPCErrorCode.INVALID_PARAMS,
-                            f"Invalid prompt arguments: {str(e)}",
-                            id=request.id,
-                        )
+                    return MCPResponse.error(
+                        JSONRPCErrorCode.INVALID_PARAMS,
+                        f"Invalid prompt arguments: {e!s}",
+                        id=request.id,
+                    )
 
                 # Render prompt with arguments
                 try:
@@ -905,7 +898,7 @@ class MCPServer:
             )
             raise MCPError(
                 MCPErrorCode.AUTHENTICATION_ERROR,
-                f"Authentication failed: {str(e)}",
+                f"Authentication failed: {e!s}",
             )
 
     async def _check_rate_limit(self, request: MCPRequest) -> None:

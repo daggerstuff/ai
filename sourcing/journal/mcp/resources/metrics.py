@@ -4,10 +4,9 @@ Metrics resources for MCP Server.
 This module provides resources for accessing session metrics and activity logs.
 """
 
-import json
 import logging
 from dataclasses import asdict
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ai.sourcing.journal.api.services.command_handler_service import (
   CommandHandlerService,
@@ -40,7 +39,7 @@ class SessionMetricsResource(MCPResource):
       mime_type="application/json",
     )
 
-  async def read(self, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+  async def read(self, params: dict[str, Any] | None = None) -> dict[str, Any]:
     """
     Read session metrics.
 
@@ -71,7 +70,7 @@ class SessionMetricsResource(MCPResource):
     try:
       orchestrator = self.service.orchestrator
 
-      metrics: Dict[str, Any] = {}
+      metrics: dict[str, Any] = {}
 
       if metric_type in ("all", "activity"):
         activity_log = orchestrator.get_activity_log(session_id)
@@ -97,7 +96,7 @@ class SessionMetricsResource(MCPResource):
       logger.exception(f"Error reading session metrics for session {session_id}")
       raise MCPError(
         JSONRPCErrorCode.INTERNAL_ERROR,
-        f"Failed to read session metrics: {str(e)}",
+        f"Failed to read session metrics: {e!s}",
       )
 
   def validate_uri(self, uri: str) -> bool:
@@ -112,7 +111,7 @@ class SessionMetricsResource(MCPResource):
     """
     return uri.startswith("research://sessions/") and uri.endswith("/metrics")
 
-  def extract_session_id(self, uri: str) -> Optional[str]:
+  def extract_session_id(self, uri: str) -> str | None:
     """
     Extract session ID from URI.
 

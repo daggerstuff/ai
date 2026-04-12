@@ -18,13 +18,13 @@ from ai.sourcing.journal.mcp.auth.authorization import (
 )
 
 __all__ = [
-    "AuthenticationHandler",
-    "APIKeyAuth",
-    "JWTAuth",
-    "CompositeAuth",
-    "create_auth_handler",
-    "AuthorizationHandler",
     "RBAC",
+    "APIKeyAuth",
+    "AuthenticationHandler",
+    "AuthorizationHandler",
+    "CompositeAuth",
+    "JWTAuth",
+    "create_auth_handler",
     "create_authorization_handler",
 ]
 

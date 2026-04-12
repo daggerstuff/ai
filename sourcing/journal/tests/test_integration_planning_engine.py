@@ -2,11 +2,11 @@
 Tests for Integration Planning Engine
 """
 
+from datetime import datetime, timezone
+
+
 import json
 import os
-import tempfile
-from datetime import datetime
-from pathlib import Path
 
 import pandas as pd
 import pytest
@@ -34,7 +34,7 @@ def sample_csv_dataset(tmp_path):
             "id": [f"id_{i}" for i in range(10)],
             "message": [f"Message {i}" for i in range(10)],
             "role": ["user", "assistant"] * 5,
-            "timestamp": [datetime.now().isoformat()] * 10,
+            "timestamp": [datetime.now(timezone.utc).isoformat()] * 10,
         }
     )
     df.to_csv(csv_path, index=False)

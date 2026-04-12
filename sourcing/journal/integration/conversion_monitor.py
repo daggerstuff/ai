@@ -5,11 +5,13 @@ Monitor conversion progress for journal research datasets.
 Tracks conversion status, progress, and provides status reporting.
 """
 
+from datetime import datetime, timezone
+
+
 import json
 import logging
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +38,7 @@ class ConversionMonitor:
         self.status_file.parent.mkdir(parents=True, exist_ok=True)
 
         # In-memory status tracking
-        self.conversion_status: Dict[str, Dict[str, Any]] = {}
+        self.conversion_status: dict[str, dict[str, Any]] = {}
 
         # Load existing status if available
         self._load_status()
@@ -62,7 +64,7 @@ class ConversionMonitor:
         except Exception as e:
             logger.error(f"Failed to save conversion status: {e}")
 
-    def start_conversion(self, source_id: str, metadata: Optional[Dict[str, Any]] = None) -> None:
+    def start_conversion(self, source_id: str, metadata: dict[str, Any] | None = None) -> None:
         """
         Mark conversion as started.
 
@@ -73,8 +75,8 @@ class ConversionMonitor:
         self.conversion_status[source_id] = {
             "source_id": source_id,
             "status": "in_progress",
-            "started_at": datetime.now().isoformat(),
-            "updated_at": datetime.now().isoformat(),
+            "started_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
             "metadata": metadata or {},
             "progress": 0.0,
         }
@@ -82,7 +84,7 @@ class ConversionMonitor:
         logger.debug(f"Started conversion tracking for {source_id}")
 
     def update_progress(
-        self, source_id: str, progress: float, message: Optional[str] = None
+        self, source_id: str, progress: float, message: str | None = None
     ) -> None:
         """
         Update conversion progress.
@@ -97,7 +99,7 @@ class ConversionMonitor:
 
         self.conversion_status[source_id].update({
             "progress": progress,
-            "updated_at": datetime.now().isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
         })
 
         if message:
@@ -107,7 +109,7 @@ class ConversionMonitor:
         logger.debug(f"Updated progress for {source_id}: {progress:.1%}")
 
     def complete_conversion(
-        self, source_id: str, result: Dict[str, Any]
+        self, source_id: str, result: dict[str, Any]
     ) -> None:
         """
         Mark conversion as completed.
@@ -122,8 +124,8 @@ class ConversionMonitor:
         self.conversion_status[source_id].update({
             "status": "completed" if result.get("success") else "failed",
             "progress": 1.0,
-            "completed_at": datetime.now().isoformat(),
-            "updated_at": datetime.now().isoformat(),
+            "completed_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
             "result": result,
         })
 
@@ -136,7 +138,7 @@ class ConversionMonitor:
             f"status={self.conversion_status[source_id]['status']}"
         )
 
-    def get_status(self, source_id: str) -> Optional[Dict[str, Any]]:
+    def get_status(self, source_id: str) -> dict[str, Any] | None:
         """
         Get conversion status for a dataset.
 
@@ -150,9 +152,9 @@ class ConversionMonitor:
 
     def list_conversions(
         self,
-        status_filter: Optional[str] = None,
-        limit: Optional[int] = None,
-    ) -> List[Dict[str, Any]]:
+        status_filter: str | None = None,
+        limit: int | None = None,
+    ) -> list[dict[str, Any]]:
         """
         List all conversions with optional filtering.
 
@@ -180,7 +182,7 @@ class ConversionMonitor:
 
         return conversions
 
-    def get_dashboard_data(self) -> Dict[str, Any]:
+    def get_dashboard_data(self) -> dict[str, Any]:
         """
         Get data for conversion dashboard.
 

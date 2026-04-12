@@ -11,7 +11,6 @@ Coordinates the full workflow:
 """
 
 import logging
-from typing import List, Optional
 
 from ai.sourcing.youtube.api import (
     ChannelAnalyzer,
@@ -38,9 +37,9 @@ class ChannelDiscoveryResults:
 
     def __init__(self):
         self.total_searched: int = 0
-        self.found_channels: List[Channel] = []
-        self.qualified_channels: List[Channel] = []
-        self.rejected_channels: List[Channel] = []
+        self.found_channels: list[Channel] = []
+        self.qualified_channels: list[Channel] = []
+        self.rejected_channels: list[Channel] = []
         self.time_elapsed_seconds: float = 0.0
 
         # Statistics
@@ -85,8 +84,8 @@ class ChannelProcessor:
     def __init__(
         self,
         api_key: str,
-        hunter_config: Optional[ChannelHunterConfig] = None,
-        quality_thresholds: Optional[ChannelQualityThresholds] = None,
+        hunter_config: ChannelHunterConfig | None = None,
+        quality_thresholds: ChannelQualityThresholds | None = None,
     ):
         self.api = YouTubeAPI(api_key)
         self.config = hunter_config or ChannelHunterConfig()
@@ -233,7 +232,6 @@ class ChannelProcessor:
         # - Analyzing audio quality
         # - Checking speech clarity
         # - Evaluating production values
-        pass
 
     def generate_report(self, results: ChannelDiscoveryResults) -> str:
         """

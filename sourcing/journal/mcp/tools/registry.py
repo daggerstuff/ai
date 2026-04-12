@@ -5,7 +5,6 @@ This module provides tool registration, discovery, and lookup functionality.
 """
 
 import logging
-from typing import Dict, List, Optional
 
 from ai.sourcing.journal.mcp.tools.base import MCPTool
 
@@ -17,7 +16,7 @@ class ToolRegistry:
 
     def __init__(self) -> None:
         """Initialize tool registry."""
-        self._tools: Dict[str, MCPTool] = {}
+        self._tools: dict[str, MCPTool] = {}
 
     def register(self, tool: MCPTool) -> None:
         """
@@ -46,7 +45,7 @@ class ToolRegistry:
             del self._tools[name]
             logger.info(f"Unregistered tool: {name}")
 
-    def get(self, name: str) -> Optional[MCPTool]:
+    def get(self, name: str) -> MCPTool | None:
         """
         Get tool by name.
 
@@ -58,7 +57,7 @@ class ToolRegistry:
         """
         return self._tools.get(name)
 
-    def list_tools(self) -> List[MCPTool]:
+    def list_tools(self) -> list[MCPTool]:
         """
         List all registered tools.
 
@@ -67,7 +66,7 @@ class ToolRegistry:
         """
         return list(self._tools.values())
 
-    def list_tool_names(self) -> List[str]:
+    def list_tool_names(self) -> list[str]:
         """
         List all registered tool names.
 
@@ -76,7 +75,7 @@ class ToolRegistry:
         """
         return list(self._tools.keys())
 
-    def get_tool_schemas(self) -> List[Dict[str, any]]:
+    def get_tool_schemas(self) -> list[dict[str, any]]:
         """
         Get tool schemas for all registered tools.
 

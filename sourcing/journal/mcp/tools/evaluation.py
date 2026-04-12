@@ -5,7 +5,7 @@ This module provides tools for evaluating dataset sources through the MCP protoc
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ai.sourcing.journal.api.services.command_handler_service import (
     CommandHandlerService,
@@ -48,7 +48,7 @@ class EvaluateSourcesTool(MCPTool):
             },
         )
 
-    async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute(self, params: dict[str, Any]) -> dict[str, Any]:
         """
         Execute evaluate_sources tool.
 
@@ -82,14 +82,14 @@ class EvaluateSourcesTool(MCPTool):
         except ValueError as e:
             raise MCPError(
                 MCPErrorCode.TOOL_VALIDATION_ERROR,
-                f"Invalid parameters: {str(e)}",
+                f"Invalid parameters: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
         except Exception as e:
             logger.exception(f"Error evaluating sources: {e}")
             raise MCPError(
                 MCPErrorCode.TOOL_EXECUTION_ERROR,
-                f"Failed to evaluate sources: {str(e)}",
+                f"Failed to evaluate sources: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
 
@@ -150,7 +150,7 @@ class GetEvaluationsTool(MCPTool):
             },
         )
 
-    async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute(self, params: dict[str, Any]) -> dict[str, Any]:
         """
         Execute get_evaluations tool.
 
@@ -192,20 +192,20 @@ class GetEvaluationsTool(MCPTool):
         except ValueError as e:
             raise MCPError(
                 MCPErrorCode.TOOL_VALIDATION_ERROR,
-                f"Invalid parameters: {str(e)}",
+                f"Invalid parameters: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
         except Exception as e:
             logger.exception(f"Error getting evaluations: {e}")
             raise MCPError(
                 MCPErrorCode.TOOL_EXECUTION_ERROR,
-                f"Failed to get evaluations: {str(e)}",
+                f"Failed to get evaluations: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
 
     def _apply_filters(
-        self, evaluations: List[DatasetEvaluation], filters: Dict[str, Any]
-    ) -> List[DatasetEvaluation]:
+        self, evaluations: list[DatasetEvaluation], filters: dict[str, Any]
+    ) -> list[DatasetEvaluation]:
         """Apply filters to evaluations list."""
         filtered = evaluations
 
@@ -223,23 +223,22 @@ class GetEvaluationsTool(MCPTool):
         return filtered
 
     def _apply_sorting(
-        self, evaluations: List[DatasetEvaluation], sort_by: str, sort_order: str
-    ) -> List[DatasetEvaluation]:
+        self, evaluations: list[DatasetEvaluation], sort_by: str, sort_order: str
+    ) -> list[DatasetEvaluation]:
         """Apply sorting to evaluations list."""
         reverse = sort_order == "desc"
 
         if sort_by == "overall_score":
             return sorted(evaluations, key=lambda e: e.overall_score, reverse=reverse)
-        elif sort_by == "evaluation_date":
+        if sort_by == "evaluation_date":
             return sorted(evaluations, key=lambda e: e.evaluation_date, reverse=reverse)
-        elif sort_by == "therapeutic_relevance":
+        if sort_by == "therapeutic_relevance":
             return sorted(
                 evaluations, key=lambda e: e.therapeutic_relevance, reverse=reverse
             )
-        else:
-            return evaluations
+        return evaluations
 
-    def _evaluation_to_dict(self, evaluation: DatasetEvaluation) -> Dict[str, Any]:
+    def _evaluation_to_dict(self, evaluation: DatasetEvaluation) -> dict[str, Any]:
         """Convert DatasetEvaluation to dictionary."""
         return {
             "evaluation_id": f"eval_{evaluation.source_id}",
@@ -296,7 +295,7 @@ class GetEvaluationTool(MCPTool):
             },
         )
 
-    async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute(self, params: dict[str, Any]) -> dict[str, Any]:
         """
         Execute get_evaluation tool.
 
@@ -324,18 +323,18 @@ class GetEvaluationTool(MCPTool):
         except ValueError as e:
             raise MCPError(
                 MCPErrorCode.TOOL_VALIDATION_ERROR,
-                f"Invalid parameters: {str(e)}",
+                f"Invalid parameters: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
         except Exception as e:
             logger.exception(f"Error getting evaluation: {e}")
             raise MCPError(
                 MCPErrorCode.TOOL_EXECUTION_ERROR,
-                f"Failed to get evaluation: {str(e)}",
+                f"Failed to get evaluation: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
 
-    def _evaluation_to_dict(self, evaluation: DatasetEvaluation) -> Dict[str, Any]:
+    def _evaluation_to_dict(self, evaluation: DatasetEvaluation) -> dict[str, Any]:
         """Convert DatasetEvaluation to dictionary."""
         return {
             "evaluation_id": f"eval_{evaluation.source_id}",
@@ -421,7 +420,7 @@ class UpdateEvaluationTool(MCPTool):
             },
         )
 
-    async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute(self, params: dict[str, Any]) -> dict[str, Any]:
         """
         Execute update_evaluation tool.
 
@@ -472,18 +471,18 @@ class UpdateEvaluationTool(MCPTool):
         except ValueError as e:
             raise MCPError(
                 MCPErrorCode.TOOL_VALIDATION_ERROR,
-                f"Invalid parameters: {str(e)}",
+                f"Invalid parameters: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
         except Exception as e:
             logger.exception(f"Error updating evaluation: {e}")
             raise MCPError(
                 MCPErrorCode.TOOL_EXECUTION_ERROR,
-                f"Failed to update evaluation: {str(e)}",
+                f"Failed to update evaluation: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
 
-    def _evaluation_to_dict(self, evaluation: DatasetEvaluation) -> Dict[str, Any]:
+    def _evaluation_to_dict(self, evaluation: DatasetEvaluation) -> dict[str, Any]:
         """Convert DatasetEvaluation to dictionary."""
         return {
             "evaluation_id": f"eval_{evaluation.source_id}",

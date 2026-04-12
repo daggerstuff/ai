@@ -6,7 +6,7 @@ This module provides the base MCPPrompt class that all MCP prompts must inherit 
 
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ class MCPPrompt(ABC):
         self,
         name: str,
         description: str,
-        arguments: Optional[List[Dict[str, Any]]] = None,
+        arguments: list[dict[str, Any]] | None = None,
     ) -> None:
         """
         Initialize MCP prompt.
@@ -33,7 +33,7 @@ class MCPPrompt(ABC):
         self.arguments = arguments or []
 
     @property
-    def prompt_schema(self) -> Dict[str, Any]:
+    def prompt_schema(self) -> dict[str, Any]:
         """
         Get prompt schema in MCP format.
 
@@ -47,7 +47,7 @@ class MCPPrompt(ABC):
         }
 
     @abstractmethod
-    def render(self, params: Optional[Dict[str, Any]] = None) -> str:
+    def render(self, params: dict[str, Any] | None = None) -> str:
         """
         Render prompt template with provided parameters.
 
@@ -60,9 +60,8 @@ class MCPPrompt(ABC):
         Raises:
             ValueError: If required parameters are missing
         """
-        pass
 
-    def validate_arguments(self, params: Optional[Dict[str, Any]] = None) -> None:
+    def validate_arguments(self, params: dict[str, Any] | None = None) -> None:
         """
         Validate prompt arguments against schema.
 
@@ -108,14 +107,14 @@ class MCPPrompt(ABC):
         except Exception as e:
             # Wrap unexpected errors
             raise ValidationError(
-                f"Prompt argument validation failed: {str(e)}",
+                f"Prompt argument validation failed: {e!s}",
                 value=params,
             ) from e
 
     def format_template(
         self,
         template: str,
-        params: Optional[Dict[str, Any]] = None,
+        params: dict[str, Any] | None = None,
     ) -> str:
         """
         Format template string with parameters.

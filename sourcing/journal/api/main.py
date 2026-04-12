@@ -7,7 +7,7 @@ and routing configuration.
 
 import logging
 from contextlib import asynccontextmanager
-from typing import Any, Dict
+from typing import Any
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -86,7 +86,7 @@ app.include_router(websocket_router)
 
 # Health check endpoint
 @app.get("/health")
-async def health_check() -> Dict[str, Any]:
+async def health_check() -> dict[str, Any]:
     """Health check endpoint."""
     return {
         "status": "healthy",
@@ -97,7 +97,7 @@ async def health_check() -> Dict[str, Any]:
 
 # Root endpoint
 @app.get("/")
-async def root() -> Dict[str, str]:
+async def root() -> dict[str, str]:
     """Root endpoint."""
     return {
         "message": "Journal Dataset Research API",

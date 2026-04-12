@@ -5,11 +5,11 @@ Implements search integration with NCBI E-utilities API for discovering
 therapeutic datasets from PubMed Central.
 """
 
+from datetime import datetime, timezone
+
+
 import logging
 import time
-from datetime import datetime
-from typing import List, Optional
-from urllib.parse import urlencode
 from xml.etree import ElementTree as ET
 
 import requests
@@ -36,7 +36,7 @@ class PubMedClient:
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         base_url: str = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils",
         search_limit: int = 100,
         rate_limit_delay: float = 0.34,  # NCBI recommends 3 requests/second max
@@ -58,8 +58,8 @@ class PubMedClient:
 
     def _build_search_query(
         self,
-        keywords: List[str],
-        mesh_terms: Optional[List[str]] = None,
+        keywords: list[str],
+        mesh_terms: list[str] | None = None,
         open_access_only: bool = True,
         has_data: bool = True,
     ) -> str:
@@ -118,12 +118,12 @@ class PubMedClient:
 
     def search(
         self,
-        keywords: List[str],
-        mesh_terms: Optional[List[str]] = None,
-        max_results: Optional[int] = None,
+        keywords: list[str],
+        mesh_terms: list[str] | None = None,
+        max_results: int | None = None,
         open_access_only: bool = True,
         has_data: bool = True,
-    ) -> List[DatasetSource]:
+    ) -> list[DatasetSource]:
         """
         Search PubMed Central for therapeutic datasets.
 
@@ -168,7 +168,7 @@ class PubMedClient:
             logger.error(f"Error searching PubMed: {e}", exc_info=True)
             return []
 
-    def _esearch(self, query: str, max_results: int) -> List[str]:
+    def _esearch(self, query: str, max_results: int) -> list[str]:
         """Execute ESearch to get article IDs."""
         self._rate_limit()
 
@@ -194,7 +194,7 @@ class PubMedClient:
 
         return []
 
-    def _efetch(self, article_ids: List[str]) -> List[DatasetSource]:
+    def _efetch(self, article_ids: list[str]) -> list[DatasetSource]:
         """Execute EFetch to get article details."""
         self._rate_limit()
 
@@ -214,7 +214,7 @@ class PubMedClient:
         response.raise_for_status()
         return self._parse_pubmed_xml(response.text)
 
-    def _parse_pubmed_xml(self, xml_content: str) -> List[DatasetSource]:
+    def _parse_pubmed_xml(self, xml_content: str) -> list[DatasetSource]:
         """Parse PubMed XML response and extract DatasetSource objects."""
         sources = []
 
@@ -242,7 +242,7 @@ class PubMedClient:
 
         return sources
 
-    def _parse_article(self, article: ET.Element) -> Optional[DatasetSource]:
+    def _parse_article(self, article: ET.Element) -> DatasetSource | None:
         """Parse a single article element into a DatasetSource."""
         try:
             # Extract title
@@ -317,7 +317,7 @@ class PubMedClient:
                 keywords=keywords,
                 open_access=True,  # PMC is open access
                 data_availability=data_availability,
-                discovery_date=datetime.now(),
+                discovery_date=datetime.now(timezone.utc),
                 discovery_method="pubmed_search",
             )
 
@@ -325,10 +325,10 @@ class PubMedClient:
             logger.warning(f"Error parsing article element: {e}")
             return None
 
-    def _parse_date(self, date_elem: Optional[ET.Element]) -> datetime:
+    def _parse_date(self, date_elem: ET.Element | None) -> datetime:
         """Parse publication date from XML element."""
         if date_elem is None:
-            return datetime.now()
+            return datetime.now(timezone.utc)
 
         try:
             year = date_elem.findtext("Year", "")
@@ -343,7 +343,7 @@ class PubMedClient:
         except (ValueError, AttributeError):
             pass
 
-        return datetime.now()
+        return datetime.now(timezone.utc)
 
     def _detect_data_availability(self, abstract: str, title: str) -> str:
         """Detect data availability from abstract and title."""

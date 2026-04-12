@@ -2,7 +2,7 @@ import json
 import logging
 import re
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -25,9 +25,9 @@ class TranscriptCorrector:
                 therapeutic terms.
         """
         self.config_path = Path(config_path)
-        self.terms: Dict[str, Any] = self._load_terminology()
+        self.terms: dict[str, Any] = self._load_terminology()
 
-    def _load_terminology(self) -> Dict[str, Any]:
+    def _load_terminology(self) -> dict[str, Any]:
         """Load therapeutic terminology from JSON config."""
         try:
             # Handle relative paths from project root if needed
@@ -127,7 +127,7 @@ class TranscriptCorrector:
 
         return text
 
-    def validate_term_coverage(self, text: str) -> Dict[str, float]:
+    def validate_term_coverage(self, text: str) -> dict[str, float]:
         """
         Calculate metrics on how well the transcript effectively uses domain
         terminology. Useful for validation pass.

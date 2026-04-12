@@ -254,9 +254,8 @@ def main():
     if passed == total:
         logger.info("\n🎉 All tests passed! Consolidation successful!")
         return 0
-    else:
-        logger.error(f"\n⚠️  {total - passed} test(s) failed")
-        return 1
+    logger.error(f"\n⚠️  {total - passed} test(s) failed")
+    return 1
 
 
 if __name__ == "__main__":

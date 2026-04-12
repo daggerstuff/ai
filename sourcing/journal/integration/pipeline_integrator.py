@@ -12,6 +12,8 @@ This module provides:
 - Quality checks for integrated data
 """
 
+from datetime import datetime, timezone
+
 import hashlib
 import json
 import logging
@@ -19,9 +21,7 @@ import os
 import re
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import pandas as pd
 
@@ -76,8 +76,8 @@ class ConversionResult:
     records_converted: int
     records_failed: int
     output_path: str
-    errors: List[str] = field(default_factory=list)
-    warnings: List[str] = field(default_factory=list)
+    errors: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
     conversion_time: float = 0.0
     timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -90,7 +90,7 @@ class ValidationResult:
     records_validated: int
     records_passed: int
     records_failed: int
-    errors: List[Dict[str, Any]] = field(default_factory=list)
+    errors: list[dict[str, Any]] = field(default_factory=list)
     validation_time: float = 0.0
     timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -104,8 +104,8 @@ class MergeResult:
     duplicates_removed: int
     conflicts_resolved: int
     output_path: str
-    errors: List[str] = field(default_factory=list)
-    warnings: List[str] = field(default_factory=list)
+    errors: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
     merge_time: float = 0.0
     timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -126,19 +126,19 @@ class QualityCheckResult:
     pii_detected: int = 0
     structure_issues: int = 0
     completeness_issues: int = 0
-    errors: List[Dict[str, Any]] = field(default_factory=list)
+    errors: list[dict[str, Any]] = field(default_factory=list)
     quality_score: float = 0.0
     check_time: float = 0.0
     timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     therapeutic_content_score: float = 0.0
-    pii_types: List[str] = field(default_factory=list)
+    pii_types: list[str] = field(default_factory=list)
     structure_valid: bool = True
 
 
 class PipelineFormatConverter:
     """Converts datasets to training pipeline format using IntegrationPlan."""
 
-    def __init__(self, pipeline_schema: Optional[Dict[str, Any]] = None):
+    def __init__(self, pipeline_schema: dict[str, Any] | None = None):
         """Initialize the format converter."""
         self.pipeline_schema = pipeline_schema or TRAINING_PIPELINE_SCHEMA
         logger.info("Initialized Pipeline Format Converter")
@@ -191,7 +191,7 @@ class PipelineFormatConverter:
                         warnings.append(f"Record {idx} skipped: conversion returned None")
                 except Exception as e:
                     records_failed += 1
-                    errors.append(f"Record {idx} conversion failed: {str(e)}")
+                    errors.append(f"Record {idx} conversion failed: {e!s}")
                     logger.warning(f"Failed to convert record {idx}: {e}")
 
             # Save converted dataset
@@ -219,7 +219,7 @@ class PipelineFormatConverter:
 
         except Exception as e:
             conversion_time = (datetime.now(timezone.utc) - start_time).total_seconds()
-            errors.append(f"Conversion failed: {str(e)}")
+            errors.append(f"Conversion failed: {e!s}")
             logger.error(f"Dataset conversion failed: {e}", exc_info=True)
 
             return ConversionResult(
@@ -235,20 +235,19 @@ class PipelineFormatConverter:
 
     def _load_dataset(
         self, file_path: str, dataset_format: str
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Load dataset from file based on format."""
         if dataset_format == "csv":
             df = pd.read_csv(file_path)
             return df.to_dict("records")
-        elif dataset_format == "json":
+        if dataset_format == "json":
             with open(file_path, encoding="utf-8") as f:
                 data = json.load(f)
                 if isinstance(data, list):
                     return data
-                elif isinstance(data, dict):
+                if isinstance(data, dict):
                     return [data]
-                else:
-                    raise ValueError(f"Unsupported JSON structure: {type(data)}")
+                raise ValueError(f"Unsupported JSON structure: {type(data)}")
         elif dataset_format == "jsonl":
             records = []
             with open(file_path, encoding="utf-8") as f:
@@ -265,31 +264,30 @@ class PipelineFormatConverter:
 
     def _convert_record(
         self,
-        record: Dict[str, Any],
+        record: dict[str, Any],
         integration_plan: IntegrationPlan,
         dataset: AcquiredDataset,
         target_format: str,
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Convert a single record using integration plan schema mapping."""
         try:
             if target_format == "chatml":
                 return self._convert_to_chatml(record, integration_plan, dataset)
-            elif target_format == "conversation_record":
+            if target_format == "conversation_record":
                 return self._convert_to_conversation_record(
                     record, integration_plan, dataset
                 )
-            else:
-                raise ValueError(f"Unsupported target format: {target_format}")
+            raise ValueError(f"Unsupported target format: {target_format}")
         except Exception as e:
             logger.warning(f"Record conversion failed: {e}")
             return None
 
     def _convert_to_chatml(
         self,
-        record: Dict[str, Any],
+        record: dict[str, Any],
         integration_plan: IntegrationPlan,
         dataset: AcquiredDataset,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Convert record to ChatML format."""
         # Generate ID if not present
         record_id = self._generate_id(record, dataset.source_id)
@@ -320,10 +318,10 @@ class PipelineFormatConverter:
 
     def _convert_to_conversation_record(
         self,
-        record: Dict[str, Any],
+        record: dict[str, Any],
         integration_plan: IntegrationPlan,
         dataset: AcquiredDataset,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Convert record to ConversationRecord format."""
         # Generate ID if not present
         record_id = self._generate_id(record, dataset.source_id)
@@ -350,8 +348,8 @@ class PipelineFormatConverter:
         return conversation_record
 
     def _extract_messages(
-        self, record: Dict[str, Any], schema_mapping: Dict[str, str]
-    ) -> List[Dict[str, str]]:
+        self, record: dict[str, Any], schema_mapping: dict[str, str]
+    ) -> list[dict[str, str]]:
         """Extract messages from record using schema mapping."""
         messages = []
 
@@ -429,8 +427,8 @@ class PipelineFormatConverter:
         return messages
 
     def _extract_turns(
-        self, record: Dict[str, Any], schema_mapping: Dict[str, str]
-    ) -> List[Dict[str, Any]]:
+        self, record: dict[str, Any], schema_mapping: dict[str, str]
+    ) -> list[dict[str, Any]]:
         """Extract turns from record using schema mapping."""
         turns = []
 
@@ -475,28 +473,26 @@ class PipelineFormatConverter:
         role_lower = role.lower()
         if role_lower in ["user", "client", "patient", "human"]:
             return "user"
-        elif role_lower in ["assistant", "therapist", "counselor", "ai", "bot"]:
+        if role_lower in ["assistant", "therapist", "counselor", "ai", "bot"]:
             return "assistant"
-        elif role_lower in ["system"]:
+        if role_lower in ["system"]:
             return "system"
-        else:
-            return "user"  # Default to user
+        return "user"  # Default to user
 
     def _normalize_speaker(self, speaker: str) -> str:
         """Normalize speaker ID to therapist/client."""
         speaker_lower = speaker.lower()
         if speaker_lower in ["therapist", "counselor", "assistant", "ai"]:
             return "therapist"
-        elif speaker_lower in ["client", "patient", "user", "human"]:
+        if speaker_lower in ["client", "patient", "user", "human"]:
             return "client"
-        else:
-            return speaker_lower  # Keep original if unclear
+        return speaker_lower  # Keep original if unclear
 
-    def _generate_id(self, record: Dict[str, Any], source_id: str) -> str:
+    def _generate_id(self, record: dict[str, Any], source_id: str) -> str:
         """Generate a stable ID for the record."""
         # Try to use existing ID
         for key in ["id", "record_id", "conversation_id"]:
-            if key in record and record[key]:
+            if record.get(key):
                 return str(record[key])
 
         # Generate UUID5 from content hash
@@ -507,7 +503,7 @@ class PipelineFormatConverter:
         return record_id
 
     def _save_converted_dataset(
-        self, records: List[Dict[str, Any]], output_path: str, target_format: str
+        self, records: list[dict[str, Any]], output_path: str, target_format: str
     ) -> None:
         """Save converted dataset to file."""
         if target_format == "chatml":
@@ -527,13 +523,13 @@ class PipelineFormatConverter:
 class PipelineSchemaValidator:
     """Validates datasets against training pipeline schema."""
 
-    def __init__(self, pipeline_schema: Optional[Dict[str, Any]] = None):
+    def __init__(self, pipeline_schema: dict[str, Any] | None = None):
         """Initialize the schema validator."""
         self.pipeline_schema = pipeline_schema or TRAINING_PIPELINE_SCHEMA
         logger.info("Initialized Pipeline Schema Validator")
 
     def validate_dataset(
-        self, dataset_path: str, target_format: str = "chatml", format: Optional[str] = None
+        self, dataset_path: str, target_format: str = "chatml", format: str | None = None
     ) -> ValidationResult:
         """
         Validate dataset against training pipeline schema.
@@ -615,7 +611,7 @@ class PipelineSchemaValidator:
                 datetime.now(timezone.utc) - start_time
             ).total_seconds()
             errors.append({
-                "error": f"Validation failed: {str(e)}",
+                "error": f"Validation failed: {e!s}",
             })
             logger.error(f"Dataset validation failed: {e}", exc_info=True)
 
@@ -629,7 +625,7 @@ class PipelineSchemaValidator:
                 timestamp=start_time,
             )
 
-    def _load_dataset(self, file_path: str) -> List[Dict[str, Any]]:
+    def _load_dataset(self, file_path: str) -> list[dict[str, Any]]:
         """Load dataset from JSONL file."""
         records = []
         with open(file_path, encoding="utf-8") as f:
@@ -639,7 +635,7 @@ class PipelineSchemaValidator:
                     records.append(json.loads(line))
         return records
 
-    def _validate_chatml_record(self, record: Dict[str, Any]) -> bool:
+    def _validate_chatml_record(self, record: dict[str, Any]) -> bool:
         """Validate a ChatML format record."""
         # Check required fields (source is optional for validation purposes)
         required_fields = ["messages", "id"]  # source is optional
@@ -681,7 +677,7 @@ class PipelineSchemaValidator:
 
         return True
 
-    def _validate_conversation_record(self, record: Dict[str, Any]) -> bool:
+    def _validate_conversation_record(self, record: dict[str, Any]) -> bool:
         """Validate a ConversationRecord format record."""
         # Check required fields
         required_fields = self.pipeline_schema["alternate_format"]["required_fields"]
@@ -723,12 +719,12 @@ class DatasetMerger:
 
     def merge_datasets(
         self,
-        new_dataset_path: Optional[str] = None,
-        existing_dataset_path: Optional[str] = None,
+        new_dataset_path: str | None = None,
+        existing_dataset_path: str | None = None,
         output_path: str = "",
         target_format: str = "chatml",
-        dataset1_path: Optional[str] = None,
-        dataset2_path: Optional[str] = None,
+        dataset1_path: str | None = None,
+        dataset2_path: str | None = None,
     ) -> MergeResult:
         """
         Merge new dataset with existing dataset and remove duplicates.
@@ -846,7 +842,7 @@ class DatasetMerger:
 
         except Exception as e:
             merge_time = (datetime.now(timezone.utc) - start_time).total_seconds()
-            errors.append(f"Merge failed: {str(e)}")
+            errors.append(f"Merge failed: {e!s}")
             logger.error(f"Dataset merge failed: {e}", exc_info=True)
 
             return MergeResult(
@@ -861,7 +857,7 @@ class DatasetMerger:
                 timestamp=start_time,
             )
 
-    def _load_dataset(self, file_path: str) -> List[Dict[str, Any]]:
+    def _load_dataset(self, file_path: str) -> list[dict[str, Any]]:
         """Load dataset from JSONL file."""
         records = []
         with open(file_path, encoding="utf-8") as f:
@@ -872,8 +868,8 @@ class DatasetMerger:
         return records
 
     def _create_content_hashes(
-        self, records: List[Dict[str, Any]], target_format: str
-    ) -> Dict[str, int]:
+        self, records: list[dict[str, Any]], target_format: str
+    ) -> dict[str, int]:
         """Create content hashes for deduplication."""
         hashes = {}
         for idx, record in enumerate(records):
@@ -884,7 +880,7 @@ class DatasetMerger:
         return hashes
 
     def _extract_content_for_hashing(
-        self, record: Dict[str, Any], target_format: str
+        self, record: dict[str, Any], target_format: str
     ) -> str:
         """Extract content from record for hashing."""
         if target_format == "chatml":
@@ -895,7 +891,7 @@ class DatasetMerger:
                 content = msg.get("content", "")
                 content_parts.append(f"{role}:{content}")
             return "|".join(content_parts)
-        elif target_format == "conversation_record":
+        if target_format == "conversation_record":
             turns = record.get("turns", [])
             content_parts = []
             for turn in turns:
@@ -903,16 +899,15 @@ class DatasetMerger:
                 content = turn.get("content", "")
                 content_parts.append(f"{speaker}:{content}")
             return "|".join(content_parts)
-        else:
-            # Fallback: use entire record as string
-            return json.dumps(record, sort_keys=True)
+        # Fallback: use entire record as string
+        return json.dumps(record, sort_keys=True)
 
     def _find_similar_records(
         self,
-        new_records: List[Dict[str, Any]],
-        existing_records: List[Dict[str, Any]],
+        new_records: list[dict[str, Any]],
+        existing_records: list[dict[str, Any]],
         target_format: str,
-    ) -> List[int]:
+    ) -> list[int]:
         """Find similar records using content similarity."""
         similar_indices = []
 
@@ -941,7 +936,7 @@ class DatasetMerger:
         return similar_indices
 
     def _resolve_conflicts(
-        self, records: List[Dict[str, Any]], target_format: str
+        self, records: list[dict[str, Any]], target_format: str
     ) -> int:
         """Resolve conflicts in merged dataset (e.g., duplicate IDs)."""
         conflicts_resolved = 0
@@ -959,7 +954,7 @@ class DatasetMerger:
         return conflicts_resolved
 
     def _save_merged_dataset(
-        self, records: List[Dict[str, Any]], output_path: str, target_format: str
+        self, records: list[dict[str, Any]], output_path: str, target_format: str
     ) -> None:
         """Save merged dataset to file."""
         with open(output_path, "w", encoding="utf-8") as f:
@@ -1027,7 +1022,7 @@ class DatasetMerger:
 
         except Exception as e:
             merge_time = (datetime.now(timezone.utc) - start_time).total_seconds()
-            errors.append(f"Deduplication failed: {str(e)}")
+            errors.append(f"Deduplication failed: {e!s}")
             logger.error(f"Dataset deduplication failed: {e}", exc_info=True)
 
             return MergeResult(
@@ -1138,7 +1133,7 @@ class QualityChecker:
         except Exception as e:
             check_time = (datetime.now(timezone.utc) - start_time).total_seconds()
             errors.append({
-                "error": f"Quality check failed: {str(e)}",
+                "error": f"Quality check failed: {e!s}",
             })
             logger.error(f"Quality check failed: {e}", exc_info=True)
 
@@ -1156,7 +1151,7 @@ class QualityChecker:
                 timestamp=start_time,
             )
 
-    def _load_dataset(self, file_path: str) -> List[Dict[str, Any]]:
+    def _load_dataset(self, file_path: str) -> list[dict[str, Any]]:
         """Load dataset from JSONL file."""
         records = []
         with open(file_path, encoding="utf-8") as f:
@@ -1166,7 +1161,7 @@ class QualityChecker:
                     records.append(json.loads(line))
         return records
 
-    def _check_pii(self, record: Dict[str, Any], target_format: str) -> bool:
+    def _check_pii(self, record: dict[str, Any], target_format: str) -> bool:
         """Check for PII in record."""
         # Basic PII patterns
         pii_patterns = [
@@ -1189,7 +1184,7 @@ class QualityChecker:
 
         return False
 
-    def _extract_text_content(self, record: Dict[str, Any], target_format: str) -> str:
+    def _extract_text_content(self, record: dict[str, Any], target_format: str) -> str:
         """Extract text content from record for PII checking."""
         text_parts = []
 
@@ -1206,7 +1201,7 @@ class QualityChecker:
 
         return " ".join(text_parts)
 
-    def _check_structure(self, record: Dict[str, Any], target_format: str) -> bool:
+    def _check_structure(self, record: dict[str, Any], target_format: str) -> bool:
         """Check record structure."""
         try:
             if target_format == "chatml":
@@ -1284,7 +1279,7 @@ class QualityChecker:
         result.passed = result.structure_valid
         return result
 
-    def _check_completeness(self, record: Dict[str, Any], target_format: str) -> bool:
+    def _check_completeness(self, record: dict[str, Any], target_format: str) -> bool:
         """Check record completeness."""
         try:
             if target_format == "chatml":

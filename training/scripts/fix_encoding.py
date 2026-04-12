@@ -4,6 +4,8 @@ Fix Encoding Issues - Detect and fix encoding problems in S3 datasets
 Converts files to UTF-8 encoding
 """
 
+from datetime import datetime, timezone
+
 import argparse
 import codecs
 import contextlib
@@ -13,7 +15,6 @@ import sys
 import tempfile
 import time
 from collections.abc import Iterator
-from datetime import datetime, timezone
 from io import BytesIO
 from pathlib import Path
 from typing import Any

@@ -5,7 +5,7 @@ import random
 from pathlib import Path
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 def extract_conversations(data):
     """Extract prompt/completion pairs from reddit data."""
@@ -59,8 +59,8 @@ def extract_conversations(data):
 def process_file(file_path):
     """Process a single JSON or JSONL file and yield message pairs."""
     try:
-        with open(file_path, encoding='utf-8') as f:
-            if str(file_path).endswith('.jsonl'):
+        with open(file_path, encoding="utf-8") as f:
+            if str(file_path).endswith(".jsonl"):
                 for line_num, line in enumerate(f, 1):
                     line = line.strip()
                     if not line:

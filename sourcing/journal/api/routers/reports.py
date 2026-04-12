@@ -4,7 +4,6 @@ Report API routes.
 This module provides endpoints for report generation.
 """
 
-from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -63,7 +62,7 @@ async def generate_report(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to generate report: {str(e)}",
+            detail=f"Failed to generate report: {e!s}",
         )
 
 
@@ -71,7 +70,7 @@ async def generate_report(
 async def list_reports(
     session_id: str,
     pagination: PaginationParams = Depends(),
-    current_user: Optional[dict] = Depends(get_current_user),
+    current_user: dict | None = Depends(get_current_user),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> ReportListResponse:
     """
@@ -116,7 +115,7 @@ async def list_reports(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to list reports: {str(e)}",
+            detail=f"Failed to list reports: {e!s}",
         )
 
 
@@ -124,7 +123,7 @@ async def list_reports(
 async def get_report(
     session_id: str,
     report_id: str,
-    current_user: Optional[dict] = Depends(get_current_user),
+    current_user: dict | None = Depends(get_current_user),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> ReportResponse:
     """
@@ -152,5 +151,5 @@ async def get_report(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get report: {str(e)}",
+            detail=f"Failed to get report: {e!s}",
         )

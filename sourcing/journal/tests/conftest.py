@@ -5,12 +5,13 @@ This module provides shared fixtures, mock objects, and test utilities
 for all test modules.
 """
 
+from datetime import datetime, timedelta, timezone
+
+
 import json
 import tempfile
-from datetime import datetime, timedelta
 from pathlib import Path
-from typing import List
-from unittest.mock import MagicMock, Mock
+from unittest.mock import Mock
 from uuid import uuid4
 
 import pandas as pd
@@ -48,7 +49,7 @@ def sample_dataset_source() -> DatasetSource:
         keywords=["therapy", "counseling", "mental health", "transcripts"],
         open_access=True,
         data_availability="available",
-        discovery_date=datetime.now(),
+        discovery_date=datetime.now(timezone.utc),
         discovery_method="pubmed_search",
     )
 
@@ -68,7 +69,7 @@ def high_quality_source() -> DatasetSource:
         keywords=["cbt", "cognitive behavioral therapy", "transcripts", "evidence-based"],
         open_access=True,
         data_availability="available",
-        discovery_date=datetime.now(),
+        discovery_date=datetime.now(timezone.utc),
         discovery_method="repository_api",
     )
 
@@ -88,13 +89,13 @@ def low_quality_source() -> DatasetSource:
         keywords=[],
         open_access=False,
         data_availability="unknown",
-        discovery_date=datetime.now(),
+        discovery_date=datetime.now(timezone.utc),
         discovery_method="citation",
     )
 
 
 @pytest.fixture
-def multiple_sources(sample_dataset_source, high_quality_source, low_quality_source) -> List[DatasetSource]:
+def multiple_sources(sample_dataset_source, high_quality_source, low_quality_source) -> list[DatasetSource]:
     """Create multiple dataset sources."""
     return [sample_dataset_source, high_quality_source, low_quality_source]
 
@@ -118,7 +119,7 @@ def sample_evaluation(sample_dataset_source) -> DatasetEvaluation:
         ethical_notes="Open access and fully anonymized",
         overall_score=8.0,
         priority_tier="high",
-        evaluation_date=datetime.now(),
+        evaluation_date=datetime.now(timezone.utc),
         evaluator="system",
         competitive_advantages=["Contains therapy transcripts", "Evidence-based"],
         compliance_checked=True,
@@ -141,7 +142,7 @@ def high_score_evaluation(high_quality_source) -> DatasetEvaluation:
         ethical_accessibility=9,
         overall_score=9.0,
         priority_tier="high",
-        evaluation_date=datetime.now(),
+        evaluation_date=datetime.now(timezone.utc),
         evaluator="system",
     )
 
@@ -157,7 +158,7 @@ def low_score_evaluation(low_quality_source) -> DatasetEvaluation:
         ethical_accessibility=5,
         overall_score=3.5,
         priority_tier="low",
-        evaluation_date=datetime.now(),
+        evaluation_date=datetime.now(timezone.utc),
         evaluator="system",
     )
 
@@ -172,12 +173,12 @@ def sample_access_request(sample_dataset_source) -> AccessRequest:
     return AccessRequest(
         source_id=sample_dataset_source.source_id,
         access_method="direct",
-        request_date=datetime.now(),
+        request_date=datetime.now(timezone.utc),
         status="pending",
         access_url=sample_dataset_source.url,
         credentials_required=False,
         institutional_affiliation_required=False,
-        estimated_access_date=datetime.now() + timedelta(hours=1),
+        estimated_access_date=datetime.now(timezone.utc) + timedelta(hours=1),
         notes="Direct download available",
     )
 
@@ -188,7 +189,7 @@ def approved_access_request(sample_dataset_source) -> AccessRequest:
     return AccessRequest(
         source_id=sample_dataset_source.source_id,
         access_method="direct",
-        request_date=datetime.now() - timedelta(days=1),
+        request_date=datetime.now(timezone.utc) - timedelta(days=1),
         status="approved",
         access_url=sample_dataset_source.url,
     )
@@ -207,7 +208,7 @@ def sample_acquired_dataset(sample_dataset_source, tmp_path) -> AcquiredDataset:
 
     return AcquiredDataset(
         source_id=sample_dataset_source.source_id,
-        acquisition_date=datetime.now(),
+        acquisition_date=datetime.now(timezone.utc),
         storage_path=str(test_file),
         file_format="zip",
         file_size_mb=0.001,
@@ -249,7 +250,7 @@ def sample_integration_plan(sample_dataset_source) -> IntegrationPlan:
         estimated_effort_hours=4,
         dependencies=[],
         integration_priority=1,
-        created_date=datetime.now(),
+        created_date=datetime.now(timezone.utc),
     )
 
 
@@ -262,7 +263,7 @@ def sample_research_session() -> ResearchSession:
     """Create a sample research session."""
     return ResearchSession(
         session_id=str(uuid4()),
-        start_date=datetime.now(),
+        start_date=datetime.now(timezone.utc),
         target_sources=["pubmed", "zenodo", "dryad"],
         search_keywords={
             "therapy": ["cbt", "dbt", "act"],
@@ -290,7 +291,7 @@ def sample_csv_dataset(tmp_path) -> Path:
         "id": [f"id_{i}" for i in range(10)],
         "message": [f"Message {i}" for i in range(10)],
         "role": ["user", "assistant"] * 5,
-        "timestamp": [datetime.now().isoformat()] * 10,
+        "timestamp": [datetime.now(timezone.utc).isoformat()] * 10,
     })
     df.to_csv(csv_path, index=False)
     return csv_path

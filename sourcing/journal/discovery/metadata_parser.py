@@ -5,9 +5,11 @@ Parses and normalizes metadata from different source formats into
 unified DatasetSource objects.
 """
 
+from datetime import datetime, timezone
+
+
 import logging
-from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ai.sourcing.journal.models.dataset_models import DatasetSource
 
@@ -19,10 +21,10 @@ class MetadataParser:
 
     def parse(
         self,
-        raw_data: Dict[str, Any],
+        raw_data: dict[str, Any],
         source_type: str,
         discovery_method: str,
-    ) -> Optional[DatasetSource]:
+    ) -> DatasetSource | None:
         """
         Parse raw metadata into a DatasetSource.
 
@@ -65,7 +67,7 @@ class MetadataParser:
                 keywords=keywords,
                 open_access=open_access,
                 data_availability=data_availability,
-                discovery_date=datetime.now(),
+                discovery_date=datetime.now(timezone.utc),
                 discovery_method=discovery_method,
             )
 
@@ -73,7 +75,7 @@ class MetadataParser:
             logger.warning(f"Error parsing metadata: {e}")
             return None
 
-    def _extract_title(self, data: Dict[str, Any]) -> str:
+    def _extract_title(self, data: dict[str, Any]) -> str:
         """Extract title from metadata."""
         # Try common title fields
         for field in ["title", "Title", "name", "Name", "briefTitle"]:
@@ -81,7 +83,7 @@ class MetadataParser:
                 value = data[field]
                 if isinstance(value, str):
                     return value
-                elif isinstance(value, list) and value:
+                if isinstance(value, list) and value:
                     return str(value[0])
 
         # Try nested structures
@@ -92,7 +94,7 @@ class MetadataParser:
 
         return "Untitled"
 
-    def _extract_authors(self, data: Dict[str, Any]) -> List[str]:
+    def _extract_authors(self, data: dict[str, Any]) -> list[str]:
         """Extract authors from metadata."""
         authors = []
 
@@ -124,7 +126,7 @@ class MetadataParser:
 
         return list(dict.fromkeys(authors))  # Remove duplicates while preserving order
 
-    def _extract_date(self, data: Dict[str, Any]) -> datetime:
+    def _extract_date(self, data: dict[str, Any]) -> datetime:
         """Extract publication date from metadata."""
         # Try common date fields
         for field in [
@@ -143,10 +145,10 @@ class MetadataParser:
                     if isinstance(date_value, str):
                         # Try ISO format
                         return datetime.fromisoformat(date_value.replace("Z", "+00:00"))
-                    elif isinstance(date_value, (int, float)):
+                    if isinstance(date_value, (int, float)):
                         # Assume it's a year
                         return datetime(int(date_value), 1, 1)
-                    elif isinstance(date_value, dict):
+                    if isinstance(date_value, dict):
                         # Try to extract year, month, day
                         year = date_value.get("year") or date_value.get("Year")
                         month = date_value.get("month") or date_value.get("Month", 1)
@@ -159,19 +161,19 @@ class MetadataParser:
         # Try nested structures
         if "metadata" in data:
             date = self._extract_date(data["metadata"])
-            if date != datetime.now():
+            if date != datetime.now(timezone.utc):
                 return date
 
-        return datetime.now()
+        return datetime.now(timezone.utc)
 
-    def _extract_doi(self, data: Dict[str, Any]) -> Optional[str]:
+    def _extract_doi(self, data: dict[str, Any]) -> str | None:
         """Extract DOI from metadata."""
         # Try common DOI fields
         if "doi" in data:
             doi = data["doi"]
             if isinstance(doi, str):
                 return doi
-            elif isinstance(doi, dict):
+            if isinstance(doi, dict):
                 return doi.get("id") or doi.get("value")
 
         # Try identifier lists
@@ -194,7 +196,7 @@ class MetadataParser:
 
         return None
 
-    def _extract_url(self, data: Dict[str, Any]) -> str:
+    def _extract_url(self, data: dict[str, Any]) -> str:
         """Extract URL from metadata."""
         # Try common URL fields
         for field in ["url", "URL", "link", "Link", "html", "self"]:
@@ -202,7 +204,7 @@ class MetadataParser:
                 url = data[field]
                 if isinstance(url, str):
                     return url
-                elif isinstance(url, dict):
+                if isinstance(url, dict):
                     return url.get("url") or url.get("href") or url.get("value")
 
         # Try link lists
@@ -226,7 +228,7 @@ class MetadataParser:
 
         return "https://example.com"
 
-    def _extract_abstract(self, data: Dict[str, Any]) -> str:
+    def _extract_abstract(self, data: dict[str, Any]) -> str:
         """Extract abstract/description from metadata."""
         # Try common abstract fields
         for field in [
@@ -242,7 +244,7 @@ class MetadataParser:
                 abstract = data[field]
                 if isinstance(abstract, str):
                     return abstract
-                elif isinstance(abstract, list) and abstract:
+                if isinstance(abstract, list) and abstract:
                     return str(abstract[0])
 
         # Try nested structures
@@ -253,7 +255,7 @@ class MetadataParser:
 
         return ""
 
-    def _extract_keywords(self, data: Dict[str, Any]) -> List[str]:
+    def _extract_keywords(self, data: dict[str, Any]) -> list[str]:
         """Extract keywords from metadata."""
         keywords = []
 
@@ -278,7 +280,7 @@ class MetadataParser:
 
         return list(dict.fromkeys(keywords))  # Remove duplicates
 
-    def _detect_data_availability(self, data: Dict[str, Any], abstract: str, title: str) -> str:
+    def _detect_data_availability(self, data: dict[str, Any], abstract: str, title: str) -> str:
         """Detect data availability from metadata and text."""
         text = (abstract + " " + title).lower()
 
@@ -289,9 +291,9 @@ class MetadataParser:
                 availability_lower = availability.lower()
                 if "available" in availability_lower:
                     return "available"
-                elif "upon request" in availability_lower or "upon_request" in availability_lower:
+                if "upon request" in availability_lower or "upon_request" in availability_lower:
                     return "upon_request"
-                elif "restricted" in availability_lower:
+                if "restricted" in availability_lower:
                     return "restricted"
 
         # Check text for indicators
@@ -331,7 +333,7 @@ class MetadataParser:
 
         return "unknown"
 
-    def _detect_open_access(self, data: Dict[str, Any], source_type: str) -> bool:
+    def _detect_open_access(self, data: dict[str, Any], source_type: str) -> bool:
         """Detect if source is open access."""
         # Check explicit field
         if "openAccess" in data or "open_access" in data:
@@ -352,7 +354,7 @@ class MetadataParser:
         return False
 
     def _generate_source_id(
-        self, data: Dict[str, Any], source_type: str, doi: Optional[str], title: str
+        self, data: dict[str, Any], source_type: str, doi: str | None, title: str
     ) -> str:
         """Generate a unique source ID."""
         # Try to use existing ID

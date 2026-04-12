@@ -9,7 +9,7 @@ import json
 import logging
 from contextvars import ContextVar
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 # Setup logger before used by registry loader
 logger = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ except (FileNotFoundError, json.JSONDecodeError, TypeError) as e:
 
 
 # Cache for loaded resources
-_resource_cache: ContextVar[Dict[str, Any]] = ContextVar("resource_cache", default={})
+_resource_cache: ContextVar[dict[str, Any]] = ContextVar("resource_cache", default={})
 
 
 def _load_resource(resource_type: str, resource_name: str) -> Any:
@@ -42,18 +42,16 @@ def _load_resource(resource_type: str, resource_name: str) -> Any:
             cache[resource_key] = resource_data
             _resource_cache.set(cache)
             return resource_data
-        else:
-            # Return default resource if not found
-            default_resource = {
-                "name": f"default_{resource_name}",
-                "type": resource_type,
-            }
-            cache[resource_key] = default_resource
-            _resource_cache.set(cache)
-            return default_resource
-    else:
-        print(f"  USING CACHED {resource_type.upper()}: {resource_name}")
-        return cache[resource_key]
+        # Return default resource if not found
+        default_resource = {
+            "name": f"default_{resource_name}",
+            "type": resource_type,
+        }
+        cache[resource_key] = default_resource
+        _resource_cache.set(cache)
+        return default_resource
+    print(f"  USING CACHED {resource_type.upper()}: {resource_name}")
+    return cache[resource_key]
 
 
 class LazyResourceProxy:

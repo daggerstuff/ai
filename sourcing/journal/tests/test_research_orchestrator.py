@@ -2,8 +2,10 @@
 Unit tests for the Research Orchestrator.
 """
 
-from datetime import datetime, timedelta
-from typing import Callable, List, Optional
+from datetime import datetime, timedelta, timezone
+
+
+from collections.abc import Callable
 
 import pytest
 
@@ -35,7 +37,7 @@ def _create_dataset_source(source_id: str, **overrides) -> DatasetSource:
         "keywords": ["therapy", "conversation"],
         "open_access": True,
         "data_availability": "available",
-        "discovery_date": datetime.now(),
+        "discovery_date": datetime.now(timezone.utc),
         "discovery_method": "repository_api",
     }
     defaults.update(overrides)
@@ -45,7 +47,7 @@ def _create_dataset_source(source_id: str, **overrides) -> DatasetSource:
 class FakeDiscoveryService:
     """Simple discovery service returning predefined sources."""
 
-    def __init__(self, sources: List[DatasetSource]):
+    def __init__(self, sources: list[DatasetSource]):
         self.sources = sources
         self.invocations = 0
 
@@ -57,7 +59,7 @@ class FakeDiscoveryService:
 class FlakyDiscoveryService(FakeDiscoveryService):
     """Discovery service that fails on first attempt to test retries."""
 
-    def __init__(self, sources: List[DatasetSource], failures: int = 1):
+    def __init__(self, sources: list[DatasetSource], failures: int = 1):
         super().__init__(sources)
         self.failures = failures
 
@@ -87,7 +89,7 @@ class FakeEvaluationEngine:
             ethical_notes="Open access and anonymized",
             overall_score=self.score,
             priority_tier="high",
-            evaluation_date=datetime.now(),
+            evaluation_date=datetime.now(timezone.utc),
             evaluator=evaluator,
             competitive_advantages=["Contains therapy transcripts"],
         )
@@ -105,25 +107,25 @@ class FakeAcquisitionManager:
         return AccessRequest(
             source_id=source.source_id,
             access_method=access_method or "direct",
-            request_date=datetime.now(),
+            request_date=datetime.now(timezone.utc),
             status="pending",
             access_url=source.url,
             credentials_required=False,
             institutional_affiliation_required=False,
-            estimated_access_date=datetime.now() + timedelta(hours=1),
+            estimated_access_date=datetime.now(timezone.utc) + timedelta(hours=1),
             notes=notes,
         )
 
     def download_dataset(
         self,
         source: DatasetSource,
-        access_request: Optional[AccessRequest] = None,
-        progress_callback: Optional[Callable[[DownloadProgress], None]] = None,
+        access_request: AccessRequest | None = None,
+        progress_callback: Callable[[DownloadProgress], None] | None = None,
     ):
         self.downloads += 1
         return AcquiredDataset(
             source_id=source.source_id,
-            acquisition_date=datetime.now(),
+            acquisition_date=datetime.now(timezone.utc),
             storage_path=f"/tmp/{source.source_id}.zip",
             file_format="zip",
             file_size_mb=25.0,

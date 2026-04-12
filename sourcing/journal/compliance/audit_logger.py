@@ -5,15 +5,16 @@ Implements comprehensive audit logging for all dataset access, modifications, an
 compliance-related activities. Provides tamper-proof log storage with encryption.
 """
 
+from datetime import datetime, timezone
+
+
 import hashlib
 import json
 import logging
 import os
 from dataclasses import dataclass
-from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -43,23 +44,23 @@ class AuditLogEntry:
 
     timestamp: datetime
     event_type: AuditEventType
-    source_id: Optional[str] = None
-    user_id: Optional[str] = None
+    source_id: str | None = None
+    user_id: str | None = None
     action: str = ""
 
-    details: Dict = None
+    details: dict = None
     outcome: str = ""
-    ip_address: Optional[str] = None
-    user_agent: Optional[str] = None
-    previous_hash: Optional[str] = None
-    entry_hash: Optional[str] = None
+    ip_address: str | None = None
+    user_agent: str | None = None
+    previous_hash: str | None = None
+    entry_hash: str | None = None
 
     def __post_init__(self):
         """Initialize default values."""
         if self.details is None:
             self.details = {}
         if self.timestamp is None:
-            self.timestamp = datetime.now()
+            self.timestamp = datetime.now(timezone.utc)
 
 
 class AuditLogger:
@@ -71,7 +72,7 @@ class AuditLogger:
 
     def __init__(
         self,
-        log_directory: Optional[str] = None,
+        log_directory: str | None = None,
         enable_encryption: bool = True,
         enable_hash_chain: bool = True,
     ):
@@ -90,7 +91,7 @@ class AuditLogger:
 
         self.enable_encryption = enable_encryption
         self.enable_hash_chain = enable_hash_chain
-        self.last_hash: Optional[str] = None
+        self.last_hash: str | None = None
 
         # Log file path
         self.log_file = self.log_directory / "audit.log"
@@ -105,13 +106,13 @@ class AuditLogger:
     def log_event(
         self,
         event_type: AuditEventType,
-        source_id: Optional[str] = None,
-        user_id: Optional[str] = None,
+        source_id: str | None = None,
+        user_id: str | None = None,
         action: str = "",
-        details: Optional[Dict] = None,
+        details: dict | None = None,
         outcome: str = "",
-        ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None,
+        ip_address: str | None = None,
+        user_agent: str | None = None,
     ) -> AuditLogEntry:
         """
         Log an audit event.
@@ -130,7 +131,7 @@ class AuditLogger:
             AuditLogEntry that was created and logged
         """
         entry = AuditLogEntry(
-            timestamp=datetime.now(),
+            timestamp=datetime.now(timezone.utc),
             event_type=event_type,
             source_id=source_id,
             user_id=user_id,
@@ -161,7 +162,7 @@ class AuditLogger:
     def log_dataset_access(
         self,
         source_id: str,
-        user_id: Optional[str] = None,
+        user_id: str | None = None,
         action: str = "access",
         outcome: str = "success",
         **kwargs,
@@ -179,7 +180,7 @@ class AuditLogger:
     def log_dataset_download(
         self,
         source_id: str,
-        user_id: Optional[str] = None,
+        user_id: str | None = None,
         outcome: str = "success",
         **kwargs,
     ) -> AuditLogEntry:
@@ -198,7 +199,7 @@ class AuditLogger:
         source_id: str,
         check_type: str,
         outcome: str,
-        details: Optional[Dict] = None,
+        details: dict | None = None,
         **kwargs,
     ) -> AuditLogEntry:
         """Log compliance check event."""
@@ -221,13 +222,13 @@ class AuditLogger:
 
     def query_logs(
         self,
-        source_id: Optional[str] = None,
-        event_type: Optional[AuditEventType] = None,
-        user_id: Optional[str] = None,
-        start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None,
+        source_id: str | None = None,
+        event_type: AuditEventType | None = None,
+        user_id: str | None = None,
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
         limit: int = 100,
-    ) -> List[AuditLogEntry]:
+    ) -> list[AuditLogEntry]:
         """
         Query audit logs with filters.
 
@@ -283,7 +284,7 @@ class AuditLogger:
 
         return entries
 
-    def verify_log_integrity(self) -> Dict[str, bool]:
+    def verify_log_integrity(self) -> dict[str, bool]:
         """
         Verify integrity of audit log using hash chain.
 
@@ -380,7 +381,7 @@ class AuditLogger:
         except Exception as e:
             logger.error(f"Error writing audit log entry: {e}")
 
-    def _serialize_entry(self, entry: AuditLogEntry) -> Dict:
+    def _serialize_entry(self, entry: AuditLogEntry) -> dict:
         """Serialize audit log entry to dictionary."""
         return {
             "timestamp": entry.timestamp.isoformat(),
@@ -396,7 +397,7 @@ class AuditLogger:
             "entry_hash": entry.entry_hash,
         }
 
-    def _deserialize_entry(self, entry_data: Dict) -> AuditLogEntry:
+    def _deserialize_entry(self, entry_data: dict) -> AuditLogEntry:
         """Deserialize dictionary to audit log entry."""
         return AuditLogEntry(
             timestamp=datetime.fromisoformat(entry_data["timestamp"]),

@@ -4,7 +4,6 @@ Discovery API routes.
 This module provides endpoints for source discovery operations.
 """
 
-from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -82,7 +81,7 @@ async def initiate_discovery(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to initiate discovery: {str(e)}",
+            detail=f"Failed to initiate discovery: {e!s}",
         )
 
 
@@ -90,7 +89,7 @@ async def initiate_discovery(
 async def list_sources(
     session_id: str,
     pagination: PaginationParams = Depends(),
-    current_user: Optional[dict] = Depends(get_current_user),
+    current_user: dict | None = Depends(get_current_user),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> SourceListResponse:
     """
@@ -141,7 +140,7 @@ async def list_sources(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to list sources: {str(e)}",
+            detail=f"Failed to list sources: {e!s}",
         )
 
 
@@ -149,7 +148,7 @@ async def list_sources(
 async def get_source(
     session_id: str,
     source_id: str,
-    current_user: Optional[dict] = Depends(get_current_user),
+    current_user: dict | None = Depends(get_current_user),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> SourceResponse:
     """
@@ -183,5 +182,5 @@ async def get_source(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get source: {str(e)}",
+            detail=f"Failed to get source: {e!s}",
         )

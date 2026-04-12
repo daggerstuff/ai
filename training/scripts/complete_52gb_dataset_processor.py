@@ -4,6 +4,8 @@ Complete 52.20GB Dataset Processor
 Merges all source datasets and applies comprehensive cleaning
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import re
@@ -11,7 +13,6 @@ import hashlib
 import sys
 from pathlib import Path
 from typing import Dict, Any, List, Generator, Tuple, Optional
-from datetime import datetime
 import csv
 import os
 
@@ -57,7 +58,7 @@ class DatasetMerger:
                         "metadata": {
                             "source_file": str(csv_path),
                             "source_type": "csv",
-                            "converted_at": datetime.now().isoformat(),
+                            "converted_at": datetime.now(timezone.utc).isoformat(),
                         },
                     }
                     self.conversation_count += 1
@@ -107,7 +108,7 @@ class DatasetMerger:
                         "metadata": {
                             "source_file": str(source_path),
                             "source_type": "json",
-                            "converted_at": datetime.now().isoformat(),
+                            "converted_at": datetime.now(timezone.utc).isoformat(),
                             "original_format": "json",
                         },
                     }
@@ -313,7 +314,7 @@ class StreamingPIICleaner:
         metadata = cleaned.get("metadata", {})
         metadata["pii_cleaned"] = bool(pii_found)
         metadata["pii_stats"] = pii_found
-        metadata["cleaned_at"] = datetime.now().isoformat()
+        metadata["cleaned_at"] = datetime.now(timezone.utc).isoformat()
         cleaned["metadata"] = metadata
 
         self.stats["total_conversations"] += 1
@@ -370,7 +371,7 @@ class CompleteDatasetProcessor:
         self.deduplicator = DeduplicationEngine()
 
         self.processing_stats = {
-            "start_time": datetime.now(),
+            "start_time": datetime.now(timezone.utc),
             "files_processed": 0,
             "conversations_total": 0,
             "conversations_cleaned": 0,
@@ -527,7 +528,7 @@ class CompleteDatasetProcessor:
                     logger.warning(f"Skipping invalid JSON on line {line_num}: {e}")
 
         # Final statistics
-        self.processing_stats["end_time"] = datetime.now()
+        self.processing_stats["end_time"] = datetime.now(timezone.utc)
         self.processing_stats["duration"] = str(
             self.processing_stats["end_time"] - self.processing_stats["start_time"]
         )

@@ -4,12 +4,13 @@ Remove Duplicates - Deduplicate datasets based on full scan results
 Removes duplicate entries while preserving one canonical copy
 """
 
+from datetime import datetime, timezone
+
 import json
 import sys
 from pathlib import Path
 from typing import Dict, List, Any, Tuple, TypedDict, Set, DefaultDict, Optional
 from collections import defaultdict
-from datetime import datetime
 
 # Add project root to path
 script_path = Path(__file__).resolve()
@@ -419,7 +420,7 @@ def main() -> None:
     results_path = project_root / "ai/training_ready/data/deduplication_results.json"
     with open(results_path, 'w') as f:
         json.dump({
-            'timestamp': datetime.now().isoformat(),
+            'timestamp': datetime.now(timezone.utc).isoformat(),
             'dry_run': args.dry_run,
             'keep_strategy': args.keep_strategy,
             'category_filter': args.category,

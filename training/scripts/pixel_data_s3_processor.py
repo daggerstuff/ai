@@ -3,10 +3,11 @@
 Pixel-Data S3 Processor - Uses actual S3 endpoint for 60GB dataset
 """
 
+from datetime import datetime, timezone
+
 import json
 import os
 import subprocess
-from datetime import datetime
 from pathlib import Path
 
 
@@ -95,7 +96,7 @@ def discover_pixel_data():
                             total_size += size_bytes
 
             report = {
-                "timestamp": datetime.now().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "bucket": bucket,
                 "endpoint": endpoint,
                 "total_files": len(files),

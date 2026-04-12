@@ -5,11 +5,12 @@ Provides functionality to export dataset catalogs in multiple formats
 (markdown, CSV, JSON) with statistics and summaries.
 """
 
+from datetime import datetime, timezone
+
+
 import csv
 import json
-from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional
 
 from ai.sourcing.journal.models.dataset_models import (
     AcquiredDataset,
@@ -29,10 +30,10 @@ class DatasetCatalog:
 
     def __init__(self):
         """Initialize the dataset catalog."""
-        self.sources: List[DatasetSource] = []
-        self.evaluations: List[DatasetEvaluation] = []
-        self.acquired_datasets: List[AcquiredDataset] = []
-        self.integration_plans: List[IntegrationPlan] = []
+        self.sources: list[DatasetSource] = []
+        self.evaluations: list[DatasetEvaluation] = []
+        self.acquired_datasets: list[AcquiredDataset] = []
+        self.integration_plans: list[IntegrationPlan] = []
 
     def add_source(self, source: DatasetSource) -> None:
         """Add a dataset source to the catalog."""
@@ -60,7 +61,7 @@ class DatasetCatalog:
         lines = [
             "# Dataset Catalog",
             "",
-            f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            f"Generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}",
             "",
             "## Summary Statistics",
             "",
@@ -213,7 +214,7 @@ class DatasetCatalog:
             output_path: Path to write the JSON catalog
         """
         catalog_data = {
-            "generated": datetime.now().isoformat(),
+            "generated": datetime.now(timezone.utc).isoformat(),
             "statistics": self.get_statistics(),
             "sources": [self._source_to_dict(source) for source in self.sources],
             "evaluations": [
@@ -231,7 +232,7 @@ class DatasetCatalog:
             json.dumps(catalog_data, indent=2, default=str), encoding="utf-8"
         )
 
-    def get_statistics(self) -> Dict[str, any]:
+    def get_statistics(self) -> dict[str, any]:
         """
         Get catalog statistics.
 
@@ -247,7 +248,7 @@ class DatasetCatalog:
         }
 
         # Source type breakdown
-        source_types: Dict[str, int] = {}
+        source_types: dict[str, int] = {}
         for source in self.sources:
             source_types[source.source_type] = (
                 source_types.get(source.source_type, 0) + 1
@@ -255,7 +256,7 @@ class DatasetCatalog:
         stats["sources_by_type"] = source_types
 
         # Data availability breakdown
-        availability_counts: Dict[str, int] = {}
+        availability_counts: dict[str, int] = {}
         for source in self.sources:
             availability_counts[source.data_availability] = (
                 availability_counts.get(source.data_availability, 0) + 1
@@ -272,7 +273,7 @@ class DatasetCatalog:
             }
 
             # Priority tier breakdown
-            priority_counts: Dict[str, int] = {}
+            priority_counts: dict[str, int] = {}
             for eval in self.evaluations:
                 priority_counts[eval.priority_tier] = (
                     priority_counts.get(eval.priority_tier, 0) + 1
@@ -293,7 +294,7 @@ class DatasetCatalog:
 
         return stats
 
-    def _format_statistics_markdown(self, stats: Dict[str, any]) -> List[str]:
+    def _format_statistics_markdown(self, stats: dict[str, any]) -> list[str]:
         """Format statistics as markdown."""
         lines = [
             f"- **Total Sources**: {stats['total_sources']}",
@@ -324,7 +325,7 @@ class DatasetCatalog:
 
         return lines
 
-    def _format_source_markdown(self, source: DatasetSource) -> List[str]:
+    def _format_source_markdown(self, source: DatasetSource) -> list[str]:
         """Format a source as markdown."""
         lines = [
             f"### {source.title}",
@@ -355,7 +356,7 @@ class DatasetCatalog:
 
         return lines
 
-    def _format_evaluation_markdown(self, evaluation: DatasetEvaluation) -> List[str]:
+    def _format_evaluation_markdown(self, evaluation: DatasetEvaluation) -> list[str]:
         """Format an evaluation as markdown."""
         lines = [
             f"### Evaluation: {evaluation.source_id}",
@@ -373,7 +374,7 @@ class DatasetCatalog:
 
         return lines
 
-    def _format_acquired_dataset_markdown(self, dataset: AcquiredDataset) -> List[str]:
+    def _format_acquired_dataset_markdown(self, dataset: AcquiredDataset) -> list[str]:
         """Format an acquired dataset as markdown."""
         lines = [
             f"### Acquired Dataset: {dataset.source_id}",
@@ -391,7 +392,7 @@ class DatasetCatalog:
 
         return lines
 
-    def _format_integration_plan_markdown(self, plan: IntegrationPlan) -> List[str]:
+    def _format_integration_plan_markdown(self, plan: IntegrationPlan) -> list[str]:
         """Format an integration plan as markdown."""
         lines = [
             f"### Integration Plan: {plan.source_id}",
@@ -416,7 +417,7 @@ class DatasetCatalog:
 
         return lines
 
-    def _source_to_dict(self, source: DatasetSource) -> Dict:
+    def _source_to_dict(self, source: DatasetSource) -> dict:
         """Convert a source to a dictionary."""
         return {
             "source_id": source.source_id,
@@ -434,7 +435,7 @@ class DatasetCatalog:
             "discovery_method": source.discovery_method,
         }
 
-    def _evaluation_to_dict(self, evaluation: DatasetEvaluation) -> Dict:
+    def _evaluation_to_dict(self, evaluation: DatasetEvaluation) -> dict:
         """Convert an evaluation to a dictionary."""
         return {
             "source_id": evaluation.source_id,
@@ -448,7 +449,7 @@ class DatasetCatalog:
             "competitive_advantages": evaluation.competitive_advantages,
         }
 
-    def _acquired_dataset_to_dict(self, dataset: AcquiredDataset) -> Dict:
+    def _acquired_dataset_to_dict(self, dataset: AcquiredDataset) -> dict:
         """Convert an acquired dataset to a dictionary."""
         return {
             "source_id": dataset.source_id,
@@ -462,7 +463,7 @@ class DatasetCatalog:
             "checksum": dataset.checksum,
         }
 
-    def _integration_plan_to_dict(self, plan: IntegrationPlan) -> Dict:
+    def _integration_plan_to_dict(self, plan: IntegrationPlan) -> dict:
         """Convert an integration plan to a dictionary."""
         return {
             "source_id": plan.source_id,

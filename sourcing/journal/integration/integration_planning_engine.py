@@ -6,13 +6,15 @@ Implements dataset structure analysis, schema mapping, transformation specificat
 complexity estimation, and preprocessing script generation.
 """
 
+from datetime import datetime, timezone
+
+
 import json
 import logging
 import os
 from dataclasses import dataclass, field
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import pandas as pd
 import pyarrow.parquet as pq
@@ -50,16 +52,16 @@ class DatasetStructure:
     """Represents the analyzed structure of a dataset."""
 
     format: str  # csv, json, xml, parquet, custom
-    schema: Dict[str, Any]
-    field_types: Dict[str, str]
-    field_distributions: Dict[str, Any]
-    quality_issues: List[str]
+    schema: dict[str, Any]
+    field_types: dict[str, str]
+    field_distributions: dict[str, Any]
+    quality_issues: list[str]
     sample_size: int
-    total_records: Optional[int] = None
-    nested_structures: List[str] = field(default_factory=list)
-    missing_fields: List[str] = field(default_factory=list)
+    total_records: int | None = None
+    nested_structures: list[str] = field(default_factory=list)
+    missing_fields: list[str] = field(default_factory=list)
 
-    def validate(self) -> List[str]:
+    def validate(self) -> list[str]:
         """Validate the dataset structure and return list of errors."""
         errors = []
         if not self.format:
@@ -76,11 +78,11 @@ class SchemaMapping:
     dataset_field: str
     pipeline_field: str
     transformation_type: str  # direct, transform, combine, extract
-    transformation_logic: Optional[str] = None
+    transformation_logic: str | None = None
     required: bool = True
-    default_value: Optional[Any] = None
+    default_value: Any | None = None
 
-    def validate(self) -> List[str]:
+    def validate(self) -> list[str]:
         """Validate the schema mapping and return list of errors."""
         errors = []
         if not self.dataset_field:
@@ -97,7 +99,7 @@ class SchemaMapping:
 class IntegrationPlanningEngine:
     """Engine for planning dataset integration into the training pipeline."""
 
-    def __init__(self, pipeline_schema: Optional[Dict[str, Any]] = None):
+    def __init__(self, pipeline_schema: dict[str, Any] | None = None):
         """Initialize the integration planning engine."""
         self.pipeline_schema = pipeline_schema or TRAINING_PIPELINE_SCHEMA
         logger.info("Initialized Integration Planning Engine")
@@ -382,8 +384,8 @@ class IntegrationPlanningEngine:
         )
 
     def _extract_fields(
-        self, obj: Any, nested_structures: List[str], prefix: str = ""
-    ) -> List[str]:
+        self, obj: Any, nested_structures: list[str], prefix: str = ""
+    ) -> list[str]:
         """Recursively extract all field names from a nested structure."""
         fields = []
         if isinstance(obj, dict):
@@ -421,7 +423,7 @@ class IntegrationPlanningEngine:
 
     def create_schema_mapping(
         self, structure: DatasetStructure, target_format: str = "chatml"
-    ) -> List[SchemaMapping]:
+    ) -> list[SchemaMapping]:
         """
         Create schema mapping from dataset fields to training pipeline fields.
 
@@ -571,8 +573,8 @@ class IntegrationPlanningEngine:
         return mappings
 
     def create_transformation_specs(
-        self, structure: DatasetStructure, mappings: List[SchemaMapping]
-    ) -> List[TransformationSpec]:
+        self, structure: DatasetStructure, mappings: list[SchemaMapping]
+    ) -> list[TransformationSpec]:
         """
         Create transformation specifications for dataset integration.
 
@@ -670,9 +672,9 @@ class IntegrationPlanningEngine:
     def estimate_complexity(
         self,
         structure: DatasetStructure,
-        mappings: List[SchemaMapping],
-        transformation_specs: List[TransformationSpec],
-    ) -> Tuple[str, int]:
+        mappings: list[SchemaMapping],
+        transformation_specs: list[TransformationSpec],
+    ) -> tuple[str, int]:
         """
         Estimate integration complexity and effort.
 
@@ -691,9 +693,7 @@ class IntegrationPlanningEngine:
         # Format complexity
         if structure.format == "csv":
             complexity_score += 1
-        elif structure.format in ["json", "jsonl"]:
-            complexity_score += 2
-        elif structure.format == "parquet":
+        elif structure.format in ["json", "jsonl"] or structure.format == "parquet":
             complexity_score += 2
         elif structure.format == "xml":
             complexity_score += 4
@@ -758,10 +758,7 @@ class IntegrationPlanningEngine:
                 dataset.source_id,
                 dataset.storage_path,
             )
-            fallback_schema = {
-                field: "unknown"
-                for field in self.pipeline_schema.get("required_fields", [])
-            }
+            fallback_schema = dict.fromkeys(self.pipeline_schema.get("required_fields", []), "unknown")
             if not fallback_schema:
                 fallback_schema = {"placeholder_field": "unknown"}
 
@@ -822,7 +819,7 @@ class IntegrationPlanningEngine:
             estimated_effort_hours=estimated_hours,
             dependencies=dependencies,
             integration_priority=0,  # Can be set based on evaluation scores
-            created_date=datetime.now(),
+            created_date=datetime.now(timezone.utc),
         )
 
         logger.info(f"Integration plan created: {complexity} complexity, {estimated_hours}h effort")

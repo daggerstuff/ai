@@ -13,11 +13,12 @@ Usage:
     python -m ai.training.scripts.dact07_redaction --input-dir ai/data/staged_datasets --output-dir ai/data/redacted_datasets
 """
 
+from datetime import datetime, timezone
+
 import argparse
 import json
 import logging
 from pathlib import Path
-from datetime import datetime, timezone
 from typing import Dict, Any, List, Tuple
 import re
 

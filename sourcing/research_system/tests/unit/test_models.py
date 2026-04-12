@@ -1,6 +1,7 @@
 """Unit tests for core data models."""
 
-from datetime import datetime
+from datetime import datetime, timezone
+
 
 from research_system.models import (
     AccessRequest,
@@ -28,7 +29,7 @@ class TestDatasetSource:
             keywords=["test", "dataset"],
             open_access=True,
             data_availability="available",
-            discovery_date=datetime.now(),
+            discovery_date=datetime.now(timezone.utc),
             discovery_method="pubmed_search",
         )
 
@@ -50,7 +51,7 @@ class TestDatasetSource:
             keywords=["test"],
             open_access=True,
             data_availability="available",
-            discovery_date=datetime.now(),
+            discovery_date=datetime.now(timezone.utc),
             discovery_method="pubmed_search",
         )
 
@@ -76,7 +77,7 @@ class TestDatasetEvaluation:
             ethical_notes="Excellent",
             overall_score=0.0,
             priority_tier="high",
-            evaluation_date=datetime.now(),
+            evaluation_date=datetime.now(timezone.utc),
             evaluator="test_user",
         )
 
@@ -99,7 +100,7 @@ class TestDatasetEvaluation:
             ethical_notes="Test",
             overall_score=8.0,
             priority_tier="high",
-            evaluation_date=datetime.now(),
+            evaluation_date=datetime.now(timezone.utc),
             evaluator="test_user",
         )
 
@@ -116,7 +117,7 @@ class TestAccessRequest:
         request = AccessRequest(
             source_id="TEST001",
             access_method="direct",
-            request_date=datetime.now(),
+            request_date=datetime.now(timezone.utc),
             status="pending",
             access_url="https://example.com/download",
             credentials_required=False,
@@ -141,7 +142,7 @@ class TestResearchProgress:
             access_established=3,
             datasets_acquired=2,
             integration_plans_created=2,
-            last_updated=datetime.now(),
+            last_updated=datetime.now(timezone.utc),
         )
 
         is_valid, errors = progress.validate()
@@ -156,7 +157,7 @@ class TestResearchProgress:
             access_established=3,
             datasets_acquired=2,
             integration_plans_created=2,
-            last_updated=datetime.now(),
+            last_updated=datetime.now(timezone.utc),
         )
 
         is_valid, errors = progress.validate()
@@ -171,7 +172,7 @@ class TestResearchSession:
         """Test creating a valid research session."""
         session = ResearchSession(
             session_id="SESSION001",
-            start_date=datetime.now(),
+            start_date=datetime.now(timezone.utc),
             target_sources=["pubmed", "doaj"],
             search_keywords={"therapy": ["therapy transcript"]},
             weekly_targets={"sources_identified": 10},
@@ -187,7 +188,7 @@ class TestResearchSession:
         """Test validation fails for invalid phase."""
         session = ResearchSession(
             session_id="SESSION001",
-            start_date=datetime.now(),
+            start_date=datetime.now(timezone.utc),
             target_sources=["pubmed"],
             search_keywords={},
             weekly_targets={},

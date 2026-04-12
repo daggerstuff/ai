@@ -9,6 +9,8 @@ behaviors, and uploads the configured number of valid regenerated records back
 to S3.
 """
 
+from datetime import datetime, timezone
+
 from __future__ import annotations
 
 import argparse
@@ -20,7 +22,6 @@ import sys
 import tempfile
 from collections import Counter
 from dataclasses import dataclass
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 

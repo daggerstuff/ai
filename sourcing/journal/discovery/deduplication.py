@@ -7,7 +7,6 @@ using DOI matching and similarity-based matching.
 
 import logging
 from difflib import SequenceMatcher
-from typing import Dict, List, Set
 
 from ai.sourcing.journal.models.dataset_models import DatasetSource
 
@@ -28,7 +27,7 @@ class Deduplicator:
         self.title_similarity_threshold = title_similarity_threshold
         self.author_similarity_threshold = author_similarity_threshold
 
-    def deduplicate(self, sources: List[DatasetSource]) -> List[DatasetSource]:
+    def deduplicate(self, sources: list[DatasetSource]) -> list[DatasetSource]:
         """
         Deduplicate a list of dataset sources.
 
@@ -58,7 +57,7 @@ class Deduplicator:
                 deduplicated.append(best)
 
         # Process similarity groups (only for sources not already in DOI groups)
-        processed_ids: Set[str] = {s.source_id for s in deduplicated}
+        processed_ids: set[str] = {s.source_id for s in deduplicated}
         for group in similarity_groups:
             # Filter out sources already processed via DOI
             group = [s for s in group if s.source_id not in processed_ids]
@@ -70,9 +69,9 @@ class Deduplicator:
         logger.info(f"Deduplicated {len(sources)} sources to {len(deduplicated)} unique sources")
         return deduplicated
 
-    def _group_by_doi(self, sources: List[DatasetSource]) -> Dict[str, List[DatasetSource]]:
+    def _group_by_doi(self, sources: list[DatasetSource]) -> dict[str, list[DatasetSource]]:
         """Group sources by normalized DOI."""
-        groups: Dict[str, List[DatasetSource]] = {}
+        groups: dict[str, list[DatasetSource]] = {}
 
         for source in sources:
             if not source.doi:
@@ -101,13 +100,13 @@ class Deduplicator:
 
         return doi.lower()
 
-    def _group_by_similarity(self, sources: List[DatasetSource]) -> List[List[DatasetSource]]:
+    def _group_by_similarity(self, sources: list[DatasetSource]) -> list[list[DatasetSource]]:
         """Group sources by title and author similarity."""
         if not sources:
             return []
 
-        groups: List[List[DatasetSource]] = []
-        processed: Set[int] = set()
+        groups: list[list[DatasetSource]] = []
+        processed: set[int] = set()
 
         for i, source1 in enumerate(sources):
             if i in processed:
@@ -152,7 +151,7 @@ class Deduplicator:
 
         return SequenceMatcher(None, str1, str2).ratio()
 
-    def _author_similarity(self, authors1: List[str], authors2: List[str]) -> float:
+    def _author_similarity(self, authors1: list[str], authors2: list[str]) -> float:
         """Calculate similarity between author lists."""
         if not authors1 or not authors2:
             return 0.0
@@ -196,7 +195,7 @@ class Deduplicator:
 
         return name.strip()
 
-    def _select_best_source(self, group: List[DatasetSource]) -> DatasetSource:
+    def _select_best_source(self, group: list[DatasetSource]) -> DatasetSource:
         """Select the best representative source from a group."""
         if len(group) == 1:
             return group[0]

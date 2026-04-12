@@ -6,11 +6,12 @@ Downloads datasets from HuggingFace, Kaggle, and URLs directly to S3,
 bypassing local storage and VPS.
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import os
 import sys
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -309,7 +310,7 @@ class S3DatasetDownloader:
             )
 
         return {
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "s3_bucket": self.s3_bucket,
             "s3_prefix": self.s3_prefix,
             "results": results,

@@ -4,9 +4,10 @@ Source discovery tools for MCP Server.
 This module provides tools for discovering and managing dataset sources through the MCP protocol.
 """
 
-import logging
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+
+import logging
+from typing import Any
 
 from ai.sourcing.journal.api.services.command_handler_service import (
     CommandHandlerService,
@@ -55,7 +56,7 @@ class DiscoverSourcesTool(MCPTool):
             },
         )
 
-    async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute(self, params: dict[str, Any]) -> dict[str, Any]:
         """
         Execute discover_sources tool.
 
@@ -102,18 +103,18 @@ class DiscoverSourcesTool(MCPTool):
         except ValueError as e:
             raise MCPError(
                 MCPErrorCode.TOOL_VALIDATION_ERROR,
-                f"Invalid parameters: {str(e)}",
+                f"Invalid parameters: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
         except Exception as e:
             logger.exception(f"Error discovering sources: {e}")
             raise MCPError(
                 MCPErrorCode.TOOL_EXECUTION_ERROR,
-                f"Failed to discover sources: {str(e)}",
+                f"Failed to discover sources: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
 
-    def _source_to_dict(self, source: DatasetSource) -> Dict[str, Any]:
+    def _source_to_dict(self, source: DatasetSource) -> dict[str, Any]:
         """Convert DatasetSource to dictionary."""
         return {
             "source_id": source.source_id,
@@ -186,7 +187,7 @@ class GetSourcesTool(MCPTool):
             },
         )
 
-    async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute(self, params: dict[str, Any]) -> dict[str, Any]:
         """
         Execute get_sources tool.
 
@@ -228,18 +229,18 @@ class GetSourcesTool(MCPTool):
         except ValueError as e:
             raise MCPError(
                 MCPErrorCode.TOOL_VALIDATION_ERROR,
-                f"Invalid parameters: {str(e)}",
+                f"Invalid parameters: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
         except Exception as e:
             logger.exception(f"Error getting sources: {e}")
             raise MCPError(
                 MCPErrorCode.TOOL_EXECUTION_ERROR,
-                f"Failed to get sources: {str(e)}",
+                f"Failed to get sources: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
 
-    def _apply_filters(self, sources: List[DatasetSource], filters: Dict[str, Any]) -> List[DatasetSource]:
+    def _apply_filters(self, sources: list[DatasetSource], filters: dict[str, Any]) -> list[DatasetSource]:
         """Apply filters to sources list."""
         filtered = sources
 
@@ -255,21 +256,20 @@ class GetSourcesTool(MCPTool):
         return filtered
 
     def _apply_sorting(
-        self, sources: List[DatasetSource], sort_by: str, sort_order: str
-    ) -> List[DatasetSource]:
+        self, sources: list[DatasetSource], sort_by: str, sort_order: str
+    ) -> list[DatasetSource]:
         """Apply sorting to sources list."""
         reverse = sort_order == "desc"
 
         if sort_by == "publication_date":
             return sorted(sources, key=lambda s: s.publication_date, reverse=reverse)
-        elif sort_by == "discovery_date":
+        if sort_by == "discovery_date":
             return sorted(sources, key=lambda s: s.discovery_date, reverse=reverse)
-        elif sort_by == "title":
+        if sort_by == "title":
             return sorted(sources, key=lambda s: s.title.lower(), reverse=reverse)
-        else:
-            return sources
+        return sources
 
-    def _source_to_dict(self, source: DatasetSource) -> Dict[str, Any]:
+    def _source_to_dict(self, source: DatasetSource) -> dict[str, Any]:
         """Convert DatasetSource to dictionary."""
         return {
             "source_id": source.source_id,
@@ -318,7 +318,7 @@ class GetSourceTool(MCPTool):
             },
         )
 
-    async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute(self, params: dict[str, Any]) -> dict[str, Any]:
         """
         Execute get_source tool.
 
@@ -346,18 +346,18 @@ class GetSourceTool(MCPTool):
         except ValueError as e:
             raise MCPError(
                 MCPErrorCode.TOOL_VALIDATION_ERROR,
-                f"Invalid parameters: {str(e)}",
+                f"Invalid parameters: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
         except Exception as e:
             logger.exception(f"Error getting source: {e}")
             raise MCPError(
                 MCPErrorCode.TOOL_EXECUTION_ERROR,
-                f"Failed to get source: {str(e)}",
+                f"Failed to get source: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
 
-    def _source_to_dict(self, source: DatasetSource) -> Dict[str, Any]:
+    def _source_to_dict(self, source: DatasetSource) -> dict[str, Any]:
         """Convert DatasetSource to dictionary."""
         return {
             "source_id": source.source_id,
@@ -455,7 +455,7 @@ class FilterSourcesTool(MCPTool):
             },
         )
 
-    async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute(self, params: dict[str, Any]) -> dict[str, Any]:
         """
         Execute filter_sources tool.
 
@@ -501,20 +501,20 @@ class FilterSourcesTool(MCPTool):
         except ValueError as e:
             raise MCPError(
                 MCPErrorCode.TOOL_VALIDATION_ERROR,
-                f"Invalid parameters: {str(e)}",
+                f"Invalid parameters: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
         except Exception as e:
             logger.exception(f"Error filtering sources: {e}")
             raise MCPError(
                 MCPErrorCode.TOOL_EXECUTION_ERROR,
-                f"Failed to filter sources: {str(e)}",
+                f"Failed to filter sources: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
 
     def _apply_advanced_filters(
-        self, sources: List[DatasetSource], filters: Dict[str, Any]
-    ) -> List[DatasetSource]:
+        self, sources: list[DatasetSource], filters: dict[str, Any]
+    ) -> list[DatasetSource]:
         """Apply advanced filters to sources list."""
         filtered = sources
 
@@ -577,21 +577,20 @@ class FilterSourcesTool(MCPTool):
         return filtered
 
     def _apply_sorting(
-        self, sources: List[DatasetSource], sort_by: str, sort_order: str
-    ) -> List[DatasetSource]:
+        self, sources: list[DatasetSource], sort_by: str, sort_order: str
+    ) -> list[DatasetSource]:
         """Apply sorting to sources list."""
         reverse = sort_order == "desc"
 
         if sort_by == "publication_date":
             return sorted(sources, key=lambda s: s.publication_date, reverse=reverse)
-        elif sort_by == "discovery_date":
+        if sort_by == "discovery_date":
             return sorted(sources, key=lambda s: s.discovery_date, reverse=reverse)
-        elif sort_by == "title":
+        if sort_by == "title":
             return sorted(sources, key=lambda s: s.title.lower(), reverse=reverse)
-        else:
-            return sources
+        return sources
 
-    def _source_to_dict(self, source: DatasetSource) -> Dict[str, Any]:
+    def _source_to_dict(self, source: DatasetSource) -> dict[str, Any]:
         """Convert DatasetSource to dictionary."""
         return {
             "source_id": source.source_id,

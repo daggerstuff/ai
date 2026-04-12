@@ -10,13 +10,9 @@ Provides tools for:
 
 import logging
 from dataclasses import dataclass, field as dataclass_field
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Set
 
 from ai.sourcing.youtube.models import (
     Channel,
-    ChannelQualityThresholds,
-    ChannelStatus,
     ContentCategory,
     LicensingInfo,
     QualityMetrics,
@@ -115,10 +111,10 @@ class ChannelHunterConfig:
     min_subscribers: int = 1_000
     min_videos: int = 20
     target_channels: int = 50
-    target_languages: Set[str] = dataclass_field(
+    target_languages: set[str] = dataclass_field(
         default_factory=lambda: {"en", "es", "fr", "de", "pt", "zh"}
     )
-    categories: List[ContentCategory] = dataclass_field(
+    categories: list[ContentCategory] = dataclass_field(
         default_factory=lambda: list(ContentCategory)
     )
     require_professional: bool = True
@@ -137,10 +133,10 @@ class YouTubeChannelHunter:
     """
 
     def __init__(
-        self, config: Optional[ChannelHunterConfig] = None
+        self, config: ChannelHunterConfig | None = None
     ):
         self.config = config or ChannelHunterConfig()
-        self.discovered_channels: List[Channel] = []
+        self.discovered_channels: list[Channel] = []
         self.registry_stats = {
             "searched": 0,
             "found": 0,
@@ -148,7 +144,7 @@ class YouTubeChannelHunter:
             "rejected": 0,
         }
 
-    def discover_channels(self, progress_callback=None) -> List[Channel]:
+    def discover_channels(self, progress_callback=None) -> list[Channel]:
         """
         Main discovery method - finds and evaluates channels.
 
@@ -196,7 +192,7 @@ class YouTubeChannelHunter:
 
         return qualified_channels
 
-    def _generate_search_terms(self) -> List[str]:
+    def _generate_search_terms(self) -> list[str]:
         """Generate search terms from categories and languages."""
         terms = []
 
@@ -222,7 +218,7 @@ class YouTubeChannelHunter:
 
         return terms
 
-    def _search_by_term(self, term: str) -> List[Channel]:
+    def _search_by_term(self, term: str) -> list[Channel]:
         """
         Search YouTube for channels by term.
 
@@ -289,14 +285,14 @@ class YouTubeAPI:
     - Content analysis
     """
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: str | None = None):
         """Initialize YouTube API client."""
         self.api_key = api_key
         # TODO: Initialize YouTube client with api_key
 
     def search_channels(
         self, query: str, max_results: int = 25
-    ) -> List[Dict]:
+    ) -> list[dict]:
         """
         Search for channels by query.
 
@@ -308,9 +304,8 @@ class YouTubeAPI:
             List of channel data dictionaries
         """
         # TODO: Implement YouTube Data API v3 search.list
-        pass
 
-    def get_channel_details(self, channel_id: str) -> Optional[Dict]:
+    def get_channel_details(self, channel_id: str) -> dict | None:
         """
         Get detailed information about a channel.
 
@@ -321,11 +316,10 @@ class YouTubeAPI:
             Channel details dictionary or None
         """
         # TODO: Implement channels.list
-        pass
 
     def get_channel_videos(
         self, channel_id: str, max_results: int = 50
-    ) -> List[Dict]:
+    ) -> list[dict]:
         """
         Get videos from a channel.
 
@@ -337,7 +331,6 @@ class YouTubeAPI:
             List of video data dictionaries
         """
         # TODO: Implement search.list with channelId filter
-        pass
 
 
 class ChannelAnalyzer:
@@ -351,7 +344,7 @@ class ChannelAnalyzer:
     - Quality scoring
     """
 
-    def analyze_videos(self, videos: List[Dict]) -> QualityMetrics:
+    def analyze_videos(self, videos: list[dict]) -> QualityMetrics:
         """
         Analyze video content and compute quality metrics.
 
@@ -379,8 +372,8 @@ class ChannelAnalyzer:
         return "en"
 
     def classify_category(
-        self, title: str, description: str, tags: List[str]
-    ) -> Set[ContentCategory]:
+        self, title: str, description: str, tags: list[str]
+    ) -> set[ContentCategory]:
         """
         Classify channel into therapeutic categories.
 
@@ -406,7 +399,7 @@ class ChannelAnalyzer:
 
     def verify_professional(
         self, description: str, channel_id: str
-    ) -> tuple[bool, List[str]]:
+    ) -> tuple[bool, list[str]]:
         """
         Verify professional credentials.
 
@@ -433,7 +426,7 @@ class ChannelAnalyzer:
         return is_professional, found_credentials
 
     def extract_licensing_info(
-        self, description: str, video_descriptions: List[str]
+        self, description: str, video_descriptions: list[str]
     ) -> LicensingInfo:
         """
         Extract licensing information from descriptions.

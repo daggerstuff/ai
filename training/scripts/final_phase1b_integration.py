@@ -14,11 +14,12 @@ Usage:
     python final_phase1b_integration.py --upload-s3
 """
 
+from datetime import datetime, timezone
+
 import argparse
 import json
 import logging
 from collections import Counter
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 

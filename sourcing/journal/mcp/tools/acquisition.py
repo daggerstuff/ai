@@ -5,7 +5,7 @@ This module provides tools for acquiring dataset sources through the MCP protoco
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ai.sourcing.journal.api.services.command_handler_service import (
     CommandHandlerService,
@@ -26,7 +26,7 @@ class AcquireDatasetsTool(MCPTool):
     def __init__(
         self,
         service: CommandHandlerService,
-        pipeline_bridge: Optional[MCPPipelineBridge] = None,
+        pipeline_bridge: MCPPipelineBridge | None = None,
     ) -> None:
         """
         Initialize AcquireDatasetsTool.
@@ -62,7 +62,7 @@ class AcquireDatasetsTool(MCPTool):
             },
         )
 
-    async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute(self, params: dict[str, Any]) -> dict[str, Any]:
         """
         Execute acquire_datasets tool.
 
@@ -166,18 +166,18 @@ class AcquireDatasetsTool(MCPTool):
         except ValueError as e:
             raise MCPError(
                 MCPErrorCode.TOOL_VALIDATION_ERROR,
-                f"Invalid parameters: {str(e)}",
+                f"Invalid parameters: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
         except Exception as e:
             logger.exception(f"Error acquiring datasets: {e}")
             raise MCPError(
                 MCPErrorCode.TOOL_EXECUTION_ERROR,
-                f"Failed to acquire datasets: {str(e)}",
+                f"Failed to acquire datasets: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
 
-    def _acquisition_to_dict(self, acquisition: AcquiredDataset) -> Dict[str, Any]:
+    def _acquisition_to_dict(self, acquisition: AcquiredDataset) -> dict[str, Any]:
         """Convert AcquiredDataset to dictionary."""
         return {
             "acquisition_id": f"acq_{acquisition.source_id}",
@@ -263,7 +263,7 @@ class GetAcquisitionsTool(MCPTool):
             },
         )
 
-    async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute(self, params: dict[str, Any]) -> dict[str, Any]:
         """
         Execute get_acquisitions tool.
 
@@ -305,20 +305,20 @@ class GetAcquisitionsTool(MCPTool):
         except ValueError as e:
             raise MCPError(
                 MCPErrorCode.TOOL_VALIDATION_ERROR,
-                f"Invalid parameters: {str(e)}",
+                f"Invalid parameters: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
         except Exception as e:
             logger.exception(f"Error getting acquisitions: {e}")
             raise MCPError(
                 MCPErrorCode.TOOL_EXECUTION_ERROR,
-                f"Failed to get acquisitions: {str(e)}",
+                f"Failed to get acquisitions: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
 
     def _apply_filters(
-        self, acquisitions: List[AcquiredDataset], filters: Dict[str, Any]
-    ) -> List[AcquiredDataset]:
+        self, acquisitions: list[AcquiredDataset], filters: dict[str, Any]
+    ) -> list[AcquiredDataset]:
         """Apply filters to acquisitions list."""
         filtered = acquisitions
 
@@ -348,21 +348,20 @@ class GetAcquisitionsTool(MCPTool):
         return filtered
 
     def _apply_sorting(
-        self, acquisitions: List[AcquiredDataset], sort_by: str, sort_order: str
-    ) -> List[AcquiredDataset]:
+        self, acquisitions: list[AcquiredDataset], sort_by: str, sort_order: str
+    ) -> list[AcquiredDataset]:
         """Apply sorting to acquisitions list."""
         reverse = sort_order == "desc"
 
         if sort_by == "acquired_date":
             return sorted(acquisitions, key=lambda a: a.acquisition_date, reverse=reverse)
-        elif sort_by == "file_size_mb":
+        if sort_by == "file_size_mb":
             return sorted(acquisitions, key=lambda a: a.file_size_mb, reverse=reverse)
-        elif sort_by == "source_id":
+        if sort_by == "source_id":
             return sorted(acquisitions, key=lambda a: a.source_id, reverse=reverse)
-        else:
-            return acquisitions
+        return acquisitions
 
-    def _acquisition_to_dict(self, acquisition: AcquiredDataset) -> Dict[str, Any]:
+    def _acquisition_to_dict(self, acquisition: AcquiredDataset) -> dict[str, Any]:
         """Convert AcquiredDataset to dictionary."""
         return {
             "acquisition_id": f"acq_{acquisition.source_id}",
@@ -415,7 +414,7 @@ class GetAcquisitionTool(MCPTool):
             },
         )
 
-    async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute(self, params: dict[str, Any]) -> dict[str, Any]:
         """
         Execute get_acquisition tool.
 
@@ -443,18 +442,18 @@ class GetAcquisitionTool(MCPTool):
         except ValueError as e:
             raise MCPError(
                 MCPErrorCode.TOOL_VALIDATION_ERROR,
-                f"Invalid parameters: {str(e)}",
+                f"Invalid parameters: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
         except Exception as e:
             logger.exception(f"Error getting acquisition: {e}")
             raise MCPError(
                 MCPErrorCode.TOOL_EXECUTION_ERROR,
-                f"Failed to get acquisition: {str(e)}",
+                f"Failed to get acquisition: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
 
-    def _acquisition_to_dict(self, acquisition: AcquiredDataset) -> Dict[str, Any]:
+    def _acquisition_to_dict(self, acquisition: AcquiredDataset) -> dict[str, Any]:
         """Convert AcquiredDataset to dictionary."""
         return {
             "acquisition_id": f"acq_{acquisition.source_id}",
@@ -512,7 +511,7 @@ class UpdateAcquisitionTool(MCPTool):
             },
         )
 
-    async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute(self, params: dict[str, Any]) -> dict[str, Any]:
         """
         Execute update_acquisition tool.
 
@@ -547,18 +546,18 @@ class UpdateAcquisitionTool(MCPTool):
         except ValueError as e:
             raise MCPError(
                 MCPErrorCode.TOOL_VALIDATION_ERROR,
-                f"Invalid parameters: {str(e)}",
+                f"Invalid parameters: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
         except Exception as e:
             logger.exception(f"Error updating acquisition: {e}")
             raise MCPError(
                 MCPErrorCode.TOOL_EXECUTION_ERROR,
-                f"Failed to update acquisition: {str(e)}",
+                f"Failed to update acquisition: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
 
-    def _acquisition_to_dict(self, acquisition: AcquiredDataset) -> Dict[str, Any]:
+    def _acquisition_to_dict(self, acquisition: AcquiredDataset) -> dict[str, Any]:
         """Convert AcquiredDataset to dictionary."""
         return {
             "acquisition_id": f"acq_{acquisition.source_id}",

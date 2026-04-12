@@ -4,10 +4,9 @@ Progress resources for MCP Server.
 This module provides resources for accessing research progress data.
 """
 
-import json
 import logging
 from dataclasses import asdict
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ai.sourcing.journal.api.services.command_handler_service import (
   CommandHandlerService,
@@ -40,7 +39,7 @@ class ProgressMetricsResource(MCPResource):
       mime_type="application/json",
     )
 
-  async def read(self, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+  async def read(self, params: dict[str, Any] | None = None) -> dict[str, Any]:
     """
     Read progress metrics for a session.
 
@@ -85,7 +84,7 @@ class ProgressMetricsResource(MCPResource):
       logger.exception(f"Error reading progress metrics for session {session_id}")
       raise MCPError(
         JSONRPCErrorCode.INTERNAL_ERROR,
-        f"Failed to read progress metrics: {str(e)}",
+        f"Failed to read progress metrics: {e!s}",
       )
 
   def validate_uri(self, uri: str) -> bool:
@@ -100,7 +99,7 @@ class ProgressMetricsResource(MCPResource):
     """
     return uri.startswith("research://progress/metrics/")
 
-  def extract_session_id(self, uri: str) -> Optional[str]:
+  def extract_session_id(self, uri: str) -> str | None:
     """
     Extract session ID from URI.
 
@@ -133,7 +132,7 @@ class ProgressHistoryResource(MCPResource):
       mime_type="application/json",
     )
 
-  async def read(self, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+  async def read(self, params: dict[str, Any] | None = None) -> dict[str, Any]:
     """
     Read progress history for a session.
 
@@ -178,7 +177,7 @@ class ProgressHistoryResource(MCPResource):
       logger.exception(f"Error reading progress history for session {session_id}")
       raise MCPError(
         JSONRPCErrorCode.INTERNAL_ERROR,
-        f"Failed to read progress history: {str(e)}",
+        f"Failed to read progress history: {e!s}",
       )
 
   def validate_uri(self, uri: str) -> bool:
@@ -193,7 +192,7 @@ class ProgressHistoryResource(MCPResource):
     """
     return uri.startswith("research://progress/history/")
 
-  def extract_session_id(self, uri: str) -> Optional[str]:
+  def extract_session_id(self, uri: str) -> str | None:
     """
     Extract session ID from URI.
 

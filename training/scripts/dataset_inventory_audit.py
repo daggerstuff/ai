@@ -3,12 +3,13 @@
 Dataset Inventory Audit - Maps S3 objects to dataset families and generates coverage report
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import re
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, ClassVar
 

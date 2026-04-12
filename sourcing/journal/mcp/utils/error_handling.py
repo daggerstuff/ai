@@ -6,8 +6,9 @@ This module provides error handling, classification, formatting, and recovery ut
 
 import logging
 import traceback
+from collections.abc import Callable
 from enum import Enum
-from typing import Any, Callable, Dict, Optional, Type
+from typing import Any
 
 from ai.sourcing.journal.mcp.protocol import (
     JSONRPCErrorCode,
@@ -45,7 +46,7 @@ class MCPErrorHandler:
     """Handles MCP errors with classification, formatting, and recovery."""
 
     # Error type to category mapping
-    ERROR_CATEGORY_MAP: Dict[str, ErrorCategory] = {
+    ERROR_CATEGORY_MAP: dict[str, ErrorCategory] = {
         "ValueError": ErrorCategory.VALIDATION,
         "TypeError": ErrorCategory.VALIDATION,
         "KeyError": ErrorCategory.VALIDATION,
@@ -63,7 +64,7 @@ class MCPErrorHandler:
     }
 
     # Error category to severity mapping
-    CATEGORY_SEVERITY_MAP: Dict[ErrorCategory, ErrorSeverity] = {
+    CATEGORY_SEVERITY_MAP: dict[ErrorCategory, ErrorSeverity] = {
         ErrorCategory.VALIDATION: ErrorSeverity.LOW,
         ErrorCategory.TIMEOUT: ErrorSeverity.MEDIUM,
         ErrorCategory.AUTHENTICATION: ErrorSeverity.HIGH,
@@ -76,7 +77,7 @@ class MCPErrorHandler:
     }
 
     @staticmethod
-    def classify_error(error: Exception) -> tuple[int, str, Optional[Any]]:
+    def classify_error(error: Exception) -> tuple[int, str, Any | None]:
         """
         Classify error and return error code, message, and optional data.
 
@@ -97,7 +98,7 @@ class MCPErrorHandler:
         if error_type in ("ValueError", "TypeError", "KeyError", "AttributeError"):
             return (
                 MCPErrorCode.TOOL_VALIDATION_ERROR,
-                f"Validation error: {str(error)}",
+                f"Validation error: {error!s}",
                 {"error_type": error_type},
             )
 
@@ -105,7 +106,7 @@ class MCPErrorHandler:
         if error_type in ("TimeoutError", "asyncio.TimeoutError"):
             return (
                 MCPErrorCode.TOOL_TIMEOUT,
-                f"Operation timed out: {str(error)}",
+                f"Operation timed out: {error!s}",
                 {"error_type": error_type},
             )
 
@@ -113,7 +114,7 @@ class MCPErrorHandler:
         if error_type in ("PermissionError", "UnauthorizedError"):
             return (
                 MCPErrorCode.AUTHENTICATION_ERROR,
-                f"Authentication error: {str(error)}",
+                f"Authentication error: {error!s}",
                 {"error_type": error_type},
             )
 
@@ -121,7 +122,7 @@ class MCPErrorHandler:
         if error_type in ("ConnectionError", "NetworkError", "HTTPError"):
             return (
                 JSONRPCErrorCode.INTERNAL_ERROR,
-                f"Network error: {str(error)}",
+                f"Network error: {error!s}",
                 {"error_type": error_type},
             )
 
@@ -129,14 +130,14 @@ class MCPErrorHandler:
         if error_type in ("FileNotFoundError", "IOError", "OSError"):
             return (
                 MCPErrorCode.RESOURCE_NOT_FOUND,
-                f"Resource error: {str(error)}",
+                f"Resource error: {error!s}",
                 {"error_type": error_type},
             )
 
         # Generic internal error
         return (
             JSONRPCErrorCode.INTERNAL_ERROR,
-            f"Internal error: {str(error)}",
+            f"Internal error: {error!s}",
             {
                 "error_type": error_type,
                 "traceback": traceback.format_exc(),
@@ -204,9 +205,9 @@ class MCPErrorHandler:
     @staticmethod
     def format_error_response(
         error: Exception,
-        request_id: Optional[Any] = None,
+        request_id: Any | None = None,
         include_traceback: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Format error as MCP error response.
 
@@ -220,16 +221,14 @@ class MCPErrorHandler:
         """
         code, message, data = MCPErrorHandler.classify_error(error)
 
-        error_dict: Dict[str, Any] = {
+        error_dict: dict[str, Any] = {
             "code": code,
             "message": message,
         }
 
         if data:
             # Only include traceback in debug mode or if explicitly requested
-            if include_traceback and "traceback" in data:
-                error_dict["data"] = data
-            elif data and "traceback" not in data:
+            if (include_traceback and "traceback" in data) or (data and "traceback" not in data):
                 error_dict["data"] = data
             elif include_traceback:
                 error_dict["data"] = {
@@ -237,7 +236,7 @@ class MCPErrorHandler:
                     "traceback": traceback.format_exc(),
                 }
 
-        response: Dict[str, Any] = {
+        response: dict[str, Any] = {
             "jsonrpc": "2.0",
             "error": error_dict,
         }
@@ -250,8 +249,8 @@ class MCPErrorHandler:
     @staticmethod
     def log_error(
         error: Exception,
-        context: Optional[Dict[str, Any]] = None,
-        level: Optional[int] = None,
+        context: dict[str, Any] | None = None,
+        level: int | None = None,
     ) -> None:
         """
         Log error with context and severity-based level.
@@ -309,10 +308,10 @@ class MCPErrorHandler:
     @staticmethod
     def handle_error(
         error: Exception,
-        request_id: Optional[Any] = None,
-        context: Optional[Dict[str, Any]] = None,
+        request_id: Any | None = None,
+        context: dict[str, Any] | None = None,
         include_traceback: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Handle error: log and format response.
 
@@ -340,7 +339,7 @@ class MCPErrorHandler:
         func: Callable,
         max_retries: int = 3,
         retry_delay: float = 1.0,
-        recoverable_errors: Optional[tuple[Type[Exception], ...]] = None,
+        recoverable_errors: tuple[type[Exception], ...] | None = None,
     ) -> Callable:
         """
         Decorator for automatic error recovery with retries.
@@ -368,14 +367,13 @@ class MCPErrorHandler:
 
         @functools.wraps(func)
         async def wrapper(*args: Any, **kwargs: Any) -> Any:
-            last_error: Optional[Exception] = None
+            last_error: Exception | None = None
 
             for attempt in range(max_retries):
                 try:
                     if asyncio.iscoroutinefunction(func):
                         return await func(*args, **kwargs)
-                    else:
-                        return func(*args, **kwargs)
+                    return func(*args, **kwargs)
                 except Exception as e:
                     last_error = e
 
@@ -391,7 +389,7 @@ class MCPErrorHandler:
 
                     # Log retry attempt
                     logger.warning(
-                        f"Error in {func.__name__} (attempt {attempt + 1}/{max_retries}): {str(e)}. Retrying..."
+                        f"Error in {func.__name__} (attempt {attempt + 1}/{max_retries}): {e!s}. Retrying..."
                     )
 
                     # Wait before retry

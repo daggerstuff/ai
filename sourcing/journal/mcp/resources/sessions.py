@@ -4,10 +4,9 @@ Session resources for MCP Server.
 This module provides resources for accessing research session state.
 """
 
-import json
 import logging
 from dataclasses import asdict
-from typing import Any, Dict, Optional
+from typing import Any
 
 from ai.sourcing.journal.api.services.command_handler_service import (
   CommandHandlerService,
@@ -40,7 +39,7 @@ class SessionStateResource(MCPResource):
       mime_type="application/json",
     )
 
-  async def read(self, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+  async def read(self, params: dict[str, Any] | None = None) -> dict[str, Any]:
     """
     Read session state.
 
@@ -85,7 +84,7 @@ class SessionStateResource(MCPResource):
       logger.exception(f"Error reading session state for session {session_id}")
       raise MCPError(
         JSONRPCErrorCode.INTERNAL_ERROR,
-        f"Failed to read session state: {str(e)}",
+        f"Failed to read session state: {e!s}",
       )
 
   def validate_uri(self, uri: str) -> bool:
@@ -100,7 +99,7 @@ class SessionStateResource(MCPResource):
     """
     return uri.startswith("research://sessions/") and uri.endswith("/state")
 
-  def extract_session_id(self, uri: str) -> Optional[str]:
+  def extract_session_id(self, uri: str) -> str | None:
     """
     Extract session ID from URI.
 

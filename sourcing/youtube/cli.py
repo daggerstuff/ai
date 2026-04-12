@@ -12,11 +12,9 @@ import argparse
 import json
 import logging
 from pathlib import Path
-from typing import Optional
 
-from ai.sourcing.youtube.api import ChannelHunterConfig, ChannelQualityThresholds
 from ai.sourcing.youtube.models import Channel, ChannelRegistry, ChannelStatus
-from ai.sourcing.youtube.monitoring import ChannelMonitor, health_check_channel
+from ai.sourcing.youtube.monitoring import health_check_channel
 from ai.sourcing.youtube.processor import run_pipeline
 
 logger = logging.getLogger(__name__)
@@ -27,7 +25,7 @@ def setup_logging(verbose: bool = False):
     level = logging.DEBUG if verbose else logging.INFO
     logging.basicConfig(
         level=level,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
 
@@ -39,7 +37,7 @@ def cmd_discover(args):
         print("Error: YouTube API key required. Use --api-key or set YOUTUBE_API_KEY environment variable.")
         return 1
 
-    print(f"Starting channel discovery...")
+    print("Starting channel discovery...")
     print(f"  Target channels: {args.channels}")
     print(f"  Min subscribers: {args.min_subscribers:,}")
     print(f"  Min videos: {args.min_videos}")
@@ -63,15 +61,15 @@ def cmd_discover(args):
         )
 
         print(f"\n{'-'*60}")
-        print(f"Discovery Complete!")
+        print("Discovery Complete!")
         print(f"{'-'*60}")
-        print(f"\nResults:")
+        print("\nResults:")
         print(f"  Qualified: {len(results.qualified_channels)} / {args.channels} target")
         print(f"  Rejected: {len(results.rejected_channels)}")
         print(f"  Total evaluated: {len(results.found_channels)}")
         print(f"  Languages: {len(results.languages)}")
         print(f"  Categories: {len(results.categories)}")
-        print(f"\n  Statistics:")
+        print("\n  Statistics:")
         print(f"    Total subscribers: {results.total_subscribers:,}")
         print(f"    Total videos: {results.total_videos:,}")
         print(f"    Professional sources: {results.professional_count}")
@@ -129,13 +127,13 @@ def cmd_check(args):
     print(f"Activity Status: {result['activity_status']}")
     print(f"Health Score: {result['health_score']:.2f}")
     print(f"Quality Score: {result['quality_score']:.2f}")
-    print(f"\nNotes:")
-    for note in result['notes']:
+    print("\nNotes:")
+    for note in result["notes"]:
         print(f"  • {note}")
 
-    if result['alerts']:
-        print(f"\nAlerts:")
-        for alert in result['alerts']:
+    if result["alerts"]:
+        print("\nAlerts:")
+        for alert in result["alerts"]:
             print(f"  [{alert['severity'].upper()}] {alert['name']}: {alert['description']}")
 
     return 0
@@ -163,23 +161,23 @@ def cmd_import(args):
 
     for data in channels_data:
         channel = Channel(
-            channel_id=data['channel_id'],
-            channel_name=data['channel_name'],
-            channel_url=data['channel_url'],
-            subscriber_count=data.get('subscriber_count', 0),
-            video_count=data.get('video_count', 0),
-            total_views=data.get('total_views', 0),
+            channel_id=data["channel_id"],
+            channel_name=data["channel_name"],
+            channel_url=data["channel_url"],
+            subscriber_count=data.get("subscriber_count", 0),
+            video_count=data.get("video_count", 0),
+            total_views=data.get("total_views", 0),
         )
         channel.categories = [
             ChannelStatus.ACTIVE  # We'll just mark as active
         ]
-        channel.status = ChannelStatus[data.get('status', 'UNKNOWN')]
-        channel.quality_score = data.get('quality_score', 0.0)
+        channel.status = ChannelStatus[data.get("status", "UNKNOWN")]
+        channel.quality_score = data.get("quality_score", 0.0)
 
         registry.add_channel(channel)
 
     print(f"{'-'*60}")
-    print(f"Import Complete!")
+    print("Import Complete!")
     print(f"{'-'*60}")
     print(registry.summary())
 
@@ -209,8 +207,8 @@ def cmd_list(args):
 
     for i, data in enumerate(channels_data):
         # Get licensing info
-        lic = data.get('licensing', {})
-        lic_status = "CC" if lic and lic.get('cc_license') else "Unknown"
+        lic = data.get("licensing", {})
+        lic_status = "CC" if lic and lic.get("cc_license") else "Unknown"
 
         print(f"{i+1:<4} {data['channel_name']:<40} {data['quality_score']:<8.2f} "
               f"{data['subscriber_count']:<12,} {data['video_count']:<8,} {lic_status}")
@@ -241,85 +239,85 @@ Examples:
         """
     )
 
-    subparsers = parser.add_subparsers(dest='command', help='Available commands')
+    subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # Discover command
-    discover_parser = subparsers.add_parser('discover', help='Run channel discovery')
+    discover_parser = subparsers.add_parser("discover", help="Run channel discovery")
     discover_parser.add_argument(
-        '--api-key',
-        help='YouTube Data API key (or set YOUTUBE_API_KEY env var)',
+        "--api-key",
+        help="YouTube Data API key (or set YOUTUBE_API_KEY env var)",
     )
     discover_parser.add_argument(
-        '--channels',
+        "--channels",
         type=int,
         default=50,
-        help='Target number of channels to discover (default: 50)',
+        help="Target number of channels to discover (default: 50)",
     )
     discover_parser.add_argument(
-        '--min-subs', '--min-subscribers',
+        "--min-subs", "--min-subscribers",
         type=int,
         default=1000,
-        dest='min_subscribers',
-        help='Minimum subscriber count (default: 1000)',
+        dest="min_subscribers",
+        help="Minimum subscriber count (default: 1000)",
     )
     discover_parser.add_argument(
-        '--min-videos',
+        "--min-videos",
         type=int,
         default=20,
-        help='Minimum video count (default: 20)',
+        help="Minimum video count (default: 20)",
     )
     discover_parser.add_argument(
-        '--output',
-        '-o',
-        default='qualified_channels.json',
-        help='Output JSON file path (default: qualified_channels.json)',
+        "--output",
+        "-o",
+        default="qualified_channels.json",
+        help="Output JSON file path (default: qualified_channels.json)",
     )
     discover_parser.add_argument(
-        '--report',
-        '-r',
-        help='Save markdown report to file',
+        "--report",
+        "-r",
+        help="Save markdown report to file",
     )
     discover_parser.add_argument(
-        '--verbose', '-v',
-        action='store_true',
-        help='Verbose output',
+        "--verbose", "-v",
+        action="store_true",
+        help="Verbose output",
     )
 
     # Check command
-    check_parser = subparsers.add_parser('check', help='Channel health check')
+    check_parser = subparsers.add_parser("check", help="Channel health check")
     check_parser.add_argument(
-        '--channel-id',
-        help='YouTube channel ID',
+        "--channel-id",
+        help="YouTube channel ID",
     )
     check_parser.add_argument(
-        '--verbose', '-v',
-        action='store_true',
-        help='Verbose output',
+        "--verbose", "-v",
+        action="store_true",
+        help="Verbose output",
     )
 
     # Import command
-    import_parser = subparsers.add_parser('import', help='Import channels from JSON')
+    import_parser = subparsers.add_parser("import", help="Import channels from JSON")
     import_parser.add_argument(
-        '--input',
-        '-i',
-        help='Input JSON file path',
+        "--input",
+        "-i",
+        help="Input JSON file path",
     )
     import_parser.add_argument(
-        '--verbose', '-v',
-        action='store_true',
-        help='Verbose output',
+        "--verbose", "-v",
+        action="store_true",
+        help="Verbose output",
     )
 
     # List command
-    list_parser = subparsers.add_parser('list', help='List channels in registry')
+    list_parser = subparsers.add_parser("list", help="List channels in registry")
     list_parser.add_argument(
-        '--registry',
-        help='Registry JSON file path (default: qualified_channels.json)',
+        "--registry",
+        help="Registry JSON file path (default: qualified_channels.json)",
     )
     list_parser.add_argument(
-        '--verbose', '-v',
-        action='store_true',
-        help='Verbose output',
+        "--verbose", "-v",
+        action="store_true",
+        help="Verbose output",
     )
 
     args = parser.parse_args()
@@ -329,19 +327,18 @@ Examples:
         return 1
 
     # Dispatch to command handler
-    if args.command == 'discover':
+    if args.command == "discover":
         return cmd_discover(args)
-    elif args.command == 'check':
+    if args.command == "check":
         return cmd_check(args)
-    elif args.command == 'import':
+    if args.command == "import":
         return cmd_import(args)
-    elif args.command == 'list':
+    if args.command == "list":
         return cmd_list(args)
-    else:
-        parser.print_help()
-        return 1
+    parser.print_help()
+    return 1
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import sys
     sys.exit(main())

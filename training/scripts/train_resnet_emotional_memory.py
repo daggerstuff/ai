@@ -18,13 +18,14 @@ The training uses:
     - Memory state persistence across batches (optional)
 """
 
+from datetime import datetime, timezone
+
 import argparse
 import json
 import logging
 import os
 import sys
 from dataclasses import dataclass, field
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -318,7 +319,7 @@ class Trainer:
                 wandb.init(
                     project=config.wandb_project,
                     name=config.wandb_run_name
-                    or f"resnet_memory_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                    or f"resnet_memory_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
                     config=vars(config),
                 )
                 self.wandb = wandb
