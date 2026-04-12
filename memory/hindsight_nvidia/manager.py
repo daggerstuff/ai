@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 NVIDIA NIM integration backed by the shared local memory service.
 
@@ -5,7 +7,6 @@ This replaces the old cloud/local split for Hindsight memory. NVIDIA-generated
 responses still use the configured model endpoint, but durable memory is stored
 only in the repository's local shared memory backend.
 """
-from __future__ import annotations
 
 import logging
 from datetime import datetime, timezone
