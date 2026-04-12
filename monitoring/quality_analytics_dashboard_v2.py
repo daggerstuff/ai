@@ -9,6 +9,8 @@ Built against the ACTUAL database schema with proper error handling,
 caching, and enterprise-grade architecture.
 """
 
+from datetime import datetime, timedelta, timezone
+
 import hashlib
 import json
 import logging
@@ -16,9 +18,8 @@ import sqlite3
 import time
 import warnings
 from dataclasses import dataclass
-from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -43,12 +44,12 @@ class QualityAnalytics:
 
     total_conversations: int
     average_quality: float
-    quality_distribution: Dict[str, int]
-    tier_performance: Dict[str, float]
-    component_performance: Dict[str, float]
-    trend_data: List[Dict[str, Any]]
-    anomalies: List[Dict[str, Any]]
-    recommendations: List[str]
+    quality_distribution: dict[str, int]
+    tier_performance: dict[str, float]
+    component_performance: dict[str, float]
+    trend_data: list[dict[str, Any]]
+    anomalies: list[dict[str, Any]]
+    recommendations: list[str]
     data_freshness: str
     analysis_timestamp: str
 
@@ -128,9 +129,9 @@ class QualityAnalyticsDashboard:
 
     def load_quality_data(
         self,
-        tier_filter: Optional[List[str]] = None,
-        date_range: Optional[Tuple[datetime, datetime]] = None,
-        min_quality: Optional[float] = None,
+        tier_filter: list[str] | None = None,
+        date_range: tuple[datetime, datetime] | None = None,
+        min_quality: float | None = None,
         force_refresh: bool = False,
     ) -> pd.DataFrame:
         """
@@ -285,7 +286,7 @@ class QualityAnalyticsDashboard:
                 anomalies=[],
                 recommendations=["No quality data available for analysis"],
                 data_freshness="No data",
-                analysis_timestamp=datetime.now().isoformat(),
+                analysis_timestamp=datetime.now(timezone.utc).isoformat(),
             )
 
         try:
@@ -323,7 +324,7 @@ class QualityAnalyticsDashboard:
                     if len(non_zero_values) > 0:
                         component_performance[name] = {
                             "average_score": float(non_zero_values.mean()),
-                            "sample_count": int(len(non_zero_values)),
+                            "sample_count": len(non_zero_values),
                             "coverage_percent": float(
                                 len(non_zero_values) / len(df) * 100
                             ),
@@ -336,7 +337,7 @@ class QualityAnalyticsDashboard:
                         }
 
             # Trend data (last 30 days)
-            thirty_days_ago = datetime.now() - timedelta(days=30)
+            thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
             recent_df = df[df["created_at"] >= thirty_days_ago]
 
             trend_data = []
@@ -366,7 +367,7 @@ class QualityAnalyticsDashboard:
             # Data freshness
             if not df.empty:
                 latest_date = df["created_at"].max()
-                data_age = datetime.now() - latest_date
+                data_age = datetime.now(timezone.utc) - latest_date
                 if data_age.days == 0:
                     data_freshness = "Current (today)"
                 elif data_age.days == 1:
@@ -386,7 +387,7 @@ class QualityAnalyticsDashboard:
                 anomalies=anomalies,
                 recommendations=recommendations,
                 data_freshness=data_freshness,
-                analysis_timestamp=datetime.now().isoformat(),
+                analysis_timestamp=datetime.now(timezone.utc).isoformat(),
             )
 
         except Exception as e:
@@ -399,14 +400,14 @@ class QualityAnalyticsDashboard:
                 component_performance={},
                 trend_data=[],
                 anomalies=[],
-                recommendations=[f"Error in analysis: {str(e)}"],
+                recommendations=[f"Error in analysis: {e!s}"],
                 data_freshness="Error",
-                analysis_timestamp=datetime.now().isoformat(),
+                analysis_timestamp=datetime.now(timezone.utc).isoformat(),
             )
 
     def _detect_quality_anomalies(
         self, df: pd.DataFrame, method: str = "iqr"
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Detect quality anomalies using statistical methods.
 
@@ -483,9 +484,9 @@ class QualityAnalyticsDashboard:
         self,
         df: pd.DataFrame,
         avg_quality: float,
-        tier_performance: Dict,
-        component_performance: Dict,
-    ) -> List[str]:
+        tier_performance: dict,
+        component_performance: dict,
+    ) -> list[str]:
         """
         Generate actionable quality improvement recommendations.
 
@@ -565,11 +566,11 @@ class QualityAnalyticsDashboard:
             # Trend-based recommendations
             if len(df) > 7:  # Need at least a week of data
                 recent_week = df[
-                    df["created_at"] >= (datetime.now() - timedelta(days=7))
+                    df["created_at"] >= (datetime.now(timezone.utc) - timedelta(days=7))
                 ]
                 older_week = df[
-                    (df["created_at"] >= (datetime.now() - timedelta(days=14)))
-                    & (df["created_at"] < (datetime.now() - timedelta(days=7)))
+                    (df["created_at"] >= (datetime.now(timezone.utc) - timedelta(days=14)))
+                    & (df["created_at"] < (datetime.now(timezone.utc) - timedelta(days=7)))
                 ]
 
                 if len(recent_week) > 0 and len(older_week) > 0:
@@ -588,7 +589,7 @@ class QualityAnalyticsDashboard:
 
         except Exception as e:
             logger.error(f"❌ Error generating recommendations: {e}")
-            recommendations.append(f"⚠️ Error generating recommendations: {str(e)}")
+            recommendations.append(f"⚠️ Error generating recommendations: {e!s}")
 
         return recommendations
 
@@ -742,7 +743,7 @@ class QualityAnalyticsDashboard:
             logger.error(f"❌ Error creating overview chart: {e}")
             # Return empty figure
             return go.Figure().add_annotation(
-                text=f"Error creating visualization: {str(e)}",
+                text=f"Error creating visualization: {e!s}",
                 xref="paper",
                 yref="paper",
                 x=0.5,
@@ -752,7 +753,7 @@ class QualityAnalyticsDashboard:
 
     def create_detailed_analysis_charts(
         self, df: pd.DataFrame
-    ) -> Tuple[go.Figure, go.Figure]:
+    ) -> tuple[go.Figure, go.Figure]:
         """
         Create detailed analysis charts for deeper insights.
 
@@ -860,7 +861,7 @@ class QualityAnalyticsDashboard:
         except Exception as e:
             logger.error(f"❌ Error creating detailed charts: {e}")
             error_fig = go.Figure().add_annotation(
-                text=f"Error creating detailed analysis: {str(e)}",
+                text=f"Error creating detailed analysis: {e!s}",
                 xref="paper",
                 yref="paper",
                 x=0.5,
@@ -937,8 +938,8 @@ class QualityAnalyticsDashboard:
         st.sidebar.subheader("📅 Date Range")
         date_range = st.sidebar.date_input(
             "Select date range",
-            value=(datetime.now() - timedelta(days=30), datetime.now()),
-            max_value=datetime.now(),
+            value=(datetime.now(timezone.utc) - timedelta(days=30), datetime.now(timezone.utc)),
+            max_value=datetime.now(timezone.utc),
             help="Filter conversations by creation date",
         )
 
@@ -1011,7 +1012,7 @@ class QualityAnalyticsDashboard:
                 analytics = self.calculate_quality_analytics(df)
 
             except Exception as e:
-                st.error(f"❌ Error loading data: {str(e)}")
+                st.error(f"❌ Error loading data: {e!s}")
                 st.stop()
 
         # Display key metrics
@@ -1153,7 +1154,7 @@ class QualityAnalyticsDashboard:
                 st.download_button(
                     "💾 Download Analytics",
                     data=json.dumps(analytics_dict, indent=2),
-                    file_name=f"quality_analytics_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
+                    file_name=f"quality_analytics_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.json",
                     mime="application/json",
                 )
 
@@ -1163,7 +1164,7 @@ class QualityAnalyticsDashboard:
                 st.download_button(
                     "💾 Download CSV",
                     data=csv_data,
-                    file_name=f"quality_data_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                    file_name=f"quality_data_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.csv",
                     mime="text/csv",
                 )
 
@@ -1187,7 +1188,7 @@ Generated: {analytics.analysis_timestamp}
                 st.download_button(
                     "💾 Download Report",
                     data=report,
-                    file_name=f"quality_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md",
+                    file_name=f"quality_report_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.md",
                     mime="text/markdown",
                 )
 
@@ -1198,7 +1199,7 @@ def main():
         dashboard = QualityAnalyticsDashboard()
         dashboard.run_streamlit_dashboard()
     except Exception as e:
-        st.error(f"❌ Dashboard initialization failed: {str(e)}")
+        st.error(f"❌ Dashboard initialization failed: {e!s}")
         logger.error(f"Dashboard initialization failed: {e}")
 
 

@@ -15,13 +15,13 @@ Usage:
     whisper = agent.get_whisper()
 """
 
+from datetime import datetime, timezone
+
 import asyncio
-import hashlib
 import json
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from .hindsight_subconscious_model_provider import SubconsciousModelProvider
 from .hindsight_subconscious_security import validate_and_sanitize_content
@@ -198,7 +198,7 @@ class MemoryBlock:
         self.content = new_content
         self.chars_current = len(self.content)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for API usage."""
         return {
             "label": self.label,
@@ -212,8 +212,8 @@ class MemoryBlock:
 @dataclass
 class SubconsciousState:
     """State container for Subconscious agent."""
-    blocks: Dict[str, MemoryBlock] = field(default_factory=dict)
-    last_sync: Optional[datetime] = None
+    blocks: dict[str, MemoryBlock] = field(default_factory=dict)
+    last_sync: datetime | None = None
     session_count: int = 0
 
     def initialize_defaults(self) -> None:
@@ -225,7 +225,7 @@ class SubconsciousState:
                 description=f"Memory block for {label}",
             )
 
-    def get_block(self, label: str) -> Optional[MemoryBlock]:
+    def get_block(self, label: str) -> MemoryBlock | None:
         """Get a memory block by label."""
         return self.blocks.get(label)
 
@@ -253,18 +253,18 @@ class SubconsciousState:
 
     def to_full_xml(self) -> str:
         """Convert all blocks to XML context format."""
-        parts = ['<letta_memory_blocks>']
+        parts = ["<letta_memory_blocks>"]
 
         for label, block in self.blocks.items():
             if block.content.startswith("(No"):
                 continue
 
-            parts.append(f'<{label}>')
+            parts.append(f"<{label}>")
             parts.append(block.content)
-            parts.append(f'</{label}>')
+            parts.append(f"</{label}>")
 
-        parts.append('</letta_memory_blocks>')
-        return '\n'.join(parts)
+        parts.append("</letta_memory_blocks>")
+        return "\n".join(parts)
 
 
 class SubconsciousAgent:
@@ -280,10 +280,10 @@ class SubconsciousAgent:
 
     def __init__(
         self,
-        hindsight_api_key: Optional[str] = None,
+        hindsight_api_key: str | None = None,
         *,
-        db_path: Optional[str] = None,
-        bank_id: Optional[str] = None,
+        db_path: str | None = None,
+        bank_id: str | None = None,
     ):
         """Initialize the Subconscious agent.
 
@@ -311,13 +311,13 @@ class SubconsciousAgent:
         """Get or generate default user ID."""
         return "claude-subconscious-user"
 
-    async def discover_available_models(self, base_url: str = "https://api.anthropic.com") -> List[Dict[str, Any]]:
+    async def discover_available_models(self, base_url: str = "https://api.anthropic.com") -> list[dict[str, Any]]:
         return await self.model_provider.discover_available_models(base_url=base_url)
 
-    def select_best_model(self, available_models: List[Dict[str, Any]]) -> Optional[str]:
+    def select_best_model(self, available_models: list[dict[str, Any]]) -> str | None:
         return self.model_provider.select_best_model(available_models)
 
-    async def get_or_select_model(self) -> Optional[str]:
+    async def get_or_select_model(self) -> str | None:
         """
         Get model from config or discover and select one automatically.
 
@@ -351,7 +351,7 @@ class SubconsciousAgent:
         self,
         *,
         session_id: str,
-        project_path: Optional[str],
+        project_path: str | None,
         message_count: int,
     ) -> None:
         context_key = self._make_context_key(session_id)
@@ -373,8 +373,8 @@ class SubconsciousAgent:
     async def process_transcript(
         self,
         session_id: str,
-        messages: List[Dict[str, Any]],
-        project_path: Optional[str] = None,
+        messages: list[dict[str, Any]],
+        project_path: str | None = None,
     ) -> None:
         """
         Process a session transcript.

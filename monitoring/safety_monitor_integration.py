@@ -18,24 +18,26 @@ Version: 1.0.0
 Date: August 2025
 """
 
+from datetime import datetime, timezone
+
 import asyncio
 import json
 import logging
 import time
+from collections.abc import Callable
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 import numpy as np
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler('/home/vivi/pixelated/ai/logs/safety_monitoring.log'),
+        logging.FileHandler("/home/vivi/pixelated/ai/logs/safety_monitoring.log"),
         logging.StreamHandler()
     ]
 )
@@ -70,7 +72,7 @@ class SafetyMetrics:
     confidence: float
     trend_direction: str  # "increasing", "decreasing", "stable"
     anomaly_detected: bool
-    context_factors: Dict[str, Any]
+    context_factors: dict[str, Any]
 
 @dataclass
 class SafetyAlert:
@@ -82,7 +84,7 @@ class SafetyAlert:
     trigger_reason: str
     timestamp: datetime
     escalation_level: int
-    channels_notified: List[AlertChannel]
+    channels_notified: list[AlertChannel]
     response_required: bool
     clinical_notes: str
 
@@ -94,8 +96,8 @@ class ClinicalContact:
     role: str
     phone: str
     email: str
-    specialization: List[str]
-    availability_hours: Dict[str, str]
+    specialization: list[str]
+    availability_hours: dict[str, str]
     escalation_level: int
     response_time_sla: int  # minutes
 
@@ -106,9 +108,9 @@ class SafetyMonitor:
         self.monitoring_path = Path("/home/vivi/pixelated/ai/monitoring")
         self.monitoring_path.mkdir(parents=True, exist_ok=True)
 
-        self.active_sessions: Dict[str, SafetyMetrics] = {}
-        self.alert_history: List[SafetyAlert] = []
-        self.clinical_contacts: List[ClinicalContact] = []
+        self.active_sessions: dict[str, SafetyMetrics] = {}
+        self.alert_history: list[SafetyAlert] = []
+        self.clinical_contacts: list[ClinicalContact] = []
         self.monitoring_active = False
 
         # Safety thresholds
@@ -122,7 +124,7 @@ class SafetyMonitor:
         }
 
         # Alert callbacks
-        self.alert_callbacks: List[Callable] = []
+        self.alert_callbacks: list[Callable] = []
 
     async def initialize_monitoring(self):
         """Initialize safety monitoring system"""
@@ -186,7 +188,7 @@ class SafetyMonitor:
 
             # Save contacts
             contacts_data = [asdict(contact) for contact in self.clinical_contacts]
-            with open(contacts_file, 'w') as f:
+            with open(contacts_file, "w") as f:
                 json.dump(contacts_data, f, indent=2, default=str)
 
     async def _initialize_anomaly_detection(self):
@@ -214,7 +216,7 @@ class SafetyMonitor:
         }
 
     async def process_user_interaction(self, user_id: str, session_id: str,
-                                     interaction_data: Dict[str, Any]) -> SafetyMetrics:
+                                     interaction_data: dict[str, Any]) -> SafetyMetrics:
         """Process user interaction and calculate safety metrics"""
 
         # Calculate risk score (simplified ML model simulation)
@@ -239,7 +241,7 @@ class SafetyMonitor:
             confidence=0.85,  # Simplified confidence score
             trend_direction=trend_direction,
             anomaly_detected=anomaly_detected,
-            context_factors=interaction_data.get('context', {})
+            context_factors=interaction_data.get("context", {})
         )
 
         # Store metrics
@@ -251,21 +253,21 @@ class SafetyMonitor:
 
         return metrics
 
-    async def _calculate_risk_score(self, interaction_data: Dict[str, Any]) -> float:
+    async def _calculate_risk_score(self, interaction_data: dict[str, Any]) -> float:
         """Calculate risk score from interaction data"""
 
         # Simplified risk calculation (replace with actual ML model)
-        text = interaction_data.get('text', '').lower()
+        text = interaction_data.get("text", "").lower()
 
         # Crisis keywords with different weights
         high_risk_keywords = [
-            'suicide', 'kill myself', 'end it all', 'ending it all', 'can\'t take this anymore'
+            "suicide", "kill myself", "end it all", "ending it all", "can't take this anymore"
         ]
         medium_risk_keywords = [
-            'hurt myself', 'hurting myself', 'die', 'death', 'hopeless', 'worthless'
+            "hurt myself", "hurting myself", "die", "death", "hopeless", "worthless"
         ]
         low_risk_keywords = [
-            'stressed', 'overwhelmed', 'anxious', 'depressed', 'sad'
+            "stressed", "overwhelmed", "anxious", "depressed", "sad"
         ]
 
         # Calculate base risk from keywords
@@ -287,17 +289,17 @@ class SafetyMonitor:
                 risk_score += 0.1
 
         # Add context factors
-        context = interaction_data.get('context', {})
-        if context.get('previous_risk_level') == 'high':
+        context = interaction_data.get("context", {})
+        if context.get("previous_risk_level") == "high":
             risk_score += 0.2
-        elif context.get('previous_risk_level') == 'medium':
+        elif context.get("previous_risk_level") == "medium":
             risk_score += 0.1
 
-        if context.get('time_since_last_interaction', 0) > 24:  # hours
+        if context.get("time_since_last_interaction", 0) > 24:  # hours
             risk_score += 0.1
 
         # Time of day factor (night time slightly higher risk)
-        if context.get('time_of_day') == 'night':
+        if context.get("time_of_day") == "night":
             risk_score += 0.05
 
         # Normalize to 0-1 range
@@ -346,10 +348,9 @@ class SafetyMonitor:
 
         if recent_avg > previous_avg + 0.1:
             return "increasing"
-        elif recent_avg < previous_avg - 0.1:
+        if recent_avg < previous_avg - 0.1:
             return "decreasing"
-        else:
-            return "stable"
+        return "stable"
 
     async def _should_trigger_alert(self, metrics: SafetyMetrics) -> bool:
         """Determine if safety alert should be triggered"""
@@ -455,7 +456,7 @@ class SafetyMonitor:
         """Add callback function for alert notifications"""
         self.alert_callbacks.append(callback)
 
-    async def get_safety_dashboard_data(self) -> Dict[str, Any]:
+    async def get_safety_dashboard_data(self) -> dict[str, Any]:
         """Get data for safety monitoring dashboard"""
 
         current_time = datetime.now(timezone.utc)
@@ -569,7 +570,7 @@ async def main():
     # Get dashboard data
     dashboard_data = await monitor.get_safety_dashboard_data()
 
-    print(f"\n" + "="*60)
+    print("\n" + "="*60)
     print("SAFETY MONITORING DASHBOARD")
     print("="*60)
     print(f"Monitoring Status: {dashboard_data['monitoring_status']}")
@@ -578,17 +579,17 @@ async def main():
     print(f"Recent Alerts (24h): {dashboard_data['recent_alerts_24h']}")
     print(f"Average Risk Score: {dashboard_data['average_risk_score']:.3f}")
 
-    if dashboard_data['high_risk_users']:
-        print(f"\nHigh Risk Users:")
-        for user in dashboard_data['high_risk_users']:
+    if dashboard_data["high_risk_users"]:
+        print("\nHigh Risk Users:")
+        for user in dashboard_data["high_risk_users"]:
             print(f"  {user['user_id']}: {user['safety_level']} (Risk: {user['risk_score']:.3f})")
 
-    if dashboard_data['recent_alerts']:
-        print(f"\nRecent Alerts:")
-        for alert in dashboard_data['recent_alerts']:
+    if dashboard_data["recent_alerts"]:
+        print("\nRecent Alerts:")
+        for alert in dashboard_data["recent_alerts"]:
             print(f"  {alert['alert_id']}: {alert['safety_level']} - User {alert['user_id']}")
 
-    print(f"\n🎯 SAFETY MONITORING: ✅ OPERATIONAL")
+    print("\n🎯 SAFETY MONITORING: ✅ OPERATIONAL")
     print("Real-time safety monitoring system is active and functional!")
 
     return True

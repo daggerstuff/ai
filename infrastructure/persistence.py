@@ -4,12 +4,13 @@ Persistence Layer for AI Pipelines (PIX-4).
 Handles metadata storage for datasets, processing runs, and evaluation results.
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import os
-from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
@@ -24,7 +25,7 @@ class DatasetPersistence:
     Supports MongoDB for flexible schema and local fallback if DB is unavailable.
     """
 
-    def __init__(self, db_uri: Optional[str] = None):
+    def __init__(self, db_uri: str | None = None):
         self.db_uri = db_uri or os.environ.get("MONGODB_URI")
         self.client = None
         self.db = None
@@ -45,7 +46,7 @@ class DatasetPersistence:
         else:
             logger.warning("No MONGODB_URI provided. Using local file persistence.")
 
-    def log_dataset_version(self, name: str, version: str, metadata: Dict[str, Any]):
+    def log_dataset_version(self, name: str, version: str, metadata: dict[str, Any]):
         """Logs a new dataset version metadata."""
         record = {
             "name": name,
@@ -65,7 +66,7 @@ class DatasetPersistence:
 
         logger.info(f"Dataset {name} (v{version}) logged successfully.")
 
-    def get_dataset_metadata(self, name: str, version: str) -> Optional[Dict[str, Any]]:
+    def get_dataset_metadata(self, name: str, version: str) -> dict[str, Any] | None:
         """Retrieves metadata for a specific dataset version."""
         if self.db is not None:
             return self.db.datasets.find_one({"name": name, "version": version})
@@ -78,7 +79,7 @@ class DatasetPersistence:
         return None
 
     def update_pipeline_state(
-        self, pipeline_id: str, state: str, details: Dict[str, Any]
+        self, pipeline_id: str, state: str, details: dict[str, Any]
     ):
         """Updates the state of a running pipeline."""
         record = {

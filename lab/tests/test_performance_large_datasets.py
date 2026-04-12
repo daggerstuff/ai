@@ -1,4 +1,3 @@
-import pytest
 
 #!/usr/bin/env python3
 """
@@ -22,17 +21,16 @@ import tempfile
 import time
 import unittest
 import warnings
-from datetime import datetime
 
 import numpy as np
 import pandas as pd
 import psutil
 
-warnings.filterwarnings('ignore')
+warnings.filterwarnings("ignore")
 
 # Add paths for imports
-sys.path.append('/home/vivi/pixelated/ai/monitoring')
-sys.path.append('/home/vivi/pixelated/ai')
+sys.path.append("/home/vivi/pixelated/ai/monitoring")
+sys.path.append("/home/vivi/pixelated/ai")
 
 class PerformanceTestBase(unittest.TestCase):
     """Base class for performance testing with utilities"""
@@ -49,9 +47,9 @@ class PerformanceTestBase(unittest.TestCase):
         end_memory = psutil.Process().memory_info().rss / 1024 / 1024  # MB
 
         self.performance_metrics.update({
-            'execution_time': end_time - self.start_time,
-            'memory_usage_mb': end_memory - self.start_memory,
-            'peak_memory_mb': end_memory
+            "execution_time": end_time - self.start_time,
+            "memory_usage_mb": end_memory - self.start_memory,
+            "peak_memory_mb": end_memory
         })
 
         # Force garbage collection
@@ -59,7 +57,7 @@ class PerformanceTestBase(unittest.TestCase):
 
     def create_large_test_database(self, num_conversations=10000):
         """Create large test database for performance testing"""
-        test_db = tempfile.NamedTemporaryFile(delete=False, suffix='.db')
+        test_db = tempfile.NamedTemporaryFile(delete=False, suffix=".db")
         test_db_path = test_db.name
         test_db.close()
 
@@ -67,7 +65,7 @@ class PerformanceTestBase(unittest.TestCase):
         cursor = conn.cursor()
 
         # Create table
-        cursor.execute('''
+        cursor.execute("""
             CREATE TABLE conversations (
                 conversation_id TEXT PRIMARY KEY,
                 dataset_source TEXT,
@@ -79,11 +77,11 @@ class PerformanceTestBase(unittest.TestCase):
                 created_at TIMESTAMP,
                 processed_at TIMESTAMP
             )
-        ''')
+        """)
 
         # Generate large dataset
-        datasets = ['dataset_a', 'dataset_b', 'dataset_c', 'dataset_d', 'dataset_e']
-        tiers = ['priority_1', 'standard', 'additional_specialized']
+        datasets = ["dataset_a", "dataset_b", "dataset_c", "dataset_d", "dataset_e"]
+        tiers = ["priority_1", "standard", "additional_specialized"]
 
         batch_size = 1000
         for batch_start in range(0, num_conversations, batch_size):
@@ -103,24 +101,24 @@ class PerformanceTestBase(unittest.TestCase):
                     {"assistant": assistant_msg}
                 ])
 
-                word_count = len((human_msg + ' ' + assistant_msg).split())
+                word_count = len((human_msg + " " + assistant_msg).split())
                 char_count = len(human_msg + assistant_msg)
 
                 batch_data.append((
-                    f'perf_test_{i+1:06d}',
+                    f"perf_test_{i+1:06d}",
                     dataset,
                     tier,
                     conversation_json,
                     char_count,
                     word_count,
                     2,
-                    f'2025-08-{(i % 7) + 1:02d} {(i % 24):02d}:{(i % 60):02d}:00',
-                    f'2025-08-{(i % 7) + 1:02d} {(i % 24):02d}:{((i % 60) + 1):02d}:00'
+                    f"2025-08-{(i % 7) + 1:02d} {(i % 24):02d}:{(i % 60):02d}:00",
+                    f"2025-08-{(i % 7) + 1:02d} {(i % 24):02d}:{((i % 60) + 1):02d}:00"
                 ))
 
-            cursor.executemany('''
+            cursor.executemany("""
                 INSERT INTO conversations VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', batch_data)
+            """, batch_data)
 
             # Commit in batches to manage memory
             conn.commit()
@@ -139,10 +137,10 @@ class PerformanceTestBase(unittest.TestCase):
         end_memory = psutil.Process().memory_info().rss / 1024 / 1024
 
         return {
-            'result': result,
-            'execution_time': end_time - start_time,
-            'memory_delta_mb': end_memory - start_memory,
-            'peak_memory_mb': end_memory
+            "result": result,
+            "execution_time": end_time - start_time,
+            "memory_delta_mb": end_memory - start_memory,
+            "peak_memory_mb": end_memory
         }
 
 class TestLargeDatasetLoading(PerformanceTestBase):
@@ -166,11 +164,11 @@ class TestLargeDatasetLoading(PerformanceTestBase):
             perf_metrics = self.measure_performance(load_data)
 
             # Verify data loaded correctly
-            self.assertEqual(len(perf_metrics['result']), 10000)
+            self.assertEqual(len(perf_metrics["result"]), 10000)
 
             # Performance assertions
-            self.assertLess(perf_metrics['execution_time'], 10.0, "Loading should complete within 10 seconds")
-            self.assertLess(perf_metrics['memory_delta_mb'], 500, "Memory usage should be under 500MB")
+            self.assertLess(perf_metrics["execution_time"], 10.0, "Loading should complete within 10 seconds")
+            self.assertLess(perf_metrics["memory_delta_mb"], 500, "Memory usage should be under 500MB")
 
             print(f"  ✅ Loaded 10K conversations in {perf_metrics['execution_time']:.2f}s")
             print(f"  ✅ Memory usage: {perf_metrics['memory_delta_mb']:.1f}MB")
@@ -206,11 +204,11 @@ class TestLargeDatasetLoading(PerformanceTestBase):
             perf_metrics = self.measure_performance(load_data_chunked)
 
             # Verify data loaded correctly
-            self.assertEqual(len(perf_metrics['result']), 50000)
+            self.assertEqual(len(perf_metrics["result"]), 50000)
 
             # Performance assertions (more lenient for larger dataset)
-            self.assertLess(perf_metrics['execution_time'], 30.0, "Loading should complete within 30 seconds")
-            self.assertLess(perf_metrics['memory_delta_mb'], 1000, "Memory usage should be under 1GB")
+            self.assertLess(perf_metrics["execution_time"], 30.0, "Loading should complete within 30 seconds")
+            self.assertLess(perf_metrics["memory_delta_mb"], 1000, "Memory usage should be under 1GB")
 
             print(f"  ✅ Loaded 50K conversations in {perf_metrics['execution_time']:.2f}s")
             print(f"  ✅ Memory usage: {perf_metrics['memory_delta_mb']:.1f}MB")
@@ -237,25 +235,25 @@ class TestLargeDatasetLoading(PerformanceTestBase):
                     chunksize=chunk_size
                 ):
                     # Process each chunk
-                    chunk['quality_score'] = chunk['word_count'] * 2 + 50
-                    quality_scores.extend(chunk['quality_score'].tolist())
+                    chunk["quality_score"] = chunk["word_count"] * 2 + 50
+                    quality_scores.extend(chunk["quality_score"].tolist())
                     total_processed += len(chunk)
 
                 conn.close()
                 return {
-                    'total_processed': total_processed,
-                    'avg_quality': np.mean(quality_scores)
+                    "total_processed": total_processed,
+                    "avg_quality": np.mean(quality_scores)
                 }
 
             perf_metrics = self.measure_performance(process_streaming)
 
             # Verify processing
-            self.assertEqual(perf_metrics['result']['total_processed'], 25000)
-            self.assertGreater(perf_metrics['result']['avg_quality'], 0)
+            self.assertEqual(perf_metrics["result"]["total_processed"], 25000)
+            self.assertGreater(perf_metrics["result"]["avg_quality"], 0)
 
             # Performance assertions
-            self.assertLess(perf_metrics['execution_time'], 20.0, "Streaming processing should be efficient")
-            self.assertLess(perf_metrics['memory_delta_mb'], 300, "Streaming should use less memory")
+            self.assertLess(perf_metrics["execution_time"], 20.0, "Streaming processing should be efficient")
+            self.assertLess(perf_metrics["memory_delta_mb"], 300, "Streaming should use less memory")
 
             print(f"  ✅ Processed 25K conversations in {perf_metrics['execution_time']:.2f}s")
             print(f"  ✅ Memory usage: {perf_metrics['memory_delta_mb']:.1f}MB")
@@ -273,49 +271,49 @@ class TestAnalyticsPerformance(PerformanceTestBase):
         # Create large dataset in memory
         np.random.seed(42)
         large_df = pd.DataFrame({
-            'conversation_id': [f'test_{i:06d}' for i in range(20000)],
-            'dataset_source': np.random.choice(['dataset_a', 'dataset_b', 'dataset_c'], 20000),
-            'tier': np.random.choice(['priority_1', 'standard', 'additional'], 20000),
-            'word_count': np.random.randint(10, 100, 20000),
-            'quality_score': np.random.normal(50, 15, 20000),
-            'complexity_score': np.random.normal(40, 10, 20000)
+            "conversation_id": [f"test_{i:06d}" for i in range(20000)],
+            "dataset_source": np.random.choice(["dataset_a", "dataset_b", "dataset_c"], 20000),
+            "tier": np.random.choice(["priority_1", "standard", "additional"], 20000),
+            "word_count": np.random.randint(10, 100, 20000),
+            "quality_score": np.random.normal(50, 15, 20000),
+            "complexity_score": np.random.normal(40, 10, 20000)
         })
 
         def perform_aggregations():
             # Multiple aggregation operations
-            dataset_stats = large_df.groupby('dataset_source').agg({
-                'word_count': ['mean', 'std', 'count'],
-                'quality_score': ['mean', 'median', 'std'],
-                'complexity_score': 'mean'
+            dataset_stats = large_df.groupby("dataset_source").agg({
+                "word_count": ["mean", "std", "count"],
+                "quality_score": ["mean", "median", "std"],
+                "complexity_score": "mean"
             })
 
-            tier_stats = large_df.groupby('tier').agg({
-                'quality_score': ['mean', 'count'],
-                'word_count': 'sum'
+            tier_stats = large_df.groupby("tier").agg({
+                "quality_score": ["mean", "count"],
+                "word_count": "sum"
             })
 
-            cross_stats = large_df.groupby(['dataset_source', 'tier']).agg({
-                'quality_score': 'mean',
-                'word_count': 'mean'
+            cross_stats = large_df.groupby(["dataset_source", "tier"]).agg({
+                "quality_score": "mean",
+                "word_count": "mean"
             })
 
             return {
-                'dataset_stats': dataset_stats,
-                'tier_stats': tier_stats,
-                'cross_stats': cross_stats
+                "dataset_stats": dataset_stats,
+                "tier_stats": tier_stats,
+                "cross_stats": cross_stats
             }
 
         perf_metrics = self.measure_performance(perform_aggregations)
 
         # Verify aggregations
-        result = perf_metrics['result']
-        self.assertGreater(len(result['dataset_stats']), 0)
-        self.assertGreater(len(result['tier_stats']), 0)
-        self.assertGreater(len(result['cross_stats']), 0)
+        result = perf_metrics["result"]
+        self.assertGreater(len(result["dataset_stats"]), 0)
+        self.assertGreater(len(result["tier_stats"]), 0)
+        self.assertGreater(len(result["cross_stats"]), 0)
 
         # Performance assertions
-        self.assertLess(perf_metrics['execution_time'], 5.0, "Aggregations should complete quickly")
-        self.assertLess(perf_metrics['memory_delta_mb'], 200, "Aggregations should be memory efficient")
+        self.assertLess(perf_metrics["execution_time"], 5.0, "Aggregations should complete quickly")
+        self.assertLess(perf_metrics["memory_delta_mb"], 200, "Aggregations should be memory efficient")
 
         print(f"  ✅ Aggregated 20K records in {perf_metrics['execution_time']:.2f}s")
         print(f"  ✅ Memory usage: {perf_metrics['memory_delta_mb']:.1f}MB")
@@ -329,10 +327,10 @@ class TestAnalyticsPerformance(PerformanceTestBase):
         data_size = 15000
 
         large_dataset = {
-            'quality_scores': np.random.normal(50, 15, data_size),
-            'engagement_scores': np.random.normal(60, 20, data_size),
-            'complexity_scores': np.random.normal(40, 10, data_size),
-            'word_counts': np.random.randint(10, 200, data_size)
+            "quality_scores": np.random.normal(50, 15, data_size),
+            "engagement_scores": np.random.normal(60, 20, data_size),
+            "complexity_scores": np.random.normal(40, 10, data_size),
+            "word_counts": np.random.randint(10, 200, data_size)
         }
 
         def perform_statistical_analysis():
@@ -344,33 +342,33 @@ class TestAnalyticsPerformance(PerformanceTestBase):
 
             # Distribution analysis
             for column in df.columns:
-                results[f'{column}_stats'] = {
-                    'mean': df[column].mean(),
-                    'std': df[column].std(),
-                    'median': df[column].median(),
-                    'q25': df[column].quantile(0.25),
-                    'q75': df[column].quantile(0.75)
+                results[f"{column}_stats"] = {
+                    "mean": df[column].mean(),
+                    "std": df[column].std(),
+                    "median": df[column].median(),
+                    "q25": df[column].quantile(0.25),
+                    "q75": df[column].quantile(0.75)
                 }
 
             # Trend analysis (simple linear regression)
             x = np.arange(len(df))
             for column in df.columns:
                 slope, intercept = np.polyfit(x, df[column], 1)
-                results[f'{column}_trend'] = {'slope': slope, 'intercept': intercept}
+                results[f"{column}_trend"] = {"slope": slope, "intercept": intercept}
 
-            results['correlation_matrix'] = correlation_matrix.to_dict()
+            results["correlation_matrix"] = correlation_matrix.to_dict()
             return results
 
         perf_metrics = self.measure_performance(perform_statistical_analysis)
 
         # Verify analysis results
-        result = perf_metrics['result']
-        self.assertIn('correlation_matrix', result)
-        self.assertIn('quality_scores_stats', result)
+        result = perf_metrics["result"]
+        self.assertIn("correlation_matrix", result)
+        self.assertIn("quality_scores_stats", result)
 
         # Performance assertions
-        self.assertLess(perf_metrics['execution_time'], 3.0, "Statistical analysis should be fast")
-        self.assertLess(perf_metrics['memory_delta_mb'], 150, "Statistical analysis should be memory efficient")
+        self.assertLess(perf_metrics["execution_time"], 3.0, "Statistical analysis should be fast")
+        self.assertLess(perf_metrics["memory_delta_mb"], 150, "Statistical analysis should be memory efficient")
 
         print(f"  ✅ Analyzed 15K records in {perf_metrics['execution_time']:.2f}s")
         print(f"  ✅ Memory usage: {perf_metrics['memory_delta_mb']:.1f}MB")
@@ -407,24 +405,24 @@ class TestAnalyticsPerformance(PerformanceTestBase):
             r2 = r2_score(y_test, y_pred)
 
             return {
-                'model': model,
-                'mse': mse,
-                'r2_score': r2,
-                'n_samples': n_samples,
-                'n_features': n_features
+                "model": model,
+                "mse": mse,
+                "r2_score": r2,
+                "n_samples": n_samples,
+                "n_features": n_features
             }
 
         perf_metrics = self.measure_performance(train_and_evaluate_model)
 
         # Verify ML results
-        result = perf_metrics['result']
-        self.assertIsNotNone(result['model'])
-        self.assertIsInstance(result['mse'], float)
-        self.assertIsInstance(result['r2_score'], float)
+        result = perf_metrics["result"]
+        self.assertIsNotNone(result["model"])
+        self.assertIsInstance(result["mse"], float)
+        self.assertIsInstance(result["r2_score"], float)
 
         # Performance assertions
-        self.assertLess(perf_metrics['execution_time'], 15.0, "ML training should complete within reasonable time")
-        self.assertLess(perf_metrics['memory_delta_mb'], 300, "ML training should manage memory well")
+        self.assertLess(perf_metrics["execution_time"], 15.0, "ML training should complete within reasonable time")
+        self.assertLess(perf_metrics["memory_delta_mb"], 300, "ML training should manage memory well")
 
         print(f"  ✅ Trained ML model on 10K samples in {perf_metrics['execution_time']:.2f}s")
         print(f"  ✅ Memory usage: {perf_metrics['memory_delta_mb']:.1f}MB")
@@ -446,23 +444,23 @@ class TestScalabilityLimits(PerformanceTestBase):
 
             # Create dataset
             df = pd.DataFrame({
-                'conversation_id': [f'test_{i:06d}' for i in range(size)],
-                'word_count': np.random.randint(10, 100, size),
-                'quality_score': np.random.normal(50, 15, size)
+                "conversation_id": [f"test_{i:06d}" for i in range(size)],
+                "word_count": np.random.randint(10, 100, size),
+                "quality_score": np.random.normal(50, 15, size)
             })
 
             def process_dataset():
                 # Simulate processing operations
                 result = df.groupby(df.index // 1000).agg({
-                    'word_count': 'mean',
-                    'quality_score': ['mean', 'std']
+                    "word_count": "mean",
+                    "quality_score": ["mean", "std"]
                 })
                 return result
 
             perf_metrics = self.measure_performance(process_dataset)
 
-            memory_usage.append(perf_metrics['memory_delta_mb'])
-            processing_times.append(perf_metrics['execution_time'])
+            memory_usage.append(perf_metrics["memory_delta_mb"])
+            processing_times.append(perf_metrics["execution_time"])
 
             # Clean up
             del df
@@ -497,9 +495,9 @@ class TestScalabilityLimits(PerformanceTestBase):
                     # Simulate processing
                     data = np.random.randn(1000)
                     result = {
-                        'mean': np.mean(data),
-                        'std': np.std(data),
-                        'processed_items': len(data)
+                        "mean": np.mean(data),
+                        "std": np.std(data),
+                        "processed_items": len(data)
                     }
 
                     result_queue.put(result)
@@ -546,11 +544,11 @@ class TestScalabilityLimits(PerformanceTestBase):
         perf_metrics = self.measure_performance(simulate_concurrent_processing)
 
         # Verify concurrent processing
-        results = perf_metrics['result']
+        results = perf_metrics["result"]
         self.assertEqual(len(results), 20)  # All tasks completed
 
         # Performance assertions
-        self.assertLess(perf_metrics['execution_time'], 10.0, "Concurrent processing should be efficient")
+        self.assertLess(perf_metrics["execution_time"], 10.0, "Concurrent processing should be efficient")
 
         print(f"  ✅ Processed 20 tasks concurrently in {perf_metrics['execution_time']:.2f}s")
         print(f"  ✅ Memory usage: {perf_metrics['memory_delta_mb']:.1f}MB")
@@ -589,13 +587,13 @@ def run_performance_tests():
     if result.failures:
         print(f"\n❌ Failures ({len(result.failures)}):")
         for test, traceback in result.failures:
-            error_msg = traceback.split('AssertionError: ')[-1].split('\n')[0] if 'AssertionError:' in traceback else 'Unknown failure'
+            error_msg = traceback.split("AssertionError: ")[-1].split("\n")[0] if "AssertionError:" in traceback else "Unknown failure"
             print(f"  • {test}: {error_msg}")
 
     if result.errors:
         print(f"\n🚨 Errors ({len(result.errors)}):")
         for test, traceback in result.errors:
-            error_msg = traceback.split('\n')[-2] if traceback else 'Unknown error'
+            error_msg = traceback.split("\n")[-2] if traceback else "Unknown error"
             print(f"  • {test}: {error_msg}")
 
     if not result.failures and not result.errors:

@@ -4,10 +4,11 @@ Notification System Testing Script
 Tests all notification channels and priority levels
 """
 
+from datetime import datetime, timezone
+
 import asyncio
 import os
 import sys
-from datetime import datetime
 
 from notification_integrations import (
     NotificationChannel,
@@ -32,7 +33,7 @@ async def test_individual_channels():
         channels=[NotificationChannel.EMAIL],
         metadata={
             "test_type": "email_channel",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "system_status": "testing",
         },
     )
@@ -49,7 +50,7 @@ async def test_individual_channels():
         channels=[NotificationChannel.SLACK],
         metadata={
             "test_type": "slack_channel",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "system_status": "testing",
         },
     )
@@ -66,7 +67,7 @@ async def test_individual_channels():
         channels=[NotificationChannel.PAGERDUTY],
         metadata={
             "test_type": "pagerduty_channel",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "system_status": "testing",
         },
     )
@@ -83,7 +84,7 @@ async def test_individual_channels():
         channels=[NotificationChannel.WEBHOOK],
         metadata={
             "test_type": "webhook_channel",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "system_status": "testing",
         },
     )
@@ -137,7 +138,7 @@ async def test_priority_levels():
             metadata={
                 "test_type": "priority_routing",
                 "priority_level": test["priority"].value,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             },
         )
 
@@ -164,15 +165,15 @@ async def test_concurrent_notifications():
             metadata={
                 "test_type": "concurrent",
                 "test_number": i + 1,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             },
         )
         tasks.append(task)
 
     # Execute all tasks concurrently
-    start_time = datetime.utcnow()
+    start_time = datetime.now(timezone.utc)
     results = await asyncio.gather(*tasks, return_exceptions=True)
-    end_time = datetime.utcnow()
+    end_time = datetime.now(timezone.utc)
 
     duration = (end_time - start_time).total_seconds()
     print(f"Sent 5 concurrent notifications in {duration:.2f} seconds")

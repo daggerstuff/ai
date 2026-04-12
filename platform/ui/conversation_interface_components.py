@@ -7,13 +7,9 @@ Creates immersive, realistic conversation interface with AI client visualization
 real-time emotional feedback, and therapeutic guidance.
 """
 
-import json
 import logging
-from dataclasses import dataclass
-from datetime import datetime
-from typing import Any, Dict, List, Optional
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 class ConversationInterfaceBuilder:
@@ -88,7 +84,7 @@ class ConversationInterfaceBuilder:
 
     def _generate_chat_interface_react(self) -> str:
         """Generate React component for main chat interface"""
-        return '''
+        return """
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageBubble } from './MessageBubble';
 import { TypingIndicator } from './TypingIndicator';
@@ -178,11 +174,11 @@ export const ChatInterface = ({
     </div>
   );
 };
-'''
+"""
 
     def _generate_emotional_avatar_react(self) -> str:
         """Generate React component for emotional avatar"""
-        return '''
+        return """
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -318,11 +314,11 @@ export const EmotionalAvatar = ({
     </div>
   );
 };
-'''
+"""
 
     def _generate_message_composer_react(self) -> str:
         """Generate React component for message composer"""
-        return '''
+        return """
 import React, { useState, useEffect } from 'react';
 import { SuggestionPanel } from './SuggestionPanel';
 import { InterventionSelector } from './InterventionSelector';
@@ -501,11 +497,11 @@ export const MessageComposer = ({
     </div>
   );
 };
-'''
+"""
 
     def _generate_chat_interface_styles(self) -> str:
         """Generate CSS styles for chat interface"""
-        return '''
+        return """
 .chat-interface {
   display: flex;
   flex-direction: column;
@@ -601,9 +597,9 @@ export const MessageComposer = ({
     padding: 0.75rem;
   }
 }
-'''
+"""
 
-    def save_conversation_components(self) -> Dict[str, str]:
+    def save_conversation_components(self) -> dict[str, str]:
         """Save all conversation interface components"""
 
         ui_dir = Path("ai/platform/ui")
@@ -617,18 +613,18 @@ export const MessageComposer = ({
 
             # Save React component
             react_file = components_dir / f"{component_data['component_type']}.jsx"
-            with open(react_file, 'w') as f:
-                f.write(component_data['react_code'])
+            with open(react_file, "w") as f:
+                f.write(component_data["react_code"])
 
             # Save styles
-            if 'styling' in component_data:
+            if "styling" in component_data:
                 css_file = components_dir / f"{component_data['component_type']}.css"
-                with open(css_file, 'w') as f:
-                    f.write(component_data['styling'])
+                with open(css_file, "w") as f:
+                    f.write(component_data["styling"])
 
         # Save component documentation
         docs_file = components_dir / "README.md"
-        with open(docs_file, 'w') as f:
+        with open(docs_file, "w") as f:
             f.write(self._generate_component_documentation())
 
         logger.info(f"✅ Conversation components saved to {components_dir}")
@@ -641,7 +637,7 @@ export const MessageComposer = ({
 
     def _generate_component_documentation(self) -> str:
         """Generate documentation for conversation components"""
-        return '''# Pixelated Empathy Conversation Interface Components
+        return """# Pixelated Empathy Conversation Interface Components
 
 ## Overview
 These components create an immersive, realistic therapeutic conversation experience between trainees and AI clients.
@@ -695,7 +691,7 @@ import { MessageComposer } from './MessageComposer';
 
 ## Styling
 Each component includes responsive CSS with the Pixelated Empathy theme colors and professional therapeutic design.
-'''
+"""
 
 def main():
     """Generate conversation interface components"""

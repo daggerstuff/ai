@@ -8,7 +8,7 @@ persistent agent architecture, enabling clinically-safe AI agents.
 import asyncio
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from typing import Any
 
 from .letta_crisis_handler import CrisisResult, CrisisSeverity, LettaCrisisHandler
 from .letta_pii_middleware import LettaPIIMiddleware, PIIBlockedException
@@ -23,10 +23,10 @@ class BridgeConfig:
     hindsight_bank_id: str
     letta_base_url: str
     letta_api_key: str
-    letta_agent_id: Optional[str] = None
-    letta_client: Optional[Any] = None
-    hindsight_api_url: Optional[str] = None
-    hindsight_api_key: Optional[str] = None
+    letta_agent_id: str | None = None
+    letta_client: Any | None = None
+    hindsight_api_url: str | None = None
+    hindsight_api_key: str | None = None
     pii_filter_enabled: bool = True
     crisis_detection_enabled: bool = True
     max_redaction_ratio: float = 0.5
@@ -58,7 +58,7 @@ class LettaHindsightBridge:
 
         # Initialize middleware and handlers
         self.pii_middleware = self._build_pii_middleware()
-        self.crisis_handler: Optional[LettaCrisisHandler] = None
+        self.crisis_handler: LettaCrisisHandler | None = None
 
         if config.crisis_detection_enabled and self.crisis_detector:
             self.crisis_handler = LettaCrisisHandler(self.crisis_detector)
@@ -70,8 +70,8 @@ class LettaHindsightBridge:
         self,
         message: str,
         user_id: str,
-        session_id: Optional[str] = None
-    ) -> Dict[str, Any]:
+        session_id: str | None = None
+    ) -> dict[str, Any]:
         """
         Process a user message through the bridge.
 
@@ -85,24 +85,24 @@ class LettaHindsightBridge:
         """
         del session_id  # Mark as intentionally unused - passed to handlers
         # 1. Crisis detection first (safety first)
-        crisis_result: Optional[CrisisResult] = None
+        crisis_result: CrisisResult | None = None
         if self.crisis_handler:
             crisis_result = await self.crisis_handler.check_message(message)
 
             # Block if critical crisis
             if crisis_result and crisis_result.severity == CrisisSeverity.CRITICAL:
                 return {
-                    'response': self._crisis_response(crisis_result),
-                    'blocked': True,
-                    'crisis': crisis_result
+                    "response": self._crisis_response(crisis_result),
+                    "blocked": True,
+                    "crisis": crisis_result
                 }
 
         # 2. PII filtering for storage
         filtered_message = message
         if self.pii_middleware:
             filter_result = await self.pii_middleware.filter_tool_call(
-                'user_message',
-                {'content': message}
+                "user_message",
+                {"content": message}
             )
 
             if filter_result.should_block:
@@ -132,9 +132,9 @@ class LettaHindsightBridge:
             await self.letta_client.run(f"/remember {filtered_message[:500]}")
 
         return {
-            'response': letta_response,
-            'blocked': False,
-            'crisis': crisis_result
+            "response": letta_response,
+            "blocked": False,
+            "crisis": crisis_result
         }
 
     def wrap_letta_client(self, letta_client: Any) -> Any:
@@ -156,7 +156,7 @@ class LettaHindsightBridge:
 
     def _wrap_tool_call(self, original_call):
         """Wrap tool call with PII filtering."""
-        async def wrapped(tool_name: str, tool_input: Dict[str, Any]):
+        async def wrapped(tool_name: str, tool_input: dict[str, Any]):
             # Filter through PII middleware
             if self.pii_middleware:
                 result = await self.pii_middleware.filter_tool_call(
@@ -185,9 +185,9 @@ class LettaHindsightBridge:
 
     def _init_pii_filter(self):
         """Initialize PII filter."""
-        return None
+        return
 
-    def _build_pii_middleware(self) -> Optional[LettaPIIMiddleware]:
+    def _build_pii_middleware(self) -> LettaPIIMiddleware | None:
         """Create PII middleware only when a concrete filter exists."""
         if not self.config.pii_filter_enabled:
             return None
@@ -203,11 +203,10 @@ class LettaHindsightBridge:
         """Initialize crisis detector."""
         # Use Hindsight's crisis detector if available
         try:
-            from ai.memory.hindsight_subconscious import SubconsciousAgent
             # Return the crisis detector component
-            return None  # Will be initialized from SubconsciousAgent if needed
+            return  # Will be initialized from SubconsciousAgent if needed
         except Exception:
-            return None
+            return
 
     def _init_letta_client(self):
         """Initialize Letta client from the provided configuration."""
@@ -229,12 +228,12 @@ class LettaHindsightBridge:
 
         # Check for emotional distress indicators
         message_lower = message.lower()
-        distress_indicators = ['anxious', 'depressed', 'overwhelmed', 'struggling']
+        distress_indicators = ["anxious", "depressed", "overwhelmed", "struggling"]
         if any(indicator in message_lower for indicator in distress_indicators):
             return "emotional_state"
 
         # Check for therapeutic progress markers
-        progress_indicators = ['milestone', 'breakthrough', 'improved', 'better', 'progress']
+        progress_indicators = ["milestone", "breakthrough", "improved", "better", "progress"]
         if any(indicator in message_lower for indicator in progress_indicators):
             return "treatment_progress"
 

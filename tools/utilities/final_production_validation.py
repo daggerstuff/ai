@@ -4,11 +4,12 @@ FINAL PRODUCTION VALIDATION
 Complete system validation and deployment readiness check
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import subprocess
 import sys
-from datetime import datetime
 from pathlib import Path
 
 # Setup logging
@@ -274,7 +275,7 @@ class FinalProductionValidation:
         deployment_assessment = self.check_deployment_readiness()
 
         final_report = {
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "validation_type": "FINAL_PRODUCTION_VALIDATION",
             "system_tests": self.validation_results,
             "deployment_assessment": deployment_assessment,
@@ -321,13 +322,12 @@ class FinalProductionValidation:
                 "✅ Run post-deployment validation",
                 "✅ Monitor system performance for 24 hours",
             ]
-        else:
-            return [
-                "❌ DO NOT DEPLOY - Fix failing systems first",
-                "🔧 Address all CRITICAL recommendations",
-                "🔍 Re-run validation after fixes",
-                "📊 Ensure >85% system readiness before deployment",
-            ]
+        return [
+            "❌ DO NOT DEPLOY - Fix failing systems first",
+            "🔧 Address all CRITICAL recommendations",
+            "🔍 Re-run validation after fixes",
+            "📊 Ensure >85% system readiness before deployment",
+        ]
 
     def run_final_validation(self):
         """Run complete final validation."""

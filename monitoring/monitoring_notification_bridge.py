@@ -4,14 +4,15 @@ Monitoring-Notification Bridge for Pixelated Empathy AI
 Integrates the notification system with existing monitoring infrastructure
 """
 
+from datetime import datetime, timedelta, timezone
+
 import asyncio
 import json
 import logging
 import os
 import sqlite3
 import time
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from notification_integrations import (
     NotificationManager,
@@ -26,13 +27,13 @@ logger = logging.getLogger(__name__)
 class MonitoringBridge:
     """Bridge between monitoring systems and notification channels"""
 
-    def __init__(self, config_path: Optional[str] = None):
+    def __init__(self, config_path: str | None = None):
         self.notification_manager = NotificationManager(config_path)
         self.monitoring_db_path = "/home/vivi/pixelated/ai/monitoring/monitoring.db"
         self.alert_history_db_path = (
             "/home/vivi/pixelated/ai/monitoring/alert_history.db"
         )
-        self.last_check_time = datetime.utcnow()
+        self.last_check_time = datetime.now(timezone.utc)
         self.alert_cooldowns = {}  # Prevent alert spam
         self.setup_databases()
 
@@ -236,7 +237,7 @@ class MonitoringBridge:
         last_alert_time = self.alert_cooldowns[rule_name]
         cooldown_period = timedelta(minutes=cooldown_minutes)
 
-        return datetime.utcnow() - last_alert_time < cooldown_period
+        return datetime.now(timezone.utc) - last_alert_time < cooldown_period
 
     def _evaluate_condition(
         self, value: float, threshold: float, operator: str
@@ -244,19 +245,18 @@ class MonitoringBridge:
         """Evaluate alert condition"""
         if operator == ">":
             return value > threshold
-        elif operator == "<":
+        if operator == "<":
             return value < threshold
-        elif operator == ">=":
+        if operator == ">=":
             return value >= threshold
-        elif operator == "<=":
+        if operator == "<=":
             return value <= threshold
-        elif operator == "==":
+        if operator == "==":
             return value == threshold
-        elif operator == "!=":
+        if operator == "!=":
             return value != threshold
-        else:
-            logger.error(f"Unknown operator: {operator}")
-            return False
+        logger.error(f"Unknown operator: {operator}")
+        return False
 
     async def _trigger_alert(
         self,
@@ -312,7 +312,7 @@ class MonitoringBridge:
         )
 
         # Update cooldown
-        self.alert_cooldowns[rule_name] = datetime.utcnow()
+        self.alert_cooldowns[rule_name] = datetime.now(timezone.utc)
 
         logger.info(f"Alert triggered: {rule_name} (ID: {alert_id})")
 
@@ -323,8 +323,8 @@ class MonitoringBridge:
         title: str,
         message: str,
         priority: str,
-        results: Dict,
-        metadata: Dict,
+        results: dict,
+        metadata: dict,
     ):
         """Record alert in history database"""
 
@@ -367,7 +367,7 @@ class MonitoringBridge:
                     ),
                 )
 
-    async def process_external_alerts(self, alert_data: Dict[str, Any]):
+    async def process_external_alerts(self, alert_data: dict[str, Any]):
         """Process alerts from external monitoring systems"""
 
         # Extract alert information
@@ -411,9 +411,9 @@ class MonitoringBridge:
                 logger.error(f"Error in monitoring loop: {e}")
                 await asyncio.sleep(check_interval)
 
-    def get_alert_history(self, hours: int = 24) -> List[Dict]:
+    def get_alert_history(self, hours: int = 24) -> list[dict]:
         """Get recent alert history"""
-        cutoff_time = datetime.utcnow() - timedelta(hours=hours)
+        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=hours)
 
         with sqlite3.connect(self.alert_history_db_path) as conn:
             alerts = conn.execute(
@@ -444,7 +444,7 @@ class MonitoringBridge:
 
             return result
 
-    def get_system_health_summary(self) -> Dict[str, Any]:
+    def get_system_health_summary(self) -> dict[str, Any]:
         """Get current system health summary"""
         with sqlite3.connect(self.monitoring_db_path) as conn:
             # Get latest metrics for key indicators
@@ -482,7 +482,7 @@ class MonitoringBridge:
             return {
                 "metrics": health_data,
                 "alerts": {"recent_hour": recent_alerts, "active_24h": active_alerts},
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
 
 

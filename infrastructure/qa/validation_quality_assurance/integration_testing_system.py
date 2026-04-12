@@ -10,7 +10,7 @@ import sys
 import time
 import unittest
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from clinical_standards_validator import ClinicalStandardsValidator
 from manual_review_system import ManualReviewSystem
@@ -35,7 +35,7 @@ class QAIntegrationTestSuite(unittest.TestCase):
         cls.test_results = []
 
     @classmethod
-    def _load_test_conversations(cls) -> List[Dict[str, Any]]:
+    def _load_test_conversations(cls) -> list[dict[str, Any]]:
         """Load test conversations for integration testing"""
         return [
             {
@@ -380,7 +380,7 @@ class QAIntegrationTestRunner:
         self.start_time = None
         self.end_time = None
 
-    def run_all_tests(self) -> Dict[str, Any]:
+    def run_all_tests(self) -> dict[str, Any]:
         """Run all integration tests and generate comprehensive report"""
 
         logger.info("🚀 Starting comprehensive QA integration testing...")
@@ -426,7 +426,7 @@ class QAIntegrationTestRunner:
         # Generate comprehensive report
         return self._generate_integration_report()
 
-    def _generate_integration_report(self) -> Dict[str, Any]:
+    def _generate_integration_report(self) -> dict[str, Any]:
         """Generate comprehensive integration test report"""
 
         total_time = (
@@ -478,7 +478,7 @@ class QAIntegrationTestRunner:
 
         return report
 
-    def _generate_recommendations(self) -> List[str]:
+    def _generate_recommendations(self) -> list[str]:
         """Generate recommendations based on test results"""
         recommendations = []
 
@@ -505,7 +505,7 @@ class QAIntegrationTestRunner:
 
         return recommendations
 
-    def export_test_report(self, report: Dict[str, Any], output_path: str) -> bool:
+    def export_test_report(self, report: dict[str, Any], output_path: str) -> bool:
         """Export integration test report"""
         try:
             with open(output_path, "w", encoding="utf-8") as f:

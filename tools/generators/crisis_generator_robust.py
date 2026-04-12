@@ -3,9 +3,10 @@
 Robust Crisis Generator - Handles slow server responses properly
 """
 
+from datetime import datetime, timezone
+
 import json
 import time
-from datetime import datetime
 
 import requests
 
@@ -42,8 +43,7 @@ def call_model_robust(prompt, max_tokens=30, max_retries=2):
                     content = content.split("<think>")[0].strip()
 
                 return content.strip()
-            else:
-                print(f"  API Error: {response.status_code} - {response.text}")
+            print(f"  API Error: {response.status_code} - {response.text}")
 
         except requests.exceptions.Timeout:
             print(f"  Timeout on attempt {attempt + 1}")
@@ -88,7 +88,7 @@ def generate_crisis_training_data():
             # Create training pair
             training_pair = {
                 "id": i + 1,
-                "timestamp": datetime.now().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "crisis_prompt": prompt,
                 "crisis_response": response,
                 "response_length": len(response),
@@ -105,14 +105,14 @@ def generate_crisis_training_data():
         time.sleep(10)
 
     # Save dataset
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     filename = f"/home/vivi/pixelated/ai/crisis_training_{timestamp}.json"
 
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(
             {
                 "metadata": {
-                    "generated_at": datetime.now().isoformat(),
+                    "generated_at": datetime.now(timezone.utc).isoformat(),
                     "total_pairs": len(dataset),
                     "model_used": "huihui_ai/qwen3-abliterated:4b-thinking-2507-q4_K_M",
                     "purpose": "Crisis intervention training data",

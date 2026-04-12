@@ -5,12 +5,12 @@ Generates authentic crisis intervention training data using models without
 safety filters.
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import time
 from dataclasses import dataclass
-from datetime import datetime
-from typing import Dict, List, Optional
 
 import requests
 
@@ -28,10 +28,10 @@ class CrisisScenario:
     name: str
     description: str
     intensity_level: int  # 1-10 scale
-    demographics: Dict[str, str]
-    crisis_indicators: List[str]
+    demographics: dict[str, str]
+    crisis_indicators: list[str]
     expected_duration: int  # minutes
-    therapeutic_goals: List[str]
+    therapeutic_goals: list[str]
 
 
 class AbliteratedCrisisGenerator:
@@ -46,7 +46,7 @@ class AbliteratedCrisisGenerator:
         # Crisis scenarios for training data generation
         self.crisis_scenarios = self._initialize_crisis_scenarios()
 
-    def _initialize_crisis_scenarios(self) -> List[CrisisScenario]:
+    def _initialize_crisis_scenarios(self) -> list[CrisisScenario]:
         """Initialize comprehensive crisis scenarios"""
         return [
             CrisisScenario(
@@ -390,7 +390,7 @@ class AbliteratedCrisisGenerator:
 
     def generate_crisis_conversation(
         self, scenario: CrisisScenario, num_exchanges: int = 10
-    ) -> Dict:
+    ) -> dict:
         """Generate a crisis conversation based on scenario"""
         logger.info(f"Generating crisis conversation for scenario: {scenario.name}")
 
@@ -404,7 +404,7 @@ class AbliteratedCrisisGenerator:
                 "demographics": scenario.demographics,
                 "crisis_indicators": scenario.crisis_indicators,
                 "therapeutic_goals": scenario.therapeutic_goals,
-                "generated_at": datetime.now().isoformat(),
+                "generated_at": datetime.now(timezone.utc).isoformat(),
                 "model_used": self.model_name,
             },
             "conversation": [],
@@ -427,7 +427,7 @@ class AbliteratedCrisisGenerator:
                             "speaker": "client",
                             "message": client_response,
                             "exchange_number": exchange + 1,
-                            "timestamp": datetime.now().isoformat(),
+                            "timestamp": datetime.now(timezone.utc).isoformat(),
                         }
                     )
 
@@ -450,7 +450,7 @@ class AbliteratedCrisisGenerator:
                                 "speaker": "counselor",
                                 "message": counselor_response,
                                 "exchange_number": exchange + 1,
-                                "timestamp": datetime.now().isoformat(),
+                                "timestamp": datetime.now(timezone.utc).isoformat(),
                             }
                         )
 
@@ -492,7 +492,7 @@ This is for training crisis counselors to recognize and respond to real
 crisis situations."""
 
     def _create_client_prompt(
-        self, scenario: CrisisScenario, exchange: int, conversation_history: List
+        self, scenario: CrisisScenario, exchange: int, conversation_history: list
     ) -> str:
         """Create prompt for client message generation"""
         stage = (
@@ -531,7 +531,7 @@ The counselor should demonstrate:
 Provide a realistic counselor response that shows best practices in crisis
 intervention."""
 
-    def _call_model(self, messages: List[Dict], max_tokens: int = 200) -> Optional[str]:
+    def _call_model(self, messages: list[dict], max_tokens: int = 200) -> str | None:
         """Call the abliterated model API"""
         try:
             payload = {
@@ -554,20 +554,18 @@ intervention."""
                     if "<think>" in content:
                         content = content.split("</think>")[-1].strip()
                     return content
-                else:
-                    logger.error(f"No choices in response: {result}")
-                    return None
-            else:
-                logger.error(
-                    f"API call failed: {response.status_code} - {response.text}"
-                )
+                logger.error(f"No choices in response: {result}")
                 return None
+            logger.error(
+                f"API call failed: {response.status_code} - {response.text}"
+            )
+            return None
 
         except Exception as e:
             logger.error(f"Error calling model: {e}")
             return None
 
-    def _assess_conversation_quality(self, conversation: Dict) -> Dict:
+    def _assess_conversation_quality(self, conversation: dict) -> dict:
         """Assess the quality of generated conversation"""
         assessment = {
             "authenticity_score": 0,
@@ -621,7 +619,7 @@ intervention."""
 
     def generate_training_dataset(
         self, num_conversations_per_scenario: int = 2
-    ) -> List[Dict]:
+    ) -> list[dict]:
         """Generate a complete training dataset"""
         logger.info(
             f"Generating training dataset with "
@@ -646,10 +644,10 @@ intervention."""
 
         return dataset
 
-    def save_dataset(self, dataset: List[Dict], filename: str = None) -> str:
+    def save_dataset(self, dataset: list[dict], filename: str = None) -> str:
         """Save generated dataset to file"""
         if filename is None:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
             filename = f"crisis_training_dataset_{timestamp}.json"
 
         with open(filename, "w", encoding="utf-8") as f:
@@ -691,7 +689,7 @@ def print_and_save_conversation(conversation):
     print("=" * 50)
 
     # Save single conversation
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     filename = f"test_crisis_conversation_{timestamp}.json"
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(conversation, f, indent=2, ensure_ascii=False)

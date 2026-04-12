@@ -4,8 +4,6 @@ Fix Remaining Test Failures
 Quick fixes for the last failing tests to achieve 100% test pass rate.
 """
 
-import os
-import re
 from pathlib import Path
 
 
@@ -17,7 +15,7 @@ def fix_safety_ethics_validator():
         content = f.read()
 
     # Fix harmful content detection by making it more sensitive
-    old_harmful_logic = '''# Check for harmful content
+    old_harmful_logic = """# Check for harmful content
         harmful_found = []
         for pattern in self.harmful_patterns:
             if pattern in content_lower:
@@ -31,9 +29,9 @@ def fix_safety_ethics_validator():
         ]
         for phrase in harmful_phrases:
             if phrase in content_lower:
-                harmful_found.append('harmful_advice')'''
+                harmful_found.append('harmful_advice')"""
 
-    new_harmful_logic = '''# Check for harmful content
+    new_harmful_logic = """# Check for harmful content
         harmful_found = []
         for pattern in self.harmful_patterns:
             if pattern in content_lower:
@@ -50,12 +48,12 @@ def fix_safety_ethics_validator():
         ]
         for phrase in harmful_phrases:
             if phrase in content_lower:
-                harmful_found.append('harmful_advice')'''
+                harmful_found.append('harmful_advice')"""
 
     content = content.replace(old_harmful_logic, new_harmful_logic)
 
     # Fix ethical violations detection
-    old_ethical_logic = '''# Check for ethical violations
+    old_ethical_logic = """# Check for ethical violations
         ethical_violations_found = []
         for violation in self.ethical_violations:
             if violation in content_lower:
@@ -69,9 +67,9 @@ def fix_safety_ethics_validator():
         ]
         for phrase in ethical_phrases:
             if phrase in content_lower:
-                ethical_violations_found.append('boundary_violation')'''
+                ethical_violations_found.append('boundary_violation')"""
 
-    new_ethical_logic = '''# Check for ethical violations
+    new_ethical_logic = """# Check for ethical violations
         ethical_violations_found = []
         for violation in self.ethical_violations:
             if violation in content_lower:
@@ -88,11 +86,11 @@ def fix_safety_ethics_validator():
         ]
         for phrase in ethical_phrases:
             if phrase in content_lower:
-                ethical_violations_found.append('boundary_violation')'''
+                ethical_violations_found.append('boundary_violation')"""
 
     content = content.replace(old_ethical_logic, new_ethical_logic)
 
-    with open(test_file, 'w') as f:
+    with open(test_file, "w") as f:
         f.write(content)
 
     print("Fixed safety ethics validator tests")
@@ -182,19 +180,19 @@ def fix_clinical_accuracy_validator():
     content = content.replace(old_severity_calc, new_severity_calc)
 
     # Adjust the accuracy calculation to be more sensitive to violations
-    old_accuracy_calc = '''# Calculate overall accuracy
-        overall_accuracy = (dsm5_score + evidence_score + therapeutic_score + boundary_score) / 4'''
+    old_accuracy_calc = """# Calculate overall accuracy
+        overall_accuracy = (dsm5_score + evidence_score + therapeutic_score + boundary_score) / 4"""
 
-    new_accuracy_calc = '''# Calculate overall accuracy
+    new_accuracy_calc = """# Calculate overall accuracy
         overall_accuracy = (dsm5_score + evidence_score + therapeutic_score + boundary_score) / 4
 
         # Reduce accuracy significantly if violations are found
         if violations:
-            overall_accuracy = min(overall_accuracy, 0.4)  # Cap at 40% if violations exist'''
+            overall_accuracy = min(overall_accuracy, 0.4)  # Cap at 40% if violations exist"""
 
     content = content.replace(old_accuracy_calc, new_accuracy_calc)
 
-    with open(test_file, 'w') as f:
+    with open(test_file, "w") as f:
         f.write(content)
 
     print("Fixed clinical accuracy validator tests")
@@ -207,16 +205,16 @@ def fix_crisis_intervention_detector():
         content = f.read()
 
     # Make keyword detection more comprehensive
-    old_keywords = '''self.crisis_keywords = [
+    old_keywords = """self.crisis_keywords = [
             'suicide', 'kill myself', 'end it all', 'hurt myself',
             'self harm', 'cutting', 'overdose', 'jump off',
             'not worth living', 'better off dead', 'hopeless',
             'panic attack', 'cant breathe', 'heart racing',
             'planning to suicide', 'have the pills ready', 'hurting myself',
             'worthless', 'pointless'
-        ]'''
+        ]"""
 
-    new_keywords = '''self.crisis_keywords = [
+    new_keywords = """self.crisis_keywords = [
             'suicide', 'kill myself', 'end it all', 'hurt myself',
             'self harm', 'cutting', 'overdose', 'jump off',
             'not worth living', 'better off dead', 'hopeless',
@@ -224,11 +222,11 @@ def fix_crisis_intervention_detector():
             'planning to suicide', 'have the pills ready', 'hurting myself',
             'worthless', 'pointless', 'keep hurting', 'thinking about overdosing',
             'cuts', 'relief', 'upset'
-        ]'''
+        ]"""
 
     content = content.replace(old_keywords, new_keywords)
 
-    with open(test_file, 'w') as f:
+    with open(test_file, "w") as f:
         f.write(content)
 
     print("Fixed crisis intervention detector tests")
@@ -279,7 +277,7 @@ def fix_therapeutic_response_generator():
 
     content = content.replace(old_integration_class, new_integration_class)
 
-    with open(test_file, 'w') as f:
+    with open(test_file, "w") as f:
         f.write(content)
 
     print("Fixed therapeutic response generator tests")

@@ -25,7 +25,6 @@ import time
 import warnings
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
 
 import librosa
 import numpy as np
@@ -55,7 +54,7 @@ class EmotionalState:
     dominance: float  # -1.0 (submissive) to 1.0 (dominant)
     confidence: float  # 0.0-1.0 confidence
     primary_emotion: str  # closest emotion label
-    emotion_probabilities: Dict[str, float]  # all emotions with scores
+    emotion_probabilities: dict[str, float]  # all emotions with scores
 
 
 @dataclass
@@ -65,14 +64,14 @@ class AudioEmotionResult:
     session_id: str
     audio_path: str
     overall_emotion: EmotionalState
-    segment_emotions: List[Tuple[float, float, EmotionalState]]  # (start, end, emotion)
-    trajectory: List[EmotionalState]  # emotion over time
+    segment_emotions: list[tuple[float, float, EmotionalState]]  # (start, end, emotion)
+    trajectory: list[EmotionalState]  # emotion over time
     speech_rate_wpm: float  # words per minute
     intensity_score: float  # 0.0-1.0 speech intensity
     processing_time_ms: float
     audio_duration_s: float
     model_name: str
-    error: Optional[str] = None
+    error: str | None = None
 
 
 class AudioEmotionRecognizer:
@@ -107,7 +106,7 @@ class AudioEmotionRecognizer:
         try:
             self._extracted_from__load_models_6()
         except Exception as e:
-            logger.error(f"Failed to load emotion models: {str(e)}")
+            logger.error(f"Failed to load emotion models: {e!s}")
             raise
 
     # TODO Rename this here and in `_load_models`
@@ -198,7 +197,7 @@ class AudioEmotionRecognizer:
             )
 
         except Exception as e:
-            logger.error(f"Emotion detection failed: {str(e)}")
+            logger.error(f"Emotion detection failed: {e!s}")
             return AudioEmotionResult(
                 session_id=session_id,
                 audio_path=audio_path,
@@ -274,10 +273,10 @@ class AudioEmotionRecognizer:
             )
 
         except Exception as e:
-            logger.error(f"Segment emotion detection failed: {str(e)}")
+            logger.error(f"Segment emotion detection failed: {e!s}")
             return EmotionalState(0.5, 0.5, 0.5, 0.0, "neutral", {})
 
-    def _aggregate_emotions(self, emotions: List[EmotionalState]) -> EmotionalState:
+    def _aggregate_emotions(self, emotions: list[EmotionalState]) -> EmotionalState:
         """Aggregate emotions across segments."""
         if not emotions:
             return EmotionalState(0.5, 0.5, 0.5, 0.0, "neutral", {})
@@ -367,13 +366,13 @@ class EmotionTrajectory:
             window_size: Number of segments to consider for trends
         """
         self.window_size = window_size
-        self.emotions: List[Tuple[float, EmotionalState]] = []
+        self.emotions: list[tuple[float, EmotionalState]] = []
 
     def add_emotion(self, timestamp: float, emotion: EmotionalState) -> None:
         """Add emotion sample."""
         self.emotions.append((timestamp, emotion))
 
-    def get_trend(self) -> Dict[str, float]:
+    def get_trend(self) -> dict[str, float]:
         """
         Calculate emotion trends.
 
@@ -406,7 +405,7 @@ class EmotionTrajectory:
             "dominance_trend": dominance_trend,
         }
 
-    def get_stats(self) -> Dict[str, float]:
+    def get_stats(self) -> dict[str, float]:
         """Calculate emotion statistics."""
         if not self.emotions:
             return {}

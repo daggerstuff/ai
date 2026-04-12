@@ -20,7 +20,7 @@ import statistics
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List
+from typing import Any
 
 import aiohttp
 import numpy as np
@@ -58,7 +58,7 @@ class ModelResult:
     total_requests: int
     successful_requests: int
     error_count: int
-    errors: Dict[str, int] = field(default_factory=dict)
+    errors: dict[str, int] = field(default_factory=dict)
 
 
 # Benchmark dataset for therapeutic tasks
@@ -161,14 +161,14 @@ class NemotronBenchmark:
 
     def __init__(self, config: BenchmarkConfig):
         self.config = config
-        self.results: List[Dict[str, Any]] = []
+        self.results: list[dict[str, Any]] = []
 
     async def make_request(
         self,
         session: aiohttp.ClientSession,
         model: str,
         prompt: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Make a single inference request"""
         start_time = time.time()
 
@@ -202,16 +202,15 @@ class NemotronBenchmark:
                             "response": data.get("choices", [{}])[0].get("message", {}).get("content", ""),
                             "error": None,
                         }
-                    else:
-                        error_text = await response.text()
-                        return {
-                            "success": False,
-                            "latency_ms": response_time * 1000,
-                            "response": None,
-                            "error": f"HTTP {response.status}: {error_text[:100]}",
-                        }
+                    error_text = await response.text()
+                    return {
+                        "success": False,
+                        "latency_ms": response_time * 1000,
+                        "response": None,
+                        "error": f"HTTP {response.status}: {error_text[:100]}",
+                    }
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 return {
                     "success": False,
                     "latency_ms": (time.time() - start_time) * 1000,
@@ -239,16 +238,16 @@ class NemotronBenchmark:
         self,
         model: str,
         session: aiohttp.ClientSession,
-    ) -> Dict[str, ModelResult]:
+    ) -> dict[str, ModelResult]:
         """Benchmark a single model across all task types"""
         print(f"\n🔍 Benchmarking model: {model}")
 
-        task_results: Dict[str, List[Dict[str, Any]]] = {
+        task_results: dict[str, list[dict[str, Any]]] = {
             task_type.value: [] for task_type in TaskType
         }
 
         # Collect all prompts
-        all_prompts: List[tuple] = []
+        all_prompts: list[tuple] = []
         for task_type, prompts in THERAPEUTIC_BENCHMARK_DATASET.items():
             for prompt_data in prompts:
                 all_prompts.append((task_type, prompt_data))
@@ -256,7 +255,7 @@ class NemotronBenchmark:
         # Run benchmark with progress bar
         semaphore = asyncio.Semaphore(self.config.concurrency)
 
-        async def bounded_request(task_type: TaskType, prompt_data: Dict):
+        async def bounded_request(task_type: TaskType, prompt_data: dict):
             async with semaphore:
                 result = await self.make_request(
                     session,
@@ -283,7 +282,7 @@ class NemotronBenchmark:
             task_results[task_type.value].append(result)
 
         # Calculate metrics per task type
-        model_task_results: Dict[str, ModelResult] = {}
+        model_task_results: dict[str, ModelResult] = {}
         for task_type_value, task_results_list in task_results.items():
             successful = [r for r in task_results_list if r["success"]]
             failed = [r for r in task_results_list if not r["success"]]
@@ -291,7 +290,7 @@ class NemotronBenchmark:
             latencies = [r["latency_ms"] for r in successful]
             latencies.sort()
 
-            errors: Dict[str, int] = {}
+            errors: dict[str, int] = {}
             for r in failed:
                 error_key = r["error"] or "Unknown"
                 errors[error_key] = errors.get(error_key, 0) + 1
@@ -313,7 +312,7 @@ class NemotronBenchmark:
 
         return model_task_results
 
-    def print_results(self, all_results: Dict[str, Dict[str, ModelResult]]):
+    def print_results(self, all_results: dict[str, dict[str, ModelResult]]):
         """Print formatted benchmark results"""
         print("\n" + "=" * 80)
         print("📊 NEMOTRON MODEL BENCHMARK RESULTS - THERAPEUTIC TASKS")
@@ -326,11 +325,11 @@ class NemotronBenchmark:
             for task_type_value, result in task_results.items():
                 print(f"\n  {result.task_type.value.upper()}:")
                 print(f"    Requests: {result.successful_requests}/{result.total_requests} ({result.success_rate:.1f}%)")
-                print(f"    Latency:")
+                print("    Latency:")
                 print(f"      Avg: {result.avg_latency_ms:.1f}ms | P50: {result.p50_latency_ms:.1f}ms | P95: {result.p95_latency_ms:.1f}ms")
 
                 if result.errors:
-                    print(f"    Errors:")
+                    print("    Errors:")
                     for error, count in result.errors.items():
                         print(f"      {error}: {count}")
 
@@ -367,7 +366,7 @@ class NemotronBenchmark:
 
     def save_results(
         self,
-        all_results: Dict[str, Dict[str, ModelResult]],
+        all_results: dict[str, dict[str, ModelResult]],
         output_file: str,
     ):
         """Save results to JSON file"""
@@ -459,7 +458,7 @@ async def main():
     benchmark = NemotronBenchmark(config)
 
     async with aiohttp.ClientSession() as session:
-        all_results: Dict[str, Dict[str, ModelResult]] = {}
+        all_results: dict[str, dict[str, ModelResult]] = {}
 
         for model in args.models:
             task_results = await benchmark.benchmark_model(model, session)

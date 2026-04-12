@@ -33,12 +33,13 @@ Usage:
         print(f"Crisis detected: {result.category} (severity: {result.severity})")
 """
 
+from datetime import datetime, timezone
+
 import logging
 import re
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -83,17 +84,17 @@ class CrisisDetectionResult:
     """Result of crisis detection analysis."""
 
     is_crisis: bool
-    category: Optional[CrisisCategory]
-    severity: Optional[CrisisSeverity]
+    category: CrisisCategory | None
+    severity: CrisisSeverity | None
     confidence: float  # 0.0 to 1.0
     urgency: UrgencyLevel
-    detected_phrases: List[str]
-    context: Dict[str, Any]
+    detected_phrases: list[str]
+    context: dict[str, Any]
     timestamp: str = field(
         default_factory=lambda: datetime.now(timezone.utc).isoformat()
     )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary representation."""
         return {
             "is_crisis": self.is_crisis,
@@ -401,7 +402,7 @@ class CrisisDetector:
             text = text.replace("'", "'")  # Another smart quote variant
             return text
 
-        elif isinstance(input_data, dict):
+        if isinstance(input_data, dict):
             # Try common keys
             for key in ["messages", "text", "content", "message", "prompt", "response"]:
                 if key in input_data:
@@ -419,7 +420,7 @@ class CrisisDetector:
             # No recognized key, try to stringify the dict
             return " ".join(str(v) for v in input_data.values())
 
-        elif isinstance(input_data, list):
+        if isinstance(input_data, list):
             # Handle list of messages or strings
             texts = []
             for item in input_data:
@@ -434,7 +435,7 @@ class CrisisDetector:
 
         return str(input_data).strip()
 
-    def _extract_context(self, input_data: Any) -> Dict[str, Any]:
+    def _extract_context(self, input_data: Any) -> dict[str, Any]:
         """Extract contextual information from input."""
         context = {}
 
@@ -455,7 +456,7 @@ class CrisisDetector:
 
         return context
 
-    def _analyze_text(self, text: str, original_input: Any) -> Dict[str, Any]:
+    def _analyze_text(self, text: str, original_input: Any) -> dict[str, Any]:
         """
         Analyze text for crisis signals.
 
@@ -485,7 +486,7 @@ class CrisisDetector:
         text_lower = text.lower()
 
         # 1. Keyword matching
-        category_scores: Dict[CrisisCategory, float] = {}
+        category_scores: dict[CrisisCategory, float] = {}
         keyword_matches = []
 
         for (pattern, category), weight in self.compiled_patterns.items():
@@ -586,7 +587,7 @@ class CrisisDetector:
 
         return results
 
-    def _analyze_patterns(self, text: str, results: Dict[str, Any]):
+    def _analyze_patterns(self, text: str, results: dict[str, Any]):
         """
         Analyze text for crisis patterns that indicate severity.
 
@@ -637,7 +638,7 @@ class CrisisDetector:
                 results["details"].setdefault("pattern_boost", {})
                 results["details"]["pattern_boost"]["self_harm_method"] = 2.0
 
-    def _adjust_final_confidence(self, results: Dict[str, Any]):
+    def _adjust_final_confidence(self, results: dict[str, Any]):
         """Apply final confidence adjustments based on analysis."""
         pattern_boosts = results["details"].get("pattern_boost", {})
 
@@ -673,14 +674,13 @@ class CrisisDetector:
         # Base thresholds
         if score >= 12.0:
             return CrisisSeverity.IMMEDIATE
-        elif score >= 9.0:
+        if score >= 9.0:
             return CrisisSeverity.SEVERE
-        elif score >= 6.0:
+        if score >= 6.0:
             return CrisisSeverity.HIGH
-        elif score >= 4.0:
+        if score >= 4.0:
             return CrisisSeverity.MEDIUM
-        else:
-            return CrisisSeverity.LOW
+        return CrisisSeverity.LOW
 
     def _determine_urgency(
         self,
@@ -709,7 +709,7 @@ class CrisisDetector:
         # High urgency based on severity
         if severity == CrisisSeverity.IMMEDIATE:
             return UrgencyLevel.IMMEDIATE
-        elif severity == CrisisSeverity.SEVERE:
+        if severity == CrisisSeverity.SEVERE:
             return UrgencyLevel.HIGH
 
         # High urgency categories

@@ -14,7 +14,6 @@ import asyncio
 import logging
 import re
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -24,11 +23,11 @@ class CrisisDetectionResult:
     is_crisis: bool
     confidence_score: float
     crisis_level: int
-    detected_patterns: List[str]
-    risk_factors: List[str]
-    context_analysis: Dict[str, any]
+    detected_patterns: list[str]
+    risk_factors: list[str]
+    context_analysis: dict[str, any]
     reasoning: str
-    severity_indicators: List[str]
+    severity_indicators: list[str]
 
 class EnhancedCrisisDetectorV2:
     """
@@ -41,7 +40,7 @@ class EnhancedCrisisDetectorV2:
         self.context_filters = self._initialize_context_filters()
         self.severity_indicators = self._initialize_severity_indicators()
 
-    def _initialize_enhanced_patterns(self) -> Dict[str, Dict]:
+    def _initialize_enhanced_patterns(self) -> dict[str, dict]:
         """Initialize comprehensive crisis detection patterns"""
 
         return {
@@ -222,7 +221,7 @@ class EnhancedCrisisDetectorV2:
             }
         }
 
-    def _initialize_context_filters(self) -> Dict[str, List[str]]:
+    def _initialize_context_filters(self) -> dict[str, list[str]]:
         """Initialize context filters - more permissive to reduce false negatives"""
 
         return {
@@ -256,7 +255,7 @@ class EnhancedCrisisDetectorV2:
             ]
         }
 
-    def _initialize_severity_indicators(self) -> Dict[str, List[str]]:
+    def _initialize_severity_indicators(self) -> dict[str, list[str]]:
         """Initialize severity indicators for enhanced detection"""
 
         return {
@@ -389,7 +388,7 @@ class EnhancedCrisisDetectorV2:
             severity_indicators=severity_indicators
         )
 
-    def _analyze_context(self, text: str) -> Dict[str, any]:
+    def _analyze_context(self, text: str) -> dict[str, any]:
         """Enhanced context analysis - more specific filtering"""
 
         context = {
@@ -398,7 +397,7 @@ class EnhancedCrisisDetectorV2:
             "has_obvious_media": False,
             "has_clear_positive": False,
             "text_length": len(text),
-            "sentence_count": len(text.split('.')),
+            "sentence_count": len(text.split(".")),
             "word_count": len(text.split()),
         }
 
@@ -428,13 +427,13 @@ class EnhancedCrisisDetectorV2:
 
         return context
 
-    def _generate_reasoning(self, detected_patterns: List[str],
-                          risk_factors: List[str],
-                          context_analysis: Dict[str, any],
+    def _generate_reasoning(self, detected_patterns: list[str],
+                          risk_factors: list[str],
+                          context_analysis: dict[str, any],
                           confidence_score: float,
                           crisis_level: int,
                           is_crisis: bool,
-                          severity_indicators: List[str]) -> str:
+                          severity_indicators: list[str]) -> str:
         """Generate detailed reasoning for the decision"""
 
         reasoning_parts = []

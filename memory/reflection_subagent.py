@@ -9,8 +9,8 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from collections.abc import Callable
 from dataclasses import replace
-from typing import Callable, Dict, List, Optional
 
 from .reflection_analysis import ReflectionAnalysisService
 from .reflection_memory import LocalReflectionMemoryClient, Memory
@@ -25,8 +25,8 @@ class ReflectionSubagent:
     def __init__(
         self,
         memory_provider: LocalReflectionMemoryClient,
-        config: Optional[ReflectionConfig] = None,
-        llm_callback: Optional[Callable] = None,
+        config: ReflectionConfig | None = None,
+        llm_callback: Callable | None = None,
     ) -> None:
         self.memory = memory_provider
         self.config = config or ReflectionConfig()
@@ -37,7 +37,7 @@ class ReflectionSubagent:
         self,
         conversation_text: str,
         user_id: str,
-        existing_memories: Optional[List[Memory]] = None,
+        existing_memories: list[Memory] | None = None,
     ) -> ReflectionResult:
         logger.info("Starting reflection analysis for user %s", user_id)
 
@@ -71,7 +71,7 @@ class ReflectionSubagent:
         self,
         user_id: str,
         result: ReflectionResult,
-    ) -> Dict[str, int]:
+    ) -> dict[str, int]:
         if result.crisis_detected and not self.config.auto_consolidate:
             logger.info(
                 "Crisis detected - skipping auto-consolidation, preserving all memories"
@@ -83,7 +83,7 @@ class ReflectionSubagent:
             allow_crisis_deletions=self.config.auto_consolidate,
         )
 
-    def _format_memories(self, memories: List[Memory]) -> str:
+    def _format_memories(self, memories: list[Memory]) -> str:
         if not memories:
             return "No existing memories."
 

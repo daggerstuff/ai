@@ -8,7 +8,7 @@ backed by the repository's single shared local memory service.
 import logging
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ai.memory.hindsight_local_adapter import normalize_tags
 from ai.memory.local_hindsight_manager import LocalHindsightMemoryManager
@@ -51,7 +51,7 @@ class AgentIdentity:
     agent_id: str
     role: AgentRole
     name: str = ""
-    capabilities: List[str] = field(default_factory=list)
+    capabilities: list[str] = field(default_factory=list)
 
     def __post_init__(self):
         if not self.name:
@@ -68,10 +68,10 @@ class CollaborationContext:
 
     user_id: str
     session_id: str
-    agents: List[AgentIdentity] = field(default_factory=list)
-    current_agent: Optional[AgentIdentity] = None
+    agents: list[AgentIdentity] = field(default_factory=list)
+    current_agent: AgentIdentity | None = None
 
-    def get_memory_key(self, scope: MemoryScope) -> Dict[str, str]:
+    def get_memory_key(self, scope: MemoryScope) -> dict[str, str]:
         """Get the memory key for the specified scope."""
         if scope == MemoryScope.PRIVATE:
             if not self.current_agent:
@@ -81,15 +81,15 @@ class CollaborationContext:
                 "agent_id": self.current_agent.agent_id,
                 "session_id": self.session_id,
             }
-        elif scope == MemoryScope.SHARED:
+        if scope == MemoryScope.SHARED:
             return {
                 "user_id": self.user_id,
                 "session_id": self.session_id,
             }
-        elif scope == MemoryScope.USER:
+        if scope == MemoryScope.USER:
             return {"user_id": self.user_id}
-        else:  # GLOBAL
-            return {}
+        # GLOBAL
+        return {}
 
 
 class MultiAgentMemory:
@@ -117,10 +117,10 @@ class MultiAgentMemory:
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
-        memory_client: Optional[Any] = None,
-        db_path: Optional[str] = None,
-        bank_id: Optional[str] = None,
+        api_key: str | None = None,
+        memory_client: Any | None = None,
+        db_path: str | None = None,
+        bank_id: str | None = None,
     ):
         """
         Initialize multi-agent memory.
@@ -146,7 +146,7 @@ class MultiAgentMemory:
         context: CollaborationContext,
         content: str,
         scope: MemoryScope = MemoryScope.SHARED,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
         memory_type: str = "experience",
     ) -> str:
         """
@@ -191,8 +191,8 @@ class MultiAgentMemory:
         self,
         context: CollaborationContext,
         query: str,
-        disposition_override: Optional[str] = None
-    ) -> Dict[str, Any]:
+        disposition_override: str | None = None
+    ) -> dict[str, Any]:
         """
         Reflect on the current session using Hindsight's advanced reasoning.
         Applies the current agent's role as a disposition modifier to personalize the insight.
@@ -226,7 +226,7 @@ class MultiAgentMemory:
         self,
         context: CollaborationContext,
         limit: int = 20,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Get shared memories from all agents in the session.
 
@@ -260,7 +260,7 @@ class MultiAgentMemory:
         query: str,
         scope: MemoryScope = MemoryScope.SHARED,
         limit: int = 10,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Search memories with scope filtering.
 
@@ -339,7 +339,7 @@ class MultiAgentMemory:
         target_agent: AgentIdentity,
         summary: str,
         transfer_memories: bool = True,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Perform agent handoff with memory transfer.
 
@@ -423,9 +423,9 @@ class MultiAgentMemory:
     async def get_agent_history(
         self,
         context: CollaborationContext,
-        agent_id: Optional[str] = None,
+        agent_id: str | None = None,
         limit: int = 50,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Get memory history for a specific agent or all agents.
 

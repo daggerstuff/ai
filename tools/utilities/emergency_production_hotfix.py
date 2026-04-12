@@ -4,16 +4,15 @@ EMERGENCY PRODUCTION HOTFIX
 Critical fixes for live production system with security vulnerabilities
 """
 
+from datetime import datetime, timezone
+
 import logging
 import os
-import subprocess
-import sys
-from datetime import datetime
 
 # Setup logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - EMERGENCY - %(levelname)s - %(message)s'
+    format="%(asctime)s - EMERGENCY - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -38,12 +37,12 @@ class EmergencyProductionHotfix:
                 "encryption_key": encryption_key,
                 "security_enabled": True,
                 "emergency_mode": True,
-                "timestamp": datetime.now().isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
 
             # Write emergency config
             import json
-            with open('/home/vivi/pixelated/ai/emergency_security_config.json', 'w') as f:
+            with open("/home/vivi/pixelated/ai/emergency_security_config.json", "w") as f:
                 json.dump(emergency_config, f, indent=2)
 
             self.fixes_applied.append("Emergency encryption key generated")
@@ -62,13 +61,12 @@ class EmergencyProductionHotfix:
             health_check_script = '''#!/usr/bin/env python3
 import json
 import time
-from datetime import datetime
 
 def emergency_health_check():
     """Emergency health check endpoint."""
     return {
         "status": "emergency_mode",
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "uptime": time.time(),
         "emergency_hotfix_active": True
     }
@@ -77,10 +75,10 @@ if __name__ == "__main__":
     print(json.dumps(emergency_health_check(), indent=2))
 '''
 
-            with open('/home/vivi/pixelated/ai/emergency_health_check.py', 'w') as f:
+            with open("/home/vivi/pixelated/ai/emergency_health_check.py", "w") as f:
                 f.write(health_check_script)
 
-            os.chmod('/home/vivi/pixelated/ai/emergency_health_check.py', 0o755)
+            os.chmod("/home/vivi/pixelated/ai/emergency_health_check.py", 0o755)
 
             self.fixes_applied.append("Emergency health check created")
             logger.info("✅ Emergency health check endpoint created")
@@ -95,7 +93,7 @@ if __name__ == "__main__":
 
         rollback_plan = f"""
 # EMERGENCY ROLLBACK PLAN
-Generated: {datetime.now().isoformat()}
+Generated: {datetime.now(timezone.utc).isoformat()}
 
 ## CRITICAL SITUATION
 - Production system deployed with major security vulnerabilities
@@ -125,7 +123,7 @@ Generated: {datetime.now().isoformat()}
 5. Implement proper CI/CD gates to prevent future deployments
 """
 
-        with open('/home/vivi/pixelated/ai/EMERGENCY_ROLLBACK_PLAN.md', 'w') as f:
+        with open("/home/vivi/pixelated/ai/EMERGENCY_ROLLBACK_PLAN.md", "w") as f:
             f.write(rollback_plan)
 
         logger.info("✅ Emergency rollback plan created")

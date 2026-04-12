@@ -15,7 +15,7 @@ if TYPE_CHECKING:
         get_required_memory_manager,
     )
 
-_EXPORTS: Dict[str, Tuple[str, str]] = {
+_EXPORTS: dict[str, tuple[str, str]] = {
     "BaseMemoryManager": (
         "ai.memory.base",
         "BaseMemoryManager",

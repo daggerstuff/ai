@@ -3,14 +3,16 @@ Inference safety filtering integration system.
 Ensures all inference endpoints pass safety and content filters before returning content.
 """
 
+from datetime import datetime, timezone
+
+
 import hashlib
 import json
 import logging
 import time
 from dataclasses import dataclass
-from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from ..dataset_pipeline.traceability_system import TraceabilityManager
 from ..monitoring.observability import observability
@@ -44,13 +46,13 @@ class InferenceSafetyResult:
     original_content: str
     filtered_content: str
     safety_score: float
-    flagged_categories: List[str]
+    flagged_categories: list[str]
     crisis_detected: bool
-    crisis_info: Optional[Dict[str, Any]] = None
-    filter_reason: Optional[str] = None
+    crisis_info: dict[str, Any] | None = None
+    filter_reason: str | None = None
     processing_time_ms: float = 0.0
-    traceability_info: Optional[Dict[str, Any]] = None
-    metadata: Optional[Dict[str, Any]] = None
+    traceability_info: dict[str, Any] | None = None
+    metadata: dict[str, Any] | None = None
 
 
 class InferenceSafetyFilter:
@@ -88,9 +90,9 @@ class InferenceSafetyFilter:
     def filter_inference_output(
         self,
         content: str,
-        user_context: Optional[Dict[str, Any]] = None,
-        request_metadata: Optional[Dict[str, Any]] = None,
-        model_info: Optional[Dict[str, Any]] = None,
+        user_context: dict[str, Any] | None = None,
+        request_metadata: dict[str, Any] | None = None,
+        model_info: dict[str, Any] | None = None,
     ) -> InferenceSafetyResult:
         """Filter inference output through safety checks"""
         start_time = time.time()
@@ -180,7 +182,7 @@ class InferenceSafetyFilter:
                 "filtered": filtered_content,
                 "safety_result": safety_result,
                 "filter_reason": filter_reason,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
 
         # Create traceability record if traceability manager is available
@@ -246,14 +248,14 @@ class InferenceSafetyFilter:
         original_content: str,
         filtered_content: str,
         safety_result: SafetyCheckResult,
-        model_info: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        model_info: dict[str, Any],
+    ) -> dict[str, Any]:
         """Create traceability record for filtered content"""
         if not self.traceability_manager:
             return None
 
         # Create traceability record for the safety filtering event
-        record_id = f"safety_filter_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}_{hashlib.md5(original_content.encode()).hexdigest()[:8]}"
+        record_id = f"safety_filter_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{hashlib.md5(original_content.encode()).hexdigest()[:8]}"
 
         traceability_data = {
             "record_id": record_id,
@@ -273,7 +275,7 @@ class InferenceSafetyFilter:
             "confidence": safety_result.confidence,
             "explanation": safety_result.explanation,
             "model_info": model_info,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "metadata": {
                 "filter_mode": self.filter_mode.value,
                 "safety_level": self.safety_filter.safety_level.value,
@@ -287,7 +289,7 @@ class InferenceSafetyFilter:
 
         return traceability_data
 
-    def get_filtering_statistics(self) -> Dict[str, Any]:
+    def get_filtering_statistics(self) -> dict[str, Any]:
         """Get statistics about content filtering"""
         return {
             "total_requests": self.total_requests,
@@ -323,7 +325,7 @@ class InferenceSafetyFilter:
         self.last_filtered_content = None
         self.logger.info("Safety filtering statistics reset")
 
-    def get_recent_filtered_content(self, limit: int = 10) -> List[Dict[str, Any]]:
+    def get_recent_filtered_content(self, limit: int = 10) -> list[dict[str, Any]]:
         """Get recent filtered content for review"""
         # In a real implementation, this would query a database or log system
         # For now, we'll just return the last filtered content if available
@@ -343,11 +345,11 @@ class SafetyAwareInferenceAPI:
         self,
         inference_function: callable,
         *args,
-        user_context: Optional[Dict[str, Any]] = None,
-        request_metadata: Optional[Dict[str, Any]] = None,
-        model_info: Optional[Dict[str, Any]] = None,
+        user_context: dict[str, Any] | None = None,
+        request_metadata: dict[str, Any] | None = None,
+        model_info: dict[str, Any] | None = None,
         **kwargs,
-    ) -> Tuple[bool, Any, InferenceSafetyResult]:
+    ) -> tuple[bool, Any, InferenceSafetyResult]:
         """Call an inference function with automatic safety filtering"""
         start_time = time.time()
 
@@ -422,7 +424,7 @@ class SafetyAwareInferenceAPI:
         """Extract content from inference result"""
         if isinstance(result, str):
             return result
-        elif isinstance(result, dict):
+        if isinstance(result, dict):
             # Look for common content fields
             content_fields = ["content", "response", "text", "output", "generated_text"]
             for field in content_fields:
@@ -430,17 +432,16 @@ class SafetyAwareInferenceAPI:
                     return result[field]
             # If no content field found, convert dict to string
             return json.dumps(result, default=str)
-        elif isinstance(result, list):
+        if isinstance(result, list):
             # Join list elements
             return " ".join(str(item) for item in result)
-        else:
-            return str(result)
+        return str(result)
 
     def _update_inference_result(self, result: Any, filtered_content: str) -> Any:
         """Update inference result with filtered content"""
         if isinstance(result, str):
             return filtered_content
-        elif isinstance(result, dict):
+        if isinstance(result, dict):
             # Update content fields with filtered content
             updated_result = result.copy()
             content_fields = ["content", "response", "text", "output", "generated_text"]
@@ -452,16 +453,14 @@ class SafetyAwareInferenceAPI:
                 # If no content field found, add a content field
                 updated_result["content"] = filtered_content
             return updated_result
-        elif isinstance(result, list):
+        if isinstance(result, list):
             # Replace first element or append filtered content
             if result:
                 updated_result = result.copy()
                 updated_result[0] = filtered_content
                 return updated_result
-            else:
-                return [filtered_content]
-        else:
-            return filtered_content
+            return [filtered_content]
+        return filtered_content
 
 
 # Decorator for automatic safety filtering on inference endpoints
@@ -705,8 +704,7 @@ def test_inference_safety_filtering():
         """Mock inference function"""
         if "suicide" in prompt.lower():
             return "That sounds very serious. Have you been thinking about hurting yourself?"
-        else:
-            return "I understand how you're feeling. Can you tell me more about what's been going on?"
+        return "I understand how you're feeling. Can you tell me more about what's been going on?"
 
     safety_aware_api = SafetyAwareInferenceAPI(safety_filter)
 
@@ -737,8 +735,7 @@ def test_inference_safety_filtering():
         """Decorated inference function"""
         if "hurt myself" in prompt.lower():
             return "I'm really concerned about what you're going through. Those thoughts can be dangerous."
-        else:
-            return "Thank you for sharing that with me. How can I support you today?"
+        return "Thank you for sharing that with me. How can I support you today?"
 
     result = decorated_inference_function(
         "I've been having thoughts about hurting myself."

@@ -1,4 +1,3 @@
-from unittest.mock import MagicMock, Mock, patch
 
 #!/usr/bin/env python3
 """
@@ -8,11 +7,9 @@ Task 51: Complete API Documentation
 Tests for the Pixelated Empathy AI API implementation.
 """
 
-import json
 import sys
 import time
 from pathlib import Path
-from typing import Any, Dict
 
 import pytest
 import requests
@@ -33,8 +30,8 @@ class TestPixelatedEmpathyAPI:
         """Setup test environment."""
         self.base_url = API_BASE_URL
         self.headers = {
-            'Authorization': f'Bearer {TEST_API_KEY}',
-            'Content-Type': 'application/json'
+            "Authorization": f"Bearer {TEST_API_KEY}",
+            "Content-Type": "application/json"
         }
 
     def test_root_endpoint(self):
@@ -43,10 +40,10 @@ class TestPixelatedEmpathyAPI:
         assert response.status_code == 200
 
         data = response.json()
-        assert data['success'] is True
-        assert 'data' in data
-        assert 'endpoints' in data['data']
-        assert data['message'] == "Welcome to Pixelated Empathy AI API"
+        assert data["success"] is True
+        assert "data" in data
+        assert "endpoints" in data["data"]
+        assert data["message"] == "Welcome to Pixelated Empathy AI API"
 
     def test_health_check(self):
         """Test the health check endpoint."""
@@ -54,9 +51,9 @@ class TestPixelatedEmpathyAPI:
         assert response.status_code == 200
 
         data = response.json()
-        assert data['success'] is True
-        assert data['data']['status'] == 'healthy'
-        assert data['message'] == "API is healthy"
+        assert data["success"] is True
+        assert data["data"]["status"] == "healthy"
+        assert data["message"] == "API is healthy"
 
     def test_authentication_required(self):
         """Test that authentication is required for protected endpoints."""
@@ -65,7 +62,7 @@ class TestPixelatedEmpathyAPI:
         assert response.status_code == 401
 
         # Test with invalid API key
-        headers = {'Authorization': 'Bearer invalid_key'}
+        headers = {"Authorization": "Bearer invalid_key"}
         response = requests.get(f"{self.base_url}/v1/datasets", headers=headers)
         assert response.status_code == 401
 
@@ -75,15 +72,15 @@ class TestPixelatedEmpathyAPI:
         assert response.status_code == 200
 
         data = response.json()
-        assert data['success'] is True
-        assert 'datasets' in data['data']
-        assert 'total' in data['data']
-        assert isinstance(data['data']['datasets'], list)
+        assert data["success"] is True
+        assert "datasets" in data["data"]
+        assert "total" in data["data"]
+        assert isinstance(data["data"]["datasets"], list)
 
         # Check dataset structure
-        if data['data']['datasets']:
-            dataset = data['data']['datasets'][0]
-            required_fields = ['name', 'description', 'conversations', 'quality_score', 'tiers']
+        if data["data"]["datasets"]:
+            dataset = data["data"]["datasets"][0]
+            required_fields = ["name", "description", "conversations", "quality_score", "tiers"]
             for field in required_fields:
                 assert field in dataset
 
@@ -94,10 +91,10 @@ class TestPixelatedEmpathyAPI:
         assert response.status_code == 200
 
         data = response.json()
-        assert data['success'] is True
-        assert data['data']['name'] == dataset_name
-        assert 'statistics' in data['data']
-        assert 'schema' in data['data']
+        assert data["success"] is True
+        assert data["data"]["name"] == dataset_name
+        assert "statistics" in data["data"]
+        assert "schema" in data["data"]
 
     def test_list_conversations(self):
         """Test listing conversations."""
@@ -105,26 +102,26 @@ class TestPixelatedEmpathyAPI:
         assert response.status_code == 200
 
         data = response.json()
-        assert data['success'] is True
-        assert 'conversations' in data['data']
-        assert 'total' in data['data']
-        assert 'limit' in data['data']
-        assert 'offset' in data['data']
+        assert data["success"] is True
+        assert "conversations" in data["data"]
+        assert "total" in data["data"]
+        assert "limit" in data["data"]
+        assert "offset" in data["data"]
 
     def test_list_conversations_with_filters(self):
         """Test listing conversations with filters."""
         params = {
-            'tier': 'professional',
-            'min_quality': 0.7,
-            'limit': 5
+            "tier": "professional",
+            "min_quality": 0.7,
+            "limit": 5
         }
         response = requests.get(f"{self.base_url}/v1/conversations",
                               headers=self.headers, params=params)
         assert response.status_code == 200
 
         data = response.json()
-        assert data['success'] is True
-        assert len(data['data']['conversations']) <= 5
+        assert data["success"] is True
+        assert len(data["data"]["conversations"]) <= 5
 
     def test_get_conversation(self):
         """Test getting a specific conversation."""
@@ -134,11 +131,11 @@ class TestPixelatedEmpathyAPI:
         assert response.status_code == 200
 
         data = response.json()
-        assert data['success'] is True
-        assert data['data']['id'] == conversation_id
-        assert 'messages' in data['data']
-        assert 'quality_metrics' in data['data']
-        assert 'metadata' in data['data']
+        assert data["success"] is True
+        assert data["data"]["id"] == conversation_id
+        assert "messages" in data["data"]
+        assert "quality_metrics" in data["data"]
+        assert "metadata" in data["data"]
 
     def test_quality_metrics(self):
         """Test getting quality metrics."""
@@ -146,13 +143,13 @@ class TestPixelatedEmpathyAPI:
         assert response.status_code == 200
 
         data = response.json()
-        assert data['success'] is True
-        assert 'overall_statistics' in data['data']
-        assert 'tier_metrics' in data['data']
+        assert data["success"] is True
+        assert "overall_statistics" in data["data"]
+        assert "tier_metrics" in data["data"]
 
         # Check overall statistics structure
-        stats = data['data']['overall_statistics']
-        required_fields = ['average_quality', 'total_conversations', 'quality_distribution']
+        stats = data["data"]["overall_statistics"]
+        required_fields = ["average_quality", "total_conversations", "quality_distribution"]
         for field in required_fields:
             assert field in stats
 
@@ -173,16 +170,16 @@ class TestPixelatedEmpathyAPI:
         assert response.status_code == 200
 
         data = response.json()
-        assert data['success'] is True
-        assert 'validation_results' in data['data']
-        assert 'tier_classification' in data['data']
-        assert 'recommendations' in data['data']
+        assert data["success"] is True
+        assert "validation_results" in data["data"]
+        assert "tier_classification" in data["data"]
+        assert "recommendations" in data["data"]
 
         # Check validation results structure
-        results = data['data']['validation_results']
-        required_metrics = ['therapeutic_accuracy', 'conversation_coherence',
-                          'emotional_authenticity', 'clinical_compliance',
-                          'safety_score', 'overall_quality']
+        results = data["data"]["validation_results"]
+        required_metrics = ["therapeutic_accuracy", "conversation_coherence",
+                          "emotional_authenticity", "clinical_compliance",
+                          "safety_score", "overall_quality"]
         for metric in required_metrics:
             assert metric in results
             assert 0.0 <= results[metric] <= 1.0
@@ -203,12 +200,12 @@ class TestPixelatedEmpathyAPI:
         assert response.status_code == 200
 
         data = response.json()
-        assert data['success'] is True
-        assert 'job_id' in data['data']
-        assert data['data']['status'] == 'queued'
-        assert data['data']['dataset_name'] == job_request['dataset_name']
+        assert data["success"] is True
+        assert "job_id" in data["data"]
+        assert data["data"]["status"] == "queued"
+        assert data["data"]["dataset_name"] == job_request["dataset_name"]
 
-        return data['data']['job_id']
+        return data["data"]["job_id"]
 
     def test_get_job_status(self):
         """Test getting job status."""
@@ -221,10 +218,10 @@ class TestPixelatedEmpathyAPI:
         assert response.status_code == 200
 
         data = response.json()
-        assert data['success'] is True
-        assert data['data']['job_id'] == job_id
-        assert 'status' in data['data']
-        assert 'progress' in data['data']
+        assert data["success"] is True
+        assert data["data"]["job_id"] == job_id
+        assert "status" in data["data"]
+        assert "progress" in data["data"]
 
     def test_search_conversations(self):
         """Test searching conversations."""
@@ -242,11 +239,11 @@ class TestPixelatedEmpathyAPI:
         assert response.status_code == 200
 
         data = response.json()
-        assert data['success'] is True
-        assert 'results' in data['data']
-        assert 'total_matches' in data['data']
-        assert 'search_time_ms' in data['data']
-        assert data['data']['query'] == search_request['query']
+        assert data["success"] is True
+        assert "results" in data["data"]
+        assert "total_matches" in data["data"]
+        assert "search_time_ms" in data["data"]
+        assert data["data"]["query"] == search_request["query"]
 
     def test_statistics_overview(self):
         """Test getting statistics overview."""
@@ -255,20 +252,20 @@ class TestPixelatedEmpathyAPI:
         assert response.status_code == 200
 
         data = response.json()
-        assert data['success'] is True
-        assert 'total_conversations' in data['data']
-        assert 'total_datasets' in data['data']
-        assert 'quality_distribution' in data['data']
-        assert 'processing_statistics' in data['data']
-        assert 'api_usage' in data['data']
+        assert data["success"] is True
+        assert "total_conversations" in data["data"]
+        assert "total_datasets" in data["data"]
+        assert "quality_distribution" in data["data"]
+        assert "processing_statistics" in data["data"]
+        assert "api_usage" in data["data"]
 
     def test_export_data(self):
         """Test data export."""
         export_data = {
-            'dataset': 'priority_complete_fixed',
-            'format': 'jsonl',
-            'tier': 'professional',
-            'min_quality': 0.7
+            "dataset": "priority_complete_fixed",
+            "format": "jsonl",
+            "tier": "professional",
+            "min_quality": 0.7
         }
 
         response = requests.post(f"{self.base_url}/v1/export",
@@ -276,11 +273,11 @@ class TestPixelatedEmpathyAPI:
         assert response.status_code == 200
 
         data = response.json()
-        assert data['success'] is True
-        assert 'export_id' in data['data']
-        assert data['data']['dataset'] == export_data['dataset']
-        assert data['data']['format'] == export_data['format']
-        assert 'download_url' in data['data']
+        assert data["success"] is True
+        assert "export_id" in data["data"]
+        assert data["data"]["dataset"] == export_data["dataset"]
+        assert data["data"]["format"] == export_data["format"]
+        assert "download_url" in data["data"]
 
     def test_error_handling(self):
         """Test error handling for various scenarios."""
@@ -309,21 +306,21 @@ class TestPixelatedEmpathyAPI:
         for endpoint, method in endpoints:
             if method == "GET":
                 response = requests.get(f"{self.base_url}{endpoint}",
-                                      headers=self.headers if endpoint.startswith('/v1') else {})
+                                      headers=self.headers if endpoint.startswith("/v1") else {})
 
             assert response.status_code == 200
             data = response.json()
 
             # Check standard response structure
-            assert 'success' in data
-            assert 'timestamp' in data
-            assert isinstance(data['success'], bool)
+            assert "success" in data
+            assert "timestamp" in data
+            assert isinstance(data["success"], bool)
 
-            if data['success']:
-                assert 'data' in data
-                assert 'message' in data
+            if data["success"]:
+                assert "data" in data
+                assert "message" in data
             else:
-                assert 'error' in data
+                assert "error" in data
 
     def test_pagination(self):
         """Test pagination functionality."""
@@ -340,9 +337,9 @@ class TestPixelatedEmpathyAPI:
         data2 = response2.json()
 
         # Verify pagination works
-        assert data1['data']['limit'] == 5
-        assert data1['data']['offset'] == 0
-        assert data2['data']['offset'] == 5
+        assert data1["data"]["limit"] == 5
+        assert data1["data"]["offset"] == 0
+        assert data2["data"]["offset"] == 5
 
     def test_input_validation(self):
         """Test input validation for various parameters."""
@@ -367,8 +364,8 @@ class TestAPIPerformance:
         """Setup test environment."""
         self.base_url = API_BASE_URL
         self.headers = {
-            'Authorization': f'Bearer {TEST_API_KEY}',
-            'Content-Type': 'application/json'
+            "Authorization": f"Bearer {TEST_API_KEY}",
+            "Content-Type": "application/json"
         }
 
     def test_response_time(self):

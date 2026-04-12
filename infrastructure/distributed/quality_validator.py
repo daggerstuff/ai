@@ -4,6 +4,8 @@ Distributed Quality Validation System for Pixelated Empathy AI
 Parallelizes quality validation across multiple workers for high-performance processing
 """
 
+from datetime import datetime, timezone
+
 import hashlib
 import json
 import logging
@@ -13,9 +15,8 @@ import pickle
 import time
 from concurrent.futures import ProcessPoolExecutor
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # Redis for distributed task queue
 try:
@@ -84,16 +85,16 @@ class ValidationTask:
     data_path: str
     validation_type: str
     priority: ValidationPriority
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
     created_at: str
     status: ValidationStatus = ValidationStatus.PENDING
-    worker_id: Optional[str] = None
-    started_at: Optional[str] = None
-    completed_at: Optional[str] = None
-    result: Optional[Dict[str, Any]] = None
-    error: Optional[str] = None
+    worker_id: str | None = None
+    started_at: str | None = None
+    completed_at: str | None = None
+    result: dict[str, Any] | None = None
+    error: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary"""
         data = asdict(self)
         data["priority"] = self.priority.value
@@ -101,7 +102,7 @@ class ValidationTask:
         return data
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "ValidationTask":
+    def from_dict(cls, data: dict[str, Any]) -> "ValidationTask":
         """Create from dictionary"""
         data["priority"] = ValidationPriority(data["priority"])
         data["status"] = ValidationStatus(data["status"])
@@ -115,13 +116,13 @@ class ValidationResult:
     task_id: str
     success: bool
     quality_score: float
-    metrics: Dict[str, float]
-    issues: List[Dict[str, Any]]
+    metrics: dict[str, float]
+    issues: list[dict[str, Any]]
     processing_time: float
     worker_id: str
     timestamp: str
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary"""
         return asdict(self)
 
@@ -133,11 +134,11 @@ class QualityValidator:
         self.validator_type = validator_type
         self.worker_id = f"{validator_type}_{os.getpid()}_{int(time.time())}"
 
-    def validate(self, data_path: str, metadata: Dict[str, Any]) -> ValidationResult:
+    def validate(self, data_path: str, metadata: dict[str, Any]) -> ValidationResult:
         """Validate data quality - to be implemented by subclasses"""
         raise NotImplementedError("Subclasses must implement validate method")
 
-    def _calculate_quality_score(self, metrics: Dict[str, float]) -> float:
+    def _calculate_quality_score(self, metrics: dict[str, float]) -> float:
         """Calculate overall quality score from metrics"""
         if not metrics:
             return 0.0
@@ -167,7 +168,7 @@ class ConversationQualityValidator(QualityValidator):
     def __init__(self):
         super().__init__("conversation")
 
-    def validate(self, data_path: str, metadata: Dict[str, Any]) -> ValidationResult:
+    def validate(self, data_path: str, metadata: dict[str, Any]) -> ValidationResult:
         """Validate conversation quality"""
         start_time = time.time()
 
@@ -231,7 +232,7 @@ class ConversationQualityValidator(QualityValidator):
                 timestamp=datetime.now(timezone.utc).isoformat(),
             )
 
-    def _check_completeness(self, data: List[Dict], issues: List[Dict]) -> float:
+    def _check_completeness(self, data: list[dict], issues: list[dict]) -> float:
         """Check data completeness"""
         if not data:
             issues.append(
@@ -266,7 +267,7 @@ class ConversationQualityValidator(QualityValidator):
 
         return complete_records / total_records if total_records > 0 else 0.0
 
-    def _check_accuracy(self, data: List[Dict], issues: List[Dict]) -> float:
+    def _check_accuracy(self, data: list[dict], issues: list[dict]) -> float:
         """Check data accuracy"""
         if not data:
             return 0.0
@@ -311,7 +312,7 @@ class ConversationQualityValidator(QualityValidator):
 
         return accurate_records / total_records if total_records > 0 else 0.0
 
-    def _check_consistency(self, data: List[Dict], issues: List[Dict]) -> float:
+    def _check_consistency(self, data: list[dict], issues: list[dict]) -> float:
         """Check data consistency"""
         if not data:
             return 0.0
@@ -324,7 +325,7 @@ class ConversationQualityValidator(QualityValidator):
 
         return (format_consistency + content_consistency) / 2
 
-    def _check_format_consistency(self, data: List[Dict], issues: List[Dict]) -> float:
+    def _check_format_consistency(self, data: list[dict], issues: list[dict]) -> float:
         """Check format consistency across records"""
         if not data:
             return 0.0
@@ -359,7 +360,7 @@ class ConversationQualityValidator(QualityValidator):
 
         return consistent_records / len(data)
 
-    def _check_content_consistency(self, data: List[Dict], issues: List[Dict]) -> float:
+    def _check_content_consistency(self, data: list[dict], issues: list[dict]) -> float:
         """Check content consistency"""
         if len(data) < 2:
             return 1.0
@@ -386,7 +387,7 @@ class ConversationQualityValidator(QualityValidator):
         # For now, return high consistency if only one language
         return 0.9 if len(languages) == 1 else 0.7
 
-    def _check_relevance(self, data: List[Dict], issues: List[Dict]) -> float:
+    def _check_relevance(self, data: list[dict], issues: list[dict]) -> float:
         """Check data relevance"""
         if not data:
             return 0.0
@@ -496,8 +497,8 @@ class DistributedQualityValidator:
                 self.cached_validator = None
 
         # Task storage
-        self.tasks: Dict[str, ValidationTask] = {}
-        self.results: Dict[str, ValidationResult] = {}
+        self.tasks: dict[str, ValidationTask] = {}
+        self.results: dict[str, ValidationResult] = {}
 
         # Local processing fallback
         self.local_executor = ProcessPoolExecutor(max_workers=mp.cpu_count())
@@ -510,7 +511,7 @@ class DistributedQualityValidator:
         data_path: str,
         validation_type: str,
         priority: ValidationPriority = ValidationPriority.NORMAL,
-        metadata: Dict[str, Any] = None,
+        metadata: dict[str, Any] = None,
     ) -> str:
         """Submit a validation task for processing"""
         task_id = self._generate_task_id(data_path)
@@ -582,17 +583,17 @@ class DistributedQualityValidator:
         logger.info(f"Submitted validation task: {task_id}")
         return task_id
 
-    def get_task_status(self, task_id: str) -> Optional[ValidationTask]:
+    def get_task_status(self, task_id: str) -> ValidationTask | None:
         """Get task status"""
         return self.tasks.get(task_id)
 
-    def get_task_result(self, task_id: str) -> Optional[ValidationResult]:
+    def get_task_result(self, task_id: str) -> ValidationResult | None:
         """Get task result"""
         return self.results.get(task_id)
 
     def wait_for_task(
         self, task_id: str, timeout: float = None
-    ) -> Optional[ValidationResult]:
+    ) -> ValidationResult | None:
         """Wait for task completion"""
         start_time = time.time()
 
@@ -616,11 +617,11 @@ class DistributedQualityValidator:
 
     def batch_validate(
         self,
-        data_paths: List[str],
+        data_paths: list[str],
         validation_type: str,
         batch_size: int = 10,
         max_workers: int = None,
-    ) -> List[ValidationResult]:
+    ) -> list[ValidationResult]:
         """Validate multiple files in batches"""
         if not max_workers:
             max_workers = min(len(data_paths), mp.cpu_count() * 2)
@@ -660,7 +661,7 @@ class DistributedQualityValidator:
         logger.info(f"Batch validation completed: {len(results)} results")
         return results
 
-    def get_validation_statistics(self) -> Dict[str, Any]:
+    def get_validation_statistics(self) -> dict[str, Any]:
         """Get validation statistics"""
         total_tasks = len(self.tasks)
         completed_tasks = len(self.results)
@@ -697,7 +698,7 @@ class DistributedQualityValidator:
             "quality_distribution": self._get_quality_distribution(),
         }
 
-    def _get_quality_distribution(self) -> Dict[str, int]:
+    def _get_quality_distribution(self) -> dict[str, int]:
         """Get quality score distribution"""
         distribution = {
             "excellent": 0,  # 0.9-1.0
@@ -782,7 +783,7 @@ class DistributedQualityValidator:
 
     def _generate_task_id(self, data_path: str) -> str:
         """Generate unique task ID"""
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         path_hash = hashlib.md5(data_path.encode()).hexdigest()[:8]
         return f"val_{timestamp}_{path_hash}"
 
@@ -802,7 +803,7 @@ class DistributedQualityValidator:
 if CELERY_AVAILABLE:
 
     @Celery.task(bind=True)
-    def validate_task(self, task_data: Dict[str, Any]) -> Dict[str, Any]:
+    def validate_task(self, task_data: dict[str, Any]) -> dict[str, Any]:
         """Celery task for validation"""
         task = ValidationTask.from_dict(task_data)
 

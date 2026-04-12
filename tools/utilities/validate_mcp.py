@@ -13,7 +13,7 @@ import subprocess
 import sys
 import time
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -172,8 +172,8 @@ class MCPValidator:
             return False
 
     def test_server_connectivity(
-        self, server_name: str, server_config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, server_name: str, server_config: dict[str, Any]
+    ) -> dict[str, Any]:
         """Test connectivity to a specific MCP server."""
         result = {
             "name": server_name,
@@ -245,7 +245,7 @@ class MCPValidator:
 
         return result
 
-    def generate_recommendations(self) -> List[str]:
+    def generate_recommendations(self) -> list[str]:
         """Generate recommendations for improving the MCP configuration."""
         recommendations = []
 
@@ -291,7 +291,7 @@ class MCPValidator:
 
         return recommendations
 
-    def validate(self) -> Dict[str, Any]:
+    def validate(self) -> dict[str, Any]:
         """Run complete validation of the MCP configuration."""
         logger.info("🔍 Starting MCP configuration validation...")
 

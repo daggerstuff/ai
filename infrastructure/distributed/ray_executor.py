@@ -26,24 +26,19 @@ Usage:
         )
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import os
 import time
 import traceback
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import (
     Any,
-    Callable,
-    Dict,
-    Iterable,
-    List,
-    Optional,
-    Tuple,
     TypeVar,
-    Union,
 )
 
 import ray
@@ -69,13 +64,13 @@ class ExecutorConfig:
     cpu_per_worker: int = 2  # CPUs per worker
     memory_per_worker: str = "4GB"  # Memory per worker (e.g., "4GB", "8GB")
     gpu_per_worker: float = 0.0  # GPUs per worker
-    object_store_memory: Optional[str] = None  # Ray object store memory
+    object_store_memory: str | None = None  # Ray object store memory
 
     # Execution configuration
     batch_size: int = 1000  # Items per batch
     max_retries: int = 3  # Maximum retries for failed tasks
     retry_delay: float = 1.0  # Delay between retries (seconds)
-    timeout: Optional[float] = None  # Task timeout in seconds
+    timeout: float | None = None  # Task timeout in seconds
 
     # Checkpoint configuration
     enable_checkpointing: bool = True
@@ -88,10 +83,10 @@ class ExecutorConfig:
     log_level: str = "INFO"
 
     # Advanced options
-    ray_address: Optional[str] = None  # Connect to existing Ray cluster
+    ray_address: str | None = None  # Connect to existing Ray cluster
     local_mode: bool = False  # Run in local mode (debugging)
-    max_concurrent_tasks: Optional[int] = None  # Override num_workers
-    runtime_env: Optional[Dict[str, Any]] = None  # Ray runtime environment
+    max_concurrent_tasks: int | None = None  # Override num_workers
+    runtime_env: dict[str, Any] | None = None  # Ray runtime environment
 
     def __post_init__(self):
         """Validate configuration after initialization."""
@@ -112,12 +107,12 @@ class TaskResult:
 
     task_id: str
     success: bool
-    result: Optional[Any] = None
-    error: Optional[str] = None
-    traceback: Optional[str] = None
+    result: Any | None = None
+    error: str | None = None
+    traceback: str | None = None
     execution_time: float = 0.0
     retry_count: int = 0
-    worker_id: Optional[str] = None
+    worker_id: str | None = None
     memory_usage_mb: float = 0.0
     cpu_time: float = 0.0
     timestamp: str = field(
@@ -149,18 +144,17 @@ class ExecutorStats:
     checkpoints_created: int = 0
     checkpoints_restored: int = 0
 
-    start_time: Optional[datetime] = None
-    end_time: Optional[datetime] = None
+    start_time: datetime | None = None
+    end_time: datetime | None = None
 
     def update_from_task(self, task_result: TaskResult):
         """Update stats from a task result."""
         if task_result.success:
             self.completed_items += 1
+        elif task_result.retry_count > 0:
+            self.retried_items += 1
         else:
-            if task_result.retry_count > 0:
-                self.retried_items += 1
-            else:
-                self.failed_items += 1
+            self.failed_items += 1
 
         # Update timing stats
         self.total_execution_time += task_result.execution_time
@@ -198,7 +192,7 @@ class ExecutorStats:
             return 0.0
         return self.total_memory_mb / total_successful
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert stats to dictionary."""
         return {
             "total_items": self.total_items,
@@ -235,7 +229,7 @@ class WorkerActor:
         self.worker_id = worker_id
         self.config = config
         self.task_count = 0
-        self.processed_items: List[str] = []
+        self.processed_items: list[str] = []
 
         # Initialize logger for this worker
         self.logger = logging.getLogger(f"ray_executor.worker.{worker_id}")
@@ -247,8 +241,8 @@ class WorkerActor:
         self,
         task_id: str,
         func: Callable,
-        args: Tuple[Any, ...],
-        kwargs: Dict[str, Any],
+        args: tuple[Any, ...],
+        kwargs: dict[str, Any],
     ) -> TaskResult:
         """Execute a single task and return result."""
         from typing import TYPE_CHECKING
@@ -314,7 +308,7 @@ class WorkerActor:
                 worker_id=self.worker_id,
             )
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get worker statistics."""
         return {
             "worker_id": self.worker_id,
@@ -333,8 +327,8 @@ class RayExecutor:
 
     def __init__(self, config: ExecutorConfig):
         self.config = config
-        self.workers: List[ray.ActorHandle] = []
-        self.checkpoint_manager: Optional[CheckpointManager] = None
+        self.workers: list[ray.ActorHandle] = []
+        self.checkpoint_manager: CheckpointManager | None = None
         self.stats = ExecutorStats()
         self._initialized = False
 
@@ -454,8 +448,8 @@ class RayExecutor:
         func: Callable[[T], R],
         items: Iterable[T],
         task_name: str = "map_parallel",
-        checkpoint_enabled: Optional[bool] = None,
-    ) -> List[R]:
+        checkpoint_enabled: bool | None = None,
+    ) -> list[R]:
         """
         Map function over items in parallel using Ray.
 
@@ -505,10 +499,10 @@ class RayExecutor:
 
     def batch_process(
         self,
-        func: Callable[[List[T]], List[R]],
+        func: Callable[[list[T]], list[R]],
         items: Iterable[T],
         task_name: str = "batch_process",
-    ) -> List[R]:
+    ) -> list[R]:
         """
         Process items in batches for better performance.
 
@@ -556,14 +550,14 @@ class RayExecutor:
     def _process_items_parallel(
         self,
         func: Callable[[T], R],
-        items_list: List[T],
+        items_list: list[T],
         start_index: int,
         task_name: str,
         checkpoint_enabled: bool,
-    ) -> List[R]:
+    ) -> list[R]:
         """Process items in parallel with fault tolerance."""
         results = []
-        pending_futures: List[Tuple[str, ray.ObjectRef]] = []
+        pending_futures: list[tuple[str, ray.ObjectRef]] = []
         completed_task_ids: set = set()
 
         max_concurrent = (
@@ -611,9 +605,9 @@ class RayExecutor:
 
     def _collect_results(
         self,
-        pending_futures: List[Tuple[str, ray.ObjectRef]],
+        pending_futures: list[tuple[str, ray.ObjectRef]],
         completed_task_ids: set,
-    ) -> List[Any]:
+    ) -> list[Any]:
         """Collect results from completed tasks with retry logic."""
         if not pending_futures:
             return []
@@ -637,22 +631,21 @@ class RayExecutor:
                     if task_result.success:
                         results.append(task_result.result)
                         completed_task_ids.add(task_id)
+                    # Retry failed task
+                    elif task_result.retry_count < self.config.max_retries:
+                        self.logger.warning(
+                            f"Retrying task {task_id} (attempt {task_result.retry_count + 1})"
+                        )
+                        still_pending.append(
+                            (task_id, future)
+                        )  # Will be re-submitted
                     else:
-                        # Retry failed task
-                        if task_result.retry_count < self.config.max_retries:
-                            self.logger.warning(
-                                f"Retrying task {task_id} (attempt {task_result.retry_count + 1})"
-                            )
-                            still_pending.append(
-                                (task_id, future)
-                            )  # Will be re-submitted
-                        else:
-                            self.logger.error(
-                                f"Task {task_id} failed after {self.config.max_retries} retries"
-                            )
-                            # Append None for failed item
-                            results.append(None)
-                            completed_task_ids.add(task_id)
+                        self.logger.error(
+                            f"Task {task_id} failed after {self.config.max_retries} retries"
+                        )
+                        # Append None for failed item
+                        results.append(None)
+                        completed_task_ids.add(task_id)
 
                 except (RayActorError, RayTaskError, WorkerCrashedError) as e:
                     self.logger.error(f"Ray execution error for task {task_id}: {e}")
@@ -677,7 +670,7 @@ class RayExecutor:
         self,
         task_name: str,
         completed_task_ids: set,
-        partial_results: List[Any],
+        partial_results: list[Any],
     ):
         """Create a checkpoint for current progress."""
         if not self.checkpoint_manager:
@@ -703,7 +696,7 @@ class RayExecutor:
         except Exception as e:
             self.logger.warning(f"Failed to create checkpoint: {e}")
 
-    def _restore_from_checkpoint(self, task_name: str, items_list: List[T]) -> int:
+    def _restore_from_checkpoint(self, task_name: str, items_list: list[T]) -> int:
         """Restore from checkpoint and return start index."""
         if not self.checkpoint_manager:
             return 0
@@ -792,11 +785,11 @@ class RayExecutor:
 
 
 def process_dataset_parallel(
-    dataset_path: Union[str, Path],
-    process_func: Callable[[Dict], Any],
-    output_path: Union[str, Path],
-    config: Optional[ExecutorConfig] = None,
-) -> List[Any]:
+    dataset_path: str | Path,
+    process_func: Callable[[dict], Any],
+    output_path: str | Path,
+    config: ExecutorConfig | None = None,
+) -> list[Any]:
     """
     Convenience function to process a dataset file in parallel.
 

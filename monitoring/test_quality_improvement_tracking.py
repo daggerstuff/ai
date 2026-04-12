@@ -6,6 +6,8 @@ Comprehensive testing of improvement tracking, analysis, and reporting
 functionality with intervention simulation and impact validation.
 """
 
+from datetime import datetime, timezone
+
 import json
 import os
 import shutil
@@ -64,7 +66,7 @@ def run_comprehensive_test():
         """)
 
         # Generate test data with improvement pattern
-        base_date = datetime.now() - timedelta(days=60)
+        base_date = datetime.now(timezone.utc) - timedelta(days=60)
         conversations_data = []
         quality_data = []
 
@@ -323,7 +325,7 @@ def run_comprehensive_test():
         report_data = {
             "test_suite": "Quality Improvement Tracking System",
             "task": "5.6.2.4",
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "results": test_results,
             "success_rate": success_rate,
             "status": "PASSED" if success_rate >= 80 else "FAILED",

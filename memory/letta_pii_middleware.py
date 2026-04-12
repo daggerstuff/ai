@@ -7,9 +7,10 @@ through Hindsight's PII detection before storage.
 
 import json
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable, Dict, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -35,13 +36,12 @@ class FilterResult:
 
 class PIIBlockedException(Exception):
     """Raised when PII filtering blocks a tool call."""
-    pass
 
 
 class LettaPIIMiddleware:
     """Middleware that filters Letta tool calls through Hindsight's PII detection."""
 
-    def __init__(self, pii_filter: Any, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, pii_filter: Any, config: dict[str, Any] | None = None):
         """
         Initialize middleware with Hindsight's PII filter.
 
@@ -51,12 +51,12 @@ class LettaPIIMiddleware:
         """
         self.pii_filter = pii_filter
         self.config = config or {}
-        self.max_redaction_ratio = self.config.get('max_redaction_ratio', 0.5)
+        self.max_redaction_ratio = self.config.get("max_redaction_ratio", 0.5)
 
     async def filter_tool_call(
         self,
         tool_name: str,
-        tool_input: Dict[str, Any]
+        tool_input: dict[str, Any]
     ) -> FilterResult:
         """
         Filter a tool call through PII detection.
@@ -139,7 +139,7 @@ class LettaPIIMiddleware:
 
         return wrapped
 
-    def _serialize_input(self, tool_input: Dict[str, Any]) -> str:
+    def _serialize_input(self, tool_input: dict[str, Any]) -> str:
         """Serialize tool input to string for filtering."""
         return json.dumps(tool_input, default=str)
 
@@ -156,25 +156,24 @@ class LettaPIIMiddleware:
         """Determine severity based on redaction ratio."""
         if redaction_ratio == 0:
             return PIISeverity.NONE
-        elif redaction_ratio < 0.1:
+        if redaction_ratio < 0.1:
             return PIISeverity.LOW
-        elif redaction_ratio < 0.3:
+        if redaction_ratio < 0.3:
             return PIISeverity.MEDIUM
-        elif redaction_ratio < 0.5:
+        if redaction_ratio < 0.5:
             return PIISeverity.HIGH
-        else:
-            return PIISeverity.CRITICAL
+        return PIISeverity.CRITICAL
 
     def _extract_tool_input(
         self,
         args: tuple,
         kwargs: dict
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Extract tool input from args and kwargs."""
         # Default to kwargs, or first arg if it's a dict
         if kwargs:
             return kwargs
-        elif args and isinstance(args[0], dict):
+        if args and isinstance(args[0], dict):
             return args[0]
         return {}
 

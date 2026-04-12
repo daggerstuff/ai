@@ -4,6 +4,8 @@ Alert Fatigue Prevention System for Pixelated Empathy AI
 Implements intelligent alert grouping, deduplication, and fatigue prevention
 """
 
+from datetime import datetime, timedelta, timezone
+
 import asyncio
 import hashlib
 import json
@@ -11,11 +13,9 @@ import logging
 import re
 import sqlite3
 import time
-from collections import Counter, defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -43,7 +43,7 @@ class AlertFingerprint:
     source: str
     alert_type: str
     severity: str
-    key_attributes: Dict[str, str]
+    key_attributes: dict[str, str]
     fingerprint_hash: str = field(init=False)
 
     def __post_init__(self):
@@ -58,14 +58,14 @@ class AlertGroup:
     """Group of related alerts"""
     group_id: str
     fingerprint: AlertFingerprint
-    alerts: List[Dict[str, Any]] = field(default_factory=list)
+    alerts: list[dict[str, Any]] = field(default_factory=list)
     first_seen: datetime = field(default_factory=datetime.utcnow)
     last_seen: datetime = field(default_factory=datetime.utcnow)
     count: int = 0
     state: AlertState = AlertState.NEW
     suppression_count: int = 0
     escalation_level: int = 0
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 @dataclass
 class FatigueRule:
@@ -73,8 +73,8 @@ class FatigueRule:
     rule_id: str
     name: str
     description: str
-    conditions: Dict[str, Any]
-    actions: List[str]
+    conditions: dict[str, Any]
+    actions: list[str]
     enabled: bool = True
     priority: int = 100
     created_at: datetime = field(default_factory=datetime.utcnow)
@@ -84,9 +84,9 @@ class AlertFatiguePreventionSystem:
 
     def __init__(self, db_path: str = "/home/vivi/pixelated/ai/monitoring/alert_fatigue.db"):
         self.db_path = db_path
-        self.active_groups: Dict[str, AlertGroup] = {}
-        self.fatigue_rules: Dict[str, FatigueRule] = {}
-        self.suppression_patterns: List[Dict[str, Any]] = []
+        self.active_groups: dict[str, AlertGroup] = {}
+        self.fatigue_rules: dict[str, FatigueRule] = {}
+        self.suppression_patterns: list[dict[str, Any]] = []
         self.grouping_config = self._load_default_grouping_config()
         self.setup_database()
         self.load_fatigue_rules()
@@ -153,7 +153,7 @@ class AlertFatiguePreventionSystem:
                 )
             """)
 
-    def _load_default_grouping_config(self) -> Dict[str, Any]:
+    def _load_default_grouping_config(self) -> dict[str, Any]:
         """Load default grouping configuration"""
         return {
             "time_window_minutes": 5,
@@ -276,32 +276,32 @@ class AlertFatiguePreventionSystem:
         self.fatigue_rules[rule.rule_id] = rule
         logger.info(f"Added fatigue rule: {rule.name}")
 
-    def create_alert_fingerprint(self, alert_data: Dict[str, Any]) -> AlertFingerprint:
+    def create_alert_fingerprint(self, alert_data: dict[str, Any]) -> AlertFingerprint:
         """Create a unique fingerprint for an alert"""
         # Extract key attributes for fingerprinting
-        source = alert_data.get('source', 'unknown')
-        alert_type = alert_data.get('alert_type', alert_data.get('title', 'unknown'))
-        severity = alert_data.get('priority', alert_data.get('severity', 'medium'))
+        source = alert_data.get("source", "unknown")
+        alert_type = alert_data.get("alert_type", alert_data.get("title", "unknown"))
+        severity = alert_data.get("priority", alert_data.get("severity", "medium"))
 
         # Extract key attributes that should be considered for grouping
         key_attributes = {}
 
         # Common attributes to consider
-        for attr in ['service', 'host', 'component', 'error_type', 'metric_name']:
+        for attr in ["service", "host", "component", "error_type", "metric_name"]:
             if attr in alert_data:
                 key_attributes[attr] = str(alert_data[attr])
 
         # Extract from metadata if available
-        metadata = alert_data.get('metadata', {})
-        for attr in ['service_name', 'server', 'component', 'error_code']:
+        metadata = alert_data.get("metadata", {})
+        for attr in ["service_name", "server", "component", "error_code"]:
             if attr in metadata:
                 key_attributes[attr] = str(metadata[attr])
 
         # Normalize alert message for pattern matching
-        message = alert_data.get('message', '')
+        message = alert_data.get("message", "")
         normalized_message = self._normalize_message(message)
         if normalized_message:
-            key_attributes['message_pattern'] = normalized_message
+            key_attributes["message_pattern"] = normalized_message
 
         return AlertFingerprint(
             source=source,
@@ -317,23 +317,23 @@ class AlertFatiguePreventionSystem:
 
         # Remove timestamps, IDs, and other variable content
         patterns_to_remove = [
-            r'\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}:\d{2}',  # Timestamps
-            r'\b\d+\.\d+\.\d+\.\d+\b',  # IP addresses
-            r'\b[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\b',  # UUIDs
-            r'\b\d{10,}\b',  # Large numbers (likely IDs)
-            r'\b[A-Za-z0-9]{20,}\b'  # Long alphanumeric strings (likely tokens)
+            r"\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}:\d{2}",  # Timestamps
+            r"\b\d+\.\d+\.\d+\.\d+\b",  # IP addresses
+            r"\b[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\b",  # UUIDs
+            r"\b\d{10,}\b",  # Large numbers (likely IDs)
+            r"\b[A-Za-z0-9]{20,}\b"  # Long alphanumeric strings (likely tokens)
         ]
 
         normalized = message.lower()
         for pattern in patterns_to_remove:
-            normalized = re.sub(pattern, '<REDACTED>', normalized)
+            normalized = re.sub(pattern, "<REDACTED>", normalized)
 
         # Remove extra whitespace
-        normalized = re.sub(r'\s+', ' ', normalized).strip()
+        normalized = re.sub(r"\s+", " ", normalized).strip()
 
         return normalized
 
-    async def process_alert(self, alert_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def process_alert(self, alert_data: dict[str, Any]) -> dict[str, Any]:
         """Process an incoming alert through the fatigue prevention system"""
 
         # Create fingerprint for the alert
@@ -345,7 +345,7 @@ class AlertFatiguePreventionSystem:
         # Add alert to the group
         group.alerts.append(alert_data)
         group.count += 1
-        group.last_seen = datetime.utcnow()
+        group.last_seen = datetime.now(timezone.utc)
 
         # Apply fatigue prevention rules
         actions = await self._apply_fatigue_rules(group, alert_data)
@@ -366,7 +366,7 @@ class AlertFatiguePreventionSystem:
         }
 
     async def _find_or_create_group(self, fingerprint: AlertFingerprint,
-                                  alert_data: Dict[str, Any]) -> AlertGroup:
+                                  alert_data: dict[str, Any]) -> AlertGroup:
         """Find existing group or create new one for the alert"""
 
         # Check if we have an active group with the same fingerprint
@@ -375,7 +375,7 @@ class AlertFatiguePreventionSystem:
 
             # Check if group is still within time window
             time_window = timedelta(minutes=self.grouping_config["time_window_minutes"])
-            if datetime.utcnow() - group.last_seen <= time_window:
+            if datetime.now(timezone.utc) - group.last_seen <= time_window:
                 return group
 
         # Check for similar groups using different strategies
@@ -394,7 +394,7 @@ class AlertFatiguePreventionSystem:
         return group
 
     async def _find_similar_group(self, fingerprint: AlertFingerprint,
-                                alert_data: Dict[str, Any]) -> Optional[AlertGroup]:
+                                alert_data: dict[str, Any]) -> AlertGroup | None:
         """Find similar existing group using various strategies"""
 
         # Strategy 1: Source and alert type matching
@@ -405,7 +405,7 @@ class AlertFatiguePreventionSystem:
 
                 # Check time window
                 time_window = timedelta(minutes=self.grouping_config["time_window_minutes"])
-                if datetime.utcnow() - group.last_seen <= time_window:
+                if datetime.now(timezone.utc) - group.last_seen <= time_window:
 
                     # Calculate similarity score
                     similarity = self._calculate_similarity(group.fingerprint, fingerprint)
@@ -423,26 +423,26 @@ class AlertFatiguePreventionSystem:
 
         # Weight different attributes
         weights = {
-            'source': 0.3,
-            'alert_type': 0.3,
-            'severity': 0.2,
-            'key_attributes': 0.2
+            "source": 0.3,
+            "alert_type": 0.3,
+            "severity": 0.2,
+            "key_attributes": 0.2
         }
 
         # Compare source
         if fp1.source == fp2.source:
-            similarity_score += weights['source']
-        total_weight += weights['source']
+            similarity_score += weights["source"]
+        total_weight += weights["source"]
 
         # Compare alert type
         if fp1.alert_type == fp2.alert_type:
-            similarity_score += weights['alert_type']
-        total_weight += weights['alert_type']
+            similarity_score += weights["alert_type"]
+        total_weight += weights["alert_type"]
 
         # Compare severity
         if fp1.severity == fp2.severity:
-            similarity_score += weights['severity']
-        total_weight += weights['severity']
+            similarity_score += weights["severity"]
+        total_weight += weights["severity"]
 
         # Compare key attributes
         common_keys = set(fp1.key_attributes.keys()) & set(fp2.key_attributes.keys())
@@ -450,13 +450,13 @@ class AlertFatiguePreventionSystem:
             matching_attrs = sum(1 for key in common_keys
                                if fp1.key_attributes[key] == fp2.key_attributes[key])
             attr_similarity = matching_attrs / len(common_keys)
-            similarity_score += weights['key_attributes'] * attr_similarity
-        total_weight += weights['key_attributes']
+            similarity_score += weights["key_attributes"] * attr_similarity
+        total_weight += weights["key_attributes"]
 
         return similarity_score / total_weight if total_weight > 0 else 0.0
 
     async def _apply_fatigue_rules(self, group: AlertGroup,
-                                 alert_data: Dict[str, Any]) -> List[str]:
+                                 alert_data: dict[str, Any]) -> list[str]:
         """Apply fatigue prevention rules to determine actions"""
 
         actions = []
@@ -481,7 +481,7 @@ class AlertFatiguePreventionSystem:
         return list(dict.fromkeys(actions))
 
     async def _evaluate_rule_conditions(self, rule: FatigueRule, group: AlertGroup,
-                                      alert_data: Dict[str, Any]) -> bool:
+                                      alert_data: dict[str, Any]) -> bool:
         """Evaluate if rule conditions are met"""
 
         conditions = rule.conditions
@@ -500,10 +500,10 @@ class AlertFatiguePreventionSystem:
             operator = list(conditions["alerts_per_minute"].keys())[0]
 
             time_window = conditions.get("time_window_minutes", 10)
-            cutoff_time = datetime.utcnow() - timedelta(minutes=time_window)
+            cutoff_time = datetime.now(timezone.utc) - timedelta(minutes=time_window)
 
             recent_alerts = sum(1 for alert in group.alerts
-                              if alert.get('timestamp', datetime.utcnow()) > cutoff_time)
+                              if alert.get("timestamp", datetime.now(timezone.utc)) > cutoff_time)
             alerts_per_minute = recent_alerts / time_window
 
             if not self._compare_values(alerts_per_minute, threshold, operator):
@@ -545,7 +545,7 @@ class AlertFatiguePreventionSystem:
         # Check alert types condition
         if "alert_types" in conditions:
             allowed_types = conditions["alert_types"]
-            alert_type = alert_data.get('alert_type', alert_data.get('title', ''))
+            alert_type = alert_data.get("alert_type", alert_data.get("title", ""))
             if alert_type not in allowed_types:
                 return False
 
@@ -555,21 +555,20 @@ class AlertFatiguePreventionSystem:
         """Compare values using the specified operator"""
         if operator == ">=":
             return value >= threshold
-        elif operator == ">":
+        if operator == ">":
             return value > threshold
-        elif operator == "<=":
+        if operator == "<=":
             return value <= threshold
-        elif operator == "<":
+        if operator == "<":
             return value < threshold
-        elif operator == "==":
+        if operator == "==":
             return value == threshold
-        elif operator == "!=":
+        if operator == "!=":
             return value != threshold
-        else:
-            logger.warning(f"Unknown operator: {operator}")
-            return False
+        logger.warning(f"Unknown operator: {operator}")
+        return False
 
-    async def _update_group_state(self, group: AlertGroup, actions: List[str]):
+    async def _update_group_state(self, group: AlertGroup, actions: list[str]):
         """Update group state based on applied actions"""
 
         if "suppress" in actions:
@@ -584,7 +583,7 @@ class AlertFatiguePreventionSystem:
         # Update metadata
         group.metadata.update({
             "last_actions": actions,
-            "last_updated": datetime.utcnow().isoformat()
+            "last_updated": datetime.now(timezone.utc).isoformat()
         })
 
     async def _persist_group(self, group: AlertGroup):
@@ -614,7 +613,7 @@ class AlertFatiguePreventionSystem:
                 """, (group.group_id, json.dumps(alert)))
 
     async def _log_rule_application(self, rule: FatigueRule, group: AlertGroup,
-                                  actions: List[str]):
+                                  actions: list[str]):
         """Log the application of a fatigue rule"""
 
         with sqlite3.connect(self.db_path) as conn:
@@ -625,10 +624,10 @@ class AlertFatiguePreventionSystem:
                     VALUES (?, ?, ?, ?)
                 """, (group.group_id, rule.rule_id, action, rule.description))
 
-    async def get_group_summary(self, hours: int = 24) -> Dict[str, Any]:
+    async def get_group_summary(self, hours: int = 24) -> dict[str, Any]:
         """Get summary of alert groups in the specified time period"""
 
-        cutoff_time = datetime.utcnow() - timedelta(hours=hours)
+        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=hours)
 
         with sqlite3.connect(self.db_path) as conn:
             # Get group statistics
@@ -663,13 +662,13 @@ class AlertFatiguePreventionSystem:
             "group_statistics": [{"state": s[0], "groups": s[1], "total_alerts": s[2]} for s in stats],
             "top_sources": [{"source": s[0], "groups": s[1], "alerts": s[2]} for s in top_sources],
             "suppression_actions": [{"rule": s[0], "action": s[1], "count": s[2]} for s in suppressions],
-            "generated_at": datetime.utcnow().isoformat()
+            "generated_at": datetime.now(timezone.utc).isoformat()
         }
 
     async def cleanup_old_groups(self, days: int = 7):
         """Clean up old resolved groups"""
 
-        cutoff_time = datetime.utcnow() - timedelta(days=days)
+        cutoff_time = datetime.now(timezone.utc) - timedelta(days=days)
 
         with sqlite3.connect(self.db_path) as conn:
             # Remove old groups and their alerts

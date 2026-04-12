@@ -10,12 +10,13 @@ Designs comprehensive database schema for conversation storage and management:
 - Scalable architecture for 2.59M+ conversations
 """
 
+from datetime import datetime, timezone
+
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # Enterprise imports - disabled, modules not available
 # import sys
@@ -31,7 +32,7 @@ def get_logger(name: str) -> logging.Logger:
     return logging.getLogger(name)
 
 
-def get_config() -> Dict[str, Any]:
+def get_config() -> dict[str, Any]:
     return {}
 
 
@@ -67,9 +68,9 @@ class ConversationSchema:
     tier: ConversationTier
 
     # Conversation content
-    conversations: List[Dict[str, str]]  # List of human/assistant exchanges
-    title: Optional[str] = None
-    summary: Optional[str] = None
+    conversations: list[dict[str, str]]  # List of human/assistant exchanges
+    title: str | None = None
+    summary: str | None = None
 
     # Quality metrics
     overall_quality: float = 0.0
@@ -81,14 +82,14 @@ class ConversationSchema:
 
     # Processing metadata
     processing_status: ProcessingStatus = ProcessingStatus.RAW
-    processed_at: Optional[datetime] = None
-    processed_by: Optional[str] = None
+    processed_at: datetime | None = None
+    processed_by: str | None = None
     processing_version: str = "5.4.3"
 
     # Dataset metadata
-    original_filename: Optional[str] = None
-    file_index: Optional[int] = None
-    batch_id: Optional[str] = None
+    original_filename: str | None = None
+    file_index: int | None = None
+    batch_id: str | None = None
 
     # Content analysis
     turn_count: int = 0
@@ -97,9 +98,9 @@ class ConversationSchema:
     language: str = "en"
 
     # Classification tags
-    tags: List[str] = field(default_factory=list)
-    categories: List[str] = field(default_factory=list)
-    therapeutic_techniques: List[str] = field(default_factory=list)
+    tags: list[str] = field(default_factory=list)
+    categories: list[str] = field(default_factory=list)
+    therapeutic_techniques: list[str] = field(default_factory=list)
 
     # Timestamps
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
@@ -107,10 +108,10 @@ class ConversationSchema:
 
     # Version control
     version: int = 1
-    previous_version_id: Optional[str] = None
+    previous_version_id: str | None = None
 
     # Additional metadata
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 class DatabaseSchemaDesigner:
@@ -367,7 +368,7 @@ class DatabaseSchemaDesigner:
             ],
         }
 
-    def generate_sql_schema(self, database_type: str = "mysql") -> Dict[str, List[str]]:
+    def generate_sql_schema(self, database_type: str = "mysql") -> dict[str, list[str]]:
         """Generate SQL schema for specified database type."""
 
         sql_statements = {"tables": [], "indexes": [], "constraints": []}
@@ -395,7 +396,7 @@ class DatabaseSchemaDesigner:
 
         return sql_statements
 
-    def get_schema_documentation(self) -> Dict[str, Any]:
+    def get_schema_documentation(self) -> dict[str, Any]:
         """Generate comprehensive schema documentation."""
 
         documentation = {
@@ -447,7 +448,7 @@ class DatabaseSchemaDesigner:
 
     def estimate_storage_requirements(
         self, conversation_count: int = 2590000
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Estimate storage requirements for the given number of conversations."""
 
         # Average sizes (in bytes)

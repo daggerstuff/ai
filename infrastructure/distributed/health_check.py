@@ -4,14 +4,16 @@ Health Check and System Status Monitoring for Pixelated Empathy AI
 Comprehensive health checking for all system components with detailed status reporting
 """
 
+from datetime import datetime, timedelta, timezone
+
 import asyncio
 import logging
 import socket
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 import psutil
 
@@ -53,7 +55,7 @@ class HealthCheckResult:
     timestamp: datetime
     response_time_ms: float = 0.0
 
-    details: Dict[str, Any] = None
+    details: dict[str, Any] = None
 
 
 @dataclass
@@ -62,26 +64,26 @@ class SystemHealthReport:
 
     overall_status: HealthStatus
     timestamp: datetime
-    component_checks: List[HealthCheckResult]
-    system_metrics: Dict[str, Any]
-    recommendations: List[str]
+    component_checks: list[HealthCheckResult]
+    system_metrics: dict[str, Any]
+    recommendations: list[str]
 
 
 class HealthCheckManager:
     """Manages health checks for all system components"""
 
     def __init__(self):
-        self.health_checks: Dict[str, Callable] = {}
-        self.component_configs: Dict[str, Dict[str, Any]] = {}
-        self.check_history: List[HealthCheckResult] = []
-        self.last_full_check: Optional[SystemHealthReport] = None
+        self.health_checks: dict[str, Callable] = {}
+        self.component_configs: dict[str, dict[str, Any]] = {}
+        self.check_history: list[HealthCheckResult] = []
+        self.last_full_check: SystemHealthReport | None = None
 
     def register_health_check(
         self,
         component_name: str,
         component_type: ComponentType,
         check_function: Callable,
-        config: Dict[str, Any] = None,
+        config: dict[str, Any] = None,
     ):
         """Register a health check for a component"""
         self.health_checks[component_name] = check_function
@@ -100,7 +102,7 @@ class HealthCheckManager:
                 component_type=ComponentType.EXTERNAL_SERVICE,
                 status=HealthStatus.UNKNOWN,
                 message=f"Component {component_name} not registered",
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(timezone.utc),
             )
 
         try:
@@ -114,17 +116,16 @@ class HealthCheckManager:
             if isinstance(result, HealthCheckResult):
                 result.response_time_ms = response_time
                 return result
-            else:
-                # Convert to HealthCheckResult
-                return HealthCheckResult(
-                    component_name=component_name,
-                    component_type=self.component_configs[component_name]["type"],
-                    status=HealthStatus.HEALTHY,
-                    message="Health check passed",
-                    timestamp=datetime.utcnow(),
-                    response_time_ms=response_time,
-                    details=result,
-                )
+            # Convert to HealthCheckResult
+            return HealthCheckResult(
+                component_name=component_name,
+                component_type=self.component_configs[component_name]["type"],
+                status=HealthStatus.HEALTHY,
+                message="Health check passed",
+                timestamp=datetime.now(timezone.utc),
+                response_time_ms=response_time,
+                details=result,
+            )
 
         except Exception as e:
             response_time = (time.time() - start_time) * 1000
@@ -135,7 +136,7 @@ class HealthCheckManager:
                 component_type=self.component_configs[component_name]["type"],
                 status=HealthStatus.UNHEALTHY,
                 message=str(e),
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(timezone.utc),
                 response_time_ms=response_time,
             )
 
@@ -171,7 +172,7 @@ class HealthCheckManager:
         # Create report
         report = SystemHealthReport(
             overall_status=overall_status,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             component_checks=valid_results,
             system_metrics=system_metrics,
             recommendations=recommendations,
@@ -181,7 +182,7 @@ class HealthCheckManager:
         self.check_history.extend(valid_results)
 
         # Keep only recent history (last 24 hours)
-        cutoff_time = datetime.utcnow() - timedelta(hours=24)
+        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=24)
         self.check_history = [
             check for check in self.check_history if check.timestamp > cutoff_time
         ]
@@ -190,7 +191,7 @@ class HealthCheckManager:
         return report
 
     def _calculate_overall_health(
-        self, results: List[HealthCheckResult]
+        self, results: list[HealthCheckResult]
     ) -> HealthStatus:
         """Calculate overall system health from component checks"""
         if not results:
@@ -216,14 +217,13 @@ class HealthCheckManager:
 
         if critical_unhealthy or unhealthy_count > len(results) * 0.3:
             return HealthStatus.UNHEALTHY
-        elif degraded_count > 0 or unhealthy_count > 0:
+        if degraded_count > 0 or unhealthy_count > 0:
             return HealthStatus.DEGRADED
-        elif healthy_count == len(results):
+        if healthy_count == len(results):
             return HealthStatus.HEALTHY
-        else:
-            return HealthStatus.UNKNOWN
+        return HealthStatus.UNKNOWN
 
-    def _get_system_metrics(self) -> Dict[str, Any]:
+    def _get_system_metrics(self) -> dict[str, Any]:
         """Get system-level metrics"""
         try:
             # CPU metrics
@@ -262,8 +262,8 @@ class HealthCheckManager:
             return {"error": str(e)}
 
     def _generate_recommendations(
-        self, results: List[HealthCheckResult], system_metrics: Dict[str, Any]
-    ) -> List[str]:
+        self, results: list[HealthCheckResult], system_metrics: dict[str, Any]
+    ) -> list[str]:
         """Generate recommendations based on health check results"""
         recommendations = []
 
@@ -317,9 +317,9 @@ class HealthCheckManager:
 
     def get_health_history(
         self, component_name: str = None, hours: int = 24
-    ) -> List[HealthCheckResult]:
+    ) -> list[HealthCheckResult]:
         """Get health check history"""
-        cutoff_time = datetime.utcnow() - timedelta(hours=hours)
+        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=hours)
 
         if component_name:
             return [
@@ -328,10 +328,9 @@ class HealthCheckManager:
                 if check.component_name == component_name
                 and check.timestamp > cutoff_time
             ]
-        else:
-            return [
-                check for check in self.check_history if check.timestamp > cutoff_time
-            ]
+        return [
+            check for check in self.check_history if check.timestamp > cutoff_time
+        ]
 
 
 # Default health check implementations

@@ -21,14 +21,15 @@ Version: 1.0.0
 Date: August 2025
 """
 
+from datetime import datetime, timedelta, timezone
+
 import asyncio
 import json
 import logging
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # Configure logging
 logging.basicConfig(
@@ -75,10 +76,10 @@ class CertificationCheck:
     name: str
     description: str
     category: str
-    requirements: List[str]
+    requirements: list[str]
     validation_method: str
     status: CertificationStatus
-    result_data: Dict[str, Any]
+    result_data: dict[str, Any]
     timestamp: datetime
     validator: str
     notes: str = ""
@@ -93,10 +94,10 @@ class StakeholderSignOff:
     role: StakeholderRole
     email: str
     sign_off_status: CertificationStatus
-    sign_off_date: Optional[datetime]
+    sign_off_date: datetime | None
     comments: str = ""
 
-    conditions: List[str] = None
+    conditions: list[str] = None
 
 
 @dataclass
@@ -111,13 +112,13 @@ class ProductionCertificationReport:
     passed_checks: int
     failed_checks: int
     pending_checks: int
-    certification_categories: Dict[str, Dict[str, Any]]
-    stakeholder_signoffs: List[StakeholderSignOff]
+    certification_categories: dict[str, dict[str, Any]]
+    stakeholder_signoffs: list[StakeholderSignOff]
     go_live_readiness: bool
-    production_launch_date: Optional[datetime]
-    post_launch_monitoring_plan: Dict[str, Any]
-    recommendations: List[str]
-    risk_assessment: Dict[str, Any]
+    production_launch_date: datetime | None
+    post_launch_monitoring_plan: dict[str, Any]
+    recommendations: list[str]
+    risk_assessment: dict[str, Any]
 
 
 class ProductionCertifier:
@@ -129,8 +130,8 @@ class ProductionCertifier:
         )
         self.cert_path.mkdir(parents=True, exist_ok=True)
 
-        self.certification_checks: List[CertificationCheck] = []
-        self.stakeholder_signoffs: List[StakeholderSignOff] = []
+        self.certification_checks: list[CertificationCheck] = []
+        self.stakeholder_signoffs: list[StakeholderSignOff] = []
 
     async def run_production_certification(self) -> ProductionCertificationReport:
         """Run complete production certification process"""
@@ -670,7 +671,7 @@ class ProductionCertifier:
         }
 
         return ProductionCertificationReport(
-            report_id=f"prod_cert_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            report_id=f"prod_cert_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
             timestamp=datetime.now(timezone.utc),
             overall_certification_status=overall_status,
             certification_score=certification_score,

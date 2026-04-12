@@ -39,11 +39,11 @@ async def example_simple_processing():
         )
 
         if result.success:
-            print(f"✅ Processing successful!")
+            print("✅ Processing successful!")
             print(f"Generated {result.total_conversations} conversations")
             print(f"Processing time: {result.processing_time:.2f} seconds")
         else:
-            print(f"❌ Processing failed")
+            print("❌ Processing failed")
             for error in result.errors[:3]:
                 print(f"  Error: {error}")
 
@@ -105,7 +105,7 @@ async def example_advanced_configuration():
         # Save report to file
         report_path = Path(config.conversation_output_dir) / "processing_report.txt"
         report_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(report_path, 'w', encoding='utf-8') as f:
+        with open(report_path, "w", encoding="utf-8") as f:
             f.write(report)
 
         print(f"\nDetailed report saved to: {report_path}")
@@ -158,8 +158,8 @@ async def example_batch_processing():
     for batch in batches:
         print(f"\nProcessing batch: {batch['name']}")
 
-        pipeline = VoiceTrainingPipeline(batch['config'])
-        result = await pipeline.process_youtube_playlists(batch['urls'])
+        pipeline = VoiceTrainingPipeline(batch["config"])
+        result = await pipeline.process_youtube_playlists(batch["urls"])
 
         if result.success:
             print(f"  ✅ {result.total_conversations} conversations generated")
@@ -186,7 +186,7 @@ def example_cli_usage():
         "  --whisper-model large --quality-threshold 0.8 --min-conversation-length 5",
         "",
         "# Quick processing for testing",
-        "python scripts/run_voice_pipeline.py --url \"...\" --whisper-model tiny \\",
+        'python scripts/run_voice_pipeline.py --url "..." --whisper-model tiny \\',
         "  --quality-threshold 0.3 --no-intermediate-files",
         "",
         "# Dry run to see what would be processed",

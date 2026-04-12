@@ -4,6 +4,8 @@ Progress State Persistence System for Pixelated Empathy AI
 Maintains processing state across system restarts and failures
 """
 
+from datetime import datetime, timedelta, timezone
+
 import asyncio
 import json
 import logging
@@ -13,10 +15,9 @@ import threading
 import time
 import uuid
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from checkpoint_system import CheckpointManager
 
@@ -49,14 +50,14 @@ class PersistentState:
 
     state_id: str
     scope: StateScope
-    process_id: Optional[str]
-    task_id: Optional[str]
-    state_data: Dict[str, Any]
-    metadata: Dict[str, Any]
+    process_id: str | None
+    task_id: str | None
+    state_data: dict[str, Any]
+    metadata: dict[str, Any]
     created_at: datetime
     updated_at: datetime
     version: int = 1
-    checksum: Optional[str] = None
+    checksum: str | None = None
 
     def __post_init__(self):
         if isinstance(self.created_at, str):
@@ -104,8 +105,8 @@ class StatePersistenceManager:
         self.backup_path.mkdir(exist_ok=True)
 
         # State management
-        self.active_states: Dict[str, PersistentState] = {}
-        self.state_locks: Dict[str, threading.Lock] = {}
+        self.active_states: dict[str, PersistentState] = {}
+        self.state_locks: dict[str, threading.Lock] = {}
         self.persistence_active = False
         self.persistence_thread = None
 
@@ -193,7 +194,7 @@ class StatePersistenceManager:
         process_id: str,
         task_id: str = None,
         scope: StateScope = StateScope.PROCESS,
-        initial_data: Dict[str, Any] = None,
+        initial_data: dict[str, Any] = None,
     ) -> str:
         """Register a new persistent state"""
 
@@ -208,11 +209,11 @@ class StatePersistenceManager:
             task_id=task_id,
             state_data=initial_data or {},
             metadata={
-                "registered_at": datetime.utcnow().isoformat(),
+                "registered_at": datetime.now(timezone.utc).isoformat(),
                 "persistence_level": self.config.persistence_level.value,
             },
-            created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
         )
 
         self.active_states[state_id] = persistent_state
@@ -227,8 +228,8 @@ class StatePersistenceManager:
     def update_persistent_state(
         self,
         state_id: str,
-        updates: Dict[str, Any],
-        metadata_updates: Dict[str, Any] = None,
+        updates: dict[str, Any],
+        metadata_updates: dict[str, Any] = None,
     ):
         """Update persistent state data"""
 
@@ -248,17 +249,17 @@ class StatePersistenceManager:
 
             # Update version and timestamp
             state.version += 1
-            state.updated_at = datetime.utcnow()
+            state.updated_at = datetime.now(timezone.utc)
 
             # Mark for persistence
             state.metadata["needs_persistence"] = True
 
-    def get_persistent_state(self, state_id: str) -> Optional[PersistentState]:
+    def get_persistent_state(self, state_id: str) -> PersistentState | None:
         """Get current persistent state"""
 
         return self.active_states.get(state_id)
 
-    def restore_system_state(self) -> Dict[str, Any]:
+    def restore_system_state(self) -> dict[str, Any]:
         """Restore system state from persistence on startup"""
 
         restoration_results = {
@@ -343,7 +344,7 @@ class StatePersistenceManager:
             # Collect all system state
             system_state = {
                 "snapshot_id": snapshot_id,
-                "created_at": datetime.utcnow().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "active_states": {},
                 "checkpoint_stats": self.checkpoint_manager.get_system_stats(),
                 "persistence_metrics": self.persistence_metrics.copy(),
@@ -371,9 +372,8 @@ class StatePersistenceManager:
             if self.config.compression_enabled:
                 import gzip
 
-                with open(snapshot_path, "rb") as f_in:
-                    with gzip.open(f"{snapshot_path}.gz", "wb") as f_out:
-                        f_out.writelines(f_in)
+                with open(snapshot_path, "rb") as f_in, gzip.open(f"{snapshot_path}.gz", "wb") as f_out:
+                    f_out.writelines(f_in)
                 snapshot_path.unlink()  # Remove uncompressed version
                 snapshot_path = Path(f"{snapshot_path}.gz")
 
@@ -456,7 +456,7 @@ class StatePersistenceManager:
                 if persisted_count > 0:
                     persistence_time = time.time() - start_time
                     self.persistence_metrics["states_persisted"] += persisted_count
-                    self.persistence_metrics["last_persistence"] = datetime.utcnow()
+                    self.persistence_metrics["last_persistence"] = datetime.now(timezone.utc)
 
                     # Update average persistence time
                     if self.persistence_metrics["avg_persistence_time"] == 0:
@@ -619,7 +619,7 @@ class StatePersistenceManager:
         except Exception as e:
             logger.error(f"Failed to save state file for {state.state_id}: {e}")
 
-    def _load_state_file(self, file_path: Path) -> Optional[Dict[str, Any]]:
+    def _load_state_file(self, file_path: Path) -> dict[str, Any] | None:
         """Load state data from file"""
 
         try:
@@ -633,7 +633,7 @@ class StatePersistenceManager:
     def _cleanup_old_states(self):
         """Clean up old persistent states"""
 
-        cutoff_time = datetime.utcnow() - timedelta(
+        cutoff_time = datetime.now(timezone.utc) - timedelta(
             hours=self.config.state_retention_hours
         )
 
@@ -691,7 +691,7 @@ class StatePersistenceManager:
                     last_backup_str = f.read().strip()
                 last_backup = datetime.fromisoformat(last_backup_str)
 
-                time_since_backup = datetime.utcnow() - last_backup
+                time_since_backup = datetime.now(timezone.utc) - last_backup
                 should_backup = time_since_backup.total_seconds() > (
                     self.config.backup_interval_hours * 3600
                 )
@@ -710,14 +710,14 @@ class StatePersistenceManager:
 
                 # Update last backup time
                 with open(last_backup_file, "w") as f:
-                    f.write(datetime.utcnow().isoformat())
+                    f.write(datetime.now(timezone.utc).isoformat())
 
                 logger.info(f"Created backup snapshot {snapshot_id}")
 
             except Exception as e:
                 logger.error(f"Failed to create backup: {e}")
 
-    def get_persistence_status(self) -> Dict[str, Any]:
+    def get_persistence_status(self) -> dict[str, Any]:
         """Get comprehensive persistence status"""
 
         return {
@@ -776,7 +776,7 @@ async def example_state_persistence():
                     "current_batch": f"batch_{i}",
                 },
                 metadata_updates={
-                    "last_update": datetime.utcnow().isoformat(),
+                    "last_update": datetime.now(timezone.utc).isoformat(),
                     "update_count": i + 1,
                 },
             )

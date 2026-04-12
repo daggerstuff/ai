@@ -7,7 +7,6 @@ with special handling for crisis content.
 import logging
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Set
 
 from .reflection_memory import CrisisSeverity, Memory, MemoryCategory
 
@@ -47,7 +46,7 @@ class ConsolidationRules:
     consolidation of general conversation memories.
     """
 
-    def __init__(self, config: Optional[ConsolidationConfig] = None):
+    def __init__(self, config: ConsolidationConfig | None = None):
         """
         Initialize consolidation rules.
 
@@ -57,14 +56,14 @@ class ConsolidationRules:
         self.config = config or ConsolidationConfig()
 
         # Crisis categories - NEVER consolidate
-        self.crisis_categories: Set[MemoryCategory] = {
+        self.crisis_categories: set[MemoryCategory] = {
             MemoryCategory.CRISIS_CONTEXT,
             MemoryCategory.EMOTIONAL_STATE,
             MemoryCategory.THERAPEUTIC_INSIGHT,
         }
 
         # General categories - CAN consolidate
-        self.general_categories: Set[MemoryCategory] = {
+        self.general_categories: set[MemoryCategory] = {
             MemoryCategory.GENERAL,
             MemoryCategory.SESSION_SUMMARY,
             MemoryCategory.PREFERENCE,
@@ -81,7 +80,7 @@ class ConsolidationRules:
             RuleResult with consolidation rule
         """
         # Rule 1: Crisis severity = PRESERVE
-        if hasattr(memory.metadata, 'crisis_severity'):
+        if hasattr(memory.metadata, "crisis_severity"):
             if memory.metadata.crisis_severity != CrisisSeverity.NONE:
                 return RuleResult(
                     rule=ConsolidationRule.PRESERVE,
@@ -130,8 +129,8 @@ class ConsolidationRules:
 
     def get_consolidation_candidates(
         self,
-        memories: List[Memory],
-    ) -> List[Memory]:
+        memories: list[Memory],
+    ) -> list[Memory]:
         """
         Get memories that can be consolidated.
 
@@ -150,8 +149,8 @@ class ConsolidationRules:
 
     def get_preservation_list(
         self,
-        memories: List[Memory],
-    ) -> List[Memory]:
+        memories: list[Memory],
+    ) -> list[Memory]:
         """
         Get memories that must be preserved.
 
@@ -170,8 +169,8 @@ class ConsolidationRules:
 
     def group_for_consolidation(
         self,
-        memories: List[Memory],
-    ) -> Dict[str, List[Memory]]:
+        memories: list[Memory],
+    ) -> dict[str, list[Memory]]:
         """
         Group memories by consolidation strategy.
 
@@ -203,7 +202,7 @@ class ConsolidationRules:
 
     def should_trigger_consolidation(
         self,
-        memories: List[Memory],
+        memories: list[Memory],
     ) -> bool:
         """
         Check if consolidation should be triggered.

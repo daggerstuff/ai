@@ -14,7 +14,6 @@ from __future__ import annotations
 import importlib
 import logging
 import os
-from typing import List, Optional
 
 __all__ = ["HuggingFaceClient"]
 
@@ -30,7 +29,7 @@ class HuggingFaceClient:
     ``HUGGINGFACE_HUB_TOKEN`` from the environment.
     """
 
-    def __init__(self, token: Optional[str] = None) -> None:
+    def __init__(self, token: str | None = None) -> None:
         self.token = token if token is not None else os.environ.get(
             "HUGGINGFACE_HUB_TOKEN"
         )
@@ -38,9 +37,9 @@ class HuggingFaceClient:
     def download_file(
         self,
         repo_id: str,
-        filename: Optional[str] = None,
-        repo_type: Optional[str] = None,
-        cache_dir: Optional[str] = None,
+        filename: str | None = None,
+        repo_type: str | None = None,
+        cache_dir: str | None = None,
         **kwargs,
     ) -> str:
         """Download a single file from a repo using hf_hub_download.
@@ -66,9 +65,9 @@ class HuggingFaceClient:
     def snapshot_download(
         self,
         repo_id: str,
-        revision: Optional[str] = None,
-        repo_type: Optional[str] = None,
-        cache_dir: Optional[str] = None,
+        revision: str | None = None,
+        repo_type: str | None = None,
+        cache_dir: str | None = None,
         **kwargs,
     ) -> str:
         """Download a repository snapshot (entire repo or revision).
@@ -91,8 +90,8 @@ class HuggingFaceClient:
         )
 
     def list_files(
-        self, repo_id: str, revision: Optional[str] = None, repo_type: Optional[str] = None
-    ) -> List[str]:
+        self, repo_id: str, revision: str | None = None, repo_type: str | None = None
+    ) -> list[str]:
         """Return a list of files in the repository using HfApi.list_repo_files.
 
         The HF API object is created via lazy import of

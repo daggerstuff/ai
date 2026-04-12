@@ -17,9 +17,9 @@ from .nemotron_rag import (
 )
 
 __all__ = [
-    "NemotronRAGConfig",
-    "TherapeuticRAGPipeline",
     "DocumentMetadata",
+    "NemotronRAGConfig",
     "RAGResponse",
+    "TherapeuticRAGPipeline",
     "create_rag_pipeline",
 ]

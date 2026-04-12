@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import uuid
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from .hindsight_local_adapter import (
     hindsight_document_from_storage,
@@ -25,7 +25,7 @@ class LocalHindsightDocumentService:
     def __init__(self, repository: LocalHindsightRepository) -> None:
         self.repository = repository
 
-    def retain_items(self, bank_id: str, items: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def retain_items(self, bank_id: str, items: list[dict[str, Any]]) -> dict[str, Any]:
         results = []
         chunk_size = 250
         for start in range(0, len(items), chunk_size):
@@ -48,10 +48,10 @@ class LocalHindsightDocumentService:
         self,
         *,
         bank_id: str,
-        items: List[Dict[str, Any]],
+        items: list[dict[str, Any]],
         user_id: str,
-        base_metadata: Dict[str, Any],
-    ) -> List[Dict[str, Any]]:
+        base_metadata: dict[str, Any],
+    ) -> list[dict[str, Any]]:
         return build_scoped_retain_items(
             items=items,
             user_id=user_id,
@@ -69,9 +69,9 @@ class LocalHindsightDocumentService:
         *,
         query: str,
         limit: int = 10,
-        tags: Optional[List[str]] = None,
+        tags: list[str] | None = None,
         tags_match: str = "any",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         documents = self.repository.recall_documents(
             bank_id,
             query=query,
@@ -88,9 +88,9 @@ class LocalHindsightDocumentService:
         user_id: str,
         query: str,
         limit: int = 10,
-        tags: Optional[List[str]] = None,
+        tags: list[str] | None = None,
         tags_match: str = "any",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         documents = self.repository.recall_documents(
             bank_id,
             query=query,
@@ -108,7 +108,7 @@ class LocalHindsightDocumentService:
         user_id: str,
         limit: int = 100,
         offset: int = 0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         return {
             "items": [
                 hindsight_document_summary_from_storage(record)
@@ -127,7 +127,7 @@ class LocalHindsightDocumentService:
         document_id: str,
         *,
         user_id: str,
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         record = self.repository.get_document(bank_id, document_id, user_id=user_id)
         if not record:
             return None
@@ -169,8 +169,8 @@ class LocalHindsightDocumentService:
         *,
         user_id: str,
         content: str,
-        metadata: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        metadata: dict[str, Any],
+    ) -> dict[str, Any]:
         document_id = f"hindsight-{user_id}-{uuid.uuid4().hex[:12]}"
         category = metadata.get("category")
         return {

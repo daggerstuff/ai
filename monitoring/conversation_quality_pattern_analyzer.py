@@ -11,13 +11,14 @@ Analyzes patterns in conversation quality across datasets, identifying:
 - Quality degradation/improvement patterns
 """
 
+from datetime import datetime, timezone
+
 import json
 import re
 import sqlite3
 import warnings
 from collections import Counter, defaultdict
-from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -40,7 +41,7 @@ class ConversationQualityPatternAnalyzer:
         """Connect to the conversations database"""
         return sqlite3.connect(self.db_path)
 
-    def analyze_quality_patterns(self) -> Dict[str, Any]:
+    def analyze_quality_patterns(self) -> dict[str, Any]:
         """Main analysis function for conversation quality patterns"""
         print("🔍 Starting Conversation Quality Pattern Analysis...")
 
@@ -67,7 +68,7 @@ class ConversationQualityPatternAnalyzer:
         self._create_quality_visualizations(quality_results)
 
         return {
-            "analysis_timestamp": datetime.now().isoformat(),
+            "analysis_timestamp": datetime.now(timezone.utc).isoformat(),
             "total_conversations": len(conversations),
             "quality_analysis": quality_results,
             "insights": insights,
@@ -136,12 +137,11 @@ class ConversationQualityPatternAnalyzer:
                     else:
                         text_parts.append(str(turn))
                 return "\n".join(text_parts)
-            else:
-                return str(conversations)
+            return str(conversations)
         except:
             return json_str  # Return original if parsing fails
 
-    def _analyze_response_quality(self, conversations: pd.DataFrame) -> Dict[str, Any]:
+    def _analyze_response_quality(self, conversations: pd.DataFrame) -> dict[str, Any]:
         """Analyze response quality patterns"""
         print("📝 Analyzing response quality patterns...")
 
@@ -249,7 +249,7 @@ class ConversationQualityPatternAnalyzer:
 
     def _analyze_engagement_quality(
         self, conversations: pd.DataFrame
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Analyze engagement quality patterns"""
         print("🎯 Analyzing engagement quality patterns...")
 
@@ -334,7 +334,7 @@ class ConversationQualityPatternAnalyzer:
             },
         }
 
-    def _analyze_conversation_flow(self, conversations: pd.DataFrame) -> Dict[str, Any]:
+    def _analyze_conversation_flow(self, conversations: pd.DataFrame) -> dict[str, Any]:
         """Analyze conversation flow quality patterns"""
         print("🌊 Analyzing conversation flow patterns...")
 
@@ -403,7 +403,7 @@ class ConversationQualityPatternAnalyzer:
             },
         }
 
-    def _analyze_content_quality(self, conversations: pd.DataFrame) -> Dict[str, Any]:
+    def _analyze_content_quality(self, conversations: pd.DataFrame) -> dict[str, Any]:
         """Analyze content quality patterns"""
         print("📚 Analyzing content quality patterns...")
 
@@ -484,7 +484,7 @@ class ConversationQualityPatternAnalyzer:
             },
         }
 
-    def _analyze_coherence_quality(self, conversations: pd.DataFrame) -> Dict[str, Any]:
+    def _analyze_coherence_quality(self, conversations: pd.DataFrame) -> dict[str, Any]:
         """Analyze coherence quality patterns"""
         print("🧩 Analyzing coherence quality patterns...")
 
@@ -557,7 +557,7 @@ class ConversationQualityPatternAnalyzer:
             },
         }
 
-    def _identify_quality_patterns(self, conversations: pd.DataFrame) -> Dict[str, Any]:
+    def _identify_quality_patterns(self, conversations: pd.DataFrame) -> dict[str, Any]:
         """Identify recurring quality patterns across conversations"""
         print("🔍 Identifying quality patterns...")
 
@@ -600,7 +600,7 @@ class ConversationQualityPatternAnalyzer:
 
         return patterns
 
-    def _analyze_quality_trends(self, conversations: pd.DataFrame) -> Dict[str, Any]:
+    def _analyze_quality_trends(self, conversations: pd.DataFrame) -> dict[str, Any]:
         """Analyze quality trends over time and across datasets"""
         print("📈 Analyzing quality trends...")
 
@@ -638,7 +638,7 @@ class ConversationQualityPatternAnalyzer:
 
     def _analyze_quality_correlations(
         self, conversations: pd.DataFrame
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Analyze correlations between different quality metrics"""
         print("🔗 Analyzing quality correlations...")
 
@@ -672,7 +672,7 @@ class ConversationQualityPatternAnalyzer:
             "quality_insights": self._interpret_correlations(strong_correlations),
         }
 
-    def _generate_quality_insights(self, quality_results: Dict[str, Any]) -> List[str]:
+    def _generate_quality_insights(self, quality_results: dict[str, Any]) -> list[str]:
         """Generate actionable insights from quality analysis"""
         insights = []
 
@@ -722,8 +722,8 @@ class ConversationQualityPatternAnalyzer:
         return insights
 
     def _generate_quality_recommendations(
-        self, quality_results: Dict[str, Any]
-    ) -> List[str]:
+        self, quality_results: dict[str, Any]
+    ) -> list[str]:
         """Generate specific recommendations for quality improvement"""
         recommendations = []
 
@@ -770,7 +770,7 @@ class ConversationQualityPatternAnalyzer:
 
         return recommendations
 
-    def _create_quality_visualizations(self, quality_results: Dict[str, Any]):
+    def _create_quality_visualizations(self, quality_results: dict[str, Any]):
         """Create visualizations for quality analysis"""
         print("📊 Creating quality visualizations...")
 
@@ -917,7 +917,7 @@ class ConversationQualityPatternAnalyzer:
         plt.tight_layout()
 
         # Save the plot
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         plt.savefig(
             f"/home/vivi/pixelated/ai/monitoring/quality_pattern_analysis_{timestamp}.png",
             dpi=300,
@@ -981,7 +981,7 @@ class ConversationQualityPatternAnalyzer:
         repetitive_count = sum(1 for count in phrase_counts.values() if count > 1)
         return repetitive_count
 
-    def _detect_topic_shifts(self, lines: List[str]) -> int:
+    def _detect_topic_shifts(self, lines: list[str]) -> int:
         """Detect abrupt topic shifts in conversation"""
         if len(lines) < 2:
             return 0
@@ -1003,7 +1003,7 @@ class ConversationQualityPatternAnalyzer:
 
         return topic_shifts
 
-    def _calculate_response_relevance(self, lines: List[str]) -> float:
+    def _calculate_response_relevance(self, lines: list[str]) -> float:
         """Calculate response relevance score"""
         if len(lines) < 2:
             return 50  # Default score for single-line conversations
@@ -1049,7 +1049,7 @@ class ConversationQualityPatternAnalyzer:
         )  # Penalize mixed pronouns
         return max(0, consistency_score)
 
-    def _calculate_sentence_variety(self, sentences: List[str]) -> float:
+    def _calculate_sentence_variety(self, sentences: list[str]) -> float:
         """Calculate sentence structure variety"""
         if not sentences:
             return 0
@@ -1095,7 +1095,7 @@ class ConversationQualityPatternAnalyzer:
 
     def _extract_quality_indicators(
         self, conversations: pd.DataFrame
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Extract quality indicators for a dataset"""
         return {
             "avg_text_length": conversations["text_length"].mean(),
@@ -1107,7 +1107,7 @@ class ConversationQualityPatternAnalyzer:
 
     def _extract_tier_characteristics(
         self, conversations: pd.DataFrame
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Extract characteristics for a specific tier"""
         return {
             "avg_text_length": conversations["text_length"].mean(),
@@ -1118,7 +1118,7 @@ class ConversationQualityPatternAnalyzer:
 
     def _analyze_size_quality_correlation(
         self, conversations: pd.DataFrame
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Analyze correlation between dataset size and quality"""
         dataset_stats = (
             conversations.groupby("dataset")
@@ -1131,7 +1131,7 @@ class ConversationQualityPatternAnalyzer:
 
         return dataset_stats.to_dict("index")
 
-    def _interpret_correlations(self, correlations: List[Dict]) -> List[str]:
+    def _interpret_correlations(self, correlations: list[dict]) -> list[str]:
         """Interpret correlation findings"""
         interpretations = []
 
@@ -1160,7 +1160,7 @@ def main():
         results = analyzer.analyze_quality_patterns()
 
         # Save results
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         output_file = f"/home/vivi/pixelated/ai/monitoring/quality_pattern_analysis_{timestamp}.json"
 
         with open(output_file, "w") as f:
@@ -1183,7 +1183,7 @@ def main():
         return results
 
     except Exception as e:
-        print(f"❌ Error during analysis: {str(e)}")
+        print(f"❌ Error during analysis: {e!s}")
         import traceback
 
         traceback.print_exc()

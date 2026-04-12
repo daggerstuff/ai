@@ -6,9 +6,7 @@ Target: Close 33.8% accuracy gap and reduce false negative rate from 73.33% to <
 
 import asyncio
 import logging
-import re
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -18,8 +16,8 @@ class CrisisDetectionResult:
     is_crisis: bool
     confidence_score: float
     crisis_level: int
-    detected_patterns: List[str]
-    risk_factors: List[str]
+    detected_patterns: list[str]
+    risk_factors: list[str]
     reasoning: str
 
 class EnhancedCrisisDetectorV2Fixed:
@@ -28,7 +26,7 @@ class EnhancedCrisisDetectorV2Fixed:
     def __init__(self):
         self.crisis_patterns = self._initialize_patterns()
 
-    def _initialize_patterns(self) -> Dict[str, Dict]:
+    def _initialize_patterns(self) -> dict[str, dict]:
         """Initialize crisis detection patterns with fixed regex"""
 
         return {

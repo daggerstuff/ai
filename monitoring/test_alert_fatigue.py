@@ -4,13 +4,14 @@ Comprehensive Testing Suite for Alert Fatigue Prevention System
 Tests various scenarios including duplicate detection, intelligent grouping, and rule evaluation
 """
 
+from datetime import datetime, timedelta, timezone
+
 import asyncio
 import logging
 import os
 import random
 import tempfile
 import time
-from datetime import datetime, timedelta
 
 from alert_fatigue_prevention import (
     AlertFatiguePreventionSystem,
@@ -88,7 +89,7 @@ class AlertFatigueTestSuite:
         results = []
         for i in range(5):
             alert = base_alert.copy()
-            alert["timestamp"] = (datetime.utcnow() + timedelta(minutes=i)).isoformat()
+            alert["timestamp"] = (datetime.now(timezone.utc) + timedelta(minutes=i)).isoformat()
             result = await self.afp_system.process_alert(alert)
             results.append(result)
 
@@ -179,13 +180,13 @@ class AlertFatigueTestSuite:
         close_alerts = []
         for i in range(3):
             alert = base_alert.copy()
-            alert["timestamp"] = (datetime.utcnow() + timedelta(minutes=i)).isoformat()
+            alert["timestamp"] = (datetime.now(timezone.utc) + timedelta(minutes=i)).isoformat()
             close_alerts.append(alert)
 
         # Alert outside time window
         distant_alert = base_alert.copy()
         distant_alert["timestamp"] = (
-            datetime.utcnow() + timedelta(hours=2)
+            datetime.now(timezone.utc) + timedelta(hours=2)
         ).isoformat()
 
         # Process alerts

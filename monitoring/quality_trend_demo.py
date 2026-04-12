@@ -4,13 +4,14 @@ Quality Trend Analysis Demo
 Creates synthetic date distribution to demonstrate trend analysis capabilities
 """
 
+from datetime import datetime, timedelta, timezone
+
 import random
 import sqlite3
 import warnings
 from dataclasses import dataclass
-from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -26,8 +27,8 @@ class QualityTrend:
 
     metric: str
     period: str
-    values: List[float]
-    timestamps: List[datetime]
+    values: list[float]
+    timestamps: list[datetime]
     trend_direction: str
     trend_strength: float
     statistical_significance: float
@@ -54,7 +55,7 @@ class QualityTrendDemo:
         self.min_data_points = 5
         self.significance_threshold = 0.05
 
-    def create_synthetic_trends(self, days_back: int = 30) -> Dict[str, List[Dict]]:
+    def create_synthetic_trends(self, days_back: int = 30) -> dict[str, list[dict]]:
         """Create synthetic trend data for demonstration"""
         print(f"🎭 Creating synthetic trend data for {days_back} days...")
 
@@ -76,7 +77,7 @@ class QualityTrendDemo:
 
             # Create synthetic daily data
             synthetic_data = {}
-            base_date = datetime.now() - timedelta(days=days_back)
+            base_date = datetime.now(timezone.utc) - timedelta(days=days_back)
 
             for day in range(days_back):
                 current_date = base_date + timedelta(days=day)
@@ -120,8 +121,8 @@ class QualityTrendDemo:
             return {}
 
     def analyze_synthetic_trends(
-        self, synthetic_data: Dict[str, List[Dict]], period: str = "daily"
-    ) -> Dict[str, QualityTrend]:
+        self, synthetic_data: dict[str, list[dict]], period: str = "daily"
+    ) -> dict[str, QualityTrend]:
         """Analyze trends from synthetic data"""
         print(f"🔍 Analyzing synthetic trends for {period} period...")
 
@@ -143,8 +144,8 @@ class QualityTrendDemo:
             return {}
 
     def _analyze_synthetic_metric_trend(
-        self, synthetic_data: Dict[str, List[Dict]], metric: str, period: str
-    ) -> Optional[QualityTrend]:
+        self, synthetic_data: dict[str, list[dict]], metric: str, period: str
+    ) -> QualityTrend | None:
         """Analyze trend for specific metric from synthetic data"""
         try:
             period_values = []
@@ -179,8 +180,8 @@ class QualityTrendDemo:
             return None
 
     def _calculate_metric_value(
-        self, records: List[Dict], metric: str
-    ) -> Optional[float]:
+        self, records: list[dict], metric: str
+    ) -> float | None:
         """Calculate metric value for a period"""
         try:
             if not records:
@@ -191,12 +192,12 @@ class QualityTrendDemo:
                 turn_counts = [r["turn_count"] for r in records if r["turn_count"]]
                 return np.mean(turn_counts) if turn_counts else None
 
-            elif metric == "content_richness":
+            if metric == "content_richness":
                 # Average word count
                 word_counts = [r["word_count"] for r in records if r["word_count"]]
                 return np.mean(word_counts) if word_counts else None
 
-            elif metric == "processing_success":
+            if metric == "processing_success":
                 # Percentage of successful processing
                 total = len(records)
                 successful = len(
@@ -204,7 +205,7 @@ class QualityTrendDemo:
                 )
                 return (successful / total) * 100 if total > 0 else None
 
-            elif metric == "tier_distribution":
+            if metric == "tier_distribution":
                 # Priority tier percentage (higher is better)
                 total = len(records)
                 priority = len(
@@ -212,7 +213,7 @@ class QualityTrendDemo:
                 )
                 return (priority / total) * 100 if total > 0 else None
 
-            elif metric == "language_consistency":
+            if metric == "language_consistency":
                 # Percentage of English conversations
                 total = len(records)
                 english = len([r for r in records if r["language"] == "en"])
@@ -225,8 +226,8 @@ class QualityTrendDemo:
             return None
 
     def _calculate_trend_statistics(
-        self, values: List[float]
-    ) -> Tuple[str, float, float]:
+        self, values: list[float]
+    ) -> tuple[str, float, float]:
         """Calculate trend statistics using linear regression"""
         try:
             x = np.arange(len(values))
@@ -253,8 +254,8 @@ class QualityTrendDemo:
             return "unknown", 0.0, 1.0
 
     def create_trend_visualizations(
-        self, trends: Dict[str, QualityTrend]
-    ) -> Dict[str, str]:
+        self, trends: dict[str, QualityTrend]
+    ) -> dict[str, str]:
         """Create trend visualizations"""
         print(f"📈 Creating trend visualizations for {len(trends)} metrics...")
 
@@ -348,7 +349,7 @@ class QualityTrendDemo:
             print(f"❌ Error creating visualizations: {e}")
             return {}
 
-    def generate_demo_report(self, trends: Dict[str, QualityTrend]) -> Dict[str, Any]:
+    def generate_demo_report(self, trends: dict[str, QualityTrend]) -> dict[str, Any]:
         """Generate demo trend report"""
         print("📊 Generating demo trend report...")
 

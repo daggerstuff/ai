@@ -6,13 +6,14 @@ Enterprise-grade quality analytics dashboard providing comprehensive insights
 into conversation quality metrics, trends, and performance across all datasets.
 """
 
+from datetime import datetime, timedelta, timezone
+
 import json
 import logging
 import sqlite3
 import warnings
 from dataclasses import dataclass
-from datetime import datetime, timedelta
-from typing import Any, Dict, List
+from typing import Any
 
 import pandas as pd
 import plotly.express as px
@@ -34,11 +35,11 @@ class QualityAnalytics:
 
     total_conversations: int
     average_quality: float
-    quality_distribution: Dict[str, int]
-    tier_performance: Dict[str, float]
-    trend_data: List[Dict[str, Any]]
-    anomalies: List[Dict[str, Any]]
-    recommendations: List[str]
+    quality_distribution: dict[str, int]
+    tier_performance: dict[str, float]
+    trend_data: list[dict[str, Any]]
+    anomalies: list[dict[str, Any]]
+    recommendations: list[str]
 
 
 class QualityAnalyticsDashboard:
@@ -78,7 +79,7 @@ class QualityAnalyticsDashboard:
 
     def load_quality_data(self, force_refresh: bool = False) -> pd.DataFrame:
         """Load quality data from database with caching."""
-        current_time = datetime.now()
+        current_time = datetime.now(timezone.utc)
 
         # Check cache validity
         if (
@@ -162,7 +163,7 @@ class QualityAnalyticsDashboard:
         tier_performance = df.groupby("tier")["overall_quality"].mean().to_dict()
 
         # Trend data (last 30 days)
-        thirty_days_ago = datetime.now() - timedelta(days=30)
+        thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
         recent_df = df[df["created_at"] >= thirty_days_ago]
 
         trend_data = []
@@ -208,8 +209,8 @@ class QualityAnalyticsDashboard:
         )
 
     def _generate_recommendations(
-        self, df: pd.DataFrame, avg_quality: float, tier_performance: Dict[str, float]
-    ) -> List[str]:
+        self, df: pd.DataFrame, avg_quality: float, tier_performance: dict[str, float]
+    ) -> list[str]:
         """Generate quality improvement recommendations."""
         recommendations = []
 
@@ -455,8 +456,8 @@ class QualityAnalyticsDashboard:
         # Date range filter
         date_range = st.sidebar.date_input(
             "Date Range",
-            value=(datetime.now() - timedelta(days=30), datetime.now()),
-            max_value=datetime.now(),
+            value=(datetime.now(timezone.utc) - timedelta(days=30), datetime.now(timezone.utc)),
+            max_value=datetime.now(timezone.utc),
         )
 
         # Tier filter
@@ -575,7 +576,7 @@ class QualityAnalyticsDashboard:
             if st.button("Export Analytics Report"):
                 report_data = {
                     "analytics": analytics.__dict__,
-                    "generated_at": datetime.now().isoformat(),
+                    "generated_at": datetime.now(timezone.utc).isoformat(),
                     "filters_applied": {
                         "tiers": selected_tiers,
                         "date_range": [str(d) for d in date_range]
@@ -588,7 +589,7 @@ class QualityAnalyticsDashboard:
                 st.download_button(
                     label="Download JSON Report",
                     data=json.dumps(report_data, indent=2),
-                    file_name=f"quality_analytics_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
+                    file_name=f"quality_analytics_report_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.json",
                     mime="application/json",
                 )
 
@@ -598,7 +599,7 @@ class QualityAnalyticsDashboard:
                 st.download_button(
                     label="Download CSV Data",
                     data=csv_data,
-                    file_name=f"quality_data_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                    file_name=f"quality_data_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.csv",
                     mime="text/csv",
                 )
 

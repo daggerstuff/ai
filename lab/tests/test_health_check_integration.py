@@ -3,12 +3,14 @@ Integration tests for health check and graceful shutdown functionality.
 Tests that health checks work correctly and shutdown is graceful.
 """
 
+from datetime import datetime, timezone
+
+
 import json
 import logging
 import threading
 import time
 import unittest
-from datetime import datetime
 
 from ..inference.inference_api import app
 
@@ -86,7 +88,7 @@ class TestHealthCheckSystem(unittest.TestCase):
             return ComponentHealth(
                 name="custom_test",
                 status=ComponentStatus.OPERATIONAL,
-                last_checked=datetime.utcnow().isoformat(),
+                last_checked=datetime.now(timezone.utc).isoformat(),
                 health_score=1.0,
                 details={"test_field": "test_value"},
             )
@@ -392,7 +394,7 @@ class TestGracefulShutdown(unittest.TestCase):
             components_shutdown=["component1", "component2"],
             components_failed=[],
             error_messages=[],
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now(timezone.utc).isoformat(),
         )
 
         self.assertIsInstance(shutdown_result, ShutdownResult)
@@ -499,7 +501,7 @@ class TestGracefulShutdown(unittest.TestCase):
                 callback()
                 execution_log.append(f"callback_{i}_success")
             except Exception as e:
-                execution_log.append(f"callback_{i}_failed: {str(e)}")
+                execution_log.append(f"callback_{i}_failed: {e!s}")
 
         # Verify execution log
         self.assertIn("successful_callback_executed", execution_log)

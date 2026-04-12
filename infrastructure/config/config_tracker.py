@@ -4,26 +4,23 @@ Configuration Change Tracking and Rollback System for Pixelated Empathy AI
 Tracks configuration changes and provides rollback capabilities
 """
 
+from datetime import datetime, timezone
+
 import hashlib
 import json
 import logging
 import os
 import shutil
-import subprocess
 import sys
-import tempfile
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
-
-import yaml
+from typing import Any
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -35,20 +32,20 @@ class ConfigChange:
     change_id: str
     file_path: str
     change_type: str  # 'create', 'update', 'delete'
-    old_hash: Optional[str]
-    new_hash: Optional[str]
-    old_content: Optional[str]
-    new_content: Optional[str]
+    old_hash: str | None
+    new_hash: str | None
+    old_content: str | None
+    new_content: str | None
     user: str
     description: str
     environment: str
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary"""
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'ConfigChange':
+    def from_dict(cls, data: dict[str, Any]) -> "ConfigChange":
         """Create from dictionary"""
         return cls(**data)
 
@@ -60,15 +57,15 @@ class ConfigSnapshot:
     timestamp: str
     description: str
     environment: str
-    files: Dict[str, str]  # file_path -> content_hash
-    metadata: Dict[str, Any]
+    files: dict[str, str]  # file_path -> content_hash
+    metadata: dict[str, Any]
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary"""
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'ConfigSnapshot':
+    def from_dict(cls, data: dict[str, Any]) -> "ConfigSnapshot":
         """Create from dictionary"""
         return cls(**data)
 
@@ -78,16 +75,16 @@ class ConfigTracker:
 
     def __init__(self, config_dir: str = None, tracking_dir: str = None):
         self.config_dir = Path(config_dir) if config_dir else Path(__file__).parent
-        self.tracking_dir = Path(tracking_dir) if tracking_dir else self.config_dir / '.config_tracking'
+        self.tracking_dir = Path(tracking_dir) if tracking_dir else self.config_dir / ".config_tracking"
 
         # Create tracking directory structure
         self.tracking_dir.mkdir(exist_ok=True)
-        (self.tracking_dir / 'changes').mkdir(exist_ok=True)
-        (self.tracking_dir / 'snapshots').mkdir(exist_ok=True)
-        (self.tracking_dir / 'backups').mkdir(exist_ok=True)
+        (self.tracking_dir / "changes").mkdir(exist_ok=True)
+        (self.tracking_dir / "snapshots").mkdir(exist_ok=True)
+        (self.tracking_dir / "backups").mkdir(exist_ok=True)
 
-        self.changes_file = self.tracking_dir / 'changes.json'
-        self.snapshots_file = self.tracking_dir / 'snapshots.json'
+        self.changes_file = self.tracking_dir / "changes.json"
+        self.snapshots_file = self.tracking_dir / "snapshots.json"
 
         # Initialize tracking files if they don't exist
         if not self.changes_file.exists():
@@ -105,9 +102,9 @@ class ConfigTracker:
 
         # Get current user and environment
         if user is None:
-            user = os.getenv('USER', 'unknown')
+            user = os.getenv("USER", "unknown")
         if environment is None:
-            environment = os.getenv('ENVIRONMENT', 'unknown')
+            environment = os.getenv("ENVIRONMENT", "unknown")
 
         # Get file content and hash
         old_content = None
@@ -115,11 +112,11 @@ class ConfigTracker:
         new_content = None
         new_hash = None
 
-        if change_type in ['update', 'delete']:
+        if change_type in ["update", "delete"]:
             # Get old content from backup or current file
             old_content, old_hash = self._get_file_content_and_hash(file_path)
 
-        if change_type in ['create', 'update']:
+        if change_type in ["create", "update"]:
             # Get new content
             if Path(file_path).exists():
                 new_content, new_hash = self._get_file_content_and_hash(file_path)
@@ -143,7 +140,7 @@ class ConfigTracker:
         self._add_change(change)
 
         # Create backup of the file
-        if change_type in ['update', 'delete'] and old_content:
+        if change_type in ["update", "delete"] and old_content:
             self._create_backup(file_path, change_id, old_content)
 
         logger.info(f"Tracked configuration change: {change_id} - {description}")
@@ -152,7 +149,7 @@ class ConfigTracker:
     def create_snapshot(self, description: str = "", environment: str = None) -> str:
         """Create a configuration snapshot"""
         if environment is None:
-            environment = os.getenv('ENVIRONMENT', 'unknown')
+            environment = os.getenv("ENVIRONMENT", "unknown")
 
         snapshot_id = self._generate_snapshot_id()
 
@@ -175,8 +172,8 @@ class ConfigTracker:
             environment=environment,
             files=files_dict,
             metadata={
-                'total_files': len(files_dict),
-                'config_dir': str(self.config_dir)
+                "total_files": len(files_dict),
+                "config_dir": str(self.config_dir)
             }
         )
 
@@ -196,7 +193,7 @@ class ConfigTracker:
         # Find the change
         target_change = None
         for change in changes:
-            if change['change_id'] == change_id:
+            if change["change_id"] == change_id:
                 target_change = ConfigChange.from_dict(change)
                 break
 
@@ -209,32 +206,31 @@ class ConfigTracker:
             current_backup_id = self.create_snapshot(f"Pre-rollback backup for {change_id}")
 
             # Restore the file
-            if target_change.change_type == 'delete':
+            if target_change.change_type == "delete":
                 # Restore deleted file
                 if target_change.old_content:
-                    with open(target_change.file_path, 'w') as f:
+                    with open(target_change.file_path, "w") as f:
                         f.write(target_change.old_content)
                     logger.info(f"Restored deleted file: {target_change.file_path}")
                 else:
-                    logger.error(f"Cannot restore deleted file - no backup content")
+                    logger.error("Cannot restore deleted file - no backup content")
                     return False
 
-            elif target_change.change_type in ['create', 'update']:
+            elif target_change.change_type in ["create", "update"]:
                 # Rollback to previous version
                 if target_change.old_content:
-                    with open(target_change.file_path, 'w') as f:
+                    with open(target_change.file_path, "w") as f:
                         f.write(target_change.old_content)
                     logger.info(f"Rolled back file: {target_change.file_path}")
-                else:
-                    # This was a create operation, delete the file
-                    if Path(target_change.file_path).exists():
-                        os.remove(target_change.file_path)
-                        logger.info(f"Removed created file: {target_change.file_path}")
+                # This was a create operation, delete the file
+                elif Path(target_change.file_path).exists():
+                    os.remove(target_change.file_path)
+                    logger.info(f"Removed created file: {target_change.file_path}")
 
             # Track the rollback as a new change
             self.track_change(
                 target_change.file_path,
-                'rollback',
+                "rollback",
                 f"Rollback to change {change_id}",
                 environment=target_change.environment
             )
@@ -253,7 +249,7 @@ class ConfigTracker:
         # Find the snapshot
         target_snapshot = None
         for snapshot in snapshots:
-            if snapshot['snapshot_id'] == snapshot_id:
+            if snapshot["snapshot_id"] == snapshot_id:
                 target_snapshot = ConfigSnapshot.from_dict(snapshot)
                 break
 
@@ -266,7 +262,7 @@ class ConfigTracker:
             current_backup_id = self.create_snapshot(f"Pre-rollback backup for snapshot {snapshot_id}")
 
             # Restore files from snapshot backup
-            snapshot_backup_dir = self.tracking_dir / 'snapshots' / snapshot_id
+            snapshot_backup_dir = self.tracking_dir / "snapshots" / snapshot_id
 
             if not snapshot_backup_dir.exists():
                 logger.error(f"Snapshot backup directory not found: {snapshot_backup_dir}")
@@ -289,7 +285,7 @@ class ConfigTracker:
             for file_path in restored_files:
                 self.track_change(
                     file_path,
-                    'rollback',
+                    "rollback",
                     f"Rollback to snapshot {snapshot_id}",
                     environment=target_snapshot.environment
                 )
@@ -301,17 +297,17 @@ class ConfigTracker:
             logger.error(f"Snapshot rollback failed: {e}")
             return False
 
-    def get_change_history(self, file_path: str = None, limit: int = None) -> List[Dict[str, Any]]:
+    def get_change_history(self, file_path: str = None, limit: int = None) -> list[dict[str, Any]]:
         """Get change history"""
         changes = self._load_changes()
 
         # Filter by file path if specified
         if file_path:
             file_path = str(Path(file_path).resolve())
-            changes = [c for c in changes if c['file_path'] == file_path]
+            changes = [c for c in changes if c["file_path"] == file_path]
 
         # Sort by timestamp (newest first)
-        changes.sort(key=lambda x: x['timestamp'], reverse=True)
+        changes.sort(key=lambda x: x["timestamp"], reverse=True)
 
         # Apply limit if specified
         if limit:
@@ -319,12 +315,12 @@ class ConfigTracker:
 
         return changes
 
-    def get_snapshots(self, limit: int = None) -> List[Dict[str, Any]]:
+    def get_snapshots(self, limit: int = None) -> list[dict[str, Any]]:
         """Get snapshot history"""
         snapshots = self._load_snapshots()
 
         # Sort by timestamp (newest first)
-        snapshots.sort(key=lambda x: x['timestamp'], reverse=True)
+        snapshots.sort(key=lambda x: x["timestamp"], reverse=True)
 
         # Apply limit if specified
         if limit:
@@ -332,7 +328,7 @@ class ConfigTracker:
 
         return snapshots
 
-    def compare_configurations(self, snapshot_id1: str, snapshot_id2: str) -> Dict[str, Any]:
+    def compare_configurations(self, snapshot_id1: str, snapshot_id2: str) -> dict[str, Any]:
         """Compare two configuration snapshots"""
         snapshots = self._load_snapshots()
 
@@ -340,9 +336,9 @@ class ConfigTracker:
         snapshot2 = None
 
         for snapshot in snapshots:
-            if snapshot['snapshot_id'] == snapshot_id1:
+            if snapshot["snapshot_id"] == snapshot_id1:
                 snapshot1 = ConfigSnapshot.from_dict(snapshot)
-            elif snapshot['snapshot_id'] == snapshot_id2:
+            elif snapshot["snapshot_id"] == snapshot_id2:
                 snapshot2 = ConfigSnapshot.from_dict(snapshot)
 
         if not snapshot1 or not snapshot2:
@@ -352,10 +348,10 @@ class ConfigTracker:
         all_files = set(snapshot1.files.keys()) | set(snapshot2.files.keys())
 
         differences = {
-            'added': [],
-            'removed': [],
-            'modified': [],
-            'unchanged': []
+            "added": [],
+            "removed": [],
+            "modified": [],
+            "unchanged": []
         }
 
         for file_path in all_files:
@@ -363,24 +359,24 @@ class ConfigTracker:
             hash2 = snapshot2.files.get(file_path)
 
             if hash1 and not hash2:
-                differences['removed'].append(file_path)
+                differences["removed"].append(file_path)
             elif not hash1 and hash2:
-                differences['added'].append(file_path)
+                differences["added"].append(file_path)
             elif hash1 != hash2:
-                differences['modified'].append(file_path)
+                differences["modified"].append(file_path)
             else:
-                differences['unchanged'].append(file_path)
+                differences["unchanged"].append(file_path)
 
         return {
-            'snapshot1': snapshot1.to_dict(),
-            'snapshot2': snapshot2.to_dict(),
-            'differences': differences,
-            'summary': {
-                'total_files': len(all_files),
-                'added': len(differences['added']),
-                'removed': len(differences['removed']),
-                'modified': len(differences['modified']),
-                'unchanged': len(differences['unchanged'])
+            "snapshot1": snapshot1.to_dict(),
+            "snapshot2": snapshot2.to_dict(),
+            "differences": differences,
+            "summary": {
+                "total_files": len(all_files),
+                "added": len(differences["added"]),
+                "removed": len(differences["removed"]),
+                "modified": len(differences["modified"]),
+                "unchanged": len(differences["unchanged"])
             }
         }
 
@@ -390,7 +386,7 @@ class ConfigTracker:
         cleaned_count = 0
 
         # Clean up old change backups
-        backup_dir = self.tracking_dir / 'backups'
+        backup_dir = self.tracking_dir / "backups"
         if backup_dir.exists():
             for backup_file in backup_dir.iterdir():
                 if backup_file.stat().st_mtime < cutoff_time:
@@ -398,7 +394,7 @@ class ConfigTracker:
                     cleaned_count += 1
 
         # Clean up old snapshot backups
-        snapshot_dir = self.tracking_dir / 'snapshots'
+        snapshot_dir = self.tracking_dir / "snapshots"
         if snapshot_dir.exists():
             for snapshot_backup in snapshot_dir.iterdir():
                 if snapshot_backup.is_dir() and snapshot_backup.stat().st_mtime < cutoff_time:
@@ -412,13 +408,13 @@ class ConfigTracker:
         """Export all tracking data to a file"""
         try:
             export_data = {
-                'export_timestamp': datetime.now(timezone.utc).isoformat(),
-                'config_dir': str(self.config_dir),
-                'changes': self._load_changes(),
-                'snapshots': self._load_snapshots()
+                "export_timestamp": datetime.now(timezone.utc).isoformat(),
+                "config_dir": str(self.config_dir),
+                "changes": self._load_changes(),
+                "snapshots": self._load_snapshots()
             }
 
-            with open(output_file, 'w') as f:
+            with open(output_file, "w") as f:
                 json.dump(export_data, f, indent=2)
 
             logger.info(f"Exported tracking data to: {output_file}")
@@ -435,16 +431,16 @@ class ConfigTracker:
                 import_data = json.load(f)
 
             # Validate import data
-            if 'changes' not in import_data or 'snapshots' not in import_data:
+            if "changes" not in import_data or "snapshots" not in import_data:
                 raise ValueError("Invalid import data format")
 
             # Backup current tracking data
-            backup_file = self.tracking_dir / f"backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+            backup_file = self.tracking_dir / f"backup_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.json"
             self.export_tracking_data(str(backup_file))
 
             # Import changes and snapshots
-            self._save_changes(import_data['changes'])
-            self._save_snapshots(import_data['snapshots'])
+            self._save_changes(import_data["changes"])
+            self._save_snapshots(import_data["snapshots"])
 
             logger.info(f"Imported tracking data from: {input_file}")
             return True
@@ -478,32 +474,32 @@ class ConfigTracker:
 
     def _generate_change_id(self) -> str:
         """Generate unique change ID"""
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         random_suffix = hashlib.md5(os.urandom(16)).hexdigest()[:8]
         return f"change_{timestamp}_{random_suffix}"
 
     def _generate_snapshot_id(self) -> str:
         """Generate unique snapshot ID"""
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         random_suffix = hashlib.md5(os.urandom(16)).hexdigest()[:8]
         return f"snapshot_{timestamp}_{random_suffix}"
 
-    def _get_file_content_and_hash(self, file_path: str) -> Tuple[str, str]:
+    def _get_file_content_and_hash(self, file_path: str) -> tuple[str, str]:
         """Get file content and its hash"""
-        with open(file_path, encoding='utf-8') as f:
+        with open(file_path, encoding="utf-8") as f:
             content = f.read()
 
-        file_hash = hashlib.sha256(content.encode('utf-8')).hexdigest()
+        file_hash = hashlib.sha256(content.encode("utf-8")).hexdigest()
         return content, file_hash
 
-    def _get_all_config_files(self) -> List[Path]:
+    def _get_all_config_files(self) -> list[Path]:
         """Get all configuration files"""
         config_files = []
 
         # Common configuration file patterns
         patterns = [
-            '*.yaml', '*.yml', '*.json', '*.toml', '*.ini', '*.conf',
-            '.env*', '*.config'
+            "*.yaml", "*.yml", "*.json", "*.toml", "*.ini", "*.conf",
+            ".env*", "*.config"
         ]
 
         for pattern in patterns:
@@ -511,7 +507,7 @@ class ConfigTracker:
 
         # Also check subdirectories
         for subdir in self.config_dir.iterdir():
-            if subdir.is_dir() and not subdir.name.startswith('.'):
+            if subdir.is_dir() and not subdir.name.startswith("."):
                 for pattern in patterns:
                     config_files.extend(subdir.glob(pattern))
 
@@ -519,14 +515,14 @@ class ConfigTracker:
 
     def _create_backup(self, file_path: str, change_id: str, content: str):
         """Create backup of file content"""
-        backup_file = self.tracking_dir / 'backups' / f"{change_id}_{Path(file_path).name}"
+        backup_file = self.tracking_dir / "backups" / f"{change_id}_{Path(file_path).name}"
 
-        with open(backup_file, 'w', encoding='utf-8') as f:
+        with open(backup_file, "w", encoding="utf-8") as f:
             f.write(content)
 
-    def _create_snapshot_backup(self, snapshot_id: str, config_files: List[Path]):
+    def _create_snapshot_backup(self, snapshot_id: str, config_files: list[Path]):
         """Create backup of all files in snapshot"""
-        snapshot_backup_dir = self.tracking_dir / 'snapshots' / snapshot_id
+        snapshot_backup_dir = self.tracking_dir / "snapshots" / snapshot_id
         snapshot_backup_dir.mkdir(exist_ok=True)
 
         for file_path in config_files:
@@ -534,7 +530,7 @@ class ConfigTracker:
                 backup_file = snapshot_backup_dir / file_path.name
                 shutil.copy2(file_path, backup_file)
 
-    def _load_changes(self) -> List[Dict[str, Any]]:
+    def _load_changes(self) -> list[dict[str, Any]]:
         """Load changes from file"""
         try:
             with open(self.changes_file) as f:
@@ -542,9 +538,9 @@ class ConfigTracker:
         except (FileNotFoundError, json.JSONDecodeError):
             return []
 
-    def _save_changes(self, changes: List[Dict[str, Any]]):
+    def _save_changes(self, changes: list[dict[str, Any]]):
         """Save changes to file"""
-        with open(self.changes_file, 'w') as f:
+        with open(self.changes_file, "w") as f:
             json.dump(changes, f, indent=2)
 
     def _add_change(self, change: ConfigChange):
@@ -553,7 +549,7 @@ class ConfigTracker:
         changes.append(change.to_dict())
         self._save_changes(changes)
 
-    def _load_snapshots(self) -> List[Dict[str, Any]]:
+    def _load_snapshots(self) -> list[dict[str, Any]]:
         """Load snapshots from file"""
         try:
             with open(self.snapshots_file) as f:
@@ -561,9 +557,9 @@ class ConfigTracker:
         except (FileNotFoundError, json.JSONDecodeError):
             return []
 
-    def _save_snapshots(self, snapshots: List[Dict[str, Any]]):
+    def _save_snapshots(self, snapshots: list[dict[str, Any]]):
         """Save snapshots to file"""
-        with open(self.snapshots_file, 'w') as f:
+        with open(self.snapshots_file, "w") as f:
             json.dump(snapshots, f, indent=2)
 
     def _add_snapshot(self, snapshot: ConfigSnapshot):
@@ -578,55 +574,55 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(description="Configuration Change Tracking System")
-    parser.add_argument('--config-dir', help="Configuration directory")
-    parser.add_argument('--tracking-dir', help="Tracking data directory")
+    parser.add_argument("--config-dir", help="Configuration directory")
+    parser.add_argument("--tracking-dir", help="Tracking data directory")
 
-    subparsers = parser.add_subparsers(dest='command', help='Available commands')
+    subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # Track command
-    track_parser = subparsers.add_parser('track', help='Track a configuration change')
-    track_parser.add_argument('file_path', help='Path to configuration file')
-    track_parser.add_argument('change_type', choices=['create', 'update', 'delete'])
-    track_parser.add_argument('--description', default='', help='Change description')
-    track_parser.add_argument('--user', help='User making the change')
-    track_parser.add_argument('--environment', help='Environment')
+    track_parser = subparsers.add_parser("track", help="Track a configuration change")
+    track_parser.add_argument("file_path", help="Path to configuration file")
+    track_parser.add_argument("change_type", choices=["create", "update", "delete"])
+    track_parser.add_argument("--description", default="", help="Change description")
+    track_parser.add_argument("--user", help="User making the change")
+    track_parser.add_argument("--environment", help="Environment")
 
     # Snapshot command
-    snapshot_parser = subparsers.add_parser('snapshot', help='Create a configuration snapshot')
-    snapshot_parser.add_argument('--description', default='', help='Snapshot description')
-    snapshot_parser.add_argument('--environment', help='Environment')
+    snapshot_parser = subparsers.add_parser("snapshot", help="Create a configuration snapshot")
+    snapshot_parser.add_argument("--description", default="", help="Snapshot description")
+    snapshot_parser.add_argument("--environment", help="Environment")
 
     # Rollback command
-    rollback_parser = subparsers.add_parser('rollback', help='Rollback configuration')
+    rollback_parser = subparsers.add_parser("rollback", help="Rollback configuration")
     rollback_group = rollback_parser.add_mutually_exclusive_group(required=True)
-    rollback_group.add_argument('--change-id', help='Change ID to rollback to')
-    rollback_group.add_argument('--snapshot-id', help='Snapshot ID to rollback to')
+    rollback_group.add_argument("--change-id", help="Change ID to rollback to")
+    rollback_group.add_argument("--snapshot-id", help="Snapshot ID to rollback to")
 
     # History command
-    history_parser = subparsers.add_parser('history', help='Show change history')
-    history_parser.add_argument('--file-path', help='Filter by file path')
-    history_parser.add_argument('--limit', type=int, help='Limit number of results')
+    history_parser = subparsers.add_parser("history", help="Show change history")
+    history_parser.add_argument("--file-path", help="Filter by file path")
+    history_parser.add_argument("--limit", type=int, help="Limit number of results")
 
     # Snapshots command
-    snapshots_parser = subparsers.add_parser('snapshots', help='List snapshots')
-    snapshots_parser.add_argument('--limit', type=int, help='Limit number of results')
+    snapshots_parser = subparsers.add_parser("snapshots", help="List snapshots")
+    snapshots_parser.add_argument("--limit", type=int, help="Limit number of results")
 
     # Compare command
-    compare_parser = subparsers.add_parser('compare', help='Compare snapshots')
-    compare_parser.add_argument('snapshot1', help='First snapshot ID')
-    compare_parser.add_argument('snapshot2', help='Second snapshot ID')
+    compare_parser = subparsers.add_parser("compare", help="Compare snapshots")
+    compare_parser.add_argument("snapshot1", help="First snapshot ID")
+    compare_parser.add_argument("snapshot2", help="Second snapshot ID")
 
     # Cleanup command
-    cleanup_parser = subparsers.add_parser('cleanup', help='Clean up old backups')
-    cleanup_parser.add_argument('--days', type=int, default=30, help='Days to keep')
+    cleanup_parser = subparsers.add_parser("cleanup", help="Clean up old backups")
+    cleanup_parser.add_argument("--days", type=int, default=30, help="Days to keep")
 
     # Export command
-    export_parser = subparsers.add_parser('export', help='Export tracking data')
-    export_parser.add_argument('output_file', help='Output file path')
+    export_parser = subparsers.add_parser("export", help="Export tracking data")
+    export_parser.add_argument("output_file", help="Output file path")
 
     # Import command
-    import_parser = subparsers.add_parser('import', help='Import tracking data')
-    import_parser.add_argument('input_file', help='Input file path')
+    import_parser = subparsers.add_parser("import", help="Import tracking data")
+    import_parser.add_argument("input_file", help="Input file path")
 
     args = parser.parse_args()
 
@@ -638,7 +634,7 @@ def main():
     tracker = ConfigTracker(args.config_dir, args.tracking_dir)
 
     # Execute command
-    if args.command == 'track':
+    if args.command == "track":
         change_id = tracker.track_change(
             args.file_path,
             args.change_type,
@@ -648,11 +644,11 @@ def main():
         )
         print(f"Change tracked: {change_id}")
 
-    elif args.command == 'snapshot':
+    elif args.command == "snapshot":
         snapshot_id = tracker.create_snapshot(args.description, args.environment)
         print(f"Snapshot created: {snapshot_id}")
 
-    elif args.command == 'rollback':
+    elif args.command == "rollback":
         if args.change_id:
             success = tracker.rollback_to_change(args.change_id)
         else:
@@ -664,23 +660,23 @@ def main():
             print("Rollback failed")
             sys.exit(1)
 
-    elif args.command == 'history':
+    elif args.command == "history":
         changes = tracker.get_change_history(args.file_path, args.limit)
         print(json.dumps(changes, indent=2))
 
-    elif args.command == 'snapshots':
+    elif args.command == "snapshots":
         snapshots = tracker.get_snapshots(args.limit)
         print(json.dumps(snapshots, indent=2))
 
-    elif args.command == 'compare':
+    elif args.command == "compare":
         comparison = tracker.compare_configurations(args.snapshot1, args.snapshot2)
         print(json.dumps(comparison, indent=2))
 
-    elif args.command == 'cleanup':
+    elif args.command == "cleanup":
         count = tracker.cleanup_old_backups(args.days)
         print(f"Cleaned up {count} old backup files")
 
-    elif args.command == 'export':
+    elif args.command == "export":
         success = tracker.export_tracking_data(args.output_file)
         if success:
             print(f"Tracking data exported to: {args.output_file}")
@@ -688,7 +684,7 @@ def main():
             print("Export failed")
             sys.exit(1)
 
-    elif args.command == 'import':
+    elif args.command == "import":
         success = tracker.import_tracking_data(args.input_file)
         if success:
             print(f"Tracking data imported from: {args.input_file}")
@@ -697,5 +693,5 @@ def main():
             sys.exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

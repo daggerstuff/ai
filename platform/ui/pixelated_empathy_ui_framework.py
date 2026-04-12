@@ -13,11 +13,10 @@ This creates the web-based interface for:
 import json
 import logging
 from dataclasses import asdict, dataclass
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 @dataclass
@@ -27,18 +26,18 @@ class UIComponent:
     component_type: str
     title: str
     description: str
-    props: Dict[str, Any]
-    styling: Dict[str, str]
-    interactions: List[Dict]
+    props: dict[str, Any]
+    styling: dict[str, str]
+    interactions: list[dict]
 
 @dataclass
 class UILayout:
     """UI layout configuration"""
     layout_id: str
     layout_type: str  # trainee, supervisor, admin
-    components: List[UIComponent]
-    responsive_breakpoints: Dict[str, Dict]
-    theme_config: Dict[str, str]
+    components: list[UIComponent]
+    responsive_breakpoints: dict[str, dict]
+    theme_config: dict[str, str]
 
 class PixelatedEmpathyUIFramework:
     """Complete UI/UX framework for Pixelated Empathy platform"""
@@ -55,7 +54,7 @@ class PixelatedEmpathyUIFramework:
 
         logger.info("🎨 Pixelated Empathy UI Framework initialized")
 
-    def _initialize_theme(self) -> Dict[str, str]:
+    def _initialize_theme(self) -> dict[str, str]:
         """Initialize platform visual theme"""
         return {
             # Color Palette
@@ -508,7 +507,7 @@ class PixelatedEmpathyUIFramework:
 
         return supervisor_layout
 
-    def generate_react_components(self) -> Dict[str, str]:
+    def generate_react_components(self) -> dict[str, str]:
         """Generate React component code for the UI framework"""
 
         react_components = {}
@@ -524,7 +523,7 @@ class PixelatedEmpathyUIFramework:
 
     def _generate_trainee_react_code(self) -> str:
         """Generate React code for trainee interface"""
-        return '''
+        return """
 import React, { useState, useEffect } from 'react';
 import { ConversationInterface } from './ConversationInterface';
 import { ClientAvatar } from './ClientAvatar';
@@ -593,7 +592,7 @@ export const TraineeInterface = ({ sessionId, clientProfile }) => {
     </div>
   );
 };
-'''
+"""
 
     def save_ui_framework(self) -> Path:
         """Save complete UI framework to files"""
@@ -603,7 +602,7 @@ export const TraineeInterface = ({ sessionId, clientProfile }) => {
 
         # Save component definitions
         components_file = ui_dir / "ui_components.json"
-        with open(components_file, 'w') as f:
+        with open(components_file, "w") as f:
             json.dump({
                 "components": {k: asdict(v) for k, v in self.ui_components.items()},
                 "theme": self.theme_config
@@ -614,7 +613,7 @@ export const TraineeInterface = ({ sessionId, clientProfile }) => {
         trainee_layout = self.create_trainee_layout()
         supervisor_layout = self.create_supervisor_layout()
 
-        with open(layouts_file, 'w') as f:
+        with open(layouts_file, "w") as f:
             json.dump({
                 "layouts": {
                     "trainee": asdict(trainee_layout),
@@ -629,7 +628,7 @@ export const TraineeInterface = ({ sessionId, clientProfile }) => {
 
         for component_name, component_code in react_components.items():
             component_file = react_dir / f"{component_name}.jsx"
-            with open(component_file, 'w') as f:
+            with open(component_file, "w") as f:
                 f.write(component_code)
 
         logger.info(f"✅ UI Framework saved to {ui_dir}")

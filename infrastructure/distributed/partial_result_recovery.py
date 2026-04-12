@@ -4,6 +4,8 @@ Partial Result Recovery System for Pixelated Empathy AI
 Recovers and continues processing from partial results after interruptions
 """
 
+from datetime import datetime, timedelta, timezone
+
 import asyncio
 import hashlib
 import json
@@ -11,11 +13,11 @@ import logging
 import pickle
 import sqlite3
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -43,11 +45,11 @@ class PartialResult:
     task_id: str
     result_type: ResultType
     data: Any
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
     created_at: datetime
     sequence_number: int = 0
-    checksum: Optional[str] = None
-    dependencies: List[str] = field(default_factory=list)
+    checksum: str | None = None
+    dependencies: list[str] = field(default_factory=list)
 
     def __post_init__(self):
         if isinstance(self.created_at, str):
@@ -65,8 +67,8 @@ class PartialResultManager:
         self.data_path = self.storage_path / "data"
         self.data_path.mkdir(exist_ok=True)
 
-        self.active_results: Dict[str, PartialResult] = {}
-        self.recovery_handlers: Dict[str, Callable] = {}
+        self.active_results: dict[str, PartialResult] = {}
+        self.recovery_handlers: dict[str, Callable] = {}
 
         self.setup_database()
 
@@ -96,7 +98,7 @@ class PartialResultManager:
 
     def store_partial_result(self, process_id: str, task_id: str,
                            result_type: ResultType, data: Any,
-                           metadata: Dict[str, Any] = None,
+                           metadata: dict[str, Any] = None,
                            sequence_number: int = 0) -> str:
         """Store a partial result"""
 
@@ -110,7 +112,7 @@ class PartialResultManager:
             result_type=result_type,
             data=data,
             metadata=metadata or {},
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
             sequence_number=sequence_number
         )
 
@@ -120,7 +122,7 @@ class PartialResultManager:
 
         # Save data to file
         file_path = self.data_path / f"{result_id}.pkl"
-        with open(file_path, 'wb') as f:
+        with open(file_path, "wb") as f:
             pickle.dump(data, f)
 
         # Save metadata to database
@@ -141,7 +143,7 @@ class PartialResultManager:
         return result_id
 
     def recover_partial_results(self, process_id: str,
-                              result_types: List[ResultType] = None) -> List[PartialResult]:
+                              result_types: list[ResultType] = None) -> list[PartialResult]:
         """Recover partial results for a process"""
 
         with sqlite3.connect(self.db_path) as conn:
@@ -154,7 +156,7 @@ class PartialResultManager:
             params = [process_id]
 
             if result_types:
-                placeholders = ','.join('?' * len(result_types))
+                placeholders = ",".join("?" * len(result_types))
                 query += f" AND result_type IN ({placeholders})"
                 params.extend([rt.value for rt in result_types])
 
@@ -168,7 +170,7 @@ class PartialResultManager:
                     # Load data from file
                     file_path = Path(row[7])
                     if file_path.exists():
-                        with open(file_path, 'rb') as f:
+                        with open(file_path, "rb") as f:
                             data = pickle.load(f)
                     else:
                         logger.warning(f"Data file not found for result {row[0]}")
@@ -196,7 +198,7 @@ class PartialResultManager:
             logger.info(f"Recovered {len(recovered_results)} partial results for {process_id}")
             return recovered_results
 
-    def merge_partial_results(self, results: List[PartialResult],
+    def merge_partial_results(self, results: list[PartialResult],
                             strategy: RecoveryStrategy = RecoveryStrategy.MERGE_RESULTS) -> Any:
         """Merge multiple partial results into a single result"""
 
@@ -211,16 +213,15 @@ class PartialResultManager:
 
         if strategy == RecoveryStrategy.MERGE_RESULTS:
             return self._merge_results_data(sorted_results)
-        elif strategy == RecoveryStrategy.REPLACE_RESULTS:
+        if strategy == RecoveryStrategy.REPLACE_RESULTS:
             return sorted_results[-1].data  # Return latest
-        elif strategy == RecoveryStrategy.APPEND_RESULTS:
+        if strategy == RecoveryStrategy.APPEND_RESULTS:
             return self._append_results_data(sorted_results)
-        elif strategy == RecoveryStrategy.VALIDATE_AND_MERGE:
+        if strategy == RecoveryStrategy.VALIDATE_AND_MERGE:
             return self._validate_and_merge_results(sorted_results)
-        else:
-            return sorted_results[-1].data
+        return sorted_results[-1].data
 
-    def _merge_results_data(self, results: List[PartialResult]) -> Any:
+    def _merge_results_data(self, results: list[PartialResult]) -> Any:
         """Merge result data intelligently based on data type"""
 
         if not results:
@@ -236,26 +237,25 @@ class PartialResultManager:
                     merged.update(result.data)
             return merged
 
-        elif isinstance(first_data, list):
+        if isinstance(first_data, list):
             merged = []
             for result in results:
                 if isinstance(result.data, list):
                     merged.extend(result.data)
             return merged
 
-        elif isinstance(first_data, (int, float)):
+        if isinstance(first_data, (int, float)):
             return sum(result.data for result in results if isinstance(result.data, (int, float)))
 
-        else:
-            # For other types, return the latest
-            return results[-1].data
+        # For other types, return the latest
+        return results[-1].data
 
-    def _append_results_data(self, results: List[PartialResult]) -> List[Any]:
+    def _append_results_data(self, results: list[PartialResult]) -> list[Any]:
         """Append all results into a list"""
 
         return [result.data for result in results]
 
-    def _validate_and_merge_results(self, results: List[PartialResult]) -> Any:
+    def _validate_and_merge_results(self, results: list[PartialResult]) -> Any:
         """Validate checksums and merge results"""
 
         # Validate checksums first
@@ -276,7 +276,7 @@ class PartialResultManager:
 
     def continue_processing_from_results(self, process_id: str,
                                        continuation_handler: Callable,
-                                       result_types: List[ResultType] = None) -> Any:
+                                       result_types: list[ResultType] = None) -> Any:
         """Continue processing from recovered partial results"""
 
         # Recover partial results
@@ -311,7 +311,7 @@ class PartialResultManager:
                               older_than_hours: int = 24) -> int:
         """Clean up old partial results"""
 
-        cutoff_time = datetime.utcnow() - timedelta(hours=older_than_hours)
+        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=older_than_hours)
 
         with sqlite3.connect(self.db_path) as conn:
             if process_id:
@@ -347,7 +347,7 @@ class PartialResultManager:
             logger.info(f"Cleaned up {cleaned_count} old partial results")
             return cleaned_count
 
-    def get_recovery_statistics(self) -> Dict[str, Any]:
+    def get_recovery_statistics(self) -> dict[str, Any]:
         """Get statistics about partial result recovery"""
 
         with sqlite3.connect(self.db_path) as conn:
@@ -406,7 +406,7 @@ async def example_partial_result_recovery():
             task_id=task_id,
             result_type=ResultType.BATCH,
             data=batch_data,
-            metadata={"batch_number": i, "timestamp": datetime.utcnow().isoformat()},
+            metadata={"batch_number": i, "timestamp": datetime.now(timezone.utc).isoformat()},
             sequence_number=i
         )
 
@@ -427,8 +427,8 @@ async def example_partial_result_recovery():
     )
 
     # Simulate recovery after interruption
-    def continuation_handler(merged_results: Dict[str, Any],
-                           all_results: List[PartialResult]) -> Dict[str, Any]:
+    def continuation_handler(merged_results: dict[str, Any],
+                           all_results: list[PartialResult]) -> dict[str, Any]:
         """Handle continuation from partial results"""
 
         print(f"Continuing from {len(all_results)} partial results")

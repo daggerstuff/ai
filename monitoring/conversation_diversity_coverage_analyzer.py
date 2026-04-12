@@ -12,13 +12,14 @@ Analyzes diversity and coverage patterns across conversations:
 - Content gap identification
 """
 
+from datetime import datetime, timezone
+
 import json
 import re
 import sqlite3
 import warnings
 from collections import Counter, defaultdict
-from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -42,7 +43,7 @@ class ConversationDiversityCoverageAnalyzer:
         """Connect to the conversations database"""
         return sqlite3.connect(self.db_path)
 
-    def analyze_diversity_coverage(self) -> Dict[str, Any]:
+    def analyze_diversity_coverage(self) -> dict[str, Any]:
         """Main analysis function for conversation diversity and coverage"""
         print("🌈 Starting Conversation Diversity and Coverage Analysis...")
 
@@ -71,7 +72,7 @@ class ConversationDiversityCoverageAnalyzer:
         self._create_diversity_visualizations(diversity_results)
 
         return {
-            "analysis_timestamp": datetime.now().isoformat(),
+            "analysis_timestamp": datetime.now(timezone.utc).isoformat(),
             "total_conversations": len(conversations),
             "diversity_analysis": diversity_results,
             "insights": insights,
@@ -122,14 +123,13 @@ class ConversationDiversityCoverageAnalyzer:
                     else:
                         text_parts.append(str(turn))
                 return "\n".join(text_parts)
-            else:
-                return str(conversations)
+            return str(conversations)
         except:
             return json_str
 
     def _analyze_vocabulary_diversity(
         self, conversations: pd.DataFrame
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Analyze vocabulary diversity across conversations"""
         print("📚 Analyzing vocabulary diversity...")
 
@@ -218,7 +218,7 @@ class ConversationDiversityCoverageAnalyzer:
             },
         }
 
-    def _analyze_topic_diversity(self, conversations: pd.DataFrame) -> Dict[str, Any]:
+    def _analyze_topic_diversity(self, conversations: pd.DataFrame) -> dict[str, Any]:
         """Analyze topic diversity using TF-IDF and clustering"""
         print("🎯 Analyzing topic diversity...")
 
@@ -297,7 +297,7 @@ class ConversationDiversityCoverageAnalyzer:
 
         return topic_diversity
 
-    def _analyze_style_diversity(self, conversations: pd.DataFrame) -> Dict[str, Any]:
+    def _analyze_style_diversity(self, conversations: pd.DataFrame) -> dict[str, Any]:
         """Analyze conversation style diversity"""
         print("🎨 Analyzing style diversity...")
 
@@ -391,7 +391,7 @@ class ConversationDiversityCoverageAnalyzer:
 
     def _analyze_response_pattern_diversity(
         self, conversations: pd.DataFrame
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Analyze diversity in response patterns"""
         print("🔄 Analyzing response pattern diversity...")
 
@@ -463,7 +463,7 @@ class ConversationDiversityCoverageAnalyzer:
 
         return pattern_analysis
 
-    def _analyze_dataset_coverage(self, conversations: pd.DataFrame) -> Dict[str, Any]:
+    def _analyze_dataset_coverage(self, conversations: pd.DataFrame) -> dict[str, Any]:
         """Analyze coverage across different datasets"""
         print("📋 Analyzing dataset coverage...")
 
@@ -517,7 +517,7 @@ class ConversationDiversityCoverageAnalyzer:
 
         return coverage_analysis
 
-    def _identify_content_gaps(self, conversations: pd.DataFrame) -> Dict[str, Any]:
+    def _identify_content_gaps(self, conversations: pd.DataFrame) -> dict[str, Any]:
         """Identify gaps in content coverage"""
         print("🔍 Identifying content gaps...")
 
@@ -642,7 +642,7 @@ class ConversationDiversityCoverageAnalyzer:
 
         return gaps_analysis
 
-    def _analyze_diversity_trends(self, conversations: pd.DataFrame) -> Dict[str, Any]:
+    def _analyze_diversity_trends(self, conversations: pd.DataFrame) -> dict[str, Any]:
         """Analyze diversity trends over time"""
         print("📈 Analyzing diversity trends...")
 
@@ -703,7 +703,7 @@ class ConversationDiversityCoverageAnalyzer:
 
     def _assess_coverage_completeness(
         self, conversations: pd.DataFrame
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Assess overall coverage completeness"""
         print("✅ Assessing coverage completeness...")
 
@@ -769,8 +769,8 @@ class ConversationDiversityCoverageAnalyzer:
         return completeness_analysis
 
     def _generate_diversity_insights(
-        self, diversity_results: Dict[str, Any]
-    ) -> List[str]:
+        self, diversity_results: dict[str, Any]
+    ) -> list[str]:
         """Generate insights from diversity analysis"""
         insights = []
 
@@ -817,8 +817,8 @@ class ConversationDiversityCoverageAnalyzer:
         return insights
 
     def _generate_diversity_recommendations(
-        self, diversity_results: Dict[str, Any]
-    ) -> List[str]:
+        self, diversity_results: dict[str, Any]
+    ) -> list[str]:
         """Generate recommendations for improving diversity and coverage"""
         recommendations = []
 
@@ -866,7 +866,7 @@ class ConversationDiversityCoverageAnalyzer:
 
         return recommendations
 
-    def _create_diversity_visualizations(self, diversity_results: Dict[str, Any]):
+    def _create_diversity_visualizations(self, diversity_results: dict[str, Any]):
         """Create visualizations for diversity analysis"""
         print("📊 Creating diversity visualizations...")
 
@@ -917,8 +917,7 @@ class ConversationDiversityCoverageAnalyzer:
         # 3. Topic Diversity
         topic_diversity = diversity_results["topic_diversity"]
         if (
-            "cluster_analysis" in topic_diversity
-            and topic_diversity["cluster_analysis"]
+            topic_diversity.get("cluster_analysis")
         ):
             clusters = list(topic_diversity["cluster_analysis"].keys())
             percentages = [
@@ -1039,7 +1038,7 @@ class ConversationDiversityCoverageAnalyzer:
         plt.tight_layout()
 
         # Save the plot
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         plt.savefig(
             f"/home/vivi/pixelated/ai/monitoring/diversity_coverage_analysis_{timestamp}.png",
             dpi=300,
@@ -1066,7 +1065,7 @@ class ConversationDiversityCoverageAnalyzer:
 
         return entropy
 
-    def _calculate_cluster_entropy(self, cluster_labels: List[int]) -> float:
+    def _calculate_cluster_entropy(self, cluster_labels: list[int]) -> float:
         """Calculate entropy of cluster distribution"""
         cluster_counts = Counter(cluster_labels)
         total_docs = len(cluster_labels)
@@ -1116,7 +1115,7 @@ def main():
         results = analyzer.analyze_diversity_coverage()
 
         # Save results
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         output_file = f"/home/vivi/pixelated/ai/monitoring/diversity_coverage_analysis_{timestamp}.json"
 
         with open(output_file, "w") as f:
@@ -1139,7 +1138,7 @@ def main():
         return results
 
     except Exception as e:
-        print(f"❌ Error during analysis: {str(e)}")
+        print(f"❌ Error during analysis: {e!s}")
         import traceback
 
         traceback.print_exc()

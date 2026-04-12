@@ -6,6 +6,8 @@ Comprehensive testing of the quality analytics dashboard functionality
 including data loading, analytics calculation, and visualization generation.
 """
 
+from datetime import datetime, timezone
+
 import json
 import os
 import sqlite3
@@ -485,7 +487,7 @@ def run_comprehensive_test():
                 "research",
             ][i % 5]
             dataset = f"test_dataset_{i % 10}"
-            created_at = (datetime.now() - timedelta(days=i % 30)).strftime(
+            created_at = (datetime.now(timezone.utc) - timedelta(days=i % 30)).strftime(
                 "%Y-%m-%d %H:%M:%S"
             )
             length = 100 + (i * 10)
@@ -511,7 +513,7 @@ def run_comprehensive_test():
                 + safety_score
             ) / 7
 
-            validated_at = (datetime.now() - timedelta(days=i % 30, hours=1)).strftime(
+            validated_at = (datetime.now(timezone.utc) - timedelta(days=i % 30, hours=1)).strftime(
                 "%Y-%m-%d %H:%M:%S"
             )
 
@@ -636,7 +638,7 @@ def run_comprehensive_test():
         report = {
             "test_suite": "Quality Analytics Dashboard",
             "task": "5.6.2.1",
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "results": test_results,
             "success_rate": success_rate,
             "status": "PASSED" if success_rate >= 80 else "FAILED",

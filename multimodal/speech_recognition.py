@@ -26,7 +26,7 @@ import time
 import warnings
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import librosa
 import numpy as np
@@ -55,14 +55,14 @@ class TranscriptionResult:
     session_id: str
     audio_path: str
     full_text: str
-    segments: List[TranscriptionSegment]
+    segments: list[TranscriptionSegment]
     language: str
     overall_confidence: float
     processing_time_ms: float
     audio_duration_s: float
     sample_rate: int
     model_name: str
-    error: Optional[str] = None
+    error: str | None = None
 
 
 class SpeechRecognizer:
@@ -72,7 +72,7 @@ class SpeechRecognizer:
         self,
         model_name: str = "base",
         device: str = "cuda" if torch.cuda.is_available() else "cpu",
-        language: Optional[str] = None,
+        language: str | None = None,
         compute_type: str = "float16" if torch.cuda.is_available() else "float32",
     ):
         """
@@ -110,15 +110,15 @@ class SpeechRecognizer:
             logger.info(f"Model loaded: {self.model_name}")
 
         except Exception as e:
-            logger.error(f"Failed to load model: {str(e)}")
+            logger.error(f"Failed to load model: {e!s}")
             raise
 
     async def transcribe_audio(
         self,
         session_id: str,
         audio_path: str,
-        language: Optional[str] = None,
-        initial_prompt: Optional[str] = None,
+        language: str | None = None,
+        initial_prompt: str | None = None,
     ) -> TranscriptionResult:
         """
         Transcribe audio file to text.
@@ -182,7 +182,7 @@ class SpeechRecognizer:
             )
 
         except Exception as e:
-            logger.error(f"Transcription failed: {str(e)}")
+            logger.error(f"Transcription failed: {e!s}")
             return TranscriptionResult(
                 session_id=session_id,
                 audio_path=str(audio_path),
@@ -197,7 +197,7 @@ class SpeechRecognizer:
                 error=str(e),
             )
 
-    def _load_audio(self, audio_path: str) -> Tuple[np.ndarray, int]:
+    def _load_audio(self, audio_path: str) -> tuple[np.ndarray, int]:
         """
         Load audio file with automatic format detection.
 
@@ -213,7 +213,7 @@ class SpeechRecognizer:
             return waveform, sample_rate
 
         except Exception as e:
-            logger.warning(f"Librosa failed, trying torchaudio: {str(e)}")
+            logger.warning(f"Librosa failed, trying torchaudio: {e!s}")
 
             try:
                 # Fallback to torchaudio
@@ -226,16 +226,16 @@ class SpeechRecognizer:
                 return waveform.squeeze().numpy(), sample_rate
 
             except Exception as e2:
-                logger.error(f"Both audio loaders failed: {str(e2)}")
+                logger.error(f"Both audio loaders failed: {e2!s}")
                 raise ValueError(f"Failed to load audio file: {audio_path}")
 
     def _transcribe_sync(
         self,
         waveform: np.ndarray,
         sample_rate: int,
-        language: Optional[str],
-        initial_prompt: Optional[str],
-    ) -> Dict[str, Any]:
+        language: str | None,
+        initial_prompt: str | None,
+    ) -> dict[str, Any]:
         """Synchronous transcription (runs in thread)."""
         # Normalize sample rate to 16kHz if needed
         if sample_rate != 16000:
@@ -261,7 +261,7 @@ class SpeechRecognizer:
             "language_probability": info.language_probability,
         }
 
-    def _parse_segments(self, result: Dict[str, Any]) -> List[TranscriptionSegment]:
+    def _parse_segments(self, result: dict[str, Any]) -> list[TranscriptionSegment]:
         """Parse Faster-Whisper result into segments."""
         segments = []
 
@@ -281,7 +281,7 @@ class SpeechRecognizer:
     async def stream_transcribe(
         self,
         session_id: str,
-        audio_chunks: List[np.ndarray],
+        audio_chunks: list[np.ndarray],
         sample_rate: int,
         chunk_duration_ms: int = 1000,
     ) -> TranscriptionResult:
@@ -319,10 +319,10 @@ class SpeechRecognizer:
             return result
 
         except Exception as e:
-            logger.error(f"Stream transcription failed: {str(e)}")
+            logger.error(f"Stream transcription failed: {e!s}")
             raise
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Serialize recognizer configuration."""
         return {
             "model_name": self.model_name,
@@ -371,7 +371,7 @@ class AudioPreprocessor:
     def extract_features(
         waveform: np.ndarray,
         sample_rate: int,
-    ) -> Dict[str, np.ndarray]:
+    ) -> dict[str, np.ndarray]:
         """
         Extract audio features.
 
@@ -409,7 +409,7 @@ class AudioPreprocessor:
         waveform: np.ndarray,
         sample_rate: int,
         threshold: float = 0.02,
-    ) -> List[Tuple[int, int]]:
+    ) -> list[tuple[int, int]]:
         """
         Detect voice activity regions.
 

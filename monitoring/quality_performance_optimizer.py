@@ -4,18 +4,18 @@ Quality Performance Optimization Analytics System
 Analyzes quality performance and provides optimization recommendations
 """
 
+from datetime import datetime, timezone
+
 import json
 import sqlite3
 import warnings
 from dataclasses import dataclass
-from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
-import pandas as pd
 
-warnings.filterwarnings('ignore')
+warnings.filterwarnings("ignore")
 
 @dataclass
 class PerformanceMetric:
@@ -25,20 +25,20 @@ class PerformanceMetric:
     target_value: float
     performance_gap: float
     optimization_potential: float
-    bottleneck_factors: List[str]
-    optimization_recommendations: List[str]
+    bottleneck_factors: list[str]
+    optimization_recommendations: list[str]
 
 @dataclass
 class OptimizationPlan:
     """Quality optimization plan"""
     plan_id: str
     generated_at: datetime
-    performance_metrics: List[PerformanceMetric]
-    optimization_priorities: List[str]
-    resource_requirements: Dict[str, Any]
-    expected_improvements: Dict[str, float]
-    implementation_timeline: Dict[str, int]
-    success_criteria: List[str]
+    performance_metrics: list[PerformanceMetric]
+    optimization_priorities: list[str]
+    resource_requirements: dict[str, Any]
+    expected_improvements: dict[str, float]
+    implementation_timeline: dict[str, int]
+    success_criteria: list[str]
 
 class QualityPerformanceOptimizer:
     """Enterprise-grade quality performance optimization system"""
@@ -50,22 +50,22 @@ class QualityPerformanceOptimizer:
 
         # Performance metrics to optimize
         self.performance_metrics = [
-            'processing_throughput',
-            'quality_validation_speed',
-            'error_detection_accuracy',
-            'resource_utilization',
-            'response_time',
-            'system_availability'
+            "processing_throughput",
+            "quality_validation_speed",
+            "error_detection_accuracy",
+            "resource_utilization",
+            "response_time",
+            "system_availability"
         ]
 
         # Target performance values
         self.performance_targets = {
-            'processing_throughput': 1000.0,  # conversations/hour
-            'quality_validation_speed': 50.0,  # validations/second
-            'error_detection_accuracy': 0.95,  # 95% accuracy
-            'resource_utilization': 0.80,     # 80% utilization
-            'response_time': 200.0,           # milliseconds
-            'system_availability': 0.999      # 99.9% uptime
+            "processing_throughput": 1000.0,  # conversations/hour
+            "quality_validation_speed": 50.0,  # validations/second
+            "error_detection_accuracy": 0.95,  # 95% accuracy
+            "resource_utilization": 0.80,     # 80% utilization
+            "response_time": 200.0,           # milliseconds
+            "system_availability": 0.999      # 99.9% uptime
         }
 
     def analyze_performance_optimization(self) -> OptimizationPlan:
@@ -96,8 +96,8 @@ class QualityPerformanceOptimizer:
 
             # Create optimization plan
             plan = OptimizationPlan(
-                plan_id=f"QPO_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-                generated_at=datetime.now(),
+                plan_id=f"QPO_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+                generated_at=datetime.now(timezone.utc),
                 performance_metrics=performance_metrics,
                 optimization_priorities=optimization_priorities,
                 resource_requirements=resource_requirements,
@@ -113,7 +113,7 @@ class QualityPerformanceOptimizer:
             print(f"❌ Error analyzing performance optimization: {e}")
             return OptimizationPlan(
                 plan_id="ERROR",
-                generated_at=datetime.now(),
+                generated_at=datetime.now(timezone.utc),
                 performance_metrics=[],
                 optimization_priorities=[],
                 resource_requirements={},
@@ -122,7 +122,7 @@ class QualityPerformanceOptimizer:
                 success_criteria=[]
             )
 
-    def _collect_performance_data(self) -> Dict[str, Any]:
+    def _collect_performance_data(self) -> dict[str, Any]:
         """Collect current performance data"""
         try:
             # Get basic system metrics
@@ -138,21 +138,21 @@ class QualityPerformanceOptimizer:
             conn.close()
 
             # Generate synthetic performance data for demonstration
-            current_time = datetime.now()
+            current_time = datetime.now(timezone.utc)
 
             performance_data = {
-                'processing_throughput': np.random.uniform(600, 900),  # conversations/hour
-                'quality_validation_speed': np.random.uniform(30, 45),  # validations/second
-                'error_detection_accuracy': np.random.uniform(0.88, 0.93),  # accuracy
-                'resource_utilization': np.random.uniform(0.65, 0.85),  # utilization
-                'response_time': np.random.uniform(150, 300),  # milliseconds
-                'system_availability': np.random.uniform(0.995, 0.999),  # uptime
-                'total_conversations': total_conversations,
-                'processed_conversations': processed_conversations,
-                'measurement_timestamp': current_time,
-                'system_load': np.random.uniform(0.4, 0.8),
-                'memory_usage': np.random.uniform(0.5, 0.9),
-                'cpu_usage': np.random.uniform(0.3, 0.7)
+                "processing_throughput": np.random.uniform(600, 900),  # conversations/hour
+                "quality_validation_speed": np.random.uniform(30, 45),  # validations/second
+                "error_detection_accuracy": np.random.uniform(0.88, 0.93),  # accuracy
+                "resource_utilization": np.random.uniform(0.65, 0.85),  # utilization
+                "response_time": np.random.uniform(150, 300),  # milliseconds
+                "system_availability": np.random.uniform(0.995, 0.999),  # uptime
+                "total_conversations": total_conversations,
+                "processed_conversations": processed_conversations,
+                "measurement_timestamp": current_time,
+                "system_load": np.random.uniform(0.4, 0.8),
+                "memory_usage": np.random.uniform(0.5, 0.9),
+                "cpu_usage": np.random.uniform(0.3, 0.7)
             }
 
             return performance_data
@@ -161,7 +161,7 @@ class QualityPerformanceOptimizer:
             print(f"❌ Error collecting performance data: {e}")
             return {}
 
-    def _analyze_performance_metrics(self, performance_data: Dict[str, Any]) -> List[PerformanceMetric]:
+    def _analyze_performance_metrics(self, performance_data: dict[str, Any]) -> list[PerformanceMetric]:
         """Analyze performance metrics and identify optimization opportunities"""
         performance_metrics = []
 
@@ -171,7 +171,7 @@ class QualityPerformanceOptimizer:
                 target_value = self.performance_targets.get(metric_name, current_value * 1.2)
 
                 # Calculate performance gap
-                if metric_name in ['response_time']:  # Lower is better
+                if metric_name in ["response_time"]:  # Lower is better
                     performance_gap = max(0, current_value - target_value)
                     optimization_potential = (performance_gap / current_value) * 100 if current_value > 0 else 0
                 else:  # Higher is better
@@ -205,131 +205,131 @@ class QualityPerformanceOptimizer:
             return []
 
     def _identify_bottleneck_factors(self, metric_name: str, current_value: float,
-                                   performance_data: Dict[str, Any]) -> List[str]:
+                                   performance_data: dict[str, Any]) -> list[str]:
         """Identify bottleneck factors for specific metric"""
         bottlenecks = []
 
         try:
-            system_load = performance_data.get('system_load', 0.5)
-            memory_usage = performance_data.get('memory_usage', 0.5)
-            cpu_usage = performance_data.get('cpu_usage', 0.5)
+            system_load = performance_data.get("system_load", 0.5)
+            memory_usage = performance_data.get("memory_usage", 0.5)
+            cpu_usage = performance_data.get("cpu_usage", 0.5)
 
-            if metric_name == 'processing_throughput':
+            if metric_name == "processing_throughput":
                 if cpu_usage > 0.8:
-                    bottlenecks.append('High CPU utilization limiting processing capacity')
+                    bottlenecks.append("High CPU utilization limiting processing capacity")
                 if memory_usage > 0.9:
-                    bottlenecks.append('Memory constraints affecting processing speed')
+                    bottlenecks.append("Memory constraints affecting processing speed")
                 if system_load > 0.7:
-                    bottlenecks.append('High system load reducing throughput')
+                    bottlenecks.append("High system load reducing throughput")
 
-            elif metric_name == 'quality_validation_speed':
+            elif metric_name == "quality_validation_speed":
                 if memory_usage > 0.8:
-                    bottlenecks.append('Memory limitations affecting validation algorithms')
+                    bottlenecks.append("Memory limitations affecting validation algorithms")
                 if current_value < 40:
-                    bottlenecks.append('Validation algorithm complexity needs optimization')
+                    bottlenecks.append("Validation algorithm complexity needs optimization")
 
-            elif metric_name == 'error_detection_accuracy':
+            elif metric_name == "error_detection_accuracy":
                 if current_value < 0.9:
-                    bottlenecks.append('Detection algorithms need enhancement')
-                    bottlenecks.append('Training data quality may be insufficient')
+                    bottlenecks.append("Detection algorithms need enhancement")
+                    bottlenecks.append("Training data quality may be insufficient")
 
-            elif metric_name == 'resource_utilization':
+            elif metric_name == "resource_utilization":
                 if current_value < 0.7:
-                    bottlenecks.append('Underutilized resources indicate inefficient allocation')
+                    bottlenecks.append("Underutilized resources indicate inefficient allocation")
                 elif current_value > 0.9:
-                    bottlenecks.append('Over-utilization may cause performance degradation')
+                    bottlenecks.append("Over-utilization may cause performance degradation")
 
-            elif metric_name == 'response_time':
+            elif metric_name == "response_time":
                 if current_value > 250:
-                    bottlenecks.append('Network latency or processing delays')
-                    bottlenecks.append('Database query optimization needed')
+                    bottlenecks.append("Network latency or processing delays")
+                    bottlenecks.append("Database query optimization needed")
 
-            elif metric_name == 'system_availability':
+            elif metric_name == "system_availability":
                 if current_value < 0.998:
-                    bottlenecks.append('System reliability issues need addressing')
-                    bottlenecks.append('Failover mechanisms may need improvement')
+                    bottlenecks.append("System reliability issues need addressing")
+                    bottlenecks.append("Failover mechanisms may need improvement")
 
             # Add general bottlenecks if none specific found
             if not bottlenecks:
-                bottlenecks.append('Performance within acceptable range - minor optimizations possible')
+                bottlenecks.append("Performance within acceptable range - minor optimizations possible")
 
             return bottlenecks
 
         except Exception as e:
             print(f"❌ Error identifying bottlenecks for {metric_name}: {e}")
-            return ['Error analyzing bottlenecks']
+            return ["Error analyzing bottlenecks"]
 
     def _generate_optimization_recommendations(self, metric_name: str, current_value: float,
-                                             target_value: float, bottlenecks: List[str]) -> List[str]:
+                                             target_value: float, bottlenecks: list[str]) -> list[str]:
         """Generate optimization recommendations for specific metric"""
         recommendations = []
 
         try:
-            if metric_name == 'processing_throughput':
+            if metric_name == "processing_throughput":
                 recommendations.extend([
-                    'Implement parallel processing for conversation analysis',
-                    'Optimize database queries and indexing',
-                    'Add processing worker nodes for horizontal scaling',
-                    'Implement caching for frequently accessed data'
+                    "Implement parallel processing for conversation analysis",
+                    "Optimize database queries and indexing",
+                    "Add processing worker nodes for horizontal scaling",
+                    "Implement caching for frequently accessed data"
                 ])
 
-            elif metric_name == 'quality_validation_speed':
+            elif metric_name == "quality_validation_speed":
                 recommendations.extend([
-                    'Optimize validation algorithms for better performance',
-                    'Implement batch validation processing',
-                    'Use GPU acceleration for NLP computations',
-                    'Cache validation results for similar content'
+                    "Optimize validation algorithms for better performance",
+                    "Implement batch validation processing",
+                    "Use GPU acceleration for NLP computations",
+                    "Cache validation results for similar content"
                 ])
 
-            elif metric_name == 'error_detection_accuracy':
+            elif metric_name == "error_detection_accuracy":
                 recommendations.extend([
-                    'Enhance training datasets with more diverse examples',
-                    'Implement ensemble methods for better accuracy',
-                    'Fine-tune detection thresholds based on validation data',
-                    'Add human-in-the-loop validation for edge cases'
+                    "Enhance training datasets with more diverse examples",
+                    "Implement ensemble methods for better accuracy",
+                    "Fine-tune detection thresholds based on validation data",
+                    "Add human-in-the-loop validation for edge cases"
                 ])
 
-            elif metric_name == 'resource_utilization':
+            elif metric_name == "resource_utilization":
                 recommendations.extend([
-                    'Implement dynamic resource allocation',
-                    'Optimize memory usage patterns',
-                    'Add auto-scaling based on workload',
-                    'Implement resource monitoring and alerting'
+                    "Implement dynamic resource allocation",
+                    "Optimize memory usage patterns",
+                    "Add auto-scaling based on workload",
+                    "Implement resource monitoring and alerting"
                 ])
 
-            elif metric_name == 'response_time':
+            elif metric_name == "response_time":
                 recommendations.extend([
-                    'Implement response caching strategies',
-                    'Optimize database connection pooling',
-                    'Add CDN for static content delivery',
-                    'Implement asynchronous processing where possible'
+                    "Implement response caching strategies",
+                    "Optimize database connection pooling",
+                    "Add CDN for static content delivery",
+                    "Implement asynchronous processing where possible"
                 ])
 
-            elif metric_name == 'system_availability':
+            elif metric_name == "system_availability":
                 recommendations.extend([
-                    'Implement redundant system components',
-                    'Add automated failover mechanisms',
-                    'Enhance monitoring and alerting systems',
-                    'Implement graceful degradation strategies'
+                    "Implement redundant system components",
+                    "Add automated failover mechanisms",
+                    "Enhance monitoring and alerting systems",
+                    "Implement graceful degradation strategies"
                 ])
 
             # Add performance gap specific recommendations
             gap_percentage = abs(target_value - current_value) / target_value * 100 if target_value != 0 else 0
 
             if gap_percentage > 20:
-                recommendations.append('Consider major architectural improvements')
+                recommendations.append("Consider major architectural improvements")
             elif gap_percentage > 10:
-                recommendations.append('Implement targeted performance optimizations')
+                recommendations.append("Implement targeted performance optimizations")
             else:
-                recommendations.append('Fine-tune existing systems for marginal improvements')
+                recommendations.append("Fine-tune existing systems for marginal improvements")
 
             return recommendations
 
         except Exception as e:
             print(f"❌ Error generating recommendations for {metric_name}: {e}")
-            return ['Error generating recommendations']
+            return ["Error generating recommendations"]
 
-    def _identify_optimization_priorities(self, performance_metrics: List[PerformanceMetric]) -> List[str]:
+    def _identify_optimization_priorities(self, performance_metrics: list[PerformanceMetric]) -> list[str]:
         """Identify optimization priorities based on performance gaps"""
         try:
             # Sort metrics by optimization potential
@@ -353,26 +353,26 @@ class QualityPerformanceOptimizer:
             print(f"❌ Error identifying optimization priorities: {e}")
             return []
 
-    def _calculate_resource_requirements(self, performance_metrics: List[PerformanceMetric]) -> Dict[str, Any]:
+    def _calculate_resource_requirements(self, performance_metrics: list[PerformanceMetric]) -> dict[str, Any]:
         """Calculate resource requirements for optimization"""
         try:
             high_priority_count = len([m for m in performance_metrics if m.optimization_potential > 15])
             medium_priority_count = len([m for m in performance_metrics if 5 < m.optimization_potential <= 15])
 
             return {
-                'development_hours': high_priority_count * 40 + medium_priority_count * 20,
-                'infrastructure_cost': high_priority_count * 5000 + medium_priority_count * 2000,
-                'team_members_required': min(5, max(2, high_priority_count)),
-                'timeline_weeks': max(4, high_priority_count * 2 + medium_priority_count),
-                'testing_resources': 'Dedicated QA environment and performance testing tools',
-                'monitoring_tools': 'Enhanced performance monitoring and alerting systems'
+                "development_hours": high_priority_count * 40 + medium_priority_count * 20,
+                "infrastructure_cost": high_priority_count * 5000 + medium_priority_count * 2000,
+                "team_members_required": min(5, max(2, high_priority_count)),
+                "timeline_weeks": max(4, high_priority_count * 2 + medium_priority_count),
+                "testing_resources": "Dedicated QA environment and performance testing tools",
+                "monitoring_tools": "Enhanced performance monitoring and alerting systems"
             }
 
         except Exception as e:
             print(f"❌ Error calculating resource requirements: {e}")
             return {}
 
-    def _estimate_expected_improvements(self, performance_metrics: List[PerformanceMetric]) -> Dict[str, float]:
+    def _estimate_expected_improvements(self, performance_metrics: list[PerformanceMetric]) -> dict[str, float]:
         """Estimate expected improvements from optimization"""
         improvements = {}
 
@@ -384,7 +384,7 @@ class QualityPerformanceOptimizer:
 
             # Overall system improvement
             avg_improvement = np.mean(list(improvements.values()))
-            improvements['overall_system_performance'] = avg_improvement
+            improvements["overall_system_performance"] = avg_improvement
 
             return improvements
 
@@ -392,7 +392,7 @@ class QualityPerformanceOptimizer:
             print(f"❌ Error estimating improvements: {e}")
             return {}
 
-    def _create_implementation_timeline(self, performance_metrics: List[PerformanceMetric]) -> Dict[str, int]:
+    def _create_implementation_timeline(self, performance_metrics: list[PerformanceMetric]) -> dict[str, int]:
         """Create implementation timeline for optimizations"""
         timeline = {}
 
@@ -411,14 +411,14 @@ class QualityPerformanceOptimizer:
                     duration = 1  # 1 week for low priority
 
                 timeline[metric.metric_name] = {
-                    'start_week': current_week,
-                    'duration_weeks': duration,
-                    'end_week': current_week + duration - 1
+                    "start_week": current_week,
+                    "duration_weeks": duration,
+                    "end_week": current_week + duration - 1
                 }
 
                 current_week += duration
 
-            timeline['total_duration_weeks'] = current_week - 1
+            timeline["total_duration_weeks"] = current_week - 1
 
             return timeline
 
@@ -426,7 +426,7 @@ class QualityPerformanceOptimizer:
             print(f"❌ Error creating timeline: {e}")
             return {}
 
-    def _define_success_criteria(self, performance_metrics: List[PerformanceMetric]) -> List[str]:
+    def _define_success_criteria(self, performance_metrics: list[PerformanceMetric]) -> list[str]:
         """Define success criteria for optimization plan"""
         criteria = []
 
@@ -438,11 +438,11 @@ class QualityPerformanceOptimizer:
 
             # General criteria
             criteria.extend([
-                'Maintain system stability during optimization implementation',
-                'No degradation in other performance metrics',
-                'Complete implementation within planned timeline',
-                'Achieve ROI positive within 6 months',
-                'User satisfaction scores maintain or improve'
+                "Maintain system stability during optimization implementation",
+                "No degradation in other performance metrics",
+                "Complete implementation within planned timeline",
+                "Achieve ROI positive within 6 months",
+                "User satisfaction scores maintain or improve"
             ])
 
             return criteria
@@ -456,44 +456,44 @@ class QualityPerformanceOptimizer:
         print("📄 Exporting optimization plan...")
 
         try:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
             report_file = self.output_dir / f"quality_optimization_plan_{timestamp}.json"
 
             # Prepare export data
             export_data = {
-                'plan_metadata': {
-                    'plan_id': plan.plan_id,
-                    'generated_at': plan.generated_at.isoformat(),
-                    'optimizer_version': '1.0.0',
-                    'metrics_analyzed': len(plan.performance_metrics)
+                "plan_metadata": {
+                    "plan_id": plan.plan_id,
+                    "generated_at": plan.generated_at.isoformat(),
+                    "optimizer_version": "1.0.0",
+                    "metrics_analyzed": len(plan.performance_metrics)
                 },
-                'executive_summary': {
-                    'high_priority_optimizations': len([p for p in plan.optimization_priorities if 'HIGH:' in p]),
-                    'medium_priority_optimizations': len([p for p in plan.optimization_priorities if 'MEDIUM:' in p]),
-                    'estimated_timeline_weeks': plan.implementation_timeline.get('total_duration_weeks', 0),
-                    'expected_overall_improvement': plan.expected_improvements.get('overall_system_performance', 0)
+                "executive_summary": {
+                    "high_priority_optimizations": len([p for p in plan.optimization_priorities if "HIGH:" in p]),
+                    "medium_priority_optimizations": len([p for p in plan.optimization_priorities if "MEDIUM:" in p]),
+                    "estimated_timeline_weeks": plan.implementation_timeline.get("total_duration_weeks", 0),
+                    "expected_overall_improvement": plan.expected_improvements.get("overall_system_performance", 0)
                 },
-                'performance_analysis': [
+                "performance_analysis": [
                     {
-                        'metric_name': metric.metric_name,
-                        'current_value': metric.current_value,
-                        'target_value': metric.target_value,
-                        'performance_gap': metric.performance_gap,
-                        'optimization_potential': metric.optimization_potential,
-                        'bottleneck_factors': metric.bottleneck_factors,
-                        'optimization_recommendations': metric.optimization_recommendations
+                        "metric_name": metric.metric_name,
+                        "current_value": metric.current_value,
+                        "target_value": metric.target_value,
+                        "performance_gap": metric.performance_gap,
+                        "optimization_potential": metric.optimization_potential,
+                        "bottleneck_factors": metric.bottleneck_factors,
+                        "optimization_recommendations": metric.optimization_recommendations
                     }
                     for metric in plan.performance_metrics
                 ],
-                'optimization_priorities': plan.optimization_priorities,
-                'resource_requirements': plan.resource_requirements,
-                'expected_improvements': plan.expected_improvements,
-                'implementation_timeline': plan.implementation_timeline,
-                'success_criteria': plan.success_criteria
+                "optimization_priorities": plan.optimization_priorities,
+                "resource_requirements": plan.resource_requirements,
+                "expected_improvements": plan.expected_improvements,
+                "implementation_timeline": plan.implementation_timeline,
+                "success_criteria": plan.success_criteria
             }
 
             # Save plan
-            with open(report_file, 'w') as f:
+            with open(report_file, "w") as f:
                 json.dump(export_data, f, indent=2, default=str)
 
             print(f"✅ Exported optimization plan to: {report_file}")
@@ -522,7 +522,7 @@ def main():
     report_file = optimizer.export_optimization_plan(plan)
 
     # Display summary
-    print(f"\n✅ Performance Optimization Analysis Complete")
+    print("\n✅ Performance Optimization Analysis Complete")
     print(f"   - Metrics analyzed: {len(plan.performance_metrics)}")
     print(f"   - Optimization priorities: {len(plan.optimization_priorities)}")
     print(f"   - Expected timeline: {plan.implementation_timeline.get('total_duration_weeks', 0)} weeks")
@@ -534,7 +534,7 @@ def main():
         print(f"   • {priority}")
 
     # Show expected improvements
-    print(f"\n📈 Expected Improvements:")
+    print("\n📈 Expected Improvements:")
     for metric, improvement in list(plan.expected_improvements.items())[:5]:  # Top 5
         if improvement > 1:  # Only show significant improvements
             print(f"   • {metric.replace('_', ' ').title()}: {improvement:.1f}% improvement")

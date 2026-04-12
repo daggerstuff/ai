@@ -4,13 +4,14 @@ Quality Improvement Tracking System
 Tracks quality improvements over time and provides actionable recommendations
 """
 
+from datetime import datetime, timedelta, timezone
+
 import json
 import sqlite3
 import warnings
 from dataclasses import dataclass
-from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -41,9 +42,9 @@ class ImprovementPlan:
     current_status: str
     target_value: float
     timeline_days: int
-    action_items: List[str]
-    success_criteria: List[str]
-    risk_factors: List[str]
+    action_items: list[str]
+    success_criteria: list[str]
+    risk_factors: list[str]
 
 
 class QualityImprovementTracker:
@@ -75,7 +76,7 @@ class QualityImprovementTracker:
 
     def track_quality_improvements(
         self, baseline_days: int = 30, current_days: int = 7
-    ) -> Dict[str, QualityImprovement]:
+    ) -> dict[str, QualityImprovement]:
         """Track quality improvements between baseline and current periods"""
         print(
             f"📈 Tracking quality improvements (baseline: {baseline_days} days, current: {current_days} days)..."
@@ -109,13 +110,13 @@ class QualityImprovementTracker:
             print(f"❌ Error tracking quality improvements: {e}")
             return {}
 
-    def _get_period_data(self, days_back: int, days_offset: int = 0) -> List[Dict]:
+    def _get_period_data(self, days_back: int, days_offset: int = 0) -> list[dict]:
         """Get data for a specific time period"""
         try:
             conn = sqlite3.connect(self.db_path)
 
             # Calculate date range
-            end_date = datetime.now() - timedelta(days=days_offset)
+            end_date = datetime.now(timezone.utc) - timedelta(days=days_offset)
             start_date = end_date - timedelta(days=days_back)
 
             query = """
@@ -150,8 +151,8 @@ class QualityImprovementTracker:
             return []
 
     def _calculate_improvement(
-        self, baseline_data: List[Dict], current_data: List[Dict], metric: str
-    ) -> Optional[QualityImprovement]:
+        self, baseline_data: list[dict], current_data: list[dict], metric: str
+    ) -> QualityImprovement | None:
         """Calculate improvement for a specific metric"""
         try:
             # Calculate baseline and current values
@@ -199,7 +200,7 @@ class QualityImprovementTracker:
             print(f"❌ Error calculating improvement for {metric}: {e}")
             return None
 
-    def _calculate_metric_value(self, data: List[Dict], metric: str) -> Optional[float]:
+    def _calculate_metric_value(self, data: list[dict], metric: str) -> float | None:
         """Calculate metric value for a dataset"""
         try:
             if not data:
@@ -209,25 +210,25 @@ class QualityImprovementTracker:
                 values = [r["turn_count"] for r in data if r["turn_count"]]
                 return np.mean(values) if values else None
 
-            elif metric == "content_richness":
+            if metric == "content_richness":
                 values = [r["word_count"] for r in data if r["word_count"]]
                 return np.mean(values) if values else None
 
-            elif metric == "processing_efficiency":
+            if metric == "processing_efficiency":
                 total = len(data)
                 successful = len(
                     [r for r in data if r["processing_status"] == "processed"]
                 )
                 return (successful / total) * 100 if total > 0 else None
 
-            elif metric == "tier_quality":
+            if metric == "tier_quality":
                 total = len(data)
                 priority = len(
                     [r for r in data if r["tier"] and "priority" in str(r["tier"])]
                 )
                 return (priority / total) * 100 if total > 0 else None
 
-            elif metric == "dataset_diversity":
+            if metric == "dataset_diversity":
                 unique_datasets = len(
                     set(r["dataset_source"] for r in data if r["dataset_source"])
                 )
@@ -247,35 +248,33 @@ class QualityImprovementTracker:
             if direction == "improving":
                 if improvement_percentage > self.improvement_thresholds["significant"]:
                     return f"Excellent progress! Continue current practices for {metric.replace('_', ' ')}"
-                elif improvement_percentage > self.improvement_thresholds["moderate"]:
+                if improvement_percentage > self.improvement_thresholds["moderate"]:
                     return f"Good improvement in {metric.replace('_', ' ')}. Consider scaling successful approaches"
-                else:
-                    return f"Slight improvement in {metric.replace('_', ' ')}. Monitor trends and maintain focus"
+                return f"Slight improvement in {metric.replace('_', ' ')}. Monitor trends and maintain focus"
 
-            elif direction == "declining":
+            if direction == "declining":
                 if (
                     abs(improvement_percentage)
                     > self.improvement_thresholds["significant"]
                 ):
                     return f"URGENT: Significant decline in {metric.replace('_', ' ')}. Immediate intervention required"
-                elif (
+                if (
                     abs(improvement_percentage)
                     > self.improvement_thresholds["moderate"]
                 ):
                     return f"Concerning decline in {metric.replace('_', ' ')}. Review and adjust processes"
-                else:
-                    return f"Minor decline in {metric.replace('_', ' ')}. Monitor closely and investigate causes"
+                return f"Minor decline in {metric.replace('_', ' ')}. Monitor closely and investigate causes"
 
-            else:  # stable
-                return f"{metric.replace('_', ' ').title()} remains stable. Consider optimization opportunities"
+            # stable
+            return f"{metric.replace('_', ' ').title()} remains stable. Consider optimization opportunities"
 
         except Exception as e:
             print(f"❌ Error generating recommendation: {e}")
             return "Unable to generate recommendation"
 
     def create_improvement_plans(
-        self, improvements: Dict[str, QualityImprovement]
-    ) -> Dict[str, ImprovementPlan]:
+        self, improvements: dict[str, QualityImprovement]
+    ) -> dict[str, ImprovementPlan]:
         """Create improvement plans for declining or stable metrics"""
         print("📋 Creating improvement plans...")
 
@@ -297,7 +296,7 @@ class QualityImprovementTracker:
 
     def _create_metric_improvement_plan(
         self, metric: str, improvement: QualityImprovement
-    ) -> Optional[ImprovementPlan]:
+    ) -> ImprovementPlan | None:
         """Create improvement plan for specific metric"""
         try:
             # Determine target value
@@ -333,7 +332,7 @@ class QualityImprovementTracker:
 
     def _generate_action_items(
         self, metric: str, improvement: QualityImprovement
-    ) -> List[str]:
+    ) -> list[str]:
         """Generate action items for metric improvement"""
         actions = []
 
@@ -375,7 +374,7 @@ class QualityImprovementTracker:
 
         return actions
 
-    def _generate_success_criteria(self, metric: str, target_value: float) -> List[str]:
+    def _generate_success_criteria(self, metric: str, target_value: float) -> list[str]:
         """Generate success criteria for improvement plan"""
         criteria = [
             f"Achieve target {metric.replace('_', ' ')} value of {target_value:.2f}",
@@ -388,7 +387,7 @@ class QualityImprovementTracker:
 
     def _identify_risk_factors(
         self, metric: str, improvement: QualityImprovement
-    ) -> List[str]:
+    ) -> list[str]:
         """Identify risk factors for improvement plan"""
         risks = []
 
@@ -410,8 +409,8 @@ class QualityImprovementTracker:
         return risks
 
     def create_improvement_visualizations(
-        self, improvements: Dict[str, QualityImprovement]
-    ) -> Dict[str, str]:
+        self, improvements: dict[str, QualityImprovement]
+    ) -> dict[str, str]:
         """Create improvement tracking visualizations"""
         print("📈 Creating improvement tracking visualizations...")
 
@@ -533,15 +532,15 @@ class QualityImprovementTracker:
 
     def export_improvement_report(
         self,
-        improvements: Dict[str, QualityImprovement],
-        plans: Dict[str, ImprovementPlan],
-        visualizations: Dict[str, str],
+        improvements: dict[str, QualityImprovement],
+        plans: dict[str, ImprovementPlan],
+        visualizations: dict[str, str],
     ) -> str:
         """Export comprehensive improvement tracking report"""
         print("📄 Exporting improvement tracking report...")
 
         try:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
             report_file = (
                 self.output_dir / f"quality_improvement_report_{timestamp}.json"
             )
@@ -549,7 +548,7 @@ class QualityImprovementTracker:
             # Prepare export data
             export_data = {
                 "report_metadata": {
-                    "generated_at": datetime.now().isoformat(),
+                    "generated_at": datetime.now(timezone.utc).isoformat(),
                     "tracker_version": "1.0.0",
                     "total_metrics_tracked": len(improvements),
                     "improvement_plans_created": len(plans),
@@ -595,9 +594,9 @@ class QualityImprovementTracker:
 
     def _create_executive_summary(
         self,
-        improvements: Dict[str, QualityImprovement],
-        plans: Dict[str, ImprovementPlan],
-    ) -> Dict[str, Any]:
+        improvements: dict[str, QualityImprovement],
+        plans: dict[str, ImprovementPlan],
+    ) -> dict[str, Any]:
         """Create executive summary of improvements"""
         try:
             improving_metrics = [

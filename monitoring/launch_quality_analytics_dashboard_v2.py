@@ -6,25 +6,25 @@ Enterprise-grade launcher for the quality analytics dashboard with
 comprehensive validation, dependency checking, and production deployment.
 """
 
+from datetime import datetime, timezone
+
 import argparse
 import json
 import logging
-import os
 import signal
 import sqlite3
 import subprocess
 import sys
 import time
-from datetime import datetime
 from pathlib import Path
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
+    format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
         logging.StreamHandler(sys.stdout),
-        logging.FileHandler(Path(__file__).parent / 'dashboard_launcher.log')
+        logging.FileHandler(Path(__file__).parent / "dashboard_launcher.log")
     ]
 )
 logger = logging.getLogger(__name__)
@@ -50,13 +50,13 @@ class QualityAnalyticsDashboardLauncher:
 
         # Required dependencies with version checks
         self.required_packages = {
-            'streamlit': '1.0.0',
-            'pandas': '1.3.0',
-            'plotly': '5.0.0',
-            'numpy': '1.20.0',
-            'seaborn': '0.11.0',
-            'matplotlib': '3.3.0',
-            'sqlite3': None  # Built-in
+            "streamlit": "1.0.0",
+            "pandas": "1.3.0",
+            "plotly": "5.0.0",
+            "numpy": "1.20.0",
+            "seaborn": "0.11.0",
+            "matplotlib": "3.3.0",
+            "sqlite3": None  # Built-in
         }
 
         # Process tracking
@@ -90,7 +90,7 @@ class QualityAnalyticsDashboardLauncher:
 
         for package, min_version in self.required_packages.items():
             try:
-                if package == 'sqlite3':
+                if package == "sqlite3":
                     import sqlite3
                     logger.info(f"  ✅ {package}: Available (built-in)")
                     continue
@@ -99,7 +99,7 @@ class QualityAnalyticsDashboardLauncher:
                 module = __import__(package)
 
                 # Check version if specified
-                if min_version and hasattr(module, '__version__'):
+                if min_version and hasattr(module, "__version__"):
                     current_version = module.__version__
                     if self._compare_versions(current_version, min_version) < 0:
                         version_issues.append(f"{package} (current: {current_version}, required: >={min_version})")
@@ -144,10 +144,9 @@ class QualityAnalyticsDashboardLauncher:
 
             if current_tuple < required_tuple:
                 return -1
-            elif current_tuple > required_tuple:
+            if current_tuple > required_tuple:
                 return 1
-            else:
-                return 0
+            return 0
         except:
             return 0  # Assume OK if can't parse
 
@@ -173,7 +172,7 @@ class QualityAnalyticsDashboardLauncher:
             cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
             tables = [row[0] for row in cursor.fetchall()]
 
-            required_tables = ['conversations', 'conversation_quality']
+            required_tables = ["conversations", "conversation_quality"]
             missing_tables = [table for table in required_tables if table not in tables]
 
             if missing_tables:
@@ -184,7 +183,7 @@ class QualityAnalyticsDashboardLauncher:
             # Validate schema for conversations table
             cursor.execute("PRAGMA table_info(conversations)")
             conv_columns = [row[1] for row in cursor.fetchall()]
-            required_conv_columns = ['conversation_id', 'tier', 'created_at', 'dataset_source']
+            required_conv_columns = ["conversation_id", "tier", "created_at", "dataset_source"]
 
             missing_conv_columns = [col for col in required_conv_columns if col not in conv_columns]
             if missing_conv_columns:
@@ -195,7 +194,7 @@ class QualityAnalyticsDashboardLauncher:
             # Validate schema for conversation_quality table
             cursor.execute("PRAGMA table_info(conversation_quality)")
             qual_columns = [row[1] for row in cursor.fetchall()]
-            required_qual_columns = ['conversation_id', 'overall_quality', 'therapeutic_accuracy']
+            required_qual_columns = ["conversation_id", "overall_quality", "therapeutic_accuracy"]
 
             missing_qual_columns = [col for col in required_qual_columns if col not in qual_columns]
             if missing_qual_columns:
@@ -217,8 +216,8 @@ class QualityAnalyticsDashboardLauncher:
             cursor.execute("SELECT MAX(created_at) FROM conversations")
             latest_date = cursor.fetchone()[0]
             if latest_date:
-                latest_datetime = datetime.fromisoformat(latest_date.replace('Z', '+00:00') if 'Z' in latest_date else latest_date)
-                days_old = (datetime.now() - latest_datetime).days
+                latest_datetime = datetime.fromisoformat(latest_date.replace("Z", "+00:00") if "Z" in latest_date else latest_date)
+                days_old = (datetime.now(timezone.utc) - latest_datetime).days
                 if days_old > 30:
                     logger.warning(f"⚠️ Latest data is {days_old} days old")
                 else:
@@ -251,10 +250,10 @@ class QualityAnalyticsDashboardLauncher:
                 content = f.read()
 
                 required_components = [
-                    'QualityAnalyticsDashboard',
-                    'run_streamlit_dashboard',
-                    'load_quality_data',
-                    'calculate_quality_analytics'
+                    "QualityAnalyticsDashboard",
+                    "run_streamlit_dashboard",
+                    "load_quality_data",
+                    "calculate_quality_analytics"
                 ]
 
                 missing_components = [comp for comp in required_components if comp not in content]
@@ -297,11 +296,10 @@ class QualityAnalyticsDashboardLauncher:
             if result.returncode == 0:
                 logger.info("✅ Pre-launch tests passed")
                 return True
-            else:
-                logger.error(f"❌ Pre-launch tests failed:")
-                logger.error(f"STDOUT: {result.stdout}")
-                logger.error(f"STDERR: {result.stderr}")
-                return False
+            logger.error("❌ Pre-launch tests failed:")
+            logger.error(f"STDOUT: {result.stdout}")
+            logger.error(f"STDERR: {result.stderr}")
+            return False
 
         except subprocess.TimeoutExpired:
             logger.error("❌ Pre-launch tests timed out")
@@ -322,27 +320,27 @@ class QualityAnalyticsDashboardLauncher:
             dict: Launch configuration
         """
         config = {
-            'dashboard_title': 'Quality Analytics Dashboard V2',
-            'version': '2.0.0',
-            'port': port,
-            'host': host,
-            'db_path': str(self.db_path),
-            'launch_time': datetime.now().isoformat(),
-            'project_root': str(self.project_root),
-            'monitoring_dir': str(self.monitoring_dir),
-            'dashboard_file': str(self.dashboard_file),
-            'launcher_version': '2.0.0'
+            "dashboard_title": "Quality Analytics Dashboard V2",
+            "version": "2.0.0",
+            "port": port,
+            "host": host,
+            "db_path": str(self.db_path),
+            "launch_time": datetime.now(timezone.utc).isoformat(),
+            "project_root": str(self.project_root),
+            "monitoring_dir": str(self.monitoring_dir),
+            "dashboard_file": str(self.dashboard_file),
+            "launcher_version": "2.0.0"
         }
 
         # Save config for reference
         config_path = self.monitoring_dir / "dashboard_v2_launch_config.json"
-        with open(config_path, 'w') as f:
+        with open(config_path, "w") as f:
             json.dump(config, f, indent=2)
 
         logger.info(f"📝 Launch configuration saved: {config_path}")
         return config
 
-    def launch_dashboard(self, port: int = 8501, host: str = 'localhost') -> bool:
+    def launch_dashboard(self, port: int = 8501, host: str = "localhost") -> bool:
         """
         Launch the quality analytics dashboard.
 
@@ -358,14 +356,14 @@ class QualityAnalyticsDashboardLauncher:
         try:
             # Prepare streamlit command
             cmd = [
-                sys.executable, '-m', 'streamlit', 'run',
+                sys.executable, "-m", "streamlit", "run",
                 str(self.dashboard_file),
-                '--server.port', str(port),
-                '--server.address', host,
-                '--server.headless', 'true',
-                '--browser.gatherUsageStats', 'false',
-                '--server.enableCORS', 'false',
-                '--server.enableXsrfProtection', 'true'
+                "--server.port", str(port),
+                "--server.address", host,
+                "--server.headless", "true",
+                "--browser.gatherUsageStats", "false",
+                "--server.enableCORS", "false",
+                "--server.enableXsrfProtection", "true"
             ]
 
             logger.info(f"📋 Command: {' '.join(cmd)}")
@@ -390,12 +388,11 @@ class QualityAnalyticsDashboardLauncher:
                 # Monitor the process
                 self._monitor_dashboard()
                 return True
-            else:
-                stdout, stderr = self.dashboard_process.communicate()
-                logger.error(f"❌ Dashboard failed to start:")
-                logger.error(f"STDOUT: {stdout}")
-                logger.error(f"STDERR: {stderr}")
-                return False
+            stdout, stderr = self.dashboard_process.communicate()
+            logger.error("❌ Dashboard failed to start:")
+            logger.error(f"STDOUT: {stdout}")
+            logger.error(f"STDERR: {stderr}")
+            return False
 
         except Exception as e:
             logger.error(f"❌ Error launching dashboard: {e}")
@@ -438,7 +435,7 @@ class QualityAnalyticsDashboardLauncher:
             except Exception as e:
                 logger.error(f"❌ Error stopping dashboard: {e}")
 
-    def launch(self, port: int = 8501, host: str = 'localhost', skip_tests: bool = False) -> bool:
+    def launch(self, port: int = 8501, host: str = "localhost", skip_tests: bool = False) -> bool:
         """
         Complete launch sequence for the quality analytics dashboard.
 
@@ -481,14 +478,13 @@ class QualityAnalyticsDashboardLauncher:
         if success:
             logger.info("🎉 Quality Analytics Dashboard V2 launched successfully!")
             return True
-        else:
-            logger.error("❌ Dashboard launch failed")
-            return False
+        logger.error("❌ Dashboard launch failed")
+        return False
 
 def main():
     """Main function to launch the quality analytics dashboard."""
     parser = argparse.ArgumentParser(
-        description='Launch Quality Analytics Dashboard V2',
+        description="Launch Quality Analytics Dashboard V2",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -498,14 +494,14 @@ Examples:
         """
     )
 
-    parser.add_argument('--port', type=int, default=8501,
-                       help='Port to run dashboard on (default: 8501)')
-    parser.add_argument('--host', type=str, default='localhost',
-                       help='Host to bind dashboard to (default: localhost)')
-    parser.add_argument('--skip-tests', action='store_true',
-                       help='Skip pre-launch tests')
-    parser.add_argument('--verbose', '-v', action='store_true',
-                       help='Enable verbose logging')
+    parser.add_argument("--port", type=int, default=8501,
+                       help="Port to run dashboard on (default: 8501)")
+    parser.add_argument("--host", type=str, default="localhost",
+                       help="Host to bind dashboard to (default: localhost)")
+    parser.add_argument("--skip-tests", action="store_true",
+                       help="Skip pre-launch tests")
+    parser.add_argument("--verbose", "-v", action="store_true",
+                       help="Enable verbose logging")
 
     args = parser.parse_args()
 

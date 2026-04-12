@@ -4,13 +4,14 @@ Quality Anomaly Detection and Alerting System
 Detects anomalies in quality metrics and provides real-time alerts
 """
 
+from datetime import datetime, timedelta, timezone
+
 import json
 import sqlite3
 import warnings
 from dataclasses import dataclass
-from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -32,7 +33,7 @@ class QualityAnomaly:
     severity: str  # 'low', 'medium', 'high', 'critical'
     anomaly_type: str  # 'spike', 'drop', 'drift', 'outlier'
     confidence: float
-    context: Dict[str, Any]
+    context: dict[str, Any]
 
 
 @dataclass
@@ -44,8 +45,8 @@ class Alert:
     severity: str
     title: str
     message: str
-    anomalies: List[QualityAnomaly]
-    recommended_actions: List[str]
+    anomalies: list[QualityAnomaly]
+    recommended_actions: list[str]
     auto_resolved: bool
 
 
@@ -78,7 +79,7 @@ class QualityAnomalyDetector:
         self.alert_cooldown_hours = 1  # Minimum time between similar alerts
         self.min_data_points = 10  # Minimum data points for anomaly detection
 
-    def detect_quality_anomalies(self, hours_back: int = 24) -> List[QualityAnomaly]:
+    def detect_quality_anomalies(self, hours_back: int = 24) -> list[QualityAnomaly]:
         """Detect quality anomalies in recent data"""
         print(f"🔍 Detecting quality anomalies in last {hours_back} hours...")
 
@@ -116,13 +117,13 @@ class QualityAnomalyDetector:
             print(f"❌ Error detecting anomalies: {e}")
             return []
 
-    def _get_recent_data(self, hours_back: int) -> List[Dict]:
+    def _get_recent_data(self, hours_back: int) -> list[dict]:
         """Get recent data for anomaly detection"""
         try:
             conn = sqlite3.connect(self.db_path)
 
             # Calculate time threshold
-            time_threshold = datetime.now() - timedelta(hours=hours_back)
+            time_threshold = datetime.now(timezone.utc) - timedelta(hours=hours_back)
 
             query = """
             SELECT
@@ -157,13 +158,13 @@ class QualityAnomalyDetector:
             print(f"❌ Error getting recent data: {e}")
             return []
 
-    def _get_baseline_data(self, days_back: int) -> List[Dict]:
+    def _get_baseline_data(self, days_back: int) -> list[dict]:
         """Get baseline data for comparison"""
         try:
             conn = sqlite3.connect(self.db_path)
 
             # Calculate time range (excluding recent data)
-            end_time = datetime.now() - timedelta(hours=24)  # Exclude last 24 hours
+            end_time = datetime.now(timezone.utc) - timedelta(hours=24)  # Exclude last 24 hours
             start_time = end_time - timedelta(days=days_back)
 
             query = """
@@ -199,8 +200,8 @@ class QualityAnomalyDetector:
             return []
 
     def _detect_metric_anomalies(
-        self, recent_data: List[Dict], baseline_data: List[Dict], metric: str
-    ) -> List[QualityAnomaly]:
+        self, recent_data: list[dict], baseline_data: list[dict], metric: str
+    ) -> list[QualityAnomaly]:
         """Detect anomalies for a specific metric"""
         try:
             # Calculate baseline statistics
@@ -242,7 +243,7 @@ class QualityAnomalyDetector:
                 # Create anomaly
                 anomaly = QualityAnomaly(
                     metric=metric,
-                    timestamp=datetime.now()
+                    timestamp=datetime.now(timezone.utc)
                     - timedelta(minutes=i * 10),  # Synthetic timestamps
                     value=value,
                     expected_value=baseline_mean,
@@ -266,7 +267,7 @@ class QualityAnomalyDetector:
             print(f"❌ Error detecting anomalies for {metric}: {e}")
             return []
 
-    def _calculate_metric_values(self, data: List[Dict], metric: str) -> List[float]:
+    def _calculate_metric_values(self, data: list[dict], metric: str) -> list[float]:
         """Calculate metric values for a dataset"""
         try:
             if not data:
@@ -274,9 +275,9 @@ class QualityAnomalyDetector:
 
             if metric == "conversation_length":
                 return [float(r["turn_count"]) for r in data if r["turn_count"]]
-            elif metric == "content_richness":
+            if metric == "content_richness":
                 return [float(r["word_count"]) for r in data if r["word_count"]]
-            elif metric == "processing_efficiency":
+            if metric == "processing_efficiency":
                 # Calculate efficiency in batches
                 batch_size = max(1, len(data) // 10)  # 10 batches
                 efficiencies = []
@@ -288,7 +289,7 @@ class QualityAnomalyDetector:
                     )
                     efficiencies.append(100.0 * successful / total if total > 0 else 0)
                 return efficiencies
-            elif metric == "tier_quality":
+            if metric == "tier_quality":
                 # Calculate tier quality in batches
                 batch_size = max(1, len(data) // 10)
                 qualities = []
@@ -300,7 +301,7 @@ class QualityAnomalyDetector:
                     )
                     qualities.append(100.0 * priority / total if total > 0 else 0)
                 return qualities
-            elif metric == "dataset_diversity":
+            if metric == "dataset_diversity":
                 # Calculate diversity in time windows
                 window_size = max(1, len(data) // 10)
                 diversities = []
@@ -318,18 +319,17 @@ class QualityAnomalyDetector:
             print(f"❌ Error calculating {metric}: {e}")
             return []
 
-    def _determine_severity(self, z_score: float) -> Optional[str]:
+    def _determine_severity(self, z_score: float) -> str | None:
         """Determine anomaly severity based on z-score"""
         if z_score >= self.anomaly_thresholds["critical"]:
             return "critical"
-        elif z_score >= self.anomaly_thresholds["high"]:
+        if z_score >= self.anomaly_thresholds["high"]:
             return "high"
-        elif z_score >= self.anomaly_thresholds["medium"]:
+        if z_score >= self.anomaly_thresholds["medium"]:
             return "medium"
-        elif z_score >= self.anomaly_thresholds["low"]:
+        if z_score >= self.anomaly_thresholds["low"]:
             return "low"
-        else:
-            return None  # Not anomalous
+        return None  # Not anomalous
 
     def _determine_anomaly_type(
         self, value: float, baseline_mean: float, baseline_std: float
@@ -339,14 +339,13 @@ class QualityAnomalyDetector:
 
         if abs(deviation) > 3 * baseline_std:
             return "outlier"
-        elif deviation > 2 * baseline_std:
+        if deviation > 2 * baseline_std:
             return "spike"
-        elif deviation < -2 * baseline_std:
+        if deviation < -2 * baseline_std:
             return "drop"
-        else:
-            return "drift"
+        return "drift"
 
-    def generate_alerts(self, anomalies: List[QualityAnomaly]) -> List[Alert]:
+    def generate_alerts(self, anomalies: list[QualityAnomaly]) -> list[Alert]:
         """Generate alerts from detected anomalies"""
         print(f"🚨 Generating alerts from {len(anomalies)} anomalies...")
 
@@ -369,8 +368,8 @@ class QualityAnomalyDetector:
             return []
 
     def _group_anomalies(
-        self, anomalies: List[QualityAnomaly]
-    ) -> Dict[str, List[QualityAnomaly]]:
+        self, anomalies: list[QualityAnomaly]
+    ) -> dict[str, list[QualityAnomaly]]:
         """Group anomalies for alert generation"""
         groups = {}
 
@@ -384,8 +383,8 @@ class QualityAnomalyDetector:
         return groups
 
     def _create_alert(
-        self, group_key: str, anomalies: List[QualityAnomaly]
-    ) -> Optional[Alert]:
+        self, group_key: str, anomalies: list[QualityAnomaly]
+    ) -> Alert | None:
         """Create alert from grouped anomalies"""
         try:
             if not anomalies:
@@ -394,7 +393,7 @@ class QualityAnomalyDetector:
             severity, metric = group_key.split("_", 1)
 
             # Generate alert ID
-            alert_id = f"QA_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{group_key}"
+            alert_id = f"QA_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{group_key}"
 
             # Create title and message
             title = f"{severity.upper()} Quality Anomaly: {metric.replace('_', ' ').title()}"
@@ -417,7 +416,7 @@ Quality anomaly detected in {metric.replace("_", " ")}.
 
             return Alert(
                 alert_id=alert_id,
-                timestamp=datetime.now(),
+                timestamp=datetime.now(timezone.utc),
                 severity=severity,
                 title=title,
                 message=message,
@@ -431,8 +430,8 @@ Quality anomaly detected in {metric.replace("_", " ")}.
             return None
 
     def _generate_recommended_actions(
-        self, metric: str, severity: str, anomalies: List[QualityAnomaly]
-    ) -> List[str]:
+        self, metric: str, severity: str, anomalies: list[QualityAnomaly]
+    ) -> list[str]:
         """Generate recommended actions for alerts"""
         actions = []
 
@@ -495,8 +494,8 @@ Quality anomaly detected in {metric.replace("_", " ")}.
         return actions
 
     def create_anomaly_visualizations(
-        self, anomalies: List[QualityAnomaly]
-    ) -> Dict[str, str]:
+        self, anomalies: list[QualityAnomaly]
+    ) -> dict[str, str]:
         """Create anomaly detection visualizations"""
         print("📈 Creating anomaly detection visualizations...")
 
@@ -601,15 +600,15 @@ Quality anomaly detected in {metric.replace("_", " ")}.
 
     def export_anomaly_report(
         self,
-        anomalies: List[QualityAnomaly],
-        alerts: List[Alert],
-        visualizations: Dict[str, str],
+        anomalies: list[QualityAnomaly],
+        alerts: list[Alert],
+        visualizations: dict[str, str],
     ) -> str:
         """Export comprehensive anomaly detection report"""
         print("📄 Exporting anomaly detection report...")
 
         try:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
             report_file = self.output_dir / f"quality_anomaly_report_{timestamp}.json"
 
             # Create summary statistics
@@ -618,7 +617,7 @@ Quality anomaly detected in {metric.replace("_", " ")}.
             # Prepare export data
             export_data = {
                 "report_metadata": {
-                    "generated_at": datetime.now().isoformat(),
+                    "generated_at": datetime.now(timezone.utc).isoformat(),
                     "detector_version": "1.0.0",
                     "total_anomalies": len(anomalies),
                     "total_alerts": len(alerts),
@@ -666,8 +665,8 @@ Quality anomaly detected in {metric.replace("_", " ")}.
             return ""
 
     def _create_anomaly_summary(
-        self, anomalies: List[QualityAnomaly], alerts: List[Alert]
-    ) -> Dict[str, Any]:
+        self, anomalies: list[QualityAnomaly], alerts: list[Alert]
+    ) -> dict[str, Any]:
         """Create anomaly detection summary"""
         try:
             if not anomalies:

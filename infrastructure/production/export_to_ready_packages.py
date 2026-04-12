@@ -29,17 +29,19 @@ Usage:
     result = exporter.export()
 """
 
+from datetime import datetime, timezone
+
 import fcntl
 import hashlib
 import json
 import logging
 import os
 import time
+from collections.abc import Iterator
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
+from typing import Any
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -51,8 +53,8 @@ class ExportConfig:
     """Configuration for dataset export operations."""
 
     # Source and destination
-    source_path: Union[str, Path]
-    export_dir: Union[str, Path] = "ai/training/ready_packages/datasets"
+    source_path: str | Path
+    export_dir: str | Path = "ai/training/ready_packages/datasets"
     export_format: str = "jsonl"  # jsonl, json, parquet, csv
 
     # Export options
@@ -65,10 +67,10 @@ class ExportConfig:
     validate_schema: bool = True
     validate_content: bool = True
     min_samples: int = 10
-    required_fields: List[str] = field(default_factory=lambda: ["messages"])
+    required_fields: list[str] = field(default_factory=lambda: ["messages"])
 
     # Metadata
-    dataset_name: Optional[str] = None
+    dataset_name: str | None = None
     dataset_version: str = "1.0.0"
     add_metadata: bool = True
 
@@ -119,14 +121,14 @@ class ExportResult:
     failed_records: int = 0
     file_size_bytes: int = 0
     export_time_seconds: float = 0.0
-    manifest_path: Optional[str] = None
-    errors: List[str] = field(default_factory=list)
-    warnings: List[str] = field(default_factory=list)
+    manifest_path: str | None = None
+    errors: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
     checksum: str = ""
     timestamp: str = field(
         default_factory=lambda: datetime.now(timezone.utc).isoformat()
     )
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -141,10 +143,10 @@ class ExportMetadata:
     source_checksum: str
     export_checksum: str
     file_size_bytes: int
-    schema: Dict[str, str] = field(default_factory=dict)
-    statistics: Dict[str, Any] = field(default_factory=dict)
-    tags: List[str] = field(default_factory=list)
-    description: Optional[str] = None
+    schema: dict[str, str] = field(default_factory=dict)
+    statistics: dict[str, Any] = field(default_factory=dict)
+    tags: list[str] = field(default_factory=list)
+    description: str | None = None
 
 
 class DatasetValidator:
@@ -154,7 +156,7 @@ class DatasetValidator:
         self.config = config
         self.logger = logging.getLogger("export.validator")
 
-    def validate_source(self, source_path: Path) -> Tuple[bool, List[str]]:
+    def validate_source(self, source_path: Path) -> tuple[bool, list[str]]:
         """Validate that source file exists and is accessible."""
         errors = []
 
@@ -173,8 +175,8 @@ class DatasetValidator:
         return True, errors
 
     def validate_record(
-        self, record: Dict[str, Any], index: int
-    ) -> Tuple[bool, List[str]]:
+        self, record: dict[str, Any], index: int
+    ) -> tuple[bool, list[str]]:
         """Validate a single record."""
         errors = []
 
@@ -208,7 +210,7 @@ class DatasetValidator:
 
         return len(errors) == 0, errors
 
-    def validate_batch(self, records: List[Dict]) -> Tuple[int, int, List[str]]:
+    def validate_batch(self, records: list[dict]) -> tuple[int, int, list[str]]:
         """Validate a batch of records."""
         valid_count = 0
         invalid_count = 0
@@ -243,7 +245,7 @@ class DatasetExporter:
         self.config = config
         self.validator = DatasetValidator(config)
         self.logger = logging.getLogger("export.dataset")
-        self._lock_file: Optional[Path] = None
+        self._lock_file: Path | None = None
 
     def __enter__(self):
         """Context manager entry."""
@@ -284,7 +286,7 @@ class DatasetExporter:
 
             self.logger.info(f"Acquired lock: {self._lock_file}")
 
-        except IOError:
+        except OSError:
             raise RuntimeError(
                 f"Export already in progress for {self.config.dataset_name}"
             )
@@ -299,7 +301,7 @@ class DatasetExporter:
 
         return sha256_hash.hexdigest()
 
-    def _load_source_records(self) -> Iterator[Dict[str, Any]]:
+    def _load_source_records(self) -> Iterator[dict[str, Any]]:
         """Load records from source file."""
         source_path = self.config.source_path
         suffix = source_path.suffix.lower()
@@ -328,7 +330,7 @@ class DatasetExporter:
             raise ValueError(f"Unsupported source format: {suffix}")
 
     def _write_output(
-        self, output_path: Path, records: Iterator[Dict[str, Any]]
+        self, output_path: Path, records: Iterator[dict[str, Any]]
     ) -> ExportResult:
         """Write records to output file in specified format."""
         exported_records = 0
@@ -410,8 +412,8 @@ class DatasetExporter:
         )
 
     def _create_manifest(
-        self, export_result: ExportResult, metadata: Optional[ExportMetadata] = None
-    ) -> Optional[Path]:
+        self, export_result: ExportResult, metadata: ExportMetadata | None = None
+    ) -> Path | None:
         """Create manifest for exported dataset."""
         if not self.config.create_manifest:
             return None
@@ -541,9 +543,9 @@ class DatasetExporter:
 
 
 def export_dataset(
-    source_path: Union[str, Path],
-    export_dir: Optional[Union[str, Path]] = None,
-    dataset_name: Optional[str] = None,
+    source_path: str | Path,
+    export_dir: str | Path | None = None,
+    dataset_name: str | None = None,
     export_format: str = "jsonl",
     validate: bool = True,
     compress: bool = False,
@@ -579,13 +581,13 @@ def export_dataset(
 
 
 def export_batch(
-    sources: List[Union[str, Path]],
-    export_dir: Optional[Union[str, Path]] = None,
+    sources: list[str | Path],
+    export_dir: str | Path | None = None,
     export_format: str = "jsonl",
     parallel: bool = True,
     max_workers: int = 4,
     **kwargs,
-) -> List[ExportResult]:
+) -> list[ExportResult]:
     """
     Export multiple datasets in batch.
 
@@ -668,8 +670,8 @@ def export_batch(
 
 
 def list_exported_datasets(
-    export_dir: Optional[Union[str, Path]] = None,
-) -> List[Dict[str, Any]]:
+    export_dir: str | Path | None = None,
+) -> list[dict[str, Any]]:
     """
     List all exported datasets with their metadata.
 
@@ -697,8 +699,8 @@ def list_exported_datasets(
 
 
 def get_dataset_status(
-    dataset_name: str, export_dir: Optional[Union[str, Path]] = None
-) -> Optional[Dict[str, Any]]:
+    dataset_name: str, export_dir: str | Path | None = None
+) -> dict[str, Any] | None:
     """
     Get status of a specific exported dataset.
 

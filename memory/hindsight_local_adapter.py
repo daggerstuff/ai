@@ -1,14 +1,15 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, Iterable, List, Optional
+from collections.abc import Iterable
+from typing import Any
 
 from .hindsight_local_domain import resolve_user_id_from_record
 
 
-def normalize_tags(tags: Optional[Iterable[str]]) -> List[str]:
+def normalize_tags(tags: Iterable[str] | None) -> list[str]:
     seen = set()
-    normalized: List[str] = []
+    normalized: list[str] = []
     for tag in tags or []:
         if not tag:
             continue
@@ -20,11 +21,11 @@ def normalize_tags(tags: Optional[Iterable[str]]) -> List[str]:
     return normalized
 
 
-def encode_tags_json(tags: Optional[Iterable[str]]) -> str:
+def encode_tags_json(tags: Iterable[str] | None) -> str:
     return json.dumps(normalize_tags(tags), separators=(",", ":"))
 
 
-def parse_context_payload(context: Optional[str]) -> Dict[str, Any]:
+def parse_context_payload(context: str | None) -> dict[str, Any]:
     if not context:
         return {}
     try:
@@ -35,9 +36,9 @@ def parse_context_payload(context: Optional[str]) -> Dict[str, Any]:
 
 def serialize_context(
     *,
-    user_id: Optional[str],
-    metadata: Optional[Dict[str, Any]],
-    category: Optional[str],
+    user_id: str | None,
+    metadata: dict[str, Any] | None,
+    category: str | None,
 ) -> str:
     payload = {
         "metadata": metadata or {},
@@ -50,14 +51,14 @@ def serialize_context(
 
 def metadata_to_tags(
     *,
-    user_id: Optional[str],
-    metadata: Optional[Dict[str, Any]],
-    category: Optional[str],
-) -> List[str]:
+    user_id: str | None,
+    metadata: dict[str, Any] | None,
+    category: str | None,
+) -> list[str]:
     merged = dict(metadata or {})
     if category:
         merged["category"] = category
-    tags: List[str] = []
+    tags: list[str] = []
     if user_id:
         tags.append(f"user:{user_id}")
     for key in (
@@ -76,11 +77,11 @@ def metadata_to_tags(
     return normalize_tags(tags)
 
 
-def context_to_retain_params(context: Optional[str]) -> str:
+def context_to_retain_params(context: str | None) -> str:
     return json.dumps({"context": context or ""}, separators=(",", ":"))
 
 
-def memory_record_from_storage(record: Dict[str, Any]) -> Dict[str, Any]:
+def memory_record_from_storage(record: dict[str, Any]) -> dict[str, Any]:
     context_payload = parse_context_payload(record.get("context"))
     return {
         "id": record["id"],
@@ -93,7 +94,7 @@ def memory_record_from_storage(record: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def hindsight_document_from_storage(record: Dict[str, Any]) -> Dict[str, Any]:
+def hindsight_document_from_storage(record: dict[str, Any]) -> dict[str, Any]:
     return {
         "id": record["id"],
         "bank_id": record["bank_id"],
@@ -105,7 +106,7 @@ def hindsight_document_from_storage(record: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def hindsight_document_summary_from_storage(record: Dict[str, Any]) -> Dict[str, Any]:
+def hindsight_document_summary_from_storage(record: dict[str, Any]) -> dict[str, Any]:
     return {
         "id": record["id"],
         "bank_id": record["bank_id"],

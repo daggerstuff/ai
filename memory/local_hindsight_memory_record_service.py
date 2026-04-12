@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from .hindsight_local_adapter import memory_record_from_storage, metadata_to_tags, serialize_context
 from .local_hindsight_document_store import LocalHindsightDocumentStore
@@ -24,7 +24,7 @@ class LocalHindsightMemoryRecordService:
         self.writes = writes
         self.provider_name = provider_name
 
-    def get_memory(self, memory_id: str, user_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    def get_memory(self, memory_id: str, user_id: str | None = None) -> dict[str, Any] | None:
         record = self.document_store.get_document(
             self.default_bank_id,
             memory_id,
@@ -38,8 +38,8 @@ class LocalHindsightMemoryRecordService:
         self,
         memory_id: str,
         new_content: str,
-        metadata: Optional[Any] = None,
-        user_id: Optional[str] = None,
+        metadata: Any | None = None,
+        user_id: str | None = None,
     ) -> bool:
         existing_record = self.document_store.get_document(
             self.default_bank_id,
@@ -69,7 +69,7 @@ class LocalHindsightMemoryRecordService:
         )
         return True
 
-    def delete_memory(self, memory_id: str, user_id: Optional[str] = None) -> bool:
+    def delete_memory(self, memory_id: str, user_id: str | None = None) -> bool:
         deleted_count = self.document_store.delete_documents(
             self.default_bank_id,
             [memory_id],
@@ -77,7 +77,7 @@ class LocalHindsightMemoryRecordService:
         )
         return deleted_count > 0
 
-    def delete_memories(self, memory_ids: List[str], user_id: Optional[str] = None) -> int:
+    def delete_memories(self, memory_ids: list[str], user_id: str | None = None) -> int:
         return self.document_store.delete_documents(
             self.default_bank_id,
             memory_ids,
@@ -87,7 +87,7 @@ class LocalHindsightMemoryRecordService:
     def clear_memory(self, user_id: str) -> bool:
         return self.document_store.delete_documents_for_user(self.default_bank_id, user_id=user_id)
 
-    def get_health_status(self) -> Dict[str, Any]:
+    def get_health_status(self) -> dict[str, Any]:
         db_health = self.document_store.db.health_details()
         return {
             "status": "healthy" if db_health.get("db_ready") else "degraded",

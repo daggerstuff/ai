@@ -37,16 +37,18 @@ Usage:
     )
 """
 
+from datetime import datetime, timezone
+
 import hashlib
 import logging
 import os
 import threading
 import time
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Union
+from typing import Any, Literal
 
 import boto3
 from boto3.s3.transfer import TransferConfig
@@ -63,10 +65,10 @@ class S3Config:
     """Configuration for S3 operations."""
 
     # Connection settings
-    endpoint_url: Optional[str] = None
+    endpoint_url: str | None = None
     bucket_name: str = "pixelated-datasets"
-    access_key_id: Optional[str] = None
-    secret_access_key: Optional[str] = None
+    access_key_id: str | None = None
+    secret_access_key: str | None = None
     region_name: str = "us-east-1"
 
     # Retry settings
@@ -112,9 +114,9 @@ class UploadResult:
     local_path: str
     s3_key: str
     size_bytes: int
-    etag: Optional[str] = None
+    etag: str | None = None
     upload_time_seconds: float = 0.0
-    error: Optional[str] = None
+    error: str | None = None
     retry_count: int = 0
     checksum_verified: bool = False
     timestamp: str = field(
@@ -130,9 +132,9 @@ class DownloadResult:
     s3_key: str
     local_path: str
     size_bytes: int
-    etag: Optional[str] = None
+    etag: str | None = None
     download_time_seconds: float = 0.0
-    error: Optional[str] = None
+    error: str | None = None
     retry_count: int = 0
     checksum_verified: bool = False
     timestamp: str = field(
@@ -149,7 +151,7 @@ class BatchOperationResult:
     successful: int
     failed: int
     skipped: int = 0
-    results: List[Any] = field(default_factory=list)
+    results: list[Any] = field(default_factory=list)
     total_time_seconds: float = 0.0
     total_bytes: int = 0
 
@@ -160,7 +162,7 @@ class BatchOperationResult:
             return 100.0
         return (self.successful / self.total_files) * 100
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             "operation": self.operation,
@@ -212,7 +214,7 @@ class ProgressTracker:
             f"{rate_mb_s:.2f} MB/s"
         )
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get progress statistics."""
         elapsed = time.time() - self.start_time
         return {
@@ -268,7 +270,7 @@ class S3DatasetLoader:
             region_name=self.config.region_name,
         )
 
-        client_kwargs: Dict[str, Any] = {
+        client_kwargs: dict[str, Any] = {
             "config": boto_config,
             "use_ssl": self.config.verify_ssl,
         }
@@ -318,7 +320,7 @@ class S3DatasetLoader:
         return hash_obj.hexdigest()
 
     def _retry_operation(
-        self, operation, *args, max_retries: Optional[int] = None, **kwargs
+        self, operation, *args, max_retries: int | None = None, **kwargs
     ):
         """
         Execute operation with retry logic.
@@ -365,10 +367,10 @@ class S3DatasetLoader:
 
     def upload_file(
         self,
-        local_path: Union[str, Path],
+        local_path: str | Path,
         s3_key: str,
         overwrite: bool = False,
-        verify_checksum: Optional[bool] = None,
+        verify_checksum: bool | None = None,
     ) -> UploadResult:
         """
         Upload a file to S3.
@@ -526,7 +528,7 @@ class S3DatasetLoader:
 
     def _check_existing_file(
         self, s3_key: str, local_path: Path
-    ) -> Optional[DownloadResult]:
+    ) -> DownloadResult | None:
         """Check if local file matches remote and return result if it does."""
         try:
             client = self._get_client()
@@ -565,7 +567,7 @@ class S3DatasetLoader:
         self,
         local_path: Path,
         s3_key: str,
-        response: Dict[str, Any],
+        response: dict[str, Any],
     ) -> bool:
         """Verify checksum of downloaded file."""
         local_checksum = self._calculate_checksum(local_path)
@@ -589,9 +591,9 @@ class S3DatasetLoader:
     def download_file(
         self,
         s3_key: str,
-        local_path: Union[str, Path],
+        local_path: str | Path,
         overwrite: bool = False,
-        verify_checksum: Optional[bool] = None,
+        verify_checksum: bool | None = None,
     ) -> DownloadResult:
         """
         Download a file from S3.
@@ -698,9 +700,9 @@ class S3DatasetLoader:
 
     def _handle_progress(
         self,
-        result: Union[UploadResult, DownloadResult],
+        result: UploadResult | DownloadResult,
         progress_tracker: ProgressTracker,
-        progress_callback: Optional[Callable[[Any], None]] = None,
+        progress_callback: Callable[[Any], None] | None = None,
     ) -> None:
         """Handle progress updates for batch operations."""
         if result.success:
@@ -710,11 +712,11 @@ class S3DatasetLoader:
 
     def upload_batch(
         self,
-        files: List[Union[str, Path, Tuple[Union[str, Path], str]]],
+        files: list[str | Path | tuple[str | Path, str]],
         s3_prefix: str = "",
         overwrite: bool = False,
         parallel: bool = True,
-        progress_callback: Optional[Callable[[Any], None]] = None,
+        progress_callback: Callable[[Any], None] | None = None,
     ) -> BatchOperationResult:
         """
         Upload multiple files to S3 in batch.
@@ -805,11 +807,11 @@ class S3DatasetLoader:
 
     def download_batch(
         self,
-        s3_keys: List[str],
-        local_dir: Union[str, Path],
+        s3_keys: list[str],
+        local_dir: str | Path,
         overwrite: bool = False,
         parallel: bool = True,
-        progress_callback: Optional[Callable[[Any], None]] = None,
+        progress_callback: Callable[[Any], None] | None = None,
     ) -> BatchOperationResult:
         """
         Download multiple files from S3 in batch.
@@ -891,9 +893,9 @@ class S3DatasetLoader:
     def list_objects(
         self,
         prefix: str = "",
-        delimiter: Optional[str] = None,
-        limit: Optional[int] = None,
-    ) -> List[Dict[str, Any]]:
+        delimiter: str | None = None,
+        limit: int | None = None,
+    ) -> list[dict[str, Any]]:
         """
         List objects in S3 bucket.
 
@@ -945,7 +947,7 @@ class S3DatasetLoader:
             self._logger.error(f"Failed to delete {s3_key}: {e}")
             return False
 
-    def delete_batch(self, s3_keys: List[str]) -> int:
+    def delete_batch(self, s3_keys: list[str]) -> int:
         """
         Delete multiple objects from S3.
 
@@ -983,7 +985,7 @@ class S3DatasetLoader:
         return deleted
 
     def copy_object(
-        self, source_key: str, dest_key: str, source_bucket: Optional[str] = None
+        self, source_key: str, dest_key: str, source_bucket: str | None = None
     ) -> bool:
         """
         Copy an object within S3.
@@ -1035,7 +1037,7 @@ class S3DatasetLoader:
             self._logger.error(f"Failed to check existence of {s3_key}: {e}")
             return False
 
-    def get_object_metadata(self, s3_key: str) -> Optional[Dict[str, Any]]:
+    def get_object_metadata(self, s3_key: str) -> dict[str, Any] | None:
         """
         Get metadata for an S3 object.
 
@@ -1064,7 +1066,7 @@ class S3DatasetLoader:
             self._logger.error(f"Failed to get metadata for {s3_key}: {e}")
             return None
 
-    def load_jsonl(self, s3_key: str) -> List[Dict[str, Any]]:
+    def load_jsonl(self, s3_key: str) -> list[dict[str, Any]]:
         """
         Load a JSONL file from S3.
 
@@ -1095,7 +1097,7 @@ class S3DatasetLoader:
             if local_path.exists():
                 local_path.unlink()
 
-    def save_jsonl(self, s3_key: str, records: List[Dict[str, Any]]) -> UploadResult:
+    def save_jsonl(self, s3_key: str, records: list[dict[str, Any]]) -> UploadResult:
         """
         Save a list of dictionaries to S3 as a JSONL file.
 
@@ -1125,7 +1127,7 @@ class S3DatasetLoader:
 
 # Convenience functions for backward compatibility
 def upload_dataset_artifact(
-    local_path: str, s3_key: str, config: Optional[S3Config] = None
+    local_path: str, s3_key: str, config: S3Config | None = None
 ) -> bool:
     """
     Convenience function to upload a dataset artifact.
@@ -1144,7 +1146,7 @@ def upload_dataset_artifact(
 
 
 def download_dataset_artifact(
-    s3_key: str, local_path: str, config: Optional[S3Config] = None
+    s3_key: str, local_path: str, config: S3Config | None = None
 ) -> bool:
     """
     Convenience function to download a dataset artifact.

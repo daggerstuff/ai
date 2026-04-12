@@ -6,13 +6,14 @@ Enterprise-grade reporting system for quality comparisons with
 comprehensive analysis, visualizations, and executive summaries.
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import warnings
 from dataclasses import asdict
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 import plotly.graph_objects as go
@@ -116,7 +117,7 @@ class QualityComparisonReporter:
 
             # Create comprehensive report
             report = ComparisonReport(
-                generated_at=datetime.now().isoformat(),
+                generated_at=datetime.now(timezone.utc).isoformat(),
                 analysis_period=f"{days_back}_days",
                 tier_comparisons=tier_comparisons,
                 dataset_comparisons=dataset_comparisons,
@@ -138,7 +139,7 @@ class QualityComparisonReporter:
     def _create_empty_report(self) -> ComparisonReport:
         """Create empty report when no data is available."""
         return ComparisonReport(
-            generated_at=datetime.now().isoformat(),
+            generated_at=datetime.now(timezone.utc).isoformat(),
             analysis_period="no_data",
             tier_comparisons=[],
             dataset_comparisons=[],
@@ -156,12 +157,12 @@ class QualityComparisonReporter:
 
     def _generate_executive_summary(
         self,
-        tier_comparisons: List[QualityComparison],
-        dataset_comparisons: List[QualityComparison],
-        component_comparisons: List[QualityComparison],
-        benchmark_analyses: List[BenchmarkAnalysis],
-        performance_rankings: Dict[str, List[Dict[str, Any]]],
-    ) -> List[str]:
+        tier_comparisons: list[QualityComparison],
+        dataset_comparisons: list[QualityComparison],
+        component_comparisons: list[QualityComparison],
+        benchmark_analyses: list[BenchmarkAnalysis],
+        performance_rankings: dict[str, list[dict[str, Any]]],
+    ) -> list[str]:
         """Generate executive summary for the comparison report."""
         summary = []
 
@@ -219,7 +220,7 @@ class QualityComparisonReporter:
                 )
 
         # Performance rankings insights
-        if "tiers" in performance_rankings and performance_rankings["tiers"]:
+        if performance_rankings.get("tiers"):
             best_tier = performance_rankings["tiers"][0]
             worst_tier = performance_rankings["tiers"][-1]
             summary.append(
@@ -229,7 +230,7 @@ class QualityComparisonReporter:
                 f"⚠️ Lowest performing tier: {worst_tier['name']} (quality: {worst_tier['mean_quality']:.3f})"
             )
 
-        if "datasets" in performance_rankings and performance_rankings["datasets"]:
+        if performance_rankings.get("datasets"):
             best_dataset = performance_rankings["datasets"][0]
             summary.append(
                 f"📊 Best performing dataset: {best_dataset['name']} (quality: {best_dataset['mean_quality']:.3f})"
@@ -257,11 +258,11 @@ class QualityComparisonReporter:
 
     def _generate_detailed_insights(
         self,
-        tier_comparisons: List[QualityComparison],
-        dataset_comparisons: List[QualityComparison],
-        component_comparisons: List[QualityComparison],
-        benchmark_analyses: List[BenchmarkAnalysis],
-    ) -> List[str]:
+        tier_comparisons: list[QualityComparison],
+        dataset_comparisons: list[QualityComparison],
+        component_comparisons: list[QualityComparison],
+        benchmark_analyses: list[BenchmarkAnalysis],
+    ) -> list[str]:
         """Generate detailed insights for the comparison report."""
         insights = []
 
@@ -339,11 +340,11 @@ class QualityComparisonReporter:
 
     def _generate_action_items(
         self,
-        tier_comparisons: List[QualityComparison],
-        dataset_comparisons: List[QualityComparison],
-        benchmark_analyses: List[BenchmarkAnalysis],
-        performance_rankings: Dict[str, List[Dict[str, Any]]],
-    ) -> List[str]:
+        tier_comparisons: list[QualityComparison],
+        dataset_comparisons: list[QualityComparison],
+        benchmark_analyses: list[BenchmarkAnalysis],
+        performance_rankings: dict[str, list[dict[str, Any]]],
+    ) -> list[str]:
         """Generate actionable items based on comparison analysis."""
         actions = []
 
@@ -444,7 +445,7 @@ class QualityComparisonReporter:
 
     def create_comparison_visualizations(
         self, report: ComparisonReport
-    ) -> Dict[str, go.Figure]:
+    ) -> dict[str, go.Figure]:
         """Create comprehensive comparison visualizations."""
         visualizations = {}
 
@@ -625,7 +626,7 @@ class QualityComparisonReporter:
 
     def save_report(self, report: ComparisonReport, format: str = "json") -> str:
         """Save comparison report to file."""
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
 
         if format == "json":
             filename = f"quality_comparison_report_{timestamp}.json"
@@ -655,7 +656,7 @@ class QualityComparisonReporter:
         template = Template(self.report_templates["detailed"])
 
         return template.render(
-            report=report, generated_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            report=report, generated_at=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
         )
 
     def _get_executive_template(self) -> str:

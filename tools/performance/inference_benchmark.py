@@ -4,14 +4,14 @@ AI Inference Performance Benchmark
 Validates <2s response time SLO and other performance metrics
 """
 
+from datetime import datetime, timezone
+
 import argparse
 import asyncio
 import json
 import statistics
 import time
 from dataclasses import asdict, dataclass
-from datetime import datetime
-from typing import Dict, List, Optional
 
 import aiohttp
 import numpy as np
@@ -28,7 +28,7 @@ class BenchmarkConfig:
     timeout: float = 10.0
     warmup_requests: int = 10
 
-    test_scenarios: List[str] = None
+    test_scenarios: list[str] = None
 
     def __post_init__(self):
         if self.test_scenarios is None:
@@ -43,7 +43,7 @@ class RequestResult:
     response_time: float
     status_code: int
     success: bool
-    error: Optional[str] = None
+    error: str | None = None
     response_size: int = 0
     timestamp: float = 0
 
@@ -78,10 +78,10 @@ class BenchmarkResults:
     slo_3s_compliance: float  # % of requests < 3s
 
     # Errors
-    errors: Dict[str, int]
+    errors: dict[str, int]
 
     # Scenario breakdown
-    scenario_results: Dict[str, Dict[str, float]]
+    scenario_results: dict[str, dict[str, float]]
 
 
 class InferenceBenchmark:
@@ -91,7 +91,7 @@ class InferenceBenchmark:
 
     def __init__(self, config: BenchmarkConfig):
         self.config = config
-        self.results: List[RequestResult] = []
+        self.results: list[RequestResult] = []
 
         # Test scenarios with different complexity
         self.scenarios = {
@@ -159,7 +159,7 @@ class InferenceBenchmark:
                     timestamp=start_time,
                 )
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             return RequestResult(
                 scenario=scenario,
                 response_time=time.time() - start_time,
@@ -393,7 +393,7 @@ class InferenceBenchmark:
     def save_results(self, results: BenchmarkResults, output_file: str):
         """Save results to JSON file"""
         output = {
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "config": asdict(self.config),
             "results": asdict(results),
             "raw_results": [asdict(r) for r in self.results],

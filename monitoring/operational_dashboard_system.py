@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+
+from datetime import datetime, timedelta, timezone
 # flake8: max-complexity=200
 # flake8: noqa
 # flake8: noqa
@@ -18,7 +20,6 @@ Features:
 import json
 import os
 import warnings
-from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 import logging
@@ -688,7 +689,7 @@ class OperationalDashboardSystem:
             "monitoring_alerts": len(
                 deployment_results.get("monitoring_alerts", {}).get("alert_types", [])
             ),
-            "deployment_time": datetime.now().isoformat(),
+            "deployment_time": datetime.now(timezone.utc).isoformat(),
         }
 
     def _create_operational_runbook(self):
@@ -917,11 +918,11 @@ class OperationalDashboardSystem:
     # Placeholder methods for report generation and scheduling
     def _generate_sample_report(self, report_type: str, config: dict[str, Any]) -> str:
         """Generate sample report"""
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         report_path = f"{self.reports_dir}/{config['frequency']}/{report_type}_{timestamp}.txt"
 
         with open(report_path, "w") as f:
-            f.write(f"Sample {report_type} generated at {datetime.now()}\n")
+            f.write(f"Sample {report_type} generated at {datetime.now(timezone.utc)}\n")
             f.write(f"Configuration: {config}\n")
 
         return report_path
@@ -974,7 +975,7 @@ uv run monitoring/operational_dashboard_system.py --check-{alert_type.replace("_
 
     def _generate_stakeholder_dashboard(self, role: str, config: dict[str, Any]) -> str:
         """Generate stakeholder-specific dashboard"""
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         dashboard_path = f"{self.dashboard_dir}/stakeholders/{role}_dashboard_{timestamp}.png"
 
         Path(f"{self.dashboard_dir}/stakeholders").mkdir(parents=True, exist_ok=True)
@@ -1043,13 +1044,13 @@ uv run monitoring/operational_dashboard_system.py --export-{format_name.replace(
 
         for report_type, config in report_configs.items():
             if config["frequency"] == "daily":
-                next_run = datetime.now().replace(hour=8, minute=0, second=0) + timedelta(days=1)
+                next_run = datetime.now(timezone.utc).replace(hour=8, minute=0, second=0) + timedelta(days=1)
             elif config["frequency"] == "weekly":
-                next_run = datetime.now() + timedelta(days=7)
+                next_run = datetime.now(timezone.utc) + timedelta(days=7)
             elif config["frequency"] == "monthly":
-                next_run = datetime.now() + timedelta(days=30)
+                next_run = datetime.now(timezone.utc) + timedelta(days=30)
             else:
-                next_run = datetime.now() + timedelta(hours=1)
+                next_run = datetime.now(timezone.utc) + timedelta(hours=1)
 
             next_runs[report_type] = next_run.isoformat()
 
@@ -1068,7 +1069,7 @@ def main():
         deployment_results = dashboard_system.deploy_operational_dashboards()
 
         # Save deployment results
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         output_file = (
             f"/home/vivi/pixelated/ai/monitoring/operational_dashboard_deployment_{timestamp}.json"
         )

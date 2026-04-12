@@ -1,4 +1,5 @@
-import pytest
+
+from datetime import datetime, timezone
 
 #!/usr/bin/env python3
 """
@@ -16,15 +17,11 @@ Tests complete workflows including:
 import json
 import os
 import sqlite3
-import subprocess
 import sys
 import tempfile
 import unittest
 import warnings
-from datetime import datetime
-from pathlib import Path
 
-import numpy as np
 import pandas as pd
 
 warnings.filterwarnings("ignore")
@@ -344,7 +341,7 @@ class TestEndToEndDataFlow(unittest.TestCase):
             },
             "operational_metrics": {
                 "processing_status": "healthy",
-                "last_updated": datetime.now().isoformat(),
+                "last_updated": datetime.now(timezone.utc).isoformat(),
             },
             "quality_distribution": {
                 "excellent": len(df[df["word_count"] > 25]),
@@ -378,7 +375,7 @@ class TestEndToEndDataFlow(unittest.TestCase):
         with open(txt_file, "w") as f:
             f.write("Dashboard Report\n")
             f.write("================\n")
-            f.write(f"Generated: {datetime.now()}\n")
+            f.write(f"Generated: {datetime.now(timezone.utc)}\n")
             f.write(f"Charts: {len(viz_data['charts'])}\n")
             f.write(f"Tables: {len(viz_data['tables'])}\n")
         output_files.append(txt_file)
@@ -433,9 +430,8 @@ class TestEndToEndDataFlow(unittest.TestCase):
             # Attempt to process data
             if "conversation_id" in df.columns:
                 return df.groupby("dataset_source").size()
-            else:
-                # Return empty result for invalid data
-                return pd.Series(dtype=int)
+            # Return empty result for invalid data
+            return pd.Series(dtype=int)
         except Exception:
             return pd.Series(dtype=int)
 
@@ -505,7 +501,7 @@ class TestSystemWorkflows(unittest.TestCase):
         return {
             "status": "healthy" if not alerts else "warning",
             "alerts": alerts,
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "components": status,
         }
 

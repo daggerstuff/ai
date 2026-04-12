@@ -8,7 +8,7 @@ SQLite-backed service used by the rest of the repository.
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -23,11 +23,11 @@ class GeminiHindsightConfig(BaseModel):
     user_id: str = Field("default_user", description="Default user ID for memory")
     db_path: str = Field(..., description="Path to the shared local memory database")
     bank_id: str = Field("pixelated", description="Shared memory bank identifier")
-    hindsight_api_key: Optional[str] = Field(
+    hindsight_api_key: str | None = Field(
         default=None,
         description="Deprecated; local shared memory is the only supported backend",
     )
-    memory_config: Optional[Dict[str, Any]] = Field(
+    memory_config: dict[str, Any] | None = Field(
         default=None,
         description="Deprecated; local shared memory is the only supported backend",
     )
@@ -49,8 +49,8 @@ class GeminiHindsightManager(LocalHindsightMemoryManager):
         self,
         content: str,
         user_id: str,
-        metadata: Optional[Any] = None,
-        category: Optional[str] = None,
+        metadata: Any | None = None,
+        category: str | None = None,
     ) -> str:
         merged = self._metadata_dict(metadata)
         merged.setdefault("provider", "gemini")
@@ -62,7 +62,7 @@ class GeminiHindsightManager(LocalHindsightMemoryManager):
             category=category,
         )
 
-    def build_provider_metadata(self) -> Dict[str, str]:
+    def build_provider_metadata(self) -> dict[str, str]:
         return {
             "provider": "gemini",
             "model_name": self.config.model_name,

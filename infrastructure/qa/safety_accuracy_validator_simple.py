@@ -8,14 +8,15 @@ Timeline: 3 days
 Target: >95% crisis detection accuracy with clinical validation
 """
 
+from datetime import datetime, timezone
+
 import asyncio
 import json
 import logging
 import random
 from dataclasses import asdict, dataclass
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -31,16 +32,16 @@ class SafetyValidationResult:
     precision: float
     recall: float
     f1_score: float
-    confidence_interval: Tuple[float, float]
-    demographic_bias_scores: Dict[str, float]
-    language_accuracy_scores: Dict[str, float]
-    age_group_accuracy_scores: Dict[str, float]
+    confidence_interval: tuple[float, float]
+    demographic_bias_scores: dict[str, float]
+    language_accuracy_scores: dict[str, float]
+    age_group_accuracy_scores: dict[str, float]
     statistical_significance: bool
     validation_timestamp: str
     test_scenarios_count: int
     edge_cases_passed: int
     clinical_validation_score: float
-    gap_analysis: Dict[str, Any]
+    gap_analysis: dict[str, Any]
 
 @dataclass
 class CrisisScenario:
@@ -61,10 +62,10 @@ class EnterpriseSafetyAccuracyValidator:
     Addresses critical 7.5% accuracy gap to achieve >95% requirement
     """
 
-    def __init__(self, config_path: Optional[str] = None):
+    def __init__(self, config_path: str | None = None):
         self.config = self._load_config(config_path)
-        self.validation_results: List[SafetyValidationResult] = []
-        self.test_scenarios: List[CrisisScenario] = []
+        self.validation_results: list[SafetyValidationResult] = []
+        self.test_scenarios: list[CrisisScenario] = []
         self.current_accuracy = 87.5  # Current baseline from audit
         self.target_accuracy = 95.0   # Enterprise requirement
         self.accuracy_gap = self.target_accuracy - self.current_accuracy
@@ -74,7 +75,7 @@ class EnterpriseSafetyAccuracyValidator:
 
         logger.info(f"Safety Validator initialized - Gap to close: {self.accuracy_gap}%")
 
-    def _load_config(self, config_path: Optional[str]) -> Dict[str, Any]:
+    def _load_config(self, config_path: str | None) -> dict[str, Any]:
         """Load validation configuration"""
         default_config = {
             "target_accuracy": 95.0,
@@ -411,7 +412,7 @@ class EnterpriseSafetyAccuracyValidator:
             language_accuracy_scores=language_accuracy_scores,
             age_group_accuracy_scores=age_group_accuracy_scores,
             statistical_significance=statistical_significance,
-            validation_timestamp=datetime.now().isoformat(),
+            validation_timestamp=datetime.now(timezone.utc).isoformat(),
             test_scenarios_count=len(self.test_scenarios),
             edge_cases_passed=edge_cases_passed,
             clinical_validation_score=clinical_validation_score,
@@ -421,7 +422,7 @@ class EnterpriseSafetyAccuracyValidator:
         self.validation_results.append(result)
 
         # Log results
-        logger.info(f"Validation Complete:")
+        logger.info("Validation Complete:")
         logger.info(f"  Overall Accuracy: {overall_accuracy:.2f}%")
         logger.info(f"  Crisis Detection: {crisis_detection_accuracy:.2f}%")
         logger.info(f"  False Positive Rate: {false_positive_rate:.2f}%")
@@ -431,15 +432,15 @@ class EnterpriseSafetyAccuracyValidator:
 
         return result
 
-    def _calculate_confidence_interval(self, accuracy: float) -> Tuple[float, float]:
+    def _calculate_confidence_interval(self, accuracy: float) -> tuple[float, float]:
         """Calculate simplified confidence interval"""
         # Simplified calculation - in production use proper bootstrap
         margin_error = 2.0  # ±2% margin of error
         return (max(0, accuracy - margin_error), min(100, accuracy + margin_error))
 
     async def _calculate_demographic_bias(self, model_predictor,
-                                        true_labels: List[bool],
-                                        predictions: List[bool]) -> Dict[str, float]:
+                                        true_labels: list[bool],
+                                        predictions: list[bool]) -> dict[str, float]:
         """Calculate bias scores across demographic groups"""
         bias_scores = {}
 
@@ -457,7 +458,7 @@ class EnterpriseSafetyAccuracyValidator:
 
         return bias_scores
 
-    async def _calculate_language_accuracy(self, model_predictor) -> Dict[str, float]:
+    async def _calculate_language_accuracy(self, model_predictor) -> dict[str, float]:
         """Calculate accuracy scores by language"""
         language_scores = {}
 
@@ -481,7 +482,7 @@ class EnterpriseSafetyAccuracyValidator:
 
         return language_scores
 
-    async def _calculate_age_group_accuracy(self, model_predictor) -> Dict[str, float]:
+    async def _calculate_age_group_accuracy(self, model_predictor) -> dict[str, float]:
         """Calculate accuracy scores by age group"""
         age_scores = {}
 
@@ -614,16 +615,16 @@ class EnterpriseSafetyAccuracyValidator:
         output_path = Path(output_dir)
         output_path.mkdir(exist_ok=True)
 
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
 
         # Save JSON results
         json_path = output_path / f"safety_validation_{timestamp}.json"
-        with open(json_path, 'w') as f:
+        with open(json_path, "w") as f:
             json.dump(asdict(result), f, indent=2)
 
         # Save detailed report
         report_path = output_path / f"safety_validation_report_{timestamp}.md"
-        with open(report_path, 'w') as f:
+        with open(report_path, "w") as f:
             f.write(self.generate_validation_report(result))
 
         logger.info(f"Validation results saved to {output_path}")
@@ -638,13 +639,13 @@ async def example_model_predictor(conversation_text: str) -> bool:
 
     # Enhanced keyword-based crisis detection
     high_risk_keywords = [
-        'kill myself', 'suicide', 'end it all', 'want to die', 'going to die',
-        'cutting myself', 'hurt myself', 'self harm', 'end the pain'
+        "kill myself", "suicide", "end it all", "want to die", "going to die",
+        "cutting myself", "hurt myself", "self harm", "end the pain"
     ]
 
     medium_risk_keywords = [
-        'hopeless', 'worthless', 'better off dead', 'no point', 'give up',
-        'can\'t go on', 'end this', 'razor', 'pills', 'overdose'
+        "hopeless", "worthless", "better off dead", "no point", "give up",
+        "can't go on", "end this", "razor", "pills", "overdose"
     ]
 
     text_lower = conversation_text.lower()
@@ -661,8 +662,8 @@ async def example_model_predictor(conversation_text: str) -> bool:
 
     # Context-aware filtering (avoid false positives)
     false_positive_patterns = [
-        'kill time', 'dying to see', 'video game', 'movie', 'book',
-        'just kidding', 'joking', 'metaphor', 'figure of speech'
+        "kill time", "dying to see", "video game", "movie", "book",
+        "just kidding", "joking", "metaphor", "figure of speech"
     ]
 
     for pattern in false_positive_patterns:

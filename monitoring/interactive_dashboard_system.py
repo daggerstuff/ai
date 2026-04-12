@@ -11,10 +11,11 @@ Features:
 - No static images - all dynamic content
 """
 
+from datetime import datetime, timedelta, timezone
+
 import json
 import os
 import sqlite3
-from datetime import datetime, timedelta
 
 import pandas as pd
 from flask import Flask, jsonify, render_template
@@ -502,7 +503,7 @@ class InteractiveDashboardSystem:
 
             # Generate trend data (last 30 days)
             trend_labels = [
-                (datetime.now() - timedelta(days=i)).strftime("%m/%d")
+                (datetime.now(timezone.utc) - timedelta(days=i)).strftime("%m/%d")
                 for i in range(29, -1, -1)
             ]
             trend_data = [
@@ -549,7 +550,7 @@ class InteractiveDashboardSystem:
                 "performance_current": json.dumps(performance_current),
                 "performance_target": json.dumps(performance_target),
                 "top_issues": top_issues,
-                "current_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "current_time": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
             }
 
         except Exception as e:
@@ -572,7 +573,7 @@ class InteractiveDashboardSystem:
                 "performance_current": json.dumps([250, 1200, 0.5, 65]),
                 "performance_target": json.dumps([200, 1500, 0.1, 70]),
                 "top_issues": [],
-                "current_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "current_time": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
             }
 
     def setup_flask_routes(self):
@@ -674,7 +675,7 @@ def main():
     result = dashboard_system.deploy_interactive_dashboards()
 
     # Save deployment results
-    deployment_file = f"{dashboard_system.base_dir}/monitoring/interactive_dashboard_deployment_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    deployment_file = f"{dashboard_system.base_dir}/monitoring/interactive_dashboard_deployment_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.json"
     with open(deployment_file, "w") as f:
         json.dump(result, f, indent=2)
 

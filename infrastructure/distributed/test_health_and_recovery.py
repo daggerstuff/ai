@@ -3,12 +3,13 @@
 Unit tests for Health Check and Disaster Recovery Systems
 """
 
+from datetime import datetime, timezone
+
 import asyncio
 
 # Add parent directory to path for imports
 import sys
 import unittest
-from datetime import datetime
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent.parent))
@@ -56,7 +57,7 @@ class TestHealthCheckSystem(unittest.TestCase):
                 component_type=ComponentType.API,
                 status=HealthStatus.HEALTHY,
                 message="Service is healthy",
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(timezone.utc),
                 response_time_ms=15.5,
             )
 
@@ -97,7 +98,7 @@ class TestHealthCheckSystem(unittest.TestCase):
                 component_type=ComponentType.API,
                 status=HealthStatus.HEALTHY,
                 message="Healthy",
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(timezone.utc),
             )
 
         async def degraded_check():
@@ -106,7 +107,7 @@ class TestHealthCheckSystem(unittest.TestCase):
                 component_type=ComponentType.DATABASE,
                 status=HealthStatus.DEGRADED,
                 message="Degraded performance",
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(timezone.utc),
             )
 
         self.health_manager.register_health_check(
@@ -132,14 +133,14 @@ class TestHealthCheckSystem(unittest.TestCase):
                 ComponentType.API,
                 HealthStatus.HEALTHY,
                 "OK",
-                datetime.utcnow(),
+                datetime.now(timezone.utc),
             ),
             HealthCheckResult(
                 "service2",
                 ComponentType.DATABASE,
                 HealthStatus.HEALTHY,
                 "OK",
-                datetime.utcnow(),
+                datetime.now(timezone.utc),
             ),
         ]
         status = self.health_manager._calculate_overall_health(results_healthy)
@@ -152,14 +153,14 @@ class TestHealthCheckSystem(unittest.TestCase):
                 ComponentType.API,
                 HealthStatus.HEALTHY,
                 "OK",
-                datetime.utcnow(),
+                datetime.now(timezone.utc),
             ),
             HealthCheckResult(
                 "service2",
                 ComponentType.DATABASE,
                 HealthStatus.DEGRADED,
                 "Slow",
-                datetime.utcnow(),
+                datetime.now(timezone.utc),
             ),
         ]
         status = self.health_manager._calculate_overall_health(results_degraded)
@@ -172,10 +173,10 @@ class TestHealthCheckSystem(unittest.TestCase):
                 ComponentType.DATABASE,
                 HealthStatus.UNHEALTHY,
                 "Down",
-                datetime.utcnow(),
+                datetime.now(timezone.utc),
             ),
             HealthCheckResult(
-                "api", ComponentType.API, HealthStatus.HEALTHY, "OK", datetime.utcnow()
+                "api", ComponentType.API, HealthStatus.HEALTHY, "OK", datetime.now(timezone.utc)
             ),
         ]
         status = self.health_manager._calculate_overall_health(

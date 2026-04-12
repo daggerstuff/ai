@@ -11,7 +11,6 @@ import asyncio
 import logging
 import re
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -21,9 +20,9 @@ class CrisisDetectionResult:
     is_crisis: bool
     confidence_score: float
     crisis_level: int  # 1-5 scale
-    detected_patterns: List[str]
-    risk_factors: List[str]
-    context_analysis: Dict[str, any]
+    detected_patterns: list[str]
+    risk_factors: list[str]
+    context_analysis: dict[str, any]
     reasoning: str
 
 class ImprovedCrisisDetector:
@@ -37,7 +36,7 @@ class ImprovedCrisisDetector:
         self.context_filters = self._initialize_context_filters()
         self.risk_scoring = self._initialize_risk_scoring()
 
-    def _initialize_crisis_patterns(self) -> Dict[str, Dict]:
+    def _initialize_crisis_patterns(self) -> dict[str, dict]:
         """Initialize comprehensive crisis detection patterns"""
 
         return {
@@ -162,7 +161,7 @@ class ImprovedCrisisDetector:
             }
         }
 
-    def _initialize_context_filters(self) -> Dict[str, List[str]]:
+    def _initialize_context_filters(self) -> dict[str, list[str]]:
         """Initialize context filters to prevent false positives"""
 
         return {
@@ -202,7 +201,7 @@ class ImprovedCrisisDetector:
             ]
         }
 
-    def _initialize_risk_scoring(self) -> Dict[str, float]:
+    def _initialize_risk_scoring(self) -> dict[str, float]:
         """Initialize risk scoring weights"""
 
         return {
@@ -297,7 +296,7 @@ class ImprovedCrisisDetector:
             reasoning=reasoning
         )
 
-    def _analyze_context(self, text: str) -> Dict[str, any]:
+    def _analyze_context(self, text: str) -> dict[str, any]:
         """Analyze context to prevent false positives"""
 
         context = {
@@ -307,7 +306,7 @@ class ImprovedCrisisDetector:
             "has_media_reference": False,
             "has_positive_context": False,
             "text_length": len(text),
-            "sentence_count": len(text.split('.')),
+            "sentence_count": len(text.split(".")),
         }
 
         # Check for negation patterns
@@ -342,9 +341,9 @@ class ImprovedCrisisDetector:
 
         return context
 
-    def _generate_reasoning(self, detected_patterns: List[str],
-                          risk_factors: List[str],
-                          context_analysis: Dict[str, any],
+    def _generate_reasoning(self, detected_patterns: list[str],
+                          risk_factors: list[str],
+                          context_analysis: dict[str, any],
                           confidence_score: float,
                           crisis_level: int,
                           is_crisis: bool) -> str:

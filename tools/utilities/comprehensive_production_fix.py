@@ -4,13 +4,14 @@ COMPREHENSIVE PRODUCTION FIX
 Addresses all critical infrastructure issues identified in audit
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import os
 import secrets
 import subprocess
 import sys
-from datetime import datetime
 from pathlib import Path
 
 # Setup logging
@@ -55,7 +56,7 @@ class ComprehensiveProductionFix:
                         "audit_logging": True,
                     },
                 },
-                "created_at": datetime.now().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "version": "1.0.0",
             }
 
@@ -339,7 +340,6 @@ import json
 import time
 import psutil
 import requests
-from datetime import datetime
 from pathlib import Path
 
 class ProductionHealthService:
@@ -398,7 +398,7 @@ class ProductionHealthService:
 
         return {
             "status": overall_status,
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "system": system_health,
             "dependencies": dependency_health,
             "version": "1.0.0",
@@ -445,7 +445,7 @@ if __name__ == "__main__":
         logger.critical("🔧 VALIDATING ALL SYSTEMS")
 
         validation_results = {
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "systems": {},
             "overall_status": "unknown",
         }
@@ -511,7 +511,7 @@ if __name__ == "__main__":
 
         # Create final report
         final_report = {
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "fixes_applied": self.fixes_applied,
             "critical_issues": self.critical_issues,
             "test_results": self.test_results,

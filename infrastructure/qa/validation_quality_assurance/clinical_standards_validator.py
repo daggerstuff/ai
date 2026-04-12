@@ -4,12 +4,13 @@ Clinical Standards Validator - Task 5.7.2.1
 Implements conversation validation against clinical standards including DSM-5, therapeutic guidelines, and professional ethics.
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import re
 from dataclasses import dataclass
-from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 import spacy
@@ -32,8 +33,8 @@ class ClinicalValidationResult:
     cultural_competency: float
     safety_protocols: float
     overall_clinical_score: float
-    violations: List[str]
-    recommendations: List[str]
+    violations: list[str]
+    recommendations: list[str]
     validation_timestamp: str
 
 
@@ -173,7 +174,7 @@ class ClinicalStandardsValidator:
         logger.info("✅ Loaded clinical validation patterns")
 
     def validate_conversation(
-        self, conversation: Dict[str, Any]
+        self, conversation: dict[str, Any]
     ) -> ClinicalValidationResult:
         """Validate a conversation against clinical standards"""
 
@@ -220,10 +221,10 @@ class ClinicalStandardsValidator:
             overall_clinical_score=overall_score,
             violations=violations,
             recommendations=recommendations,
-            validation_timestamp=datetime.now().isoformat(),
+            validation_timestamp=datetime.now(timezone.utc).isoformat(),
         )
 
-    def _extract_conversation_text(self, conversation: Dict[str, Any]) -> str:
+    def _extract_conversation_text(self, conversation: dict[str, Any]) -> str:
         """Extract full text from conversation for analysis"""
         text_parts = []
 
@@ -372,7 +373,7 @@ class ClinicalStandardsValidator:
 
         return max(0.0, min(1.0, score))
 
-    def _identify_violations(self, text: str) -> List[str]:
+    def _identify_violations(self, text: str) -> list[str]:
         """Identify specific clinical violations"""
         violations = []
 
@@ -404,8 +405,8 @@ class ClinicalStandardsValidator:
         return violations
 
     def _generate_recommendations(
-        self, scores: List[float], violations: List[str]
-    ) -> List[str]:
+        self, scores: list[float], violations: list[str]
+    ) -> list[str]:
         """Generate improvement recommendations"""
         recommendations = []
 
@@ -438,7 +439,7 @@ class ClinicalStandardsValidator:
 
         return recommendations
 
-    def _update_validation_stats(self, score: float, violations: List[str]):
+    def _update_validation_stats(self, score: float, violations: list[str]):
         """Update validation statistics"""
         self.validation_stats["total_validated"] += 1
 
@@ -458,8 +459,8 @@ class ClinicalStandardsValidator:
         ) / total
 
     def validate_batch(
-        self, conversations: List[Dict[str, Any]]
-    ) -> List[ClinicalValidationResult]:
+        self, conversations: list[dict[str, Any]]
+    ) -> list[ClinicalValidationResult]:
         """Validate a batch of conversations"""
         results = []
 
@@ -486,7 +487,7 @@ class ClinicalStandardsValidator:
         )
         return results
 
-    def get_validation_statistics(self) -> Dict[str, Any]:
+    def get_validation_statistics(self) -> dict[str, Any]:
         """Get validation statistics and insights"""
         return {
             "validation_stats": self.validation_stats,
@@ -499,11 +500,11 @@ class ClinicalStandardsValidator:
                 "cultural_patterns": len(self.cultural_patterns),
                 "safety_patterns": len(self.safety_patterns),
             },
-            "validation_timestamp": datetime.now().isoformat(),
+            "validation_timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
     def export_validation_results(
-        self, results: List[ClinicalValidationResult], output_path: str
+        self, results: list[ClinicalValidationResult], output_path: str
     ) -> bool:
         """Export validation results to JSON file"""
         try:
@@ -528,7 +529,7 @@ class ClinicalStandardsValidator:
                     for result in results
                 ],
                 "summary_statistics": self.get_validation_statistics(),
-                "export_timestamp": datetime.now().isoformat(),
+                "export_timestamp": datetime.now(timezone.utc).isoformat(),
             }
 
             with open(output_path, "w", encoding="utf-8") as f:

@@ -10,13 +10,13 @@ This system provides real-time support to therapists with:
 - Treatment plan recommendations
 """
 
+from datetime import datetime, timezone
+
 import asyncio
 import logging
 import re
 from dataclasses import dataclass
-from datetime import datetime
 from enum import Enum
-from typing import Dict, List
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -60,12 +60,12 @@ class SessionAnalysis:
 
     session_id: str
     current_phase: SessionPhase
-    primary_themes: List[str]
-    emotional_state: Dict[str, float]  # emotion -> intensity
+    primary_themes: list[str]
+    emotional_state: dict[str, float]  # emotion -> intensity
     therapeutic_alliance: float  # 0-1 scale
-    progress_indicators: List[str]
-    concerns: List[str]
-    suggested_interventions: List[Dict]
+    progress_indicators: list[str]
+    concerns: list[str]
+    suggested_interventions: list[dict]
     analysis_timestamp: datetime
 
 
@@ -79,7 +79,7 @@ class InterventionSuggestion:
     timing: str  # "immediate", "later_in_session", "next_session"
     therapy_approach: TherapyApproach
     expected_outcome: str
-    considerations: List[str]
+    considerations: list[str]
     confidence: float
 
 
@@ -88,14 +88,14 @@ class SessionDocumentation:
     """Automated session documentation assistance"""
 
     session_summary: str
-    key_topics_discussed: List[str]
-    interventions_used: List[str]
-    client_insights: List[str]
-    homework_assigned: List[str]
+    key_topics_discussed: list[str]
+    interventions_used: list[str]
+    client_insights: list[str]
+    homework_assigned: list[str]
     progress_notes: str
-    treatment_plan_updates: List[str]
-    next_session_focus: List[str]
-    risk_assessment: Dict
+    treatment_plan_updates: list[str]
+    next_session_focus: list[str]
+    risk_assessment: dict
     documentation_timestamp: datetime
 
 
@@ -199,7 +199,7 @@ class SessionAnalyzer:
         }
 
     def analyze_session_content(
-        self, transcript_segment: str, session_context: Dict
+        self, transcript_segment: str, session_context: dict
     ) -> SessionAnalysis:
         """Analyze a segment of session transcript"""
         segment_lower = transcript_segment.lower()
@@ -236,10 +236,10 @@ class SessionAnalyzer:
             progress_indicators=progress_indicators,
             concerns=concerns,
             suggested_interventions=suggested_interventions,
-            analysis_timestamp=datetime.now(),
+            analysis_timestamp=datetime.now(timezone.utc),
         )
 
-    def _detect_session_phase(self, text: str, context: Dict) -> SessionPhase:
+    def _detect_session_phase(self, text: str, context: dict) -> SessionPhase:
         """Detect current phase of therapy session"""
         phase_scores = {}
 
@@ -253,7 +253,7 @@ class SessionAnalyzer:
         session_duration = context.get("session_duration_minutes", 0)
         if session_duration < 10:
             return SessionPhase.OPENING
-        elif session_duration > 45:
+        if session_duration > 45:
             return SessionPhase.CLOSING
 
         # Return phase with highest score, default to exploration
@@ -263,7 +263,7 @@ class SessionAnalyzer:
             else SessionPhase.EXPLORATION
         )
 
-    def _identify_themes(self, text: str) -> List[str]:
+    def _identify_themes(self, text: str) -> list[str]:
         """Identify primary therapeutic themes"""
         themes = []
 
@@ -275,7 +275,7 @@ class SessionAnalyzer:
 
         return themes
 
-    def _assess_emotional_state(self, text: str) -> Dict[str, float]:
+    def _assess_emotional_state(self, text: str) -> dict[str, float]:
         """Assess client's emotional state"""
         emotions = {}
 
@@ -291,7 +291,7 @@ class SessionAnalyzer:
 
         return emotions
 
-    def _evaluate_alliance(self, text: str, context: Dict) -> float:
+    def _evaluate_alliance(self, text: str, context: dict) -> float:
         """Evaluate therapeutic alliance strength"""
         alliance_score = 0.5  # Baseline
 
@@ -317,7 +317,7 @@ class SessionAnalyzer:
 
         return max(0.0, min(1.0, alliance_score))
 
-    def _identify_progress(self, text: str) -> List[str]:
+    def _identify_progress(self, text: str) -> list[str]:
         """Identify progress indicators"""
         progress = []
 
@@ -329,7 +329,7 @@ class SessionAnalyzer:
 
         return progress
 
-    def _detect_concerns(self, text: str, emotions: Dict[str, float]) -> List[str]:
+    def _detect_concerns(self, text: str, emotions: dict[str, float]) -> list[str]:
         """Detect concerning indicators"""
         concerns = []
 
@@ -363,11 +363,11 @@ class SessionAnalyzer:
 
     def _suggest_interventions(
         self,
-        themes: List[str],
-        emotions: Dict[str, float],
+        themes: list[str],
+        emotions: dict[str, float],
         phase: SessionPhase,
-        context: Dict,
-    ) -> List[Dict]:
+        context: dict,
+    ) -> list[dict]:
         """Generate intervention suggestions"""
         suggestions = []
 
@@ -474,13 +474,13 @@ class TherapyAssistantEngine:
         session_id: str,
         transcript_segment: str,
         therapist_request: str = None,
-    ) -> Dict:
+    ) -> dict:
         """Provide real-time assistance during therapy session"""
 
         # Get or create session context
         if session_id not in self.active_sessions:
             self.active_sessions[session_id] = {
-                "start_time": datetime.now(),
+                "start_time": datetime.now(timezone.utc),
                 "transcript_history": [],
                 "interventions_used": [],
                 "session_notes": [],
@@ -490,7 +490,7 @@ class TherapyAssistantEngine:
         session_context["transcript_history"].append(transcript_segment)
 
         # Calculate session duration
-        duration = (datetime.now() - session_context["start_time"]).total_seconds() / 60
+        duration = (datetime.now(timezone.utc) - session_context["start_time"]).total_seconds() / 60
         session_context["session_duration_minutes"] = duration
 
         # Analyze current segment
@@ -536,8 +536,8 @@ class TherapyAssistantEngine:
         }
 
     async def _generate_ai_insights(
-        self, transcript: str, analysis: SessionAnalysis, context: Dict
-    ) -> Dict:
+        self, transcript: str, analysis: SessionAnalysis, context: dict
+    ) -> dict:
         """Generate AI-powered therapeutic insights"""
         if self.therapeutic_ai:
             # In production, this would use the trained H100 model
@@ -565,7 +565,7 @@ class TherapyAssistantEngine:
 
     def _create_intervention_recommendations(
         self, analysis: SessionAnalysis
-    ) -> List[Dict]:
+    ) -> list[dict]:
         """Create detailed intervention recommendations"""
         recommendations = []
 
@@ -588,8 +588,8 @@ class TherapyAssistantEngine:
         return recommendations
 
     def _generate_documentation_assistance(
-        self, analysis: SessionAnalysis, context: Dict
-    ) -> Dict:
+        self, analysis: SessionAnalysis, context: dict
+    ) -> dict:
         """Generate session documentation assistance"""
         return {
             "session_summary_draft": f"Client presented with {', '.join(analysis.primary_themes)} themes. "
@@ -611,7 +611,7 @@ class TherapyAssistantEngine:
             },
         }
 
-    def _check_urgent_concerns(self, analysis: SessionAnalysis) -> List[Dict]:
+    def _check_urgent_concerns(self, analysis: SessionAnalysis) -> list[dict]:
         """Check for urgent concerns requiring immediate attention"""
         alerts = []
 
@@ -637,7 +637,7 @@ class TherapyAssistantEngine:
 
         return alerts
 
-    def _generate_suggested_questions(self, analysis: SessionAnalysis) -> List[str]:
+    def _generate_suggested_questions(self, analysis: SessionAnalysis) -> list[str]:
         """Generate suggested therapeutic questions"""
         questions = []
 
@@ -659,7 +659,7 @@ class TherapyAssistantEngine:
 
         return questions
 
-    def _identify_client_strengths(self, transcript: str) -> List[str]:
+    def _identify_client_strengths(self, transcript: str) -> list[str]:
         """Identify client strengths from transcript"""
         strengths = []
 
@@ -698,7 +698,7 @@ class TherapyAssistantEngine:
             else "Continue current therapeutic approach"
         )
 
-    def _suggest_next_session_focus(self, analysis: SessionAnalysis) -> List[str]:
+    def _suggest_next_session_focus(self, analysis: SessionAnalysis) -> list[str]:
         """Suggest focus areas for next session"""
         focus_areas = []
 

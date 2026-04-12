@@ -6,13 +6,14 @@ Enterprise-grade reporting system for quality distribution analysis with
 comprehensive visualizations, statistical summaries, and executive reports.
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import warnings
 from dataclasses import asdict
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -142,7 +143,7 @@ class QualityDistributionReporter:
 
         # Create comprehensive report
         report = QualityDistributionReport(
-            generated_at=datetime.now().isoformat(),
+            generated_at=datetime.now(timezone.utc).isoformat(),
             analysis_period=f"{days_back}_days",
             overall_distribution=overall_distribution,
             component_distributions=component_distributions,
@@ -197,7 +198,7 @@ class QualityDistributionReporter:
         )
 
         return QualityDistributionReport(
-            generated_at=datetime.now().isoformat(),
+            generated_at=datetime.now(timezone.utc).isoformat(),
             analysis_period="no_data",
             overall_distribution=empty_distribution,
             component_distributions={},
@@ -215,9 +216,9 @@ class QualityDistributionReporter:
     def _generate_executive_summary(
         self,
         overall_distribution: QualityDistributionAnalysis,
-        component_distributions: Dict[str, QualityDistributionAnalysis],
-        comparative_analyses: Dict[str, Any],
-    ) -> List[str]:
+        component_distributions: dict[str, QualityDistributionAnalysis],
+        comparative_analyses: dict[str, Any],
+    ) -> list[str]:
         """Generate executive summary for the distribution report."""
         summary = []
 
@@ -300,10 +301,10 @@ class QualityDistributionReporter:
     def _generate_detailed_insights(
         self,
         overall_distribution: QualityDistributionAnalysis,
-        component_distributions: Dict[str, QualityDistributionAnalysis],
-        comparative_analyses: Dict[str, Any],
-        correlation_analysis: Dict[str, Any],
-    ) -> List[str]:
+        component_distributions: dict[str, QualityDistributionAnalysis],
+        comparative_analyses: dict[str, Any],
+        correlation_analysis: dict[str, Any],
+    ) -> list[str]:
         """Generate detailed insights for the distribution report."""
         insights = []
 
@@ -375,9 +376,9 @@ class QualityDistributionReporter:
     def _generate_action_items(
         self,
         overall_distribution: QualityDistributionAnalysis,
-        component_distributions: Dict[str, QualityDistributionAnalysis],
-        comparative_analyses: Dict[str, Any],
-    ) -> List[str]:
+        component_distributions: dict[str, QualityDistributionAnalysis],
+        comparative_analyses: dict[str, Any],
+    ) -> list[str]:
         """Generate actionable items based on distribution analysis."""
         actions = []
 
@@ -448,7 +449,7 @@ class QualityDistributionReporter:
 
     def create_distribution_visualizations(
         self, report: QualityDistributionReport
-    ) -> Dict[str, go.Figure]:
+    ) -> dict[str, go.Figure]:
         """Create comprehensive distribution visualizations."""
         visualizations = {}
 
@@ -592,7 +593,7 @@ class QualityDistributionReporter:
         self, report: QualityDistributionReport, format: str = "json"
     ) -> str:
         """Save distribution report to file."""
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
 
         if format == "json":
             filename = f"quality_distribution_report_{timestamp}.json"
@@ -622,7 +623,7 @@ class QualityDistributionReporter:
         template = Template(self.report_templates["detailed"])
 
         return template.render(
-            report=report, generated_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            report=report, generated_at=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
         )
 
     def _get_executive_template(self) -> str:

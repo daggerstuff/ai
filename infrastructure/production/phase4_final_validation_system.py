@@ -10,14 +10,16 @@ This module completes all final Phase 4 tasks:
 - Task 125: Final Enterprise Production Audit
 """
 
+from datetime import datetime, timezone
+
+
 import asyncio
 import json
 import logging
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -42,7 +44,7 @@ class Phase4Task:
     task_id: str
     task_name: str
     description: str
-    validation_criteria: List[str]
+    validation_criteria: list[str]
     success_threshold: float
     priority: str
     status: ValidationStatus = ValidationStatus.PENDING
@@ -55,8 +57,8 @@ class ProductionValidationResult:
     validation_name: str
     status: ValidationStatus
     score: float
-    details: Dict[str, Any]
-    recommendations: List[str] = field(default_factory=list)
+    details: dict[str, Any]
+    recommendations: list[str] = field(default_factory=list)
 
 class Phase4FinalValidationSystem:
     """
@@ -66,8 +68,8 @@ class Phase4FinalValidationSystem:
     """
 
     def __init__(self):
-        self.phase4_tasks: List[Phase4Task] = []
-        self.validation_results: List[ProductionValidationResult] = []
+        self.phase4_tasks: list[Phase4Task] = []
+        self.validation_results: list[ProductionValidationResult] = []
         self.overall_production_score = 0.0
         self.production_readiness = ProductionReadiness.NOT_READY
         self.deployment_approved = False
@@ -151,7 +153,7 @@ class Phase4FinalValidationSystem:
         self.phase4_tasks = tasks
         logger.info(f"Initialized {len(tasks)} Phase 4 validation tasks")
 
-    async def run_final_production_validation(self) -> Dict[str, Any]:
+    async def run_final_production_validation(self) -> dict[str, Any]:
         """Run comprehensive final production validation"""
         logger.info("Starting Phase 4: Final Integration & Production Validation...")
         start_time = time.time()
@@ -184,23 +186,22 @@ class Phase4FinalValidationSystem:
 
         return report
 
-    async def _execute_task_validation(self, task: Phase4Task) -> Dict[str, Any]:
+    async def _execute_task_validation(self, task: Phase4Task) -> dict[str, Any]:
         """Execute validation for individual Phase 4 task"""
 
         if task.task_id == "121":
             return await self._validate_production_safety_systems(task)
-        elif task.task_id == "122":
+        if task.task_id == "122":
             return await self._validate_test_coverage_final(task)
-        elif task.task_id == "123":
+        if task.task_id == "123":
             return await self._validate_deployment_procedures(task)
-        elif task.task_id == "124":
+        if task.task_id == "124":
             return await self._validate_go_live_preparation(task)
-        elif task.task_id == "125":
+        if task.task_id == "125":
             return await self._execute_final_enterprise_audit(task)
-        else:
-            return {"score": 95.0, "status": "passed", "details": {}}
+        return {"score": 95.0, "status": "passed", "details": {}}
 
-    async def _validate_production_safety_systems(self, task: Phase4Task) -> Dict[str, Any]:
+    async def _validate_production_safety_systems(self, task: Phase4Task) -> dict[str, Any]:
         """Task 121: Production Safety Systems Validation"""
 
         safety_validations = {
@@ -252,7 +253,7 @@ class Phase4FinalValidationSystem:
             "production_safety_ready": overall_safety_score >= 95.0
         }
 
-    async def _validate_test_coverage_final(self, task: Phase4Task) -> Dict[str, Any]:
+    async def _validate_test_coverage_final(self, task: Phase4Task) -> dict[str, Any]:
         """Task 122: Test Coverage Final Validation"""
 
         test_coverage_summary = {
@@ -304,7 +305,7 @@ class Phase4FinalValidationSystem:
             "test_coverage_ready": overall_test_score >= 95.0
         }
 
-    async def _validate_deployment_procedures(self, task: Phase4Task) -> Dict[str, Any]:
+    async def _validate_deployment_procedures(self, task: Phase4Task) -> dict[str, Any]:
         """Task 123: Deployment Procedures Final Testing"""
 
         deployment_validations = {
@@ -357,7 +358,7 @@ class Phase4FinalValidationSystem:
             "deployment_ready": overall_deployment_score >= 95.0
         }
 
-    async def _validate_go_live_preparation(self, task: Phase4Task) -> Dict[str, Any]:
+    async def _validate_go_live_preparation(self, task: Phase4Task) -> dict[str, Any]:
         """Task 124: Go-Live Preparation Final Validation"""
 
         go_live_preparations = {
@@ -409,7 +410,7 @@ class Phase4FinalValidationSystem:
             "go_live_ready": overall_go_live_score >= 95.0
         }
 
-    async def _execute_final_enterprise_audit(self, task: Phase4Task) -> Dict[str, Any]:
+    async def _execute_final_enterprise_audit(self, task: Phase4Task) -> dict[str, Any]:
         """Task 125: Final Enterprise Production Audit"""
 
         # Comprehensive enterprise audit based on all previous phases
@@ -471,7 +472,7 @@ class Phase4FinalValidationSystem:
             "enterprise_ready": final_enterprise_score >= 92.0
         }
 
-    async def _perform_enterprise_audit(self) -> Dict[str, Any]:
+    async def _perform_enterprise_audit(self) -> dict[str, Any]:
         """Perform comprehensive enterprise audit"""
 
         # Aggregate all system scores
@@ -523,11 +524,11 @@ class Phase4FinalValidationSystem:
             "enterprise_criteria": enterprise_criteria,
             "criteria_met": criteria_met,
             "enterprise_ready": enterprise_ready,
-            "audit_timestamp": datetime.utcnow().isoformat()
+            "audit_timestamp": datetime.now(timezone.utc).isoformat()
         }
 
-    def _assess_production_readiness(self, validation_results: Dict[str, Any],
-                                   enterprise_audit: Dict[str, Any]) -> Dict[str, Any]:
+    def _assess_production_readiness(self, validation_results: dict[str, Any],
+                                   enterprise_audit: dict[str, Any]) -> dict[str, Any]:
         """Assess final production readiness"""
 
         # Calculate overall production score
@@ -563,13 +564,13 @@ class Phase4FinalValidationSystem:
             "total_critical_tasks": total_critical_tasks,
             "all_tasks_passed": all_tasks_passed,
             "enterprise_ready": enterprise_ready,
-            "deployment_approval_date": datetime.utcnow().isoformat() if self.deployment_approved else None
+            "deployment_approval_date": datetime.now(timezone.utc).isoformat() if self.deployment_approved else None
         }
 
     def _generate_final_production_report(self, execution_time: float,
-                                        validation_results: Dict[str, Any],
-                                        enterprise_audit: Dict[str, Any],
-                                        production_assessment: Dict[str, Any]) -> Dict[str, Any]:
+                                        validation_results: dict[str, Any],
+                                        enterprise_audit: dict[str, Any],
+                                        production_assessment: dict[str, Any]) -> dict[str, Any]:
         """Generate comprehensive final production report"""
 
         # Determine final status
@@ -583,7 +584,7 @@ class Phase4FinalValidationSystem:
         return {
             "phase4_final_summary": {
                 "phase_name": "Phase 4: Final Integration & Production Validation",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "execution_time": execution_time,
                 "overall_production_score": round(self.overall_production_score, 2),
                 "production_readiness": self.production_readiness.value,
@@ -623,7 +624,7 @@ class Phase4FinalValidationSystem:
             "next_steps": self._generate_final_next_steps()
         }
 
-    def _generate_final_recommendations(self) -> List[str]:
+    def _generate_final_recommendations(self) -> list[str]:
         """Generate final production recommendations"""
         recommendations = []
 
@@ -652,7 +653,7 @@ class Phase4FinalValidationSystem:
 
         return recommendations
 
-    def _generate_final_next_steps(self) -> List[str]:
+    def _generate_final_next_steps(self) -> list[str]:
         """Generate final next steps based on validation results"""
         if self.deployment_approved:
             return [
@@ -662,13 +663,12 @@ class Phase4FinalValidationSystem:
                 "📋 Execute production deployment plan",
                 "🔄 Begin production operations and monitoring"
             ]
-        else:
-            return [
-                "🔧 Address failing validation tasks",
-                "🧪 Re-run Phase 4 validation after improvements",
-                "📋 Complete enterprise audit requirements",
-                "🔄 Repeat validation until deployment approved"
-            ]
+        return [
+            "🔧 Address failing validation tasks",
+            "🧪 Re-run Phase 4 validation after improvements",
+            "📋 Complete enterprise audit requirements",
+            "🔄 Repeat validation until deployment approved"
+        ]
 
 # Example usage and testing
 if __name__ == "__main__":
@@ -688,11 +688,11 @@ if __name__ == "__main__":
         print(f"Deployment Approved: {'YES' if report['phase4_final_summary']['deployment_approved'] else 'NO'}")
         print(f"Final Status: {report['phase4_final_summary']['final_status']}")
 
-        print(f"\nTask Validation Results:")
+        print("\nTask Validation Results:")
         for task_id, result in report["task_validation_results"].items():
             print(f"  Task {task_id}: {result['score']:.1f}% - {result['status'].upper()}")
 
-        print(f"\nFinal Production Metrics:")
+        print("\nFinal Production Metrics:")
         metrics = report["final_production_metrics"]
         print(f"  Safety Systems: {metrics['safety_systems_score']:.1f}%")
         print(f"  Test Coverage: {metrics['test_coverage_score']:.1f}%")
@@ -701,18 +701,18 @@ if __name__ == "__main__":
         print(f"  Enterprise Audit: {metrics['enterprise_audit_score']:.1f}%")
         print(f"  Weighted Enterprise Score: {metrics['weighted_enterprise_score']:.1f}%")
 
-        if report['phase4_final_summary']['deployment_approved']:
+        if report["phase4_final_summary"]["deployment_approved"]:
             approval = report["deployment_approval"]
-            print(f"\n🎉 DEPLOYMENT APPROVAL:")
+            print("\n🎉 DEPLOYMENT APPROVAL:")
             print(f"  Approved: {approval['approved']}")
             print(f"  Approval Date: {approval['approval_date']}")
             print(f"  Valid For: {approval['valid_for']}")
             print(f"  Approved By: {approval['approved_by']}")
 
         # Save report
-        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         report_file = f"phase4_final_production_report_{timestamp}.json"
-        with open(report_file, 'w') as f:
+        with open(report_file, "w") as f:
             json.dump(report, f, indent=2, default=str)
 
         print(f"\nDetailed report saved to: {report_file}")

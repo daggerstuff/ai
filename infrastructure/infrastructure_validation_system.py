@@ -7,14 +7,16 @@ This module completes the remaining infrastructure validation tasks:
 - Task 108: Production Monitoring Validation
 """
 
+from datetime import datetime, timezone
+
+
 import asyncio
 import json
 import logging
 import time
 from dataclasses import dataclass
-from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -32,7 +34,7 @@ class InfrastructureTask:
     task_id: str
     task_name: str
     description: str
-    validation_criteria: List[str]
+    validation_criteria: list[str]
     score: float = 0.0
     status: ValidationStatus = ValidationStatus.FAILED
 
@@ -44,7 +46,7 @@ class InfrastructureValidationSystem:
     """
 
     def __init__(self):
-        self.infrastructure_tasks: List[InfrastructureTask] = []
+        self.infrastructure_tasks: list[InfrastructureTask] = []
         self.overall_score = 0.0
         self.production_ready = False
 
@@ -84,7 +86,7 @@ class InfrastructureValidationSystem:
         self.infrastructure_tasks = tasks
         logger.info(f"Initialized {len(tasks)} infrastructure validation tasks")
 
-    async def run_infrastructure_validation(self) -> Dict[str, Any]:
+    async def run_infrastructure_validation(self) -> dict[str, Any]:
         """Run comprehensive infrastructure validation"""
         logger.info("Starting infrastructure validation...")
         start_time = time.time()
@@ -113,17 +115,16 @@ class InfrastructureValidationSystem:
 
         return report
 
-    async def _validate_infrastructure_task(self, task: InfrastructureTask) -> Dict[str, Any]:
+    async def _validate_infrastructure_task(self, task: InfrastructureTask) -> dict[str, Any]:
         """Validate individual infrastructure task"""
 
         if task.task_id == "107":
             return await self._validate_production_deployment(task)
-        elif task.task_id == "108":
+        if task.task_id == "108":
             return await self._validate_production_monitoring(task)
-        else:
-            return {"score": 95.0, "status": "passed", "details": {}}
+        return {"score": 95.0, "status": "passed", "details": {}}
 
-    async def _validate_production_deployment(self, task: InfrastructureTask) -> Dict[str, Any]:
+    async def _validate_production_deployment(self, task: InfrastructureTask) -> dict[str, Any]:
         """Task 107: Production Deployment Validation"""
 
         deployment_validations = {
@@ -178,7 +179,7 @@ class InfrastructureValidationSystem:
             "deployment_ready": overall_deployment_score >= 95.0
         }
 
-    async def _validate_production_monitoring(self, task: InfrastructureTask) -> Dict[str, Any]:
+    async def _validate_production_monitoring(self, task: InfrastructureTask) -> dict[str, Any]:
         """Task 108: Production Monitoring Validation"""
 
         monitoring_validations = {
@@ -234,7 +235,7 @@ class InfrastructureValidationSystem:
             "monitoring_ready": overall_monitoring_score >= 95.0
         }
 
-    def _analyze_infrastructure_results(self) -> Dict[str, Any]:
+    def _analyze_infrastructure_results(self) -> dict[str, Any]:
         """Analyze overall infrastructure validation results"""
 
         total_tasks = len(self.infrastructure_tasks)
@@ -259,8 +260,8 @@ class InfrastructureValidationSystem:
         }
 
     def _generate_infrastructure_report(self, execution_time: float,
-                                      task_results: Dict[str, Any],
-                                      infrastructure_analysis: Dict[str, Any]) -> Dict[str, Any]:
+                                      task_results: dict[str, Any],
+                                      infrastructure_analysis: dict[str, Any]) -> dict[str, Any]:
         """Generate comprehensive infrastructure validation report"""
 
         # Determine infrastructure status
@@ -273,7 +274,7 @@ class InfrastructureValidationSystem:
 
         return {
             "infrastructure_validation_summary": {
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "execution_time": execution_time,
                 "overall_score": round(self.overall_score, 2),
                 "production_ready": self.production_ready,
@@ -299,7 +300,7 @@ class InfrastructureValidationSystem:
             "next_steps": self._generate_infrastructure_next_steps()
         }
 
-    def _generate_infrastructure_recommendations(self) -> List[str]:
+    def _generate_infrastructure_recommendations(self) -> list[str]:
         """Generate infrastructure improvement recommendations"""
         recommendations = []
 
@@ -320,7 +321,7 @@ class InfrastructureValidationSystem:
 
         return recommendations
 
-    def _generate_infrastructure_next_steps(self) -> List[str]:
+    def _generate_infrastructure_next_steps(self) -> list[str]:
         """Generate next steps based on infrastructure validation"""
         if self.production_ready:
             return [
@@ -329,13 +330,12 @@ class InfrastructureValidationSystem:
                 "📋 All infrastructure validation tasks passed",
                 "🔄 Maintain infrastructure monitoring and validation"
             ]
-        else:
-            return [
-                "🔧 Fix failing infrastructure validation tasks",
-                "🧪 Re-run infrastructure validation after improvements",
-                "📋 Complete infrastructure production requirements",
-                "🔄 Repeat validation until infrastructure ready"
-            ]
+        return [
+            "🔧 Fix failing infrastructure validation tasks",
+            "🧪 Re-run infrastructure validation after improvements",
+            "📋 Complete infrastructure production requirements",
+            "🔄 Repeat validation until infrastructure ready"
+        ]
 
 # Example usage and testing
 if __name__ == "__main__":
@@ -354,11 +354,11 @@ if __name__ == "__main__":
         print(f"Infrastructure Status: {report['infrastructure_validation_summary']['infrastructure_status']}")
         print(f"Production Ready: {'YES' if report['infrastructure_validation_summary']['production_ready'] else 'NO'}")
 
-        print(f"\nTask Validation Results:")
+        print("\nTask Validation Results:")
         for task_id, result in report["task_validation_results"].items():
             print(f"  Task {task_id}: {result['score']:.1f}% - {result['status'].upper()}")
 
-        print(f"\nInfrastructure Metrics:")
+        print("\nInfrastructure Metrics:")
         metrics = report["infrastructure_metrics"]
         print(f"  Deployment Validation: {metrics['deployment_validation_score']:.1f}%")
         print(f"  Monitoring Validation: {metrics['monitoring_validation_score']:.1f}%")
@@ -366,9 +366,9 @@ if __name__ == "__main__":
         print(f"  Monitoring Ready: {'YES' if metrics['monitoring_ready'] else 'NO'}")
 
         # Save report
-        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         report_file = f"infrastructure_validation_report_{timestamp}.json"
-        with open(report_file, 'w') as f:
+        with open(report_file, "w") as f:
             json.dump(report, f, indent=2, default=str)
 
         print(f"\nDetailed report saved to: {report_file}")

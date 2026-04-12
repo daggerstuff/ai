@@ -20,18 +20,18 @@ Version: 1.0.0
 Date: August 2025
 """
 
+from datetime import datetime, timezone
+
 import asyncio
 import concurrent.futures
 import json
 import logging
 import statistics
-import threading
 import time
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 import requests
@@ -39,9 +39,9 @@ import requests
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler('/home/vivi/pixelated/ai/logs/performance_validation.log'),
+        logging.FileHandler("/home/vivi/pixelated/ai/logs/performance_validation.log"),
         logging.StreamHandler()
     ]
 )
@@ -73,7 +73,7 @@ class LoadTestConfig:
     requests_per_minute: int
     duration_minutes: int
     ramp_up_minutes: int
-    target_endpoints: List[str]
+    target_endpoints: list[str]
     expected_response_time_ms: int
     max_error_rate_percent: float
 
@@ -87,7 +87,7 @@ class RequestResult:
     request_size_bytes: int
     response_size_bytes: int
     timestamp: datetime
-    error_message: Optional[str] = None
+    error_message: str | None = None
 
 @dataclass
 class LoadTestResult:
@@ -116,19 +116,19 @@ class PerformanceReport:
     """Comprehensive performance validation report"""
     report_id: str
     timestamp: datetime
-    test_results: List[LoadTestResult]
+    test_results: list[LoadTestResult]
     overall_performance_score: float
     sla_compliance_score: float
     scalability_score: float
-    recommendations: List[str]
-    performance_summary: Dict[str, Any]
+    recommendations: list[str]
+    performance_summary: dict[str, Any]
 
 class LoadTestExecutor:
     """Executes load tests with concurrent requests"""
 
     def __init__(self):
         self.session = requests.Session()
-        self.results: List[RequestResult] = []
+        self.results: list[RequestResult] = []
         self.stop_test = False
 
     async def execute_load_test(self, config: LoadTestConfig) -> LoadTestResult:
@@ -358,7 +358,7 @@ class PerformanceValidationSuite:
         self.results_path.mkdir(parents=True, exist_ok=True)
 
         self.load_test_executor = LoadTestExecutor()
-        self.test_results: List[LoadTestResult] = []
+        self.test_results: list[LoadTestResult] = []
 
     async def run_comprehensive_performance_validation(self) -> PerformanceReport:
         """Run comprehensive performance validation suite"""
@@ -384,7 +384,7 @@ class PerformanceValidationSuite:
         logger.info(f"Performance validation completed. Overall score: {report.overall_performance_score:.1f}/100")
         return report
 
-    def _get_test_configurations(self) -> List[LoadTestConfig]:
+    def _get_test_configurations(self) -> list[LoadTestConfig]:
         """Get load test configurations"""
 
         # Base endpoints for testing
@@ -446,7 +446,7 @@ class PerformanceValidationSuite:
 
         if not self.test_results:
             return PerformanceReport(
-                report_id=f"perf_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                report_id=f"perf_report_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
                 timestamp=datetime.now(timezone.utc),
                 test_results=[],
                 overall_performance_score=0,
@@ -480,7 +480,7 @@ class PerformanceValidationSuite:
         }
 
         return PerformanceReport(
-            report_id=f"perf_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            report_id=f"perf_report_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
             timestamp=datetime.now(timezone.utc),
             test_results=self.test_results,
             overall_performance_score=overall_performance_score,
@@ -512,14 +512,13 @@ class PerformanceValidationSuite:
         # Score based on degradation (lower degradation = higher score)
         if degradation_ratio <= 2.0:  # Less than 2x degradation
             return 100.0
-        elif degradation_ratio <= 3.0:  # Less than 3x degradation
+        if degradation_ratio <= 3.0:  # Less than 3x degradation
             return 80.0
-        elif degradation_ratio <= 5.0:  # Less than 5x degradation
+        if degradation_ratio <= 5.0:  # Less than 5x degradation
             return 60.0
-        else:
-            return 40.0
+        return 40.0
 
-    def _generate_recommendations(self) -> List[str]:
+    def _generate_recommendations(self) -> list[str]:
         """Generate performance optimization recommendations"""
         recommendations = []
 
@@ -556,11 +555,11 @@ class PerformanceValidationSuite:
 
         # Save detailed test results
         results_data = [asdict(result) for result in self.test_results]
-        with open(self.results_path / "load_test_results.json", 'w') as f:
+        with open(self.results_path / "load_test_results.json", "w") as f:
             json.dump(results_data, f, indent=2, default=str)
 
         # Save performance report
-        with open(self.results_path / "performance_validation_report.json", 'w') as f:
+        with open(self.results_path / "performance_validation_report.json", "w") as f:
             json.dump(asdict(report), f, indent=2, default=str)
 
         logger.info(f"Performance results saved to {self.results_path}")
@@ -581,7 +580,7 @@ async def main():
     print(f"SLA Compliance Score: {report.sla_compliance_score:.1f}/100")
     print(f"Scalability Score: {report.scalability_score:.1f}/100")
 
-    print(f"\nPerformance Summary:")
+    print("\nPerformance Summary:")
     summary = report.performance_summary
     print(f"  Total Tests: {summary['total_tests']}")
     print(f"  SLA Compliant Tests: {summary['sla_compliant_tests']}")
@@ -590,7 +589,7 @@ async def main():
     print(f"  Max Concurrent Users: {summary['max_concurrent_users_tested']}")
     print(f"  Overall Error Rate: {summary['overall_error_rate']:.1f}%")
 
-    print(f"\nTest Results:")
+    print("\nTest Results:")
     for result in report.test_results:
         status = "✅ PASSED" if result.sla_compliance else "❌ FAILED"
         print(f"  {result.test_name}: {status}")
@@ -599,7 +598,7 @@ async def main():
         print(f"    Error Rate: {result.error_rate_percent:.1f}%")
 
     if report.recommendations:
-        print(f"\nRecommendations:")
+        print("\nRecommendations:")
         for rec in report.recommendations:
             print(f"  • {rec}")
 

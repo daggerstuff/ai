@@ -11,13 +11,14 @@ Predicts conversation effectiveness using machine learning models:
 - Effectiveness improvement recommendations
 """
 
+from datetime import datetime, timezone
+
 import json
 import re
 import sqlite3
 import warnings
 from collections import Counter
-from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -46,7 +47,7 @@ class ConversationEffectivenessPredictor:
         """Connect to the conversations database"""
         return sqlite3.connect(self.db_path)
 
-    def predict_effectiveness(self) -> Dict[str, Any]:
+    def predict_effectiveness(self) -> dict[str, Any]:
         """Main function for conversation effectiveness prediction"""
         print("🎯 Starting Conversation Effectiveness Prediction...")
 
@@ -81,7 +82,7 @@ class ConversationEffectivenessPredictor:
         )
 
         return {
-            "analysis_timestamp": datetime.now().isoformat(),
+            "analysis_timestamp": datetime.now(timezone.utc).isoformat(),
             "total_conversations": len(conversations),
             "feature_count": len(features_df.columns),
             "model_performance": model_results,
@@ -137,8 +138,7 @@ class ConversationEffectivenessPredictor:
                     else:
                         text_parts.append(str(turn))
                 return "\n".join(text_parts)
-            else:
-                return str(conversations)
+            return str(conversations)
         except:
             return json_str
 
@@ -368,7 +368,7 @@ class ConversationEffectivenessPredictor:
 
         return pd.Series(effectiveness_scores, name="effectiveness_score")
 
-    def _build_prediction_models(self, modeling_data: pd.DataFrame) -> Dict[str, Any]:
+    def _build_prediction_models(self, modeling_data: pd.DataFrame) -> dict[str, Any]:
         """Build machine learning models to predict effectiveness"""
         print("🤖 Building prediction models...")
 
@@ -461,8 +461,8 @@ class ConversationEffectivenessPredictor:
         return model_results
 
     def _generate_predictions(
-        self, modeling_data: pd.DataFrame, model_results: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, modeling_data: pd.DataFrame, model_results: dict[str, Any]
+    ) -> dict[str, Any]:
         """Generate effectiveness predictions for all conversations"""
         print("🔮 Generating effectiveness predictions...")
 
@@ -513,8 +513,8 @@ class ConversationEffectivenessPredictor:
         }
 
     def _analyze_effectiveness_patterns(
-        self, modeling_data: pd.DataFrame, predictions: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, modeling_data: pd.DataFrame, predictions: dict[str, Any]
+    ) -> dict[str, Any]:
         """Analyze patterns in conversation effectiveness"""
         print("📈 Analyzing effectiveness patterns...")
 
@@ -608,8 +608,8 @@ class ConversationEffectivenessPredictor:
         return patterns_analysis
 
     def _generate_effectiveness_insights(
-        self, effectiveness_analysis: Dict[str, Any], model_results: Dict[str, Any]
-    ) -> List[str]:
+        self, effectiveness_analysis: dict[str, Any], model_results: dict[str, Any]
+    ) -> list[str]:
         """Generate insights from effectiveness analysis"""
         insights = []
 
@@ -657,8 +657,8 @@ class ConversationEffectivenessPredictor:
         return insights
 
     def _generate_effectiveness_recommendations(
-        self, effectiveness_analysis: Dict[str, Any]
-    ) -> List[str]:
+        self, effectiveness_analysis: dict[str, Any]
+    ) -> list[str]:
         """Generate recommendations for improving effectiveness"""
         recommendations = []
 
@@ -724,8 +724,8 @@ class ConversationEffectivenessPredictor:
     def _create_effectiveness_visualizations(
         self,
         modeling_data: pd.DataFrame,
-        predictions: Dict[str, Any],
-        model_results: Dict[str, Any],
+        predictions: dict[str, Any],
+        model_results: dict[str, Any],
     ):
         """Create visualizations for effectiveness analysis"""
         print("📊 Creating effectiveness visualizations...")
@@ -882,7 +882,7 @@ class ConversationEffectivenessPredictor:
         plt.tight_layout()
 
         # Save the plot
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         plt.savefig(
             f"/home/vivi/pixelated/ai/monitoring/effectiveness_prediction_{timestamp}.png",
             dpi=300,
@@ -907,7 +907,7 @@ def main():
         results = predictor.predict_effectiveness()
 
         # Save results
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         output_file = f"/home/vivi/pixelated/ai/monitoring/effectiveness_prediction_{timestamp}.json"
 
         with open(output_file, "w") as f:
@@ -949,7 +949,7 @@ def main():
         return results
 
     except Exception as e:
-        print(f"❌ Error during analysis: {str(e)}")
+        print(f"❌ Error during analysis: {e!s}")
         import traceback
 
         traceback.print_exc()

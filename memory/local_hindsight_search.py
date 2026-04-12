@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 
-def build_recall_results(documents: List[Dict[str, Any]], *, limit: int) -> List[Dict[str, Any]]:
+def build_recall_results(documents: list[dict[str, Any]], *, limit: int) -> list[dict[str, Any]]:
     results = []
     for document in documents:
         rank = float(document.get("rank", 999.0))

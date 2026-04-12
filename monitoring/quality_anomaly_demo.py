@@ -4,14 +4,15 @@ Quality Anomaly Detection Demo
 Demonstrates anomaly detection with synthetic data
 """
 
+from datetime import datetime, timedelta, timezone
+
 import json
 import random
 import sqlite3
 import warnings
 from dataclasses import dataclass
-from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -33,7 +34,7 @@ class QualityAnomaly:
     severity: str
     anomaly_type: str
     confidence: float
-    context: Dict[str, Any]
+    context: dict[str, Any]
 
 
 @dataclass
@@ -45,8 +46,8 @@ class Alert:
     severity: str
     title: str
     message: str
-    anomalies: List[QualityAnomaly]
-    recommended_actions: List[str]
+    anomalies: list[QualityAnomaly]
+    recommended_actions: list[str]
     auto_resolved: bool
 
 
@@ -67,7 +68,7 @@ class QualityAnomalyDemo:
             "dataset_diversity",
         ]
 
-    def create_demo_anomalies(self) -> List[QualityAnomaly]:
+    def create_demo_anomalies(self) -> list[QualityAnomaly]:
         """Create demo anomalies with synthetic data"""
         print("🎭 Creating demo quality anomalies...")
 
@@ -102,7 +103,7 @@ class QualityAnomalyDemo:
             print(f"❌ Error creating demo anomalies: {e}")
             return []
 
-    def _get_base_data(self) -> List[Dict]:
+    def _get_base_data(self) -> list[dict]:
         """Get base data from database"""
         try:
             conn = sqlite3.connect(self.db_path)
@@ -136,8 +137,8 @@ class QualityAnomalyDemo:
             return []
 
     def _create_metric_anomalies(
-        self, base_data: List[Dict], metric: str
-    ) -> List[QualityAnomaly]:
+        self, base_data: list[dict], metric: str
+    ) -> list[QualityAnomaly]:
         """Create synthetic anomalies for a metric"""
         try:
             # Calculate baseline statistics
@@ -162,29 +163,29 @@ class QualityAnomalyDemo:
             return []
 
     def _calculate_baseline_value(
-        self, data: List[Dict], metric: str
-    ) -> Optional[float]:
+        self, data: list[dict], metric: str
+    ) -> float | None:
         """Calculate baseline value for a metric"""
         try:
             if metric == "conversation_length":
                 values = [r["turn_count"] for r in data if r["turn_count"]]
                 return np.mean(values) if values else None
-            elif metric == "content_richness":
+            if metric == "content_richness":
                 values = [r["word_count"] for r in data if r["word_count"]]
                 return np.mean(values) if values else None
-            elif metric == "processing_efficiency":
+            if metric == "processing_efficiency":
                 total = len(data)
                 successful = len(
                     [r for r in data if r["processing_status"] == "processed"]
                 )
                 return (successful / total) * 100 if total > 0 else None
-            elif metric == "tier_quality":
+            if metric == "tier_quality":
                 total = len(data)
                 priority = len(
                     [r for r in data if r["tier"] and "priority" in str(r["tier"])]
                 )
                 return (priority / total) * 100 if total > 0 else None
-            elif metric == "dataset_diversity":
+            if metric == "dataset_diversity":
                 unique_datasets = len(
                     set(r["dataset_source"] for r in data if r["dataset_source"])
                 )
@@ -198,7 +199,7 @@ class QualityAnomalyDemo:
 
     def _create_synthetic_anomaly(
         self, metric: str, baseline_value: float, index: int
-    ) -> Optional[QualityAnomaly]:
+    ) -> QualityAnomaly | None:
         """Create a synthetic anomaly"""
         try:
             # Define anomaly scenarios
@@ -231,7 +232,7 @@ class QualityAnomalyDemo:
             deviation = anomalous_value - baseline_value
 
             # Create timestamp (recent)
-            timestamp = datetime.now() - timedelta(hours=random.randint(1, 24))
+            timestamp = datetime.now(timezone.utc) - timedelta(hours=random.randint(1, 24))
 
             # Calculate confidence
             confidence = min(0.99, abs(z_score) / 4.0)
@@ -257,7 +258,7 @@ class QualityAnomalyDemo:
             print(f"❌ Error creating synthetic anomaly: {e}")
             return None
 
-    def generate_demo_alerts(self, anomalies: List[QualityAnomaly]) -> List[Alert]:
+    def generate_demo_alerts(self, anomalies: list[QualityAnomaly]) -> list[Alert]:
         """Generate demo alerts from anomalies"""
         print(f"🚨 Generating demo alerts from {len(anomalies)} anomalies...")
 
@@ -286,8 +287,8 @@ class QualityAnomalyDemo:
             return []
 
     def _create_demo_alert(
-        self, group_key: str, anomalies: List[QualityAnomaly]
-    ) -> Optional[Alert]:
+        self, group_key: str, anomalies: list[QualityAnomaly]
+    ) -> Alert | None:
         """Create demo alert from grouped anomalies"""
         try:
             if not anomalies:
@@ -296,7 +297,7 @@ class QualityAnomalyDemo:
             severity, metric = group_key.split("_", 1)
 
             # Generate alert ID
-            alert_id = f"DEMO_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{group_key}"
+            alert_id = f"DEMO_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{group_key}"
 
             # Create title and message
             title = f"{severity.upper()} Quality Anomaly: {metric.replace('_', ' ').title()}"
@@ -317,7 +318,7 @@ DEMO ALERT: Quality anomaly detected in {metric.replace("_", " ")}.
 
             return Alert(
                 alert_id=alert_id,
-                timestamp=datetime.now(),
+                timestamp=datetime.now(timezone.utc),
                 severity=severity,
                 title=title,
                 message=message,
@@ -330,7 +331,7 @@ DEMO ALERT: Quality anomaly detected in {metric.replace("_", " ")}.
             print(f"❌ Error creating demo alert: {e}")
             return None
 
-    def _generate_demo_actions(self, metric: str, severity: str) -> List[str]:
+    def _generate_demo_actions(self, metric: str, severity: str) -> list[str]:
         """Generate demo recommended actions"""
         actions = []
 
@@ -387,8 +388,8 @@ DEMO ALERT: Quality anomaly detected in {metric.replace("_", " ")}.
         return actions
 
     def create_demo_visualizations(
-        self, anomalies: List[QualityAnomaly]
-    ) -> Dict[str, str]:
+        self, anomalies: list[QualityAnomaly]
+    ) -> dict[str, str]:
         """Create demo anomaly visualizations"""
         print("📈 Creating demo anomaly visualizations...")
 
@@ -526,15 +527,15 @@ DEMO ALERT: Quality anomaly detected in {metric.replace("_", " ")}.
 
     def export_demo_report(
         self,
-        anomalies: List[QualityAnomaly],
-        alerts: List[Alert],
-        visualizations: Dict[str, str],
+        anomalies: list[QualityAnomaly],
+        alerts: list[Alert],
+        visualizations: dict[str, str],
     ) -> str:
         """Export demo anomaly detection report"""
         print("📄 Exporting demo anomaly detection report...")
 
         try:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
             report_file = self.output_dir / f"quality_anomaly_demo_{timestamp}.json"
 
             # Create summary statistics
@@ -558,7 +559,7 @@ DEMO ALERT: Quality anomaly detected in {metric.replace("_", " ")}.
             # Prepare export data
             export_data = {
                 "report_metadata": {
-                    "generated_at": datetime.now().isoformat(),
+                    "generated_at": datetime.now(timezone.utc).isoformat(),
                     "report_type": "demo",
                     "detector_version": "1.0.0",
                     "total_anomalies": len(anomalies),

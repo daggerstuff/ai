@@ -8,7 +8,7 @@ across different dimensions (tiers, datasets, components, time periods).
 
 import logging
 import warnings
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -280,8 +280,8 @@ class QualityDistributionComparator:
         )
 
     def _perform_group_comparisons(
-        self, group_data: Dict[str, pd.Series], dimension: str
-    ) -> List[Dict[str, Any]]:
+        self, group_data: dict[str, pd.Series], dimension: str
+    ) -> list[dict[str, Any]]:
         """Perform statistical tests for group comparisons."""
         tests = []
 
@@ -339,8 +339,8 @@ class QualityDistributionComparator:
         return tests
 
     def _calculate_effect_sizes(
-        self, group_data: Dict[str, pd.Series]
-    ) -> Dict[str, float]:
+        self, group_data: dict[str, pd.Series]
+    ) -> dict[str, float]:
         """Calculate effect sizes for group comparisons."""
         effect_sizes = {}
 
@@ -373,8 +373,8 @@ class QualityDistributionComparator:
         return effect_sizes
 
     def _perform_pairwise_comparisons(
-        self, group_data: Dict[str, pd.Series], dimension: str
-    ) -> List[Dict[str, Any]]:
+        self, group_data: dict[str, pd.Series], dimension: str
+    ) -> list[dict[str, Any]]:
         """Perform pairwise comparisons between groups."""
         comparisons = []
 
@@ -424,11 +424,11 @@ class QualityDistributionComparator:
 
     def _generate_comparative_recommendations(
         self,
-        groups: Dict[str, QualityDistributionAnalysis],
-        tests: List[Dict[str, Any]],
-        effect_sizes: Dict[str, float],
+        groups: dict[str, QualityDistributionAnalysis],
+        tests: list[dict[str, Any]],
+        effect_sizes: dict[str, float],
         dimension: str,
-    ) -> List[str]:
+    ) -> list[str]:
         """Generate recommendations based on comparative analysis."""
         recommendations = []
 
@@ -504,7 +504,7 @@ class QualityDistributionComparator:
             recommendations=[f"Insufficient data for {dimension} comparison analysis"],
         )
 
-    def calculate_correlation_analysis(self, df: pd.DataFrame) -> Dict[str, Any]:
+    def calculate_correlation_analysis(self, df: pd.DataFrame) -> dict[str, Any]:
         """Calculate correlation analysis between quality components."""
         if df.empty:
             return {}
@@ -551,16 +551,15 @@ class QualityDistributionComparator:
         """Interpret correlation strength."""
         if abs_corr >= 0.7:
             return "strong"
-        elif abs_corr >= 0.5:
+        if abs_corr >= 0.5:
             return "moderate"
-        elif abs_corr >= 0.3:
+        if abs_corr >= 0.3:
             return "weak"
-        else:
-            return "negligible"
+        return "negligible"
 
     def _generate_correlation_summary(
-        self, correlations: List[Dict[str, Any]]
-    ) -> List[str]:
+        self, correlations: list[dict[str, Any]]
+    ) -> list[str]:
         """Generate correlation analysis summary."""
         summary = []
 

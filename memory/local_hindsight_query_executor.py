@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import sqlite3
-from typing import Any, List, Optional
 
 from .hindsight_local_adapter import normalize_tags
 from .local_hindsight_queries import build_fts_query
@@ -13,8 +12,6 @@ from .local_hindsight_query_builders import (
     filtered_params,
     filtered_query,
     like_query_value,
-    non_shared_visibility_clause,
-    required_tags_clause,
     scope_tags,
 )
 
@@ -29,10 +26,10 @@ class LocalHindsightQueryExecutor:
         bank_id: str,
         fts_query: str,
         fetch_limit: int,
-        tags: List[str],
-        required_tags: Optional[List[str]] = None,
+        tags: list[str],
+        required_tags: list[str] | None = None,
         tags_match: str,
-    ) -> List[sqlite3.Row]:
+    ) -> list[sqlite3.Row]:
         if not fts_query:
             return []
         source = documents_source(fts=True)
@@ -69,10 +66,10 @@ class LocalHindsightQueryExecutor:
         bank_id: str,
         query: str,
         fetch_limit: int,
-        tags: List[str],
-        required_tags: Optional[List[str]] = None,
+        tags: list[str],
+        required_tags: list[str] | None = None,
         tags_match: str,
-    ) -> List[sqlite3.Row]:
+    ) -> list[sqlite3.Row]:
         like = like_query_value(query)
         source = documents_source(fts=False)
         required = normalize_tags(required_tags)
@@ -110,14 +107,14 @@ class LocalHindsightQueryExecutor:
         query: str,
         fetch_limit: int,
         offset: int = 0,
-        org_id: Optional[str] = None,
-        project_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        agent_id: Optional[str] = None,
-        run_id: Optional[str] = None,
+        org_id: str | None = None,
+        project_id: str | None = None,
+        session_id: str | None = None,
+        agent_id: str | None = None,
+        run_id: str | None = None,
         include_shared: bool = True,
-        non_private_visibility_tags: Optional[List[str]] = None,
-    ) -> List[sqlite3.Row]:
+        non_private_visibility_tags: list[str] | None = None,
+    ) -> list[sqlite3.Row]:
         fts_query = build_fts_query(query)
         fts = bool(fts_query)
         query_value = fts_query if fts else like_query_value(query)
@@ -148,17 +145,17 @@ class LocalHindsightQueryExecutor:
         *,
         bank_id: str,
         user_id: str,
-        org_id: Optional[str] = None,
-        project_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        agent_id: Optional[str] = None,
-        run_id: Optional[str] = None,
+        org_id: str | None = None,
+        project_id: str | None = None,
+        session_id: str | None = None,
+        agent_id: str | None = None,
+        run_id: str | None = None,
         include_shared: bool = True,
-        non_private_visibility_tags: Optional[List[str]] = None,
-        required_tags: Optional[List[str]] = None,
+        non_private_visibility_tags: list[str] | None = None,
+        required_tags: list[str] | None = None,
         limit: int = 100,
         offset: int = 0,
-    ) -> List[sqlite3.Row]:
+    ) -> list[sqlite3.Row]:
         required_scope_tags = scope_tags(
             org_id=org_id,
             project_id=project_id,

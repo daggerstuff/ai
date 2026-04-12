@@ -4,13 +4,14 @@ Quality Validation Result Analysis System
 Analyzes quality validation results and provides detailed insights
 """
 
+from datetime import datetime, timedelta, timezone
+
 import json
 import sqlite3
 import warnings
 from dataclasses import dataclass
-from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -30,7 +31,7 @@ class ValidationResult:
     threshold: float
     validation_type: str
     timestamp: datetime
-    details: Dict[str, Any]
+    details: dict[str, Any]
 
 
 @dataclass
@@ -43,9 +44,9 @@ class ValidationAnalysis:
     failed_validations: int
     pass_rate: float
     average_score: float
-    score_distribution: Dict[str, int]
-    failure_patterns: List[str]
-    recommendations: List[str]
+    score_distribution: dict[str, int]
+    failure_patterns: list[str]
+    recommendations: list[str]
 
 
 class QualityValidationAnalyzer:
@@ -88,7 +89,7 @@ class QualityValidationAnalyzer:
 
     def analyze_validation_results(
         self, days_back: int = 30
-    ) -> Dict[str, ValidationAnalysis]:
+    ) -> dict[str, ValidationAnalysis]:
         """Analyze quality validation results"""
         print(f"🔍 Analyzing quality validation results for last {days_back} days...")
 
@@ -117,7 +118,7 @@ class QualityValidationAnalyzer:
             print(f"❌ Error analyzing validation results: {e}")
             return {}
 
-    def _get_validation_results(self, days_back: int) -> List[ValidationResult]:
+    def _get_validation_results(self, days_back: int) -> list[ValidationResult]:
         """Get validation results (synthetic for demo)"""
         try:
             # Get conversation data for realistic IDs
@@ -161,7 +162,7 @@ class QualityValidationAnalyzer:
                     passed=passed,
                     threshold=threshold,
                     validation_type="automated",
-                    timestamp=datetime.now()
+                    timestamp=datetime.now(timezone.utc)
                     - timedelta(days=np.random.randint(0, days_back)),
                     details={
                         "validation_method": "nlp_analysis",
@@ -179,8 +180,8 @@ class QualityValidationAnalyzer:
             return []
 
     def _analyze_metric_validation(
-        self, metric: str, results: List[ValidationResult]
-    ) -> Optional[ValidationAnalysis]:
+        self, metric: str, results: list[ValidationResult]
+    ) -> ValidationAnalysis | None:
         """Analyze validation results for a specific metric"""
         try:
             if not results:
@@ -229,8 +230,8 @@ class QualityValidationAnalyzer:
             return None
 
     def _analyze_failure_patterns(
-        self, metric: str, failed_results: List[ValidationResult]
-    ) -> List[str]:
+        self, metric: str, failed_results: list[ValidationResult]
+    ) -> list[str]:
         """Analyze patterns in validation failures"""
         patterns = []
 
@@ -296,8 +297,8 @@ class QualityValidationAnalyzer:
         metric: str,
         pass_rate: float,
         average_score: float,
-        failure_patterns: List[str],
-    ) -> List[str]:
+        failure_patterns: list[str],
+    ) -> list[str]:
         """Generate recommendations based on validation analysis"""
         recommendations = []
 
@@ -382,8 +383,8 @@ class QualityValidationAnalyzer:
         return recommendations
 
     def create_validation_visualizations(
-        self, analyses: Dict[str, ValidationAnalysis]
-    ) -> Dict[str, str]:
+        self, analyses: dict[str, ValidationAnalysis]
+    ) -> dict[str, str]:
         """Create validation analysis visualizations"""
         print("📈 Creating validation analysis visualizations...")
 
@@ -521,13 +522,13 @@ class QualityValidationAnalyzer:
             return {}
 
     def export_validation_report(
-        self, analyses: Dict[str, ValidationAnalysis], visualizations: Dict[str, str]
+        self, analyses: dict[str, ValidationAnalysis], visualizations: dict[str, str]
     ) -> str:
         """Export comprehensive validation analysis report"""
         print("📄 Exporting validation analysis report...")
 
         try:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
             report_file = (
                 self.output_dir / f"quality_validation_report_{timestamp}.json"
             )
@@ -538,7 +539,7 @@ class QualityValidationAnalyzer:
             # Prepare export data
             export_data = {
                 "report_metadata": {
-                    "generated_at": datetime.now().isoformat(),
+                    "generated_at": datetime.now(timezone.utc).isoformat(),
                     "analyzer_version": "1.0.0",
                     "metrics_analyzed": len(analyses),
                     "analysis_period_days": 30,
@@ -573,8 +574,8 @@ class QualityValidationAnalyzer:
             return ""
 
     def _create_validation_summary(
-        self, analyses: Dict[str, ValidationAnalysis]
-    ) -> Dict[str, Any]:
+        self, analyses: dict[str, ValidationAnalysis]
+    ) -> dict[str, Any]:
         """Create executive summary of validation results"""
         try:
             if not analyses:
@@ -629,8 +630,8 @@ class QualityValidationAnalyzer:
             return {"status": "error", "message": str(e)}
 
     def _generate_quality_insights(
-        self, analyses: Dict[str, ValidationAnalysis]
-    ) -> List[str]:
+        self, analyses: dict[str, ValidationAnalysis]
+    ) -> list[str]:
         """Generate actionable quality insights"""
         insights = []
 

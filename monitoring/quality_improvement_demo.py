@@ -4,14 +4,14 @@ Quality Improvement Tracking Demo
 Demonstrates improvement tracking with synthetic baseline and current data
 """
 
+from datetime import datetime, timezone
+
 import json
 import random
 import sqlite3
 import warnings
 from dataclasses import dataclass
-from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -51,7 +51,7 @@ class QualityImprovementDemo:
             "dataset_diversity",
         ]
 
-    def create_demo_improvements(self) -> Dict[str, QualityImprovement]:
+    def create_demo_improvements(self) -> dict[str, QualityImprovement]:
         """Create demo improvement data"""
         print("🎭 Creating demo improvement tracking data...")
 
@@ -78,7 +78,7 @@ class QualityImprovementDemo:
             print(f"❌ Error creating demo improvements: {e}")
             return {}
 
-    def _get_base_data(self) -> List[Dict]:
+    def _get_base_data(self) -> list[dict]:
         """Get base data from database"""
         try:
             conn = sqlite3.connect(self.db_path)
@@ -112,8 +112,8 @@ class QualityImprovementDemo:
             return []
 
     def _create_synthetic_improvement(
-        self, base_data: List[Dict], metric: str
-    ) -> Optional[QualityImprovement]:
+        self, base_data: list[dict], metric: str
+    ) -> QualityImprovement | None:
         """Create synthetic improvement for a metric"""
         try:
             # Calculate baseline value from actual data
@@ -183,7 +183,7 @@ class QualityImprovementDemo:
             print(f"❌ Error creating synthetic improvement for {metric}: {e}")
             return None
 
-    def _calculate_metric_value(self, data: List[Dict], metric: str) -> Optional[float]:
+    def _calculate_metric_value(self, data: list[dict], metric: str) -> float | None:
         """Calculate metric value for a dataset"""
         try:
             if not data:
@@ -193,25 +193,25 @@ class QualityImprovementDemo:
                 values = [r["turn_count"] for r in data if r["turn_count"]]
                 return np.mean(values) if values else None
 
-            elif metric == "content_richness":
+            if metric == "content_richness":
                 values = [r["word_count"] for r in data if r["word_count"]]
                 return np.mean(values) if values else None
 
-            elif metric == "processing_efficiency":
+            if metric == "processing_efficiency":
                 total = len(data)
                 successful = len(
                     [r for r in data if r["processing_status"] == "processed"]
                 )
                 return (successful / total) * 100 if total > 0 else None
 
-            elif metric == "tier_quality":
+            if metric == "tier_quality":
                 total = len(data)
                 priority = len(
                     [r for r in data if r["tier"] and "priority" in str(r["tier"])]
                 )
                 return (priority / total) * 100 if total > 0 else None
 
-            elif metric == "dataset_diversity":
+            if metric == "dataset_diversity":
                 unique_datasets = len(
                     set(r["dataset_source"] for r in data if r["dataset_source"])
                 )
@@ -231,29 +231,27 @@ class QualityImprovementDemo:
             if direction == "improving":
                 if improvement_percentage > 10:
                     return f"Excellent progress in {metric.replace('_', ' ')}! Continue current practices and consider scaling"
-                elif improvement_percentage > 5:
+                if improvement_percentage > 5:
                     return f"Good improvement in {metric.replace('_', ' ')}. Monitor trends and maintain focus"
-                else:
-                    return f"Slight improvement in {metric.replace('_', ' ')}. Continue current approach"
+                return f"Slight improvement in {metric.replace('_', ' ')}. Continue current approach"
 
-            elif direction == "declining":
+            if direction == "declining":
                 if abs(improvement_percentage) > 10:
                     return f"URGENT: Significant decline in {metric.replace('_', ' ')}. Immediate intervention required"
-                elif abs(improvement_percentage) > 5:
+                if abs(improvement_percentage) > 5:
                     return f"Concerning decline in {metric.replace('_', ' ')}. Review and adjust processes"
-                else:
-                    return f"Minor decline in {metric.replace('_', ' ')}. Monitor closely and investigate causes"
+                return f"Minor decline in {metric.replace('_', ' ')}. Monitor closely and investigate causes"
 
-            else:  # stable
-                return f"{metric.replace('_', ' ').title()} remains stable. Consider optimization opportunities"
+            # stable
+            return f"{metric.replace('_', ' ').title()} remains stable. Consider optimization opportunities"
 
         except Exception as e:
             print(f"❌ Error generating recommendation: {e}")
             return "Unable to generate recommendation"
 
     def create_improvement_visualizations(
-        self, improvements: Dict[str, QualityImprovement]
-    ) -> Dict[str, str]:
+        self, improvements: dict[str, QualityImprovement]
+    ) -> dict[str, str]:
         """Create improvement tracking visualizations"""
         print("📈 Creating improvement tracking visualizations...")
 
@@ -386,14 +384,14 @@ class QualityImprovementDemo:
 
     def export_demo_report(
         self,
-        improvements: Dict[str, QualityImprovement],
-        visualizations: Dict[str, str],
+        improvements: dict[str, QualityImprovement],
+        visualizations: dict[str, str],
     ) -> str:
         """Export demo improvement tracking report"""
         print("📄 Exporting demo improvement tracking report...")
 
         try:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
             report_file = self.output_dir / f"quality_improvement_demo_{timestamp}.json"
 
             # Create executive summary
@@ -421,7 +419,7 @@ class QualityImprovementDemo:
             # Prepare export data
             export_data = {
                 "report_metadata": {
-                    "generated_at": datetime.now().isoformat(),
+                    "generated_at": datetime.now(timezone.utc).isoformat(),
                     "report_type": "demo",
                     "tracker_version": "1.0.0",
                     "total_metrics_tracked": len(improvements),

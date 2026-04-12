@@ -11,7 +11,6 @@ import re
 import subprocess
 import sys
 from pathlib import Path
-from typing import Dict, List
 
 
 class TestInfrastructureFixer:
@@ -23,7 +22,7 @@ class TestInfrastructureFixer:
         self.errors_fixed = 0
         self.import_fixes = 0
 
-    def scan_test_files(self) -> List[Path]:
+    def scan_test_files(self) -> list[Path]:
         """Scan for all test files in the project."""
         test_files = []
         for pattern in ["test_*.py", "*_test.py"]:
@@ -33,7 +32,7 @@ class TestInfrastructureFixer:
         print(f"Found {len(test_files)} test files")
         return test_files
 
-    def analyze_import_errors(self) -> Dict[str, List[str]]:
+    def analyze_import_errors(self) -> dict[str, list[str]]:
         """Analyze import errors in test files."""
         print("\n🔍 Analyzing import errors...")
 
@@ -200,7 +199,7 @@ class TestInfrastructureFixer:
 
         return False
 
-    def validate_fixes(self) -> Dict[str, int]:
+    def validate_fixes(self) -> dict[str, int]:
         """Validate that fixes worked by running pytest collect."""
         print("\n✅ Validating fixes...")
 
@@ -225,7 +224,7 @@ class TestInfrastructureFixer:
             "exit_code": result.returncode,
         }
 
-    def run_coverage_test(self) -> Dict[str, float]:
+    def run_coverage_test(self) -> dict[str, float]:
         """Run a quick coverage test to see improvement."""
         print("\n📊 Running coverage test...")
 
@@ -250,7 +249,7 @@ class TestInfrastructureFixer:
             ),
         }
 
-    def generate_report(self, validation_results: Dict, coverage_results: Dict) -> str:
+    def generate_report(self, validation_results: dict, coverage_results: dict) -> str:
         """Generate a fix report."""
         report = f"""
 # Test Infrastructure Fix Report
