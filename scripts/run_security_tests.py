@@ -7,11 +7,12 @@ This script runs comprehensive security testing for the authentication system
 and generates detailed reports for production readiness validation.
 """
 
+from datetime import datetime, timezone
+
 import asyncio
 import json
 import os
 import sys
-from datetime import datetime
 
 # Add the current directory to Python path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -345,7 +346,7 @@ class ComprehensiveSecurityValidator:
 
         return {
             "validation_summary": {
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "overall_score": round(overall_score, 1),
                 "status": status,
                 "production_ready": production_ready,
@@ -411,23 +412,22 @@ class ComprehensiveSecurityValidator:
                 "📋 Continue with Phase 1 critical security tasks",
                 "🔄 Set up continuous security monitoring",
             ]
-        else:
-            next_steps = [
-                "🔧 Fix identified security issues",
-                "🧪 Re-run security validation tests",
-                "📋 Review authentication system implementation",
-            ]
+        next_steps = [
+            "🔧 Fix identified security issues",
+            "🧪 Re-run security validation tests",
+            "📋 Review authentication system implementation",
+        ]
 
-            if overall_score < 80:
-                next_steps.append("🔍 Conduct comprehensive security code review")
+        if overall_score < 80:
+            next_steps.append("🔍 Conduct comprehensive security code review")
 
-            next_steps.append("🔄 Repeat validation until production ready")
+        next_steps.append("🔄 Repeat validation until production ready")
 
-            return next_steps
+        return next_steps
 
     def save_results(self, report: dict):
         """Save test results to files"""
-        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
 
         # Save comprehensive report
         report_file = f"security_validation_report_{timestamp}.json"
@@ -525,6 +525,6 @@ async def main():
 if __name__ == "__main__":
     print("🚀 Starting Tasks 101 & 102: Security Validation")
     print("📋 API Authentication System + Security Test Coverage Framework")
-    print("⏰ Starting at:", datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"))
+    print("⏰ Starting at:", datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"))
 
     asyncio.run(main())

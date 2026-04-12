@@ -196,19 +196,13 @@ def test_contextual_prompt_generation():
 
         # Look for thematic overlap
         themes_match = False
-        if "narciss" in segment["text"].lower() and any(
+        if ("narciss" in segment["text"].lower() and any(
             word in prompt.lower() for word in ["narciss", "manipulation", "abuse"]
-        ):
-            themes_match = True
-        elif "boundaries" in segment["text"].lower() and "boundaries" in prompt.lower():
-            themes_match = True
-        elif "ptsd" in segment["text"].lower() and any(
+        )) or ("boundaries" in segment["text"].lower() and "boundaries" in prompt.lower()) or ("ptsd" in segment["text"].lower() and any(
             word in prompt.lower() for word in ["trauma", "ptsd", "heal"]
-        ):
-            themes_match = True
-        elif "betrays" in segment["text"].lower() and any(
+        )) or ("betrays" in segment["text"].lower() and any(
             word in prompt.lower() for word in ["hurt", "betray", "trust"]
-        ):
+        )):
             themes_match = True
 
         if themes_match:

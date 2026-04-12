@@ -8,7 +8,7 @@ for the CLI tool, ensuring HIPAA++ compliance and secure credential management.
 import logging
 import os
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 import yaml
 from cryptography.fernet import Fernet
@@ -61,15 +61,15 @@ class APIConfig(BaseModel):
 class AuthConfig(BaseModel):
     """Authentication configuration settings"""
 
-    jwt_token: Optional[str] = Field(
+    jwt_token: str | None = Field(
         default=None, description="JWT authentication token"
     )
-    refresh_token: Optional[str] = Field(default=None, description="JWT refresh token")
-    token_expiry: Optional[str] = Field(
+    refresh_token: str | None = Field(default=None, description="JWT refresh token")
+    token_expiry: str | None = Field(
         default=None, description="Token expiry timestamp"
     )
-    client_id: Optional[str] = Field(default=None, description="OAuth client ID")
-    client_secret: Optional[str] = Field(
+    client_id: str | None = Field(default=None, description="OAuth client ID")
+    client_secret: str | None = Field(
         default=None, description="OAuth client secret"
     )
     auth_url: str = Field(
@@ -117,7 +117,7 @@ class LoggingConfig(BaseModel):
         default="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         description="Log format string",
     )
-    file_path: Optional[str] = Field(default=None, description="Log file path")
+    file_path: str | None = Field(default=None, description="Log file path")
     max_file_size: int = Field(
         default=10485760, description="Maximum log file size in bytes"
     )
@@ -164,7 +164,7 @@ class CLIConfig(BaseModel):
         validate_assignment = True
         use_enum_values = True
 
-    def __init__(self, config_file: Optional[Path] = None, profile: str = "default"):
+    def __init__(self, config_file: Path | None = None, profile: str = "default"):
         """Initialize configuration with file and profile support"""
         super().__init__()
         self._config_file = config_file
@@ -312,7 +312,7 @@ class CLIConfig(BaseModel):
         self._encryption_key = key
         self._cipher = Fernet(key)
 
-    def save_configuration(self, profile: Optional[str] = None) -> None:
+    def save_configuration(self, profile: str | None = None) -> None:
         """Save current configuration to file"""
         profile = profile or self._profile
         config_file = self._config_dir / f"config.{profile}.yaml"
@@ -371,7 +371,7 @@ class CLIConfig(BaseModel):
             logger.error(f"Configuration validation failed: {e}")
             return False
 
-    def get_active_profile(self) -> Dict[str, Any]:
+    def get_active_profile(self) -> dict[str, Any]:
         """Get active profile configuration"""
         return self.dict()
 
@@ -388,7 +388,7 @@ class CLIConfig(BaseModel):
 
         logger.info(f"Switched to profile: {profile}")
 
-    def create_profile(self, profile: str, base_profile: Optional[str] = None) -> None:
+    def create_profile(self, profile: str, base_profile: str | None = None) -> None:
         """Create a new configuration profile"""
         if base_profile:
             # Copy from base profile

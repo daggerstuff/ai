@@ -25,7 +25,6 @@ class TestSafetyValidationSystem:
 
     def teardown_method(self):
         """Cleanup after tests"""
-        pass
 
     def test_safety_validation_system_initialization(self):
         """Test safety validation system initialization"""

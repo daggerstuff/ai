@@ -11,6 +11,8 @@ Processes:
 4. .notes/pixel-training/ - Transcript sources
 """
 
+from datetime import datetime, timezone
+
 import hashlib
 import json
 import logging
@@ -18,7 +20,6 @@ import sys
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Tuple
 
 # Import path utilities and intelligent agent
 sys.path.append(str(Path(__file__).parent))
@@ -129,7 +130,7 @@ class MultiDatasetIntelligentPipeline:
             ),
         ]
 
-    def discover_dataset_files(self) -> Dict[str, List[Path]]:
+    def discover_dataset_files(self) -> dict[str, list[Path]]:
         """Discover all dataset files across sources"""
         logger.info("🔍 Discovering dataset files across all sources...")
 
@@ -175,7 +176,7 @@ class MultiDatasetIntelligentPipeline:
 
         return discovered_files
 
-    def load_conversation_data(self, file_path: Path, source_type: str) -> List[Dict]:
+    def load_conversation_data(self, file_path: Path, source_type: str) -> list[dict]:
         """Load conversation data from various file formats"""
         try:
             if source_type == "json":
@@ -185,7 +186,7 @@ class MultiDatasetIntelligentPipeline:
                 # Handle different JSON formats
                 if isinstance(data, list):
                     return data
-                elif isinstance(data, dict):
+                if isinstance(data, dict):
                     # Check for common conversation container keys
                     for key in ["conversations", "data", "examples", "training_data"]:
                         if key in data and isinstance(data[key], list):
@@ -241,7 +242,7 @@ class MultiDatasetIntelligentPipeline:
         self.processed_hashes.add(content_hash)
         return False
 
-    def extract_conversation_content(self, item: Dict) -> str:
+    def extract_conversation_content(self, item: dict) -> str:
         """Extract text content from conversation item"""
         # Handle different conversation formats
         if "conversations" in item:
@@ -252,15 +253,15 @@ class MultiDatasetIntelligentPipeline:
                     content_parts.append(conv["value"])
             return " ".join(content_parts)
 
-        elif "text" in item:
+        if "text" in item:
             # Simple text format
             return item["text"]
 
-        elif "content" in item:
+        if "content" in item:
             # Alternative content field
             return item["content"]
 
-        elif "response" in item:
+        if "response" in item:
             # Question-response format
             question = item.get("question", "")
             response = item.get("response", "")
@@ -268,7 +269,7 @@ class MultiDatasetIntelligentPipeline:
 
         return ""
 
-    def process_dataset_source(self, source_name: str, files: List[Path]) -> List[Dict]:
+    def process_dataset_source(self, source_name: str, files: list[Path]) -> list[dict]:
         """Process all files from a dataset source"""
         logger.info(f"🔄 Processing {source_name} ({len(files)} files)")
 
@@ -320,19 +321,18 @@ class MultiDatasetIntelligentPipeline:
                             self.stats.medium_quality += 1
                         else:
                             self.stats.low_quality += 1
-                else:
-                    # Already processed conversation - validate and include
-                    if self.validate_existing_conversation(item):
-                        processed_conversations.append(item)
-                        self.stats.processed_conversations += 1
-                        self.stats.high_quality += 1  # Assume existing are good quality
+                # Already processed conversation - validate and include
+                elif self.validate_existing_conversation(item):
+                    processed_conversations.append(item)
+                    self.stats.processed_conversations += 1
+                    self.stats.high_quality += 1  # Assume existing are good quality
 
         logger.info(
             f"  ✅ {source_name}: {len(processed_conversations)} conversations processed"
         )
         return processed_conversations
 
-    def process_segment_with_agent(self, segment: Dict) -> Tuple[Dict, str]:
+    def process_segment_with_agent(self, segment: dict) -> tuple[dict, str]:
         """Process segment with intelligent agent (from enhanced pipeline)"""
         try:
             # Analysis with intelligent agent
@@ -402,7 +402,7 @@ class MultiDatasetIntelligentPipeline:
         }
         return expert_mapping.get(style, 0)
 
-    def _assess_quality(self, training_pair: Dict, analysis: Dict) -> float:
+    def _assess_quality(self, training_pair: dict, analysis: dict) -> float:
         """Assess training pair quality"""
         quality_score = training_pair.get("quality", 0.5) * 0.3
         quality_score += analysis["overall_confidence"] * 0.4
@@ -419,7 +419,7 @@ class MultiDatasetIntelligentPipeline:
 
         return max(0.0, min(1.0, quality_score))
 
-    def validate_existing_conversation(self, item: Dict) -> bool:
+    def validate_existing_conversation(self, item: dict) -> bool:
         """Validate existing conversation format"""
         if "conversations" in item:
             convs = item["conversations"]
@@ -427,7 +427,7 @@ class MultiDatasetIntelligentPipeline:
                 return True
         return False
 
-    def combine_and_deduplicate(self, all_conversations: List[Dict]) -> List[Dict]:
+    def combine_and_deduplicate(self, all_conversations: list[dict]) -> list[dict]:
         """Intelligent combination and deduplication of all conversations"""
         logger.info("🔄 Combining and deduplicating all conversations...")
 
@@ -475,7 +475,7 @@ class MultiDatasetIntelligentPipeline:
 
         return merged_conversations
 
-    def create_unified_dataset(self, conversations: List[Dict]) -> Dict:
+    def create_unified_dataset(self, conversations: list[dict]) -> dict:
         """Create unified Lightning.ai H100 LoRA dataset"""
         logger.info("🚀 Creating unified Lightning.ai H100 LoRA dataset...")
 
@@ -493,7 +493,7 @@ class MultiDatasetIntelligentPipeline:
 
         # Create expert-specific datasets
         experts = {"therapeutic": 0, "educational": 1, "empathetic": 2, "practical": 3}
-        expert_data = {style: [] for style in experts.keys()}
+        expert_data = {style: [] for style in experts}
 
         for conv in conversations:
             style = conv.get("style", "therapeutic")
@@ -539,7 +539,7 @@ class MultiDatasetIntelligentPipeline:
                 "validation_file": "validation.json",
                 "expert_files": {
                     f"expert_{style}": f"expert_{style}.json"
-                    for style in experts.keys()
+                    for style in experts
                 },
             },
             "expert_mapping": experts,
@@ -575,7 +575,7 @@ class MultiDatasetIntelligentPipeline:
 
         return config
 
-    def generate_comprehensive_report(self) -> Dict:
+    def generate_comprehensive_report(self) -> dict:
         """Generate comprehensive processing report"""
         report = {
             "multi_dataset_processing_summary": {
@@ -719,6 +719,6 @@ if __name__ == "__main__":
             class Timestamp:
                 @staticmethod
                 def now():
-                    return datetime.datetime.now()
+                    return datetime.datetime.now(timezone.utc)
 
     main()

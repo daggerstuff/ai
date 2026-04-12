@@ -468,27 +468,26 @@ class TestCLIIntegration:
             with patch(
                 "cli.pipeline.requests.post",
                 side_effect=[start_response, stop_response],
-            ):
-                with patch("cli.pipeline.requests.get", return_value=status_response):
-                    # Test pipeline start
-                    result = runner.invoke(
-                        cli, ["pipeline", "start", "--config", "test-config.yaml"]
-                    )
-                    assert result.exit_code == 0
+            ), patch("cli.pipeline.requests.get", return_value=status_response):
+                # Test pipeline start
+                result = runner.invoke(
+                    cli, ["pipeline", "start", "--config", "test-config.yaml"]
+                )
+                assert result.exit_code == 0
 
-                    # Test pipeline status
-                    result = runner.invoke(
-                        cli, ["pipeline", "status", "--id", "test-pipeline-123"]
-                    )
-                    assert result.exit_code == 0
-                    assert "running" in result.output
-                    assert "75" in result.output
+                # Test pipeline status
+                result = runner.invoke(
+                    cli, ["pipeline", "status", "--id", "test-pipeline-123"]
+                )
+                assert result.exit_code == 0
+                assert "running" in result.output
+                assert "75" in result.output
 
-                    # Test pipeline stop
-                    result = runner.invoke(
-                        cli, ["pipeline", "stop", "--id", "test-pipeline-123"]
-                    )
-                    assert result.exit_code == 0
+                # Test pipeline stop
+                result = runner.invoke(
+                    cli, ["pipeline", "stop", "--id", "test-pipeline-123"]
+                )
+                assert result.exit_code == 0
 
     def test_configuration_management(self):
         """Test configuration management workflow"""

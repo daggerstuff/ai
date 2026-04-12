@@ -5,14 +5,16 @@ This module provides utility functions for logging setup, environment validation
 banner printing, and other common operations.
 """
 
+from datetime import datetime, timezone
+
+
 import json
 import logging
 import logging.handlers
 import os
 import sys
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 import click
 import requests
@@ -21,7 +23,7 @@ from cli.config import CLIConfig
 
 
 def setup_logging(
-    level: str = "INFO", config: Optional[CLIConfig] = None
+    level: str = "INFO", config: CLIConfig | None = None
 ) -> logging.Logger:
     """
     Setup logging configuration for the CLI
@@ -196,7 +198,7 @@ def sanitize_filename(filename: str) -> str:
     return filename or "unnamed"
 
 
-def validate_jwt_token(token: str) -> Dict[str, Any]:
+def validate_jwt_token(token: str) -> dict[str, Any]:
     """
     Validate JWT token format and extract basic information
 
@@ -244,7 +246,7 @@ def validate_jwt_token(token: str) -> Dict[str, Any]:
         raise ValueError(f"Invalid JWT token: {e}")
 
 
-def check_api_health(base_url: str, timeout: int = 10) -> Dict[str, Any]:
+def check_api_health(base_url: str, timeout: int = 10) -> dict[str, Any]:
     """
     Check API health status
 
@@ -373,7 +375,7 @@ def safe_json_loads(json_str: str, default: Any = None) -> Any:
         return default
 
 
-def get_system_info() -> Dict[str, Any]:
+def get_system_info() -> dict[str, Any]:
     """
     Get system information for debugging
 
@@ -391,7 +393,7 @@ def get_system_info() -> Dict[str, Any]:
         "memory_total": psutil.virtual_memory().total,
         "memory_available": psutil.virtual_memory().available,
         "disk_usage": psutil.disk_usage("/").percent,
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
 
@@ -427,18 +429,18 @@ def colorize(text: str, color: str) -> str:
 
 # Export commonly used functions
 __all__ = [
-    "setup_logging",
-    "validate_environment",
-    "print_banner",
-    "format_file_size",
-    "sanitize_filename",
-    "validate_jwt_token",
-    "check_api_health",
-    "format_datetime",
-    "parse_datetime",
-    "truncate_string",
-    "safe_json_loads",
-    "get_system_info",
     "Colors",
+    "check_api_health",
     "colorize",
+    "format_datetime",
+    "format_file_size",
+    "get_system_info",
+    "parse_datetime",
+    "print_banner",
+    "safe_json_loads",
+    "sanitize_filename",
+    "setup_logging",
+    "truncate_string",
+    "validate_environment",
+    "validate_jwt_token",
 ]

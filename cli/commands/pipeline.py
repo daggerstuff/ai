@@ -8,7 +8,7 @@ monitoring, and configuring pipeline executions.
 import json
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import click
 
@@ -59,10 +59,10 @@ def start(
     ctx,
     config: str,
     input: str,
-    output: Optional[str],
-    name: Optional[str],
+    output: str | None,
+    name: str | None,
     priority: str,
-    tags: Optional[str],
+    tags: str | None,
 ):
     """Start a new pipeline execution."""
     try:
@@ -139,7 +139,7 @@ def start(
 @click.option("--all", "stop_all", is_flag=True, help="Stop all running pipelines")
 @click.option("--force", is_flag=True, help="Force stop without confirmation")
 @click.pass_context
-def stop(ctx, pipeline_id: Optional[str], stop_all: bool, force: bool):
+def stop(ctx, pipeline_id: str | None, stop_all: bool, force: bool):
     """Stop pipeline execution(s)."""
     try:
         config_obj = get_config()
@@ -317,7 +317,7 @@ def list_executions(ctx, status: str, limit: int, detailed: bool):
 @click.option("--restart", is_flag=True, help="Restart pipeline after configuration")
 @click.pass_context
 def configure(
-    ctx, pipeline_id: str, config_file: Optional[str], param: tuple, restart: bool
+    ctx, pipeline_id: str, config_file: str | None, param: tuple, restart: bool
 ):
     """Configure pipeline parameters."""
     try:
@@ -396,7 +396,7 @@ def configure(
     "--output", "-o", type=click.Path(), help="Output file for analysis results"
 )
 @click.pass_context
-def analyze(ctx, pipeline_id: str, metric: str, output: Optional[str]):
+def analyze(ctx, pipeline_id: str, metric: str, output: str | None):
     """Analyze pipeline performance and results."""
     try:
         config_obj = get_config()
@@ -441,7 +441,7 @@ def analyze(ctx, pipeline_id: str, metric: str, output: Optional[str]):
     help="Output format",
 )
 @click.pass_context
-def validate_input(ctx, input: str, output: Optional[str], format: str):
+def validate_input(ctx, input: str, output: str | None, format: str):
     """Validate input data for pipeline compatibility."""
     try:
         config_obj = get_config()
@@ -498,13 +498,13 @@ def validate_input(ctx, input: str, output: Optional[str], format: str):
 
 def _start_pipeline(
     auth_manager: AuthManager,
-    config: Dict[str, Any],
+    config: dict[str, Any],
     input_path: Path,
     output_path: Path,
-    name: Optional[str],
+    name: str | None,
     priority: str,
-    tags: List[str],
-) -> Dict[str, Any]:
+    tags: list[str],
+) -> dict[str, Any]:
     """Start a new pipeline execution."""
     logger.info(f"Starting pipeline with config: {config}")
 
@@ -517,7 +517,7 @@ def _start_pipeline(
     }
 
 
-def _stop_pipeline(auth_manager: AuthManager, pipeline_id: str) -> Dict[str, Any]:
+def _stop_pipeline(auth_manager: AuthManager, pipeline_id: str) -> dict[str, Any]:
     """Stop a specific pipeline."""
     logger.info(f"Stopping pipeline: {pipeline_id}")
 
@@ -525,7 +525,7 @@ def _stop_pipeline(auth_manager: AuthManager, pipeline_id: str) -> Dict[str, Any
     return {"success": True, "message": f"Pipeline {pipeline_id} stopped successfully"}
 
 
-def _stop_all_pipelines(auth_manager: AuthManager) -> Dict[str, Any]:
+def _stop_all_pipelines(auth_manager: AuthManager) -> dict[str, Any]:
     """Stop all running pipelines."""
     logger.info("Stopping all pipelines")
 
@@ -539,7 +539,7 @@ def _stop_all_pipelines(auth_manager: AuthManager) -> Dict[str, Any]:
 
 def _get_pipeline_status(
     auth_manager: AuthManager, pipeline_id: str
-) -> Optional[Dict[str, Any]]:
+) -> dict[str, Any] | None:
     """Get pipeline status information."""
     # This would call the actual API endpoint
     # For now, return mock data
@@ -562,7 +562,7 @@ def _get_pipeline_status(
     }
 
 
-def _display_simple_status(status: Dict[str, Any], verbose: bool) -> None:
+def _display_simple_status(status: dict[str, Any], verbose: bool) -> None:
     """Display simple pipeline status."""
     progress_bar = "█" * (status["progress"] // 10) + "░" * (
         10 - status["progress"] // 10
@@ -589,7 +589,7 @@ def _display_simple_status(status: Dict[str, Any], verbose: bool) -> None:
                 click.echo(f"ETA: {minutes}m {seconds}s")
 
 
-def _display_detailed_status(status: Dict[str, Any], verbose: bool) -> None:
+def _display_detailed_status(status: dict[str, Any], verbose: bool) -> None:
     """Display detailed pipeline status."""
     click.echo(f"Pipeline ID: {status['id']}")
     click.echo(f"Status: {status['status']}")
@@ -619,7 +619,7 @@ def _display_detailed_status(status: Dict[str, Any], verbose: bool) -> None:
 
 def _list_pipeline_executions(
     auth_manager: AuthManager, status: str, limit: int
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """List pipeline executions."""
     # This would call the actual API endpoint
     # For now, return mock data
@@ -649,7 +649,7 @@ def _list_pipeline_executions(
     return executions[:limit]
 
 
-def _display_execution_summary(execution: Dict[str, Any], detailed: bool) -> None:
+def _display_execution_summary(execution: dict[str, Any], detailed: bool) -> None:
     """Display pipeline execution summary."""
     status_icon = _get_status_icon(execution["status"])
 
@@ -684,8 +684,8 @@ def _get_status_icon(status: str) -> str:
 
 
 def _configure_pipeline(
-    auth_manager: AuthManager, pipeline_id: str, config_updates: Dict[str, Any]
-) -> Dict[str, Any]:
+    auth_manager: AuthManager, pipeline_id: str, config_updates: dict[str, Any]
+) -> dict[str, Any]:
     """Configure pipeline parameters."""
     logger.info(f"Configuring pipeline {pipeline_id} with updates: {config_updates}")
 
@@ -693,7 +693,7 @@ def _configure_pipeline(
     return {"success": True, "message": "Pipeline configuration updated successfully"}
 
 
-def _restart_pipeline(auth_manager: AuthManager, pipeline_id: str) -> Dict[str, Any]:
+def _restart_pipeline(auth_manager: AuthManager, pipeline_id: str) -> dict[str, Any]:
     """Restart a pipeline."""
     logger.info(f"Restarting pipeline: {pipeline_id}")
 
@@ -706,7 +706,7 @@ def _restart_pipeline(auth_manager: AuthManager, pipeline_id: str) -> Dict[str, 
 
 def _analyze_pipeline(
     auth_manager: AuthManager, pipeline_id: str, metric: str
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Analyze pipeline performance and results."""
     logger.info(f"Analyzing pipeline {pipeline_id} for metrics: {metric}")
 
@@ -744,7 +744,7 @@ def _analyze_pipeline(
     }
 
 
-def _display_analysis_results(analysis_result: Dict[str, Any], metric: str) -> None:
+def _display_analysis_results(analysis_result: dict[str, Any], metric: str) -> None:
     """Display pipeline analysis results."""
     analysis = analysis_result["analysis"]
 
@@ -796,7 +796,7 @@ def _display_analysis_results(analysis_result: Dict[str, Any], metric: str) -> N
 
 def _validate_pipeline_input(
     auth_manager: AuthManager, input_path: Path
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Validate input data for pipeline compatibility."""
     logger.info(f"Validating pipeline input: {input_path}")
 
@@ -819,7 +819,7 @@ def _validate_pipeline_input(
     }
 
 
-def _save_pipeline_info(pipeline_id: str, pipeline_info: Dict[str, Any]) -> None:
+def _save_pipeline_info(pipeline_id: str, pipeline_info: dict[str, Any]) -> None:
     """Save pipeline information for later reference."""
     # This would save to a local cache or config file
     logger.info(f"Saved pipeline info for {pipeline_id}")

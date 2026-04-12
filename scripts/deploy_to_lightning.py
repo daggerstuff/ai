@@ -10,14 +10,14 @@ This script orchestrates the complete deployment pipeline:
 4. Provides upload instructions for Lightning.ai Studio
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import shutil
 import sys
 import zipfile
-from datetime import datetime
 from pathlib import Path
-from typing import Dict
 
 # Import path utilities
 from path_utils import (
@@ -47,7 +47,7 @@ class LightningDeploymentOrchestrator:
         # Import deployment modules
         sys.path.append(str(get_scripts_dir()))
 
-    def run_readiness_validation(self) -> Dict:
+    def run_readiness_validation(self) -> dict:
         """Run comprehensive readiness validation"""
         logger.info("🔍 Running deployment readiness validation...")
 
@@ -70,7 +70,7 @@ class LightningDeploymentOrchestrator:
             logger.error(f"❌ Error running readiness validation: {e}")
             return {"overall_ready": False, "error": str(e)}
 
-    def prepare_deployment_package(self) -> Dict:
+    def prepare_deployment_package(self) -> dict:
         """Prepare complete Lightning.ai deployment package"""
         logger.info("📦 Preparing Lightning.ai H100 deployment package...")
 
@@ -114,7 +114,7 @@ class LightningDeploymentOrchestrator:
             logger.error(f"❌ Error preparing deployment package: {e}")
             return {"success": False, "error": str(e)}
 
-    def create_studio_setup_package(self) -> Dict:
+    def create_studio_setup_package(self) -> dict:
         """Create Lightning Studio setup package"""
         logger.info("🛠️  Creating Lightning Studio setup package...")
 
@@ -139,7 +139,7 @@ class LightningDeploymentOrchestrator:
         """Create deployable archive for easy upload"""
         logger.info("🗜️  Creating deployment archive...")
 
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         archive_name = f"therapeutic_ai_h100_deployment_{timestamp}.zip"
         archive_path = self.deployment_dir / archive_name
 
@@ -159,7 +159,7 @@ class LightningDeploymentOrchestrator:
         return archive_path
 
     def generate_upload_instructions(
-        self, archive_path: Path, validation_results: Dict
+        self, archive_path: Path, validation_results: dict
     ) -> Path:
         """Generate detailed upload and deployment instructions"""
         logger.info("📋 Generating upload instructions...")
@@ -368,7 +368,7 @@ tokenizer.push_to_hub('your-username/therapeutic-ai-breakthrough')
 ### Archive Info
 - **Archive:** `{archive_path.name}`
 - **Size:** {archive_path.stat().st_size / (1024 * 1024):.1f} MB
-- **Created:** {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+- **Created:** {datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")}
 """
 
         instructions_path = self.deployment_dir / "LIGHTNING_DEPLOYMENT_INSTRUCTIONS.md"
@@ -378,10 +378,10 @@ tokenizer.push_to_hub('your-username/therapeutic-ai-breakthrough')
         logger.info(f"✅ Upload instructions created: {instructions_path}")
         return instructions_path
 
-    def create_deployment_summary(self, results: Dict) -> Dict:
+    def create_deployment_summary(self, results: dict) -> dict:
         """Create final deployment summary"""
         summary = {
-            "deployment_timestamp": datetime.now().isoformat(),
+            "deployment_timestamp": datetime.now(timezone.utc).isoformat(),
             "status": "ready"
             if results.get("readiness_validation", {}).get("overall_ready", False)
             else "requires_attention",
@@ -422,7 +422,7 @@ tokenizer.push_to_hub('your-username/therapeutic-ai-breakthrough')
 
         return summary
 
-    def run_complete_deployment_preparation(self) -> Dict:
+    def run_complete_deployment_preparation(self) -> dict:
         """Run complete deployment preparation pipeline"""
         logger.info("🚀 Starting complete Lightning.ai H100 deployment preparation...")
         logger.info("=" * 80)

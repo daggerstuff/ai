@@ -5,7 +5,6 @@ Console script wrapper for Priority 5 processor.
 
 import importlib.util
 import os
-import sys
 
 
 def main():

@@ -10,7 +10,7 @@ import json
 import time
 import webbrowser
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 import click
 
@@ -41,7 +41,7 @@ def web_frontend_group(ctx):
 @click.option("--browser/--no-browser", default=True, help="Automatically open browser")
 @click.option("--profile", help="Configuration profile to use")
 @click.pass_context
-def launch(ctx, port: int, browser: bool, profile: Optional[str]):
+def launch(ctx, port: int, browser: bool, profile: str | None):
     """Launch the Pixelated web interface."""
     try:
         config = get_config(profile)
@@ -88,7 +88,7 @@ def launch(ctx, port: int, browser: bool, profile: Optional[str]):
 @click.option("--close", "close_session", help="Close specific session")
 @click.pass_context
 def session(
-    ctx, session_id: Optional[str], list_sessions: bool, close_session: Optional[str]
+    ctx, session_id: str | None, list_sessions: bool, close_session: str | None
 ):
     """Manage web sessions and user interactions."""
     try:
@@ -273,10 +273,10 @@ def upload(ctx, file: str, pipeline_type: str, async_run: bool):
 @click.pass_context
 def downloads(
     ctx,
-    output: Optional[str],
+    output: str | None,
     format: str,
-    date_from: Optional[str],
-    date_to: Optional[str],
+    date_from: str | None,
+    date_to: str | None,
 ):
     """Manage and download processed results from web interface."""
     try:
@@ -349,7 +349,7 @@ def _close_session(auth_manager: AuthManager, session_id: str) -> bool:
 
 def _get_session_info(
     auth_manager: AuthManager, session_id: str
-) -> Optional[Dict[str, Any]]:
+) -> dict[str, Any] | None:
     """Get detailed information about a session."""
     # This would call the actual API endpoint
     return {
@@ -361,7 +361,7 @@ def _get_session_info(
     }
 
 
-def _get_pipeline_status(auth_manager: AuthManager, pipeline_id: str) -> Dict[str, Any]:
+def _get_pipeline_status(auth_manager: AuthManager, pipeline_id: str) -> dict[str, Any]:
     """Get current status of a pipeline."""
     # This would call the actual API endpoint
     return {
@@ -374,7 +374,7 @@ def _get_pipeline_status(auth_manager: AuthManager, pipeline_id: str) -> Dict[st
     }
 
 
-def _display_pipeline_table(status: Dict[str, Any]) -> None:
+def _display_pipeline_table(status: dict[str, Any]) -> None:
     """Display pipeline status in table format."""
     click.echo(f"Pipeline: {status['pipeline_id']}")
     click.echo(f"Status: {status['status']}")
@@ -387,7 +387,7 @@ def _display_pipeline_table(status: Dict[str, Any]) -> None:
     click.echo("-" * 30)
 
 
-def _display_pipeline_simple(status: Dict[str, Any]) -> None:
+def _display_pipeline_simple(status: dict[str, Any]) -> None:
     """Display pipeline status in simple format."""
     progress_bar = "█" * (status["progress"] // 10) + "░" * (
         10 - status["progress"] // 10
@@ -400,7 +400,7 @@ def _display_pipeline_simple(status: Dict[str, Any]) -> None:
 
 def _upload_file(
     auth_manager: AuthManager, file_path: Path, pipeline_type: str
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Upload file for processing."""
     # This would call the actual API endpoint
     logger.info(f"Uploading file: {file_path} for pipeline: {pipeline_type}")
@@ -420,7 +420,7 @@ def _wait_for_pipeline_completion(auth_manager: AuthManager, pipeline_id: str) -
 
 
 def _get_available_downloads(
-    auth_manager: AuthManager, date_from: Optional[str], date_to: Optional[str]
+    auth_manager: AuthManager, date_from: str | None, date_to: str | None
 ) -> list:
     """Get list of available downloads."""
     # This would call the actual API endpoint

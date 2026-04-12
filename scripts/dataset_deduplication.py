@@ -4,12 +4,13 @@ Dataset deduplication script that identifies and removes duplicate entries
 within and across datasets.
 """
 
+from datetime import datetime, timezone
+
 import hashlib
 import json
 from collections import defaultdict
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any
 
 from s3_client_helper import get_s3_client
 
@@ -29,14 +30,14 @@ class DatasetDeduplicator:
             "bytes_saved": 0,
         }
 
-    def load_registry(self) -> Dict[str, Any]:
+    def load_registry(self) -> dict[str, Any]:
         """Load the dataset registry."""
         with open(self.registry_path) as f:
             return json.load(f)
 
-    def save_registry(self, registry: Dict[str, Any]) -> None:
+    def save_registry(self, registry: dict[str, Any]) -> None:
         """Save the updated registry."""
-        registry["last_updated"] = datetime.utcnow().isoformat() + "Z"
+        registry["last_updated"] = datetime.now(timezone.utc).isoformat() + "Z"
         with open(self.registry_path, "w") as f:
             json.dump(registry, f, indent=2, ensure_ascii=False)
 
@@ -45,7 +46,7 @@ class DatasetDeduplicator:
         return hashlib.sha256(content.encode("utf-8")).hexdigest()
 
     def compute_record_hash(
-        self, record: Dict[str, Any], key_fields: Optional[List[str]] = None
+        self, record: dict[str, Any], key_fields: list[str] | None = None
     ) -> str:
         """
         Compute hash of a record for deduplication.
@@ -71,7 +72,7 @@ class DatasetDeduplicator:
 
         return self.compute_content_hash(hash_content)
 
-    def load_dataset_from_s3(self, s3_path: str) -> List[Dict[str, Any]]:
+    def load_dataset_from_s3(self, s3_path: str) -> list[dict[str, Any]]:
         """Load dataset from S3."""
         try:
             if not s3_path.startswith("s3://"):
@@ -114,8 +115,8 @@ class DatasetDeduplicator:
             return []
 
     def find_duplicates_in_dataset(
-        self, records: List[Dict[str, Any]], key_fields: Optional[List[str]] = None
-    ) -> Tuple[List[Dict[str, Any]], Dict[str, List[int]]]:
+        self, records: list[dict[str, Any]], key_fields: list[str] | None = None
+    ) -> tuple[list[dict[str, Any]], dict[str, list[int]]]:
         """
         Find duplicate records within a dataset.
 
@@ -126,8 +127,8 @@ class DatasetDeduplicator:
         Returns:
             Tuple of (deduplicated records, duplicate groups)
         """
-        seen_hashes: Dict[str, int] = {}
-        duplicate_groups: Dict[str, List[int]] = defaultdict(list)
+        seen_hashes: dict[str, int] = {}
+        duplicate_groups: dict[str, list[int]] = defaultdict(list)
         deduplicated = []
 
         for idx, record in enumerate(records):
@@ -143,8 +144,8 @@ class DatasetDeduplicator:
         return deduplicated, dict(duplicate_groups)
 
     def find_duplicates_across_datasets(
-        self, datasets: Dict[str, List[Dict[str, Any]]], key_fields: Optional[List[str]] = None
-    ) -> Dict[str, List[str]]:
+        self, datasets: dict[str, list[dict[str, Any]]], key_fields: list[str] | None = None
+    ) -> dict[str, list[str]]:
         """
         Find duplicate records across multiple datasets.
 
@@ -155,7 +156,7 @@ class DatasetDeduplicator:
         Returns:
             Dict mapping hash to list of dataset:record_index
         """
-        hash_to_locations: Dict[str, List[str]] = defaultdict(list)
+        hash_to_locations: dict[str, list[str]] = defaultdict(list)
 
         for dataset_name, records in datasets.items():
             for idx, record in enumerate(records):
@@ -174,10 +175,10 @@ class DatasetDeduplicator:
     def deduplicate_dataset(
         self,
         dataset_name: str,
-        dataset_entry: Dict[str, Any],
-        key_fields: Optional[List[str]] = None,
+        dataset_entry: dict[str, Any],
+        key_fields: list[str] | None = None,
         write_output: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Deduplicate a single dataset.
 
@@ -239,10 +240,10 @@ class DatasetDeduplicator:
 
     def deduplicate_all_datasets(
         self,
-        limit: Optional[int] = None,
-        key_fields: Optional[List[str]] = None,
+        limit: int | None = None,
+        key_fields: list[str] | None = None,
         write_output: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Deduplicate all datasets in the registry.
 
@@ -326,10 +327,10 @@ class DatasetDeduplicator:
 
     def find_cross_dataset_duplicates(
         self,
-        dataset_names: Optional[List[str]] = None,
-        key_fields: Optional[List[str]] = None,
-        limit: Optional[int] = None,
-    ) -> Dict[str, Any]:
+        dataset_names: list[str] | None = None,
+        key_fields: list[str] | None = None,
+        limit: int | None = None,
+    ) -> dict[str, Any]:
         """
         Find duplicates across multiple datasets.
 

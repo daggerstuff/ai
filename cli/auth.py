@@ -5,9 +5,10 @@ This module handles JWT token management, authentication flows, and secure
 credential storage with HIPAA++ compliance.
 """
 
-import logging
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, Optional
+
+import logging
+from typing import Any
 
 import requests
 
@@ -20,13 +21,11 @@ logger = logging.getLogger("pixelated-ai-cli")
 class AuthenticationError(Exception):
     """Custom exception for authentication errors"""
 
-    pass
 
 
 class TokenExpiredError(AuthenticationError):
     """Exception for expired tokens"""
 
-    pass
 
 
 class AuthManager:
@@ -40,7 +39,7 @@ class AuthManager:
             config: CLI configuration instance
         """
         self.config = config
-        self._token_info: Optional[Dict[str, Any]] = None
+        self._token_info: dict[str, Any] | None = None
         self._session = requests.Session()
 
         # Configure session
@@ -57,7 +56,7 @@ class AuthManager:
             self._load_token_info()
 
     def authenticate(
-        self, username: str, password: str, client_id: Optional[str] = None
+        self, username: str, password: str, client_id: str | None = None
     ) -> bool:
         """
         Authenticate with username and password
@@ -121,18 +120,17 @@ class AuthManager:
                 logger.info(f"Authentication successful for user: {username}")
                 return True
 
-            else:
-                error_msg = f"Authentication failed: HTTP {response.status_code}"
-                try:
-                    error_data = response.json()
-                    if "error" in error_data:
-                        error_msg += f" - {error_data['error']}"
-                    if "error_description" in error_data:
-                        error_msg += f": {error_data['error_description']}"
-                except:
-                    pass
+            error_msg = f"Authentication failed: HTTP {response.status_code}"
+            try:
+                error_data = response.json()
+                if "error" in error_data:
+                    error_msg += f" - {error_data['error']}"
+                if "error_description" in error_data:
+                    error_msg += f": {error_data['error_description']}"
+            except:
+                pass
 
-                raise AuthenticationError(error_msg)
+            raise AuthenticationError(error_msg)
 
         except requests.exceptions.RequestException as e:
             raise AuthenticationError(f"Network error during authentication: {e}")
@@ -194,10 +192,9 @@ class AuthManager:
                 logger.info("Token refresh successful")
                 return True
 
-            else:
-                raise AuthenticationError(
-                    f"Token refresh failed: HTTP {response.status_code}"
-                )
+            raise AuthenticationError(
+                f"Token refresh failed: HTTP {response.status_code}"
+            )
 
         except requests.exceptions.RequestException as e:
             raise AuthenticationError(f"Network error during token refresh: {e}")
@@ -262,7 +259,7 @@ class AuthManager:
             logger.warning(f"Error checking token expiry: {e}")
             return True  # Consider expired on error
 
-    def get_auth_headers(self) -> Dict[str, str]:
+    def get_auth_headers(self) -> dict[str, str]:
         """
         Get authentication headers for API requests
 
@@ -313,7 +310,7 @@ class AuthManager:
 
             logger.info("Logout completed")
 
-    def get_user_info(self) -> Optional[Dict[str, Any]]:
+    def get_user_info(self) -> dict[str, Any] | None:
         """
         Get user information from JWT token
 
@@ -396,11 +393,10 @@ class AuthManager:
                     user_info.get("username") or user_info.get("email") or "Unknown"
                 )
                 return f"Authenticated as {username}"
-            else:
-                return "Authenticated (user info unavailable)"
+            return "Authenticated (user info unavailable)"
 
         except AuthenticationError as e:
-            return f"Authentication error: {str(e)}"
+            return f"Authentication error: {e!s}"
         except Exception as e:
             logger.error(f"Error getting auth status: {e}")
             return "Authentication status unknown"
@@ -467,7 +463,7 @@ class AuthManager:
 
         return response
 
-    def get_token_remaining_time(self) -> Optional[int]:
+    def get_token_remaining_time(self) -> int | None:
         """
         Get remaining time in seconds until token expires
 

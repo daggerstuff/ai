@@ -4,23 +4,23 @@ Dataset quality scorer using rclone.
 Scores datasets based on completeness, consistency, and annotation quality.
 """
 
+from datetime import datetime, timezone
+
 import json
 import sys
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 sys.path.insert(0, str(Path(__file__).parent))
 
 from rclone_dataset_accessor import (
     RcloneDatasetAccessor,
     list_files_in_directory,
-    load_jsonl_file,
 )
 
 
 def score_completeness(
-    files: List[Dict[str, Any]], sample_records: List[Dict]
+    files: list[dict[str, Any]], sample_records: list[dict]
 ) -> float:
     """Score based on file count and record completeness."""
     if not files:
@@ -57,7 +57,7 @@ def score_completeness(
     return min(score, 100.0)
 
 
-def score_consistency(sample_records: List[Dict]) -> float:
+def score_consistency(sample_records: list[dict]) -> float:
     """Score based on data consistency."""
     if not sample_records:
         return 0.0
@@ -84,7 +84,7 @@ def score_consistency(sample_records: List[Dict]) -> float:
     return max(score, 0.0)
 
 
-def score_annotation_quality(sample_records: List[Dict]) -> float:
+def score_annotation_quality(sample_records: list[dict]) -> float:
     """Score based on annotation quality."""
     if not sample_records:
         return 0.0
@@ -117,17 +117,16 @@ def determine_quality_tier(score: float) -> str:
     """Determine quality tier from score."""
     if score >= 90:
         return "excellent"
-    elif score >= 75:
+    if score >= 75:
         return "good"
-    elif score >= 60:
+    if score >= 60:
         return "acceptable"
-    else:
-        return "needs_review"
+    return "needs_review"
 
 
 def score_dataset_quality(
-    dataset_name: str, dataset_entry: Dict[str, Any]
-) -> Dict[str, Any]:
+    dataset_name: str, dataset_entry: dict[str, Any]
+) -> dict[str, Any]:
     """
     Score quality for a single dataset.
 
@@ -288,10 +287,10 @@ def main():
                                     "low_quality_score"
                                 )
                             entry["quality_metrics"]["last_scored"] = (
-                                datetime.utcnow().isoformat() + "Z"
+                                datetime.now(timezone.utc).isoformat() + "Z"
                             )
 
-    registry["last_updated"] = datetime.utcnow().isoformat() + "Z"
+    registry["last_updated"] = datetime.now(timezone.utc).isoformat() + "Z"
     with open(args.registry, "w") as f:
         json.dump(registry, f, indent=2, ensure_ascii=False)
 

@@ -116,6 +116,7 @@ training_data_consolidated/
 helm/pixelated-empathy/**/credentials.yaml
 helm/pixelated-empathy/**/secrets.yaml
 helm/pixelated-empathy/templates/*-secret.yaml
+*.env
 
 # === TERRAFORM, INFRA & CLOUD ===
 **/docker/.env

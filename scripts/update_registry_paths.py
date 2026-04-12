@@ -6,7 +6,7 @@ Maps old stage-based paths to actual backup structure.
 
 import json
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 OLD_TO_NEW_PATHS = {
     "training/v1/stage1_foundation": "datasets/training_v3/stage1_foundation",
@@ -31,7 +31,7 @@ def update_path(path: str) -> str:
     return path
 
 
-def update_dataset_entry(entry: Dict[str, Any]) -> Dict[str, Any]:
+def update_dataset_entry(entry: dict[str, Any]) -> dict[str, Any]:
     """Update a single dataset entry."""
     if "path" in entry:
         entry["path"] = update_path(entry["path"])

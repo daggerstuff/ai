@@ -4,13 +4,14 @@ Script to enhance dataset registry with automated validation, usage analytics,
 lineage tracking, quality metrics, sync verification, and version control fields.
 """
 
+from datetime import datetime, timezone
+
 import json
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 
-def create_enhanced_dataset_entry(original_entry: Dict[str, Any]) -> Dict[str, Any]:
+def create_enhanced_dataset_entry(original_entry: dict[str, Any]) -> dict[str, Any]:
     """Add enhanced fields to a dataset entry."""
 
     enhanced_entry = original_entry.copy()
@@ -100,7 +101,7 @@ def create_enhanced_dataset_entry(original_entry: Dict[str, Any]) -> Dict[str, A
 
 def enhance_registry(
     input_path: Path, output_path: Path, limit: int = None
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Enhance the dataset registry with new fields for all datasets.
 
@@ -212,7 +213,7 @@ def enhance_registry(
         },
     }
 
-    registry["last_updated"] = datetime.utcnow().isoformat() + "Z"
+    registry["last_updated"] = datetime.now(timezone.utc).isoformat() + "Z"
 
     # Write enhanced registry
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -250,16 +251,16 @@ def main():
 
     args = parser.parse_args()
 
-    print(f"Enhancing dataset registry...")
+    print("Enhancing dataset registry...")
     print(f"Input: {args.input}")
     print(f"Output: {args.output}")
 
     stats = enhance_registry(args.input, args.output, limit=args.limit)
 
-    print(f"\nEnhancement complete!")
+    print("\nEnhancement complete!")
     print(f"Total datasets: {stats['total_datasets']}")
     print(f"Enhanced datasets: {stats['enhanced_datasets']}")
-    print(f"\nDatasets by stage:")
+    print("\nDatasets by stage:")
     for stage, count in stats["datasets_by_stage"].items():
         print(f"  {stage}: {count}")
 

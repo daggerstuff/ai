@@ -4,7 +4,6 @@ Enhanced Smart Agent - Properly cleans and separates Q/A pairs
 """
 
 import re
-from typing import Dict, Optional, Tuple
 
 
 class EnhancedSmartAgent:
@@ -16,21 +15,21 @@ class EnhancedSmartAgent:
 
         # Patterns that indicate contextual setup to remove
         setup_patterns = [
-            r'^[^.]*?I guess to take this.*?further[^.]*?\.',
-            r'^[^.]*?I\'ve heard you.*?about[^.]*?\.',
-            r'^[^.]*?you mentioned.*?earlier[^.]*?\.',
-            r'^[^.]*?building on that[^.]*?\.',
-            r'^[^.]*?following up on[^.]*?\.',
-            r'^[^.]*?you talked about[^.]*?\.'
+            r"^[^.]*?I guess to take this.*?further[^.]*?\.",
+            r"^[^.]*?I\'ve heard you.*?about[^.]*?\.",
+            r"^[^.]*?you mentioned.*?earlier[^.]*?\.",
+            r"^[^.]*?building on that[^.]*?\.",
+            r"^[^.]*?following up on[^.]*?\.",
+            r"^[^.]*?you talked about[^.]*?\."
         ]
 
         cleaned_text = text
         for pattern in setup_patterns:
-            cleaned_text = re.sub(pattern, '', cleaned_text, flags=re.IGNORECASE).strip()
+            cleaned_text = re.sub(pattern, "", cleaned_text, flags=re.IGNORECASE).strip()
 
         return cleaned_text
 
-    def extract_embedded_qa(self, text: str) -> Optional[Tuple[str, str]]:
+    def extract_embedded_qa(self, text: str) -> tuple[str, str] | None:
         """Extract embedded question and Tim's response"""
 
         # Clean contextual setup first
@@ -38,12 +37,12 @@ class EnhancedSmartAgent:
 
         # Look for question patterns
         question_patterns = [
-            r'(How can [^?]+\?)',
-            r'(What should [^?]+\?)',
-            r'(Why do [^?]+\?)',
-            r'(When does [^?]+\?)',
-            r'(Can you [^?]+\?)',
-            r'([^.]*\?)'  # Any sentence ending with ?
+            r"(How can [^?]+\?)",
+            r"(What should [^?]+\?)",
+            r"(Why do [^?]+\?)",
+            r"(When does [^?]+\?)",
+            r"(Can you [^?]+\?)",
+            r"([^.]*\?)"  # Any sentence ending with ?
         ]
 
         for pattern in question_patterns:
@@ -57,12 +56,12 @@ class EnhancedSmartAgent:
 
                 # Look for response indicators
                 response_indicators = [
-                    r'[,\s]*that\'s a huge question',
-                    r'[,\s]*well[,\s]',
-                    r'[,\s]*so[,\s]',
-                    r'[,\s]*unfortunately[,\s]',
-                    r'[,\s]*look[,\s]',
-                    r'[,\s]*the thing is[,\s]'
+                    r"[,\s]*that\'s a huge question",
+                    r"[,\s]*well[,\s]",
+                    r"[,\s]*so[,\s]",
+                    r"[,\s]*unfortunately[,\s]",
+                    r"[,\s]*look[,\s]",
+                    r"[,\s]*the thing is[,\s]"
                 ]
 
                 for indicator_pattern in response_indicators:
@@ -73,7 +72,7 @@ class EnhancedSmartAgent:
                         response = remaining_text[response_start:].strip()
 
                         # Clean up response start
-                        response = re.sub(r'^[,\s]*', '', response)
+                        response = re.sub(r"^[,\s]*", "", response)
 
                         if len(response) > 50:  # Ensure substantial response
                             return question, response
@@ -81,16 +80,16 @@ class EnhancedSmartAgent:
                 # If no clear response indicator, take everything after question
                 if len(remaining_text) > 50:
                     # Clean up any leading punctuation/whitespace
-                    response = re.sub(r'^[,\s.]*', '', remaining_text).strip()
+                    response = re.sub(r"^[,\s.]*", "", remaining_text).strip()
                     if response:
                         return question, response
 
         return None
 
-    def process_segment(self, segment: Dict) -> Dict:
+    def process_segment(self, segment: dict) -> dict:
         """Process segment with enhanced Q/A extraction"""
 
-        text = segment['text']
+        text = segment["text"]
 
         # Try to extract embedded Q/A
         qa_pair = self.extract_embedded_qa(text)
@@ -101,11 +100,11 @@ class EnhancedSmartAgent:
             return {
                 "input": question,
                 "output": answer,
-                "style": segment['style'],
-                "confidence": segment['confidence'],
-                "quality": segment['quality'],
-                "source": segment['source'],
-                "file": segment['file'],
+                "style": segment["style"],
+                "confidence": segment["confidence"],
+                "quality": segment["quality"],
+                "source": segment["source"],
+                "file": segment["file"],
                 "extraction_method": "embedded_qa_extracted"
             }
 
@@ -125,11 +124,11 @@ class EnhancedSmartAgent:
         return {
             "input": question,
             "output": cleaned_text,
-            "style": segment['style'],
-            "confidence": segment['confidence'],
-            "quality": segment['quality'],
-            "source": segment['source'],
-            "file": segment['file'],
+            "style": segment["style"],
+            "confidence": segment["confidence"],
+            "quality": segment["quality"],
+            "source": segment["source"],
+            "file": segment["file"],
             "extraction_method": "contextual_fallback"
         }
 
@@ -151,8 +150,8 @@ def test_enhanced_agent():
     print("=== ENHANCED SMART AGENT TEST ===\n")
     print(f"**Extraction Method**: {result['extraction_method']}")
     print(f"**Question**: {result['input']}")
-    print(f"\n**Answer**:")
-    print(result['output'])
+    print("\n**Answer**:")
+    print(result["output"])
 
 if __name__ == "__main__":
     test_enhanced_agent()

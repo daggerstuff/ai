@@ -4,7 +4,6 @@ Precise cleaner - removes only the specific contextual opening
 """
 
 import re
-from typing import Dict, Optional, Tuple
 
 
 class PreciseCleaner:
@@ -15,24 +14,24 @@ class PreciseCleaner:
         """Remove only the specific contextual opening phrase"""
 
         # Remove only: "And I guess to take this one step further, I've heard you talk about"
-        pattern = r'^And I guess to take this one step further, I\'ve heard you talk about\s*'
-        cleaned = re.sub(pattern, '', text, flags=re.IGNORECASE).strip()
+        pattern = r"^And I guess to take this one step further, I\'ve heard you talk about\s*"
+        cleaned = re.sub(pattern, "", text, flags=re.IGNORECASE).strip()
 
         return cleaned
 
-    def process_segment(self, segment: Dict) -> Dict:
+    def process_segment(self, segment: dict) -> dict:
         """Process segment with precise cleaning"""
 
-        cleaned_text = self.clean_specific_opening(segment['text'])
+        cleaned_text = self.clean_specific_opening(segment["text"])
 
         return {
             "input": "Test question",
             "output": cleaned_text,
-            "style": segment['style'],
-            "confidence": segment['confidence'],
-            "quality": segment['quality'],
-            "source": segment['source'],
-            "file": segment['file']
+            "style": segment["style"],
+            "confidence": segment["confidence"],
+            "quality": segment["quality"],
+            "source": segment["source"],
+            "file": segment["file"]
         }
 
 def test_precise_cleaner():
@@ -52,7 +51,7 @@ def test_precise_cleaner():
 
     print("=== PRECISE CLEANING TEST ===\n")
     print("**Cleaned Text**:")
-    print(result['output'])
+    print(result["output"])
 
 if __name__ == "__main__":
     test_precise_cleaner()

@@ -113,7 +113,7 @@ class MockResponse:
     """Mock HTTP response for testing"""
 
     def __init__(
-        self, json_data: Dict[str, Any] = None, status_code: int = 200, text: str = ""
+        self, json_data: dict[str, Any] = None, status_code: int = 200, text: str = ""
     ):
         self.json_data = json_data or {}
         self.status_code = status_code

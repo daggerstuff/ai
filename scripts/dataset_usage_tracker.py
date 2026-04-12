@@ -4,11 +4,12 @@ Dataset usage analytics tracking script that monitors access patterns,
 training job correlations, and data freshness.
 """
 
+from datetime import datetime, timedelta, timezone
+
 import json
-from dataclasses import asdict, dataclass, field
-from datetime import datetime, timedelta
+from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from botocore.exceptions import ClientError
 from s3_client_helper import get_s3_client
@@ -20,9 +21,9 @@ class AccessRecord:
 
     timestamp: str
     access_type: str  # 'training', 'validation', 'exploration'
-    job_id: Optional[str] = None
-    user: Optional[str] = None
-    duration_seconds: Optional[float] = None
+    job_id: str | None = None
+    user: str | None = None
+    duration_seconds: float | None = None
 
 
 @dataclass
@@ -40,7 +41,7 @@ class TrainingJobRecord:
 class DatasetUsageTracker:
     """Tracks dataset usage analytics."""
 
-    def __init__(self, registry_path: Path, analytics_dir: Optional[Path] = None):
+    def __init__(self, registry_path: Path, analytics_dir: Path | None = None):
         self.registry_path = registry_path
         self.analytics_dir = (
             analytics_dir or Path.home() / ".cache" / "dataset_analytics"
@@ -48,18 +49,18 @@ class DatasetUsageTracker:
         self.analytics_dir.mkdir(parents=True, exist_ok=True)
         self.s3_client = get_s3_client()
 
-    def load_registry(self) -> Dict[str, Any]:
+    def load_registry(self) -> dict[str, Any]:
         """Load the dataset registry."""
         with open(self.registry_path) as f:
             return json.load(f)
 
-    def save_registry(self, registry: Dict[str, Any]) -> None:
+    def save_registry(self, registry: dict[str, Any]) -> None:
         """Save the updated registry."""
-        registry["last_updated"] = datetime.utcnow().isoformat() + "Z"
+        registry["last_updated"] = datetime.now(timezone.utc).isoformat() + "Z"
         with open(self.registry_path, "w") as f:
             json.dump(registry, f, indent=2, ensure_ascii=False)
 
-    def load_analytics(self, dataset_name: str) -> Dict[str, Any]:
+    def load_analytics(self, dataset_name: str) -> dict[str, Any]:
         """Load analytics data for a dataset."""
         analytics_file = self.analytics_dir / f"{dataset_name}_analytics.json"
 
@@ -71,13 +72,13 @@ class DatasetUsageTracker:
             "dataset_name": dataset_name,
             "access_history": [],
             "training_jobs": [],
-            "created_at": datetime.utcnow().isoformat() + "Z",
+            "created_at": datetime.now(timezone.utc).isoformat() + "Z",
         }
 
-    def save_analytics(self, dataset_name: str, analytics: Dict[str, Any]) -> None:
+    def save_analytics(self, dataset_name: str, analytics: dict[str, Any]) -> None:
         """Save analytics data for a dataset."""
         analytics_file = self.analytics_dir / f"{dataset_name}_analytics.json"
-        analytics["last_updated"] = datetime.utcnow().isoformat() + "Z"
+        analytics["last_updated"] = datetime.now(timezone.utc).isoformat() + "Z"
 
         with open(analytics_file, "w") as f:
             json.dump(analytics, f, indent=2)
@@ -86,9 +87,9 @@ class DatasetUsageTracker:
         self,
         dataset_name: str,
         access_type: str,
-        job_id: Optional[str] = None,
-        user: Optional[str] = None,
-        duration_seconds: Optional[float] = None,
+        job_id: str | None = None,
+        user: str | None = None,
+        duration_seconds: float | None = None,
     ) -> None:
         """
         Record a dataset access event.
@@ -104,7 +105,7 @@ class DatasetUsageTracker:
 
         access_record = asdict(
             AccessRecord(
-                timestamp=datetime.utcnow().isoformat() + "Z",
+                timestamp=datetime.now(timezone.utc).isoformat() + "Z",
                 access_type=access_type,
                 job_id=job_id,
                 user=user,
@@ -145,7 +146,7 @@ class DatasetUsageTracker:
         job_record = asdict(
             TrainingJobRecord(
                 job_id=job_id,
-                timestamp=datetime.utcnow().isoformat() + "Z",
+                timestamp=datetime.now(timezone.utc).isoformat() + "Z",
                 stage=stage,
                 model=model,
                 epochs=epochs,
@@ -161,7 +162,7 @@ class DatasetUsageTracker:
 
         self.save_analytics(dataset_name, analytics)
 
-    def calculate_data_freshness(self, dataset_path: str) -> Optional[int]:
+    def calculate_data_freshness(self, dataset_path: str) -> int | None:
         """
         Calculate data freshness in days.
 
@@ -183,14 +184,14 @@ class DatasetUsageTracker:
             last_modified = response.get("LastModified")
 
             if last_modified:
-                delta = datetime.utcnow() - last_modified.replace(tzinfo=None)
+                delta = datetime.now(timezone.utc) - last_modified.replace(tzinfo=None)
                 return delta.days
 
             return None
         except ClientError:
             return None
 
-    def get_usage_summary(self, dataset_name: str) -> Dict[str, Any]:
+    def get_usage_summary(self, dataset_name: str) -> dict[str, Any]:
         """
         Get usage summary for a dataset.
 
@@ -224,7 +225,7 @@ class DatasetUsageTracker:
             job
             for job in training_jobs
             if datetime.fromisoformat(job["timestamp"].rstrip("Z"))
-            > datetime.utcnow() - timedelta(days=30)
+            > datetime.now(timezone.utc) - timedelta(days=30)
         ]
 
         return {
@@ -237,8 +238,8 @@ class DatasetUsageTracker:
         }
 
     def update_registry_usage_metrics(
-        self, limit: Optional[int] = None
-    ) -> Dict[str, Any]:
+        self, limit: int | None = None
+    ) -> dict[str, Any]:
         """
         Update usage metrics in registry for all datasets.
 
@@ -375,7 +376,7 @@ def main():
     tracker = DatasetUsageTracker(args.registry)
 
     if args.action == "update":
-        print(f"Updating usage metrics in registry...")
+        print("Updating usage metrics in registry...")
         print(f"Registry: {args.registry}")
         print(f"Limit: {args.limit or 'None (all datasets)'}")
         print()

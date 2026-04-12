@@ -7,7 +7,6 @@ Converts training pairs to Lightning.ai compatible format with expert routing
 import json
 import random
 from pathlib import Path
-from typing import Dict, List
 
 
 class LoRAFormatConverter:
@@ -39,7 +38,7 @@ class LoRAFormatConverter:
             "metadata": {}
         }
 
-    def format_conversation(self, training_pair: Dict) -> Dict:
+    def format_conversation(self, training_pair: dict) -> dict:
         """Convert training pair to Lightning.ai conversation format"""
         conversation = {
             "conversations": [
@@ -65,7 +64,7 @@ class LoRAFormatConverter:
 
         return conversation
 
-    def create_training_split(self, conversations: List[Dict], train_ratio: float = 0.9) -> tuple:
+    def create_training_split(self, conversations: list[dict], train_ratio: float = 0.9) -> tuple:
         """Split conversations into training and validation sets"""
         random.shuffle(conversations)
         split_idx = int(len(conversations) * train_ratio)
@@ -75,7 +74,7 @@ class LoRAFormatConverter:
 
         return train_set, val_set
 
-    def process_training_files(self, input_dir: Path, output_dir: Path) -> Dict:
+    def process_training_files(self, input_dir: Path, output_dir: Path) -> dict:
         """Process all training pair files and create Lightning.ai format"""
         output_dir.mkdir(exist_ok=True)
 
@@ -90,7 +89,7 @@ class LoRAFormatConverter:
         for training_file in input_dir.glob("training_*.json"):
             print(f"Processing {training_file.name}...")
 
-            with open(training_file, encoding='utf-8') as f:
+            with open(training_file, encoding="utf-8") as f:
                 training_pairs = json.load(f)
 
             for pair in training_pairs:
@@ -109,12 +108,12 @@ class LoRAFormatConverter:
 
         # Save training set
         train_file = output_dir / "train.json"
-        with open(train_file, 'w', encoding='utf-8') as f:
+        with open(train_file, "w", encoding="utf-8") as f:
             json.dump(train_conversations, f, indent=2, ensure_ascii=False)
 
         # Save validation set
         val_file = output_dir / "validation.json"
-        with open(val_file, 'w', encoding='utf-8') as f:
+        with open(val_file, "w", encoding="utf-8") as f:
             json.dump(val_conversations, f, indent=2, ensure_ascii=False)
 
         # Create expert-specific datasets for analysis
@@ -124,7 +123,7 @@ class LoRAFormatConverter:
 
         for style, convs in expert_conversations.items():
             expert_file = output_dir / f"expert_{style}.json"
-            with open(expert_file, 'w', encoding='utf-8') as f:
+            with open(expert_file, "w", encoding="utf-8") as f:
                 json.dump(convs, f, indent=2, ensure_ascii=False)
 
         # Update stats with split info
@@ -133,7 +132,7 @@ class LoRAFormatConverter:
 
         return stats
 
-    def create_config_file(self, output_dir: Path, stats: Dict):
+    def create_config_file(self, output_dir: Path, stats: dict):
         """Create Lightning.ai training configuration"""
         config = {
             "model_config": {
@@ -190,7 +189,7 @@ class LoRAFormatConverter:
         }
 
         config_file = output_dir / "lightning_config.json"
-        with open(config_file, 'w', encoding='utf-8') as f:
+        with open(config_file, "w", encoding="utf-8") as f:
             json.dump(config, f, indent=2, ensure_ascii=False)
 
         return config
@@ -210,18 +209,18 @@ def main():
     # Create configuration file
     config = converter.create_config_file(output_dir, stats)
 
-    print(f"\nConversion complete!")
+    print("\nConversion complete!")
     print(f"Total conversations: {stats['total_pairs']}")
     print(f"Training set: {stats['train_size']} conversations")
     print(f"Validation set: {stats['val_size']} conversations")
-    print(f"\nExpert distribution:")
-    for style, count in stats['by_style'].items():
+    print("\nExpert distribution:")
+    for style, count in stats["by_style"].items():
         print(f"  {style}: {count} conversations")
-    print(f"\nQuality distribution:")
-    for quality, count in stats['by_quality'].items():
+    print("\nQuality distribution:")
+    for quality, count in stats["by_quality"].items():
         print(f"  {quality}: {count} conversations")
     print(f"\nOutput directory: {output_dir}")
-    print(f"Ready for Lightning.ai H100 training!")
+    print("Ready for Lightning.ai H100 training!")
 
 if __name__ == "__main__":
     main()

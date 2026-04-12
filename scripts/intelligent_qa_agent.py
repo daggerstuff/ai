@@ -5,18 +5,17 @@ Intelligent Q/A Agent - Multi-pattern analysis with nuanced decision making
 
 import re
 from dataclasses import dataclass
-from typing import Dict, List, Optional
 
 
 @dataclass
 class ContentAnalysis:
     dialogue_confidence: float = 0.0
-    question_embedded: Optional[str] = None
-    response_portion: Optional[str] = None
+    question_embedded: str | None = None
+    response_portion: str | None = None
     content_type: str = "unknown"
     setup_detected: bool = False
 
-    speaker_transitions: List[int] = None
+    speaker_transitions: list[int] = None
     semantic_coherence: float = 0.0
 
 
@@ -58,7 +57,7 @@ class IntelligentQAAgent:
 
         return analysis
 
-    def detect_dialogue_patterns(self, text: str) -> Dict:
+    def detect_dialogue_patterns(self, text: str) -> dict:
         """Detect various dialogue structure patterns"""
 
         confidence = 0.0
@@ -101,7 +100,7 @@ class IntelligentQAAgent:
 
         return {"confidence": min(confidence, 1.0), "indicators": indicators}
 
-    def detect_setup_patterns(self, text: str) -> Dict:
+    def detect_setup_patterns(self, text: str) -> dict:
         """Detect contextual setup that references previous conversation"""
 
         setup_patterns = [
@@ -125,7 +124,7 @@ class IntelligentQAAgent:
 
         return {"has_setup": has_setup, "setup_end": setup_end}
 
-    def extract_question_patterns(self, text: str) -> Dict:
+    def extract_question_patterns(self, text: str) -> dict:
         """Extract embedded questions using multiple approaches"""
 
         # Direct question extraction
@@ -165,7 +164,7 @@ class IntelligentQAAgent:
 
         return {"question": None, "position": None, "confidence": 0.0}
 
-    def detect_response_boundaries(self, text: str, question_signals: Dict) -> Dict:
+    def detect_response_boundaries(self, text: str, question_signals: dict) -> dict:
         """Detect where the actual response begins"""
 
         if not question_signals["question"] or not question_signals["position"]:
@@ -211,7 +210,7 @@ class IntelligentQAAgent:
 
         return {"response": None, "confidence": 0.0}
 
-    def classify_content_type(self, text: str) -> Dict:
+    def classify_content_type(self, text: str) -> dict:
         """Classify the type of content"""
 
         text_lower = text.lower()
@@ -331,7 +330,7 @@ class IntelligentQAAgent:
 
     def make_intelligent_decision(
         self, analysis: ContentAnalysis, text: str, style: str
-    ) -> Dict:
+    ) -> dict:
         """Make nuanced decision based on multi-pattern analysis"""
 
         # High confidence dialogue with good Q/A extraction
@@ -349,7 +348,7 @@ class IntelligentQAAgent:
             }
 
         # Medium confidence dialogue - try to improve extraction
-        elif analysis.dialogue_confidence > 0.4 and analysis.question_embedded:
+        if analysis.dialogue_confidence > 0.4 and analysis.question_embedded:
             # If no clean response boundary, use contextual approach
             if not analysis.response_portion:
                 contextual_question = self.generate_contextual_question(text, style)
@@ -361,25 +360,23 @@ class IntelligentQAAgent:
                     "method": "hybrid_contextual",
                     "confidence": 0.6,
                 }
-            else:
-                return {
-                    "input": analysis.question_embedded,
-                    "output": analysis.response_portion,
-                    "method": "partial_extraction",
-                    "confidence": 0.7,
-                }
+            return {
+                "input": analysis.question_embedded,
+                "output": analysis.response_portion,
+                "method": "partial_extraction",
+                "confidence": 0.7,
+            }
 
         # No clear dialogue structure - use contextual generation
-        else:
-            contextual_question = self.generate_contextual_question(text, style)
-            cleaned_text = self.clean_setup_references(text)
+        contextual_question = self.generate_contextual_question(text, style)
+        cleaned_text = self.clean_setup_references(text)
 
-            return {
-                "input": contextual_question,
-                "output": cleaned_text,
-                "method": "contextual_generation",
-                "confidence": 0.5,
-            }
+        return {
+            "input": contextual_question,
+            "output": cleaned_text,
+            "method": "contextual_generation",
+            "confidence": 0.5,
+        }
 
     def clean_setup_references(self, text: str) -> str:
         """Clean contextual setup references"""
@@ -405,11 +402,11 @@ class IntelligentQAAgent:
         # Topic-specific questions
         if "trauma" in text_lower and "therap" in text_lower:
             return "How can someone find proper trauma therapy and what should they look for?"
-        elif "narcissist" in text_lower and "manipulat" in text_lower:
+        if "narcissist" in text_lower and "manipulat" in text_lower:
             return "Why do narcissists become manipulative and how does this affect relationships?"
-        elif "shame" in text_lower:
+        if "shame" in text_lower:
             return "How does shame affect people and what can be done about it?"
-        elif "heal" in text_lower and "core" in text_lower:
+        if "heal" in text_lower and "core" in text_lower:
             return "What's the difference between treating symptoms and healing at the core?"
 
         # Style-based fallbacks
@@ -422,7 +419,7 @@ class IntelligentQAAgent:
 
         return style_questions.get(style, "Can you help me understand this?")
 
-    def process_segment(self, segment: Dict) -> Dict:
+    def process_segment(self, segment: dict) -> dict:
         """Process segment with intelligent multi-pattern analysis"""
 
         # Perform comprehensive analysis

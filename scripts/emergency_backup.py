@@ -4,23 +4,22 @@ Emergency Backup System for Processed Conversations
 Creates immediate backup of all processed conversation data to prevent data loss.
 """
 
-import gzip
+from datetime import datetime, timezone
+
 import hashlib
 import json
 import logging
-import os
 import shutil
 import tarfile
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
+    format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler('emergency_backup.log'),
+        logging.FileHandler("emergency_backup.log"),
         logging.StreamHandler()
     ]
 )
@@ -32,7 +31,7 @@ class EmergencyBackupSystem:
     def __init__(self, source_dir: str = "data", backup_dir: str = "backups"):
         self.source_dir = Path(source_dir)
         self.backup_dir = Path(backup_dir)
-        self.timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         self.backup_name = f"emergency_backup_{self.timestamp}"
 
         # Create backup directory
@@ -46,7 +45,7 @@ class EmergencyBackupSystem:
                 sha256_hash.update(byte_block)
         return sha256_hash.hexdigest()
 
-    def create_manifest(self, backed_up_files: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def create_manifest(self, backed_up_files: list[dict[str, Any]]) -> dict[str, Any]:
         """Create backup manifest with file inventory and checksums."""
         manifest = {
             "backup_name": self.backup_name,
@@ -55,7 +54,7 @@ class EmergencyBackupSystem:
             "total_files": len(backed_up_files),
             "files": backed_up_files,
             "backup_size_bytes": sum(f["size_bytes"] for f in backed_up_files),
-            "backup_completed": datetime.now().isoformat()
+            "backup_completed": datetime.now(timezone.utc).isoformat()
         }
         return manifest
 
@@ -86,7 +85,7 @@ class EmergencyBackupSystem:
                             "path": str(relative_path),
                             "size_bytes": file_path.stat().st_size,
                             "checksum": checksum,
-                            "backup_time": datetime.now().isoformat()
+                            "backup_time": datetime.now(timezone.utc).isoformat()
                         })
 
             # Backup batch processing data
@@ -105,7 +104,7 @@ class EmergencyBackupSystem:
                             "path": str(relative_path),
                             "size_bytes": file_path.stat().st_size,
                             "checksum": checksum,
-                            "backup_time": datetime.now().isoformat()
+                            "backup_time": datetime.now(timezone.utc).isoformat()
                         })
 
             # Backup psychology knowledge base
@@ -124,13 +123,13 @@ class EmergencyBackupSystem:
                             "path": str(relative_path),
                             "size_bytes": file_path.stat().st_size,
                             "checksum": checksum,
-                            "backup_time": datetime.now().isoformat()
+                            "backup_time": datetime.now(timezone.utc).isoformat()
                         })
 
             # Create manifest
             manifest = self.create_manifest(backed_up_files)
             manifest_path = backup_path / "backup_manifest.json"
-            with open(manifest_path, 'w') as f:
+            with open(manifest_path, "w") as f:
                 json.dump(manifest, f, indent=2)
 
             # Create compressed archive
@@ -148,18 +147,18 @@ class EmergencyBackupSystem:
                 "archive_path": str(archive_path),
                 "archive_size_bytes": archive_path.stat().st_size,
                 "archive_checksum": archive_checksum,
-                "created": datetime.now().isoformat(),
+                "created": datetime.now(timezone.utc).isoformat(),
                 "contains": manifest
             }
 
             archive_manifest_path = self.backup_dir / f"{self.backup_name}_archive_manifest.json"
-            with open(archive_manifest_path, 'w') as f:
+            with open(archive_manifest_path, "w") as f:
                 json.dump(archive_manifest, f, indent=2)
 
             # Clean up uncompressed backup
             shutil.rmtree(backup_path)
 
-            logger.info(f"Emergency backup completed successfully!")
+            logger.info("Emergency backup completed successfully!")
             logger.info(f"Archive: {archive_path}")
             logger.info(f"Size: {archive_path.stat().st_size / (1024*1024*1024):.2f} GB")
             logger.info(f"Files backed up: {len(backed_up_files)}")
@@ -177,7 +176,7 @@ class EmergencyBackupSystem:
 
         try:
             # Load archive manifest
-            manifest_path = archive_path.replace('.tar.gz', '_archive_manifest.json')
+            manifest_path = archive_path.replace(".tar.gz", "_archive_manifest.json")
             with open(manifest_path) as f:
                 archive_manifest = json.load(f)
 

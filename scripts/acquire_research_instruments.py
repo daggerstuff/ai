@@ -10,7 +10,7 @@ import time
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -26,9 +26,9 @@ class InstrumentMetadata:
     full_name: str
     description: str
     purpose: str
-    items: List[Dict[str, str]]
-    scoring: Dict[str, Any]
-    validation: Dict[str, Any]
+    items: list[dict[str, str]]
+    scoring: dict[str, Any]
+    validation: dict[str, Any]
     source: str
     url: str
     license: str
@@ -59,7 +59,7 @@ class InstrumentType(Enum):
 class ResearchInstrumentAcquisition:
     """Acquire validated research instruments from academic sources"""
 
-    def __init__(self, output_dir: Optional[Path] = None):
+    def __init__(self, output_dir: Path | None = None):
         self.output_dir = output_dir or Path("ai/data/research_instruments")
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -216,7 +216,7 @@ class ResearchInstrumentAcquisition:
 
     def acquire_instrument_from_source(
         self, instrument_type: InstrumentType
-    ) -> Optional[InstrumentMetadata]:
+    ) -> InstrumentMetadata | None:
         """Acquire instrument data from source"""
         logger.info(f"🔍 Acquiring {instrument_type.value} from source...")
 
@@ -360,7 +360,7 @@ class ResearchInstrumentAcquisition:
                     confidence_score=0.95,
                 )
 
-            elif instrument_type == InstrumentType.GAD_7:
+            if instrument_type == InstrumentType.GAD_7:
                 # GAD-7 from official source
                 items = [
                     {
@@ -475,7 +475,7 @@ class ResearchInstrumentAcquisition:
                     confidence_score=0.95,
                 )
 
-            elif instrument_type == InstrumentType.BDI_II:
+            if instrument_type == InstrumentType.BDI_II:
                 # BDI-II from official source
                 items = []
                 # Add items for BDI-II (21 items)
@@ -552,7 +552,7 @@ class ResearchInstrumentAcquisition:
                     confidence_score=0.95,
                 )
 
-            elif instrument_type == InstrumentType.PCL_5:
+            if instrument_type == InstrumentType.PCL_5:
                 # PCL-5 from official source
                 items = []
                 # Add items for PCL-5 (20 items)
@@ -628,66 +628,65 @@ class ResearchInstrumentAcquisition:
                     confidence_score=0.95,
                 )
 
-            else:
-                # For other instruments, create basic metadata
-                items = [
-                    {
-                        "item": "1",
-                        "question": "Item 1",
-                        "options": ["0", "1", "2", "3", "4"],
-                    },
-                    {
-                        "item": "2",
-                        "question": "Item 2",
-                        "options": ["0", "1", "2", "3", "4"],
-                    },
-                ]
+            # For other instruments, create basic metadata
+            items = [
+                {
+                    "item": "1",
+                    "question": "Item 1",
+                    "options": ["0", "1", "2", "3", "4"],
+                },
+                {
+                    "item": "2",
+                    "question": "Item 2",
+                    "options": ["0", "1", "2", "3", "4"],
+                },
+            ]
 
-                scoring = {
-                    "scale": "0-4",
-                    "total_range": "0-20",
-                    "interpretation": {
-                        "0-5": "Normal",
-                        "6-10": "Mild",
-                        "11-15": "Moderate",
-                        "16-20": "Severe",
-                    },
-                    "clinical_cutoff": 10,
-                }
+            scoring = {
+                "scale": "0-4",
+                "total_range": "0-20",
+                "interpretation": {
+                    "0-5": "Normal",
+                    "6-10": "Mild",
+                    "11-15": "Moderate",
+                    "16-20": "Severe",
+                },
+                "clinical_cutoff": 10,
+            }
 
-                validation = {
-                    "Cronbach's_alpha": 0.85,
-                    "test_retest_reliability": 0.80,
-                    "construct_validity": "Moderate",
-                    "criterion_validity": "Moderate",
-                    "sensitivity": 0.80,
-                    "specificity": 0.80,
-                    "positive_predictive_value": 0.75,
-                    "negative_predictive_value": 0.85,
-                }
+            validation = {
+                "Cronbach's_alpha": 0.85,
+                "test_retest_reliability": 0.80,
+                "construct_validity": "Moderate",
+                "criterion_validity": "Moderate",
+                "sensitivity": 0.80,
+                "specificity": 0.80,
+                "positive_predictive_value": 0.75,
+                "negative_predictive_value": 0.85,
+            }
 
-                return InstrumentMetadata(
-                    name=instrument_config["name"],
-                    full_name=instrument_config["full_name"],
-                    description=instrument_config["description"],
-                    purpose="Screening for mental health condition",
-                    items=items,
-                    scoring=scoring,
-                    validation=validation,
-                    source=instrument_config["source"],
-                    url=instrument_config["source"],
-                    license=instrument_config["license"],
-                    language=instrument_config["language"],
-                    version=instrument_config["version"],
-                    publication_year=2010,
-                    confidence_score=0.85,
-                )
+            return InstrumentMetadata(
+                name=instrument_config["name"],
+                full_name=instrument_config["full_name"],
+                description=instrument_config["description"],
+                purpose="Screening for mental health condition",
+                items=items,
+                scoring=scoring,
+                validation=validation,
+                source=instrument_config["source"],
+                url=instrument_config["source"],
+                license=instrument_config["license"],
+                language=instrument_config["language"],
+                version=instrument_config["version"],
+                publication_year=2010,
+                confidence_score=0.85,
+            )
 
         except Exception as e:
             logger.error(f"Error acquiring {instrument_type.value}: {e}")
             return None
 
-    def acquire_all_instruments(self) -> List[InstrumentMetadata]:
+    def acquire_all_instruments(self) -> list[InstrumentMetadata]:
         """Acquire all configured instruments"""
         logger.info("🚀 Starting research instrument acquisition...")
 
@@ -709,7 +708,7 @@ class ResearchInstrumentAcquisition:
 
     def save_instruments_to_json(
         self,
-        instruments: List[InstrumentMetadata],
+        instruments: list[InstrumentMetadata],
         filename: str = "research_instruments.json",
     ):
         """Save acquired instruments to JSON file"""
@@ -741,7 +740,7 @@ class ResearchInstrumentAcquisition:
         logger.info(f"💾 Saved {len(instruments)} instruments to {output_file}")
         return output_file
 
-    def create_summary(self, instruments: List[InstrumentMetadata]) -> Dict[str, Any]:
+    def create_summary(self, instruments: list[InstrumentMetadata]) -> dict[str, Any]:
         """Create summary of acquired instruments"""
         summary = {
             "total_instruments": len(instruments),
@@ -773,7 +772,7 @@ class ResearchInstrumentAcquisition:
 
         return summary
 
-    def acquire_all_instruments_and_summary(self) -> Dict[str, Any]:
+    def acquire_all_instruments_and_summary(self) -> dict[str, Any]:
         """Main method to acquire all instruments and create summary"""
         instruments = self.acquire_all_instruments()
 

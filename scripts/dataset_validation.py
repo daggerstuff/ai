@@ -4,11 +4,12 @@ Dataset validation script that computes checksums, validates schemas,
 and updates the dataset registry with validation results.
 """
 
+from datetime import datetime, timezone
+
 import hashlib
 import json
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from botocore.exceptions import ClientError
 from s3_client_helper import get_s3_client
@@ -21,18 +22,18 @@ class DatasetValidator:
         self.registry_path = registry_path
         self.s3_client = get_s3_client()
 
-    def load_registry(self) -> Dict[str, Any]:
+    def load_registry(self) -> dict[str, Any]:
         """Load the dataset registry."""
         with open(self.registry_path) as f:
             return json.load(f)
 
-    def save_registry(self, registry: Dict[str, Any]) -> None:
+    def save_registry(self, registry: dict[str, Any]) -> None:
         """Save the updated registry."""
-        registry["last_updated"] = datetime.utcnow().isoformat() + "Z"
+        registry["last_updated"] = datetime.now(timezone.utc).isoformat() + "Z"
         with open(self.registry_path, "w") as f:
             json.dump(registry, f, indent=2, ensure_ascii=False)
 
-    def calculate_checksum_s3(self, s3_path: str) -> Optional[str]:
+    def calculate_checksum_s3(self, s3_path: str) -> str | None:
         """Calculate SHA256 checksum of S3 object."""
         try:
             # Parse S3 path
@@ -55,7 +56,7 @@ class DatasetValidator:
             print(f"Error calculating checksum for {s3_path}: {e}")
             return None
 
-    def calculate_checksum_local(self, file_path: Path) -> Optional[str]:
+    def calculate_checksum_local(self, file_path: Path) -> str | None:
         """Calculate SHA256 checksum of local file."""
         try:
             sha256_hash = hashlib.sha256()
@@ -67,7 +68,7 @@ class DatasetValidator:
             print(f"Error calculating checksum for {file_path}: {e}")
             return None
 
-    def validate_schema(self, dataset_path: str, dataset_type: str) -> Dict[str, Any]:
+    def validate_schema(self, dataset_path: str, dataset_type: str) -> dict[str, Any]:
         """Validate dataset schema based on type."""
         # Placeholder for schema validation logic
         # In production, this would validate against known schemas
@@ -79,7 +80,7 @@ class DatasetValidator:
 
         return validation_result
 
-    def check_integrity(self, dataset_path: str, size_mb: float) -> Dict[str, Any]:
+    def check_integrity(self, dataset_path: str, size_mb: float) -> dict[str, Any]:
         """Check dataset integrity."""
         integrity_result = {"integrity_check": True, "errors": [], "warnings": []}
 
@@ -91,8 +92,8 @@ class DatasetValidator:
         return integrity_result
 
     def validate_dataset(
-        self, dataset_name: str, dataset_entry: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, dataset_name: str, dataset_entry: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Validate a single dataset and return validation results.
 
@@ -129,7 +130,7 @@ class DatasetValidator:
             validation["validation_errors"].extend(schema_result["errors"])
 
         # Update validation metadata
-        validation["last_validated"] = datetime.utcnow().isoformat() + "Z"
+        validation["last_validated"] = datetime.now(timezone.utc).isoformat() + "Z"
         validation["validation_status"] = (
             "validated"
             if validation.get("integrity_check") and validation.get("schema_valid")
@@ -139,7 +140,7 @@ class DatasetValidator:
 
         return validation
 
-    def validate_all_datasets(self, limit: Optional[int] = None) -> Dict[str, Any]:
+    def validate_all_datasets(self, limit: int | None = None) -> dict[str, Any]:
         """
         Validate all datasets in the registry.
 
@@ -264,7 +265,7 @@ def main():
 
     args = parser.parse_args()
 
-    print(f"Dataset Validation Script")
+    print("Dataset Validation Script")
     print(f"Registry: {args.registry}")
     print(f"Limit: {args.limit or 'None (all datasets)'}")
     print(f"Dry run: {args.dry_run}")

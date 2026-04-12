@@ -14,7 +14,7 @@ def test_question_extraction():
     print("=== QUESTION EXTRACTION DEBUG ===\n")
 
     # Test the specific pattern for our expected question
-    pattern = r'(How can [^?]*\?)'
+    pattern = r"(How can [^?]*\?)"
     matches = list(re.finditer(pattern, text, re.IGNORECASE))
 
     print(f"Pattern: {pattern}")
@@ -32,9 +32,9 @@ def test_question_extraction():
 
         # Look for response markers
         response_markers = [
-            r'[,\s]*that\'s a (huge|big|great) question',
-            r'[,\s]*unfortunately[,\s]*',
-            r'[,\s]*look[,\s]*'
+            r"[,\s]*that\'s a (huge|big|great) question",
+            r"[,\s]*unfortunately[,\s]*",
+            r"[,\s]*look[,\s]*"
         ]
 
         for marker in response_markers:
@@ -43,7 +43,7 @@ def test_question_extraction():
                 print(f"Response marker found: '{marker}' at position {marker_match.start()}")
                 response_start = marker_match.start()
                 response = after_question[response_start:].strip()
-                response = re.sub(r'^[,\s]*', '', response)
+                response = re.sub(r"^[,\s]*", "", response)
                 print(f"Extracted response: '{response[:150]}...'")
                 break
 

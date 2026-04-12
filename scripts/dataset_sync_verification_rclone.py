@@ -4,20 +4,21 @@ Dataset sync verification using rclone.
 Verifies consistency between S3/DO Spaces and local/backup paths.
 """
 
+from datetime import datetime, timezone
+
 import json
 import sys
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 sys.path.insert(0, str(Path(__file__).parent))
 
 import subprocess
 
-from rclone_dataset_accessor import list_files_in_directory, s3_path_to_rclone
+from rclone_dataset_accessor import s3_path_to_rclone
 
 
-def run_rclone_ls(remote_path: str) -> Optional[List[Dict[str, Any]]]:
+def run_rclone_ls(remote_path: str) -> list[dict[str, Any]] | None:
     """Run rclone ls and parse output."""
     try:
         result = subprocess.run(
@@ -43,8 +44,8 @@ def run_rclone_ls(remote_path: str) -> Optional[List[Dict[str, Any]]]:
 
 
 def verify_dataset_sync(
-    dataset_name: str, dataset_entry: Dict[str, Any]
-) -> Dict[str, Any]:
+    dataset_name: str, dataset_entry: dict[str, Any]
+) -> dict[str, Any]:
     """
     Verify sync status for a dataset.
 
@@ -201,13 +202,13 @@ def main():
                             entry["sync_status"] = {}
 
                         entry["sync_status"]["last_verified"] = (
-                            datetime.utcnow().isoformat() + "Z"
+                            datetime.now(timezone.utc).isoformat() + "Z"
                         )
                         entry["sync_status"]["in_sync"] = result["in_sync"]
                         entry["sync_status"]["s3_file_count"] = result["s3_files"]
                         entry["sync_status"]["s3_size_bytes"] = result["s3_size_bytes"]
 
-    registry["last_updated"] = datetime.utcnow().isoformat() + "Z"
+    registry["last_updated"] = datetime.now(timezone.utc).isoformat() + "Z"
     with open(args.registry, "w") as f:
         json.dump(registry, f, indent=2, ensure_ascii=False)
 

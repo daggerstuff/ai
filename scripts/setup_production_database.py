@@ -9,7 +9,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
@@ -148,15 +148,14 @@ class ProductionDatabaseSetup:
                 logger.info("✅ Data migration completed successfully")
                 logger.info(f"Migration output: {result.stdout}")
                 return True
-            else:
-                logger.error(f"❌ Data migration failed: {result.stderr}")
-                return False
+            logger.error(f"❌ Data migration failed: {result.stderr}")
+            return False
 
         except Exception as e:
             logger.error(f"❌ Data migration error: {e}")
             return False
 
-    def verify_migration(self) -> Dict[str, Any]:
+    def verify_migration(self) -> dict[str, Any]:
         """Verify the migration was successful."""
         try:
             migrator = ConversationDataMigrator(self.database_url)
@@ -169,13 +168,12 @@ class ProductionDatabaseSetup:
             if stats.get("conversations", 0) > 1000:  # Expect at least 1K conversations
                 logger.info("✅ Migration verification successful")
                 return {"success": True, "stats": stats}
-            else:
-                logger.warning("⚠️ Migration verification: Low conversation count")
-                return {
-                    "success": False,
-                    "stats": stats,
-                    "reason": "Low conversation count",
-                }
+            logger.warning("⚠️ Migration verification: Low conversation count")
+            return {
+                "success": False,
+                "stats": stats,
+                "reason": "Low conversation count",
+            }
 
         except Exception as e:
             logger.error(f"❌ Migration verification failed: {e}")

@@ -25,7 +25,6 @@ class TestSecurityTestFramework:
 
     def teardown_method(self):
         """Cleanup after tests"""
-        pass
 
     def test_security_test_framework_initialization(self):
         """Test security framework initialization"""

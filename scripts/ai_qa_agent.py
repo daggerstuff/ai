@@ -5,7 +5,6 @@ AI Q/A Agent - Uses actual AI to intelligently analyze content and generate appr
 
 import json
 import os
-from typing import Dict
 
 import openai
 
@@ -15,7 +14,7 @@ class AIQAAgent:
         # Set up OpenAI client (you'll need to set OPENAI_API_KEY)
         self.client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-    def analyze_content(self, text: str, metadata: Dict) -> Dict:
+    def analyze_content(self, text: str, metadata: dict) -> dict:
         """Use AI to analyze content and determine optimal Q/A approach"""
 
         prompt = f"""
@@ -74,7 +73,7 @@ Be very careful to ensure the question and response actually match and make logi
             print(f"AI analysis failed: {e}")
             return self.create_fallback_analysis(text, metadata)
 
-    def create_fallback_analysis(self, text: str, metadata: Dict) -> Dict:
+    def create_fallback_analysis(self, text: str, metadata: dict) -> dict:
         """Fallback analysis when AI call fails"""
         return {
             "content_type": "unknown",
@@ -87,7 +86,7 @@ Be very careful to ensure the question and response actually match and make logi
             "reasoning": "AI analysis unavailable, using fallback",
         }
 
-    def process_segment(self, segment: Dict) -> Dict:
+    def process_segment(self, segment: dict) -> dict:
         """Process segment using AI analysis"""
 
         # Get AI analysis
@@ -127,7 +126,7 @@ class LocalAIQAAgent:
 
             self.analyzer = None
 
-    def analyze_content_local(self, text: str, metadata: Dict) -> Dict:
+    def analyze_content_local(self, text: str, metadata: dict) -> dict:
         """Local AI analysis using transformers"""
 
         if not self.analyzer:
@@ -162,7 +161,7 @@ class LocalAIQAAgent:
             print(f"Local AI failed: {e}")
             return self.create_simple_analysis(text, metadata)
 
-    def create_simple_analysis(self, text: str, metadata: Dict) -> Dict:
+    def create_simple_analysis(self, text: str, metadata: dict) -> dict:
         """Simple rule-based analysis"""
 
         # Basic content analysis
@@ -194,7 +193,7 @@ class LocalAIQAAgent:
             "reasoning": "Rule-based analysis",
         }
 
-    def process_segment(self, segment: Dict) -> Dict:
+    def process_segment(self, segment: dict) -> dict:
         """Process segment using local analysis"""
 
         analysis = self.analyze_content_local(

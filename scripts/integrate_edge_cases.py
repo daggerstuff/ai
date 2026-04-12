@@ -7,7 +7,6 @@ Automatically integrates edge case generation with main training pipeline
 import json
 import sys
 from pathlib import Path
-from typing import Dict, List
 
 # Add parent directories to path for imports
 sys.path.append(str(Path(__file__).parent.parent))
@@ -41,7 +40,7 @@ class EdgeCaseIntegrator:
 
         self.conversion_pipeline = EnhancedConversionPipeline()
 
-    def generate_and_integrate_edge_cases(self) -> Dict:
+    def generate_and_integrate_edge_cases(self) -> dict:
         """Generate edge cases and integrate into main training data"""
 
         print("🎯 Starting Edge Case Generation & Integration...")
@@ -83,7 +82,7 @@ class EdgeCaseIntegrator:
             "report": report,
         }
 
-    def _integrate_with_main_pipeline(self, edge_training_data: List[Dict]) -> Dict:
+    def _integrate_with_main_pipeline(self, edge_training_data: list[dict]) -> dict:
         """Integrate edge cases with main training data"""
 
         # Get main training data location
@@ -126,7 +125,7 @@ class EdgeCaseIntegrator:
         }
 
     def _generate_integration_report(
-        self, conversations: List[Dict], integration_stats: Dict
+        self, conversations: list[dict], integration_stats: dict
     ) -> str:
         """Generate comprehensive integration report"""
 

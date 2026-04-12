@@ -7,7 +7,7 @@ including agent discovery, connection management, and agent-based operations.
 
 import json
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import click
 
@@ -82,10 +82,9 @@ def connect(ctx, host: str, port: int, timeout: int, retry: int):
                             )
 
                     return
-                else:
-                    click.echo(
-                        f"⚠️  Connection attempt failed: {connection_result.get('error', 'Unknown error')}"
-                    )
+                click.echo(
+                    f"⚠️  Connection attempt failed: {connection_result.get('error', 'Unknown error')}"
+                )
 
             except Exception as e:
                 logger.warning(f"Connection attempt {attempt + 1} failed: {e}")
@@ -216,8 +215,8 @@ def execute(
     ctx,
     agent_id: str,
     tool: str,
-    params: Optional[str],
-    params_file: Optional[str],
+    params: str | None,
+    params_file: str | None,
     async_mode: bool,
 ):
     """Execute a tool on a connected MCP agent."""
@@ -298,7 +297,7 @@ def execute(
 @click.option("--agent-id", help="Filter by agent ID")
 @click.option("--limit", default=10, help="Maximum number of results")
 @click.pass_context
-def status(ctx, execution_id: Optional[str], agent_id: Optional[str], limit: int):
+def status(ctx, execution_id: str | None, agent_id: str | None, limit: int):
     """Check execution status of MCP agent tools."""
     try:
         config_obj = get_config()
@@ -434,7 +433,7 @@ def interactive(ctx):
 
 def _connect_to_mcp_agent(
     auth_manager: AuthManager, host: str, port: int, timeout: int
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Connect to MCP agent server."""
     logger.info(f"Connecting to MCP agent at {host}:{port}")
 
@@ -453,7 +452,7 @@ def _connect_to_mcp_agent(
     }
 
 
-def _get_mcp_agents(auth_manager: AuthManager, status: str) -> List[Dict[str, Any]]:
+def _get_mcp_agents(auth_manager: AuthManager, status: str) -> list[dict[str, Any]]:
     """Get list of MCP agents."""
     # This would call the actual API endpoint
     # For now, return mock data
@@ -488,7 +487,7 @@ def _get_mcp_agents(auth_manager: AuthManager, status: str) -> List[Dict[str, An
     return agents
 
 
-def _disconnect_from_agent(auth_manager: AuthManager, agent_id: str) -> Dict[str, Any]:
+def _disconnect_from_agent(auth_manager: AuthManager, agent_id: str) -> dict[str, Any]:
     """Disconnect from MCP agent."""
     logger.info(f"Disconnecting from agent: {agent_id}")
 
@@ -498,7 +497,7 @@ def _disconnect_from_agent(auth_manager: AuthManager, agent_id: str) -> Dict[str
 
 def _get_agent_info(
     auth_manager: AuthManager, agent_id: str
-) -> Optional[Dict[str, Any]]:
+) -> dict[str, Any] | None:
     """Get information about a specific agent."""
     # This would call the actual API endpoint
     agents = _get_mcp_agents(auth_manager, "all")
@@ -523,8 +522,8 @@ def _remove_connection_info(agent_id: str) -> None:
 
 
 def _execute_tool_sync(
-    auth_manager: AuthManager, agent_id: str, tool: str, params: Dict[str, Any]
-) -> Dict[str, Any]:
+    auth_manager: AuthManager, agent_id: str, tool: str, params: dict[str, Any]
+) -> dict[str, Any]:
     """Execute tool synchronously."""
     logger.info(f"Executing tool {tool} on agent {agent_id}")
 
@@ -544,7 +543,7 @@ def _execute_tool_sync(
 
 
 def _execute_tool_async(
-    auth_manager: AuthManager, agent_id: str, tool: str, params: Dict[str, Any]
+    auth_manager: AuthManager, agent_id: str, tool: str, params: dict[str, Any]
 ) -> str:
     """Execute tool asynchronously."""
     logger.info(f"Async execution of tool {tool} on agent {agent_id}")
@@ -555,7 +554,7 @@ def _execute_tool_async(
 
 def _get_execution_status(
     auth_manager: AuthManager, execution_id: str
-) -> Optional[Dict[str, Any]]:
+) -> dict[str, Any] | None:
     """Get execution status."""
     # This would call the actual API endpoint
     return {
@@ -569,8 +568,8 @@ def _get_execution_status(
 
 
 def _list_executions(
-    auth_manager: AuthManager, agent_id: Optional[str], limit: int
-) -> List[Dict[str, Any]]:
+    auth_manager: AuthManager, agent_id: str | None, limit: int
+) -> list[dict[str, Any]]:
     """List recent executions."""
     # This would call the actual API endpoint
     executions = [
@@ -596,7 +595,7 @@ def _list_executions(
     return executions[:limit]
 
 
-def _display_execution_details(execution_info: Dict[str, Any]) -> None:
+def _display_execution_details(execution_info: dict[str, Any]) -> None:
     """Display execution details."""
     click.echo(f"Execution ID: {execution_info['id']}")
     click.echo(f"Status: {execution_info['status']}")
@@ -611,7 +610,7 @@ def _display_execution_details(execution_info: Dict[str, Any]) -> None:
         click.echo(json.dumps(execution_info["result"], indent=2))
 
 
-def _display_executions_list(executions: List[Dict[str, Any]]) -> None:
+def _display_executions_list(executions: list[dict[str, Any]]) -> None:
     """Display list of executions."""
     if not executions:
         click.echo("No executions found")
@@ -633,7 +632,7 @@ def _display_executions_list(executions: List[Dict[str, Any]]) -> None:
 
 def _test_agent_capability(
     auth_manager: AuthManager, agent_id: str, capability: str
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Test agent capability."""
     logger.info(f"Testing capability {capability} on agent {agent_id}")
 
@@ -648,16 +647,15 @@ def _test_agent_capability(
                 "average_response_time": 0.05,  # seconds
             },
         }
-    else:
-        return {
-            "success": False,
-            "error": f"Capability {capability} not supported by this agent",
-            "suggestions": [
-                "Check available capabilities with: pixelated mcp-connect list-agents --detailed",
-                "Try a different capability test",
-                "Connect to a different agent",
-            ],
-        }
+    return {
+        "success": False,
+        "error": f"Capability {capability} not supported by this agent",
+        "suggestions": [
+            "Check available capabilities with: pixelated mcp-connect list-agents --detailed",
+            "Try a different capability test",
+            "Connect to a different agent",
+        ],
+    }
 
 
 def _display_interactive_help() -> None:
@@ -670,7 +668,7 @@ def _display_interactive_help() -> None:
     click.echo("  exit/quit                 - Exit interactive mode")
 
 
-def _display_agents_summary(agents: List[Dict[str, Any]]) -> None:
+def _display_agents_summary(agents: list[dict[str, Any]]) -> None:
     """Display agents summary."""
     active_agents = [agent for agent in agents if agent["status"] == "active"]
     click.echo(f"📊 MCP Agents: {len(active_agents)}/{len(agents)} active")
