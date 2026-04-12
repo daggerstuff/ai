@@ -111,7 +111,7 @@ class TranscriptCorrector:
 
         return text
 
-    def _llm_contextual_correction(self, text: str, context: str) -> str:
+    def _llm_contextual_correction(self, text: str, _context: str) -> str:
         """
         Mock function for GPT-4 based correction.
         In the future, this will call the LLM service to fix grammar and nuances.

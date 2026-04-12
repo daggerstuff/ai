@@ -273,7 +273,7 @@ def config_set(ctx: click.Context, key: str, value: str) -> None:
 @config.command("get")
 @click.argument("key")
 @click.pass_context
-def config_get(ctx: click.Context, key: str) -> None:
+def config_get(_ctx: click.Context, key: str) -> None:
     """Get configuration value."""
     value = get_config_value(key)
     console.print(f"{key}: {value}")

@@ -18,7 +18,7 @@ class NullMemoryLegacyService:
         self.commands = commands
         self.queries = queries
 
-    def add(self, content: str, user_id: str, metadata: dict | None = None, **kwargs: Any) -> dict:
+    def add(self, content: str, user_id: str, metadata: dict | None = None, **_kwargs: Any) -> dict:
         record = self.commands.add(content=content, user_id=user_id, metadata=metadata)
         return {"results": [{"id": record["id"]}]}
 
@@ -62,5 +62,5 @@ class NullMemoryLegacyService:
             return False
         return self.commands.delete(memory_id=memory_id, user_id=user_id)
 
-    def delete_all(self, user_id: str, **kwargs: Any) -> bool:
+    def delete_all(self, user_id: str, **_kwargs: Any) -> bool:
         return self.commands.clear(user_id=user_id)

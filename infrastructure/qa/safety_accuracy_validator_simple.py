@@ -8,13 +8,12 @@ Timeline: 3 days
 Target: >95% crisis detection accuracy with clinical validation
 """
 
-from datetime import datetime, timezone
-
 import asyncio
 import json
 import logging
 import random
 from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -438,7 +437,7 @@ class EnterpriseSafetyAccuracyValidator:
         margin_error = 2.0  # ±2% margin of error
         return (max(0, accuracy - margin_error), min(100, accuracy + margin_error))
 
-    async def _calculate_demographic_bias(self, model_predictor,
+    async def _calculate_demographic_bias(self, _model_predictor,
                                         true_labels: list[bool],
                                         predictions: list[bool]) -> dict[str, float]:
         """Calculate bias scores across demographic groups"""

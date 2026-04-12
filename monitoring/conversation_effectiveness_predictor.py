@@ -11,13 +11,12 @@ Predicts conversation effectiveness using machine learning models:
 - Effectiveness improvement recommendations
 """
 
-from datetime import datetime, timezone
-
 import json
 import re
 import sqlite3
 import warnings
 from collections import Counter
+from datetime import datetime, timezone
 from typing import Any
 
 import matplotlib.pyplot as plt
@@ -461,7 +460,7 @@ class ConversationEffectivenessPredictor:
         return model_results
 
     def _generate_predictions(
-        self, modeling_data: pd.DataFrame, model_results: dict[str, Any]
+        self, modeling_data: pd.DataFrame, _model_results: dict[str, Any]
     ) -> dict[str, Any]:
         """Generate effectiveness predictions for all conversations"""
         print("🔮 Generating effectiveness predictions...")

@@ -6,12 +6,11 @@ Enterprise-grade reporting system for quality comparisons with
 comprehensive analysis, visualizations, and executive summaries.
 """
 
-from datetime import datetime, timezone
-
 import json
 import logging
 import warnings
 from dataclasses import asdict
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -61,7 +60,7 @@ class QualityComparisonReporter:
         logger.info("📊 Quality Comparison Reporter initialized")
 
     def generate_comprehensive_report(
-        self, days_back: int = 90, include_visualizations: bool = True
+        self, days_back: int = 90, _include_visualizations: bool = True
     ) -> ComparisonReport:
         """Generate comprehensive quality comparison report."""
         logger.info(f"📈 Generating comprehensive comparison report ({days_back} days)")

@@ -6,13 +6,12 @@ Comprehensive testing of the quality analytics dashboard functionality
 including data loading, analytics calculation, and visualization generation.
 """
 
-from datetime import datetime, timezone
-
 import json
 import os
 import sqlite3
 import sys
 import tempfile
+from datetime import datetime, timezone
 
 import pandas as pd
 import pytest

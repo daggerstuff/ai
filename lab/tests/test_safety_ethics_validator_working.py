@@ -196,7 +196,7 @@ class MockSafetyEthicsValidator:
 
         return recommendations
 
-    def validate_therapeutic_response(self, response: str, client_context: dict[str, Any]) -> dict[str, Any]:
+    def validate_therapeutic_response(self, response: str, _client_context: dict[str, Any]) -> dict[str, Any]:
         """Validate a therapeutic response for safety and ethics."""
         base_validation = self.validate_content(response, "therapeutic")
 

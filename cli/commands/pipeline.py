@@ -56,7 +56,7 @@ def pipeline_group(ctx):
 @click.option("--tags", help="Comma-separated tags for the pipeline")
 @click.pass_context
 def start(
-    ctx,
+    _ctx,
     config: str,
     input: str,
     output: str | None,
@@ -139,7 +139,7 @@ def start(
 @click.option("--all", "stop_all", is_flag=True, help="Stop all running pipelines")
 @click.option("--force", is_flag=True, help="Force stop without confirmation")
 @click.pass_context
-def stop(ctx, pipeline_id: str | None, stop_all: bool, force: bool):
+def stop(_ctx, pipeline_id: str | None, stop_all: bool, force: bool):
     """Stop pipeline execution(s)."""
     try:
         config_obj = get_config()
@@ -205,7 +205,7 @@ def stop(ctx, pipeline_id: str | None, stop_all: bool, force: bool):
     help="Output format",
 )
 @click.pass_context
-def monitor(ctx, pipeline_id: str, refresh: int, verbose: bool, output: str):
+def monitor(_ctx, pipeline_id: str, refresh: int, verbose: bool, output: str):
     """Monitor pipeline execution in real-time."""
     try:
         config_obj = get_config()
@@ -273,7 +273,7 @@ def monitor(ctx, pipeline_id: str, refresh: int, verbose: bool, output: str):
 @click.option("--limit", default=20, help="Maximum number of results")
 @click.option("--detailed", is_flag=True, help="Show detailed information")
 @click.pass_context
-def list_executions(ctx, status: str, limit: int, detailed: bool):
+def list_executions(_ctx, status: str, limit: int, detailed: bool):
     """List pipeline executions."""
     try:
         config_obj = get_config()
@@ -317,7 +317,7 @@ def list_executions(ctx, status: str, limit: int, detailed: bool):
 @click.option("--restart", is_flag=True, help="Restart pipeline after configuration")
 @click.pass_context
 def configure(
-    ctx, pipeline_id: str, config_file: str | None, param: tuple, restart: bool
+    _ctx, pipeline_id: str, config_file: str | None, param: tuple, restart: bool
 ):
     """Configure pipeline parameters."""
     try:
@@ -396,7 +396,7 @@ def configure(
     "--output", "-o", type=click.Path(), help="Output file for analysis results"
 )
 @click.pass_context
-def analyze(ctx, pipeline_id: str, metric: str, output: str | None):
+def analyze(_ctx, pipeline_id: str, metric: str, output: str | None):
     """Analyze pipeline performance and results."""
     try:
         config_obj = get_config()
@@ -441,7 +441,7 @@ def analyze(ctx, pipeline_id: str, metric: str, output: str | None):
     help="Output format",
 )
 @click.pass_context
-def validate_input(ctx, input: str, output: str | None, format: str):
+def validate_input(_ctx, input: str, output: str | None, _format: str):
     """Validate input data for pipeline compatibility."""
     try:
         config_obj = get_config()
@@ -497,13 +497,13 @@ def validate_input(ctx, input: str, output: str | None, format: str):
 
 
 def _start_pipeline(
-    auth_manager: AuthManager,
+    _auth_manager: AuthManager,
     config: dict[str, Any],
-    input_path: Path,
-    output_path: Path,
-    name: str | None,
-    priority: str,
-    tags: list[str],
+    _input_path: Path,
+    _output_path: Path,
+    _name: str | None,
+    _priority: str,
+    _tags: list[str],
 ) -> dict[str, Any]:
     """Start a new pipeline execution."""
     logger.info(f"Starting pipeline with config: {config}")
@@ -517,7 +517,7 @@ def _start_pipeline(
     }
 
 
-def _stop_pipeline(auth_manager: AuthManager, pipeline_id: str) -> dict[str, Any]:
+def _stop_pipeline(_auth_manager: AuthManager, pipeline_id: str) -> dict[str, Any]:
     """Stop a specific pipeline."""
     logger.info(f"Stopping pipeline: {pipeline_id}")
 
@@ -525,7 +525,7 @@ def _stop_pipeline(auth_manager: AuthManager, pipeline_id: str) -> dict[str, Any
     return {"success": True, "message": f"Pipeline {pipeline_id} stopped successfully"}
 
 
-def _stop_all_pipelines(auth_manager: AuthManager) -> dict[str, Any]:
+def _stop_all_pipelines(_auth_manager: AuthManager) -> dict[str, Any]:
     """Stop all running pipelines."""
     logger.info("Stopping all pipelines")
 
@@ -538,7 +538,7 @@ def _stop_all_pipelines(auth_manager: AuthManager) -> dict[str, Any]:
 
 
 def _get_pipeline_status(
-    auth_manager: AuthManager, pipeline_id: str
+    _auth_manager: AuthManager, pipeline_id: str
 ) -> dict[str, Any] | None:
     """Get pipeline status information."""
     # This would call the actual API endpoint
@@ -618,7 +618,7 @@ def _display_detailed_status(status: dict[str, Any], verbose: bool) -> None:
 
 
 def _list_pipeline_executions(
-    auth_manager: AuthManager, status: str, limit: int
+    _auth_manager: AuthManager, status: str, limit: int
 ) -> list[dict[str, Any]]:
     """List pipeline executions."""
     # This would call the actual API endpoint
@@ -684,7 +684,7 @@ def _get_status_icon(status: str) -> str:
 
 
 def _configure_pipeline(
-    auth_manager: AuthManager, pipeline_id: str, config_updates: dict[str, Any]
+    _auth_manager: AuthManager, pipeline_id: str, config_updates: dict[str, Any]
 ) -> dict[str, Any]:
     """Configure pipeline parameters."""
     logger.info(f"Configuring pipeline {pipeline_id} with updates: {config_updates}")
@@ -693,7 +693,7 @@ def _configure_pipeline(
     return {"success": True, "message": "Pipeline configuration updated successfully"}
 
 
-def _restart_pipeline(auth_manager: AuthManager, pipeline_id: str) -> dict[str, Any]:
+def _restart_pipeline(_auth_manager: AuthManager, pipeline_id: str) -> dict[str, Any]:
     """Restart a pipeline."""
     logger.info(f"Restarting pipeline: {pipeline_id}")
 
@@ -705,7 +705,7 @@ def _restart_pipeline(auth_manager: AuthManager, pipeline_id: str) -> dict[str, 
 
 
 def _analyze_pipeline(
-    auth_manager: AuthManager, pipeline_id: str, metric: str
+    _auth_manager: AuthManager, pipeline_id: str, metric: str
 ) -> dict[str, Any]:
     """Analyze pipeline performance and results."""
     logger.info(f"Analyzing pipeline {pipeline_id} for metrics: {metric}")
@@ -795,7 +795,7 @@ def _display_analysis_results(analysis_result: dict[str, Any], metric: str) -> N
 
 
 def _validate_pipeline_input(
-    auth_manager: AuthManager, input_path: Path
+    _auth_manager: AuthManager, input_path: Path
 ) -> dict[str, Any]:
     """Validate input data for pipeline compatibility."""
     logger.info(f"Validating pipeline input: {input_path}")
@@ -819,7 +819,7 @@ def _validate_pipeline_input(
     }
 
 
-def _save_pipeline_info(pipeline_id: str, pipeline_info: dict[str, Any]) -> None:
+def _save_pipeline_info(pipeline_id: str, _pipeline_info: dict[str, Any]) -> None:
     """Save pipeline information for later reference."""
     # This would save to a local cache or config file
     logger.info(f"Saved pipeline info for {pipeline_id}")

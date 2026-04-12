@@ -4,9 +4,8 @@ Dataset sync verification script that checks consistency between
 source (Google Drive) and canonical (S3) storage.
 """
 
-from datetime import datetime, timezone
-
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 

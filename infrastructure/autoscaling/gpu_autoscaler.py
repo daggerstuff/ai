@@ -3,11 +3,9 @@ GPU autoscaling and cost management system for Pixelated Empathy AI project.
 Implements dynamic scaling based on demand and provides cost optimization.
 """
 
-from datetime import datetime, timedelta, timezone
-
-
 import logging
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any
 
@@ -191,8 +189,8 @@ class Autoscaler:
         return usage
 
     def make_scaling_decision(self,
-                             current_load: float | None = None,
-                             incoming_requests: int | None = None) -> ScalingDecision:
+                             _current_load: float | None = None,
+                             _incoming_requests: int | None = None) -> ScalingDecision:
         """Make a scaling decision based on current metrics"""
         current_time = datetime.now(timezone.utc)
 
@@ -486,7 +484,7 @@ class RequestForecaster:
 
         return forecast
 
-    def train_model(self, historical_data: list[dict[str, Any]]):
+    def train_model(self, _historical_data: list[dict[str, Any]]):
         """Train the forecasting model (placeholder)"""
         # In a real implementation, you would train an ML model here
         self.logger.info("Training request forecasting model with historical data")

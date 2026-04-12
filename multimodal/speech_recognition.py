@@ -283,7 +283,7 @@ class SpeechRecognizer:
         session_id: str,
         audio_chunks: list[np.ndarray],
         sample_rate: int,
-        chunk_duration_ms: int = 1000,
+        _chunk_duration_ms: int = 1000,
     ) -> TranscriptionResult:
         """
         Transcribe streaming audio chunks.

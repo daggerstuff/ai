@@ -40,7 +40,7 @@ class TherapyBench:
             result.append(char.lower())
         return "".join(result)
 
-    def evaluate(self, *args, **kwargs):
+    def evaluate(self, *_args, **_kwargs):
         """
         Placeholder method for evaluation.
         """

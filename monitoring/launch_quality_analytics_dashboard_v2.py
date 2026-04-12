@@ -6,8 +6,6 @@ Enterprise-grade launcher for the quality analytics dashboard with
 comprehensive validation, dependency checking, and production deployment.
 """
 
-from datetime import datetime, timezone
-
 import argparse
 import json
 import logging
@@ -16,6 +14,7 @@ import sqlite3
 import subprocess
 import sys
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 # Configure logging
@@ -69,7 +68,7 @@ class QualityAnalyticsDashboardLauncher:
 
         logger.info("🚀 Quality Analytics Dashboard V2 Launcher initialized")
 
-    def _signal_handler(self, signum, frame):
+    def _signal_handler(self, signum, _frame):
         """Handle shutdown signals gracefully."""
         logger.info(f"📡 Received signal {signum}, initiating graceful shutdown...")
         self.shutdown_requested = True

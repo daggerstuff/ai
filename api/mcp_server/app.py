@@ -6,10 +6,8 @@ configuration management, middleware registration, and blueprint initialization
 specifically for agent interaction management.
 """
 
-from datetime import datetime, timezone
-
-
 import logging
+from datetime import datetime, timezone
 from typing import Any, cast
 
 from flask import Flask, g, request
@@ -242,7 +240,7 @@ def _register_error_handlers(app: MCPFlask, config: MCPConfig) -> None:
     logger = logging.getLogger(__name__)
 
     @app.errorhandler(404)
-    def not_found(error):
+    def not_found(_error):
         """Handle 404 Not Found errors."""
         return {
             "success": False,
@@ -271,7 +269,7 @@ def _register_error_handlers(app: MCPFlask, config: MCPConfig) -> None:
         }, 405
 
     @app.errorhandler(413)
-    def request_entity_too_large(error):
+    def request_entity_too_large(_error):
         """Handle 413 Request Entity Too Large errors."""
         return {
             "success": False,

@@ -52,7 +52,7 @@ class MockPipelineOrchestrator:
         return True
 
     def execute_pipeline(
-        self, input_data: Any, pipeline_config: dict[str, Any] | None = None
+        self, input_data: Any, _pipeline_config: dict[str, Any] | None = None
     ) -> dict[str, Any]:
         """Execute the complete pipeline."""
         if not input_data:

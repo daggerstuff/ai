@@ -5,9 +5,7 @@ This module provides commands for user authentication, including login, logout,
 token management, and user profile operations.
 """
 
-from datetime import datetime, timezone
-
-
+from datetime import timezone
 
 import click
 
@@ -31,7 +29,7 @@ def auth_group(ctx):
 @click.option("--password", "-p", prompt=True, hide_input=True, help="Password for authentication")
 @click.option("--profile", help="Configuration profile to use")
 @click.pass_context
-def login(ctx, username: str, password: str, profile: str | None):
+def login(_ctx, username: str, password: str, profile: str | None):
     """Login to the Pixelated platform."""
     try:
         config = get_config(profile)
@@ -78,7 +76,7 @@ def login(ctx, username: str, password: str, profile: str | None):
 @click.option("--profile", help="Configuration profile to logout from")
 @click.option("--all", "logout_all", is_flag=True, help="Logout from all profiles")
 @click.pass_context
-def logout(ctx, profile: str | None, logout_all: bool):
+def logout(_ctx, profile: str | None, logout_all: bool):
     """Logout from the Pixelated platform."""
     try:
         if logout_all:
@@ -123,7 +121,7 @@ def logout(ctx, profile: str | None, logout_all: bool):
 @auth_group.command()
 @click.option("--profile", help="Configuration profile to check")
 @click.pass_context
-def status(ctx, profile: str | None):
+def status(_ctx, profile: str | None):
     """Check authentication status."""
     try:
         config = get_config(profile)
@@ -180,7 +178,7 @@ def status(ctx, profile: str | None):
 @auth_group.command()
 @click.option("--profile", help="Configuration profile to use")
 @click.pass_context
-def refresh(ctx, profile: str | None):
+def refresh(_ctx, profile: str | None):
     """Refresh authentication token."""
     try:
         config = get_config(profile)
@@ -219,7 +217,7 @@ def refresh(ctx, profile: str | None):
 @auth_group.command()
 @click.option("--profile", help="Configuration profile to use")
 @click.pass_context
-def profile(ctx, profile: str | None):
+def profile(_ctx, profile: str | None):
     """Display user profile information."""
     try:
         config = get_config(profile)
@@ -297,7 +295,7 @@ def profile(ctx, profile: str | None):
 @click.option("--new-password", prompt=True, hide_input=True, help="New password")
 @click.option("--confirm-password", prompt=True, hide_input=True, help="Confirm new password")
 @click.pass_context
-def change_password(ctx, profile: str | None, old_password: str, new_password: str, confirm_password: str):
+def change_password(_ctx, profile: str | None, old_password: str, new_password: str, confirm_password: str):
     """Change user password."""
     try:
         config = get_config(profile)
@@ -338,7 +336,7 @@ def change_password(ctx, profile: str | None, old_password: str, new_password: s
 @click.option("--profile", help="Configuration profile to use")
 @click.option("--days", default=30, help="Number of days to show")
 @click.pass_context
-def history(ctx, profile: str | None, days: int):
+def history(_ctx, profile: str | None, days: int):
     """Display authentication history."""
     try:
         config = get_config(profile)
@@ -393,7 +391,7 @@ def history(ctx, profile: str | None, days: int):
 @click.option("--profile", help="Configuration profile to use")
 @click.option("--email", prompt=True, help="Email address for MFA")
 @click.pass_context
-def setup_mfa(ctx, profile: str | None, email: str):
+def setup_mfa(_ctx, profile: str | None, email: str):
     """Setup multi-factor authentication."""
     try:
         config = get_config(profile)
@@ -436,7 +434,7 @@ def setup_mfa(ctx, profile: str | None, email: str):
 @auth_group.command()
 @click.option("--profile", help="Configuration profile to use")
 @click.pass_context
-def verify_mfa(ctx, profile: str | None):
+def verify_mfa(_ctx, profile: str | None):
     """Verify multi-factor authentication setup."""
     try:
         config = get_config(profile)
@@ -470,7 +468,7 @@ def verify_mfa(ctx, profile: str | None):
 @auth_group.command()
 @click.option("--profile", help="Configuration profile to use")
 @click.pass_context
-def disable_mfa(ctx, profile: str | None):
+def disable_mfa(_ctx, profile: str | None):
     """Disable multi-factor authentication."""
     try:
         config = get_config(profile)

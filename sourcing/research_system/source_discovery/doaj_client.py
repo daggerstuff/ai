@@ -5,13 +5,11 @@ Provides search functionality for psychology journals and articles
 with therapeutic content.
 """
 
-from datetime import datetime, timezone
-
-
 import hashlib
 import logging
 from abc import ABC, abstractmethod
 from collections.abc import Callable
+from datetime import datetime, timezone
 from typing import Any, NotRequired, TypedDict
 
 from ..models import DatasetSource
@@ -468,7 +466,7 @@ class DOAJClient(BaseAPIClient):
 
     def _create_source_from_metadata(
         self,
-        article: dict[str, Any],
+        _article: dict[str, Any],
         metadata: ArticleMetadata,
         discovery_method: str = DEFAULT_DISCOVERY_METHOD,
         skip_validation: bool = False

@@ -4,8 +4,6 @@ Circuit Breaker System for Pixelated Empathy AI
 Implements circuit breaker patterns for external dependencies and fault isolation
 """
 
-from datetime import datetime, timedelta, timezone
-
 import asyncio
 import json
 import logging
@@ -14,6 +12,7 @@ import threading
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any
 
@@ -184,7 +183,7 @@ class CircuitBreaker:
 
             raise
 
-    async def _handle_open_circuit(self, func: Callable, *args, **kwargs) -> Any:
+    async def _handle_open_circuit(self, _func: Callable, *args, **kwargs) -> Any:
         """Handle call when circuit is open (failing fast)"""
 
         logger.warning(f"Circuit breaker {self.name} is OPEN - failing fast")

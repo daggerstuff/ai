@@ -392,7 +392,7 @@ class MCPServer:
 
         return MCPResponse.success(result, id=request.id)
 
-    async def _handle_initialized(self, request: MCPRequest) -> MCPResponse:
+    async def _handle_initialized(self, _request: MCPRequest) -> MCPResponse:
         """
         Handle initialized notification.
 
@@ -938,7 +938,7 @@ class MCPServer:
         """
         self.resources.register(resource)
 
-    def register_prompt(self, prompt: Any) -> None:
+    def register_prompt(self, _prompt: Any) -> None:
         """
         Register an MCP prompt.
 

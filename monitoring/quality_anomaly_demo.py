@@ -4,13 +4,12 @@ Quality Anomaly Detection Demo
 Demonstrates anomaly detection with synthetic data
 """
 
-from datetime import datetime, timedelta, timezone
-
 import json
 import random
 import sqlite3
 import warnings
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -198,7 +197,7 @@ class QualityAnomalyDemo:
             return None
 
     def _create_synthetic_anomaly(
-        self, metric: str, baseline_value: float, index: int
+        self, metric: str, baseline_value: float, _index: int
     ) -> QualityAnomaly | None:
         """Create a synthetic anomaly"""
         try:

@@ -9,7 +9,7 @@ from utils.transcript_corrector import TranscriptCorrector
     '"medical_terms": [], '
     '"common_misinterpretations": {}}'
 ))
-def test_transcript_corrector_empty(mock_file, mock_exists):
+def test_transcript_corrector_empty(_mock_file, _mock_exists):
     corrector = TranscriptCorrector(config_path="dummy.json")
     result = corrector.validate_term_coverage("")
     assert result["cptsd_term_count"] == 0
@@ -22,7 +22,7 @@ def test_transcript_corrector_empty(mock_file, mock_exists):
     '"medical_terms": ["flashback"], '
     '"common_misinterpretations": {}}'
 ))
-def test_transcript_corrector_fillers(mock_file, mock_exists):
+def test_transcript_corrector_fillers(_mock_file, _mock_exists):
     corrector = TranscriptCorrector(config_path="dummy.json")
     # Full match
     result = corrector.validate_term_coverage("Trauma can cause a flashback.")

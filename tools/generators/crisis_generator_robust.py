@@ -3,10 +3,9 @@
 Robust Crisis Generator - Handles slow server responses properly
 """
 
-from datetime import datetime, timezone
-
 import json
 import time
+from datetime import datetime, timezone
 
 import requests
 

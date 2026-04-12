@@ -5,12 +5,10 @@ This module implements REST API endpoints for system operations,
 including health checks, configuration management, and system status.
 """
 
-from datetime import datetime, timezone
-
-
 import logging
 import os
 import platform
+from datetime import datetime, timezone
 from typing import Any
 
 from flask import Blueprint, g, jsonify, request
@@ -830,7 +828,7 @@ def _apply_system_config(
 
 
 def _get_system_status(
-    redis_client: RedisClient, include_metrics: bool, include_resources: bool
+    _redis_client: RedisClient, include_metrics: bool, include_resources: bool
 ) -> dict[str, Any]:
     """Retrieve comprehensive system status."""
     try:
@@ -868,7 +866,7 @@ def _get_system_status(
 
 
 def _get_system_metrics(
-    redis_client: RedisClient, metric_type: str, duration: int
+    _redis_client: RedisClient, metric_type: str, duration: int
 ) -> dict[str, Any]:
     """Retrieve system performance metrics."""
     try:
@@ -1007,7 +1005,7 @@ def _get_system_logs(
 
 
 def _execute_maintenance(
-    operation: str, targets: list[str], options: dict[str, Any]
+    operation: str, _targets: list[str], _options: dict[str, Any]
 ) -> dict[str, Any]:
     """Execute system maintenance operation."""
     try:

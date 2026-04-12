@@ -5,9 +5,8 @@ This module implements JWT-based authentication with role-based access control,
 rate limiting, and comprehensive security measures for HIPAA++ compliance.
 """
 
-from datetime import datetime, timezone
-
 from collections.abc import Callable
+from datetime import datetime, timezone
 from functools import wraps
 from typing import Any
 
@@ -243,7 +242,7 @@ class JWTAuthMiddleware:
             self.logger.error(f"User validation error: {e}")
             return {"valid": False, "error": "User validation failed"}
 
-    def _check_rate_limit(self, user_id: str, path: str) -> dict[str, Any]:
+    def _check_rate_limit(self, _user_id: str, _path: str) -> dict[str, Any]:
         """
         Check rate limiting for user.
 

@@ -41,7 +41,7 @@ def web_frontend_group(ctx):
 @click.option("--browser/--no-browser", default=True, help="Automatically open browser")
 @click.option("--profile", help="Configuration profile to use")
 @click.pass_context
-def launch(ctx, port: int, browser: bool, profile: str | None):
+def launch(_ctx, port: int, browser: bool, profile: str | None):
     """Launch the Pixelated web interface."""
     try:
         config = get_config(profile)
@@ -88,7 +88,7 @@ def launch(ctx, port: int, browser: bool, profile: str | None):
 @click.option("--close", "close_session", help="Close specific session")
 @click.pass_context
 def session(
-    ctx, session_id: str | None, list_sessions: bool, close_session: str | None
+    _ctx, session_id: str | None, list_sessions: bool, close_session: str | None
 ):
     """Manage web sessions and user interactions."""
     try:
@@ -143,7 +143,7 @@ def session(
     help="Output format",
 )
 @click.pass_context
-def monitor(ctx, pipeline_id: str, refresh: int, output: str):
+def monitor(_ctx, pipeline_id: str, refresh: int, output: str):
     """Monitor web-based pipeline execution in real-time."""
     try:
         config = get_config()
@@ -202,7 +202,7 @@ def monitor(ctx, pipeline_id: str, refresh: int, output: str):
     "--async/--sync", default=True, help="Run asynchronously or wait for completion"
 )
 @click.pass_context
-def upload(ctx, file: str, pipeline_type: str, async_run: bool):
+def upload(_ctx, file: str, pipeline_type: str, async_run: bool):
     """Upload and process files through web interface."""
     try:
         config = get_config()
@@ -272,7 +272,7 @@ def upload(ctx, file: str, pipeline_type: str, async_run: bool):
 @click.option("--date-to", help="Filter downloads to date (YYYY-MM-DD)")
 @click.pass_context
 def downloads(
-    ctx,
+    _ctx,
     output: str | None,
     format: str,
     date_from: str | None,
@@ -330,7 +330,7 @@ def downloads(
 # Helper functions (would typically be in a separate module)
 
 
-def _get_active_sessions(auth_manager: AuthManager) -> list:
+def _get_active_sessions(_auth_manager: AuthManager) -> list:
     """Get list of active web sessions."""
     # This would call the actual API endpoint
     # For now, return mock data
@@ -340,7 +340,7 @@ def _get_active_sessions(auth_manager: AuthManager) -> list:
     ]
 
 
-def _close_session(auth_manager: AuthManager, session_id: str) -> bool:
+def _close_session(_auth_manager: AuthManager, session_id: str) -> bool:
     """Close a specific web session."""
     # This would call the actual API endpoint
     logger.info(f"Closing session: {session_id}")
@@ -348,7 +348,7 @@ def _close_session(auth_manager: AuthManager, session_id: str) -> bool:
 
 
 def _get_session_info(
-    auth_manager: AuthManager, session_id: str
+    _auth_manager: AuthManager, session_id: str
 ) -> dict[str, Any] | None:
     """Get detailed information about a session."""
     # This would call the actual API endpoint
@@ -361,7 +361,7 @@ def _get_session_info(
     }
 
 
-def _get_pipeline_status(auth_manager: AuthManager, pipeline_id: str) -> dict[str, Any]:
+def _get_pipeline_status(_auth_manager: AuthManager, pipeline_id: str) -> dict[str, Any]:
     """Get current status of a pipeline."""
     # This would call the actual API endpoint
     return {
@@ -399,7 +399,7 @@ def _display_pipeline_simple(status: dict[str, Any]) -> None:
 
 
 def _upload_file(
-    auth_manager: AuthManager, file_path: Path, pipeline_type: str
+    _auth_manager: AuthManager, file_path: Path, pipeline_type: str
 ) -> dict[str, Any]:
     """Upload file for processing."""
     # This would call the actual API endpoint
@@ -411,7 +411,7 @@ def _upload_file(
     }
 
 
-def _wait_for_pipeline_completion(auth_manager: AuthManager, pipeline_id: str) -> None:
+def _wait_for_pipeline_completion(_auth_manager: AuthManager, _pipeline_id: str) -> None:
     """Wait for pipeline to complete."""
     click.echo("Monitoring pipeline progress...")
     # This would poll the API until completion
@@ -420,7 +420,7 @@ def _wait_for_pipeline_completion(auth_manager: AuthManager, pipeline_id: str) -
 
 
 def _get_available_downloads(
-    auth_manager: AuthManager, date_from: str | None, date_to: str | None
+    _auth_manager: AuthManager, _date_from: str | None, _date_to: str | None
 ) -> list:
     """Get list of available downloads."""
     # This would call the actual API endpoint
@@ -441,7 +441,7 @@ def _get_available_downloads(
 
 
 def _download_file(
-    auth_manager: AuthManager, download_id: str, file_path: Path, format: str
+    _auth_manager: AuthManager, download_id: str, file_path: Path, format: str
 ) -> bool:
     """Download a processed file."""
     # This would call the actual API endpoint

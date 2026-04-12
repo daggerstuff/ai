@@ -208,7 +208,7 @@ class TestInteractiveMode:
 
     @patch("ai.sourcing.journal.cli.interactive.Prompt.ask")
     @patch("ai.sourcing.journal.cli.interactive.console")
-    def test_prompt_for_session_config(self, mock_console, mock_prompt):
+    def test_prompt_for_session_config(self, _mock_console, mock_prompt):
         """Test prompting for session configuration."""
 
         mock_prompt.side_effect = [

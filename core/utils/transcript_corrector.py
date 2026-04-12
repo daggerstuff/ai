@@ -51,7 +51,7 @@ class TranscriptCorrector:
 
         return text
 
-    def correct_transcript(self, text: str, context: str = "") -> str:
+    def correct_transcript(self, text: str, _context: str = "") -> str:
         """Correct transcript text."""
         result = self._clean_structure(text)
         result = self._apply_terminology_fixes(result)

@@ -6,14 +6,13 @@ Enterprise Production Readiness Framework - Task 6.2
 Automated blue-green deployment with zero downtime and canary releases.
 """
 
-from datetime import datetime, timezone
-
 import json
 import logging
 import sqlite3
 import time
 from collections.abc import Callable
 from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -417,7 +416,7 @@ class ProductionDeployer:
             logger.info(f"  - {final_step}")
             time.sleep(0.3)  # Simulate work
 
-    def _simulate_health_check(self, check: HealthCheck) -> bool:
+    def _simulate_health_check(self, _check: HealthCheck) -> bool:
         """Simulate health check execution."""
         try:
             # Simulate health check with high success rate
@@ -655,7 +654,7 @@ class ProductionDeployer:
             logger.error(f"Failed to save deployment record: {e}")
 
     def _generate_deployment_recommendations(
-        self, steps: list[DeploymentStep], status: DeploymentStatus
+        self, _steps: list[DeploymentStep], status: DeploymentStatus
     ) -> list[str]:
         """Generate deployment recommendations."""
         recommendations = []

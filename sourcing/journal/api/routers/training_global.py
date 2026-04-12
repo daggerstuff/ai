@@ -30,7 +30,7 @@ router = APIRouter(prefix="/training", tags=["training"])
     },
 )
 async def get_pipeline_status(
-    current_user: dict = Depends(require_permission_dependency("training:read")),
+    _current_user: dict = Depends(require_permission_dependency("training:read")),
     training_service: TrainingPipelineService = Depends(get_training_pipeline_service),
 ) -> dict[str, Any]:
     """

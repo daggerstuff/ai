@@ -6,7 +6,6 @@ dataset acquisition and storage, and integration with training pipeline.
 """
 
 from datetime import datetime, timezone
-
 from pathlib import Path
 
 import pytest
@@ -375,7 +374,7 @@ class TestCompleteWorkflowWithOrchestrator:
         """Test complete workflow using orchestrator."""
         # Create mock services
         class MockDiscoveryService:
-            def discover_sources(self, session):
+            def discover_sources(self, _session):
                 return [
                     DatasetSource(
                         source_id="orchestrator-test-001",

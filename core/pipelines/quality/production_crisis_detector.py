@@ -48,14 +48,14 @@ class ProductionCrisisDetector:
             crisis_types=[]
         )
 
-    def _analyze_crisis_indicators(self, text: str) -> dict[str, Any]:
+    def _analyze_crisis_indicators(self, _text: str) -> dict[str, Any]:
         """Analyze text for crisis indicators."""
         return {
             "indicators": [],
             "severity": "none"
         }
 
-    def _calculate_crisis_level_production(self, indicators: dict[str, Any]) -> CrisisLevel:
+    def _calculate_crisis_level_production(self, _indicators: dict[str, Any]) -> CrisisLevel:
         """Calculate crisis level from indicators."""
         return CrisisLevel.NONE
 

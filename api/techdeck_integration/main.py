@@ -21,7 +21,7 @@ def setup_signal_handlers(app) -> None:
     Args:
         app: Flask application instance
     """
-    def signal_handler(signum, frame):
+    def signal_handler(signum, _frame):
         """Handle shutdown signals."""
         logger = get_logger(__name__)
         logger.info(f"Received signal {signum}, initiating graceful shutdown...")

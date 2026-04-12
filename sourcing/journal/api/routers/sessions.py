@@ -29,7 +29,7 @@ router = APIRouter(prefix="/sessions")
 @router.get("", response_model=SessionListResponse)
 async def list_sessions(
     pagination: PaginationParams = Depends(),
-    current_user: dict | None = Depends(get_current_user),
+    _current_user: dict | None = Depends(get_current_user),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> SessionListResponse:
     """
@@ -76,7 +76,7 @@ async def list_sessions(
 @router.post("", response_model=SessionResponse, status_code=status.HTTP_201_CREATED)
 async def create_session(
     request: CreateSessionRequest,
-    current_user: dict = Depends(require_permission_dependency("sessions:create")),
+    _current_user: dict = Depends(require_permission_dependency("sessions:create")),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> SessionResponse:
     """
@@ -116,7 +116,7 @@ async def create_session(
 @router.get("/{session_id}", response_model=SessionResponse)
 async def get_session(
     session_id: str,
-    current_user: dict | None = Depends(get_current_user),
+    _current_user: dict | None = Depends(get_current_user),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> SessionResponse:
     """
@@ -152,7 +152,7 @@ async def get_session(
 async def update_session(
     session_id: str,
     request: SessionUpdateRequest,
-    current_user: dict = Depends(require_permission_dependency("sessions:update")),
+    _current_user: dict = Depends(require_permission_dependency("sessions:update")),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> SessionResponse:
     """
@@ -193,7 +193,7 @@ async def update_session(
 @router.delete("/{session_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_session(
     session_id: str,
-    current_user: dict = Depends(require_permission_dependency("sessions:delete")),
+    _current_user: dict = Depends(require_permission_dependency("sessions:delete")),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> None:
     """

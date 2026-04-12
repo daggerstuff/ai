@@ -2,7 +2,7 @@
 # Generated for test compatibility
 
 
-def load(*args, **kwargs):
+def load(*_args, **_kwargs):
     """Stub implementation for load."""
     return
 

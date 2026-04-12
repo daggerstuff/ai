@@ -740,7 +740,7 @@ def _register_memory_get(router: APIRouter, get_manager: ManagerGetter) -> None:
     async def get_memory_endpoint(
         request_context: Request,
         memory_id: str,
-        user_id: str | None = None,
+        _user_id: str | None = None,
         org_id: str | None = None,
         project_id: str | None = None,
         session_id: str | None = None,
@@ -780,7 +780,7 @@ def _register_memory_delete(router: APIRouter, get_manager: ManagerGetter) -> No
     async def delete_memory_endpoint(
         request_context: Request,
         memory_id: str,
-        user_id: str | None = None,
+        _user_id: str | None = None,
         org_id: str | None = None,
         project_id: str | None = None,
         session_id: str | None = None,

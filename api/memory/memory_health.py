@@ -18,7 +18,7 @@ def resolve_memory_readiness(manager) -> str | None:
     return str(raw) if raw is not None else None
 
 
-def resolve_memory_health(*, readiness: str | None, memory_count: int) -> str:
+def resolve_memory_health(*, readiness: str | None, _memory_count: int) -> str:
     normalized_readiness = (readiness or "unknown").lower()
 
     if normalized_readiness in {"degraded", "unhealthy", "error"}:

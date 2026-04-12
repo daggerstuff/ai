@@ -5,10 +5,8 @@ Generates progress metrics charts, timeline visualizations, and quality score
 distributions for research activities.
 """
 
-from datetime import datetime, timezone
-
-
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -449,7 +447,7 @@ class ProgressVisualization:
 
     def generate_progress_chart_data(
         self,
-        session: ResearchSession,
+        _session: ResearchSession,
         progress_history: list[ResearchProgress],
     ) -> dict[str, Any]:
         """

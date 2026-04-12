@@ -133,7 +133,7 @@ async def get_current_active_user_or_api_key(
 
 @app.get("/datasets", response_model=list[DatasetMetadata])
 async def list_datasets(
-    current_auth_entity: Any = Depends(get_current_active_user_or_api_key),
+    _current_auth_entity: Any = Depends(get_current_active_user_or_api_key),
 ):
     """List all available datasets (tables in the database)."""
     datasets = []
@@ -193,7 +193,7 @@ async def list_datasets(
 @app.get("/datasets/{dataset_id}/metadata", response_model=DatasetMetadata)
 async def get_dataset_metadata(
     dataset_id: str,
-    current_auth_entity: Any = Depends(get_current_active_user_or_api_key),
+    _current_auth_entity: Any = Depends(get_current_active_user_or_api_key),
 ):
     """Get metadata (schema) for a specific dataset (table)."""
     conn = None
@@ -253,7 +253,7 @@ async def query_dataset(
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(100, ge=1, le=1000, description="Number of items per page"),
     filters: dict[str, Any] | None = None,  # Example: {"column_name": "value"}
-    current_auth_entity: Any = Depends(get_current_active_user_or_api_key),
+    _current_auth_entity: Any = Depends(get_current_active_user_or_api_key),
 ):
     """
     Query data from a specific dataset (table) with optional filters and pagination.

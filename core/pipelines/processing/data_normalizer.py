@@ -11,8 +11,6 @@ Canonical JSONL schema fields:
   phi_scan_passed, phi_scan_date, pull_date, pix_ticket
 """
 
-from datetime import datetime, timezone
-
 from __future__ import annotations
 
 import hashlib
@@ -20,6 +18,7 @@ import logging
 import re
 import unicodedata
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 

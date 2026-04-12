@@ -5,11 +5,9 @@ This module provides pytest fixtures and configuration for testing the
 six-stage pipeline communication system with HIPAA++ compliance.
 """
 
-from datetime import datetime, timezone
-
-
 import asyncio
 import time
+from datetime import datetime, timezone
 from typing import Any
 from unittest.mock import AsyncMock, Mock
 
@@ -295,7 +293,7 @@ def mock_stage_coordinator():
                 "timestamp": datetime.now(timezone.utc).isoformat()
             }
 
-        async def validate_stage_input(self, context: PipelineContext) -> bool:
+        async def validate_stage_input(self, _context: PipelineContext) -> bool:
             return True
 
         async def get_stage_requirements(self) -> dict[str, Any]:
@@ -311,7 +309,7 @@ def mock_bias_service():
         def __init__(self):
             self.analyze_count = 0
 
-        async def analyze_data(self, data: dict[str, Any], stage: str) -> BiasMetrics:
+        async def analyze_data(self, data: dict[str, Any], _stage: str) -> BiasMetrics:
             self.analyze_count += 1
 
             # Simulate bias analysis
@@ -709,7 +707,7 @@ def pytest_configure(config):
     )
 
 
-def pytest_collection_modifyitems(config, items):
+def pytest_collection_modifyitems(_config, items):
     """Modify test collection to add markers based on test names."""
     for item in items:
         # Auto-mark performance tests

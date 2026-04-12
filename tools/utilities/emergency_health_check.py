@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-from datetime import datetime, timezone
 import json
 import time
+from datetime import datetime, timezone
 
 
 def emergency_health_check():

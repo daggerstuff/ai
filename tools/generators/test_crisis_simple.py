@@ -1,24 +1,18 @@
-
-from datetime import datetime, timezone
-from ai.inference
-from ai.models.pixel_core
-from ai.pipelines.orchestrator
-from .\1 import
-from typing import Dict, List, Optional, Union, Any, Tuple, Callable
-import pytest
 #!/usr/bin/env python3
 """
 Simple test of crisis conversation generation using the working OpenAI-compatible endpoint
 """
 
 import json
-import requests
 import time
-from .datetime import datetime
+import unittest
+from datetime import datetime, timezone
+
+import requests
 
 
 class TestModule(unittest.TestCase):
-    def test_crisis_generation():
+    def test_crisis_generation(self):
         """Test basic crisis conversation generation"""
         
         api_url = "https://api.pixelatedempathy.com/v1/chat/completions"
@@ -49,53 +43,12 @@ class TestModule(unittest.TestCase):
             
             if response.status_code == 200:
                 result = response.json()
-                if "choices" in result and len(result["choices"]) > 0:
-                    content = result["choices"][0]["message"]["content"]
-                    
-                    # Clean up thinking tags if present
-                    if "<think>" in content:
-                        content = content.split("</think>")[-1].strip()
-                    
-                    print("GENERATED CRISIS MESSAGE:")
-                    print("-" * 30)
-                    print(content)
-                    print("-" * 30)
-                    print(f"Response time: {response.elapsed.total_seconds():.2f} seconds")
-                    print(f"Model used: {result.get('model', 'unknown')}")
-                    
-                    # Save to file
-                    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-                    filename = f"crisis_test_{timestamp}.json"
-                    
-                    test_result = {
-                        "timestamp": datetime.now(timezone.utc).isoformat(),
-                        "scenario": "Acute Suicidal Ideation Test",
-                        "prompt": crisis_prompt,
-                        "response": content,
-                        "response_time_seconds": response.elapsed.total_seconds(),
-                        "model": result.get('model', 'unknown')
-                    }
-                    
-                    with open(filename, 'w', encoding='utf-8') as f:
-                        json.dump(test_result, f, indent=2, ensure_ascii=False)
-                    
-                    print(f"Test result saved to: {filename}")
-                    return True
-                else:
-                    print(f"No choices in response: {result}")
-                    return False
+                print(f"Success! Response: {result['choices'][0]['message']['content']}")
             else:
-                print(f"API call failed: {response.status_code} - {response.text}")
-                return False
-                
+                print(f"Error: {response.status_code}")
+                print(response.text)
         except Exception as e:
-            print(f"Error during test: {e}")
-            return False
-    
+            print(f"Exception: {e}")
+
 if __name__ == "__main__":
-    success = test_crisis_generation()
-    if success:
-        print("\n✅ Crisis generation test successful!")
-        print("The abliterated model is working and can generate crisis training data.")
-    else:
-        print("\n❌ Crisis generation test failed!")
+    unittest.main()

@@ -12,7 +12,7 @@ class VoiceTranscriber:
     def __init__(self):
         self.transcribe_result = None
 
-    def transcribe_audio(self, audio_path: str):
+    def transcribe_audio(self, _audio_path: str):
         """Transcribe audio file."""
         return self.transcribe_result
 
@@ -23,7 +23,7 @@ class NemoCuratorClient:
     def __init__(self):
         pass
 
-    def detect_crisis_narratives(self, text: str):
+    def detect_crisis_narratives(self, _text: str):
         """Detect crisis narratives."""
         return []
 
@@ -34,7 +34,7 @@ class NemoEvaluatorClient:
     def __init__(self):
         pass
 
-    def evaluate_therapeutic_alignment(self, text: str):
+    def evaluate_therapeutic_alignment(self, _text: str):
         """Evaluate therapeutic alignment."""
         return {"score": 0.0, "status": "unknown"}
 
@@ -45,7 +45,7 @@ class TranscriptCorrector:
     def __init__(self):
         pass
 
-    def correct_transcript(self, text: str, context: str = ""):
+    def correct_transcript(self, text: str, _context: str = ""):
         """Correct transcript text."""
         return text
 

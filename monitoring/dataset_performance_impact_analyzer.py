@@ -12,12 +12,11 @@ Comprehensive analysis of dataset performance and business impact:
 - Business value quantification
 """
 
-from datetime import datetime, timezone
-
 import json
 import re
 import sqlite3
 import warnings
+from datetime import datetime, timezone
 from typing import Any
 
 import matplotlib.pyplot as plt
@@ -934,7 +933,7 @@ class DatasetPerformanceImpactAnalyzer:
         self,
         performance_analysis: dict[str, Any],
         impact_analysis: dict[str, Any],
-        datasets_info: pd.DataFrame,
+        _datasets_info: pd.DataFrame,
     ) -> dict[str, Any]:
         """Generate strategic recommendations based on analysis"""
         print("💡 Generating strategic recommendations...")
@@ -1052,7 +1051,7 @@ class DatasetPerformanceImpactAnalyzer:
         return summary
 
     def _define_action_priorities(
-        self, performance_analysis: dict[str, Any], impact_analysis: dict[str, Any]
+        self, _performance_analysis: dict[str, Any], _impact_analysis: dict[str, Any]
     ) -> dict[str, Any]:
         """Define action priorities based on analysis"""
 

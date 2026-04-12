@@ -2,7 +2,7 @@
 # Generated for test compatibility
 
 
-def convert_to_chatml(*args, **kwargs):
+def convert_to_chatml(*_args, **_kwargs):
     """Stub implementation for convert_to_chatml."""
     return
 

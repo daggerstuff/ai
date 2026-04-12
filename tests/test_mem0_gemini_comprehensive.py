@@ -54,7 +54,7 @@ def test_crisis_detector():
     assert detector.get_crisis_severity("This is my final goodbye forever") == "critical"
 
 
-def test_gemini_manager_initialization(mock_genai):
+def test_gemini_manager_initialization(_mock_genai):
     config = GeminiMem0Config(gemini_api_key="test", mem0_api_key="test")
     # Patching mem0.MemoryClient so GeminiMem0Manager can instantiate it
     with patch("mem0.MemoryClient"):

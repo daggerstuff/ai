@@ -14,14 +14,13 @@ Migration from Claude Agent SDK:
 - session.send/stream() remain similar but agent-anchored
 """
 
-from datetime import datetime, timezone
-
 import json
 import logging
 import os
 import stat
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -424,7 +423,7 @@ class LettaCodeClient:
 
     async def can_use_tool(
         self,
-        agent_id: str,
+        _agent_id: str,
         tool_name: str,
         context: dict[str, Any] | None = None,
     ) -> bool:

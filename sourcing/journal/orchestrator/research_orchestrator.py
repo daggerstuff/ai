@@ -7,9 +7,6 @@ management, progress tracking, reporting, and robust error recovery with retry
 logic.
 """
 
-from datetime import datetime, timedelta, timezone
-
-
 from __future__ import annotations
 
 import json
@@ -18,6 +15,7 @@ import threading
 import time
 from collections.abc import Callable, Sequence
 from dataclasses import asdict
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
@@ -923,7 +921,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         self,
         session_id: str,
         history: list[ProgressSnapshot],
-        end_date: datetime,
+        _end_date: datetime,
     ) -> tuple[ResearchProgress, ResearchProgress]:
         if history:
             return history[0].progress, history[-1].progress

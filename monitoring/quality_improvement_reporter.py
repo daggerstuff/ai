@@ -6,12 +6,11 @@ Enterprise-grade reporting system for quality improvement tracking with
 comprehensive analysis, visualizations, and executive summaries.
 """
 
-from datetime import datetime, timedelta, timezone
-
 import json
 import logging
 import warnings
 from dataclasses import asdict
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -61,7 +60,7 @@ class QualityImprovementReporter:
         logger.info("📊 Quality Improvement Reporter initialized")
 
     def generate_comprehensive_report(
-        self, report_period_days: int = 90, include_visualizations: bool = True
+        self, report_period_days: int = 90, _include_visualizations: bool = True
     ) -> ImprovementReport:
         """Generate comprehensive quality improvement report."""
         logger.info(
@@ -311,7 +310,7 @@ class QualityImprovementReporter:
         self,
         active_interventions: list[QualityIntervention],
         completed_interventions: list[QualityIntervention],
-        analyses: list[ImprovementAnalysis],
+        _analyses: list[ImprovementAnalysis],
         overall_impact: dict[str, Any],
     ) -> list[str]:
         """Generate executive summary for the improvement report."""
@@ -370,7 +369,7 @@ class QualityImprovementReporter:
     def _generate_detailed_insights(
         self,
         analyses: list[ImprovementAnalysis],
-        overall_impact: dict[str, Any],
+        _overall_impact: dict[str, Any],
         success_metrics: dict[str, float],
     ) -> list[str]:
         """Generate detailed insights for the improvement report."""

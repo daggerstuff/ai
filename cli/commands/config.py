@@ -31,7 +31,7 @@ def config_group(ctx):
 @click.option("--all", "show_all", is_flag=True, help="Show all profiles")
 @click.option("--decrypt", is_flag=True, help="Show decrypted sensitive values")
 @click.pass_context
-def show(ctx, profile: str | None, show_all: bool, decrypt: bool):
+def show(_ctx, profile: str | None, show_all: bool, decrypt: bool):
     """Display current configuration."""
     try:
         if show_all:
@@ -92,7 +92,7 @@ def show(ctx, profile: str | None, show_all: bool, decrypt: bool):
 @click.option("--set", "set_values", multiple=True, help="Set configuration value (key=value)")
 @click.option("--interactive", "-i", is_flag=True, help="Interactive configuration mode")
 @click.pass_context
-def set(ctx, profile: str | None, set_values: tuple, interactive: bool):
+def set(_ctx, profile: str | None, set_values: tuple, interactive: bool):
     """Set configuration values."""
     try:
         config = get_config(profile)
@@ -134,7 +134,7 @@ def set(ctx, profile: str | None, set_values: tuple, interactive: bool):
 @click.option("--profile", "-p", help="Profile to reset")
 @click.option("--force", is_flag=True, help="Force reset without confirmation")
 @click.pass_context
-def reset(ctx, profile: str | None, force: bool):
+def reset(_ctx, profile: str | None, force: bool):
     """Reset configuration to defaults."""
     try:
         if not force:
@@ -161,7 +161,7 @@ def reset(ctx, profile: str | None, force: bool):
 @click.option("--to-profile", required=True, help="Target profile to create/copy to")
 @click.option("--overwrite", is_flag=True, help="Overwrite existing target profile")
 @click.pass_context
-def copy(ctx, from_profile: str, to_profile: str, overwrite: bool):
+def copy(_ctx, from_profile: str, to_profile: str, overwrite: bool):
     """Copy configuration from one profile to another."""
     try:
         if from_profile == to_profile:
@@ -196,7 +196,7 @@ def copy(ctx, from_profile: str, to_profile: str, overwrite: bool):
 @click.option("--profile", "-p", help="Profile to validate")
 @click.option("--strict", is_flag=True, help="Enable strict validation")
 @click.pass_context
-def validate(ctx, profile: str | None, strict: bool):
+def validate(_ctx, profile: str | None, strict: bool):
     """Validate configuration settings."""
     try:
         config = get_config(profile)
@@ -239,7 +239,7 @@ def validate(ctx, profile: str | None, strict: bool):
               help="Export format")
 @click.option("--include-secrets", is_flag=True, help="Include sensitive configuration values")
 @click.pass_context
-def export(ctx, profile: str | None, output: str, format: str, include_secrets: bool):
+def export(_ctx, profile: str | None, output: str, format: str, include_secrets: bool):
     """Export configuration to file."""
     try:
         config = get_config(profile)
@@ -277,7 +277,7 @@ def export(ctx, profile: str | None, output: str, format: str, include_secrets: 
 @click.option("--profile", "-p", help="Target profile name")
 @click.option("--overwrite", is_flag=True, help="Overwrite existing profile")
 @click.pass_context
-def import_config(ctx, file: str, profile: str | None, overwrite: bool):
+def import_config(_ctx, file: str, profile: str | None, overwrite: bool):
     """Import configuration from file."""
     try:
         file_path = Path(file)
@@ -331,7 +331,7 @@ def import_config(ctx, file: str, profile: str | None, overwrite: bool):
 
 @config_group.command()
 @click.pass_context
-def env_info(ctx):
+def env_info(_ctx):
     """Display environment information and requirements."""
     try:
         click.echo("🌍 Environment Information")

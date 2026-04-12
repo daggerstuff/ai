@@ -145,10 +145,10 @@ async def example_graceful_degradation():
     manager = GracefulDegradationManager()
 
     # Fallback handlers
-    async def ai_processing_fallback(*args, **kwargs):
+    async def ai_processing_fallback(*_args, **_kwargs):
         return {"result": "cached_response", "source": "fallback"}
 
-    async def analytics_fallback(*args, **kwargs):
+    async def analytics_fallback(*_args, **_kwargs):
         return {"analytics": "disabled", "reason": "service_unavailable"}
 
     # Register services

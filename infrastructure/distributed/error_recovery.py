@@ -4,14 +4,13 @@ Automatic Error Recovery and Retry System for Pixelated Empathy AI
 Intelligent retry mechanisms with exponential backoff and failure classification
 """
 
-from datetime import datetime, timedelta, timezone
-
 import asyncio
 import json
 import logging
 import random
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any
 
@@ -311,7 +310,7 @@ async def example_error_recovery():
     )
 
     # Register recovery handlers
-    async def connection_recovery_handler(exception: Exception):
+    async def connection_recovery_handler(_exception: Exception):
         """Recovery handler for connection errors"""
         logger.info("Attempting connection recovery...")
         await asyncio.sleep(0.1)  # Simulate recovery action

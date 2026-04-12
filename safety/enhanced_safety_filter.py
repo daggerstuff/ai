@@ -3,13 +3,11 @@ Enhanced safety and content filtering system for Pixelated Empathy AI project.
 Ensures all inference outputs pass rigorous safety checks before being returned.
 """
 
-from datetime import datetime, timezone
-
-
 import logging
 import re
 import time
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
@@ -171,8 +169,8 @@ class EnhancedSafetyFilter:
 
     def check_output_safety(self,
                            content: str,
-                           user_context: dict[str, Any] | None = None,
-                           request_metadata: dict[str, Any] | None = None) -> SafetyCheckResult:
+                           _user_context: dict[str, Any] | None = None,
+                           _request_metadata: dict[str, Any] | None = None) -> SafetyCheckResult:
         """Check safety of model output content"""
         start_time = time.time()
 
@@ -312,7 +310,7 @@ class EnhancedSafetyFilter:
             resources=[]
         )
 
-    def _determine_crisis_urgency(self, content: str, crisis_type: str) -> str:
+    def _determine_crisis_urgency(self, content: str, _crisis_type: str) -> str:
         """Determine the urgency level of a crisis"""
         urgency_indicators = {
             "immediate": [r"\bnow\b", r"\bimmediately\b", r"\btonight\b", r"\btoday\b"],
@@ -768,7 +766,7 @@ class CrisisInterventionSystem:
 
     def _basic_crisis_response(self,
                                crisis_result: CrisisDetectionResult,
-                               user_context: dict[str, Any] | None = None) -> dict[str, Any]:
+                               _user_context: dict[str, Any] | None = None) -> dict[str, Any]:
         """Basic crisis response for unhandled crisis types"""
         basic_response = {
             "message": "I'm concerned about what you're experiencing. Professional help is available.",

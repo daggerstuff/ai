@@ -218,7 +218,7 @@ class YouTubeChannelHunter:
 
         return terms
 
-    def _search_by_term(self, term: str) -> list[Channel]:
+    def _search_by_term(self, _term: str) -> list[Channel]:
         """
         Search YouTube for channels by term.
 
@@ -344,7 +344,7 @@ class ChannelAnalyzer:
     - Quality scoring
     """
 
-    def analyze_videos(self, videos: list[dict]) -> QualityMetrics:
+    def analyze_videos(self, _videos: list[dict]) -> QualityMetrics:
         """
         Analyze video content and compute quality metrics.
 
@@ -358,7 +358,7 @@ class ChannelAnalyzer:
         metrics = QualityMetrics()
         return metrics
 
-    def detect_language(self, text: str) -> str:
+    def detect_language(self, _text: str) -> str:
         """
         Detect language of content.
 
@@ -398,7 +398,7 @@ class ChannelAnalyzer:
         return categories
 
     def verify_professional(
-        self, description: str, channel_id: str
+        self, description: str, _channel_id: str
     ) -> tuple[bool, list[str]]:
         """
         Verify professional credentials.
@@ -426,7 +426,7 @@ class ChannelAnalyzer:
         return is_professional, found_credentials
 
     def extract_licensing_info(
-        self, description: str, video_descriptions: list[str]
+        self, _description: str, _video_descriptions: list[str]
     ) -> LicensingInfo:
         """
         Extract licensing information from descriptions.

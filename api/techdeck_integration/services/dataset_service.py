@@ -5,13 +5,11 @@ This module implements business logic for dataset operations including
 CRUD operations, file processing, metadata management, and validation.
 """
 
-from datetime import datetime, timezone
-
-
 import hashlib
 import logging
 import os
 import uuid
+from datetime import datetime, timezone
 from typing import Any
 
 from werkzeug.datastructures import FileStorage
@@ -602,7 +600,7 @@ class DatasetService:
             raise ValidationError(f"Failed to search datasets: {e!s}")
 
     def _process_uploaded_file(
-        self, file_data: FileStorage, dataset_id: str, user_id: str
+        self, file_data: FileStorage, _dataset_id: str, user_id: str
     ) -> dict[str, Any]:
         """Process uploaded file and store it."""
         try:

@@ -5,14 +5,12 @@ Implements comprehensive audit logging for all dataset access, modifications, an
 compliance-related activities. Provides tamper-proof log storage with encryption.
 """
 
-from datetime import datetime, timezone
-
-
 import hashlib
 import json
 import logging
 import os
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 

@@ -283,7 +283,7 @@ class TestEdgeCases:
 
         assert response.embedding is not None
 
-    def test_empty_batch(self, service: EmbeddingAgentService):
+    def test_empty_batch(self, _service: EmbeddingAgentService):
         """Test that empty batch raises validation error."""
         with pytest.raises(ValueError):
             BatchEmbeddingRequest(texts=[])

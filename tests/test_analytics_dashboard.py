@@ -51,7 +51,7 @@ class TestAnalyticsDashboard(unittest.TestCase):
             self.module.process(None)
 
     @patch("builtins.print")
-    def test_logging(self, mock_print):
+    def test_logging(self, _mock_print):
         """Test logging functionality."""
         self.module.process(self.test_data)
         # Add specific logging tests here

@@ -6,12 +6,11 @@ Enterprise-grade reporting system for quality distribution analysis with
 comprehensive visualizations, statistical summaries, and executive reports.
 """
 
-from datetime import datetime, timezone
-
 import json
 import logging
 import warnings
 from dataclasses import asdict
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -64,7 +63,7 @@ class QualityDistributionReporter:
     def generate_comprehensive_report(
         self,
         days_back: int = 90,
-        include_visualizations: bool = True,
+        _include_visualizations: bool = True,
         include_comparisons: bool = True,
     ) -> QualityDistributionReport:
         """Generate comprehensive quality distribution report."""

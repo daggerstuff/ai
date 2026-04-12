@@ -95,7 +95,7 @@ class ChannelProcessor:
     def run_discovery(
         self,
         progress_callback=None,
-        max_searches: int = 20,
+        _max_searches: int = 20,
     ) -> ChannelDiscoveryResults:
         """
         Run full channel discovery pipeline.

@@ -5,10 +5,8 @@ Tests license checking, privacy verification, HIPAA validation, audit logging,
 and encryption functionality.
 """
 
-from datetime import datetime, timezone
-
-
 import tempfile
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest

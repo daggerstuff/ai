@@ -80,7 +80,7 @@ class _EvaluationServiceStub:
     def initiate_evaluation(
         self,
         session_id: str,
-        source_ids: list[str] | None = None,
+        _source_ids: list[str] | None = None,
     ) -> dict[str, Any]:
         return {"session_id": session_id, "evaluations": self.evaluations}
 
@@ -98,7 +98,7 @@ class _AcquisitionServiceStub:
     ) -> dict[str, Any]:
         return {"session_id": session_id, "acquired": source_ids or []}
 
-    def get_acquisitions(self, session_id: str) -> list[AcquiredDataset]:
+    def get_acquisitions(self, _session_id: str) -> list[AcquiredDataset]:
         return self.acquisitions
 
 
@@ -111,7 +111,7 @@ class _IntegrationServiceStub:
     def initiate_integration(
         self,
         session_id: str,
-        source_ids: list[str] | None = None,
+        _source_ids: list[str] | None = None,
         target_format: str = "chatml",
     ) -> dict[str, Any]:
         return {
@@ -119,7 +119,7 @@ class _IntegrationServiceStub:
             "plans": [{"source_id": plan.source_id, "target_format": target_format} for plan in self.plans],
         }
 
-    def get_integration_plans(self, session_id: str) -> list[IntegrationPlan]:
+    def get_integration_plans(self, _session_id: str) -> list[IntegrationPlan]:
         return self.plans
 
 
