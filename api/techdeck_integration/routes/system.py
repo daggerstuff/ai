@@ -5,11 +5,13 @@ This module implements REST API endpoints for system operations,
 including health checks, configuration management, and system status.
 """
 
+from datetime import datetime, timezone
+
+
 import logging
 import os
 import platform
-from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from flask import Blueprint, g, jsonify, request
 
@@ -81,14 +83,14 @@ def health_check():
                     "overall_status": overall_status,
                     "services": health_status["services"],
                     "system_info": health_status.get("system_info", {}),
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 },
             }
         ), 200
 
     except Exception as e:
         request_logger.error(f"Error performing health check: {e}")
-        raise SystemError(f"Health check failed: {str(e)}")
+        raise SystemError(f"Health check failed: {e!s}")
 
 
 @system_bp.route("/ready", methods=["GET"])
@@ -126,7 +128,7 @@ def readiness_check():
                 "data": {
                     "ready": ready_status["ready"],
                     "checks": ready_status["checks"],
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 },
             }
         ), status_code
@@ -139,7 +141,7 @@ def readiness_check():
                 "data": {
                     "ready": False,
                     "error": str(e),
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 },
             }
         ), 503
@@ -163,7 +165,7 @@ def liveness_check():
         # Basic liveness check - just verify the application is responding
         liveness_status = {
             "alive": True,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "uptime_seconds": _get_uptime_seconds(),
         }
 
@@ -179,7 +181,7 @@ def liveness_check():
                 "data": {
                     "alive": False,
                     "error": str(e),
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 },
             }
         ), 500
@@ -227,7 +229,7 @@ def get_system_config():
                 "data": {
                     "config": config,
                     "section": section,
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 },
             }
         ), 200
@@ -236,7 +238,7 @@ def get_system_config():
         raise
     except Exception as e:
         request_logger.error(f"Error retrieving system configuration: {e}")
-        raise SystemError(f"Failed to retrieve system configuration: {str(e)}")
+        raise SystemError(f"Failed to retrieve system configuration: {e!s}")
 
 
 @system_bp.route("/config", methods=["PUT"])
@@ -306,7 +308,7 @@ def update_system_config():
                     "section": section,
                     "validation_result": validation_result,
                     "applied": not validate_only,
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 },
             }
         ), 200
@@ -315,7 +317,7 @@ def update_system_config():
         raise
     except Exception as e:
         request_logger.error(f"Error updating system configuration: {e}")
-        raise SystemError(f"Failed to update system configuration: {str(e)}")
+        raise SystemError(f"Failed to update system configuration: {e!s}")
 
 
 @system_bp.route("/status", methods=["GET"])
@@ -364,7 +366,7 @@ def get_system_status():
             {
                 "success": True,
                 "data": status_data,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
         ), 200
 
@@ -372,7 +374,7 @@ def get_system_status():
         raise
     except Exception as e:
         request_logger.error(f"Error retrieving system status: {e}")
-        raise SystemError(f"Failed to retrieve system status: {str(e)}")
+        raise SystemError(f"Failed to retrieve system status: {e!s}")
 
 
 @system_bp.route("/metrics", methods=["GET"])
@@ -430,18 +432,18 @@ def get_system_metrics():
                     "summary": metrics_data.get("summary", {}),
                     "metric_type": metric_type,
                     "duration_minutes": duration,
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 },
             }
         ), 200
 
     except ValueError as e:
-        raise ValidationError(f"Invalid parameter: {str(e)}")
+        raise ValidationError(f"Invalid parameter: {e!s}")
     except ValidationError:
         raise
     except Exception as e:
         request_logger.error(f"Error retrieving system metrics: {e}")
-        raise AnalyticsError(f"Failed to retrieve system metrics: {str(e)}")
+        raise AnalyticsError(f"Failed to retrieve system metrics: {e!s}")
 
 
 @system_bp.route("/logs", methods=["GET"])
@@ -478,12 +480,12 @@ def get_system_logs():
         if start_date_str:
             start_date = datetime.fromisoformat(start_date_str.replace("Z", "+00:00"))
         else:
-            start_date = datetime.utcnow() - timedelta(hours=24)
+            start_date = datetime.now(timezone.utc) - timedelta(hours=24)
 
         if end_date_str:
             end_date = datetime.fromisoformat(end_date_str.replace("Z", "+00:00"))
         else:
-            end_date = datetime.utcnow()
+            end_date = datetime.now(timezone.utc)
 
         if start_date >= end_date:
             raise ValidationError("Start date must be before end date")
@@ -509,18 +511,18 @@ def get_system_logs():
                     "summary": logs_data.get("summary", {}),
                     "total_count": logs_data.get("total_count", 0),
                     "log_level": log_level,
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 },
             }
         ), 200
 
     except ValueError as e:
-        raise ValidationError(f"Invalid parameter: {str(e)}")
+        raise ValidationError(f"Invalid parameter: {e!s}")
     except ValidationError:
         raise
     except Exception as e:
         request_logger.error(f"Error retrieving system logs: {e}")
-        raise SystemError(f"Failed to retrieve system logs: {str(e)}")
+        raise SystemError(f"Failed to retrieve system logs: {e!s}")
 
 
 @system_bp.route("/maintenance", methods=["POST"])
@@ -583,7 +585,7 @@ def system_maintenance():
                     "affected_components": maintenance_result.get(
                         "affected_components", []
                     ),
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 },
             }
         ), 200
@@ -592,13 +594,13 @@ def system_maintenance():
         raise
     except Exception as e:
         request_logger.error(f"Error performing system maintenance: {e}")
-        raise SystemError(f"Failed to perform system maintenance: {str(e)}")
+        raise SystemError(f"Failed to perform system maintenance: {e!s}")
 
 
 # Helper Functions
 def _perform_health_checks(
-    services: List[str], redis_client: Optional[RedisClient], detailed: bool
-) -> Dict[str, Any]:
+    services: list[str], redis_client: RedisClient | None, detailed: bool
+) -> dict[str, Any]:
     """Perform health checks for specified services."""
     try:
         services_status = {}
@@ -609,7 +611,7 @@ def _perform_health_checks(
             services_status["api"] = {
                 "status": "healthy",
                 "response_time_ms": 45,
-                "last_check": datetime.utcnow().isoformat(),
+                "last_check": datetime.now(timezone.utc).isoformat(),
             }
 
         # Check database connection
@@ -618,7 +620,7 @@ def _perform_health_checks(
                 "status": "healthy",
                 "connection_pool_size": 10,
                 "active_connections": 3,
-                "last_check": datetime.utcnow().isoformat(),
+                "last_check": datetime.now(timezone.utc).isoformat(),
             }
 
         # Check Redis connection
@@ -634,7 +636,7 @@ def _perform_health_checks(
                 "connection_status": "connected"
                 if redis_status == "healthy"
                 else "disconnected",
-                "last_check": datetime.utcnow().isoformat(),
+                "last_check": datetime.now(timezone.utc).isoformat(),
             }
 
         # Check pipeline service
@@ -643,7 +645,7 @@ def _perform_health_checks(
                 "status": "healthy",
                 "active_executions": 2,
                 "queue_size": 5,
-                "last_check": datetime.utcnow().isoformat(),
+                "last_check": datetime.now(timezone.utc).isoformat(),
             }
 
         # Check storage service
@@ -652,7 +654,7 @@ def _perform_health_checks(
                 "status": "healthy",
                 "available_space_gb": 350,
                 "used_space_gb": 650,
-                "last_check": datetime.utcnow().isoformat(),
+                "last_check": datetime.now(timezone.utc).isoformat(),
             }
 
         # Add system information if detailed
@@ -663,7 +665,7 @@ def _perform_health_checks(
                 "architecture": platform.architecture()[0],
                 "processor": platform.processor(),
                 "hostname": platform.node(),
-                "boot_time": datetime.utcnow().isoformat(),  # Placeholder
+                "boot_time": datetime.now(timezone.utc).isoformat(),  # Placeholder
                 "load_average": [0.5, 0.3, 0.2],  # Placeholder
             }
 
@@ -671,10 +673,10 @@ def _perform_health_checks(
 
     except Exception as e:
         logger.error(f"Error performing health checks: {e}")
-        raise SystemError(f"Health check failed: {str(e)}")
+        raise SystemError(f"Health check failed: {e!s}")
 
 
-def _check_readiness(redis_client: Optional[RedisClient]) -> Dict[str, Any]:
+def _check_readiness(redis_client: RedisClient | None) -> dict[str, Any]:
     """Check system readiness."""
     try:
         checks = {}
@@ -691,7 +693,7 @@ def _check_readiness(redis_client: Optional[RedisClient]) -> Dict[str, Any]:
             except Exception as e:
                 checks["redis"] = {
                     "ready": False,
-                    "message": f"Redis connection failed: {str(e)}",
+                    "message": f"Redis connection failed: {e!s}",
                 }
                 all_ready = False
         else:
@@ -721,8 +723,8 @@ def _check_readiness(redis_client: Optional[RedisClient]) -> Dict[str, Any]:
 
 
 def _get_system_config(
-    section: Optional[str], include_sensitive: bool
-) -> Dict[str, Any]:
+    section: str | None, include_sensitive: bool
+) -> dict[str, Any]:
     """Retrieve system configuration."""
     try:
         # Base configuration (non-sensitive)
@@ -766,12 +768,12 @@ def _get_system_config(
 
     except Exception as e:
         logger.error(f"Error retrieving system configuration: {e}")
-        raise SystemError(f"Failed to retrieve system configuration: {str(e)}")
+        raise SystemError(f"Failed to retrieve system configuration: {e!s}")
 
 
 def _validate_system_config(
-    section: Optional[str], config: Dict[str, Any]
-) -> Dict[str, Any]:
+    section: str | None, config: dict[str, Any]
+) -> dict[str, Any]:
     """Validate system configuration."""
     try:
         errors = []
@@ -805,12 +807,12 @@ def _validate_system_config(
 
     except Exception as e:
         logger.error(f"Error validating system configuration: {e}")
-        return {"valid": False, "errors": [f"Validation error: {str(e)}"]}
+        return {"valid": False, "errors": [f"Validation error: {e!s}"]}
 
 
 def _apply_system_config(
-    section: Optional[str], config: Dict[str, Any]
-) -> Dict[str, Any]:
+    section: str | None, config: dict[str, Any]
+) -> dict[str, Any]:
     """Apply system configuration changes."""
     try:
         # In a real implementation, this would update configuration files or database
@@ -819,18 +821,17 @@ def _apply_system_config(
         if section:
             # Return the specific section that was updated
             return config
-        else:
-            # Return the full configuration
-            return config
+        # Return the full configuration
+        return config
 
     except Exception as e:
         logger.error(f"Error applying system configuration: {e}")
-        raise SystemError(f"Failed to apply system configuration: {str(e)}")
+        raise SystemError(f"Failed to apply system configuration: {e!s}")
 
 
 def _get_system_status(
     redis_client: RedisClient, include_metrics: bool, include_resources: bool
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Retrieve comprehensive system status."""
     try:
         status_data = {
@@ -838,7 +839,7 @@ def _get_system_status(
                 "uptime_seconds": _get_uptime_seconds(),
                 "version": "1.0.0",
                 "environment": os.getenv("ENVIRONMENT", "development"),
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
         }
 
@@ -863,16 +864,16 @@ def _get_system_status(
 
     except Exception as e:
         logger.error(f"Error retrieving system status: {e}")
-        raise SystemError(f"Failed to retrieve system status: {str(e)}")
+        raise SystemError(f"Failed to retrieve system status: {e!s}")
 
 
 def _get_system_metrics(
     redis_client: RedisClient, metric_type: str, duration: int
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Retrieve system performance metrics."""
     try:
         metrics = []
-        end_time = datetime.utcnow()
+        end_time = datetime.now(timezone.utc)
         start_time = end_time - timedelta(minutes=duration)
 
         # Generate sample metrics data
@@ -936,12 +937,12 @@ def _get_system_metrics(
 
     except Exception as e:
         logger.error(f"Error retrieving system metrics: {e}")
-        raise AnalyticsError(f"Failed to retrieve system metrics: {str(e)}")
+        raise AnalyticsError(f"Failed to retrieve system metrics: {e!s}")
 
 
 def _get_system_logs(
     log_level: str, start_date: datetime, end_date: datetime, limit: int
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Retrieve system logs and audit trail."""
     try:
         # Generate sample log entries
@@ -1002,12 +1003,12 @@ def _get_system_logs(
 
     except Exception as e:
         logger.error(f"Error retrieving system logs: {e}")
-        raise SystemError(f"Failed to retrieve system logs: {str(e)}")
+        raise SystemError(f"Failed to retrieve system logs: {e!s}")
 
 
 def _execute_maintenance(
-    operation: str, targets: List[str], options: Dict[str, Any]
-) -> Dict[str, Any]:
+    operation: str, targets: list[str], options: dict[str, Any]
+) -> dict[str, Any]:
     """Execute system maintenance operation."""
     try:
         results = {}
@@ -1046,13 +1047,13 @@ def _execute_maintenance(
         raise
     except Exception as e:
         logger.error(f"Error executing maintenance operation: {e}")
-        raise SystemError(f"Failed to execute maintenance operation: {str(e)}")
+        raise SystemError(f"Failed to execute maintenance operation: {e!s}")
 
 
 def _get_uptime_seconds() -> float:
     """Get system uptime in seconds."""
     try:
         # Placeholder - in real implementation, this would track actual uptime
-        return (datetime.utcnow() - datetime(2024, 1, 1)).total_seconds()
+        return (datetime.now(timezone.utc) - datetime(2024, 1, 1)).total_seconds()
     except Exception:
         return 0.0

@@ -1,7 +1,8 @@
+
+from datetime import datetime, timezone
 import logging
 import traceback
-from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any
 
 
 class MCPErrorRecoveryManager:
@@ -13,15 +14,15 @@ class MCPErrorRecoveryManager:
     def __init__(self, config: Any):
         self.config = config
         self.logger = logging.getLogger(__name__)
-        self.error_registry: Dict[str, Any] = {}
+        self.error_registry: dict[str, Any] = {}
 
     def handle_error(
-        self, error: Exception, context: Optional[Dict[str, Any]] = None
+        self, error: Exception, context: dict[str, Any] | None = None
     ) -> str:
         """
         Handle an error, log it, and return an error ID.
         """
-        error_id = f"ERR-{int(datetime.utcnow().timestamp())}"
+        error_id = f"ERR-{int(datetime.now(timezone.utc).timestamp())}"
         error_msg = str(error)
         stack_trace = traceback.format_exc()
 
@@ -33,7 +34,7 @@ class MCPErrorRecoveryManager:
 
         # Store for analysis/recovery
         self.error_registry[error_id] = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "error_type": type(error).__name__,
             "message": error_msg,
             "context": context,

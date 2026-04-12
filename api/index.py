@@ -128,7 +128,7 @@ async def reflect(request):
         "user_id": "user-123"
     }
     """
-    if request.method != 'POST':
+    if request.method != "POST":
         return JSONResponse({"error": "Method not allowed"}, status_code=405)
 
     try:

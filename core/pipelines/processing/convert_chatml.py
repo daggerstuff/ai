@@ -4,6 +4,6 @@
 
 def convert_to_chatml(*args, **kwargs):
     """Stub implementation for convert_to_chatml."""
-    return None
+    return
 
-__all__ = ['convert_to_chatml']
+__all__ = ["convert_to_chatml"]

@@ -6,11 +6,13 @@ dataset acquisition, including coherence, authenticity, and overall quality
 scoring to ensure high-quality training data.
 """
 
+from datetime import datetime, timezone
+
+
 import logging
 import re
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import datetime
 from typing import Any
 
 from ai.core.pipelines.quality.conversation_schema import Conversation
@@ -179,7 +181,7 @@ class QualityValidator:
                 "message_count": len(conversation.messages),
                 "total_length": sum(len(msg.content) for msg in conversation.messages),
             },
-            validated_at=datetime.now(),
+            validated_at=datetime.now(timezone.utc),
         )
 
         logger.debug(

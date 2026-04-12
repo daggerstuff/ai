@@ -2,7 +2,7 @@
 # Generated for test compatibility
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 
 # Mock targets for tests - these get patched by tests
@@ -61,7 +61,7 @@ class TranscriptQualityPipeline:
         self.evaluator = NemoEvaluatorClient()
         self.corrector = TranscriptCorrector()
 
-    def process_audio(self, audio_path: Path) -> Dict[str, Any]:
+    def process_audio(self, audio_path: Path) -> dict[str, Any]:
         """Process audio file through the pipeline."""
         # Call transcribe
         transcribe_result = self.transcriber.transcribe_audio(str(audio_path))
@@ -94,9 +94,9 @@ class TranscriptQualityPipeline:
 
 
 __all__ = [
-    "TranscriptQualityPipeline",
-    "VoiceTranscriber",
     "NemoCuratorClient",
     "NemoEvaluatorClient",
     "TranscriptCorrector",
+    "TranscriptQualityPipeline",
+    "VoiceTranscriber",
 ]

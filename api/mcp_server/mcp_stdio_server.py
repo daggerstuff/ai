@@ -135,7 +135,7 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
                 )
             ]
 
-        elif name == "search_memory":
+        if name == "search_memory":
             scope = _scope_from_arguments(arguments)
             limit = arguments.get("limit", 10)
             memories = search_with_overfetch(
@@ -160,7 +160,7 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
 
             return [TextContent(type="text", text=text)]
 
-        elif name == "get_all_memories":
+        if name == "get_all_memories":
             scope = _scope_from_arguments(arguments)
             result = client.get_all_memories(user_id=arguments["user_id"])
             memories = result.get("results", []) if isinstance(result, dict) else result
@@ -178,12 +178,11 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
 
             return [TextContent(type="text", text=text)]
 
-        else:
-            return [TextContent(type="text", text=f"❌ Unknown tool: {name}")]
+        return [TextContent(type="text", text=f"❌ Unknown tool: {name}")]
 
     except Exception as e:
         logger.error(f"Error in {name}: {e}")
-        return [TextContent(type="text", text=f"❌ Error: {str(e)}")]
+        return [TextContent(type="text", text=f"❌ Error: {e!s}")]
 
 
 async def main():

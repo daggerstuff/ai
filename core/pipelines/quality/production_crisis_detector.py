@@ -3,7 +3,7 @@
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List
+from typing import Any
 
 
 class CrisisLevel(Enum):
@@ -20,13 +20,13 @@ class CrisisResult:
     """Result of crisis detection."""
     crisis_level: CrisisLevel
     confidence_score: float
-    crisis_types: List[str]
+    crisis_types: list[str]
 
 
 class ProductionCrisisDetector:
     """Stub implementation for ProductionCrisisDetector."""
 
-    def detect_crisis(self, data: Dict[str, Any]) -> CrisisResult:
+    def detect_crisis(self, data: dict[str, Any]) -> CrisisResult:
         """Detect crisis level in given content."""
         content = data.get("content", "").lower()
 
@@ -48,16 +48,16 @@ class ProductionCrisisDetector:
             crisis_types=[]
         )
 
-    def _analyze_crisis_indicators(self, text: str) -> Dict[str, Any]:
+    def _analyze_crisis_indicators(self, text: str) -> dict[str, Any]:
         """Analyze text for crisis indicators."""
         return {
             "indicators": [],
             "severity": "none"
         }
 
-    def _calculate_crisis_level_production(self, indicators: Dict[str, Any]) -> CrisisLevel:
+    def _calculate_crisis_level_production(self, indicators: dict[str, Any]) -> CrisisLevel:
         """Calculate crisis level from indicators."""
         return CrisisLevel.NONE
 
 
-__all__ = ['ProductionCrisisDetector', 'CrisisLevel', 'CrisisResult']
+__all__ = ["CrisisLevel", "CrisisResult", "ProductionCrisisDetector"]

@@ -1,7 +1,7 @@
-from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Optional
+from __future__ import annotations
+
 
 from ai.memory.hindsight_local_adapter import normalize_tags
 
@@ -48,8 +48,8 @@ class InMemoryStore:
         *,
         content: str,
         user_id: str,
-        metadata: Optional[dict] = None,
-        memory_id: Optional[str] = None,
+        metadata: dict | None = None,
+        memory_id: str | None = None,
     ) -> dict:
         return self._mutations.add_record(
             content=content,
@@ -91,7 +91,7 @@ class InMemoryStore:
         memory_id: str,
         user_id: str,
         new_content: str,
-        metadata: Optional[dict] = None,
+        metadata: dict | None = None,
     ) -> bool:
         return self._mutations.update_record(
             memory_id=memory_id,

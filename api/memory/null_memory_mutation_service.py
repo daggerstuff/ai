@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Optional
-
 from .null_memory_coordination import NullMemoryCoordination
 from .null_memory_lifecycle import NullMemoryLifecycle
 from .null_memory_record import NullMemoryRecord
@@ -27,8 +25,8 @@ class InMemoryMutationService:
         *,
         content: str,
         user_id: str,
-        metadata: Optional[dict] = None,
-        memory_id: Optional[str] = None,
+        metadata: dict | None = None,
+        memory_id: str | None = None,
     ) -> dict:
         with self._coordination.user_lock(user_id):
             record, existing_record = self._records.upsert_content(
@@ -51,7 +49,7 @@ class InMemoryMutationService:
         memory_id: str,
         user_id: str,
         new_content: str,
-        metadata: Optional[dict] = None,
+        metadata: dict | None = None,
     ) -> bool:
         with self._coordination.user_lock(user_id):
             memory = self._records.get(memory_id=memory_id, user_id=user_id)

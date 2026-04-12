@@ -4,7 +4,7 @@ In-memory fallback memory backend for local tests and degraded service paths.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ai.api.memory.base import BaseMemoryManager
 
@@ -46,8 +46,8 @@ class NullMemoryManager(BaseMemoryManager):
         self,
         content: str,
         user_id: str,
-        metadata: Optional[Dict[str, Any]] = None,
-        category: Optional[str] = None,
+        metadata: dict[str, Any] | None = None,
+        category: str | None = None,
     ) -> str:
         return self._protocol(
             "add_memory",
@@ -62,13 +62,13 @@ class NullMemoryManager(BaseMemoryManager):
         query: str,
         user_id: str,
         limit: int = 10,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         return self._query("search_memories", query=query, user_id=user_id, limit=limit)
 
-    def get_all_memories(self, user_id: str, limit: int = 100) -> List[Dict[str, Any]]:
+    def get_all_memories(self, user_id: str, limit: int = 100) -> list[dict[str, Any]]:
         return self._query("get_all_memories", user_id=user_id, limit=limit)
 
-    def get_memory(self, memory_id: str, user_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    def get_memory(self, memory_id: str, user_id: str | None = None) -> dict[str, Any] | None:
         if user_id is None:
             return None
         memory = self.store.get_record(memory_id=memory_id, user_id=user_id)
@@ -83,8 +83,8 @@ class NullMemoryManager(BaseMemoryManager):
         self,
         memory_id: str,
         new_content: str,
-        metadata: Optional[Dict[str, Any]] = None,
-        user_id: Optional[str] = None,
+        metadata: dict[str, Any] | None = None,
+        user_id: str | None = None,
     ) -> bool:
         if user_id is not None:
             memory = self.get_memory(memory_id, user_id=user_id)
@@ -99,7 +99,7 @@ class NullMemoryManager(BaseMemoryManager):
             metadata=metadata,
         )
 
-    def delete_memory(self, memory_id: str, user_id: Optional[str] = None) -> bool:
+    def delete_memory(self, memory_id: str, user_id: str | None = None) -> bool:
         if user_id is not None:
             memory = self.get_memory(memory_id, user_id=user_id)
             if memory is None:
@@ -111,7 +111,7 @@ class NullMemoryManager(BaseMemoryManager):
     def clear_memory(self, user_id: str) -> bool:
         return self.store.clear_user(user_id=user_id)
 
-    def get_health_status(self) -> Dict[str, Any]:
+    def get_health_status(self) -> dict[str, Any]:
         return self.health.status()
 
     @property

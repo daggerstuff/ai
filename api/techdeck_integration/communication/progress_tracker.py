@@ -5,10 +5,12 @@ This module provides comprehensive progress tracking with WebSocket support,
 real-time updates, and HIPAA++ compliant data handling for the six-stage pipeline.
 """
 
+from datetime import datetime, timezone
+
+
 import json
 from dataclasses import asdict, dataclass
-from datetime import datetime
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 from ..error_handling.custom_errors import (
     ProgressTrackingError,
@@ -31,12 +33,12 @@ class ProgressUpdate:
     progress_percent: float  # 0.0 to 100.0
     message: str
     timestamp: datetime
-    estimated_completion: Optional[datetime]
-    stage_duration_seconds: Optional[float]
-    current_operation: Optional[str]
+    estimated_completion: datetime | None
+    stage_duration_seconds: float | None
+    current_operation: str | None
     operations_completed: int
     total_operations: int
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
 
 
 @dataclass
@@ -45,8 +47,8 @@ class WebSocketConnection:
 
     connection_id: str
     user_id: str
-    execution_id: Optional[str]
-    subscribed_stages: Set[str]
+    execution_id: str | None
+    subscribed_stages: set[str]
     last_heartbeat: datetime
     connection_established: datetime
 
@@ -59,7 +61,7 @@ class ProgressTracker:
         redis_client: RedisClient,
         event_bus: EventBus,
         state_manager: StateManager,
-        config: Optional[Dict[str, Any]] = None,
+        config: dict[str, Any] | None = None,
     ):
         """
         Initialize progress tracker with WebSocket support.
@@ -94,10 +96,10 @@ class ProgressTracker:
         self.subscriptions_prefix = "pipeline:subscriptions:"
 
         # Active WebSocket connections
-        self.active_connections: Dict[str, WebSocketConnection] = {}
+        self.active_connections: dict[str, WebSocketConnection] = {}
 
         # Progress tracking for active executions
-        self.active_executions: Dict[str, Dict[str, Any]] = {}
+        self.active_executions: dict[str, dict[str, Any]] = {}
 
         # Stage progress mappings
         self.stage_progress_mapping = {
@@ -113,7 +115,7 @@ class ProgressTracker:
 
     async def initialize_progress_tracking(
         self, execution_id: str, user_id: str, dataset_count: int, execution_mode: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Initialize progress tracking for a new pipeline execution.
 
@@ -141,7 +143,7 @@ class ProgressTracker:
             progress_config = {
                 "execution_id": execution_id,
                 "user_id": user_id,
-                "start_time": datetime.utcnow().isoformat(),
+                "start_time": datetime.now(timezone.utc).isoformat(),
                 "total_stages": 6,
                 "current_stage": "initialization",
                 "overall_progress": 0.0,
@@ -150,7 +152,7 @@ class ProgressTracker:
                     dataset_count, execution_mode
                 ),
                 "status": "initialized",
-                "last_updated": datetime.utcnow().isoformat(),
+                "last_updated": datetime.now(timezone.utc).isoformat(),
             }
 
             # Initialize stage progress
@@ -179,8 +181,8 @@ class ProgressTracker:
             # Track active execution
             self.active_executions[execution_id] = {
                 "user_id": user_id,
-                "start_time": datetime.utcnow(),
-                "last_update": datetime.utcnow(),
+                "start_time": datetime.now(timezone.utc),
+                "last_update": datetime.now(timezone.utc),
                 "subscribers": set(),
             }
 
@@ -204,7 +206,7 @@ class ProgressTracker:
             raise
         except Exception as e:
             self.logger.error(f"Failed to initialize progress tracking: {e}")
-            raise ProgressTrackingError(f"Progress initialization failed: {str(e)}")
+            raise ProgressTrackingError(f"Progress initialization failed: {e!s}")
 
     async def update_stage_progress(
         self,
@@ -213,10 +215,10 @@ class ProgressTracker:
         status: str,
         progress_percent: float,
         message: str,
-        current_operation: Optional[str] = None,
-        operations_completed: Optional[int] = None,
-        total_operations: Optional[int] = None,
-    ) -> Dict[str, Any]:
+        current_operation: str | None = None,
+        operations_completed: int | None = None,
+        total_operations: int | None = None,
+    ) -> dict[str, Any]:
         """
         Update progress for a specific stage.
 
@@ -260,13 +262,13 @@ class ProgressTracker:
 
             # Update status and timing
             if status == "started" and stage_progress["status"] == "pending":
-                stage_progress["start_time"] = datetime.utcnow().isoformat()
+                stage_progress["start_time"] = datetime.now(timezone.utc).isoformat()
             elif status in ["completed", "failed"] and not stage_progress["end_time"]:
-                stage_progress["end_time"] = datetime.utcnow().isoformat()
+                stage_progress["end_time"] = datetime.now(timezone.utc).isoformat()
                 if stage_progress["start_time"]:
                     start_time = datetime.fromisoformat(stage_progress["start_time"])
                     stage_progress["duration_seconds"] = (
-                        datetime.utcnow() - start_time
+                        datetime.now(timezone.utc) - start_time
                     ).total_seconds()
 
             stage_progress["status"] = status
@@ -288,7 +290,7 @@ class ProgressTracker:
                 progress_config["current_stage"] = stage_name
 
             # Update last updated timestamp
-            progress_config["last_updated"] = datetime.utcnow().isoformat()
+            progress_config["last_updated"] = datetime.now(timezone.utc).isoformat()
 
             # Store updated progress
             key = f"{self.progress_prefix}{execution_id}"
@@ -300,7 +302,7 @@ class ProgressTracker:
 
             # Update active execution tracking
             if execution_id in self.active_executions:
-                self.active_executions[execution_id]["last_update"] = datetime.utcnow()
+                self.active_executions[execution_id]["last_update"] = datetime.now(timezone.utc)
 
             # Publish progress event
             if self.enable_real_time_updates:
@@ -327,7 +329,7 @@ class ProgressTracker:
             raise
         except Exception as e:
             self.logger.error(f"Failed to update stage progress: {e}")
-            raise ProgressTrackingError(f"Progress update failed: {str(e)}")
+            raise ProgressTrackingError(f"Progress update failed: {e!s}")
 
     async def update_operation_progress(
         self,
@@ -336,7 +338,7 @@ class ProgressTracker:
         operation_name: str,
         operation_progress: float,
         operation_message: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Update progress for a specific operation within a stage.
 
@@ -377,7 +379,7 @@ class ProgressTracker:
                 progress_config["stage_progress"]
             )
 
-            progress_config["last_updated"] = datetime.utcnow().isoformat()
+            progress_config["last_updated"] = datetime.now(timezone.utc).isoformat()
 
             # Store updated progress
             key = f"{self.progress_prefix}{execution_id}"
@@ -408,9 +410,9 @@ class ProgressTracker:
             raise
         except Exception as e:
             self.logger.error(f"Failed to update operation progress: {e}")
-            raise ProgressTrackingError(f"Operation progress update failed: {str(e)}")
+            raise ProgressTrackingError(f"Operation progress update failed: {e!s}")
 
-    async def get_progress(self, execution_id: str) -> Optional[Dict[str, Any]]:
+    async def get_progress(self, execution_id: str) -> dict[str, Any] | None:
         """
         Get current progress for an execution.
 
@@ -434,9 +436,9 @@ class ProgressTracker:
 
         except Exception as e:
             self.logger.error(f"Failed to retrieve progress: {e}")
-            raise ProgressTrackingError(f"Progress retrieval failed: {str(e)}")
+            raise ProgressTrackingError(f"Progress retrieval failed: {e!s}")
 
-    async def get_detailed_progress(self, execution_id: str) -> Dict[str, Any]:
+    async def get_detailed_progress(self, execution_id: str) -> dict[str, Any]:
         """
         Get detailed progress with stage information and estimates.
 
@@ -525,10 +527,10 @@ class ProgressTracker:
             raise
         except Exception as e:
             self.logger.error(f"Failed to get detailed progress: {e}")
-            raise ProgressTrackingError(f"Detailed progress retrieval failed: {str(e)}")
+            raise ProgressTrackingError(f"Detailed progress retrieval failed: {e!s}")
 
     async def register_websocket_connection(
-        self, connection_id: str, user_id: str, execution_id: Optional[str] = None
+        self, connection_id: str, user_id: str, execution_id: str | None = None
     ) -> bool:
         """
         Register a new WebSocket connection.
@@ -555,8 +557,8 @@ class ProgressTracker:
                 user_id=user_id,
                 execution_id=execution_id,
                 subscribed_stages=set(),
-                last_heartbeat=datetime.utcnow(),
-                connection_established=datetime.utcnow(),
+                last_heartbeat=datetime.now(timezone.utc),
+                connection_established=datetime.now(timezone.utc),
             )
 
             # Store connection
@@ -587,7 +589,7 @@ class ProgressTracker:
             raise
         except Exception as e:
             self.logger.error(f"Failed to register WebSocket connection: {e}")
-            raise ProgressTrackingError(f"WebSocket registration failed: {str(e)}")
+            raise ProgressTrackingError(f"WebSocket registration failed: {e!s}")
 
     async def unregister_websocket_connection(self, connection_id: str) -> bool:
         """
@@ -625,7 +627,7 @@ class ProgressTracker:
 
         except Exception as e:
             self.logger.error(f"Failed to unregister WebSocket connection: {e}")
-            raise ProgressTrackingError(f"WebSocket unregistration failed: {str(e)}")
+            raise ProgressTrackingError(f"WebSocket unregistration failed: {e!s}")
 
     async def subscribe_to_execution(
         self, connection_id: str, execution_id: str
@@ -681,7 +683,7 @@ class ProgressTracker:
             raise
         except Exception as e:
             self.logger.error(f"Failed to subscribe to execution: {e}")
-            raise ProgressTrackingError(f"Execution subscription failed: {str(e)}")
+            raise ProgressTrackingError(f"Execution subscription failed: {e!s}")
 
     async def unsubscribe_from_execution(
         self, connection_id: str, execution_id: str
@@ -718,7 +720,7 @@ class ProgressTracker:
 
         except Exception as e:
             self.logger.error(f"Failed to unsubscribe from execution: {e}")
-            raise ProgressTrackingError(f"Execution unsubscription failed: {str(e)}")
+            raise ProgressTrackingError(f"Execution unsubscription failed: {e!s}")
 
     async def update_websocket_heartbeat(self, connection_id: str) -> bool:
         """
@@ -740,7 +742,7 @@ class ProgressTracker:
                 )
 
             connection = self.active_connections[connection_id]
-            connection.last_heartbeat = datetime.utcnow()
+            connection.last_heartbeat = datetime.now(timezone.utc)
 
             # Update Redis
             key = f"{self.websocket_prefix}{connection_id}"
@@ -759,7 +761,7 @@ class ProgressTracker:
             raise
         except Exception as e:
             self.logger.error(f"Failed to update WebSocket heartbeat: {e}")
-            raise ProgressTrackingError(f"Heartbeat update failed: {str(e)}")
+            raise ProgressTrackingError(f"Heartbeat update failed: {e!s}")
 
     async def cleanup_stale_connections(self) -> int:
         """
@@ -773,7 +775,7 @@ class ProgressTracker:
         """
         try:
             stale_count = 0
-            current_time = datetime.utcnow()
+            current_time = datetime.now(timezone.utc)
 
             # Check active connections
             connections_to_remove = []
@@ -819,7 +821,7 @@ class ProgressTracker:
 
         except Exception as e:
             self.logger.error(f"Failed to cleanup stale connections: {e}")
-            raise ProgressTrackingError(f"Stale connection cleanup failed: {str(e)}")
+            raise ProgressTrackingError(f"Stale connection cleanup failed: {e!s}")
 
     async def _publish_progress_event(
         self,
@@ -828,7 +830,7 @@ class ProgressTracker:
         status: str,
         progress_percent: float,
         message: str,
-        overall_progress: Optional[float] = None,
+        overall_progress: float | None = None,
     ) -> None:
         """Publish progress update event."""
         try:
@@ -841,7 +843,7 @@ class ProgressTracker:
                     "progress_percent": progress_percent,
                     "message": message,
                     "overall_progress": overall_progress,
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 },
                 source="progress_tracker",
                 target="all_services",
@@ -869,7 +871,7 @@ class ProgressTracker:
                     "operation_name": operation_name,
                     "operation_progress": operation_progress,
                     "operation_message": operation_message,
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 },
                 source="progress_tracker",
                 target="all_services",
@@ -880,7 +882,7 @@ class ProgressTracker:
             self.logger.error(f"Failed to publish operation event: {e}")
 
     async def _notify_subscribers(
-        self, execution_id: str, stage_name: str, progress_config: Dict[str, Any]
+        self, execution_id: str, stage_name: str, progress_config: dict[str, Any]
     ) -> None:
         """Notify WebSocket subscribers of progress updates."""
         try:
@@ -901,7 +903,7 @@ class ProgressTracker:
                 "stage_progress": progress_config["stage_progress"][stage_name],
                 "overall_progress": progress_config["overall_progress"],
                 "current_stage": progress_config["current_stage"],
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
 
             # Send to all subscribers (WebSocket implementation would go here)
@@ -916,7 +918,7 @@ class ProgressTracker:
         except Exception as e:
             self.logger.error(f"Failed to notify subscribers: {e}")
 
-    def _calculate_overall_progress(self, stage_progress: Dict[str, Any]) -> float:
+    def _calculate_overall_progress(self, stage_progress: dict[str, Any]) -> float:
         """Calculate overall progress from stage progress."""
         try:
             total_weight = 0
@@ -930,33 +932,31 @@ class ProgressTracker:
                     # Use actual progress if available, otherwise use status-based estimate
                     if stage_info["progress_percent"] > 0:
                         stage_contribution = stage_info["progress_percent"] / 100.0
+                    # Estimate based on status
+                    elif stage_info["status"] == "completed":
+                        stage_contribution = 1.0
+                    elif stage_info["status"] == "started":
+                        stage_contribution = 0.5
                     else:
-                        # Estimate based on status
-                        if stage_info["status"] == "completed":
-                            stage_contribution = 1.0
-                        elif stage_info["status"] == "started":
-                            stage_contribution = 0.5
-                        else:
-                            stage_contribution = 0.0
+                        stage_contribution = 0.0
 
                     weighted_progress += stage_weight * stage_contribution
                     total_weight += stage_weight
 
             if total_weight > 0:
                 return min(100.0, weighted_progress)
-            else:
-                return 0.0
+            return 0.0
 
         except Exception as e:
             self.logger.error(f"Error calculating overall progress: {e}")
             return 0.0
 
     def _calculate_completion_estimates(
-        self, progress_config: Dict[str, Any], stage_states: List[Any]
-    ) -> Dict[str, Any]:
+        self, progress_config: dict[str, Any], stage_states: list[Any]
+    ) -> dict[str, Any]:
         """Calculate completion time estimates."""
         try:
-            current_time = datetime.utcnow()
+            current_time = datetime.now(timezone.utc)
             start_time = datetime.fromisoformat(progress_config["start_time"])
             elapsed_seconds = (current_time - start_time).total_seconds()
 
@@ -975,12 +975,11 @@ class ProgressTracker:
                     "estimated_remaining_seconds": remaining_seconds,
                     "estimated_total_duration_seconds": estimated_total_seconds,
                 }
-            else:
-                return {
-                    "estimated_completion": None,
-                    "estimated_remaining_seconds": None,
-                    "estimated_total_duration_seconds": None,
-                }
+            return {
+                "estimated_completion": None,
+                "estimated_remaining_seconds": None,
+                "estimated_total_duration_seconds": None,
+            }
 
         except Exception as e:
             self.logger.error(f"Error calculating completion estimates: {e}")
@@ -1038,8 +1037,8 @@ class ProgressTracker:
             return 600.0  # Default 10 minutes
 
     def _get_stage_result_summary(
-        self, stage_state: Optional[Any]
-    ) -> Optional[Dict[str, Any]]:
+        self, stage_state: Any | None
+    ) -> dict[str, Any] | None:
         """Get summary of stage execution results."""
         if not stage_state or not stage_state.result:
             return None
@@ -1074,7 +1073,7 @@ class ProgressTracker:
             self.logger.error(f"Error getting stage result summary: {e}")
             return None
 
-    def _extract_quality_scores(self, stage_states: List[Any]) -> Dict[str, float]:
+    def _extract_quality_scores(self, stage_states: list[Any]) -> dict[str, float]:
         """Extract quality scores from stage states."""
         quality_scores = {}
 
@@ -1092,8 +1091,8 @@ class ProgressTracker:
             return {}
 
     def _calculate_performance_metrics(
-        self, progress_config: Dict[str, Any], stage_states: List[Any]
-    ) -> Dict[str, Any]:
+        self, progress_config: dict[str, Any], stage_states: list[Any]
+    ) -> dict[str, Any]:
         """Calculate performance metrics."""
         try:
             metrics = {
@@ -1104,7 +1103,7 @@ class ProgressTracker:
                 "current_stage_duration_seconds": 0,
             }
 
-            current_time = datetime.utcnow()
+            current_time = datetime.now(timezone.utc)
             start_time = datetime.fromisoformat(progress_config["start_time"])
 
             for stage_state in stage_states:
@@ -1147,7 +1146,7 @@ class ProgressTracker:
             self.logger.error(f"Error calculating performance metrics: {e}")
             return {}
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """
         Perform health check of progress tracker.
 
@@ -1164,7 +1163,7 @@ class ProgressTracker:
 
             # Test progress retrieval
             test_key = f"{self.progress_prefix}health_check"
-            test_data = {"test": "data", "timestamp": datetime.utcnow().isoformat()}
+            test_data = {"test": "data", "timestamp": datetime.now(timezone.utc).isoformat()}
 
             await self.redis_client.setex(test_key, 60, json.dumps(test_data))
             retrieved_data = await self.redis_client.get(test_key)
@@ -1182,7 +1181,7 @@ class ProgressTracker:
                 "active_executions": active_executions,
                 "real_time_updates_enabled": self.enable_real_time_updates,
                 "websocket_heartbeat_timeout": self.websocket_heartbeat_timeout,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
 
         except Exception as e:
@@ -1190,5 +1189,5 @@ class ProgressTracker:
             return {
                 "status": "unhealthy",
                 "error": str(e),
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }

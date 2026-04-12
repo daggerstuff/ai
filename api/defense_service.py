@@ -6,7 +6,6 @@ of utterances within conversational context.
 """
 
 import logging
-from typing import Optional
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
@@ -48,7 +47,7 @@ class DefenseAnalysisResponse(BaseModel):
     label: int = Field(description="Defense level label (0-8)")
     label_name: str = Field(description="Human-readable defense level name")
     confidence: float = Field(description="Prediction confidence (0.0-1.0)")
-    maturity_score: Optional[float] = Field(
+    maturity_score: float | None = Field(
         default=None,
         description="Defense maturity normalized to 0.0-1.0. "
         "None for Neutral (0) and Needs More Info (8).",

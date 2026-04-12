@@ -4,6 +4,5 @@
 
 class CrisisInterventionDetector:
     """Stub implementation for CrisisInterventionDetector."""
-    pass
 
-__all__ = ['CrisisInterventionDetector']
+__all__ = ["CrisisInterventionDetector"]

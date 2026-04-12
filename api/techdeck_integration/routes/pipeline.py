@@ -5,8 +5,9 @@ This module provides REST API endpoints for pipeline management,
 execution control, and progress tracking integration.
 """
 
-from datetime import datetime
-from typing import Any, Dict
+from datetime import datetime, timezone
+
+from typing import Any
 
 from flask import Blueprint, current_app, jsonify, request
 
@@ -25,7 +26,7 @@ pipeline_bp = Blueprint("pipeline", __name__, url_prefix="/api/v1/pipeline")
 
 @pipeline_bp.route("/configs", methods=["GET"])
 @require_auth
-def list_pipeline_configs() -> Dict[str, Any]:
+def list_pipeline_configs() -> dict[str, Any]:
     """
     List available pipeline configurations.
 
@@ -94,7 +95,7 @@ def list_pipeline_configs() -> Dict[str, Any]:
                 "success": True,
                 "data": result,
                 "meta": {
-                    "timestamp": datetime.utcnow().isoformat()
+                    "timestamp": datetime.now(timezone.utc).isoformat()
                 },
             }
         ), 200
@@ -109,7 +110,7 @@ def list_pipeline_configs() -> Dict[str, Any]:
 
 @pipeline_bp.route("/configs/<config_id>", methods=["GET"])
 @require_auth
-def get_pipeline_config(config_id: str) -> Dict[str, Any]:
+def get_pipeline_config(config_id: str) -> dict[str, Any]:
     """
     Get detailed pipeline configuration.
 
@@ -162,7 +163,7 @@ def get_pipeline_config(config_id: str) -> Dict[str, Any]:
                 "success": True,
                 "data": {"config": config},
                 "meta": {
-                    "timestamp": datetime.utcnow().isoformat()
+                    "timestamp": datetime.now(timezone.utc).isoformat()
                 },
             }
         ), 200
@@ -177,7 +178,7 @@ def get_pipeline_config(config_id: str) -> Dict[str, Any]:
 @pipeline_bp.route("/configs", methods=["POST"])
 @require_auth
 @require_role(["admin", "developer"])
-def create_pipeline_config() -> Dict[str, Any]:
+def create_pipeline_config() -> dict[str, Any]:
     """
     Create a new pipeline configuration.
 
@@ -257,7 +258,7 @@ def create_pipeline_config() -> Dict[str, Any]:
                 "success": True,
                 "data": {"config": config},
                 "meta": {
-                    "timestamp": datetime.utcnow().isoformat()
+                    "timestamp": datetime.now(timezone.utc).isoformat()
                 },
             }
         ), 201
@@ -272,7 +273,7 @@ def create_pipeline_config() -> Dict[str, Any]:
 @pipeline_bp.route("/configs/<config_id>", methods=["PUT"])
 @require_auth
 @require_role(["admin", "developer"])
-def update_pipeline_config(config_id: str) -> Dict[str, Any]:
+def update_pipeline_config(config_id: str) -> dict[str, Any]:
     """
     Update pipeline configuration.
 
@@ -342,7 +343,7 @@ def update_pipeline_config(config_id: str) -> Dict[str, Any]:
                 "success": True,
                 "data": {"config": config},
                 "meta": {
-                    "timestamp": datetime.utcnow().isoformat()
+                    "timestamp": datetime.now(timezone.utc).isoformat()
                 },
             }
         ), 200
@@ -359,7 +360,7 @@ def update_pipeline_config(config_id: str) -> Dict[str, Any]:
 @pipeline_bp.route("/configs/<config_id>", methods=["DELETE"])
 @require_auth
 @require_role(["admin", "developer"])
-def delete_pipeline_config(config_id: str) -> Dict[str, Any]:
+def delete_pipeline_config(config_id: str) -> dict[str, Any]:
     """
     Delete pipeline configuration.
 
@@ -405,7 +406,7 @@ def delete_pipeline_config(config_id: str) -> Dict[str, Any]:
                 "success": True,
                 "data": {"message": "Pipeline config deleted successfully"},
                 "meta": {
-                    "timestamp": datetime.utcnow().isoformat()
+                    "timestamp": datetime.now(timezone.utc).isoformat()
                 },
             }
         ), 200
@@ -419,7 +420,7 @@ def delete_pipeline_config(config_id: str) -> Dict[str, Any]:
 
 @pipeline_bp.route("/execute", methods=["POST"])
 @require_auth
-def execute_pipeline() -> Dict[str, Any]:
+def execute_pipeline() -> dict[str, Any]:
     """
     Execute a pipeline with specified configuration and dataset.
 
@@ -500,7 +501,7 @@ def execute_pipeline() -> Dict[str, Any]:
                 "success": True,
                 "data": {"execution": execution},
                 "meta": {
-                    "timestamp": datetime.utcnow().isoformat()
+                    "timestamp": datetime.now(timezone.utc).isoformat()
                 },
             }
         ), 201
@@ -514,7 +515,7 @@ def execute_pipeline() -> Dict[str, Any]:
 
 @pipeline_bp.route("/executions/<execution_id>", methods=["GET"])
 @require_auth
-def get_pipeline_execution(execution_id: str) -> Dict[str, Any]:
+def get_pipeline_execution(execution_id: str) -> dict[str, Any]:
     """
     Get pipeline execution status and progress.
 
@@ -577,7 +578,7 @@ def get_pipeline_execution(execution_id: str) -> Dict[str, Any]:
                 "success": True,
                 "data": {"execution": execution},
                 "meta": {
-                    "timestamp": datetime.utcnow().isoformat()
+                    "timestamp": datetime.now(timezone.utc).isoformat()
                 },
             }
         ), 200
@@ -591,7 +592,7 @@ def get_pipeline_execution(execution_id: str) -> Dict[str, Any]:
 
 @pipeline_bp.route("/executions/<execution_id>/cancel", methods=["POST"])
 @require_auth
-def cancel_pipeline_execution(execution_id: str) -> Dict[str, Any]:
+def cancel_pipeline_execution(execution_id: str) -> dict[str, Any]:
     """
     Cancel a running pipeline execution.
 
@@ -645,7 +646,7 @@ def cancel_pipeline_execution(execution_id: str) -> Dict[str, Any]:
                 "success": True,
                 "data": {"execution": execution},
                 "meta": {
-                    "timestamp": datetime.utcnow().isoformat()
+                    "timestamp": datetime.now(timezone.utc).isoformat()
                 },
             }
         ), 200
@@ -659,7 +660,7 @@ def cancel_pipeline_execution(execution_id: str) -> Dict[str, Any]:
 
 @pipeline_bp.route("/executions", methods=["GET"])
 @require_auth
-def list_pipeline_executions() -> Dict[str, Any]:
+def list_pipeline_executions() -> dict[str, Any]:
     """
     List pipeline executions with filtering and pagination.
 
@@ -732,7 +733,7 @@ def list_pipeline_executions() -> Dict[str, Any]:
                 "success": True,
                 "data": result,
                 "meta": {
-                    "timestamp": datetime.utcnow().isoformat()
+                    "timestamp": datetime.now(timezone.utc).isoformat()
                 },
             }
         ), 200
@@ -747,7 +748,7 @@ def list_pipeline_executions() -> Dict[str, Any]:
 
 @pipeline_bp.route("/stages", methods=["GET"])
 @require_auth
-def get_pipeline_stages() -> Dict[str, Any]:
+def get_pipeline_stages() -> dict[str, Any]:
     """
     Get available pipeline stages and their configurations.
 
@@ -791,7 +792,7 @@ def get_pipeline_stages() -> Dict[str, Any]:
                 "success": True,
                 "data": {"stages": stages},
                 "meta": {
-                    "timestamp": datetime.utcnow().isoformat()
+                    "timestamp": datetime.now(timezone.utc).isoformat()
                 },
             }
         ), 200
@@ -802,7 +803,7 @@ def get_pipeline_stages() -> Dict[str, Any]:
 
 
 @pipeline_bp.route("/health", methods=["GET"])
-def get_pipeline_health() -> Dict[str, Any]:
+def get_pipeline_health() -> dict[str, Any]:
     """
     Get pipeline system health status.
 
@@ -840,7 +841,7 @@ def get_pipeline_health() -> Dict[str, Any]:
                 "success": True,
                 "data": {"health": health},
                 "meta": {
-                    "timestamp": datetime.utcnow().isoformat()
+                    "timestamp": datetime.now(timezone.utc).isoformat()
                 },
             }
         ), 200

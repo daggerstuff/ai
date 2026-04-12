@@ -4,6 +4,5 @@
 
 class AnalyticsDashboard:
     """Stub implementation for AnalyticsDashboard."""
-    pass
 
-__all__ = ['AnalyticsDashboard']
+__all__ = ["AnalyticsDashboard"]

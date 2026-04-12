@@ -5,11 +5,13 @@ This module provides extensive testing for the six-stage pipeline communication
 system with HIPAA++ compliance, sub-50ms performance requirements, and bias detection.
 """
 
+from datetime import datetime, timezone
+
+
 import asyncio
 import json
 import time
-from datetime import datetime
-from typing import Any, Dict
+from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -42,9 +44,9 @@ class TestEventBus:
         redis_client.unsubscribe = AsyncMock()
 
         config = {
-            'connection_pool': {'max_connections': 10},
-            'event_ttl': 3600,
-            'guaranteed_delivery': True
+            "connection_pool": {"max_connections": 10},
+            "event_ttl": 3600,
+            "guaranteed_delivery": True
         }
 
         event_bus = EventBus(redis_client, config)
@@ -59,7 +61,7 @@ class TestEventBus:
         event = await event_bus.create_event(
             event_type=EventType.REQUEST_INITIATED.value,
             execution_id="test_execution_123",
-            payload={'test': 'data'}
+            payload={"test": "data"}
         )
 
         result = await event_bus.publish_event(event)
@@ -73,18 +75,18 @@ class TestEventBus:
         handler_called = False
         received_event = None
 
-        async def test_handler(event: EventMessage) -> Dict[str, Any]:
+        async def test_handler(event: EventMessage) -> dict[str, Any]:
             nonlocal handler_called, received_event
             handler_called = True
             received_event = event
-            return {'handled': True}
+            return {"handled": True}
 
         event_bus.register_handler(MockHandler(test_handler))
 
         event = EventMessage(
             event_type=EventType.PROGRESS_UPDATE.value,
             execution_id="test_execution_123",
-            payload={'progress': 50.0}
+            payload={"progress": 50.0}
         )
 
         await event_bus.publish_event(event)
@@ -97,9 +99,9 @@ class TestEventBus:
     async def test_hipaa_compliance(self, event_bus):
         """Test HIPAA++ compliance in event handling."""
         sensitive_data = {
-            'user_id': 'user_123',
-            'session_data': 'sensitive_info',
-            'pii': 'personal_data'
+            "user_id": "user_123",
+            "session_data": "sensitive_info",
+            "pii": "personal_data"
         }
 
         event = EventMessage(
@@ -117,7 +119,7 @@ class TestEventBus:
         published_data = json.loads(call_args[0][1])
 
         # Verify HIPAA compliance - no sensitive data in logs
-        assert 'pii' not in published_data['payload'] or published_data['payload']['pii'] != 'personal_data'
+        assert "pii" not in published_data["payload"] or published_data["payload"]["pii"] != "personal_data"
 
 
 class TestPipelineCoordinator:
@@ -132,44 +134,44 @@ class TestPipelineCoordinator:
         redis_client.keys = AsyncMock(return_value=[])
 
         config = {
-            'state_manager': {'state_ttl_seconds': 3600},
-            'event_bus': {'event_ttl': 3600},
-            'performance_monitor': {'metrics_retention_hours': 24}
+            "state_manager": {"state_ttl_seconds": 3600},
+            "event_bus": {"event_ttl": 3600},
+            "performance_monitor": {"metrics_retention_hours": 24}
         }
 
         coordinator = PipelineCoordinator(redis_client, config)
-        yield coordinator
+        return coordinator
 
     @pytest.mark.asyncio
     async def test_pipeline_execution(self, coordinator):
         """Test complete six-stage pipeline execution."""
         execution_request = {
-            'dataset_ids': ['dataset_1', 'dataset_2'],
-            'user_id': 'user_123',
-            'execution_mode': 'standard',
-            'quality_threshold': 0.8,
-            'enable_bias_detection': True
+            "dataset_ids": ["dataset_1", "dataset_2"],
+            "user_id": "user_123",
+            "execution_mode": "standard",
+            "quality_threshold": 0.8,
+            "enable_bias_detection": True
         }
 
         result = await coordinator.execute_pipeline(execution_request)
 
-        assert result['status'] == 'completed'
-        assert result['execution_id'] is not None
-        assert 'stage_results' in result
-        assert len(result['stage_results']) == 6  # All 6 stages completed
+        assert result["status"] == "completed"
+        assert result["execution_id"] is not None
+        assert "stage_results" in result
+        assert len(result["stage_results"]) == 6  # All 6 stages completed
 
         # Verify sub-50ms compliance tracking
-        assert 'overall_quality_score' in result
-        assert result['overall_quality_score'] >= 0.0
+        assert "overall_quality_score" in result
+        assert result["overall_quality_score"] >= 0.0
 
     @pytest.mark.asyncio
     async def test_pipeline_validation(self, coordinator):
         """Test pipeline input validation."""
         # Test invalid execution mode
         invalid_request = {
-            'dataset_ids': ['dataset_1'],
-            'user_id': 'user_123',
-            'execution_mode': 'invalid_mode'
+            "dataset_ids": ["dataset_1"],
+            "user_id": "user_123",
+            "execution_mode": "invalid_mode"
         }
 
         with pytest.raises(ValidationError):
@@ -179,36 +181,36 @@ class TestPipelineCoordinator:
     async def test_bias_detection_integration(self, coordinator):
         """Test bias detection integration during pipeline execution."""
         execution_request = {
-            'dataset_ids': ['dataset_1'],
-            'user_id': 'user_123',
-            'execution_mode': 'standard',
-            'enable_bias_detection': True
+            "dataset_ids": ["dataset_1"],
+            "user_id": "user_123",
+            "execution_mode": "standard",
+            "enable_bias_detection": True
         }
 
         result = await coordinator.execute_pipeline(execution_request)
 
         # Verify bias detection was applied in validation stage
-        validation_result = result['stage_results'].get('validation', {})
-        assert 'bias_analysis' in validation_result.get('result', {})
+        validation_result = result["stage_results"].get("validation", {})
+        assert "bias_analysis" in validation_result.get("result", {})
 
     @pytest.mark.asyncio
     async def test_error_recovery(self, coordinator):
         """Test error recovery mechanisms."""
         # Simulate a stage failure
-        with patch.object(coordinator.stage_coordinators['validation'], 'execute_stage') as mock_stage:
+        with patch.object(coordinator.stage_coordinators["validation"], "execute_stage") as mock_stage:
             mock_stage.side_effect = Exception("Stage validation failed")
 
             execution_request = {
-                'dataset_ids': ['dataset_1'],
-                'user_id': 'user_123',
-                'execution_mode': 'standard'
+                "dataset_ids": ["dataset_1"],
+                "user_id": "user_123",
+                "execution_mode": "standard"
             }
 
             # Should handle error gracefully
             result = await coordinator.execute_pipeline(execution_request)
 
             # Verify error was handled and recovery was attempted
-            assert result['status'] in ['completed', 'failed']
+            assert result["status"] in ["completed", "failed"]
 
 
 class TestPerformanceRequirements:
@@ -227,7 +229,7 @@ class TestPerformanceRequirements:
         event = EventMessage(
             event_type=EventType.PROGRESS_UPDATE.value,
             execution_id="perf_test_123",
-            payload={'progress': 75.0}
+            payload={"progress": 75.0}
         )
 
         await event_bus.publish_event(event)
@@ -243,14 +245,14 @@ class TestPerformanceRequirements:
         await bias_integration.initialize_bias_service()
 
         test_data = {
-            'validation_score': 0.9,
-            'checks_passed': ['check1', 'check2'],
-            'dataset_size': 1000
+            "validation_score": 0.9,
+            "checks_passed": ["check1", "check2"],
+            "dataset_size": 1000
         }
 
         start_time = time.time()
 
-        result = await bias_integration.analyze_stage_data(test_data, 'validation')
+        result = await bias_integration.analyze_stage_data(test_data, "validation")
 
         elapsed_ms = (time.time() - start_time) * 1000
 
@@ -275,7 +277,7 @@ class TestPerformanceRequirements:
             execution_mode="standard",
             quality_threshold=0.8,
             enable_bias_detection=True,
-            start_time=datetime.utcnow(),
+            start_time=datetime.now(timezone.utc),
             current_stage="test",
             stage_results={},
             metadata={}
@@ -303,10 +305,10 @@ class TestHIPAACompliance:
 
         # Test data with potential PII/PHI
         sensitive_data = {
-            'user_id': 'user_123',
-            'session_data': 'patient_record_456',
-            'diagnosis': 'mental_health_condition',
-            'personal_info': 'john.doe@email.com'
+            "user_id": "user_123",
+            "session_data": "patient_record_456",
+            "diagnosis": "mental_health_condition",
+            "personal_info": "john.doe@email.com"
         }
 
         event = EventMessage(
@@ -322,8 +324,8 @@ class TestHIPAACompliance:
         published_data = json.loads(call_args[0][1])
 
         # Check that sensitive fields are either removed or anonymized
-        payload = published_data['payload']
-        assert 'personal_info' not in payload or '@' not in str(payload.get('personal_info', ''))
+        payload = published_data["payload"]
+        assert "personal_info" not in payload or "@" not in str(payload.get("personal_info", ""))
 
     @pytest.mark.asyncio
     async def test_audit_trail_compliance(self):
@@ -341,7 +343,7 @@ class TestHIPAACompliance:
             execution_mode="standard",
             quality_threshold=0.8,
             enable_bias_detection=True,
-            start_time=datetime.utcnow(),
+            start_time=datetime.now(timezone.utc),
             current_stage="validation",
             stage_results={},
             metadata={}
@@ -354,9 +356,9 @@ class TestHIPAACompliance:
         audit_trail = await state_manager.get_audit_trail("audit_test_123")
 
         assert len(audit_trail) > 0
-        assert audit_trail[0]['event_type'] == 'pipeline_initialized'
-        assert 'timestamp' in audit_trail[0]
-        assert 'execution_id' in audit_trail[0]
+        assert audit_trail[0]["event_type"] == "pipeline_initialized"
+        assert "timestamp" in audit_trail[0]
+        assert "execution_id" in audit_trail[0]
 
     @pytest.mark.asyncio
     async def test_encryption_compliance(self):
@@ -366,7 +368,7 @@ class TestHIPAACompliance:
         redis_client = Mock(spec=RedisClient)
         redis_client.setex = AsyncMock(return_value=True)
 
-        state_manager = StateManager(redis_client, {'encryption_enabled': True})
+        state_manager = StateManager(redis_client, {"encryption_enabled": True})
 
         context = PipelineContext(
             execution_id="encryption_test_123",
@@ -375,7 +377,7 @@ class TestHIPAACompliance:
             execution_mode="standard",
             quality_threshold=0.8,
             enable_bias_detection=True,
-            start_time=datetime.utcnow(),
+            start_time=datetime.now(timezone.utc),
             current_stage="test",
             stage_results={},
             metadata={}
@@ -401,7 +403,7 @@ class TestErrorHandling:
             execution_mode="standard",
             quality_threshold=0.8,
             enable_bias_detection=True,
-            start_time=datetime.utcnow(),
+            start_time=datetime.now(timezone.utc),
             current_stage="validation",
             stage_results={},
             metadata={}
@@ -454,7 +456,7 @@ class TestErrorHandling:
 
         assert result["status"] == "fallback_success"
         assert result["data"] == "fallback_data"
-        assert degradation_manager.performance_metrics['successful_fallbacks'] == 1
+        assert degradation_manager.performance_metrics["successful_fallbacks"] == 1
 
 
 class TestBiasDetection:
@@ -467,31 +469,31 @@ class TestBiasDetection:
         await bias_integration.initialize_bias_service()
 
         test_data = {
-            'demographic_data': {'gender': 'mixed', 'age': 'adult'},
-            'content_analysis': {'sentiment': 'positive', 'bias_indicators': ['none']}
+            "demographic_data": {"gender": "mixed", "age": "adult"},
+            "content_analysis": {"sentiment": "positive", "bias_indicators": ["none"]}
         }
 
-        metrics = await bias_integration.analyze_stage_data(test_data, 'validation')
+        metrics = await bias_integration.analyze_stage_data(test_data, "validation")
 
         assert isinstance(metrics, BiasMetrics)
         assert 0.0 <= metrics.overall_bias_score <= 1.0
-        assert metrics.compliance_status in ['compliant', 'warning', 'violation']
+        assert metrics.compliance_status in ["compliant", "warning", "violation"]
 
         # Test threshold detection
         if metrics.overall_bias_score > bias_integration.config.threshold:
-            assert metrics.compliance_status == 'violation'
+            assert metrics.compliance_status == "violation"
 
     @pytest.mark.asyncio
     async def test_bias_detection_disabled(self):
         """Test behavior when bias detection is disabled."""
-        config = {'enabled': False}
+        config = {"enabled": False}
         bias_integration = BiasDetectionIntegration(config)
 
-        test_data = {'some': 'data'}
-        metrics = await bias_integration.analyze_stage_data(test_data, 'validation')
+        test_data = {"some": "data"}
+        metrics = await bias_integration.analyze_stage_data(test_data, "validation")
 
         assert metrics.overall_bias_score == 0.0
-        assert metrics.compliance_status == 'not_applicable'
+        assert metrics.compliance_status == "not_applicable"
         assert metrics.confidence_score == 0.0
 
     @pytest.mark.asyncio
@@ -502,11 +504,11 @@ class TestBiasDetection:
 
         # Simulate high bias scenario
         high_bias_data = {
-            'demographic_representation': {'skewed': True, 'imbalance': 0.8},
-            'content_bias': {'stereotypes': 0.7, 'representation': 0.6}
+            "demographic_representation": {"skewed": True, "imbalance": 0.8},
+            "content_bias": {"stereotypes": 0.7, "representation": 0.6}
         }
 
-        metrics = await bias_integration.analyze_stage_data(high_bias_data, 'processing')
+        metrics = await bias_integration.analyze_stage_data(high_bias_data, "processing")
 
         # Verify high bias is detected
         assert metrics.overall_bias_score > 0.5
@@ -515,7 +517,7 @@ class TestBiasDetection:
         alerts = bias_integration.get_real_time_alerts()
 
         # Should have alerts for high bias
-        high_bias_alerts = [alert for alert in alerts if alert.get('bias_score', 0) > 0.5]
+        high_bias_alerts = [alert for alert in alerts if alert.get("bias_score", 0) > 0.5]
         assert len(high_bias_alerts) > 0
 
 
@@ -530,20 +532,20 @@ class TestPerformanceMonitoring:
         redis_client.keys = AsyncMock(return_value=[])
 
         config = {
-            'metrics_retention_hours': 24,
-            'threshold_check_interval': 60,
-            'performance_window_size': 1000
+            "metrics_retention_hours": 24,
+            "threshold_check_interval": 60,
+            "performance_window_size": 1000
         }
 
         monitor = PerformanceMonitor(redis_client, config)
-        yield monitor
+        return monitor
 
     @pytest.mark.asyncio
     async def test_sub_50ms_threshold_monitoring(self, performance_monitor):
         """Test sub-50ms threshold monitoring."""
         # Record metric above threshold
         metric = await performance_monitor.record_metric(
-            'stage_execution_time', 'test_execution_123', 75.0, 'milliseconds'
+            "stage_execution_time", "test_execution_123", 75.0, "milliseconds"
         )
 
         assert metric.threshold_exceeded is True
@@ -553,7 +555,7 @@ class TestPerformanceMonitoring:
         violations = await performance_monitor.check_performance_thresholds()
 
         violation_found = any(
-            v['metric_name'] == 'stage_execution_time' and v['current_value'] == 75.0
+            v["metric_name"] == "stage_execution_time" and v["current_value"] == 75.0
             for v in violations
         )
         assert violation_found is True
@@ -564,15 +566,15 @@ class TestPerformanceMonitoring:
         # Record multiple metrics
         for i in range(10):
             await performance_monitor.record_metric(
-                'test_metric', 'test_execution_123', float(i * 10), 'milliseconds'
+                "test_metric", "test_execution_123", float(i * 10), "milliseconds"
             )
 
         summary = await performance_monitor.get_execution_performance_summary(
-            'test_execution_123'
+            "test_execution_123"
         )
 
         assert summary is not None
-        assert summary.execution_id == 'test_execution_123'
+        assert summary.execution_id == "test_execution_123"
         assert summary.average_response_time_ms > 0
         assert summary.min_response_time_ms >= 0
         assert summary.max_response_time_ms <= 90.0
@@ -582,21 +584,21 @@ class TestPerformanceMonitoring:
         """Test real-time performance dashboard generation."""
         # Record metrics
         await performance_monitor.record_metric(
-            'stage_execution_time', 'test_execution_123', 25.0, 'milliseconds'
+            "stage_execution_time", "test_execution_123", 25.0, "milliseconds"
         )
 
         dashboard = await performance_monitor.get_real_time_performance_dashboard()
 
-        assert 'timestamp' in dashboard
-        assert 'overall_stats' in dashboard
-        assert 'current_performance' in dashboard
-        assert 'sub_50ms_compliance' in dashboard
+        assert "timestamp" in dashboard
+        assert "overall_stats" in dashboard
+        assert "current_performance" in dashboard
+        assert "sub_50ms_compliance" in dashboard
 
         # Check compliance tracking
-        compliance_data = dashboard['sub_50ms_compliance']
-        assert 'current_rate' in compliance_data
-        assert 'target_rate' in compliance_data
-        assert compliance_data['target_rate'] == 0.95  # 95% target
+        compliance_data = dashboard["sub_50ms_compliance"]
+        assert "current_rate" in compliance_data
+        assert "target_rate" in compliance_data
+        assert compliance_data["target_rate"] == 0.95  # 95% target
 
 
 class TestIntegrationScenarios:
@@ -624,20 +626,20 @@ class TestIntegrationScenarios:
         coordinator = PipelineCoordinator(
             redis_client,
             config={
-                'event_bus': {'event_ttl': 3600},
-                'state_manager': {'state_ttl_seconds': 3600},
-                'performance_monitor': {'metrics_retention_hours': 24}
+                "event_bus": {"event_ttl": 3600},
+                "state_manager": {"state_ttl_seconds": 3600},
+                "performance_monitor": {"metrics_retention_hours": 24}
             }
         )
 
         # Execute pipeline
         execution_request = {
-            'dataset_ids': ['dataset_1', 'dataset_2', 'dataset_3'],
-            'user_id': 'integration_test_user',
-            'execution_mode': 'comprehensive',
-            'quality_threshold': 0.85,
-            'enable_bias_detection': True,
-            'metadata': {'test_run': True}
+            "dataset_ids": ["dataset_1", "dataset_2", "dataset_3"],
+            "user_id": "integration_test_user",
+            "execution_mode": "comprehensive",
+            "quality_threshold": 0.85,
+            "enable_bias_detection": True,
+            "metadata": {"test_run": True}
         }
 
         start_time = time.time()
@@ -647,16 +649,16 @@ class TestIntegrationScenarios:
         total_time_ms = (time.time() - start_time) * 1000
 
         # Verify results
-        assert result['status'] == 'completed'
-        assert result['overall_quality_score'] >= 0.85
-        assert len(result['stage_results']) == 6
+        assert result["status"] == "completed"
+        assert result["overall_quality_score"] >= 0.85
+        assert len(result["stage_results"]) == 6
 
         # Verify performance requirements
         assert total_time_ms < 30000  # Complete pipeline should finish within 30 seconds
 
         # Verify HIPAA compliance
-        assert 'user_id' in result['metadata']
-        assert result['metadata']['user_id'] == 'integration_test_user'
+        assert "user_id" in result["metadata"]
+        assert result["metadata"]["user_id"] == "integration_test_user"
 
     @pytest.mark.asyncio
     async def test_concurrent_pipeline_executions(self):
@@ -671,11 +673,11 @@ class TestIntegrationScenarios:
         # Create multiple execution requests
         execution_requests = [
             {
-                'dataset_ids': [f'dataset_{i}'],
-                'user_id': f'user_{i}',
-                'execution_mode': 'standard',
-                'quality_threshold': 0.8,
-                'enable_bias_detection': True
+                "dataset_ids": [f"dataset_{i}"],
+                "user_id": f"user_{i}",
+                "execution_mode": "standard",
+                "quality_threshold": 0.8,
+                "enable_bias_detection": True
             }
             for i in range(5)  # 5 concurrent executions
         ]
@@ -692,8 +694,8 @@ class TestIntegrationScenarios:
         # Verify all executions completed
         assert len(results) == 5
         for result in results:
-            assert result['status'] == 'completed'
-            assert 'execution_id' in result
+            assert result["status"] == "completed"
+            assert "execution_id" in result
 
         # Verify concurrent performance
         assert total_time_ms < 60000  # All executions should complete within 60 seconds
@@ -709,22 +711,22 @@ class TestIntegrationScenarios:
         coordinator = PipelineCoordinator(redis_client)
 
         # Simulate a failure in bias detection
-        with patch.object(coordinator.bias_integration, 'analyze_stage_data') as mock_bias:
+        with patch.object(coordinator.bias_integration, "analyze_stage_data") as mock_bias:
             mock_bias.side_effect = BiasDetectionError("Bias detection service unavailable")
 
             execution_request = {
-                'dataset_ids': ['dataset_1'],
-                'user_id': 'error_test_user',
-                'execution_mode': 'standard',
-                'enable_bias_detection': True
+                "dataset_ids": ["dataset_1"],
+                "user_id": "error_test_user",
+                "execution_mode": "standard",
+                "enable_bias_detection": True
             }
 
             # Should handle error gracefully and continue
             result = await coordinator.execute_pipeline(execution_request)
 
             # Verify pipeline completed despite bias detection failure
-            assert result['status'] == 'completed'
-            assert 'stage_results' in result
+            assert result["status"] == "completed"
+            assert "stage_results" in result
 
 
 class TestSecurityAndCompliance:
@@ -738,19 +740,19 @@ class TestSecurityAndCompliance:
 
         # Test malicious input
         malicious_input = {
-            'user_input': '<script>alert("xss")</script>',
-            'sql_injection': "'; DROP TABLE users; --",
-            'command_injection': 'rm -rf /',
-            'path_traversal': '../../../etc/passwd'
+            "user_input": '<script>alert("xss")</script>',
+            "sql_injection": "'; DROP TABLE users; --",
+            "command_injection": "rm -rf /",
+            "path_traversal": "../../../etc/passwd"
         }
 
         sanitized = sanitize_input(malicious_input)
 
         # Verify sanitization
-        assert '<script>' not in str(sanitized)
-        assert 'DROP TABLE' not in str(sanitized)
-        assert 'rm -rf' not in str(sanitized)
-        assert '../../../' not in str(sanitized)
+        assert "<script>" not in str(sanitized)
+        assert "DROP TABLE" not in str(sanitized)
+        assert "rm -rf" not in str(sanitized)
+        assert "../../../" not in str(sanitized)
 
     @pytest.mark.asyncio
     async def test_rate_limiting_protection(self):
@@ -766,17 +768,17 @@ class TestSecurityAndCompliance:
         event_bus = EventBus(redis_client)
 
         # Check that event publishing has rate limiting considerations
-        assert hasattr(event_bus, 'publish_event')
+        assert hasattr(event_bus, "publish_event")
 
         # Verify event structure includes rate limiting metadata
         event = EventMessage(
             event_type=EventType.REQUEST_INITIATED.value,
             execution_id="rate_limit_test",
-            payload={'test': 'data'},
-            metadata={'timestamp': datetime.utcnow().isoformat()}
+            payload={"test": "data"},
+            metadata={"timestamp": datetime.now(timezone.utc).isoformat()}
         )
 
-        assert 'timestamp' in event.metadata
+        assert "timestamp" in event.metadata
 
     @pytest.mark.asyncio
     async def test_audit_logging_compliance(self):
@@ -795,10 +797,10 @@ class TestSecurityAndCompliance:
             execution_mode="standard",
             quality_threshold=0.9,
             enable_bias_detection=True,
-            start_time=datetime.utcnow(),
+            start_time=datetime.now(timezone.utc),
             current_stage="validation",
             stage_results={},
-            metadata={'compliance_level': 'hipaa_plus'}
+            metadata={"compliance_level": "hipaa_plus"}
         )
 
         await state_manager.initialize_pipeline_state(context)
@@ -808,13 +810,13 @@ class TestSecurityAndCompliance:
 
         assert len(audit_trail) > 0
         for entry in audit_trail:
-            assert 'timestamp' in entry
-            assert 'event_type' in entry
-            assert 'execution_id' in entry
+            assert "timestamp" in entry
+            assert "event_type" in entry
+            assert "execution_id" in entry
             # Verify no sensitive data in audit logs
-            assert 'password' not in str(entry)
-            assert 'ssn' not in str(entry)
-            assert 'credit_card' not in str(entry)
+            assert "password" not in str(entry)
+            assert "ssn" not in str(entry)
+            assert "credit_card" not in str(entry)
 
 
 @pytest.mark.asyncio
@@ -832,11 +834,11 @@ async def test_pipeline_stress_scenario():
     stress_requests = []
     for i in range(20):  # 20 concurrent executions
         stress_requests.append({
-            'dataset_ids': [f'stress_dataset_{i}_{j}' for j in range(5)],
-            'user_id': f'stress_user_{i}',
-            'execution_mode': 'fast',
-            'quality_threshold': 0.7,
-            'enable_bias_detection': (i % 2 == 0)  # Half with bias detection
+            "dataset_ids": [f"stress_dataset_{i}_{j}" for j in range(5)],
+            "user_id": f"stress_user_{i}",
+            "execution_mode": "fast",
+            "quality_threshold": 0.7,
+            "enable_bias_detection": (i % 2 == 0)  # Half with bias detection
         })
 
     start_time = time.time()
@@ -856,7 +858,7 @@ async def test_pipeline_stress_scenario():
 
     # Verify stress test results
     assert len(results) == 20
-    successful_executions = sum(1 for r in results if r['status'] == 'completed')
+    successful_executions = sum(1 for r in results if r["status"] == "completed")
     assert successful_executions >= 18  # At least 90% success rate
 
     # Verify performance under stress
@@ -864,11 +866,11 @@ async def test_pipeline_stress_scenario():
 
     # Verify no data corruption under stress
     for result in results:
-        if result['status'] == 'completed':
-            assert 'execution_id' in result
-            assert 'stage_results' in result
-            assert len(result['stage_results']) == 6
+        if result["status"] == "completed":
+            assert "execution_id" in result
+            assert "stage_results" in result
+            assert len(result["stage_results"]) == 6
 
 
-if __name__ == '__main__':
-    pytest.main([__file__, '-v', '--asyncio-mode=auto'])
+if __name__ == "__main__":
+    pytest.main([__file__, "-v", "--asyncio-mode=auto"])

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import threading
 from collections import OrderedDict
-from typing import Dict
 
 from .null_memory_index import NullMemoryIndex
 from .null_memory_record import NullMemoryRecord
@@ -14,7 +13,7 @@ class InMemoryRecordStore:
     """Low-level record persistence and ownership bookkeeping."""
 
     def __init__(self, *, index: NullMemoryIndex, record_factory: NullMemoryRecordFactory) -> None:
-        self._records: Dict[str, OrderedDict[str, NullMemoryRecord]] = {}
+        self._records: dict[str, OrderedDict[str, NullMemoryRecord]] = {}
         self._id_source = index
         self._record_factory = record_factory
         self._index_lock = threading.RLock()

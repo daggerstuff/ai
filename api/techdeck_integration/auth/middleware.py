@@ -6,8 +6,10 @@ rate limiting, and comprehensive security measures for HIPAA++ compliance.
 """
 
 from datetime import datetime, timezone
+
+from collections.abc import Callable
 from functools import wraps
-from typing import Any, Callable, Dict, Optional
+from typing import Any
 
 import jwt
 from flask import current_app, g
@@ -25,7 +27,7 @@ class JWTAuthMiddleware:
     with HIPAA++ compliant audit logging and security measures.
     """
 
-    def __init__(self, app: Optional[Callable] = None, config: Optional[Any] = None):
+    def __init__(self, app: Callable | None = None, config: Any | None = None):
         """
         Initialize JWT authentication middleware.
 
@@ -40,7 +42,7 @@ class JWTAuthMiddleware:
         if app is not None:
             self.app = app
 
-    def __call__(self, environ: Dict[str, Any], start_response: Callable) -> Any:
+    def __call__(self, environ: dict[str, Any], start_response: Callable) -> Any:
         """
         WSGI application interface.
 
@@ -106,7 +108,7 @@ class JWTAuthMiddleware:
 
         return any(path.startswith(endpoint) for endpoint in public_endpoints)
 
-    def _extract_token(self, request: Request) -> Optional[str]:
+    def _extract_token(self, request: Request) -> str | None:
         """
         Extract JWT token from request Authorization header.
 
@@ -119,7 +121,7 @@ class JWTAuthMiddleware:
         auth_header = request.headers.get("Authorization", "")
         return auth_header.split(" ")[1] if auth_header.startswith("Bearer ") else None
 
-    def _validate_jwt_token(self, request: Request) -> Dict[str, Any]:
+    def _validate_jwt_token(self, request: Request) -> dict[str, Any]:
         """
         Validate JWT token from request headers.
 
@@ -134,7 +136,7 @@ class JWTAuthMiddleware:
         except jwt.ExpiredSignatureError:
             return {"valid": False, "error": "JWT token has expired"}
         except jwt.InvalidTokenError as e:
-            return {"valid": False, "error": f"Invalid JWT token: {str(e)}"}
+            return {"valid": False, "error": f"Invalid JWT token: {e!s}"}
         except Exception as e:
             self.logger.error(f"JWT validation error: {e}")
             return {"valid": False, "error": "Token validation failed"}
@@ -181,7 +183,7 @@ class JWTAuthMiddleware:
 
         return {"valid": True, "user": user_data}
 
-    def _validate_token_claims(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def _validate_token_claims(self, payload: dict[str, Any]) -> dict[str, Any]:
         """
         Validate JWT token claims.
 
@@ -211,7 +213,7 @@ class JWTAuthMiddleware:
 
         return {"valid": True}
 
-    def _validate_user_active(self, user_id: str) -> Dict[str, Any]:
+    def _validate_user_active(self, user_id: str) -> dict[str, Any]:
         """
         Validate that user exists and is active.
 
@@ -241,7 +243,7 @@ class JWTAuthMiddleware:
             self.logger.error(f"User validation error: {e}")
             return {"valid": False, "error": "User validation failed"}
 
-    def _check_rate_limit(self, user_id: str, path: str) -> Dict[str, Any]:
+    def _check_rate_limit(self, user_id: str, path: str) -> dict[str, Any]:
         """
         Check rate limiting for user.
 
@@ -343,7 +345,7 @@ class JWTAuthMiddleware:
         return [response_body]
 
     def _handle_rate_limit_error(
-        self, rate_limit_result: Dict[str, Any], start_response: Callable
+        self, rate_limit_result: dict[str, Any], start_response: Callable
     ) -> Any:
         """
         Handle rate limit errors.
@@ -418,7 +420,7 @@ class JWTAuthMiddleware:
         return [response_body]
 
 
-def require_auth(roles: Optional[Any] = None):
+def require_auth(roles: Any | None = None):
     """
     Decorator to require authentication for Flask routes.
     Can be used as @require_auth or @require_auth(roles=['admin']).

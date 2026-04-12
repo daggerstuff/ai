@@ -4,6 +4,6 @@
 
 def load(*args, **kwargs):
     """Stub implementation for load."""
-    return None
+    return
 
-__all__ = ['load']
+__all__ = ["load"]

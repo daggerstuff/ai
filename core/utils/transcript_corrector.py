@@ -4,7 +4,7 @@
 import json
 import re
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 
 class TranscriptCorrector:
@@ -15,7 +15,7 @@ class TranscriptCorrector:
         self.config_path = config_path
         self.terms = self._load_terms(config_path)
 
-    def _load_terms(self, config_path: str) -> Dict[str, Any]:
+    def _load_terms(self, config_path: str) -> dict[str, Any]:
         """Load terms from config file."""
         if config_path and Path(config_path).exists():
             try:
@@ -23,12 +23,11 @@ class TranscriptCorrector:
                     data = json.load(f)
                     if isinstance(data, dict):
                         return data
-                    else:
-                        return {
-                            "cptsd_terms": data if isinstance(data, list) else [],
-                            "medical_terms": [],
-                            "common_misinterpretations": {}
-                        }
+                    return {
+                        "cptsd_terms": data if isinstance(data, list) else [],
+                        "medical_terms": [],
+                        "common_misinterpretations": {}
+                    }
             except (json.JSONDecodeError, FileNotFoundError):
                 pass
         return {
@@ -39,7 +38,7 @@ class TranscriptCorrector:
 
     def _clean_structure(self, text: str) -> str:
         """Clean filler words and structure from text."""
-        text = re.sub(r'\b(Um|um|Uh|uh|Like|like),?\s*', '', text)
+        text = re.sub(r"\b(Um|um|Uh|uh|Like|like),?\s*", "", text)
         return text
 
     def _apply_terminology_fixes(self, text: str) -> str:
@@ -48,7 +47,7 @@ class TranscriptCorrector:
             text = re.sub(re.escape(wrong), correct, text, flags=re.IGNORECASE)
 
         if "complex ptsd" in text.lower():
-            text = re.sub(r'complex ptsd', 'C-PTSD', text, flags=re.IGNORECASE)
+            text = re.sub(r"complex ptsd", "C-PTSD", text, flags=re.IGNORECASE)
 
         return text
 
@@ -58,7 +57,7 @@ class TranscriptCorrector:
         result = self._apply_terminology_fixes(result)
         return result
 
-    def validate_term_coverage(self, text: str) -> Dict[str, Any]:
+    def validate_term_coverage(self, text: str) -> dict[str, Any]:
         """Validate term coverage in text."""
         cptsd_count = 0
         medical_count = 0
@@ -81,4 +80,4 @@ class TranscriptCorrector:
         }
 
 
-__all__ = ['TranscriptCorrector']
+__all__ = ["TranscriptCorrector"]

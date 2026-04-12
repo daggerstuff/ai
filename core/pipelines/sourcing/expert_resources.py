@@ -3,6 +3,5 @@
 
 class ExpertResources:
     """Stub implementation for ExpertResources."""
-    pass
 
-__all__ = ['ExpertResources']
+__all__ = ["ExpertResources"]

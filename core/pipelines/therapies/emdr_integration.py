@@ -3,6 +3,5 @@
 
 class EmdrIntegration:
     """Stub implementation for EmdrIntegration."""
-    pass
 
-__all__ = ['EmdrIntegration']
+__all__ = ["EmdrIntegration"]

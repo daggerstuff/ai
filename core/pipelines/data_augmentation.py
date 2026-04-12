@@ -3,6 +3,5 @@
 
 class DataAugmentation:
     """Stub implementation for DataAugmentation."""
-    pass
 
-__all__ = ['DataAugmentation']
+__all__ = ["DataAugmentation"]

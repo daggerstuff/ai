@@ -5,7 +5,7 @@ app factory and tests can import the symbol without pulling in heavy
 dependencies. The real implementation lives elsewhere; this shim keeps
 test collection working.
 """
-from typing import Any, Dict, Optional
+from typing import Any
 
 from flask import Flask
 
@@ -18,11 +18,11 @@ class TechDeckErrorHandler:
     to exist and accept a config object.
     """
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         self.config = config or {}
 
     def register(self, app: Flask) -> None:
         """Register error handlers on the Flask app (no-op placeholder)."""
         # No-op for test-time import; real implementation registers handlers
         # with app.errorhandler(...)
-        return None
+        return

@@ -9,7 +9,7 @@ import logging
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 @dataclass
@@ -101,7 +101,7 @@ class MCPConfig:
         default_factory=lambda: os.environ.get("REDIS_URL", "redis://localhost:6380")
     )
     REDIS_DB: int = field(default_factory=lambda: int(os.environ.get("REDIS_DB", "0")))
-    REDIS_PASSWORD: Optional[str] = field(
+    REDIS_PASSWORD: str | None = field(
         default_factory=lambda: os.environ.get("REDIS_PASSWORD")
     )
     REDIS_SOCKET_TIMEOUT: int = field(
@@ -197,7 +197,7 @@ class MCPConfig:
     LOG_FORMAT: str = field(
         default_factory=lambda: os.environ.get("LOG_FORMAT", "json")
     )
-    LOG_FILE_PATH: Optional[str] = field(
+    LOG_FILE_PATH: str | None = field(
         default_factory=lambda: os.environ.get("LOG_FILE_PATH")
     )
     LOG_MAX_FILE_SIZE_MB: int = field(
@@ -220,18 +220,18 @@ class MCPConfig:
     )
 
     # CORS Configuration
-    ALLOWED_ORIGINS: List[str] = field(
+    ALLOWED_ORIGINS: list[str] = field(
         default_factory=lambda: os.environ.get(
             "ALLOWED_ORIGINS",
             "http://localhost:3000,http://localhost:4321,http://localhost:5000",
         ).split(",")
     )
-    ALLOWED_METHODS: List[str] = field(
+    ALLOWED_METHODS: list[str] = field(
         default_factory=lambda: os.environ.get(
             "ALLOWED_METHODS", "GET,POST,PUT,DELETE,OPTIONS"
         ).split(",")
     )
-    ALLOWED_HEADERS: List[str] = field(
+    ALLOWED_HEADERS: list[str] = field(
         default_factory=lambda: os.environ.get(
             "ALLOWED_HEADERS", "Content-Type,Authorization,X-Request-ID,X-Agent-Token"
         ).split(",")
@@ -326,10 +326,10 @@ class MCPConfig:
     )
 
     # Zep Cloud Configuration
-    ZEP_API_KEY: Optional[str] = field(
+    ZEP_API_KEY: str | None = field(
         default_factory=lambda: os.environ.get("ZEP_API_KEY")
     )
-    ZEP_API_URL: Optional[str] = field(
+    ZEP_API_URL: str | None = field(
         default_factory=lambda: os.environ.get("ZEP_API_URL")
     )
     ZEP_ENABLED: bool = field(
@@ -455,7 +455,7 @@ class MCPConfig:
 
         return cls()
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert configuration to dictionary (excluding sensitive data)."""
         config_dict = {}
         sensitive_keys = [
@@ -473,7 +473,7 @@ class MCPConfig:
 
         return config_dict
 
-    def get_redis_config(self) -> Dict[str, Any]:
+    def get_redis_config(self) -> dict[str, Any]:
         """Get Redis connection configuration."""
         return {
             "host": self.REDIS_URL.split("://")[1].split(":")[0],
@@ -484,7 +484,7 @@ class MCPConfig:
             "connection_pool_size": self.REDIS_CONNECTION_POOL_SIZE,
         }
 
-    def get_mongodb_config(self) -> Dict[str, Any]:
+    def get_mongodb_config(self) -> dict[str, Any]:
         """Get MongoDB connection configuration."""
         return {
             "uri": self.MONGODB_URI,
@@ -538,7 +538,7 @@ class TestingConfig(MCPConfig):
 
 
 # Configuration factory
-def get_mcp_config(env: Optional[str] = None) -> MCPConfig:
+def get_mcp_config(env: str | None = None) -> MCPConfig:
     """
     Get configuration for specified environment.
 

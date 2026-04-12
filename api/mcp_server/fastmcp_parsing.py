@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass(frozen=True)
@@ -24,7 +23,7 @@ class ParsedScopeContext:
     visibility: str = "private"
 
 
-def parse_json_object(context_json: Optional[str]) -> dict:
+def parse_json_object(context_json: str | None) -> dict:
     if not context_json:
         return {}
     parsed = json.loads(context_json)
@@ -47,7 +46,7 @@ def parse_auth_context(auth_context: str) -> ParsedAuthContext:
     )
 
 
-def parse_scope_context(scope_context: Optional[str]) -> ParsedScopeContext:
+def parse_scope_context(scope_context: str | None) -> ParsedScopeContext:
     parsed = parse_json_object(scope_context)
     return ParsedScopeContext(
         org_id=parsed.get("org_id"),
@@ -60,7 +59,7 @@ def parse_scope_context(scope_context: Optional[str]) -> ParsedScopeContext:
     )
 
 
-def parse_metadata(metadata: Optional[str]) -> dict:
+def parse_metadata(metadata: str | None) -> dict:
     import contextlib
 
     parsed: dict = {}

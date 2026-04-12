@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from .null_memory_query_service import NullMemoryQueryService
 from .null_memory_repository import NullMemoryRepository
@@ -24,9 +24,9 @@ class NullMemoryProtocolAdapter:
         user_id: str,
         query: str,
         limit: int,
-        tags: Optional[List[str]],
+        tags: list[str] | None,
         tags_match: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         return {
             "results": self.queries.recall_records(
                 query=query,
@@ -42,8 +42,8 @@ class NullMemoryProtocolAdapter:
         *,
         content: str,
         user_id: str,
-        metadata: Optional[Dict[str, Any]],
-        category: Optional[str],
+        metadata: dict[str, Any] | None,
+        category: str | None,
     ) -> str:
         merged_metadata = dict(metadata or {})
         if category:

@@ -10,14 +10,16 @@ This module provides complete API implementation including:
 - RESTful API standards compliance
 """
 
+from datetime import datetime, timezone
+
+
 import asyncio
 import json
 import logging
 import time
-from dataclasses import dataclass, field
-from datetime import datetime
+from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -46,10 +48,10 @@ class APIEndpoint:
     method: HTTPMethod
     description: str
     category: str
-    parameters: List[str]
+    parameters: list[str]
     response_model: str
     authentication_required: bool = True
-    rate_limit: Optional[int] = None
+    rate_limit: int | None = None
     status: APIEndpointStatus = APIEndpointStatus.IMPLEMENTED
 
 @dataclass
@@ -71,8 +73,8 @@ class CompleteAPISystem:
     """
 
     def __init__(self):
-        self.api_endpoints: List[APIEndpoint] = []
-        self.test_results: List[APITestResult] = []
+        self.api_endpoints: list[APIEndpoint] = []
+        self.test_results: list[APITestResult] = []
         self.overall_api_score = 0.0
         self.api_production_ready = False
 
@@ -294,7 +296,7 @@ class CompleteAPISystem:
 
         logger.info(f"Initialized {len(self.api_endpoints)} API endpoints")
 
-    async def run_comprehensive_api_testing(self) -> Dict[str, Any]:
+    async def run_comprehensive_api_testing(self) -> dict[str, Any]:
         """Run comprehensive API testing and validation"""
         logger.info("Starting comprehensive API testing...")
         start_time = time.time()
@@ -327,7 +329,7 @@ class CompleteAPISystem:
 
         return report
 
-    async def _test_all_endpoints(self) -> Dict[str, Any]:
+    async def _test_all_endpoints(self) -> dict[str, Any]:
         """Test all API endpoints"""
 
         test_results = []
@@ -376,7 +378,7 @@ class CompleteAPISystem:
         self.test_results.append(test_result)
         return test_result
 
-    async def _validate_api_performance(self) -> Dict[str, Any]:
+    async def _validate_api_performance(self) -> dict[str, Any]:
         """Validate API performance characteristics"""
 
         # Simulate performance validation
@@ -417,7 +419,7 @@ class CompleteAPISystem:
             "performance_ready": performance_score >= 90.0
         }
 
-    async def _validate_api_documentation(self) -> Dict[str, Any]:
+    async def _validate_api_documentation(self) -> dict[str, Any]:
         """Validate API documentation completeness"""
 
         # Check documentation completeness for each endpoint
@@ -450,9 +452,9 @@ class CompleteAPISystem:
             "documentation_ready": documentation_completeness >= 95.0
         }
 
-    def _analyze_api_completeness(self, endpoint_results: Dict[str, Any],
-                                 performance_results: Dict[str, Any],
-                                 documentation_results: Dict[str, Any]) -> Dict[str, Any]:
+    def _analyze_api_completeness(self, endpoint_results: dict[str, Any],
+                                 performance_results: dict[str, Any],
+                                 documentation_results: dict[str, Any]) -> dict[str, Any]:
         """Analyze overall API completeness"""
 
         # Calculate weighted API completion score
@@ -497,10 +499,10 @@ class CompleteAPISystem:
         }
 
     def _generate_api_completion_report(self, execution_time: float,
-                                       endpoint_results: Dict[str, Any],
-                                       performance_results: Dict[str, Any],
-                                       documentation_results: Dict[str, Any],
-                                       api_analysis: Dict[str, Any]) -> Dict[str, Any]:
+                                       endpoint_results: dict[str, Any],
+                                       performance_results: dict[str, Any],
+                                       documentation_results: dict[str, Any],
+                                       api_analysis: dict[str, Any]) -> dict[str, Any]:
         """Generate comprehensive API completion report"""
 
         # Determine API status
@@ -516,7 +518,7 @@ class CompleteAPISystem:
         return {
             "task_116_summary": {
                 "task_name": "Task 116: Complete API Implementation",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "execution_time": execution_time,
                 "overall_api_score": round(self.overall_api_score, 2),
                 "api_production_ready": self.api_production_ready,
@@ -552,8 +554,8 @@ class CompleteAPISystem:
             "next_steps": self._generate_api_next_steps()
         }
 
-    def _generate_api_recommendations(self, endpoint_results: Dict[str, Any],
-                                     performance_results: Dict[str, Any]) -> List[str]:
+    def _generate_api_recommendations(self, endpoint_results: dict[str, Any],
+                                     performance_results: dict[str, Any]) -> list[str]:
         """Generate API improvement recommendations"""
         recommendations = []
 
@@ -577,7 +579,7 @@ class CompleteAPISystem:
 
         return recommendations
 
-    def _generate_api_next_steps(self) -> List[str]:
+    def _generate_api_next_steps(self) -> list[str]:
         """Generate next steps based on API completion results"""
         if self.api_production_ready:
             return [
@@ -586,13 +588,12 @@ class CompleteAPISystem:
                 "📋 Continue with Phase 3 API and documentation tasks",
                 "🔄 Deploy complete API to production environment"
             ]
-        else:
-            return [
-                "🔧 Fix failing API endpoints",
-                "🧪 Optimize API performance",
-                "📋 Complete API documentation",
-                "🔄 Re-run API validation until complete"
-            ]
+        return [
+            "🔧 Fix failing API endpoints",
+            "🧪 Optimize API performance",
+            "📋 Complete API documentation",
+            "🔄 Re-run API validation until complete"
+        ]
 
 # Example usage and testing
 if __name__ == "__main__":
@@ -611,7 +612,7 @@ if __name__ == "__main__":
         print(f"API Status: {report['task_116_summary']['api_status']}")
         print(f"API Production Ready: {'YES' if report['task_116_summary']['api_production_ready'] else 'NO'}")
 
-        print(f"\nAPI Implementation Metrics:")
+        print("\nAPI Implementation Metrics:")
         metrics = report["api_implementation_metrics"]
         print(f"  Total Endpoints: {metrics['total_endpoints_implemented']}")
         print(f"  Authentication Endpoints: {metrics['authentication_endpoints']}")
@@ -622,9 +623,9 @@ if __name__ == "__main__":
         print(f"  Average Response Time: {metrics['average_response_time']:.1f}ms")
 
         # Save report
-        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         report_file = f"task_116_complete_api_report_{timestamp}.json"
-        with open(report_file, 'w') as f:
+        with open(report_file, "w") as f:
             json.dump(report, f, indent=2, default=str)
 
         print(f"\nDetailed report saved to: {report_file}")

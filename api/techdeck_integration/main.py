@@ -5,15 +5,12 @@ This module provides the main application runner with proper initialization,
 error handling, and graceful shutdown capabilities.
 """
 
-import logging
 import os
 import signal
 import sys
-from typing import Optional
 
 from .app import create_app
 from .config import get_config
-from .integration.redis_client import RedisClient
 from .utils.logger import get_logger, setup_logging
 
 
@@ -31,7 +28,7 @@ def setup_signal_handlers(app) -> None:
 
         try:
             # Close Redis connections
-            if hasattr(app, 'redis_client'):
+            if hasattr(app, "redis_client"):
                 app.redis_client.close()
                 logger.info("Redis connections closed")
 
@@ -56,10 +53,10 @@ def validate_environment() -> None:
         ValueError: If required configuration is missing
     """
     required_vars = [
-        'SECRET_KEY',
-        'JWT_SECRET_KEY',
-        'MONGODB_URI',
-        'REDIS_URL'
+        "SECRET_KEY",
+        "JWT_SECRET_KEY",
+        "MONGODB_URI",
+        "REDIS_URL"
     ]
 
     missing_vars = []
@@ -71,7 +68,7 @@ def validate_environment() -> None:
         raise ValueError(f"Missing required environment variables: {missing_vars}")
 
 
-def main(host: Optional[str] = None, port: Optional[int] = None, debug: Optional[bool] = None) -> None:
+def main(host: str | None = None, port: int | None = None, debug: bool | None = None) -> None:
     """
     Main application entry point.
 
@@ -129,14 +126,14 @@ def main(host: Optional[str] = None, port: Optional[int] = None, debug: Optional
         sys.exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Allow command line overrides
     import argparse
 
-    parser = argparse.ArgumentParser(description='TechDeck Flask Service')
-    parser.add_argument('--host', type=str, help='Host to bind to')
-    parser.add_argument('--port', type=int, help='Port to bind to')
-    parser.add_argument('--debug', action='store_true', help='Enable debug mode')
+    parser = argparse.ArgumentParser(description="TechDeck Flask Service")
+    parser.add_argument("--host", type=str, help="Host to bind to")
+    parser.add_argument("--port", type=int, help="Port to bind to")
+    parser.add_argument("--debug", action="store_true", help="Enable debug mode")
 
     args = parser.parse_args()
 

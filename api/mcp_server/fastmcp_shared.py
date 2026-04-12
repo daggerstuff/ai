@@ -4,7 +4,7 @@ import json
 import logging
 import os
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import HTTPException
 
@@ -45,7 +45,7 @@ def get_manager() -> Any:
 
 def get_recent_memories(
     manager: Any, user_id: str, limit: int
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Retrieve a bounded slice of recent memories."""
     return manager.get_all_memories(user_id, limit=limit)
 
@@ -58,7 +58,7 @@ def authorize_tool_access(
     timestamp: str,
     nonce: str,
     signature: str,
-    payload: Dict[str, Any],
+    payload: dict[str, Any],
 ):
     """Authorize MCP tool invocations with the shared actor-policy model."""
     request_body = (
@@ -84,7 +84,7 @@ def authorized_tool_context(
     timestamp: str,
     nonce: str,
     signature: str,
-    payload: Dict[str, Any],
+    payload: dict[str, Any],
     org_id: str | None = None,
     project_id: str | None = None,
     agent_id: str | None = None,
@@ -123,7 +123,7 @@ def authorized_tool_context_from_parts(
     user_id: str,
     auth: ParsedAuthContext,
     scope: ParsedScopeContext,
-    payload: Dict[str, Any],
+    payload: dict[str, Any],
     visibility_default: str = "private",
 ) -> AuthorizedToolContext:
     return authorized_tool_context(
@@ -189,8 +189,8 @@ def _stdio_trusted_actor() -> str:
 
 def stdio_trusted_tool_context(
     *,
-    user_id: Optional[str],
-    scope_context: Optional[str] = None,
+    user_id: str | None,
+    scope_context: str | None = None,
     visibility_default: str = "private",
 ) -> AuthorizedToolContext:
     """Create an AuthorizedToolContext without HMAC auth for stdio-trusted callers.
@@ -239,9 +239,9 @@ def authorized_tool_context_from_json(
     *,
     tool_name: str,
     user_id: str,
-    auth_context: Optional[str],
+    auth_context: str | None,
     scope_context: str | None,
-    payload: Dict[str, Any],
+    payload: dict[str, Any],
     visibility_default: str = "private",
 ) -> AuthorizedToolContext:
     if not auth_context:

@@ -4,6 +4,5 @@
 
 class Conversation:
     """Stub implementation for Conversation."""
-    pass
 
-__all__ = ['Conversation']
+__all__ = ["Conversation"]

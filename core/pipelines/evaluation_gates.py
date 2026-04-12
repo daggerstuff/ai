@@ -4,6 +4,5 @@
 
 class EvaluationGates:
     """Stub implementation for EvaluationGates."""
-    pass
 
-__all__ = ['EvaluationGates']
+__all__ = ["EvaluationGates"]

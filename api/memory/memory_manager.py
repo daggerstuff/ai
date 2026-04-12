@@ -5,11 +5,12 @@ Integrates the configured shared memory backend with higher-level helpers for
 managing user memory contexts, conversation history, and therapeutic sessions.
 """
 
+from datetime import datetime, timezone
+
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ai.memory.manager_factory import get_required_memory_manager as get_backend_memory_manager
 
@@ -44,8 +45,8 @@ class MemoryMessage:
     content: str
     role: MessageRole
     timestamp: datetime
-    message_id: Optional[str] = None
-    metadata: Dict[str, Any] = None
+    message_id: str | None = None
+    metadata: dict[str, Any] = None
 
     def __post_init__(self):
         if self.metadata is None:
@@ -58,12 +59,12 @@ class MemoryContext:
 
     user_id: str
     session_id: str
-    messages: List[MemoryMessage]
+    messages: list[MemoryMessage]
     memory_type: MemoryType
     created_at: datetime
     updated_at: datetime
-    summary: Optional[str] = None
-    metadata: Dict[str, Any] = None
+    summary: str | None = None
+    metadata: dict[str, Any] = None
 
     def __post_init__(self):
         if self.metadata is None:
@@ -87,7 +88,7 @@ class MemoryManager:
         content: str,
         role: MessageRole,
         memory_type: MemoryType = MemoryType.CONVERSATION,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> bool:
         try:
             # Check if client supports legacy CRUD-style storage helpers
@@ -112,7 +113,7 @@ class MemoryManager:
 
     def get_conversation_history(
         self, user_id: str, session_id: str, limit: int = 50
-    ) -> List[MemoryMessage]:
+    ) -> list[MemoryMessage]:
         try:
             if not hasattr(self.client, "get_all"):
                 return []
@@ -172,7 +173,7 @@ class MemoryManager:
 
     def get_emotional_state(
         self, user_id: str, session_id: str
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         if not hasattr(self.client, "search"):
             return None
 
@@ -197,9 +198,9 @@ class MemoryManager:
         self,
         user_id: str,
         session_id: str,
-        emotions: Dict[str, float],
+        emotions: dict[str, float],
         context: str,
-        triggers: List[str] = None,
+        triggers: list[str] = None,
     ) -> bool:
         content = (
             f"Emotional state: {emotions}. Context: {context}. Triggers: {triggers}"
@@ -219,17 +220,17 @@ class MemoryManager:
         )
         return True
 
-    def get_memory_stats(self, session_id: str) -> Dict[str, Any]:
+    def get_memory_stats(self, session_id: str) -> dict[str, Any]:
         return {
             "session_id": session_id,
             "provider": type(self.client).__name__,
         }
 
 
-_memory_manager_instance: Optional[MemoryManager] = None
+_memory_manager_instance: MemoryManager | None = None
 
 
-def get_memory_manager(memory_client: Optional[Any] = None) -> MemoryManager:
+def get_memory_manager(memory_client: Any | None = None) -> MemoryManager:
     """
     Get or create the global MemoryManager instance.
 

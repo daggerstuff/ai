@@ -4,6 +4,5 @@
 
 class PipelineOrchestrator:
     """Stub implementation for PipelineOrchestrator."""
-    pass
 
-__all__ = ['PipelineOrchestrator']
+__all__ = ["PipelineOrchestrator"]

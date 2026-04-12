@@ -5,9 +5,10 @@ This module provides Redis connection management, caching, and pub/sub
 functionality with comprehensive error handling and performance monitoring.
 """
 
-import json
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+
+import json
+from typing import Any
 
 import redis
 from redis.exceptions import ConnectionError, RedisError, TimeoutError
@@ -29,7 +30,7 @@ class RedisClient:
         self,
         redis_url: str,
         db: int = 0,
-        config: Optional[TechDeckServiceConfig] = None,
+        config: TechDeckServiceConfig | None = None,
     ):
         """
         Initialize Redis client with connection pooling.
@@ -79,7 +80,7 @@ class RedisClient:
             self.logger.error(f"Failed to initialize Redis client: {e}")
             raise TechDeckRedisError(f"Redis connection failed: {e}") from e
 
-    def _parse_redis_url(self, url: str) -> Dict[str, Any]:
+    def _parse_redis_url(self, url: str) -> dict[str, Any]:
         """
         Parse custom Redis URL format.
 
@@ -143,8 +144,8 @@ class RedisClient:
         self,
         key: str,
         value: Any,
-        ex: Optional[int] = None,
-        px: Optional[int] = None,
+        ex: int | None = None,
+        px: int | None = None,
         nx: bool = False,
         xx: bool = False,
     ) -> bool:
@@ -257,7 +258,7 @@ class RedisClient:
 
     def rate_limit_check(
         self, identifier: str, limit: int, window_seconds: int = 60
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Check rate limit for identifier.
 
@@ -356,7 +357,7 @@ class RedisClient:
             self.logger.error(f"Redis error for channel {channel}: {e}")
             raise TechDeckRedisError(f"Redis subscribe failed: {e}") from e
 
-    def pipeline_execute(self, operations: List[Dict[str, Any]]) -> List[Any]:
+    def pipeline_execute(self, operations: list[dict[str, Any]]) -> list[Any]:
         """
         Execute multiple Redis operations in a pipeline.
 
@@ -395,7 +396,7 @@ class RedisClient:
             self.logger.error(f"Redis error in pipeline: {e}")
             raise TechDeckRedisError(f"Redis pipeline failed: {e}") from e
 
-    def health_check(self) -> Dict[str, Any]:
+    def health_check(self) -> dict[str, Any]:
         """
         Perform Redis health check.
 
@@ -433,7 +434,7 @@ class RedisClient:
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             }
 
-    def get_connection_pool_stats(self) -> Dict[str, Any]:
+    def get_connection_pool_stats(self) -> dict[str, Any]:
         """
         Get Redis connection pool statistics.
 
@@ -496,7 +497,7 @@ class RedisCache:
         """
         return self.redis_client.cache_get(key, default)
 
-    def set(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
+    def set(self, key: str, value: Any, ttl: int | None = None) -> bool:
         """
         Set cached value.
 
@@ -523,7 +524,7 @@ class RedisCache:
         """
         return self.redis_client.cache_delete(key)
 
-    def get_or_set(self, key: str, factory: callable, ttl: Optional[int] = None) -> Any:
+    def get_or_set(self, key: str, factory: callable, ttl: int | None = None) -> Any:
         """
         Get cached value or set it using factory function.
 
@@ -574,7 +575,7 @@ class RedisRateLimiter:
 
     def get_rate_limit_info(
         self, identifier: str, limit: int, window_seconds: int = 60
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get detailed rate limit information.
 

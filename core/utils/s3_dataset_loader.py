@@ -2,13 +2,14 @@
 # Generated for test compatibility
 
 import os
-from typing import Any, Dict, Iterator, List, Optional
+from collections.abc import Iterator
+from typing import Any
 
 
 class S3DatasetLoader:
     """Stub implementation for S3DatasetLoader."""
 
-    def __init__(self, aws_access_key_id: Optional[str] = None, aws_secret_access_key: Optional[str] = None):
+    def __init__(self, aws_access_key_id: str | None = None, aws_secret_access_key: str | None = None):
         """Initialize S3 dataset loader."""
         # Check for credentials
         if aws_access_key_id is None and aws_secret_access_key is None:
@@ -28,15 +29,15 @@ class S3DatasetLoader:
         """Load JSON data from S3."""
         return None
 
-    def stream_jsonl(self, bucket: str, key: str) -> Iterator[Dict[str, Any]]:
+    def stream_jsonl(self, bucket: str, key: str) -> Iterator[dict[str, Any]]:
         """Stream JSONL data from S3."""
         return iter([])
 
-    def stream_json_array(self, bucket: str, key: str) -> Iterator[Dict[str, Any]]:
+    def stream_json_array(self, bucket: str, key: str) -> Iterator[dict[str, Any]]:
         """Stream JSON array from S3."""
         return iter([])
 
-    def stream_json(self, bucket: str, key: str) -> Iterator[Dict[str, Any]]:
+    def stream_json(self, bucket: str, key: str) -> Iterator[dict[str, Any]]:
         """Stream JSON data from S3."""
         return iter([])
 
@@ -48,7 +49,7 @@ class S3DatasetLoader:
         """Download file from S3."""
         return True
 
-    def list_datasets(self, bucket: str, prefix: str = "") -> List[str]:
+    def list_datasets(self, bucket: str, prefix: str = "") -> list[str]:
         """List datasets in S3 bucket."""
         return []
 
@@ -67,4 +68,4 @@ def load_dataset_from_s3(dataset_name: str) -> Any:
     return None
 
 
-__all__ = ['S3DatasetLoader', 'get_s3_dataset_path', 'load_dataset_from_s3']
+__all__ = ["S3DatasetLoader", "get_s3_dataset_path", "load_dataset_from_s3"]

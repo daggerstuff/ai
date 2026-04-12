@@ -4,6 +4,5 @@
 
 class TherapeuticResponseGenerator:
     """Stub implementation for TherapeuticResponseGenerator."""
-    pass
 
-__all__ = ['TherapeuticResponseGenerator']
+__all__ = ["TherapeuticResponseGenerator"]

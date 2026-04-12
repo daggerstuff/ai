@@ -26,10 +26,10 @@ from .core.pipeline_integration import PipelineIntegrationManager
 from .core.task_orchestrator import TaskOrchestrator
 
 __all__ = [
-    "create_mcp_app",
-    "MCPConfig",
-    "get_mcp_config",
     "AgentManager",
-    "TaskOrchestrator",
+    "MCPConfig",
     "PipelineIntegrationManager",
+    "TaskOrchestrator",
+    "create_mcp_app",
+    "get_mcp_config",
 ]

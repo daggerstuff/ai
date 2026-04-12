@@ -5,12 +5,14 @@ This module provides comprehensive bias detection integration with real-time mon
 HIPAA++ compliant data handling, and seamless integration with the six-stage pipeline.
 """
 
+from datetime import datetime, timezone
+
+
 import asyncio
 import json
 import time
 from dataclasses import dataclass
-from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ..error_handling.custom_errors import (
     BiasDetectionError,
@@ -26,10 +28,10 @@ class BiasMetrics:
     """Comprehensive bias detection metrics."""
 
     overall_bias_score: float  # 0.0 to 1.0
-    demographic_bias_scores: Dict[str, float]
-    content_bias_scores: Dict[str, float]
-    fairness_metrics: Dict[str, float]
-    recommendations: List[str]
+    demographic_bias_scores: dict[str, float]
+    content_bias_scores: dict[str, float]
+    fairness_metrics: dict[str, float]
+    recommendations: list[str]
     confidence_score: float
     detection_timestamp: datetime
     model_version: str
@@ -43,9 +45,9 @@ class BiasDetectionConfig:
     enabled: bool = True
     threshold: float = 0.7
 
-    demographic_categories: List[str] = None
+    demographic_categories: list[str] = None
 
-    content_categories: List[str] = None
+    content_categories: list[str] = None
     timeout_seconds: float = 30.0
     model_endpoint: str = "http://localhost:8001/bias-detection"
     cache_enabled: bool = True
@@ -57,7 +59,7 @@ class BiasDetectionConfig:
 class BiasDetectionIntegration:
     """Comprehensive bias detection integration for pipeline operations."""
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         """
         Initialize bias detection integration.
 
@@ -72,10 +74,10 @@ class BiasDetectionIntegration:
         self.model_version = "unknown"
 
         # Cache for bias detection results
-        self.bias_cache: Dict[str, BiasMetrics] = {}
+        self.bias_cache: dict[str, BiasMetrics] = {}
 
         # Real-time monitoring data
-        self.monitoring_data: Dict[str, List[BiasMetrics]] = {}
+        self.monitoring_data: dict[str, list[BiasMetrics]] = {}
 
         # Performance metrics
         self.performance_metrics = {
@@ -117,10 +119,10 @@ class BiasDetectionIntegration:
         except Exception as e:
             self.logger.error(f"Failed to initialize bias detection service: {e}")
             self.bias_service_available = False
-            raise BiasDetectionError(f"Bias service initialization failed: {str(e)}")
+            raise BiasDetectionError(f"Bias service initialization failed: {e!s}")
 
     async def analyze_stage_data(
-        self, stage_data: Dict[str, Any], stage_name: str
+        self, stage_data: dict[str, Any], stage_name: str
     ) -> BiasMetrics:
         """
         Analyze stage data for bias with comprehensive metrics.
@@ -221,9 +223,9 @@ class BiasDetectionIntegration:
             self._update_performance_metrics(
                 False, time.time() - start_time, failed=True
             )
-            raise BiasDetectionError(f"Bias analysis failed: {str(e)}")
+            raise BiasDetectionError(f"Bias analysis failed: {e!s}")
 
-    async def _analyze_validation_data(self, data: Dict[str, Any]) -> BiasMetrics:
+    async def _analyze_validation_data(self, data: dict[str, Any]) -> BiasMetrics:
         """Analyze validation stage data for bias."""
         try:
             # Simulate bias detection for validation data
@@ -266,16 +268,16 @@ class BiasDetectionIntegration:
                 fairness_metrics=fairness_metrics,
                 recommendations=recommendations,
                 confidence_score=random.uniform(0.85, 0.98),
-                detection_timestamp=datetime.utcnow(),
+                detection_timestamp=datetime.now(timezone.utc),
                 model_version=self.model_version,
                 compliance_status="pending",
             )
 
         except Exception as e:
             self.logger.error(f"Validation data bias analysis failed: {e}")
-            raise BiasDetectionError(f"Validation bias analysis failed: {str(e)}")
+            raise BiasDetectionError(f"Validation bias analysis failed: {e!s}")
 
-    async def _analyze_processing_data(self, data: Dict[str, Any]) -> BiasMetrics:
+    async def _analyze_processing_data(self, data: dict[str, Any]) -> BiasMetrics:
         """Analyze processing stage data for bias."""
         try:
             # Simulate bias detection for processing data
@@ -315,16 +317,16 @@ class BiasDetectionIntegration:
                 fairness_metrics=fairness_metrics,
                 recommendations=recommendations,
                 confidence_score=random.uniform(0.88, 0.96),
-                detection_timestamp=datetime.utcnow(),
+                detection_timestamp=datetime.now(timezone.utc),
                 model_version=self.model_version,
                 compliance_status="pending",
             )
 
         except Exception as e:
             self.logger.error(f"Processing data bias analysis failed: {e}")
-            raise BiasDetectionError(f"Processing bias analysis failed: {str(e)}")
+            raise BiasDetectionError(f"Processing bias analysis failed: {e!s}")
 
-    async def _analyze_quality_data(self, data: Dict[str, Any]) -> BiasMetrics:
+    async def _analyze_quality_data(self, data: dict[str, Any]) -> BiasMetrics:
         """Analyze quality stage data for bias."""
         try:
             # Simulate bias detection for quality data
@@ -363,17 +365,17 @@ class BiasDetectionIntegration:
                 fairness_metrics=fairness_metrics,
                 recommendations=recommendations,
                 confidence_score=random.uniform(0.90, 0.98),
-                detection_timestamp=datetime.utcnow(),
+                detection_timestamp=datetime.now(timezone.utc),
                 model_version=self.model_version,
                 compliance_status="pending",
             )
 
         except Exception as e:
             self.logger.error(f"Quality data bias analysis failed: {e}")
-            raise BiasDetectionError(f"Quality bias analysis failed: {str(e)}")
+            raise BiasDetectionError(f"Quality bias analysis failed: {e!s}")
 
     async def _analyze_generic_data(
-        self, data: Dict[str, Any], stage_name: str
+        self, data: dict[str, Any], stage_name: str
     ) -> BiasMetrics:
         """Analyze generic stage data for bias."""
         try:
@@ -412,7 +414,7 @@ class BiasDetectionIntegration:
                 fairness_metrics=fairness_metrics,
                 recommendations=recommendations,
                 confidence_score=random.uniform(0.85, 0.95),
-                detection_timestamp=datetime.utcnow(),
+                detection_timestamp=datetime.now(timezone.utc),
                 model_version=self.model_version,
                 compliance_status="pending",
             )
@@ -421,7 +423,7 @@ class BiasDetectionIntegration:
             self.logger.error(
                 f"Generic data bias analysis failed for stage {stage_name}: {e}"
             )
-            raise BiasDetectionError(f"Generic bias analysis failed: {str(e)}")
+            raise BiasDetectionError(f"Generic bias analysis failed: {e!s}")
 
     def _create_disabled_metrics(self) -> BiasMetrics:
         """Create metrics when bias detection is disabled."""
@@ -432,12 +434,12 @@ class BiasDetectionIntegration:
             fairness_metrics={},
             recommendations=["Bias detection is disabled"],
             confidence_score=0.0,
-            detection_timestamp=datetime.utcnow(),
+            detection_timestamp=datetime.now(timezone.utc),
             model_version=self.model_version,
             compliance_status="not_applicable",
         )
 
-    def _generate_cache_key(self, data: Dict[str, Any], stage_name: str) -> str:
+    def _generate_cache_key(self, data: dict[str, Any], stage_name: str) -> str:
         """Generate cache key for bias detection results."""
         # Create a hash of the data and stage name
         import hashlib
@@ -450,17 +452,16 @@ class BiasDetectionIntegration:
         """Determine compliance status based on bias metrics."""
         if metrics.overall_bias_score <= 0.3:
             return "compliant"
-        elif metrics.overall_bias_score <= self.config.threshold:
+        if metrics.overall_bias_score <= self.config.threshold:
             return "warning"
-        else:
-            return "violation"
+        return "violation"
 
     def _generate_validation_recommendations(
         self,
         overall_bias: float,
-        demographic_bias: Dict[str, float],
-        content_bias: Dict[str, float],
-    ) -> List[str]:
+        demographic_bias: dict[str, float],
+        content_bias: dict[str, float],
+    ) -> list[str]:
         """Generate recommendations for validation stage bias."""
         recommendations = []
 
@@ -489,9 +490,9 @@ class BiasDetectionIntegration:
     def _generate_processing_recommendations(
         self,
         overall_bias: float,
-        demographic_bias: Dict[str, float],
-        content_bias: Dict[str, float],
-    ) -> List[str]:
+        demographic_bias: dict[str, float],
+        content_bias: dict[str, float],
+    ) -> list[str]:
         """Generate recommendations for processing stage bias."""
         recommendations = []
 
@@ -519,9 +520,9 @@ class BiasDetectionIntegration:
     def _generate_quality_recommendations(
         self,
         overall_bias: float,
-        demographic_bias: Dict[str, float],
-        content_bias: Dict[str, float],
-    ) -> List[str]:
+        demographic_bias: dict[str, float],
+        content_bias: dict[str, float],
+    ) -> list[str]:
         """Generate recommendations for quality stage bias."""
         recommendations = []
 
@@ -603,7 +604,7 @@ class BiasDetectionIntegration:
                     "threshold": threshold,
                     "exceeded_by": bias_score - threshold,
                     "severity": "high" if bias_score > threshold + 0.1 else "medium",
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 },
                 source="bias_detection_integration",
                 target="monitoring_system",
@@ -620,8 +621,8 @@ class BiasDetectionIntegration:
             self.logger.error(f"Failed to publish bias threshold event: {e}")
 
     def get_monitoring_summary(
-        self, stage_name: Optional[str] = None
-    ) -> Dict[str, Any]:
+        self, stage_name: str | None = None
+    ) -> dict[str, Any]:
         """
         Get bias monitoring summary.
 
@@ -645,7 +646,7 @@ class BiasDetectionIntegration:
             )
 
             for stage in stages_to_analyze:
-                if stage in self.monitoring_data and self.monitoring_data[stage]:
+                if self.monitoring_data.get(stage):
                     stage_data = self.monitoring_data[stage]
 
                     # Calculate stage metrics
@@ -689,7 +690,7 @@ class BiasDetectionIntegration:
             self.logger.error(f"Failed to generate monitoring summary: {e}")
             return {"error": str(e)}
 
-    def get_real_time_alerts(self) -> List[Dict[str, Any]]:
+    def get_real_time_alerts(self) -> list[dict[str, Any]]:
         """
         Get real-time bias alerts.
 
@@ -734,7 +735,7 @@ class BiasDetectionIntegration:
             self.logger.error(f"Failed to get real-time alerts: {e}")
             return []
 
-    def health_check(self) -> Dict[str, Any]:
+    def health_check(self) -> dict[str, Any]:
         """
         Perform health check of bias detection integration.
 
@@ -774,7 +775,7 @@ class BiasDetectionIntegration:
                 "total_detections": self.performance_metrics["total_detections"],
                 "cache_enabled": self.config.cache_enabled,
                 "real_time_monitoring": self.config.real_time_monitoring,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
 
         except Exception as e:
@@ -782,5 +783,5 @@ class BiasDetectionIntegration:
             return {
                 "status": "unhealthy",
                 "error": str(e),
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }

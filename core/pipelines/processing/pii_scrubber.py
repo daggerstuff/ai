@@ -18,7 +18,7 @@ import hashlib
 import logging
 import re
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 try:
     import spacy
@@ -41,10 +41,10 @@ class PiiScrubberConfig:
     preserve_length: bool = False
 
     # Custom patterns to add to default detection
-    custom_patterns: Dict[str, str] = field(default_factory=dict)
+    custom_patterns: dict[str, str] = field(default_factory=dict)
 
     # PII types to detect (None means all)
-    pii_types: Optional[List[str]] = None
+    pii_types: list[str] | None = None
 
     # Minimum confidence score for spaCy entities (0.0 to 1.0)
     spacy_confidence_threshold: float = 0.5
@@ -61,7 +61,7 @@ class ScrubResult:
     """Result of PII scrubbing operation."""
 
     scrubbed_text: str
-    pii_counts: Dict[str, int] = field(default_factory=dict)
+    pii_counts: dict[str, int] = field(default_factory=dict)
     total_pii_count: int = 0
 
     def __post_init__(self):
@@ -83,10 +83,10 @@ class PiiScrubber:
     - Works offline with deterministic output
     """
 
-    def __init__(self, config: Optional[PiiScrubberConfig] = None):
+    def __init__(self, config: PiiScrubberConfig | None = None):
         """Initialize PiiScrubber with optional configuration."""
         self.config = config or PiiScrubberConfig()
-        self._pii_types_found: List[str] = []
+        self._pii_types_found: list[str] = []
 
         # Initialize regex patterns
         self._regex_patterns = self._compile_regex_patterns()
@@ -106,7 +106,7 @@ class PiiScrubber:
         elif self.config.use_spacy_for_names and not SPACY_AVAILABLE:
             logger.warning("spaCy not available. Install with: pip install spacy")
 
-    def _compile_regex_patterns(self) -> Dict[str, re.Pattern]:
+    def _compile_regex_patterns(self) -> dict[str, re.Pattern]:
         """Compile regex patterns for PII detection."""
         patterns = {
             # Email addresses
@@ -148,24 +148,22 @@ class PiiScrubber:
         """Apply redaction style to a matched PII item."""
         if self.config.redaction_style == "REDACTED":
             return "[REDACTED]"
-        elif self.config.redaction_style == "[TYPE]":
+        if self.config.redaction_style == "[TYPE]":
             return f"[{pii_type.upper()}]"
-        elif self.config.redaction_style == "hash":
+        if self.config.redaction_style == "hash":
             # Return consistent hash for same input
             hash_obj = hashlib.md5(match.encode())
             return f"[HASH:{hash_obj.hexdigest()[:8]}]"
-        elif self.config.redaction_style == "mask":
+        if self.config.redaction_style == "mask":
             if self.config.preserve_length:
                 # Preserve original length with asterisks
                 return "*" * len(match)
-            else:
-                # Fixed length mask
-                return "[MASKED]"
-        else:
-            # Default to [TYPE] style
-            return f"[{pii_type.upper()}]"
+            # Fixed length mask
+            return "[MASKED]"
+        # Default to [TYPE] style
+        return f"[{pii_type.upper()}]"
 
-    def _detect_pii_with_regex(self, text: str) -> List[tuple[str, str, int, int]]:
+    def _detect_pii_with_regex(self, text: str) -> list[tuple[str, str, int, int]]:
         """
         Detect PII using regex patterns.
 
@@ -196,7 +194,7 @@ class PiiScrubber:
 
         return matches
 
-    def _detect_pii_with_spacy(self, text: str) -> List[tuple[str, str, int, int]]:
+    def _detect_pii_with_spacy(self, text: str) -> list[tuple[str, str, int, int]]:
         """
         Detect PII (specifically names) using spaCy NER.
 
@@ -297,7 +295,7 @@ class PiiScrubber:
 
         # Apply redactions from end to start to preserve positions
         scrubbed_text = text
-        pii_counts: Dict[str, int] = {}
+        pii_counts: dict[str, int] = {}
 
         # Process matches in reverse order to maintain positions
         for pii_type, matched_text, start, end in reversed(filtered_matches):
@@ -331,7 +329,7 @@ class PiiScrubber:
         """
         return self._scrub_text_internal(text)
 
-    def scrub_batch(self, texts: List[str]) -> List[ScrubResult]:
+    def scrub_batch(self, texts: list[str]) -> list[ScrubResult]:
         """
         Scrub PII from a batch of text strings.
 
@@ -343,7 +341,7 @@ class PiiScrubber:
         """
         return [self.scrub(text) for text in texts]
 
-    def scrub_dict(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def scrub_dict(self, data: dict[str, Any]) -> dict[str, Any]:
         """
         Scrub PII from dictionary values (recursively).
 
@@ -371,7 +369,7 @@ class PiiScrubber:
 
         return result
 
-    def scrub_list(self, data: List[Any]) -> List[Any]:
+    def scrub_list(self, data: list[Any]) -> list[Any]:
         """
         Scrub PII from list values (recursively).
 
@@ -398,7 +396,7 @@ class PiiScrubber:
 
         return result
 
-    def get_pii_types_found(self) -> List[str]:
+    def get_pii_types_found(self) -> list[str]:
         """
         Get list of PII types found in the last scrubbing operation.
 
@@ -409,7 +407,7 @@ class PiiScrubber:
 
 
 # Convenience functions for quick usage
-def scrub_text(text: str, config: Optional[PiiScrubberConfig] = None) -> str:
+def scrub_text(text: str, config: PiiScrubberConfig | None = None) -> str:
     """
     Quick function to scrub text and return only the scrubbed string.
 
@@ -426,7 +424,7 @@ def scrub_text(text: str, config: Optional[PiiScrubberConfig] = None) -> str:
 
 
 def scrub_text_with_metadata(
-    text: str, config: Optional[PiiScrubberConfig] = None
+    text: str, config: PiiScrubberConfig | None = None
 ) -> ScrubResult:
     """
     Quick function to scrub text and return full metadata.

@@ -1,6 +1,7 @@
-from __future__ import annotations
 
 from datetime import datetime, timezone
+from __future__ import annotations
+
 
 from .null_memory_capacity_tracker import NullMemoryCapacityTracker
 from .null_memory_category_tracker import NullMemoryCategoryTracker
