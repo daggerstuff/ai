@@ -4,15 +4,12 @@ FastAPI dependencies for authentication and authorization.
 This module provides dependency injection for authentication and authorization.
 """
 
-from typing import Annotated, Optional
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from ai.sourcing.journal.api.auth.jwt import get_user_from_token
 from ai.sourcing.journal.api.auth.rbac import (
-    check_permission,
-    get_user_role,
     require_permission,
     require_role,
 )
@@ -26,8 +23,8 @@ security = HTTPBearer(auto_error=False)
 
 async def get_current_user(
     request: Request,
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
-) -> Optional[dict]:
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+) -> dict | None:
     """Get current user from JWT token."""
     # Check if authentication is enabled
     from ai.sourcing.journal.api.config import get_settings
@@ -64,20 +61,20 @@ async def get_current_user(
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid token: {str(e)}",
+            detail=f"Invalid token: {e!s}",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
 
 def get_optional_user(
-    current_user: Optional[dict] = Depends(get_current_user),
-) -> Optional[dict]:
+    current_user: dict | None = Depends(get_current_user),
+) -> dict | None:
     """Get optional current user (doesn't raise error if not authenticated)."""
     return current_user
 
 
 def require_authentication(
-    current_user: Optional[dict] = Depends(get_current_user),
+    current_user: dict | None = Depends(get_current_user),
 ) -> dict:
     """Require authentication, raise error if not authenticated."""
     if not current_user:

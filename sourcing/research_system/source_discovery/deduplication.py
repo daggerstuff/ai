@@ -5,7 +5,6 @@ Uses DOI-based matching and title/author similarity for non-DOI sources.
 """
 
 import logging
-from typing import Optional
 
 from ..models import DatasetSource
 from .metadata_parser import MetadataParser
@@ -174,10 +173,10 @@ class DatasetDeduplicator:
 
         # Update data availability if duplicate has better info
         availability_priority = {
-            'available': 3,
-            'upon_request': 2,
-            'restricted': 1,
-            'unknown': 0
+            "available": 3,
+            "upon_request": 2,
+            "restricted": 1,
+            "unknown": 0
         }
 
         if (availability_priority.get(duplicate.data_availability, 0) >
@@ -270,7 +269,7 @@ class DatasetDeduplicator:
     def create_unified_source(
         self,
         duplicates: list[DatasetSource]
-    ) -> Optional[DatasetSource]:
+    ) -> DatasetSource | None:
         """
         Create a unified source from multiple duplicates.
 
@@ -358,8 +357,8 @@ class DatasetDeduplicator:
         duplicate_rate = (duplicates_removed / original_count * 100) if original_count > 0 else 0
 
         return {
-            'original_count': original_count,
-            'deduplicated_count': deduplicated_count,
-            'duplicates_removed': duplicates_removed,
-            'duplicate_rate_percent': round(duplicate_rate, 2)
+            "original_count": original_count,
+            "deduplicated_count": deduplicated_count,
+            "duplicates_removed": duplicates_removed,
+            "duplicate_rate_percent": round(duplicate_rate, 2)
         }

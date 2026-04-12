@@ -4,13 +4,14 @@ Complete Dataset Audit & Discovery
 Identifies all source files across 52.20GB dataset
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import os
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 import glob
-from datetime import datetime
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -25,7 +26,7 @@ class DatasetAuditor:
 
     def __init__(self):
         self.audit_results = {
-            "audit_timestamp": datetime.now().isoformat(),
+            "audit_timestamp": datetime.now(timezone.utc).isoformat(),
             "total_size_bytes": 0,
             "total_files": 0,
             "files_by_category": {},

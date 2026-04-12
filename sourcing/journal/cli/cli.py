@@ -5,7 +5,6 @@ Main CLI interface for journal dataset research system.
 import logging
 import sys
 from pathlib import Path
-from typing import List, Optional
 
 import click
 from rich.console import Console
@@ -21,11 +20,11 @@ from ai.sourcing.journal.cli.interactive import prompt_for_session_config
 console = Console()
 
 
-def setup_logging(level: str = "INFO", log_file: Optional[Path] = None) -> None:
+def setup_logging(level: str = "INFO", log_file: Path | None = None) -> None:
     """Setup logging configuration."""
     log_level = getattr(logging, level.upper(), logging.INFO)
 
-    handlers: List[logging.Handler] = [logging.StreamHandler(sys.stdout)]
+    handlers: list[logging.Handler] = [logging.StreamHandler(sys.stdout)]
 
     if log_file:
         handlers.append(logging.FileHandler(log_file))
@@ -47,7 +46,7 @@ def setup_logging(level: str = "INFO", log_file: Optional[Path] = None) -> None:
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose logging")
 @click.option("--log-file", type=click.Path(path_type=Path), help="Log file path")
 @click.pass_context
-def cli(ctx: click.Context, config: Optional[Path], dry_run: bool, verbose: bool, log_file: Optional[Path]) -> None:
+def cli(ctx: click.Context, config: Path | None, dry_run: bool, verbose: bool, log_file: Path | None) -> None:
     """Journal Dataset Research System CLI."""
     ctx.ensure_object(dict)
 
@@ -74,7 +73,7 @@ def search(
     ctx: click.Context,
     keywords: tuple,
     sources: tuple,
-    session_id: Optional[str],
+    session_id: str | None,
     interactive: bool,
 ) -> None:
     """Search for dataset sources."""
@@ -123,7 +122,7 @@ def evaluate(
         interactive=interactive,
     )
 
-    console.print(f"\n[green]Evaluation completed[/green]")
+    console.print("\n[green]Evaluation completed[/green]")
     console.print(f"Evaluated {len(result['evaluations'])} datasets")
 
 
@@ -149,7 +148,7 @@ def acquire(
         interactive=interactive,
     )
 
-    console.print(f"\n[green]Acquisition completed[/green]")
+    console.print("\n[green]Acquisition completed[/green]")
     console.print(f"Acquired {len(result['acquired'])} datasets")
 
 
@@ -178,14 +177,14 @@ def integrate(
         interactive=interactive,
     )
 
-    console.print(f"\n[green]Integration planning completed[/green]")
+    console.print("\n[green]Integration planning completed[/green]")
     console.print(f"Created {len(result['plans'])} integration plans")
 
 
 @cli.command()
 @click.option("--session-id", help="Session ID (optional, lists all if not provided)")
 @click.pass_context
-def status(ctx: click.Context, session_id: Optional[str]) -> None:
+def status(ctx: click.Context, session_id: str | None) -> None:
     """Get research session status."""
     handler = CommandHandler(ctx.obj["config"], ctx.obj["dry_run"])
     handler.status(session_id=session_id)
@@ -199,7 +198,7 @@ def status(ctx: click.Context, session_id: Optional[str]) -> None:
 def report(
     ctx: click.Context,
     session_id: str,
-    output: Optional[Path],
+    output: Path | None,
     report_format: str,
 ) -> None:
     """Generate research report."""
@@ -220,13 +219,12 @@ def report(
 @cli.group()
 def config() -> None:
     """Configuration management commands."""
-    pass
 
 
 @config.command("show")
 @click.option("--key", help="Configuration key (dot-separated path)")
 @click.pass_context
-def config_show(ctx: click.Context, key: Optional[str]) -> None:
+def config_show(ctx: click.Context, key: str | None) -> None:
     """Show configuration."""
     config_data = ctx.obj["config"]
 

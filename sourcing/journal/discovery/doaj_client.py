@@ -5,10 +5,11 @@ Implements search integration with DOAJ API for discovering therapeutic
 datasets from open access psychology journals.
 """
 
+from datetime import datetime, timezone
+
+
 import logging
 import time
-from datetime import datetime
-from typing import List, Optional
 
 import requests
 
@@ -53,10 +54,10 @@ class DOAJClient:
 
     def search_journals(
         self,
-        subjects: Optional[List[str]] = None,
-        keywords: Optional[List[str]] = None,
+        subjects: list[str] | None = None,
+        keywords: list[str] | None = None,
         max_journals: int = 50,
-    ) -> List[str]:
+    ) -> list[str]:
         """
         Search for psychology/therapy journals in DOAJ.
 
@@ -115,11 +116,11 @@ class DOAJClient:
 
     def search_articles(
         self,
-        journal_issn: Optional[str] = None,
-        keywords: Optional[List[str]] = None,
-        therapeutic_keywords: Optional[List[str]] = None,
+        journal_issn: str | None = None,
+        keywords: list[str] | None = None,
+        therapeutic_keywords: list[str] | None = None,
         max_results: int = 100,
-    ) -> List[DatasetSource]:
+    ) -> list[DatasetSource]:
         """
         Search for articles in DOAJ, optionally filtered by journal.
 
@@ -207,7 +208,7 @@ class DOAJClient:
             logger.error(f"Error searching DOAJ articles: {e}", exc_info=True)
             return []
 
-    def _parse_article(self, article: dict) -> Optional[DatasetSource]:
+    def _parse_article(self, article: dict) -> DatasetSource | None:
         """Parse a DOAJ article into a DatasetSource."""
         try:
             bibjson = article.get("bibjson", {})
@@ -279,7 +280,7 @@ class DOAJClient:
                 keywords=keywords,
                 open_access=True,  # DOAJ is open access
                 data_availability=data_availability,
-                discovery_date=datetime.now(),
+                discovery_date=datetime.now(timezone.utc),
                 discovery_method="doaj_manual",
             )
 
@@ -303,7 +304,7 @@ class DOAJClient:
         except (ValueError, TypeError, AttributeError):
             pass
 
-        return datetime.now()
+        return datetime.now(timezone.utc)
 
     def _detect_data_availability(self, abstract: str, title: str) -> str:
         """Detect data availability from abstract and title."""

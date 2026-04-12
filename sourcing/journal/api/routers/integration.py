@@ -4,7 +4,6 @@ Integration API routes.
 This module provides endpoints for integration planning operations.
 """
 
-from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -79,7 +78,7 @@ async def initiate_integration(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to initiate integration: {str(e)}",
+            detail=f"Failed to initiate integration: {e!s}",
         )
 
 
@@ -87,7 +86,7 @@ async def initiate_integration(
 async def list_integration_plans(
     session_id: str,
     pagination: PaginationParams = Depends(),
-    current_user: Optional[dict] = Depends(get_current_user),
+    current_user: dict | None = Depends(get_current_user),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> IntegrationPlanListResponse:
     """
@@ -133,7 +132,7 @@ async def list_integration_plans(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to list integration plans: {str(e)}",
+            detail=f"Failed to list integration plans: {e!s}",
         )
 
 
@@ -141,7 +140,7 @@ async def list_integration_plans(
 async def get_integration_plan(
     session_id: str,
     plan_id: str,
-    current_user: Optional[dict] = Depends(get_current_user),
+    current_user: dict | None = Depends(get_current_user),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> IntegrationPlanResponse:
     """
@@ -170,5 +169,5 @@ async def get_integration_plan(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get integration plan: {str(e)}",
+            detail=f"Failed to get integration plan: {e!s}",
         )

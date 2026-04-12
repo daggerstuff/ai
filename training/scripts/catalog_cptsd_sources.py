@@ -6,13 +6,14 @@ This script catalogs and downloads CPTSD-related content from S3 for dataset exp
 It identifies all CPTSD sources, downloads them, and creates a comprehensive inventory.
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import os
 HETZNER_AI_CLI = os.environ.get("HETZNER_AI_CLI", "ovhai")
 import subprocess
 from dataclasses import asdict, dataclass
-from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -348,7 +349,7 @@ class CPTSDSourceCataloger:
     def save_catalog(self) -> None:
         """Save catalog to JSON file."""
         catalog_data = {
-            "generated_at": datetime.now().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
             "total_sources": len(self.sources),
             "sources_by_type": {},
             "sources": [asdict(source) for source in self.sources],

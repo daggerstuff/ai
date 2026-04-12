@@ -5,13 +5,14 @@ This module provides audit logging functionality to track all security-relevant
 events including tool executions, resource access, and authentication/authorization events.
 """
 
+from datetime import datetime, timezone
+
+
 import json
 import logging
-import time
 from dataclasses import asdict, dataclass
-from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any
 
 from ai.sourcing.journal.mcp.config import LoggingConfig
 
@@ -54,19 +55,19 @@ class AuditEvent:
 
     event_type: AuditEventType
     timestamp: str
-    user_id: Optional[str] = None
-    user_role: Optional[str] = None
-    resource: Optional[str] = None  # Tool name, resource URI, etc.
-    action: Optional[str] = None  # execute, read, etc.
+    user_id: str | None = None
+    user_role: str | None = None
+    resource: str | None = None  # Tool name, resource URI, etc.
+    action: str | None = None  # execute, read, etc.
     success: bool = True
-    error_message: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
-    request_id: Optional[str] = None
-    session_id: Optional[str] = None
-    ip_address: Optional[str] = None
-    user_agent: Optional[str] = None
+    error_message: str | None = None
+    metadata: dict[str, Any] | None = None
+    request_id: str | None = None
+    session_id: str | None = None
+    ip_address: str | None = None
+    user_agent: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert audit event to dictionary."""
         result = asdict(self)
         result["event_type"] = self.event_type.value
@@ -107,9 +108,9 @@ class AuditLogger:
     def log_auth_success(
         self,
         user_id: str,
-        user_role: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None,
-        request_id: Optional[str] = None,
+        user_role: str | None = None,
+        metadata: dict[str, Any] | None = None,
+        request_id: str | None = None,
     ) -> None:
         """
         Log successful authentication.
@@ -122,7 +123,7 @@ class AuditLogger:
         """
         event = AuditEvent(
             event_type=AuditEventType.AUTH_SUCCESS,
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now(timezone.utc).isoformat(),
             user_id=user_id,
             user_role=user_role,
             success=True,
@@ -134,9 +135,9 @@ class AuditLogger:
     def log_auth_failure(
         self,
         reason: str,
-        user_id: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None,
-        request_id: Optional[str] = None,
+        user_id: str | None = None,
+        metadata: dict[str, Any] | None = None,
+        request_id: str | None = None,
     ) -> None:
         """
         Log failed authentication.
@@ -149,7 +150,7 @@ class AuditLogger:
         """
         event = AuditEvent(
             event_type=AuditEventType.AUTH_FAILURE,
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now(timezone.utc).isoformat(),
             user_id=user_id,
             success=False,
             error_message=reason,
@@ -164,7 +165,7 @@ class AuditLogger:
         user_role: str,
         resource: str,
         action: str,
-        request_id: Optional[str] = None,
+        request_id: str | None = None,
     ) -> None:
         """
         Log granted authorization.
@@ -178,7 +179,7 @@ class AuditLogger:
         """
         event = AuditEvent(
             event_type=AuditEventType.AUTHORIZATION_GRANTED,
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now(timezone.utc).isoformat(),
             user_id=user_id,
             user_role=user_role,
             resource=resource,
@@ -194,8 +195,8 @@ class AuditLogger:
         user_role: str,
         resource: str,
         action: str,
-        reason: Optional[str] = None,
-        request_id: Optional[str] = None,
+        reason: str | None = None,
+        request_id: str | None = None,
     ) -> None:
         """
         Log denied authorization.
@@ -210,7 +211,7 @@ class AuditLogger:
         """
         event = AuditEvent(
             event_type=AuditEventType.AUTHORIZATION_DENIED,
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now(timezone.utc).isoformat(),
             user_id=user_id,
             user_role=user_role,
             resource=resource,
@@ -226,9 +227,9 @@ class AuditLogger:
         user_id: str,
         user_role: str,
         tool_name: str,
-        tool_params: Optional[Dict[str, Any]] = None,
-        request_id: Optional[str] = None,
-        session_id: Optional[str] = None,
+        tool_params: dict[str, Any] | None = None,
+        request_id: str | None = None,
+        session_id: str | None = None,
     ) -> None:
         """
         Log tool execution start.
@@ -243,7 +244,7 @@ class AuditLogger:
         """
         event = AuditEvent(
             event_type=AuditEventType.TOOL_EXECUTION_START,
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now(timezone.utc).isoformat(),
             user_id=user_id,
             user_role=user_role,
             resource=tool_name,
@@ -260,9 +261,9 @@ class AuditLogger:
         user_id: str,
         user_role: str,
         tool_name: str,
-        execution_time_ms: Optional[float] = None,
-        request_id: Optional[str] = None,
-        session_id: Optional[str] = None,
+        execution_time_ms: float | None = None,
+        request_id: str | None = None,
+        session_id: str | None = None,
     ) -> None:
         """
         Log successful tool execution.
@@ -281,7 +282,7 @@ class AuditLogger:
 
         event = AuditEvent(
             event_type=AuditEventType.TOOL_EXECUTION_SUCCESS,
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now(timezone.utc).isoformat(),
             user_id=user_id,
             user_role=user_role,
             resource=tool_name,
@@ -299,8 +300,8 @@ class AuditLogger:
         user_role: str,
         tool_name: str,
         error_message: str,
-        request_id: Optional[str] = None,
-        session_id: Optional[str] = None,
+        request_id: str | None = None,
+        session_id: str | None = None,
     ) -> None:
         """
         Log failed tool execution.
@@ -315,7 +316,7 @@ class AuditLogger:
         """
         event = AuditEvent(
             event_type=AuditEventType.TOOL_EXECUTION_FAILURE,
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now(timezone.utc).isoformat(),
             user_id=user_id,
             user_role=user_role,
             resource=tool_name,
@@ -333,9 +334,9 @@ class AuditLogger:
         user_role: str,
         resource_uri: str,
         success: bool = True,
-        error_message: Optional[str] = None,
-        request_id: Optional[str] = None,
-        session_id: Optional[str] = None,
+        error_message: str | None = None,
+        request_id: str | None = None,
+        session_id: str | None = None,
     ) -> None:
         """
         Log resource access.
@@ -356,7 +357,7 @@ class AuditLogger:
         )
         event = AuditEvent(
             event_type=event_type,
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now(timezone.utc).isoformat(),
             user_id=user_id,
             user_role=user_role,
             resource=resource_uri,
@@ -371,8 +372,8 @@ class AuditLogger:
     def log_rate_limit_exceeded(
         self,
         identifier: str,
-        user_id: Optional[str] = None,
-        request_id: Optional[str] = None,
+        user_id: str | None = None,
+        request_id: str | None = None,
     ) -> None:
         """
         Log rate limit exceeded event.
@@ -384,7 +385,7 @@ class AuditLogger:
         """
         event = AuditEvent(
             event_type=AuditEventType.RATE_LIMIT_EXCEEDED,
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now(timezone.utc).isoformat(),
             user_id=user_id,
             success=False,
             error_message=f"Rate limit exceeded for identifier: {identifier}",
@@ -397,9 +398,9 @@ class AuditLogger:
         self,
         violation_type: str,
         description: str,
-        user_id: Optional[str] = None,
-        resource: Optional[str] = None,
-        request_id: Optional[str] = None,
+        user_id: str | None = None,
+        resource: str | None = None,
+        request_id: str | None = None,
     ) -> None:
         """
         Log security violation.
@@ -413,7 +414,7 @@ class AuditLogger:
         """
         event = AuditEvent(
             event_type=AuditEventType.SECURITY_VIOLATION,
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now(timezone.utc).isoformat(),
             user_id=user_id,
             resource=resource,
             success=False,

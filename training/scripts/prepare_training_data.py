@@ -8,12 +8,13 @@ source → process → filter → format → assemble
 Provides CLI interface with options for each stage and checkpoint support.
 """
 
+from datetime import datetime, timezone
+
 import json
 import sys
 import argparse
 from pathlib import Path
 from typing import Dict, Any, Optional
-from datetime import datetime
 import logging
 
 logger = logging.getLogger(__name__)
@@ -58,7 +59,7 @@ class DataPreparationOrchestrator:
         """Save checkpoint state"""
         self.checkpoint["completed_stages"].append(stage)
         self.checkpoint["last_stage"] = stage
-        self.checkpoint["timestamp"] = datetime.now().isoformat()
+        self.checkpoint["timestamp"] = datetime.now(timezone.utc).isoformat()
 
         self.checkpoint_file.parent.mkdir(parents=True, exist_ok=True)
         with open(self.checkpoint_file, "w") as f:
@@ -155,7 +156,7 @@ class DataPreparationOrchestrator:
                     logger.warning(f"Failed to load {name} report: {e}")
 
         return {
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "checkpoint": self.checkpoint,
             "reports": reports,
         }

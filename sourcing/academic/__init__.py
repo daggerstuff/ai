@@ -94,8 +94,7 @@ def get_publisher(publisher_name: str) -> BasePublisher:
     }
     if publisher := publisher_map.get(publisher_name.lower()):
         return publisher
-    else:
-        raise ValueError(f"Publisher '{publisher_name}' not implemented yet")
+    raise ValueError(f"Publisher '{publisher_name}' not implemented yet")
 
 
 def get_all_publishers() -> list[BasePublisher]:

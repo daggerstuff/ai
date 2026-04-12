@@ -51,6 +51,8 @@ Notes:
 Author: Pixelated Empathy AI Team
 """
 
+from datetime import datetime, timezone
+
 from __future__ import annotations
 
 import argparse
@@ -59,7 +61,6 @@ import json
 import logging
 import random
 from collections import Counter
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterator
 

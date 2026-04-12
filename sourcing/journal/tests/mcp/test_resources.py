@@ -1,6 +1,7 @@
-import json
+
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+import json
+from typing import Any
 
 import pytest
 
@@ -28,11 +29,11 @@ class _FakeOrchestrator:
         self,
         session_id: str,
         progress: ResearchProgress,
-        history: List[ProgressSnapshot],
+        history: list[ProgressSnapshot],
         state: SessionState,
-        activity_log: List[ResearchLog],
-        error_log: List[Dict[str, Any]],
-        report: Dict[str, Any],
+        activity_log: list[ResearchLog],
+        error_log: list[dict[str, Any]],
+        report: dict[str, Any],
     ) -> None:
         self._session_id = session_id
         self._progress = progress
@@ -50,7 +51,7 @@ class _FakeOrchestrator:
         self._ensure_session(session_id)
         return self._progress
 
-    def get_progress_history(self, session_id: str) -> List[ProgressSnapshot]:
+    def get_progress_history(self, session_id: str) -> list[ProgressSnapshot]:
         self._ensure_session(session_id)
         return self._history
 
@@ -58,15 +59,15 @@ class _FakeOrchestrator:
         self._ensure_session(session_id)
         return self._state
 
-    def get_activity_log(self, session_id: str) -> List[ResearchLog]:
+    def get_activity_log(self, session_id: str) -> list[ResearchLog]:
         self._ensure_session(session_id)
         return self._activity_log
 
-    def get_error_log(self, session_id: str) -> List[Dict[str, Any]]:
+    def get_error_log(self, session_id: str) -> list[dict[str, Any]]:
         self._ensure_session(session_id)
         return self._error_log
 
-    def generate_progress_report(self, session_id: str) -> Dict[str, Any]:
+    def generate_progress_report(self, session_id: str) -> dict[str, Any]:
         self._ensure_session(session_id)
         return self._report
 
@@ -81,7 +82,7 @@ class _FakeService:
 def _build_orchestrator(
     session_id: str,
     session_state: SessionState,
-    progress_report: Optional[Dict[str, Any]] = None,
+    progress_report: dict[str, Any] | None = None,
 ) -> _FakeOrchestrator:
     progress = ResearchProgress(
         sources_identified=3,

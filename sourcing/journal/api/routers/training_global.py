@@ -5,7 +5,7 @@ Provides global endpoints for training pipeline status (not session-scoped).
 """
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -24,7 +24,7 @@ router = APIRouter(prefix="/training", tags=["training"])
 
 @router.get(
     "/pipeline-status",
-    response_model=Dict[str, Any],
+    response_model=dict[str, Any],
     responses={
         200: {"description": "Training pipeline status"},
     },
@@ -32,7 +32,7 @@ router = APIRouter(prefix="/training", tags=["training"])
 async def get_pipeline_status(
     current_user: dict = Depends(require_permission_dependency("training:read")),
     training_service: TrainingPipelineService = Depends(get_training_pipeline_service),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Get overall training pipeline status.
 
@@ -47,5 +47,5 @@ async def get_pipeline_status(
         logger.error(f"Error getting pipeline status: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get pipeline status: {str(e)}",
+            detail=f"Failed to get pipeline status: {e!s}",
         )

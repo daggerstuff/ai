@@ -1,8 +1,9 @@
+
+from datetime import datetime, timezone
 from __future__ import annotations
 
 from copy import deepcopy
-from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ai.sourcing.journal.mcp.auth.authorization import AuthorizationHandler
 from ai.sourcing.journal.models.dataset_models import (
@@ -22,7 +23,7 @@ class AllowAllAuthorization(AuthorizationHandler):
 
     async def authorize(
         self,
-        user: Dict[str, Any],
+        user: dict[str, Any],
         resource: str,
         action: str,
     ) -> bool:
@@ -30,7 +31,7 @@ class AllowAllAuthorization(AuthorizationHandler):
 
     async def require_authorization(
         self,
-        user: Dict[str, Any],
+        user: dict[str, Any],
         resource: str,
         action: str,
     ) -> None:
@@ -43,11 +44,11 @@ class FakeOrchestrator:
     def __init__(
         self,
         session: ResearchSession,
-        sources: List[DatasetSource],
-        evaluations: List[DatasetEvaluation],
-        acquisitions: List[AcquiredDataset],
-        integration_plans: List[IntegrationPlan],
-        report: Optional[Dict[str, Any]] = None,
+        sources: list[DatasetSource],
+        evaluations: list[DatasetEvaluation],
+        acquisitions: list[AcquiredDataset],
+        integration_plans: list[IntegrationPlan],
+        report: dict[str, Any] | None = None,
     ) -> None:
         self.session = session
         self.state = SessionState(
@@ -65,11 +66,11 @@ class FakeOrchestrator:
             ),
             datasets_acquired=len(self.state.acquired_datasets),
             integration_plans_created=len(self.state.integration_plans),
-            last_updated=datetime.utcnow(),
+            last_updated=datetime.now(timezone.utc),
         )
-        self.history: List[ProgressSnapshot] = [
+        self.history: list[ProgressSnapshot] = [
             ProgressSnapshot(
-                timestamp=self.progress.last_updated or datetime.utcnow(),
+                timestamp=self.progress.last_updated or datetime.now(timezone.utc),
                 progress=self.progress,
                 metrics={
                     "sources_identified": self.progress.sources_identified,
@@ -78,21 +79,21 @@ class FakeOrchestrator:
                 },
             ),
         ]
-        self.activity_log: List[ResearchLog] = [
+        self.activity_log: list[ResearchLog] = [
             ResearchLog(
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(timezone.utc),
                 activity_type="session_start",
                 description="Session initialized for testing",
                 outcome="success",
             )
         ]
-        self.error_log: List[Dict[str, str]] = []
+        self.error_log: list[dict[str, str]] = []
         self.report = report or {
             "report_id": f"report_{session.session_id}",
             "session_id": session.session_id,
             "report_type": "summary_report",
             "format": "json",
-            "generated_date": datetime.utcnow().isoformat(),
+            "generated_date": datetime.now(timezone.utc).isoformat(),
             "content": {"summary": "Test report"},
         }
 
@@ -104,7 +105,7 @@ class FakeOrchestrator:
         self._validate_session_id(session_id)
         return self.progress
 
-    def get_progress_history(self, session_id: str) -> List[ProgressSnapshot]:
+    def get_progress_history(self, session_id: str) -> list[ProgressSnapshot]:
         self._validate_session_id(session_id)
         return list(self.history)
 
@@ -112,31 +113,31 @@ class FakeOrchestrator:
         self._validate_session_id(session_id)
         return self.state
 
-    def get_activity_log(self, session_id: str) -> List[ResearchLog]:
+    def get_activity_log(self, session_id: str) -> list[ResearchLog]:
         self._validate_session_id(session_id)
         return list(self.activity_log)
 
-    def get_error_log(self, session_id: str) -> List[Dict[str, str]]:
+    def get_error_log(self, session_id: str) -> list[dict[str, str]]:
         self._validate_session_id(session_id)
         return list(self.error_log)
 
-    def generate_progress_report(self, session_id: str) -> Dict[str, Any]:
+    def generate_progress_report(self, session_id: str) -> dict[str, Any]:
         self._validate_session_id(session_id)
         return deepcopy(self.report)
 
-    def update_sources(self, sources: List[DatasetSource]) -> None:
+    def update_sources(self, sources: list[DatasetSource]) -> None:
         self.state.sources = deepcopy(sources)
         self._update_progress_counts()
 
-    def update_evaluations(self, evaluations: List[DatasetEvaluation]) -> None:
+    def update_evaluations(self, evaluations: list[DatasetEvaluation]) -> None:
         self.state.evaluations = deepcopy(evaluations)
         self._update_progress_counts()
 
-    def update_acquisitions(self, acquisitions: List[AcquiredDataset]) -> None:
+    def update_acquisitions(self, acquisitions: list[AcquiredDataset]) -> None:
         self.state.acquired_datasets = deepcopy(acquisitions)
         self._update_progress_counts()
 
-    def update_integration_plans(self, plans: List[IntegrationPlan]) -> None:
+    def update_integration_plans(self, plans: list[IntegrationPlan]) -> None:
         self.state.integration_plans = deepcopy(plans)
         self._update_progress_counts()
 
@@ -148,7 +149,7 @@ class FakeOrchestrator:
             [d for d in self.state.acquired_datasets if d.storage_path]
         )
         self.progress.integration_plans_created = len(self.state.integration_plans)
-        self.progress.last_updated = datetime.utcnow()
+        self.progress.last_updated = datetime.now(timezone.utc)
         self.history.append(
             ProgressSnapshot(
                 timestamp=self.progress.last_updated,
@@ -168,11 +169,11 @@ class FakeCommandHandlerService:
     def __init__(
         self,
         session: ResearchSession,
-        sources: List[DatasetSource],
-        evaluations: List[DatasetEvaluation],
-        acquisitions: List[AcquiredDataset],
-        integration_plans: List[IntegrationPlan],
-        report: Optional[Dict[str, Any]] = None,
+        sources: list[DatasetSource],
+        evaluations: list[DatasetEvaluation],
+        acquisitions: list[AcquiredDataset],
+        integration_plans: list[IntegrationPlan],
+        report: dict[str, Any] | None = None,
     ) -> None:
         self.session = deepcopy(session)
         self.sources = [deepcopy(source) for source in sources]
@@ -190,7 +191,7 @@ class FakeCommandHandlerService:
             self.integration_plans,
             report=self.report,
         )
-        self._reports: Dict[str, Dict[str, Any]] = {}
+        self._reports: dict[str, dict[str, Any]] = {}
         if self.orchestrator.report:
             self._reports[self.orchestrator.report["report_id"]] = deepcopy(
                 self.orchestrator.report
@@ -199,10 +200,10 @@ class FakeCommandHandlerService:
     # Session management -------------------------------------------------
     def create_session(
         self,
-        target_sources: List[str],
-        search_keywords: Dict[str, List[str]],
-        weekly_targets: Optional[Dict[str, int]] = None,
-        session_id: Optional[str] = None,
+        target_sources: list[str],
+        search_keywords: dict[str, list[str]],
+        weekly_targets: dict[str, int] | None = None,
+        session_id: str | None = None,
     ) -> ResearchSession:
         if session_id and session_id != self.session.session_id:
             self.session.session_id = session_id
@@ -210,12 +211,12 @@ class FakeCommandHandlerService:
         self.session.search_keywords = search_keywords
         if weekly_targets is not None:
             self.session.weekly_targets = weekly_targets
-        self.session.start_date = datetime.utcnow()
+        self.session.start_date = datetime.now(timezone.utc)
         self.orchestrator.session = self.session
         self.orchestrator.state = SessionState()
         return self.session
 
-    def list_sessions(self) -> List[ResearchSession]:
+    def list_sessions(self) -> list[ResearchSession]:
         return [self.session]
 
     def get_session(self, session_id: str) -> ResearchSession:
@@ -226,10 +227,10 @@ class FakeCommandHandlerService:
     def update_session(
         self,
         session_id: str,
-        target_sources: Optional[List[str]] = None,
-        search_keywords: Optional[Dict[str, List[str]]] = None,
-        weekly_targets: Optional[Dict[str, int]] = None,
-        current_phase: Optional[str] = None,
+        target_sources: list[str] | None = None,
+        search_keywords: dict[str, list[str]] | None = None,
+        weekly_targets: dict[str, int] | None = None,
+        current_phase: str | None = None,
     ) -> ResearchSession:
         if session_id != self.session.session_id:
             raise ValueError(f"Session {session_id} not found")
@@ -251,9 +252,9 @@ class FakeCommandHandlerService:
     def initiate_discovery(
         self,
         session_id: str,
-        keywords: List[str],
+        keywords: list[str],
         sources: Any,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         self.orchestrator._validate_session_id(session_id)
         normalized_sources = sources
         if isinstance(normalized_sources, str):  # type: ignore[isinstance-second-argument-not-valid-type]
@@ -266,7 +267,7 @@ class FakeCommandHandlerService:
             "total_sources": len(self.sources),
         }
 
-    def get_sources(self, session_id: str) -> List[DatasetSource]:
+    def get_sources(self, session_id: str) -> list[DatasetSource]:
         self.orchestrator._validate_session_id(session_id)
         return deepcopy(self.sources)
 
@@ -281,8 +282,8 @@ class FakeCommandHandlerService:
     def initiate_evaluation(
         self,
         session_id: str,
-        source_ids: Optional[List[str]] = None,
-    ) -> Dict[str, Any]:
+        source_ids: list[str] | None = None,
+    ) -> dict[str, Any]:
         self.orchestrator._validate_session_id(session_id)
         evaluations = [
             evaluation
@@ -302,7 +303,7 @@ class FakeCommandHandlerService:
             ],
         }
 
-    def get_evaluations(self, session_id: str) -> List[DatasetEvaluation]:
+    def get_evaluations(self, session_id: str) -> list[DatasetEvaluation]:
         self.orchestrator._validate_session_id(session_id)
         return deepcopy(self.evaluations)
 
@@ -318,11 +319,11 @@ class FakeCommandHandlerService:
         self,
         session_id: str,
         evaluation_id: str,
-        therapeutic_relevance: Optional[int] = None,
-        data_structure_quality: Optional[int] = None,
-        training_integration: Optional[int] = None,
-        ethical_accessibility: Optional[int] = None,
-        priority_tier: Optional[str] = None,
+        therapeutic_relevance: int | None = None,
+        data_structure_quality: int | None = None,
+        training_integration: int | None = None,
+        ethical_accessibility: int | None = None,
+        priority_tier: str | None = None,
     ) -> DatasetEvaluation:
         evaluation = self.get_evaluation(session_id, evaluation_id)
         if therapeutic_relevance is not None:
@@ -341,8 +342,8 @@ class FakeCommandHandlerService:
     def initiate_acquisition(
         self,
         session_id: str,
-        source_ids: Optional[List[str]] = None,
-    ) -> Dict[str, Any]:
+        source_ids: list[str] | None = None,
+    ) -> dict[str, Any]:
         self.orchestrator._validate_session_id(session_id)
         acquisitions = [
             acquisition
@@ -355,7 +356,7 @@ class FakeCommandHandlerService:
             "acquired": [acquisition.source_id for acquisition in acquisitions],
         }
 
-    def get_acquisitions(self, session_id: str) -> List[AcquiredDataset]:
+    def get_acquisitions(self, session_id: str) -> list[AcquiredDataset]:
         self.orchestrator._validate_session_id(session_id)
         return deepcopy(self.acquisitions)
 
@@ -371,7 +372,7 @@ class FakeCommandHandlerService:
         self,
         session_id: str,
         acquisition_id: str,
-        status: Optional[str] = None,
+        status: str | None = None,
     ) -> AcquiredDataset:
         acquisition = self.get_acquisition(session_id, acquisition_id)
         if status == "completed":
@@ -382,9 +383,9 @@ class FakeCommandHandlerService:
     def initiate_integration(
         self,
         session_id: str,
-        source_ids: Optional[List[str]] = None,
+        source_ids: list[str] | None = None,
         target_format: str = "chatml",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         self.orchestrator._validate_session_id(session_id)
         plans = [
             plan
@@ -402,7 +403,7 @@ class FakeCommandHandlerService:
             ],
         }
 
-    def get_integration_plans(self, session_id: str) -> List[IntegrationPlan]:
+    def get_integration_plans(self, session_id: str) -> list[IntegrationPlan]:
         self.orchestrator._validate_session_id(session_id)
         return deepcopy(self.integration_plans)
 
@@ -420,15 +421,15 @@ class FakeCommandHandlerService:
         session_id: str,
         report_type: str,
         format: str,
-        date_range: Optional[Dict[str, str]] = None,
-    ) -> Dict[str, Any]:
+        date_range: dict[str, str] | None = None,
+    ) -> dict[str, Any]:
         self.orchestrator._validate_session_id(session_id)
         report = {
             "report_id": f"report_{session_id}_{report_type}",
             "session_id": session_id,
             "report_type": report_type,
             "format": format,
-            "generated_date": datetime.utcnow(),
+            "generated_date": datetime.now(timezone.utc),
             "content": {
                 "summary": f"{report_type} generated in {format}",
                 "date_range": date_range,
@@ -438,13 +439,13 @@ class FakeCommandHandlerService:
         self._reports[report["report_id"]] = deepcopy(report)
         return report
 
-    def get_report(self, session_id: str, report_id: str) -> Dict[str, Any]:
+    def get_report(self, session_id: str, report_id: str) -> dict[str, Any]:
         self.orchestrator._validate_session_id(session_id)
         if report_id not in self._reports:
             raise ValueError(f"Report {report_id} not found")
         return deepcopy(self._reports[report_id])
 
-    def list_reports(self, session_id: str) -> List[Dict[str, Any]]:
+    def list_reports(self, session_id: str) -> list[dict[str, Any]]:
         self.orchestrator._validate_session_id(session_id)
         return [deepcopy(report) for report in self._reports.values()]
 

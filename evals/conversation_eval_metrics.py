@@ -10,11 +10,10 @@ Implements multi-dimensional quality scoring for therapeutic conversations:
 
 import sys
 from pathlib import Path
-from typing import Dict, List
 
 import numpy as np
 import torch
-import torch.nn as nn
+from torch import nn
 from transformers import AutoModel, AutoTokenizer
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
@@ -91,7 +90,7 @@ class ConversationQualityEvaluator(nn.Module):
         self,
         input_ids: torch.Tensor,
         attention_mask: torch.Tensor,
-    ) -> Dict[str, torch.Tensor]:
+    ) -> dict[str, torch.Tensor]:
         """
         Forward pass.
 
@@ -132,7 +131,7 @@ class QualityMetricsComputer:
 
     def encode_conversation(
         self, conversation_text: str, max_length: int = 512
-    ) -> Dict:
+    ) -> dict:
         """Encode conversation for model."""
         encoding = self.tokenizer(
             conversation_text,
@@ -143,7 +142,7 @@ class QualityMetricsComputer:
         )
         return {k: v.to(self.device) for k, v in encoding.items()}
 
-    def evaluate_conversation(self, conversation_text: str) -> Dict[str, float]:
+    def evaluate_conversation(self, conversation_text: str) -> dict[str, float]:
         """
         Evaluate conversation quality.
 
@@ -162,11 +161,11 @@ class QualityMetricsComputer:
                 dimension: score.cpu().item() for dimension, score in scores.items()
             }
 
-    def evaluate_batch(self, conversations: List[str]) -> List[Dict[str, float]]:
+    def evaluate_batch(self, conversations: list[str]) -> list[dict[str, float]]:
         """Evaluate multiple conversations."""
         return [self.evaluate_conversation(conv) for conv in conversations]
 
-    def compute_overall_quality(self, quality_scores: Dict[str, float]) -> float:
+    def compute_overall_quality(self, quality_scores: dict[str, float]) -> float:
         """Compute overall quality score as mean of dimensions."""
         return float(np.mean(list(quality_scores.values())))
 

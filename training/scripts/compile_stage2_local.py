@@ -4,10 +4,11 @@ Compile Stage 2 local datasets into final training format.
 Integrates defense mechanism synthetic data with metadata.
 """
 
+from datetime import datetime, timezone
+
 import json
 import hashlib
 from pathlib import Path
-from datetime import datetime, timezone
 from typing import Dict, List, Any
 
 

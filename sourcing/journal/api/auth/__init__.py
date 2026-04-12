@@ -17,11 +17,11 @@ from ai.sourcing.journal.api.auth.rbac import (
 )
 
 __all__ = [
+    "check_permission",
     "create_access_token",
     "decode_access_token",
-    "verify_token",
-    "check_permission",
     "get_user_role",
     "require_role",
+    "verify_token",
 ]
 

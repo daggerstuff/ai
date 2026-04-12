@@ -39,6 +39,8 @@ Notes:
 - Uses voice profiles for system prompts when available.
 """
 
+from datetime import datetime, timezone
+
 from __future__ import annotations
 
 import argparse
@@ -48,7 +50,6 @@ import logging
 import re
 from collections import Counter
 from collections.abc import Iterator
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 

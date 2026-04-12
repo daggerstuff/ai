@@ -4,17 +4,15 @@ WebSocket routes for real-time updates.
 This module provides WebSocket endpoints for streaming progress updates.
 """
 
+from datetime import datetime, timezone
+
+
 import asyncio
 import json
 import logging
-from datetime import datetime
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, status
 
-from ai.sourcing.journal.api.dependencies import (
-    get_command_handler_service,
-    get_current_user,
-)
 from ai.sourcing.journal.api.services.command_handler_service import (
     CommandHandlerService,
 )
@@ -62,7 +60,7 @@ async def websocket_progress(
                 {
                     "type": "progress_update",
                     "session_id": session_id,
-                    "timestamp": datetime.now().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                     "data": progress_data,
                 },
                 websocket,
@@ -73,8 +71,8 @@ async def websocket_progress(
                 {
                     "type": "error",
                     "session_id": session_id,
-                    "timestamp": datetime.now().isoformat(),
-                    "message": f"Failed to load progress: {str(e)}",
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "message": f"Failed to load progress: {e!s}",
                 },
                 websocket,
             )
@@ -90,18 +88,18 @@ async def websocket_progress(
                         await manager.send_personal_message(
                             {
                                 "type": "pong",
-                                "timestamp": datetime.now().isoformat(),
+                                "timestamp": datetime.now(timezone.utc).isoformat(),
                             },
                             websocket,
                         )
                 except json.JSONDecodeError:
                     logger.warning(f"Invalid JSON received: {data}")
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 # Send ping to keep connection alive
                 await manager.send_personal_message(
                     {
                         "type": "ping",
-                        "timestamp": datetime.now().isoformat(),
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
                     },
                     websocket,
                 )
@@ -170,7 +168,7 @@ async def websocket_progress_poll(
                         {
                             "type": "progress_update",
                             "session_id": session_id,
-                            "timestamp": datetime.now().isoformat(),
+                            "timestamp": datetime.now(timezone.utc).isoformat(),
                             "data": progress_data,
                         },
                         websocket,
@@ -186,7 +184,7 @@ async def websocket_progress_poll(
                     message = json.loads(data)
                     if message.get("type") == "close":
                         break
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     pass
                 except json.JSONDecodeError:
                     pass
@@ -197,8 +195,8 @@ async def websocket_progress_poll(
                     {
                         "type": "error",
                         "session_id": session_id,
-                        "timestamp": datetime.now().isoformat(),
-                        "message": f"Error polling progress: {str(e)}",
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                        "message": f"Error polling progress: {e!s}",
                     },
                     websocket,
                 )

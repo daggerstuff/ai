@@ -6,10 +6,11 @@ across four dimensions: therapeutic relevance, data structure quality, training
 integration potential, and ethical accessibility.
 """
 
+from datetime import datetime, timezone
+
+
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Dict, List, Optional
 
 from ai.sourcing.journal.models.dataset_models import (
     DatasetEvaluation,
@@ -43,7 +44,7 @@ class EvaluationConfig:
     medium_priority_threshold: float = 5.0
 
     # Therapeutic relevance keywords
-    therapeutic_keywords: List[str] = field(
+    therapeutic_keywords: list[str] = field(
         default_factory=lambda: [
             "therapy",
             "therapeutic",
@@ -71,7 +72,7 @@ class EvaluationConfig:
     )
 
     # Evidence-based practice keywords
-    evidence_based_keywords: List[str] = field(
+    evidence_based_keywords: list[str] = field(
         default_factory=lambda: [
             "cbt",
             "cognitive behavioral",
@@ -89,7 +90,7 @@ class EvaluationConfig:
     )
 
     # Content type indicators
-    transcript_keywords: List[str] = field(
+    transcript_keywords: list[str] = field(
         default_factory=lambda: [
             "transcript",
             "dialogue",
@@ -99,7 +100,7 @@ class EvaluationConfig:
         ]
     )
 
-    outcome_keywords: List[str] = field(
+    outcome_keywords: list[str] = field(
         default_factory=lambda: [
             "outcome",
             "effectiveness",
@@ -111,7 +112,7 @@ class EvaluationConfig:
         ]
     )
 
-    protocol_keywords: List[str] = field(
+    protocol_keywords: list[str] = field(
         default_factory=lambda: [
             "protocol",
             "procedure",
@@ -122,7 +123,7 @@ class EvaluationConfig:
         ]
     )
 
-    def validate(self) -> List[str]:
+    def validate(self) -> list[str]:
         """Validate the configuration and return list of errors."""
         errors = []
         total_weight = (
@@ -158,8 +159,8 @@ class DatasetEvaluationEngine:
 
     def __init__(
         self,
-        config: Optional[EvaluationConfig] = None,
-        compliance_checker: Optional[ComplianceChecker] = None,
+        config: EvaluationConfig | None = None,
+        compliance_checker: ComplianceChecker | None = None,
     ):
         """
         Initialize the evaluation engine.
@@ -289,7 +290,7 @@ class DatasetEvaluationEngine:
             ethical_notes=ethical_notes,
             overall_score=overall_score,
             priority_tier=priority_tier,
-            evaluation_date=datetime.now(),
+            evaluation_date=datetime.now(timezone.utc),
             evaluator=evaluator,
             competitive_advantages=competitive_advantages,
             compliance_checked=compliance_checked,
@@ -634,14 +635,13 @@ class DatasetEvaluationEngine:
         """
         if overall_score >= self.config.high_priority_threshold:
             return "high"
-        elif overall_score >= self.config.medium_priority_threshold:
+        if overall_score >= self.config.medium_priority_threshold:
             return "medium"
-        else:
-            return "low"
+        return "low"
 
     def _identify_competitive_advantages(
         self, source: DatasetSource, therapeutic_relevance: int, data_structure_quality: int
-    ) -> List[str]:
+    ) -> list[str]:
         """
         Identify competitive advantages of the dataset.
 
@@ -690,8 +690,8 @@ class DatasetEvaluationEngine:
         return advantages
 
     def rank_datasets(
-        self, evaluations: List[DatasetEvaluation]
-    ) -> List[DatasetEvaluation]:
+        self, evaluations: list[DatasetEvaluation]
+    ) -> list[DatasetEvaluation]:
         """
         Rank datasets by overall score (descending).
 
@@ -704,7 +704,7 @@ class DatasetEvaluationEngine:
         return sorted(evaluations, key=lambda e: e.overall_score, reverse=True)
 
     def generate_evaluation_report(
-        self, evaluation: DatasetEvaluation, source: Optional[DatasetSource] = None
+        self, evaluation: DatasetEvaluation, source: DatasetSource | None = None
     ) -> str:
         """
         Generate a structured evaluation report in markdown format.

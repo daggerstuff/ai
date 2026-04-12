@@ -7,17 +7,15 @@ and result formatting.
 
 import asyncio
 import logging
-from typing import Any, Callable, Dict, List, Optional
+from collections.abc import Callable
+from typing import Any
 
 from ai.sourcing.journal.mcp.protocol import (
-    JSONRPCErrorCode,
     MCPError,
     MCPErrorCode,
 )
-from ai.sourcing.journal.mcp.tools.base import MCPTool
 from ai.sourcing.journal.mcp.tools.registry import ToolRegistry
 from ai.sourcing.journal.mcp.utils.async_execution import AsyncToolExecutor
-from ai.sourcing.journal.mcp.utils.error_handling import MCPErrorHandler
 from ai.sourcing.journal.mcp.utils.progress_streaming import (
     ProgressStreamer,
     ProgressUpdate,
@@ -32,8 +30,8 @@ class ToolExecutor:
     def __init__(
         self,
         registry: ToolRegistry,
-        progress_streamer: Optional[ProgressStreamer] = None,
-        async_executor: Optional[AsyncToolExecutor] = None,
+        progress_streamer: ProgressStreamer | None = None,
+        async_executor: AsyncToolExecutor | None = None,
     ) -> None:
         """
         Initialize tool executor.
@@ -52,12 +50,12 @@ class ToolExecutor:
     async def execute_tool(
         self,
         tool_name: str,
-        params: Optional[Dict[str, Any]] = None,
-        timeout: Optional[float] = None,
+        params: dict[str, Any] | None = None,
+        timeout: float | None = None,
         async_execution: bool = False,
-        operation_id: Optional[str] = None,
-        progress_callback: Optional[Callable[[ProgressUpdate], None]] = None,
-    ) -> Dict[str, Any]:
+        operation_id: str | None = None,
+        progress_callback: Callable[[ProgressUpdate], None] | None = None,
+    ) -> dict[str, Any]:
         """
         Execute a tool by name.
 
@@ -100,12 +98,11 @@ class ToolExecutor:
                     e.message,
                     e.data,
                 ) from e
-            else:
-                raise MCPError(
-                    MCPErrorCode.TOOL_VALIDATION_ERROR,
-                    f"Parameter validation failed: {str(e)}",
-                    {"tool_name": tool_name, "params": params, "error": str(e)},
-                ) from e
+            raise MCPError(
+                MCPErrorCode.TOOL_VALIDATION_ERROR,
+                f"Parameter validation failed: {e!s}",
+                {"tool_name": tool_name, "params": params, "error": str(e)},
+            ) from e
 
         # Use async execution if requested and available
         if async_execution and self.async_executor:
@@ -148,7 +145,7 @@ class ToolExecutor:
 
             return result
 
-        except asyncio.TimeoutError as e:
+        except TimeoutError as e:
             raise MCPError(
                 MCPErrorCode.TOOL_TIMEOUT,
                 f"Tool execution timed out after {timeout} seconds",
@@ -164,11 +161,11 @@ class ToolExecutor:
             logger.exception(f"Error executing tool {tool_name}")
             raise MCPError(
                 MCPErrorCode.TOOL_EXECUTION_ERROR,
-                f"Tool execution failed: {str(e)}",
+                f"Tool execution failed: {e!s}",
                 {"tool_name": tool_name, "error_type": type(e).__name__},
             ) from e
 
-    def list_tools(self) -> List[Dict[str, Any]]:
+    def list_tools(self) -> list[dict[str, Any]]:
         """
         List all available tools with their schemas.
 
@@ -177,7 +174,7 @@ class ToolExecutor:
         """
         return self.registry.get_tool_schemas()
 
-    def get_tool_schema(self, tool_name: str) -> Optional[Dict[str, Any]]:
+    def get_tool_schema(self, tool_name: str) -> dict[str, Any] | None:
         """
         Get tool schema by name.
 
@@ -218,7 +215,7 @@ class ToolExecutor:
             return False
         return await self.async_executor.cancel_operation(operation_id)
 
-    async def get_operation_status(self, operation_id: str) -> Optional[Dict[str, Any]]:
+    async def get_operation_status(self, operation_id: str) -> dict[str, Any] | None:
         """
         Get operation status.
 

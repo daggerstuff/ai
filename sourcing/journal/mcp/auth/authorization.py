@@ -6,7 +6,7 @@ This module provides authorization handlers for role-based access control (RBAC)
 
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ai.sourcing.journal.mcp.protocol import MCPError, MCPErrorCode
 
@@ -109,7 +109,7 @@ class AuthorizationHandler(ABC):
 
     @abstractmethod
     async def authorize(
-        self, user: Dict[str, Any], resource: str, action: str
+        self, user: dict[str, Any], resource: str, action: str
     ) -> bool:
         """
         Check if user is authorized to perform action on resource.
@@ -122,11 +122,10 @@ class AuthorizationHandler(ABC):
         Returns:
             True if authorized, False otherwise
         """
-        pass
 
     @abstractmethod
     async def require_authorization(
-        self, user: Dict[str, Any], resource: str, action: str
+        self, user: dict[str, Any], resource: str, action: str
     ) -> None:
         """
         Require authorization, raise exception if not authorized.
@@ -139,7 +138,6 @@ class AuthorizationHandler(ABC):
         Raises:
             MCPError: If authorization fails
         """
-        pass
 
 
 class RBAC(AuthorizationHandler):
@@ -151,7 +149,7 @@ class RBAC(AuthorizationHandler):
         self.tool_permissions = TOOL_PERMISSIONS
         self.resource_permissions = RESOURCE_PERMISSIONS
 
-    def get_user_role(self, user: Optional[Dict[str, Any]]) -> str:
+    def get_user_role(self, user: dict[str, Any] | None) -> str:
         """
         Get user role from user dictionary.
 
@@ -165,7 +163,7 @@ class RBAC(AuthorizationHandler):
             return "viewer"
         return user.get("role", "viewer")
 
-    def get_role_permissions(self, role: str) -> List[str]:
+    def get_role_permissions(self, role: str) -> list[str]:
         """
         Get permissions for a role.
 
@@ -178,7 +176,7 @@ class RBAC(AuthorizationHandler):
         role_config = self.roles.get(role, {})
         return role_config.get("permissions", [])
 
-    def check_permission(self, user: Optional[Dict[str, Any]], permission: str) -> bool:
+    def check_permission(self, user: dict[str, Any] | None, permission: str) -> bool:
         """
         Check if user has a specific permission.
 
@@ -221,7 +219,7 @@ class RBAC(AuthorizationHandler):
 
         return False
 
-    def get_tool_permission(self, tool_name: str) -> Optional[str]:
+    def get_tool_permission(self, tool_name: str) -> str | None:
         """
         Get required permission for a tool.
 
@@ -233,7 +231,7 @@ class RBAC(AuthorizationHandler):
         """
         return self.tool_permissions.get(tool_name)
 
-    def get_resource_permission(self, resource_uri: str) -> Optional[str]:
+    def get_resource_permission(self, resource_uri: str) -> str | None:
         """
         Get required permission for a resource.
 
@@ -255,7 +253,7 @@ class RBAC(AuthorizationHandler):
         return None
 
     async def authorize(
-        self, user: Dict[str, Any], resource: str, action: str
+        self, user: dict[str, Any], resource: str, action: str
     ) -> bool:
         """
         Check if user is authorized to perform action on resource.
@@ -269,7 +267,7 @@ class RBAC(AuthorizationHandler):
             True if authorized, False otherwise
         """
         # Determine required permission based on resource type
-        permission: Optional[str] = None
+        permission: str | None = None
 
         # Check if resource is a tool
         tool_permission = self.get_tool_permission(resource)
@@ -280,14 +278,13 @@ class RBAC(AuthorizationHandler):
             resource_permission = self.get_resource_permission(resource)
             if resource_permission:
                 permission = resource_permission
-            else:
-                # Default permission based on action
-                if action == "execute":
-                    # For unknown tools, require admin or wildcard permission
-                    return self.check_permission(user, "*")
-                elif action == "read":
-                    # For unknown resources, require read permission
-                    return self.check_permission(user, "sessions:read")
+            # Default permission based on action
+            elif action == "execute":
+                # For unknown tools, require admin or wildcard permission
+                return self.check_permission(user, "*")
+            elif action == "read":
+                # For unknown resources, require read permission
+                return self.check_permission(user, "sessions:read")
 
         if not permission:
             # No permission mapping found, deny by default
@@ -299,7 +296,7 @@ class RBAC(AuthorizationHandler):
         return self.check_permission(user, permission)
 
     async def require_authorization(
-        self, user: Dict[str, Any], resource: str, action: str
+        self, user: dict[str, Any], resource: str, action: str
     ) -> None:
         """
         Require authorization, raise exception if not authorized.

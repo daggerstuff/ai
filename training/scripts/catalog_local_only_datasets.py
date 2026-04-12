@@ -9,11 +9,12 @@ Identifies which datasets are:
 4. URL-accessible (can download directly to S3)
 """
 
+from datetime import datetime, timezone
+
 import json
 import sys
 from pathlib import Path
 from typing import Dict, List, Any
-from datetime import datetime
 
 # Add project root to path
 project_root = Path(__file__).parent.parent.parent.parent
@@ -115,7 +116,7 @@ class DatasetCataloger:
         }
 
         return {
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "summary": summary,
             "catalog": self.catalog,
         }

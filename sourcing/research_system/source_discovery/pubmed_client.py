@@ -5,10 +5,12 @@ Provides search functionality for mental health and therapy-related datasets
 with support for MeSH terms, open access filtering, and pagination.
 """
 
+from datetime import datetime, timezone
+
+
 import logging
 import xml.etree.ElementTree as ET
-from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from ..models import DatasetSource
 from .base_client import APIError, BaseAPIClient
@@ -66,7 +68,7 @@ class PubMedClient(BaseAPIClient):
     def build_search_query(
         self,
         keywords: list[str],
-        mesh_terms: Optional[list[str]] = None,
+        mesh_terms: list[str] | None = None,
         open_access_only: bool = True,
         has_data_availability: bool = True
     ) -> str:
@@ -115,7 +117,7 @@ class PubMedClient(BaseAPIClient):
     def search(
         self,
         keywords: list[str],
-        mesh_terms: Optional[list[str]] = None,
+        mesh_terms: list[str] | None = None,
         max_results: int = 100,
         open_access_only: bool = True,
         has_data_availability: bool = True
@@ -257,7 +259,7 @@ class PubMedClient(BaseAPIClient):
 
         return articles
 
-    def _extract_article_data(self, article_elem: ET.Element) -> Optional[dict[str, Any]]:
+    def _extract_article_data(self, article_elem: ET.Element) -> dict[str, Any] | None:
         """
         Extract article data from XML element.
 
@@ -342,7 +344,7 @@ class PubMedClient(BaseAPIClient):
             "url": f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/"
         }
 
-    def _parse_pub_date(self, pub_date_elem: Optional[ET.Element]) -> datetime:
+    def _parse_pub_date(self, pub_date_elem: ET.Element | None) -> datetime:
         """
         Parse publication date from XML element.
 
@@ -353,14 +355,14 @@ class PubMedClient(BaseAPIClient):
             Publication date or current date if parsing fails
         """
         if pub_date_elem is None:
-            return datetime.now()
+            return datetime.now(timezone.utc)
 
         year_elem = pub_date_elem.find("Year")
         month_elem = pub_date_elem.find("Month")
         day_elem = pub_date_elem.find("Day")
 
         try:
-            year = int(year_elem.text) if year_elem is not None else datetime.now().year
+            year = int(year_elem.text) if year_elem is not None else datetime.now(timezone.utc).year
 
             # Parse month (can be numeric or text)
             month = 1
@@ -381,7 +383,7 @@ class PubMedClient(BaseAPIClient):
             return datetime(year, month, day)
 
         except (ValueError, TypeError):
-            return datetime.now()
+            return datetime.now(timezone.utc)
 
     def convert_to_dataset_source(self, article: dict) -> DatasetSource:
         """
@@ -408,14 +410,14 @@ class PubMedClient(BaseAPIClient):
             keywords=article["keywords"],
             open_access=True,  # Filtered by search
             data_availability="unknown",  # Needs manual verification
-            discovery_date=datetime.now(),
+            discovery_date=datetime.now(timezone.utc),
             discovery_method="pubmed_search"
         )
 
     def search_and_fetch(
         self,
         keywords: list[str],
-        mesh_terms: Optional[list[str]] = None,
+        mesh_terms: list[str] | None = None,
         max_results: int = 100
     ) -> list[DatasetSource]:
         """

@@ -4,10 +4,10 @@ Data models for YouTube channel curation.
 Defines channel metadata, quality scoring, licensing info, and status tracking.
 """
 
-from dataclasses import dataclass, field
 from datetime import datetime
+
+from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Set
 
 from pydantic import BaseModel, Field
 
@@ -58,7 +58,7 @@ class QualityMetrics:
         }
         return sum(
             getattr(self, metric) * weights[metric]
-            for metric in weights.keys()
+            for metric in weights
         )
 
 
@@ -66,13 +66,13 @@ class QualityMetrics:
 class LicensingInfo:
     """Licensing and copyright information."""
     cc_license: bool = False
-    cc_type: Optional[str] = None  # BY, BY-SA, BY-NC, etc.
+    cc_type: str | None = None  # BY, BY-SA, BY-NC, etc.
     commercial_use: bool = False
     attribution_required: bool = True
     modification_allowed: bool = False
     share_alike: bool = False
-    notes: Optional[str] = None
-    verified_date: Optional[datetime] = None
+    notes: str | None = None
+    verified_date: datetime | None = None
 
 
 @dataclass
@@ -84,37 +84,37 @@ class Channel:
     subscriber_count: int = 0
     video_count: int = 0
     total_views: int = 0
-    created_date: Optional[datetime] = None
-    last_updated: Optional[datetime] = None
+    created_date: datetime | None = None
+    last_updated: datetime | None = None
 
     # Content information
-    categories: List[ContentCategory] = field(default_factory=list)
+    categories: list[ContentCategory] = field(default_factory=list)
     primary_language: str = "en"
-    languages: Set[str] = field(default_factory=set)
-    description: Optional[str] = None
+    languages: set[str] = field(default_factory=set)
+    description: str | None = None
 
     # Quality assessment
     quality_score: float = 0.0  # 0.0-1.0 overall
-    quality_metrics: Optional[QualityMetrics] = None
+    quality_metrics: QualityMetrics | None = None
 
     # Professional credentials
     is_professional: bool = False
-    credentials: List[str] = field(default_factory=list)  # LCSW, PhD, LMFT, etc.
-    organization: Optional[str] = None  # Clinic, hospital, university
+    credentials: list[str] = field(default_factory=list)  # LCSW, PhD, LMFT, etc.
+    organization: str | None = None  # Clinic, hospital, university
     verified_professional: bool = False
 
     # Licensing
-    licensing: Optional[LicensingInfo] = None
+    licensing: LicensingInfo | None = None
 
     # Monitoring
     status: ChannelStatus = ChannelStatus.UNKNOWN
     health_score: float = 0.0  # 0.0-1.0 channel health
-    last_monitored: Optional[datetime] = None
-    alert_notes: List[str] = field(default_factory=list)
+    last_monitored: datetime | None = None
+    alert_notes: list[str] = field(default_factory=list)
 
     # Metadata
-    tags: List[str] = field(default_factory=list)
-    notes: Optional[str] = None
+    tags: list[str] = field(default_factory=list)
+    notes: str | None = None
     source: str = "manual"  # manual, api_search, recommendation
 
     def min_quality_score(self, minimum: float = 0.8) -> bool:
@@ -158,8 +158,8 @@ class ChannelRegistry(BaseModel):
     pending_review: int = 0
     rejected_channels: int = 0
 
-    languages: Dict[str, int] = Field(default_factory=dict)
-    categories: Dict[str, int] = Field(default_factory=dict)
+    languages: dict[str, int] = Field(default_factory=dict)
+    categories: dict[str, int] = Field(default_factory=dict)
 
     total_subscribers: int = 0
     total_videos: int = 0

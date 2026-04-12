@@ -5,11 +5,9 @@ This module manages WebSocket connections and broadcasts progress updates.
 """
 
 import asyncio
-import json
 import logging
-from typing import Dict, Set
 
-from fastapi import WebSocket, WebSocketDisconnect
+from fastapi import WebSocket
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +17,7 @@ class ConnectionManager:
 
     def __init__(self):
         """Initialize the connection manager."""
-        self.active_connections: Dict[str, Set[WebSocket]] = {}
+        self.active_connections: dict[str, set[WebSocket]] = {}
         self._lock = asyncio.Lock()
 
     async def connect(self, websocket: WebSocket, session_id: str) -> None:
@@ -73,7 +71,7 @@ class ConnectionManager:
         async with self._lock:
             return len(self.active_connections.get(session_id, set()))
 
-    def get_all_session_ids(self) -> Set[str]:
+    def get_all_session_ids(self) -> set[str]:
         """Get all session IDs with active connections."""
         return set(self.active_connections.keys())
 

@@ -5,10 +5,12 @@ Generates progress metrics charts, timeline visualizations, and quality score
 distributions for research activities.
 """
 
+from datetime import datetime, timezone
+
+
 import json
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from ai.sourcing.journal.models.dataset_models import (
     DatasetEvaluation,
@@ -62,8 +64,8 @@ class ProgressVisualization:
 
     def generate_progress_metrics_chart(
         self,
-        progress_history: List[Dict[str, Any]],
-        output_path: Optional[Path] = None,
+        progress_history: list[dict[str, Any]],
+        output_path: Path | None = None,
     ) -> Path:
         """
         Generate a chart showing progress metrics over time.
@@ -83,7 +85,7 @@ class ProgressVisualization:
         if output_path is None:
             output_path = (
                 self.output_directory
-                / f"progress_metrics_{datetime.now().strftime('%Y%m%d')}.png"
+                / f"progress_metrics_{datetime.now(timezone.utc).strftime('%Y%m%d')}.png"
             )
 
         # Extract data
@@ -121,8 +123,8 @@ class ProgressVisualization:
     def _generate_timeline_image(
         self,
         session: ResearchSession,
-        phase_transitions: List[Dict[str, Any]],
-        output_path: Optional[Path] = None,
+        phase_transitions: list[dict[str, Any]],
+        output_path: Path | None = None,
     ) -> Path:
         """
         Generate a timeline visualization for research phases.
@@ -143,7 +145,7 @@ class ProgressVisualization:
         if output_path is None:
             output_path = (
                 self.output_directory
-                / f"timeline_{session.session_id}_{datetime.now().strftime('%Y%m%d')}.png"
+                / f"timeline_{session.session_id}_{datetime.now(timezone.utc).strftime('%Y%m%d')}.png"
             )
 
         # Create timeline data
@@ -162,7 +164,7 @@ class ProgressVisualization:
         for i, transition in enumerate(phase_transitions):
             phase = transition.get("phase", session.current_phase)
             timestamp = datetime.fromisoformat(
-                transition.get("timestamp", datetime.now().isoformat())
+                transition.get("timestamp", datetime.now(timezone.utc).isoformat())
             )
             y_pos = y_positions.get(phase, 0)
             # Convert datetime to matplotlib date number
@@ -185,7 +187,7 @@ class ProgressVisualization:
             start_time = datetime.fromisoformat(
                 phase_transitions[0].get("timestamp", session.start_date.isoformat())
             )
-            end_time = datetime.now()
+            end_time = datetime.now(timezone.utc)
             # Convert datetimes to matplotlib date numbers
             start_date_num = mdates.date2num(start_time)
             end_date_num = mdates.date2num(end_time)
@@ -211,8 +213,8 @@ class ProgressVisualization:
 
     def _generate_quality_score_image(
         self,
-        evaluations: List[DatasetEvaluation],
-        output_path: Optional[Path] = None,
+        evaluations: list[DatasetEvaluation],
+        output_path: Path | None = None,
     ) -> Path:
         """
         Generate a distribution chart of quality scores (image).
@@ -232,7 +234,7 @@ class ProgressVisualization:
         if output_path is None:
             output_path = (
                 self.output_directory
-                / f"quality_scores_{datetime.now().strftime('%Y%m%d')}.png"
+                / f"quality_scores_{datetime.now(timezone.utc).strftime('%Y%m%d')}.png"
             )
 
         # Extract scores
@@ -290,7 +292,7 @@ class ProgressVisualization:
         axes[4].grid(True, alpha=0.3)
 
         # Priority tier pie chart
-        priority_counts: Dict[str, int] = {}
+        priority_counts: dict[str, int] = {}
         for eval in evaluations:
             priority_counts[eval.priority_tier] = (
                 priority_counts.get(eval.priority_tier, 0) + 1
@@ -299,7 +301,7 @@ class ProgressVisualization:
         if priority_counts:
             axes[5].pie(
                 priority_counts.values(),
-                labels=[tier.upper() for tier in priority_counts.keys()],
+                labels=[tier.upper() for tier in priority_counts],
                 autopct="%1.1f%%",
                 startangle=90,
             )
@@ -315,8 +317,8 @@ class ProgressVisualization:
         self,
         session: ResearchSession,
         progress: ResearchProgress,
-        evaluations: List[DatasetEvaluation],
-        output_path: Optional[Path] = None,
+        evaluations: list[DatasetEvaluation],
+        output_path: Path | None = None,
     ) -> Path:
         """
         Generate an HTML dashboard with embedded visualizations.
@@ -333,7 +335,7 @@ class ProgressVisualization:
         if output_path is None:
             output_path = (
                 self.output_directory
-                / f"dashboard_{session.session_id}_{datetime.now().strftime('%Y%m%d')}.html"
+                / f"dashboard_{session.session_id}_{datetime.now(timezone.utc).strftime('%Y%m%d')}.html"
             )
 
         # Generate individual charts
@@ -406,7 +408,7 @@ class ProgressVisualization:
             template = Template(html_template)
             html_content = template.render(
                 session_id=session.session_id,
-                generated_date=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                generated_date=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
                 sources_identified=progress.sources_identified,
                 datasets_evaluated=progress.datasets_evaluated,
                 datasets_acquired=progress.datasets_acquired,
@@ -420,7 +422,7 @@ class ProgressVisualization:
             # Fallback to simple string replacement
             html_content = html_template.replace("{{ session_id }}", session.session_id)
             html_content = html_content.replace(
-                "{{ generated_date }}", datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                "{{ generated_date }}", datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
             )
             html_content = html_content.replace(
                 "{{ sources_identified }}", str(progress.sources_identified)
@@ -448,8 +450,8 @@ class ProgressVisualization:
     def generate_progress_chart_data(
         self,
         session: ResearchSession,
-        progress_history: List[ResearchProgress],
-    ) -> Dict[str, Any]:
+        progress_history: list[ResearchProgress],
+    ) -> dict[str, Any]:
         """
         Generate progress chart data (for use with charting libraries).
 
@@ -463,7 +465,7 @@ class ProgressVisualization:
         labels = [
             progress.last_updated.strftime("%Y-%m-%d")
             if progress.last_updated
-            else datetime.now().strftime("%Y-%m-%d")
+            else datetime.now(timezone.utc).strftime("%Y-%m-%d")
             for progress in progress_history
         ]
 
@@ -487,10 +489,10 @@ class ProgressVisualization:
     def generate_timeline_visualization(
         self,
         session: ResearchSession,
-        progress_history: Optional[List[ResearchProgress]] = None,
-        phase_transitions: Optional[List[Dict[str, Any]]] = None,
-        output_path: Optional[Path] = None,
-    ) -> Union[Dict[str, Any], Path]:
+        progress_history: list[ResearchProgress] | None = None,
+        phase_transitions: list[dict[str, Any]] | None = None,
+        output_path: Path | None = None,
+    ) -> dict[str, Any] | Path:
         """
         Generate a timeline visualization for research phases.
 
@@ -523,7 +525,7 @@ class ProgressVisualization:
                         "timestamp": (
                             progress.last_updated.isoformat()
                             if progress.last_updated
-                            else datetime.now().isoformat()
+                            else datetime.now(timezone.utc).isoformat()
                         ),
                     }
                 )
@@ -544,7 +546,7 @@ class ProgressVisualization:
                     {
                         "phase": transition.get("phase", session.current_phase),
                         "timestamp": transition.get(
-                            "timestamp", datetime.now().isoformat()
+                            "timestamp", datetime.now(timezone.utc).isoformat()
                         ),
                     }
                 )
@@ -561,9 +563,9 @@ class ProgressVisualization:
 
     def generate_quality_score_distribution(
         self,
-        evaluations: List[DatasetEvaluation],
-        output_path: Optional[Path] = None,
-    ) -> Union[Dict[str, Any], Path]:
+        evaluations: list[DatasetEvaluation],
+        output_path: Path | None = None,
+    ) -> dict[str, Any] | Path:
         """
         Generate a distribution chart of quality scores.
 
@@ -582,7 +584,7 @@ class ProgressVisualization:
         scores = [eval.overall_score for eval in evaluations]
 
         # Create distribution bins
-        bins = list(range(0, 11))  # 0-10 score range
+        bins = list(range(11))  # 0-10 score range
         distribution = [0] * len(bins)
         for score in scores:
             bin_idx = min(int(score), len(bins) - 1)
@@ -597,7 +599,7 @@ class ProgressVisualization:
     def export_visualization_html(
         self,
         session: ResearchSession,
-        progress_history: List[ResearchProgress],
+        progress_history: list[ResearchProgress],
         output_path: Path,
     ) -> Path:
         """
@@ -640,7 +642,7 @@ class ProgressVisualization:
         <div class="header">
             <h1>Research Progress Visualization</h1>
             <p>Session ID: {session.session_id}</p>
-            <p>Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
+            <p>Generated: {datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")}</p>
         </div>
 
         <div class="chart-container">
@@ -699,7 +701,7 @@ class ProgressVisualization:
         """Generate a simple progress chart."""
         output_path = (
             self.output_directory
-            / f"progress_simple_{datetime.now().strftime('%Y%m%d')}.png"
+            / f"progress_simple_{datetime.now(timezone.utc).strftime('%Y%m%d')}.png"
         )
 
         metrics = [
@@ -731,12 +733,12 @@ class ProgressVisualization:
         return output_path
 
     def _generate_simple_score_chart(
-        self, evaluations: List[DatasetEvaluation]
+        self, evaluations: list[DatasetEvaluation]
     ) -> Path:
         """Generate a simple score distribution chart."""
         output_path = (
             self.output_directory
-            / f"scores_simple_{datetime.now().strftime('%Y%m%d')}.png"
+            / f"scores_simple_{datetime.now(timezone.utc).strftime('%Y%m%d')}.png"
         )
 
         scores = [eval.overall_score for eval in evaluations]

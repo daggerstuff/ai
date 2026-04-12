@@ -4,11 +4,12 @@ Configuration Locking System
 Freezes configuration, seeds, and git commit info for reproducibility
 """
 
+from datetime import datetime, timezone
+
 import json
 import random
 import subprocess
 from dataclasses import dataclass, asdict, field
-from datetime import datetime
 from pathlib import Path
 from typing import Optional, Dict, Any
 import hashlib
@@ -188,7 +189,7 @@ def lock_config(config: Dict[str, Any], seed: Optional[int] = None,
 
     # Create locked config
     locked = LockedConfig(
-        created_at=datetime.utcnow().isoformat() + "Z",
+        created_at=datetime.now(timezone.utc).isoformat() + "Z",
         git_info=git_info,
         random_seed=seed,
         config_snapshot=config,

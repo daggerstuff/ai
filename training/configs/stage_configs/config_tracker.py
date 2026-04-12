@@ -4,6 +4,8 @@ Configuration Change Tracking and Rollback System for Pixelated Empathy AI
 Tracks configuration changes and provides rollback capabilities
 """
 
+from datetime import datetime, timezone
+
 import os
 import sys
 import json
@@ -14,7 +16,6 @@ import logging
 from typing import Dict, List, Any, Optional, Tuple
 from pathlib import Path
 from dataclasses import dataclass, asdict
-from datetime import datetime, timezone
 import subprocess
 import tempfile
 from contextlib import contextmanager
@@ -438,7 +439,7 @@ class ConfigTracker:
                 raise ValueError("Invalid import data format")
             
             # Backup current tracking data
-            backup_file = self.tracking_dir / f"backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+            backup_file = self.tracking_dir / f"backup_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.json"
             self.export_tracking_data(str(backup_file))
             
             # Import changes and snapshots
@@ -477,13 +478,13 @@ class ConfigTracker:
     
     def _generate_change_id(self) -> str:
         """Generate unique change ID"""
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        timestamp = datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')
         random_suffix = hashlib.md5(os.urandom(16)).hexdigest()[:8]
         return f"change_{timestamp}_{random_suffix}"
     
     def _generate_snapshot_id(self) -> str:
         """Generate unique snapshot ID"""
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        timestamp = datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')
         random_suffix = hashlib.md5(os.urandom(16)).hexdigest()[:8]
         return f"snapshot_{timestamp}_{random_suffix}"
     

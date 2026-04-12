@@ -7,14 +7,12 @@ to prevent abuse and ensure fair resource usage.
 
 import asyncio
 import time
-from collections import defaultdict
-from typing import Dict, Optional
 
 from ai.sourcing.journal.mcp.config import RateLimitConfig
 from ai.sourcing.journal.mcp.protocol import MCPError, MCPErrorCode
 
 # Global rate limiters per identifier (e.g., user_id, IP address)
-_rate_limiters: Dict[str, "RateLimiter"] = {}
+_rate_limiters: dict[str, "RateLimiter"] = {}
 _rate_limiters_lock = asyncio.Lock()
 
 
@@ -126,7 +124,7 @@ class RateLimiter:
         # Return the maximum wait time (most restrictive)
         return int(max(minute_wait, hour_wait)) + 1
 
-    def get_stats(self) -> Dict[str, any]:
+    def get_stats(self) -> dict[str, any]:
         """
         Get rate limiter statistics.
 
@@ -156,7 +154,7 @@ class RateLimitManager:
             config: Rate limiting configuration
         """
         self.config = config
-        self.limiters: Dict[str, RateLimiter] = {}
+        self.limiters: dict[str, RateLimiter] = {}
 
     def get_limiter(self, identifier: str) -> RateLimiter:
         """
@@ -198,7 +196,7 @@ class RateLimitManager:
         limiter = self.get_limiter(identifier)
         return limiter.get_retry_after()
 
-    def get_stats(self, identifier: Optional[str] = None) -> Dict[str, any]:
+    def get_stats(self, identifier: str | None = None) -> dict[str, any]:
         """
         Get rate limiter statistics.
 
@@ -241,7 +239,7 @@ class RateLimitManager:
             del self.limiters[identifier]
 
 
-def get_rate_limit_identifier(request: any, user: Optional[Dict[str, any]] = None) -> str:
+def get_rate_limit_identifier(request: any, user: dict[str, any] | None = None) -> str:
     """
     Get rate limit identifier from request and user.
 
@@ -274,7 +272,7 @@ def get_rate_limit_identifier(request: any, user: Optional[Dict[str, any]] = Non
 async def check_rate_limit(
     request: any,
     rate_limit_manager: RateLimitManager,
-    user: Optional[Dict[str, any]] = None,
+    user: dict[str, any] | None = None,
 ) -> None:
     """
     Check rate limit for request and raise error if exceeded.

@@ -5,7 +5,7 @@ Provides endpoints for integrating journal research datasets into the training p
 """
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -29,7 +29,7 @@ router = APIRouter(prefix="/sessions/{session_id}/training", tags=["training"])
 
 @router.post(
     "/integrate/{source_id}",
-    response_model=Dict[str, Any],
+    response_model=dict[str, Any],
     responses={
         200: {"description": "Dataset successfully integrated into training pipeline"},
         404: {"model": ErrorResponse, "description": "Dataset or session not found"},
@@ -43,7 +43,7 @@ async def integrate_dataset(
     current_user: dict = Depends(require_permission_dependency("training:write")),
     service: CommandHandlerService = Depends(get_command_handler_service),
     training_service: TrainingPipelineService = Depends(get_training_pipeline_service),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Integrate an acquired dataset into the training pipeline.
 
@@ -119,13 +119,13 @@ async def integrate_dataset(
         logger.error(f"Error integrating dataset {source_id}: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to integrate dataset: {str(e)}",
+            detail=f"Failed to integrate dataset: {e!s}",
         )
 
 
 @router.get(
     "/status",
-    response_model=Dict[str, Any],
+    response_model=dict[str, Any],
     responses={
         200: {"description": "Training pipeline status for session"},
         404: {"model": ErrorResponse, "description": "Session not found"},
@@ -136,7 +136,7 @@ async def get_training_status(
     current_user: dict = Depends(require_permission_dependency("training:read")),
     service: CommandHandlerService = Depends(get_command_handler_service),
     training_service: TrainingPipelineService = Depends(get_training_pipeline_service),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Get training pipeline integration status for a research session.
 
@@ -161,13 +161,13 @@ async def get_training_status(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get training status: {str(e)}",
+            detail=f"Failed to get training status: {e!s}",
         )
 
 
 @router.post(
     "/integrate-all",
-    response_model=Dict[str, Any],
+    response_model=dict[str, Any],
     responses={
         200: {"description": "All datasets integrated"},
         404: {"model": ErrorResponse, "description": "Session not found"},
@@ -179,7 +179,7 @@ async def integrate_all_datasets(
     current_user: dict = Depends(require_permission_dependency("training:write")),
     service: CommandHandlerService = Depends(get_command_handler_service),
     training_service: TrainingPipelineService = Depends(get_training_pipeline_service),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Integrate all acquired datasets from a session into the training pipeline.
 
@@ -282,13 +282,13 @@ async def integrate_all_datasets(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to integrate datasets: {str(e)}",
+            detail=f"Failed to integrate datasets: {e!s}",
         )
 
 
 @router.get(
     "/pipeline/status",
-    response_model=Dict[str, Any],
+    response_model=dict[str, Any],
     responses={
         200: {"description": "Training pipeline status"},
     },
@@ -296,7 +296,7 @@ async def integrate_all_datasets(
 async def get_pipeline_status(
     current_user: dict = Depends(require_permission_dependency("training:read")),
     training_service: TrainingPipelineService = Depends(get_training_pipeline_service),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Get overall training pipeline status.
 
@@ -311,5 +311,5 @@ async def get_pipeline_status(
         logger.error(f"Error getting pipeline status: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get pipeline status: {str(e)}",
+            detail=f"Failed to get pipeline status: {e!s}",
         )

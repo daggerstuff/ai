@@ -7,7 +7,7 @@ This module provides endpoints for progress tracking.
 import asyncio
 import json
 import logging
-from typing import AsyncGenerator, Optional
+from collections.abc import AsyncGenerator
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import StreamingResponse
@@ -24,7 +24,6 @@ from ai.sourcing.journal.api.models.progress import (
 from ai.sourcing.journal.api.services.command_handler_service import (
     CommandHandlerService,
 )
-from ai.sourcing.journal.api.websocket.manager import manager
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +33,7 @@ router = APIRouter(prefix="/sessions/{session_id}/progress", tags=["progress"])
 @router.get("", response_model=ProgressResponse)
 async def get_progress(
     session_id: str,
-    current_user: Optional[dict] = Depends(get_current_user),
+    current_user: dict | None = Depends(get_current_user),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> ProgressResponse:
     """
@@ -60,14 +59,14 @@ async def get_progress(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get progress: {str(e)}",
+            detail=f"Failed to get progress: {e!s}",
         )
 
 
 @router.get("/metrics", response_model=ProgressMetricsResponse)
 async def get_progress_metrics(
     session_id: str,
-    current_user: Optional[dict] = Depends(get_current_user),
+    current_user: dict | None = Depends(get_current_user),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> ProgressMetricsResponse:
     """
@@ -94,7 +93,7 @@ async def get_progress_metrics(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get progress metrics: {str(e)}",
+            detail=f"Failed to get progress metrics: {e!s}",
         )
 
 
@@ -102,7 +101,7 @@ async def generate_progress_events(
     session_id: str,
     service: CommandHandlerService,
     request: Request,
-) -> AsyncGenerator[str, None]:
+) -> AsyncGenerator[str]:
     """
     Generate Server-Sent Events for progress updates.
 
@@ -110,7 +109,7 @@ async def generate_progress_events(
     for the specified session. It polls the service for updates and broadcasts
     them to connected clients.
     """
-    last_progress: Optional[dict] = None
+    last_progress: dict | None = None
     poll_interval = 2.0  # Poll every 2 seconds
 
     try:
@@ -145,7 +144,7 @@ async def generate_progress_events(
                     last_progress = progress_data
 
                 # Send heartbeat to keep connection alive
-                yield f": heartbeat\n\n"
+                yield ": heartbeat\n\n"
 
             except ValueError as e:
                 # Session not found
@@ -161,7 +160,7 @@ async def generate_progress_events(
                 error_message = {
                     "type": "error",
                     "sessionId": session_id,
-                    "error": f"Failed to get progress: {str(e)}",
+                    "error": f"Failed to get progress: {e!s}",
                 }
                 yield f"event: error\ndata: {json.dumps(error_message)}\n\n"
                 await asyncio.sleep(poll_interval)
@@ -177,7 +176,7 @@ async def generate_progress_events(
         error_message = {
             "type": "error",
             "sessionId": session_id,
-            "error": f"Stream error: {str(e)}",
+            "error": f"Stream error: {e!s}",
         }
         yield f"event: error\ndata: {json.dumps(error_message)}\n\n"
 
@@ -186,8 +185,8 @@ async def generate_progress_events(
 async def stream_progress_events(
     session_id: str,
     request: Request,
-    token: Optional[str] = Query(None, description="JWT token for authentication"),
-    current_user: Optional[dict] = Depends(get_optional_user),
+    token: str | None = Query(None, description="JWT token for authentication"),
+    current_user: dict | None = Depends(get_optional_user),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> StreamingResponse:
     """
@@ -233,7 +232,7 @@ async def stream_progress_events(
             logger.warning(f"SSE authentication failed: {e}")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail=f"Invalid token: {str(e)}",
+                detail=f"Invalid token: {e!s}",
             )
 
     # Create SSE stream

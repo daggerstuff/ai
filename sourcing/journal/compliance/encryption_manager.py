@@ -5,11 +5,9 @@ Implements encryption for sensitive data at rest and in transit. Provides secure
 key management and encryption/decryption operations for datasets and configuration data.
 """
 
-import hashlib
 import logging
 import os
 from pathlib import Path
-from typing import Dict, Optional, Tuple
 
 from cryptography.fernet import Fernet
 from cryptography.hazmat.backends import default_backend
@@ -30,8 +28,8 @@ class EncryptionManager:
 
     def __init__(
         self,
-        key_directory: Optional[str] = None,
-        master_key: Optional[bytes] = None,
+        key_directory: str | None = None,
+        master_key: bytes | None = None,
     ):
         """
         Initialize the encryption manager.
@@ -60,7 +58,7 @@ class EncryptionManager:
         logger.info(f"Encryption manager initialized: {self.key_directory}")
 
     def encrypt_file(
-        self, file_path: str, output_path: Optional[str] = None
+        self, file_path: str, output_path: str | None = None
     ) -> str:
         """
         Encrypt a file at rest.
@@ -101,7 +99,7 @@ class EncryptionManager:
             raise
 
     def decrypt_file(
-        self, encrypted_file_path: str, output_path: Optional[str] = None
+        self, encrypted_file_path: str, output_path: str | None = None
     ) -> str:
         """
         Decrypt a file.
@@ -211,7 +209,7 @@ class EncryptionManager:
             logger.error(f"Error decrypting string: {e}")
             raise
 
-    def generate_key_pair(self) -> Tuple[bytes, bytes]:
+    def generate_key_pair(self) -> tuple[bytes, bytes]:
         """
         Generate RSA key pair for asymmetric encryption.
 
@@ -313,7 +311,7 @@ class EncryptionManager:
             logger.error(f"Error decrypting with private key: {e}")
             raise
 
-    def encrypt_configuration(self, config: Dict) -> str:
+    def encrypt_configuration(self, config: dict) -> str:
         """
         Encrypt configuration data.
 
@@ -338,7 +336,7 @@ class EncryptionManager:
             logger.error(f"Error encrypting configuration: {e}")
             raise
 
-    def decrypt_configuration(self, encrypted_config: str) -> Dict:
+    def decrypt_configuration(self, encrypted_config: str) -> dict:
         """
         Decrypt configuration data.
 
@@ -363,7 +361,7 @@ class EncryptionManager:
             logger.error(f"Error decrypting configuration: {e}")
             raise
 
-    def get_encryption_status(self) -> Dict[str, bool]:
+    def get_encryption_status(self) -> dict[str, bool]:
         """
         Get encryption status and capabilities.
 

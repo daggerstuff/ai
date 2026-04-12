@@ -3,13 +3,14 @@
 Streaming S3 Dataset Processor - Processes 52.20GB without local storage
 """
 
+from datetime import datetime, timezone
+
 import hashlib
 import json
 import logging
 import os
 import re
 import tempfile
-from datetime import datetime
 from typing import Any, Dict, Iterator
 
 import boto3
@@ -253,13 +254,13 @@ class StreamingS3Processor:
             "processed_files": len([r for r in results if r["success"]]),
             "failed_files": len([r for r in results if not r["success"]]),
             "results": results,
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "output_bucket": self.output_bucket,
         }
 
         # Save report to S3
         report_key = (
-            f"processing_reports/report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+            f"processing_reports/report_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.json"
         )
         self.s3_client.put_object(
             Bucket=self.output_bucket,

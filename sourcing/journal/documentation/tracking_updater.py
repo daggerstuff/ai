@@ -5,10 +5,11 @@ Automatically updates JOURNAL_RESEARCH_TARGETS.md with current progress metrics,
 completed tasks, and status summaries.
 """
 
+from datetime import datetime, timezone
+
+
 import re
-from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional
 
 from ai.sourcing.journal.models.dataset_models import (
     ResearchProgress,
@@ -45,7 +46,7 @@ class TrackingDocumentUpdater:
     def update_progress_section(
         self,
         progress: ResearchProgress,
-        session: Optional[ResearchSession] = None,
+        session: ResearchSession | None = None,
     ) -> None:
         """
         Update the progress metrics section in the tracking document.
@@ -64,7 +65,7 @@ class TrackingDocumentUpdater:
         self._write_document(updated_content)
 
     def mark_task_completed(
-        self, task_id: str, task_description: str, completion_date: Optional[datetime] = None
+        self, task_id: str, task_description: str, completion_date: datetime | None = None
     ) -> None:
         """
         Mark a task as completed in the tracking document.
@@ -75,7 +76,7 @@ class TrackingDocumentUpdater:
             completion_date: Optional completion date (defaults to now)
         """
         if completion_date is None:
-            completion_date = datetime.now()
+            completion_date = datetime.now(timezone.utc)
 
         content = self._read_document()
 
@@ -87,8 +88,8 @@ class TrackingDocumentUpdater:
     def update_status_summary(
         self,
         progress: ResearchProgress,
-        session: Optional[ResearchSession] = None,
-        weekly_report: Optional[WeeklyReport] = None,
+        session: ResearchSession | None = None,
+        weekly_report: WeeklyReport | None = None,
     ) -> None:
         """
         Update the status summary section in the tracking document.
@@ -191,7 +192,7 @@ Last Updated: {timestamp}
 ## Notes
 
 Add research notes and findings here.
-""".format(timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+""".format(timestamp=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"))
 
         self._write_document(template)
 
@@ -202,20 +203,20 @@ Add research notes and findings here.
 
         try:
             return self.tracking_document_path.read_text(encoding="utf-8")
-        except IOError as e:
-            raise IOError(f"Failed to read tracking document: {e}") from e
+        except OSError as e:
+            raise OSError(f"Failed to read tracking document: {e}") from e
 
     def _write_document(self, content: str) -> None:
         """Write content to the tracking document."""
         # Update last updated timestamp
         timestamp_pattern = r"Last Updated: \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}"
-        new_timestamp = f"Last Updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+        new_timestamp = f"Last Updated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}"
         content = re.sub(timestamp_pattern, new_timestamp, content)
 
         try:
             self.tracking_document_path.write_text(content, encoding="utf-8")
-        except IOError as e:
-            raise IOError(f"Failed to write tracking document: {e}") from e
+        except OSError as e:
+            raise OSError(f"Failed to write tracking document: {e}") from e
 
     def _replace_section(
         self, content: str, section_name: str, new_content: str
@@ -240,10 +241,9 @@ Add research notes and findings here.
 
         if re.search(pattern, content, re.DOTALL):
             return re.sub(pattern, replacement, content, flags=re.DOTALL)
-        else:
-            # Section doesn't exist, append it before the closing of the document
-            # or add it to a suitable location
-            return content + f"\n\n{replacement}\n"
+        # Section doesn't exist, append it before the closing of the document
+        # or add it to a suitable location
+        return content + f"\n\n{replacement}\n"
 
     def _append_to_section(self, content: str, section_name: str, new_content: str) -> str:
         """Append content to a marked section."""
@@ -268,15 +268,14 @@ Add research notes and findings here.
             updated_content = existing_content + "\n" + new_content
             replacement = f"{start_marker}\n{updated_content}\n{end_marker}"
             return re.sub(pattern, replacement, content, flags=re.DOTALL)
-        else:
-            # Section doesn't exist, create it
-            replacement = f"{start_marker}\n{new_content}\n{end_marker}"
-            return content + f"\n\n{replacement}\n"
+        # Section doesn't exist, create it
+        replacement = f"{start_marker}\n{new_content}\n{end_marker}"
+        return content + f"\n\n{replacement}\n"
 
     def _generate_progress_markdown(
         self,
         progress: ResearchProgress,
-        session: Optional[ResearchSession] = None,
+        session: ResearchSession | None = None,
     ) -> str:
         """Generate markdown for progress metrics section."""
         lines = [
@@ -308,8 +307,8 @@ Add research notes and findings here.
     def _generate_status_summary_markdown(
         self,
         progress: ResearchProgress,
-        session: Optional[ResearchSession] = None,
-        weekly_report: Optional[WeeklyReport] = None,
+        session: ResearchSession | None = None,
+        weekly_report: WeeklyReport | None = None,
     ) -> str:
         """Generate markdown for status summary section."""
         lines = ["### Research Status", ""]

@@ -5,7 +5,7 @@ This module provides prompt templates for source discovery workflows.
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ai.sourcing.journal.mcp.prompts.base import MCPPrompt
 
@@ -42,7 +42,7 @@ class DiscoverSourcesPrompt(MCPPrompt):
             ],
         )
 
-    def render(self, params: Optional[Dict[str, Any]] = None) -> str:
+    def render(self, params: dict[str, Any] | None = None) -> str:
         """
         Render discovery workflow prompt.
 

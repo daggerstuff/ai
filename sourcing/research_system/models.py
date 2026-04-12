@@ -5,9 +5,9 @@ This module defines all data structures used throughout the research workflow,
 including dataset sources, evaluations, access requests, and integration plans.
 """
 
-from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional
+
+from dataclasses import dataclass, field
 
 
 @dataclass
@@ -20,7 +20,7 @@ class DatasetSource:
     publication_date: datetime
     source_type: str  # journal, repository, clinical_trial, training_material
     url: str
-    doi: Optional[str]
+    doi: str | None
     abstract: str
     keywords: list[str]
     open_access: bool
@@ -127,17 +127,17 @@ class DatasetEvaluation:
             Weighted overall score (0-10)
         """
         weights = {
-            'therapeutic_relevance': 0.35,
-            'data_structure_quality': 0.25,
-            'training_integration': 0.20,
-            'ethical_accessibility': 0.20
+            "therapeutic_relevance": 0.35,
+            "data_structure_quality": 0.25,
+            "training_integration": 0.20,
+            "ethical_accessibility": 0.20
         }
 
         overall = (
-            self.therapeutic_relevance * weights['therapeutic_relevance'] +
-            self.data_structure_quality * weights['data_structure_quality'] +
-            self.training_integration * weights['training_integration'] +
-            self.ethical_accessibility * weights['ethical_accessibility']
+            self.therapeutic_relevance * weights["therapeutic_relevance"] +
+            self.data_structure_quality * weights["data_structure_quality"] +
+            self.training_integration * weights["training_integration"] +
+            self.ethical_accessibility * weights["ethical_accessibility"]
         )
 
         return round(overall, 2)
@@ -154,7 +154,7 @@ class AccessRequest:
     access_url: str
     credentials_required: bool
     institutional_affiliation_required: bool
-    estimated_access_date: Optional[datetime]
+    estimated_access_date: datetime | None
     notes: str = ""
 
     def validate(self) -> tuple[bool, list[str]]:
@@ -382,7 +382,7 @@ class ResearchLog:
 
     timestamp: datetime
     activity_type: str  # search, evaluation, access_request, download, integration
-    source_id: Optional[str]
+    source_id: str | None
     description: str
     outcome: str
     duration_minutes: int

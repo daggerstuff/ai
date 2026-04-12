@@ -5,7 +5,7 @@ This module provides JWT token validation and authentication middleware.
 """
 
 import logging
-from typing import Callable
+from collections.abc import Callable
 
 from fastapi import HTTPException, Request, status
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -77,7 +77,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         except ValueError as e:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail=f"Invalid token: {str(e)}",
+                detail=f"Invalid token: {e!s}",
                 headers={"WWW-Authenticate": "Bearer"},
             )
 

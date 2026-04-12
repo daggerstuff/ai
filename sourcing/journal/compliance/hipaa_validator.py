@@ -8,7 +8,6 @@ information (PHI). Validates encryption, access controls, and audit logging requ
 import logging
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -30,13 +29,13 @@ class HIPAAComplianceResult:
     source_id: str
     contains_phi: bool
     compliance_status: HIPAAComplianceStatus
-    checklist_items: Dict[str, bool]  # Checklist item -> compliance status
+    checklist_items: dict[str, bool]  # Checklist item -> compliance status
     encryption_required: bool
     encryption_implemented: bool
     access_controls_implemented: bool
     audit_logging_implemented: bool
-    issues: List[str]
-    recommendations: List[str]
+    issues: list[str]
+    recommendations: list[str]
     compliance_score: float  # 0.0-1.0
 
     def is_compliant(self, threshold: float = 0.8) -> bool:
@@ -87,16 +86,15 @@ class HIPAAValidator:
 
     def __init__(self):
         """Initialize the HIPAA validator."""
-        pass
 
     def validate_hipaa_compliance(
         self,
         source_id: str,
-        dataset_description: Optional[str] = None,
-        metadata: Optional[Dict] = None,
-        encryption_status: Optional[Dict] = None,
-        access_control_status: Optional[Dict] = None,
-        audit_logging_status: Optional[bool] = None,
+        dataset_description: str | None = None,
+        metadata: dict | None = None,
+        encryption_status: dict | None = None,
+        access_control_status: dict | None = None,
+        audit_logging_status: bool | None = None,
     ) -> HIPAAComplianceResult:
         """
         Validate HIPAA compliance for a dataset.
@@ -175,8 +173,8 @@ class HIPAAValidator:
 
     def _check_contains_phi(
         self,
-        dataset_description: Optional[str],
-        metadata: Optional[Dict],
+        dataset_description: str | None,
+        metadata: dict | None,
     ) -> bool:
         """Check if dataset contains PHI indicators."""
         text_to_check = ""
@@ -197,10 +195,10 @@ class HIPAAValidator:
 
     def _check_compliance_checklist(
         self,
-        encryption_status: Optional[Dict],
-        access_control_status: Optional[Dict],
-        audit_logging_status: Optional[bool],
-    ) -> Dict[str, bool]:
+        encryption_status: dict | None,
+        access_control_status: dict | None,
+        audit_logging_status: bool | None,
+    ) -> dict[str, bool]:
         """Check HIPAA compliance checklist items."""
         checklist = {}
 
@@ -239,7 +237,7 @@ class HIPAAValidator:
         return checklist
 
     def _determine_compliance_status(
-        self, checklist_items: Dict[str, bool]
+        self, checklist_items: dict[str, bool]
     ) -> HIPAAComplianceStatus:
         """Determine overall HIPAA compliance status."""
         required_items = [
@@ -266,18 +264,16 @@ class HIPAAValidator:
             )
             if other_implemented >= 2:
                 return HIPAAComplianceStatus.COMPLIANT
-            else:
-                return HIPAAComplianceStatus.PARTIALLY_COMPLIANT
-        elif implemented_count >= total_required * 0.5:
             return HIPAAComplianceStatus.PARTIALLY_COMPLIANT
-        else:
-            return HIPAAComplianceStatus.NON_COMPLIANT
+        if implemented_count >= total_required * 0.5:
+            return HIPAAComplianceStatus.PARTIALLY_COMPLIANT
+        return HIPAAComplianceStatus.NON_COMPLIANT
 
     def _generate_issues(
         self,
-        checklist_items: Dict[str, bool],
+        checklist_items: dict[str, bool],
         compliance_status: HIPAAComplianceStatus,
-    ) -> List[str]:
+    ) -> list[str]:
         """Generate list of compliance issues."""
         issues = []
 
@@ -311,9 +307,9 @@ class HIPAAValidator:
 
     def _generate_recommendations(
         self,
-        checklist_items: Dict[str, bool],
+        checklist_items: dict[str, bool],
         compliance_status: HIPAAComplianceStatus,
-    ) -> List[str]:
+    ) -> list[str]:
         """Generate compliance recommendations."""
         recommendations = []
 
@@ -371,7 +367,7 @@ class HIPAAValidator:
         return recommendations
 
     def _calculate_compliance_score(
-        self, checklist_items: Dict[str, bool]
+        self, checklist_items: dict[str, bool]
     ) -> float:
         """Calculate HIPAA compliance score (0.0-1.0)."""
         if not checklist_items:

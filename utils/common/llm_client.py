@@ -78,7 +78,7 @@ class OpenAIDriver(LLMDriver):
             return response.choices[0].message.content
         except Exception as e:
             logger.error(f"LLM Generation failed: {e}")
-            return f"[ERROR: {str(e)}]"
+            return f"[ERROR: {e!s}]"
 
     def generate_structured(
         self, prompt: str, schema: dict[str, Any], system_prompt: str | None = None

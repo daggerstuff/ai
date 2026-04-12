@@ -5,7 +5,7 @@ Provides integration with Springer Nature for sourcing psychology and therapy bo
 """
 
 import logging
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from .base_publisher import BasePublisher, BookContent, BookFormat, BookMetadata
 
@@ -63,9 +63,8 @@ class SpringerPublisher(BasePublisher):
             if response.status_code == 200:
                 logger.info("✅ Springer authentication successful")
                 return True
-            else:
-                logger.error(f"Springer authentication failed: {response.status_code}")
-                return False
+            logger.error(f"Springer authentication failed: {response.status_code}")
+            return False
 
         except Exception as e:
             logger.error(f"Springer authentication error: {e}")
@@ -74,11 +73,11 @@ class SpringerPublisher(BasePublisher):
     def search_books(
         self,
         query: str,
-        year_range: Optional[Tuple[int, int]] = None,
-        therapeutic_topics: Optional[List[str]] = None,
+        year_range: tuple[int, int] | None = None,
+        therapeutic_topics: list[str] | None = None,
         limit: int = 20,
         offset: int = 0,
-    ) -> List[BookMetadata]:
+    ) -> list[BookMetadata]:
         """
         Search for books in Springer's catalog
 
@@ -150,8 +149,8 @@ class SpringerPublisher(BasePublisher):
             return []
 
     def _parse_springer_record(
-        self, record: Dict[str, Any], original_query: str
-    ) -> Optional[BookMetadata]:
+        self, record: dict[str, Any], original_query: str
+    ) -> BookMetadata | None:
         """Parse a Springer API record into BookMetadata"""
         try:
             # Extract basic info
@@ -205,7 +204,7 @@ class SpringerPublisher(BasePublisher):
                 url = url.get("value", "")
 
             # Extract abstract
-            abstract = record.get("abstract", None)
+            abstract = record.get("abstract")
 
             # Create metadata
             metadata = BookMetadata(
@@ -245,7 +244,7 @@ class SpringerPublisher(BasePublisher):
             logger.warning(f"Error parsing Springer record: {e}")
             return None
 
-    def get_book_metadata(self, book_id: str) -> Optional[BookMetadata]:
+    def get_book_metadata(self, book_id: str) -> BookMetadata | None:
         """
         Get detailed metadata for a specific book
 
@@ -288,7 +287,7 @@ class SpringerPublisher(BasePublisher):
 
     def get_book_content(
         self, book_id: str, format: BookFormat = BookFormat.PDF
-    ) -> Optional[BookContent]:
+    ) -> BookContent | None:
         """
         Get book content (Note: Springer typically requires institutional access)
 
@@ -324,7 +323,7 @@ class SpringerPublisher(BasePublisher):
 
     def get_chapter_content(
         self, book_id: str, chapter_id: str, format: BookFormat = BookFormat.PDF
-    ) -> Optional[BookContent]:
+    ) -> BookContent | None:
         """
         Get chapter content (Note: Requires institutional access)
 

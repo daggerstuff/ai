@@ -1,6 +1,5 @@
 import html
 import json
-from typing import Dict, Tuple
 
 import pytest
 
@@ -12,7 +11,7 @@ from ai.sourcing.journal.tests.mcp._stubs import (
 )
 
 
-def _parse_content(response: str) -> Dict:
+def _parse_content(response: str) -> dict:
     payload = json.loads(response)
     result = payload["result"]
     if "content" in result:
@@ -31,7 +30,7 @@ def e2e_server(
     sample_evaluation,
     sample_acquired_dataset,
     sample_integration_plan,
-) -> Tuple[MCPServer, FakeCommandHandlerService]:
+) -> tuple[MCPServer, FakeCommandHandlerService]:
     report = {
         "report_id": f"report_{sample_research_session.session_id}",
         "session_id": sample_research_session.session_id,

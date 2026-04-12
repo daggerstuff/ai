@@ -5,12 +5,14 @@ Provides search functionality for psychology journals and articles
 with therapeutic content.
 """
 
+from datetime import datetime, timezone
+
+
 import hashlib
 import logging
 from abc import ABC, abstractmethod
 from collections.abc import Callable
-from datetime import datetime
-from typing import Any, NotRequired, Optional, TypedDict
+from typing import Any, NotRequired, TypedDict
 
 from ..models import DatasetSource
 from .base_client import APIError, BaseAPIClient
@@ -23,7 +25,7 @@ class ArticleMetadata(TypedDict):
     title: str
     abstract: str
     authors: list[str]
-    publication_date: Optional[datetime]
+    publication_date: datetime | None
     doi: NotRequired[str]
     url: str
     keywords: list[str]
@@ -35,9 +37,8 @@ class MetadataExtractor(ABC):
     """Base class for metadata extraction strategies."""
 
     @abstractmethod
-    def extract(self, article: dict[str, Any]) -> Optional[ArticleMetadata]:
+    def extract(self, article: dict[str, Any]) -> ArticleMetadata | None:
         """Extract metadata from article."""
-        pass
 
 
 class DOAJMetadataExtractor(MetadataExtractor):
@@ -46,7 +47,7 @@ class DOAJMetadataExtractor(MetadataExtractor):
     DEFAULT_MONTH = 1
     DEFAULT_DAY = 1
 
-    def extract(self, article: dict[str, Any]) -> Optional[ArticleMetadata]:
+    def extract(self, article: dict[str, Any]) -> ArticleMetadata | None:
         """
         Extract relevant metadata from DOAJ article.
 
@@ -150,14 +151,14 @@ class DOAJClient(BaseAPIClient):
 
     # Required metadata fields for DatasetSource creation
     REQUIRED_METADATA_FIELDS = frozenset([
-        'title', 'authors', 'publication_date',
-        'url', 'abstract', 'keywords'
+        "title", "authors", "publication_date",
+        "url", "abstract", "keywords"
     ])
 
     # Search field names
     SEARCH_FIELDS = ["bibjson.title", "bibjson.abstract"]
 
-    def __init__(self, enable_cache: bool = True, extractor: Optional[MetadataExtractor] = None):
+    def __init__(self, enable_cache: bool = True, extractor: MetadataExtractor | None = None):
         """
         Initialize DOAJ client with configuration.
 
@@ -191,7 +192,7 @@ class DOAJClient(BaseAPIClient):
             return max(self.MIN_RESULTS, min(max_results, self.MAX_RESULTS_LIMIT))
         return max_results
 
-    def _validate_subject(self, subject: Optional[str]) -> str:
+    def _validate_subject(self, subject: str | None) -> str:
         """
         Validate and normalize subject parameter.
 
@@ -268,7 +269,7 @@ class DOAJClient(BaseAPIClient):
     def _build_keyword_queries(
         self,
         keywords: list[str],
-        search_fields: Optional[list[str]] = None
+        search_fields: list[str] | None = None
     ) -> list[dict[str, Any]]:
         """
         Build keyword match queries for multiple fields.
@@ -333,7 +334,7 @@ class DOAJClient(BaseAPIClient):
 
     def search_journals(
         self,
-        subject: Optional[str] = None,
+        subject: str | None = None,
         max_results: int = DEFAULT_JOURNAL_RESULTS
     ) -> list[dict[str, Any]]:
         """
@@ -366,7 +367,7 @@ class DOAJClient(BaseAPIClient):
     def search_articles(
         self,
         keywords: list[str],
-        subject: Optional[str] = None,
+        subject: str | None = None,
         max_results: int = DEFAULT_ARTICLE_RESULTS
     ) -> list[dict[str, Any]]:
         """
@@ -453,7 +454,7 @@ class DOAJClient(BaseAPIClient):
             f"DOAJ articles from journal {journal_issn}"
         )
 
-    def _extract_article_metadata(self, article: dict[str, Any]) -> Optional[ArticleMetadata]:
+    def _extract_article_metadata(self, article: dict[str, Any]) -> ArticleMetadata | None:
         """
         Extract relevant metadata from DOAJ article using configured extractor.
 
@@ -471,7 +472,7 @@ class DOAJClient(BaseAPIClient):
         metadata: ArticleMetadata,
         discovery_method: str = DEFAULT_DISCOVERY_METHOD,
         skip_validation: bool = False
-    ) -> Optional[DatasetSource]:
+    ) -> DatasetSource | None:
         """
         Create DatasetSource from pre-extracted metadata.
 
@@ -499,7 +500,7 @@ class DOAJClient(BaseAPIClient):
             # Use current date if publication date is missing
             pub_date = metadata.get("publication_date")
             if not pub_date:
-                pub_date = datetime.now()
+                pub_date = datetime.now(timezone.utc)
 
             # Generate source ID
             doaj_id = metadata.get("doaj_id", "")
@@ -521,7 +522,7 @@ class DOAJClient(BaseAPIClient):
                 keywords=metadata["keywords"],
                 open_access=True,
                 data_availability="unknown",
-                discovery_date=datetime.now(),
+                discovery_date=datetime.now(timezone.utc),
                 discovery_method=discovery_method
             )
         except (KeyError, TypeError) as e:
@@ -531,7 +532,7 @@ class DOAJClient(BaseAPIClient):
     def _convert_articles_to_sources(
         self,
         articles: list[dict[str, Any]],
-        filter_fn: Optional[Callable[[dict[str, Any]], bool]] = None
+        filter_fn: Callable[[dict[str, Any]], bool] | None = None
     ) -> list[DatasetSource]:
         """
         Convert articles to DatasetSource objects with optional filtering.
@@ -560,7 +561,7 @@ class DOAJClient(BaseAPIClient):
 
         return sources
 
-    def convert_to_dataset_source(self, article: dict[str, Any]) -> Optional[DatasetSource]:
+    def convert_to_dataset_source(self, article: dict[str, Any]) -> DatasetSource | None:
         """
         Convert DOAJ article to DatasetSource object.
 
@@ -654,15 +655,15 @@ class DOAJClient(BaseAPIClient):
         def has_therapeutic_content(metadata: ArticleMetadata) -> bool:
             """Check if article metadata contains therapeutic keywords."""
             # Check each field separately to short-circuit on first match
-            title = metadata.get('title', '').lower()
+            title = metadata.get("title", "").lower()
             if any(keyword in title for keyword in therapeutic_keywords_lower):
                 return True
 
-            abstract = metadata.get('abstract', '').lower()
+            abstract = metadata.get("abstract", "").lower()
             if any(keyword in abstract for keyword in therapeutic_keywords_lower):
                 return True
 
-            keywords_text = ' '.join(metadata.get('keywords', [])).lower()
+            keywords_text = " ".join(metadata.get("keywords", [])).lower()
             return any(keyword in keywords_text for keyword in therapeutic_keywords_lower)
 
         # Convert and filter articles

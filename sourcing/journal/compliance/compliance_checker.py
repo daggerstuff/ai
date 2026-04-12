@@ -7,7 +7,6 @@ verification, HIPAA validation, and generates comprehensive compliance reports.
 
 import logging
 from dataclasses import dataclass
-from typing import Dict, List, Optional
 
 from ai.sourcing.journal.compliance.audit_logger import AuditLogger
 from ai.sourcing.journal.compliance.encryption_manager import EncryptionManager
@@ -33,15 +32,15 @@ class ComplianceResult:
     """Comprehensive compliance check result."""
 
     source_id: str
-    license_check: Optional[LicenseCheckResult] = None
-    privacy_assessment: Optional[PrivacyAssessment] = None
-    hipaa_compliance: Optional[HIPAAComplianceResult] = None
+    license_check: LicenseCheckResult | None = None
+    privacy_assessment: PrivacyAssessment | None = None
+    hipaa_compliance: HIPAAComplianceResult | None = None
     overall_compliance_score: float = 0.0  # 0.0-1.0
     compliance_status: str = "unknown"  # compliant, partially_compliant, non_compliant
 
-    issues: List[str] = None
+    issues: list[str] = None
 
-    recommendations: List[str] = None
+    recommendations: list[str] = None
     requires_review: bool = False
 
     def __post_init__(self):
@@ -69,8 +68,8 @@ class ComplianceChecker:
 
     def __init__(
         self,
-        audit_logger: Optional[AuditLogger] = None,
-        encryption_manager: Optional[EncryptionManager] = None,
+        audit_logger: AuditLogger | None = None,
+        encryption_manager: EncryptionManager | None = None,
     ):
         """
         Initialize the compliance checker.
@@ -90,10 +89,10 @@ class ComplianceChecker:
     def check_compliance(
         self,
         source: DatasetSource,
-        dataset_sample: Optional[str] = None,
-        dataset_path: Optional[str] = None,
-        license_text: Optional[str] = None,
-        metadata: Optional[Dict] = None,
+        dataset_sample: str | None = None,
+        dataset_path: str | None = None,
+        license_text: str | None = None,
+        metadata: dict | None = None,
     ) -> ComplianceResult:
         """
         Perform comprehensive compliance check for a dataset.
@@ -134,7 +133,7 @@ class ComplianceChecker:
 
         except Exception as e:
             logger.error(f"Error checking license for {source.source_id}: {e}")
-            result.issues.append(f"License check failed: {str(e)}")
+            result.issues.append(f"License check failed: {e!s}")
 
         # 2. Verify privacy
         try:
@@ -161,7 +160,7 @@ class ComplianceChecker:
 
         except Exception as e:
             logger.error(f"Error verifying privacy for {source.source_id}: {e}")
-            result.issues.append(f"Privacy verification failed: {str(e)}")
+            result.issues.append(f"Privacy verification failed: {e!s}")
 
         # 3. Validate HIPAA compliance (if PHI detected)
         try:
@@ -203,7 +202,7 @@ class ComplianceChecker:
             logger.error(
                 f"Error validating HIPAA compliance for {source.source_id}: {e}"
             )
-            result.issues.append(f"HIPAA validation failed: {str(e)}")
+            result.issues.append(f"HIPAA validation failed: {e!s}")
 
         # 4. Calculate overall compliance score
         result.overall_compliance_score = self._calculate_overall_compliance_score(
@@ -287,12 +286,11 @@ class ComplianceChecker:
         """Determine overall compliance status."""
         if result.overall_compliance_score >= 0.8:
             return "compliant"
-        elif result.overall_compliance_score >= 0.5:
+        if result.overall_compliance_score >= 0.5:
             return "partially_compliant"
-        else:
-            return "non_compliant"
+        return "non_compliant"
 
-    def _collect_issues(self, result: ComplianceResult) -> List[str]:
+    def _collect_issues(self, result: ComplianceResult) -> list[str]:
         """Collect all issues from compliance checks."""
         issues = []
 
@@ -312,7 +310,7 @@ class ComplianceChecker:
 
         return issues
 
-    def _collect_recommendations(self, result: ComplianceResult) -> List[str]:
+    def _collect_recommendations(self, result: ComplianceResult) -> list[str]:
         """Collect all recommendations from compliance checks."""
         recommendations = []
 

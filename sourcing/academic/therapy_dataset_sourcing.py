@@ -14,7 +14,7 @@ import os
 from dataclasses import asdict, dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import requests
 
@@ -49,24 +49,24 @@ class DatasetMetadata:
     source: str
     url: str
     description: str
-    tags: List[str]
+    tags: list[str]
     downloads: int = 0
     likes: int = 0
-    size_bytes: Optional[int] = None
-    num_conversations: Optional[int] = None
-    avg_turns: Optional[float] = None
-    min_turns: Optional[int] = None
-    max_turns: Optional[int] = None
-    conversation_format: Optional[str] = None
+    size_bytes: int | None = None
+    num_conversations: int | None = None
+    avg_turns: float | None = None
+    min_turns: int | None = None
+    max_turns: int | None = None
+    conversation_format: str | None = None
 
-    languages: List[str] = None
-    license: Optional[str] = None
-    created_at: Optional[str] = None
-    updated_at: Optional[str] = None
+    languages: list[str] = None
+    license: str | None = None
+    created_at: str | None = None
+    updated_at: str | None = None
     quality_score: float = 0.0
     therapeutic_relevance: float = 0.0
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary"""
         return asdict(self)
 
@@ -83,7 +83,7 @@ class TherapyDatasetSourcing:
     - Batch downloading and processing
     """
 
-    def __init__(self, output_path: Optional[str] = None):
+    def __init__(self, output_path: str | None = None):
         self.output_path = Path(
             output_path or "ai/training/ready_packages/datasets/sourced"
         )
@@ -145,7 +145,7 @@ class TherapyDatasetSourcing:
 
     def search_huggingface(
         self, query: str = "therapy conversation", min_turns: int = 20, limit: int = 50
-    ) -> List[DatasetMetadata]:
+    ) -> list[DatasetMetadata]:
         """
         Search HuggingFace Hub for therapy conversation datasets
 
@@ -214,8 +214,8 @@ class TherapyDatasetSourcing:
             return []
 
     def _get_hf_dataset_details(
-        self, dataset_id: str, headers: Dict[str, str]
-    ) -> Optional[DatasetMetadata]:
+        self, dataset_id: str, headers: dict[str, str]
+    ) -> DatasetMetadata | None:
         """Get detailed information about a HuggingFace dataset"""
         try:
             # Get dataset info
@@ -275,8 +275,8 @@ class TherapyDatasetSourcing:
             return None
 
     def _estimate_conversation_stats(
-        self, dataset_id: str, headers: Dict[str, str]
-    ) -> Tuple[Optional[float], Optional[int], Optional[int]]:
+        self, dataset_id: str, headers: dict[str, str]
+    ) -> tuple[float | None, int | None, int | None]:
         """
         Estimate conversation statistics by sampling the dataset
 
@@ -334,22 +334,21 @@ class TherapyDatasetSourcing:
             return None, None, None
 
     def _classify_conversation_format(
-        self, avg_turns: Optional[float]
-    ) -> Optional[str]:
+        self, avg_turns: float | None
+    ) -> str | None:
         """Classify conversation format based on average turns"""
         if avg_turns is None:
             return None
 
         if avg_turns >= 20:
             return ConversationFormat.MULTI_TURN.value
-        elif avg_turns >= 10:
+        if avg_turns >= 10:
             return ConversationFormat.MEDIUM_TURN.value
-        elif avg_turns >= 5:
+        if avg_turns >= 5:
             return ConversationFormat.SHORT_TURN.value
-        else:
-            return ConversationFormat.SINGLE_TURN.value
+        return ConversationFormat.SINGLE_TURN.value
 
-    def _is_therapy_relevant(self, dataset: Dict[str, Any]) -> bool:
+    def _is_therapy_relevant(self, dataset: dict[str, Any]) -> bool:
         """Check if dataset is therapy-relevant"""
         text_to_check = " ".join(
             [
@@ -363,7 +362,7 @@ class TherapyDatasetSourcing:
         matches = sum(1 for kw in self.therapy_keywords if kw in text_to_check)
         return matches >= 2  # At least 2 therapy keywords
 
-    def _calculate_quality_score(self, dataset: Dict[str, Any]) -> float:
+    def _calculate_quality_score(self, dataset: dict[str, Any]) -> float:
         """Calculate quality score (0.0-1.0)"""
         score = 0.0
 
@@ -402,8 +401,8 @@ class TherapyDatasetSourcing:
         # Recent update (0.1)
         last_modified = dataset.get("lastModified", "")
         if (
-            last_modified
-            and "2024" in last_modified
+            (last_modified
+            and "2024" in last_modified)
             or "2025" in last_modified
             or "2026" in last_modified
         ):
@@ -411,7 +410,7 @@ class TherapyDatasetSourcing:
 
         return min(score, 1.0)
 
-    def _calculate_therapeutic_relevance(self, dataset: Dict[str, Any]) -> float:
+    def _calculate_therapeutic_relevance(self, dataset: dict[str, Any]) -> float:
         """Calculate therapeutic relevance score (0.0-1.0)"""
         text_to_check = " ".join(
             [
@@ -433,10 +432,10 @@ class TherapyDatasetSourcing:
 
     def filter_by_conversation_length(
         self,
-        datasets: List[DatasetMetadata],
+        datasets: list[DatasetMetadata],
         min_turns: int = 20,
-        max_turns: Optional[int] = None,
-    ) -> List[DatasetMetadata]:
+        max_turns: int | None = None,
+    ) -> list[DatasetMetadata]:
         """Filter datasets by conversation length"""
         filtered = []
 
@@ -454,8 +453,8 @@ class TherapyDatasetSourcing:
         return filtered
 
     def filter_by_quality(
-        self, datasets: List[DatasetMetadata], min_quality: float = 0.5
-    ) -> List[DatasetMetadata]:
+        self, datasets: list[DatasetMetadata], min_quality: float = 0.5
+    ) -> list[DatasetMetadata]:
         """Filter datasets by quality score"""
         filtered = [d for d in datasets if d.quality_score >= min_quality]
         logger.info(
@@ -464,8 +463,8 @@ class TherapyDatasetSourcing:
         return filtered
 
     def filter_by_therapeutic_relevance(
-        self, datasets: List[DatasetMetadata], min_relevance: float = 0.5
-    ) -> List[DatasetMetadata]:
+        self, datasets: list[DatasetMetadata], min_relevance: float = 0.5
+    ) -> list[DatasetMetadata]:
         """Filter datasets by therapeutic relevance"""
         filtered = [d for d in datasets if d.therapeutic_relevance >= min_relevance]
         logger.info(
@@ -475,9 +474,9 @@ class TherapyDatasetSourcing:
 
     def rank_datasets(
         self,
-        datasets: List[DatasetMetadata],
-        weights: Optional[Dict[str, float]] = None,
-    ) -> List[DatasetMetadata]:
+        datasets: list[DatasetMetadata],
+        weights: dict[str, float] | None = None,
+    ) -> list[DatasetMetadata]:
         """
         Rank datasets by composite score
 
@@ -528,7 +527,7 @@ class TherapyDatasetSourcing:
     # ==================== Export & Reporting ====================
 
     def export_results(
-        self, datasets: List[DatasetMetadata], filename: str = "therapy_datasets.json"
+        self, datasets: list[DatasetMetadata], filename: str = "therapy_datasets.json"
     ) -> Path:
         """Export dataset results to JSON"""
         output_file = self.output_path / filename
@@ -541,7 +540,7 @@ class TherapyDatasetSourcing:
         logger.info(f"💾 Exported {len(datasets)} datasets to {output_file}")
         return output_file
 
-    def generate_report(self, datasets: List[DatasetMetadata]) -> str:
+    def generate_report(self, datasets: list[DatasetMetadata]) -> str:
         """Generate a summary report"""
         if not datasets:
             return "No datasets found."
@@ -595,12 +594,12 @@ class TherapyDatasetSourcing:
 
     def find_therapy_datasets(
         self,
-        query: Optional[str] = None,
+        query: str | None = None,
         min_turns: int = 20,
         min_quality: float = 0.5,
         min_relevance: float = 0.5,
         limit: int = 50,
-    ) -> List[DatasetMetadata]:
+    ) -> list[DatasetMetadata]:
         """
         Main pipeline to find high-quality therapy conversation datasets
 
@@ -656,11 +655,11 @@ class TherapyDatasetSourcing:
 
 # Convenience function
 def find_therapy_datasets(
-    query: Optional[str] = None,
+    query: str | None = None,
     min_turns: int = 20,
     min_quality: float = 0.5,
-    output_path: Optional[str] = None,
-) -> List[DatasetMetadata]:
+    output_path: str | None = None,
+) -> list[DatasetMetadata]:
     """
     Find therapy conversation datasets with specific criteria
 

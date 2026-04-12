@@ -6,10 +6,11 @@ Uploads findings, audit reports, plans, and documentation from the training pack
 consolidation work to S3 for archival and reference.
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import os
-from datetime import datetime, timezone
 from pathlib import Path
 
 import boto3

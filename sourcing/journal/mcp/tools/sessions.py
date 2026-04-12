@@ -5,8 +5,7 @@ This module provides tools for managing research sessions through the MCP protoc
 """
 
 import logging
-from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ai.sourcing.journal.api.services.command_handler_service import (
     CommandHandlerService,
@@ -69,7 +68,7 @@ class CreateSessionTool(MCPTool):
             },
         )
 
-    async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute(self, params: dict[str, Any]) -> dict[str, Any]:
         """
         Execute create_session tool.
 
@@ -112,14 +111,14 @@ class CreateSessionTool(MCPTool):
         except ValueError as e:
             raise MCPError(
                 MCPErrorCode.TOOL_VALIDATION_ERROR,
-                f"Invalid parameters: {str(e)}",
+                f"Invalid parameters: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
         except Exception as e:
             logger.exception(f"Error creating session: {e}")
             raise MCPError(
                 MCPErrorCode.TOOL_EXECUTION_ERROR,
-                f"Failed to create session: {str(e)}",
+                f"Failed to create session: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
 
@@ -145,7 +144,7 @@ class ListSessionsTool(MCPTool):
             },
         )
 
-    async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute(self, params: dict[str, Any]) -> dict[str, Any]:
         """
         Execute list_sessions tool.
 
@@ -181,7 +180,7 @@ class ListSessionsTool(MCPTool):
             logger.exception(f"Error listing sessions: {e}")
             raise MCPError(
                 MCPErrorCode.TOOL_EXECUTION_ERROR,
-                f"Failed to list sessions: {str(e)}",
+                f"Failed to list sessions: {e!s}",
                 {"error": str(e)},
             ) from e
 
@@ -212,7 +211,7 @@ class GetSessionTool(MCPTool):
             },
         )
 
-    async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute(self, params: dict[str, Any]) -> dict[str, Any]:
         """
         Execute get_session tool.
 
@@ -243,14 +242,14 @@ class GetSessionTool(MCPTool):
         except ValueError as e:
             raise MCPError(
                 MCPErrorCode.TOOL_VALIDATION_ERROR,
-                f"Invalid parameters: {str(e)}",
+                f"Invalid parameters: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
         except Exception as e:
             logger.exception(f"Error getting session: {e}")
             raise MCPError(
                 MCPErrorCode.TOOL_EXECUTION_ERROR,
-                f"Failed to get session: {str(e)}",
+                f"Failed to get session: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
 
@@ -304,7 +303,7 @@ class UpdateSessionTool(MCPTool):
             },
         )
 
-    async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute(self, params: dict[str, Any]) -> dict[str, Any]:
         """
         Execute update_session tool.
 
@@ -346,14 +345,14 @@ class UpdateSessionTool(MCPTool):
         except ValueError as e:
             raise MCPError(
                 MCPErrorCode.TOOL_VALIDATION_ERROR,
-                f"Invalid parameters: {str(e)}",
+                f"Invalid parameters: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
         except Exception as e:
             logger.exception(f"Error updating session: {e}")
             raise MCPError(
                 MCPErrorCode.TOOL_EXECUTION_ERROR,
-                f"Failed to update session: {str(e)}",
+                f"Failed to update session: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
 
@@ -384,7 +383,7 @@ class DeleteSessionTool(MCPTool):
             },
         )
 
-    async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute(self, params: dict[str, Any]) -> dict[str, Any]:
         """
         Execute delete_session tool.
 
@@ -410,14 +409,14 @@ class DeleteSessionTool(MCPTool):
         except ValueError as e:
             raise MCPError(
                 MCPErrorCode.TOOL_VALIDATION_ERROR,
-                f"Invalid parameters: {str(e)}",
+                f"Invalid parameters: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
         except Exception as e:
             logger.exception(f"Error deleting session: {e}")
             raise MCPError(
                 MCPErrorCode.TOOL_EXECUTION_ERROR,
-                f"Failed to delete session: {str(e)}",
+                f"Failed to delete session: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
 

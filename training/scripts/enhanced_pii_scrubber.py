@@ -9,13 +9,14 @@ as a name, destroying therapeutic coherence. Source data is from public
 mental health forums (already anonymized), so name redaction is unnecessary.
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import re
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 import hashlib
-from datetime import datetime
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -176,7 +177,7 @@ class EnhancedTherapeuticPIIScrubber:
         metadata = cleaned.get("metadata", {})
         metadata["pii_status"] = "scrubbed" if pii_stats["pii_found"] else "clean"
         metadata["pii_scrubbing_stats"] = pii_stats
-        metadata["pii_scrubbed_at"] = datetime.now().isoformat()
+        metadata["pii_scrubbed_at"] = datetime.now(timezone.utc).isoformat()
         cleaned["metadata"] = metadata
 
         if pii_stats["pii_found"]:
@@ -198,7 +199,7 @@ class EnhancedTherapeuticPIIScrubber:
             "conversations_clean": 0,
             "pii_types_summary": {},
             "detailed_stats": [],
-            "processing_timestamp": datetime.now().isoformat(),
+            "processing_timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
         for i, conversation in enumerate(dataset):
@@ -248,7 +249,7 @@ class EnhancedTherapeuticPIIScrubber:
         """
         validation_report = {
             "sample_size": sample_size,
-            "validation_timestamp": datetime.now().isoformat(),
+            "validation_timestamp": datetime.now(timezone.utc).isoformat(),
             "spot_checks": [],
             "validation_passed": True,
             "issues": [],
