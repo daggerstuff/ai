@@ -70,13 +70,13 @@ class ComprehensiveSecurityValidator:
         auth_system = AuthenticationSystem(secret_key="test-secret-key-for-validation")
 
         # Create test users and API keys
-        admin_user = auth_system.create_user(
+        auth_system.create_user(
             "admin", "admin@test.com", "SecurePassword123!", UserRole.ADMIN
         )
-        regular_user = auth_system.create_user(
+        auth_system.create_user(
             "user", "user@test.com", "UserPassword123!", UserRole.USER
         )
-        readonly_user = auth_system.create_user(
+        auth_system.create_user(
             "readonly", "readonly@test.com", "ReadPassword123!", UserRole.READONLY
         )
 

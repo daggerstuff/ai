@@ -360,7 +360,7 @@ class QualityTrendDemo:
             declining_count = sum(
                 1 for t in trends.values() if t.trend_direction == "declining"
             )
-            stable_count = sum(
+            sum(
                 1 for t in trends.values() if t.trend_direction == "stable"
             )
 

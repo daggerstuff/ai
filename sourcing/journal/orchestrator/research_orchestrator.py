@@ -777,7 +777,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         activity_logs = self.activity_logs.get(session_id, [])
         error_entries = self.error_log.get(session_id, [])
 
-        bundle = {
+        return {
             "session": self._convert_datetimes(asdict(session)),
             "state": self._convert_datetimes(asdict(state)),
             "progress": self._convert_datetimes(asdict(progress)),
@@ -789,7 +789,6 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
             ],
             "error_log": self._convert_datetimes(error_entries),
         }
-        return bundle
 
     def _restore_session_components(
         self, bundle: dict[str, Any]

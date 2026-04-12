@@ -429,7 +429,7 @@ def main():
 
     # Create Lightning.ai dataset
     if all_training_pairs:
-        config = pipeline.create_lightning_dataset(all_training_pairs, lightning_dir)
+        pipeline.create_lightning_dataset(all_training_pairs, lightning_dir)
         logger.info(
             f"Created Lightning.ai dataset with {len(all_training_pairs)} conversations"
         )

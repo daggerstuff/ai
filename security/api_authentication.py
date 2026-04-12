@@ -477,7 +477,7 @@ class AuthenticationTester:
 
     def test_brute_force_protection(self) -> bool:
         """Test brute force protection (basic implementation)"""
-        user = self.auth_system.create_user(
+        self.auth_system.create_user(
             "bf_user", "bf@example.com", "correct_password"
         )
 

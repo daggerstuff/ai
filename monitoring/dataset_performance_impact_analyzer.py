@@ -194,10 +194,9 @@ class DatasetPerformanceImpactAnalyzer:
         )
 
         # Weighted quality score
-        quality_score = (
+        return (
             readability * 0.3 + engagement * 0.25 + empathy * 0.25 + structure * 0.2
         ) * 100
-        return quality_score
 
     def _calculate_complexity_score(self, row: pd.Series) -> float:
         """Calculate complexity score for a conversation"""
@@ -229,13 +228,12 @@ class DatasetPerformanceImpactAnalyzer:
         )
         technical_complexity = min(1.0, technical_terms / word_count * 100)
 
-        complexity_score = (
+        return (
             vocab_complexity * 0.3
             + sentence_complexity * 0.25
             + dialogue_complexity * 0.25
             + technical_complexity * 0.2
         ) * 100
-        return complexity_score
 
     def _calculate_engagement_score(self, row: pd.Series) -> float:
         """Calculate engagement score for a conversation"""
@@ -259,14 +257,13 @@ class DatasetPerformanceImpactAnalyzer:
             re.findall(r"\b(well|so|now|then|actually|really|you know)\b", text.lower())
         )
 
-        engagement_score = min(
+        return min(
             100,
             (questions * 10)
             + (exclamations * 5)
             + (personal_pronouns / word_count * 200)
             + (markers * 3),
         )
-        return engagement_score
 
     def _analyze_quality_performance(
         self, datasets_info: pd.DataFrame
@@ -1028,7 +1025,7 @@ class DatasetPerformanceImpactAnalyzer:
         ]
         roi_categories = impact_analysis["roi_assessment"]["roi_categories"]
 
-        summary = {
+        return {
             "key_findings": [
                 f"Analyzed {quality_dist['total_datasets']} datasets with varying performance levels",
                 f"{quality_dist['high_quality_datasets']} datasets meet high-quality standards",
@@ -1048,14 +1045,13 @@ class DatasetPerformanceImpactAnalyzer:
             ],
         }
 
-        return summary
 
     def _define_action_priorities(
         self, _performance_analysis: dict[str, Any], _impact_analysis: dict[str, Any]
     ) -> dict[str, Any]:
         """Define action priorities based on analysis"""
 
-        priorities = {
+        return {
             "immediate_actions": [
                 "Conduct detailed review of low-performing datasets",
                 "Implement quality monitoring systems",
@@ -1073,7 +1069,6 @@ class DatasetPerformanceImpactAnalyzer:
             ],
         }
 
-        return priorities
 
     def _define_success_metrics(self) -> dict[str, Any]:
         """Define success metrics for performance improvement"""
@@ -1168,7 +1163,7 @@ class DatasetPerformanceImpactAnalyzer:
             for d in datasets_strategic
         ]
 
-        scatter = axes[0, 2].scatter(
+        axes[0, 2].scatter(
             strategic_scores, quality_scores_strategic, alpha=0.7, s=60, c="purple"
         )
         axes[0, 2].set_title("Strategic Impact vs Quality")

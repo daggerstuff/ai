@@ -244,7 +244,7 @@ class TestDisasterRecoverySystem(unittest.TestCase):
         )
 
         # Execute the plan
-        final_status = asyncio.run(self.dr_manager.execute_recovery_plan(session_id))
+        asyncio.run(self.dr_manager.execute_recovery_plan(session_id))
 
         # Session should be moved to history
         assert session_id not in self.dr_manager.active_sessions

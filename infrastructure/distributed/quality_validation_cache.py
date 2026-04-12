@@ -93,8 +93,7 @@ class QualityValidationCache:
         metadata_hash = hashlib.md5(metadata_str.encode()).hexdigest()
 
         # Combine hashes
-        combined_hash = hashlib.md5((content_hash + metadata_hash).encode()).hexdigest()
-        return combined_hash
+        return hashlib.md5((content_hash + metadata_hash).encode()).hexdigest()
 
     def _generate_cache_key(self, data_hash: str, validation_type: str) -> str:
         """Generate cache key"""
@@ -332,10 +331,10 @@ def main():
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # Cache stats command
-    stats_parser = subparsers.add_parser("stats", help="Show cache statistics")
+    subparsers.add_parser("stats", help="Show cache statistics")
 
     # Cleanup command
-    cleanup_parser = subparsers.add_parser("cleanup", help="Clean up expired cache entries")
+    subparsers.add_parser("cleanup", help="Clean up expired cache entries")
 
     # Invalidate command
     invalidate_parser = subparsers.add_parser("invalidate", help="Invalidate cache entries")

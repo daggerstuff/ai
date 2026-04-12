@@ -190,7 +190,7 @@ class YouTubeAPI:
                 snippet = item.get("snippet", {})
                 channel_id = snippet.get("channelId")
                 channel_title = snippet.get("channelTitle", "")
-                video_id = item.get("id")
+                item.get("id")
 
                 if not channel_id or channel_id in seen_channel_ids:
                     continue

@@ -66,7 +66,7 @@ class DiscoverSourcesPrompt(MCPPrompt):
         keywords_str = ", ".join(f'"{k}"' for k in keywords) if keywords else "[]"
         sources_str = ", ".join(f'"{s}"' for s in sources) if sources else "[]"
 
-        template = f"""# Source Discovery Workflow
+        return f"""# Source Discovery Workflow
 
 ## Overview
 This workflow guides you through discovering dataset sources from academic repositories for research session `{session_id}`.
@@ -152,5 +152,4 @@ discover_sources(
 - You can resume interrupted discovery operations
 """
 
-        return template
 

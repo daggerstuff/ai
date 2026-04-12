@@ -594,7 +594,7 @@ class BiasDetectionIntegration:
     ) -> None:
         """Publish bias threshold exceeded event."""
         try:
-            event = EventMessage(
+            EventMessage(
                 event_type=EventType.BIAS_THRESHOLD_EXCEEDED.value,
                 stage=stage_name,
                 payload={

@@ -207,7 +207,7 @@ class TestQualityAnalyticsDashboard:
         assert df1.equals(df2)
 
         # Force refresh
-        df3 = dashboard.load_quality_data(force_refresh=True)
+        dashboard.load_quality_data(force_refresh=True)
         cache_time3 = dashboard._last_cache_time
 
         assert cache_time3 > cache_time1

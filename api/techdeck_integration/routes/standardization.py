@@ -849,7 +849,7 @@ def _get_schema_statistics(_redis_client: RedisClient, schema_id: str) -> dict[s
     """Get usage statistics for a schema."""
     try:
         # Generate some placeholder statistics
-        stats = {
+        return {
             "total_validations": 1250,
             "total_transformations": 890,
             "success_rate": 92.5,
@@ -865,7 +865,6 @@ def _get_schema_statistics(_redis_client: RedisClient, schema_id: str) -> dict[s
             },
         }
 
-        return stats
 
     except Exception as e:
         logger.error(f"Error retrieving schema statistics for {schema_id}: {e}")

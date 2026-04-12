@@ -301,7 +301,7 @@ def main():
     extractor = TimFletcherVoiceExtractor()
 
     # Extract voice patterns
-    voice_profile = extractor.extract_voice_patterns()
+    extractor.extract_voice_patterns()
 
     # Save results
     extractor.save_voice_profile()

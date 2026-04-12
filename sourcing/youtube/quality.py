@@ -319,9 +319,6 @@ def detect_transcript_features(description: str) -> dict:
     )
 
     # Scene descriptions
-    scene_keywords = [
-        "scene:", ": ", "chapter:", "part 1", "part 2:"
-    ]
     features["has_scene_descriptions"] = len(text.split(":")) > 10
 
     # Language detection (simplified)
@@ -428,11 +425,6 @@ def analyze_channel_professional(
     indicators.organization_affiliation = any(kw in text for kw in org_keywords)
 
     # Check for certifications
-    cert_keywords = [
-        "licensed", "certified", "certification", "credential",
-        "board certified", "registered", "accredited",
-        "credential", "cert", "licensed therapist",
-    ]
     indicators.has_certifications = "certified" in text or "license" in text
 
     # Check social media presence (from URLs)

@@ -346,7 +346,7 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
         # With our test data (0.45, 0.65, 0.78, 0.85, 0.92), conv_4 (0.45) should be detected
         # as an anomaly using zscore method since it's more than 2 standard deviations from mean
         if anomalies_zscore:
-            anomaly_ids = [a["conversation_id"] for a in anomalies_zscore]
+            [a["conversation_id"] for a in anomalies_zscore]
             # Check if any anomaly was detected (the exact detection depends on the statistical method)
             assert len(anomalies_zscore) > 0, "Should detect at least one anomaly with zscore method"
 
@@ -476,7 +476,7 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
 
         # Test analytics calculation performance
         start_time = datetime.now(timezone.utc)
-        analytics = self.dashboard.calculate_quality_analytics(df)
+        self.dashboard.calculate_quality_analytics(df)
         calc_time = (datetime.now(timezone.utc) - start_time).total_seconds()
 
         # Should calculate quickly (under 0.5 seconds for test data)

@@ -1088,9 +1088,8 @@ class S3DatasetLoader:
                 raise RuntimeError(error_msg)
 
             with open(local_path) as f:
-                records = [json.loads(line) for line in f if line.strip()]
+                return [json.loads(line) for line in f if line.strip()]
 
-            return records
 
         finally:
             if local_path.exists():

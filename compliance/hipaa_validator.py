@@ -209,8 +209,7 @@ class HIPAAEncryption:
             salt=salt,
             iterations=100000,  # HIPAA recommended minimum
         )
-        key = base64.urlsafe_b64encode(kdf.derive(password.encode()))
-        return key
+        return base64.urlsafe_b64encode(kdf.derive(password.encode()))
 
     def encrypt_phi(self, data: str) -> str:
         """Encrypt PHI data"""

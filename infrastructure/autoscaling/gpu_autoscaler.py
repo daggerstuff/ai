@@ -480,9 +480,8 @@ class RequestForecaster:
             forecast = smoothed
 
         # Clamp forecast to reasonable bounds
-        forecast = max(0.0, min(100.0, forecast))
+        return max(0.0, min(100.0, forecast))
 
-        return forecast
 
     def train_model(self, _historical_data: list[dict[str, Any]]):
         """Train the forecasting model (placeholder)"""
@@ -726,7 +725,7 @@ def test_autoscaling_system():
 
     # Register another model
     model2_name = "crisis_detection_model"
-    autoscaler2 = register_model_for_autoscaling(
+    register_model_for_autoscaling(
         model2_name,
         instance_type=InstanceType.GPU_A10,
         scaling_policy=ScalingPolicy(min_instances=2, max_instances=8)

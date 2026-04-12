@@ -255,7 +255,7 @@ class InferenceSafetyFilter:
         # Create traceability record for the safety filtering event
         record_id = f"safety_filter_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{hashlib.md5(original_content.encode()).hexdigest()[:8]}"
 
-        traceability_data = {
+        return {
             "record_id": record_id,
             "type": "safety_filtering",
             "original_content_hash": hashlib.sha256(
@@ -285,7 +285,6 @@ class InferenceSafetyFilter:
         # In a real implementation, you'd store this in the traceability system
         # For now, we'll just return the data structure
 
-        return traceability_data
 
     def get_filtering_statistics(self) -> dict[str, Any]:
         """Get statistics about content filtering"""

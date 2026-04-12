@@ -570,7 +570,7 @@ def main():
     report_parser.add_argument("--output", help="Output file for report")
 
     # List command
-    list_parser = subparsers.add_parser("list", help="List all batches")
+    subparsers.add_parser("list", help="List all batches")
 
     # Summary command
     summary_parser = subparsers.add_parser("summary", help="Get batch summary")

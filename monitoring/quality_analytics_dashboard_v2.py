@@ -1090,7 +1090,7 @@ class QualityAnalyticsDashboard:
         if show_anomalies and analytics.anomalies:
             st.subheader("⚠️ Quality Anomalies")
 
-            anomaly_df = pd.DataFrame(analytics.anomalies)
+            pd.DataFrame(analytics.anomalies)
 
             # Group by anomaly type
             low_anomalies = [

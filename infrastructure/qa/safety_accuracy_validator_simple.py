@@ -369,7 +369,7 @@ class EnterpriseSafetyAccuracyValidator:
         crisis_scenarios = [s for s in self.test_scenarios if s.expected_detection]
         crisis_indices = [i for i, s in enumerate(self.test_scenarios) if s.expected_detection]
         crisis_predictions = [predictions[i] for i in crisis_indices]
-        crisis_labels = [True] * len(crisis_scenarios)
+        [True] * len(crisis_scenarios)
 
         crisis_correct = sum(1 for p in crisis_predictions if p)
         crisis_detection_accuracy = (crisis_correct / len(crisis_scenarios)) * 100 if crisis_scenarios else 0

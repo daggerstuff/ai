@@ -451,11 +451,10 @@ class TestScalabilityLimits(PerformanceTestBase):
 
             def process_dataset():
                 # Simulate processing operations
-                result = df.groupby(df.index // 1000).agg({
+                return df.groupby(df.index // 1000).agg({
                     "word_count": "mean",
                     "quality_score": ["mean", "std"]
                 })
-                return result
 
             perf_metrics = self.measure_performance(process_dataset)
 

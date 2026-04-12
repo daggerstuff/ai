@@ -309,9 +309,6 @@ class ComplianceValidationSystem:
         # Simulate compliance assessment based on control requirements
         # In a real implementation, this would check actual system configurations
 
-        gaps_identified = []
-        recommendations = []
-        evidence_count = 0
 
         # Assess based on control category and requirements
         if control.category == ControlCategory.ACCESS_CONTROL:
@@ -584,7 +581,7 @@ class ComplianceValidationSystem:
         else:
             certification_status = "❌ NOT COMPLIANT FOR PRODUCTION"
 
-        report = {
+        return {
             "compliance_assessment_summary": {
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "execution_time": execution_time,
@@ -639,7 +636,6 @@ class ComplianceValidationSystem:
             "next_steps": self._generate_compliance_next_steps()
         }
 
-        return report
 
     def _generate_compliance_recommendations(self, metrics: dict[str, Any]) -> list[str]:
         """Generate compliance improvement recommendations"""

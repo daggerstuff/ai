@@ -137,8 +137,7 @@ class TestPipelineCoordinator:
             "performance_monitor": {"metrics_retention_hours": 24}
         }
 
-        coordinator = PipelineCoordinator(redis_client, config)
-        return coordinator
+        return PipelineCoordinator(redis_client, config)
 
     @pytest.mark.asyncio
     async def test_pipeline_execution(self, coordinator):
@@ -535,8 +534,7 @@ class TestPerformanceMonitoring:
             "performance_window_size": 1000
         }
 
-        monitor = PerformanceMonitor(redis_client, config)
-        return monitor
+        return PerformanceMonitor(redis_client, config)
 
     @pytest.mark.asyncio
     async def test_sub_50ms_threshold_monitoring(self, performance_monitor):
@@ -615,11 +613,11 @@ class TestIntegrationScenarios:
         # Initialize all components
         event_bus = EventBus(redis_client)
         state_manager = StateManager(redis_client)
-        progress_tracker = ProgressTracker(redis_client, event_bus, state_manager)
-        error_recovery = ErrorRecoveryManager()
-        bias_integration = BiasDetectionIntegration()
-        performance_monitor = PerformanceMonitor(redis_client)
-        degradation_manager = GracefulDegradationManager(event_bus)
+        ProgressTracker(redis_client, event_bus, state_manager)
+        ErrorRecoveryManager()
+        BiasDetectionIntegration()
+        PerformanceMonitor(redis_client)
+        GracefulDegradationManager(event_bus)
 
         coordinator = PipelineCoordinator(
             redis_client,

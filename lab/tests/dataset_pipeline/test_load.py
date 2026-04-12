@@ -126,7 +126,7 @@ def test_logger_override_and_custom_config(temp_data_dir):
     make_csv(temp_data_dir / "foo.csv", [{"a": 1}])
     custom_logger = mock.Mock()
     config = {"foo": str(temp_data_dir / "foo.csv")}
-    result = load.load_datasets(config, logger_override=custom_logger)
+    load.load_datasets(config, logger_override=custom_logger)
     # Should use the custom logger for info
     assert custom_logger.info.called
 

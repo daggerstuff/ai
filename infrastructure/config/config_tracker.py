@@ -202,7 +202,7 @@ class ConfigTracker:
 
         try:
             # Create backup of current state
-            current_backup_id = self.create_snapshot(f"Pre-rollback backup for {change_id}")
+            self.create_snapshot(f"Pre-rollback backup for {change_id}")
 
             # Restore the file
             if target_change.change_type == "delete":
@@ -258,7 +258,7 @@ class ConfigTracker:
 
         try:
             # Create backup of current state
-            current_backup_id = self.create_snapshot(f"Pre-rollback backup for snapshot {snapshot_id}")
+            self.create_snapshot(f"Pre-rollback backup for snapshot {snapshot_id}")
 
             # Restore files from snapshot backup
             snapshot_backup_dir = self.tracking_dir / "snapshots" / snapshot_id

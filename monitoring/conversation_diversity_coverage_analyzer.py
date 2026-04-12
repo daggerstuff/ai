@@ -102,9 +102,8 @@ class ConversationDiversityCoverageAnalyzer:
         )
 
         # Filter out empty conversations
-        df = df[df["conversation_text"].str.len() > 10]
+        return df[df["conversation_text"].str.len() > 10]
 
-        return df
 
     def _extract_text_from_json(self, json_str: str) -> str:
         """Extract readable text from conversations JSON"""
@@ -354,7 +353,7 @@ class ConversationDiversityCoverageAnalyzer:
         style_df = pd.DataFrame(style_metrics)
 
         # Calculate style diversity
-        style_diversity = {
+        return {
             "question_density_range": {
                 "min": style_df["question_density"].min(),
                 "max": style_df["question_density"].max(),
@@ -386,7 +385,6 @@ class ConversationDiversityCoverageAnalyzer:
             "style_diversity_index": self._calculate_style_diversity_index(style_df),
         }
 
-        return style_diversity
 
     def _analyze_response_pattern_diversity(
         self, conversations: pd.DataFrame

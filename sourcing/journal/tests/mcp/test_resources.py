@@ -109,7 +109,7 @@ def _build_orchestrator(
     error_log = [{"timestamp": "2025-01-01T10:10:00Z", "message": "none"}]
     report = progress_report or {"summary": "steady progress"}
 
-    orchestrator = _FakeOrchestrator(
+    return _FakeOrchestrator(
         session_id=session_id,
         progress=progress,
         history=history,
@@ -118,7 +118,6 @@ def _build_orchestrator(
         error_log=error_log,
         report=report,
     )
-    return orchestrator
 
 
 @pytest.mark.asyncio

@@ -391,7 +391,7 @@ class SecurityTestFramework:
         try:
             # Test 1: Session fixation
             # Get initial session
-            response1 = self.session.get(f"{self.base_url}/health")
+            self.session.get(f"{self.base_url}/health")
             initial_cookies = self.session.cookies
 
             # Login
@@ -494,7 +494,7 @@ class SecurityTestFramework:
         else:
             overall_status = "NOT PRODUCTION READY"
 
-        report = {
+        return {
             "scan_summary": {
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "execution_time": total_execution_time,
@@ -542,7 +542,6 @@ class SecurityTestFramework:
             "recommendations": self._generate_recommendations(security_score, vulnerability_counts)
         }
 
-        return report
 
     def _count_vulnerabilities_by_category(self) -> dict[str, int]:
         """Count vulnerabilities by category"""

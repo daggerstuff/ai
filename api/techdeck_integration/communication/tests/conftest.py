@@ -130,22 +130,19 @@ async def event_bus(mock_redis_client, test_config):
 @pytest.fixture
 async def state_manager(mock_redis_client, test_config):
     """Create StateManager instance for testing."""
-    state_manager = StateManager(mock_redis_client, test_config["redis"])
-    return state_manager
+    return StateManager(mock_redis_client, test_config["redis"])
 
 
 @pytest.fixture
 async def progress_tracker(mock_redis_client, event_bus, state_manager):
     """Create ProgressTracker instance for testing."""
-    progress_tracker = ProgressTracker(mock_redis_client, event_bus, state_manager)
-    return progress_tracker
+    return ProgressTracker(mock_redis_client, event_bus, state_manager)
 
 
 @pytest.fixture
 async def error_recovery_manager(test_config):
     """Create ErrorRecoveryManager instance for testing."""
-    error_recovery = ErrorRecoveryManager(test_config["error_recovery"])
-    return error_recovery
+    return ErrorRecoveryManager(test_config["error_recovery"])
 
 
 @pytest.fixture
@@ -159,22 +156,19 @@ async def bias_integration(test_config):
 @pytest.fixture
 async def performance_monitor(mock_redis_client, test_config):
     """Create PerformanceMonitor instance for testing."""
-    performance_monitor = PerformanceMonitor(mock_redis_client, test_config["performance"])
-    return performance_monitor
+    return PerformanceMonitor(mock_redis_client, test_config["performance"])
 
 
 @pytest.fixture
 async def graceful_degradation_manager(event_bus, test_config):
     """Create GracefulDegradationManager instance for testing."""
-    degradation_manager = GracefulDegradationManager(event_bus, test_config["graceful_degradation"])
-    return degradation_manager
+    return GracefulDegradationManager(event_bus, test_config["graceful_degradation"])
 
 
 @pytest.fixture
 async def pipeline_coordinator(mock_redis_client, test_config):
     """Create PipelineCoordinator instance for testing."""
-    coordinator = PipelineCoordinator(mock_redis_client, test_config)
-    return coordinator
+    return PipelineCoordinator(mock_redis_client, test_config)
 
 
 @pytest.fixture

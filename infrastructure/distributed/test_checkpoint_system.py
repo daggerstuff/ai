@@ -204,7 +204,7 @@ class CheckpointTestSuite:
         task_id = "recovery_test"
 
         # Register and progress a process
-        state = self.manager.register_process(
+        self.manager.register_process(
             process_id=process_id,
             task_id=task_id,
             total_steps=20,
@@ -220,7 +220,7 @@ class CheckpointTestSuite:
         )
 
         # Simulate process interruption (remove from active processes)
-        original_state = self.manager.active_processes[process_id]
+        self.manager.active_processes[process_id]
         del self.manager.active_processes[process_id]
 
         # Recover the process
@@ -263,7 +263,7 @@ class CheckpointTestSuite:
             process_id = f"test_optimize_{i}"
 
             # Create and complete process
-            state = self.manager.register_process(
+            self.manager.register_process(
                 process_id=process_id,
                 task_id="optimization_test",
                 total_steps=5,
@@ -341,7 +341,7 @@ class CheckpointTestSuite:
             process_id = f"concurrent_test_{process_num}"
             task_id = f"concurrent_task_{process_num}"
 
-            state = self.manager.register_process(
+            self.manager.register_process(
                 process_id=process_id,
                 task_id=task_id,
                 total_steps=10,
@@ -545,14 +545,14 @@ class CheckpointTestSuite:
             checkpoint_ids.append(checkpoint_id)
 
         # Get initial stats
-        initial_stats = self.manager.storage.get_storage_stats()
+        self.manager.storage.get_storage_stats()
 
         # Run optimization (which includes deduplication)
         optimizer = CheckpointOptimizer(self.monitor.config)
         optimization_results = optimizer.optimize_storage()
 
         # Verify optimization occurred
-        final_stats = self.manager.storage.get_storage_stats()
+        self.manager.storage.get_storage_stats()
 
         # Should have some optimization actions
         assert len(optimization_results["actions_taken"]) >= 0, (

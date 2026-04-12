@@ -174,9 +174,8 @@ class SafetyMonitoringSystem:
         self._update_metrics(crisis_assessment, processing_time)
 
         # Generate response
-        response = self._generate_safety_response(crisis_assessment, incident)
+        return self._generate_safety_response(crisis_assessment, incident)
 
-        return response
 
     async def _assess_crisis_level(self, user_input: str) -> dict[str, Any]:
         """Assess crisis level in user input"""

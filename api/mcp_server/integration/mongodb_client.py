@@ -39,8 +39,7 @@ class MCPMongoDBClient:
     ) -> dict[str, Any] | None:
         """Find a single document asynchronously."""
         # Type hint for basedpyright which sometimes misses motor's return types
-        result = await self.async_db[collection].find_one(query)
-        return result
+        return await self.async_db[collection].find_one(query)
 
     async def find_many(
         self,
@@ -56,8 +55,7 @@ class MCPMongoDBClient:
         if limit:
             cursor = cursor.limit(limit)
         # Using length=None returns all documents matching the query
-        results = await cursor.to_list(length=None)
-        return results
+        return await cursor.to_list(length=None)
 
     async def update_one(
         self, collection: str, query: dict[str, Any], update: dict[str, Any]

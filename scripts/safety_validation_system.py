@@ -440,7 +440,7 @@ class SafetyValidationSystem:
         else:
             certification_status = "❌ NOT PRODUCTION READY"
 
-        report = {
+        return {
             "safety_validation_summary": {
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "execution_time": execution_time,
@@ -497,7 +497,6 @@ class SafetyValidationSystem:
             "recommendations": self._generate_safety_recommendations()
         }
 
-        return report
 
     def _generate_safety_recommendations(self) -> list[str]:
         """Generate safety improvement recommendations"""

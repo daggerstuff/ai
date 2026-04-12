@@ -426,9 +426,8 @@ class InputValidator:
         sanitized = re.sub(r"[\x00-\x1f\x7f-\x9f]", "", sanitized)
 
         # Trim whitespace
-        sanitized = sanitized.strip()
+        return sanitized.strip()
 
-        return sanitized
 
 
 class DatasetValidator:

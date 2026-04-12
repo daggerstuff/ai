@@ -686,10 +686,10 @@ def main():
     unified_conversations = pipeline.combine_and_deduplicate(all_conversations)
 
     # Phase 4: Create unified Lightning.ai dataset
-    config = pipeline.create_unified_dataset(unified_conversations)
+    pipeline.create_unified_dataset(unified_conversations)
 
     # Phase 5: Generate comprehensive report
-    report = pipeline.generate_comprehensive_report()
+    pipeline.generate_comprehensive_report()
 
     # Final summary
     logger.info("🎉 Multi-Dataset Processing Complete!")

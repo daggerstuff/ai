@@ -207,7 +207,7 @@ def report(
     if not output:
         output = Path(f"report_{session_id}.{report_format}")
 
-    result = handler.report(
+    handler.report(
         session_id=session_id,
         output_path=output,
         format=report_format,

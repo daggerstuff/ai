@@ -208,7 +208,7 @@ class DatasetStatisticsDashboard:
         """Calculate quality metrics for dataset"""
         try:
             # Synthetic quality metrics for demonstration
-            quality_metrics = {
+            return {
                 "completeness_score": min(1.0, len(df[df["word_count"] > 0]) / len(df)),
                 "consistency_score": min(
                     1.0, len(df[df["processing_status"] == "processed"]) / len(df)
@@ -222,7 +222,6 @@ class DatasetStatisticsDashboard:
                 "coverage_score": np.random.uniform(0.7, 0.95),  # Synthetic for demo
             }
 
-            return quality_metrics
 
         except Exception as e:
             print(f"❌ Error calculating quality metrics: {e}")

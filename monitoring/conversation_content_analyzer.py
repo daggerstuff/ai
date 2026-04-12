@@ -136,9 +136,8 @@ class ConversationContentAnalyzer:
                 return None
 
             # Generate insights from analyses
-            insights = self._generate_content_insights(dataset_name, content_analyses)
+            return self._generate_content_insights(dataset_name, content_analyses)
 
-            return insights
 
         except Exception as e:
             print(f"❌ Error analyzing dataset content for {dataset_name}: {e}")

@@ -172,7 +172,7 @@ def copy(_ctx, from_profile: str, to_profile: str, overwrite: bool):
 
         # Check if target exists
         try:
-            target_config = get_config(to_profile)
+            get_config(to_profile)
             if not overwrite:
                 click.echo(f"❌ Target profile '{to_profile}' already exists. Use --overwrite to replace.", err=True)
                 return
@@ -305,7 +305,7 @@ def import_config(_ctx, file: str, profile: str | None, overwrite: bool):
 
         # Check if target exists
         try:
-            existing_config = get_config(target_profile)
+            get_config(target_profile)
             if not overwrite:
                 click.echo(f"❌ Profile '{target_profile}' already exists. Use --overwrite to replace.", err=True)
                 return

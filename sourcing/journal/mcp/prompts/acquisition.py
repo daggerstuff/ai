@@ -63,7 +63,7 @@ class AcquireDatasetsPrompt(MCPPrompt):
             source_ids_str = "all evaluated sources in session"
             source_ids_json = "null"
 
-        template = f"""# Dataset Acquisition Workflow
+        return f"""# Dataset Acquisition Workflow
 
 ## Overview
 This workflow guides you through acquiring datasets from identified sources for research session `{session_id}`.
@@ -177,5 +177,4 @@ acquire_datasets(
 - You can cancel in-progress acquisitions if needed
 """
 
-        return template
 

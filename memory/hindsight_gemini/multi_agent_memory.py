@@ -176,12 +176,11 @@ class MultiAgentMemory:
 
             # In native Hindsight, types can be passed directly or via metadata.
             # Here we pass it in metadata to ensure it's captured by the underlying wrapper.
-            result = self.memory.add_memory(
+            return self.memory.add_memory(
                 content=content,
                 user_id=context.user_id,
                 metadata=full_metadata,
             )
-            return result
 
         except Exception as e:
             logger.error(f"Error storing agent memory: {e}")
@@ -210,7 +209,6 @@ class MultiAgentMemory:
             disposition = disposition_override or (agent.role.value if agent else "neutral")
 
             # Construct a disposition-aware query
-            disposition_query = f"[Act with a {disposition} disposition] {query}"
 
             # If the underlying client supports native reflect (e.g., HindsightMemoryManager)
             memories = await self.get_shared_context(context)

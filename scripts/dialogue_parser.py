@@ -135,10 +135,9 @@ class DialogueParser:
 
     def is_answer(self, text: str) -> bool:
         """Determine if text is an answer/response"""
-        text_lower = text.lower().strip()
+        text.lower().strip()
 
         # Answer indicators
-        answer_starters = ["well", "so", "yes", "no", "absolutely", "that's", "the thing is", "what happens"]
 
         # Should be substantial content
         if len(text.split()) < 10:

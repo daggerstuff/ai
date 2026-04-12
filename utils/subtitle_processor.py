@@ -33,7 +33,6 @@ class SubtitleProcessor:
         # Pattern for <00:00:00.000><c> etc
         tag_pattern = re.compile(r"<[^>]+>")
 
-        cleaned_paragraphs = []
         current_text = []
 
         seen_lines = set()
@@ -61,13 +60,12 @@ class SubtitleProcessor:
             current_text.append(cleaned_line)
 
         # Merge lines and remove redundant parts of sentences
-        full_text = " ".join(current_text)
+        return " ".join(current_text)
 
         # Simple cleanup of redundant repeated segments (YouTube specific)
         # e.g. "Hello world Hello world there" -> "Hello world there"
         # This is a bit complex to do perfectly without NLP, but we can do some basics.
 
-        return full_text
 
     @staticmethod
     def format_as_markdown(text: str, metadata: dict) -> str:

@@ -145,7 +145,7 @@ class TestConfig:
         if "NONEXISTENT_VAR" in os.environ:
             del os.environ["NONEXISTENT_VAR"]
 
-        config = Config()
+        Config()
 
         # Variables not set should use empty string as default
         # This is the current behavior based on the implementation

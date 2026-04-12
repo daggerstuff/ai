@@ -23,7 +23,7 @@ class ComprehensiveDatasetProcessor:
 
     def normalize_segment(self, segment: dict, source: str) -> dict:
         """Normalize segment format across different sources"""
-        normalized = {
+        return {
             "text": segment.get("text", ""),
             "style": segment.get("style", "therapeutic"),
             "confidence": segment.get("confidence", 1.0),
@@ -31,7 +31,6 @@ class ComprehensiveDatasetProcessor:
             "source": source,
             "file": segment.get("file", "unknown"),
         }
-        return normalized
 
     def process_v2_enhanced_data(self):
         """Process 61,548 segments from pixelated-v2"""
@@ -283,7 +282,7 @@ class ComprehensiveDatasetProcessor:
         total_stats["val_size"] = len(val_conversations)
 
         # Create final config
-        config = self.converter.create_config_file(output_dir, total_stats)
+        self.converter.create_config_file(output_dir, total_stats)
 
         return total_stats
 

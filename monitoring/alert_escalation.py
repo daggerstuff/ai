@@ -912,10 +912,10 @@ def main():
     resolve_parser.add_argument("user", help="User resolving the alert")
 
     # List command
-    list_parser = subparsers.add_parser("list", help="List active alerts")
+    subparsers.add_parser("list", help="List active alerts")
 
     # Stats command
-    stats_parser = subparsers.add_parser("stats", help="Show escalation statistics")
+    subparsers.add_parser("stats", help="Show escalation statistics")
 
     args = parser.parse_args()
 
