@@ -1,10 +1,6 @@
 # === IDE & EDITORS ===
-*.swo
-*.swp
-*~
 .idea/
 .vscode/
-.~*
 .Jules/
 
 # === VIRTUAL ENVIRONMENTS ===
@@ -70,21 +66,18 @@
 **/data/acquired_datasets/**
 **/data/raw/**
 **/dataset_pipeline/data/**
-**/lightning/production/deployment_package/data/**
 **/models/defense_mechanisms/**
 **/psydefdetect/input_data/**
 **/psydefdetect/solution/**
 **/tensorboard/
 **/tim_fletcher_voice/**
-**/training_ready/data/**
+**/training_ready/**
 **/wandb/
 **/youtube_transcriptions/**/*
 bin/model/**.json
 bin/model/**.pkl.model
 infrastructure/production/models/*
-lightning/*.jsonl
 pipelines/*/output/
-training_data_consolidated/
 
 # === SECRETS & ENVIRONMENT ===
 **/.aws/config
@@ -161,28 +154,21 @@ infrastructure/qa/validation_results/**
 codemap.md
 data/
 datasets/
+compiled_dataset/
 training/
 training_ready/
+training_corpus/
+training_data/
+training_data_consolidated/
 
 # === SECURITY: never commit generated security configs with real keys ===
 config/emergency_security_config.json
 *.jsonl
-data/staged_datasets/stage2_therapeutic_expertise.jsonl
+**/AGENTS.md
 AGENTS.md
 .autoswitch_venv
 .venv
-training_data_consolidated
-psydefdetect
 ARCHITECTURE.md
 .Jules/
-datasets/
-data/
-compiled_dataset/
 lightning/
-training/compiled_dataset/
-training/models/
-training/ready_packages/
-training/long_running_therapy/
-training/promoter_agent.py
-training/train_*.py
-training/data/
+.moderne/
