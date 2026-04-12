@@ -24,7 +24,7 @@ async def search_literature(
         results = engine.search_literature(q, limit=limit, sources=sources)
         return {"results": results, "total": len(results), "facets": {}}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/datasets")
@@ -46,4 +46,4 @@ async def search_datasets(
         )
         return {"results": datasets[:limit], "total": len(datasets)}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e

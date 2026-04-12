@@ -255,7 +255,7 @@ class PerformanceMonitor:
             raise
         except Exception as e:
             self.logger.error(f"Failed to record performance metric: {e}")
-            raise PerformanceMonitoringError(f"Metric recording failed: {e!s}")
+            raise PerformanceMonitoringError(f"Metric recording failed: {e!s}") from e
 
     def _check_threshold(self, value: float, threshold: PerformanceThreshold) -> bool:
         """Check if metric value exceeds threshold."""
@@ -444,7 +444,7 @@ class PerformanceMonitor:
 
         except Exception as e:
             self.logger.error(f"Failed to generate performance summary: {e}")
-            raise PerformanceMonitoringError(f"Summary generation failed: {e!s}")
+            raise PerformanceMonitoringError(f"Summary generation failed: {e!s}") from e
 
     async def check_performance_thresholds(self) -> list[dict[str, Any]]:
         """
@@ -496,7 +496,7 @@ class PerformanceMonitor:
 
         except Exception as e:
             self.logger.error(f"Failed to check performance thresholds: {e}")
-            raise PerformanceMonitoringError(f"Threshold checking failed: {e!s}")
+            raise PerformanceMonitoringError(f"Threshold checking failed: {e!s}") from e
 
     def _generate_threshold_recommendations(
         self, metric_name: str, current_value: float, threshold: PerformanceThreshold
@@ -603,7 +603,7 @@ class PerformanceMonitor:
 
         except Exception as e:
             self.logger.error(f"Failed to generate performance dashboard: {e}")
-            raise PerformanceMonitoringError(f"Dashboard generation failed: {e!s}")
+            raise PerformanceMonitoringError(f"Dashboard generation failed: {e!s}") from e
 
     def _calculate_performance_trends(self) -> dict[str, Any]:
         """Calculate performance trends over time."""
@@ -763,7 +763,7 @@ class PerformanceMonitor:
 
         except Exception as e:
             self.logger.error(f"Failed to cleanup old metrics: {e}")
-            raise PerformanceMonitoringError(f"Metrics cleanup failed: {e!s}")
+            raise PerformanceMonitoringError(f"Metrics cleanup failed: {e!s}") from e
 
     def get_performance_report(
         self, execution_id: str | None = None, time_range_hours: int = 24
@@ -832,7 +832,7 @@ class PerformanceMonitor:
 
         except Exception as e:
             self.logger.error(f"Failed to generate performance report: {e}")
-            raise PerformanceMonitoringError(f"Report generation failed: {e!s}")
+            raise PerformanceMonitoringError(f"Report generation failed: {e!s}") from e
 
     def _calculate_percentile(self, values: list[float], percentile: float) -> float:
         """Calculate percentile from sorted values."""

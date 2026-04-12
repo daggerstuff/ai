@@ -69,7 +69,7 @@ def list_schemas():
         raise
     except Exception as e:
         request_logger.error(f"Error listing schemas: {e}")
-        raise StandardizationError(f"Failed to retrieve schemas: {e!s}")
+        raise StandardizationError(f"Failed to retrieve schemas: {e!s}") from e
 
 
 @standardization_bp.route("/schemas/<schema_id>", methods=["GET"])
@@ -125,7 +125,7 @@ def get_schema(schema_id: str):
         raise
     except Exception as e:
         request_logger.error(f"Error retrieving schema {schema_id}: {e}")
-        raise StandardizationError(f"Failed to retrieve schema: {e!s}")
+        raise StandardizationError(f"Failed to retrieve schema: {e!s}") from e
 
 
 @standardization_bp.route("/validate", methods=["POST"])
@@ -207,7 +207,7 @@ def validate_data():
         raise
     except Exception as e:
         request_logger.error(f"Error validating data: {e}")
-        raise StandardizationError(f"Failed to validate data: {e!s}")
+        raise StandardizationError(f"Failed to validate data: {e!s}") from e
 
 
 @standardization_bp.route("/transform", methods=["POST"])
@@ -289,7 +289,7 @@ def transform_data():
         raise
     except Exception as e:
         request_logger.error(f"Error transforming data: {e}")
-        raise StandardizationError(f"Failed to transform data: {e!s}")
+        raise StandardizationError(f"Failed to transform data: {e!s}") from e
 
 
 @standardization_bp.route("/batch-transform", methods=["POST"])
@@ -414,7 +414,7 @@ def batch_transform_data():
         raise
     except Exception as e:
         request_logger.error(f"Error in batch transformation: {e}")
-        raise StandardizationError(f"Failed to batch transform data: {e!s}")
+        raise StandardizationError(f"Failed to batch transform data: {e!s}") from e
 
 
 @standardization_bp.route("/schemas/<schema_id>/stats", methods=["GET"])
@@ -473,7 +473,7 @@ def get_schema_stats(schema_id: str):
         raise
     except Exception as e:
         request_logger.error(f"Error retrieving schema statistics {schema_id}: {e}")
-        raise StandardizationError(f"Failed to retrieve schema statistics: {e!s}")
+        raise StandardizationError(f"Failed to retrieve schema statistics: {e!s}") from e
 
 
 # Helper Functions
@@ -842,7 +842,7 @@ def _transform_data(
 
     except Exception as e:
         logger.error(f"Error transforming data: {e}")
-        raise StandardizationError(f"Failed to transform data: {e!s}")
+        raise StandardizationError(f"Failed to transform data: {e!s}") from e
 
 
 def _get_schema_statistics(_redis_client: RedisClient, schema_id: str) -> dict[str, Any]:

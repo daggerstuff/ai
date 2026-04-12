@@ -127,7 +127,7 @@ class PipelineService:
             raise
         except Exception as e:
             request_logger.error(f"Error creating pipeline configuration: {e}")
-            raise ConfigurationError(f"Failed to create pipeline configuration: {e!s}")
+            raise ConfigurationError(f"Failed to create pipeline configuration: {e!s}") from e
 
     def get_pipeline_config(self, config_id: str, user_id: str) -> dict[str, Any]:
         """
@@ -167,7 +167,7 @@ class PipelineService:
             raise
         except Exception as e:
             request_logger.error(f"Error retrieving pipeline configuration: {e}")
-            raise ConfigurationError(f"Failed to retrieve pipeline configuration: {e!s}")
+            raise ConfigurationError(f"Failed to retrieve pipeline configuration: {e!s}") from e
 
     def update_pipeline_config(self, config_id: str, user_id: str, updates: dict[str, Any]) -> dict[str, Any]:
         """
@@ -240,7 +240,7 @@ class PipelineService:
             raise
         except Exception as e:
             request_logger.error(f"Error updating pipeline configuration: {e}")
-            raise ConfigurationError(f"Failed to update pipeline configuration: {e!s}")
+            raise ConfigurationError(f"Failed to update pipeline configuration: {e!s}") from e
 
     def delete_pipeline_config(self, config_id: str, user_id: str) -> bool:
         """
@@ -280,7 +280,7 @@ class PipelineService:
             raise
         except Exception as e:
             request_logger.error(f"Error deleting pipeline configuration: {e}")
-            raise ConfigurationError(f"Failed to delete pipeline configuration: {e!s}")
+            raise ConfigurationError(f"Failed to delete pipeline configuration: {e!s}") from e
 
     def list_user_configs(self, user_id: str, limit: int = 50, offset: int = 0,
                          is_active: bool | None = None) -> dict[str, Any]:
@@ -350,7 +350,7 @@ class PipelineService:
             raise
         except Exception as e:
             request_logger.error(f"Error listing pipeline configurations: {e}")
-            raise ConfigurationError(f"Failed to list pipeline configurations: {e!s}")
+            raise ConfigurationError(f"Failed to list pipeline configurations: {e!s}") from e
 
     def execute_pipeline(self, config_id: str, user_id: str, dataset_id: str,
                         execution_options: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -421,7 +421,7 @@ class PipelineService:
             raise
         except Exception as e:
             request_logger.error(f"Error starting pipeline execution: {e}")
-            raise PipelineExecutionError(f"Failed to start pipeline execution: {e!s}")
+            raise PipelineExecutionError(f"Failed to start pipeline execution: {e!s}") from e
 
     def get_execution_status(self, execution_id: str, user_id: str) -> dict[str, Any]:
         """
@@ -461,7 +461,7 @@ class PipelineService:
             raise
         except Exception as e:
             request_logger.error(f"Error getting execution status: {e}")
-            raise PipelineExecutionError(f"Failed to get execution status: {e!s}")
+            raise PipelineExecutionError(f"Failed to get execution status: {e!s}") from e
 
     def cancel_execution(self, execution_id: str, user_id: str) -> bool:
         """
@@ -509,7 +509,7 @@ class PipelineService:
             raise
         except Exception as e:
             request_logger.error(f"Error cancelling execution: {e}")
-            raise PipelineExecutionError(f"Failed to cancel execution: {e!s}")
+            raise PipelineExecutionError(f"Failed to cancel execution: {e!s}") from e
 
     def list_user_executions(self, user_id: str, limit: int = 50, offset: int = 0,
                            status: str | None = None) -> dict[str, Any]:
@@ -591,7 +591,7 @@ class PipelineService:
             raise
         except Exception as e:
             request_logger.error(f"Error listing executions: {e}")
-            raise PipelineExecutionError(f"Failed to list executions: {e!s}")
+            raise PipelineExecutionError(f"Failed to list executions: {e!s}") from e
 
     def get_execution_logs(self, execution_id: str, user_id: str, limit: int = 100) -> list[dict[str, Any]]:
         """
@@ -624,7 +624,7 @@ class PipelineService:
             raise
         except Exception as e:
             request_logger.error(f"Error getting execution logs: {e}")
-            raise PipelineExecutionError(f"Failed to get execution logs: {e!s}")
+            raise PipelineExecutionError(f"Failed to get execution logs: {e!s}") from e
 
     def get_pipeline_statistics(self, user_id: str) -> dict[str, Any]:
         """
@@ -699,7 +699,7 @@ class PipelineService:
 
         except Exception as e:
             request_logger.error(f"Error getting pipeline statistics: {e}")
-            raise PipelineExecutionError(f"Failed to get pipeline statistics: {e!s}")
+            raise PipelineExecutionError(f"Failed to get pipeline statistics: {e!s}") from e
 
     def _execute_pipeline_stages(self, execution_id: str, config_record: dict[str, Any],
                                dataset_record: dict[str, Any], execution_options: dict[str, Any] | None):
@@ -800,7 +800,7 @@ class PipelineService:
 
         except Exception as e:
             self.logger.error(f"Error processing stage {stage.value}: {e}")
-            raise PipelineExecutionError(f"Stage {stage.value} failed: {e!s}")
+            raise PipelineExecutionError(f"Stage {stage.value} failed: {e!s}") from e
 
     def _process_data_ingestion(self, _config: dict[str, Any], _dataset_record: dict[str, Any], execution_id: str):
         """Process data ingestion stage."""
@@ -849,7 +849,7 @@ class PipelineService:
             }
         except Exception as e:
             self.logger.error(f"Error getting dataset record: {e}")
-            raise ResourceNotFoundError(f"Dataset {dataset_id} not found")
+            raise ResourceNotFoundError(f"Dataset {dataset_id} not found") from e
 
     def _update_config_usage(self, config_id: str):
         """Update configuration usage statistics."""
@@ -1004,4 +1004,4 @@ class PipelineService:
             raise
         except Exception as e:
             request_logger.error(f"Error validating pipeline configuration: {e}")
-            raise ValidationError(f"Failed to validate pipeline configuration: {e!s}")
+            raise ValidationError(f"Failed to validate pipeline configuration: {e!s}") from e

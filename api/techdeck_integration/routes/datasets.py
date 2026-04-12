@@ -101,7 +101,7 @@ def list_datasets() -> dict[str, Any]:
 
     except ValueError as e:
         logger.warning(f"Invalid pagination parameters: {e}")
-        raise ValidationError(f"Invalid pagination parameters: {e}")
+        raise ValidationError(f"Invalid pagination parameters: {e}") from e
     except Exception as e:
         logger.error(f"Error listing datasets: {e}")
         raise

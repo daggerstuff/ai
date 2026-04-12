@@ -79,7 +79,7 @@ def launch(_ctx, port: int, browser: bool, profile: str | None):
     except Exception as e:
         logger.error(f"Failed to launch web interface: {e}")
         click.echo(f"❌ Failed to launch web interface: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @web_frontend_group.command()
@@ -129,7 +129,7 @@ def session(
     except Exception as e:
         logger.error(f"Session management failed: {e}")
         click.echo(f"❌ Session management failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @web_frontend_group.command()
@@ -179,7 +179,7 @@ def monitor(_ctx, pipeline_id: str, refresh: int, output: str):
     except Exception as e:
         logger.error(f"Pipeline monitoring failed: {e}")
         click.echo(f"❌ Pipeline monitoring failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @web_frontend_group.command()
@@ -255,7 +255,7 @@ def upload(_ctx, file: str, pipeline_type: str, async_run: bool):
     except Exception as e:
         logger.error(f"File upload failed: {e}")
         click.echo(f"❌ File upload failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @web_frontend_group.command()
@@ -324,7 +324,7 @@ def downloads(
     except Exception as e:
         logger.error(f"Download management failed: {e}")
         click.echo(f"❌ Download management failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 # Helper functions (would typically be in a separate module)

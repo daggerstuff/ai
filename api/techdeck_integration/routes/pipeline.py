@@ -101,7 +101,7 @@ def list_pipeline_configs() -> dict[str, Any]:
 
     except ValueError as e:
         logger.warning(f"Invalid pagination parameters: {e}")
-        raise ValidationError(f"Invalid pagination parameters: {e}")
+        raise ValidationError(f"Invalid pagination parameters: {e}") from e
     except Exception as e:
         logger.error(f"Error listing pipeline configs: {e}")
         raise
@@ -739,7 +739,7 @@ def list_pipeline_executions() -> dict[str, Any]:
 
     except ValueError as e:
         logger.warning(f"Invalid pagination parameters: {e}")
-        raise ValidationError(f"Invalid pagination parameters: {e}")
+        raise ValidationError(f"Invalid pagination parameters: {e}") from e
     except Exception as e:
         logger.error(f"Error listing pipeline executions: {e}")
         raise

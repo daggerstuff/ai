@@ -84,7 +84,7 @@ def show(_ctx, profile: str | None, show_all: bool, decrypt: bool):
     except Exception as e:
         logger.error(f"Configuration display failed: {e}")
         click.echo(f"❌ Configuration display failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @config_group.command()
@@ -127,7 +127,7 @@ def set(_ctx, profile: str | None, set_values: tuple, interactive: bool):
     except Exception as e:
         logger.error(f"Configuration update failed: {e}")
         click.echo(f"❌ Configuration update failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @config_group.command()
@@ -153,7 +153,7 @@ def reset(_ctx, profile: str | None, force: bool):
     except Exception as e:
         logger.error(f"Configuration reset failed: {e}")
         click.echo(f"❌ Configuration reset failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @config_group.command()
@@ -189,7 +189,7 @@ def copy(_ctx, from_profile: str, to_profile: str, overwrite: bool):
     except Exception as e:
         logger.error(f"Configuration copy failed: {e}")
         click.echo(f"❌ Configuration copy failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @config_group.command()
@@ -229,7 +229,7 @@ def validate(_ctx, profile: str | None, strict: bool):
     except Exception as e:
         logger.error(f"Configuration validation failed: {e}")
         click.echo(f"❌ Configuration validation failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @config_group.command()
@@ -268,7 +268,7 @@ def export(_ctx, profile: str | None, output: str, format: str, include_secrets:
     except Exception as e:
         logger.error(f"Configuration export failed: {e}")
         click.echo(f"❌ Configuration export failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @config_group.command()
@@ -326,7 +326,7 @@ def import_config(_ctx, file: str, profile: str | None, overwrite: bool):
     except Exception as e:
         logger.error(f"Configuration import failed: {e}")
         click.echo(f"❌ Configuration import failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @config_group.command()
@@ -403,7 +403,7 @@ def env_info(_ctx):
     except Exception as e:
         logger.error(f"Environment info failed: {e}")
         click.echo(f"❌ Environment info failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 # Helper functions

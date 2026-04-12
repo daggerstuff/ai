@@ -51,9 +51,9 @@ class AgentTokenValidator:
                 clearance_level=payload.get("clearance", 0),
             )
         except jwt.ExpiredSignatureError:
-            raise AuthenticationError("Token has expired")
+            raise AuthenticationError("Token has expired") from None
         except jwt.InvalidTokenError as e:
-            raise AuthenticationError(f"Invalid token: {e}")
+            raise AuthenticationError(f"Invalid token: {e}") from e
 
 
 class RoleBasedAccessControl:

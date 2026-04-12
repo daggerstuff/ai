@@ -123,7 +123,7 @@ def validate_environment() -> bool:
         raise
     except Exception as e:
         logger.error(f"Unexpected error during environment validation: {e}")
-        raise ValueError(f"Environment validation failed: {e}")
+        raise ValueError(f"Environment validation failed: {e}") from e
 
 
 def print_banner():
@@ -241,7 +241,7 @@ def validate_jwt_token(token: str) -> dict[str, Any]:
         }
 
     except Exception as e:
-        raise ValueError(f"Invalid JWT token: {e}")
+        raise ValueError(f"Invalid JWT token: {e}") from e
 
 
 def check_api_health(base_url: str, timeout: int = 10) -> dict[str, Any]:

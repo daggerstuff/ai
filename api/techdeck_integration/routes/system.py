@@ -88,7 +88,7 @@ def health_check():
 
     except Exception as e:
         request_logger.error(f"Error performing health check: {e}")
-        raise SystemError(f"Health check failed: {e!s}")
+        raise SystemError(f"Health check failed: {e!s}") from e
 
 
 @system_bp.route("/ready", methods=["GET"])
@@ -236,7 +236,7 @@ def get_system_config():
         raise
     except Exception as e:
         request_logger.error(f"Error retrieving system configuration: {e}")
-        raise SystemError(f"Failed to retrieve system configuration: {e!s}")
+        raise SystemError(f"Failed to retrieve system configuration: {e!s}") from e
 
 
 @system_bp.route("/config", methods=["PUT"])
@@ -315,7 +315,7 @@ def update_system_config():
         raise
     except Exception as e:
         request_logger.error(f"Error updating system configuration: {e}")
-        raise SystemError(f"Failed to update system configuration: {e!s}")
+        raise SystemError(f"Failed to update system configuration: {e!s}") from e
 
 
 @system_bp.route("/status", methods=["GET"])
@@ -372,7 +372,7 @@ def get_system_status():
         raise
     except Exception as e:
         request_logger.error(f"Error retrieving system status: {e}")
-        raise SystemError(f"Failed to retrieve system status: {e!s}")
+        raise SystemError(f"Failed to retrieve system status: {e!s}") from e
 
 
 @system_bp.route("/metrics", methods=["GET"])
@@ -436,12 +436,12 @@ def get_system_metrics():
         ), 200
 
     except ValueError as e:
-        raise ValidationError(f"Invalid parameter: {e!s}")
+        raise ValidationError(f"Invalid parameter: {e!s}") from e
     except ValidationError:
         raise
     except Exception as e:
         request_logger.error(f"Error retrieving system metrics: {e}")
-        raise AnalyticsError(f"Failed to retrieve system metrics: {e!s}")
+        raise AnalyticsError(f"Failed to retrieve system metrics: {e!s}") from e
 
 
 @system_bp.route("/logs", methods=["GET"])
@@ -515,12 +515,12 @@ def get_system_logs():
         ), 200
 
     except ValueError as e:
-        raise ValidationError(f"Invalid parameter: {e!s}")
+        raise ValidationError(f"Invalid parameter: {e!s}") from e
     except ValidationError:
         raise
     except Exception as e:
         request_logger.error(f"Error retrieving system logs: {e}")
-        raise SystemError(f"Failed to retrieve system logs: {e!s}")
+        raise SystemError(f"Failed to retrieve system logs: {e!s}") from e
 
 
 @system_bp.route("/maintenance", methods=["POST"])
@@ -592,7 +592,7 @@ def system_maintenance():
         raise
     except Exception as e:
         request_logger.error(f"Error performing system maintenance: {e}")
-        raise SystemError(f"Failed to perform system maintenance: {e!s}")
+        raise SystemError(f"Failed to perform system maintenance: {e!s}") from e
 
 
 # Helper Functions
@@ -671,7 +671,7 @@ def _perform_health_checks(
 
     except Exception as e:
         logger.error(f"Error performing health checks: {e}")
-        raise SystemError(f"Health check failed: {e!s}")
+        raise SystemError(f"Health check failed: {e!s}") from e
 
 
 def _check_readiness(redis_client: RedisClient | None) -> dict[str, Any]:
@@ -766,7 +766,7 @@ def _get_system_config(
 
     except Exception as e:
         logger.error(f"Error retrieving system configuration: {e}")
-        raise SystemError(f"Failed to retrieve system configuration: {e!s}")
+        raise SystemError(f"Failed to retrieve system configuration: {e!s}") from e
 
 
 def _validate_system_config(
@@ -824,7 +824,7 @@ def _apply_system_config(
 
     except Exception as e:
         logger.error(f"Error applying system configuration: {e}")
-        raise SystemError(f"Failed to apply system configuration: {e!s}")
+        raise SystemError(f"Failed to apply system configuration: {e!s}") from e
 
 
 def _get_system_status(
@@ -862,7 +862,7 @@ def _get_system_status(
 
     except Exception as e:
         logger.error(f"Error retrieving system status: {e}")
-        raise SystemError(f"Failed to retrieve system status: {e!s}")
+        raise SystemError(f"Failed to retrieve system status: {e!s}") from e
 
 
 def _get_system_metrics(
@@ -935,7 +935,7 @@ def _get_system_metrics(
 
     except Exception as e:
         logger.error(f"Error retrieving system metrics: {e}")
-        raise AnalyticsError(f"Failed to retrieve system metrics: {e!s}")
+        raise AnalyticsError(f"Failed to retrieve system metrics: {e!s}") from e
 
 
 def _get_system_logs(
@@ -1001,7 +1001,7 @@ def _get_system_logs(
 
     except Exception as e:
         logger.error(f"Error retrieving system logs: {e}")
-        raise SystemError(f"Failed to retrieve system logs: {e!s}")
+        raise SystemError(f"Failed to retrieve system logs: {e!s}") from e
 
 
 def _execute_maintenance(
@@ -1045,7 +1045,7 @@ def _execute_maintenance(
         raise
     except Exception as e:
         logger.error(f"Error executing maintenance operation: {e}")
-        raise SystemError(f"Failed to execute maintenance operation: {e!s}")
+        raise SystemError(f"Failed to execute maintenance operation: {e!s}") from e
 
 
 def _get_uptime_seconds() -> float:

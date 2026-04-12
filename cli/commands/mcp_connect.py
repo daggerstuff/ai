@@ -93,12 +93,12 @@ def connect(_ctx, host: str, port: int, timeout: int, retry: int):
                     time.sleep(2)
                 else:
                     click.echo("❌ All connection attempts failed", err=True)
-                    raise click.Abort()
+                    raise click.Abort() from e
 
     except Exception as e:
         logger.error(f"MCP connection failed: {e}")
         click.echo(f"❌ MCP connection failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @mcp_connect_group.command()
@@ -154,7 +154,7 @@ def list_agents(_ctx, status: str, detailed: bool):
     except Exception as e:
         logger.error(f"Failed to list MCP agents: {e}")
         click.echo(f"❌ Failed to list MCP agents: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @mcp_connect_group.command()
@@ -199,7 +199,7 @@ def disconnect(_ctx, agent_id: str, force: bool):
     except Exception as e:
         logger.error(f"Disconnect failed: {e}")
         click.echo(f"❌ Disconnect failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @mcp_connect_group.command()
@@ -289,7 +289,7 @@ def execute(
     except Exception as e:
         logger.error(f"Tool execution failed: {e}")
         click.echo(f"❌ Tool execution failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @mcp_connect_group.command()
@@ -319,7 +319,7 @@ def status(_ctx, execution_id: str | None, agent_id: str | None, limit: int):
     except Exception as e:
         logger.error(f"Status check failed: {e}")
         click.echo(f"❌ Status check failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @mcp_connect_group.command()
@@ -357,7 +357,7 @@ def test(_ctx, agent_id: str, capability: str):
     except Exception as e:
         logger.error(f"Capability test failed: {e}")
         click.echo(f"❌ Capability test failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @mcp_connect_group.command()
@@ -425,7 +425,7 @@ def interactive(_ctx):
     except Exception as e:
         logger.error(f"Interactive session failed: {e}")
         click.echo(f"❌ Interactive session failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 # Helper functions

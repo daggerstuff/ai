@@ -69,7 +69,7 @@ def login(_ctx, username: str, password: str, profile: str | None):
     except Exception as e:
         logger.error(f"Login failed: {e}")
         click.echo(f"❌ Login failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @auth_group.command()
@@ -115,7 +115,7 @@ def logout(_ctx, profile: str | None, logout_all: bool):
     except Exception as e:
         logger.error(f"Logout failed: {e}")
         click.echo(f"❌ Logout failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @auth_group.command()
@@ -172,7 +172,7 @@ def status(_ctx, profile: str | None):
     except Exception as e:
         logger.error(f"Status check failed: {e}")
         click.echo(f"❌ Status check failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @auth_group.command()
@@ -211,7 +211,7 @@ def refresh(_ctx, profile: str | None):
     except Exception as e:
         logger.error(f"Token refresh failed: {e}")
         click.echo(f"❌ Token refresh failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @auth_group.command()
@@ -286,7 +286,7 @@ def profile(_ctx, profile: str | None):
     except Exception as e:
         logger.error(f"Profile display failed: {e}")
         click.echo(f"❌ Profile display failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @auth_group.command()
@@ -329,7 +329,7 @@ def change_password(_ctx, profile: str | None, old_password: str, new_password: 
     except Exception as e:
         logger.error(f"Password change failed: {e}")
         click.echo(f"❌ Password change failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @auth_group.command()
@@ -384,7 +384,7 @@ def history(_ctx, profile: str | None, days: int):
     except Exception as e:
         logger.error(f"History display failed: {e}")
         click.echo(f"❌ History display failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @auth_group.command()
@@ -428,7 +428,7 @@ def setup_mfa(_ctx, profile: str | None, email: str):
     except Exception as e:
         logger.error(f"MFA setup failed: {e}")
         click.echo(f"❌ MFA setup failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @auth_group.command()
@@ -462,7 +462,7 @@ def verify_mfa(_ctx, profile: str | None):
     except Exception as e:
         logger.error(f"MFA verification failed: {e}")
         click.echo(f"❌ MFA verification failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @auth_group.command()
@@ -497,4 +497,4 @@ def disable_mfa(_ctx, profile: str | None):
     except Exception as e:
         logger.error(f"MFA disable failed: {e}")
         click.echo(f"❌ MFA disable failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
