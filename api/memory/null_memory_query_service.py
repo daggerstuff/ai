@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ai.memory.hindsight_local_adapter import normalize_tags
 
@@ -22,16 +22,16 @@ class NullMemoryQueryService:
     def scoped_memories(
         self,
         *,
-        records: List[Dict[str, Any]],
+        records: list[dict[str, Any]],
         user_id: str,
-        org_id: Optional[str] = None,
-        project_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        agent_id: Optional[str] = None,
-        run_id: Optional[str] = None,
+        org_id: str | None = None,
+        project_id: str | None = None,
+        session_id: str | None = None,
+        agent_id: str | None = None,
+        run_id: str | None = None,
         include_shared: bool = True,
         limit: int | None = None,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         return scoped_memories_from_records(
             records=records,
             user_id=user_id,
@@ -49,15 +49,15 @@ class NullMemoryQueryService:
         *,
         query: str,
         user_id: str,
-        tags: Optional[List[str]],
+        tags: list[str] | None,
         tags_match: str,
         limit: int,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         requested_tags = normalize_tags(tags)
         normalized_tags_match = (tags_match or "any").lower()
         if normalized_tags_match not in {"any", "all"}:
             normalized_tags_match = "any"
-        matches: List[Dict[str, Any]] = []
+        matches: list[dict[str, Any]] = []
         for memory in self.search_memories(
             query=query,
             user_id=user_id,
@@ -80,7 +80,7 @@ class NullMemoryQueryService:
         *,
         user_id: str,
         limit: int = 100,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         return self.store.list_records(user_id=user_id)[:limit]
 
     def search_memories(
@@ -88,10 +88,10 @@ class NullMemoryQueryService:
         *,
         query: str,
         user_id: str,
-        tags: Optional[List[str]] = None,
+        tags: list[str] | None = None,
         tags_match: str = "any",
         limit: int = 10,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         return self.store.search_records(
             query=query,
             user_id=user_id,
@@ -103,20 +103,20 @@ class NullMemoryQueryService:
         self,
         *,
         user_id: str,
-        org_id: Optional[str] = None,
-        project_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        agent_id: Optional[str] = None,
-        run_id: Optional[str] = None,
+        org_id: str | None = None,
+        project_id: str | None = None,
+        session_id: str | None = None,
+        agent_id: str | None = None,
+        run_id: str | None = None,
         include_shared: bool = True,
         limit: int = 100,
         offset: int = 0,
-        category: Optional[str] = None,
-        tags: Optional[List[str]] = None,
-    ) -> List[Dict[str, Any]]:
+        category: str | None = None,
+        tags: list[str] | None = None,
+    ) -> list[dict[str, Any]]:
         records = self.store.list_records(user_id=user_id)
         if category or tags:
-            filtered: List[Dict[str, Any]] = []
+            filtered: list[dict[str, Any]] = []
             for record in records:
                 metadata = record.get("metadata") or {}
                 if category and metadata.get("category") != category:
@@ -145,20 +145,20 @@ class NullMemoryQueryService:
         *,
         query: str,
         user_id: str,
-        org_id: Optional[str] = None,
-        project_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        agent_id: Optional[str] = None,
-        run_id: Optional[str] = None,
+        org_id: str | None = None,
+        project_id: str | None = None,
+        session_id: str | None = None,
+        agent_id: str | None = None,
+        run_id: str | None = None,
         include_shared: bool = True,
         limit: int = 10,
         offset: int = 0,
-        category: Optional[str] = None,
-        tags: Optional[List[str]] = None,
-    ) -> List[Dict[str, Any]]:
+        category: str | None = None,
+        tags: list[str] | None = None,
+    ) -> list[dict[str, Any]]:
         records = self.store.search_records(query=query, user_id=user_id)
         if category or tags:
-            filtered: List[Dict[str, Any]] = []
+            filtered: list[dict[str, Any]] = []
             for record in records:
                 metadata = record.get("metadata") or {}
                 if category and metadata.get("category") != category:
@@ -186,13 +186,13 @@ class NullMemoryQueryService:
         self,
         *,
         user_id: str,
-        org_id: Optional[str] = None,
-        project_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        agent_id: Optional[str] = None,
-        run_id: Optional[str] = None,
+        org_id: str | None = None,
+        project_id: str | None = None,
+        session_id: str | None = None,
+        agent_id: str | None = None,
+        run_id: str | None = None,
         include_shared: bool = True,
-    ) -> Dict[str, int]:
+    ) -> dict[str, int]:
         cache_key = (
             self.store.user_revision(user_id),
             user_id,
@@ -233,13 +233,13 @@ class NullMemoryQueryService:
         self,
         *,
         user_id: str,
-        org_id: Optional[str] = None,
-        project_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        agent_id: Optional[str] = None,
-        run_id: Optional[str] = None,
+        org_id: str | None = None,
+        project_id: str | None = None,
+        session_id: str | None = None,
+        agent_id: str | None = None,
+        run_id: str | None = None,
         include_shared: bool = True,
-    ) -> Dict[str, int]:
+    ) -> dict[str, int]:
         return self.count_records_by_category(
             user_id=user_id,
             org_id=org_id,

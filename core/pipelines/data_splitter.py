@@ -3,16 +3,16 @@
 
 import random
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 @dataclass
 class SplitResult:
     """Result of data splitting."""
-    train: List[Dict[str, Any]]
-    val: List[Dict[str, Any]]
-    test: List[Dict[str, Any]]
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    train: list[dict[str, Any]]
+    val: list[dict[str, Any]]
+    test: list[dict[str, Any]]
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 class DataSplitter:
@@ -24,7 +24,7 @@ class DataSplitter:
         self.val_ratio = val_ratio
         self.test_ratio = test_ratio
 
-    def split(self, data: List[Dict[str, Any]], shuffle: bool = True, seed: Optional[int] = None) -> SplitResult:
+    def split(self, data: list[dict[str, Any]], shuffle: bool = True, seed: int | None = None) -> SplitResult:
         """Split data into train/val/test sets."""
         if seed is not None:
             random.seed(seed)
@@ -56,10 +56,10 @@ class DataSplitter:
             }
         )
 
-    def split_by_source(self, data: List[Dict[str, Any]], source_field: str = "source") -> Dict[str, SplitResult]:
+    def split_by_source(self, data: list[dict[str, Any]], source_field: str = "source") -> dict[str, SplitResult]:
         """Split data by source field."""
         # Group by source
-        by_source: Dict[str, List[Dict[str, Any]]] = {}
+        by_source: dict[str, list[dict[str, Any]]] = {}
         for item in data:
             source = item.get(source_field, "unknown")
             if source not in by_source:
@@ -67,11 +67,11 @@ class DataSplitter:
             by_source[source].append(item)
 
         # Split each source group
-        results: Dict[str, SplitResult] = {}
+        results: dict[str, SplitResult] = {}
         for source, source_data in by_source.items():
             results[source] = self.split(source_data)
 
         return results
 
 
-__all__ = ['DataSplitter', 'SplitResult']
+__all__ = ["DataSplitter", "SplitResult"]

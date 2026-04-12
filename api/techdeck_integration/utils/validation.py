@@ -9,7 +9,7 @@ import mimetypes
 import os
 import re
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 import pandas as pd
 from werkzeug.utils import secure_filename
@@ -19,7 +19,7 @@ class ValidationError(Exception):
     """Custom validation error with detailed information."""
 
     def __init__(
-        self, message: str, field: Optional[str] = None, code: Optional[str] = None
+        self, message: str, field: str | None = None, code: str | None = None
     ):
         super().__init__(message)
         self.message = message
@@ -72,8 +72,8 @@ class InputValidator:
         value: str,
         field_name: str,
         min_length: int = 1,
-        max_length: Optional[int] = None,
-        pattern: Optional[str] = None,
+        max_length: int | None = None,
+        pattern: str | None = None,
         allow_empty: bool = False,
     ) -> str:
         """
@@ -155,10 +155,10 @@ class InputValidator:
 
     def validate_integer(
         self,
-        value: Union[int, str],
+        value: int | str,
         field_name: str,
-        min_value: Optional[int] = None,
-        max_value: Optional[int] = None,
+        min_value: int | None = None,
+        max_value: int | None = None,
     ) -> int:
         """
         Validate integer value.
@@ -188,10 +188,10 @@ class InputValidator:
 
     def validate_float(
         self,
-        value: Union[float, str],
+        value: float | str,
         field_name: str,
-        min_value: Optional[float] = None,
-        max_value: Optional[float] = None,
+        min_value: float | None = None,
+        max_value: float | None = None,
     ) -> float:
         """
         Validate float value.
@@ -234,9 +234,9 @@ class InputValidator:
     def validate_file_upload(
         self,
         file,
-        allowed_extensions: Optional[List[str]] = None,
-        allowed_mime_types: Optional[List[str]] = None,
-    ) -> Dict[str, Any]:
+        allowed_extensions: list[str] | None = None,
+        allowed_mime_types: list[str] | None = None,
+    ) -> dict[str, Any]:
         """
         Validate file upload with security checks.
 
@@ -302,7 +302,7 @@ class InputValidator:
             "mime_type": mime_type if allowed_mime_types else None,
         }
 
-    def validate_dataset_metadata(self, metadata: Dict[str, Any]) -> Dict[str, Any]:
+    def validate_dataset_metadata(self, metadata: dict[str, Any]) -> dict[str, Any]:
         """
         Validate dataset metadata.
 
@@ -401,16 +401,15 @@ class InputValidator:
                 )
                 for key, value in data.items()
             }
-        elif isinstance(data, list):
+        if isinstance(data, list):
             return [self.sanitize_for_output(item) for item in data]
-        elif isinstance(data, str):
+        if isinstance(data, str):
             # Remove sensitive patterns
             sanitized = data
             for pattern in self.SENSITIVE_PATTERNS:
                 sanitized = re.sub(pattern, "[REDACTED]", sanitized)
             return sanitized
-        else:
-            return data
+        return data
 
     def _sanitize_string(self, value: str) -> str:
         """
@@ -446,7 +445,7 @@ class DatasetValidator:
         self.max_rows = max_rows
         self.max_columns = max_columns
 
-    def validate_csv_file(self, file_path: str) -> Dict[str, Any]:
+    def validate_csv_file(self, file_path: str) -> dict[str, Any]:
         """
         Validate CSV file format and content.
 
@@ -464,9 +463,9 @@ class DatasetValidator:
         except pd.errors.EmptyDataError as e:
             raise ValidationError("CSV file is empty", "file") from e
         except pd.errors.ParserError as e:
-            raise ValidationError(f"CSV parsing error: {str(e)}", "file") from e
+            raise ValidationError(f"CSV parsing error: {e!s}", "file") from e
         except Exception as e:
-            raise ValidationError(f"CSV validation error: {str(e)}", "file") from e
+            raise ValidationError(f"CSV validation error: {e!s}", "file") from e
 
     # TODO Rename this here and in `validate_csv_file`
     def _extracted_from_validate_csv_file_16(self, file_path):
@@ -511,7 +510,7 @@ class DatasetValidator:
             "validation_status": "valid",
         }
 
-    def validate_json_file(self, file_path: str) -> Dict[str, Any]:
+    def validate_json_file(self, file_path: str) -> dict[str, Any]:
         """
         Validate JSON file format and content.
 
@@ -530,9 +529,9 @@ class DatasetValidator:
             with open(file_path, encoding="utf-8") as f:
                 data = json.load(f)
         except json.JSONDecodeError as e:
-            raise ValidationError(f"Invalid JSON format: {str(e)}", "file") from e
+            raise ValidationError(f"Invalid JSON format: {e!s}", "file") from e
         except Exception as e:
-            raise ValidationError(f"JSON validation error: {str(e)}", "file") from e
+            raise ValidationError(f"JSON validation error: {e!s}", "file") from e
 
             # Basic structure validation
             if isinstance(data, list):
@@ -561,9 +560,9 @@ class DatasetValidator:
             }
 
         except json.JSONDecodeError as e:
-            raise ValidationError(f"Invalid JSON format: {str(e)}", "file") from e
+            raise ValidationError(f"Invalid JSON format: {e!s}", "file") from e
         except Exception as e:
-            raise ValidationError(f"JSON validation error: {str(e)}", "file") from e
+            raise ValidationError(f"JSON validation error: {e!s}", "file") from e
 
 
 # Convenience validation functions
@@ -575,13 +574,13 @@ def validate_dataset_name(name: str) -> str:
     )
 
 
-def validate_dataset_metadata(metadata: Dict[str, Any]) -> Dict[str, Any]:
+def validate_dataset_metadata(metadata: dict[str, Any]) -> dict[str, Any]:
     """Validate dataset metadata."""
     validator = InputValidator()
     return validator.validate_dataset_metadata(metadata)
 
 
-def validate_pipeline_config(config: Dict[str, Any]) -> Dict[str, Any]:
+def validate_pipeline_config(config: dict[str, Any]) -> dict[str, Any]:
     """
     Validate pipeline configuration.
 
@@ -650,8 +649,8 @@ def sanitize_user_input(data: Any) -> Any:
 
 # Backwards-compatible helper expected by pipeline orchestrator
 def validate_pipeline_input(
-    config: Dict[str, Any], dataset_info: Optional[Dict[str, Any]] = None
-) -> Dict[str, Any]:
+    config: dict[str, Any], dataset_info: dict[str, Any] | None = None
+) -> dict[str, Any]:
     """Validate pipeline configuration and dataset info.
 
     This is a thin wrapper around validate_pipeline_config and dataset validation
@@ -676,7 +675,7 @@ def sanitize_input(data: Any) -> Any:
     return sanitize_user_input(data)
 
 
-def validate_state_data(state: Any) -> Dict[str, Any]:
+def validate_state_data(state: Any) -> dict[str, Any]:
     """
     Backwards-compatible state validation expected by the pipeline orchestrator.
 
@@ -692,7 +691,7 @@ def validate_state_data(state: Any) -> Dict[str, Any]:
         return {"is_valid": False, "errors": ["state must be a dict"]}
 
     required = ["execution_id", "user_id", "status", "current_stage", "start_time"]
-    errors: List[str] = [
+    errors: list[str] = [
         f"missing required field: {key}" for key in required if key not in state
     ]
 
@@ -705,10 +704,10 @@ def validate_state_data(state: Any) -> Dict[str, Any]:
 
 def validate_file_upload(
     file,
-    config: Optional[Any] = None,
-    allowed_extensions: Optional[List[str]] = None,
-    allowed_mime_types: Optional[List[str]] = None,
-) -> Dict[str, Any]:
+    config: Any | None = None,
+    allowed_extensions: list[str] | None = None,
+    allowed_mime_types: list[str] | None = None,
+) -> dict[str, Any]:
     """
     Validate file upload (top-level helper).
 

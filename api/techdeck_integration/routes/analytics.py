@@ -5,9 +5,11 @@ This module implements REST API endpoints for analytics operations,
 including usage metrics, performance tracking, and data insights.
 """
 
+from datetime import datetime, timedelta, timezone
+
+
 import logging
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from flask import Blueprint, g, jsonify, request
 
@@ -59,12 +61,12 @@ def get_usage_analytics():
         if start_date_str:
             start_date = datetime.fromisoformat(start_date_str.replace("Z", "+00:00"))
         else:
-            start_date = datetime.utcnow() - timedelta(days=30)
+            start_date = datetime.now(timezone.utc) - timedelta(days=30)
 
         if end_date_str:
             end_date = datetime.fromisoformat(end_date_str.replace("Z", "+00:00"))
         else:
-            end_date = datetime.utcnow()
+            end_date = datetime.now(timezone.utc)
 
         if start_date >= end_date:
             raise ValidationError("Start date must be before end date")
@@ -101,18 +103,18 @@ def get_usage_analytics():
                         "start": start_date.isoformat(),
                         "end": end_date.isoformat(),
                     },
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 },
             }
         ), 200
 
     except ValueError as e:
-        raise ValidationError(f"Invalid date format: {str(e)}")
+        raise ValidationError(f"Invalid date format: {e!s}")
     except ValidationError:
         raise
     except Exception as e:
         request_logger.error(f"Error retrieving usage analytics: {e}")
-        raise AnalyticsError(f"Failed to retrieve usage analytics: {str(e)}")
+        raise AnalyticsError(f"Failed to retrieve usage analytics: {e!s}")
 
 
 @analytics_bp.route("/performance", methods=["GET"])
@@ -148,12 +150,12 @@ def get_performance_analytics():
         if start_date_str:
             start_date = datetime.fromisoformat(start_date_str.replace("Z", "+00:00"))
         else:
-            start_date = datetime.utcnow() - timedelta(days=7)
+            start_date = datetime.now(timezone.utc) - timedelta(days=7)
 
         if end_date_str:
             end_date = datetime.fromisoformat(end_date_str.replace("Z", "+00:00"))
         else:
-            end_date = datetime.utcnow()
+            end_date = datetime.now(timezone.utc)
 
         if start_date >= end_date:
             raise ValidationError("Start date must be before end date")
@@ -186,18 +188,18 @@ def get_performance_analytics():
                     "percentiles": performance_data.get("percentiles", {}),
                     "service": service,
                     "metric_type": metric_type,
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 },
             }
         ), 200
 
     except ValueError as e:
-        raise ValidationError(f"Invalid date format: {str(e)}")
+        raise ValidationError(f"Invalid date format: {e!s}")
     except ValidationError:
         raise
     except Exception as e:
         request_logger.error(f"Error retrieving performance analytics: {e}")
-        raise AnalyticsError(f"Failed to retrieve performance analytics: {str(e)}")
+        raise AnalyticsError(f"Failed to retrieve performance analytics: {e!s}")
 
 
 @analytics_bp.route("/pipeline", methods=["GET"])
@@ -233,12 +235,12 @@ def get_pipeline_analytics():
         if start_date_str:
             start_date = datetime.fromisoformat(start_date_str.replace("Z", "+00:00"))
         else:
-            start_date = datetime.utcnow() - timedelta(days=30)
+            start_date = datetime.now(timezone.utc) - timedelta(days=30)
 
         if end_date_str:
             end_date = datetime.fromisoformat(end_date_str.replace("Z", "+00:00"))
         else:
-            end_date = datetime.utcnow()
+            end_date = datetime.now(timezone.utc)
 
         if start_date >= end_date:
             raise ValidationError("Start date must be before end date")
@@ -273,18 +275,18 @@ def get_pipeline_analytics():
                     "success_rate": pipeline_data.get("success_rate", 0),
                     "average_duration": pipeline_data.get("average_duration", 0),
                     "pipeline_id": pipeline_id,
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 },
             }
         ), 200
 
     except ValueError as e:
-        raise ValidationError(f"Invalid date format: {str(e)}")
+        raise ValidationError(f"Invalid date format: {e!s}")
     except ValidationError:
         raise
     except Exception as e:
         request_logger.error(f"Error retrieving pipeline analytics: {e}")
-        raise AnalyticsError(f"Failed to retrieve pipeline analytics: {str(e)}")
+        raise AnalyticsError(f"Failed to retrieve pipeline analytics: {e!s}")
 
 
 @analytics_bp.route("/datasets", methods=["GET"])
@@ -320,12 +322,12 @@ def get_dataset_analytics():
         if start_date_str:
             start_date = datetime.fromisoformat(start_date_str.replace("Z", "+00:00"))
         else:
-            start_date = datetime.utcnow() - timedelta(days=30)
+            start_date = datetime.now(timezone.utc) - timedelta(days=30)
 
         if end_date_str:
             end_date = datetime.fromisoformat(end_date_str.replace("Z", "+00:00"))
         else:
-            end_date = datetime.utcnow()
+            end_date = datetime.now(timezone.utc)
 
         if start_date >= end_date:
             raise ValidationError("Start date must be before end date")
@@ -359,18 +361,18 @@ def get_dataset_analytics():
                     "summary": dataset_data.get("summary", {}),
                     "trends": dataset_data.get("trends", {}),
                     "metric_type": metric_type,
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 },
             }
         ), 200
 
     except ValueError as e:
-        raise ValidationError(f"Invalid date format: {str(e)}")
+        raise ValidationError(f"Invalid date format: {e!s}")
     except ValidationError:
         raise
     except Exception as e:
         request_logger.error(f"Error retrieving dataset analytics: {e}")
-        raise AnalyticsError(f"Failed to retrieve dataset analytics: {str(e)}")
+        raise AnalyticsError(f"Failed to retrieve dataset analytics: {e!s}")
 
 
 @analytics_bp.route("/real-time", methods=["GET"])
@@ -431,18 +433,18 @@ def get_real_time_analytics():
                     "status": real_time_data.get("status", {}),
                     "alerts": real_time_data.get("alerts", []),
                     "refresh_rate": refresh_rate,
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 },
             }
         ), 200
 
     except ValueError as e:
-        raise ValidationError(f"Invalid parameter: {str(e)}")
+        raise ValidationError(f"Invalid parameter: {e!s}")
     except ValidationError:
         raise
     except Exception as e:
         request_logger.error(f"Error retrieving real-time analytics: {e}")
-        raise AnalyticsError(f"Failed to retrieve real-time analytics: {str(e)}")
+        raise AnalyticsError(f"Failed to retrieve real-time analytics: {e!s}")
 
 
 @analytics_bp.route("/export", methods=["POST"])
@@ -494,12 +496,12 @@ def export_analytics():
         if start_date_str:
             start_date = datetime.fromisoformat(start_date_str.replace("Z", "+00:00"))
         else:
-            start_date = datetime.utcnow() - timedelta(days=30)
+            start_date = datetime.now(timezone.utc) - timedelta(days=30)
 
         if end_date_str:
             end_date = datetime.fromisoformat(end_date_str.replace("Z", "+00:00"))
         else:
-            end_date = datetime.utcnow()
+            end_date = datetime.now(timezone.utc)
 
         # Sanitize inputs
         export_type = sanitize_input(export_type)
@@ -535,18 +537,18 @@ def export_analytics():
                     "export_type": export_type,
                     "estimated_size": export_task.get("estimated_size"),
                     "download_url": export_task.get("download_url"),
-                    "created_at": datetime.utcnow().isoformat(),
+                    "created_at": datetime.now(timezone.utc).isoformat(),
                 },
             }
         ), 201
 
     except (ValidationError, ValueError) as e:
-        raise ValidationError(f"Invalid request: {str(e)}")
+        raise ValidationError(f"Invalid request: {e!s}")
     except ValidationError:
         raise
     except Exception as e:
         request_logger.error(f"Error creating analytics export: {e}")
-        raise AnalyticsError(f"Failed to create analytics export: {str(e)}")
+        raise AnalyticsError(f"Failed to create analytics export: {e!s}")
 
 
 @analytics_bp.route("/export/<task_id>/status", methods=["GET"])
@@ -592,7 +594,7 @@ def get_export_status(task_id: str):
             {
                 "success": True,
                 "data": task_status,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
         ), 200
 
@@ -600,7 +602,7 @@ def get_export_status(task_id: str):
         raise
     except Exception as e:
         request_logger.error(f"Error retrieving export status: {e}")
-        raise AnalyticsError(f"Failed to retrieve export status: {str(e)}")
+        raise AnalyticsError(f"Failed to retrieve export status: {e!s}")
 
 
 # Helper Functions
@@ -610,7 +612,7 @@ def _get_usage_metrics(
     end_date: datetime,
     metric_type: str,
     granularity: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Retrieve usage metrics from Redis or database."""
     try:
         # Generate placeholder usage metrics
@@ -672,7 +674,7 @@ def _get_usage_metrics(
 
     except Exception as e:
         logger.error(f"Error retrieving usage metrics: {e}")
-        raise AnalyticsError(f"Failed to retrieve usage metrics: {str(e)}")
+        raise AnalyticsError(f"Failed to retrieve usage metrics: {e!s}")
 
 
 def _get_performance_metrics(
@@ -681,7 +683,7 @@ def _get_performance_metrics(
     end_date: datetime,
     metric_type: str,
     service: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Retrieve performance metrics from Redis or database."""
     try:
         # Generate placeholder performance metrics
@@ -743,16 +745,16 @@ def _get_performance_metrics(
 
     except Exception as e:
         logger.error(f"Error retrieving performance metrics: {e}")
-        raise AnalyticsError(f"Failed to retrieve performance metrics: {str(e)}")
+        raise AnalyticsError(f"Failed to retrieve performance metrics: {e!s}")
 
 
 def _get_pipeline_metrics(
     redis_client: RedisClient,
-    pipeline_id: Optional[str],
-    status: Optional[str],
+    pipeline_id: str | None,
+    status: str | None,
     start_date: datetime,
     end_date: datetime,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Retrieve pipeline execution metrics."""
     try:
         # Generate placeholder pipeline metrics
@@ -827,16 +829,16 @@ def _get_pipeline_metrics(
 
     except Exception as e:
         logger.error(f"Error retrieving pipeline metrics: {e}")
-        raise AnalyticsError(f"Failed to retrieve pipeline metrics: {str(e)}")
+        raise AnalyticsError(f"Failed to retrieve pipeline metrics: {e!s}")
 
 
 def _get_dataset_metrics(
     redis_client: RedisClient,
-    dataset_id: Optional[str],
+    dataset_id: str | None,
     metric_type: str,
     start_date: datetime,
     end_date: datetime,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Retrieve dataset usage and quality metrics."""
     try:
         # Generate placeholder dataset metrics
@@ -899,7 +901,7 @@ def _get_dataset_metrics(
                     "name": ds["name"],
                     "metric_type": metric_type,
                     "metrics": metrics,
-                    "last_updated": datetime.utcnow().isoformat(),
+                    "last_updated": datetime.now(timezone.utc).isoformat(),
                 }
             )
 
@@ -943,12 +945,12 @@ def _get_dataset_metrics(
 
     except Exception as e:
         logger.error(f"Error retrieving dataset metrics: {e}")
-        raise AnalyticsError(f"Failed to retrieve dataset metrics: {str(e)}")
+        raise AnalyticsError(f"Failed to retrieve dataset metrics: {e!s}")
 
 
 def _get_real_time_metrics(
-    redis_client: RedisClient, metric_types: List[str]
-) -> Dict[str, Any]:
+    redis_client: RedisClient, metric_types: list[str]
+) -> dict[str, Any]:
     """Retrieve real-time system metrics."""
     try:
         metrics = {}
@@ -1035,7 +1037,7 @@ def _get_real_time_metrics(
 
     except Exception as e:
         logger.error(f"Error retrieving real-time metrics: {e}")
-        raise AnalyticsError(f"Failed to retrieve real-time metrics: {str(e)}")
+        raise AnalyticsError(f"Failed to retrieve real-time metrics: {e!s}")
 
 
 def _create_export_task(
@@ -1044,13 +1046,13 @@ def _create_export_task(
     metric_type: str,
     start_date: datetime,
     end_date: datetime,
-    filters: Dict[str, Any],
-    options: Dict[str, Any],
-) -> Dict[str, Any]:
+    filters: dict[str, Any],
+    options: dict[str, Any],
+) -> dict[str, Any]:
     """Create an analytics export task."""
     try:
         # Generate task ID
-        task_id = f"export_{datetime.utcnow().timestamp()}_{hash(str(filters)) % 10000}"
+        task_id = f"export_{datetime.now(timezone.utc).timestamp()}_{hash(str(filters)) % 10000}"
 
         # Create export task
         export_task = {
@@ -1064,7 +1066,7 @@ def _create_export_task(
             "options": options,
             "progress": 0,
             "estimated_size": "2.5 MB",  # Placeholder
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
             "download_url": f"/api/v1/analytics/export/{task_id}/download",
         }
 
@@ -1082,12 +1084,12 @@ def _create_export_task(
 
     except Exception as e:
         logger.error(f"Error creating export task: {e}")
-        raise AnalyticsError(f"Failed to create export task: {str(e)}")
+        raise AnalyticsError(f"Failed to create export task: {e!s}")
 
 
 def _get_export_task_status(
     redis_client: RedisClient, task_id: str
-) -> Optional[Dict[str, Any]]:
+) -> dict[str, Any] | None:
     """Retrieve export task status from Redis."""
     try:
         return redis_client.get(f"export:task:{task_id}")
@@ -1098,7 +1100,7 @@ def _get_export_task_status(
 
 def _get_dataset_context(
     redis_client: RedisClient, dataset_id: str
-) -> Optional[Dict[str, Any]]:
+) -> dict[str, Any] | None:
     """Retrieve dataset context information."""
     try:
         # Placeholder dataset context

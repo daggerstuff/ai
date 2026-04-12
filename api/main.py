@@ -11,8 +11,6 @@ import os
 
 import uvicorn
 
-from ai.api.index import app
-
 
 def main() -> None:
     """Run the ASGI app on the port expected by the Helm chart."""

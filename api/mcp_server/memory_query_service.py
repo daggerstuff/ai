@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, cast
 
 from ai.memory.base import (
     CategoryScopedMemoryManager,
@@ -13,17 +13,17 @@ def get_scoped_memories(
     manager: ScopedMemoryManager,
     *,
     user_id: str,
-    org_id: Optional[str],
-    project_id: Optional[str],
-    session_id: Optional[str],
-    agent_id: Optional[str],
-    run_id: Optional[str],
+    org_id: str | None,
+    project_id: str | None,
+    session_id: str | None,
+    agent_id: str | None,
+    run_id: str | None,
     include_shared: bool,
     limit: int,
     offset: int = 0,
-    category: Optional[str] = None,
-    tags: Optional[List[str]] = None,
-) -> List[Dict[str, Any]]:
+    category: str | None = None,
+    tags: list[str] | None = None,
+) -> list[dict[str, Any]]:
     result = manager.get_all_memories_scoped(
         user_id=user_id,
         org_id=org_id,
@@ -38,7 +38,7 @@ def get_scoped_memories(
         tags=tags,
     )
     if isinstance(result, dict) and "results" in result:
-        return cast(Dict[str, Any], result)["results"]
+        return cast(dict[str, Any], result)["results"]
     return result or []
 
 
@@ -49,9 +49,9 @@ def recall_memories_for_user(
     user_id: str,
     query: str,
     limit: int,
-    tags: Optional[List[str]],
-    tags_match: Optional[str],
-) -> Dict[str, Any]:
+    tags: list[str] | None,
+    tags_match: str | None,
+) -> dict[str, Any]:
     return manager.recall_for_user(
         bank_id,
         user_id=user_id,
@@ -66,13 +66,13 @@ def get_scoped_memory_stats(
     manager: CategoryScopedMemoryManager,
     *,
     user_id: str,
-    org_id: Optional[str],
-    project_id: Optional[str],
-    session_id: Optional[str],
-    agent_id: Optional[str],
-    run_id: Optional[str],
+    org_id: str | None,
+    project_id: str | None,
+    session_id: str | None,
+    agent_id: str | None,
+    run_id: str | None,
     include_shared: bool,
-) -> Dict[str, int]:
+) -> dict[str, int]:
     category_counts = manager.count_memories_by_category_scoped(
         user_id=user_id,
         org_id=org_id,

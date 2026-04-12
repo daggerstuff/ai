@@ -4,6 +4,5 @@
 
 class YouTubeRAGSystem:
     """Stub implementation for YouTubeRAGSystem."""
-    pass
 
-__all__ = ['YouTubeRAGSystem']
+__all__ = ["YouTubeRAGSystem"]

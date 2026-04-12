@@ -4,6 +4,5 @@
 
 class FeedbackLoopOrchestrator:
     """Stub implementation for FeedbackLoopOrchestrator."""
-    pass
 
-__all__ = ['FeedbackLoopOrchestrator']
+__all__ = ["FeedbackLoopOrchestrator"]

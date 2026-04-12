@@ -5,9 +5,11 @@ This module implements REST API endpoints for data standardization operations,
 including schema validation, format conversion, and data normalization.
 """
 
+from datetime import datetime, timezone
+
+
 import logging
-from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from flask import Blueprint, g, jsonify, request
 
@@ -60,7 +62,7 @@ def list_schemas():
                 "data": {
                     "schemas": schemas,
                     "count": len(schemas),
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 },
             }
         ), 200
@@ -69,7 +71,7 @@ def list_schemas():
         raise
     except Exception as e:
         request_logger.error(f"Error listing schemas: {e}")
-        raise StandardizationError(f"Failed to retrieve schemas: {str(e)}")
+        raise StandardizationError(f"Failed to retrieve schemas: {e!s}")
 
 
 @standardization_bp.route("/schemas/<schema_id>", methods=["GET"])
@@ -116,7 +118,7 @@ def get_schema(schema_id: str):
                 "success": True,
                 "data": {
                     "schema": schema,
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 },
             }
         ), 200
@@ -125,7 +127,7 @@ def get_schema(schema_id: str):
         raise
     except Exception as e:
         request_logger.error(f"Error retrieving schema {schema_id}: {e}")
-        raise StandardizationError(f"Failed to retrieve schema: {str(e)}")
+        raise StandardizationError(f"Failed to retrieve schema: {e!s}")
 
 
 @standardization_bp.route("/validate", methods=["POST"])
@@ -198,7 +200,7 @@ def validate_data():
                     "errors": validation_result.get("errors", []),
                     "warnings": validation_result.get("warnings", []),
                     "schema_id": schema_id,
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 },
             }
         ), 200
@@ -207,7 +209,7 @@ def validate_data():
         raise
     except Exception as e:
         request_logger.error(f"Error validating data: {e}")
-        raise StandardizationError(f"Failed to validate data: {str(e)}")
+        raise StandardizationError(f"Failed to validate data: {e!s}")
 
 
 @standardization_bp.route("/transform", methods=["POST"])
@@ -280,7 +282,7 @@ def transform_data():
                     ),
                     "metadata": transformation_result.get("metadata", {}),
                     "schema_id": schema_id,
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 },
             }
         ), 200
@@ -289,7 +291,7 @@ def transform_data():
         raise
     except Exception as e:
         request_logger.error(f"Error transforming data: {e}")
-        raise StandardizationError(f"Failed to transform data: {str(e)}")
+        raise StandardizationError(f"Failed to transform data: {e!s}")
 
 
 @standardization_bp.route("/batch-transform", methods=["POST"])
@@ -405,7 +407,7 @@ def batch_transform_data():
                     "failed_items": len(results) - successful,
                     "success_rate": success_rate,
                     "schema_id": schema_id,
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 },
             }
         ), 200
@@ -414,7 +416,7 @@ def batch_transform_data():
         raise
     except Exception as e:
         request_logger.error(f"Error in batch transformation: {e}")
-        raise StandardizationError(f"Failed to batch transform data: {str(e)}")
+        raise StandardizationError(f"Failed to batch transform data: {e!s}")
 
 
 @standardization_bp.route("/schemas/<schema_id>/stats", methods=["GET"])
@@ -464,7 +466,7 @@ def get_schema_stats(schema_id: str):
                 "data": {
                     "schema_id": schema_id,
                     "statistics": stats,
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 },
             }
         ), 200
@@ -473,11 +475,11 @@ def get_schema_stats(schema_id: str):
         raise
     except Exception as e:
         request_logger.error(f"Error retrieving schema statistics {schema_id}: {e}")
-        raise StandardizationError(f"Failed to retrieve schema statistics: {str(e)}")
+        raise StandardizationError(f"Failed to retrieve schema statistics: {e!s}")
 
 
 # Helper Functions
-def _get_available_schemas(redis_client: RedisClient) -> List[Dict[str, Any]]:
+def _get_available_schemas(redis_client: RedisClient) -> list[dict[str, Any]]:
     """Retrieve list of available standardization schemas."""
     try:
         # Try to get from Redis cache first
@@ -525,7 +527,7 @@ def _get_available_schemas(redis_client: RedisClient) -> List[Dict[str, Any]]:
 
 def _get_schema_details(
     redis_client: RedisClient, schema_id: str
-) -> Optional[Dict[str, Any]]:
+) -> dict[str, Any] | None:
     """Retrieve detailed information about a specific schema."""
     try:
         # Try to get from Redis cache first
@@ -554,7 +556,7 @@ def _get_schema_details(
         return None
 
 
-def _get_schema_fields(schema_id: str) -> List[Dict[str, Any]]:
+def _get_schema_fields(schema_id: str) -> list[dict[str, Any]]:
     """Get field definitions for a schema."""
     # Placeholder field definitions
     fields_map = {
@@ -665,7 +667,7 @@ def _get_schema_fields(schema_id: str) -> List[Dict[str, Any]]:
     return fields_map.get(schema_id, [])
 
 
-def _get_validation_rules(schema_id: str) -> Dict[str, Any]:
+def _get_validation_rules(schema_id: str) -> dict[str, Any]:
     """Get validation rules for a schema."""
     # Placeholder validation rules
     return {
@@ -677,7 +679,7 @@ def _get_validation_rules(schema_id: str) -> Dict[str, Any]:
     }
 
 
-def _get_transformation_rules(schema_id: str) -> Dict[str, Any]:
+def _get_transformation_rules(schema_id: str) -> dict[str, Any]:
     """Get transformation rules for a schema."""
     # Placeholder transformation rules
     return {
@@ -690,8 +692,8 @@ def _get_transformation_rules(schema_id: str) -> Dict[str, Any]:
 
 
 def _validate_against_schema(
-    data: Dict[str, Any], schema: Dict[str, Any], options: Dict[str, Any]
-) -> Dict[str, Any]:
+    data: dict[str, Any], schema: dict[str, Any], options: dict[str, Any]
+) -> dict[str, Any]:
     """Validate data against a schema."""
     errors = []
     warnings = []
@@ -727,14 +729,14 @@ def _validate_against_schema(
         logger.error(f"Error validating data against schema: {e}")
         return {
             "valid": False,
-            "errors": [f"Validation error: {str(e)}"],
+            "errors": [f"Validation error: {e!s}"],
             "warnings": [],
         }
 
 
 def _validate_field(
-    field_name: str, field_value: Any, field_def: Dict[str, Any]
-) -> List[str]:
+    field_name: str, field_value: Any, field_def: dict[str, Any]
+) -> list[str]:
     """Validate a single field against its definition."""
     errors = []
     field_type = field_def.get("type", "string")
@@ -794,12 +796,12 @@ def _validate_field(
 
     except Exception as e:
         logger.error(f"Error validating field {field_name}: {e}")
-        return [f"Error validating field '{field_name}': {str(e)}"]
+        return [f"Error validating field '{field_name}': {e!s}"]
 
 
 def _transform_data(
-    data: Dict[str, Any], schema: Dict[str, Any], options: Dict[str, Any]
-) -> Dict[str, Any]:
+    data: dict[str, Any], schema: dict[str, Any], options: dict[str, Any]
+) -> dict[str, Any]:
     """Transform data according to schema rules."""
     try:
         # Get transformation rules
@@ -842,10 +844,10 @@ def _transform_data(
 
     except Exception as e:
         logger.error(f"Error transforming data: {e}")
-        raise StandardizationError(f"Failed to transform data: {str(e)}")
+        raise StandardizationError(f"Failed to transform data: {e!s}")
 
 
-def _get_schema_statistics(redis_client: RedisClient, schema_id: str) -> Dict[str, Any]:
+def _get_schema_statistics(redis_client: RedisClient, schema_id: str) -> dict[str, Any]:
     """Get usage statistics for a schema."""
     try:
         # Generate some placeholder statistics

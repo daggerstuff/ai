@@ -31,7 +31,7 @@ class NullMemoryRecord:
         metadata: dict[str, Any] | None,
         created_at: str,
         updated_at: str | None = None,
-    ) -> "NullMemoryRecord":
+    ) -> NullMemoryRecord:
         prepared = cls._prepare(content=content, metadata=metadata or {})
         return cls(
             id=memory_id,
@@ -63,7 +63,7 @@ class NullMemoryRecord:
         new_content: str | None = None,
         metadata: dict[str, Any] | None = None,
         updated_at: str | None = None,
-    ) -> "NullMemoryRecord":
+    ) -> NullMemoryRecord:
         merged_metadata = self.metadata
         if metadata is not None:
             merged_metadata.update(metadata)

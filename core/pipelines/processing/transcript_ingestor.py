@@ -23,6 +23,8 @@ Usage:
     batch_result = ingestor.ingest_batch(["transcript1.jsonl", "transcript2.srt"])
 """
 
+from datetime import datetime, timezone
+
 from __future__ import annotations
 
 import hashlib
@@ -30,10 +32,9 @@ import json
 import logging
 import re
 from dataclasses import dataclass, field
-from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -64,8 +65,8 @@ class TranscriptMessage:
 
     role: str
     content: str
-    timestamp: Optional[str] = None
-    speaker_id: Optional[str] = None
+    timestamp: str | None = None
+    speaker_id: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_pix32_dict(self) -> dict[str, Any]:
@@ -107,7 +108,7 @@ class IngestedTranscript:
         return sum(len(msg.content) for msg in self.messages)
 
     @property
-    def duration_seconds(self) -> Optional[float]:
+    def duration_seconds(self) -> float | None:
         """Calculate duration if timestamps are available."""
         # This is simplified - real implementation would parse timestamps.
         # Duration parsing is intentionally deferred, so return None for now.
@@ -183,7 +184,7 @@ class TranscriptIngestor:
         re.compile(r"^(C|Cl|Client|P|Pt|Patient|U|User)[:\]]\s*", re.I),
     ]
 
-    def __init__(self, config: Optional[TranscriptIngestorConfig] = None):
+    def __init__(self, config: TranscriptIngestorConfig | None = None):
         """Initialize the transcript ingestor."""
         self.config = config or TranscriptIngestorConfig()
         self._format_handlers = {
@@ -258,7 +259,7 @@ class TranscriptIngestor:
         Returns:
             IngestionResult with all successfully ingested transcripts.
         """
-        start_time = datetime.now()
+        start_time = datetime.now(timezone.utc)
         transcripts = []
         errors = []
 
@@ -276,7 +277,7 @@ class TranscriptIngestor:
                 )
                 logger.error(f"Failed to ingest {path}: {e}")
 
-        processing_time = (datetime.now() - start_time).total_seconds() * 1000
+        processing_time = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
 
         result = IngestionResult(
             transcripts=transcripts,
@@ -583,16 +584,16 @@ class TranscriptIngestor:
 
         # Generate from filename and hash
         filename_hash = hashlib.md5(path.name.encode()).hexdigest()[:8]
-        timestamp = datetime.now().strftime("%Y%m%d%H%M")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M")
         return f"transcript_{filename_hash}_{timestamp}"
 
 
 __all__ = [
-    "TranscriptIngestor",
-    "TranscriptIngestorConfig",
     "IngestedTranscript",
     "IngestionResult",
-    "TranscriptMessage",
-    "TranscriptFormat",
     "SpeakerRole",
+    "TranscriptFormat",
+    "TranscriptIngestor",
+    "TranscriptIngestorConfig",
+    "TranscriptMessage",
 ]

@@ -4,6 +4,5 @@
 
 class NvidiaClients:
     """Stub implementation for NvidiaClients."""
-    pass
 
-__all__ = ['NvidiaClients']
+__all__ = ["NvidiaClients"]

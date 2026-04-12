@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo import MongoClient
@@ -35,8 +35,8 @@ class MCPMongoDBClient:
         return self.async_db[name]
 
     async def find_one(
-        self, collection: str, query: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+        self, collection: str, query: dict[str, Any]
+    ) -> dict[str, Any] | None:
         """Find a single document asynchronously."""
         # Type hint for basedpyright which sometimes misses motor's return types
         result = await self.async_db[collection].find_one(query)
@@ -45,10 +45,10 @@ class MCPMongoDBClient:
     async def find_many(
         self,
         collection: str,
-        query: Dict[str, Any],
-        sort: Optional[List[tuple]] = None,
-        limit: Optional[int] = None
-    ) -> List[Dict[str, Any]]:
+        query: dict[str, Any],
+        sort: list[tuple] | None = None,
+        limit: int | None = None
+    ) -> list[dict[str, Any]]:
         """Find multiple documents asynchronously with optional sorting and limit."""
         cursor = self.async_db[collection].find(query)
         if sort:
@@ -60,13 +60,13 @@ class MCPMongoDBClient:
         return results
 
     async def update_one(
-        self, collection: str, query: Dict[str, Any], update: Dict[str, Any]
+        self, collection: str, query: dict[str, Any], update: dict[str, Any]
     ) -> bool:
         """Update a single document asynchronously."""
         result = await self.async_db[collection].update_one(query, update)
         return getattr(result, "modified_count", 0) > 0
 
-    async def insert_one(self, collection: str, document: Dict[str, Any]) -> str:
+    async def insert_one(self, collection: str, document: dict[str, Any]) -> str:
         """Insert a document asynchronously."""
         result = await self.async_db[collection].insert_one(document)
         inserted_id = getattr(result, "inserted_id", None)

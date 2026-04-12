@@ -3,6 +3,5 @@
 
 class SessionSimulator:
     """Stub implementation for SessionSimulator."""
-    pass
 
-__all__ = ['SessionSimulator']
+__all__ = ["SessionSimulator"]

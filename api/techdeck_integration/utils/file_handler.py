@@ -5,12 +5,14 @@ This module provides secure file handling, storage management, and file processi
 capabilities with HIPAA++ compliance and encryption support.
 """
 
+from datetime import datetime, timezone
+
+
 import hashlib
 import logging
 import os
 import shutil
-from datetime import datetime
-from typing import Any, Dict
+from typing import Any
 
 from werkzeug.datastructures import FileStorage
 
@@ -92,7 +94,7 @@ class FileHandler:
             raise
         except Exception as e:
             self.logger.error(f"Error storing file: {e}")
-            raise StorageError(f"Failed to store file: {str(e)}")
+            raise StorageError(f"Failed to store file: {e!s}")
 
     def delete_file(self, storage_path: str) -> bool:
         """
@@ -112,13 +114,12 @@ class FileHandler:
                 os.remove(storage_path)
                 self.logger.info(f"File deleted successfully: {storage_path}")
                 return True
-            else:
-                self.logger.warning(f"File not found for deletion: {storage_path}")
-                return False
+            self.logger.warning(f"File not found for deletion: {storage_path}")
+            return False
 
         except Exception as e:
             self.logger.error(f"Error deleting file: {e}")
-            raise StorageError(f"Failed to delete file: {str(e)}")
+            raise StorageError(f"Failed to delete file: {e!s}")
 
     def file_exists(self, storage_path: str) -> bool:
         """Check if file exists at given path."""
@@ -134,7 +135,7 @@ class FileHandler:
             self.logger.error(f"Error getting file size: {e}")
             return 0
 
-    def get_file_statistics(self, storage_path: str) -> Dict[str, Any]:
+    def get_file_statistics(self, storage_path: str) -> dict[str, Any]:
         """Get detailed file statistics."""
         try:
             if not self.file_exists(storage_path):
@@ -175,7 +176,7 @@ class FileHandler:
 
             # Generate archive path
             filename = os.path.basename(storage_path)
-            timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
             archive_filename = f"{timestamp}_{filename}"
             archive_path = os.path.join(self.storage_path, "archived", archive_filename)
 
@@ -188,7 +189,7 @@ class FileHandler:
 
         except Exception as e:
             self.logger.error(f"Error archiving file: {e}")
-            raise StorageError(f"Failed to archive file: {str(e)}")
+            raise StorageError(f"Failed to archive file: {e!s}")
 
     def cleanup_temp_files(self, max_age_hours: int = 24) -> int:
         """
@@ -205,7 +206,7 @@ class FileHandler:
             if not os.path.exists(temp_dir):
                 return 0
 
-            current_time = datetime.utcnow()
+            current_time = datetime.now(timezone.utc)
             cleaned_count = 0
 
             for filename in os.listdir(temp_dir):
@@ -229,7 +230,7 @@ class FileHandler:
             self.logger.error(f"Error cleaning up temp files: {e}")
             return 0
 
-    def get_storage_usage(self) -> Dict[str, Any]:
+    def get_storage_usage(self) -> dict[str, Any]:
         """Get storage usage statistics."""
         try:
             total_size = 0
@@ -254,7 +255,7 @@ class FileHandler:
                 "total_size_human": self._format_file_size(total_size),
                 "file_counts": file_counts,
                 "storage_path": self.storage_path,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
 
         except Exception as e:
@@ -312,7 +313,7 @@ class FileHandler:
             raise
         except Exception as e:
             self.logger.error(f"Error validating uploaded file: {e}")
-            raise ValidationError(f"File validation failed: {str(e)}")
+            raise ValidationError(f"File validation failed: {e!s}")
 
     def _generate_storage_path(
         self, file_id: str, user_id: str, original_filename: str
@@ -327,17 +328,13 @@ class FileHandler:
             # Determine subdirectory based on file extension
             file_extension = os.path.splitext(original_filename)[1].lower()
 
-            if file_extension == ".csv":
-                subdir = "datasets"
-            elif file_extension in [".json", ".jsonl"]:
-                subdir = "datasets"
-            elif file_extension == ".parquet":
+            if file_extension == ".csv" or file_extension in [".json", ".jsonl"] or file_extension == ".parquet":
                 subdir = "datasets"
             else:
                 subdir = "temp"
 
             # Generate filename with user ID and timestamp for uniqueness
-            timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
             safe_filename = f"{user_id}_{file_id}_{timestamp}{file_extension}"
 
             # Create full path
@@ -347,7 +344,7 @@ class FileHandler:
 
         except Exception as e:
             self.logger.error(f"Error generating storage path: {e}")
-            raise StorageError(f"Failed to generate storage path: {str(e)}")
+            raise StorageError(f"Failed to generate storage path: {e!s}")
 
     def _verify_file_integrity(
         self, storage_path: str, original_file: FileStorage
@@ -408,7 +405,7 @@ def calculate_file_hash(file_path: str, algorithm: str = "sha256") -> str:
         return ""
 
 
-def get_file_type_info(file_path: str) -> Dict[str, Any]:
+def get_file_type_info(file_path: str) -> dict[str, Any]:
     """Get file type information."""
     try:
         import mimetypes

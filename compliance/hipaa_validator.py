@@ -7,6 +7,8 @@ Enterprise-grade HIPAA compliance validation for healthcare data protection.
 Implements PHI protection, audit logging, and access controls per HIPAA requirements.
 """
 
+from datetime import datetime, timedelta, timezone
+
 import base64
 import hashlib
 import json
@@ -16,10 +18,8 @@ import re
 import sqlite3
 import uuid
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
 
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
@@ -82,10 +82,10 @@ class HIPAAViolation:
     violation_type: HIPAAViolationType
     severity: str
     description: str
-    phi_involved: List[PHIDetection]
+    phi_involved: list[PHIDetection]
     timestamp: datetime
-    user_id: Optional[str]
-    ip_address: Optional[str]
+    user_id: str | None
+    ip_address: str | None
     remediation_required: bool
 
 @dataclass
@@ -95,9 +95,9 @@ class HIPAAComplianceReport:
     timestamp: datetime
     compliance_level: ComplianceLevel
     score: float
-    violations: List[HIPAAViolation]
-    phi_detected: List[PHIDetection]
-    recommendations: List[str]
+    violations: list[HIPAAViolation]
+    phi_detected: list[PHIDetection]
+    recommendations: list[str]
     audit_trail_complete: bool
     encryption_compliant: bool
     access_controls_adequate: bool
@@ -109,33 +109,33 @@ class PHIDetector:
         """Initialize PHI detection patterns"""
         self.patterns = {
             PHIType.SSN: [
-                r'\b\d{3}-\d{2}-\d{4}\b',
-                r'\b\d{3}\s\d{2}\s\d{4}\b',
-                r'\b\d{9}\b'
+                r"\b\d{3}-\d{2}-\d{4}\b",
+                r"\b\d{3}\s\d{2}\s\d{4}\b",
+                r"\b\d{9}\b"
             ],
             PHIType.PHONE: [
-                r'\b\d{3}-\d{3}-\d{4}\b',
-                r'\(\d{3}\)\s?\d{3}-\d{4}',
-                r'\b\d{10}\b'
+                r"\b\d{3}-\d{3}-\d{4}\b",
+                r"\(\d{3}\)\s?\d{3}-\d{4}",
+                r"\b\d{10}\b"
             ],
             PHIType.EMAIL: [
-                r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+                r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
             ],
             PHIType.BIRTH_DATE: [
-                r'\b\d{1,2}/\d{1,2}/\d{4}\b',
-                r'\b\d{4}-\d{2}-\d{2}\b',
-                r'\b\d{1,2}-\d{1,2}-\d{4}\b'
+                r"\b\d{1,2}/\d{1,2}/\d{4}\b",
+                r"\b\d{4}-\d{2}-\d{2}\b",
+                r"\b\d{1,2}-\d{1,2}-\d{4}\b"
             ],
             PHIType.MEDICAL_RECORD: [
-                r'\bMRN\s*:?\s*\d+\b',
-                r'\bMedical\s+Record\s*:?\s*\d+\b',
-                r'\bPatient\s+ID\s*:?\s*\d+\b'
+                r"\bMRN\s*:?\s*\d+\b",
+                r"\bMedical\s+Record\s*:?\s*\d+\b",
+                r"\bPatient\s+ID\s*:?\s*\d+\b"
             ],
             PHIType.IP_ADDRESS: [
-                r'\b(?:\d{1,3}\.){3}\d{1,3}\b'
+                r"\b(?:\d{1,3}\.){3}\d{1,3}\b"
             ],
             PHIType.ADDRESS: [
-                r'\b\d+\s+[A-Za-z\s]+(?:Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd|Lane|Ln|Drive|Dr|Court|Ct|Place|Pl)\b'
+                r"\b\d+\s+[A-Za-z\s]+(?:Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd|Lane|Ln|Drive|Dr|Court|Ct|Place|Pl)\b"
             ]
         }
 
@@ -144,7 +144,7 @@ class PHIDetector:
         for phi_type, patterns in self.patterns.items():
             self.compiled_patterns[phi_type] = [re.compile(pattern, re.IGNORECASE) for pattern in patterns]
 
-    def detect_phi(self, text: str, context: str = "") -> List[PHIDetection]:
+    def detect_phi(self, text: str, context: str = "") -> list[PHIDetection]:
         """Detect PHI in text"""
         detections = []
 
@@ -170,15 +170,14 @@ class PHIDetector:
         """Mask PHI value for logging"""
         if phi_type == PHIType.SSN:
             return f"***-**-{value[-4:]}" if len(value) >= 4 else "***"
-        elif phi_type == PHIType.PHONE:
+        if phi_type == PHIType.PHONE:
             return f"***-***-{value[-4:]}" if len(value) >= 4 else "***"
-        elif phi_type == PHIType.EMAIL:
-            parts = value.split('@')
+        if phi_type == PHIType.EMAIL:
+            parts = value.split("@")
             if len(parts) == 2:
                 return f"{parts[0][:2]}***@{parts[1]}"
             return "***@***.***"
-        else:
-            return f"{value[:2]}***" if len(value) > 2 else "***"
+        return f"{value[:2]}***" if len(value) > 2 else "***"
 
     def _calculate_confidence(self, value: str, phi_type: PHIType) -> float:
         """Calculate confidence score for PHI detection"""
@@ -186,11 +185,9 @@ class PHIDetector:
         base_confidence = 0.8
 
         # Adjust based on PHI type and value characteristics
-        if phi_type == PHIType.SSN and len(value.replace('-', '').replace(' ', '')) == 9:
+        if phi_type == PHIType.SSN and len(value.replace("-", "").replace(" ", "")) == 9:
             return 0.95
-        elif phi_type == PHIType.EMAIL and '@' in value and '.' in value:
-            return 0.9
-        elif phi_type == PHIType.PHONE and len(value.replace('-', '').replace('(', '').replace(')', '').replace(' ', '')) == 10:
+        if (phi_type == PHIType.EMAIL and "@" in value and "." in value) or (phi_type == PHIType.PHONE and len(value.replace("-", "").replace("(", "").replace(")", "").replace(" ", "")) == 10):
             return 0.9
 
         return base_confidence
@@ -198,7 +195,7 @@ class PHIDetector:
 class HIPAAEncryption:
     """HIPAA-compliant encryption for PHI"""
 
-    def __init__(self, password: Optional[str] = None):
+    def __init__(self, password: str | None = None):
         """Initialize encryption with HIPAA-compliant parameters"""
         self.password = password or os.getenv("HIPAA_ENCRYPTION_KEY", "default_hipaa_key_change_in_production")
         self.key = self._derive_key(self.password)
@@ -206,7 +203,7 @@ class HIPAAEncryption:
 
     def _derive_key(self, password: str) -> bytes:
         """Derive encryption key using PBKDF2"""
-        salt = b'hipaa_salt_change_in_production'  # Should be random in production
+        salt = b"hipaa_salt_change_in_production"  # Should be random in production
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=32,
@@ -238,7 +235,7 @@ class HIPAAEncryption:
 class HIPAAStorage:
     """HIPAA-compliant storage for audit logs and compliance data"""
 
-    def __init__(self, db_path: Optional[str] = None):
+    def __init__(self, db_path: str | None = None):
         """Initialize HIPAA storage"""
         self.db_path = db_path or str(Path(__file__).parent / "hipaa_compliance.db")
         self.encryption = HIPAAEncryption()
@@ -332,9 +329,9 @@ class HIPAAStorage:
             raise
 
     def log_phi_access(self, user_id: str, phi_type: PHIType, action: str,
-                      resource_id: Optional[str] = None, ip_address: Optional[str] = None,
-                      user_agent: Optional[str] = None, success: bool = True,
-                      failure_reason: Optional[str] = None, phi_data: Optional[str] = None):
+                      resource_id: str | None = None, ip_address: str | None = None,
+                      user_agent: str | None = None, success: bool = True,
+                      failure_reason: str | None = None, phi_data: str | None = None):
         """Log PHI access for audit trail"""
         try:
             conn = sqlite3.connect(self.db_path)
@@ -439,7 +436,7 @@ class HIPAAStorage:
 class HIPAAValidator:
     """HIPAA compliance validator"""
 
-    def __init__(self, storage: Optional[HIPAAStorage] = None):
+    def __init__(self, storage: HIPAAStorage | None = None):
         """Initialize HIPAA validator"""
         self.storage = storage or HIPAAStorage()
         self.phi_detector = PHIDetector()
@@ -459,8 +456,8 @@ class HIPAAValidator:
         logger.info("HIPAA validator initialized successfully")
 
     def validate_data_access(self, user_id: str, data: str, context: str = "",
-                           ip_address: Optional[str] = None,
-                           user_agent: Optional[str] = None) -> Tuple[bool, List[HIPAAViolation]]:
+                           ip_address: str | None = None,
+                           user_agent: str | None = None) -> tuple[bool, list[HIPAAViolation]]:
         """Validate data access for HIPAA compliance"""
         violations = []
 
@@ -500,7 +497,7 @@ class HIPAAValidator:
         is_compliant = len(violations) == 0
         return is_compliant, violations
 
-    def validate_data_storage(self, data: str, encrypted: bool = False) -> Tuple[bool, List[HIPAAViolation]]:
+    def validate_data_storage(self, data: str, encrypted: bool = False) -> tuple[bool, list[HIPAAViolation]]:
         """Validate data storage for HIPAA compliance"""
         violations = []
 
@@ -526,7 +523,7 @@ class HIPAAValidator:
         is_compliant = len(violations) == 0
         return is_compliant, violations
 
-    def validate_audit_trail(self, start_date: datetime, end_date: datetime) -> Tuple[bool, List[str]]:
+    def validate_audit_trail(self, start_date: datetime, end_date: datetime) -> tuple[bool, list[str]]:
         """Validate audit trail completeness"""
         issues = []
 
@@ -564,7 +561,7 @@ class HIPAAValidator:
         is_complete = len(issues) == 0
         return is_complete, issues
 
-    def _check_user_authorization(self, user_id: str, phi_detections: List[PHIDetection]) -> bool:
+    def _check_user_authorization(self, user_id: str, phi_detections: list[PHIDetection]) -> bool:
         """Check if user is authorized to access PHI (simplified implementation)"""
         # In a real implementation, this would check against user roles,
         # permissions, and the minimum necessary standard
@@ -618,7 +615,7 @@ class HIPAAValidator:
 
         return report
 
-    def _get_recent_violations(self, days: int = 30) -> List[HIPAAViolation]:
+    def _get_recent_violations(self, days: int = 30) -> list[HIPAAViolation]:
         """Get recent HIPAA violations"""
         violations = []
 
@@ -646,7 +643,7 @@ class HIPAAValidator:
                     severity=row[2],
                     description=row[3],
                     phi_involved=phi_detections,
-                    timestamp=datetime.fromisoformat(row[5].replace('Z', '+00:00')),
+                    timestamp=datetime.fromisoformat(row[5].replace("Z", "+00:00")),
                     user_id=row[6],
                     ip_address=row[7],
                     remediation_required=row[8]
@@ -660,7 +657,7 @@ class HIPAAValidator:
 
         return violations
 
-    def _calculate_compliance_score(self, violations: List[HIPAAViolation]) -> float:
+    def _calculate_compliance_score(self, violations: list[HIPAAViolation]) -> float:
         """Calculate HIPAA compliance score"""
         base_score = 100.0
 
@@ -677,8 +674,8 @@ class HIPAAValidator:
 
         return max(0.0, base_score)
 
-    def _generate_recommendations(self, violations: List[HIPAAViolation],
-                                audit_issues: List[str]) -> List[str]:
+    def _generate_recommendations(self, violations: list[HIPAAViolation],
+                                audit_issues: list[str]) -> list[str]:
         """Generate compliance recommendations"""
         recommendations = []
 
@@ -716,14 +713,14 @@ if __name__ == "__main__":
     test_data = "Patient John Doe, SSN: 123-45-6789, Phone: (555) 123-4567"
     is_compliant, violations = validator.validate_data_access("test_user", test_data)
 
-    print(f"HIPAA Compliance Test:")
+    print("HIPAA Compliance Test:")
     print(f"Data: {test_data}")
     print(f"Compliant: {is_compliant}")
     print(f"Violations: {len(violations)}")
 
     # Generate compliance report
     report = validator.generate_compliance_report()
-    print(f"\nCompliance Report:")
+    print("\nCompliance Report:")
     print(f"Assessment ID: {report.assessment_id}")
     print(f"Compliance Level: {report.compliance_level}")
     print(f"Score: {report.score}")

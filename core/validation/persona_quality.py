@@ -4,6 +4,5 @@
 
 class PersonaQuality:
     """Stub implementation for PersonaQuality."""
-    pass
 
-__all__ = ['PersonaQuality']
+__all__ = ["PersonaQuality"]

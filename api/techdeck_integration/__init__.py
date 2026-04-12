@@ -16,4 +16,4 @@ __description__ = "Flask API service for TechDeck-Python pipeline integration"
 from .app import create_app
 from .config import Config
 
-__all__ = ['create_app', 'Config']
+__all__ = ["Config", "create_app"]

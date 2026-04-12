@@ -1,15 +1,16 @@
+
+from datetime import datetime, timezone
 from __future__ import annotations
 
 import hashlib
 import hmac
 import json
 import os
+from collections.abc import Mapping
 from dataclasses import dataclass
-from datetime import datetime, timezone
 from functools import lru_cache
 from threading import Lock
 from time import time
-from typing import Dict, Mapping, Optional
 
 from fastapi import HTTPException
 
@@ -20,7 +21,7 @@ _MAX_CLOCK_SKEW_SECONDS = 300
 class ReplayProtectionStore:
     def __init__(self) -> None:
         self._lock = Lock()
-        self._nonces: Dict[str, float] = {}
+        self._nonces: dict[str, float] = {}
 
     def validate(self, *, actor_id: str, nonce: str, now_epoch: float) -> None:
         key = f"{actor_id}:{nonce}"
@@ -52,7 +53,7 @@ class MemoryActorPolicy:
             return True
         return any(user_id.startswith(prefix) for prefix in self.allowed_user_prefixes)
 
-    def summary(self) -> Dict[str, object]:
+    def summary(self) -> dict[str, object]:
         return {
             "allow_any_user": self.allow_any_user,
             "allowed_users": sorted(self.allowed_users),
@@ -66,9 +67,9 @@ class MemoryAccessContext:
     auth_mode: str = "internal_service_hmac"
     actor_type: str = "service"
     policy: MemoryActorPolicy = MemoryActorPolicy()
-    effective_user_id: Optional[str] = None
+    effective_user_id: str | None = None
 
-    def audit_metadata(self) -> Dict[str, str]:
+    def audit_metadata(self) -> dict[str, str]:
         return {
             "memory_actor_id": self.actor_id,
             "memory_actor_type": self.actor_type,
@@ -91,7 +92,7 @@ def _normalize_actor_env_key(actor_id: str) -> str:
     return "".join(ch if ch.isalnum() else "_" for ch in actor_id.upper())
 
 
-def _actor_secret_for(actor_id: str, actor_tokens: Mapping[str, str]) -> Optional[str]:
+def _actor_secret_for(actor_id: str, actor_tokens: Mapping[str, str]) -> str | None:
     secret = actor_tokens.get(actor_id)
     if secret:
         return secret
@@ -99,7 +100,7 @@ def _actor_secret_for(actor_id: str, actor_tokens: Mapping[str, str]) -> Optiona
     return actor_tokens.get(normalized_actor)
 
 
-def _parse_request_timestamp(raw_timestamp: Optional[str]) -> tuple[str, float]:
+def _parse_request_timestamp(raw_timestamp: str | None) -> tuple[str, float]:
     value = (raw_timestamp or "").strip()
     if not value:
         raise HTTPException(status_code=400, detail="Missing X-Memory-Timestamp header")
@@ -115,7 +116,7 @@ def _parse_request_timestamp(raw_timestamp: Optional[str]) -> tuple[str, float]:
         return value, parsed.timestamp()
 
 
-def _required_header(value: Optional[str], header_name: str) -> str:
+def _required_header(value: str | None, header_name: str) -> str:
     normalized = (value or "").strip()
     if not normalized:
         raise HTTPException(status_code=400, detail=f"Missing {header_name} header")
@@ -153,8 +154,8 @@ def _canonical_request(
     )
 
 
-def _actor_tokens_from_json(raw_json: Optional[str]) -> Dict[str, str]:
-    tokens: Dict[str, str] = {}
+def _actor_tokens_from_json(raw_json: str | None) -> dict[str, str]:
+    tokens: dict[str, str] = {}
     if not raw_json:
         return tokens
     try:
@@ -171,8 +172,8 @@ def _actor_tokens_from_json(raw_json: Optional[str]) -> Dict[str, str]:
     return tokens
 
 
-def _actor_tokens_from_prefix_env() -> Dict[str, str]:
-    tokens: Dict[str, str] = {}
+def _actor_tokens_from_prefix_env() -> dict[str, str]:
+    tokens: dict[str, str] = {}
     prefix = "LOCAL_MEMORY_ACTOR_TOKEN_"
     for env_key, env_value in os.environ.items():
         if not env_key.startswith(prefix):
@@ -222,7 +223,7 @@ def _parse_actor_policy(actor_id: str, raw_policy: object) -> MemoryActorPolicy:
 
 
 @lru_cache(maxsize=1)
-def configured_actor_policies() -> Dict[str, MemoryActorPolicy]:
+def configured_actor_policies() -> dict[str, MemoryActorPolicy]:
     tokens = configured_actor_tokens()
     raw_json = os.environ.get("LOCAL_MEMORY_ACTOR_POLICIES_JSON")
     if not raw_json:
@@ -237,7 +238,7 @@ def configured_actor_policies() -> Dict[str, MemoryActorPolicy]:
         raise RuntimeError("LOCAL_MEMORY_ACTOR_POLICIES_JSON must be valid JSON") from exc
     if not isinstance(payload, Mapping):
         raise RuntimeError("LOCAL_MEMORY_ACTOR_POLICIES_JSON must be a JSON object")
-    policies: Dict[str, MemoryActorPolicy] = {}
+    policies: dict[str, MemoryActorPolicy] = {}
     for actor_id, raw_policy in payload.items():
         key = str(actor_id).strip()
         if not key:
@@ -255,9 +256,9 @@ def configured_actor_policies() -> Dict[str, MemoryActorPolicy]:
 
 
 @lru_cache(maxsize=1)
-def readiness_details() -> Dict[str, object]:
+def readiness_details() -> dict[str, object]:
     actor_tokens = configured_actor_tokens()
-    policy_error: Optional[str] = None
+    policy_error: str | None = None
     try:
         actor_policies = configured_actor_policies()
     except RuntimeError as exc:
@@ -281,7 +282,7 @@ def readiness_details() -> Dict[str, object]:
 
 
 @lru_cache(maxsize=1)
-def configured_actor_tokens() -> Dict[str, str]:
+def configured_actor_tokens() -> dict[str, str]:
     tokens = _actor_tokens_from_json(os.environ.get("LOCAL_MEMORY_ACTOR_TOKENS_JSON"))
     tokens.update(_actor_tokens_from_prefix_env())
     return tokens
@@ -343,13 +344,13 @@ def _compat_policy_for_actor(
     return policy
 
 
-def _resolve_compat_user_id(user_id: Optional[str]) -> str:
+def _resolve_compat_user_id(user_id: str | None) -> str:
     return (user_id or "").strip() or _default_compat_user_id()
 
 
 def _validate_compat_bearer_token(
     *,
-    authorization: Optional[str],
+    authorization: str | None,
     actor_id: str,
     actor_tokens: Mapping[str, str],
 ) -> None:
@@ -372,11 +373,11 @@ def _validate_compat_bearer_token(
 
 def _authorize_bearer_compat(
     *,
-    authorization: Optional[str],
-    user_id: Optional[str],
+    authorization: str | None,
+    user_id: str | None,
     actor_tokens: Mapping[str, str],
     actor_policies: Mapping[str, MemoryActorPolicy],
-) -> Optional[MemoryAccessContext]:
+) -> MemoryAccessContext | None:
     if not _env_flag("HINDSIGHT_COMPAT_ENABLE_BEARER", False):
         return None
 
@@ -411,16 +412,16 @@ def _authorize_bearer_compat(
 
 def _authorize_signed_request(
     *,
-    actor_id: Optional[str],
-    user_id: Optional[str],
+    actor_id: str | None,
+    user_id: str | None,
     actor_tokens: Mapping[str, str],
     actor_policies: Mapping[str, MemoryActorPolicy],
     request_method: str,
     request_target: str,
     request_body: bytes,
-    timestamp: Optional[str],
-    nonce: Optional[str],
-    signature: Optional[str],
+    timestamp: str | None,
+    nonce: str | None,
+    signature: str | None,
 ) -> MemoryAccessContext:
     value = (actor_id or "").strip()
     if not value:
@@ -466,15 +467,15 @@ def _authorize_signed_request(
 
 def authorize_memory_access(
     *,
-    actor_id: Optional[str],
-    user_id: Optional[str],
+    actor_id: str | None,
+    user_id: str | None,
     request_method: str,
     request_target: str,
     request_body: bytes,
-    timestamp: Optional[str],
-    nonce: Optional[str],
-    signature: Optional[str],
-    authorization: Optional[str] = None,
+    timestamp: str | None,
+    nonce: str | None,
+    signature: str | None,
+    authorization: str | None = None,
 ) -> MemoryAccessContext:
     actor_tokens = configured_actor_tokens()
     if not actor_tokens:
@@ -502,7 +503,7 @@ def authorize_memory_access(
     )
 
 
-def required_user_id(user_id: Optional[str]) -> str:
+def required_user_id(user_id: str | None) -> str:
     value = (user_id or "").strip()
     if not value:
         raise HTTPException(status_code=400, detail="Missing X-Memory-User-Id header")
@@ -511,7 +512,7 @@ def required_user_id(user_id: Optional[str]) -> str:
 
 def resolve_authorized_user_id(
     access: MemoryAccessContext,
-    user_id: Optional[str],
+    user_id: str | None,
 ) -> str:
     resolved_user_id = (user_id or "").strip() or access.effective_user_id or ""
     if not resolved_user_id and access.auth_mode == "hindsight_bearer_compat":

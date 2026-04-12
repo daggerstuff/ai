@@ -3,6 +3,5 @@
 
 class InstrumentsCollector:
     """Stub implementation for InstrumentsCollector."""
-    pass
 
-__all__ = ['InstrumentsCollector']
+__all__ = ["InstrumentsCollector"]

@@ -4,6 +4,5 @@
 
 class UnslothFinetune:
     """Stub implementation for UnslothFinetune."""
-    pass
 
-__all__ = ['UnslothFinetune']
+__all__ = ["UnslothFinetune"]

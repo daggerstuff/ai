@@ -6,15 +6,16 @@ Tasks 2.1, 2.2, 2.3: Validate Regulatory Compliance Implementation
 Comprehensive validation script to verify Phase 2 regulatory compliance implementation is enterprise-ready.
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import os
 import sys
 import tempfile
 import time
-from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 # Configure logging
 logging.basicConfig(
@@ -29,7 +30,7 @@ class Phase2Validator:
     def __init__(self):
         """Initialize validator"""
         self.results = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "phase": "Phase 2 - Regulatory Compliance",
             "tasks": {
                 "2.1": {
@@ -54,7 +55,7 @@ class Phase2Validator:
             "recommendations": [],
         }
 
-    def validate_task_2_1_hipaa(self) -> Tuple[int, List[str]]:
+    def validate_task_2_1_hipaa(self) -> tuple[int, list[str]]:
         """Validate Task 2.1: HIPAA Compliance Framework"""
         logger.info("Validating Task 2.1: HIPAA Compliance Framework")
 
@@ -200,7 +201,7 @@ class Phase2Validator:
 
         return score, issues
 
-    def validate_task_2_2_soc2(self) -> Tuple[int, List[str]]:
+    def validate_task_2_2_soc2(self) -> tuple[int, list[str]]:
         """Validate Task 2.2: SOC2 Compliance Framework"""
         logger.info("Validating Task 2.2: SOC2 Compliance Framework")
 
@@ -337,7 +338,7 @@ class Phase2Validator:
 
         return score, issues
 
-    def validate_task_2_3_gdpr(self) -> Tuple[int, List[str]]:
+    def validate_task_2_3_gdpr(self) -> tuple[int, list[str]]:
         """Validate Task 2.3: GDPR Compliance Framework"""
         logger.info("Validating Task 2.3: GDPR Compliance Framework")
 
@@ -474,7 +475,7 @@ class Phase2Validator:
 
         return score, issues
 
-    def validate_integration(self) -> Tuple[int, List[str]]:
+    def validate_integration(self) -> tuple[int, list[str]]:
         """Validate regulatory compliance integration"""
         logger.info("Validating regulatory compliance integration")
 
@@ -566,7 +567,7 @@ class Phase2Validator:
 
         return score, issues
 
-    def run_validation(self) -> Dict[str, Any]:
+    def run_validation(self) -> dict[str, Any]:
         """Run complete Phase 2 validation"""
         logger.info("Starting Phase 2 validation...")
 

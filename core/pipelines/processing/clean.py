@@ -4,10 +4,10 @@
 
 def clean(*args, **kwargs):
     """Stub implementation for clean."""
-    return None
+    return
 
 def clean_and_deduplicate(*args, **kwargs):
     """Stub implementation for clean_and_deduplicate."""
-    return None
+    return
 
-__all__ = ['clean', 'clean_and_deduplicate']
+__all__ = ["clean", "clean_and_deduplicate"]

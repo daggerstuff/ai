@@ -5,8 +5,9 @@ This module provides REST API endpoints for dataset CRUD operations,
 file upload handling, and dataset metadata management.
 """
 
-from datetime import datetime
-from typing import Any, Dict
+from datetime import datetime, timezone
+
+from typing import Any
 
 from flask import Blueprint, current_app, jsonify, request
 
@@ -17,12 +18,12 @@ from ..utils.logger import get_logger
 from ..utils.validation import validate_dataset_metadata, validate_file_upload
 
 logger = get_logger(__name__)
-datasets_bp = Blueprint('datasets', __name__, url_prefix='/api/v1/datasets')
+datasets_bp = Blueprint("datasets", __name__, url_prefix="/api/v1/datasets")
 
 
-@datasets_bp.route('', methods=['GET'])
+@datasets_bp.route("", methods=["GET"])
 @require_auth
-def list_datasets() -> Dict[str, Any]:
+def list_datasets() -> dict[str, Any]:
     """
     List all datasets with pagination and filtering.
 
@@ -52,11 +53,11 @@ def list_datasets() -> Dict[str, Any]:
     """
     try:
         # Parse query parameters
-        page = int(request.args.get('page', 1))
-        limit = min(int(request.args.get('limit', 20)), 100)  # Max 100 per page
-        search = request.args.get('search', '')
-        file_format = request.args.get('format')
-        status = request.args.get('status')
+        page = int(request.args.get("page", 1))
+        limit = min(int(request.args.get("limit", 20)), 100)  # Max 100 per page
+        search = request.args.get("search", "")
+        file_format = request.args.get("format")
+        status = request.args.get("status")
 
         # Get current user from request context
         current_user = request.user
@@ -64,12 +65,12 @@ def list_datasets() -> Dict[str, Any]:
         logger.info(
             f"Listing datasets for user {current_user['id']}",
             extra={
-                'user_id': current_user['id'],
-                'page': page,
-                'limit': limit,
-                'search': search,
-                'format': file_format,
-                'status': status
+                "user_id": current_user["id"],
+                "page": page,
+                "limit": limit,
+                "search": search,
+                "format": file_format,
+                "status": status
             }
         )
 
@@ -78,7 +79,7 @@ def list_datasets() -> Dict[str, Any]:
 
         # Get datasets with pagination
         result = dataset_service.list_datasets(
-            user_id=current_user['id'],
+            user_id=current_user["id"],
             page=page,
             limit=limit,
             search=search,
@@ -88,14 +89,14 @@ def list_datasets() -> Dict[str, Any]:
 
         logger.info(
             f"Successfully retrieved {len(result['datasets'])} datasets",
-            extra={'user_id': current_user['id'], 'total': result['pagination']['total']}
+            extra={"user_id": current_user["id"], "total": result["pagination"]["total"]}
         )
 
         return jsonify({
-            'success': True,
-            'data': result,
-            'meta': {
-                'timestamp': datetime.utcnow().isoformat()
+            "success": True,
+            "data": result,
+            "meta": {
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
         }), 200
 
@@ -107,9 +108,9 @@ def list_datasets() -> Dict[str, Any]:
         raise
 
 
-@datasets_bp.route('/<dataset_id>', methods=['GET'])
+@datasets_bp.route("/<dataset_id>", methods=["GET"])
 @require_auth
-def get_dataset(dataset_id: str) -> Dict[str, Any]:
+def get_dataset(dataset_id: str) -> dict[str, Any]:
     """
     Get detailed information about a specific dataset.
 
@@ -141,32 +142,32 @@ def get_dataset(dataset_id: str) -> Dict[str, Any]:
 
         logger.info(
             f"Retrieving dataset {dataset_id}",
-            extra={'user_id': current_user['id'], 'dataset_id': dataset_id}
+            extra={"user_id": current_user["id"], "dataset_id": dataset_id}
         )
 
         # Initialize dataset service
         dataset_service = DatasetService(current_app.config, current_app.redis_client)
 
         # Get dataset by ID
-        dataset = dataset_service.get_dataset(dataset_id, current_user['id'])
+        dataset = dataset_service.get_dataset(dataset_id, current_user["id"])
 
         if not dataset:
             logger.warning(
                 f"Dataset {dataset_id} not found for user {current_user['id']}",
-                extra={'user_id': current_user['id'], 'dataset_id': dataset_id}
+                extra={"user_id": current_user["id"], "dataset_id": dataset_id}
             )
             raise DatasetNotFoundError(f"Dataset {dataset_id} not found")
 
         logger.info(
             f"Successfully retrieved dataset {dataset_id}",
-            extra={'user_id': current_user['id'], 'dataset_id': dataset_id}
+            extra={"user_id": current_user["id"], "dataset_id": dataset_id}
         )
 
         return jsonify({
-            'success': True,
-            'data': {'dataset': dataset},
-            'meta': {
-                'timestamp': datetime.utcnow().isoformat()
+            "success": True,
+            "data": {"dataset": dataset},
+            "meta": {
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
         }), 200
 
@@ -177,9 +178,9 @@ def get_dataset(dataset_id: str) -> Dict[str, Any]:
         raise
 
 
-@datasets_bp.route('', methods=['POST'])
+@datasets_bp.route("", methods=["POST"])
 @require_auth
-def create_dataset() -> Dict[str, Any]:
+def create_dataset() -> dict[str, Any]:
     """
     Create a new dataset with metadata.
 
@@ -219,7 +220,7 @@ def create_dataset() -> Dict[str, Any]:
         data = request.get_json()
 
         # Validate required fields
-        required_fields = ['name', 'format']
+        required_fields = ["name", "format"]
         for field in required_fields:
             if field not in data or not data[field]:
                 raise ValidationError(f"Missing required field: {field}")
@@ -230,9 +231,9 @@ def create_dataset() -> Dict[str, Any]:
         logger.info(
             f"Creating dataset for user {current_user['id']}",
             extra={
-                'user_id': current_user['id'],
-                'dataset_name': data['name'],
-                'format': data['format']
+                "user_id": current_user["id"],
+                "dataset_name": data["name"],
+                "format": data["format"]
             }
         )
 
@@ -241,23 +242,23 @@ def create_dataset() -> Dict[str, Any]:
 
         # Create dataset
         dataset = dataset_service.create_dataset(
-            user_id=current_user['id'],
-            name=data['name'],
-            description=data.get('description', ''),
-            format=data['format'],
-            metadata=data.get('metadata', {})
+            user_id=current_user["id"],
+            name=data["name"],
+            description=data.get("description", ""),
+            format=data["format"],
+            metadata=data.get("metadata", {})
         )
 
         logger.info(
             f"Successfully created dataset {dataset['id']}",
-            extra={'user_id': current_user['id'], 'dataset_id': dataset['id']}
+            extra={"user_id": current_user["id"], "dataset_id": dataset["id"]}
         )
 
         return jsonify({
-            'success': True,
-            'data': {'dataset': dataset},
-            'meta': {
-                'timestamp': datetime.utcnow().isoformat()
+            "success": True,
+            "data": {"dataset": dataset},
+            "meta": {
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
         }), 201
 
@@ -268,9 +269,9 @@ def create_dataset() -> Dict[str, Any]:
         raise
 
 
-@datasets_bp.route('/<dataset_id>/upload', methods=['POST'])
+@datasets_bp.route("/<dataset_id>/upload", methods=["POST"])
 @require_auth
-def upload_dataset_file(dataset_id: str) -> Dict[str, Any]:
+def upload_dataset_file(dataset_id: str) -> dict[str, Any]:
     """
     Upload a file for an existing dataset.
 
@@ -299,12 +300,12 @@ def upload_dataset_file(dataset_id: str) -> Dict[str, Any]:
         current_user = request.user
 
         # Check if file is present in request
-        if 'file' not in request.files:
+        if "file" not in request.files:
             raise ValidationError("No file provided in request")
 
-        file = request.files['file']
+        file = request.files["file"]
 
-        if file.filename == '':
+        if file.filename == "":
             raise ValidationError("No file selected")
 
         # Validate file upload
@@ -313,9 +314,9 @@ def upload_dataset_file(dataset_id: str) -> Dict[str, Any]:
         logger.info(
             f"Uploading file for dataset {dataset_id}",
             extra={
-                'user_id': current_user['id'],
-                'dataset_id': dataset_id,
-                'filename': file.filename
+                "user_id": current_user["id"],
+                "dataset_id": dataset_id,
+                "filename": file.filename
             }
         )
 
@@ -325,24 +326,24 @@ def upload_dataset_file(dataset_id: str) -> Dict[str, Any]:
         # Upload file
         upload_result = dataset_service.upload_file(
             dataset_id=dataset_id,
-            user_id=current_user['id'],
+            user_id=current_user["id"],
             file=file
         )
 
         logger.info(
             f"Successfully uploaded file for dataset {dataset_id}",
             extra={
-                'user_id': current_user['id'],
-                'dataset_id': dataset_id,
-                'upload_id': upload_result['id']
+                "user_id": current_user["id"],
+                "dataset_id": dataset_id,
+                "upload_id": upload_result["id"]
             }
         )
 
         return jsonify({
-            'success': True,
-            'data': {'upload': upload_result},
-            'meta': {
-                'timestamp': datetime.utcnow().isoformat()
+            "success": True,
+            "data": {"upload": upload_result},
+            "meta": {
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
         }), 201
 
@@ -353,9 +354,9 @@ def upload_dataset_file(dataset_id: str) -> Dict[str, Any]:
         raise
 
 
-@datasets_bp.route('/<dataset_id>', methods=['PUT'])
+@datasets_bp.route("/<dataset_id>", methods=["PUT"])
 @require_auth
-def update_dataset(dataset_id: str) -> Dict[str, Any]:
+def update_dataset(dataset_id: str) -> dict[str, Any]:
     """
     Update dataset metadata.
 
@@ -396,9 +397,9 @@ def update_dataset(dataset_id: str) -> Dict[str, Any]:
         logger.info(
             f"Updating dataset {dataset_id}",
             extra={
-                'user_id': current_user['id'],
-                'dataset_id': dataset_id,
-                'update_data': data
+                "user_id": current_user["id"],
+                "dataset_id": dataset_id,
+                "update_data": data
             }
         )
 
@@ -408,27 +409,27 @@ def update_dataset(dataset_id: str) -> Dict[str, Any]:
         # Update dataset
         dataset = dataset_service.update_dataset(
             dataset_id=dataset_id,
-            user_id=current_user['id'],
+            user_id=current_user["id"],
             update_data=data
         )
 
         if not dataset:
             logger.warning(
                 f"Dataset {dataset_id} not found for update",
-                extra={'user_id': current_user['id'], 'dataset_id': dataset_id}
+                extra={"user_id": current_user["id"], "dataset_id": dataset_id}
             )
             raise DatasetNotFoundError(f"Dataset {dataset_id} not found")
 
         logger.info(
             f"Successfully updated dataset {dataset_id}",
-            extra={'user_id': current_user['id'], 'dataset_id': dataset_id}
+            extra={"user_id": current_user["id"], "dataset_id": dataset_id}
         )
 
         return jsonify({
-            'success': True,
-            'data': {'dataset': dataset},
-            'meta': {
-                'timestamp': datetime.utcnow().isoformat()
+            "success": True,
+            "data": {"dataset": dataset},
+            "meta": {
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
         }), 200
 
@@ -441,9 +442,9 @@ def update_dataset(dataset_id: str) -> Dict[str, Any]:
         raise
 
 
-@datasets_bp.route('/<dataset_id>', methods=['DELETE'])
+@datasets_bp.route("/<dataset_id>", methods=["DELETE"])
 @require_auth
-def delete_dataset(dataset_id: str) -> Dict[str, Any]:
+def delete_dataset(dataset_id: str) -> dict[str, Any]:
     """
     Delete a dataset and its associated files.
 
@@ -463,32 +464,32 @@ def delete_dataset(dataset_id: str) -> Dict[str, Any]:
 
         logger.info(
             f"Deleting dataset {dataset_id}",
-            extra={'user_id': current_user['id'], 'dataset_id': dataset_id}
+            extra={"user_id": current_user["id"], "dataset_id": dataset_id}
         )
 
         # Initialize dataset service
         dataset_service = DatasetService(current_app.config, current_app.redis_client)
 
         # Delete dataset
-        success = dataset_service.delete_dataset(dataset_id, current_user['id'])
+        success = dataset_service.delete_dataset(dataset_id, current_user["id"])
 
         if not success:
             logger.warning(
                 f"Dataset {dataset_id} not found for deletion",
-                extra={'user_id': current_user['id'], 'dataset_id': dataset_id}
+                extra={"user_id": current_user["id"], "dataset_id": dataset_id}
             )
             raise DatasetNotFoundError(f"Dataset {dataset_id} not found")
 
         logger.info(
             f"Successfully deleted dataset {dataset_id}",
-            extra={'user_id': current_user['id'], 'dataset_id': dataset_id}
+            extra={"user_id": current_user["id"], "dataset_id": dataset_id}
         )
 
         return jsonify({
-            'success': True,
-            'data': {'message': 'Dataset deleted successfully'},
-            'meta': {
-                'timestamp': datetime.utcnow().isoformat()
+            "success": True,
+            "data": {"message": "Dataset deleted successfully"},
+            "meta": {
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
         }), 200
 
@@ -499,7 +500,7 @@ def delete_dataset(dataset_id: str) -> Dict[str, Any]:
         raise
 
 
-@datasets_bp.route('/<dataset_id>/download', methods=['GET'])
+@datasets_bp.route("/<dataset_id>/download", methods=["GET"])
 @require_auth
 def download_dataset(dataset_id: str) -> Any:
     """
@@ -516,25 +517,25 @@ def download_dataset(dataset_id: str) -> Any:
 
         logger.info(
             f"Downloading dataset {dataset_id}",
-            extra={'user_id': current_user['id'], 'dataset_id': dataset_id}
+            extra={"user_id": current_user["id"], "dataset_id": dataset_id}
         )
 
         # Initialize dataset service
         dataset_service = DatasetService(current_app.config, current_app.redis_client)
 
         # Get dataset file
-        file_data = dataset_service.get_dataset_file(dataset_id, current_user['id'])
+        file_data = dataset_service.get_dataset_file(dataset_id, current_user["id"])
 
         if not file_data:
             logger.warning(
                 f"Dataset file {dataset_id} not found",
-                extra={'user_id': current_user['id'], 'dataset_id': dataset_id}
+                extra={"user_id": current_user["id"], "dataset_id": dataset_id}
             )
             raise DatasetNotFoundError(f"Dataset file {dataset_id} not found")
 
         logger.info(
             f"Successfully prepared dataset {dataset_id} for download",
-            extra={'user_id': current_user['id'], 'dataset_id': dataset_id}
+            extra={"user_id": current_user["id"], "dataset_id": dataset_id}
         )
 
         # Return file response
@@ -547,9 +548,9 @@ def download_dataset(dataset_id: str) -> Any:
         raise
 
 
-@datasets_bp.route('/<dataset_id>/validate', methods=['POST'])
+@datasets_bp.route("/<dataset_id>/validate", methods=["POST"])
 @require_auth
-def validate_dataset(dataset_id: str) -> Dict[str, Any]:
+def validate_dataset(dataset_id: str) -> dict[str, Any]:
     """
     Validate dataset integrity and format.
 
@@ -578,29 +579,29 @@ def validate_dataset(dataset_id: str) -> Dict[str, Any]:
 
         logger.info(
             f"Validating dataset {dataset_id}",
-            extra={'user_id': current_user['id'], 'dataset_id': dataset_id}
+            extra={"user_id": current_user["id"], "dataset_id": dataset_id}
         )
 
         # Initialize dataset service
         dataset_service = DatasetService(current_app.config, current_app.redis_client)
 
         # Validate dataset
-        validation_result = dataset_service.validate_dataset(dataset_id, current_user['id'])
+        validation_result = dataset_service.validate_dataset(dataset_id, current_user["id"])
 
         logger.info(
             f"Successfully validated dataset {dataset_id}",
             extra={
-                'user_id': current_user['id'],
-                'dataset_id': dataset_id,
-                'valid': validation_result['valid']
+                "user_id": current_user["id"],
+                "dataset_id": dataset_id,
+                "valid": validation_result["valid"]
             }
         )
 
         return jsonify({
-            'success': True,
-            'data': {'validation': validation_result},
-            'meta': {
-                'timestamp': datetime.utcnow().isoformat()
+            "success": True,
+            "data": {"validation": validation_result},
+            "meta": {
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
         }), 200
 
@@ -609,9 +610,9 @@ def validate_dataset(dataset_id: str) -> Dict[str, Any]:
         raise
 
 
-@datasets_bp.route('/formats', methods=['GET'])
+@datasets_bp.route("/formats", methods=["GET"])
 @require_auth
-def get_supported_formats() -> Dict[str, Any]:
+def get_supported_formats() -> dict[str, Any]:
     """
     Get list of supported dataset formats.
 
@@ -641,22 +642,22 @@ def get_supported_formats() -> Dict[str, Any]:
 
         logger.info(
             "Retrieving supported dataset formats",
-            extra={'user_id': current_user['id']}
+            extra={"user_id": current_user["id"]}
         )
 
         # Get supported formats from config
-        formats = current_app.config.get('SUPPORTED_DATASET_FORMATS', [])
+        formats = current_app.config.get("SUPPORTED_DATASET_FORMATS", [])
 
         logger.info(
             f"Successfully retrieved {len(formats)} supported formats",
-            extra={'user_id': current_user['id']}
+            extra={"user_id": current_user["id"]}
         )
 
         return jsonify({
-            'success': True,
-            'data': {'formats': formats},
-            'meta': {
-                'timestamp': datetime.utcnow().isoformat()
+            "success": True,
+            "data": {"formats": formats},
+            "meta": {
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
         }), 200
 

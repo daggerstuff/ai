@@ -5,9 +5,11 @@ This module implements REST API endpoints for data validation operations,
 including quality checks, bias detection, and compliance validation.
 """
 
+from datetime import datetime, timezone
+
+
 import logging
-from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from flask import Blueprint, g, jsonify, request
 
@@ -22,11 +24,11 @@ from ..utils.logger import get_request_logger
 from ..utils.validation import sanitize_input, validate_validation_request
 
 # Initialize blueprint
-validation_bp = Blueprint('validation', __name__)
+validation_bp = Blueprint("validation", __name__)
 logger = logging.getLogger(__name__)
 
 
-@validation_bp.route('/quality-check', methods=['POST'])
+@validation_bp.route("/quality-check", methods=["POST"])
 @require_auth
 def quality_check():
     """
@@ -57,15 +59,15 @@ def quality_check():
             raise ValidationError("Request body is required")
 
         # Validate request structure
-        validation_result = validate_validation_request(request_data, 'quality')
-        if not validation_result['valid']:
-            raise ValidationError(validation_result['errors'])
+        validation_result = validate_validation_request(request_data, "quality")
+        if not validation_result["valid"]:
+            raise ValidationError(validation_result["errors"])
 
         # Extract data and parameters
-        data = request_data.get('data')
-        dataset_id = request_data.get('dataset_id')
-        checks = request_data.get('checks', ['completeness', 'consistency', 'accuracy'])
-        options = request_data.get('options', {})
+        data = request_data.get("data")
+        dataset_id = request_data.get("dataset_id")
+        checks = request_data.get("checks", ["completeness", "consistency", "accuracy"])
+        options = request_data.get("options", {})
 
         # Sanitize inputs
         data = sanitize_input(data)
@@ -90,13 +92,13 @@ def quality_check():
         request_logger.info(f"Quality validation completed with score: {quality_results.get('overall_score', 0)}")
 
         return jsonify({
-            'success': True,
-            'data': {
-                'quality_score': quality_results.get('overall_score', 0),
-                'check_results': quality_results.get('check_results', {}),
-                'recommendations': quality_results.get('recommendations', []),
-                'dataset_id': dataset_id,
-                'timestamp': datetime.utcnow().isoformat()
+            "success": True,
+            "data": {
+                "quality_score": quality_results.get("overall_score", 0),
+                "check_results": quality_results.get("check_results", {}),
+                "recommendations": quality_results.get("recommendations", []),
+                "dataset_id": dataset_id,
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
         }), 200
 
@@ -104,10 +106,10 @@ def quality_check():
         raise
     except Exception as e:
         request_logger.error(f"Error performing quality check: {e}")
-        raise ValidationError(f"Failed to perform quality check: {str(e)}")
+        raise ValidationError(f"Failed to perform quality check: {e!s}")
 
 
-@validation_bp.route('/bias-detection', methods=['POST'])
+@validation_bp.route("/bias-detection", methods=["POST"])
 @require_auth
 def bias_detection():
     """
@@ -138,15 +140,15 @@ def bias_detection():
             raise ValidationError("Request body is required")
 
         # Validate request structure
-        validation_result = validate_validation_request(request_data, 'bias')
-        if not validation_result['valid']:
-            raise ValidationError(validation_result['errors'])
+        validation_result = validate_validation_request(request_data, "bias")
+        if not validation_result["valid"]:
+            raise ValidationError(validation_result["errors"])
 
         # Extract data and parameters
-        data = request_data.get('data')
-        context = request_data.get('context', {})
-        detection_type = request_data.get('detection_type', 'demographic')
-        options = request_data.get('options', {})
+        data = request_data.get("data")
+        context = request_data.get("context", {})
+        detection_type = request_data.get("detection_type", "demographic")
+        options = request_data.get("options", {})
 
         # Sanitize inputs
         data = sanitize_input(data)
@@ -159,21 +161,21 @@ def bias_detection():
         bias_results = _perform_bias_detection(data, context, detection_type, options)
 
         # Log detection results
-        if bias_results.get('bias_detected', False):
+        if bias_results.get("bias_detected", False):
             request_logger.warning(f"Bias detected with score: {bias_results.get('bias_score', 0)}")
         else:
             request_logger.info("No significant bias detected")
 
         return jsonify({
-            'success': True,
-            'data': {
-                'bias_detected': bias_results.get('bias_detected', False),
-                'bias_score': bias_results.get('bias_score', 0),
-                'bias_types': bias_results.get('bias_types', []),
-                'flagged_items': bias_results.get('flagged_items', []),
-                'recommendations': bias_results.get('recommendations', []),
-                'detection_type': detection_type,
-                'timestamp': datetime.utcnow().isoformat()
+            "success": True,
+            "data": {
+                "bias_detected": bias_results.get("bias_detected", False),
+                "bias_score": bias_results.get("bias_score", 0),
+                "bias_types": bias_results.get("bias_types", []),
+                "flagged_items": bias_results.get("flagged_items", []),
+                "recommendations": bias_results.get("recommendations", []),
+                "detection_type": detection_type,
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
         }), 200
 
@@ -181,10 +183,10 @@ def bias_detection():
         raise
     except Exception as e:
         request_logger.error(f"Error performing bias detection: {e}")
-        raise BiasDetectionError(f"Failed to perform bias detection: {str(e)}")
+        raise BiasDetectionError(f"Failed to perform bias detection: {e!s}")
 
 
-@validation_bp.route('/compliance-check', methods=['POST'])
+@validation_bp.route("/compliance-check", methods=["POST"])
 @require_auth
 def compliance_check():
     """
@@ -214,14 +216,14 @@ def compliance_check():
             raise ValidationError("Request body is required")
 
         # Validate request structure
-        validation_result = validate_validation_request(request_data, 'compliance')
-        if not validation_result['valid']:
-            raise ValidationError(validation_result['errors'])
+        validation_result = validate_validation_request(request_data, "compliance")
+        if not validation_result["valid"]:
+            raise ValidationError(validation_result["errors"])
 
         # Extract data and parameters
-        data = request_data.get('data')
-        compliance_type = request_data.get('compliance_type', 'HIPAA')
-        options = request_data.get('options', {})
+        data = request_data.get("data")
+        compliance_type = request_data.get("compliance_type", "HIPAA")
+        options = request_data.get("options", {})
 
         # Sanitize inputs
         data = sanitize_input(data)
@@ -233,20 +235,20 @@ def compliance_check():
         compliance_results = _perform_compliance_check(data, compliance_type, options)
 
         # Log compliance results
-        if compliance_results.get('compliant', False):
+        if compliance_results.get("compliant", False):
             request_logger.info(f"{compliance_type} compliance check passed")
         else:
             request_logger.warning(f"{compliance_type} compliance violations found")
 
         return jsonify({
-            'success': True,
-            'data': {
-                'compliant': compliance_results.get('compliant', False),
-                'violations': compliance_results.get('violations', []),
-                'risk_score': compliance_results.get('risk_score', 0),
-                'recommendations': compliance_results.get('recommendations', []),
-                'compliance_type': compliance_type,
-                'timestamp': datetime.utcnow().isoformat()
+            "success": True,
+            "data": {
+                "compliant": compliance_results.get("compliant", False),
+                "violations": compliance_results.get("violations", []),
+                "risk_score": compliance_results.get("risk_score", 0),
+                "recommendations": compliance_results.get("recommendations", []),
+                "compliance_type": compliance_type,
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
         }), 200
 
@@ -254,10 +256,10 @@ def compliance_check():
         raise
     except Exception as e:
         request_logger.error(f"Error performing compliance check: {e}")
-        raise ValidationError(f"Failed to perform compliance check: {str(e)}")
+        raise ValidationError(f"Failed to perform compliance check: {e!s}")
 
 
-@validation_bp.route('/schema-validation', methods=['POST'])
+@validation_bp.route("/schema-validation", methods=["POST"])
 @require_auth
 def schema_validation():
     """
@@ -288,15 +290,15 @@ def schema_validation():
             raise ValidationError("Request body is required")
 
         # Validate request structure
-        validation_result = validate_validation_request(request_data, 'schema')
-        if not validation_result['valid']:
-            raise ValidationError(validation_result['errors'])
+        validation_result = validate_validation_request(request_data, "schema")
+        if not validation_result["valid"]:
+            raise ValidationError(validation_result["errors"])
 
         # Extract data and parameters
-        data = request_data.get('data')
-        schema_id = request_data.get('schema_id')
-        strict_mode = request_data.get('strict_mode', True)
-        options = request_data.get('options', {})
+        data = request_data.get("data")
+        schema_id = request_data.get("schema_id")
+        strict_mode = request_data.get("strict_mode", True)
+        options = request_data.get("options", {})
 
         # Sanitize inputs
         data = sanitize_input(data)
@@ -316,20 +318,20 @@ def schema_validation():
         validation_results = _validate_against_schema(data, schema, strict_mode, options)
 
         # Log validation results
-        if validation_results.get('valid', False):
+        if validation_results.get("valid", False):
             request_logger.info(f"Schema validation passed for: {schema_id}")
         else:
             request_logger.warning(f"Schema validation failed for: {schema_id}")
 
         return jsonify({
-            'success': True,
-            'data': {
-                'valid': validation_results.get('valid', False),
-                'errors': validation_results.get('errors', []),
-                'warnings': validation_results.get('warnings', []),
-                'schema_id': schema_id,
-                'validation_time_ms': validation_results.get('validation_time_ms', 0),
-                'timestamp': datetime.utcnow().isoformat()
+            "success": True,
+            "data": {
+                "valid": validation_results.get("valid", False),
+                "errors": validation_results.get("errors", []),
+                "warnings": validation_results.get("warnings", []),
+                "schema_id": schema_id,
+                "validation_time_ms": validation_results.get("validation_time_ms", 0),
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
         }), 200
 
@@ -337,10 +339,10 @@ def schema_validation():
         raise
     except Exception as e:
         request_logger.error(f"Error performing schema validation: {e}")
-        raise ValidationError(f"Failed to perform schema validation: {str(e)}")
+        raise ValidationError(f"Failed to perform schema validation: {e!s}")
 
 
-@validation_bp.route('/batch-validate', methods=['POST'])
+@validation_bp.route("/batch-validate", methods=["POST"])
 @require_auth
 def batch_validate():
     """
@@ -370,12 +372,12 @@ def batch_validate():
             raise ValidationError("Request body is required")
 
         # Validate request structure
-        if 'items' not in request_data:
+        if "items" not in request_data:
             raise ValidationError("Items field is required")
 
-        items = request_data.get('items')
-        validation_type = request_data.get('validation_type', 'quality')
-        options = request_data.get('options', {})
+        items = request_data.get("items")
+        validation_type = request_data.get("validation_type", "quality")
+        options = request_data.get("options", {})
 
         # Validate items is a list
         if not isinstance(items, list):
@@ -403,49 +405,49 @@ def batch_validate():
 
             for item in batch:
                 try:
-                    if validation_type == 'quality':
-                        result = _perform_quality_checks(item, ['completeness', 'consistency'], None, options)
-                    elif validation_type == 'bias':
-                        result = _perform_bias_detection(item, {}, 'demographic', options)
-                    elif validation_type == 'schema':
+                    if validation_type == "quality":
+                        result = _perform_quality_checks(item, ["completeness", "consistency"], None, options)
+                    elif validation_type == "bias":
+                        result = _perform_bias_detection(item, {}, "demographic", options)
+                    elif validation_type == "schema":
                         # Schema validation requires schema_id, use default
-                        result = _validate_against_schema(item, {'fields': []}, True, options)
+                        result = _validate_against_schema(item, {"fields": []}, True, options)
                     else:
                         raise ValidationError(f"Unsupported validation type: {validation_type}")
 
                     batch_results.append({
-                        'success': True,
-                        'data': result,
-                        'item_index': i + batch_results.index({
-                            'success': True,
-                            'data': result
+                        "success": True,
+                        "data": result,
+                        "item_index": i + batch_results.index({
+                            "success": True,
+                            "data": result
                         })
                     })
                 except Exception as e:
                     batch_results.append({
-                        'success': False,
-                        'error': str(e),
-                        'item_index': i + len(batch_results)
+                        "success": False,
+                        "error": str(e),
+                        "item_index": i + len(batch_results)
                     })
 
             results.extend(batch_results)
 
         # Calculate success rate
-        successful = sum(1 for r in results if r['success'])
+        successful = sum(1 for r in results if r["success"])
         success_rate = successful / len(results) * 100
 
         request_logger.info(f"Batch validation completed: {successful}/{len(results)} successful")
 
         return jsonify({
-            'success': True,
-            'data': {
-                'results': results,
-                'total_items': len(results),
-                'successful_items': successful,
-                'failed_items': len(results) - successful,
-                'success_rate': success_rate,
-                'validation_type': validation_type,
-                'timestamp': datetime.utcnow().isoformat()
+            "success": True,
+            "data": {
+                "results": results,
+                "total_items": len(results),
+                "successful_items": successful,
+                "failed_items": len(results) - successful,
+                "success_rate": success_rate,
+                "validation_type": validation_type,
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
         }), 200
 
@@ -453,10 +455,10 @@ def batch_validate():
         raise
     except Exception as e:
         request_logger.error(f"Error in batch validation: {e}")
-        raise ValidationError(f"Failed to perform batch validation: {str(e)}")
+        raise ValidationError(f"Failed to perform batch validation: {e!s}")
 
 
-@validation_bp.route('/validation-history', methods=['GET'])
+@validation_bp.route("/validation-history", methods=["GET"])
 @require_auth
 def get_validation_history():
     """
@@ -480,11 +482,11 @@ def get_validation_history():
 
     try:
         # Get query parameters
-        dataset_id = request.args.get('dataset_id')
-        validation_type = request.args.get('validation_type')
-        start_date = request.args.get('start_date')
-        end_date = request.args.get('end_date')
-        limit = min(int(request.args.get('limit', 100)), 1000)  # Max 1000
+        dataset_id = request.args.get("dataset_id")
+        validation_type = request.args.get("validation_type")
+        start_date = request.args.get("start_date")
+        end_date = request.args.get("end_date")
+        limit = min(int(request.args.get("limit", 100)), 1000)  # Max 1000
 
         # Sanitize inputs
         dataset_id = sanitize_input(dataset_id) if dataset_id else None
@@ -502,20 +504,20 @@ def get_validation_history():
         request_logger.info(f"Retrieved {len(history.get('validations', []))} validation records")
 
         return jsonify({
-            'success': True,
-            'data': history,
-            'timestamp': datetime.utcnow().isoformat()
+            "success": True,
+            "data": history,
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }), 200
 
     except ValueError as e:
-        raise ValidationError(f"Invalid query parameter: {str(e)}")
+        raise ValidationError(f"Invalid query parameter: {e!s}")
     except Exception as e:
         request_logger.error(f"Error retrieving validation history: {e}")
-        raise ValidationError(f"Failed to retrieve validation history: {str(e)}")
+        raise ValidationError(f"Failed to retrieve validation history: {e!s}")
 
 
 # Helper Functions
-def _perform_quality_checks(data: Dict[str, Any], checks: List[str], dataset_context: Optional[Dict[str, Any]], options: Dict[str, Any]) -> Dict[str, Any]:
+def _perform_quality_checks(data: dict[str, Any], checks: list[str], dataset_context: dict[str, Any] | None, options: dict[str, Any]) -> dict[str, Any]:
     """Perform comprehensive quality checks on data."""
     try:
         check_results = {}
@@ -524,12 +526,12 @@ def _perform_quality_checks(data: Dict[str, Any], checks: List[str], dataset_con
         check_count = 0
 
         # Completeness check
-        if 'completeness' in checks:
+        if "completeness" in checks:
             completeness_score, completeness_issues = _check_completeness(data, dataset_context)
-            check_results['completeness'] = {
-                'score': completeness_score,
-                'issues': completeness_issues,
-                'passed': completeness_score >= 0.8
+            check_results["completeness"] = {
+                "score": completeness_score,
+                "issues": completeness_issues,
+                "passed": completeness_score >= 0.8
             }
             total_score += completeness_score
             check_count += 1
@@ -538,12 +540,12 @@ def _perform_quality_checks(data: Dict[str, Any], checks: List[str], dataset_con
                 recommendations.append("Improve data completeness by filling missing required fields")
 
         # Consistency check
-        if 'consistency' in checks:
+        if "consistency" in checks:
             consistency_score, consistency_issues = _check_consistency(data, dataset_context)
-            check_results['consistency'] = {
-                'score': consistency_score,
-                'issues': consistency_issues,
-                'passed': consistency_score >= 0.8
+            check_results["consistency"] = {
+                "score": consistency_score,
+                "issues": consistency_issues,
+                "passed": consistency_score >= 0.8
             }
             total_score += consistency_score
             check_count += 1
@@ -552,12 +554,12 @@ def _perform_quality_checks(data: Dict[str, Any], checks: List[str], dataset_con
                 recommendations.append("Review data consistency issues and standardize formats")
 
         # Accuracy check
-        if 'accuracy' in checks:
+        if "accuracy" in checks:
             accuracy_score, accuracy_issues = _check_accuracy(data, dataset_context)
-            check_results['accuracy'] = {
-                'score': accuracy_score,
-                'issues': accuracy_issues,
-                'passed': accuracy_score >= 0.8
+            check_results["accuracy"] = {
+                "score": accuracy_score,
+                "issues": accuracy_issues,
+                "passed": accuracy_score >= 0.8
             }
             total_score += accuracy_score
             check_count += 1
@@ -569,17 +571,17 @@ def _perform_quality_checks(data: Dict[str, Any], checks: List[str], dataset_con
         overall_score = total_score / check_count if check_count > 0 else 0
 
         return {
-            'overall_score': overall_score,
-            'check_results': check_results,
-            'recommendations': recommendations
+            "overall_score": overall_score,
+            "check_results": check_results,
+            "recommendations": recommendations
         }
 
     except Exception as e:
         logger.error(f"Error performing quality checks: {e}")
-        raise ValidationError(f"Quality check failed: {str(e)}")
+        raise ValidationError(f"Quality check failed: {e!s}")
 
 
-def _perform_bias_detection(data: Dict[str, Any], context: Dict[str, Any], detection_type: str, options: Dict[str, Any]) -> Dict[str, Any]:
+def _perform_bias_detection(data: dict[str, Any], context: dict[str, Any], detection_type: str, options: dict[str, Any]) -> dict[str, Any]:
     """Perform bias detection analysis."""
     try:
         # Placeholder bias detection logic
@@ -589,79 +591,79 @@ def _perform_bias_detection(data: Dict[str, Any], context: Dict[str, Any], detec
         flagged_items = []
         recommendations = []
 
-        if detection_type == 'demographic':
+        if detection_type == "demographic":
             # Check for demographic bias
             bias_score = 0.15  # Placeholder score
             if bias_score > 0.1:
                 bias_detected = True
-                bias_types.append('demographic_representation')
+                bias_types.append("demographic_representation")
                 flagged_items.append({
-                    'field': 'demographics',
-                    'issue': 'Potential underrepresentation of certain demographic groups',
-                    'severity': 'medium'
+                    "field": "demographics",
+                    "issue": "Potential underrepresentation of certain demographic groups",
+                    "severity": "medium"
                 })
                 recommendations.append("Ensure balanced representation across demographic groups")
 
-        elif detection_type == 'content':
+        elif detection_type == "content":
             # Check for content bias
             bias_score = 0.08  # Placeholder score
             if bias_score > 0.05:
                 bias_detected = True
-                bias_types.append('content_bias')
+                bias_types.append("content_bias")
                 flagged_items.append({
-                    'field': 'content',
-                    'issue': 'Potential content bias detected',
-                    'severity': 'low'
+                    "field": "content",
+                    "issue": "Potential content bias detected",
+                    "severity": "low"
                 })
                 recommendations.append("Review content for potential bias indicators")
 
         return {
-            'bias_detected': bias_detected,
-            'bias_score': bias_score,
-            'bias_types': bias_types,
-            'flagged_items': flagged_items,
-            'recommendations': recommendations
+            "bias_detected": bias_detected,
+            "bias_score": bias_score,
+            "bias_types": bias_types,
+            "flagged_items": flagged_items,
+            "recommendations": recommendations
         }
 
     except Exception as e:
         logger.error(f"Error performing bias detection: {e}")
-        raise BiasDetectionError(f"Bias detection failed: {str(e)}")
+        raise BiasDetectionError(f"Bias detection failed: {e!s}")
 
 
-def _perform_compliance_check(data: Dict[str, Any], compliance_type: str, options: Dict[str, Any]) -> Dict[str, Any]:
+def _perform_compliance_check(data: dict[str, Any], compliance_type: str, options: dict[str, Any]) -> dict[str, Any]:
     """Perform compliance validation."""
     try:
         violations = []
         risk_score = 0
         recommendations = []
 
-        if compliance_type == 'HIPAA':
+        if compliance_type == "HIPAA":
             # HIPAA compliance checks
-            if 'patient_name' in data or 'ssn' in data:
+            if "patient_name" in data or "ssn" in data:
                 violations.append({
-                    'type': 'phi_exposure',
-                    'severity': 'high',
-                    'description': 'Protected Health Information (PHI) detected in data'
+                    "type": "phi_exposure",
+                    "severity": "high",
+                    "description": "Protected Health Information (PHI) detected in data"
                 })
                 risk_score += 50
                 recommendations.append("Remove or encrypt all PHI before processing")
 
-            if 'email' in data and not options.get('encrypted_email', False):
+            if "email" in data and not options.get("encrypted_email", False):
                 violations.append({
-                    'type': 'unencrypted_pii',
-                    'severity': 'medium',
-                    'description': 'Email addresses should be encrypted'
+                    "type": "unencrypted_pii",
+                    "severity": "medium",
+                    "description": "Email addresses should be encrypted"
                 })
                 risk_score += 20
                 recommendations.append("Encrypt email addresses using approved methods")
 
-        elif compliance_type == 'GDPR':
+        elif compliance_type == "GDPR":
             # GDPR compliance checks
-            if 'personal_data' in data and not options.get('consent_verified', False):
+            if "personal_data" in data and not options.get("consent_verified", False):
                 violations.append({
-                    'type': 'missing_consent',
-                    'severity': 'high',
-                    'description': 'Personal data processing without verified consent'
+                    "type": "missing_consent",
+                    "severity": "high",
+                    "description": "Personal data processing without verified consent"
                 })
                 risk_score += 40
                 recommendations.append("Verify data subject consent before processing")
@@ -670,44 +672,44 @@ def _perform_compliance_check(data: Dict[str, Any], compliance_type: str, option
         compliant = len(violations) == 0 or risk_score < 30
 
         return {
-            'compliant': compliant,
-            'violations': violations,
-            'risk_score': risk_score,
-            'recommendations': recommendations
+            "compliant": compliant,
+            "violations": violations,
+            "risk_score": risk_score,
+            "recommendations": recommendations
         }
 
     except Exception as e:
         logger.error(f"Error performing compliance check: {e}")
-        raise ValidationError(f"Compliance check failed: {str(e)}")
+        raise ValidationError(f"Compliance check failed: {e!s}")
 
 
-def _get_validation_schema(redis_client: RedisClient, schema_id: str) -> Optional[Dict[str, Any]]:
+def _get_validation_schema(redis_client: RedisClient, schema_id: str) -> dict[str, Any] | None:
     """Retrieve validation schema details."""
     try:
         # Try to get from Redis cache first
-        cache_key = f'validation:schema:{schema_id}'
+        cache_key = f"validation:schema:{schema_id}"
         cached_schema = redis_client.get(cache_key)
         if cached_schema:
             return cached_schema
 
         # Placeholder schema definitions
         schemas = {
-            'healthcare-patient': {
-                'id': 'healthcare-patient',
-                'name': 'Healthcare Patient Data',
-                'fields': [
-                    {'name': 'patient_id', 'type': 'string', 'required': True},
-                    {'name': 'age', 'type': 'integer', 'required': True, 'min': 0, 'max': 150},
-                    {'name': 'gender', 'type': 'enum', 'required': True, 'values': ['M', 'F', 'O']}
+            "healthcare-patient": {
+                "id": "healthcare-patient",
+                "name": "Healthcare Patient Data",
+                "fields": [
+                    {"name": "patient_id", "type": "string", "required": True},
+                    {"name": "age", "type": "integer", "required": True, "min": 0, "max": 150},
+                    {"name": "gender", "type": "enum", "required": True, "values": ["M", "F", "O"]}
                 ]
             },
-            'clinical-trial': {
-                'id': 'clinical-trial',
-                'name': 'Clinical Trial Data',
-                'fields': [
-                    {'name': 'trial_id', 'type': 'string', 'required': True},
-                    {'name': 'participant_id', 'type': 'string', 'required': True},
-                    {'name': 'enrollment_date', 'type': 'date', 'required': True}
+            "clinical-trial": {
+                "id": "clinical-trial",
+                "name": "Clinical Trial Data",
+                "fields": [
+                    {"name": "trial_id", "type": "string", "required": True},
+                    {"name": "participant_id", "type": "string", "required": True},
+                    {"name": "enrollment_date", "type": "date", "required": True}
                 ]
             }
         }
@@ -724,20 +726,20 @@ def _get_validation_schema(redis_client: RedisClient, schema_id: str) -> Optiona
         return None
 
 
-def _validate_against_schema(data: Dict[str, Any], schema: Dict[str, Any], strict_mode: bool, options: Dict[str, Any]) -> Dict[str, Any]:
+def _validate_against_schema(data: dict[str, Any], schema: dict[str, Any], strict_mode: bool, options: dict[str, Any]) -> dict[str, Any]:
     """Validate data against a specific schema."""
-    start_time = datetime.utcnow()
+    start_time = datetime.now(timezone.utc)
 
     try:
         errors = []
         warnings = []
 
         # Get field definitions
-        fields = schema.get('fields', [])
-        field_map = {field['name']: field for field in fields}
+        fields = schema.get("fields", [])
+        field_map = {field["name"]: field for field in fields}
 
         # Check required fields
-        required_fields = [field['name'] for field in fields if field.get('required', False)]
+        required_fields = [field["name"] for field in fields if field.get("required", False)]
         missing_fields = [field for field in required_fields if field not in data]
 
         if missing_fields:
@@ -756,51 +758,51 @@ def _validate_against_schema(data: Dict[str, Any], schema: Dict[str, Any], stric
             field_errors = _validate_field_against_schema(field_name, field_value, field_def)
             errors.extend(field_errors)
 
-        validation_time = (datetime.utcnow() - start_time).total_seconds() * 1000
+        validation_time = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
 
         return {
-            'valid': len(errors) == 0,
-            'errors': errors,
-            'warnings': warnings,
-            'validation_time_ms': validation_time
+            "valid": len(errors) == 0,
+            "errors": errors,
+            "warnings": warnings,
+            "validation_time_ms": validation_time
         }
 
     except Exception as e:
         logger.error(f"Error validating against schema: {e}")
         return {
-            'valid': False,
-            'errors': [f"Schema validation error: {str(e)}"],
-            'warnings': [],
-            'validation_time_ms': (datetime.utcnow() - start_time).total_seconds() * 1000
+            "valid": False,
+            "errors": [f"Schema validation error: {e!s}"],
+            "warnings": [],
+            "validation_time_ms": (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
         }
 
 
-def _validate_field_against_schema(field_name: str, field_value: Any, field_def: Dict[str, Any]) -> List[str]:
+def _validate_field_against_schema(field_name: str, field_value: Any, field_def: dict[str, Any]) -> list[str]:
     """Validate a single field against schema definition."""
     errors = []
-    field_type = field_def.get('type', 'string')
+    field_type = field_def.get("type", "string")
 
     try:
         # Type validation
-        if field_type == 'string' and not isinstance(field_value, str):
+        if field_type == "string" and not isinstance(field_value, str):
             errors.append(f"Field '{field_name}' must be a string")
-        elif field_type == 'integer' and not isinstance(field_value, int):
+        elif field_type == "integer" and not isinstance(field_value, int):
             errors.append(f"Field '{field_name}' must be an integer")
-        elif field_type == 'date' and not _is_valid_date_format(field_value):
+        elif field_type == "date" and not _is_valid_date_format(field_value):
             errors.append(f"Field '{field_name}' must be a valid date")
-        elif field_type == 'enum' and field_value not in field_def.get('values', []):
-            valid_values = ', '.join(field_def.get('values', []))
+        elif field_type == "enum" and field_value not in field_def.get("values", []):
+            valid_values = ", ".join(field_def.get("values", []))
             errors.append(f"Field '{field_name}' must be one of: {valid_values}")
 
         # Additional validations
-        if field_type == 'string':
-            max_length = field_def.get('max_length')
+        if field_type == "string":
+            max_length = field_def.get("max_length")
             if max_length and len(field_value) > max_length:
                 errors.append(f"Field '{field_name}' must not exceed {max_length} characters")
 
-        elif field_type == 'integer':
-            min_val = field_def.get('min')
-            max_val = field_def.get('max')
+        elif field_type == "integer":
+            min_val = field_def.get("min")
+            max_val = field_def.get("max")
             if min_val is not None and field_value < min_val:
                 errors.append(f"Field '{field_name}' must be at least {min_val}")
             if max_val is not None and field_value > max_val:
@@ -810,66 +812,66 @@ def _validate_field_against_schema(field_name: str, field_value: Any, field_def:
 
     except Exception as e:
         logger.error(f"Error validating field {field_name}: {e}")
-        return [f"Error validating field '{field_name}': {str(e)}"]
+        return [f"Error validating field '{field_name}': {e!s}"]
 
 
-def _get_validation_history(redis_client: RedisClient, dataset_id: Optional[str], validation_type: Optional[str], start_date: Optional[str], end_date: Optional[str], limit: int) -> Dict[str, Any]:
+def _get_validation_history(redis_client: RedisClient, dataset_id: str | None, validation_type: str | None, start_date: str | None, end_date: str | None, limit: int) -> dict[str, Any]:
     """Retrieve validation history with optional filters."""
     try:
         # Placeholder validation history
         history = {
-            'validations': [
+            "validations": [
                 {
-                    'id': 'val_001',
-                    'dataset_id': 'dataset_123',
-                    'validation_type': 'quality',
-                    'status': 'passed',
-                    'score': 0.92,
-                    'timestamp': '2024-01-15T10:30:00Z'
+                    "id": "val_001",
+                    "dataset_id": "dataset_123",
+                    "validation_type": "quality",
+                    "status": "passed",
+                    "score": 0.92,
+                    "timestamp": "2024-01-15T10:30:00Z"
                 },
                 {
-                    'id': 'val_002',
-                    'dataset_id': 'dataset_456',
-                    'validation_type': 'bias',
-                    'status': 'warning',
-                    'score': 0.15,
-                    'timestamp': '2024-01-14T14:20:00Z'
+                    "id": "val_002",
+                    "dataset_id": "dataset_456",
+                    "validation_type": "bias",
+                    "status": "warning",
+                    "score": 0.15,
+                    "timestamp": "2024-01-14T14:20:00Z"
                 }
             ],
-            'statistics': {
-                'total_validations': 245,
-                'passed': 198,
-                'failed': 32,
-                'warnings': 15,
-                'average_score': 0.87
+            "statistics": {
+                "total_validations": 245,
+                "passed": 198,
+                "failed": 32,
+                "warnings": 15,
+                "average_score": 0.87
             }
         }
 
         # Apply filters if provided
         if dataset_id:
-            history['validations'] = [v for v in history['validations'] if v.get('dataset_id') == dataset_id]
+            history["validations"] = [v for v in history["validations"] if v.get("dataset_id") == dataset_id]
 
         if validation_type:
-            history['validations'] = [v for v in history['validations'] if v.get('validation_type') == validation_type]
+            history["validations"] = [v for v in history["validations"] if v.get("validation_type") == validation_type]
 
         # Limit results
-        history['validations'] = history['validations'][:limit]
+        history["validations"] = history["validations"][:limit]
 
         return history
 
     except Exception as e:
         logger.error(f"Error retrieving validation history: {e}")
-        return {'validations': [], 'statistics': {}}
+        return {"validations": [], "statistics": {}}
 
 
 # Utility functions for quality checks
-def _check_completeness(data: Dict[str, Any], dataset_context: Optional[Dict[str, Any]]) -> tuple:
+def _check_completeness(data: dict[str, Any], dataset_context: dict[str, Any] | None) -> tuple:
     """Check data completeness."""
     if not data:
         return 0.0, ["No data provided"]
 
     total_fields = len(data)
-    non_empty_fields = sum(1 for value in data.values() if value is not None and value != '')
+    non_empty_fields = sum(1 for value in data.values() if value is not None and value != "")
 
     completeness_score = non_empty_fields / total_fields if total_fields > 0 else 0.0
     issues = []
@@ -880,7 +882,7 @@ def _check_completeness(data: Dict[str, Any], dataset_context: Optional[Dict[str
     return completeness_score, issues
 
 
-def _check_consistency(data: Dict[str, Any], dataset_context: Optional[Dict[str, Any]]) -> tuple:
+def _check_consistency(data: dict[str, Any], dataset_context: dict[str, Any] | None) -> tuple:
     """Check data consistency."""
     consistency_score = 0.95  # Placeholder score
     issues = []
@@ -894,14 +896,14 @@ def _check_consistency(data: Dict[str, Any], dataset_context: Optional[Dict[str,
     return max(0.0, consistency_score), issues
 
 
-def _check_accuracy(data: Dict[str, Any], dataset_context: Optional[Dict[str, Any]]) -> tuple:
+def _check_accuracy(data: dict[str, Any], dataset_context: dict[str, Any] | None) -> tuple:
     """Check data accuracy."""
     accuracy_score = 0.90  # Placeholder score
     issues = []
 
     # Basic accuracy checks
-    if 'age' in data and isinstance(data['age'], (int, float)):
-        if data['age'] < 0 or data['age'] > 150:
+    if "age" in data and isinstance(data["age"], (int, float)):
+        if data["age"] < 0 or data["age"] > 150:
             issues.append("Age value appears to be outside reasonable range")
             accuracy_score -= 0.2
 
@@ -911,7 +913,7 @@ def _check_accuracy(data: Dict[str, Any], dataset_context: Optional[Dict[str, An
 def _is_valid_date_format(date_string: str) -> bool:
     """Check if a string is in valid date format."""
     try:
-        datetime.fromisoformat(date_string.replace('Z', '+00:00'))
+        datetime.fromisoformat(date_string.replace("Z", "+00:00"))
         return True
     except (ValueError, AttributeError):
         return False

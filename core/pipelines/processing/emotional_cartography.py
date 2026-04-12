@@ -4,6 +4,5 @@
 
 class EmotionalCartography:
     """Stub implementation for EmotionalCartography."""
-    pass
 
-__all__ = ['EmotionalCartography']
+__all__ = ["EmotionalCartography"]

@@ -3,6 +3,5 @@
 
 class NgcResources:
     """Stub implementation for NgcResources."""
-    pass
 
-__all__ = ['NgcResources']
+__all__ = ["NgcResources"]

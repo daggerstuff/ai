@@ -4,6 +4,5 @@
 
 class VoicePipelineIntegration:
     """Stub implementation for VoicePipelineIntegration."""
-    pass
 
-__all__ = ['VoicePipelineIntegration']
+__all__ = ["VoicePipelineIntegration"]

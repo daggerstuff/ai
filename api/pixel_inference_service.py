@@ -9,14 +9,16 @@ Provides FastAPI endpoints for Pixel model inference with:
 - Performance optimization (<200ms latency)
 """
 
+from datetime import datetime, timezone
+
+
 import logging
 import os
 import sys
-from datetime import datetime
 
 # Import models and utilities
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import torch
 from fastapi import BackgroundTasks, FastAPI, HTTPException
@@ -41,7 +43,7 @@ class ConversationMessage(BaseModel):
 
     role: str = Field(..., description="Message role: user, assistant, or system")
     content: str = Field(..., description="Message content")
-    timestamp: Optional[str] = None
+    timestamp: str | None = None
 
 
 class PixelInferenceRequest(BaseModel):
@@ -51,14 +53,14 @@ class PixelInferenceRequest(BaseModel):
     conversation_history: list[ConversationMessage] = Field(
         default_factory=list, description="Prior conversation messages for context"
     )
-    context_type: Optional[str] = Field(
+    context_type: str | None = Field(
         None,
         description=(
             "Context type: educational, support, crisis, clinical, informational"
         ),
     )
-    user_id: Optional[str] = Field(None, description="User identifier for tracking")
-    session_id: Optional[str] = Field(None, description="Session identifier")
+    user_id: str | None = Field(None, description="User identifier for tracking")
+    session_id: str | None = Field(None, description="Session identifier")
     use_eq_awareness: bool = Field(
         True, description="Enable EQ-aware response generation"
     )
@@ -86,7 +88,7 @@ class ConversationMetadata(BaseModel):
     technique_consistency: float
     bias_score: float
     safety_score: float
-    crisis_signals: Optional[list[str]] = None
+    crisis_signals: list[str] | None = None
     therapeutic_effectiveness_score: float
 
 
@@ -95,13 +97,13 @@ class PixelInferenceResponse(BaseModel):
 
     response: str = Field(..., description="Generated response")
     inference_time_ms: float
-    eq_scores: Optional[EQScores] = None
-    conversation_metadata: Optional[ConversationMetadata] = None
+    eq_scores: EQScores | None = None
+    conversation_metadata: ConversationMetadata | None = None
     persona_mode: str = Field(
         "therapy", description="Detected persona: therapy or assistant"
     )
     confidence: float = Field(0.9, description="Confidence in response")
-    warning: Optional[str] = None
+    warning: str | None = None
 
 
 class ModelStatusResponse(BaseModel):
@@ -112,7 +114,7 @@ class ModelStatusResponse(BaseModel):
     inference_engine: str
     available_features: list[str]
     performance_metrics: dict[str, Any]
-    last_inference_time_ms: Optional[float] = None
+    last_inference_time_ms: float | None = None
 
 
 # ============================================================================
@@ -124,7 +126,7 @@ class PixelInferenceEngine:
     """Manages Pixel model loading, caching, and inference"""
 
     def __init__(self):
-        self.model: Optional[PixelBaseModel] = None
+        self.model: PixelBaseModel | None = None
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model_loaded = False
         self.inference_count = 0
@@ -186,7 +188,7 @@ class PixelInferenceEngine:
         if not self.model_loaded:
             raise RuntimeError("Model not loaded")
 
-        start_time = datetime.now()
+        start_time = datetime.now(timezone.utc)
 
         try:
             # Preprocess input
@@ -211,7 +213,7 @@ class PixelInferenceEngine:
             )
 
             # Calculate inference time
-            inference_time = (datetime.now() - start_time).total_seconds() * 1000
+            inference_time = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
 
             # Update stats
             self.inference_count += 1
@@ -239,7 +241,7 @@ class PixelInferenceEngine:
             logger.error(f"Error during inference: {e}")
             raise
 
-    def _detect_persona_mode(self, context_type: Optional[str]) -> str:
+    def _detect_persona_mode(self, context_type: str | None) -> str:
         """Detect appropriate persona mode based on context"""
         if context_type in ["crisis", "clinical"]:
             return "therapy"
@@ -384,7 +386,7 @@ async def health_check():
     return {
         "status": "healthy" if inference_engine.model_loaded else "degraded",
         "model_loaded": inference_engine.model_loaded,
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
 

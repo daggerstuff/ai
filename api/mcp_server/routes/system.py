@@ -11,9 +11,9 @@ import time
 from flask import Blueprint, g, jsonify
 
 logger = logging.getLogger(__name__)
-system_bp = Blueprint('system', __name__)
+system_bp = Blueprint("system", __name__)
 
-@system_bp.route('/health', methods=['GET'])
+@system_bp.route("/health", methods=["GET"])
 def get_health():
     """Perform baseline health check across all systems."""
     try:
@@ -32,17 +32,17 @@ def get_health():
         if task_orchestrator:
             try:
                 # Basic ping would go here
-                health_status['services']['mongodb'] = "connected"
+                health_status["services"]["mongodb"] = "connected"
             except Exception:
-                health_status['services']['mongodb'] = "disconnected"
-                health_status['status'] = "degraded"
+                health_status["services"]["mongodb"] = "disconnected"
+                health_status["status"] = "degraded"
 
         # Check Redis
         if g.agent_manager:
-            health_status['services']['redis'] = "connected"
+            health_status["services"]["redis"] = "connected"
         else:
-            health_status['services']['redis'] = "disconnected"
-            health_status['status'] = "degraded"
+            health_status["services"]["redis"] = "disconnected"
+            health_status["status"] = "degraded"
 
         return jsonify({
             "success": True,
@@ -56,7 +56,7 @@ def get_health():
             "error": str(e)
         }), 500
 
-@system_bp.route('/metrics', methods=['GET'])
+@system_bp.route("/metrics", methods=["GET"])
 def get_metrics():
     """Retrieve system usage metrics and orchestration statistics."""
     try:
@@ -64,7 +64,7 @@ def get_metrics():
         active_agents = 0
         if agent_manager:
             # Stats for active agents
-            if hasattr(agent_manager, 'active_agents'):
+            if hasattr(agent_manager, "active_agents"):
                 active_agents = len(agent_manager.active_agents)
 
         metrics = {

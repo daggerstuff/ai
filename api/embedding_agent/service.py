@@ -8,14 +8,16 @@ This service wraps the ClinicalKnowledgeEmbedder and provides:
 - GPU acceleration support
 """
 
+from datetime import datetime, timezone
+
+
 import hashlib
 import logging
 import time
 import uuid
-from datetime import datetime
 from pathlib import Path
 from threading import Lock
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from sentence_transformers import SentenceTransformer as _SentenceTransformerType
@@ -98,8 +100,8 @@ class EmbeddingAgentService:
 
     def __init__(
         self,
-        config: Optional[EmbeddingAgentConfig] = None,
-        project_root: Optional[Path] = None,
+        config: EmbeddingAgentConfig | None = None,
+        project_root: Path | None = None,
     ):
         """
         Initialize the embedding agent service.
@@ -115,19 +117,19 @@ class EmbeddingAgentService:
         self._lock = Lock()
 
         # Statistics tracking
-        self._start_time = datetime.utcnow()
+        self._start_time = datetime.now(timezone.utc)
         self._requests_processed = 0
         self._total_response_time_ms = 0.0
-        self._last_request_at: Optional[datetime] = None
+        self._last_request_at: datetime | None = None
 
         # Embedding cache
-        self._embedding_cache: Dict[str, Tuple[List[float], str]] = {}
+        self._embedding_cache: dict[str, tuple[list[float], str]] = {}
 
         # Initialize models
-        self._embedding_model: Optional["_SentenceTransformerType"] = None
-        self._clinical_embedder: Optional[Any] = None
+        self._embedding_model: _SentenceTransformerType | None = None
+        self._clinical_embedder: Any | None = None
         self._faiss_index = None
-        self._knowledge_items: List[Any] = []
+        self._knowledge_items: list[Any] = []
 
         # Load model on initialization
         self._initialize_model()
@@ -231,7 +233,7 @@ class EmbeddingAgentService:
         with self._lock:
             self._requests_processed += 1
             self._total_response_time_ms += response_time_ms
-            self._last_request_at = datetime.utcnow()
+            self._last_request_at = datetime.now(timezone.utc)
 
     def embed_text(self, request: EmbeddingRequest) -> EmbeddingResponse:
         """
@@ -291,7 +293,7 @@ class EmbeddingAgentService:
         self,
         text: str,
         model: EmbeddingModel,
-    ) -> List[float]:
+    ) -> list[float]:
         """
         Generate embedding using the model.
 
@@ -326,7 +328,7 @@ class EmbeddingAgentService:
             logger.error(f"Error generating embedding: {e}")
             return self._generate_mock_embedding(text)
 
-    def _generate_mock_embedding(self, text: str) -> List[float]:
+    def _generate_mock_embedding(self, text: str) -> list[float]:
         """Generate a deterministic mock embedding for testing."""
         text_hash = self._get_text_hash(text)
         hash_int = int(text_hash[:8], 16)
@@ -339,19 +341,18 @@ class EmbeddingAgentService:
             if norm > 0:
                 embedding = embedding / norm
             return embedding.tolist()
-        else:
-            # Simple deterministic mock
-            import random
+        # Simple deterministic mock
+        import random
 
-            random.seed(hash_int)
-            embedding = [
-                random.gauss(0, 1) for _ in range(self.config.embedding_dimension)
-            ]
-            # Simple normalization
-            norm = sum(x**2 for x in embedding) ** 0.5
-            if norm > 0:
-                embedding = [x / norm for x in embedding]
-            return embedding
+        random.seed(hash_int)
+        embedding = [
+            random.gauss(0, 1) for _ in range(self.config.embedding_dimension)
+        ]
+        # Simple normalization
+        norm = sum(x**2 for x in embedding) ** 0.5
+        if norm > 0:
+            embedding = [x / norm for x in embedding]
+        return embedding
 
     def embed_batch(self, request: BatchEmbeddingRequest) -> BatchEmbeddingResponse:
         """
@@ -366,11 +367,11 @@ class EmbeddingAgentService:
         start_time = time.time()
 
         model_name = request.model or self.config.model_name
-        embeddings: List[BatchEmbeddingItem] = []
+        embeddings: list[BatchEmbeddingItem] = []
         cached_count = 0
 
         # Process texts
-        texts_to_embed: List[Tuple[int, str]] = []
+        texts_to_embed: list[tuple[int, str]] = []
 
         for i, text in enumerate(request.texts):
             text_hash = self._get_text_hash(text)
@@ -436,9 +437,9 @@ class EmbeddingAgentService:
 
     def _batch_generate_embeddings(
         self,
-        texts: List[str],
+        texts: list[str],
         model: EmbeddingModel,
-    ) -> List[List[float]]:
+    ) -> list[list[float]]:
         """Generate embeddings for multiple texts efficiently."""
         if self._embedding_model is None:
             return [self._generate_mock_embedding(t) for t in texts]
@@ -515,12 +516,12 @@ class EmbeddingAgentService:
 
     def _search_knowledge_items(
         self,
-        query_embedding: List[float],
+        query_embedding: list[float],
         top_k: int,
-        knowledge_types: Optional[List[KnowledgeType]],
+        knowledge_types: list[KnowledgeType] | None,
         min_similarity: float,
         include_metadata: bool,
-    ) -> List[SimilarityMatch]:
+    ) -> list[SimilarityMatch]:
         """Search through indexed knowledge items."""
         if not self._knowledge_items:
             # Return empty if no knowledge loaded
@@ -623,7 +624,7 @@ class EmbeddingAgentService:
         Returns:
             EmbeddingAgentStatus with current metrics
         """
-        uptime = (datetime.utcnow() - self._start_time).total_seconds()
+        uptime = (datetime.now(timezone.utc) - self._start_time).total_seconds()
         avg_response_time = (
             self._total_response_time_ms / self._requests_processed
             if self._requests_processed > 0

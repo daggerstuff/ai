@@ -4,6 +4,5 @@
 
 class JWTAuthMiddleware:
     """Stub implementation for JWTAuthMiddleware."""
-    pass
 
-__all__ = ['JWTAuthMiddleware']
+__all__ = ["JWTAuthMiddleware"]

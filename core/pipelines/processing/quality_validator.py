@@ -3,6 +3,5 @@
 
 class QualityValidator:
     """Stub implementation for QualityValidator."""
-    pass
 
-__all__ = ['QualityValidator']
+__all__ = ["QualityValidator"]

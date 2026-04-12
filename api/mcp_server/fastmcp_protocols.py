@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Optional, Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 
 @runtime_checkable
@@ -10,8 +10,8 @@ class MemoryCreator(Protocol):
         *,
         content: str,
         user_id: str,
-        metadata: Optional[dict] = None,
-        category: Optional[str] = None,
+        metadata: dict | None = None,
+        category: str | None = None,
     ) -> str: ...
 
 
@@ -21,8 +21,8 @@ class MemoryUpdater(Protocol):
         self,
         memory_id: str,
         new_content: str,
-        metadata: Optional[dict] = None,
-        user_id: Optional[str] = None,
+        metadata: dict | None = None,
+        user_id: str | None = None,
     ) -> bool: ...
 
 
@@ -31,7 +31,7 @@ class MemoryRemover(Protocol):
     def delete_memory(
         self,
         memory_id: str,
-        user_id: Optional[str] = None,
+        user_id: str | None = None,
     ) -> bool: ...
 
 
@@ -47,9 +47,9 @@ class ScopedMemoryCreator(MemoryCreator, Protocol):
         *,
         content: str,
         user_id: str,
-        metadata: Optional[dict] = None,
-        category: Optional[str] = None,
-        scope_metadata: Optional[dict] = None,
+        metadata: dict | None = None,
+        category: str | None = None,
+        scope_metadata: dict | None = None,
     ) -> str: ...
 
 

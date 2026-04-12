@@ -17,10 +17,11 @@ import hashlib
 import json
 import logging
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 from .data_normalizer import (
     Conversation,
@@ -533,11 +534,11 @@ class NormalizationPipeline:
 
 
 __all__ = [
+    "DedupStrategy",
     "NormalizationPipeline",
     "PipelineResult",
-    "DedupStrategy",
     "SetDeduplicator",
     "SimilarityDeduplicator",
-    "StageAwareDeduplicator",
     "SimpleContentHasher",
+    "StageAwareDeduplicator",
 ]

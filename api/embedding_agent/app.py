@@ -12,7 +12,7 @@ import logging
 import os
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from fastapi import APIRouter, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -41,7 +41,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Global service instance
-_embedding_service: Optional[EmbeddingAgentService] = None
+_embedding_service: EmbeddingAgentService | None = None
 
 
 def get_embedding_service() -> EmbeddingAgentService:
@@ -329,7 +329,7 @@ async def search_similar(
     },
 )
 @app.post("/api/v1/embeddings/knowledge/load", tags=["Knowledge"])
-async def load_knowledge() -> Dict[str, Any]:
+async def load_knowledge() -> dict[str, Any]:
     """
     Load clinical knowledge into the service.
 
@@ -367,7 +367,7 @@ async def load_knowledge() -> Dict[str, Any]:
     },
 )
 @app.delete("/api/v1/embeddings/cache", tags=["Cache"])
-async def clear_cache() -> Dict[str, Any]:
+async def clear_cache() -> dict[str, Any]:
     """
     Clear the embedding cache.
 
@@ -392,7 +392,7 @@ async def clear_cache() -> Dict[str, Any]:
     tags=["Cache"],
 )
 @app.get("/api/v1/embeddings/cache/stats", tags=["Cache"])
-async def cache_stats() -> Dict[str, Any]:
+async def cache_stats() -> dict[str, Any]:
     """
     Get cache statistics.
 
@@ -414,7 +414,7 @@ async def cache_stats() -> Dict[str, Any]:
     tags=["Configuration"],
 )
 @app.get("/api/v1/embeddings/config", tags=["Configuration"])
-async def get_config() -> Dict[str, Any]:
+async def get_config() -> dict[str, Any]:
     """
     Get current embedding agent configuration.
 
@@ -439,7 +439,7 @@ async def get_config() -> Dict[str, Any]:
     tags=["Models"],
 )
 @app.get("/api/v1/embeddings/models", tags=["Models"])
-async def list_models() -> Dict[str, Any]:
+async def list_models() -> dict[str, Any]:
     """
     List available embedding models.
 
@@ -476,8 +476,8 @@ app.include_router(embedding_router)
 
 
 def create_app(
-    config: Optional[EmbeddingAgentConfig] = None,
-    project_root: Optional[Path] = None,
+    config: EmbeddingAgentConfig | None = None,
+    project_root: Path | None = None,
 ) -> FastAPI:
     """
     Create and configure the FastAPI application.

@@ -4,6 +4,5 @@
 
 class QualityAssessmentFramework:
     """Stub implementation for QualityAssessmentFramework."""
-    pass
 
-__all__ = ['QualityAssessmentFramework']
+__all__ = ["QualityAssessmentFramework"]
