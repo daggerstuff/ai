@@ -10,11 +10,10 @@ This system provides:
 - Real-time feedback and coaching
 """
 
-from datetime import datetime, timezone
-
 import logging
 import random
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from enum import Enum
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")

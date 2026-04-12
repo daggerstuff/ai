@@ -5,11 +5,10 @@ This module implements the core agent management logic, including registration,
 discovery, and lifecycle management, with sub-50ms performance targets.
 """
 
-from datetime import datetime, timezone
-
 import logging
 import uuid
 from dataclasses import asdict, dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 

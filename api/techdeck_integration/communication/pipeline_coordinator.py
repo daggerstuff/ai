@@ -5,10 +5,9 @@ This module provides comprehensive pipeline coordination with Redis event bus
 integration, state management, bias detection, and HIPAA++ compliant data handling.
 """
 
-from datetime import datetime, timezone
-
 import time
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import Any
 
 from ..error_handling.custom_errors import (

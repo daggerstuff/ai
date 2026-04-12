@@ -6,8 +6,6 @@ Enterprise-grade test suite validating all dashboard functionality
 against the actual database schema with comprehensive coverage.
 """
 
-from datetime import datetime, timezone
-
 import json
 import logging
 import os
@@ -15,6 +13,7 @@ import sqlite3
 import sys
 import tempfile
 import unittest
+from datetime import datetime, timezone
 
 import pandas as pd
 

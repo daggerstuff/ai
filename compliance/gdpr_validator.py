@@ -7,14 +7,13 @@ Enterprise-grade GDPR compliance validation for data protection, right to erasur
 and consent management per GDPR requirements.
 """
 
-from datetime import datetime, timedelta, timezone
-
 import json
 import logging
 import re
 import sqlite3
 import uuid
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any

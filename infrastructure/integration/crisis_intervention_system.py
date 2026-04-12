@@ -7,13 +7,12 @@ This is the highest priority integration - providing 24/7 crisis support
 with intelligent escalation and professional backup.
 """
 
-from datetime import datetime, timedelta, timezone
-
 import asyncio
 import logging
 import os
 import re
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 
 logging.basicConfig(

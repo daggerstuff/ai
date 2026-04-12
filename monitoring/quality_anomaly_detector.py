@@ -4,12 +4,11 @@ Quality Anomaly Detection and Alerting System
 Detects anomalies in quality metrics and provides real-time alerts
 """
 
-from datetime import datetime, timedelta, timezone
-
 import json
 import sqlite3
 import warnings
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 

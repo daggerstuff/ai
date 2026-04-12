@@ -5,12 +5,11 @@ Provides Server-Sent Events (SSE) endpoint for graphiti-context integration.
 This server handles real-time context streaming for VS Code extensions.
 """
 
-from datetime import datetime, timezone
-
 import asyncio
 import logging
 import os
 from collections.abc import AsyncGenerator
+from datetime import datetime, timezone
 
 from fastapi import FastAPI
 from fastapi.responses import StreamingResponse

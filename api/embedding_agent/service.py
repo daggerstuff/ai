@@ -8,12 +8,11 @@ This service wraps the ClinicalKnowledgeEmbedder and provides:
 - GPU acceleration support
 """
 
-from datetime import datetime, timezone
-
 import hashlib
 import logging
 import time
 import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 from threading import Lock
 from typing import TYPE_CHECKING, Any

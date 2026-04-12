@@ -6,14 +6,13 @@ Tasks 2.1, 2.2, 2.3: Validate Regulatory Compliance Implementation
 Comprehensive validation script to verify Phase 2 regulatory compliance implementation is enterprise-ready.
 """
 
-from datetime import datetime, timezone
-
 import json
 import logging
 import os
 import sys
 import tempfile
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 

@@ -4,11 +4,10 @@ WebSocket routes for real-time updates.
 This module provides WebSocket endpoints for streaming progress updates.
 """
 
-from datetime import datetime, timezone
-
 import asyncio
 import json
 import logging
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, status
 

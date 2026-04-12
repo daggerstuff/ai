@@ -5,9 +5,8 @@ This module defines all data structures used throughout the research workflow,
 including dataset sources, evaluations, access requests, and integration plans.
 """
 
-from datetime import datetime
-
 from dataclasses import dataclass, field
+from datetime import datetime
 
 
 @dataclass

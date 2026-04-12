@@ -8,11 +8,10 @@ Provides:
 - Historical tracking
 """
 
-from datetime import datetime, timedelta, timezone
-
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 
 from ai.sourcing.youtube.models import Channel, ChannelStatus

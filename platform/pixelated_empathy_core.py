@@ -7,12 +7,11 @@ for comprehensive therapist training and supervisor evaluation.
 This is the grand-daddy OG platform - the whole point of Pixelated Empathy.
 """
 
-from datetime import datetime
-
 import logging
 import random
 import uuid
 from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum
 from typing import Any
 

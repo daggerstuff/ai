@@ -7,12 +7,11 @@ This script runs comprehensive security testing for the authentication system
 and generates detailed reports for production readiness validation.
 """
 
-from datetime import datetime, timezone
-
 import asyncio
 import json
 import os
 import sys
+from datetime import datetime, timezone
 
 # Add the current directory to Python path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))

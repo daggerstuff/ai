@@ -3,13 +3,12 @@ Integration tests for health check and graceful shutdown functionality.
 Tests that health checks work correctly and shutdown is graceful.
 """
 
-from datetime import datetime, timezone
-
 import json
 import logging
 import threading
 import time
 import unittest
+from datetime import datetime, timezone
 
 from ..inference.inference_api import app
 

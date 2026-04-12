@@ -4,14 +4,13 @@ Conversation Length and Complexity Analysis System
 Analyzes conversation length patterns, complexity metrics, and provides insights
 """
 
-from datetime import datetime, timezone
-
 import json
 import re
 import sqlite3
 import warnings
 from collections import Counter
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 

@@ -4,11 +4,10 @@ Notification System Testing Script
 Tests all notification channels and priority levels
 """
 
-from datetime import datetime, timedelta, timezone
-
 import asyncio
 import os
 import sys
+from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, patch
 
 from notification_integrations import (

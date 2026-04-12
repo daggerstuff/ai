@@ -4,13 +4,12 @@ PRODUCTION DEPLOYMENT SCRIPT
 Deploy validated system to production environment
 """
 
-from datetime import datetime, timezone
-
 import json
 import logging
 import os
 import subprocess
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 # Setup logging
