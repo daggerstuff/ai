@@ -67,7 +67,6 @@ class TestPipelineOrchestratorIntegration(unittest.TestCase):
     def test_integration_workflow(self):
         """Test complete integration workflow."""
         # Add integration tests here
-        pass
 
 
 if __name__ == "__main__":
