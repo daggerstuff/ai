@@ -4,24 +4,23 @@ Dataset deduplication using rclone.
 Works with Hetzner Object Storage and identifies duplicate records within and across datasets.
 """
 
+from datetime import datetime, timezone
+
 import hashlib
 import json
 import sys
 from collections import defaultdict
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 sys.path.insert(0, str(Path(__file__).parent))
 
 from rclone_dataset_accessor import (
     RcloneDatasetAccessor,
-    list_files_in_directory,
-    load_jsonl_file,
 )
 
 
-def compute_record_hash(record: Dict[str, Any], key_fields: List[str] = None) -> str:
+def compute_record_hash(record: dict[str, Any], key_fields: list[str] = None) -> str:
     """Compute SHA256 hash of a record for deduplication."""
     if key_fields:
         hash_content = json.dumps(
@@ -37,11 +36,11 @@ def compute_record_hash(record: Dict[str, Any], key_fields: List[str] = None) ->
 
 
 def find_duplicates_in_dataset(
-    records: List[Dict[str, Any]], key_fields: List[str] = None
+    records: list[dict[str, Any]], key_fields: list[str] = None
 ) -> tuple[list[dict[str, Any]], dict[str, list[int]]]:
     """Find duplicate records within a dataset."""
-    seen_hashes: Dict[str, int] = {}
-    duplicate_groups: Dict[str, List[int]] = defaultdict(list)
+    seen_hashes: dict[str, int] = {}
+    duplicate_groups: dict[str, list[int]] = defaultdict(list)
     deduplicated = []
 
     for idx, record in enumerate(records):
@@ -57,8 +56,8 @@ def find_duplicates_in_dataset(
 
 
 def deduplicate_dataset(
-    dataset_name: str, dataset_entry: Dict[str, Any], key_fields: List[str] = None
-) -> Dict[str, Any]:
+    dataset_name: str, dataset_entry: dict[str, Any], key_fields: list[str] = None
+) -> dict[str, Any]:
     """Deduplicate a single dataset."""
     s3_path = dataset_entry.get("path", "")
     if not s3_path:
@@ -212,7 +211,7 @@ def main():
                                 "deduplication_ratio"
                             ]
 
-    registry["last_updated"] = datetime.utcnow().isoformat() + "Z"
+    registry["last_updated"] = datetime.now(timezone.utc).isoformat() + "Z"
     with open(args.registry, "w") as f:
         json.dump(registry, f, indent=2, ensure_ascii=False)
 

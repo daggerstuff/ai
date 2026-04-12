@@ -10,11 +10,12 @@ This script runs comprehensive safety validation testing including:
 - Safety compliance certification
 """
 
+from datetime import datetime, timezone
+
 import asyncio
 import json
 import os
 import sys
-from datetime import datetime
 
 # Add the current directory to Python path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -452,7 +453,7 @@ class ComprehensiveSafetyValidator:
         return {
             "task_103_summary": {
                 "task_name": "Task 103: Safety Validation Certification",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "combined_safety_score": production_assessment["combined_safety_score"],
                 "certification_status": production_assessment["certification_status"],
                 "production_ready": production_assessment["production_ready"],
@@ -538,17 +539,16 @@ class ComprehensiveSafetyValidator:
                 "📋 Continue with Phase 1 critical security tasks",
                 "🔄 Deploy safety monitoring system to production",
             ]
-        else:
-            return [
-                "🔧 Address failing safety validation tests",
-                "🧪 Re-run safety validation after improvements",
-                "📋 Review crisis detection algorithms",
-                "🔄 Repeat validation until production ready",
-            ]
+        return [
+            "🔧 Address failing safety validation tests",
+            "🧪 Re-run safety validation after improvements",
+            "📋 Review crisis detection algorithms",
+            "🔄 Repeat validation until production ready",
+        ]
 
     def save_results(self, report: dict):
         """Save test results to files"""
-        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
 
         # Save comprehensive report
         report_file = f"task_103_safety_validation_report_{timestamp}.json"
@@ -658,6 +658,6 @@ async def main():
 if __name__ == "__main__":
     print("🛡️  Starting Task 103: Safety Validation Certification")
     print("📋 Crisis Detection + Safety Monitoring + Incident Response")
-    print("⏰ Starting at:", datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"))
+    print("⏰ Starting at:", datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"))
 
     asyncio.run(main())

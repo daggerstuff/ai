@@ -4,12 +4,12 @@ Simplified dataset validation using rclone.
 Works with Hetzner Object Storage and handles directories properly.
 """
 
-import hashlib
+from datetime import datetime, timezone
+
 import json
 import sys
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent))
@@ -22,8 +22,8 @@ from rclone_dataset_accessor import (
 
 
 def validate_dataset(
-    dataset_name: str, dataset_entry: Dict[str, Any]
-) -> Dict[str, Any]:
+    dataset_name: str, dataset_entry: dict[str, Any]
+) -> dict[str, Any]:
     """
     Validate a single dataset.
 
@@ -192,7 +192,7 @@ def main():
                                 entry["validation"] = {}
 
                             entry["validation"]["last_validated"] = (
-                                datetime.utcnow().isoformat() + "Z"
+                                datetime.now(timezone.utc).isoformat() + "Z"
                             )
                             entry["validation"]["integrity_valid"] = (
                                 result["valid_files"] > 0
@@ -207,7 +207,7 @@ def main():
                                 )[0].get("sha256")
 
     # Save updated registry
-    registry["last_updated"] = datetime.utcnow().isoformat() + "Z"
+    registry["last_updated"] = datetime.now(timezone.utc).isoformat() + "Z"
     with open(args.registry, "w") as f:
         json.dump(registry, f, indent=2, ensure_ascii=False)
 
@@ -224,7 +224,7 @@ def main():
     # Save detailed report
     report_path = Path("/home/vivi/pixelated/ai/config/validation_report.json")
     report = {
-        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
         "statistics": stats,
         "results": all_results,
     }

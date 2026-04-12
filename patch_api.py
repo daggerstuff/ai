@@ -1,4 +1,3 @@
-import re
 
 
 def main():
@@ -32,15 +31,15 @@ def main():
     content = content.replace(old_validate_func, new_validate_func)
 
     # 3. Update except ValueError around line 151
-    old_except_block = '''            try:
+    old_except_block = """            try:
                 safe_table_name = validate_identifier(table_name)
             except ValueError:
-                continue'''
+                continue"""
 
-    new_except_block = '''            try:
+    new_except_block = """            try:
                 safe_table_name = validate_identifier(table_name)
             except HTTPException:
-                continue'''
+                continue"""
 
     content = content.replace(old_except_block, new_except_block)
 

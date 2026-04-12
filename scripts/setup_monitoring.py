@@ -6,19 +6,17 @@ Deploys Prometheus, Grafana, and AlertManager for system monitoring.
 
 import json
 import logging
-import os
 import subprocess
 from pathlib import Path
-from typing import Any, Dict
 
 import yaml
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
+    format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler('monitoring_setup.log'),
+        logging.FileHandler("monitoring_setup.log"),
         logging.StreamHandler()
     ]
 )
@@ -94,7 +92,7 @@ class MonitoringSetup:
             }
 
             config_path = self.monitoring_dir / "prometheus" / "prometheus.yml"
-            with open(config_path, 'w') as f:
+            with open(config_path, "w") as f:
                 yaml.dump(prometheus_config, f, default_flow_style=False)
 
             logger.info("✅ Prometheus configuration created")
@@ -114,7 +112,7 @@ class MonitoringSetup:
                         "rules": [
                             {
                                 "alert": "HighErrorRate",
-                                "expr": "rate(http_requests_total{status=~\"5..\"}[5m]) > 0.1",
+                                "expr": 'rate(http_requests_total{status=~"5.."}[5m]) > 0.1',
                                 "for": "5m",
                                 "labels": {"severity": "critical"},
                                 "annotations": {
@@ -124,7 +122,7 @@ class MonitoringSetup:
                             },
                             {
                                 "alert": "DatabaseConnectionFailure",
-                                "expr": "up{job=\"postgres-exporter\"} == 0",
+                                "expr": 'up{job="postgres-exporter"} == 0',
                                 "for": "1m",
                                 "labels": {"severity": "critical"},
                                 "annotations": {
@@ -144,7 +142,7 @@ class MonitoringSetup:
                             },
                             {
                                 "alert": "DiskSpaceLow",
-                                "expr": "node_filesystem_avail_bytes{mountpoint=\"/\"} / node_filesystem_size_bytes{mountpoint=\"/\"} < 0.1",
+                                "expr": 'node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"} < 0.1',
                                 "for": "5m",
                                 "labels": {"severity": "warning"},
                                 "annotations": {
@@ -168,7 +166,7 @@ class MonitoringSetup:
             }
 
             rules_path = self.monitoring_dir / "prometheus" / "alert_rules.yml"
-            with open(rules_path, 'w') as f:
+            with open(rules_path, "w") as f:
                 yaml.dump(alert_rules, f, default_flow_style=False)
 
             logger.info("✅ Alert rules created")
@@ -196,7 +194,7 @@ class MonitoringSetup:
             }
 
             datasource_path = self.monitoring_dir / "grafana" / "datasources.yml"
-            with open(datasource_path, 'w') as f:
+            with open(datasource_path, "w") as f:
                 yaml.dump(datasource_config, f, default_flow_style=False)
 
             # Create basic dashboard
@@ -262,7 +260,7 @@ class MonitoringSetup:
             }
 
             dashboard_path = self.monitoring_dir / "grafana" / "dashboard.json"
-            with open(dashboard_path, 'w') as f:
+            with open(dashboard_path, "w") as f:
                 json.dump(dashboard, f, indent=2)
 
             logger.info("✅ Grafana configuration created")
@@ -351,7 +349,7 @@ class MonitoringSetup:
             }
 
             compose_path = self.monitoring_dir / "docker-compose.yml"
-            with open(compose_path, 'w') as f:
+            with open(compose_path, "w") as f:
                 yaml.dump(docker_compose, f, default_flow_style=False)
 
             logger.info("✅ Docker Compose configuration created")
@@ -382,10 +380,9 @@ class MonitoringSetup:
                         logger.info("Grafana: http://localhost:3000 (admin/admin123)")
                         logger.info("AlertManager: http://localhost:9093")
                         return True
-                    else:
-                        logger.warning(f"Command failed: {' '.join(cmd)}")
-                        logger.warning(f"Error: {result.stderr}")
-                        continue
+                    logger.warning(f"Command failed: {' '.join(cmd)}")
+                    logger.warning(f"Error: {result.stderr}")
+                    continue
 
                 except FileNotFoundError:
                     logger.warning(f"Command not found: {cmd[0]}")

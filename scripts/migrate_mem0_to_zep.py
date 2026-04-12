@@ -27,7 +27,7 @@ import json
 import logging
 import os
 import sys
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # Configure logging
 logging.basicConfig(
@@ -37,7 +37,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def load_mem0_data(data_file: str) -> Dict[str, Any]:
+def load_mem0_data(data_file: str) -> dict[str, Any]:
     """Load mem0 export data from JSON file."""
     try:
         with open(data_file) as f:
@@ -48,8 +48,8 @@ def load_mem0_data(data_file: str) -> Dict[str, Any]:
 
 
 def migrate_user(
-    zep_client: Any, mem0_user: Dict[str, Any], dry_run: bool = False
-) -> Optional[str]:
+    zep_client: Any, mem0_user: dict[str, Any], dry_run: bool = False
+) -> str | None:
     """Migrate single user from mem0 to Zep."""
     from ai.api.memory.mem0_migration import get_mem0_migrator
 
@@ -73,7 +73,7 @@ def migrate_user(
 def migrate_session(
     zep_client: Any,
     session_id: str,
-    messages: List[Dict[str, Any]],
+    messages: list[dict[str, Any]],
     dry_run: bool = False,
 ) -> bool:
     """Migrate session conversation from mem0 to Zep."""
@@ -100,7 +100,7 @@ def migrate_session(
 
 def validate_migration(
     zep_client: Any, user_id: str, session_id: str
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Validate migration result."""
     from ai.api.memory.mem0_migration import get_mem0_migrator
 

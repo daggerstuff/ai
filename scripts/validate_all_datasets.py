@@ -5,10 +5,12 @@ Walks all dataset directories, validates file structure, counts
 conversations, checks role consistency, and outputs a manifest.
 """
 
+from datetime import datetime, timezone
+
+
 import json
 import logging
 import sys
-from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -224,7 +226,7 @@ def run_validation() -> dict[str, Any]:
                 total_errors += 1
 
     return {
-        "generated_at": datetime.now().isoformat(),
+        "generated_at": datetime.now(timezone.utc).isoformat(),
         "summary": {
             "total_files_scanned": len(results),
             "total_conversations": total_conversations,

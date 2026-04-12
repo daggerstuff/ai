@@ -4,21 +4,20 @@ Bottleneck Resolution Orchestrator
 Master script to execute the complete 3-week emergency resolution plan.
 """
 
+from datetime import datetime, timezone
+
 import logging
-import os
 import subprocess
 import sys
-import time
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
+    format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler('bottleneck_resolution.log'),
+        logging.FileHandler("bottleneck_resolution.log"),
         logging.StreamHandler()
     ]
 )
@@ -29,7 +28,7 @@ class BottleneckResolutionOrchestrator:
 
     def __init__(self):
         self.scripts_dir = Path(__file__).parent
-        self.start_time = datetime.now()
+        self.start_time = datetime.now(timezone.utc)
         self.completed_phases = []
         self.failed_phases = []
 
@@ -47,10 +46,9 @@ class BottleneckResolutionOrchestrator:
                 logger.info(f"✅ Completed: {description}")
                 logger.info(f"Output: {result.stdout}")
                 return True
-            else:
-                logger.error(f"❌ Failed: {description}")
-                logger.error(f"Error: {result.stderr}")
-                return False
+            logger.error(f"❌ Failed: {description}")
+            logger.error(f"Error: {result.stderr}")
+            return False
 
         except Exception as e:
             logger.error(f"❌ Exception in {description}: {e}")
@@ -213,7 +211,7 @@ if __name__ == "__main__":
     test_database_connection()
     test_api_health()
 '''
-                with open(basic_test, 'w') as f:
+                with open(basic_test, "w") as f:
                     f.write(test_content)
 
             logger.info("✅ Integration testing framework created")
@@ -237,9 +235,9 @@ if __name__ == "__main__":
         logger.info("✅ PHASE 2A COMPLETED: Monitoring systems active")
         return True
 
-    def generate_completion_report(self) -> Dict[str, Any]:
+    def generate_completion_report(self) -> dict[str, Any]:
         """Generate completion report."""
-        end_time = datetime.now()
+        end_time = datetime.now(timezone.utc)
         duration = end_time - self.start_time
 
         report = {
@@ -314,7 +312,7 @@ if __name__ == "__main__":
         # Save report
         report_path = Path("bottleneck_resolution_report.json")
         import json
-        with open(report_path, 'w') as f:
+        with open(report_path, "w") as f:
             json.dump(report, f, indent=2)
 
         # Print summary
@@ -323,17 +321,17 @@ if __name__ == "__main__":
         logger.info(f"{'='*60}")
         logger.info(f"Duration: {report['duration_hours']:.2f} hours")
         logger.info(f"Completed phases: {', '.join(report['completed_phases'])}")
-        if report['failed_phases']:
+        if report["failed_phases"]:
             logger.info(f"Failed phases: {', '.join(report['failed_phases'])}")
         logger.info(f"Success rate: {report['success_rate']*100:.1f}%")
 
         logger.info("\nNext Steps:")
-        for step in report['next_steps']:
+        for step in report["next_steps"]:
             logger.info(f"  {step}")
 
         logger.info(f"\nDetailed report saved to: {report_path}")
 
-        return len(report['failed_phases']) == 0
+        return len(report["failed_phases"]) == 0
 
 def main():
     """Main orchestrator entry point."""

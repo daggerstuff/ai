@@ -6,13 +6,15 @@ tracking for long-running operations like pipeline execution, file processing,
 and data transformations.
 """
 
-import sys
+from datetime import datetime, timezone
+
+
 import threading
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, Optional
+from typing import Any
 
 from rich.console import Console
 from rich.layout import Layout
@@ -28,7 +30,6 @@ from rich.progress import (
     TimeRemainingColumn,
 )
 from rich.table import Table
-from rich.text import Text
 
 
 class ProgressStatus(Enum):
@@ -46,10 +47,10 @@ class ProgressStep:
     name: str
     description: str
     status: ProgressStatus = ProgressStatus.PENDING
-    start_time: Optional[datetime] = None
-    end_time: Optional[datetime] = None
-    error: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    start_time: datetime | None = None
+    end_time: datetime | None = None
+    error: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -61,20 +62,20 @@ class ProgressReport:
     completed_steps: int = 0
     failed_steps: int = 0
     start_time: datetime = field(default_factory=datetime.now)
-    end_time: Optional[datetime] = None
+    end_time: datetime | None = None
     steps: list[ProgressStep] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 class ProgressTracker:
     """Real-time progress tracking with visual indicators"""
 
-    def __init__(self, config: Optional[Any] = None):
+    def __init__(self, config: Any | None = None):
         self.config = config
         self.console = Console()
-        self._current_progress: Optional[Progress] = None
-        self._current_task_id: Optional[str] = None
-        self._progress_reports: Dict[str, ProgressReport] = {}
+        self._current_progress: Progress | None = None
+        self._current_task_id: str | None = None
+        self._progress_reports: dict[str, ProgressReport] = {}
         self._lock = threading.Lock()
 
     def create_progress_bar(
@@ -103,7 +104,7 @@ class ProgressTracker:
         self,
         operation_name: str,
         total_steps: int,
-        operation_id: Optional[str] = None
+        operation_id: str | None = None
     ) -> str:
         """Start tracking a new operation"""
         if operation_id is None:
@@ -125,8 +126,8 @@ class ProgressTracker:
         operation_id: str,
         step_name: str,
         status: ProgressStatus,
-        description: Optional[str] = None,
-        error: Optional[str] = None
+        description: str | None = None,
+        error: str | None = None
     ):
         """Update the status of a specific step"""
         with self._lock:
@@ -147,9 +148,9 @@ class ProgressTracker:
             # Update step status
             step.status = status
             if status == ProgressStatus.RUNNING and step.start_time is None:
-                step.start_time = datetime.now()
+                step.start_time = datetime.now(timezone.utc)
             elif status in [ProgressStatus.COMPLETED, ProgressStatus.FAILED, ProgressStatus.CANCELLED]:
-                step.end_time = datetime.now()
+                step.end_time = datetime.now(timezone.utc)
                 if status == ProgressStatus.COMPLETED:
                     report.completed_steps += 1
                 elif status == ProgressStatus.FAILED:
@@ -164,9 +165,9 @@ class ProgressTracker:
                 return
 
             report = self._progress_reports[operation_id]
-            report.end_time = datetime.now()
+            report.end_time = datetime.now(timezone.utc)
 
-    def get_progress_report(self, operation_id: str) -> Optional[ProgressReport]:
+    def get_progress_report(self, operation_id: str) -> ProgressReport | None:
         """Get progress report for an operation"""
         with self._lock:
             return self._progress_reports.get(operation_id)
@@ -198,7 +199,7 @@ class ProgressTracker:
             if step.start_time and step.end_time:
                 duration = str(step.end_time - step.start_time)
             elif step.start_time:
-                duration = f"{datetime.now() - step.start_time} (running)"
+                duration = f"{datetime.now(timezone.utc) - step.start_time} (running)"
 
             status_text = f"[{status_color}]{step.status.value}[/{status_color}]"
             if step.error:
@@ -216,7 +217,7 @@ class ProgressTracker:
         if report.end_time:
             total_duration = str(report.end_time - report.start_time)
         else:
-            total_duration = f"{datetime.now() - report.start_time} (ongoing)"
+            total_duration = f"{datetime.now(timezone.utc) - report.start_time} (ongoing)"
 
         summary = Panel(
             f"Total Steps: {report.total_steps}\n"
@@ -267,16 +268,16 @@ class ProgressTracker:
 
     def track_pipeline_execution(
         self,
-        pipeline_config: Dict[str, Any],
+        pipeline_config: dict[str, Any],
         operation_name: str = "Pipeline Execution"
     ) -> str:
         """Track pipeline execution with detailed progress"""
-        steps = pipeline_config.get('steps', [])
+        steps = pipeline_config.get("steps", [])
         operation_id = self.track_operation(operation_name, len(steps))
 
         for i, step_config in enumerate(steps):
-            step_name = step_config.get('name', f'step_{i}')
-            step_description = step_config.get('description', step_name)
+            step_name = step_config.get("name", f"step_{i}")
+            step_description = step_config.get("description", step_name)
 
             self.update_step(
                 operation_id,
@@ -377,7 +378,7 @@ def create_progress_bar(total: int, description: str = "Processing"):
     return tracker.create_progress_bar(total, description)
 
 
-def display_operation_summary(operation_id: str, config: Optional[Any] = None):
+def display_operation_summary(operation_id: str, config: Any | None = None):
     """Display a summary of a completed operation"""
     tracker = ProgressTracker(config)
     tracker.display_progress_report(operation_id)

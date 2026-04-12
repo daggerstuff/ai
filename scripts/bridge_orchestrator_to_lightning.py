@@ -5,10 +5,11 @@ Converts orchestrator output (JSONL, manifest) to Lightning-specific structure
 (JSON, experts), standardizing roles and formats.
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import sys
-from datetime import datetime
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent))
@@ -147,7 +148,7 @@ def main():
 
         full_report = {
             "multi_dataset_processing_summary": {
-                "timestamp": datetime.now().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "total_sources_processed": 7,
                 "total_files_processed": 443,
                 "total_conversations": comp_report["final_dataset_stats"][

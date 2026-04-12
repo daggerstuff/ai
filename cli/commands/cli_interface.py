@@ -8,7 +8,7 @@ including running pipelines, managing data, and performing batch operations.
 import json
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import click
 
@@ -66,8 +66,8 @@ def run(
     ctx,
     input: str,
     pipeline: str,
-    output: Optional[str],
-    config: Optional[str],
+    output: str | None,
+    config: str | None,
     batch_size: int,
     parallel: int,
     dry_run: bool,
@@ -140,7 +140,7 @@ def run(
 @click.option("--limit", default=10, help="Maximum number of results")
 @click.pass_context
 def status(
-    ctx, pipeline_id: Optional[str], list_all: bool, status: Optional[str], limit: int
+    ctx, pipeline_id: str | None, list_all: bool, status: str | None, limit: int
 ):
     """Check pipeline status and results."""
     try:
@@ -182,7 +182,7 @@ def status(
 )
 @click.option("--validate-only", is_flag=True, help="Only validate, don't process")
 @click.pass_context
-def process(ctx, input: str, output: Optional[str], format: str, validate_only: bool):
+def process(ctx, input: str, output: str | None, format: str, validate_only: bool):
     """Process data files through various transformations."""
     try:
         config_obj = get_config()
@@ -321,7 +321,7 @@ def list_resources(ctx, models: bool, datasets: bool, pipelines: bool, detailed:
 )
 @click.pass_context
 def batch(
-    ctx, input: str, output: Optional[str], parallel: int, continue_on_error: bool
+    ctx, input: str, output: str | None, parallel: int, continue_on_error: bool
 ):
     """Execute batch operations from a configuration file."""
     try:
@@ -403,7 +403,7 @@ def activity(ctx, days: int, type: str):
 # Helper functions
 
 
-def _preview_pipeline(input_path: Path, pipeline: str, config: Dict[str, Any]) -> None:
+def _preview_pipeline(input_path: Path, pipeline: str, config: dict[str, Any]) -> None:
     """Preview pipeline execution without running it."""
     click.echo("🔍 Pipeline Preview:")
     click.echo(f"  Input: {input_path}")
@@ -424,11 +424,11 @@ def _execute_pipeline(
     auth_manager: AuthManager,
     input_path: Path,
     pipeline: str,
-    config: Dict[str, Any],
+    config: dict[str, Any],
     output_path: Path,
     batch_size: int,
     parallel: int,
-) -> Optional[str]:
+) -> str | None:
     """Execute a pipeline and return pipeline ID."""
     logger.info(f"Executing {pipeline} pipeline for {input_path}")
 
@@ -439,7 +439,7 @@ def _execute_pipeline(
 
 def _get_pipeline_status(
     auth_manager: AuthManager, pipeline_id: str
-) -> Optional[Dict[str, Any]]:
+) -> dict[str, Any] | None:
     """Get pipeline status information."""
     # This would call the actual API endpoint
     # For now, return mock data
@@ -456,8 +456,8 @@ def _get_pipeline_status(
 
 
 def _list_pipelines(
-    auth_manager: AuthManager, status: Optional[str], limit: int
-) -> List[Dict[str, Any]]:
+    auth_manager: AuthManager, status: str | None, limit: int
+) -> list[dict[str, Any]]:
     """List pipelines with optional status filter."""
     # This would call the actual API endpoint
     # For now, return mock data
@@ -477,7 +477,7 @@ def _list_pipelines(
     ]
 
 
-def _display_pipeline_details(pipeline_info: Dict[str, Any]) -> None:
+def _display_pipeline_details(pipeline_info: dict[str, Any]) -> None:
     """Display detailed pipeline information."""
     click.echo(f"Pipeline ID: {pipeline_info['id']}")
     click.echo(f"Status: {pipeline_info['status']}")
@@ -492,7 +492,7 @@ def _display_pipeline_details(pipeline_info: Dict[str, Any]) -> None:
     click.echo(f"Errors: {pipeline_info.get('errors', 0)}")
 
 
-def _display_pipelines_list(pipelines: List[Dict[str, Any]]) -> None:
+def _display_pipelines_list(pipelines: list[dict[str, Any]]) -> None:
     """Display list of pipelines."""
     if not pipelines:
         click.echo("No pipelines found")
@@ -514,7 +514,7 @@ def _display_pipelines_list(pipelines: List[Dict[str, Any]]) -> None:
 
 def _process_data_file(
     auth_manager: AuthManager, input_path: Path, output_path: Path, format: str
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Process a data file and return results."""
     logger.info(f"Processing data file: {input_path} -> {output_path}")
 
@@ -529,7 +529,7 @@ def _process_data_file(
     }
 
 
-def _validate_data_file(input_path: Path) -> Dict[str, Any]:
+def _validate_data_file(input_path: Path) -> dict[str, Any]:
     """Validate data file integrity."""
     # This would perform actual validation
     return {
@@ -541,7 +541,7 @@ def _validate_data_file(input_path: Path) -> Dict[str, Any]:
     }
 
 
-def _display_validation_results(validation: Dict[str, Any]) -> None:
+def _display_validation_results(validation: dict[str, Any]) -> None:
     """Display validation results."""
     click.echo("🔍 Validation Results:")
     click.echo(f"  Valid: {'✅' if validation['valid'] else '❌'}")
@@ -557,7 +557,7 @@ def _display_validation_results(validation: Dict[str, Any]) -> None:
 
 def _search_resources(
     auth_manager: AuthManager, query: str, type: str, limit: int
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Search for resources."""
     # This would call the actual API endpoint
     # For now, return mock results
@@ -577,7 +577,7 @@ def _search_resources(
     ]
 
 
-def _display_search_results(results: List[Dict[str, Any]], type: str) -> None:
+def _display_search_results(results: list[dict[str, Any]], type: str) -> None:
     """Display search results."""
     click.echo(f"🔍 Found {len(results)} results:")
 
@@ -640,10 +640,10 @@ def _list_pipelines(auth_manager: AuthManager, detailed: bool) -> None:
 
 def _execute_batch_operations(
     auth_manager: AuthManager,
-    batch_config: Dict[str, Any],
+    batch_config: dict[str, Any],
     parallel: int,
     continue_on_error: bool,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Execute batch operations."""
     logger.info(f"Executing {len(batch_config.get('operations', []))} batch operations")
 
@@ -667,7 +667,7 @@ def _execute_batch_operations(
     }
 
 
-def _display_batch_summary(results: Dict[str, Any]) -> None:
+def _display_batch_summary(results: dict[str, Any]) -> None:
     """Display batch operation summary."""
     click.echo("📊 Batch Operations Summary:")
     click.echo(f"  Total: {results['total_operations']}")
@@ -685,7 +685,7 @@ def _display_batch_summary(results: Dict[str, Any]) -> None:
 
 def _get_activity_data(
     auth_manager: AuthManager, days: int, type: str
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Get activity data for specified period."""
     # This would call the actual API endpoint
     # For now, return mock data
@@ -700,7 +700,7 @@ def _get_activity_data(
     }
 
 
-def _display_activity_report(activity_data: Dict[str, Any], type: str) -> None:
+def _display_activity_report(activity_data: dict[str, Any], type: str) -> None:
     """Display activity report."""
     click.echo(f"📈 Activity Summary ({activity_data['period']}):")
     click.echo(f"  🔄 Pipelines run: {activity_data['pipelines_run']}")
@@ -737,7 +737,6 @@ def _estimate_processing_time(file_size: int, pipeline: str) -> str:
 
     if estimated_seconds < 60:
         return f"{estimated_seconds:.0f} seconds"
-    elif estimated_seconds < 3600:
+    if estimated_seconds < 3600:
         return f"{estimated_seconds / 60:.1f} minutes"
-    else:
-        return f"{estimated_seconds / 3600:.1f} hours"
+    return f"{estimated_seconds / 3600:.1f} hours"

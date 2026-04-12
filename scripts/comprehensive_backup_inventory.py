@@ -4,12 +4,12 @@ Comprehensive inventory of actual datasets in Hetzner Object Storage backup.
 Creates a new registry based on actual backup structure.
 """
 
+from datetime import datetime, timezone
+
 import json
 import subprocess
-from collections import defaultdict
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 
 def run_rclone(command: str) -> str:
@@ -30,7 +30,7 @@ def get_size_gb(size_bytes: int) -> float:
     return round(size_bytes / 1024 / 1024 / 1024, 3)
 
 
-def inventory_directory(remote_path: str, max_depth: int = 3) -> Dict[str, Any]:
+def inventory_directory(remote_path: str, max_depth: int = 3) -> dict[str, Any]:
     """
     Inventory a directory recursively.
 
@@ -76,8 +76,8 @@ def inventory_directory(remote_path: str, max_depth: int = 3) -> Dict[str, Any]:
 
 
 def build_registry_entry(
-    name: str, path: str, inventory: Dict[str, Any], category: str = "unknown"
-) -> Dict[str, Any]:
+    name: str, path: str, inventory: dict[str, Any], category: str = "unknown"
+) -> dict[str, Any]:
     """Build a registry entry for a dataset."""
     return {
         "name": name,
@@ -182,7 +182,7 @@ def main():
     # Build new registry structure
     new_registry = {
         "version": "2.0.0",
-        "last_updated": datetime.utcnow().isoformat() + "Z",
+        "last_updated": datetime.now(timezone.utc).isoformat() + "Z",
         "description": "Rebuilt registry based on actual backup structure",
         "storage": {
             "primary": {

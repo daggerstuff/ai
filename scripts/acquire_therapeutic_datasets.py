@@ -7,20 +7,19 @@ Downloads and prepares high-quality therapeutic conversation datasets from Huggi
 import json
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional
 
 from tqdm import tqdm
 
 from datasets import load_dataset
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
 class TherapeuticDatasetAcquisition:
     """Acquire and prepare therapeutic conversation datasets"""
 
-    def __init__(self, output_dir: Optional[Path] = None):
+    def __init__(self, output_dir: Path | None = None):
         self.output_dir = output_dir or Path("ai/data/acquired_datasets")
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -52,7 +51,7 @@ class TherapeuticDatasetAcquisition:
             },
         }
 
-    def download_huggingface_dataset(self, dataset_name: str, config: Dict) -> List[Dict]:
+    def download_huggingface_dataset(self, dataset_name: str, config: dict) -> list[dict]:
         """Download dataset from HuggingFace"""
         logger.info(f"📥 Downloading {dataset_name} from HuggingFace...")
 
@@ -73,7 +72,7 @@ class TherapeuticDatasetAcquisition:
             logger.error(f"❌ Error downloading {dataset_name}: {e}")
             return []
 
-    def _convert_to_standard_format(self, item: Dict, source: str) -> Optional[Dict]:
+    def _convert_to_standard_format(self, item: dict, source: str) -> dict | None:
         """Convert various dataset formats to standard conversation format"""
 
         # Try to extract conversation based on common patterns
@@ -117,7 +116,7 @@ class TherapeuticDatasetAcquisition:
 
         return None
 
-    def acquire_all_datasets(self) -> Dict[str, List[Dict]]:
+    def acquire_all_datasets(self) -> dict[str, list[dict]]:
         """Acquire all configured datasets"""
         logger.info("🚀 Starting therapeutic dataset acquisition...")
 
@@ -129,7 +128,7 @@ class TherapeuticDatasetAcquisition:
         if cot_data:
             all_datasets["cot_reasoning"] = cot_data
             output_file = self.output_dir / "cot_reasoning.json"
-            with open(output_file, 'w', encoding='utf-8') as f:
+            with open(output_file, "w", encoding="utf-8") as f:
                 json.dump(cot_data, f, indent=2, ensure_ascii=False)
             logger.info(f"💾 Saved cot_reasoning to {output_file}")
 
@@ -142,7 +141,7 @@ class TherapeuticDatasetAcquisition:
 
                     # Save individual dataset
                     output_file = self.output_dir / f"{name}.json"
-                    with open(output_file, 'w', encoding='utf-8') as f:
+                    with open(output_file, "w", encoding="utf-8") as f:
                         json.dump(conversations, f, indent=2, ensure_ascii=False)
                     logger.info(f"💾 Saved {name} to {output_file}")
 
@@ -160,19 +159,19 @@ class TherapeuticDatasetAcquisition:
         }
 
         summary_file = self.output_dir / "acquisition_summary.json"
-        with open(summary_file, 'w', encoding='utf-8') as f:
+        with open(summary_file, "w", encoding="utf-8") as f:
             json.dump(summary, f, indent=2)
 
-        logger.info(f"\n📊 Acquisition Summary:")
+        logger.info("\n📊 Acquisition Summary:")
         logger.info(f"   Total datasets: {summary['total_datasets']}")
         logger.info(f"   Total conversations: {summary['total_conversations']}")
-        for name, info in summary['datasets'].items():
+        for name, info in summary["datasets"].items():
             logger.info(f"   - {name}: {info['count']} conversations")
         logger.info(f"   Summary saved to: {summary_file}")
 
         return all_datasets
 
-    def _load_cot_datasets(self) -> List[Dict]:
+    def _load_cot_datasets(self) -> list[dict]:
         """Load Chain of Thought reasoning datasets from local files"""
         cot_conversations = []
 
@@ -180,7 +179,7 @@ class TherapeuticDatasetAcquisition:
         cot_file = Path("ai/training_data_consolidated/datasets/cot_reasoning_filtered.json")
         if cot_file.exists():
             try:
-                with open(cot_file, encoding='utf-8') as f:
+                with open(cot_file, encoding="utf-8") as f:
                     data = json.load(f)
                     if "filtered_conversations" in data:
                         for item in data["filtered_conversations"]:

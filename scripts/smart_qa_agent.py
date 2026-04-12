@@ -4,16 +4,14 @@ Smart Q/A Agent - Intelligent content analysis without external dependencies
 Uses sophisticated NLP techniques to understand content structure
 """
 
-import json
 import re
-from typing import Dict, List, Optional, Tuple
 
 
 class SmartQAAgent:
     def __init__(self):
         pass
 
-    def deep_content_analysis(self, text: str) -> Dict:
+    def deep_content_analysis(self, text: str) -> dict:
         """Perform deep analysis of content structure and meaning"""
 
         analysis = {
@@ -27,7 +25,7 @@ class SmartQAAgent:
 
         # Clean and prepare text
         text = text.strip()
-        sentences = [s.strip() for s in re.split(r'[.!?]+', text) if s.strip()]
+        sentences = [s.strip() for s in re.split(r"[.!?]+", text) if s.strip()]
 
         # Detect dialogue structure
         dialogue_analysis = self.analyze_dialogue_structure(text, sentences)
@@ -39,7 +37,7 @@ class SmartQAAgent:
 
         return analysis
 
-    def analyze_dialogue_structure(self, text: str, sentences: List[str]) -> Dict:
+    def analyze_dialogue_structure(self, text: str, sentences: list[str]) -> dict:
         """Analyze if this contains dialogue and separate speakers"""
 
         # Look for interview/conversation patterns
@@ -55,8 +53,8 @@ class SmartQAAgent:
         has_interview_setup = any(indicator in text.lower() for indicator in interview_indicators)
 
         # Look for embedded questions
-        question_sentences = [s for s in sentences if '?' in s or
-                            any(starter in s.lower() for starter in ['how can', 'what should', 'why do', 'when does'])]
+        question_sentences = [s for s in sentences if "?" in s or
+                            any(starter in s.lower() for starter in ["how can", "what should", "why do", "when does"])]
 
         # Analyze structure
         if has_interview_setup and question_sentences:
@@ -64,20 +62,20 @@ class SmartQAAgent:
 
             # Find the transition point
             for i, sentence in enumerate(sentences):
-                if '?' in sentence:
+                if "?" in sentence:
                     # Found a question - everything after might be the response
                     question = sentence
 
                     # Look for response indicators after the question
                     response_start = i + 1
                     for j in range(i + 1, len(sentences)):
-                        response_indicators = ['that\'s', 'well', 'so', 'the thing is', 'what happens', 'unfortunately', 'look']
+                        response_indicators = ["that's", "well", "so", "the thing is", "what happens", "unfortunately", "look"]
                         if any(indicator in sentences[j].lower() for indicator in response_indicators):
                             response_start = j
                             break
 
                     if response_start < len(sentences):
-                        response = '. '.join(sentences[response_start:])
+                        response = ". ".join(sentences[response_start:])
 
                         return {
                             "content_type": "interview_dialogue",
@@ -88,7 +86,7 @@ class SmartQAAgent:
                         }
 
         # Check for monologue/teaching structure
-        teaching_indicators = ['let me explain', 'what happens is', 'the key thing', 'first', 'second', 'the reason']
+        teaching_indicators = ["let me explain", "what happens is", "the key thing", "first", "second", "the reason"]
         if any(indicator in text.lower() for indicator in teaching_indicators):
             return {
                 "content_type": "teaching_monologue",
@@ -102,7 +100,7 @@ class SmartQAAgent:
             "confidence": 0.3
         }
 
-    def analyze_semantic_content(self, text: str, sentences: List[str]) -> Dict:
+    def analyze_semantic_content(self, text: str, sentences: list[str]) -> dict:
         """Analyze the semantic meaning and main topic"""
 
         text_lower = text.lower()
@@ -130,16 +128,16 @@ class SmartQAAgent:
             "topic_confidence": max(topic_scores.values()) / len(topic_patterns[main_topic]) if topic_scores else 0.1
         }
 
-    def generate_intelligent_question(self, analysis: Dict, style: str) -> str:
+    def generate_intelligent_question(self, analysis: dict, style: str) -> str:
         """Generate contextually appropriate question based on deep analysis"""
 
         # If we found an embedded question, clean it up
         if analysis.get("question_embedded"):
             question = analysis["question_embedded"]
             # Clean up the question
-            question = re.sub(r'^[^A-Z]*', '', question).strip()
-            if not question.endswith('?'):
-                question += '?'
+            question = re.sub(r"^[^A-Z]*", "", question).strip()
+            if not question.endswith("?"):
+                question += "?"
             return question
 
         # Generate based on topic and content type
@@ -186,29 +184,29 @@ class SmartQAAgent:
 
         return fallback_questions.get(style, "Can you help me understand this?")
 
-    def process_segment(self, segment: Dict) -> Dict:
+    def process_segment(self, segment: dict) -> dict:
         """Process segment with intelligent analysis"""
 
         # Perform deep content analysis
-        analysis = self.deep_content_analysis(segment['text'])
+        analysis = self.deep_content_analysis(segment["text"])
 
         # Generate appropriate question
-        question = self.generate_intelligent_question(analysis, segment['style'])
+        question = self.generate_intelligent_question(analysis, segment["style"])
 
         # Determine response text
         if analysis.get("response_portion"):
             response = analysis["response_portion"]
         else:
-            response = segment['text']
+            response = segment["text"]
 
         return {
             "input": question,
             "output": response,
-            "style": segment['style'],
-            "confidence": segment['confidence'],
-            "quality": segment['quality'],
-            "source": segment['source'],
-            "file": segment['file'],
+            "style": segment["style"],
+            "confidence": segment["confidence"],
+            "quality": segment["quality"],
+            "source": segment["source"],
+            "file": segment["file"],
             "smart_analysis": analysis
         }
 
@@ -235,7 +233,7 @@ def test_smart_agent():
     print(f"**Generated Q**: {result['input']}")
     print(f"**Response A**: {result['output'][:300]}...")
 
-    if result['smart_analysis'].get('question_embedded'):
+    if result["smart_analysis"].get("question_embedded"):
         print(f"**Embedded Q Found**: {result['smart_analysis']['question_embedded']}")
 
 if __name__ == "__main__":

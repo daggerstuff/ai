@@ -7,7 +7,6 @@ with three primary entry points: web-frontend, cli-interface, and mcp-connect.
 
 import sys
 from pathlib import Path
-from typing import Optional
 
 import click
 
@@ -60,7 +59,7 @@ from cli.utils import print_banner, setup_logging, validate_environment
 @click.pass_context
 def cli(
     ctx: click.Context,
-    config_file: Optional[Path],
+    config_file: Path | None,
     verbose: bool,
     debug: bool,
     profile: str,

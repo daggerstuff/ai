@@ -10,15 +10,17 @@ This module provides real-time safety monitoring and incident response capabilit
 - Safety metrics tracking
 """
 
+from datetime import datetime, timedelta, timezone
+
+
 import asyncio
-import json
 import logging
 import time
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -48,11 +50,11 @@ class SafetyIncident:
     severity: IncidentSeverity
     crisis_level: str
     user_input: str
-    detected_patterns: List[str]
-    response_actions: List[ResponseAction]
+    detected_patterns: list[str]
+    response_actions: list[ResponseAction]
     human_notified: bool = False
     resolved: bool = False
-    resolution_time: Optional[datetime] = None
+    resolution_time: datetime | None = None
     notes: str = ""
 
 @dataclass
@@ -75,10 +77,10 @@ class SafetyMonitoringSystem:
     """
 
     def __init__(self):
-        self.incidents: List[SafetyIncident] = []
+        self.incidents: list[SafetyIncident] = []
         self.metrics = SafetyMetrics()
         self.monitoring_active = False
-        self.alert_callbacks: List[Callable] = []
+        self.alert_callbacks: list[Callable] = []
 
         # Response protocols by severity
         self.response_protocols = {
@@ -141,7 +143,7 @@ class SafetyMonitoringSystem:
         self.alert_callbacks.append(callback)
         logger.info("Alert callback added")
 
-    async def process_user_input(self, user_input: str, user_id: str = None) -> Dict[str, Any]:
+    async def process_user_input(self, user_input: str, user_id: str = None) -> dict[str, Any]:
         """
         Process user input for safety monitoring
         Returns safety assessment and response recommendations
@@ -178,33 +180,33 @@ class SafetyMonitoringSystem:
 
         return response
 
-    async def _assess_crisis_level(self, user_input: str) -> Dict[str, Any]:
+    async def _assess_crisis_level(self, user_input: str) -> dict[str, Any]:
         """Assess crisis level in user input"""
 
         # Crisis detection patterns (enhanced from safety validation system)
         crisis_patterns = {
             "emergency": [
-                r'\b(took pills|overdose|bleeding|can\'t breathe)\b',
-                r'\b(911|emergency|ambulance|hospital)\b'
+                r"\b(took pills|overdose|bleeding|can\'t breathe)\b",
+                r"\b(911|emergency|ambulance|hospital)\b"
             ],
             "critical": [
-                r'\b(suicide|kill myself|end my life|want to die)\b',
-                r'\b(self harm|cut myself|hurt myself)\b',
-                r'\b(gun|knife|rope|bridge)\b.*\b(kill|die|end)\b'
+                r"\b(suicide|kill myself|end my life|want to die)\b",
+                r"\b(self harm|cut myself|hurt myself)\b",
+                r"\b(gun|knife|rope|bridge)\b.*\b(kill|die|end)\b"
             ],
             "high": [
-                r'\b(depressed|hopeless|worthless|useless)\b',
-                r'\b(can\'t go on|give up|no point|no hope)\b',
-                r'\b(abuse|violence|threat|hurt me)\b'
+                r"\b(depressed|hopeless|worthless|useless)\b",
+                r"\b(can\'t go on|give up|no point|no hope)\b",
+                r"\b(abuse|violence|threat|hurt me)\b"
             ],
             "medium": [
-                r'\b(sad|upset|anxious|worried|scared)\b',
-                r'\b(stressed|overwhelmed|struggling|difficult)\b',
-                r'\b(lonely|isolated|alone|abandoned)\b'
+                r"\b(sad|upset|anxious|worried|scared)\b",
+                r"\b(stressed|overwhelmed|struggling|difficult)\b",
+                r"\b(lonely|isolated|alone|abandoned)\b"
             ],
             "low": [
-                r'\b(tired|frustrated|annoyed|bothered)\b',
-                r'\b(confused|uncertain|unsure|lost)\b'
+                r"\b(tired|frustrated|annoyed|bothered)\b",
+                r"\b(confused|uncertain|unsure|lost)\b"
             ]
         }
 
@@ -238,7 +240,7 @@ class SafetyMonitoringSystem:
             "requires_intervention": crisis_level in ["emergency", "critical", "high"]
         }
 
-    def _analyze_context_indicators(self, user_input: str) -> Dict[str, Any]:
+    def _analyze_context_indicators(self, user_input: str) -> dict[str, Any]:
         """Analyze additional context indicators"""
 
         indicators = {
@@ -274,7 +276,7 @@ class SafetyMonitoringSystem:
 
         return indicators
 
-    def _determine_incident_severity(self, crisis_assessment: Dict[str, Any]) -> IncidentSeverity:
+    def _determine_incident_severity(self, crisis_assessment: dict[str, Any]) -> IncidentSeverity:
         """Determine incident severity based on crisis assessment"""
 
         crisis_level = crisis_assessment["crisis_level"]
@@ -308,7 +310,7 @@ class SafetyMonitoringSystem:
 
         return IncidentSeverity.LOW
 
-    async def _create_incident(self, user_input: str, crisis_assessment: Dict[str, Any],
+    async def _create_incident(self, user_input: str, crisis_assessment: dict[str, Any],
                               severity: IncidentSeverity, user_id: str = None) -> SafetyIncident:
         """Create safety incident record"""
 
@@ -316,7 +318,7 @@ class SafetyMonitoringSystem:
 
         incident = SafetyIncident(
             incident_id=incident_id,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             severity=severity,
             crisis_level=crisis_assessment["crisis_level"],
             user_input=user_input[:500],  # Truncate for privacy
@@ -408,8 +410,8 @@ class SafetyMonitoringSystem:
         # This would route the conversation to a human operator
         self.metrics.human_interventions += 1
 
-    def _generate_safety_response(self, crisis_assessment: Dict[str, Any],
-                                 incident: Optional[SafetyIncident]) -> Dict[str, Any]:
+    def _generate_safety_response(self, crisis_assessment: dict[str, Any],
+                                 incident: SafetyIncident | None) -> dict[str, Any]:
         """Generate appropriate safety response"""
 
         crisis_level = crisis_assessment["crisis_level"]
@@ -460,16 +462,16 @@ class SafetyMonitoringSystem:
 
         return response
 
-    def _update_metrics(self, crisis_assessment: Dict[str, Any], processing_time: float):
+    def _update_metrics(self, crisis_assessment: dict[str, Any], processing_time: float):
         """Update safety monitoring metrics"""
 
         # Update response time average
         total_time = self.metrics.response_time_avg * (self.metrics.total_interactions - 1)
         self.metrics.response_time_avg = (total_time + processing_time) / self.metrics.total_interactions
 
-        self.metrics.last_updated = datetime.utcnow()
+        self.metrics.last_updated = datetime.now(timezone.utc)
 
-    def get_safety_metrics(self) -> Dict[str, Any]:
+    def get_safety_metrics(self) -> dict[str, Any]:
         """Get current safety monitoring metrics"""
 
         return {
@@ -485,10 +487,10 @@ class SafetyMonitoringSystem:
             "last_updated": self.metrics.last_updated.isoformat()
         }
 
-    def get_recent_incidents(self, hours: int = 24) -> List[Dict[str, Any]]:
+    def get_recent_incidents(self, hours: int = 24) -> list[dict[str, Any]]:
         """Get recent safety incidents"""
 
-        cutoff_time = datetime.utcnow() - timedelta(hours=hours)
+        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=hours)
         recent_incidents = [
             incident for incident in self.incidents
             if incident.timestamp >= cutoff_time
@@ -513,7 +515,7 @@ class SafetyMonitoringSystem:
         for incident in self.incidents:
             if incident.incident_id == incident_id:
                 incident.resolved = True
-                incident.resolution_time = datetime.utcnow()
+                incident.resolution_time = datetime.now(timezone.utc)
                 incident.notes = resolution_notes
                 self.metrics.incidents_resolved += 1
 
@@ -556,13 +558,13 @@ if __name__ == "__main__":
                 print(f"Incident Created: {response['incident_id']} (Severity: {response['severity']})")
 
         # Print metrics
-        print(f"\nSafety Metrics:")
+        print("\nSafety Metrics:")
         metrics = monitor.get_safety_metrics()
         for key, value in metrics.items():
             print(f"  {key}: {value}")
 
         # Print recent incidents
-        print(f"\nRecent Incidents:")
+        print("\nRecent Incidents:")
         incidents = monitor.get_recent_incidents()
         for incident in incidents:
             print(f"  {incident['incident_id']}: {incident['severity']} - {incident['crisis_level']}")

@@ -7,7 +7,6 @@ Comprehensive validation that everything is ready for Lightning.ai H100 deployme
 import json
 import logging
 from pathlib import Path
-from typing import Dict
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -25,7 +24,7 @@ class DeploymentValidator:
         self.lightning_workspace = get_lightning_dir() / "production"
         self.validation_results = {}
 
-    def validate_unified_dataset(self) -> Dict:
+    def validate_unified_dataset(self) -> dict:
         """Comprehensive validation of unified dataset"""
         logger.info("🔍 Validating unified dataset...")
 
@@ -150,7 +149,7 @@ class DeploymentValidator:
 
         return validation
 
-    def validate_lightning_scripts(self) -> Dict:
+    def validate_lightning_scripts(self) -> dict:
         """Validate Lightning.ai deployment scripts"""
         logger.info("🔍 Validating Lightning.ai deployment scripts...")
 
@@ -214,7 +213,7 @@ class DeploymentValidator:
 
         return validation
 
-    def validate_system_resources(self) -> Dict:
+    def validate_system_resources(self) -> dict:
         """Validate system has resources for deployment preparation"""
         logger.info("🔍 Validating system resources...")
 
@@ -283,7 +282,7 @@ class DeploymentValidator:
 
         return validation
 
-    def validate_multi_dataset_processing(self) -> Dict:
+    def validate_multi_dataset_processing(self) -> dict:
         """Validate multi-dataset processing completed successfully"""
         logger.info("🔍 Validating multi-dataset processing results...")
 
@@ -343,7 +342,7 @@ class DeploymentValidator:
 
         return validation
 
-    def generate_readiness_report(self) -> Dict:
+    def generate_readiness_report(self) -> dict:
         """Generate comprehensive deployment readiness report"""
         logger.info("📊 Generating deployment readiness report...")
 
@@ -454,7 +453,7 @@ class DeploymentValidator:
 
         return readiness_report
 
-    def save_readiness_report(self, report: Dict) -> Path:
+    def save_readiness_report(self, report: dict) -> Path:
         """Save readiness report to file"""
 
         from path_utils import get_lightning_dir

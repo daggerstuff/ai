@@ -17,11 +17,11 @@ from .progress import ProgressTracker
 from .utils import setup_logging, validate_environment
 
 __all__ = [
-    "cli",
-    "CLIConfig",
     "AuthManager",
+    "CLIConfig",
     "PipelineManager",
     "ProgressTracker",
+    "cli",
     "setup_logging",
     "validate_environment",
 ]

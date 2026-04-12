@@ -58,14 +58,13 @@ class RawDatasetProcessor:
 
         if any(word in text_lower for word in ["trauma", "heal", "therapy", "recover"]):
             return "therapeutic"
-        elif any(
+        if any(
             word in text_lower for word in ["understand", "explain", "learn", "study"]
         ):
             return "educational"
-        elif any(word in text_lower for word in ["feel", "hurt", "pain", "support"]):
+        if any(word in text_lower for word in ["feel", "hurt", "pain", "support"]):
             return "empathetic"
-        else:
-            return "practical"
+        return "practical"
 
     def process_all_raw_datasets(self):
         """Process all raw datasets from pixelated-training"""

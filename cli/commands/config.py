@@ -8,40 +8,40 @@ environment variables, and settings.
 import json
 import os
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 import click
 
 from ..config import CLIConfig, get_config, save_config
-from ..utils import get_logger, setup_logging, validate_environment
+from ..utils import get_logger, setup_logging
 
 logger = get_logger(__name__)
 
 
-@click.group(name='config')
+@click.group(name="config")
 @click.pass_context
 def config_group(ctx):
     """Configuration management commands."""
-    setup_logging(ctx.obj.get('verbose', False))
+    setup_logging(ctx.obj.get("verbose", False))
     logger.info("Config command group initialized")
 
 
 @config_group.command()
-@click.option('--profile', '-p', help='Configuration profile to show')
-@click.option('--all', 'show_all', is_flag=True, help='Show all profiles')
-@click.option('--decrypt', is_flag=True, help='Show decrypted sensitive values')
+@click.option("--profile", "-p", help="Configuration profile to show")
+@click.option("--all", "show_all", is_flag=True, help="Show all profiles")
+@click.option("--decrypt", is_flag=True, help="Show decrypted sensitive values")
 @click.pass_context
-def show(ctx, profile: Optional[str], show_all: bool, decrypt: bool):
+def show(ctx, profile: str | None, show_all: bool, decrypt: bool):
     """Display current configuration."""
     try:
         if show_all:
             # Show all profiles
-            config_dir = Path.home() / '.pixelated' / 'config'
+            config_dir = Path.home() / ".pixelated" / "config"
             if config_dir.exists():
                 click.echo("📋 Available Configuration Profiles:")
-                for config_file in config_dir.glob('*.yaml'):
+                for config_file in config_dir.glob("*.yaml"):
                     profile_name = config_file.stem
-                    if profile_name != 'default':
+                    if profile_name != "default":
                         click.echo(f"  • {profile_name}")
             else:
                 click.echo("❌ No configuration profiles found")
@@ -88,11 +88,11 @@ def show(ctx, profile: Optional[str], show_all: bool, decrypt: bool):
 
 
 @config_group.command()
-@click.option('--profile', '-p', help='Profile to edit (creates new if not exists)')
-@click.option('--set', 'set_values', multiple=True, help='Set configuration value (key=value)')
-@click.option('--interactive', '-i', is_flag=True, help='Interactive configuration mode')
+@click.option("--profile", "-p", help="Profile to edit (creates new if not exists)")
+@click.option("--set", "set_values", multiple=True, help="Set configuration value (key=value)")
+@click.option("--interactive", "-i", is_flag=True, help="Interactive configuration mode")
 @click.pass_context
-def set(ctx, profile: Optional[str], set_values: tuple, interactive: bool):
+def set(ctx, profile: str | None, set_values: tuple, interactive: bool):
     """Set configuration values."""
     try:
         config = get_config(profile)
@@ -103,11 +103,11 @@ def set(ctx, profile: Optional[str], set_values: tuple, interactive: bool):
             # Parse and apply set values
             updates = {}
             for value_str in set_values:
-                if '=' not in value_str:
+                if "=" not in value_str:
                     click.echo(f"❌ Invalid format: {value_str}. Use key=value", err=True)
                     continue
 
-                key, value = value_str.split('=', 1)
+                key, value = value_str.split("=", 1)
 
                 # Try to parse as JSON for complex values
                 try:
@@ -131,10 +131,10 @@ def set(ctx, profile: Optional[str], set_values: tuple, interactive: bool):
 
 
 @config_group.command()
-@click.option('--profile', '-p', help='Profile to reset')
-@click.option('--force', is_flag=True, help='Force reset without confirmation')
+@click.option("--profile", "-p", help="Profile to reset")
+@click.option("--force", is_flag=True, help="Force reset without confirmation")
 @click.pass_context
-def reset(ctx, profile: Optional[str], force: bool):
+def reset(ctx, profile: str | None, force: bool):
     """Reset configuration to defaults."""
     try:
         if not force:
@@ -157,9 +157,9 @@ def reset(ctx, profile: Optional[str], force: bool):
 
 
 @config_group.command()
-@click.option('--from-profile', required=True, help='Source profile to copy from')
-@click.option('--to-profile', required=True, help='Target profile to create/copy to')
-@click.option('--overwrite', is_flag=True, help='Overwrite existing target profile')
+@click.option("--from-profile", required=True, help="Source profile to copy from")
+@click.option("--to-profile", required=True, help="Target profile to create/copy to")
+@click.option("--overwrite", is_flag=True, help="Overwrite existing target profile")
 @click.pass_context
 def copy(ctx, from_profile: str, to_profile: str, overwrite: bool):
     """Copy configuration from one profile to another."""
@@ -193,10 +193,10 @@ def copy(ctx, from_profile: str, to_profile: str, overwrite: bool):
 
 
 @config_group.command()
-@click.option('--profile', '-p', help='Profile to validate')
-@click.option('--strict', is_flag=True, help='Enable strict validation')
+@click.option("--profile", "-p", help="Profile to validate")
+@click.option("--strict", is_flag=True, help="Enable strict validation")
 @click.pass_context
-def validate(ctx, profile: Optional[str], strict: bool):
+def validate(ctx, profile: str | None, strict: bool):
     """Validate configuration settings."""
     try:
         config = get_config(profile)
@@ -205,24 +205,24 @@ def validate(ctx, profile: Optional[str], strict: bool):
 
         validation_result = _validate_config(config, strict)
 
-        if validation_result['valid']:
+        if validation_result["valid"]:
             click.echo("✅ Configuration is valid!")
 
-            if validation_result.get('warnings'):
+            if validation_result.get("warnings"):
                 click.echo("⚠️  Warnings:")
-                for warning in validation_result['warnings']:
+                for warning in validation_result["warnings"]:
                     click.echo(f"  • {warning}")
 
         else:
             click.echo("❌ Configuration validation failed!")
 
-            if validation_result.get('errors'):
+            if validation_result.get("errors"):
                 click.echo("❌ Errors:")
-                for error in validation_result['errors']:
+                for error in validation_result["errors"]:
                     click.echo(f"  • {error}")
 
         # Display validation summary
-        click.echo(f"\n📊 Validation Summary:")
+        click.echo("\n📊 Validation Summary:")
         click.echo(f"  Errors: {len(validation_result.get('errors', []))}")
         click.echo(f"  Warnings: {len(validation_result.get('warnings', []))}")
 
@@ -233,13 +233,13 @@ def validate(ctx, profile: Optional[str], strict: bool):
 
 
 @config_group.command()
-@click.option('--profile', '-p', help='Profile to export')
-@click.option('--output', '-o', type=click.Path(), required=True, help='Output file path')
-@click.option('--format', type=click.Choice(['json', 'yaml']), default='yaml',
-              help='Export format')
-@click.option('--include-secrets', is_flag=True, help='Include sensitive configuration values')
+@click.option("--profile", "-p", help="Profile to export")
+@click.option("--output", "-o", type=click.Path(), required=True, help="Output file path")
+@click.option("--format", type=click.Choice(["json", "yaml"]), default="yaml",
+              help="Export format")
+@click.option("--include-secrets", is_flag=True, help="Include sensitive configuration values")
 @click.pass_context
-def export(ctx, profile: Optional[str], output: str, format: str, include_secrets: bool):
+def export(ctx, profile: str | None, output: str, format: str, include_secrets: bool):
     """Export configuration to file."""
     try:
         config = get_config(profile)
@@ -255,15 +255,15 @@ def export(ctx, profile: Optional[str], output: str, format: str, include_secret
         output_path = Path(output)
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        if format == 'json':
-            with open(output_path, 'w') as f:
+        if format == "json":
+            with open(output_path, "w") as f:
                 json.dump(export_data, f, indent=2)
         else:  # yaml
             import yaml
-            with open(output_path, 'w') as f:
+            with open(output_path, "w") as f:
                 yaml.dump(export_data, f, default_flow_style=False)
 
-        click.echo(f"✅ Configuration exported successfully!")
+        click.echo("✅ Configuration exported successfully!")
 
     except Exception as e:
         logger.error(f"Configuration export failed: {e}")
@@ -272,12 +272,12 @@ def export(ctx, profile: Optional[str], output: str, format: str, include_secret
 
 
 @config_group.command()
-@click.option('--file', '-f', type=click.Path(exists=True), required=True,
-              help='Configuration file to import')
-@click.option('--profile', '-p', help='Target profile name')
-@click.option('--overwrite', is_flag=True, help='Overwrite existing profile')
+@click.option("--file", "-f", type=click.Path(exists=True), required=True,
+              help="Configuration file to import")
+@click.option("--profile", "-p", help="Target profile name")
+@click.option("--overwrite", is_flag=True, help="Overwrite existing profile")
 @click.pass_context
-def import_config(ctx, file: str, profile: Optional[str], overwrite: bool):
+def import_config(ctx, file: str, profile: str | None, overwrite: bool):
     """Import configuration from file."""
     try:
         file_path = Path(file)
@@ -289,10 +289,10 @@ def import_config(ctx, file: str, profile: Optional[str], overwrite: bool):
         click.echo(f"📥 Importing configuration from: {file_path}")
 
         # Load configuration data
-        if file_path.suffix.lower() == '.json':
+        if file_path.suffix.lower() == ".json":
             with open(file_path) as f:
                 config_data = json.load(f)
-        elif file_path.suffix.lower() in ['.yaml', '.yml']:
+        elif file_path.suffix.lower() in [".yaml", ".yml"]:
             import yaml
             with open(file_path) as f:
                 config_data = yaml.safe_load(f)
@@ -301,7 +301,7 @@ def import_config(ctx, file: str, profile: Optional[str], overwrite: bool):
             return
 
         # Determine target profile
-        target_profile = profile or config_data.get('profile_name', 'imported')
+        target_profile = profile or config_data.get("profile_name", "imported")
 
         # Check if target exists
         try:
@@ -320,7 +320,7 @@ def import_config(ctx, file: str, profile: Optional[str], overwrite: bool):
         # Save configuration
         save_config(new_config)
 
-        click.echo(f"✅ Configuration imported successfully!")
+        click.echo("✅ Configuration imported successfully!")
         click.echo(f"🆔 Profile: {target_profile}")
 
     except Exception as e:
@@ -344,17 +344,17 @@ def env_info(ctx):
         # Check required environment variables
         click.echo("\n🔐 Required Environment Variables:")
         required_vars = [
-            'PIXELATED_API_URL',
-            'PIXELATED_API_KEY',
-            'PIXELATED_REDIS_URL'
+            "PIXELATED_API_URL",
+            "PIXELATED_API_KEY",
+            "PIXELATED_REDIS_URL"
         ]
 
         for var in required_vars:
             value = os.getenv(var)
             if value:
                 # Mask sensitive values
-                if 'KEY' in var or 'SECRET' in var:
-                    masked_value = value[:8] + '...' + value[-4:] if len(value) > 12 else '***'
+                if "KEY" in var or "SECRET" in var:
+                    masked_value = value[:8] + "..." + value[-4:] if len(value) > 12 else "***"
                     click.echo(f"  ✅ {var}: {masked_value}")
                 else:
                     click.echo(f"  ✅ {var}: {value}")
@@ -364,9 +364,9 @@ def env_info(ctx):
         # Check optional variables
         click.echo("\n🔧 Optional Environment Variables:")
         optional_vars = [
-            'PIXELATED_LOG_LEVEL',
-            'PIXELATED_CONFIG_DIR',
-            'PIXELATED_CACHE_DIR'
+            "PIXELATED_LOG_LEVEL",
+            "PIXELATED_CONFIG_DIR",
+            "PIXELATED_CACHE_DIR"
         ]
 
         for var in optional_vars:
@@ -377,18 +377,18 @@ def env_info(ctx):
                 click.echo(f"  ⚠️  {var}: Not set (using default)")
 
         # Configuration directory
-        config_dir = Path.home() / '.pixelated'
+        config_dir = Path.home() / ".pixelated"
         click.echo(f"\n📁 Configuration Directory: {config_dir}")
         click.echo(f"  Exists: {'✅' if config_dir.exists() else '❌'}")
 
         if config_dir.exists():
-            config_files = list(config_dir.glob('*.yaml'))
+            config_files = list(config_dir.glob("*.yaml"))
             click.echo(f"  Config files: {len(config_files)}")
             for config_file in config_files:
                 click.echo(f"    • {config_file.name}")
 
         # System information
-        click.echo(f"\n💻 System Information:")
+        click.echo("\n💻 System Information:")
         click.echo(f"  Platform: {sys.platform}")
         click.echo(f"  Architecture: {sys.machine}")
 
@@ -429,16 +429,16 @@ def _interactive_config(config: CLIConfig) -> None:
 
     # Apply updates
     updates = {
-        'api': {
-            'base_url': api_url,
-            'timeout': api_timeout,
-            'max_retries': api_retries
+        "api": {
+            "base_url": api_url,
+            "timeout": api_timeout,
+            "max_retries": api_retries
         },
-        'logging': {
-            'level': log_level,
-            'file': log_file,
-            'max_size_mb': log_size,
-            'backup_count': log_backups
+        "logging": {
+            "level": log_level,
+            "file": log_file,
+            "max_size_mb": log_size,
+            "backup_count": log_backups
         }
     }
 
@@ -448,14 +448,14 @@ def _interactive_config(config: CLIConfig) -> None:
     click.echo("✅ Interactive configuration completed!")
 
 
-def _apply_config_updates(config: CLIConfig, updates: Dict[str, Any]) -> None:
+def _apply_config_updates(config: CLIConfig, updates: dict[str, Any]) -> None:
     """Apply configuration updates."""
     for key, value in updates.items():
         if hasattr(config, key):
             setattr(config, key, value)
-        elif '.' in key:
+        elif "." in key:
             # Handle nested updates like 'api.base_url'
-            parts = key.split('.')
+            parts = key.split(".")
             obj = config
             for part in parts[:-1]:
                 if hasattr(obj, part):
@@ -466,7 +466,7 @@ def _apply_config_updates(config: CLIConfig, updates: Dict[str, Any]) -> None:
                 setattr(obj, parts[-1], value)
 
 
-def _validate_config(config: CLIConfig, strict: bool) -> Dict[str, Any]:
+def _validate_config(config: CLIConfig, strict: bool) -> dict[str, Any]:
     """Validate configuration settings."""
     errors = []
     warnings = []
@@ -474,7 +474,7 @@ def _validate_config(config: CLIConfig, strict: bool) -> Dict[str, Any]:
     # Validate API configuration
     if not config.api.base_url:
         errors.append("API base URL is required")
-    elif not config.api.base_url.startswith(('http://', 'https://')):
+    elif not config.api.base_url.startswith(("http://", "https://")):
         errors.append("API base URL must start with http:// or https://")
 
     if config.api.timeout <= 0:
@@ -484,7 +484,7 @@ def _validate_config(config: CLIConfig, strict: bool) -> Dict[str, Any]:
         errors.append("API max retries cannot be negative")
 
     # Validate logging configuration
-    valid_log_levels = ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+    valid_log_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
     if config.logging.level not in valid_log_levels:
         errors.append(f"Invalid log level: {config.logging.level}")
 
@@ -507,80 +507,80 @@ def _validate_config(config: CLIConfig, strict: bool) -> Dict[str, Any]:
         pass
 
     return {
-        'valid': len(errors) == 0,
-        'errors': errors,
-        'warnings': warnings
+        "valid": len(errors) == 0,
+        "errors": errors,
+        "warnings": warnings
     }
 
 
-def _prepare_export_data(config: CLIConfig, include_secrets: bool) -> Dict[str, Any]:
+def _prepare_export_data(config: CLIConfig, include_secrets: bool) -> dict[str, Any]:
     """Prepare configuration data for export."""
     data = {
-        'profile_name': config.profile_name,
-        'api': {
-            'base_url': config.api.base_url,
-            'timeout': config.api.timeout,
-            'max_retries': config.api.max_retries
+        "profile_name": config.profile_name,
+        "api": {
+            "base_url": config.api.base_url,
+            "timeout": config.api.timeout,
+            "max_retries": config.api.max_retries
         },
-        'logging': {
-            'level': config.logging.level,
-            'file': config.logging.file,
-            'max_size_mb': config.logging.max_size_mb,
-            'backup_count': config.logging.backup_count
+        "logging": {
+            "level": config.logging.level,
+            "file": config.logging.file,
+            "max_size_mb": config.logging.max_size_mb,
+            "backup_count": config.logging.backup_count
         },
-        'upload': {
-            'max_file_size_mb': config.upload.max_file_size_mb,
-            'allowed_types': config.upload.allowed_types
+        "upload": {
+            "max_file_size_mb": config.upload.max_file_size_mb,
+            "allowed_types": config.upload.allowed_types
         },
-        'security': {
-            'encrypt_credentials': config.security.encrypt_credentials,
-            'validate_certificates': config.security.validate_certificates
+        "security": {
+            "encrypt_credentials": config.security.encrypt_credentials,
+            "validate_certificates": config.security.validate_certificates
         }
     }
 
     if include_secrets:
         # Add sensitive data (in real implementation, this would be properly handled)
-        data['api']['api_key'] = config.api.api_key
-        data['security']['encryption_key'] = config.security.encryption_key
+        data["api"]["api_key"] = config.api.api_key
+        data["security"]["encryption_key"] = config.security.encryption_key
 
     return data
 
 
-def _apply_import_data(config: CLIConfig, data: Dict[str, Any]) -> None:
+def _apply_import_data(config: CLIConfig, data: dict[str, Any]) -> None:
     """Apply imported configuration data."""
     # Update API configuration
-    if 'api' in data:
-        api_data = data['api']
-        if 'base_url' in api_data:
-            config.api.base_url = api_data['base_url']
-        if 'timeout' in api_data:
-            config.api.timeout = api_data['timeout']
-        if 'max_retries' in api_data:
-            config.api.max_retries = api_data['max_retries']
+    if "api" in data:
+        api_data = data["api"]
+        if "base_url" in api_data:
+            config.api.base_url = api_data["base_url"]
+        if "timeout" in api_data:
+            config.api.timeout = api_data["timeout"]
+        if "max_retries" in api_data:
+            config.api.max_retries = api_data["max_retries"]
 
     # Update logging configuration
-    if 'logging' in data:
-        log_data = data['logging']
-        if 'level' in log_data:
-            config.logging.level = log_data['level']
-        if 'file' in log_data:
-            config.logging.file = log_data['file']
-        if 'max_size_mb' in log_data:
-            config.logging.max_size_mb = log_data['max_size_mb']
-        if 'backup_count' in log_data:
-            config.logging.backup_count = log_data['backup_count']
+    if "logging" in data:
+        log_data = data["logging"]
+        if "level" in log_data:
+            config.logging.level = log_data["level"]
+        if "file" in log_data:
+            config.logging.file = log_data["file"]
+        if "max_size_mb" in log_data:
+            config.logging.max_size_mb = log_data["max_size_mb"]
+        if "backup_count" in log_data:
+            config.logging.backup_count = log_data["backup_count"]
 
     # Update other sections as needed
-    if 'upload' in data:
-        upload_data = data['upload']
-        if 'max_file_size_mb' in upload_data:
-            config.upload.max_file_size_mb = upload_data['max_file_size_mb']
-        if 'allowed_types' in upload_data:
-            config.upload.allowed_types = upload_data['allowed_types']
+    if "upload" in data:
+        upload_data = data["upload"]
+        if "max_file_size_mb" in upload_data:
+            config.upload.max_file_size_mb = upload_data["max_file_size_mb"]
+        if "allowed_types" in upload_data:
+            config.upload.allowed_types = upload_data["allowed_types"]
 
-    if 'security' in data:
-        security_data = data['security']
-        if 'encrypt_credentials' in security_data:
-            config.security.encrypt_credentials = security_data['encrypt_credentials']
-        if 'validate_certificates' in security_data:
-            config.security.validate_certificates = security_data['validate_certificates']
+    if "security" in data:
+        security_data = data["security"]
+        if "encrypt_credentials" in security_data:
+            config.security.encrypt_credentials = security_data["encrypt_credentials"]
+        if "validate_certificates" in security_data:
+            config.security.validate_certificates = security_data["validate_certificates"]

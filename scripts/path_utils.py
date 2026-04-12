@@ -4,7 +4,6 @@ Path Utilities for AI Scripts
 Provides dynamic workspace root detection to avoid hardcoded paths.
 """
 
-import os
 from pathlib import Path
 
 

@@ -4,10 +4,7 @@ AI-Powered Content Router
 Intelligently analyzes segments and determines optimal Q/A generation strategy
 """
 
-import json
 import re
-from pathlib import Path
-from typing import Dict, List, Tuple
 
 
 class AIContentRouter:
@@ -40,7 +37,7 @@ class AIContentRouter:
             }
         }
 
-    def analyze_content_structure(self, text: str, metadata: Dict) -> Dict:
+    def analyze_content_structure(self, text: str, metadata: dict) -> dict:
         """AI-like analysis of content structure and context"""
         analysis = {
             "primary_format": None,
@@ -51,7 +48,7 @@ class AIContentRouter:
         }
 
         text_lower = text.lower()
-        sentences = [s.strip() for s in re.split(r'[.!?]+', text) if len(s.strip()) > 10]
+        sentences = [s.strip() for s in re.split(r"[.!?]+", text) if len(s.strip()) > 10]
 
         # Analyze conversational structure
         has_dialogue_markers = any(marker in text for marker in [":", "Q:", "A:", "HOST:", "GUEST:"])
@@ -119,29 +116,27 @@ class AIContentRouter:
 
         return analysis
 
-    def determine_qa_strategy(self, format_type: str, text: str, metadata: Dict) -> str:
+    def determine_qa_strategy(self, format_type: str, text: str, metadata: dict) -> str:
         """Determine optimal Q/A generation strategy based on format analysis"""
 
         if format_type == "interview_qa":
             if "?" in text and len(text.split("?")) > 1:
                 return "extract_embedded_qa"
-            else:
-                return "reconstruct_interview_question"
+            return "reconstruct_interview_question"
 
-        elif format_type == "monologue_teaching":
+        if format_type == "monologue_teaching":
             return "create_learning_question"
 
-        elif format_type == "story_narrative":
+        if format_type == "story_narrative":
             return "create_context_question"
 
-        elif format_type == "explanation_educational":
+        if format_type == "explanation_educational":
             return "create_understanding_question"
 
-        elif format_type == "advice_practical":
+        if format_type == "advice_practical":
             return "create_guidance_question"
 
-        else:
-            return "create_general_therapeutic_question"
+        return "create_general_therapeutic_question"
 
     def generate_reasoning(self, format_type: str, confidence: float, text: str) -> str:
         """Generate human-readable reasoning for the classification"""
@@ -161,7 +156,7 @@ class AIContentRouter:
 
         if strategy == "extract_embedded_qa":
             # Extract actual question from interview format
-            question_match = re.search(r'([^.!?]*\?)', text)
+            question_match = re.search(r"([^.!?]*\?)", text)
             if question_match:
                 return question_match.group(1).strip()
 
@@ -169,9 +164,9 @@ class AIContentRouter:
             # Create question that would lead to this response in interview
             if "trauma" in text.lower():
                 return "Can you tell us about trauma and its impact on mental health?"
-            elif "narcissist" in text.lower():
+            if "narcissist" in text.lower():
                 return "What should people understand about narcissistic behavior?"
-            elif "therapy" in text.lower():
+            if "therapy" in text.lower():
                 return "What's your perspective on finding effective therapy?"
 
         elif strategy == "create_learning_question":
@@ -193,32 +188,32 @@ class AIContentRouter:
         # Default fallback
         return f"Can you share your insights on this from a {style} approach?"
 
-    def process_segment(self, segment: Dict) -> Dict:
+    def process_segment(self, segment: dict) -> dict:
         """Process segment with AI-powered routing"""
 
         # Analyze content structure
-        analysis = self.analyze_content_structure(segment['text'], segment)
+        analysis = self.analyze_content_structure(segment["text"], segment)
 
         # Generate appropriate question
         question = self.generate_contextual_question(
-            segment['text'],
-            analysis['optimal_qa_strategy'],
-            segment['style']
+            segment["text"],
+            analysis["optimal_qa_strategy"],
+            segment["style"]
         )
 
         return {
             "input": question,
-            "output": segment['text'],
-            "style": segment['style'],
-            "confidence": segment['confidence'],
-            "quality": segment['quality'],
-            "source": segment['source'],
-            "file": segment['file'],
+            "output": segment["text"],
+            "style": segment["style"],
+            "confidence": segment["confidence"],
+            "quality": segment["quality"],
+            "source": segment["source"],
+            "file": segment["file"],
             "ai_analysis": {
-                "format_detected": analysis['primary_format'],
-                "confidence": analysis['confidence'],
-                "strategy_used": analysis['optimal_qa_strategy'],
-                "reasoning": analysis['reasoning']
+                "format_detected": analysis["primary_format"],
+                "confidence": analysis["confidence"],
+                "strategy_used": analysis["optimal_qa_strategy"],
+                "reasoning": analysis["reasoning"]
             }
         }
 

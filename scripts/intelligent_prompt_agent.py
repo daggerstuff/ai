@@ -14,7 +14,6 @@ import logging
 import re
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -35,10 +34,10 @@ class PatternMatch:
 
     pattern_type: str
     confidence: float
-    extracted_question: Optional[str] = None
-    response_start: Optional[str] = None
+    extracted_question: str | None = None
+    response_start: str | None = None
 
-    transition_markers: List[str] = None
+    transition_markers: list[str] = None
 
 
 class MultiPatternAgent:
@@ -86,7 +85,7 @@ class MultiPatternAgent:
             r"(?:when a person|if someone|people who|those who)",
         ]
 
-    def classify_content_type(self, text: str) -> Tuple[ContentType, float]:
+    def classify_content_type(self, text: str) -> tuple[ContentType, float]:
         """Classify content type with confidence scoring"""
         text_lower = text.lower()
         indicators = {
@@ -322,7 +321,7 @@ class MultiPatternAgent:
 
         return max(0.0, min(1.0, coherence_score))
 
-    def analyze_segment(self, segment_text: str) -> Dict:
+    def analyze_segment(self, segment_text: str) -> dict:
         """Comprehensive analysis of a therapeutic segment"""
         analysis = {
             "content_type": None,
@@ -390,7 +389,7 @@ class MultiPatternAgent:
 
         return analysis
 
-    def generate_contextual_prompt(self, segment: Dict, analysis: Dict) -> str:
+    def generate_contextual_prompt(self, segment: dict, analysis: dict) -> str:
         """Generate contextually appropriate prompt based on analysis"""
 
         # If we found a good extracted question, use it
@@ -413,32 +412,32 @@ class MultiPatternAgent:
         if "trauma" in text.lower() or "hurt" in text.lower():
             if style == "therapeutic":
                 return "I'm struggling with trauma and healing. Can you help me understand what's happening?"
-            elif style == "practical":
+            if style == "practical":
                 return "What specific steps can I take to heal from trauma?"
-            elif style == "empathetic":
+            if style == "empathetic":
                 return "I'm really struggling with past trauma and feeling alone. Can you help?"
-            else:  # educational
-                return "Can you explain how trauma affects someone and the healing process?"
+            # educational
+            return "Can you explain how trauma affects someone and the healing process?"
 
-        elif "narcissist" in text.lower() or "manipulation" in text.lower():
+        if "narcissist" in text.lower() or "manipulation" in text.lower():
             if style == "therapeutic":
                 return "I think I'm dealing with a narcissist. Can you help me understand this?"
-            elif style == "practical":
+            if style == "practical":
                 return "What should I do if I'm in a relationship with a narcissist?"
-            elif style == "empathetic":
+            if style == "empathetic":
                 return "I feel so confused and hurt by narcissistic abuse. Can you help me?"
-            else:  # educational
-                return "Can you explain narcissistic behavior and how it affects relationships?"
+            # educational
+            return "Can you explain narcissistic behavior and how it affects relationships?"
 
-        elif any(word in text.lower() for word in ["relationship", "family", "parent"]):
+        if any(word in text.lower() for word in ["relationship", "family", "parent"]):
             if style == "therapeutic":
                 return "I'm having relationship difficulties. Can you help me work through this?"
-            elif style == "practical":
+            if style == "practical":
                 return "What can I do to improve my relationships?"
-            elif style == "empathetic":
+            if style == "empathetic":
                 return "I'm struggling in my relationships and need support."
-            else:  # educational
-                return "Can you explain healthy relationship dynamics?"
+            # educational
+            return "Can you explain healthy relationship dynamics?"
 
         # Generic fallback based on style
         style_defaults = {
@@ -450,7 +449,7 @@ class MultiPatternAgent:
 
         return style_defaults.get(style, style_defaults["therapeutic"])
 
-    def _extract_actual_topics(self, text: str) -> List[str]:
+    def _extract_actual_topics(self, text: str) -> list[str]:
         """Extract topics that the text actually discusses (not generic keywords)"""
         topics = []
         text_lower = text.lower()

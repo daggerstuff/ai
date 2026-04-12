@@ -8,7 +8,7 @@ import json
 import subprocess
 import tempfile
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 def run_rclone(command: str, check: bool = True) -> subprocess.CompletedProcess:
@@ -37,7 +37,7 @@ def s3_path_to_rclone(s3_path: str, remote_name: str = "BackupStorageS3") -> str
     return s3_path
 
 
-def list_files_in_directory(s3_path: str) -> List[Dict[str, Any]]:
+def list_files_in_directory(s3_path: str) -> list[dict[str, Any]]:
     """
     List all files in a directory in S3/DO Spaces.
 
@@ -70,7 +70,7 @@ def list_files_in_directory(s3_path: str) -> List[Dict[str, Any]]:
     return files
 
 
-def download_file(s3_path: str, local_path: Optional[Path] = None) -> Optional[Path]:
+def download_file(s3_path: str, local_path: Path | None = None) -> Path | None:
     """
     Download a file from S3/DO Spaces to local temp directory.
 
@@ -99,7 +99,7 @@ def download_file(s3_path: str, local_path: Optional[Path] = None) -> Optional[P
     return None
 
 
-def load_json_file(s3_path: str) -> Optional[Any]:
+def load_json_file(s3_path: str) -> Any | None:
     """
     Load a JSON file from S3/DO Spaces.
 
@@ -124,7 +124,7 @@ def load_json_file(s3_path: str) -> Optional[Any]:
     return None
 
 
-def load_jsonl_file(s3_path: str, limit: Optional[int] = None) -> List[Dict[str, Any]]:
+def load_jsonl_file(s3_path: str, limit: int | None = None) -> list[dict[str, Any]]:
     """
     Load a JSONL file from S3/DO Spaces.
 
@@ -155,7 +155,7 @@ def load_jsonl_file(s3_path: str, limit: Optional[int] = None) -> List[Dict[str,
     return records
 
 
-def calculate_checksum(s3_path: str, algorithm: str = "sha256") -> Optional[str]:
+def calculate_checksum(s3_path: str, algorithm: str = "sha256") -> str | None:
     """
     Calculate checksum of a file in S3/DO Spaces.
 
@@ -193,7 +193,7 @@ def calculate_checksum(s3_path: str, algorithm: str = "sha256") -> Optional[str]
     return None
 
 
-def get_file_info(s3_path: str) -> Optional[Dict[str, Any]]:
+def get_file_info(s3_path: str) -> dict[str, Any] | None:
     """
     Get information about a file in S3/DO Spaces.
 
@@ -231,12 +231,12 @@ class RcloneDatasetAccessor:
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
 
-    def list_files(self) -> List[Dict[str, Any]]:
+    def list_files(self) -> list[dict[str, Any]]:
         """List all files in this dataset."""
         self.files = list_files_in_directory(self.s3_path)
         return self.files
 
-    def load_file(self, filename: str, limit: Optional[int] = None) -> Any:
+    def load_file(self, filename: str, limit: int | None = None) -> Any:
         """
         Load a specific file from this dataset.
 
@@ -251,12 +251,11 @@ class RcloneDatasetAccessor:
 
         if filename.endswith(".jsonl"):
             return load_jsonl_file(file_path, limit=limit)
-        elif filename.endswith(".json"):
+        if filename.endswith(".json"):
             return load_json_file(file_path)
-        else:
-            return download_file(file_path)
+        return download_file(file_path)
 
-    def get_sample_records(self, sample_size: int = 100) -> List[Dict[str, Any]]:
+    def get_sample_records(self, sample_size: int = 100) -> list[dict[str, Any]]:
         """
         Get sample records from the dataset.
         Loads from first JSONL file found.
