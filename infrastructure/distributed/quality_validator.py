@@ -854,7 +854,7 @@ def main():
     )
 
     # Status command
-    status_parser = subparsers.add_parser("status", help="Show validation statistics")
+    subparsers.add_parser("status", help="Show validation statistics")
 
     args = parser.parse_args()
 

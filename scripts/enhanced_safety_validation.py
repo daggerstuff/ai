@@ -567,7 +567,7 @@ class EnhancedSafetyValidationSystem:
         avg_confidence = np.mean([r.confidence for r in self.validation_results])
         min_confidence = min([r.confidence for r in self.validation_results])
 
-        report = {
+        return {
             "enhanced_safety_validation_summary": {
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "execution_time": execution_time,
@@ -631,7 +631,6 @@ class EnhancedSafetyValidationSystem:
             "recommendations": self._generate_enhanced_recommendations()
         }
 
-        return report
 
     def _generate_enhanced_recommendations(self) -> list[str]:
         """Generate enhanced safety improvement recommendations"""

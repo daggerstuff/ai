@@ -149,10 +149,6 @@ class TestFixer:
         content = content.replace(old_severity_calc, new_severity_calc)
 
         # Fix edge cases to return unacceptable for invalid input
-        old_edge_case_logic = """if not content or not isinstance(content, str):
-            return {
-                'clinical_accuracy': 0.0,
-                'severity': 'unacceptable',"""
 
         # This is already correct, but let's ensure it's properly handled
 

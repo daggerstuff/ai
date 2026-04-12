@@ -325,7 +325,7 @@ if __name__ == '__main__':
 
         avg_coverage = sum(coverage_results.values()) / len(coverage_results) if coverage_results else 0
 
-        report = f"""
+        return f"""
 # Critical Test Fix Report
 
 ## Summary
@@ -356,7 +356,6 @@ if __name__ == '__main__':
 - Crisis Detection: {'✅ Covered' if coverage_results.get('crisis_intervention_detector', 0) > 90 else '❌ Insufficient coverage'}
 - Clinical Validation: {'✅ Covered' if coverage_results.get('clinical_accuracy_validator', 0) > 90 else '❌ Insufficient coverage'}
 """
-        return report
 
 
 def main():

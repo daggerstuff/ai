@@ -75,7 +75,7 @@ class WorkflowExecutor:
             try:
                 console.print(f"[cyan]Resuming session: {session_id}[/cyan]")
                 session = orchestrator.load_session_state(session_id)
-                state = orchestrator.get_session_state(session_id)
+                orchestrator.get_session_state(session_id)
                 current_phase = session.current_phase
             except FileNotFoundError:
                 console.print("[yellow]Session not found, creating new session[/yellow]")
@@ -159,14 +159,13 @@ class WorkflowExecutor:
                 "dataset": ["dataset", "conversation", "transcript"],
             }
 
-        session = orchestrator.start_research_session(
+        return orchestrator.start_research_session(
             target_sources=target_sources,
             search_keywords=search_keywords,
             weekly_targets=weekly_targets,
             session_id=session_id,
         )
 
-        return session
 
     def _execute_phase(
         self, orchestrator: ResearchOrchestrator, session_id: str, phase: str

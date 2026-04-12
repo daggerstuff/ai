@@ -153,7 +153,7 @@ class TestCommandHandler:
         orchestrator = command_handler._get_orchestrator()
         orchestrator.sessions[sample_research_session.session_id] = sample_research_session
         # Create and save session state
-        state = orchestrator.get_session_state(sample_research_session.session_id)
+        orchestrator.get_session_state(sample_research_session.session_id)
         orchestrator.save_session_state(sample_research_session.session_id)
 
         result = command_handler.status(session_id=sample_research_session.session_id)

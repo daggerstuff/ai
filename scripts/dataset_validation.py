@@ -72,23 +72,21 @@ class DatasetValidator:
         # Placeholder for schema validation logic
         # In production, this would validate against known schemas
 
-        validation_result = {"schema_valid": True, "errors": [], "warnings": []}
+        return {"schema_valid": True, "errors": [], "warnings": []}
 
         # TODO: Implement actual schema validation based on dataset_type
         # For now, return a basic validation result
 
-        return validation_result
 
     def check_integrity(self, _dataset_path: str, _size_mb: float) -> dict[str, Any]:
         """Check dataset integrity."""
-        integrity_result = {"integrity_check": True, "errors": [], "warnings": []}
+        return {"integrity_check": True, "errors": [], "warnings": []}
 
         # TODO: Implement actual integrity checks
         # - File size validation
         # - Format validation
         # - Data completeness checks
 
-        return integrity_result
 
     def validate_dataset(
         self, dataset_name: str, dataset_entry: dict[str, Any]

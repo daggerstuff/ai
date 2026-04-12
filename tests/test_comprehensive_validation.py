@@ -52,7 +52,7 @@ class TestComprehensiveValidation(unittest.TestCase):
         validation_tasks = [81, 82, 85, 86, 87, 88]
 
         for task_num in validation_tasks:
-            result_file = Path(f"/home/vivi/pixelated/ai/task_{task_num}_*_validation_results.json")
+            Path(f"/home/vivi/pixelated/ai/task_{task_num}_*_validation_results.json")
             matching_files = list(Path("/home/vivi/pixelated/ai").glob(f"task_{task_num}_*_validation_results.json"))
             assert len(matching_files) > 0, f"No validation results for task {task_num}"
 

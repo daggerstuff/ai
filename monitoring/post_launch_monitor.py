@@ -456,7 +456,6 @@ class PostLaunchMonitor:
     def _check_metric_thresholds(self, metric: MetricData):
         """Check metric against thresholds and generate alerts."""
         try:
-            alert_generated = False
 
             # Check critical threshold
             if metric.threshold_critical and metric.value >= metric.threshold_critical:
@@ -471,7 +470,6 @@ class PostLaunchMonitor:
                     timestamp=metric.timestamp
                 )
                 self._create_alert(alert)
-                alert_generated = True
 
             # Check warning threshold (only if no critical alert)
             elif metric.threshold_warning and metric.value >= metric.threshold_warning:
@@ -486,7 +484,6 @@ class PostLaunchMonitor:
                     timestamp=metric.timestamp
                 )
                 self._create_alert(alert)
-                alert_generated = True
 
         except Exception as e:
             logger.error(f"Failed to check metric thresholds: {e}")
@@ -576,7 +573,7 @@ class PostLaunchMonitor:
             # Calculate system health
             system_health = self._calculate_system_health()
 
-            dashboard_data = {
+            return {
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "system_health": system_health,
                 "system_metrics": recent_metrics,
@@ -591,7 +588,6 @@ class PostLaunchMonitor:
                 "monitoring_status": "active" if self.monitoring_active else "inactive"
             }
 
-            return dashboard_data
 
         except Exception as e:
             logger.error(f"Failed to generate dashboard data: {e}")

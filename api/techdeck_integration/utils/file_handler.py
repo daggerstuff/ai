@@ -336,9 +336,8 @@ class FileHandler:
             safe_filename = f"{user_id}_{file_id}_{timestamp}{file_extension}"
 
             # Create full path
-            storage_path = os.path.join(self.storage_path, subdir, safe_filename)
+            return os.path.join(self.storage_path, subdir, safe_filename)
 
-            return storage_path
 
         except Exception as e:
             self.logger.error(f"Error generating storage path: {e}")

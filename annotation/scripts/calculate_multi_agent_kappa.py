@@ -46,8 +46,7 @@ def calculate_cohens_kappa(annotations_a: list[int], annotations_b: list[int]) -
     if p_e == 1.0:
         return 1.0
 
-    kappa = (p_o - p_e) / (1 - p_e)
-    return kappa
+    return (p_o - p_e) / (1 - p_e)
 
 
 def calculate_agreement_metrics(results_file: str) -> dict[str, any]:

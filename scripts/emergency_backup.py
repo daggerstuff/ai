@@ -46,7 +46,7 @@ class EmergencyBackupSystem:
 
     def create_manifest(self, backed_up_files: list[dict[str, Any]]) -> dict[str, Any]:
         """Create backup manifest with file inventory and checksums."""
-        manifest = {
+        return {
             "backup_name": self.backup_name,
             "timestamp": self.timestamp,
             "source_directory": str(self.source_dir),
@@ -55,7 +55,6 @@ class EmergencyBackupSystem:
             "backup_size_bytes": sum(f["size_bytes"] for f in backed_up_files),
             "backup_completed": datetime.now(timezone.utc).isoformat()
         }
-        return manifest
 
     def backup_processed_conversations(self) -> bool:
         """Backup all processed conversation data."""

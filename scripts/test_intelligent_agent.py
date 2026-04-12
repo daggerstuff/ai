@@ -191,8 +191,8 @@ def test_contextual_prompt_generation():
         print(f"  Generated Prompt: '{prompt}'")
 
         # Check if prompt relates to content
-        segment_words = set(segment["text"].lower().split())
-        prompt_words = set(prompt.lower().split())
+        set(segment["text"].lower().split())
+        set(prompt.lower().split())
 
         # Look for thematic overlap
         themes_match = False

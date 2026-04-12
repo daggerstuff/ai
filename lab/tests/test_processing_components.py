@@ -279,7 +279,7 @@ class TestAnalyticsCalculations(unittest.TestCase):
     def test_trend_analysis(self):
         """Test trend analysis calculations"""
         # Create time series data
-        dates = pd.date_range("2025-08-01", periods=10, freq="D")
+        pd.date_range("2025-08-01", periods=10, freq="D")
         values = [10, 12, 11, 15, 14, 16, 18, 17, 19, 20]
 
         # Simple trend calculation (slope)
@@ -372,8 +372,7 @@ class TestUtilityFunctions(unittest.TestCase):
 
             # Basic text cleaning
             cleaned = text.strip()
-            cleaned = " ".join(cleaned.split())  # Remove extra whitespace
-            return cleaned
+            return " ".join(cleaned.split())  # Remove extra whitespace
 
         # Test text cleaning
         messy_text = "  Hello   world  \n\n  "

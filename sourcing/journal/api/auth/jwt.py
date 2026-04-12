@@ -29,19 +29,17 @@ def create_access_token(
             minutes=settings.jwt_expiration_minutes
         )
     to_encode.update({"exp": expire, "iat": datetime.now(timezone.utc)})
-    encoded_jwt = pyjwt.encode(
+    return pyjwt.encode(
         to_encode, settings.jwt_secret, algorithm=settings.jwt_algorithm
     )
-    return encoded_jwt
 
 
 def decode_access_token(token: str) -> dict[str, Any]:
     """Decode a JWT access token."""
     try:
-        payload = pyjwt.decode(
+        return pyjwt.decode(
             token, settings.jwt_secret, algorithms=[settings.jwt_algorithm]
         )
-        return payload
     except ExpiredSignatureError:
         raise ValueError("Token has expired") from None
     except DecodeError:
@@ -53,8 +51,7 @@ def decode_access_token(token: str) -> dict[str, Any]:
 def verify_token(token: str) -> dict[str, Any]:
     """Verify and decode a JWT token."""
     try:
-        payload = decode_access_token(token)
-        return payload
+        return decode_access_token(token)
     except ValueError as e:
         logger.warning(f"Token verification failed: {e}")
         raise

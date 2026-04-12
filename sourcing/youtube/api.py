@@ -355,8 +355,7 @@ class ChannelAnalyzer:
             QualityMetrics object with computed scores
         """
         # TODO: Implement video analysis
-        metrics = QualityMetrics()
-        return metrics
+        return QualityMetrics()
 
     def detect_language(self, _text: str) -> str:
         """

@@ -421,7 +421,7 @@ class ClinicalTrialsClient:
         for term in therapeutic_terms:
             query_parts.append(f'"{term}"')
 
-        query = " AND ".join(query_parts)
+        " AND ".join(query_parts)
 
         try:
             while len(all_sources) < max_results:

@@ -224,7 +224,7 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
 
         # Check for privacy-related safety categories
         assert "safety_categories" in data
-        safety_categories_lower = [cat.lower() for cat in data["safety_categories"]]
+        [cat.lower() for cat in data["safety_categories"]]
         # Privacy violations should be flagged
 
     @patch("..inference.model_adapters.ModelAdapterManager.predict")
@@ -254,7 +254,7 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
         data = json.loads(response.data)
 
         # Check that the response content has been handled appropriately
-        response_content = data["choices"][0]["message"]["content"]
+        data["choices"][0]["message"]["content"]
         # The exact handling depends on the safety filter configuration
 
         # Check that safety information is included

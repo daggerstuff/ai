@@ -40,8 +40,7 @@ async def get_pipeline_status(
         Current status of the training pipeline orchestrator
     """
     try:
-        status_result = await training_service.get_pipeline_status()
-        return status_result
+        return await training_service.get_pipeline_status()
 
     except Exception as e:
         logger.error(f"Error getting pipeline status: {e}", exc_info=True)

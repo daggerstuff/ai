@@ -115,9 +115,8 @@ class TherapeuticPromptGenerator:
         template = random.choice(templates)
 
         # Generate the prompt
-        prompt = template.format(topic=topic)
+        return template.format(topic=topic)
 
-        return prompt
 
     def create_training_pair(self, segment: dict) -> dict:
         """Convert a segment into a training pair"""

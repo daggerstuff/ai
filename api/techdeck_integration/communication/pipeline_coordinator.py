@@ -216,9 +216,8 @@ class StageCoordinator(EventHandler):
                 )
 
             # Sanitize output data
-            sanitized_output = sanitize_input(output_data)
+            return sanitize_input(output_data)
 
-            return sanitized_output
 
         except Exception as e:
             self.logger.error(f"Stage output validation error: {e}")
@@ -592,7 +591,7 @@ class PipelineCoordinator:
                 raise ValidationError("quality_threshold must be between 0.0 and 1.0")
 
             # Set defaults for optional fields
-            validated_request = {
+            return {
                 "dataset_ids": request["dataset_ids"],
                 "user_id": request["user_id"],
                 "execution_mode": request["execution_mode"],
@@ -601,7 +600,6 @@ class PipelineCoordinator:
                 "metadata": request.get("metadata", {})
             }
 
-            return validated_request
 
         except ValidationError:
             raise
@@ -1018,7 +1016,7 @@ class ProcessingStageCoordinator(StageCoordinator):
                                  _input_data: dict[str, Any]) -> dict[str, Any]:
         """Execute processing stage with therapeutic conversation analysis."""
         # Simulate therapeutic processing
-        processing_result = {
+        return {
             "processed_conversations": 995,
             "processing_operations": [
                 "conversation_segmentation",
@@ -1035,7 +1033,6 @@ class ProcessingStageCoordinator(StageCoordinator):
             "batch_processing_applied": True
         }
 
-        return processing_result
 
 
 class GenericStageCoordinator(StageCoordinator):

@@ -76,7 +76,7 @@ class ProgressTracker:
             """Handle client connection."""
             try:
                 user_id = get_jwt_identity()
-                request_id = getattr(g, "request_id", "unknown")
+                getattr(g, "request_id", "unknown")
 
                 self.logger.info(f"WebSocket connection established for user {user_id}")
 
@@ -112,7 +112,7 @@ class ProgressTracker:
         def handle_disconnect():
             """Handle client disconnection."""
             try:
-                request_id = getattr(g, "request_id", "unknown")
+                getattr(g, "request_id", "unknown")
 
                 self.logger.info(f"WebSocket connection closed for session {request.sid}")
 

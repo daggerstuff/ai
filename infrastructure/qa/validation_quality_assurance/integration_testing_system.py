@@ -409,7 +409,7 @@ class QAIntegrationTestRunner:
 
         # Run tests
         runner = TestResultCollector(self)
-        test_result = runner.run(suite)
+        runner.run(suite)
 
         self.end_time = time.time()
 
@@ -423,7 +423,7 @@ class QAIntegrationTestRunner:
             self.end_time - self.start_time if self.end_time and self.start_time else 0
         )
 
-        report = {
+        return {
             "integration_test_summary": {
                 "total_tests": self.test_results.get("tests_run", 0),
                 "passed_tests": self.test_results.get("tests_run", 0)
@@ -466,7 +466,6 @@ class QAIntegrationTestRunner:
             "report_timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
         }
 
-        return report
 
     def _generate_recommendations(self) -> list[str]:
         """Generate recommendations based on test results"""

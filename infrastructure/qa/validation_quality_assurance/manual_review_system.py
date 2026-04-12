@@ -333,8 +333,7 @@ class ManualReviewSystem:
         if not reviewer_scores:
             raise ValueError("No available reviewers found")
 
-        best_reviewer = max(reviewer_scores.items(), key=lambda x: x[1])[0]
-        return best_reviewer
+        return max(reviewer_scores.items(), key=lambda x: x[1])[0]
 
     def _estimate_review_time(self, conversation: dict[str, Any],
                             criteria: list[ReviewCriteria]) -> int:

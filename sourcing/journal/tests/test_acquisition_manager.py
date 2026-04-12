@@ -177,7 +177,7 @@ class TestAccessAcquisitionManager:
 
     def test_update_access_request_status(self, manager, sample_source):
         """Test updating access request status."""
-        request = manager.submit_access_request(sample_source)
+        manager.submit_access_request(sample_source)
         manager.update_access_request_status(
             sample_source.source_id, "approved", "Access granted"
         )
@@ -188,7 +188,7 @@ class TestAccessAcquisitionManager:
 
     def test_list_access_requests(self, manager, sample_source):
         """Test listing access requests."""
-        request1 = manager.submit_access_request(sample_source)
+        manager.submit_access_request(sample_source)
 
         source2 = DatasetSource(
             source_id="test-002",
@@ -200,7 +200,7 @@ class TestAccessAcquisitionManager:
             open_access=True,
             data_availability="available",
         )
-        request2 = manager.submit_access_request(source2)
+        manager.submit_access_request(source2)
 
         all_requests = manager.list_access_requests()
         assert len(all_requests) == 2

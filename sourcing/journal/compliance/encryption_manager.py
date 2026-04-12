@@ -261,7 +261,7 @@ class EncryptionManager:
             )
 
             # Encrypt data
-            encrypted_data = public_key.encrypt(
+            return public_key.encrypt(
                 data,
                 padding.OAEP(
                     mgf=padding.MGF1(algorithm=hashes.SHA256()),
@@ -270,7 +270,6 @@ class EncryptionManager:
                 ),
             )
 
-            return encrypted_data
 
         except Exception as e:
             logger.error(f"Error encrypting with public key: {e}")
@@ -296,7 +295,7 @@ class EncryptionManager:
             )
 
             # Decrypt data
-            decrypted_data = private_key.decrypt(
+            return private_key.decrypt(
                 encrypted_data,
                 padding.OAEP(
                     mgf=padding.MGF1(algorithm=hashes.SHA256()),
@@ -305,7 +304,6 @@ class EncryptionManager:
                 ),
             )
 
-            return decrypted_data
 
         except Exception as e:
             logger.error(f"Error decrypting with private key: {e}")
@@ -328,9 +326,8 @@ class EncryptionManager:
             config_json = json.dumps(config)
 
             # Encrypt
-            encrypted_config = self.encrypt_string(config_json)
+            return self.encrypt_string(config_json)
 
-            return encrypted_config
 
         except Exception as e:
             logger.error(f"Error encrypting configuration: {e}")
@@ -353,9 +350,8 @@ class EncryptionManager:
             decrypted_config_json = self.decrypt_string(encrypted_config)
 
             # Deserialize
-            config = json.loads(decrypted_config_json)
+            return json.loads(decrypted_config_json)
 
-            return config
 
         except Exception as e:
             logger.error(f"Error decrypting configuration: {e}")
@@ -420,6 +416,5 @@ class EncryptionManager:
             iterations=100000,
             backend=default_backend(),
         )
-        key = kdf.derive(password.encode("utf-8"))
-        return key
+        return kdf.derive(password.encode("utf-8"))
 

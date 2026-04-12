@@ -246,7 +246,7 @@ class Phase2Validator:
             # Test 3: SOC2 Storage
             try:
                 with tempfile.NamedTemporaryFile(delete=False) as tmp:
-                    storage = SOC2Storage(db_path=tmp.name)
+                    SOC2Storage(db_path=tmp.name)
 
                     # Database should be initialized
                     assert os.path.exists(tmp.name)
@@ -384,7 +384,7 @@ class Phase2Validator:
             # Test 3: GDPR Storage
             try:
                 with tempfile.NamedTemporaryFile(delete=False) as tmp:
-                    storage = GDPRStorage(db_path=tmp.name)
+                    GDPRStorage(db_path=tmp.name)
 
                     # Database should be initialized
                     assert os.path.exists(tmp.name)

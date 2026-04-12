@@ -25,8 +25,7 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         """Process request and handle errors."""
         try:
-            response = await call_next(request)
-            return response
+            return await call_next(request)
         except RequestValidationError as e:
             # Handle validation errors
             logger.warning(f"Validation error: {e.errors()}")

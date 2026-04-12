@@ -440,7 +440,7 @@ class BiasDetectionManager:
         try:
             recommendations = await self.client.get_bias_recommendations(bias_result)
 
-            summary = {
+            return {
                 "operation_id": bias_result.operation_id,
                 "dataset_id": bias_result.dataset_id,
                 "overall_bias_score": bias_result.overall_bias_score,
@@ -458,7 +458,6 @@ class BiasDetectionManager:
                 "timestamp": bias_result.timestamp.isoformat()
             }
 
-            return summary
 
         except Exception as e:
             logger.error(f"Failed to generate bias summary: {e!s}")

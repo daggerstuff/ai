@@ -768,9 +768,8 @@ class ConversationSearchEngine:
                     (f"{partial_text}%", limit),
                 )
 
-                suggestions = [row[0] for row in cursor.fetchall()]
+                return [row[0] for row in cursor.fetchall()]
 
-                return suggestions
 
         except Exception as e:
             handle_error(

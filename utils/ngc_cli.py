@@ -174,7 +174,7 @@ class NGCCLI:
                 if "|" in line and "| key " not in line.lower() and "---" not in line:
                     parts = [part.strip() for part in line.split("|") if part.strip()]
                     if len(parts) >= 3:  # key | value | source
-                        key, value, source = parts[0], parts[1], parts[2]
+                        key, value, _source = parts[0], parts[1], parts[2]
                         if key:  # New key
                             current_key = key
                             config[key] = value

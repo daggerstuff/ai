@@ -122,8 +122,7 @@ class AgentRegistry:
             query["capabilities"] = {"$all": criteria.capabilities}
 
         cursor = await self.mongodb.find_many(self.collection, query)
-        agents = [self._from_dict(d) for d in cursor]
-        return agents
+        return [self._from_dict(d) for d in cursor]
 
     def _from_dict(self, data: dict[str, Any]) -> Agent:
         """Create Agent instance from dictionary."""

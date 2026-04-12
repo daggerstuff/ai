@@ -436,7 +436,7 @@ class PixelatedEmpathyUIFramework:
     def create_trainee_layout(self) -> UILayout:
         """Create complete layout for trainee interface"""
 
-        trainee_layout = UILayout(
+        return UILayout(
             layout_id="trainee_main",
             layout_type="trainee",
             components=[
@@ -470,12 +470,11 @@ class PixelatedEmpathyUIFramework:
             theme_config=self.theme_config
         )
 
-        return trainee_layout
 
     def create_supervisor_layout(self) -> UILayout:
         """Create complete layout for supervisor dashboard"""
 
-        supervisor_layout = UILayout(
+        return UILayout(
             layout_id="supervisor_dashboard",
             layout_type="supervisor",
             components=[
@@ -505,7 +504,6 @@ class PixelatedEmpathyUIFramework:
             theme_config=self.theme_config
         )
 
-        return supervisor_layout
 
     def generate_react_components(self) -> dict[str, str]:
         """Generate React component code for the UI framework"""
@@ -641,8 +639,8 @@ def main():
     ui_framework = PixelatedEmpathyUIFramework()
 
     # Create layouts
-    trainee_layout = ui_framework.create_trainee_layout()
-    supervisor_layout = ui_framework.create_supervisor_layout()
+    ui_framework.create_trainee_layout()
+    ui_framework.create_supervisor_layout()
 
     # Generate React components
     react_components = ui_framework.generate_react_components()

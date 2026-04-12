@@ -40,7 +40,7 @@ class LoRAFormatConverter:
 
     def format_conversation(self, training_pair: dict) -> dict:
         """Convert training pair to Lightning.ai conversation format"""
-        conversation = {
+        return {
             "conversations": [
                 {
                     "from": "human",
@@ -62,7 +62,6 @@ class LoRAFormatConverter:
             }
         }
 
-        return conversation
 
     def create_training_split(self, conversations: list[dict], train_ratio: float = 0.9) -> tuple:
         """Split conversations into training and validation sets"""
@@ -207,7 +206,7 @@ def main():
     stats = converter.process_training_files(input_dir, output_dir)
 
     # Create configuration file
-    config = converter.create_config_file(output_dir, stats)
+    converter.create_config_file(output_dir, stats)
 
     print("\nConversion complete!")
     print(f"Total conversations: {stats['total_pairs']}")

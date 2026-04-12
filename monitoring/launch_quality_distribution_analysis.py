@@ -230,7 +230,7 @@ class QualityDistributionAnalysisLauncher:
 
             # Initialize components
             analyzer = QualityDistributionAnalyzer(db_path=str(self.db_path))
-            comparator = QualityDistributionComparator(analyzer)
+            QualityDistributionComparator(analyzer)
             reporter = QualityDistributionReporter(output_dir=str(self.reports_dir))
 
             # Load quality data

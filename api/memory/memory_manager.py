@@ -130,7 +130,7 @@ class MemoryManager:
             ]
 
             # Convert to MemoryMessage
-            messages = [
+            return [
                 MemoryMessage(
                     content=m.get("content", "") or m.get("memory", ""),
                     role=MessageRole(m.get("metadata", {}).get("role", "user")),
@@ -142,7 +142,6 @@ class MemoryManager:
                 )
                 for m in session_messages[:limit]
             ]
-            return messages
         except Exception as e:
             logger.error(f"Error retrieving history from memory backend: {e}")
             return []

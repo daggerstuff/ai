@@ -31,7 +31,7 @@ class CoverageImprovementSystem:
 
         try:
             # Run coverage analysis
-            result = subprocess.run([
+            subprocess.run([
                 "python", "-m", "pytest",
                 "tests/test_working_components.py",
                 "--cov=dataset_pipeline",
@@ -120,7 +120,7 @@ class CoverageImprovementSystem:
 
         module_name = Path(module_path).stem
 
-        template = f'''#!/usr/bin/env python3
+        return f'''#!/usr/bin/env python3
 """
 Test suite for {module_name}.
 Auto-generated test template to improve coverage.
@@ -175,7 +175,6 @@ if __name__ == "__main__":
     pytest.main([__file__, "-v"])
 '''
 
-        return template
 
     def generate_missing_tests(self, gaps: list[dict[str, Any]]) -> list[str]:
         """Generate missing test files for coverage gaps."""
@@ -212,7 +211,7 @@ if __name__ == "__main__":
         logger.info("🚀 Starting coverage improvement cycle...")
 
         # Step 1: Analyze current coverage
-        initial_coverage = self.analyze_current_coverage()
+        self.analyze_current_coverage()
         initial_percent = self.current_coverage
 
         # Step 2: Identify critical gaps
@@ -253,7 +252,7 @@ if __name__ == "__main__":
                 logger.error(f"❌ Coverage measurement failed: {e}")
 
         # Step 5: Generate improvement report
-        improvement_report = {
+        return {
             "timestamp": str(datetime.now(timezone.utc)),
             "initial_coverage": initial_percent,
             "final_coverage": self.current_coverage,
@@ -265,7 +264,6 @@ if __name__ == "__main__":
             "production_ready": self.current_coverage >= self.coverage_target
         }
 
-        return improvement_report
 
     def generate_coverage_report(self) -> str:
         """Generate comprehensive coverage improvement report."""

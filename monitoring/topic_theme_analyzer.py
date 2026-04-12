@@ -319,7 +319,6 @@ class TopicThemeAnalyzer:
 
     def _find_related_themes(self, topic_name: str) -> list[str]:
         """Find themes related to a topic"""
-        related_themes = []
 
         # Define topic-theme relationships
         topic_theme_map = {

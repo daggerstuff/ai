@@ -314,12 +314,11 @@ class HealthCheckManager:
 
             gpu_count = torch.cuda.device_count()
             gpu_statuses = []
-            total_utilization = 0
             failed_gpus = 0
 
             for i in range(gpu_count):
                 try:
-                    gpu_name = torch.cuda.get_device_name(i)
+                    torch.cuda.get_device_name(i)
                     gpu_memory = torch.cuda.memory_allocated(i) / (1024**3)
                     gpu_memory_total = torch.cuda.get_device_properties(i).total_memory / (1024**3)
                     memory_percent = (gpu_memory / gpu_memory_total) * 100 if gpu_memory_total > 0 else 0
@@ -980,7 +979,7 @@ class HealthCheckManager:
         for i, callback in enumerate(self.shutdown_callbacks):
             try:
                 self.logger.info(f"Executing shutdown callback {i+1}/{len(self.shutdown_callbacks)}")
-                callback_result = callback()
+                callback()
                 successful_callbacks.append(f"callback_{i}")
                 self.logger.info(f"Shutdown callback {i+1} completed successfully")
             except Exception as e:

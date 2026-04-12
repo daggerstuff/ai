@@ -340,7 +340,7 @@ class QualityRecommendationSystem:
             # Calculate confidence score
             confidence = 0.9 if metric in self.recommendation_templates else 0.7
 
-            recommendation = QualityRecommendation(
+            return QualityRecommendation(
                 recommendation_id=f"QR_{metric}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
                 category=category,
                 priority=priority,
@@ -361,7 +361,6 @@ class QualityRecommendationSystem:
                 confidence_score=confidence
             )
 
-            return recommendation
 
         except Exception as e:
             print(f"❌ Error creating recommendation for {metric}: {e}")

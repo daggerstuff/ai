@@ -63,7 +63,7 @@ class EvaluateSourcesPrompt(MCPPrompt):
             source_ids_str = "all sources in session"
             source_ids_json = "null"
 
-        template = f"""# Dataset Evaluation Workflow
+        return f"""# Dataset Evaluation Workflow
 
 ## Overview
 This workflow guides you through evaluating dataset sources across four quality dimensions for research session `{session_id}`.
@@ -192,5 +192,4 @@ evaluate_sources(
 - You can manually override evaluation scores if needed
 """
 
-        return template
 

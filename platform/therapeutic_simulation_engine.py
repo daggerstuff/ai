@@ -483,7 +483,7 @@ class TherapeuticSimulationEngine:
             impact["resistance_change"] += 0.2  # Increases resistance
 
         # Emotional intensity impact
-        personality_modifiers = self.personality_response_modifiers.get(
+        self.personality_response_modifiers.get(
             client_profile.personality_type, {}
         )
 
@@ -615,7 +615,7 @@ class TherapeuticSimulationEngine:
         """Call the trained therapeutic AI model for response generation"""
 
         # Construct prompt for AI model
-        ai_prompt = f"""
+        f"""
         You are role-playing as a {client_profile.personality_type.value} client in therapy.
 
         Client Background: {client_profile.presenting_problem}

@@ -76,16 +76,13 @@ class BottleneckResolutionOrchestrator:
             missing.append("Docker")
 
         # Check Docker Compose (try both new and old syntax)
-        docker_compose_available = False
         try:
             subprocess.run(["docker", "compose", "version"], capture_output=True, check=True)
             logger.info("✅ Docker Compose available")
-            docker_compose_available = True
         except (subprocess.CalledProcessError, FileNotFoundError):
             try:
                 subprocess.run(["docker-compose", "--version"], capture_output=True, check=True)
                 logger.info("✅ Docker Compose available")
-                docker_compose_available = True
             except (subprocess.CalledProcessError, FileNotFoundError):
                 logger.error("❌ Docker Compose not found")
                 missing.append("Docker Compose")

@@ -163,13 +163,12 @@ class DatasetDeduplicator:
                 hash_to_locations[record_hash].append(f"{dataset_name}:{idx}")
 
         # Filter to only hashes that appear in multiple datasets
-        cross_dataset_duplicates = {
+        return {
             h: locations
             for h, locations in hash_to_locations.items()
             if len(set(loc.split(":")[0] for loc in locations)) > 1
         }
 
-        return cross_dataset_duplicates
 
     def deduplicate_dataset(
         self,

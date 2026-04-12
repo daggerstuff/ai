@@ -243,7 +243,7 @@ class TherapyDatasetSourcing:
             quality_score = self._calculate_quality_score(data)
             therapeutic_relevance = self._calculate_therapeutic_relevance(data)
 
-            metadata = DatasetMetadata(
+            return DatasetMetadata(
                 name=dataset_id,
                 source=DatasetSource.HUGGINGFACE.value,
                 url=f"https://huggingface.co/datasets/{dataset_id}",
@@ -268,7 +268,6 @@ class TherapyDatasetSourcing:
                 therapeutic_relevance=therapeutic_relevance,
             )
 
-            return metadata
 
         except Exception as e:
             logger.warning(f"Error getting details for {dataset_id}: {e}")
@@ -424,9 +423,8 @@ class TherapyDatasetSourcing:
         matches = sum(1 for kw in self.therapy_keywords if kw in text_to_check)
 
         # Normalize to 0-1 scale
-        score = min(matches / 10, 1.0)
+        return min(matches / 10, 1.0)
 
-        return score
 
     # ==================== Advanced Filtering ====================
 

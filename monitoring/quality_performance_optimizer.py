@@ -139,7 +139,7 @@ class QualityPerformanceOptimizer:
             # Generate synthetic performance data for demonstration
             current_time = datetime.now(timezone.utc)
 
-            performance_data = {
+            return {
                 "processing_throughput": np.random.uniform(600, 900),  # conversations/hour
                 "quality_validation_speed": np.random.uniform(30, 45),  # validations/second
                 "error_detection_accuracy": np.random.uniform(0.88, 0.93),  # accuracy
@@ -154,7 +154,6 @@ class QualityPerformanceOptimizer:
                 "cpu_usage": np.random.uniform(0.3, 0.7)
             }
 
-            return performance_data
 
         except Exception as e:
             print(f"❌ Error collecting performance data: {e}")

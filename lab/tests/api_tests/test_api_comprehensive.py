@@ -38,8 +38,7 @@ class APITestClient:
 
     async def request(self, method: str, endpoint: str, **kwargs) -> httpx.Response:
         """Make HTTP request with error handling."""
-        response = await self.client.request(method, endpoint, **kwargs)
-        return response
+        return await self.client.request(method, endpoint, **kwargs)
 
     async def close(self):
         """Close the HTTP client."""

@@ -487,14 +487,13 @@ class ErrorRecoveryManager:
         # Simulate rollback to previous checkpoint
         try:
             # In real implementation, this would restore from checkpoint
-            rollback_result = {
+            return {
                 "rollback_successful": True,
                 "rolled_back_stage": stage_name,
                 "checkpoint_restored": f"{stage_name}_checkpoint_v1",
                 "data_integrity": "maintained"
             }
 
-            return rollback_result
 
         except Exception as e:
             raise PipelineExecutionError(f"Rollback failed: {e!s}") from e

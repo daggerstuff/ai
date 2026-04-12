@@ -399,9 +399,8 @@ class HIPAAValidator:
             else 0.0
         )
 
-        compliance_score = (
+        return (
             critical_score * critical_weight + other_score * other_weight
         )
 
-        return compliance_score
 

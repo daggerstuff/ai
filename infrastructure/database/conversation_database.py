@@ -785,9 +785,8 @@ class ConversationDatabase:
                 params.extend([limit, offset])
 
                 cursor = conn.execute(query, params)
-                results = [dict(row) for row in cursor.fetchall()]
+                return [dict(row) for row in cursor.fetchall()]
 
-                return results
 
         except Exception as e:
             handle_error(

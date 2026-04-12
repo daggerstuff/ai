@@ -375,14 +375,13 @@ class QualityImprovementTracker:
 
     def _generate_success_criteria(self, metric: str, target_value: float) -> list[str]:
         """Generate success criteria for improvement plan"""
-        criteria = [
+        return [
             f"Achieve target {metric.replace('_', ' ')} value of {target_value:.2f}",
             "Maintain improvement for at least 2 weeks",
             f"Show consistent upward trend in {metric.replace('_', ' ')}",
             "No significant regression in other quality metrics",
         ]
 
-        return criteria
 
     def _identify_risk_factors(
         self, metric: str, improvement: QualityImprovement

@@ -418,7 +418,7 @@ class CommandHandler:
                 orchestrator.load_session_state(session_id)
                 session = orchestrator.sessions[session_id]
                 state = orchestrator.get_session_state(session_id)
-                progress = orchestrator.progress_states[session_id]
+                orchestrator.progress_states[session_id]
 
                 # Display status
                 display_progress(

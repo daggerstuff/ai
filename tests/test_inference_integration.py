@@ -220,7 +220,7 @@ class TestInferenceAPIIntegration(unittest.TestCase):
         }
 
         # Log some data that should be redacted
-        log_entry = observability.logger.info(
+        observability.logger.info(
             "Testing sensitive data logging",
             user_id="test_user",
             sensitive_data=sensitive_data,
@@ -258,7 +258,7 @@ class TestModelAdapters(unittest.TestCase):
     def test_model_info_retrieval(self):
         """Test retrieval of model information"""
         # This would normally test a real model, but we'll test the structure
-        config = ModelConfig(
+        ModelConfig(
             model_path="test_model",
             model_type="pytorch",
             model_name="test_model",
@@ -331,7 +331,7 @@ class TestPerformanceBenchmarks(unittest.TestCase):
         """Benchmark API response time"""
         # Measure response time for health endpoint
         start_time = time.time()
-        response = app.test_client().get("/health")
+        app.test_client().get("/health")
         end_time = time.time()
 
         response_time = (end_time - start_time) * 1000  # Convert to milliseconds

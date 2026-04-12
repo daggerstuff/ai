@@ -495,7 +495,7 @@ class QualityComparisonSystem:
                 percentage_diffs = [
                     comp.percentage_difference for comp in category_comparisons
                 ]
-                p_values = [
+                [
                     comp.statistical_significance for comp in category_comparisons
                 ]
                 effect_sizes = [comp.effect_size for comp in category_comparisons]

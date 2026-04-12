@@ -37,13 +37,12 @@ def sample_csv_dataset(tmp_path):
     )
     df.to_csv(csv_path, index=False)
 
-    dataset = AcquiredDataset(
+    return AcquiredDataset(
         source_id="test_source_1",
         storage_path=str(csv_path),
         file_format="csv",
         file_size_mb=0.1,
     )
-    return dataset
 
 
 @pytest.fixture
@@ -65,13 +64,12 @@ def sample_jsonl_dataset(tmp_path):
         for record in records:
             f.write(json.dumps(record) + "\n")
 
-    dataset = AcquiredDataset(
+    return AcquiredDataset(
         source_id="test_source_2",
         storage_path=str(jsonl_path),
         file_format="jsonl",
         file_size_mb=0.1,
     )
-    return dataset
 
 
 class TestDatasetStructureAnalysis:

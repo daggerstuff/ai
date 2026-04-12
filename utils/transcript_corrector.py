@@ -83,9 +83,8 @@ class TranscriptCorrector:
         text = self._apply_terminology_fixes(text)
 
         # Pass 3: LLM Contextual Correction (Mocked)
-        text = self._llm_contextual_correction(text, context)
+        return self._llm_contextual_correction(text, context)
 
-        return text
 
     def _clean_structure(self, text: str) -> str:
         """Remove filler words and normalize whitespace."""
@@ -96,9 +95,8 @@ class TranscriptCorrector:
         cleaned = re.sub(fillers, "", text, flags=re.IGNORECASE)
 
         # Normalize whitespace (replace multiple spaces with single space)
-        cleaned = re.sub(r"\s+", " ", cleaned).strip()
+        return re.sub(r"\s+", " ", cleaned).strip()
 
-        return cleaned
 
     def _apply_terminology_fixes(self, text: str) -> str:
         """Apply deterministic terminology fixes from config."""

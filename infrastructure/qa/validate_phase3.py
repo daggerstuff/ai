@@ -502,7 +502,7 @@ class Phase3Validator:
                     time.sleep(2)
 
                     # Check that metrics are being collected
-                    recent_metrics = monitor.metrics_collector.get_recent_metrics(
+                    monitor.metrics_collector.get_recent_metrics(
                         hours=1
                     )
 
