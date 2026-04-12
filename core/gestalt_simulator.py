@@ -4,6 +4,5 @@
 
 class GestaltSimulator:
     """Stub implementation for GestaltSimulator."""
-    pass
 
-__all__ = ['GestaltSimulator']
+__all__ = ["GestaltSimulator"]

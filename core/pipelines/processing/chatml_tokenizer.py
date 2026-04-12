@@ -4,6 +4,6 @@
 
 def tokenize_dataset(*args, **kwargs):
     """Stub implementation for tokenize_dataset."""
-    return None
+    return
 
-__all__ = ['tokenize_dataset']
+__all__ = ["tokenize_dataset"]

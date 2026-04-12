@@ -3,6 +3,5 @@
 
 class DbtIntegration:
     """Stub implementation for DbtIntegration."""
-    pass
 
-__all__ = ['DbtIntegration']
+__all__ = ["DbtIntegration"]

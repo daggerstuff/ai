@@ -3,6 +3,5 @@
 
 class Config:
     """Stub implementation for Config."""
-    pass
 
-__all__ = ['Config']
+__all__ = ["Config"]

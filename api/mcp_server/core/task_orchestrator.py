@@ -5,13 +5,15 @@ This module implements task delegation, assignment, and tracking across agents,
 with built-in error handling and real-time progress updates.
 """
 
+from datetime import datetime, timezone
+
+
 import asyncio
 import logging
 import uuid
 from dataclasses import asdict, dataclass
-from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # Internal imports
 from ..integration.mongodb_client import MCPMongoDBClient
@@ -34,8 +36,8 @@ class TaskCreationData:
     """Data required for task creation."""
     pipeline_id: str
     stage: str
-    parameters: Dict[str, Any]
-    required_capabilities: List[str]
+    parameters: dict[str, Any]
+    required_capabilities: list[str]
     priority: int = 1
 
 @dataclass
@@ -44,27 +46,27 @@ class Task:
     id: str
     pipeline_id: str
     stage: str
-    parameters: Dict[str, Any]
-    required_capabilities: List[str]
+    parameters: dict[str, Any]
+    required_capabilities: list[str]
     priority: int
     status: TaskStatus
     created_at: datetime
-    assigned_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
-    agent_id: Optional[str] = None
+    assigned_at: datetime | None = None
+    completed_at: datetime | None = None
+    agent_id: str | None = None
     progress: float = 0.0
-    error: Optional[str] = None
-    result: Optional[Dict[str, Any]] = None
+    error: str | None = None
+    result: dict[str, Any] | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert task to dictionary for JSON serialization."""
         data = asdict(self)
-        data['status'] = self.status.value
-        data['created_at'] = self.created_at.isoformat()
+        data["status"] = self.status.value
+        data["created_at"] = self.created_at.isoformat()
         if self.assigned_at:
-            data['assigned_at'] = self.assigned_at.isoformat()
+            data["assigned_at"] = self.assigned_at.isoformat()
         if self.completed_at:
-            data['completed_at'] = self.completed_at.isoformat()
+            data["completed_at"] = self.completed_at.isoformat()
         return data
 
 class TaskQueue:
@@ -79,7 +81,7 @@ class TaskQueue:
         await self.mongodb.insert_one(self.collection, task.to_dict())
         logger.debug(f"Task {task.id} enqueued")
 
-    async def get_pending_tasks(self) -> List[Task]:
+    async def get_pending_tasks(self) -> list[Task]:
         """Retrieve all pending tasks ordered by priority."""
         cursor = await self.mongodb.find_many(
             self.collection,
@@ -97,7 +99,7 @@ class TaskQueue:
         )
         logger.debug(f"Task {task.id} updated in queue")
 
-    def _from_dict(self, data: Dict[str, Any]) -> Task:
+    def _from_dict(self, data: dict[str, Any]) -> Task:
         """Create Task instance from dictionary."""
         return Task(
             id=data.get("id", str(uuid.uuid4())),
@@ -108,7 +110,7 @@ class TaskQueue:
             priority=data.get("priority", 1),
             status=TaskStatus(data.get("status", TaskStatus.PENDING.value)),
             created_at=datetime.fromisoformat(
-                data.get("created_at", datetime.utcnow().isoformat())
+                data.get("created_at", datetime.now(timezone.utc).isoformat())
             ),
             assigned_at=(
                 datetime.fromisoformat(data["assigned_at"])
@@ -129,7 +131,7 @@ class TaskQueue:
 class TaskAssigner:
     """Handles logic for matching tasks to appropriate agents."""
 
-    async def assign_agent(self, task: Task, agents: List[Agent]) -> Optional[Agent]:
+    async def assign_agent(self, task: Task, agents: list[Agent]) -> Agent | None:
         """Select best agent for task based on requirements and load."""
         # Baseline assignment logic: find first active agent with required capabilities
         for agent in agents:
@@ -150,11 +152,11 @@ class ProgressTracker:
         self, task_id: str, progress: float, status: TaskStatus
     ) -> None:
         """Propagate progress updates to system observers."""
-        await self.redis.publish('task.progress', {
-            'task_id': task_id,
-            'progress': progress,
-            'status': status.value,
-            'timestamp': datetime.utcnow().isoformat()
+        await self.redis.publish("task.progress", {
+            "task_id": task_id,
+            "progress": progress,
+            "status": status.value,
+            "timestamp": datetime.now(timezone.utc).isoformat()
         })
         logger.debug(f"Progress update for task {task_id}: {progress}%")
 
@@ -184,7 +186,7 @@ class TaskOrchestrator:
             required_capabilities=task_data.required_capabilities,
             priority=task_data.priority,
             status=TaskStatus.PENDING,
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
 
         await self.task_queue.enqueue(task)
@@ -222,7 +224,7 @@ class TaskOrchestrator:
         # Update task status
         task.status = TaskStatus.ASSIGNED
         task.agent_id = agent.id
-        task.assigned_at = datetime.utcnow()
+        task.assigned_at = datetime.now(timezone.utc)
 
         await self.task_queue.update_task(task)
 
@@ -233,8 +235,8 @@ class TaskOrchestrator:
 
         # Notify assigned agent via Redis
         await self.redis.publish(f"agent.{agent.id}.tasks", {
-            'action': 'new_task',
-            'task': task.to_dict()
+            "action": "new_task",
+            "task": task.to_dict()
         })
 
         return True
@@ -244,8 +246,8 @@ class TaskOrchestrator:
         task_id: str,
         progress: float,
         status: TaskStatus,
-        result: Optional[Dict[str, Any]] = None,
-        error: Optional[str] = None,
+        result: dict[str, Any] | None = None,
+        error: str | None = None,
     ) -> bool:
         """Update progress and publish events."""
         task_data = await self.mongodb.find_one("tasks", {"id": task_id})
@@ -263,7 +265,7 @@ class TaskOrchestrator:
             task.error = error
 
         if status in [TaskStatus.COMPLETED, TaskStatus.FAILED, TaskStatus.CANCELLED]:
-            task.completed_at = datetime.utcnow()
+            task.completed_at = datetime.now(timezone.utc)
 
             # Free up agent if one was assigned
             if task.agent_id:

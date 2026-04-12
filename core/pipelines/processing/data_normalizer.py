@@ -11,6 +11,8 @@ Canonical JSONL schema fields:
   phi_scan_passed, phi_scan_date, pull_date, pix_ticket
 """
 
+from datetime import datetime, timezone
+
 from __future__ import annotations
 
 import hashlib
@@ -18,7 +20,6 @@ import logging
 import re
 import unicodedata
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -199,7 +200,7 @@ class DataNormalizer:
 
         return normalized
 
-    def record_to_conversation(self, record: dict[str, Any]) -> "Conversation":
+    def record_to_conversation(self, record: dict[str, Any]) -> Conversation:
         """
         Convert a normalized JSONL record into a Conversation dataclass instance.
 
@@ -500,7 +501,7 @@ class Conversation:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "Conversation":
+    def from_dict(cls, data: dict[str, Any]) -> Conversation:
         """Creates a Conversation instance from a dictionary."""
         messages = [Message(**msg_data) for msg_data in data.get("messages", [])]
         return cls(
@@ -519,11 +520,11 @@ class Conversation:
 
 
 __all__ = [
-    "DataNormalizer",
-    "ValidationResult",
-    "NormalizationResult",
-    "Message",
-    "Conversation",
     "REQUIRED_FIELDS",
     "REQUIRED_METADATA_FIELDS",
+    "Conversation",
+    "DataNormalizer",
+    "Message",
+    "NormalizationResult",
+    "ValidationResult",
 ]

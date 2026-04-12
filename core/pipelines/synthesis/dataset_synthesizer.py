@@ -3,6 +3,5 @@
 
 class DatasetSynthesizer:
     """Stub implementation for DatasetSynthesizer."""
-    pass
 
-__all__ = ['DatasetSynthesizer']
+__all__ = ["DatasetSynthesizer"]

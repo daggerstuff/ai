@@ -9,13 +9,14 @@ Usage:
     python -m ai.core.pipelines.processing.stage_slicer --output-dir ai/data/staged_datasets
 """
 
+from datetime import datetime, timezone
+
 import argparse
 import hashlib
 import json
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 
 @dataclass
@@ -25,7 +26,7 @@ class StageMapping:
     stage_id: str
     stage_name: str
     target_share: float
-    source_files: List[str] = field(default_factory=list)
+    source_files: list[str] = field(default_factory=list)
     output_file: str = ""
 
 
@@ -88,7 +89,7 @@ def compute_sha256(data: str) -> str:
     return hashlib.sha256(data.encode("utf-8")).hexdigest()
 
 
-def load_jsonl_file(file_path: Path) -> List[Dict[str, Any]]:
+def load_jsonl_file(file_path: Path) -> list[dict[str, Any]]:
     """Load records from a JSONL file."""
     if not file_path.exists():
         return []
@@ -105,7 +106,7 @@ def load_jsonl_file(file_path: Path) -> List[Dict[str, Any]]:
     return records
 
 
-def load_json_file(file_path: Path) -> List[Dict[str, Any]]:
+def load_json_file(file_path: Path) -> list[dict[str, Any]]:
     """Load records from a JSON file (array of objects or single object)."""
     if not file_path.exists():
         return []
@@ -114,15 +115,15 @@ def load_json_file(file_path: Path) -> List[Dict[str, Any]]:
         data = json.load(f)
         if isinstance(data, list):
             return data
-        elif isinstance(data, dict):
+        if isinstance(data, dict):
             # Wrap single object
             return [data]
         return []
 
 
 def normalize_record(
-    record: Dict[str, Any], source: str, stage_id: str
-) -> Dict[str, Any]:
+    record: dict[str, Any], source: str, stage_id: str
+) -> dict[str, Any]:
     """Normalize a record to standard format with metadata."""
     # Extract or infer conversation/text fields
     text = (
@@ -162,7 +163,7 @@ def normalize_record(
     return normalized
 
 
-def slice_datasets(output_dir: Path, dry_run: bool = False) -> Dict[str, Any]:
+def slice_datasets(output_dir: Path, dry_run: bool = False) -> dict[str, Any]:
     """
     Slice validated datasets into training stages.
 
@@ -226,9 +227,7 @@ def slice_datasets(output_dir: Path, dry_run: bool = False) -> Dict[str, Any]:
                 # Handle directory sources
                 records = []
                 for f in source.glob("*.json*"):
-                    if f.suffix == ".jsonl":
-                        records.extend(load_jsonl_file(f))
-                    elif f.suffix == ".json":
+                    if f.suffix == ".jsonl" or f.suffix == ".json":
                         records.extend(load_jsonl_file(f))
             else:
                 report["warnings"].append(f"Unknown file type: {source_path}")
@@ -267,7 +266,7 @@ def slice_datasets(output_dir: Path, dry_run: bool = False) -> Dict[str, Any]:
     return report
 
 
-def generate_metadata(report: Dict[str, Any], output_dir: Path) -> None:
+def generate_metadata(report: dict[str, Any], output_dir: Path) -> None:
     """Generate metadata file for the sliced datasets."""
     metadata = {
         "version": "1.0.0",
@@ -307,7 +306,7 @@ def main():
 
     args = parser.parse_args()
 
-    print(f"DACT-06 Stage-Based Dataset Slicing")
+    print("DACT-06 Stage-Based Dataset Slicing")
     print(f"Output directory: {args.output_dir}")
     print(f"Dry run: {args.dry_run}")
     print("-" * 50)
@@ -328,7 +327,7 @@ def main():
         print(f"  Output: {stage_report['output_file']}")
         print(f"  Size: {stage_report['size_bytes'] / (1024**2):.2f} MB")
 
-        print(f"  Sources:")
+        print("  Sources:")
         for src in stage_report["source_files"]:
             print(f"    - {src['path']}: {src['records']:,} records ({src['status']})")
 

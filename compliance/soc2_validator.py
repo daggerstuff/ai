@@ -7,18 +7,18 @@ Enterprise-grade SOC2 compliance validation for security controls, availability 
 and processing integrity per SOC2 Type II requirements.
 """
 
+from datetime import datetime, timedelta, timezone
+
 import json
 import logging
-import os
 import sqlite3
 import threading
 import time
 import uuid
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any
 
 import psutil
 
@@ -57,8 +57,8 @@ class SOC2Control:
     principle: SOC2Principle
     category: ControlCategory
     description: str
-    requirements: List[str]
-    testing_procedures: List[str]
+    requirements: list[str]
+    testing_procedures: list[str]
     frequency: str  # daily, weekly, monthly, quarterly, annually
 
 @dataclass
@@ -68,8 +68,8 @@ class ControlTest:
     control_id: str
     timestamp: datetime
     status: ComplianceStatus
-    evidence: List[str]
-    exceptions: List[str]
+    evidence: list[str]
+    exceptions: list[str]
     remediation_required: bool
     next_test_date: datetime
 
@@ -81,10 +81,10 @@ class SOC2Assessment:
     period_start: datetime
     period_end: datetime
     overall_status: ComplianceStatus
-    principle_scores: Dict[SOC2Principle, float]
-    control_results: List[ControlTest]
+    principle_scores: dict[SOC2Principle, float]
+    control_results: list[ControlTest]
     exceptions_count: int
-    recommendations: List[str]
+    recommendations: list[str]
 
 class SystemMonitor:
     """System monitoring for SOC2 availability and performance"""
@@ -123,7 +123,7 @@ class SystemMonitor:
                 cutoff_time = datetime.now(timezone.utc) - timedelta(hours=24)
                 self.metrics_history = [
                     m for m in self.metrics_history
-                    if m['timestamp'] > cutoff_time
+                    if m["timestamp"] > cutoff_time
                 ]
 
                 # Check for alerts
@@ -135,19 +135,19 @@ class SystemMonitor:
                 logger.error(f"Monitoring error: {e}")
                 time.sleep(60)
 
-    def _collect_metrics(self) -> Dict[str, Any]:
+    def _collect_metrics(self) -> dict[str, Any]:
         """Collect system metrics"""
         return {
             "timestamp": datetime.now(timezone.utc),
             "cpu_usage": psutil.cpu_percent(interval=1),
             "memory_usage": psutil.virtual_memory().percent,
-            "disk_usage": psutil.disk_usage('/').percent,
+            "disk_usage": psutil.disk_usage("/").percent,
             "network_io": psutil.net_io_counters()._asdict(),
             "process_count": len(psutil.pids()),
             "uptime": time.time() - psutil.boot_time()
         }
 
-    def _check_alerts(self, metrics: Dict[str, Any]):
+    def _check_alerts(self, metrics: dict[str, Any]):
         """Check metrics against alert thresholds"""
         alerts = []
 
@@ -163,12 +163,12 @@ class SystemMonitor:
         if alerts:
             logger.warning(f"SOC2 monitoring alerts: {', '.join(alerts)}")
 
-    def get_availability_metrics(self, hours: int = 24) -> Dict[str, Any]:
+    def get_availability_metrics(self, hours: int = 24) -> dict[str, Any]:
         """Get availability metrics for specified period"""
         cutoff_time = datetime.now(timezone.utc) - timedelta(hours=hours)
         recent_metrics = [
             m for m in self.metrics_history
-            if m['timestamp'] > cutoff_time
+            if m["timestamp"] > cutoff_time
         ]
 
         if not recent_metrics:
@@ -178,7 +178,7 @@ class SystemMonitor:
         total_measurements = len(recent_metrics)
         available_measurements = sum(
             1 for m in recent_metrics
-            if m['cpu_usage'] < 95 and m['memory_usage'] < 95
+            if m["cpu_usage"] < 95 and m["memory_usage"] < 95
         )
 
         availability = (available_measurements / total_measurements) * 100
@@ -187,14 +187,14 @@ class SystemMonitor:
             "availability": availability,
             "uptime": recent_metrics[-1]["uptime"] if recent_metrics else 0,
             "incidents": total_measurements - available_measurements,
-            "avg_cpu": sum(m['cpu_usage'] for m in recent_metrics) / total_measurements,
-            "avg_memory": sum(m['memory_usage'] for m in recent_metrics) / total_measurements
+            "avg_cpu": sum(m["cpu_usage"] for m in recent_metrics) / total_measurements,
+            "avg_memory": sum(m["memory_usage"] for m in recent_metrics) / total_measurements
         }
 
 class SOC2Storage:
     """SOC2 compliance data storage"""
 
-    def __init__(self, db_path: Optional[str] = None):
+    def __init__(self, db_path: str | None = None):
         """Initialize SOC2 storage"""
         self.db_path = db_path or str(Path(__file__).parent / "soc2_compliance.db")
         self._init_database()
@@ -280,7 +280,7 @@ class SOC2Storage:
 class SOC2Validator:
     """SOC2 compliance validator"""
 
-    def __init__(self, storage: Optional[SOC2Storage] = None):
+    def __init__(self, storage: SOC2Storage | None = None):
         """Initialize SOC2 validator"""
         self.storage = storage or SOC2Storage()
         self.monitor = SystemMonitor()
@@ -291,7 +291,7 @@ class SOC2Validator:
 
         logger.info("SOC2 validator initialized successfully")
 
-    def _initialize_controls(self) -> Dict[str, SOC2Control]:
+    def _initialize_controls(self) -> dict[str, SOC2Control]:
         """Initialize SOC2 controls"""
         controls = {}
 
@@ -407,7 +407,7 @@ class SOC2Validator:
 
         return test_result
 
-    def _perform_control_test(self, control: SOC2Control) -> Tuple[ComplianceStatus, List[str], List[str]]:
+    def _perform_control_test(self, control: SOC2Control) -> tuple[ComplianceStatus, list[str], list[str]]:
         """Perform actual control testing"""
         evidence = []
         exceptions = []
@@ -425,7 +425,7 @@ class SOC2Validator:
             evidence.append(f"System monitoring active - CPU: {metrics.get('avg_cpu', 0):.1f}%")
             evidence.append(f"Memory usage: {metrics.get('avg_memory', 0):.1f}%")
 
-            if metrics.get('incidents', 0) > 0:
+            if metrics.get("incidents", 0) > 0:
                 exceptions.append(f"{metrics['incidents']} availability incidents detected")
                 status = ComplianceStatus.PARTIALLY_COMPLIANT
             else:
@@ -434,7 +434,7 @@ class SOC2Validator:
         elif control.control_id == "A1.1":  # Availability
             # Test availability metrics
             metrics = self.monitor.get_availability_metrics(hours=24)
-            availability = metrics.get('availability', 0)
+            availability = metrics.get("availability", 0)
 
             evidence.append(f"System availability: {availability:.2f}%")
             evidence.append(f"Uptime: {metrics.get('uptime', 0):.0f} seconds")
@@ -463,16 +463,15 @@ class SOC2Validator:
         """Calculate next test date based on frequency"""
         if frequency == "daily":
             return current_date + timedelta(days=1)
-        elif frequency == "weekly":
+        if frequency == "weekly":
             return current_date + timedelta(weeks=1)
-        elif frequency == "monthly":
+        if frequency == "monthly":
             return current_date + timedelta(days=30)
-        elif frequency == "quarterly":
+        if frequency == "quarterly":
             return current_date + timedelta(days=90)
-        elif frequency == "annually":
+        if frequency == "annually":
             return current_date + timedelta(days=365)
-        else:
-            return current_date + timedelta(days=30)  # Default to monthly
+        return current_date + timedelta(days=30)  # Default to monthly
 
     def _store_control_test(self, test_result: ControlTest):
         """Store control test result"""
@@ -548,7 +547,7 @@ class SOC2Validator:
 
         return assessment
 
-    def _calculate_principle_scores(self, control_results: List[ControlTest]) -> Dict[SOC2Principle, float]:
+    def _calculate_principle_scores(self, control_results: list[ControlTest]) -> dict[SOC2Principle, float]:
         """Calculate scores for each SOC2 principle"""
         principle_scores = {}
 
@@ -572,7 +571,7 @@ class SOC2Validator:
 
         return principle_scores
 
-    def _determine_overall_status(self, principle_scores: Dict[SOC2Principle, float]) -> ComplianceStatus:
+    def _determine_overall_status(self, principle_scores: dict[SOC2Principle, float]) -> ComplianceStatus:
         """Determine overall compliance status"""
         if not principle_scores:
             return ComplianceStatus.NOT_APPLICABLE
@@ -581,12 +580,11 @@ class SOC2Validator:
 
         if avg_score >= 95:
             return ComplianceStatus.COMPLIANT
-        elif avg_score >= 80:
+        if avg_score >= 80:
             return ComplianceStatus.PARTIALLY_COMPLIANT
-        else:
-            return ComplianceStatus.NON_COMPLIANT
+        return ComplianceStatus.NON_COMPLIANT
 
-    def _generate_soc2_recommendations(self, control_results: List[ControlTest]) -> List[str]:
+    def _generate_soc2_recommendations(self, control_results: list[ControlTest]) -> list[str]:
         """Generate SOC2 compliance recommendations"""
         recommendations = []
 
@@ -668,7 +666,7 @@ if __name__ == "__main__":
 
     # Generate assessment
     assessment = validator.generate_soc2_assessment()
-    print(f"\nSOC2 Assessment:")
+    print("\nSOC2 Assessment:")
     print(f"Assessment ID: {assessment.assessment_id}")
     print(f"Overall Status: {assessment.overall_status}")
     print(f"Exceptions: {assessment.exceptions_count}")

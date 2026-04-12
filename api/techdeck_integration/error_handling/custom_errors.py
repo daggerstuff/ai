@@ -5,9 +5,10 @@ This module defines comprehensive error types for different failure scenarios
 with HIPAA++ compliant error handling and audit logging capabilities.
 """
 
-import logging
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+
+import logging
+from typing import Any
 
 
 class TechDeckBaseError(Exception):
@@ -23,9 +24,9 @@ class TechDeckBaseError(Exception):
         message: str,
         error_code: str,
         status_code: int = 500,
-        details: Optional[Dict[str, Any]] = None,
-        request_id: Optional[str] = None,
-        user_id: Optional[str] = None,
+        details: dict[str, Any] | None = None,
+        request_id: str | None = None,
+        user_id: str | None = None,
     ):
         """
         Initialize base error with comprehensive error information.
@@ -54,7 +55,7 @@ class TechDeckBaseError(Exception):
 
         return str(uuid.uuid4())
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """
         Convert error to dictionary for JSON serialization.
 
@@ -74,7 +75,7 @@ class TechDeckBaseError(Exception):
             },
         }
 
-    def to_audit_log(self) -> Dict[str, Any]:
+    def to_audit_log(self) -> dict[str, Any]:
         """
         Convert error to audit log format for HIPAA compliance.
 
@@ -92,7 +93,7 @@ class TechDeckBaseError(Exception):
             "details": self._sanitize_for_audit(self.details),
         }
 
-    def _sanitize_for_audit(self, details: Dict[str, Any]) -> Dict[str, Any]:
+    def _sanitize_for_audit(self, details: dict[str, Any]) -> dict[str, Any]:
         """
         Sanitize error details for audit logging (remove PII/sensitive data).
 
@@ -130,7 +131,7 @@ class AuthorizationError(TechDeckBaseError):
     """Authorization/permission-related errors."""
 
     def __init__(
-        self, message: str, required_permissions: Optional[List[str]] = None, **kwargs
+        self, message: str, required_permissions: list[str] | None = None, **kwargs
     ):
         details = {"required_permissions": required_permissions or []}
         super().__init__(
@@ -146,7 +147,7 @@ class ValidationError(TechDeckBaseError):
     """Input validation errors."""
 
     def __init__(
-        self, message: str, field_errors: Optional[Dict[str, str]] = None, **kwargs
+        self, message: str, field_errors: dict[str, str] | None = None, **kwargs
     ):
         details = {"field_errors": field_errors or {}}
         super().__init__(
@@ -164,8 +165,8 @@ class ResourceNotFoundError(TechDeckBaseError):
     def __init__(
         self,
         message: str,
-        resource_type: Optional[str] = None,
-        resource_id: Optional[str] = None,
+        resource_type: str | None = None,
+        resource_id: str | None = None,
         **kwargs,
     ):
         details = {}
@@ -185,7 +186,7 @@ class ResourceNotFoundError(TechDeckBaseError):
 class DatasetNotFoundError(ResourceNotFoundError):
     """Dataset specific not found errors."""
 
-    def __init__(self, message: str, dataset_id: Optional[str] = None, **kwargs):
+    def __init__(self, message: str, dataset_id: str | None = None, **kwargs):
         super().__init__(
             message=message, resource_type="dataset", resource_id=dataset_id, **kwargs
         )
@@ -194,7 +195,7 @@ class DatasetNotFoundError(ResourceNotFoundError):
 class DatasetError(TechDeckBaseError):
     """Dataset-related errors."""
 
-    def __init__(self, message: str, dataset_id: Optional[str] = None, **kwargs):
+    def __init__(self, message: str, dataset_id: str | None = None, **kwargs):
         details = {"dataset_id": dataset_id} if dataset_id else {}
         super().__init__(
             message=message,
@@ -211,8 +212,8 @@ class PipelineError(TechDeckBaseError):
     def __init__(
         self,
         message: str,
-        pipeline_id: Optional[str] = None,
-        stage: Optional[str] = None,
+        pipeline_id: str | None = None,
+        stage: str | None = None,
         **kwargs,
     ):
         details = {}
@@ -253,8 +254,8 @@ class BiasDetectionError(TechDeckBaseError):
     def __init__(
         self,
         message: str,
-        bias_score: Optional[float] = None,
-        threshold: Optional[float] = None,
+        bias_score: float | None = None,
+        threshold: float | None = None,
         **kwargs,
     ):
         details = {}
@@ -274,7 +275,7 @@ class BiasDetectionError(TechDeckBaseError):
 class FileProcessingError(TechDeckBaseError):
     """Errors encountered during file processing."""
 
-    def __init__(self, message: str, filename: Optional[str] = None, **kwargs):
+    def __init__(self, message: str, filename: str | None = None, **kwargs):
         details = {"filename": filename} if filename else {}
         super().__init__(
             message=message,
@@ -288,7 +289,7 @@ class FileProcessingError(TechDeckBaseError):
 class StorageError(TechDeckBaseError):
     """Errors related to file storage and persistence."""
 
-    def __init__(self, message: str, operation: Optional[str] = None, **kwargs):
+    def __init__(self, message: str, operation: str | None = None, **kwargs):
         details = {"operation": operation} if operation else {}
         super().__init__(
             message=message,
@@ -305,8 +306,8 @@ class FileUploadError(TechDeckBaseError):
     def __init__(
         self,
         message: str,
-        filename: Optional[str] = None,
-        file_size: Optional[int] = None,
+        filename: str | None = None,
+        file_size: int | None = None,
         **kwargs,
     ):
         details = {}
@@ -329,8 +330,8 @@ class RateLimitError(TechDeckBaseError):
     def __init__(
         self,
         message: str,
-        retry_after: Optional[int] = None,
-        limit: Optional[int] = None,
+        retry_after: int | None = None,
+        limit: int | None = None,
         **kwargs,
     ):
         details = {}
@@ -350,7 +351,7 @@ class RateLimitError(TechDeckBaseError):
 class DatabaseError(TechDeckBaseError):
     """Database operation errors."""
 
-    def __init__(self, message: str, operation: Optional[str] = None, **kwargs):
+    def __init__(self, message: str, operation: str | None = None, **kwargs):
         details = {"operation": operation} if operation else {}
         super().__init__(
             message=message,
@@ -364,7 +365,7 @@ class DatabaseError(TechDeckBaseError):
 class RedisError(TechDeckBaseError):
     """Redis operation errors."""
 
-    def __init__(self, message: str, operation: Optional[str] = None, **kwargs):
+    def __init__(self, message: str, operation: str | None = None, **kwargs):
         details = {"operation": operation} if operation else {}
         super().__init__(
             message=message,
@@ -387,7 +388,7 @@ class EventBusError(TechDeckBaseError):
 class WebSocketError(TechDeckBaseError):
     """WebSocket communication errors."""
 
-    def __init__(self, message: str, connection_id: Optional[str] = None, **kwargs):
+    def __init__(self, message: str, connection_id: str | None = None, **kwargs):
         details = {"connection_id": connection_id} if connection_id else {}
         super().__init__(
             message=message,
@@ -401,7 +402,7 @@ class WebSocketError(TechDeckBaseError):
 class IntegrationError(TechDeckBaseError):
     """External service integration errors."""
 
-    def __init__(self, message: str, service_name: Optional[str] = None, **kwargs):
+    def __init__(self, message: str, service_name: str | None = None, **kwargs):
         details = {"service": service_name} if service_name else {}
         super().__init__(
             message=message,
@@ -418,8 +419,8 @@ class CircuitBreakerError(TechDeckBaseError):
     def __init__(
         self,
         message: str,
-        service_name: Optional[str] = None,
-        failure_count: Optional[int] = None,
+        service_name: str | None = None,
+        failure_count: int | None = None,
         **kwargs,
     ):
         details = {}
@@ -439,7 +440,7 @@ class CircuitBreakerError(TechDeckBaseError):
 class RetryExhaustedError(TechDeckBaseError):
     """Retry mechanism exhausted errors."""
 
-    def __init__(self, message: str, max_attempts: Optional[int] = None, **kwargs):
+    def __init__(self, message: str, max_attempts: int | None = None, **kwargs):
         details = {"max_attempts": max_attempts} if max_attempts else {}
         super().__init__(
             message=message,
@@ -453,7 +454,7 @@ class RetryExhaustedError(TechDeckBaseError):
 class TimeoutError(TechDeckBaseError):
     """Operation timeout errors."""
 
-    def __init__(self, message: str, timeout_seconds: Optional[int] = None, **kwargs):
+    def __init__(self, message: str, timeout_seconds: int | None = None, **kwargs):
         details = {"timeout_seconds": timeout_seconds} if timeout_seconds else {}
         super().__init__(
             message=message,
@@ -476,7 +477,7 @@ class EncryptionError(TechDeckBaseError):
 class ConfigurationError(TechDeckBaseError):
     """Configuration-related errors."""
 
-    def __init__(self, message: str, config_key: Optional[str] = None, **kwargs):
+    def __init__(self, message: str, config_key: str | None = None, **kwargs):
         details = {"config_key": config_key} if config_key else {}
         super().__init__(
             message=message,
@@ -490,7 +491,7 @@ class ConfigurationError(TechDeckBaseError):
 class ServiceUnavailableError(TechDeckBaseError):
     """Service unavailable errors."""
 
-    def __init__(self, message: str, service_name: Optional[str] = None, **kwargs):
+    def __init__(self, message: str, service_name: str | None = None, **kwargs):
         details = {"service": service_name} if service_name else {}
         super().__init__(
             message=message,
@@ -505,7 +506,7 @@ class AnalyticsError(TechDeckBaseError):
     """Raised when an analytics operation fails."""
 
     def __init__(
-        self, message: str, details: Optional[Dict[str, Any]] = None, **kwargs
+        self, message: str, details: dict[str, Any] | None = None, **kwargs
     ):
         super().__init__(message, "ANALYTICS_ERROR", 500, details, **kwargs)
 
@@ -514,7 +515,7 @@ class StandardizationError(TechDeckBaseError):
     """Raised when a data standardization process fails."""
 
     def __init__(
-        self, message: str, details: Optional[Dict[str, Any]] = None, **kwargs
+        self, message: str, details: dict[str, Any] | None = None, **kwargs
     ):
         super().__init__(message, "STANDARDIZATION_ERROR", 500, details, **kwargs)
 
@@ -523,7 +524,7 @@ class SystemError(TechDeckBaseError):
     """Raised when a system-level operation fails."""
 
     def __init__(
-        self, message: str, details: Optional[Dict[str, Any]] = None, **kwargs
+        self, message: str, details: dict[str, Any] | None = None, **kwargs
     ):
         super().__init__(message, "SYSTEM_ERROR", 500, details, **kwargs)
 
@@ -532,7 +533,7 @@ class PipelineNotFoundError(ResourceNotFoundError):
     """Raised when a requested pipeline configuration or execution is not found."""
 
     def __init__(
-        self, message: str, details: Optional[Dict[str, Any]] = None, **kwargs
+        self, message: str, details: dict[str, Any] | None = None, **kwargs
     ):
         super().__init__(message, details, **kwargs)
         self.error_code = "PIPELINE_NOT_FOUND"
@@ -542,7 +543,7 @@ class PerformanceMonitoringError(TechDeckBaseError):
     """Raised when there is an issue with performance monitoring."""
 
     def __init__(
-        self, message: str, details: Optional[Dict[str, Any]] = None, **kwargs
+        self, message: str, details: dict[str, Any] | None = None, **kwargs
     ):
         super().__init__(
             message, "PERFORMANCE_MONITORING_ERROR", 500, details, **kwargs
@@ -590,8 +591,8 @@ class ErrorContext:
     def __init__(
         self,
         operation: str,
-        user_id: Optional[str] = None,
-        request_id: Optional[str] = None,
+        user_id: str | None = None,
+        request_id: str | None = None,
     ):
         """
         Initialize error context.

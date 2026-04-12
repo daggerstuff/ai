@@ -5,13 +5,15 @@ This module provides a comprehensive event-driven communication system
 with Redis pub/sub, connection pooling, and HIPAA++ compliant logging.
 """
 
+from datetime import datetime, timezone
+
+
 import asyncio
 import json
 import time
 from dataclasses import asdict, dataclass
-from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from ..error_handling.custom_errors import (
     EventBusError,
@@ -60,9 +62,9 @@ class EventMessage:
 
     event_type: str
     execution_id: str
-    stage: Optional[str] = None
+    stage: str | None = None
 
-    payload: Dict[str, Any] = None
+    payload: dict[str, Any] = None
 
     timestamp: str = None
 
@@ -76,7 +78,7 @@ class EventMessage:
 
     def __post_init__(self):
         if self.timestamp is None:
-            self.timestamp = datetime.utcnow().isoformat()
+            self.timestamp = datetime.now(timezone.utc).isoformat()
         if self.payload is None:
             self.payload = {}
         if self.correlation_id is None:
@@ -86,12 +88,12 @@ class EventMessage:
 class EventHandler:
     """Base class for event handlers with HIPAA++ compliance."""
 
-    def __init__(self, name: str, event_types: List[str]):
+    def __init__(self, name: str, event_types: list[str]):
         self.name = name
         self.event_types = event_types
         self.logger = get_request_logger()
 
-    async def handle(self, event: EventMessage) -> Optional[Dict[str, Any]]:
+    async def handle(self, event: EventMessage) -> dict[str, Any] | None:
         """
         Handle incoming event with comprehensive logging.
 
@@ -131,9 +133,9 @@ class EventHandler:
                 f"Error in event handler {self.name} for execution "
                 f"{event.execution_id}: {e}"
             )
-            raise EventBusError(f"Event handler {self.name} failed: {str(e)}")
+            raise EventBusError(f"Event handler {self.name} failed: {e!s}")
 
-    async def _process_event(self, event: EventMessage) -> Optional[Dict[str, Any]]:
+    async def _process_event(self, event: EventMessage) -> dict[str, Any] | None:
         """
         Process the event - to be implemented by subclasses.
 
@@ -150,7 +152,7 @@ class EventBus:
     """Redis-based event bus with connection pooling and HIPAA++ compliance."""
 
     def __init__(
-        self, redis_client: RedisClient, config: Optional[Dict[str, Any]] = None
+        self, redis_client: RedisClient, config: dict[str, Any] | None = None
     ):
         """
         Initialize event bus with Redis connection.
@@ -170,7 +172,7 @@ class EventBus:
         self.connection_pool_size = self.config.get("connection_pool_size", 10)
 
         # Event handlers registry
-        self.handlers: Dict[str, List[EventHandler]] = {}
+        self.handlers: dict[str, list[EventHandler]] = {}
 
         # Performance monitoring
         self.metrics = {
@@ -242,13 +244,12 @@ class EventBus:
             # Publish with retry logic if guaranteed delivery is enabled
             if guaranteed_delivery:
                 return await self._publish_with_retry(channel, event_json, event)
-            else:
-                return await self._publish_single_attempt(channel, event_json, event)
+            return await self._publish_single_attempt(channel, event_json, event)
 
         except Exception as e:
             self.logger.error(f"Failed to publish event {event.event_type}: {e}")
             self.metrics["errors_encountered"] += 1
-            raise EventBusError(f"Event publishing failed: {str(e)}")
+            raise EventBusError(f"Event publishing failed: {e!s}")
 
     async def _publish_with_retry(
         self, channel: str, event_json: str, event: EventMessage
@@ -266,11 +267,10 @@ class EventBus:
                         f"(attempt {attempt + 1})"
                     )
                     return True
-                else:
-                    self.logger.warning(
-                        f"No subscribers for event {event.event_type} "
-                        f"on channel {channel} (attempt {attempt + 1})"
-                    )
+                self.logger.warning(
+                    f"No subscribers for event {event.event_type} "
+                    f"on channel {channel} (attempt {attempt + 1})"
+                )
 
             except Exception as e:
                 self.logger.warning(f"Event publish attempt {attempt + 1} failed: {e}")
@@ -309,8 +309,8 @@ class EventBus:
 
     async def subscribe_to_events(
         self,
-        event_types: Optional[List[str]] = None,
-        handler: Optional[EventHandler] = None,
+        event_types: list[str] | None = None,
+        handler: EventHandler | None = None,
         channel: str = "pipeline_events",
     ) -> None:
         """
@@ -340,7 +340,7 @@ class EventBus:
                             message["data"], event_types, handler
                         )
 
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     continue
                 except Exception as e:
                     self.logger.error(f"Error processing message: {e}")
@@ -348,13 +348,13 @@ class EventBus:
 
         except Exception as e:
             self.logger.error(f"Event subscription failed: {e}")
-            raise EventBusError(f"Event subscription failed: {str(e)}")
+            raise EventBusError(f"Event subscription failed: {e!s}")
 
     async def _process_incoming_message(
         self,
-        message_data: Union[str, bytes],
-        event_types_filter: Optional[List[str]],
-        specific_handler: Optional[EventHandler],
+        message_data: str | bytes,
+        event_types_filter: list[str] | None,
+        specific_handler: EventHandler | None,
     ) -> None:
         """Process an incoming message from Redis."""
         start_time = time.time()
@@ -439,7 +439,7 @@ class EventBus:
         if event.payload:
             self._validate_payload_compliance(event.payload)
 
-    def _validate_payload_compliance(self, payload: Dict[str, Any]) -> None:
+    def _validate_payload_compliance(self, payload: dict[str, Any]) -> None:
         """Validate payload for HIPAA++ compliance."""
         # Check for potential PII/PHI indicators
         pii_indicators = ["email", "phone", "ssn", "name", "address"]
@@ -451,7 +451,7 @@ class EventBus:
                     f"Potential PII detected in event payload: {indicator}"
                 )
 
-    def get_metrics(self) -> Dict[str, Any]:
+    def get_metrics(self) -> dict[str, Any]:
         """
         Get current performance metrics.
 
@@ -460,7 +460,7 @@ class EventBus:
         """
         return {
             **self.metrics,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "connection_pool_stats": self.redis_client.get_connection_pool_stats(),
         }
 
@@ -471,7 +471,7 @@ class EventBus:
         status: str,
         progress_percent: float = 0.0,
         message: str = "",
-        payload: Optional[Dict[str, Any]] = None,
+        payload: dict[str, Any] | None = None,
     ) -> EventMessage:
         """
         Create a standardized stage event for six-stage pipeline.
@@ -515,7 +515,7 @@ class EventBus:
         execution_id: str,
         bias_score: float,
         threshold: float,
-        recommendations: List[str] = None,
+        recommendations: list[str] = None,
     ) -> EventMessage:
         """
         Create a bias detection event with HIPAA++ compliant data.
@@ -551,7 +551,7 @@ class EventBus:
             target="pipeline_coordinator",
         )
 
-    def health_check(self) -> Dict[str, Any]:
+    def health_check(self) -> dict[str, Any]:
         """
         Perform comprehensive health check of event bus.
 
@@ -575,7 +575,7 @@ class EventBus:
                     event_type: len(handlers)
                     for event_type, handlers in self.handlers.items()
                 },
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
 
         except Exception as e:
@@ -583,7 +583,7 @@ class EventBus:
             return {
                 "status": "unhealthy",
                 "error": str(e),
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
 
 
@@ -610,7 +610,7 @@ async def publish_stage_completion(
     event_bus: EventBus,
     execution_id: str,
     stage: str,
-    result_data: Optional[Dict[str, Any]] = None,
+    result_data: dict[str, Any] | None = None,
 ) -> bool:
     """Publish stage completion event."""
     event = await event_bus.create_stage_event(
@@ -629,7 +629,7 @@ async def publish_error_event(
     execution_id: str,
     error_type: str,
     error_message: str,
-    stage: Optional[str] = None,
+    stage: str | None = None,
 ) -> bool:
     """Publish error event with HIPAA++ compliant logging."""
     event = EventMessage(

@@ -211,7 +211,7 @@ class StageClassifier:
         """
         self.stage_targets = stage_targets or {}
         self.enforce_targets = enforce_targets
-        self._stage_counts: dict[str, int] = {stage: 0 for stage in self.stage_targets}
+        self._stage_counts: dict[str, int] = dict.fromkeys(self.stage_targets, 0)
 
     def classify(self, record: dict[str, Any]) -> ClassificationResult:
         """
@@ -416,8 +416,8 @@ class StageClassifier:
 
 
 __all__ = [
-    "StageClassifier",
-    "Stage",
     "ClassificationResult",
+    "Stage",
+    "StageClassifier",
     "StageCounts",
 ]

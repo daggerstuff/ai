@@ -34,7 +34,7 @@ class TestPixelInferenceEngine:
     @pytest.fixture
     def engine(self):
         """Create engine instance for testing"""
-        yield PixelInferenceEngine()
+        return PixelInferenceEngine()
 
     def test_initialization(self, engine):
         """Test engine initialization"""

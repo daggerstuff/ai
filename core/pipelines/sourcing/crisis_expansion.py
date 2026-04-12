@@ -8,7 +8,6 @@ coverage for self-harm, suicide, abuse, and other mental health crisis indicator
 import os
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Set
 
 import yaml
 
@@ -39,7 +38,7 @@ class CrisisTerm:
     term: str
     category: CrisisCategory
     intensity: float  # 0.0 to 1.0, where 1.0 is highest intensity
-    synonyms: Set[str] = field(default_factory=set)
+    synonyms: set[str] = field(default_factory=set)
     language: Language = Language.ENGLISH
 
     def __post_init__(self):
@@ -55,7 +54,7 @@ class CrisisExpansionConfig:
     """Configuration for CrisisExpansion."""
 
     # Language preferences
-    languages: Set[Language] = field(default_factory=lambda: {Language.ENGLISH})
+    languages: set[Language] = field(default_factory=lambda: {Language.ENGLISH})
 
     # Intensity thresholds
     low_intensity_threshold: float = 0.3
@@ -72,7 +71,7 @@ class CrisisExpansionConfig:
     include_synonyms: bool = True
 
     # Custom term files to load
-    custom_term_files: List[str] = field(default_factory=list)
+    custom_term_files: list[str] = field(default_factory=list)
 
     # Minimum term length to consider
     min_term_length: int = 3
@@ -93,7 +92,7 @@ class CrisisExpansion:
     - Handle negation to avoid false positives
     """
 
-    def __init__(self, config: Optional[CrisisExpansionConfig] = None):
+    def __init__(self, config: CrisisExpansionConfig | None = None):
         """
         Initialize the CrisisExpansion module.
 
@@ -101,8 +100,8 @@ class CrisisExpansion:
             config: Optional configuration. If None, uses default configuration.
         """
         self.config = config or CrisisExpansionConfig()
-        self._terms: Dict[str, CrisisTerm] = {}
-        self._term_by_category: Dict[CrisisCategory, Set[str]] = {
+        self._terms: dict[str, CrisisTerm] = {}
+        self._term_by_category: dict[CrisisCategory, set[str]] = {
             category: set() for category in CrisisCategory
         }
         self._initialize_base_terms()
@@ -407,7 +406,7 @@ class CrisisExpansion:
         term: str,
         category: CrisisCategory,
         intensity: float,
-        synonyms: Optional[Set[str]] = None,
+        synonyms: set[str] | None = None,
         language: Language = Language.ENGLISH,
     ):
         """
@@ -439,7 +438,7 @@ class CrisisExpansion:
             self._terms[synonym.lower()] = crisis_term
             self._term_by_category[category].add(synonym.lower())
 
-    def expand_term(self, term: str, category: str) -> List[str]:
+    def expand_term(self, term: str, category: str) -> list[str]:
         """
         Expand a crisis term with synonyms and related phrases.
 
@@ -486,7 +485,7 @@ class CrisisExpansion:
 
     def _generate_phrase_variants(
         self, term: str, category: CrisisCategory
-    ) -> Set[str]:
+    ) -> set[str]:
         """
         Generate phrase variants for a term based on common expressions.
 
@@ -561,7 +560,7 @@ class CrisisExpansion:
 
         return variants
 
-    def get_all_crisis_terms(self) -> Set[str]:
+    def get_all_crisis_terms(self) -> set[str]:
         """
         Get all crisis terms in the database.
 
@@ -570,7 +569,7 @@ class CrisisExpansion:
         """
         return set(self._terms.keys())
 
-    def categorize_term(self, term: str) -> Optional[str]:
+    def categorize_term(self, term: str) -> str | None:
         """
         Categorize a term by crisis type.
 
@@ -655,7 +654,7 @@ class CrisisExpansion:
                 # Skip invalid entries
                 continue
 
-    def get_terms_by_category(self, category: CrisisCategory) -> Set[str]:
+    def get_terms_by_category(self, category: CrisisCategory) -> set[str]:
         """
         Get all terms for a specific crisis category.
 
@@ -679,7 +678,7 @@ class CrisisExpansion:
         """
         return term.lower() in self._terms
 
-    def get_term_info(self, term: str) -> Optional[CrisisTerm]:
+    def get_term_info(self, term: str) -> CrisisTerm | None:
         """
         Get detailed information about a term.
 
@@ -694,8 +693,8 @@ class CrisisExpansion:
 
 # Convenience function for easy access
 def create_crisis_expansion(
-    languages: Optional[Set[Language]] = None,
-    custom_term_files: Optional[List[str]] = None,
+    languages: set[Language] | None = None,
+    custom_term_files: list[str] | None = None,
 ) -> CrisisExpansion:
     """
     Create a CrisisExpansion instance with common configurations.

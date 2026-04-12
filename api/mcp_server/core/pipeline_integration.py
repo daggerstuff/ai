@@ -9,7 +9,7 @@ import logging
 import uuid
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # Internal imports
 from .agent_manager import AgentManager
@@ -28,16 +28,16 @@ class PipelineStageStatus(Enum):
 class PipelineConfig:
     """Configuration for a pipeline execution."""
     pipeline_id: str
-    stages: List[Dict[str, Any]]
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    stages: list[dict[str, Any]]
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 @dataclass
 class ExecutionResult:
     """Result of a pipeline execution stage or process."""
     execution_id: str
     status: str
-    data: Dict[str, Any]
-    error: Optional[str] = None
+    data: dict[str, Any]
+    error: str | None = None
 
 class PipelineIntegrationManager:
     """Connect pipeline components to MCP agent orchestration."""
@@ -47,7 +47,7 @@ class PipelineIntegrationManager:
     ):
         self.orchestrator = task_orchestrator
         self.agent_manager = agent_manager
-        self.active_pipelines: Dict[str, PipelineConfig] = {}
+        self.active_pipelines: dict[str, PipelineConfig] = {}
 
     async def execute_pipeline_with_agents(
         self, pipeline_config: PipelineConfig
@@ -66,7 +66,7 @@ class PipelineIntegrationManager:
         try:
             results = []
             for stage_data in pipeline_config.stages:
-                stage_name = stage_data.get('name', 'unknown')
+                stage_name = stage_data.get("name", "unknown")
                 logger.info(
                     f"Dispatching stage {stage_name} for execution "
                     f"{execution_id}"
@@ -76,9 +76,9 @@ class PipelineIntegrationManager:
                 task_data = TaskCreationData(
                     pipeline_id=pipeline_config.pipeline_id,
                     stage=stage_name,
-                    parameters=stage_data.get('parameters', {}),
-                    required_capabilities=stage_data.get('required_capabilities', []),
-                    priority=pipeline_config.metadata.get('priority', 1)
+                    parameters=stage_data.get("parameters", {}),
+                    required_capabilities=stage_data.get("required_capabilities", []),
+                    priority=pipeline_config.metadata.get("priority", 1)
                 )
 
                 # Dispatch task via orchestrator
@@ -109,7 +109,7 @@ class PipelineIntegrationManager:
                 error=str(e)
             )
 
-    async def monitor_pipeline_progress(self, execution_id: str) -> Dict[str, Any]:
+    async def monitor_pipeline_progress(self, execution_id: str) -> dict[str, Any]:
         """Provide detailed progress for an active pipeline execution."""
         # Baseline progress monitoring logic
         # In real implementation, this would aggregate data from TaskOrchestrator

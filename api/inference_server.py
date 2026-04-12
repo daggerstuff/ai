@@ -1,6 +1,5 @@
 import argparse
 import os
-from typing import List
 
 import uvicorn
 from fastapi import FastAPI, HTTPException
@@ -17,7 +16,7 @@ class ChatMessage(BaseModel):
     content: str
 
 class ChatCompletionRequest(BaseModel):
-    messages: List[ChatMessage]
+    messages: list[ChatMessage]
     temperature: float = 0.7
     max_tokens: int = 512
     stream: bool = False

@@ -5,7 +5,8 @@ Route factories for the shared memory server.
 from __future__ import annotations
 
 import logging
-from typing import Any, Callable, Dict, List, Optional
+from collections.abc import Callable
+from typing import Any
 
 from fastapi import APIRouter, Header, HTTPException, Query, Request, Response
 from fastapi.concurrency import run_in_threadpool
@@ -15,7 +16,6 @@ from ai.api.mcp_server.memory_auth import (
     MemoryAccessContext,
     authorize_memory_access,
     readiness_details,
-    required_user_id,
     resolve_authorized_user_id,
 )
 from ai.api.mcp_server.memory_query_service import (
@@ -76,11 +76,11 @@ async def _run_authorized(
     *,
     action: str,
     request: Request,
-    actor_id: Optional[str],
-    user_id: Optional[str],
-    timestamp: Optional[str],
-    nonce: Optional[str],
-    signature: Optional[str],
+    actor_id: str | None,
+    user_id: str | None,
+    timestamp: str | None,
+    nonce: str | None,
+    signature: str | None,
     handler: Callable[[MemoryAccessContext], Any],
 ) -> Any:
     request_body = await request.body()
@@ -109,11 +109,11 @@ async def _run_authorized_for_expected_user(
     *,
     action: str,
     request: Request,
-    actor_id: Optional[str],
-    scoped_user_id: Optional[str],
-    timestamp: Optional[str],
-    nonce: Optional[str],
-    signature: Optional[str],
+    actor_id: str | None,
+    scoped_user_id: str | None,
+    timestamp: str | None,
+    nonce: str | None,
+    signature: str | None,
     expected_user_id: str,
     callback: Callable[[MemoryAccessContext], Any],
 ) -> Any:
@@ -164,11 +164,11 @@ def _require_category_scoped_manager(manager: Any) -> CategoryScopedMemoryManage
 def _scope_for_memory(
     *,
     user_id: str,
-    org_id: Optional[str],
-    project_id: Optional[str],
-    session_id: Optional[str],
-    agent_id: Optional[str],
-    run_id: Optional[str],
+    org_id: str | None,
+    project_id: str | None,
+    session_id: str | None,
+    agent_id: str | None,
+    run_id: str | None,
     include_shared: bool,
 ):
     return scope_from_kwargs(
@@ -187,13 +187,13 @@ def _get_authorized_memory_record(
     *,
     memory_id: str,
     user_id: str,
-    org_id: Optional[str],
-    project_id: Optional[str],
-    session_id: Optional[str],
-    agent_id: Optional[str],
-    run_id: Optional[str],
+    org_id: str | None,
+    project_id: str | None,
+    session_id: str | None,
+    agent_id: str | None,
+    run_id: str | None,
     include_shared: bool,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     scope = _scope_for_memory(
         user_id=user_id,
         org_id=org_id,
@@ -217,8 +217,8 @@ def _get_authorized_memory_record(
 def _enforce_user_scope(
     *,
     access: MemoryAccessContext,
-    expected_user_id: Optional[str] = None,
-    scoped_user_id: Optional[str] = None,
+    expected_user_id: str | None = None,
+    scoped_user_id: str | None = None,
 ) -> str:
     resolved_user_id = resolve_authorized_user_id(access, scoped_user_id)
     if expected_user_id is not None and resolved_user_id != expected_user_id:
@@ -247,7 +247,7 @@ def _get_authorized_hindsight_document(
     bank_id: str,
     document_id: str,
     user_id: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     _ensure_document_write_access(
         manager,
         bank_id=bank_id,
@@ -264,16 +264,16 @@ def _prepare_hindsight_retain_items(
     manager: Any,
     *,
     bank_id: str,
-    items: List[Dict[str, Any]],
+    items: list[dict[str, Any]],
     user_id: str,
-    actor_metadata: Dict[str, Any],
-    org_id: Optional[str],
-    project_id: Optional[str],
-    session_id: Optional[str],
-    agent_id: Optional[str],
-    run_id: Optional[str],
-    visibility: Optional[str],
-) -> List[Dict[str, Any]]:
+    actor_metadata: dict[str, Any],
+    org_id: str | None,
+    project_id: str | None,
+    session_id: str | None,
+    agent_id: str | None,
+    run_id: str | None,
+    visibility: str | None,
+) -> list[dict[str, Any]]:
     hindsight_manager = _require_hindsight_manager(manager)
     base_metadata = scope_metadata(
         org_id=org_id,
@@ -301,7 +301,7 @@ def _prepare_hindsight_retain_items(
         raise
 
 
-def _build_scope_from_request(request: ScopeRequest, *, visibility: Optional[str] = None):
+def _build_scope_from_request(request: ScopeRequest, *, visibility: str | None = None):
     return scope_from_kwargs(
         user_id=request.user_id,
         org_id=request.org_id,
@@ -316,16 +316,16 @@ def _build_scope_from_request(request: ScopeRequest, *, visibility: Optional[str
 
 def _merge_actor_metadata(
     *,
-    metadata: Optional[Dict[str, Any]],
+    metadata: dict[str, Any] | None,
     access: MemoryAccessContext,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     merged = dict(metadata or {})
     merged.update(access.audit_metadata())
     return merged
 
 
-def _sanitize_user_profile_metadata(metadata: Optional[Dict[str, Any]]) -> Dict[str, Any]:
-    sanitized: Dict[str, Any] = {}
+def _sanitize_user_profile_metadata(metadata: dict[str, Any] | None) -> dict[str, Any]:
+    sanitized: dict[str, Any] = {}
     for key, value in (metadata or {}).items():
         if key not in _ALLOWED_USER_PROFILE_METADATA_KEYS:
             continue
@@ -338,9 +338,9 @@ def _guard_user_scope(
     *,
     access: MemoryAccessContext,
     expected_user_id: str,
-    scoped_user_id: Optional[str],
-    callback: Callable[[], Dict[str, Any]],
-) -> Dict[str, Any]:
+    scoped_user_id: str | None,
+    callback: Callable[[], dict[str, Any]],
+) -> dict[str, Any]:
     _enforce_user_scope(
         access=access,
         expected_user_id=expected_user_id,
@@ -355,10 +355,10 @@ def _create_user_response(
     email: str,
     name: str,
     role: str,
-    metadata: Optional[Dict[str, Any]],
-    scoped_user_id: Optional[str],
+    metadata: dict[str, Any] | None,
+    scoped_user_id: str | None,
     access: MemoryAccessContext,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     user_id = _enforce_user_scope(
         access=access,
         expected_user_id=email,
@@ -389,9 +389,9 @@ def _get_user_response(
     *,
     manager: Any,
     requested_user_id: str,
-    scoped_user_id: Optional[str],
+    scoped_user_id: str | None,
     access: MemoryAccessContext,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     resolved_user_id = _enforce_user_scope(
         access=access,
         expected_user_id=requested_user_id,
@@ -412,7 +412,7 @@ def _add_memory_response(
     request: AddMemoryRequest,
     *,
     access: MemoryAccessContext,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     scope = _build_scope_from_request(request, visibility=request.visibility or "private")
     metadata = build_scope_metadata(
         scope=scope,
@@ -434,7 +434,7 @@ def _add_memory_response(
     }
 
 
-def _search_memory_response(manager: Any, request: SearchMemoryRequest) -> Dict[str, Any]:
+def _search_memory_response(manager: Any, request: SearchMemoryRequest) -> dict[str, Any]:
     scope = _build_scope_from_request(request)
     limit = request.limit or 10
     memories = search_with_overfetch(
@@ -453,7 +453,7 @@ def _update_memory_response(
     request: UpdateMemoryRequest,
     *,
     access: MemoryAccessContext,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     _get_authorized_memory_record(
         manager,
         memory_id=memory_id,
@@ -484,13 +484,13 @@ def _delete_memory_response(
     *,
     memory_id: str,
     user_id: str,
-    org_id: Optional[str],
-    project_id: Optional[str],
-    session_id: Optional[str],
-    agent_id: Optional[str],
-    run_id: Optional[str],
+    org_id: str | None,
+    project_id: str | None,
+    session_id: str | None,
+    agent_id: str | None,
+    run_id: str | None,
     include_shared: bool,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     _get_authorized_memory_record(
         manager,
         memory_id=memory_id,
@@ -513,13 +513,13 @@ def _get_memory_response(
     *,
     memory_id: str,
     user_id: str,
-    org_id: Optional[str],
-    project_id: Optional[str],
-    session_id: Optional[str],
-    agent_id: Optional[str],
-    run_id: Optional[str],
+    org_id: str | None,
+    project_id: str | None,
+    session_id: str | None,
+    agent_id: str | None,
+    run_id: str | None,
     include_shared: bool,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     return _get_authorized_memory_record(
         manager,
         memory_id=memory_id,
@@ -537,17 +537,17 @@ def _get_all_memories_response(
     manager: Any,
     *,
     user_id: str,
-    org_id: Optional[str],
-    project_id: Optional[str],
-    session_id: Optional[str],
-    agent_id: Optional[str],
-    run_id: Optional[str],
+    org_id: str | None,
+    project_id: str | None,
+    session_id: str | None,
+    agent_id: str | None,
+    run_id: str | None,
     include_shared: bool,
-    limit: Optional[int],
+    limit: int | None,
     offset: int,
-    category: Optional[str],
-    tags: Optional[List[str]],
-) -> Dict[str, Any]:
+    category: str | None,
+    tags: list[str] | None,
+) -> dict[str, Any]:
     requested_limit = limit or 100
     memories = get_scoped_memories(
         _require_scoped_manager(manager),
@@ -572,13 +572,13 @@ def _get_memory_stats_response(
     manager: Any,
     *,
     user_id: str,
-    org_id: Optional[str],
-    project_id: Optional[str],
-    session_id: Optional[str],
-    agent_id: Optional[str],
-    run_id: Optional[str],
+    org_id: str | None,
+    project_id: str | None,
+    session_id: str | None,
+    agent_id: str | None,
+    run_id: str | None,
     include_shared: bool,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     category_counts = get_scoped_memory_stats(
         _require_category_scoped_manager(manager),
         user_id=user_id,
@@ -602,7 +602,7 @@ def _hindsight_document_response(
     bank_id: str,
     document_id: str,
     user_id: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     return _get_authorized_hindsight_document(
         manager,
         bank_id=bank_id,
@@ -634,8 +634,8 @@ def _hindsight_retain_response(
     *,
     manager: HindsightCompatibleMemoryManager,
     bank_id: str,
-    items: List[Dict[str, Any]],
-) -> Dict[str, Any]:
+    items: list[dict[str, Any]],
+) -> dict[str, Any]:
     response = manager.retain_items(bank_id, items)
     if isinstance(response, dict):
         results = response.get("results", [])
@@ -655,11 +655,11 @@ def _register_add_memory(router: APIRouter, get_manager: ManagerGetter) -> None:
     async def add_memory(
         request_context: Request,
         request: AddMemoryRequest,
-        x_memory_actor_id: Optional[str] = Header(default=None),
-        x_memory_user_id: Optional[str] = Header(default=None),
-        x_memory_timestamp: Optional[str] = Header(default=None),
-        x_memory_nonce: Optional[str] = Header(default=None),
-        x_memory_signature: Optional[str] = Header(default=None),
+        x_memory_actor_id: str | None = Header(default=None),
+        x_memory_user_id: str | None = Header(default=None),
+        x_memory_timestamp: str | None = Header(default=None),
+        x_memory_nonce: str | None = Header(default=None),
+        x_memory_signature: str | None = Header(default=None),
     ):
         return await _run_authorized_for_expected_user(
             action="adding memory",
@@ -683,11 +683,11 @@ def _register_memory_search(router: APIRouter, get_manager: ManagerGetter) -> No
     async def search_memory(
         request_context: Request,
         request: SearchMemoryRequest,
-        x_memory_actor_id: Optional[str] = Header(default=None),
-        x_memory_user_id: Optional[str] = Header(default=None),
-        x_memory_timestamp: Optional[str] = Header(default=None),
-        x_memory_nonce: Optional[str] = Header(default=None),
-        x_memory_signature: Optional[str] = Header(default=None),
+        x_memory_actor_id: str | None = Header(default=None),
+        x_memory_user_id: str | None = Header(default=None),
+        x_memory_timestamp: str | None = Header(default=None),
+        x_memory_nonce: str | None = Header(default=None),
+        x_memory_signature: str | None = Header(default=None),
     ):
         return await _run_authorized_for_expected_user(
             action="searching memory",
@@ -711,11 +711,11 @@ def _register_memory_update(
         request_context: Request,
         memory_id: str,
         request: UpdateMemoryRequest,
-        x_memory_actor_id: Optional[str] = Header(default=None),
-        x_memory_user_id: Optional[str] = Header(default=None),
-        x_memory_timestamp: Optional[str] = Header(default=None),
-        x_memory_nonce: Optional[str] = Header(default=None),
-        x_memory_signature: Optional[str] = Header(default=None),
+        x_memory_actor_id: str | None = Header(default=None),
+        x_memory_user_id: str | None = Header(default=None),
+        x_memory_timestamp: str | None = Header(default=None),
+        x_memory_nonce: str | None = Header(default=None),
+        x_memory_signature: str | None = Header(default=None),
     ):
         return await _run_authorized_for_expected_user(
             action="updating memory",
@@ -740,18 +740,18 @@ def _register_memory_get(router: APIRouter, get_manager: ManagerGetter) -> None:
     async def get_memory_endpoint(
         request_context: Request,
         memory_id: str,
-        user_id: Optional[str] = None,
-        org_id: Optional[str] = None,
-        project_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        agent_id: Optional[str] = None,
-        run_id: Optional[str] = None,
+        user_id: str | None = None,
+        org_id: str | None = None,
+        project_id: str | None = None,
+        session_id: str | None = None,
+        agent_id: str | None = None,
+        run_id: str | None = None,
         include_shared: bool = True,
-        x_memory_actor_id: Optional[str] = Header(default=None),
-        x_memory_user_id: Optional[str] = Header(default=None),
-        x_memory_timestamp: Optional[str] = Header(default=None),
-        x_memory_nonce: Optional[str] = Header(default=None),
-        x_memory_signature: Optional[str] = Header(default=None),
+        x_memory_actor_id: str | None = Header(default=None),
+        x_memory_user_id: str | None = Header(default=None),
+        x_memory_timestamp: str | None = Header(default=None),
+        x_memory_nonce: str | None = Header(default=None),
+        x_memory_signature: str | None = Header(default=None),
     ):
         return await _run_authorized(
             action="fetching memory",
@@ -780,18 +780,18 @@ def _register_memory_delete(router: APIRouter, get_manager: ManagerGetter) -> No
     async def delete_memory_endpoint(
         request_context: Request,
         memory_id: str,
-        user_id: Optional[str] = None,
-        org_id: Optional[str] = None,
-        project_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        agent_id: Optional[str] = None,
-        run_id: Optional[str] = None,
+        user_id: str | None = None,
+        org_id: str | None = None,
+        project_id: str | None = None,
+        session_id: str | None = None,
+        agent_id: str | None = None,
+        run_id: str | None = None,
         include_shared: bool = True,
-        x_memory_actor_id: Optional[str] = Header(default=None),
-        x_memory_user_id: Optional[str] = Header(default=None),
-        x_memory_timestamp: Optional[str] = Header(default=None),
-        x_memory_nonce: Optional[str] = Header(default=None),
-        x_memory_signature: Optional[str] = Header(default=None),
+        x_memory_actor_id: str | None = Header(default=None),
+        x_memory_user_id: str | None = Header(default=None),
+        x_memory_timestamp: str | None = Header(default=None),
+        x_memory_nonce: str | None = Header(default=None),
+        x_memory_signature: str | None = Header(default=None),
     ):
         return await _run_authorized(
             action="deleting memory",
@@ -820,21 +820,21 @@ def _register_memory_list(router: APIRouter, get_manager: ManagerGetter) -> None
     async def get_all_memories_endpoint(
         request_context: Request,
         user_id: str,
-        org_id: Optional[str] = None,
-        project_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        agent_id: Optional[str] = None,
-        run_id: Optional[str] = None,
+        org_id: str | None = None,
+        project_id: str | None = None,
+        session_id: str | None = None,
+        agent_id: str | None = None,
+        run_id: str | None = None,
         include_shared: bool = True,
-        limit: Optional[int] = None,
+        limit: int | None = None,
         offset: int = 0,
-        category: Optional[str] = None,
-        tag: Optional[List[str]] = Query(default=None),
-        x_memory_actor_id: Optional[str] = Header(default=None),
-        x_memory_user_id: Optional[str] = Header(default=None),
-        x_memory_timestamp: Optional[str] = Header(default=None),
-        x_memory_nonce: Optional[str] = Header(default=None),
-        x_memory_signature: Optional[str] = Header(default=None),
+        category: str | None = None,
+        tag: list[str] | None = Query(default=None),
+        x_memory_actor_id: str | None = Header(default=None),
+        x_memory_user_id: str | None = Header(default=None),
+        x_memory_timestamp: str | None = Header(default=None),
+        x_memory_nonce: str | None = Header(default=None),
+        x_memory_signature: str | None = Header(default=None),
     ):
         return await _run_authorized_for_expected_user(
             action="fetching all memories",
@@ -867,17 +867,17 @@ def _register_memory_stats(router: APIRouter, get_manager: ManagerGetter) -> Non
     async def get_memory_stats_endpoint(
         request_context: Request,
         user_id: str,
-        org_id: Optional[str] = None,
-        project_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        agent_id: Optional[str] = None,
-        run_id: Optional[str] = None,
+        org_id: str | None = None,
+        project_id: str | None = None,
+        session_id: str | None = None,
+        agent_id: str | None = None,
+        run_id: str | None = None,
         include_shared: bool = True,
-        x_memory_actor_id: Optional[str] = Header(default=None),
-        x_memory_user_id: Optional[str] = Header(default=None),
-        x_memory_timestamp: Optional[str] = Header(default=None),
-        x_memory_nonce: Optional[str] = Header(default=None),
-        x_memory_signature: Optional[str] = Header(default=None),
+        x_memory_actor_id: str | None = Header(default=None),
+        x_memory_user_id: str | None = Header(default=None),
+        x_memory_timestamp: str | None = Header(default=None),
+        x_memory_nonce: str | None = Header(default=None),
+        x_memory_signature: str | None = Header(default=None),
     ):
         return await _run_authorized_for_expected_user(
             action="fetching memory stats",
@@ -921,17 +921,17 @@ def create_hindsight_router(get_manager: ManagerGetter) -> APIRouter:
         request_context: Request,
         bank_id: str,
         request: HindsightRetainRequest,
-        x_memory_actor_id: Optional[str] = Header(default=None),
-        x_memory_user_id: Optional[str] = Header(default=None),
-        x_memory_timestamp: Optional[str] = Header(default=None),
-        x_memory_nonce: Optional[str] = Header(default=None),
-        x_memory_signature: Optional[str] = Header(default=None),
-        x_memory_org_id: Optional[str] = Header(default=None),
-        x_memory_project_id: Optional[str] = Header(default=None),
-        x_memory_session_id: Optional[str] = Header(default=None),
-        x_memory_agent_id: Optional[str] = Header(default=None),
-        x_memory_run_id: Optional[str] = Header(default=None),
-        x_memory_visibility: Optional[str] = Header(default=None),
+        x_memory_actor_id: str | None = Header(default=None),
+        x_memory_user_id: str | None = Header(default=None),
+        x_memory_timestamp: str | None = Header(default=None),
+        x_memory_nonce: str | None = Header(default=None),
+        x_memory_signature: str | None = Header(default=None),
+        x_memory_org_id: str | None = Header(default=None),
+        x_memory_project_id: str | None = Header(default=None),
+        x_memory_session_id: str | None = Header(default=None),
+        x_memory_agent_id: str | None = Header(default=None),
+        x_memory_run_id: str | None = Header(default=None),
+        x_memory_visibility: str | None = Header(default=None),
     ):
         return await _run_authorized(
             action="retaining hindsight memory",
@@ -965,11 +965,11 @@ def create_hindsight_router(get_manager: ManagerGetter) -> APIRouter:
         request_context: Request,
         bank_id: str,
         request: HindsightRecallRequest,
-        x_memory_actor_id: Optional[str] = Header(default=None),
-        x_memory_user_id: Optional[str] = Header(default=None),
-        x_memory_timestamp: Optional[str] = Header(default=None),
-        x_memory_nonce: Optional[str] = Header(default=None),
-        x_memory_signature: Optional[str] = Header(default=None),
+        x_memory_actor_id: str | None = Header(default=None),
+        x_memory_user_id: str | None = Header(default=None),
+        x_memory_timestamp: str | None = Header(default=None),
+        x_memory_nonce: str | None = Header(default=None),
+        x_memory_signature: str | None = Header(default=None),
     ):
         return await _run_authorized(
             action="recalling hindsight memory",
@@ -996,11 +996,11 @@ def create_hindsight_router(get_manager: ManagerGetter) -> APIRouter:
         bank_id: str,
         limit: int = 100,
         offset: int = 0,
-        x_memory_actor_id: Optional[str] = Header(default=None),
-        x_memory_user_id: Optional[str] = Header(default=None),
-        x_memory_timestamp: Optional[str] = Header(default=None),
-        x_memory_nonce: Optional[str] = Header(default=None),
-        x_memory_signature: Optional[str] = Header(default=None),
+        x_memory_actor_id: str | None = Header(default=None),
+        x_memory_user_id: str | None = Header(default=None),
+        x_memory_timestamp: str | None = Header(default=None),
+        x_memory_nonce: str | None = Header(default=None),
+        x_memory_signature: str | None = Header(default=None),
     ):
         return await _run_authorized(
             action="listing hindsight documents",
@@ -1023,11 +1023,11 @@ def create_hindsight_router(get_manager: ManagerGetter) -> APIRouter:
         request_context: Request,
         bank_id: str,
         document_id: str,
-        x_memory_actor_id: Optional[str] = Header(default=None),
-        x_memory_user_id: Optional[str] = Header(default=None),
-        x_memory_timestamp: Optional[str] = Header(default=None),
-        x_memory_nonce: Optional[str] = Header(default=None),
-        x_memory_signature: Optional[str] = Header(default=None),
+        x_memory_actor_id: str | None = Header(default=None),
+        x_memory_user_id: str | None = Header(default=None),
+        x_memory_timestamp: str | None = Header(default=None),
+        x_memory_nonce: str | None = Header(default=None),
+        x_memory_signature: str | None = Header(default=None),
     ):
         return await _run_authorized(
             action="fetching hindsight document",
@@ -1050,11 +1050,11 @@ def create_hindsight_router(get_manager: ManagerGetter) -> APIRouter:
         request_context: Request,
         bank_id: str,
         document_id: str,
-        x_memory_actor_id: Optional[str] = Header(default=None),
-        x_memory_user_id: Optional[str] = Header(default=None),
-        x_memory_timestamp: Optional[str] = Header(default=None),
-        x_memory_nonce: Optional[str] = Header(default=None),
-        x_memory_signature: Optional[str] = Header(default=None),
+        x_memory_actor_id: str | None = Header(default=None),
+        x_memory_user_id: str | None = Header(default=None),
+        x_memory_timestamp: str | None = Header(default=None),
+        x_memory_nonce: str | None = Header(default=None),
+        x_memory_signature: str | None = Header(default=None),
     ):
         return await _run_authorized(
             action="deleting hindsight document",
@@ -1084,12 +1084,12 @@ def create_legacy_router(get_manager: ManagerGetter) -> APIRouter:
         email: str,
         name: str,
         role: str = "patient",
-        metadata: Optional[Dict[str, Any]] = None,
-        x_memory_actor_id: Optional[str] = Header(default=None),
-        x_memory_user_id: Optional[str] = Header(default=None),
-        x_memory_timestamp: Optional[str] = Header(default=None),
-        x_memory_nonce: Optional[str] = Header(default=None),
-        x_memory_signature: Optional[str] = Header(default=None),
+        metadata: dict[str, Any] | None = None,
+        x_memory_actor_id: str | None = Header(default=None),
+        x_memory_user_id: str | None = Header(default=None),
+        x_memory_timestamp: str | None = Header(default=None),
+        x_memory_nonce: str | None = Header(default=None),
+        x_memory_signature: str | None = Header(default=None),
     ):
         return await _run_authorized(
             action="registering memory user",
@@ -1114,11 +1114,11 @@ def create_legacy_router(get_manager: ManagerGetter) -> APIRouter:
     async def get_user(
         request_context: Request,
         user_id: str,
-        x_memory_actor_id: Optional[str] = Header(default=None),
-        x_memory_user_id: Optional[str] = Header(default=None),
-        x_memory_timestamp: Optional[str] = Header(default=None),
-        x_memory_nonce: Optional[str] = Header(default=None),
-        x_memory_signature: Optional[str] = Header(default=None),
+        x_memory_actor_id: str | None = Header(default=None),
+        x_memory_user_id: str | None = Header(default=None),
+        x_memory_timestamp: str | None = Header(default=None),
+        x_memory_nonce: str | None = Header(default=None),
+        x_memory_signature: str | None = Header(default=None),
     ):
         return await _run_authorized(
             action="checking user",

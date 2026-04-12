@@ -5,12 +5,14 @@ This module implements the core agent management logic, including registration,
 discovery, and lifecycle management, with sub-50ms performance targets.
 """
 
+from datetime import datetime, timezone
+
+
 import logging
 import uuid
 from dataclasses import asdict, dataclass, field
-from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 # Internal imports
 from ..integration.mongodb_client import MCPMongoDBClient
@@ -31,18 +33,18 @@ class AgentRegistrationData:
     """Data required for agent registration."""
     name: str
     type: str
-    capabilities: List[str]
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    capabilities: list[str]
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 @dataclass
 class AgentDiscoveryCriteria:
     """Criteria for discovering agents based on capabilities."""
-    capabilities: Optional[List[str]] = None
-    agent_type: Optional[str] = None
-    status: Optional[AgentStatus] = None
+    capabilities: list[str] | None = None
+    agent_type: str | None = None
+    status: AgentStatus | None = None
 
     @classmethod
-    def from_request(cls, args: Dict[str, str]) -> "AgentDiscoveryCriteria":
+    def from_request(cls, args: dict[str, str]) -> "AgentDiscoveryCriteria":
         """Create criteria from request arguments."""
         capabilities = (
             args.get("capabilities", "").split(",")
@@ -60,18 +62,18 @@ class Agent:
     id: str
     name: str
     type: str
-    capabilities: List[str]
+    capabilities: list[str]
     status: AgentStatus
     registered_at: datetime
     last_seen: datetime = field(default_factory=datetime.utcnow)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert agent to dictionary for JSON serialization."""
         data = asdict(self)
-        data['status'] = self.status.value
-        data['registered_at'] = self.registered_at.isoformat()
-        data['last_seen'] = self.last_seen.isoformat()
+        data["status"] = self.status.value
+        data["registered_at"] = self.registered_at.isoformat()
+        data["last_seen"] = self.last_seen.isoformat()
         return data
 
 class AgentRegistry:
@@ -80,7 +82,7 @@ class AgentRegistry:
     def __init__(self, mongodb_client: MCPMongoDBClient):
         self.mongodb = mongodb_client
         self.collection = "agents"
-        self._local_cache: Dict[str, Agent] = {}
+        self._local_cache: dict[str, Agent] = {}
 
     async def add_agent(self, agent: Agent) -> None:
         """Add agent to registry and persistence."""
@@ -88,7 +90,7 @@ class AgentRegistry:
         await self.mongodb.insert_one(self.collection, agent.to_dict())
         logger.debug(f"Agent {agent.id} added to registry")
 
-    async def get_agent(self, agent_id: str) -> Optional[Agent]:
+    async def get_agent(self, agent_id: str) -> Agent | None:
         """Retrieve agent from registry."""
         if agent_id in self._local_cache:
             return self._local_cache[agent_id]
@@ -111,7 +113,7 @@ class AgentRegistry:
         )
         logger.debug(f"Agent {agent.id} updated in registry")
 
-    async def find_agents(self, criteria: AgentDiscoveryCriteria) -> List[Agent]:
+    async def find_agents(self, criteria: AgentDiscoveryCriteria) -> list[Agent]:
         """Find agents matching criteria."""
         query = {}
         if criteria.agent_type:
@@ -125,30 +127,30 @@ class AgentRegistry:
         agents = [self._from_dict(d) for d in cursor]
         return agents
 
-    def _from_dict(self, data: Dict[str, Any]) -> Agent:
+    def _from_dict(self, data: dict[str, Any]) -> Agent:
         """Create Agent instance from dictionary."""
         return Agent(
-            id=data.get('id', str(uuid.uuid4())),
-            name=data.get('name', 'unknown'),
-            type=data.get('type', 'generic'),
-            capabilities=data.get('capabilities', []),
-            status=AgentStatus(data.get('status', AgentStatus.ACTIVE.value)),
+            id=data.get("id", str(uuid.uuid4())),
+            name=data.get("name", "unknown"),
+            type=data.get("type", "generic"),
+            capabilities=data.get("capabilities", []),
+            status=AgentStatus(data.get("status", AgentStatus.ACTIVE.value)),
             registered_at=datetime.fromisoformat(
-                data.get('registered_at', datetime.utcnow().isoformat())
+                data.get("registered_at", datetime.now(timezone.utc).isoformat())
             ),
             last_seen=datetime.fromisoformat(
-                data.get('last_seen', datetime.utcnow().isoformat())
+                data.get("last_seen", datetime.now(timezone.utc).isoformat())
             ),
-            metadata=data.get('metadata', {})
+            metadata=data.get("metadata", {})
         )
 
 class AgentHealthChecker:
     """Handles health check logic for agents."""
 
-    async def check_health(self, agent: Agent) -> Dict[str, Any]:
+    async def check_health(self, agent: Agent) -> dict[str, Any]:
         """Perform health check on agent."""
         # Baseline health check logic
-        is_alive = (datetime.utcnow() - agent.last_seen).total_seconds() < 300
+        is_alive = (datetime.now(timezone.utc) - agent.last_seen).total_seconds() < 300
         health_status = (
             "healthy"
             if is_alive and agent.status == AgentStatus.ACTIVE
@@ -158,7 +160,7 @@ class AgentHealthChecker:
             "agent_id": agent.id,
             "status": agent.status.value,
             "overall_health": health_status,
-            "last_health_check": datetime.utcnow().isoformat(),
+            "last_health_check": datetime.now(timezone.utc).isoformat(),
             "last_seen": agent.last_seen.isoformat(),
         }
 
@@ -166,13 +168,13 @@ class CapabilityValidator:
     """Validates agent capabilities against system standards."""
 
     def __init__(self):
-        self.allowed_capabilities: Set[str] = {
+        self.allowed_capabilities: set[str] = {
             "ingestion", "standardization", "validation",
             "processing", "quality_assessment", "export",
             "bias_detection", "therapeutic_analysis"
         }
 
-    async def validate(self, capabilities: List[str]) -> List[str]:
+    async def validate(self, capabilities: list[str]) -> list[str]:
         """Validate and return normalized capabilities."""
         validated = [
             cap.lower()
@@ -212,7 +214,7 @@ class AgentManager:
             type=agent_data.type,
             capabilities=validated_capabilities,
             status=AgentStatus.ACTIVE,
-            registered_at=datetime.utcnow(),
+            registered_at=datetime.now(timezone.utc),
             metadata=agent_data.metadata
         )
 
@@ -220,11 +222,11 @@ class AgentManager:
         await self.agent_registry.add_agent(agent)
 
         # Publish registration event
-        await self.redis.publish('agent.registered', agent.to_dict())
+        await self.redis.publish("agent.registered", agent.to_dict())
 
         return agent
 
-    async def discover_agents(self, criteria: AgentDiscoveryCriteria) -> List[Agent]:
+    async def discover_agents(self, criteria: AgentDiscoveryCriteria) -> list[Agent]:
         """Discover agents based on capability criteria."""
         return await self.agent_registry.find_agents(criteria)
 
@@ -238,7 +240,7 @@ class AgentManager:
             return False
 
         agent.status = status
-        agent.last_seen = datetime.utcnow()
+        agent.last_seen = datetime.now(timezone.utc)
 
         await self.agent_registry.update_agent(agent)
 
@@ -254,7 +256,7 @@ class AgentManager:
 
         return True
 
-    async def check_agent_health(self, agent_id: str) -> Optional[Dict[str, Any]]:
+    async def check_agent_health(self, agent_id: str) -> dict[str, Any] | None:
         """Check agent health status."""
         agent = await self.agent_registry.get_agent(agent_id)
         if not agent:

@@ -3,8 +3,6 @@ from __future__ import annotations
 import re
 from collections.abc import Callable
 
-from ai.memory.hindsight_local_adapter import normalize_tags
-
 from .null_memory_record import NullMemoryRecord
 
 _TOKEN_PATTERN = re.compile(r"[a-z0-9]+")

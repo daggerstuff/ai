@@ -4,6 +4,5 @@
 
 class YoutubeProcessor:
     """Stub implementation for YoutubeProcessor."""
-    pass
 
-__all__ = ['YoutubeProcessor']
+__all__ = ["YoutubeProcessor"]

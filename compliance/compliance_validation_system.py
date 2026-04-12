@@ -10,16 +10,16 @@ This module provides comprehensive compliance validation including:
 - Compliance monitoring and reporting
 """
 
+from datetime import datetime, timezone
+
+
 import asyncio
-import hashlib
 import json
 import logging
 import time
-import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -59,11 +59,11 @@ class ComplianceControl:
     category: ControlCategory
     title: str
     description: str
-    requirements: List[str]
+    requirements: list[str]
     implementation_status: ComplianceLevel = ComplianceLevel.NON_COMPLIANT
-    evidence: List[str] = field(default_factory=list)
-    last_assessed: Optional[datetime] = None
-    next_review: Optional[datetime] = None
+    evidence: list[str] = field(default_factory=list)
+    last_assessed: datetime | None = None
+    next_review: datetime | None = None
 
 @dataclass
 class ComplianceAssessmentResult:
@@ -74,8 +74,8 @@ class ComplianceAssessmentResult:
     assessment_level: ComplianceLevel
     score: float
     evidence_count: int
-    gaps_identified: List[str] = field(default_factory=list)
-    recommendations: List[str] = field(default_factory=list)
+    gaps_identified: list[str] = field(default_factory=list)
+    recommendations: list[str] = field(default_factory=list)
     assessment_time: float = 0.0
 
 class ComplianceValidationSystem:
@@ -86,8 +86,8 @@ class ComplianceValidationSystem:
     """
 
     def __init__(self):
-        self.controls: Dict[str, ComplianceControl] = {}
-        self.assessment_results: List[ComplianceAssessmentResult] = []
+        self.controls: dict[str, ComplianceControl] = {}
+        self.assessment_results: list[ComplianceAssessmentResult] = []
         self.overall_compliance_score = 0.0
         self.production_ready = False
 
@@ -275,7 +275,7 @@ class ComplianceValidationSystem:
 
         logger.info(f"Initialized {len(all_controls)} compliance controls")
 
-    async def run_comprehensive_compliance_assessment(self) -> Dict[str, Any]:
+    async def run_comprehensive_compliance_assessment(self) -> dict[str, Any]:
         """Run comprehensive compliance assessment"""
         logger.info("Starting comprehensive compliance assessment...")
         start_time = time.time()
@@ -357,7 +357,7 @@ class ComplianceValidationSystem:
             assessment_time=assessment_time
         )
 
-    async def _assess_access_control(self, control: ComplianceControl) -> Tuple[float, List[str], List[str], int]:
+    async def _assess_access_control(self, control: ComplianceControl) -> tuple[float, list[str], list[str], int]:
         """Assess access control compliance"""
         # Simulate access control assessment
         # In production, this would check actual access control implementations
@@ -372,7 +372,7 @@ class ComplianceValidationSystem:
 
         return score, gaps, recommendations, evidence_count
 
-    async def _assess_data_protection(self, control: ComplianceControl) -> Tuple[float, List[str], List[str], int]:
+    async def _assess_data_protection(self, control: ComplianceControl) -> tuple[float, list[str], list[str], int]:
         """Assess data protection compliance"""
         score = 90.0  # Good score with some improvements needed
         gaps = [
@@ -388,7 +388,7 @@ class ComplianceValidationSystem:
 
         return score, gaps, recommendations, evidence_count
 
-    async def _assess_security_management(self, control: ComplianceControl) -> Tuple[float, List[str], List[str], int]:
+    async def _assess_security_management(self, control: ComplianceControl) -> tuple[float, list[str], list[str], int]:
         """Assess security management compliance"""
         score = 92.0  # Good security management practices
         gaps = [
@@ -403,7 +403,7 @@ class ComplianceValidationSystem:
 
         return score, gaps, recommendations, evidence_count
 
-    async def _assess_incident_response(self, control: ComplianceControl) -> Tuple[float, List[str], List[str], int]:
+    async def _assess_incident_response(self, control: ComplianceControl) -> tuple[float, list[str], list[str], int]:
         """Assess incident response compliance"""
         score = 88.0  # Good incident response capabilities
         gaps = [
@@ -419,7 +419,7 @@ class ComplianceValidationSystem:
 
         return score, gaps, recommendations, evidence_count
 
-    async def _assess_audit_logging(self, control: ComplianceControl) -> Tuple[float, List[str], List[str], int]:
+    async def _assess_audit_logging(self, control: ComplianceControl) -> tuple[float, list[str], list[str], int]:
         """Assess audit logging compliance"""
         score = 85.0  # Adequate logging with improvements needed
         gaps = [
@@ -435,7 +435,7 @@ class ComplianceValidationSystem:
 
         return score, gaps, recommendations, evidence_count
 
-    async def _assess_privacy_protection(self, control: ComplianceControl) -> Tuple[float, List[str], List[str], int]:
+    async def _assess_privacy_protection(self, control: ComplianceControl) -> tuple[float, list[str], list[str], int]:
         """Assess privacy protection compliance"""
         score = 93.0  # Strong privacy protection measures
         gaps = [
@@ -450,7 +450,7 @@ class ComplianceValidationSystem:
 
         return score, gaps, recommendations, evidence_count
 
-    async def _assess_risk_management(self, control: ComplianceControl) -> Tuple[float, List[str], List[str], int]:
+    async def _assess_risk_management(self, control: ComplianceControl) -> tuple[float, list[str], list[str], int]:
         """Assess risk management compliance"""
         score = 87.0  # Good risk management framework
         gaps = [
@@ -466,7 +466,7 @@ class ComplianceValidationSystem:
 
         return score, gaps, recommendations, evidence_count
 
-    async def _assess_business_continuity(self, control: ComplianceControl) -> Tuple[float, List[str], List[str], int]:
+    async def _assess_business_continuity(self, control: ComplianceControl) -> tuple[float, list[str], list[str], int]:
         """Assess business continuity compliance"""
         score = 89.0  # Good business continuity planning
         gaps = [
@@ -482,7 +482,7 @@ class ComplianceValidationSystem:
 
         return score, gaps, recommendations, evidence_count
 
-    def _calculate_compliance_metrics(self) -> Dict[str, Any]:
+    def _calculate_compliance_metrics(self) -> dict[str, Any]:
         """Calculate overall compliance metrics"""
 
         # Calculate scores by standard
@@ -546,7 +546,7 @@ class ComplianceValidationSystem:
             "total_evidence": sum(result.evidence_count for result in self.assessment_results)
         }
 
-    def _determine_production_readiness(self, metrics: Dict[str, Any]) -> bool:
+    def _determine_production_readiness(self, metrics: dict[str, Any]) -> bool:
         """Determine production readiness based on compliance metrics"""
 
         # Production readiness criteria
@@ -573,7 +573,7 @@ class ComplianceValidationSystem:
         return True
 
     def _generate_compliance_report(self, execution_time: float,
-                                   metrics: Dict[str, Any]) -> Dict[str, Any]:
+                                   metrics: dict[str, Any]) -> dict[str, Any]:
         """Generate comprehensive compliance report"""
 
         # Determine certification status
@@ -588,7 +588,7 @@ class ComplianceValidationSystem:
 
         report = {
             "compliance_assessment_summary": {
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "execution_time": execution_time,
                 "overall_compliance_score": round(metrics["overall_score"], 2),
                 "certification_status": certification_status,
@@ -643,7 +643,7 @@ class ComplianceValidationSystem:
 
         return report
 
-    def _generate_compliance_recommendations(self, metrics: Dict[str, Any]) -> List[str]:
+    def _generate_compliance_recommendations(self, metrics: dict[str, Any]) -> list[str]:
         """Generate compliance improvement recommendations"""
         recommendations = []
 
@@ -674,7 +674,7 @@ class ComplianceValidationSystem:
 
         return recommendations
 
-    def _generate_compliance_next_steps(self) -> List[str]:
+    def _generate_compliance_next_steps(self) -> list[str]:
         """Generate next steps based on compliance assessment"""
         if self.production_ready:
             return [
@@ -683,13 +683,12 @@ class ComplianceValidationSystem:
                 "📋 Continue with Phase 1 critical security tasks",
                 "🔄 Implement continuous compliance monitoring"
             ]
-        else:
-            return [
-                "🔧 Address identified compliance gaps",
-                "📋 Implement missing compliance controls",
-                "🧪 Re-run compliance assessment after improvements",
-                "🔄 Repeat assessment until production ready"
-            ]
+        return [
+            "🔧 Address identified compliance gaps",
+            "📋 Implement missing compliance controls",
+            "🧪 Re-run compliance assessment after improvements",
+            "🔄 Repeat assessment until production ready"
+        ]
 
 # Example usage and testing
 if __name__ == "__main__":
@@ -708,20 +707,20 @@ if __name__ == "__main__":
         print(f"Certification Status: {report['compliance_assessment_summary']['certification_status']}")
         print(f"Production Ready: {'YES' if report['compliance_assessment_summary']['production_ready'] else 'NO'}")
 
-        print(f"\nStandard Compliance Scores:")
+        print("\nStandard Compliance Scores:")
         for standard, score in report["standard_compliance"].items():
             print(f"  {standard.upper()}: {score}%")
 
-        print(f"\nCompliance Distribution:")
+        print("\nCompliance Distribution:")
         distribution = report["compliance_distribution"]
         print(f"  Compliant: {distribution['compliant']}")
         print(f"  Partially Compliant: {distribution['partially_compliant']}")
         print(f"  Non-Compliant: {distribution['non_compliant']}")
 
         # Save report
-        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         report_file = f"compliance_validation_report_{timestamp}.json"
-        with open(report_file, 'w') as f:
+        with open(report_file, "w") as f:
             json.dump(report, f, indent=2)
 
         print(f"\nDetailed report saved to: {report_file}")

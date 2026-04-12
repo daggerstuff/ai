@@ -4,6 +4,5 @@
 
 class KnowledgeTextExtractor:
     """Stub implementation for KnowledgeTextExtractor."""
-    pass
 
-__all__ = ['KnowledgeTextExtractor']
+__all__ = ["KnowledgeTextExtractor"]

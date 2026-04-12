@@ -3,6 +3,5 @@
 
 class ActIntegration:
     """Stub implementation for ActIntegration."""
-    pass
 
-__all__ = ['ActIntegration']
+__all__ = ["ActIntegration"]

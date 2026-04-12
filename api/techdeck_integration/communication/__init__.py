@@ -15,46 +15,46 @@ from .state_manager import PipelineState, StageState, StateManager
 
 __all__ = [
     # Event Bus
-    'EventBus',
-    'EventMessage',
-    'EventType',
-    'EventHandler',
+    "EventBus",
+    "EventMessage",
+    "EventType",
+    "EventHandler",
 
     # Pipeline Coordinator
-    'PipelineCoordinator',
-    'PipelineContext',
+    "PipelineCoordinator",
+    "PipelineContext",
 
     # State Manager
-    'StateManager',
-    'PipelineState',
-    'StageState',
+    "StateManager",
+    "PipelineState",
+    "StageState",
 
     # Progress Tracker
-    'ProgressTracker',
-    'ProgressUpdate',
-    'WebSocketConnection',
+    "ProgressTracker",
+    "ProgressUpdate",
+    "WebSocketConnection",
 
     # Error Recovery
-    'ErrorRecoveryManager',
-    'RecoveryStrategy',
-    'RecoveryResult',
-    'RecoveryConfig',
+    "ErrorRecoveryManager",
+    "RecoveryStrategy",
+    "RecoveryResult",
+    "RecoveryConfig",
 
     # Bias Detection
-    'BiasDetectionIntegration',
-    'BiasMetrics',
-    'BiasDetectionConfig',
+    "BiasDetectionIntegration",
+    "BiasMetrics",
+    "BiasDetectionConfig",
 
     # Performance Monitor
-    'PerformanceMonitor',
-    'PerformanceMetric',
-    'PerformanceSummary',
-    'PerformanceThreshold'
+    "PerformanceMonitor",
+    "PerformanceMetric",
+    "PerformanceSummary",
+    "PerformanceThreshold"
 ]
 
 # Module version
-__version__ = '1.0.0'
+__version__ = "1.0.0"
 
 # Module metadata
-__author__ = 'Pixelated Empathy Team'
-__description__ = 'Comprehensive pipeline communication for TechDeck-Python integration with HIPAA++ compliance'
+__author__ = "Pixelated Empathy Team"
+__description__ = "Comprehensive pipeline communication for TechDeck-Python integration with HIPAA++ compliance"

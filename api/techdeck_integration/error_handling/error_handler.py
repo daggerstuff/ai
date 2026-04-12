@@ -20,9 +20,9 @@ class ErrorHandler:
         if isinstance(exc, TechDeckBaseError):
             return exc.to_dict()
         return {
-            'success': False,
-            'error': {
-                'code': 'INTERNAL_ERROR',
-                'message': str(exc)
+            "success": False,
+            "error": {
+                "code": "INTERNAL_ERROR",
+                "message": str(exc)
             }
         }

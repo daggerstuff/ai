@@ -9,8 +9,9 @@ Defines request/response schemas for embedding operations including:
 """
 
 from datetime import datetime
+
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -83,15 +84,15 @@ class EmbeddingRequest(BaseModel):
         max_length=10000,
         description="Text to embed"
     )
-    knowledge_type: Optional[KnowledgeType] = Field(
+    knowledge_type: KnowledgeType | None = Field(
         default=KnowledgeType.GENERAL,
         description="Type of knowledge for categorization"
     )
-    metadata: Optional[Dict[str, Any]] = Field(
+    metadata: dict[str, Any] | None = Field(
         default_factory=dict,
         description="Additional metadata to associate with the embedding"
     )
-    model: Optional[EmbeddingModel] = Field(
+    model: EmbeddingModel | None = Field(
         default=None,
         description="Override the default embedding model"
     )
@@ -108,7 +109,7 @@ class EmbeddingRequest(BaseModel):
 class EmbeddingResponse(BaseModel):
     """Response model for single text embedding."""
 
-    embedding: List[float] = Field(
+    embedding: list[float] = Field(
         ...,
         description="The embedding vector"
     )
@@ -145,28 +146,28 @@ class EmbeddingResponse(BaseModel):
 class BatchEmbeddingRequest(BaseModel):
     """Request model for batch text embedding."""
 
-    texts: List[str] = Field(
+    texts: list[str] = Field(
         ...,
         min_length=1,
         max_length=100,
         description="List of texts to embed"
     )
-    knowledge_types: Optional[List[KnowledgeType]] = Field(
+    knowledge_types: list[KnowledgeType] | None = Field(
         default=None,
         description="Knowledge types for each text (must match texts length)"
     )
-    metadata_list: Optional[List[Dict[str, Any]]] = Field(
+    metadata_list: list[dict[str, Any]] | None = Field(
         default=None,
         description="Metadata for each text (must match texts length)"
     )
-    model: Optional[EmbeddingModel] = Field(
+    model: EmbeddingModel | None = Field(
         default=None,
         description="Override the default embedding model"
     )
 
     @field_validator("texts")
     @classmethod
-    def validate_texts(cls, v: List[str]) -> List[str]:
+    def validate_texts(cls, v: list[str]) -> list[str]:
         """Ensure all texts are valid."""
         validated = []
         for i, text in enumerate(v):
@@ -178,8 +179,8 @@ class BatchEmbeddingRequest(BaseModel):
     @field_validator("knowledge_types")
     @classmethod
     def validate_knowledge_types(
-        cls, v: Optional[List[KnowledgeType]], info
-    ) -> Optional[List[KnowledgeType]]:
+        cls, v: list[KnowledgeType] | None, info
+    ) -> list[KnowledgeType] | None:
         """Ensure knowledge_types matches texts length."""
         if v is not None and "texts" in info.data:
             if len(v) != len(info.data["texts"]):
@@ -193,7 +194,7 @@ class BatchEmbeddingItem(BaseModel):
     """Individual item in batch embedding response."""
 
     index: int = Field(..., description="Index in the original request")
-    embedding: List[float] = Field(..., description="The embedding vector")
+    embedding: list[float] = Field(..., description="The embedding vector")
     embedding_id: str = Field(..., description="Unique identifier")
     text_hash: str = Field(..., description="Hash of the input text")
     cached: bool = Field(default=False, description="Whether from cache")
@@ -202,7 +203,7 @@ class BatchEmbeddingItem(BaseModel):
 class BatchEmbeddingResponse(BaseModel):
     """Response model for batch text embedding."""
 
-    embeddings: List[BatchEmbeddingItem] = Field(
+    embeddings: list[BatchEmbeddingItem] = Field(
         ...,
         description="List of embedding results"
     )
@@ -233,7 +234,7 @@ class SimilaritySearchRequest(BaseModel):
         max_length=10000,
         description="Query text to search for similar items"
     )
-    query_embedding: Optional[List[float]] = Field(
+    query_embedding: list[float] | None = Field(
         default=None,
         description="Pre-computed query embedding (optional)"
     )
@@ -243,7 +244,7 @@ class SimilaritySearchRequest(BaseModel):
         le=100,
         description="Number of similar items to return"
     )
-    knowledge_types: Optional[List[KnowledgeType]] = Field(
+    knowledge_types: list[KnowledgeType] | None = Field(
         default=None,
         description="Filter by knowledge types"
     )
@@ -275,7 +276,7 @@ class SimilarityMatch(BaseModel):
         description="Type of the matching knowledge"
     )
     source: str = Field(..., description="Source of the knowledge item")
-    metadata: Optional[Dict[str, Any]] = Field(
+    metadata: dict[str, Any] | None = Field(
         default=None,
         description="Additional metadata"
     )
@@ -284,7 +285,7 @@ class SimilarityMatch(BaseModel):
 class SimilaritySearchResponse(BaseModel):
     """Response model for similarity search."""
 
-    matches: List[SimilarityMatch] = Field(
+    matches: list[SimilarityMatch] = Field(
         ...,
         description="List of similar items"
     )
@@ -334,7 +335,7 @@ class EmbeddingAgentStatus(BaseModel):
         default=False,
         description="Whether GPU is available"
     )
-    gpu_memory_used_mb: Optional[float] = Field(
+    gpu_memory_used_mb: float | None = Field(
         default=None,
         description="GPU memory used in MB"
     )
@@ -350,7 +351,7 @@ class EmbeddingAgentStatus(BaseModel):
         default=0.0,
         description="Average response time in milliseconds"
     )
-    last_request_at: Optional[datetime] = Field(
+    last_request_at: datetime | None = Field(
         default=None,
         description="Timestamp of last request"
     )
@@ -361,12 +362,12 @@ class ErrorResponse(BaseModel):
 
     error: str = Field(..., description="Error type")
     message: str = Field(..., description="Error message")
-    details: Optional[Dict[str, Any]] = Field(
+    details: dict[str, Any] | None = Field(
         default=None,
         description="Additional error details"
     )
     timestamp: datetime = Field(default_factory=datetime.utcnow)
-    request_id: Optional[str] = Field(
+    request_id: str | None = Field(
         default=None,
         description="Request ID for tracking"
     )

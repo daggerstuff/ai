@@ -5,11 +5,13 @@ This module provides sophisticated performance monitoring with sub-50ms tracking
 HIPAA++ compliant metrics collection, and real-time performance analysis.
 """
 
+from datetime import datetime, timedelta, timezone
+
+
 import json
 from collections import defaultdict, deque
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ..error_handling.custom_errors import PerformanceMonitoringError, ValidationError
 from ..integration.redis_client import RedisClient
@@ -22,11 +24,11 @@ class PerformanceMetric:
 
     metric_name: str
     execution_id: str
-    stage_name: Optional[str]
+    stage_name: str | None
     value: float
     unit: str
     timestamp: datetime
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
     threshold_exceeded: bool = False
 
 
@@ -46,7 +48,7 @@ class PerformanceSummary:
     """Performance summary for analysis."""
 
     execution_id: str
-    stage_name: Optional[str]
+    stage_name: str | None
     average_response_time_ms: float
     min_response_time_ms: float
     max_response_time_ms: float
@@ -65,7 +67,7 @@ class PerformanceMonitor:
     """Comprehensive performance monitor for pipeline operations."""
 
     def __init__(
-        self, redis_client: RedisClient, config: Optional[Dict[str, Any]] = None
+        self, redis_client: RedisClient, config: dict[str, Any] | None = None
     ):
         """
         Initialize performance monitor with Redis persistence.
@@ -90,15 +92,15 @@ class PerformanceMonitor:
         self.performance_thresholds = self._initialize_performance_thresholds()
 
         # In-memory metrics storage
-        self.metrics_buffer: Dict[str, deque] = defaultdict(
+        self.metrics_buffer: dict[str, deque] = defaultdict(
             lambda: deque(maxlen=self.performance_window_size)
         )
-        self.execution_metrics: Dict[str, Dict[str, List[float]]] = defaultdict(
+        self.execution_metrics: dict[str, dict[str, list[float]]] = defaultdict(
             lambda: defaultdict(list)
         )
 
         # Real-time performance tracking
-        self.current_performance: Dict[str, Dict[str, Any]] = {}
+        self.current_performance: dict[str, dict[str, Any]] = {}
 
         # Performance statistics
         self.performance_stats = {
@@ -116,7 +118,7 @@ class PerformanceMonitor:
 
         self.logger.info("PerformanceMonitor initialized with sub-50ms tracking")
 
-    def _initialize_performance_thresholds(self) -> Dict[str, PerformanceThreshold]:
+    def _initialize_performance_thresholds(self) -> dict[str, PerformanceThreshold]:
         """Initialize performance thresholds for critical operations."""
         return {
             "stage_execution_time": PerformanceThreshold(
@@ -163,8 +165,8 @@ class PerformanceMonitor:
         execution_id: str,
         value: float,
         unit: str = "ms",
-        stage_name: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        stage_name: str | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> PerformanceMetric:
         """
         Record a performance metric with comprehensive tracking.
@@ -201,7 +203,7 @@ class PerformanceMonitor:
                 stage_name=stage_name,
                 value=value,
                 unit=unit,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(timezone.utc),
                 metadata=metadata or {},
                 threshold_exceeded=False,
             )
@@ -255,7 +257,7 @@ class PerformanceMonitor:
             raise
         except Exception as e:
             self.logger.error(f"Failed to record performance metric: {e}")
-            raise PerformanceMonitoringError(f"Metric recording failed: {str(e)}")
+            raise PerformanceMonitoringError(f"Metric recording failed: {e!s}")
 
     def _check_threshold(self, value: float, threshold: PerformanceThreshold) -> bool:
         """Check if metric value exceeds threshold."""
@@ -364,8 +366,8 @@ class PerformanceMonitor:
             self.logger.error(f"Failed to update performance statistics: {e}")
 
     async def get_execution_performance_summary(
-        self, execution_id: str, stage_name: Optional[str] = None
-    ) -> Optional[PerformanceSummary]:
+        self, execution_id: str, stage_name: str | None = None
+    ) -> PerformanceSummary | None:
         """
         Get performance summary for an execution.
 
@@ -444,9 +446,9 @@ class PerformanceMonitor:
 
         except Exception as e:
             self.logger.error(f"Failed to generate performance summary: {e}")
-            raise PerformanceMonitoringError(f"Summary generation failed: {str(e)}")
+            raise PerformanceMonitoringError(f"Summary generation failed: {e!s}")
 
-    async def check_performance_thresholds(self) -> List[Dict[str, Any]]:
+    async def check_performance_thresholds(self) -> list[dict[str, Any]]:
         """
         Check all performance thresholds and return violations.
 
@@ -482,7 +484,7 @@ class PerformanceMonitor:
                                 "current_value": perf_data["last_value"],
                                 "threshold_value": threshold.warning_threshold,
                                 "severity": severity,
-                                "timestamp": datetime.utcnow().isoformat(),
+                                "timestamp": datetime.now(timezone.utc).isoformat(),
                                 "recommendations": self._generate_threshold_recommendations(
                                     metric_name, perf_data["last_value"], threshold
                                 ),
@@ -496,11 +498,11 @@ class PerformanceMonitor:
 
         except Exception as e:
             self.logger.error(f"Failed to check performance thresholds: {e}")
-            raise PerformanceMonitoringError(f"Threshold checking failed: {str(e)}")
+            raise PerformanceMonitoringError(f"Threshold checking failed: {e!s}")
 
     def _generate_threshold_recommendations(
         self, metric_name: str, current_value: float, threshold: PerformanceThreshold
-    ) -> List[str]:
+    ) -> list[str]:
         """Generate recommendations for threshold violations."""
         recommendations = []
 
@@ -543,7 +545,7 @@ class PerformanceMonitor:
 
         return recommendations[:3]  # Limit to top 3
 
-    async def get_real_time_performance_dashboard(self) -> Dict[str, Any]:
+    async def get_real_time_performance_dashboard(self) -> dict[str, Any]:
         """
         Get real-time performance dashboard data.
 
@@ -555,7 +557,7 @@ class PerformanceMonitor:
         """
         try:
             dashboard = {
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "overall_stats": self.performance_stats.copy(),
                 "current_performance": {},
                 "threshold_violations": await self.check_performance_thresholds(),
@@ -603,9 +605,9 @@ class PerformanceMonitor:
 
         except Exception as e:
             self.logger.error(f"Failed to generate performance dashboard: {e}")
-            raise PerformanceMonitoringError(f"Dashboard generation failed: {str(e)}")
+            raise PerformanceMonitoringError(f"Dashboard generation failed: {e!s}")
 
-    def _calculate_performance_trends(self) -> Dict[str, Any]:
+    def _calculate_performance_trends(self) -> dict[str, Any]:
         """Calculate performance trends over time."""
         try:
             trends = {
@@ -647,8 +649,8 @@ class PerformanceMonitor:
             }
 
     def _generate_performance_alerts(
-        self, dashboard: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+        self, dashboard: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         """Generate performance alerts based on dashboard data."""
         alerts = []
 
@@ -726,7 +728,7 @@ class PerformanceMonitor:
             PerformanceMonitoringError: If cleanup fails
         """
         try:
-            cutoff_time = datetime.utcnow() - timedelta(hours=max_age_hours)
+            cutoff_time = datetime.now(timezone.utc) - timedelta(hours=max_age_hours)
             cleaned_count = 0
 
             # Clean up Redis metrics
@@ -763,11 +765,11 @@ class PerformanceMonitor:
 
         except Exception as e:
             self.logger.error(f"Failed to cleanup old metrics: {e}")
-            raise PerformanceMonitoringError(f"Metrics cleanup failed: {str(e)}")
+            raise PerformanceMonitoringError(f"Metrics cleanup failed: {e!s}")
 
     def get_performance_report(
-        self, execution_id: Optional[str] = None, time_range_hours: int = 24
-    ) -> Dict[str, Any]:
+        self, execution_id: str | None = None, time_range_hours: int = 24
+    ) -> dict[str, Any]:
         """
         Generate comprehensive performance report.
 
@@ -783,7 +785,7 @@ class PerformanceMonitor:
         """
         try:
             report = {
-                "report_timestamp": datetime.utcnow().isoformat(),
+                "report_timestamp": datetime.now(timezone.utc).isoformat(),
                 "time_range_hours": time_range_hours,
                 "execution_filter": execution_id,
                 "summary": {},
@@ -832,9 +834,9 @@ class PerformanceMonitor:
 
         except Exception as e:
             self.logger.error(f"Failed to generate performance report: {e}")
-            raise PerformanceMonitoringError(f"Report generation failed: {str(e)}")
+            raise PerformanceMonitoringError(f"Report generation failed: {e!s}")
 
-    def _calculate_percentile(self, values: List[float], percentile: float) -> float:
+    def _calculate_percentile(self, values: list[float], percentile: float) -> float:
         """Calculate percentile from sorted values."""
         if not values:
             return 0.0
@@ -846,8 +848,8 @@ class PerformanceMonitor:
         return sorted_values[index]
 
     def _generate_performance_recommendations(
-        self, summary: Dict[str, Any]
-    ) -> List[str]:
+        self, summary: dict[str, Any]
+    ) -> list[str]:
         """Generate performance recommendations based on summary."""
         recommendations = []
 
@@ -888,7 +890,7 @@ class PerformanceMonitor:
 
         return recommendations[:3]  # Limit to top 3
 
-    def health_check(self) -> Dict[str, Any]:
+    def health_check(self) -> dict[str, Any]:
         """
         Perform health check of performance monitor.
 
@@ -925,7 +927,7 @@ class PerformanceMonitor:
                 "sub_50ms_compliance_rate": self.performance_stats[
                     "sub_50ms_compliance_rate"
                 ],
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
 
         except Exception as e:
@@ -933,5 +935,5 @@ class PerformanceMonitor:
             return {
                 "status": "unhealthy",
                 "error": str(e),
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }

@@ -4,8 +4,6 @@ from typing import Any
 
 from ai.api.mcp_server.memory_scope import _scope_matches, filter_memories_by_scope, scope_from_kwargs
 
-from .memory_category_counts import count_memory_categories
-
 
 def scoped_memories_from_records(
     *,

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Protocol
+from typing import Any, Protocol
 
 from pydantic import BaseModel, Field
 
@@ -8,64 +8,64 @@ from pydantic import BaseModel, Field
 class AddMemoryRequest(BaseModel):
     content: str
     user_id: str
-    org_id: Optional[str] = None
-    project_id: Optional[str] = None
-    session_id: Optional[str] = None
-    agent_id: Optional[str] = None
-    run_id: Optional[str] = None
-    visibility: Optional[str] = "private"
-    include_shared: Optional[bool] = True
-    category: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
+    org_id: str | None = None
+    project_id: str | None = None
+    session_id: str | None = None
+    agent_id: str | None = None
+    run_id: str | None = None
+    visibility: str | None = "private"
+    include_shared: bool | None = True
+    category: str | None = None
+    metadata: dict[str, Any] | None = None
 
 
 class SearchMemoryRequest(BaseModel):
     query: str
     user_id: str
-    org_id: Optional[str] = None
-    project_id: Optional[str] = None
-    session_id: Optional[str] = None
-    agent_id: Optional[str] = None
-    run_id: Optional[str] = None
-    include_shared: Optional[bool] = True
-    limit: Optional[int] = 10
+    org_id: str | None = None
+    project_id: str | None = None
+    session_id: str | None = None
+    agent_id: str | None = None
+    run_id: str | None = None
+    include_shared: bool | None = True
+    limit: int | None = 10
 
 
 class UpdateMemoryRequest(BaseModel):
-    content: Optional[str] = None
+    content: str | None = None
     user_id: str
-    org_id: Optional[str] = None
-    project_id: Optional[str] = None
-    session_id: Optional[str] = None
-    agent_id: Optional[str] = None
-    run_id: Optional[str] = None
-    include_shared: Optional[bool] = True
-    metadata: Optional[Dict[str, Any]] = None
+    org_id: str | None = None
+    project_id: str | None = None
+    session_id: str | None = None
+    agent_id: str | None = None
+    run_id: str | None = None
+    include_shared: bool | None = True
+    metadata: dict[str, Any] | None = None
 
 
 class HindsightRetainItem(BaseModel):
     content: str
-    document_id: Optional[str] = None
-    context: Optional[str] = None
-    tags: List[str] = Field(default_factory=list)
+    document_id: str | None = None
+    context: str | None = None
+    tags: list[str] = Field(default_factory=list)
 
 
 class HindsightRetainRequest(BaseModel):
-    items: List[HindsightRetainItem]
+    items: list[HindsightRetainItem]
 
 
 class HindsightRecallRequest(BaseModel):
     query: str
-    limit: Optional[int] = 10
-    tags: Optional[List[str]] = None
-    tags_match: Optional[str] = "any"
+    limit: int | None = 10
+    tags: list[str] | None = None
+    tags_match: str | None = "any"
 
 
 class ScopeRequest(Protocol):
     user_id: str
-    org_id: Optional[str]
-    project_id: Optional[str]
-    session_id: Optional[str]
-    agent_id: Optional[str]
-    run_id: Optional[str]
-    include_shared: Optional[bool]
+    org_id: str | None
+    project_id: str | None
+    session_id: str | None
+    agent_id: str | None
+    run_id: str | None
+    include_shared: bool | None

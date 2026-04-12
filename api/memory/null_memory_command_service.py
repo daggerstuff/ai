@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 from .null_memory_repository import NullMemoryRepository
 
@@ -16,9 +16,9 @@ class NullMemoryCommandService:
         *,
         content: str,
         user_id: str,
-        metadata: Optional[Dict[str, Any]] = None,
-        memory_id: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        metadata: dict[str, Any] | None = None,
+        memory_id: str | None = None,
+    ) -> dict[str, Any]:
         return self.store.add_record(
             content=content,
             user_id=user_id,
@@ -26,7 +26,7 @@ class NullMemoryCommandService:
             memory_id=memory_id,
         )
 
-    def get(self, *, memory_id: str, user_id: str) -> Optional[Dict[str, Any]]:
+    def get(self, *, memory_id: str, user_id: str) -> dict[str, Any] | None:
         return self.store.get_record(memory_id=memory_id, user_id=user_id)
 
     def update(
@@ -35,7 +35,7 @@ class NullMemoryCommandService:
         memory_id: str,
         user_id: str,
         new_content: str,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> bool:
         return self.store.update_record(
             memory_id=memory_id,

@@ -4,6 +4,5 @@
 
 class EvaluationSystem:
     """Stub implementation for EvaluationSystem."""
-    pass
 
-__all__ = ['EvaluationSystem']
+__all__ = ["EvaluationSystem"]

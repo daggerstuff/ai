@@ -5,18 +5,18 @@ This module provides comprehensive state management for the six-stage pipeline
 with Redis persistence, audit trails, and HIPAA++ compliant data handling.
 """
 
+from datetime import datetime, timedelta, timezone
+
+
 import json
-import logging
 import time
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ..error_handling.custom_errors import ResourceNotFoundError, StateManagementError, ValidationError
 from ..integration.redis_client import RedisClient
 from ..utils.logger import get_request_logger
 from ..utils.validation import sanitize_input, validate_state_data
-from .event_bus import EventBus, EventMessage, EventType
 
 
 @dataclass
@@ -26,17 +26,17 @@ class PipelineState:
     user_id: str
     status: str  # 'pending', 'running', 'completed', 'failed', 'cancelled'
     current_stage: str
-    stage_results: Dict[str, Any]
+    stage_results: dict[str, Any]
     start_time: datetime
-    end_time: Optional[datetime]
-    total_duration_seconds: Optional[float]
-    overall_quality_score: Optional[float]
+    end_time: datetime | None
+    total_duration_seconds: float | None
+    overall_quality_score: float | None
     error_count: int
     retry_count: int
     last_updated: datetime
-    metadata: Dict[str, Any]
-    audit_trail: List[Dict[str, Any]]
-    checkpoint_data: Optional[Dict[str, Any]]
+    metadata: dict[str, Any]
+    audit_trail: list[dict[str, Any]]
+    checkpoint_data: dict[str, Any] | None
     encryption_applied: bool = True
 
 
@@ -46,22 +46,22 @@ class StageState:
     execution_id: str
     stage_name: str
     status: str  # 'pending', 'started', 'completed', 'failed', 'retrying'
-    start_time: Optional[datetime]
-    end_time: Optional[datetime]
-    duration_seconds: Optional[float]
-    result: Optional[Dict[str, Any]]
-    error_info: Optional[Dict[str, Any]]
+    start_time: datetime | None
+    end_time: datetime | None
+    duration_seconds: float | None
+    result: dict[str, Any] | None
+    error_info: dict[str, Any] | None
     retry_count: int
-    checkpoint_data: Optional[Dict[str, Any]]
-    bias_analysis: Optional[Dict[str, Any]]
-    quality_metrics: Optional[Dict[str, Any]]
+    checkpoint_data: dict[str, Any] | None
+    bias_analysis: dict[str, Any] | None
+    quality_metrics: dict[str, Any] | None
     last_updated: datetime
 
 
 class StateManager:
     """Comprehensive state manager for pipeline execution with HIPAA++ compliance."""
 
-    def __init__(self, redis_client: RedisClient, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, redis_client: RedisClient, config: dict[str, Any] | None = None):
         """
         Initialize state manager with Redis persistence.
 
@@ -74,10 +74,10 @@ class StateManager:
         self.logger = get_request_logger()
 
         # Configuration
-        self.state_ttl_seconds = self.config.get('state_ttl_seconds', 86400)  # 24 hours
-        self.audit_retention_days = self.config.get('audit_retention_days', 90)
-        self.checkpoint_interval_seconds = self.config.get('checkpoint_interval_seconds', 300)  # 5 minutes
-        self.encryption_enabled = self.config.get('encryption_enabled', True)
+        self.state_ttl_seconds = self.config.get("state_ttl_seconds", 86400)  # 24 hours
+        self.audit_retention_days = self.config.get("audit_retention_days", 90)
+        self.checkpoint_interval_seconds = self.config.get("checkpoint_interval_seconds", 300)  # 5 minutes
+        self.encryption_enabled = self.config.get("encryption_enabled", True)
 
         # Redis key prefixes
         self.pipeline_state_prefix = "pipeline:state:"
@@ -87,7 +87,7 @@ class StateManager:
 
         self.logger.info("StateManager initialized with HIPAA++ compliance")
 
-    async def initialize_pipeline_state(self, context: 'PipelineContext') -> PipelineState:
+    async def initialize_pipeline_state(self, context: "PipelineContext") -> PipelineState:
         """
         Initialize pipeline state for new execution.
 
@@ -105,8 +105,8 @@ class StateManager:
             pipeline_state = PipelineState(
                 execution_id=context.execution_id,
                 user_id=context.user_id,
-                status='pending',
-                current_stage='initialization',
+                status="pending",
+                current_stage="initialization",
                 stage_results={},
                 start_time=context.start_time,
                 end_time=None,
@@ -114,7 +114,7 @@ class StateManager:
                 overall_quality_score=None,
                 error_count=0,
                 retry_count=0,
-                last_updated=datetime.utcnow(),
+                last_updated=datetime.now(timezone.utc),
                 metadata=context.metadata,
                 audit_trail=[],
                 checkpoint_data=None,
@@ -127,13 +127,13 @@ class StateManager:
             # Create audit entry
             await self._create_audit_entry(
                 context.execution_id,
-                'pipeline_initialized',
+                "pipeline_initialized",
                 {
-                    'user_id': context.user_id,
-                    'dataset_count': len(context.dataset_ids),
-                    'execution_mode': context.execution_mode,
-                    'quality_threshold': context.quality_threshold,
-                    'bias_detection_enabled': context.enable_bias_detection
+                    "user_id": context.user_id,
+                    "dataset_count": len(context.dataset_ids),
+                    "execution_mode": context.execution_mode,
+                    "quality_threshold": context.quality_threshold,
+                    "bias_detection_enabled": context.enable_bias_detection
                 }
             )
 
@@ -145,10 +145,10 @@ class StateManager:
 
         except Exception as e:
             self.logger.error(f"Failed to initialize pipeline state: {e}")
-            raise StateManagementError(f"State initialization failed: {str(e)}")
+            raise StateManagementError(f"State initialization failed: {e!s}")
 
     async def update_pipeline_state(self, execution_id: str, status: str,
-                                  data: Optional[Dict[str, Any]] = None) -> PipelineState:
+                                  data: dict[str, Any] | None = None) -> PipelineState:
         """
         Update pipeline state with comprehensive tracking.
 
@@ -172,11 +172,11 @@ class StateManager:
 
             # Update state
             current_state.status = status
-            current_state.last_updated = datetime.utcnow()
+            current_state.last_updated = datetime.now(timezone.utc)
 
             # Handle completion
-            if status in ['completed', 'failed', 'cancelled']:
-                current_state.end_time = datetime.utcnow()
+            if status in ["completed", "failed", "cancelled"]:
+                current_state.end_time = datetime.now(timezone.utc)
                 if current_state.start_time:
                     current_state.total_duration_seconds = (
                         current_state.end_time - current_state.start_time
@@ -184,16 +184,16 @@ class StateManager:
 
             # Update additional data
             if data:
-                if 'stage_results' in data:
-                    current_state.stage_results.update(data['stage_results'])
-                if 'overall_quality_score' in data:
-                    current_state.overall_quality_score = data['overall_quality_score']
-                if 'error_count' in data:
-                    current_state.error_count = data['error_count']
-                if 'retry_count' in data:
-                    current_state.retry_count = data['retry_count']
-                if 'current_stage' in data:
-                    current_state.current_stage = data['current_stage']
+                if "stage_results" in data:
+                    current_state.stage_results.update(data["stage_results"])
+                if "overall_quality_score" in data:
+                    current_state.overall_quality_score = data["overall_quality_score"]
+                if "error_count" in data:
+                    current_state.error_count = data["error_count"]
+                if "retry_count" in data:
+                    current_state.retry_count = data["retry_count"]
+                if "current_stage" in data:
+                    current_state.current_stage = data["current_stage"]
 
             # Store updated state
             await self._store_pipeline_state(current_state)
@@ -201,12 +201,12 @@ class StateManager:
             # Create audit entry
             await self._create_audit_entry(
                 execution_id,
-                'pipeline_state_updated',
+                "pipeline_state_updated",
                 {
-                    'status': status,
-                    'current_stage': current_state.current_stage,
-                    'error_count': current_state.error_count,
-                    'retry_count': current_state.retry_count
+                    "status": status,
+                    "current_stage": current_state.current_stage,
+                    "error_count": current_state.error_count,
+                    "retry_count": current_state.retry_count
                 }
             )
 
@@ -220,10 +220,10 @@ class StateManager:
             raise
         except Exception as e:
             self.logger.error(f"Failed to update pipeline state: {e}")
-            raise StateManagementError(f"State update failed: {str(e)}")
+            raise StateManagementError(f"State update failed: {e!s}")
 
     async def update_stage_state(self, execution_id: str, stage_name: str,
-                               status: str, result: Optional[Dict[str, Any]] = None) -> StageState:
+                               status: str, result: dict[str, Any] | None = None) -> StageState:
         """
         Update individual stage state with detailed tracking.
 
@@ -250,7 +250,7 @@ class StateManager:
                     execution_id=execution_id,
                     stage_name=stage_name,
                     status=status,
-                    start_time=datetime.utcnow() if status == 'started' else None,
+                    start_time=datetime.now(timezone.utc) if status == "started" else None,
                     end_time=None,
                     duration_seconds=None,
                     result=result,
@@ -259,17 +259,17 @@ class StateManager:
                     checkpoint_data=None,
                     bias_analysis=None,
                     quality_metrics=None,
-                    last_updated=datetime.utcnow()
+                    last_updated=datetime.now(timezone.utc)
                 )
             else:
                 # Update existing state
                 stage_state.status = status
-                stage_state.last_updated = datetime.utcnow()
+                stage_state.last_updated = datetime.now(timezone.utc)
 
-                if status == 'started' and not stage_state.start_time:
-                    stage_state.start_time = datetime.utcnow()
-                elif status in ['completed', 'failed']:
-                    stage_state.end_time = datetime.utcnow()
+                if status == "started" and not stage_state.start_time:
+                    stage_state.start_time = datetime.now(timezone.utc)
+                elif status in ["completed", "failed"]:
+                    stage_state.end_time = datetime.now(timezone.utc)
                     if stage_state.start_time:
                         stage_state.duration_seconds = (
                             stage_state.end_time - stage_state.start_time
@@ -282,7 +282,7 @@ class StateManager:
             await self._store_stage_state(stage_state)
 
             # Update pipeline current stage if this is the current stage
-            if status == 'started':
+            if status == "started":
                 pipeline_state = await self.get_pipeline_state(execution_id)
                 if pipeline_state:
                     pipeline_state.current_stage = stage_name
@@ -291,11 +291,11 @@ class StateManager:
             # Create audit entry
             await self._create_audit_entry(
                 execution_id,
-                'stage_state_updated',
+                "stage_state_updated",
                 {
-                    'stage_name': stage_name,
-                    'status': status,
-                    'duration_seconds': stage_state.duration_seconds
+                    "stage_name": stage_name,
+                    "status": status,
+                    "duration_seconds": stage_state.duration_seconds
                 }
             )
 
@@ -307,9 +307,9 @@ class StateManager:
 
         except Exception as e:
             self.logger.error(f"Failed to update stage state: {e}")
-            raise StateManagementError(f"Stage state update failed: {str(e)}")
+            raise StateManagementError(f"Stage state update failed: {e!s}")
 
-    async def get_pipeline_state(self, execution_id: str) -> Optional[PipelineState]:
+    async def get_pipeline_state(self, execution_id: str) -> PipelineState | None:
         """
         Retrieve pipeline state by execution ID.
 
@@ -333,22 +333,22 @@ class StateManager:
             state_dict = json.loads(state_data)
 
             # Convert datetime strings back to datetime objects
-            state_dict['start_time'] = datetime.fromisoformat(state_dict['start_time'])
-            if state_dict['end_time']:
-                state_dict['end_time'] = datetime.fromisoformat(state_dict['end_time'])
-            state_dict['last_updated'] = datetime.fromisoformat(state_dict['last_updated'])
+            state_dict["start_time"] = datetime.fromisoformat(state_dict["start_time"])
+            if state_dict["end_time"]:
+                state_dict["end_time"] = datetime.fromisoformat(state_dict["end_time"])
+            state_dict["last_updated"] = datetime.fromisoformat(state_dict["last_updated"])
 
             # Convert audit trail datetime strings
-            for audit_entry in state_dict.get('audit_trail', []):
-                audit_entry['timestamp'] = datetime.fromisoformat(audit_entry['timestamp'])
+            for audit_entry in state_dict.get("audit_trail", []):
+                audit_entry["timestamp"] = datetime.fromisoformat(audit_entry["timestamp"])
 
             return PipelineState(**state_dict)
 
         except Exception as e:
             self.logger.error(f"Failed to retrieve pipeline state: {e}")
-            raise StateManagementError(f"State retrieval failed: {str(e)}")
+            raise StateManagementError(f"State retrieval failed: {e!s}")
 
-    async def get_stage_state(self, execution_id: str, stage_name: str) -> Optional[StageState]:
+    async def get_stage_state(self, execution_id: str, stage_name: str) -> StageState | None:
         """
         Retrieve stage state by execution ID and stage name.
 
@@ -373,19 +373,19 @@ class StateManager:
             state_dict = json.loads(state_data)
 
             # Convert datetime strings back to datetime objects
-            if state_dict['start_time']:
-                state_dict['start_time'] = datetime.fromisoformat(state_dict['start_time'])
-            if state_dict['end_time']:
-                state_dict['end_time'] = datetime.fromisoformat(state_dict['end_time'])
-            state_dict['last_updated'] = datetime.fromisoformat(state_dict['last_updated'])
+            if state_dict["start_time"]:
+                state_dict["start_time"] = datetime.fromisoformat(state_dict["start_time"])
+            if state_dict["end_time"]:
+                state_dict["end_time"] = datetime.fromisoformat(state_dict["end_time"])
+            state_dict["last_updated"] = datetime.fromisoformat(state_dict["last_updated"])
 
             return StageState(**state_dict)
 
         except Exception as e:
             self.logger.error(f"Failed to retrieve stage state: {e}")
-            raise StateManagementError(f"Stage state retrieval failed: {str(e)}")
+            raise StateManagementError(f"Stage state retrieval failed: {e!s}")
 
-    async def get_all_stage_states(self, execution_id: str) -> List[StageState]:
+    async def get_all_stage_states(self, execution_id: str) -> list[StageState]:
         """
         Retrieve all stage states for an execution.
 
@@ -409,11 +409,11 @@ class StateManager:
                     state_dict = json.loads(state_data)
 
                     # Convert datetime strings
-                    if state_dict['start_time']:
-                        state_dict['start_time'] = datetime.fromisoformat(state_dict['start_time'])
-                    if state_dict['end_time']:
-                        state_dict['end_time'] = datetime.fromisoformat(state_dict['end_time'])
-                    state_dict['last_updated'] = datetime.fromisoformat(state_dict['last_updated'])
+                    if state_dict["start_time"]:
+                        state_dict["start_time"] = datetime.fromisoformat(state_dict["start_time"])
+                    if state_dict["end_time"]:
+                        state_dict["end_time"] = datetime.fromisoformat(state_dict["end_time"])
+                    state_dict["last_updated"] = datetime.fromisoformat(state_dict["last_updated"])
 
                     stage_states.append(StageState(**state_dict))
 
@@ -424,10 +424,10 @@ class StateManager:
 
         except Exception as e:
             self.logger.error(f"Failed to retrieve all stage states: {e}")
-            raise StateManagementError(f"Stage states retrieval failed: {str(e)}")
+            raise StateManagementError(f"Stage states retrieval failed: {e!s}")
 
     async def create_checkpoint(self, execution_id: str, stage_name: str,
-                              checkpoint_data: Dict[str, Any]) -> str:
+                              checkpoint_data: dict[str, Any]) -> str:
         """
         Create a checkpoint for stage recovery.
 
@@ -450,18 +450,18 @@ class StateManager:
 
             # Validate checkpoint data
             validation_result = validate_state_data(sanitized_data)
-            if not validation_result['is_valid']:
+            if not validation_result["is_valid"]:
                 raise ValidationError(
                     f"Checkpoint data validation failed: {validation_result['errors']}"
                 )
 
             checkpoint_info = {
-                'checkpoint_id': checkpoint_id,
-                'execution_id': execution_id,
-                'stage_name': stage_name,
-                'data': sanitized_data,
-                'created_at': datetime.utcnow().isoformat(),
-                'encryption_applied': self.encryption_enabled
+                "checkpoint_id": checkpoint_id,
+                "execution_id": execution_id,
+                "stage_name": stage_name,
+                "data": sanitized_data,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "encryption_applied": self.encryption_enabled
             }
 
             # Store checkpoint
@@ -475,7 +475,7 @@ class StateManager:
             # Update stage state with checkpoint reference
             stage_state = await self.get_stage_state(execution_id, stage_name)
             if stage_state:
-                stage_state.checkpoint_data = {'checkpoint_id': checkpoint_id}
+                stage_state.checkpoint_data = {"checkpoint_id": checkpoint_id}
                 await self._store_stage_state(stage_state)
 
             self.logger.info(
@@ -487,9 +487,9 @@ class StateManager:
 
         except Exception as e:
             self.logger.error(f"Failed to create checkpoint: {e}")
-            raise StateManagementError(f"Checkpoint creation failed: {str(e)}")
+            raise StateManagementError(f"Checkpoint creation failed: {e!s}")
 
-    async def restore_checkpoint(self, checkpoint_id: str) -> Dict[str, Any]:
+    async def restore_checkpoint(self, checkpoint_id: str) -> dict[str, Any]:
         """
         Restore checkpoint data for recovery.
 
@@ -513,22 +513,22 @@ class StateManager:
             checkpoint_info = json.loads(checkpoint_data)
 
             # Validate checkpoint integrity
-            if checkpoint_info.get('encryption_applied') != self.encryption_enabled:
+            if checkpoint_info.get("encryption_applied") != self.encryption_enabled:
                 self.logger.warning(
                     f"Encryption mismatch for checkpoint {checkpoint_id}"
                 )
 
             self.logger.info(f"Checkpoint restored: {checkpoint_id}")
 
-            return checkpoint_info['data']
+            return checkpoint_info["data"]
 
         except ResourceNotFoundError:
             raise
         except Exception as e:
             self.logger.error(f"Failed to restore checkpoint: {e}")
-            raise StateManagementError(f"Checkpoint restoration failed: {str(e)}")
+            raise StateManagementError(f"Checkpoint restoration failed: {e!s}")
 
-    async def get_execution_history(self, user_id: str, limit: int = 50) -> List[Dict[str, Any]]:
+    async def get_execution_history(self, user_id: str, limit: int = 50) -> list[dict[str, Any]]:
         """
         Get execution history for a user with authorization check.
 
@@ -556,23 +556,23 @@ class StateManager:
                 state_data = await self.redis_client.get(key)
                 if state_data:
                     state_dict = json.loads(state_data)
-                    if state_dict.get('user_id') == user_id:
+                    if state_dict.get("user_id") == user_id:
                         # Create summary with sanitized data
                         summary = {
-                            'execution_id': state_dict['execution_id'],
-                            'status': state_dict['status'],
-                            'start_time': state_dict['start_time'],
-                            'end_time': state_dict.get('end_time'),
-                            'current_stage': state_dict['current_stage'],
-                            'overall_quality_score': state_dict.get('overall_quality_score'),
-                            'total_duration_seconds': state_dict.get('total_duration_seconds'),
-                            'error_count': state_dict['error_count'],
-                            'retry_count': state_dict['retry_count']
+                            "execution_id": state_dict["execution_id"],
+                            "status": state_dict["status"],
+                            "start_time": state_dict["start_time"],
+                            "end_time": state_dict.get("end_time"),
+                            "current_stage": state_dict["current_stage"],
+                            "overall_quality_score": state_dict.get("overall_quality_score"),
+                            "total_duration_seconds": state_dict.get("total_duration_seconds"),
+                            "error_count": state_dict["error_count"],
+                            "retry_count": state_dict["retry_count"]
                         }
                         user_executions.append(summary)
 
             # Sort by start time (newest first)
-            user_executions.sort(key=lambda x: x['start_time'], reverse=True)
+            user_executions.sort(key=lambda x: x["start_time"], reverse=True)
 
             return user_executions
 
@@ -580,7 +580,7 @@ class StateManager:
             raise
         except Exception as e:
             self.logger.error(f"Failed to get execution history: {e}")
-            raise StateManagementError(f"Execution history retrieval failed: {str(e)}")
+            raise StateManagementError(f"Execution history retrieval failed: {e!s}")
 
     async def cleanup_expired_states(self, max_age_days: int = 30) -> int:
         """
@@ -596,7 +596,7 @@ class StateManager:
             StateManagementError: If cleanup fails
         """
         try:
-            cutoff_time = datetime.utcnow() - timedelta(days=max_age_days)
+            cutoff_time = datetime.now(timezone.utc) - timedelta(days=max_age_days)
             cleaned_count = 0
 
             # Clean up pipeline states
@@ -607,7 +607,7 @@ class StateManager:
                 state_data = await self.redis_client.get(key)
                 if state_data:
                     state_dict = json.loads(state_data)
-                    start_time = datetime.fromisoformat(state_dict['start_time'])
+                    start_time = datetime.fromisoformat(state_dict["start_time"])
 
                     if start_time < cutoff_time:
                         await self.redis_client.delete(key)
@@ -640,7 +640,7 @@ class StateManager:
                     # Filter out old entries
                     filtered_entries = [
                         entry for entry in audit_entries
-                        if datetime.fromisoformat(entry['timestamp']) >= cutoff_time
+                        if datetime.fromisoformat(entry["timestamp"]) >= cutoff_time
                     ]
 
                     if len(filtered_entries) < len(audit_entries):
@@ -662,9 +662,9 @@ class StateManager:
 
         except Exception as e:
             self.logger.error(f"Failed to cleanup expired states: {e}")
-            raise StateManagementError(f"State cleanup failed: {str(e)}")
+            raise StateManagementError(f"State cleanup failed: {e!s}")
 
-    async def get_audit_trail(self, execution_id: str) -> List[Dict[str, Any]]:
+    async def get_audit_trail(self, execution_id: str) -> list[dict[str, Any]]:
         """
         Get complete audit trail for an execution.
 
@@ -694,7 +694,7 @@ class StateManager:
 
             # Convert datetime strings back to datetime objects
             for entry in audit_entries:
-                entry['timestamp'] = datetime.fromisoformat(entry['timestamp'])
+                entry["timestamp"] = datetime.fromisoformat(entry["timestamp"])
 
             return audit_entries
 
@@ -702,9 +702,9 @@ class StateManager:
             raise
         except Exception as e:
             self.logger.error(f"Failed to retrieve audit trail: {e}")
-            raise StateManagementError(f"Audit trail retrieval failed: {str(e)}")
+            raise StateManagementError(f"Audit trail retrieval failed: {e!s}")
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """
         Perform health check of state manager.
 
@@ -717,7 +717,7 @@ class StateManager:
 
             # Check state storage
             test_key = f"{self.pipeline_state_prefix}health_check"
-            test_data = {'test': 'data', 'timestamp': datetime.utcnow().isoformat()}
+            test_data = {"test": "data", "timestamp": datetime.now(timezone.utc).isoformat()}
 
             await self.redis_client.setex(test_key, 60, json.dumps(test_data))
             retrieved_data = await self.redis_client.get(test_key)
@@ -725,23 +725,23 @@ class StateManager:
 
             storage_healthy = retrieved_data is not None
 
-            status = 'healthy' if redis_health and storage_healthy else 'unhealthy'
+            status = "healthy" if redis_health and storage_healthy else "unhealthy"
 
             return {
-                'status': status,
-                'redis_connection': redis_health,
-                'storage_functionality': storage_healthy,
-                'encryption_enabled': self.encryption_enabled,
-                'state_ttl_seconds': self.state_ttl_seconds,
-                'timestamp': datetime.utcnow().isoformat()
+                "status": status,
+                "redis_connection": redis_health,
+                "storage_functionality": storage_healthy,
+                "encryption_enabled": self.encryption_enabled,
+                "state_ttl_seconds": self.state_ttl_seconds,
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
 
         except Exception as e:
             self.logger.error(f"StateManager health check failed: {e}")
             return {
-                'status': 'unhealthy',
-                'error': str(e),
-                'timestamp': datetime.utcnow().isoformat()
+                "status": "unhealthy",
+                "error": str(e),
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
 
     async def _store_pipeline_state(self, state: PipelineState) -> None:
@@ -751,14 +751,14 @@ class StateManager:
             state_dict = asdict(state)
 
             # Convert datetime objects to ISO strings
-            state_dict['start_time'] = state.start_time.isoformat()
+            state_dict["start_time"] = state.start_time.isoformat()
             if state.end_time:
-                state_dict['end_time'] = state.end_time.isoformat()
-            state_dict['last_updated'] = state.last_updated.isoformat()
+                state_dict["end_time"] = state.end_time.isoformat()
+            state_dict["last_updated"] = state.last_updated.isoformat()
 
             # Convert audit trail datetime objects
-            for audit_entry in state_dict.get('audit_trail', []):
-                audit_entry['timestamp'] = audit_entry['timestamp'].isoformat()
+            for audit_entry in state_dict.get("audit_trail", []):
+                audit_entry["timestamp"] = audit_entry["timestamp"].isoformat()
 
             # Store in Redis with TTL
             key = f"{self.pipeline_state_prefix}{state.execution_id}"
@@ -770,7 +770,7 @@ class StateManager:
 
         except Exception as e:
             self.logger.error(f"Failed to store pipeline state: {e}")
-            raise StateManagementError(f"State storage failed: {str(e)}")
+            raise StateManagementError(f"State storage failed: {e!s}")
 
     async def _store_stage_state(self, state: StageState) -> None:
         """Store stage state in Redis."""
@@ -780,10 +780,10 @@ class StateManager:
 
             # Convert datetime objects to ISO strings
             if state.start_time:
-                state_dict['start_time'] = state.start_time.isoformat()
+                state_dict["start_time"] = state.start_time.isoformat()
             if state.end_time:
-                state_dict['end_time'] = state.end_time.isoformat()
-            state_dict['last_updated'] = state.last_updated.isoformat()
+                state_dict["end_time"] = state.end_time.isoformat()
+            state_dict["last_updated"] = state.last_updated.isoformat()
 
             # Store in Redis with TTL
             key = f"{self.stage_state_prefix}{state.execution_id}:{state.stage_name}"
@@ -795,17 +795,17 @@ class StateManager:
 
         except Exception as e:
             self.logger.error(f"Failed to store stage state: {e}")
-            raise StateManagementError(f"Stage state storage failed: {str(e)}")
+            raise StateManagementError(f"Stage state storage failed: {e!s}")
 
     async def _create_audit_entry(self, execution_id: str, event_type: str,
-                                event_data: Dict[str, Any]) -> None:
+                                event_data: dict[str, Any]) -> None:
         """Create audit entry for HIPAA++ compliance."""
         try:
             audit_entry = {
-                'timestamp': datetime.utcnow().isoformat(),
-                'event_type': event_type,
-                'execution_id': execution_id,
-                'data': sanitize_input(event_data)
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "event_type": event_type,
+                "execution_id": execution_id,
+                "data": sanitize_input(event_data)
             }
 
             # Get existing audit trail

@@ -4,6 +4,5 @@
 
 class ClinicalAccuracyValidator:
     """Stub implementation for ClinicalAccuracyValidator."""
-    pass
 
-__all__ = ['ClinicalAccuracyValidator']
+__all__ = ["ClinicalAccuracyValidator"]

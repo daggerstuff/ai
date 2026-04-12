@@ -57,4 +57,4 @@ class EarsComplianceGate:
             "requires_review": False
         }
 
-__all__ = ['EarsComplianceGate', 'EarsValidationResult']
+__all__ = ["EarsComplianceGate", "EarsValidationResult"]

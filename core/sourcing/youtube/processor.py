@@ -3,6 +3,5 @@
 
 class Processor:
     """Stub implementation for Processor."""
-    pass
 
-__all__ = ['Processor']
+__all__ = ["Processor"]

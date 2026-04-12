@@ -27,6 +27,8 @@ Usage:
     )
 """
 
+from datetime import datetime, timezone
+
 from __future__ import annotations
 
 import asyncio
@@ -37,10 +39,9 @@ import re
 import time
 from contextlib import suppress
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import aiohttp
 from pydantic import BaseModel, Field, HttpUrl
@@ -185,7 +186,7 @@ class AcademicSourcingConfig:
     )
 
     # API keys (optional)
-    semantic_scholar_api_key: Optional[str] = None
+    semantic_scholar_api_key: str | None = None
 
     # Request timeout
     request_timeout: int = 30
@@ -200,8 +201,8 @@ class Author:
     """Author information."""
 
     name: str
-    affiliation: Optional[str] = None
-    orcid: Optional[str] = None
+    affiliation: str | None = None
+    orcid: str | None = None
 
 
 @dataclass
@@ -210,8 +211,8 @@ class Citation:
 
     paper_id: str
     title: str
-    year: Optional[int] = None
-    venue: Optional[str] = None
+    year: int | None = None
+    venue: str | None = None
 
 
 @dataclass
@@ -220,22 +221,22 @@ class PaperMetadata:
 
     # Identifiers
     paper_id: str
-    doi: Optional[str] = None
-    pmid: Optional[str] = None
-    arxiv_id: Optional[str] = None
+    doi: str | None = None
+    pmid: str | None = None
+    arxiv_id: str | None = None
 
     # Basic info
     title: str
     authors: list[Author] = field(default_factory=list)
-    publication_date: Optional[datetime] = None
-    journal: Optional[str] = None
-    volume: Optional[str] = None
-    issue: Optional[str] = None
-    pages: Optional[str] = None
+    publication_date: datetime | None = None
+    journal: str | None = None
+    volume: str | None = None
+    issue: str | None = None
+    pages: str | None = None
 
     # Content
-    abstract: Optional[str] = None
-    full_text: Optional[str] = None
+    abstract: str | None = None
+    full_text: str | None = None
     keywords: list[str] = field(default_factory=list)
 
     # Study info
@@ -243,8 +244,8 @@ class PaperMetadata:
     access_status: AccessStatus = AccessStatus.UNKNOWN
 
     # URLs
-    pdf_url: Optional[str] = None
-    html_url: Optional[str] = None
+    pdf_url: str | None = None
+    html_url: str | None = None
 
     # Metrics
     citation_count: int = 0
@@ -270,8 +271,8 @@ class AuthorModel(BaseModel):
     """Pydantic model for author information."""
 
     name: str = Field(..., description="Full name of the author")
-    affiliation: Optional[str] = Field(None, description="Institutional affiliation")
-    orcid: Optional[str] = Field(None, description="ORCID identifier")
+    affiliation: str | None = Field(None, description="Institutional affiliation")
+    orcid: str | None = Field(None, description="ORCID identifier")
 
 
 class CitationModel(BaseModel):
@@ -279,8 +280,8 @@ class CitationModel(BaseModel):
 
     paper_id: str = Field(..., description="Unique identifier for the cited paper")
     title: str = Field(..., description="Title of the cited paper")
-    year: Optional[int] = Field(None, description="Publication year")
-    venue: Optional[str] = Field(None, description="Publication venue")
+    year: int | None = Field(None, description="Publication year")
+    venue: str | None = Field(None, description="Publication venue")
 
 
 class PaperMetadataModel(BaseModel):
@@ -288,26 +289,26 @@ class PaperMetadataModel(BaseModel):
 
     # Identifiers
     paper_id: str = Field(..., description="Unique identifier for the paper")
-    doi: Optional[str] = Field(None, description="Digital Object Identifier")
-    pmid: Optional[str] = Field(None, description="PubMed ID")
-    arxiv_id: Optional[str] = Field(None, description="arXiv ID")
+    doi: str | None = Field(None, description="Digital Object Identifier")
+    pmid: str | None = Field(None, description="PubMed ID")
+    arxiv_id: str | None = Field(None, description="arXiv ID")
 
     # Basic information
     title: str = Field(..., description="Paper title")
     authors: list[AuthorModel] = Field(
         default_factory=list, description="List of authors"
     )
-    publication_date: Optional[str] = Field(
+    publication_date: str | None = Field(
         None, description="ISO format publication date"
     )
-    journal: Optional[str] = Field(None, description="Journal name")
-    volume: Optional[str] = Field(None, description="Volume number")
-    issue: Optional[str] = Field(None, description="Issue number")
-    pages: Optional[str] = Field(None, description="Page numbers")
+    journal: str | None = Field(None, description="Journal name")
+    volume: str | None = Field(None, description="Volume number")
+    issue: str | None = Field(None, description="Issue number")
+    pages: str | None = Field(None, description="Page numbers")
 
     # Content
-    abstract: Optional[str] = Field(None, description="Paper abstract")
-    full_text: Optional[str] = Field(None, description="Full text content")
+    abstract: str | None = Field(None, description="Paper abstract")
+    full_text: str | None = Field(None, description="Full text content")
     keywords: list[str] = Field(default_factory=list, description="Paper keywords")
 
     # Study information
@@ -315,8 +316,8 @@ class PaperMetadataModel(BaseModel):
     access_status: str = Field(default="unknown", description="Access status")
 
     # URLs
-    pdf_url: Optional[HttpUrl] = Field(None, description="URL to PDF")
-    html_url: Optional[HttpUrl] = Field(None, description="URL to HTML version")
+    pdf_url: HttpUrl | None = Field(None, description="URL to PDF")
+    html_url: HttpUrl | None = Field(None, description="URL to HTML version")
 
     # Metrics
     citation_count: int = Field(default=0, description="Number of citations")
@@ -438,7 +439,7 @@ class SimpleCache:
 
     def get(
         self, source: str, query: str, params: dict[str, Any]
-    ) -> Optional[dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Get cached data if available and not expired."""
         if not self.config.enabled:
             return None
@@ -538,7 +539,7 @@ class AcademicAPIClient:
         self.config = config
         self.cache = SimpleCache(config.cache)
         self.rate_limiter = RateLimiter(config.rate_limit)
-        self._session: Optional[aiohttp.ClientSession] = None
+        self._session: aiohttp.ClientSession | None = None
 
     async def __aenter__(self):
         """Async context manager entry."""
@@ -564,9 +565,9 @@ class AcademicAPIClient:
         self,
         method: str,
         url: str,
-        params: Optional[dict[str, Any]] = None,
-        headers: Optional[dict[str, str]] = None,
-        cache_key: Optional[str] = None,
+        params: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+        cache_key: str | None = None,
     ) -> dict[str, Any]:
         """Make HTTP request with retry logic and caching."""
         # Check cache first
@@ -609,7 +610,7 @@ class AcademicAPIClient:
         raise RuntimeError("Max retries exceeded")
 
     def _extract_mental_health_topics(
-        self, text: Optional[str], keywords: list[str]
+        self, text: str | None, keywords: list[str]
     ) -> list[str]:
         """Extract mental health topics from text."""
         if not text:
@@ -681,7 +682,7 @@ class PubMedClient(AcademicAPIClient):
         logger.info(f"Successfully retrieved {len(papers)} papers from PubMed")
         return papers
 
-    async def fetch_details(self, pmid: str) -> Optional[PaperMetadata]:
+    async def fetch_details(self, pmid: str) -> PaperMetadata | None:
         """Fetch detailed metadata for a specific PubMed ID."""
         fetch_params = {
             "db": "pubmed",
@@ -771,7 +772,7 @@ class PubMedClient(AcademicAPIClient):
 
         return authors
 
-    def _extract_abstract(self, article: dict[str, Any]) -> Optional[str]:
+    def _extract_abstract(self, article: dict[str, Any]) -> str | None:
         """Extract abstract from article data."""
         abstract_data = article.get("abstract", {})
         if not abstract_data:
@@ -783,14 +784,14 @@ class PubMedClient(AcademicAPIClient):
 
         return abstract_text.strip() if abstract_text else None
 
-    def _extract_journal(self, article: dict[str, Any]) -> Optional[str]:
+    def _extract_journal(self, article: dict[str, Any]) -> str | None:
         """Extract journal name from article data."""
         journal = article.get("journal", {})
         return journal.get("name") if journal else None
 
     def _extract_publication_date(
         self, pubmed_data: dict[str, Any]
-    ) -> Optional[datetime]:
+    ) -> datetime | None:
         """Extract publication date from PubMed data."""
         with suppress(Exception):
             medline_citation = pubmed_data.get("medlinecitation", {})
@@ -846,13 +847,13 @@ class PubMedClient(AcademicAPIClient):
 
         if "randomized" in type_str or "clinical trial" in type_str:
             return StudyType.RCT
-        elif "review" in type_str:
+        if "review" in type_str:
             return StudyType.REVIEW
-        elif "meta-analysis" in type_str:
+        if "meta-analysis" in type_str:
             return StudyType.META_ANALYSIS
-        elif "case report" in type_str or "case study" in type_str:
+        if "case report" in type_str or "case study" in type_str:
             return StudyType.CASE_STUDY
-        elif "observational" in type_str:
+        if "observational" in type_str:
             return StudyType.OBSERVATIONAL
 
         return StudyType.UNKNOWN
@@ -921,7 +922,7 @@ class ArXivClient(AcademicAPIClient):
         logger.info(f"Successfully retrieved {len(papers)} papers from arXiv")
         return papers
 
-    def _parse_entry(self, entry: dict[str, Any]) -> Optional[PaperMetadata]:
+    def _parse_entry(self, entry: dict[str, Any]) -> PaperMetadata | None:
         """Parse arXiv entry into PaperMetadata."""
         try:
             # Extract basic info
@@ -1004,7 +1005,7 @@ class SemanticScholarClient(AcademicAPIClient):
         self,
         query: str,
         max_results: int = 20,
-        fields: Optional[list[str]] = None,
+        fields: list[str] | None = None,
     ) -> list[PaperMetadata]:
         """Search Semantic Scholar for papers matching query."""
         logger.info(f"Searching Semantic Scholar for: {query}")
@@ -1060,8 +1061,8 @@ class SemanticScholarClient(AcademicAPIClient):
         return papers
 
     async def get_paper_details(
-        self, paper_id: str, fields: Optional[list[str]] = None
-    ) -> Optional[PaperMetadata]:
+        self, paper_id: str, fields: list[str] | None = None
+    ) -> PaperMetadata | None:
         """Get detailed information for a specific paper."""
         logger.info(f"Fetching details for paper: {paper_id}")
 
@@ -1099,7 +1100,7 @@ class SemanticScholarClient(AcademicAPIClient):
         paper_data = data.get("data", {}).get("paper")
         return self._parse_entry(paper_data) if paper_data else None
 
-    def _parse_entry(self, entry: dict[str, Any]) -> Optional[PaperMetadata]:
+    def _parse_entry(self, entry: dict[str, Any]) -> PaperMetadata | None:
         """Parse Semantic Scholar entry into PaperMetadata."""
         try:
             # Extract basic info
@@ -1203,7 +1204,7 @@ class SemanticScholarClient(AcademicAPIClient):
 class DOIResolver(AcademicAPIClient):
     """Client for DOI resolution and metadata extraction."""
 
-    async def resolve(self, doi: str) -> Optional[PaperMetadata]:
+    async def resolve(self, doi: str) -> PaperMetadata | None:
         """Resolve DOI and extract metadata."""
         logger.info(f"Resolving DOI: {doi}")
 
@@ -1236,7 +1237,7 @@ class DOIResolver(AcademicAPIClient):
 
     def _parse_metadata(
         self, doi: str, data: dict[str, Any]
-    ) -> Optional[PaperMetadata]:
+    ) -> PaperMetadata | None:
         """Parse DOI metadata into PaperMetadata."""
         try:
             title = data.get("title", "")
@@ -1310,16 +1311,15 @@ class PDFProcessor:
         """Initialize PDF processor with configuration."""
         self.config = config
 
-    async def extract_text(self, pdf_url: str) -> Optional[str]:
+    async def extract_text(self, pdf_url: str) -> str | None:
         """Extract text from PDF URL."""
         logger.info(f"Extracting text from PDF: {pdf_url}")
 
         try:
             # Download PDF
-            async with aiohttp.ClientSession() as session:
-                async with session.get(pdf_url) as response:
-                    response.raise_for_status()
-                    pdf_content = await response.read()
+            async with aiohttp.ClientSession() as session, session.get(pdf_url) as response:
+                response.raise_for_status()
+                pdf_content = await response.read()
 
             # Extract text using pdfplumber if available
             try:
@@ -1367,7 +1367,7 @@ class PDFProcessor:
 
         return findings[:10]  # Limit to top 10 findings
 
-    def extract_methodology(self, text: str) -> Optional[str]:
+    def extract_methodology(self, text: str) -> str | None:
         """Extract methodology section from text."""
         # Look for methodology section
         methodology_patterns = [
@@ -1392,14 +1392,14 @@ class PDFProcessor:
 class AcademicSourcing:
     """Main class for academic sourcing operations."""
 
-    def __init__(self, config: Optional[AcademicSourcingConfig] = None):
+    def __init__(self, config: AcademicSourcingConfig | None = None):
         """Initialize academic sourcing with configuration."""
         self.config = config or AcademicSourcingConfig()
-        self._pubmed_client: Optional[PubMedClient] = None
-        self._arxiv_client: Optional[ArXivClient] = None
-        self._semantic_scholar_client: Optional[SemanticScholarClient] = None
-        self._doi_resolver: Optional[DOIResolver] = None
-        self._pdf_processor: Optional[PDFProcessor] = None
+        self._pubmed_client: PubMedClient | None = None
+        self._arxiv_client: ArXivClient | None = None
+        self._semantic_scholar_client: SemanticScholarClient | None = None
+        self._doi_resolver: DOIResolver | None = None
+        self._pdf_processor: PDFProcessor | None = None
 
     async def __aenter__(self):
         """Async context manager entry."""
@@ -1430,7 +1430,7 @@ class AcademicSourcing:
     async def search(
         self,
         keywords: str,
-        sources: Optional[list[str]] = None,
+        sources: list[str] | None = None,
         max_results: int = 50,
         min_relevance: float = 0.0,
         extract_full_text: bool = False,
@@ -1548,7 +1548,7 @@ class AcademicSourcing:
         except Exception as e:
             logger.warning(f"Failed to extract full text for {paper.paper_id}: {e}")
 
-    async def resolve_doi(self, doi: str) -> Optional[PaperMetadata]:
+    async def resolve_doi(self, doi: str) -> PaperMetadata | None:
         """Resolve a DOI and extract metadata.
 
         Args:
@@ -1561,7 +1561,7 @@ class AcademicSourcing:
 
     async def get_paper_details(
         self, paper_id: str, source: str = "semantic_scholar"
-    ) -> Optional[PaperMetadata]:
+    ) -> PaperMetadata | None:
         """Get detailed information for a specific paper.
 
         Args:
@@ -1576,9 +1576,8 @@ class AcademicSourcing:
             if paper_id.startswith("semantic_scholar:"):
                 paper_id = paper_id.split(":", 1)[0]
             return await self._semantic_scholar_client.get_paper_details(paper_id)
-        else:
-            logger.warning(f"Paper details not supported for source: {source}")
-            return None
+        logger.warning(f"Paper details not supported for source: {source}")
+        return None
 
     def to_pix32_format(self, papers: list[PaperMetadata]) -> list[dict[str, Any]]:
         """Convert papers to PIX-32 compatible JSON format.
@@ -1656,10 +1655,10 @@ class AcademicSourcing:
 
 async def search_papers(
     keywords: str,
-    sources: Optional[list[str]] = None,
+    sources: list[str] | None = None,
     max_results: int = 50,
     min_relevance: float = 0.0,
-    config: Optional[AcademicSourcingConfig] = None,
+    config: AcademicSourcingConfig | None = None,
 ) -> list[dict[str, Any]]:
     """Convenience function to search papers and return PIX-32 format.
 
@@ -1687,8 +1686,8 @@ async def search_papers(
 
 
 async def resolve_doi(
-    doi: str, config: Optional[AcademicSourcingConfig] = None
-) -> Optional[dict[str, Any]]:
+    doi: str, config: AcademicSourcingConfig | None = None
+) -> dict[str, Any] | None:
     """Convenience function to resolve a DOI and return PIX-32 format.
 
     Args:

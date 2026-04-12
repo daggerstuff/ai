@@ -17,11 +17,11 @@ from ..core.agent_manager import (
 )
 
 logger = logging.getLogger(__name__)
-agents_bp = Blueprint('agents', __name__)
+agents_bp = Blueprint("agents", __name__)
 
-@agents_bp.route('/register', methods=['POST'])
+@agents_bp.route("/register", methods=["POST"])
 @require_mcp_auth
-@require_mcp_role(['admin', 'system'])
+@require_mcp_role(["admin", "system"])
 def register_agent():
     """Register a new agent with the MCP server."""
     try:
@@ -33,15 +33,15 @@ def register_agent():
             }), 400
 
         registration_data = AgentRegistrationData(
-            name=data.get('name'),
-            type=data.get('type'),
-            capabilities=data.get('capabilities', []),
-            metadata=data.get('metadata', {})
+            name=data.get("name"),
+            type=data.get("type"),
+            capabilities=data.get("capabilities", []),
+            metadata=data.get("metadata", {})
         )
 
         # Access agent manager from current_app (initialized in app.py)
         # Note: app.py needs to be updated to attach agent_manager to app
-        agent_manager = getattr(current_app, 'agent_manager', None)
+        agent_manager = getattr(current_app, "agent_manager", None)
         if not agent_manager:
             return jsonify({
                 "success": False,
@@ -62,14 +62,14 @@ def register_agent():
             "error": str(e)
         }), 500
 
-@agents_bp.route('/discover', methods=['GET'])
+@agents_bp.route("/discover", methods=["GET"])
 @require_mcp_auth
 def discover_agents():
     """Discover agents based on capability criteria."""
     try:
         criteria = AgentDiscoveryCriteria.from_request(request.args)
 
-        agent_manager = getattr(current_app, 'agent_manager', None)
+        agent_manager = getattr(current_app, "agent_manager", None)
         if not agent_manager:
             return jsonify({
                 "success": False,
@@ -90,12 +90,12 @@ def discover_agents():
             "error": str(e)
         }), 500
 
-@agents_bp.route('/<agent_id>/health', methods=['GET'])
+@agents_bp.route("/<agent_id>/health", methods=["GET"])
 @require_mcp_auth
 def get_agent_health(agent_id):
     """Get health status for a specific agent."""
     try:
-        agent_manager = getattr(current_app, 'agent_manager', None)
+        agent_manager = getattr(current_app, "agent_manager", None)
         if not agent_manager:
             return jsonify({
                 "success": False,

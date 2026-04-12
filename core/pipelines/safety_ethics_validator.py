@@ -4,6 +4,5 @@
 
 class SafetyEthicsValidator:
     """Stub implementation for SafetyEthicsValidator."""
-    pass
 
-__all__ = ['SafetyEthicsValidator']
+__all__ = ["SafetyEthicsValidator"]

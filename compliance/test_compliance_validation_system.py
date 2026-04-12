@@ -25,7 +25,6 @@ class TestComplianceValidationSystem:
 
     def teardown_method(self):
         """Cleanup after tests"""
-        pass
 
     def test_compliance_validation_system_initialization(self):
         """Test compliance validation system initialization"""

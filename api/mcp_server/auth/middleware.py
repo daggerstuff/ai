@@ -1,5 +1,5 @@
 import logging
-from typing import Any, List
+from typing import Any
 
 import jwt
 from flask import Request
@@ -8,25 +8,22 @@ from flask import Request
 class AuthenticationError(Exception):
     """Raised when authentication fails."""
 
-    pass
 
 
 class PermissionDeniedError(Exception):
     """Raised when an agent lacks required permissions."""
 
-    pass
 
 
 class RateLimitExceededError(Exception):
     """Raised when an agent exceeds its rate limit."""
 
-    pass
 
 
 class AgentContext:
     """Context information for an authenticated agent."""
 
-    def __init__(self, agent_id: str, roles: List[str], clearance_level: int = 0):
+    def __init__(self, agent_id: str, roles: list[str], clearance_level: int = 0):
         self.agent_id = agent_id
         self.roles = roles
         self.clearance_level = clearance_level
@@ -116,9 +113,7 @@ class MCPAuthMiddleware:
 
         # Support both "Agent <token>" and "Bearer <token>" for compatibility
         token = ""
-        if auth_header.startswith("Agent "):
-            token = auth_header.split(" ")[1]
-        elif auth_header.startswith("Bearer "):
+        if auth_header.startswith("Agent ") or auth_header.startswith("Bearer "):
             token = auth_header.split(" ")[1]
         else:
             raise AuthenticationError("Missing or invalid agent authorization header")
@@ -197,7 +192,7 @@ def require_mcp_auth(f):
     return decorated
 
 
-def require_mcp_role(roles: List[str]):
+def require_mcp_role(roles: list[str]):
     """Decorator to require specific MCP roles for a route."""
     from functools import wraps
 
