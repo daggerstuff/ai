@@ -126,7 +126,7 @@ def run(
     except Exception as e:
         logger.error(f"Pipeline execution failed: {e}")
         click.echo(f"❌ Pipeline execution failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @cli_interface_group.command()
@@ -166,7 +166,7 @@ def status(
     except Exception as e:
         logger.error(f"Status check failed: {e}")
         click.echo(f"❌ Status check failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @cli_interface_group.command()
@@ -237,7 +237,7 @@ def process(_ctx, input: str, output: str | None, format: str, validate_only: bo
     except Exception as e:
         logger.error(f"Data processing failed: {e}")
         click.echo(f"❌ Data processing failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @cli_interface_group.command()
@@ -273,7 +273,7 @@ def search(_ctx, query: str, type: str, limit: int, json_output: bool):
     except Exception as e:
         logger.error(f"Search failed: {e}")
         click.echo(f"❌ Search failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @cli_interface_group.command()
@@ -303,7 +303,7 @@ def list_resources(_ctx, models: bool, datasets: bool, pipelines: bool, detailed
     except Exception as e:
         logger.error(f"Resource listing failed: {e}")
         click.echo(f"❌ Resource listing failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @cli_interface_group.command()
@@ -365,7 +365,7 @@ def batch(
     except Exception as e:
         logger.error(f"Batch execution failed: {e}")
         click.echo(f"❌ Batch execution failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @cli_interface_group.command()
@@ -397,7 +397,7 @@ def activity(_ctx, days: int, type: str):
     except Exception as e:
         logger.error(f"Activity report failed: {e}")
         click.echo(f"❌ Activity report failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 # Helper functions

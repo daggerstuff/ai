@@ -143,7 +143,7 @@ class StateManager:
 
         except Exception as e:
             self.logger.error(f"Failed to initialize pipeline state: {e}")
-            raise StateManagementError(f"State initialization failed: {e!s}")
+            raise StateManagementError(f"State initialization failed: {e!s}") from e
 
     async def update_pipeline_state(self, execution_id: str, status: str,
                                   data: dict[str, Any] | None = None) -> PipelineState:
@@ -218,7 +218,7 @@ class StateManager:
             raise
         except Exception as e:
             self.logger.error(f"Failed to update pipeline state: {e}")
-            raise StateManagementError(f"State update failed: {e!s}")
+            raise StateManagementError(f"State update failed: {e!s}") from e
 
     async def update_stage_state(self, execution_id: str, stage_name: str,
                                status: str, result: dict[str, Any] | None = None) -> StageState:
@@ -305,7 +305,7 @@ class StateManager:
 
         except Exception as e:
             self.logger.error(f"Failed to update stage state: {e}")
-            raise StateManagementError(f"Stage state update failed: {e!s}")
+            raise StateManagementError(f"Stage state update failed: {e!s}") from e
 
     async def get_pipeline_state(self, execution_id: str) -> PipelineState | None:
         """
@@ -344,7 +344,7 @@ class StateManager:
 
         except Exception as e:
             self.logger.error(f"Failed to retrieve pipeline state: {e}")
-            raise StateManagementError(f"State retrieval failed: {e!s}")
+            raise StateManagementError(f"State retrieval failed: {e!s}") from e
 
     async def get_stage_state(self, execution_id: str, stage_name: str) -> StageState | None:
         """
@@ -381,7 +381,7 @@ class StateManager:
 
         except Exception as e:
             self.logger.error(f"Failed to retrieve stage state: {e}")
-            raise StateManagementError(f"Stage state retrieval failed: {e!s}")
+            raise StateManagementError(f"Stage state retrieval failed: {e!s}") from e
 
     async def get_all_stage_states(self, execution_id: str) -> list[StageState]:
         """
@@ -422,7 +422,7 @@ class StateManager:
 
         except Exception as e:
             self.logger.error(f"Failed to retrieve all stage states: {e}")
-            raise StateManagementError(f"Stage states retrieval failed: {e!s}")
+            raise StateManagementError(f"Stage states retrieval failed: {e!s}") from e
 
     async def create_checkpoint(self, execution_id: str, stage_name: str,
                               checkpoint_data: dict[str, Any]) -> str:
@@ -485,7 +485,7 @@ class StateManager:
 
         except Exception as e:
             self.logger.error(f"Failed to create checkpoint: {e}")
-            raise StateManagementError(f"Checkpoint creation failed: {e!s}")
+            raise StateManagementError(f"Checkpoint creation failed: {e!s}") from e
 
     async def restore_checkpoint(self, checkpoint_id: str) -> dict[str, Any]:
         """
@@ -524,7 +524,7 @@ class StateManager:
             raise
         except Exception as e:
             self.logger.error(f"Failed to restore checkpoint: {e}")
-            raise StateManagementError(f"Checkpoint restoration failed: {e!s}")
+            raise StateManagementError(f"Checkpoint restoration failed: {e!s}") from e
 
     async def get_execution_history(self, user_id: str, limit: int = 50) -> list[dict[str, Any]]:
         """
@@ -578,7 +578,7 @@ class StateManager:
             raise
         except Exception as e:
             self.logger.error(f"Failed to get execution history: {e}")
-            raise StateManagementError(f"Execution history retrieval failed: {e!s}")
+            raise StateManagementError(f"Execution history retrieval failed: {e!s}") from e
 
     async def cleanup_expired_states(self, max_age_days: int = 30) -> int:
         """
@@ -660,7 +660,7 @@ class StateManager:
 
         except Exception as e:
             self.logger.error(f"Failed to cleanup expired states: {e}")
-            raise StateManagementError(f"State cleanup failed: {e!s}")
+            raise StateManagementError(f"State cleanup failed: {e!s}") from e
 
     async def get_audit_trail(self, execution_id: str) -> list[dict[str, Any]]:
         """
@@ -700,7 +700,7 @@ class StateManager:
             raise
         except Exception as e:
             self.logger.error(f"Failed to retrieve audit trail: {e}")
-            raise StateManagementError(f"Audit trail retrieval failed: {e!s}")
+            raise StateManagementError(f"Audit trail retrieval failed: {e!s}") from e
 
     async def health_check(self) -> dict[str, Any]:
         """
@@ -768,7 +768,7 @@ class StateManager:
 
         except Exception as e:
             self.logger.error(f"Failed to store pipeline state: {e}")
-            raise StateManagementError(f"State storage failed: {e!s}")
+            raise StateManagementError(f"State storage failed: {e!s}") from e
 
     async def _store_stage_state(self, state: StageState) -> None:
         """Store stage state in Redis."""
@@ -793,7 +793,7 @@ class StateManager:
 
         except Exception as e:
             self.logger.error(f"Failed to store stage state: {e}")
-            raise StateManagementError(f"Stage state storage failed: {e!s}")
+            raise StateManagementError(f"Stage state storage failed: {e!s}") from e
 
     async def _create_audit_entry(self, execution_id: str, event_type: str,
                                 event_data: dict[str, Any]) -> None:

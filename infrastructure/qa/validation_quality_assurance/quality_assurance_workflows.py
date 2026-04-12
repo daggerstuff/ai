@@ -291,7 +291,7 @@ class QualityAssuranceWorkflow:
                     result.steps_failed.append(step.step_id)
 
                     if step.required:
-                        raise Exception(f"Required step {step.name} failed: {e}")
+                        raise Exception(f"Required step {step.name} failed: {e}") from e
                     logger.warning(
                         f"  ⚠️ Optional step {step.name} failed, continuing..."
                     )

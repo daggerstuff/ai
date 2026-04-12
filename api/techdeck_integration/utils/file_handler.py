@@ -92,7 +92,7 @@ class FileHandler:
             raise
         except Exception as e:
             self.logger.error(f"Error storing file: {e}")
-            raise StorageError(f"Failed to store file: {e!s}")
+            raise StorageError(f"Failed to store file: {e!s}") from e
 
     def delete_file(self, storage_path: str) -> bool:
         """
@@ -117,7 +117,7 @@ class FileHandler:
 
         except Exception as e:
             self.logger.error(f"Error deleting file: {e}")
-            raise StorageError(f"Failed to delete file: {e!s}")
+            raise StorageError(f"Failed to delete file: {e!s}") from e
 
     def file_exists(self, storage_path: str) -> bool:
         """Check if file exists at given path."""
@@ -187,7 +187,7 @@ class FileHandler:
 
         except Exception as e:
             self.logger.error(f"Error archiving file: {e}")
-            raise StorageError(f"Failed to archive file: {e!s}")
+            raise StorageError(f"Failed to archive file: {e!s}") from e
 
     def cleanup_temp_files(self, max_age_hours: int = 24) -> int:
         """
@@ -311,7 +311,7 @@ class FileHandler:
             raise
         except Exception as e:
             self.logger.error(f"Error validating uploaded file: {e}")
-            raise ValidationError(f"File validation failed: {e!s}")
+            raise ValidationError(f"File validation failed: {e!s}") from e
 
     def _generate_storage_path(
         self, file_id: str, user_id: str, original_filename: str
@@ -342,7 +342,7 @@ class FileHandler:
 
         except Exception as e:
             self.logger.error(f"Error generating storage path: {e}")
-            raise StorageError(f"Failed to generate storage path: {e!s}")
+            raise StorageError(f"Failed to generate storage path: {e!s}") from e
 
     def _verify_file_integrity(
         self, storage_path: str, original_file: FileStorage

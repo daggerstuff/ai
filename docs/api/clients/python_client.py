@@ -122,7 +122,7 @@ class PixelatedEmpathyAPI:
                     logger.warning(f"Request failed (attempt {attempt + 1}): {e}")
                     time.sleep(2 ** attempt)  # Exponential backoff
                     continue
-                raise PixelatedEmpathyAPIError(f"Request failed: {e}")
+                raise PixelatedEmpathyAPIError(f"Request failed: {e}") from e
 
     # Dataset methods
     def list_datasets(self) -> list[dict[str, Any]]:

@@ -124,7 +124,7 @@ def create_mcp_app(config: MCPConfig | None = None) -> MCPFlask:
 
     except Exception as e:
         logger.critical(f"Failed to initialize MCP Flask application: {e}")
-        raise RuntimeError(f"Application initialization failed: {e}")
+        raise RuntimeError(f"Application initialization failed: {e}") from e
 
 
 def _validate_configuration(config: MCPConfig) -> None:

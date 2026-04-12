@@ -104,7 +104,7 @@ def quality_check():
         raise
     except Exception as e:
         request_logger.error(f"Error performing quality check: {e}")
-        raise ValidationError(f"Failed to perform quality check: {e!s}")
+        raise ValidationError(f"Failed to perform quality check: {e!s}") from e
 
 
 @validation_bp.route("/bias-detection", methods=["POST"])
@@ -181,7 +181,7 @@ def bias_detection():
         raise
     except Exception as e:
         request_logger.error(f"Error performing bias detection: {e}")
-        raise BiasDetectionError(f"Failed to perform bias detection: {e!s}")
+        raise BiasDetectionError(f"Failed to perform bias detection: {e!s}") from e
 
 
 @validation_bp.route("/compliance-check", methods=["POST"])
@@ -254,7 +254,7 @@ def compliance_check():
         raise
     except Exception as e:
         request_logger.error(f"Error performing compliance check: {e}")
-        raise ValidationError(f"Failed to perform compliance check: {e!s}")
+        raise ValidationError(f"Failed to perform compliance check: {e!s}") from e
 
 
 @validation_bp.route("/schema-validation", methods=["POST"])
@@ -337,7 +337,7 @@ def schema_validation():
         raise
     except Exception as e:
         request_logger.error(f"Error performing schema validation: {e}")
-        raise ValidationError(f"Failed to perform schema validation: {e!s}")
+        raise ValidationError(f"Failed to perform schema validation: {e!s}") from e
 
 
 @validation_bp.route("/batch-validate", methods=["POST"])
@@ -453,7 +453,7 @@ def batch_validate():
         raise
     except Exception as e:
         request_logger.error(f"Error in batch validation: {e}")
-        raise ValidationError(f"Failed to perform batch validation: {e!s}")
+        raise ValidationError(f"Failed to perform batch validation: {e!s}") from e
 
 
 @validation_bp.route("/validation-history", methods=["GET"])
@@ -508,10 +508,10 @@ def get_validation_history():
         }), 200
 
     except ValueError as e:
-        raise ValidationError(f"Invalid query parameter: {e!s}")
+        raise ValidationError(f"Invalid query parameter: {e!s}") from e
     except Exception as e:
         request_logger.error(f"Error retrieving validation history: {e}")
-        raise ValidationError(f"Failed to retrieve validation history: {e!s}")
+        raise ValidationError(f"Failed to retrieve validation history: {e!s}") from e
 
 
 # Helper Functions
@@ -576,7 +576,7 @@ def _perform_quality_checks(data: dict[str, Any], checks: list[str], dataset_con
 
     except Exception as e:
         logger.error(f"Error performing quality checks: {e}")
-        raise ValidationError(f"Quality check failed: {e!s}")
+        raise ValidationError(f"Quality check failed: {e!s}") from e
 
 
 def _perform_bias_detection(_data: dict[str, Any], _context: dict[str, Any], detection_type: str, _options: dict[str, Any]) -> dict[str, Any]:
@@ -625,7 +625,7 @@ def _perform_bias_detection(_data: dict[str, Any], _context: dict[str, Any], det
 
     except Exception as e:
         logger.error(f"Error performing bias detection: {e}")
-        raise BiasDetectionError(f"Bias detection failed: {e!s}")
+        raise BiasDetectionError(f"Bias detection failed: {e!s}") from e
 
 
 def _perform_compliance_check(data: dict[str, Any], compliance_type: str, options: dict[str, Any]) -> dict[str, Any]:
@@ -678,7 +678,7 @@ def _perform_compliance_check(data: dict[str, Any], compliance_type: str, option
 
     except Exception as e:
         logger.error(f"Error performing compliance check: {e}")
-        raise ValidationError(f"Compliance check failed: {e!s}")
+        raise ValidationError(f"Compliance check failed: {e!s}") from e
 
 
 def _get_validation_schema(redis_client: RedisClient, schema_id: str) -> dict[str, Any] | None:

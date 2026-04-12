@@ -107,12 +107,12 @@ def get_usage_analytics():
         ), 200
 
     except ValueError as e:
-        raise ValidationError(f"Invalid date format: {e!s}")
+        raise ValidationError(f"Invalid date format: {e!s}") from e
     except ValidationError:
         raise
     except Exception as e:
         request_logger.error(f"Error retrieving usage analytics: {e}")
-        raise AnalyticsError(f"Failed to retrieve usage analytics: {e!s}")
+        raise AnalyticsError(f"Failed to retrieve usage analytics: {e!s}") from e
 
 
 @analytics_bp.route("/performance", methods=["GET"])
@@ -192,12 +192,12 @@ def get_performance_analytics():
         ), 200
 
     except ValueError as e:
-        raise ValidationError(f"Invalid date format: {e!s}")
+        raise ValidationError(f"Invalid date format: {e!s}") from e
     except ValidationError:
         raise
     except Exception as e:
         request_logger.error(f"Error retrieving performance analytics: {e}")
-        raise AnalyticsError(f"Failed to retrieve performance analytics: {e!s}")
+        raise AnalyticsError(f"Failed to retrieve performance analytics: {e!s}") from e
 
 
 @analytics_bp.route("/pipeline", methods=["GET"])
@@ -279,12 +279,12 @@ def get_pipeline_analytics():
         ), 200
 
     except ValueError as e:
-        raise ValidationError(f"Invalid date format: {e!s}")
+        raise ValidationError(f"Invalid date format: {e!s}") from e
     except ValidationError:
         raise
     except Exception as e:
         request_logger.error(f"Error retrieving pipeline analytics: {e}")
-        raise AnalyticsError(f"Failed to retrieve pipeline analytics: {e!s}")
+        raise AnalyticsError(f"Failed to retrieve pipeline analytics: {e!s}") from e
 
 
 @analytics_bp.route("/datasets", methods=["GET"])
@@ -365,12 +365,12 @@ def get_dataset_analytics():
         ), 200
 
     except ValueError as e:
-        raise ValidationError(f"Invalid date format: {e!s}")
+        raise ValidationError(f"Invalid date format: {e!s}") from e
     except ValidationError:
         raise
     except Exception as e:
         request_logger.error(f"Error retrieving dataset analytics: {e}")
-        raise AnalyticsError(f"Failed to retrieve dataset analytics: {e!s}")
+        raise AnalyticsError(f"Failed to retrieve dataset analytics: {e!s}") from e
 
 
 @analytics_bp.route("/real-time", methods=["GET"])
@@ -437,12 +437,12 @@ def get_real_time_analytics():
         ), 200
 
     except ValueError as e:
-        raise ValidationError(f"Invalid parameter: {e!s}")
+        raise ValidationError(f"Invalid parameter: {e!s}") from e
     except ValidationError:
         raise
     except Exception as e:
         request_logger.error(f"Error retrieving real-time analytics: {e}")
-        raise AnalyticsError(f"Failed to retrieve real-time analytics: {e!s}")
+        raise AnalyticsError(f"Failed to retrieve real-time analytics: {e!s}") from e
 
 
 @analytics_bp.route("/export", methods=["POST"])
@@ -541,12 +541,12 @@ def export_analytics():
         ), 201
 
     except (ValidationError, ValueError) as e:
-        raise ValidationError(f"Invalid request: {e!s}")
+        raise ValidationError(f"Invalid request: {e!s}") from e
     except ValidationError:
         raise
     except Exception as e:
         request_logger.error(f"Error creating analytics export: {e}")
-        raise AnalyticsError(f"Failed to create analytics export: {e!s}")
+        raise AnalyticsError(f"Failed to create analytics export: {e!s}") from e
 
 
 @analytics_bp.route("/export/<task_id>/status", methods=["GET"])
@@ -600,7 +600,7 @@ def get_export_status(task_id: str):
         raise
     except Exception as e:
         request_logger.error(f"Error retrieving export status: {e}")
-        raise AnalyticsError(f"Failed to retrieve export status: {e!s}")
+        raise AnalyticsError(f"Failed to retrieve export status: {e!s}") from e
 
 
 # Helper Functions
@@ -672,7 +672,7 @@ def _get_usage_metrics(
 
     except Exception as e:
         logger.error(f"Error retrieving usage metrics: {e}")
-        raise AnalyticsError(f"Failed to retrieve usage metrics: {e!s}")
+        raise AnalyticsError(f"Failed to retrieve usage metrics: {e!s}") from e
 
 
 def _get_performance_metrics(
@@ -743,7 +743,7 @@ def _get_performance_metrics(
 
     except Exception as e:
         logger.error(f"Error retrieving performance metrics: {e}")
-        raise AnalyticsError(f"Failed to retrieve performance metrics: {e!s}")
+        raise AnalyticsError(f"Failed to retrieve performance metrics: {e!s}") from e
 
 
 def _get_pipeline_metrics(
@@ -827,7 +827,7 @@ def _get_pipeline_metrics(
 
     except Exception as e:
         logger.error(f"Error retrieving pipeline metrics: {e}")
-        raise AnalyticsError(f"Failed to retrieve pipeline metrics: {e!s}")
+        raise AnalyticsError(f"Failed to retrieve pipeline metrics: {e!s}") from e
 
 
 def _get_dataset_metrics(
@@ -943,7 +943,7 @@ def _get_dataset_metrics(
 
     except Exception as e:
         logger.error(f"Error retrieving dataset metrics: {e}")
-        raise AnalyticsError(f"Failed to retrieve dataset metrics: {e!s}")
+        raise AnalyticsError(f"Failed to retrieve dataset metrics: {e!s}") from e
 
 
 def _get_real_time_metrics(
@@ -1035,7 +1035,7 @@ def _get_real_time_metrics(
 
     except Exception as e:
         logger.error(f"Error retrieving real-time metrics: {e}")
-        raise AnalyticsError(f"Failed to retrieve real-time metrics: {e!s}")
+        raise AnalyticsError(f"Failed to retrieve real-time metrics: {e!s}") from e
 
 
 def _create_export_task(
@@ -1082,7 +1082,7 @@ def _create_export_task(
 
     except Exception as e:
         logger.error(f"Error creating export task: {e}")
-        raise AnalyticsError(f"Failed to create export task: {e!s}")
+        raise AnalyticsError(f"Failed to create export task: {e!s}") from e
 
 
 def _get_export_task_status(

@@ -227,7 +227,7 @@ class SpeechRecognizer:
 
             except Exception as e2:
                 logger.error(f"Both audio loaders failed: {e2!s}")
-                raise ValueError(f"Failed to load audio file: {audio_path}")
+                raise ValueError(f"Failed to load audio file: {audio_path}") from e2
 
     def _transcribe_sync(
         self,

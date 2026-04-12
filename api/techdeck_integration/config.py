@@ -168,7 +168,7 @@ class TechDeckServiceConfig:
         try:
             upload_path.mkdir(parents=True, exist_ok=True)
         except OSError as e:
-            raise ValueError(f"Cannot create upload directory {upload_path}: {e}")
+            raise ValueError(f"Cannot create upload directory {upload_path}: {e}") from e
 
         # Validate log file path if specified
         if self.LOG_FILE_PATH:
@@ -176,7 +176,7 @@ class TechDeckServiceConfig:
             try:
                 log_path.mkdir(parents=True, exist_ok=True)
             except OSError as e:
-                raise ValueError(f"Cannot create log directory {log_path}: {e}")
+                raise ValueError(f"Cannot create log directory {log_path}: {e}") from e
 
     def _validate_numeric_ranges(self) -> None:
         """Validate numeric configuration ranges."""

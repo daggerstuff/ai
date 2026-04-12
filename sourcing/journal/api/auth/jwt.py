@@ -43,11 +43,11 @@ def decode_access_token(token: str) -> dict[str, Any]:
         )
         return payload
     except ExpiredSignatureError:
-        raise ValueError("Token has expired")
+        raise ValueError("Token has expired") from None
     except DecodeError:
-        raise ValueError("Invalid token format")
+        raise ValueError("Invalid token format") from None
     except InvalidTokenError as e:
-        raise ValueError(f"Invalid token: {e!s}")
+        raise ValueError(f"Invalid token: {e!s}") from e
 
 
 def verify_token(token: str) -> dict[str, Any]:

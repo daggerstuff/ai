@@ -204,7 +204,7 @@ class ProgressTracker:
             raise
         except Exception as e:
             self.logger.error(f"Failed to initialize progress tracking: {e}")
-            raise ProgressTrackingError(f"Progress initialization failed: {e!s}")
+            raise ProgressTrackingError(f"Progress initialization failed: {e!s}") from e
 
     async def update_stage_progress(
         self,
@@ -327,7 +327,7 @@ class ProgressTracker:
             raise
         except Exception as e:
             self.logger.error(f"Failed to update stage progress: {e}")
-            raise ProgressTrackingError(f"Progress update failed: {e!s}")
+            raise ProgressTrackingError(f"Progress update failed: {e!s}") from e
 
     async def update_operation_progress(
         self,
@@ -408,7 +408,7 @@ class ProgressTracker:
             raise
         except Exception as e:
             self.logger.error(f"Failed to update operation progress: {e}")
-            raise ProgressTrackingError(f"Operation progress update failed: {e!s}")
+            raise ProgressTrackingError(f"Operation progress update failed: {e!s}") from e
 
     async def get_progress(self, execution_id: str) -> dict[str, Any] | None:
         """
@@ -434,7 +434,7 @@ class ProgressTracker:
 
         except Exception as e:
             self.logger.error(f"Failed to retrieve progress: {e}")
-            raise ProgressTrackingError(f"Progress retrieval failed: {e!s}")
+            raise ProgressTrackingError(f"Progress retrieval failed: {e!s}") from e
 
     async def get_detailed_progress(self, execution_id: str) -> dict[str, Any]:
         """
@@ -525,7 +525,7 @@ class ProgressTracker:
             raise
         except Exception as e:
             self.logger.error(f"Failed to get detailed progress: {e}")
-            raise ProgressTrackingError(f"Detailed progress retrieval failed: {e!s}")
+            raise ProgressTrackingError(f"Detailed progress retrieval failed: {e!s}") from e
 
     async def register_websocket_connection(
         self, connection_id: str, user_id: str, execution_id: str | None = None
@@ -587,7 +587,7 @@ class ProgressTracker:
             raise
         except Exception as e:
             self.logger.error(f"Failed to register WebSocket connection: {e}")
-            raise ProgressTrackingError(f"WebSocket registration failed: {e!s}")
+            raise ProgressTrackingError(f"WebSocket registration failed: {e!s}") from e
 
     async def unregister_websocket_connection(self, connection_id: str) -> bool:
         """
@@ -625,7 +625,7 @@ class ProgressTracker:
 
         except Exception as e:
             self.logger.error(f"Failed to unregister WebSocket connection: {e}")
-            raise ProgressTrackingError(f"WebSocket unregistration failed: {e!s}")
+            raise ProgressTrackingError(f"WebSocket unregistration failed: {e!s}") from e
 
     async def subscribe_to_execution(
         self, connection_id: str, execution_id: str
@@ -681,7 +681,7 @@ class ProgressTracker:
             raise
         except Exception as e:
             self.logger.error(f"Failed to subscribe to execution: {e}")
-            raise ProgressTrackingError(f"Execution subscription failed: {e!s}")
+            raise ProgressTrackingError(f"Execution subscription failed: {e!s}") from e
 
     async def unsubscribe_from_execution(
         self, connection_id: str, execution_id: str
@@ -718,7 +718,7 @@ class ProgressTracker:
 
         except Exception as e:
             self.logger.error(f"Failed to unsubscribe from execution: {e}")
-            raise ProgressTrackingError(f"Execution unsubscription failed: {e!s}")
+            raise ProgressTrackingError(f"Execution unsubscription failed: {e!s}") from e
 
     async def update_websocket_heartbeat(self, connection_id: str) -> bool:
         """
@@ -759,7 +759,7 @@ class ProgressTracker:
             raise
         except Exception as e:
             self.logger.error(f"Failed to update WebSocket heartbeat: {e}")
-            raise ProgressTrackingError(f"Heartbeat update failed: {e!s}")
+            raise ProgressTrackingError(f"Heartbeat update failed: {e!s}") from e
 
     async def cleanup_stale_connections(self) -> int:
         """
@@ -819,7 +819,7 @@ class ProgressTracker:
 
         except Exception as e:
             self.logger.error(f"Failed to cleanup stale connections: {e}")
-            raise ProgressTrackingError(f"Stale connection cleanup failed: {e!s}")
+            raise ProgressTrackingError(f"Stale connection cleanup failed: {e!s}") from e
 
     async def _publish_progress_event(
         self,

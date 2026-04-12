@@ -93,7 +93,7 @@ class CommandHandlerService:
                 raise ValueError(f"Session {session_id} not found")
             return orchestrator.sessions[session_id]
         except FileNotFoundError:
-            raise ValueError(f"Session {session_id} not found")
+            raise ValueError(f"Session {session_id} not found") from None
 
     def update_session(
         self,

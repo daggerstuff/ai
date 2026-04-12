@@ -123,7 +123,7 @@ class DatasetService:
             raise
         except Exception as e:
             request_logger.error(f"Error creating dataset: {e}")
-            raise StorageError(f"Failed to create dataset: {e!s}")
+            raise StorageError(f"Failed to create dataset: {e!s}") from e
 
     def get_dataset(self, dataset_id: str, user_id: str) -> dict[str, Any]:
         """
@@ -163,7 +163,7 @@ class DatasetService:
             raise
         except Exception as e:
             request_logger.error(f"Error retrieving dataset: {e}")
-            raise StorageError(f"Failed to retrieve dataset: {e!s}")
+            raise StorageError(f"Failed to retrieve dataset: {e!s}") from e
 
     def update_dataset(
         self, dataset_id: str, user_id: str, updates: dict[str, Any]
@@ -231,7 +231,7 @@ class DatasetService:
             raise
         except Exception as e:
             request_logger.error(f"Error updating dataset: {e}")
-            raise StorageError(f"Failed to update dataset: {e!s}")
+            raise StorageError(f"Failed to update dataset: {e!s}") from e
 
     def delete_dataset(self, dataset_id: str, user_id: str) -> bool:
         """
@@ -275,7 +275,7 @@ class DatasetService:
             raise
         except Exception as e:
             request_logger.error(f"Error deleting dataset: {e}")
-            raise StorageError(f"Failed to delete dataset: {e!s}")
+            raise StorageError(f"Failed to delete dataset: {e!s}") from e
 
     def list_user_datasets(
         self,
@@ -360,7 +360,7 @@ class DatasetService:
             raise
         except Exception as e:
             request_logger.error(f"Error listing datasets: {e}")
-            raise StorageError(f"Failed to list datasets: {e!s}")
+            raise StorageError(f"Failed to list datasets: {e!s}") from e
 
     def upload_dataset_file(
         self, dataset_id: str, user_id: str, file_data: FileStorage
@@ -410,7 +410,7 @@ class DatasetService:
             raise
         except Exception as e:
             request_logger.error(f"Error uploading file to dataset: {e}")
-            raise StorageError(f"Failed to upload file to dataset: {e!s}")
+            raise StorageError(f"Failed to upload file to dataset: {e!s}") from e
 
     def validate_dataset(self, dataset_id: str, user_id: str) -> dict[str, Any]:
         """
@@ -481,7 +481,7 @@ class DatasetService:
             raise
         except Exception as e:
             request_logger.error(f"Error validating dataset: {e}")
-            raise ValidationError(f"Failed to validate dataset: {e!s}")
+            raise ValidationError(f"Failed to validate dataset: {e!s}") from e
 
     def get_dataset_statistics(self, dataset_id: str, user_id: str) -> dict[str, Any]:
         """
@@ -538,7 +538,7 @@ class DatasetService:
             raise
         except Exception as e:
             request_logger.error(f"Error getting dataset statistics: {e}")
-            raise ValidationError(f"Failed to get dataset statistics: {e!s}")
+            raise ValidationError(f"Failed to get dataset statistics: {e!s}") from e
 
     def search_datasets(
         self, user_id: str, query: str, limit: int = 20
@@ -597,7 +597,7 @@ class DatasetService:
             raise
         except Exception as e:
             request_logger.error(f"Error searching datasets: {e}")
-            raise ValidationError(f"Failed to search datasets: {e!s}")
+            raise ValidationError(f"Failed to search datasets: {e!s}") from e
 
     def _process_uploaded_file(
         self, file_data: FileStorage, _dataset_id: str, user_id: str
@@ -658,7 +658,7 @@ class DatasetService:
             raise
         except Exception as e:
             self.logger.error(f"Error processing uploaded file: {e}")
-            raise FileProcessingError(f"Failed to process uploaded file: {e!s}")
+            raise FileProcessingError(f"Failed to process uploaded file: {e!s}") from e
 
     def _calculate_file_hash(self, file_data: FileStorage) -> str:
         """Calculate SHA-256 hash of file content."""
@@ -670,7 +670,7 @@ class DatasetService:
             return hash_sha256.hexdigest()
         except Exception as e:
             self.logger.error(f"Error calculating file hash: {e}")
-            raise FileProcessingError(f"Failed to calculate file hash: {e!s}")
+            raise FileProcessingError(f"Failed to calculate file hash: {e!s}") from e
 
     def _delete_dataset_file(self, file_info: dict[str, Any]) -> bool:
         """Delete dataset file from storage."""

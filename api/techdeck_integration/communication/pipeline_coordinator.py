@@ -194,7 +194,7 @@ class StageCoordinator(EventHandler):
 
         except Exception as e:
             self.logger.error(f"Stage input validation error: {e}")
-            raise ValidationError(f"Input validation failed: {e!s}")
+            raise ValidationError(f"Input validation failed: {e!s}") from e
 
     async def _validate_stage_output(self, output_data: dict[str, Any]) -> dict[str, Any]:
         """Validate stage output for quality and compliance."""
@@ -222,7 +222,7 @@ class StageCoordinator(EventHandler):
 
         except Exception as e:
             self.logger.error(f"Stage output validation error: {e}")
-            raise ValidationError(f"Output validation failed: {e!s}")
+            raise ValidationError(f"Output validation failed: {e!s}") from e
 
     def _get_required_output_fields(self) -> list[str]:
         """Get required output fields for the stage."""
@@ -272,7 +272,7 @@ class StageCoordinator(EventHandler):
 
         except Exception as e:
             self.logger.error(f"Bias detection failed for stage {self.stage_name}: {e}")
-            raise BiasDetectionError(f"Bias detection failed: {e!s}")
+            raise BiasDetectionError(f"Bias detection failed: {e!s}") from e
 
     async def _publish_stage_start(self, context: PipelineContext) -> None:
         """Publish stage start event."""
@@ -483,7 +483,7 @@ class PipelineCoordinator:
         except Exception as e:
             self.logger.error(f"Pipeline execution failed: {e}")
             await self._handle_pipeline_failure(execution_request, e)
-            raise PipelineExecutionError(f"Pipeline execution failed: {e!s}")
+            raise PipelineExecutionError(f"Pipeline execution failed: {e!s}") from e
 
     async def _execute_six_stages(self, context: PipelineContext) -> dict[str, Any]:
         """Execute all six pipeline stages with proper coordination."""
@@ -607,7 +607,7 @@ class PipelineCoordinator:
             raise
         except Exception as e:
             self.logger.error(f"Execution request validation error: {e}")
-            raise ValidationError(f"Request validation failed: {e!s}")
+            raise ValidationError(f"Request validation failed: {e!s}") from e
 
     def _generate_execution_id(self) -> str:
         """Generate unique execution ID."""
@@ -734,7 +734,7 @@ class PipelineCoordinator:
 
         except Exception as e:
             self.logger.error(f"Error finalizing pipeline execution: {e}")
-            raise PipelineExecutionError(f"Finalization failed: {e!s}")
+            raise PipelineExecutionError(f"Finalization failed: {e!s}") from e
 
     def _calculate_overall_quality_score(self, stage_results: dict[str, Any]) -> float:
         """Calculate overall quality score from stage results."""
@@ -853,7 +853,7 @@ class PipelineCoordinator:
             raise
         except Exception as e:
             self.logger.error(f"Error getting execution status: {e}")
-            raise PipelineExecutionError(f"Failed to get execution status: {e!s}")
+            raise PipelineExecutionError(f"Failed to get execution status: {e!s}") from e
 
     async def cancel_execution(self, execution_id: str, user_id: str) -> bool:
         """
@@ -915,7 +915,7 @@ class PipelineCoordinator:
             raise
         except Exception as e:
             self.logger.error(f"Error cancelling execution {execution_id}: {e}")
-            raise PipelineExecutionError(f"Failed to cancel execution: {e!s}")
+            raise PipelineExecutionError(f"Failed to cancel execution: {e!s}") from e
 
     def health_check(self) -> dict[str, Any]:
         """

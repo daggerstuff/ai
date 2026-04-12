@@ -254,7 +254,7 @@ class ErrorRecoveryManager:
             raise
         except Exception as e:
             self.logger.error(f"Recovery attempt failed for stage {stage_name}: {e}")
-            raise PipelineExecutionError(f"Recovery failed: {e!s}")
+            raise PipelineExecutionError(f"Recovery failed: {e!s}") from e
 
     def _classify_error(self, error: Exception) -> dict[str, Any]:
         """Classify error type and severity."""
@@ -497,7 +497,7 @@ class ErrorRecoveryManager:
             return rollback_result
 
         except Exception as e:
-            raise PipelineExecutionError(f"Rollback failed: {e!s}")
+            raise PipelineExecutionError(f"Rollback failed: {e!s}") from e
 
     async def _execute_escalation_strategy(self, context: "PipelineContext",
                                          stage_name: str, error: Exception,
@@ -658,7 +658,7 @@ class ErrorRecoveryManager:
 
         except Exception as e:
             self.logger.error(f"Failed to create error checkpoint: {e}")
-            raise PipelineExecutionError(f"Error checkpoint creation failed: {e!s}")
+            raise PipelineExecutionError(f"Error checkpoint creation failed: {e!s}") from e
 
     def _get_environment_info(self) -> dict[str, Any]:
         """Get environment information for debugging."""
@@ -732,7 +732,7 @@ class ErrorRecoveryManager:
 
         except Exception as e:
             self.logger.error(f"Failed to retrieve error checkpoint: {e}")
-            raise PipelineExecutionError(f"Error checkpoint retrieval failed: {e!s}")
+            raise PipelineExecutionError(f"Error checkpoint retrieval failed: {e!s}") from e
 
     async def cleanup_old_checkpoints(self, max_age_days: int = 7) -> int:
         """
@@ -773,7 +773,7 @@ class ErrorRecoveryManager:
 
         except Exception as e:
             self.logger.error(f"Failed to cleanup old checkpoints: {e}")
-            raise PipelineExecutionError(f"Checkpoint cleanup failed: {e!s}")
+            raise PipelineExecutionError(f"Checkpoint cleanup failed: {e!s}") from e
 
     def health_check(self) -> dict[str, Any]:
         """

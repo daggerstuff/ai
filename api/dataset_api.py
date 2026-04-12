@@ -183,7 +183,7 @@ async def list_datasets(
             )
     except sqlite3.Error as e:
         logger.error(f"Database error: {e}")
-        raise HTTPException(status_code=500, detail="Database error occurred")
+        raise HTTPException(status_code=500, detail="Database error occurred") from e
     finally:
         if conn:
             conn.close()
@@ -241,7 +241,7 @@ async def get_dataset_metadata(
         )
     except sqlite3.Error as e:
         logger.error(f"Database error: {e}")
-        raise HTTPException(status_code=500, detail="Database error occurred")
+        raise HTTPException(status_code=500, detail="Database error occurred") from e
     finally:
         if conn:
             conn.close()
@@ -322,7 +322,7 @@ async def query_dataset(
 
     except sqlite3.Error as e:
         logger.error(f"Database error: {e}")
-        raise HTTPException(status_code=500, detail="Database error occurred")
+        raise HTTPException(status_code=500, detail="Database error occurred") from e
     finally:
         if conn:
             conn.close()
