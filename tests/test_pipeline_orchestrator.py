@@ -38,12 +38,12 @@ class TestPipelineOrchestrator(unittest.TestCase):
 
     def test_initialization(self):
         """Test module initialization."""
-        self.assertIsNotNone(self.module)
+        assert self.module is not None
 
     def test_basic_functionality(self):
         """Test basic module functionality."""
         result = self.module.process(self.test_data)
-        self.assertIsNotNone(result)
+        assert result is not None
 
     def test_error_handling(self):
         """Test error handling."""

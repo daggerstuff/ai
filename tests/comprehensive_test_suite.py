@@ -74,7 +74,7 @@ class TestQualityValidation(unittest.TestCase):
             "word_count": 4,
         }
         is_valid, issues = validate_conversation_quality(valid_conversation)
-        self.assertFalse(is_valid)  # Should fail due to low word count
+        assert not is_valid
         self.assertIn("Word count too low", str(issues))
 
         # Test high-quality conversation
@@ -84,8 +84,8 @@ class TestQualityValidation(unittest.TestCase):
             "word_count": 25,
         }
         is_valid, issues = validate_conversation_quality(quality_conversation)
-        self.assertTrue(is_valid)
-        self.assertEqual(len(issues), 0)
+        assert is_valid
+        assert len(issues) == 0
 
         print("✅ Quality validation tests passed")
 
@@ -112,8 +112,8 @@ class TestErrorHandlingRecovery(unittest.TestCase):
 
         # Test with invalid database
         result, error = safe_database_query("/nonexistent/db.sqlite", "SELECT 1")
-        self.assertIsNone(result)
-        self.assertIsNotNone(error)
+        assert result is None
+        assert error is not None
         self.assertIn("Failed after 3 attempts", error)
 
         print("✅ Error handling and recovery tests passed")
@@ -136,17 +136,17 @@ class TestErrorHandlingRecovery(unittest.TestCase):
 
         # Test with valid data
         result = safe_data_processing([1, 2, 3, 4, 5])
-        self.assertEqual(result["status"], "success")
-        self.assertEqual(result["processed"], 5)
+        assert result["status"] == "success"
+        assert result["processed"] == 5
 
         # Test with empty data
         result = safe_data_processing([])
-        self.assertEqual(result["status"], "empty")
-        self.assertEqual(result["processed"], 0)
+        assert result["status"] == "empty"
+        assert result["processed"] == 0
 
         # Test with None data
         result = safe_data_processing(None)
-        self.assertEqual(result["status"], "empty")
+        assert result["status"] == "empty"
 
         print("✅ Data processing recovery tests passed")
 
@@ -213,8 +213,8 @@ class TestDataIntegrityValidation(unittest.TestCase):
         )
 
         is_valid, issues = validate_data_consistency(consistent_data)
-        self.assertTrue(is_valid)
-        self.assertEqual(len(issues), 0)
+        assert is_valid
+        assert len(issues) == 0
 
         # Test with inconsistent data
         inconsistent_data = pd.DataFrame(
@@ -227,7 +227,7 @@ class TestDataIntegrityValidation(unittest.TestCase):
         )
 
         is_valid, issues = validate_data_consistency(inconsistent_data)
-        self.assertFalse(is_valid)
+        assert not is_valid
         self.assertGreater(len(issues), 0)
 
         print("✅ Data integrity validation tests passed")
@@ -276,8 +276,8 @@ class TestExportFormatValidation(unittest.TestCase):
 
         try:
             is_valid, message = validate_json_export(test_data, temp_path)
-            self.assertTrue(is_valid)
-            self.assertEqual(message, "Valid JSON export")
+            assert is_valid
+            assert message == "Valid JSON export"
         finally:
             os.unlink(temp_path)
 
@@ -341,13 +341,13 @@ class TestProcessingPipeline(unittest.TestCase):
         ]
 
         result = run_processing_pipeline(input_data)
-        self.assertEqual(result["status"], "success")
-        self.assertEqual(result["processed_items"], 2)
-        self.assertEqual(len(result["pipeline_steps"]), 4)
+        assert result["status"] == "success"
+        assert result["processed_items"] == 2
+        assert len(result["pipeline_steps"]) == 4
 
         # Test pipeline with error
         result = run_processing_pipeline([])
-        self.assertEqual(result["status"], "error")
+        assert result["status"] == "error"
         self.assertIn("No input data", result["error"])
 
         print("✅ Processing pipeline tests passed")
@@ -391,8 +391,8 @@ class TestMonitoringAlerting(unittest.TestCase):
             }
 
         health_status = check_system_health()
-        self.assertEqual(health_status["status"], "healthy")
-        self.assertEqual(len(health_status["alerts"]), 0)
+        assert health_status["status"] == "healthy"
+        assert len(health_status["alerts"]) == 0
 
         print("✅ Monitoring and alerting tests passed")
 
@@ -436,8 +436,8 @@ class TestProductionReadiness(unittest.TestCase):
         }
 
         is_valid, issues = validate_production_config(valid_config)
-        self.assertTrue(is_valid)
-        self.assertEqual(len(issues), 0)
+        assert is_valid
+        assert len(issues) == 0
 
         # Test invalid config
         invalid_config = {
@@ -446,7 +446,7 @@ class TestProductionReadiness(unittest.TestCase):
         }
 
         is_valid, issues = validate_production_config(invalid_config)
-        self.assertFalse(is_valid)
+        assert not is_valid
         self.assertGreater(len(issues), 0)
 
         print("✅ Production readiness tests passed")
@@ -481,11 +481,11 @@ class TestProductionReadiness(unittest.TestCase):
             }
 
         deployment_status = validate_deployment_checklist()
-        self.assertTrue(deployment_status["ready_for_deployment"])
+        assert deployment_status["ready_for_deployment"]
         self.assertEqual(
             deployment_status["completed_items"], deployment_status["total_items"]
         )
-        self.assertEqual(len(deployment_status["incomplete_items"]), 0)
+        assert len(deployment_status["incomplete_items"]) == 0
 
         print("✅ Deployment checklist tests passed")
 

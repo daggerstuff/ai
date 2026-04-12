@@ -92,17 +92,17 @@ class TestInferenceAPIIntegration(unittest.TestCase):
     def test_health_endpoint(self):
         """Test health check endpoint"""
         response = self.test_client.get("/health")
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == 200
 
         data = json.loads(response.data)
         self.assertIn("status", data)
-        self.assertEqual(data["status"], "healthy")
+        assert data["status"] == "healthy"
         self.assertIn("timestamp", data)
 
     def test_list_models_endpoint(self):
         """Test list models endpoint"""
         response = self.test_client.get("/models", headers=self.headers)
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == 200
 
         data = json.loads(response.data)
         self.assertIn("data", data)
@@ -112,10 +112,10 @@ class TestInferenceAPIIntegration(unittest.TestCase):
         """Test API key validation"""
         # Test with valid API key
         response = self.test_client.post("/tokens/validate", headers=self.headers)
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == 200
 
         data = json.loads(response.data)
-        self.assertTrue(data["valid"])
+        assert data["valid"]
         self.assertIn("user_id", data)
         self.assertIn("tier", data)
         self.assertIn("quota_remaining", data)
@@ -126,12 +126,12 @@ class TestInferenceAPIIntegration(unittest.TestCase):
             "Content-Type": "application/json",
         }
         response = self.test_client.post("/tokens/validate", headers=invalid_headers)
-        self.assertEqual(response.status_code, 401)
+        assert response.status_code == 401
 
     def test_user_usage_endpoint(self):
         """Test user usage endpoint"""
         response = self.test_client.get("/user/usage", headers=self.headers)
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == 200
 
         data = json.loads(response.data)
         self.assertIn("user_id", data)
@@ -199,8 +199,8 @@ class TestInferenceAPIIntegration(unittest.TestCase):
         is_safe, filtered_text, confidence = safety_filter.apply_safety_filter(
             safe_content
         )
-        self.assertTrue(is_safe)
-        self.assertEqual(filtered_text, safe_content)
+        assert is_safe
+        assert filtered_text == safe_content
 
         # Test with potentially unsafe content
         unsafe_content = "I'm thinking about hurting myself."
@@ -252,7 +252,7 @@ class TestModelAdapters(unittest.TestCase):
                 model_name=config.model_name,
                 model_version=config.model_version,
             )
-            self.assertIsNotNone(adapter)
+            assert adapter is not None
         except Exception as e:
             # This is expected if we don't have a real model
             logger.info(f"Expected error creating test model adapter: {e}")
@@ -285,9 +285,9 @@ class TestObservability(unittest.TestCase):
             extra_field="test_value",
         )
 
-        self.assertIsNotNone(log_entry)
-        self.assertEqual(log_entry.level.value, "info")
-        self.assertEqual(log_entry.message, "Test log message")
+        assert log_entry is not None
+        assert log_entry.level.value == "info"
+        assert log_entry.message == "Test log message"
 
     def test_metrics_collection(self):
         """Test metrics collection"""
@@ -308,9 +308,9 @@ class TestObservability(unittest.TestCase):
             "test_operation", user_id="test_user", model_name="test_model"
         )
 
-        self.assertIsNotNone(span)
-        self.assertIsNotNone(span.trace_id)
-        self.assertIsNotNone(span.span_id)
+        assert span is not None
+        assert span.trace_id is not None
+        assert span.span_id is not None
 
         # End the trace
         observability.end_traced_request(span, "success")
@@ -494,12 +494,12 @@ class TestSafetyAndSecurity(unittest.TestCase):
         # Valid key should work
         headers_valid = {"Authorization": f"Bearer {valid_key}"}
         response = app.test_client().post("/tokens/validate", headers=headers_valid)
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == 200
 
         # Invalid key should fail
         headers_invalid = {"Authorization": f"Bearer {invalid_key}"}
         response = app.test_client().post("/tokens/validate", headers=headers_invalid)
-        self.assertEqual(response.status_code, 401)
+        assert response.status_code == 401
 
     def test_rate_limiting_security(self):
         """Test rate limiting security"""
@@ -532,7 +532,7 @@ class TestExplainabilityFeatures(unittest.TestCase):
     def test_explanation_generation(self):
         """Test generation of model explanations"""
         # Test that explanation engine can be accessed
-        self.assertIsNotNone(explainability_engine)
+        assert explainability_engine is not None
 
         # Test that we can register a model
         explainability_engine.register_model("test_explain_model", None)
@@ -575,8 +575,8 @@ class TestAutoscalingFeatures(unittest.TestCase):
             scaling_policy=policy,
         )
 
-        self.assertIsNotNone(autoscaler)
-        self.assertEqual(autoscaler.model_name, "test_autoscale_model")
+        assert autoscaler is not None
+        assert autoscaler.model_name == "test_autoscale_model"
 
     def test_scaling_decisions(self):
         """Test that scaling decisions can be made"""
@@ -596,12 +596,12 @@ class TestAutoscalingFeatures(unittest.TestCase):
 
         # Make a scaling decision with low utilization
         decision = autoscaler.make_scaling_decision(current_load=25.0)
-        self.assertIsNotNone(decision)
+        assert decision is not None
         self.assertIn(decision.action, ["scale_down", "maintain"])
 
         # Make a scaling decision with high utilization
         decision = autoscaler.make_scaling_decision(current_load=85.0)
-        self.assertIsNotNone(decision)
+        assert decision is not None
         self.assertIn(decision.action, ["scale_up", "maintain"])
 
 

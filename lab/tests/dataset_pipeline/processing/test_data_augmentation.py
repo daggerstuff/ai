@@ -77,7 +77,7 @@ class TestDataAugmentation(unittest.TestCase):
             critical_text, bad_augmented
         )
 
-        self.assertFalse(is_valid)
+        assert not is_valid
         self.assertTrue(any("CRITICAL" in issue for issue in issues))
         self.assertTrue(any("crisis" in issue.lower() for issue in issues))
 
@@ -121,7 +121,7 @@ class TestDataAugmentation(unittest.TestCase):
         batch = [conv1, conv2]
         augmented_batch, _ = self.augmenter.batch_augment(batch)
 
-        self.assertEqual(len(augmented_batch), 2)
+        assert len(augmented_batch) == 2
         self.assertTrue(all("_aug" in c.conversation_id for c in augmented_batch))
 
 

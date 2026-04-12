@@ -98,8 +98,8 @@ class TestJWTAuthMiddleware(unittest.TestCase):
             "Authentication successful", extra=unittest.mock.ANY
         )
         # Verify g was populated
-        self.assertEqual(g.user["role"], "admin")
-        self.assertEqual(g.user_id, "user123")
+        assert g.user["role"] == "admin"
+        assert g.user_id == "user123"
 
     def test_missing_token_returns_401(self):
         # Arrange

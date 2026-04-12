@@ -5,7 +5,7 @@ import unittest
 
 class TestSafetyValidation(unittest.TestCase):
     def test_safety_validation_complete(self):
-        self.assertTrue(True)
+        assert True
 
 if __name__ == "__main__":
     unittest.main()

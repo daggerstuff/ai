@@ -70,7 +70,7 @@ class QAIntegrationTestSuite(unittest.TestCase):
             result = validator.validate_conversation(conversation)
 
             # Verify result structure
-            self.assertIsNotNone(result.conversation_id)
+            assert result.conversation_id is not None
             self.assertIsInstance(result.overall_clinical_score, float)
             self.assertGreaterEqual(result.overall_clinical_score, 0.0)
             self.assertLessEqual(result.overall_clinical_score, 1.0)
@@ -104,8 +104,8 @@ class QAIntegrationTestSuite(unittest.TestCase):
                 result = workflow_system.execute_workflow(workflow_id, conversation)
 
                 # Verify result structure
-                self.assertEqual(result.workflow_id, workflow_id)
-                self.assertIsNotNone(result.conversation_id)
+                assert result.workflow_id == workflow_id
+                assert result.conversation_id is not None
                 self.assertIsInstance(result.quality_score, float)
                 self.assertGreaterEqual(result.quality_score, 0.0)
                 self.assertLessEqual(result.quality_score, 1.0)
@@ -127,7 +127,7 @@ class QAIntegrationTestSuite(unittest.TestCase):
         conversation = self.test_conversations[0]
         assignment_id = review_system.create_review_assignment(conversation)
 
-        self.assertIsNotNone(assignment_id)
+        assert assignment_id is not None
 
         # Test pending assignments
         pending = review_system.get_pending_assignments()
@@ -152,7 +152,7 @@ class QAIntegrationTestSuite(unittest.TestCase):
             approval_status="approved",
         )
 
-        self.assertIsNotNone(review_id)
+        assert review_id is not None
 
         # Test review results retrieval
         results = review_system.get_review_results()
@@ -167,11 +167,11 @@ class QAIntegrationTestSuite(unittest.TestCase):
         # Process all test conversations
         results = self.qa_system.process_batch_qa(self.test_conversations)
 
-        self.assertEqual(len(results), len(self.test_conversations))
+        assert len(results) == len(self.test_conversations
 
         for result in results:
             # Verify result structure
-            self.assertIsNotNone(result.conversation_id)
+            assert result.conversation_id is not None
             self.assertIsInstance(result.overall_qa_score, float)
             self.assertGreaterEqual(result.overall_qa_score, 0.0)
             self.assertLessEqual(result.overall_qa_score, 1.0)
@@ -224,7 +224,7 @@ class QAIntegrationTestSuite(unittest.TestCase):
 
         # Verify report content
         summary = report["report_summary"]
-        self.assertEqual(summary["total_conversations"], len(self.test_conversations))
+        assert summary["total_conversations"] == len(self.test_conversations
         self.assertIsInstance(summary["average_qa_score"], float)
         self.assertIn("score_distribution", summary)
 
@@ -241,7 +241,7 @@ class QAIntegrationTestSuite(unittest.TestCase):
         output_path = "/home/vivi/pixelated/ai/validation_quality_assurance/integration_test_export.json"
         success = self.qa_system.export_qa_results(self.test_results, output_path)
 
-        self.assertTrue(success)
+        assert success
 
         # Verify exported file
         export_file = Path(output_path)
@@ -254,7 +254,7 @@ class QAIntegrationTestSuite(unittest.TestCase):
         self.assertIn("qa_results", exported_data)
         self.assertIn("qa_report", exported_data)
         self.assertIn("system_configuration", exported_data)
-        self.assertEqual(len(exported_data["qa_results"]), len(self.test_results))
+        assert len(exported_data["qa_results"]) == len(self.test_results
 
         logger.info("✅ Export functionality integration test passed")
 
@@ -271,7 +271,7 @@ class QAIntegrationTestSuite(unittest.TestCase):
 
         # Verify performance metrics
         self.assertLess(processing_time, 10.0)  # Should complete within 10 seconds
-        self.assertEqual(len(results), len(self.test_conversations) * 2)
+        assert len(results) == len(self.test_conversations) * 2
 
         # Test throughput
         throughput = len(results) / processing_time
@@ -294,14 +294,14 @@ class QAIntegrationTestSuite(unittest.TestCase):
         # Should not raise exception, should handle gracefully
         try:
             result = self.qa_system.process_conversation_qa(malformed_conversation)
-            self.assertEqual(result.qa_status, "ERROR")
+            assert result.qa_status == "ERROR"
             self.assertIn("error", result.clinical_validation)
         except Exception as e:
             self.fail(f"Error handling failed: {e}")
 
         # Test with empty conversation list
         empty_results = self.qa_system.process_batch_qa([])
-        self.assertEqual(len(empty_results), 0)
+        assert len(empty_results) == 0
 
         logger.info("✅ Error handling integration test passed")
 
@@ -322,8 +322,8 @@ class QAIntegrationTestSuite(unittest.TestCase):
         second_time = time.time() - start_time
 
         # Verify caching worked
-        self.assertEqual(result1.conversation_id, result2.conversation_id)
-        self.assertEqual(result1.overall_qa_score, result2.overall_qa_score)
+        assert result1.conversation_id == result2.conversation_id
+        assert result1.overall_qa_score == result2.overall_qa_score
 
         # Cache should be faster (though may be minimal for small test)
         logger.info(
@@ -340,7 +340,7 @@ class QAIntegrationTestSuite(unittest.TestCase):
 
         # 1. Process conversations
         results = self.qa_system.process_batch_qa(self.test_conversations)
-        self.assertEqual(len(results), len(self.test_conversations))
+        assert len(results) == len(self.test_conversations
 
         # 2. Generate comprehensive report
         report = self.qa_system.generate_qa_report(results)
@@ -351,19 +351,19 @@ class QAIntegrationTestSuite(unittest.TestCase):
             "/home/vivi/pixelated/ai/validation_quality_assurance/end_to_end_test.json"
         )
         success = self.qa_system.export_qa_results(results, output_path)
-        self.assertTrue(success)
+        assert success
 
         # 4. Validate exported data integrity
         with open(output_path, encoding="utf-8") as f:
             exported_data = json.load(f)
 
         # Verify data integrity
-        self.assertEqual(len(exported_data["qa_results"]), len(results))
+        assert len(exported_data["qa_results"]) == len(results
 
         # Verify all conversations processed
         exported_ids = {r["conversation_id"] for r in exported_data["qa_results"]}
         original_ids = {c["id"] for c in self.test_conversations}
-        self.assertEqual(exported_ids, original_ids)
+        assert exported_ids == original_ids
 
         # 5. Verify system statistics
         stats = self.qa_system.get_system_statistics()

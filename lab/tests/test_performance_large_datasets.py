@@ -164,7 +164,7 @@ class TestLargeDatasetLoading(PerformanceTestBase):
             perf_metrics = self.measure_performance(load_data)
 
             # Verify data loaded correctly
-            self.assertEqual(len(perf_metrics["result"]), 10000)
+            assert len(perf_metrics["result"]) == 10000
 
             # Performance assertions
             self.assertLess(perf_metrics["execution_time"], 10.0, "Loading should complete within 10 seconds")
@@ -204,7 +204,7 @@ class TestLargeDatasetLoading(PerformanceTestBase):
             perf_metrics = self.measure_performance(load_data_chunked)
 
             # Verify data loaded correctly
-            self.assertEqual(len(perf_metrics["result"]), 50000)
+            assert len(perf_metrics["result"]) == 50000
 
             # Performance assertions (more lenient for larger dataset)
             self.assertLess(perf_metrics["execution_time"], 30.0, "Loading should complete within 30 seconds")
@@ -248,7 +248,7 @@ class TestLargeDatasetLoading(PerformanceTestBase):
             perf_metrics = self.measure_performance(process_streaming)
 
             # Verify processing
-            self.assertEqual(perf_metrics["result"]["total_processed"], 25000)
+            assert perf_metrics["result"]["total_processed"] == 25000
             self.assertGreater(perf_metrics["result"]["avg_quality"], 0)
 
             # Performance assertions
@@ -416,7 +416,7 @@ class TestAnalyticsPerformance(PerformanceTestBase):
 
         # Verify ML results
         result = perf_metrics["result"]
-        self.assertIsNotNone(result["model"])
+        assert result["model"] is not None
         self.assertIsInstance(result["mse"], float)
         self.assertIsInstance(result["r2_score"], float)
 
@@ -545,7 +545,7 @@ class TestScalabilityLimits(PerformanceTestBase):
 
         # Verify concurrent processing
         results = perf_metrics["result"]
-        self.assertEqual(len(results), 20)  # All tasks completed
+        assert len(results) == 20
 
         # Performance assertions
         self.assertLess(perf_metrics["execution_time"], 10.0, "Concurrent processing should be efficient")
