@@ -4,10 +4,11 @@ Metadata parser for extracting and normalizing dataset metadata from various sou
 Handles different metadata formats and provides unified parsing interface.
 """
 
+from datetime import datetime
+
 import logging
 import re
-from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +39,7 @@ class MetadataParser:
         return normalized
 
     @staticmethod
-    def normalize_doi(doi: Optional[str]) -> Optional[str]:
+    def normalize_doi(doi: str | None) -> str | None:
         """
         Normalize DOI for comparison.
 
@@ -53,7 +54,7 @@ class MetadataParser:
 
         # Remove common prefixes
         doi = doi.lower()
-        doi = re.sub(r'^(doi:|https?://doi\.org/|https?://dx\.doi\.org/)', '', doi)
+        doi = re.sub(r"^(doi:|https?://doi\.org/|https?://dx\.doi\.org/)", "", doi)
 
         # Remove whitespace
         doi = doi.strip()
@@ -75,15 +76,15 @@ class MetadataParser:
         normalized = name.lower()
 
         # Remove titles and suffixes
-        titles = ['dr', 'prof', 'mr', 'mrs', 'ms', 'phd', 'md', 'jr', 'sr']
+        titles = ["dr", "prof", "mr", "mrs", "ms", "phd", "md", "jr", "sr"]
         for title in titles:
-            normalized = re.sub(rf'\b{title}\.?\b', '', normalized)
+            normalized = re.sub(rf"\b{title}\.?\b", "", normalized)
 
         # Remove extra whitespace
         normalized = " ".join(normalized.split())
 
         # Remove punctuation
-        normalized = re.sub(r'[^\w\s]', '', normalized)
+        normalized = re.sub(r"[^\w\s]", "", normalized)
 
         return normalized.strip()
 
@@ -114,7 +115,7 @@ class MetadataParser:
         return last_names
 
     @staticmethod
-    def parse_date(date_str: str) -> Optional[datetime]:
+    def parse_date(date_str: str) -> datetime | None:
         """
         Parse date string in various formats.
 
@@ -149,7 +150,7 @@ class MetadataParser:
                 continue
 
         # Try parsing year only
-        year_match = re.search(r'\b(19|20)\d{2}\b', date_str)
+        year_match = re.search(r"\b(19|20)\d{2}\b", date_str)
         if year_match:
             try:
                 year = int(year_match.group(0))
@@ -176,18 +177,18 @@ class MetadataParser:
         text = text.lower()
 
         # Remove punctuation except hyphens
-        text = re.sub(r'[^\w\s-]', ' ', text)
+        text = re.sub(r"[^\w\s-]", " ", text)
 
         # Split into words
         words = text.split()
 
         # Filter by length and remove common stop words
         stop_words = {
-            'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
-            'of', 'with', 'by', 'from', 'as', 'is', 'was', 'are', 'were', 'been',
-            'be', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would',
-            'could', 'should', 'may', 'might', 'can', 'this', 'that', 'these',
-            'those', 'it', 'its', 'they', 'their', 'them', 'we', 'our', 'us'
+            "the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for",
+            "of", "with", "by", "from", "as", "is", "was", "are", "were", "been",
+            "be", "have", "has", "had", "do", "does", "did", "will", "would",
+            "could", "should", "may", "might", "can", "this", "that", "these",
+            "those", "it", "its", "they", "their", "them", "we", "our", "us"
         }
 
         keywords = [
@@ -252,7 +253,7 @@ class MetadataParser:
             Cleaned abstract
         """
         # Remove HTML tags
-        abstract = re.sub(r'<[^>]+>', '', abstract)
+        abstract = re.sub(r"<[^>]+>", "", abstract)
 
         # Remove extra whitespace
         abstract = " ".join(abstract.split())
@@ -278,32 +279,32 @@ class MetadataParser:
 
         # Common open licenses
         open_licenses = {
-            'cc0': {'name': 'CC0 1.0', 'commercial': True, 'ai_training': True},
-            'cc-by': {'name': 'CC BY', 'commercial': True, 'ai_training': True},
-            'cc-by-sa': {'name': 'CC BY-SA', 'commercial': True, 'ai_training': True},
-            'cc-by-nc': {'name': 'CC BY-NC', 'commercial': False, 'ai_training': True},
-            'mit': {'name': 'MIT License', 'commercial': True, 'ai_training': True},
-            'apache': {'name': 'Apache License', 'commercial': True, 'ai_training': True},
-            'bsd': {'name': 'BSD License', 'commercial': True, 'ai_training': True},
-            'gpl': {'name': 'GPL', 'commercial': True, 'ai_training': True},
-            'public domain': {'name': 'Public Domain', 'commercial': True, 'ai_training': True},
+            "cc0": {"name": "CC0 1.0", "commercial": True, "ai_training": True},
+            "cc-by": {"name": "CC BY", "commercial": True, "ai_training": True},
+            "cc-by-sa": {"name": "CC BY-SA", "commercial": True, "ai_training": True},
+            "cc-by-nc": {"name": "CC BY-NC", "commercial": False, "ai_training": True},
+            "mit": {"name": "MIT License", "commercial": True, "ai_training": True},
+            "apache": {"name": "Apache License", "commercial": True, "ai_training": True},
+            "bsd": {"name": "BSD License", "commercial": True, "ai_training": True},
+            "gpl": {"name": "GPL", "commercial": True, "ai_training": True},
+            "public domain": {"name": "Public Domain", "commercial": True, "ai_training": True},
         }
 
         for key, info in open_licenses.items():
             if key in license_text_lower:
                 return {
-                    'license': info['name'],
-                    'allows_commercial': info['commercial'],
-                    'allows_ai_training': info['ai_training'],
-                    'raw_text': license_text
+                    "license": info["name"],
+                    "allows_commercial": info["commercial"],
+                    "allows_ai_training": info["ai_training"],
+                    "raw_text": license_text
                 }
 
         # Unknown license - assume restrictive
         return {
-            'license': license_text,
-            'allows_commercial': False,
-            'allows_ai_training': False,
-            'raw_text': license_text
+            "license": license_text,
+            "allows_commercial": False,
+            "allows_ai_training": False,
+            "raw_text": license_text
         }
 
     @staticmethod
@@ -323,8 +324,8 @@ class MetadataParser:
         text2 = text2.lower()
 
         # Extract words
-        words1 = set(re.findall(r'\w+', text1))
-        words2 = set(re.findall(r'\w+', text2))
+        words1 = set(re.findall(r"\w+", text1))
+        words2 = set(re.findall(r"\w+", text2))
 
         # Calculate Jaccard similarity
         if not words1 or not words2:
@@ -350,53 +351,53 @@ class MetadataParser:
 
         # Check for availability indicators
         available_indicators = [
-            'data available',
-            'data are available',
-            'data is available',
-            'openly available',
-            'publicly available',
-            'available upon request',
-            'available on request',
-            'data sharing',
-            'supplementary data',
-            'supporting data'
+            "data available",
+            "data are available",
+            "data is available",
+            "openly available",
+            "publicly available",
+            "available upon request",
+            "available on request",
+            "data sharing",
+            "supplementary data",
+            "supporting data"
         ]
 
         restricted_indicators = [
-            'data not available',
-            'data unavailable',
-            'restricted access',
-            'confidential',
-            'proprietary',
-            'privacy concerns',
-            'ethical restrictions'
+            "data not available",
+            "data unavailable",
+            "restricted access",
+            "confidential",
+            "proprietary",
+            "privacy concerns",
+            "ethical restrictions"
         ]
 
         has_available = any(indicator in text_lower for indicator in available_indicators)
         has_restricted = any(indicator in text_lower for indicator in restricted_indicators)
 
         if has_restricted:
-            status = 'restricted'
+            status = "restricted"
         elif has_available:
-            if 'upon request' in text_lower or 'on request' in text_lower:
-                status = 'upon_request'
+            if "upon request" in text_lower or "on request" in text_lower:
+                status = "upon_request"
             else:
-                status = 'available'
+                status = "available"
         else:
-            status = 'unknown'
+            status = "unknown"
 
         # Extract URLs that might point to data
         urls = MetadataParser.extract_urls(text)
         data_urls = [
             url for url in urls
             if any(domain in url.lower() for domain in [
-                'github.com', 'figshare.com', 'zenodo.org', 'dryad',
-                'osf.io', 'dataverse', 'data.', '/data/', '/dataset/'
+                "github.com", "figshare.com", "zenodo.org", "dryad",
+                "osf.io", "dataverse", "data.", "/data/", "/dataset/"
             ])
         ]
 
         return {
-            'status': status,
-            'data_urls': data_urls,
-            'raw_text': text
+            "status": status,
+            "data_urls": data_urls,
+            "raw_text": text
         }

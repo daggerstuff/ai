@@ -6,11 +6,12 @@ Generates comprehensive TRAINING_MANIFEST.json from directory catalogs.
 Maps datasets to 4-stage architecture and documents all training assets.
 """
 
+from datetime import datetime, timezone
+
 import json
 import sys
 from pathlib import Path
 from typing import Dict, List, Any, Optional
-from datetime import datetime
 import importlib.util
 
 # Stage mapping patterns
@@ -132,7 +133,7 @@ def generate_manifest(catalogs_file: str, experimental_features_file: str, outpu
 
     manifest = {
         "version": "1.0.0",
-        "generated_at": datetime.now().isoformat(),
+        "generated_at": datetime.now(timezone.utc).isoformat(),
         "model_architectures": [],
         "training_configurations": [],
         "datasets": [],

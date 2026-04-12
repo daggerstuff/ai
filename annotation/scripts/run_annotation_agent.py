@@ -4,7 +4,7 @@ import os
 import random
 import time
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 # Try importing openai, handle failure gracefully
 try:
@@ -61,17 +61,16 @@ class AnnotationAgent:
     def _get_system_prompt(self, name: str) -> str:
         if name == "Dr. A":
             return DR_A_PERSONA
-        elif name == "Dr. B":
+        if name == "Dr. B":
             return DR_B_PERSONA
-        else:
-            return "You are a helpful annotator."
+        return "You are a helpful annotator."
 
     def _load_guidelines(self) -> str:
         if GUIDELINES_PATH.exists():
             return GUIDELINES_PATH.read_text()
         return "No guidelines found."
 
-    def annotate(self, task: Dict[str, Any]) -> Dict[str, Any]:
+    def annotate(self, task: dict[str, Any]) -> dict[str, Any]:
         """
         Produce an annotation for a single task.
         """
@@ -114,10 +113,9 @@ format:
 
         if self.client:
             return self._call_llm(prompt, data)
-        else:
-            return self._mock_annotation(data)
+        return self._mock_annotation(data)
 
-    def _call_llm(self, prompt: str, data: Dict[str, Any]) -> Dict[str, Any]:
+    def _call_llm(self, prompt: str, data: dict[str, Any]) -> dict[str, Any]:
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
@@ -137,8 +135,8 @@ format:
             return self._mock_annotation(data, error=False)
 
     def _mock_annotation(
-        self, data: Dict[str, Any], error: bool = False
-    ) -> Dict[str, Any]:
+        self, data: dict[str, Any], error: bool = False
+    ) -> dict[str, Any]:
         # Simulate thinking time
         time.sleep(0.01)
 

@@ -6,16 +6,16 @@ Provides persistent storage for discovered channels with CRUD operations.
 Uses SQLite for lightweight, embedded database storage.
 """
 
+from datetime import datetime, timezone
+
+
 import json
 import logging
 import sqlite3
-from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional
 
 from ai.sourcing.youtube.models import (
     Channel,
-    ChannelRegistry,
     ChannelStatus,
     ContentCategory,
 )
@@ -98,7 +98,7 @@ class ChannelRegistryDB:
         Returns:
             Database row ID (integer)
         """
-        now = datetime.now().isoformat()
+        now = datetime.now(timezone.utc).isoformat()
 
         data = {
             "channel_id": channel.channel_id,
@@ -196,7 +196,7 @@ class ChannelRegistryDB:
             self.conn.rollback()
             raise RuntimeError(f"Failed to add channel: {e}")
 
-    def get_channel(self, channel_id: str) -> Optional[Channel]:
+    def get_channel(self, channel_id: str) -> Channel | None:
         """
         Retrieve a channel from registry by channel_id.
 
@@ -226,8 +226,8 @@ class ChannelRegistryDB:
         return self._row_to_channel(row)
 
     def get_all_channels(
-        self, status_filter: Optional[ChannelStatus] = None
-    ) -> List[Channel]:
+        self, status_filter: ChannelStatus | None = None
+    ) -> list[Channel]:
         """
         Get all channels, optionally filtered by status.
 
@@ -252,7 +252,7 @@ class ChannelRegistryDB:
         rows = cursor.fetchall()
         return [self._row_to_channel(row) for row in rows]
 
-    def get_channels_by_language(self, language: str) -> List[Channel]:
+    def get_channels_by_language(self, language: str) -> list[Channel]:
         """
         Get channels that support a specific language.
 
@@ -277,7 +277,7 @@ class ChannelRegistryDB:
         rows = cursor.fetchall()
         return [self._row_to_channel(row) for row in rows]
 
-    def get_channels_by_category(self, category: ContentCategory) -> List[Channel]:
+    def get_channels_by_category(self, category: ContentCategory) -> list[Channel]:
         """
         Get channels that belong to a specific category.
 
@@ -321,7 +321,7 @@ class ChannelRegistryDB:
                 SET status = ?, last_monitored = ?
                 WHERE channel_id = ?
                 """,
-                (status.value, datetime.now().isoformat(), channel_id),
+                (status.value, datetime.now(timezone.utc).isoformat(), channel_id),
             )
 
             self.conn.commit()
@@ -351,7 +351,7 @@ class ChannelRegistryDB:
                 SET health_score = ?, last_monitored = ?
                 WHERE channel_id = ?
                 """,
-                (health_score, datetime.now().isoformat(), channel_id),
+                (health_score, datetime.now(timezone.utc).isoformat(), channel_id),
             )
 
             self.conn.commit()
@@ -362,7 +362,7 @@ class ChannelRegistryDB:
             logger.error(f"Failed to update health score: {e}")
             return False
 
-    def get_statistics(self) -> Dict:
+    def get_statistics(self) -> dict:
         """Get overall registry statistics."""
         cursor = self.conn.cursor()
 

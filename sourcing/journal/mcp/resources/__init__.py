@@ -18,12 +18,12 @@ from ai.sourcing.journal.mcp.resources.sessions import SessionStateResource
 logger = logging.getLogger(__name__)
 
 __all__ = [
-  "ResourceRegistry",
   "MCPResource",
-  "ProgressMetricsResource",
   "ProgressHistoryResource",
-  "SessionStateResource",
+  "ProgressMetricsResource",
+  "ResourceRegistry",
   "SessionMetricsResource",
+  "SessionStateResource",
 ]
 
 
@@ -32,7 +32,7 @@ class ResourceRegistry:
 
   def __init__(self) -> None:
     """Initialize resource registry."""
-    self._resources: Dict[str, MCPResource] = {}
+    self._resources: dict[str, MCPResource] = {}
 
   def register(self, resource: MCPResource) -> None:
     """
@@ -61,7 +61,7 @@ class ResourceRegistry:
       del self._resources[uri]
       logger.info(f"Unregistered resource: {uri}")
 
-  def get(self, uri: str) -> Optional[MCPResource]:
+  def get(self, uri: str) -> MCPResource | None:
     """
     Get resource by URI.
 
@@ -73,7 +73,7 @@ class ResourceRegistry:
     """
     return self._resources.get(uri)
 
-  def list_resources(self) -> List[MCPResource]:
+  def list_resources(self) -> list[MCPResource]:
     """
     List all registered resources.
 
@@ -82,7 +82,7 @@ class ResourceRegistry:
     """
     return list(self._resources.values())
 
-  def list_resource_uris(self) -> List[str]:
+  def list_resource_uris(self) -> list[str]:
     """
     List all registered resource URIs.
 
@@ -91,7 +91,7 @@ class ResourceRegistry:
     """
     return list(self._resources.keys())
 
-  def get_resource_schemas(self) -> List[Dict[str, any]]:
+  def get_resource_schemas(self) -> list[dict[str, any]]:
     """
     Get resource schemas for all registered resources.
 
@@ -112,7 +112,7 @@ class ResourceRegistry:
     """
     return uri in self._resources
 
-  def find_by_pattern(self, pattern: str) -> List[MCPResource]:
+  def find_by_pattern(self, pattern: str) -> list[MCPResource]:
     """
     Find resources matching URI pattern.
 

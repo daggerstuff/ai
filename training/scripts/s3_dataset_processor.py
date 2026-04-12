@@ -3,10 +3,11 @@
 S3 Dataset Processor - Pulls actual 52.20GB from S3 and processes
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import os
-from datetime import datetime
 from pathlib import Path
 
 import boto3
@@ -45,7 +46,7 @@ class S3DatasetProcessor:
         )
 
         self.stats = {
-            "start_time": datetime.now().isoformat(),
+            "start_time": datetime.now(timezone.utc).isoformat(),
             "total_objects": 0,
             "total_size": 0,
             "processed_conversations": 0,
@@ -178,7 +179,7 @@ class S3DatasetProcessor:
             "total_size": total_size,
             "files": files,
             "cache_dir": str(self.local_cache_dir),
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
         # Save report

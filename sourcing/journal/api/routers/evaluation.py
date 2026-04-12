@@ -4,7 +4,6 @@ Evaluation API routes.
 This module provides endpoints for dataset evaluation operations.
 """
 
-from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -82,7 +81,7 @@ async def initiate_evaluation(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to initiate evaluation: {str(e)}",
+            detail=f"Failed to initiate evaluation: {e!s}",
         )
 
 
@@ -90,7 +89,7 @@ async def initiate_evaluation(
 async def list_evaluations(
     session_id: str,
     pagination: PaginationParams = Depends(),
-    current_user: Optional[dict] = Depends(get_current_user),
+    current_user: dict | None = Depends(get_current_user),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> EvaluationListResponse:
     """
@@ -138,7 +137,7 @@ async def list_evaluations(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to list evaluations: {str(e)}",
+            detail=f"Failed to list evaluations: {e!s}",
         )
 
 
@@ -146,7 +145,7 @@ async def list_evaluations(
 async def get_evaluation(
     session_id: str,
     evaluation_id: str,
-    current_user: Optional[dict] = Depends(get_current_user),
+    current_user: dict | None = Depends(get_current_user),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> EvaluationResponse:
     """
@@ -177,7 +176,7 @@ async def get_evaluation(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get evaluation: {str(e)}",
+            detail=f"Failed to get evaluation: {e!s}",
         )
 
 
@@ -225,5 +224,5 @@ async def update_evaluation(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to update evaluation: {str(e)}",
+            detail=f"Failed to update evaluation: {e!s}",
         )

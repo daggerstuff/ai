@@ -6,7 +6,8 @@ Enables automatic integration of acquired datasets into the training pipeline.
 """
 
 import logging
-from typing import Any, Callable, Dict, Optional
+from collections.abc import Callable
+from typing import Any
 
 from ai.sourcing.journal.models.dataset_models import (
     AcquiredDataset,
@@ -30,8 +31,8 @@ class MCPPipelineBridge:
 
     def __init__(
         self,
-        pipeline_orchestrator: Optional[Any] = None,
-        integration_service: Optional[Any] = None,
+        pipeline_orchestrator: Any | None = None,
+        integration_service: Any | None = None,
         auto_integrate: bool = True,
     ):
         """
@@ -47,10 +48,10 @@ class MCPPipelineBridge:
         self.auto_integrate = auto_integrate
 
         # Track integration operations
-        self.integration_operations: Dict[str, Dict[str, Any]] = {}
+        self.integration_operations: dict[str, dict[str, Any]] = {}
 
         # Callbacks for progress updates
-        self.progress_callbacks: list[Callable[[str, Dict[str, Any]], None]] = []
+        self.progress_callbacks: list[Callable[[str, dict[str, Any]], None]] = []
 
         logger.info(
             f"Initialized MCPPipelineBridge (auto_integrate={auto_integrate})"
@@ -79,9 +80,9 @@ class MCPPipelineBridge:
     def on_dataset_acquired(
         self,
         dataset: AcquiredDataset,
-        evaluation: Optional[DatasetEvaluation] = None,
-        integration_plan: Optional[IntegrationPlan] = None,
-    ) -> Dict[str, Any]:
+        evaluation: DatasetEvaluation | None = None,
+        integration_plan: IntegrationPlan | None = None,
+    ) -> dict[str, Any]:
         """
         Handle notification when a dataset is acquired via MCP tool.
 
@@ -219,7 +220,7 @@ class MCPPipelineBridge:
                 "error": str(e),
             }
 
-    def get_integration_status(self, source_id: str) -> Optional[Dict[str, Any]]:
+    def get_integration_status(self, source_id: str) -> dict[str, Any] | None:
         """
         Get integration status for a dataset.
 
@@ -232,7 +233,7 @@ class MCPPipelineBridge:
         return self.integration_operations.get(source_id)
 
     def add_progress_callback(
-        self, callback: Callable[[str, Dict[str, Any]], None]
+        self, callback: Callable[[str, dict[str, Any]], None]
     ) -> None:
         """
         Add callback for progress updates.
@@ -243,7 +244,7 @@ class MCPPipelineBridge:
         self.progress_callbacks.append(callback)
         logger.debug("Progress callback added")
 
-    def _notify_progress(self, source_id: str, progress_data: Dict[str, Any]) -> None:
+    def _notify_progress(self, source_id: str, progress_data: dict[str, Any]) -> None:
         """
         Notify all progress callbacks.
 

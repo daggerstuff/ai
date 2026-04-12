@@ -4,10 +4,8 @@ Session management API routes.
 This module provides endpoints for managing research sessions.
 """
 
-from datetime import datetime
-from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from ai.sourcing.journal.api.dependencies import (
     get_command_handler_service,
@@ -31,7 +29,7 @@ router = APIRouter(prefix="/sessions")
 @router.get("", response_model=SessionListResponse)
 async def list_sessions(
     pagination: PaginationParams = Depends(),
-    current_user: Optional[dict] = Depends(get_current_user),
+    current_user: dict | None = Depends(get_current_user),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> SessionListResponse:
     """
@@ -71,7 +69,7 @@ async def list_sessions(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to list sessions: {str(e)}",
+            detail=f"Failed to list sessions: {e!s}",
         )
 
 
@@ -111,14 +109,14 @@ async def create_session(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create session: {str(e)}",
+            detail=f"Failed to create session: {e!s}",
         )
 
 
 @router.get("/{session_id}", response_model=SessionResponse)
 async def get_session(
     session_id: str,
-    current_user: Optional[dict] = Depends(get_current_user),
+    current_user: dict | None = Depends(get_current_user),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> SessionResponse:
     """
@@ -146,7 +144,7 @@ async def get_session(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get session: {str(e)}",
+            detail=f"Failed to get session: {e!s}",
         )
 
 
@@ -188,7 +186,7 @@ async def update_session(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to update session: {str(e)}",
+            detail=f"Failed to update session: {e!s}",
         )
 
 
@@ -213,5 +211,5 @@ async def delete_session(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to delete session: {str(e)}",
+            detail=f"Failed to delete session: {e!s}",
         )

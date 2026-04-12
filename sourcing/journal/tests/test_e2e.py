@@ -5,13 +5,10 @@ Tests complete research workflow with sample datasets, report generation,
 dataset acquisition and storage, and integration with training pipeline.
 """
 
-import json
-import tempfile
-from datetime import datetime
-from pathlib import Path
-from unittest.mock import Mock, patch
+from datetime import datetime, timezone
 
-import pandas as pd
+from pathlib import Path
+
 import pytest
 
 from ai.sourcing.journal.acquisition.acquisition_manager import (
@@ -34,7 +31,6 @@ from ai.sourcing.journal.models.dataset_models import (
     AcquiredDataset,
     DatasetSource,
     ResearchProgress,
-    ResearchSession,
 )
 from ai.sourcing.journal.orchestrator.research_orchestrator import (
     ResearchOrchestrator,
@@ -106,7 +102,7 @@ class TestCompleteResearchWorkflow:
             keywords=["test", "therapy"],
             open_access=True,
             data_availability="available",
-            discovery_date=datetime.now(),
+            discovery_date=datetime.now(timezone.utc),
             discovery_method="repository_api",
         )
 
@@ -130,7 +126,7 @@ class TestCompleteResearchWorkflow:
         # Step 4: Create acquired dataset (simulate download)
         acquired_dataset = AcquiredDataset(
             source_id=source.source_id,
-            acquisition_date=datetime.now(),
+            acquisition_date=datetime.now(timezone.utc),
             storage_path=str(sample_csv_dataset),
             file_format="csv",
             file_size_mb=0.1,
@@ -231,8 +227,8 @@ class TestReportGeneration:
         report_path = generator.generate_research_summary_report(
             sources=multiple_sources,
             evaluations=[sample_evaluation],
-            start_date=datetime.now(),
-            end_date=datetime.now(),
+            start_date=datetime.now(timezone.utc),
+            end_date=datetime.now(timezone.utc),
         )
 
         assert report_path.exists()
@@ -286,7 +282,7 @@ class TestDatasetAcquisitionAndStorage:
         # Create acquired dataset (simulate download)
         acquired_dataset = AcquiredDataset(
             source_id=source.source_id,
-            acquisition_date=datetime.now(),
+            acquisition_date=datetime.now(timezone.utc),
             storage_path=str(sample_csv_dataset),
             file_format="csv",
             file_size_mb=0.1,
@@ -310,7 +306,7 @@ class TestIntegrationWithTrainingPipeline:
         # Create acquired dataset
         acquired_dataset = AcquiredDataset(
             source_id="integration-test-001",
-            acquisition_date=datetime.now(),
+            acquisition_date=datetime.now(timezone.utc),
             storage_path=str(sample_csv_dataset),
             file_format="csv",
             file_size_mb=0.1,

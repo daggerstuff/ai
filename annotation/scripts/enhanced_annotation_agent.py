@@ -20,7 +20,7 @@ import time
 from dataclasses import asdict, dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # Try importing required libraries
 try:
@@ -54,8 +54,8 @@ class AnnotationMetrics:
     processing_time: float
     token_count: int
     confidence_score: float
-    guardrail_checks: Dict[str, bool]
-    reasoning_steps: List[str]
+    guardrail_checks: dict[str, bool]
+    reasoning_steps: list[str]
 
 
 @dataclass
@@ -86,7 +86,7 @@ class EnhancedAnnotationAgent:
         persona_name: str,
         model: str = "nvidia/llama-3.3-nemotron-super-49b-v1",
         role: AgentRole = AgentRole.PRIMARY_ANNOTATOR,
-        guardrail_config: Optional[GuardrailConfig] = None,
+        guardrail_config: GuardrailConfig | None = None,
     ):
         self.persona_name = persona_name
         self.model = model
@@ -94,7 +94,7 @@ class EnhancedAnnotationAgent:
         self.guardrail_config = guardrail_config or GuardrailConfig()
         self.system_prompt = self._get_system_prompt(persona_name)
         self.guidelines = self._load_guidelines()
-        self.metrics: List[AnnotationMetrics] = []
+        self.metrics: list[AnnotationMetrics] = []
 
         # Initialize OpenAI client with custom base URL support
         self.client = None
@@ -145,7 +145,7 @@ GUARDRAILS:
             return GUIDELINES_PATH.read_text()
         return "No guidelines found."
 
-    def _apply_guardrails(self, annotation: Dict[str, Any]) -> Dict[str, bool]:
+    def _apply_guardrails(self, annotation: dict[str, Any]) -> dict[str, bool]:
         """
         Apply NeMo Guardrails-inspired safety checks
 
@@ -183,7 +183,7 @@ GUARDRAILS:
 
         return checks
 
-    def _extract_reasoning_steps(self, annotation: Dict[str, Any]) -> List[str]:
+    def _extract_reasoning_steps(self, annotation: dict[str, Any]) -> list[str]:
         """Extract reasoning steps from annotation (for evaluation)"""
         steps = []
 
@@ -206,7 +206,7 @@ GUARDRAILS:
 
         return steps
 
-    def annotate(self, task: Dict[str, Any]) -> Dict[str, Any]:
+    def annotate(self, task: dict[str, Any]) -> dict[str, Any]:
         """
         Produce an annotation with guardrails and evaluation
 
@@ -304,7 +304,7 @@ Respond ONLY with valid JSON in this exact format:
 
         return annotation
 
-    def _call_llm(self, prompt: str, data: Dict[str, Any]) -> Dict[str, Any]:
+    def _call_llm(self, prompt: str, data: dict[str, Any]) -> dict[str, Any]:
         """Call LLM with error handling and fallback"""
         try:
             response = self.client.chat.completions.create(
@@ -331,8 +331,8 @@ Respond ONLY with valid JSON in this exact format:
             return self._mock_annotation(data, error=False)
 
     def _mock_annotation(
-        self, data: Dict[str, Any], error: bool = False
-    ) -> Dict[str, Any]:
+        self, data: dict[str, Any], error: bool = False
+    ) -> dict[str, Any]:
         """Generate mock annotation for testing"""
         import random
 

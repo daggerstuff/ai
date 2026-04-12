@@ -10,7 +10,7 @@ import json
 from collections import Counter
 from pathlib import Path
 from statistics import mean
-from typing import Any, Dict, List
+from typing import Any
 
 
 class ConsensusAgent:
@@ -38,7 +38,7 @@ class ConsensusAgent:
             "total_tasks": 0,
         }
 
-    def resolve_crisis_label(self, annotations: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def resolve_crisis_label(self, annotations: list[dict[str, Any]]) -> dict[str, Any]:
         """Resolve crisis label using confidence-weighted voting"""
         if self.strategy == "weighted":
             # Weight by confidence score
@@ -61,7 +61,7 @@ class ConsensusAgent:
             "crisis_confidence": consensus_confidence,
         }
 
-    def resolve_emotion(self, annotations: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def resolve_emotion(self, annotations: list[dict[str, Any]]) -> dict[str, Any]:
         """Resolve primary emotion using majority voting"""
         emotions = [a["primary_emotion"] for a in annotations]
         intensities = [a["emotion_intensity"] for a in annotations]
@@ -88,8 +88,8 @@ class ConsensusAgent:
         }
 
     def resolve_valence_arousal(
-        self, annotations: List[Dict[str, Any]]
-    ) -> Dict[str, float]:
+        self, annotations: list[dict[str, Any]]
+    ) -> dict[str, float]:
         """Resolve valence and arousal by averaging"""
         return {
             "valence": round(mean([a["valence"] for a in annotations]), 2),
@@ -97,8 +97,8 @@ class ConsensusAgent:
         }
 
     def resolve_empathy_safety(
-        self, annotations: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+        self, annotations: list[dict[str, Any]]
+    ) -> dict[str, Any]:
         """Resolve empathy score and safety pass"""
         empathy_scores = [
             a["empathy_score"] for a in annotations if a["empathy_score"] is not None
@@ -113,7 +113,7 @@ class ConsensusAgent:
         }
 
     def merge_notes(
-        self, annotations: List[Dict[str, Any]], annotator_ids: List[str]
+        self, annotations: list[dict[str, Any]], annotator_ids: list[str]
     ) -> str:
         """Merge clinical notes from all annotators"""
         merged = "CONSENSUS ANNOTATION\n\n"
@@ -124,8 +124,8 @@ class ConsensusAgent:
         return merged.strip()
 
     def create_consensus(
-        self, task_id: str, annotations: List[Dict[str, Any]], annotator_ids: List[str]
-    ) -> Dict[str, Any]:
+        self, task_id: str, annotations: list[dict[str, Any]], annotator_ids: list[str]
+    ) -> dict[str, Any]:
         """
         Create consensus annotation from multiple annotators
 
@@ -181,7 +181,7 @@ class ConsensusAgent:
             },
         }
 
-    def get_agreement_report(self) -> Dict[str, Any]:
+    def get_agreement_report(self) -> dict[str, Any]:
         """Generate agreement statistics report"""
         if self.agreement_stats["total_tasks"] == 0:
             return {"error": "No tasks processed"}
@@ -205,7 +205,7 @@ class ConsensusAgent:
         }
 
 
-def load_annotations(file_path: Path) -> Dict[str, Dict[str, Any]]:
+def load_annotations(file_path: Path) -> dict[str, dict[str, Any]]:
     """Load annotations from JSONL file"""
     annotations = {}
 

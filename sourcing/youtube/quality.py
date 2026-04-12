@@ -10,9 +10,7 @@ Provides functions for:
 
 import logging
 from dataclasses import dataclass
-from datetime import timedelta
 from enum import Enum
-from typing import Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -32,9 +30,9 @@ class AudioFormat(str, Enum):
 @dataclass
 class AudioQualityMetrics:
     """Quality metrics for audio analysis."""
-    sample_rate: Optional[int] = None  # e.g., 48000, 44100
-    bitrate: Optional[int] = None      # e.g., 128000 bps
-    format: Optional[AudioFormat] = None
+    sample_rate: int | None = None  # e.g., 48000, 44100
+    bitrate: int | None = None      # e.g., 128000 bps
+    format: AudioFormat | None = None
     has_speech: bool = False
     has_music: bool = False
     noise_level: float = 0.0  # 0.0-1.0
@@ -74,12 +72,12 @@ class AudioQualityMetrics:
 @dataclass
 class VideoContentMetrics:
     """Content analysis metrics."""
-    title_length: Optional[int] = None
-    description_length: Optional[int] = None
+    title_length: int | None = None
+    description_length: int | None = None
     tags_count: int = 0
     has_closed_captions: bool = False
     has_description: bool = False
-    word_count_estimate: Optional[int] = None  # Estimated word count
+    word_count_estimate: int | None = None  # Estimated word count
     speaking_proportion: float = 0.0  # Percentage that is speaking (vs. music, etc.)
 
     def content_quality_score(self) -> float:
@@ -256,8 +254,7 @@ def extract_channel_engagement(
     # Comment to view ratio
     if views > 0:
         metrics.comment_to_view_ratio = comments / views
-        if metrics.comment_to_view_ratio > 0.5:
-            metrics.comment_to_view_ratio = 0.5  # Cap at 50%
+        metrics.comment_to_view_ratio = min(metrics.comment_to_view_ratio, 0.5)  # Cap at 50%
 
     # Estimate growth rate (simplified)
     metrics.subscriber_growth_rate = min(subscriber_count / (1000 * (age_months / 12)), 1.0)
@@ -270,7 +267,7 @@ def extract_channel_engagement(
     return metrics
 
 
-def detect_closed_captions(description: str, tags: List[str]) -> bool:
+def detect_closed_captions(description: str, tags: list[str]) -> bool:
     """Detect if content has optional closed captions."""
     text = f"{description} {' '.join(tags)}".lower()
 
@@ -286,7 +283,7 @@ def detect_closed_captions(description: str, tags: List[str]) -> bool:
     return any(keyword in text for keyword in closed_captions_keywords)
 
 
-def detect_transcript_features(description: str) -> Dict:
+def detect_transcript_features(description: str) -> dict:
     """Detect transcript features from description."""
     features = {
         "has_timestamps": False,
@@ -325,7 +322,7 @@ def detect_transcript_features(description: str) -> Dict:
     scene_keywords = [
         "scene:", ": ", "chapter:", "part 1", "part 2:"
     ]
-    features["has_scene_descriptions"] = len(text.split(':')) > 10
+    features["has_scene_descriptions"] = len(text.split(":")) > 10
 
     # Language detection (simplified)
     language_indicators = {
@@ -355,7 +352,7 @@ def detect_transcript_features(description: str) -> Dict:
 def analyze_video_content(
     title: str,
     description: str,
-    tags: List[str],
+    tags: list[str],
     duration_seconds: int,
 ) -> VideoContentMetrics:
     """Analyze video content for quality."""
@@ -385,7 +382,7 @@ def analyze_video_content(
 
 def analyze_channel_professional(
     description: str,
-    credentials: List[str],
+    credentials: list[str],
     channel_id: str,
     channel_url: str
 ) -> ProfessionalIndicators:

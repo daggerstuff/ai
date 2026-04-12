@@ -2,7 +2,7 @@
 Interactive mode for manual oversight and decisions.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from rich.console import Console
 from rich.prompt import Confirm, Prompt
@@ -11,7 +11,7 @@ from rich.table import Table
 console = Console()
 
 
-def prompt_for_session_config() -> Dict[str, Any]:
+def prompt_for_session_config() -> dict[str, Any]:
     """Prompt user for research session configuration."""
     console.print("\n[bold blue]Research Session Configuration[/bold blue]\n")
 
@@ -22,7 +22,7 @@ def prompt_for_session_config() -> Dict[str, Any]:
     target_sources = [s.strip() for s in sources_input.split(",")]
 
     # Search keywords
-    search_keywords: Dict[str, List[str]] = {}
+    search_keywords: dict[str, list[str]] = {}
     console.print("\nEnter search keywords for each category:")
     keywords_input = Prompt.ask(
         "Therapeutic keywords (comma-separated)",
@@ -37,7 +37,7 @@ def prompt_for_session_config() -> Dict[str, Any]:
     search_keywords["dataset"] = [k.strip() for k in keywords_input.split(",")]
 
     # Weekly targets
-    weekly_targets: Dict[str, int] = {}
+    weekly_targets: dict[str, int] = {}
     console.print("\nEnter weekly targets (optional, press Enter to skip):")
     for metric in [
         "sources_identified",
@@ -61,7 +61,7 @@ def prompt_for_session_config() -> Dict[str, Any]:
 
 
 def prompt_for_dataset_review(
-    source_id: str, evaluation: Optional[Dict[str, Any]] = None
+    source_id: str, evaluation: dict[str, Any] | None = None
 ) -> bool:
     """Prompt user to review and approve a dataset."""
     console.print(f"\n[bold yellow]Reviewing Dataset: {source_id}[/bold yellow]\n")
@@ -104,7 +104,7 @@ def prompt_for_dataset_review(
 
 
 def prompt_for_acquisition_approval(
-    source_id: str, access_request: Optional[Dict[str, Any]] = None
+    source_id: str, access_request: dict[str, Any] | None = None
 ) -> bool:
     """Prompt user to approve dataset acquisition."""
     console.print(f"\n[bold yellow]Acquisition Request: {source_id}[/bold yellow]\n")
@@ -119,7 +119,7 @@ def prompt_for_acquisition_approval(
 
 
 def prompt_for_integration_approval(
-    source_id: str, integration_plan: Optional[Dict[str, Any]] = None
+    source_id: str, integration_plan: dict[str, Any] | None = None
 ) -> bool:
     """Prompt user to approve integration plan."""
     console.print(f"\n[bold yellow]Integration Plan: {source_id}[/bold yellow]\n")
@@ -147,7 +147,7 @@ def prompt_for_phase_transition(current_phase: str, next_phase: str) -> bool:
 
 def prompt_for_manual_evaluation_override(
     source_id: str,
-) -> Optional[Dict[str, Any]]:
+) -> dict[str, Any] | None:
     """Prompt user for manual evaluation override."""
     console.print(f"\n[bold yellow]Manual Evaluation Override: {source_id}[/bold yellow]\n")
 
@@ -190,8 +190,8 @@ def prompt_for_manual_evaluation_override(
 def display_progress(
     session_id: str,
     current_phase: str,
-    metrics: Dict[str, int],
-    targets: Optional[Dict[str, int]] = None,
+    metrics: dict[str, int],
+    targets: dict[str, int] | None = None,
 ) -> None:
     """Display research progress in an interactive format."""
     console.print(f"\n[bold green]Session: {session_id}[/bold green]")
@@ -210,15 +210,14 @@ def display_progress(
             target = targets[key]
             progress = (value / target * 100) if target > 0 else 0
             row.extend([str(target), f"{progress:.1f}%"])
-        else:
-            if targets:
-                row.extend(["N/A", "N/A"])
+        elif targets:
+            row.extend(["N/A", "N/A"])
         table.add_row(*row)
 
     console.print(table)
 
 
-def prompt_for_action(actions: List[str]) -> str:
+def prompt_for_action(actions: list[str]) -> str:
     """Prompt user to select an action from a list."""
     console.print("\n[bold blue]Available Actions:[/bold blue]")
     for i, action in enumerate(actions, 1):

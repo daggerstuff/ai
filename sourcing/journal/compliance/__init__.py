@@ -31,11 +31,11 @@ __all__ = [
     "ComplianceChecker",
     "ComplianceResult",
     "EncryptionManager",
-    "HIPAAValidator",
     "HIPAAComplianceResult",
+    "HIPAAValidator",
     "LicenseChecker",
     "LicenseCompatibility",
-    "PrivacyVerifier",
     "PrivacyAssessment",
+    "PrivacyVerifier",
 ]
 

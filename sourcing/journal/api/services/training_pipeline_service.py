@@ -5,13 +5,7 @@ Service layer for connecting journal research system to training pipeline orches
 """
 
 import logging
-from typing import Any, Dict, Optional
-
-from ai.sourcing.journal.models.dataset_models import (
-    AcquiredDataset,
-    DatasetEvaluation,
-    IntegrationPlan,
-)
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +36,7 @@ class TrainingPipelineService:
 
     def __init__(self):
         """Initialize the training pipeline service."""
-        self.pipeline_orchestrator: Optional[PipelineOrchestrator] = None
+        self.pipeline_orchestrator: PipelineOrchestrator | None = None
         self._initialize_orchestrator()
 
     def _initialize_orchestrator(self) -> None:
@@ -72,11 +66,11 @@ class TrainingPipelineService:
         self,
         session_id: str,
         source_id: str,
-        acquired_dataset: Dict[str, Any],
-        evaluation: Optional[Dict[str, Any]] = None,
-        integration_plan: Optional[Dict[str, Any]] = None,
+        acquired_dataset: dict[str, Any],
+        evaluation: dict[str, Any] | None = None,
+        integration_plan: dict[str, Any] | None = None,
         auto_integrate: bool = True,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Integrate a dataset into the training pipeline.
 
@@ -118,12 +112,12 @@ class TrainingPipelineService:
             evaluation_score = None
             evaluation_details = None
             if evaluation_obj:
-                if hasattr(evaluation_obj, 'overall_score'):
+                if hasattr(evaluation_obj, "overall_score"):
                     evaluation_score = evaluation_obj.overall_score
                 elif isinstance(evaluation_obj, dict):
-                    evaluation_score = evaluation_obj.get('overall_score')
+                    evaluation_score = evaluation_obj.get("overall_score")
 
-                if hasattr(evaluation_obj, '__dict__'):
+                if hasattr(evaluation_obj, "__dict__"):
                     evaluation_details = evaluation_obj.__dict__
                 elif isinstance(evaluation_obj, dict):
                     evaluation_details = evaluation_obj
@@ -159,8 +153,8 @@ class TrainingPipelineService:
             }
 
     async def get_session_status(
-        self, session_id: str, session_state: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, session_id: str, session_state: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Get training pipeline status for all datasets in a session.
 
@@ -205,7 +199,7 @@ class TrainingPipelineService:
             "datasets": statuses,
         }
 
-    async def get_pipeline_status(self) -> Dict[str, Any]:
+    async def get_pipeline_status(self) -> dict[str, Any]:
         """
         Get overall training pipeline status.
 
@@ -241,7 +235,7 @@ class TrainingPipelineService:
                 "error": str(e),
             }
 
-    def _dict_to_acquired_dataset(self, data: Dict[str, Any]) -> Any:
+    def _dict_to_acquired_dataset(self, data: dict[str, Any]) -> Any:
         """Convert dictionary to AcquiredDataset model."""
         if not PIPELINE_ORCHESTRATOR_AVAILABLE:
             # Create a simple object that can be used
@@ -260,7 +254,7 @@ class TrainingPipelineService:
             from types import SimpleNamespace
             return SimpleNamespace(**data)
 
-    def _dict_to_evaluation(self, data: Dict[str, Any]) -> Any:
+    def _dict_to_evaluation(self, data: dict[str, Any]) -> Any:
         """Convert dictionary to DatasetEvaluation model."""
         if not PIPELINE_ORCHESTRATOR_AVAILABLE:
             from types import SimpleNamespace
@@ -278,7 +272,7 @@ class TrainingPipelineService:
             from types import SimpleNamespace
             return SimpleNamespace(**data)
 
-    def _dict_to_integration_plan(self, data: Dict[str, Any]) -> Any:
+    def _dict_to_integration_plan(self, data: dict[str, Any]) -> Any:
         """Convert dictionary to IntegrationPlan model."""
         if not PIPELINE_ORCHESTRATOR_AVAILABLE:
             from types import SimpleNamespace

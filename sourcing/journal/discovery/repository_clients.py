@@ -5,10 +5,11 @@ Implements clients for searching Dryad, Zenodo, and ClinicalTrials.gov
 for therapeutic datasets.
 """
 
+from datetime import datetime, timezone
+
+
 import logging
 import time
-from datetime import datetime
-from typing import List, Optional
 
 import requests
 
@@ -42,9 +43,9 @@ class DryadClient:
 
     def search(
         self,
-        keywords: List[str],
+        keywords: list[str],
         max_results: int = 100,
-    ) -> List[DatasetSource]:
+    ) -> list[DatasetSource]:
         """
         Search Dryad for datasets.
 
@@ -114,7 +115,7 @@ class DryadClient:
             logger.error(f"Error searching Dryad: {e}", exc_info=True)
             return []
 
-    def _parse_dataset(self, dataset: dict) -> Optional[DatasetSource]:
+    def _parse_dataset(self, dataset: dict) -> DatasetSource | None:
         """Parse a Dryad dataset into a DatasetSource."""
         try:
             # Extract basic info
@@ -167,7 +168,7 @@ class DryadClient:
                 keywords=keywords,
                 open_access=True,  # Dryad is open access
                 data_availability="available",  # Dryad datasets are available
-                discovery_date=datetime.now(),
+                discovery_date=datetime.now(timezone.utc),
                 discovery_method="repository_api",
             )
 
@@ -184,7 +185,7 @@ class DryadClient:
         except (ValueError, TypeError, AttributeError):
             pass
 
-        return datetime.now()
+        return datetime.now(timezone.utc)
 
 
 class ZenodoClient:
@@ -212,9 +213,9 @@ class ZenodoClient:
 
     def search(
         self,
-        keywords: List[str],
+        keywords: list[str],
         max_results: int = 100,
-    ) -> List[DatasetSource]:
+    ) -> list[DatasetSource]:
         """
         Search Zenodo for datasets.
 
@@ -280,7 +281,7 @@ class ZenodoClient:
             logger.error(f"Error searching Zenodo: {e}", exc_info=True)
             return []
 
-    def _parse_record(self, record: dict) -> Optional[DatasetSource]:
+    def _parse_record(self, record: dict) -> DatasetSource | None:
         """Parse a Zenodo record into a DatasetSource."""
         try:
             metadata = record.get("metadata", {})
@@ -342,7 +343,7 @@ class ZenodoClient:
                 keywords=keywords,
                 open_access=True,  # Zenodo is open access
                 data_availability="available",  # Zenodo datasets are available
-                discovery_date=datetime.now(),
+                discovery_date=datetime.now(timezone.utc),
                 discovery_method="repository_api",
             )
 
@@ -359,7 +360,7 @@ class ZenodoClient:
         except (ValueError, TypeError, AttributeError):
             pass
 
-        return datetime.now()
+        return datetime.now(timezone.utc)
 
 
 class ClinicalTrialsClient:
@@ -387,11 +388,11 @@ class ClinicalTrialsClient:
 
     def search(
         self,
-        keywords: List[str],
-        condition: Optional[str] = None,
+        keywords: list[str],
+        condition: str | None = None,
         status: str = "COMPLETED",
         max_results: int = 100,
-    ) -> List[DatasetSource]:
+    ) -> list[DatasetSource]:
         """
         Search ClinicalTrials.gov for completed studies.
 
@@ -415,7 +416,7 @@ class ClinicalTrialsClient:
         if condition:
             query_parts.append(f'CONDITION:"{condition}"')
 
-        query_parts.append(f'STATUS:{status}')
+        query_parts.append(f"STATUS:{status}")
 
         # Add therapeutic terms
         therapeutic_terms = ["therapy", "counseling", "psychotherapy", "mental health"]
@@ -470,7 +471,7 @@ class ClinicalTrialsClient:
             logger.error(f"Error searching ClinicalTrials.gov: {e}", exc_info=True)
             return []
 
-    def _parse_study(self, study: dict) -> Optional[DatasetSource]:
+    def _parse_study(self, study: dict) -> DatasetSource | None:
         """Parse a ClinicalTrials.gov study into a DatasetSource."""
         try:
             protocol = study.get("protocolSection", {})
@@ -523,7 +524,7 @@ class ClinicalTrialsClient:
                 keywords=keywords,
                 open_access=True,  # ClinicalTrials.gov is open access
                 data_availability=data_availability,
-                discovery_date=datetime.now(),
+                discovery_date=datetime.now(timezone.utc),
                 discovery_method="repository_api",
             )
 
@@ -544,5 +545,5 @@ class ClinicalTrialsClient:
         except (ValueError, TypeError, AttributeError):
             pass
 
-        return datetime.now()
+        return datetime.now(timezone.utc)
 

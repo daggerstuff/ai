@@ -5,7 +5,7 @@ Command implementations for the CLI.
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from rich.console import Console
 from rich.table import Table
@@ -35,11 +35,11 @@ logger = logging.getLogger(__name__)
 class CommandHandler:
     """Handles CLI commands for the research system."""
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None, dry_run: bool = False):
+    def __init__(self, config: dict[str, Any] | None = None, dry_run: bool = False):
         """Initialize command handler with configuration."""
         self.config = config or load_config()
         self.dry_run = dry_run
-        self.orchestrator: Optional[ResearchOrchestrator] = None
+        self.orchestrator: ResearchOrchestrator | None = None
 
     def _get_orchestrator(self) -> ResearchOrchestrator:
         """Get or create orchestrator instance."""
@@ -57,11 +57,11 @@ class CommandHandler:
 
     def search(
         self,
-        keywords: List[str],
-        sources: List[str],
-        session_id: Optional[str] = None,
+        keywords: list[str],
+        sources: list[str],
+        session_id: str | None = None,
         interactive: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Search for dataset sources."""
         console.print("[bold blue]Searching for dataset sources...[/bold blue]\n")
 
@@ -127,11 +127,11 @@ class CommandHandler:
 
     def evaluate(
         self,
-        session_id: Optional[str] = None,
-        source_id: Optional[str] = None,
-        source_ids: Optional[List[str]] = None,
+        session_id: str | None = None,
+        source_id: str | None = None,
+        source_ids: list[str] | None = None,
         interactive: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Evaluate dataset sources."""
         console.print("[bold blue]Evaluating dataset sources...[/bold blue]\n")
 
@@ -170,7 +170,7 @@ class CommandHandler:
             console.print("[yellow]No sources to evaluate[/yellow]")
             return {"evaluations": [], "session_id": session_id}
 
-        evaluations: List[DatasetEvaluation] = []
+        evaluations: list[DatasetEvaluation] = []
 
         if orchestrator.evaluation_engine:
             for source in sources_to_evaluate:
@@ -222,11 +222,11 @@ class CommandHandler:
 
     def acquire(
         self,
-        session_id: Optional[str] = None,
-        source_id: Optional[str] = None,
-        source_ids: Optional[List[str]] = None,
+        session_id: str | None = None,
+        source_id: str | None = None,
+        source_ids: list[str] | None = None,
         interactive: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Acquire datasets."""
         console.print("[bold blue]Acquiring datasets...[/bold blue]\n")
 
@@ -316,12 +316,12 @@ class CommandHandler:
 
     def integrate(
         self,
-        session_id: Optional[str] = None,
-        dataset_id: Optional[str] = None,
-        source_ids: Optional[List[str]] = None,
+        session_id: str | None = None,
+        dataset_id: str | None = None,
+        source_ids: list[str] | None = None,
         target_format: str = "chatml",
         interactive: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Create integration plans for acquired datasets."""
         console.print("[bold blue]Creating integration plans...[/bold blue]\n")
 
@@ -409,7 +409,7 @@ class CommandHandler:
             "session_id": session_id,
         }
 
-    def status(self, session_id: Optional[str] = None) -> Dict[str, Any]:
+    def status(self, session_id: str | None = None) -> dict[str, Any]:
         """Get research session status."""
         orchestrator = self._get_orchestrator()
 
@@ -474,16 +474,15 @@ class CommandHandler:
                 console.print(table)
 
                 return {"sessions": [f.stem for f in session_files]}
-            else:
-                console.print("[yellow]No sessions found[/yellow]")
-                return {"sessions": []}
+            console.print("[yellow]No sessions found[/yellow]")
+            return {"sessions": []}
 
     def report(
         self,
         session_id: str,
-        output_path: Optional[Path] = None,
+        output_path: Path | None = None,
         format: str = "json",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Generate research report."""
         console.print("[bold blue]Generating report...[/bold blue]\n")
 
@@ -530,7 +529,7 @@ class CommandHandler:
 
         return report_data
 
-    def _source_to_dict(self, source: DatasetSource) -> Dict[str, Any]:
+    def _source_to_dict(self, source: DatasetSource) -> dict[str, Any]:
         """Convert DatasetSource to dictionary."""
         return {
             "source_id": source.source_id,
@@ -544,7 +543,7 @@ class CommandHandler:
             "data_availability": source.data_availability,
         }
 
-    def _evaluation_to_dict(self, evaluation: DatasetEvaluation) -> Dict[str, Any]:
+    def _evaluation_to_dict(self, evaluation: DatasetEvaluation) -> dict[str, Any]:
         """Convert DatasetEvaluation to dictionary."""
         return {
             "source_id": evaluation.source_id,
@@ -557,7 +556,7 @@ class CommandHandler:
             "evaluation_date": evaluation.evaluation_date.isoformat(),
         }
 
-    def _plan_to_dict(self, plan: Any) -> Dict[str, Any]:
+    def _plan_to_dict(self, plan: Any) -> dict[str, Any]:
         """Convert IntegrationPlan to dictionary."""
         return {
             "source_id": plan.source_id,

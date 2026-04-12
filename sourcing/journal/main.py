@@ -10,10 +10,8 @@ import argparse
 import logging
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional
 
 from rich.console import Console
-from rich.progress import Progress, SpinnerColumn, TextColumn
 
 from ai.sourcing.journal.cli.commands import CommandHandler
 from ai.sourcing.journal.cli.config import load_config
@@ -39,10 +37,10 @@ class WorkflowExecutor:
 
     def __init__(
         self,
-        config: Optional[Dict] = None,
+        config: dict | None = None,
         dry_run: bool = False,
         interactive: bool = False,
-        checkpoint_dir: Optional[Path] = None,
+        checkpoint_dir: Path | None = None,
     ):
         """Initialize workflow executor."""
         self.config = config or load_config()
@@ -54,13 +52,13 @@ class WorkflowExecutor:
 
     def execute_workflow(
         self,
-        session_id: Optional[str] = None,
-        target_sources: Optional[List[str]] = None,
-        search_keywords: Optional[Dict[str, List[str]]] = None,
-        weekly_targets: Optional[Dict[str, int]] = None,
+        session_id: str | None = None,
+        target_sources: list[str] | None = None,
+        search_keywords: dict[str, list[str]] | None = None,
+        weekly_targets: dict[str, int] | None = None,
         start_phase: str = "discovery",
         resume: bool = False,
-    ) -> Dict:
+    ) -> dict:
         """Execute the complete research workflow."""
         console.print("[bold blue]Starting Research Workflow[/bold blue]\n")
 
@@ -80,7 +78,7 @@ class WorkflowExecutor:
                 state = orchestrator.get_session_state(session_id)
                 current_phase = session.current_phase
             except FileNotFoundError:
-                console.print(f"[yellow]Session not found, creating new session[/yellow]")
+                console.print("[yellow]Session not found, creating new session[/yellow]")
                 session = self._create_session(
                     orchestrator, session_id, target_sources, search_keywords, weekly_targets
                 )
@@ -147,10 +145,10 @@ class WorkflowExecutor:
     def _create_session(
         self,
         orchestrator: ResearchOrchestrator,
-        session_id: Optional[str],
-        target_sources: Optional[List[str]],
-        search_keywords: Optional[Dict[str, List[str]]],
-        weekly_targets: Optional[Dict[str, int]],
+        session_id: str | None,
+        target_sources: list[str] | None,
+        search_keywords: dict[str, list[str]] | None,
+        weekly_targets: dict[str, int] | None,
     ) -> ResearchSession:
         """Create a new research session."""
         if not target_sources:
@@ -417,7 +415,7 @@ def main() -> None:
             resume=args.resume,
         )
 
-        console.print(f"\n[bold green]Workflow completed successfully![/bold green]")
+        console.print("\n[bold green]Workflow completed successfully![/bold green]")
         console.print(f"Session ID: {result['session_id']}")
 
     except Exception as e:

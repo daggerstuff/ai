@@ -4,7 +4,6 @@ Acquisition API routes.
 This module provides endpoints for dataset acquisition operations.
 """
 
-from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -78,7 +77,7 @@ async def initiate_acquisition(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to initiate acquisition: {str(e)}",
+            detail=f"Failed to initiate acquisition: {e!s}",
         )
 
 
@@ -86,7 +85,7 @@ async def initiate_acquisition(
 async def list_acquisitions(
     session_id: str,
     pagination: PaginationParams = Depends(),
-    current_user: Optional[dict] = Depends(get_current_user),
+    current_user: dict | None = Depends(get_current_user),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> AcquisitionListResponse:
     """
@@ -131,7 +130,7 @@ async def list_acquisitions(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to list acquisitions: {str(e)}",
+            detail=f"Failed to list acquisitions: {e!s}",
         )
 
 
@@ -139,7 +138,7 @@ async def list_acquisitions(
 async def get_acquisition(
     session_id: str,
     acquisition_id: str,
-    current_user: Optional[dict] = Depends(get_current_user),
+    current_user: dict | None = Depends(get_current_user),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> AcquisitionResponse:
     """
@@ -167,7 +166,7 @@ async def get_acquisition(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get acquisition: {str(e)}",
+            detail=f"Failed to get acquisition: {e!s}",
         )
 
 
@@ -208,5 +207,5 @@ async def update_acquisition(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to update acquisition: {str(e)}",
+            detail=f"Failed to update acquisition: {e!s}",
         )

@@ -5,11 +5,14 @@ This module provides async tool execution with operation status tracking,
 cancellation support, and timeout handling.
 """
 
+from datetime import datetime, timezone
+
+
 import asyncio
 import logging
 import uuid
-from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional
+from collections.abc import Callable
+from typing import Any
 
 from ai.sourcing.journal.mcp.protocol import MCPError, MCPErrorCode
 from ai.sourcing.journal.mcp.utils.progress_streaming import (
@@ -24,7 +27,6 @@ logger = logging.getLogger(__name__)
 class OperationCancelledError(Exception):
     """Raised when an operation is cancelled."""
 
-    pass
 
 
 class AsyncToolExecutor:
@@ -41,7 +43,7 @@ class AsyncToolExecutor:
     def __init__(
         self,
         progress_streamer: ProgressStreamer,
-        default_timeout: Optional[float] = None,
+        default_timeout: float | None = None,
     ) -> None:
         """
         Initialize async tool executor.
@@ -53,11 +55,11 @@ class AsyncToolExecutor:
         self.progress_streamer = progress_streamer
         self.default_timeout = default_timeout
         # Active operations: operation_id -> asyncio.Task
-        self._active_operations: Dict[str, asyncio.Task] = {}
+        self._active_operations: dict[str, asyncio.Task] = {}
         # Operation metadata: operation_id -> dict
-        self._operation_metadata: Dict[str, Dict[str, Any]] = {}
+        self._operation_metadata: dict[str, dict[str, Any]] = {}
         # Cancellation flags: operation_id -> asyncio.Event
-        self._cancellation_flags: Dict[str, asyncio.Event] = {}
+        self._cancellation_flags: dict[str, asyncio.Event] = {}
         # Lock for thread-safe operations
         self._lock = asyncio.Lock()
 
@@ -66,11 +68,11 @@ class AsyncToolExecutor:
         operation_id: str,
         tool_name: str,
         tool_executor: Callable,
-        params: Dict[str, Any],
-        session_id: Optional[str] = None,
-        timeout: Optional[float] = None,
-        progress_callback: Optional[Callable[[ProgressUpdate], None]] = None,
-    ) -> Dict[str, Any]:
+        params: dict[str, Any],
+        session_id: str | None = None,
+        timeout: float | None = None,
+        progress_callback: Callable[[ProgressUpdate], None] | None = None,
+    ) -> dict[str, Any]:
         """
         Execute tool asynchronously with operation tracking.
 
@@ -101,7 +103,7 @@ class AsyncToolExecutor:
                 "tool_name": tool_name,
                 "session_id": session_id,
                 "params": params,
-                "started_at": datetime.now(),
+                "started_at": datetime.now(timezone.utc),
                 "status": ProgressStatus.PENDING,
             }
 
@@ -154,7 +156,7 @@ class AsyncToolExecutor:
 
                 return result
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 # Cancel operation on timeout
                 await self.cancel_operation(operation_id)
                 raise MCPError(
@@ -187,13 +189,13 @@ class AsyncToolExecutor:
                 session_id or "unknown",
                 ProgressStatus.FAILED,
                 0.0,
-                f"{tool_name} failed: {str(e)}",
+                f"{tool_name} failed: {e!s}",
                 {"error": str(e), "error_type": type(e).__name__},
             )
             logger.exception(f"Error executing async tool {tool_name}")
             raise MCPError(
                 MCPErrorCode.TOOL_EXECUTION_ERROR,
-                f"Tool execution failed: {str(e)}",
+                f"Tool execution failed: {e!s}",
                 {"tool_name": tool_name, "operation_id": operation_id, "error": str(e)},
             ) from e
 
@@ -212,10 +214,10 @@ class AsyncToolExecutor:
         operation_id: str,
         tool_name: str,
         tool_executor: Callable,
-        params: Dict[str, Any],
-        session_id: Optional[str],
+        params: dict[str, Any],
+        session_id: str | None,
         cancellation_flag: asyncio.Event,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Execute tool with progress tracking and cancellation support.
 
@@ -284,7 +286,7 @@ class AsyncToolExecutor:
         status: ProgressStatus,
         progress_percent: float,
         message: str,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> None:
         """
         Send progress update.
@@ -303,7 +305,7 @@ class AsyncToolExecutor:
             status=status,
             progress_percent=progress_percent,
             message=message,
-            timestamp=datetime.now(),
+            timestamp=datetime.now(timezone.utc),
             metadata=metadata or {},
         )
 
@@ -313,7 +315,7 @@ class AsyncToolExecutor:
         async with self._lock:
             if operation_id in self._operation_metadata:
                 self._operation_metadata[operation_id]["status"] = status
-                self._operation_metadata[operation_id]["last_update"] = datetime.now()
+                self._operation_metadata[operation_id]["last_update"] = datetime.now(timezone.utc)
 
     async def cancel_operation(self, operation_id: str) -> bool:
         """
@@ -345,7 +347,7 @@ class AsyncToolExecutor:
         logger.info(f"Cancelled operation {operation_id}")
         return True
 
-    async def get_operation_status(self, operation_id: str) -> Optional[Dict[str, Any]]:
+    async def get_operation_status(self, operation_id: str) -> dict[str, Any] | None:
         """
         Get operation status and metadata.
 
@@ -377,7 +379,7 @@ class AsyncToolExecutor:
 
             return metadata.copy()
 
-    async def list_active_operations(self) -> List[str]:
+    async def list_active_operations(self) -> list[str]:
         """
         List all active operation IDs.
 

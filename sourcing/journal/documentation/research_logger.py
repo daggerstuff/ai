@@ -5,13 +5,13 @@ Provides comprehensive logging for all research activities with rotation,
 archival, and structured log management.
 """
 
+from datetime import datetime, timedelta, timezone
+
+
 import json
 import logging
 import threading
-from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Optional
-from uuid import uuid4
 
 from ai.sourcing.journal.models.dataset_models import ResearchLog
 
@@ -56,8 +56,8 @@ class ResearchLogger:
         if self.enable_archival:
             self.archival_directory.mkdir(parents=True, exist_ok=True)
 
-        self._current_log_file: Optional[Path] = None
-        self._session_logs: Dict[str, List[ResearchLog]] = {}
+        self._current_log_file: Path | None = None
+        self._session_logs: dict[str, list[ResearchLog]] = {}
         self._lock = threading.Lock()
 
     def log_activity(
@@ -66,8 +66,8 @@ class ResearchLogger:
         description: str,
         outcome: str = "",
         duration_minutes: int = 0,
-        source_id: Optional[str] = None,
-        session_id: Optional[str] = None,
+        source_id: str | None = None,
+        session_id: str | None = None,
     ) -> ResearchLog:
         """
         Log a research activity.
@@ -84,7 +84,7 @@ class ResearchLogger:
             ResearchLog: The created log entry
         """
         log_entry = ResearchLog(
-            timestamp=datetime.now(),
+            timestamp=datetime.now(timezone.utc),
             activity_type=activity_type,
             source_id=source_id,
             description=description,
@@ -119,8 +119,8 @@ class ResearchLogger:
         return log_entry
 
     def get_session_logs(
-        self, session_id: str, limit: Optional[int] = None
-    ) -> List[ResearchLog]:
+        self, session_id: str, limit: int | None = None
+    ) -> list[ResearchLog]:
         """
         Get all logs for a specific session.
 
@@ -138,8 +138,8 @@ class ResearchLogger:
             return logs.copy()
 
     def get_logs_by_activity_type(
-        self, activity_type: str, session_id: Optional[str] = None
-    ) -> List[ResearchLog]:
+        self, activity_type: str, session_id: str | None = None
+    ) -> list[ResearchLog]:
         """
         Get all logs of a specific activity type.
 
@@ -160,7 +160,7 @@ class ResearchLogger:
 
             return [log for log in logs if log.activity_type == activity_type]
 
-    def get_logs_by_source_id(self, source_id: str) -> List[ResearchLog]:
+    def get_logs_by_source_id(self, source_id: str) -> list[ResearchLog]:
         """
         Get all logs associated with a specific source ID.
 
@@ -181,7 +181,7 @@ class ResearchLogger:
 
     def get_logs_by_time_range(
         self, start_date: datetime, end_date: datetime
-    ) -> List[ResearchLog]:
+    ) -> list[ResearchLog]:
         """
         Get all logs within a time range.
 
@@ -207,10 +207,10 @@ class ResearchLogger:
 
     def query_logs(
         self,
-        activity_type: Optional[str] = None,
-        source_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-    ) -> List[ResearchLog]:
+        activity_type: str | None = None,
+        source_id: str | None = None,
+        session_id: str | None = None,
+    ) -> list[ResearchLog]:
         """
         Query logs with flexible filtering.
 
@@ -250,7 +250,7 @@ class ResearchLogger:
                                 duration_minutes=log_data.get("duration_minutes", 0),
                             )
                             all_logs.append(log_entry)
-            except (IOError, json.JSONDecodeError, KeyError) as e:
+            except (OSError, json.JSONDecodeError, KeyError) as e:
                 logger.warning(f"Failed to read log file: {e}")
 
         # Apply filters
@@ -280,7 +280,7 @@ class ResearchLogger:
         return self._archive_old_logs()
 
     def _write_log_entry(
-        self, log_entry: ResearchLog, session_id: Optional[str] = None
+        self, log_entry: ResearchLog, session_id: str | None = None
     ) -> None:
         """Write a log entry to the current log file."""
         if not self._current_log_file:
@@ -299,12 +299,12 @@ class ResearchLogger:
         try:
             with open(self._current_log_file, "a", encoding="utf-8") as f:
                 f.write(json.dumps(log_data) + "\n")
-        except IOError as e:
+        except OSError as e:
             logger.error(f"Failed to write log entry: {e}")
 
     def _get_current_log_file(self) -> Path:
         """Get the current log file path, creating it if necessary."""
-        today = datetime.now().strftime("%Y-%m-%d")
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         log_file = self.log_directory / f"research_activity_{today}.jsonl"
 
         if not log_file.exists():
@@ -328,7 +328,7 @@ class ResearchLogger:
                 return  # Don't check age if we just rotated
 
             # Check file age
-            file_age = datetime.now() - datetime.fromtimestamp(
+            file_age = datetime.now(timezone.utc) - datetime.fromtimestamp(
                 self._current_log_file.stat().st_mtime
             )
             if file_age.days >= self.rotation_interval_days:
@@ -341,7 +341,7 @@ class ResearchLogger:
         if not self._current_log_file:
             return
 
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         # Use .log extension for rotated files (test compatibility)
         rotated_file = self.log_directory / f"research_activity_{timestamp}.log"
 
@@ -353,7 +353,7 @@ class ResearchLogger:
             # Archive old logs if enabled
             if self.enable_archival:
                 self._archive_old_logs()
-        except IOError as e:
+        except OSError as e:
             logger.error(f"Failed to rotate log file: {e}")
 
     def _archive_old_logs(self) -> int:
@@ -363,7 +363,7 @@ class ResearchLogger:
         Returns:
             Number of files archived
         """
-        cutoff_date = datetime.now() - timedelta(days=self.max_log_age_days)
+        cutoff_date = datetime.now(timezone.utc) - timedelta(days=self.max_log_age_days)
         archived_count = 0
 
         for log_file in self.log_directory.glob("research_activity_*.jsonl"):
@@ -377,10 +377,10 @@ class ResearchLogger:
                     log_file.rename(archived_path)
                     logger.info(f"Archived log file: {archived_path.name}")
                     archived_count += 1
-                except IOError as e:
+                except OSError as e:
                     logger.error(f"Failed to archive log file {log_file.name}: {e}")
 
-    def get_statistics(self) -> Dict[str, any]:
+    def get_statistics(self) -> dict[str, any]:
         """
         Get statistics about logged activities.
 
@@ -391,7 +391,7 @@ class ResearchLogger:
             total_logs = sum(
                 len(logs) for logs in self._session_logs.values()
             )
-            activity_counts: Dict[str, int] = {}
+            activity_counts: dict[str, int] = {}
             total_duration = 0
 
             for session_logs in self._session_logs.values():
@@ -424,7 +424,7 @@ class ResearchLogger:
                 logger.info(f"Cleared logs for session: {session_id}")
 
     def export_logs(
-        self, output_path: Path, session_id: Optional[str] = None
+        self, output_path: Path, session_id: str | None = None
     ) -> None:
         """
         Export logs to a JSON file.
@@ -457,6 +457,6 @@ class ResearchLogger:
                 with open(output_path, "w", encoding="utf-8") as f:
                     json.dump(log_data, f, indent=2)
                 logger.info(f"Exported {len(log_data)} logs to {output_path}")
-            except IOError as e:
+            except OSError as e:
                 logger.error(f"Failed to export logs: {e}")
 

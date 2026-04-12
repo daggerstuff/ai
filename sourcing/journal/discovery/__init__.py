@@ -16,13 +16,13 @@ from ai.sourcing.journal.discovery.repository_clients import (
 )
 
 __all__ = [
-    "DiscoveryService",
-    "Deduplicator",
-    "DOAJClient",
-    "PubMedClient",
-    "DryadClient",
-    "ZenodoClient",
     "ClinicalTrialsClient",
+    "DOAJClient",
+    "Deduplicator",
+    "DiscoveryService",
+    "DryadClient",
     "MetadataParser",
+    "PubMedClient",
+    "ZenodoClient",
 ]
 

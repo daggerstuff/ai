@@ -6,7 +6,7 @@ This module provides the base MCPTool class that all MCP tools must inherit from
 
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional
+from typing import Any
 
 from ai.sourcing.journal.mcp.utils.validation import (
     ValidationError,
@@ -23,7 +23,7 @@ class MCPTool(ABC):
         self,
         name: str,
         description: str,
-        parameters: Dict[str, Any],
+        parameters: dict[str, Any],
     ) -> None:
         """
         Initialize MCP tool.
@@ -38,7 +38,7 @@ class MCPTool(ABC):
         self.parameters = parameters
 
     @property
-    def tool_schema(self) -> Dict[str, Any]:
+    def tool_schema(self) -> dict[str, Any]:
         """
         Get tool schema in MCP format.
 
@@ -52,7 +52,7 @@ class MCPTool(ABC):
         }
 
     @abstractmethod
-    async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute(self, params: dict[str, Any]) -> dict[str, Any]:
         """
         Execute the tool with given parameters.
 
@@ -66,9 +66,8 @@ class MCPTool(ABC):
             ValidationError: If parameters are invalid
             Exception: If tool execution fails
         """
-        pass
 
-    def validate_parameters(self, params: Dict[str, Any]) -> None:
+    def validate_parameters(self, params: dict[str, Any]) -> None:
         """
         Validate tool parameters against schema.
 
@@ -86,7 +85,7 @@ class MCPTool(ABC):
         except Exception as e:
             # Wrap unexpected errors
             raise ValidationError(
-                f"Parameter validation failed: {str(e)}",
+                f"Parameter validation failed: {e!s}",
                 value=params,
             ) from e
 

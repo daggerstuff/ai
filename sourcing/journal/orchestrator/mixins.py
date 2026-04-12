@@ -2,13 +2,16 @@
 Utility mixins used by the Research Orchestrator.
 """
 
+from datetime import datetime, timedelta, timezone
+
+
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import asdict
-from datetime import datetime, timedelta
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any
 
 from ai.sourcing.journal.models.dataset_models import (
     AcquiredDataset,
@@ -30,7 +33,7 @@ class RetryMixin:
     """Provides retry handling with error logging."""
 
     config: Any
-    error_log: Dict[str, List[Dict[str, Any]]]
+    error_log: dict[str, list[dict[str, Any]]]
     _lock: Any
 
     def _execute_with_retries(
@@ -42,7 +45,7 @@ class RetryMixin:
         **kwargs: Any,
     ):
         attempts = 0
-        last_exception: Optional[Exception] = None
+        last_exception: Exception | None = None
 
         while attempts < self.config.max_retries:
             try:
@@ -65,7 +68,7 @@ class RetryMixin:
         attempt: int,
     ) -> None:
         entry = {
-            "timestamp": datetime.now(),
+            "timestamp": datetime.now(timezone.utc),
             "operation": operation,
             "attempt": str(attempt),
             "message": str(error),
@@ -86,10 +89,10 @@ class RetryMixin:
 class ProgressReportingMixin(RetryMixin):
     """Implements progress and weekly reporting helpers."""
 
-    sessions: Dict[str, Any]
-    progress_states: Dict[str, ResearchProgress]
-    progress_history: Dict[str, List[ProgressSnapshot]]
-    activity_logs: Dict[str, List[Any]]
+    sessions: dict[str, Any]
+    progress_states: dict[str, ResearchProgress]
+    progress_history: dict[str, list[ProgressSnapshot]]
+    activity_logs: dict[str, list[Any]]
 
     def generate_progress_report(self, session_id: str) -> str:
         session = self.sessions[session_id]
@@ -142,9 +145,9 @@ class ProgressReportingMixin(RetryMixin):
     def generate_weekly_report(
         self,
         session_id: str,
-        week_number: Optional[int] = None,
-        start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None,
+        week_number: int | None = None,
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
     ) -> WeeklyReport:
         start_date, end_date = self._normalize_report_window(start_date, end_date)
         session = self.sessions[session_id]
@@ -175,11 +178,11 @@ class ProgressReportingMixin(RetryMixin):
 
     def _normalize_report_window(
         self,
-        start_date: Optional[datetime],
-        end_date: Optional[datetime],
-    ) -> Tuple[datetime, datetime]:
+        start_date: datetime | None,
+        end_date: datetime | None,
+    ) -> tuple[datetime, datetime]:
         if start_date is None or end_date is None:
-            resolved_end = datetime.now()
+            resolved_end = datetime.now(timezone.utc)
             resolved_start = resolved_end - timedelta(days=7)
         else:
             resolved_start, resolved_end = start_date, end_date
@@ -187,7 +190,7 @@ class ProgressReportingMixin(RetryMixin):
 
     def _collect_progress_history(
         self, session_id: str, start_date: datetime, end_date: datetime
-    ) -> List[ProgressSnapshot]:
+    ) -> list[ProgressSnapshot]:
         history = self.progress_history.get(session_id, [])
         return [
             snapshot
@@ -198,9 +201,9 @@ class ProgressReportingMixin(RetryMixin):
     def _resolve_progress_bounds(
         self,
         session_id: str,
-        history: List[ProgressSnapshot],
+        history: list[ProgressSnapshot],
         end_date: datetime,
-    ) -> Tuple[ResearchProgress, ResearchProgress]:
+    ) -> tuple[ResearchProgress, ResearchProgress]:
         if history:
             return history[0].progress, history[-1].progress
 
@@ -210,7 +213,7 @@ class ProgressReportingMixin(RetryMixin):
     @staticmethod
     def _compute_progress_deltas(
         start_progress: ResearchProgress, end_progress: ResearchProgress
-    ) -> Dict[str, int]:
+    ) -> dict[str, int]:
         deltas = {
             "sources_identified": end_progress.sources_identified - start_progress.sources_identified,
             "datasets_evaluated": end_progress.datasets_evaluated - start_progress.datasets_evaluated,
@@ -222,8 +225,8 @@ class ProgressReportingMixin(RetryMixin):
         return {key: max(0, value) for key, value in deltas.items()}
 
     @staticmethod
-    def _build_key_findings(deltas: Dict[str, int]) -> List[str]:
-        findings: List[str] = []
+    def _build_key_findings(deltas: dict[str, int]) -> list[str]:
+        findings: list[str] = []
         if deltas["sources_identified"]:
             findings.append(f"Identified {deltas['sources_identified']} new dataset sources")
         if deltas["datasets_evaluated"]:
@@ -237,7 +240,7 @@ class ProgressReportingMixin(RetryMixin):
 
     def _build_challenges(
         self, session_id: str, start_date: datetime, end_date: datetime
-    ) -> List[str]:
+    ) -> list[str]:
         errors = [
             entry
             for entry in self.error_log.get(session_id, [])
@@ -248,9 +251,9 @@ class ProgressReportingMixin(RetryMixin):
         return [f"Encountered {len(errors)} errors requiring manual review"]
 
     def _build_next_week_priorities(
-        self, session: Any, deltas: Dict[str, int]
-    ) -> List[str]:
-        priorities: List[str] = []
+        self, session: Any, deltas: dict[str, int]
+    ) -> list[str]:
+        priorities: list[str] = []
         if session.weekly_targets:
             for key, target in session.weekly_targets.items():
                 achieved = session.progress_metrics.get(key, 0)
@@ -284,13 +287,13 @@ class WorkflowMixin(RetryMixin):
         activity_type: str,
         description: str,
         outcome: str,
-        source_id: Optional[str] = None,
+        source_id: str | None = None,
         duration_minutes: int = 0,
     ) -> None:
         """Record a research activity entry. Implemented by the orchestrator."""
         raise NotImplementedError("log_activity must be implemented by the orchestrator")
 
-    def update_progress(self, session_id: str, metrics: Dict[str, int]) -> None:
+    def update_progress(self, session_id: str, metrics: dict[str, int]) -> None:
         """Update progress metrics for a session. Implemented by the orchestrator."""
         raise NotImplementedError("update_progress must be implemented by the orchestrator")
 
@@ -431,15 +434,15 @@ class WorkflowMixin(RetryMixin):
         )
 
     def _evaluate_sources(
-        self, session_id: str, sources: List[DatasetSource], evaluator: str
-    ) -> List[DatasetEvaluation]:
+        self, session_id: str, sources: list[DatasetSource], evaluator: str
+    ) -> list[DatasetEvaluation]:
         if not self.evaluation_engine or not sources:
             return []
 
         if self.config.parallel_evaluation and len(sources) > 1:
             return self._evaluate_sources_parallel(session_id, sources, evaluator)
 
-        evaluations: List[DatasetEvaluation] = []
+        evaluations: list[DatasetEvaluation] = []
         for source in sources:
             evaluation = self._evaluate_single_source(session_id, source, evaluator)
             if evaluation:
@@ -447,9 +450,9 @@ class WorkflowMixin(RetryMixin):
         return evaluations
 
     def _evaluate_sources_parallel(
-        self, session_id: str, sources: List[DatasetSource], evaluator: str
-    ) -> List[DatasetEvaluation]:
-        evaluations: List[DatasetEvaluation] = []
+        self, session_id: str, sources: list[DatasetSource], evaluator: str
+    ) -> list[DatasetEvaluation]:
+        evaluations: list[DatasetEvaluation] = []
         with ThreadPoolExecutor(max_workers=self.config.max_workers) as executor:
             futures = {
                 executor.submit(
@@ -465,7 +468,7 @@ class WorkflowMixin(RetryMixin):
 
     def _evaluate_single_source(
         self, session_id: str, source: DatasetSource, evaluator: str
-    ) -> Optional[DatasetEvaluation]:
+    ) -> DatasetEvaluation | None:
         engine = self.evaluation_engine
         if engine is None:
             return None
@@ -531,7 +534,7 @@ class WorkflowMixin(RetryMixin):
 
     def _create_integration_plans(
         self, session_id: str, state: SessionState, target_format: str
-    ) -> List[IntegrationPlan]:
+    ) -> list[IntegrationPlan]:
         if not self.integration_engine or not state.acquired_datasets:
             return []
 
@@ -539,7 +542,7 @@ class WorkflowMixin(RetryMixin):
         if self.config.parallel_integration_planning and len(datasets) > 1:
             return self._create_plans_parallel(session_id, state, datasets, target_format)
 
-        plans: List[IntegrationPlan] = []
+        plans: list[IntegrationPlan] = []
         for dataset in datasets:
             plan = self._create_single_integration_plan(
                 session_id, state, dataset, target_format
@@ -552,10 +555,10 @@ class WorkflowMixin(RetryMixin):
         self,
         session_id: str,
         state: SessionState,
-        datasets: List[AcquiredDataset],
+        datasets: list[AcquiredDataset],
         target_format: str,
-    ) -> List[IntegrationPlan]:
-        plans: List[IntegrationPlan] = []
+    ) -> list[IntegrationPlan]:
+        plans: list[IntegrationPlan] = []
         with ThreadPoolExecutor(max_workers=self.config.max_workers) as executor:
             futures = {
                 executor.submit(
@@ -579,7 +582,7 @@ class WorkflowMixin(RetryMixin):
         state: SessionState,
         dataset: AcquiredDataset,
         target_format: str,
-    ) -> Optional[IntegrationPlan]:
+    ) -> IntegrationPlan | None:
         engine = self.integration_engine
         if engine is None:
             return None

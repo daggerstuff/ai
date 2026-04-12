@@ -5,7 +5,7 @@ This module provides comprehensive parameter validation for tools, resources, an
 """
 
 import re
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 from ai.sourcing.journal.mcp.protocol import (
     MCPError,
@@ -21,9 +21,9 @@ class ValidationError(MCPError):
     def __init__(
         self,
         message: str,
-        field: Optional[str] = None,
-        value: Optional[Any] = None,
-        expected: Optional[str] = None,
+        field: str | None = None,
+        value: Any | None = None,
+        expected: str | None = None,
     ) -> None:
         """
         Initialize validation error.
@@ -49,8 +49,8 @@ class ParameterValidator:
 
     @staticmethod
     def validate_required(
-        params: Dict[str, Any],
-        required_fields: List[str],
+        params: dict[str, Any],
+        required_fields: list[str],
         context: str = "parameters",
     ) -> None:
         """
@@ -74,7 +74,7 @@ class ParameterValidator:
     @staticmethod
     def validate_type(
         value: Any,
-        expected_type: Union[type, Tuple[type, ...]],
+        expected_type: type | tuple[type, ...],
         field_name: str = "parameter",
     ) -> None:
         """
@@ -105,9 +105,9 @@ class ParameterValidator:
     def validate_string(
         value: Any,
         field_name: str = "parameter",
-        min_length: Optional[int] = None,
-        max_length: Optional[int] = None,
-        pattern: Optional[str] = None,
+        min_length: int | None = None,
+        max_length: int | None = None,
+        pattern: str | None = None,
         allow_empty: bool = True,
     ) -> None:
         """
@@ -161,8 +161,8 @@ class ParameterValidator:
     def validate_number(
         value: Any,
         field_name: str = "parameter",
-        min_value: Optional[Union[int, float]] = None,
-        max_value: Optional[Union[int, float]] = None,
+        min_value: int | float | None = None,
+        max_value: int | float | None = None,
         integer_only: bool = False,
     ) -> None:
         """
@@ -203,9 +203,9 @@ class ParameterValidator:
     def validate_array(
         value: Any,
         field_name: str = "parameter",
-        min_items: Optional[int] = None,
-        max_items: Optional[int] = None,
-        item_type: Optional[type] = None,
+        min_items: int | None = None,
+        max_items: int | None = None,
+        item_type: type | None = None,
         unique: bool = False,
     ) -> None:
         """
@@ -263,8 +263,8 @@ class ParameterValidator:
     def validate_object(
         value: Any,
         field_name: str = "parameter",
-        required_fields: Optional[List[str]] = None,
-        allowed_fields: Optional[List[str]] = None,
+        required_fields: list[str] | None = None,
+        allowed_fields: list[str] | None = None,
     ) -> None:
         """
         Validate object parameter.
@@ -303,7 +303,7 @@ class ParameterValidator:
     @staticmethod
     def validate_enum(
         value: Any,
-        allowed_values: List[Any],
+        allowed_values: list[Any],
         field_name: str = "parameter",
     ) -> None:
         """
@@ -327,8 +327,8 @@ class ParameterValidator:
 
     @staticmethod
     def validate_json_schema(
-        params: Dict[str, Any],
-        schema: Dict[str, Any],
+        params: dict[str, Any],
+        schema: dict[str, Any],
         context: str = "parameters",
     ) -> None:
         """
@@ -369,7 +369,7 @@ class ParameterValidator:
     def _validate_property(
         field_name: str,
         value: Any,
-        prop_schema: Dict[str, Any],
+        prop_schema: dict[str, Any],
         context: str = "parameter",
     ) -> None:
         """
@@ -461,7 +461,7 @@ class ParameterValidator:
 
 
 def validate_tool_parameters(
-    params: Dict[str, Any], schema: Dict[str, Any]
+    params: dict[str, Any], schema: dict[str, Any]
 ) -> None:
     """
     Validate tool parameters against schema.
@@ -477,7 +477,7 @@ def validate_tool_parameters(
 
 
 def validate_resource_parameters(
-    params: Dict[str, Any], schema: Optional[Dict[str, Any]] = None
+    params: dict[str, Any], schema: dict[str, Any] | None = None
 ) -> None:
     """
     Validate resource parameters.
@@ -500,7 +500,7 @@ def validate_resource_parameters(
 
 
 def validate_prompt_arguments(
-    args: Dict[str, Any], schema: Dict[str, Any]
+    args: dict[str, Any], schema: dict[str, Any]
 ) -> None:
     """
     Validate prompt arguments against schema.

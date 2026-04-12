@@ -8,7 +8,6 @@ import logging
 import logging.handlers
 import sys
 from pathlib import Path
-from typing import Optional
 
 from ai.sourcing.journal.mcp.config import LoggingConfig
 
@@ -76,7 +75,7 @@ def setup_logging(config: LoggingConfig) -> None:
         audit_logger.propagate = False  # Don't propagate to root logger
 
 
-def get_logger(name: Optional[str] = None) -> logging.Logger:
+def get_logger(name: str | None = None) -> logging.Logger:
     """
     Get logger instance.
 

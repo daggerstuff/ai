@@ -54,12 +54,11 @@ class Config:
         """
         if isinstance(obj, dict):
             return {key: self._substitute_env_vars(value) for key, value in obj.items()}
-        elif isinstance(obj, list):
+        if isinstance(obj, list):
             return [self._substitute_env_vars(item) for item in obj]
-        elif isinstance(obj, str):
+        if isinstance(obj, str):
             return self._substitute_env_var_string(obj)
-        else:
-            return obj
+        return obj
 
     def _substitute_env_var_string(self, value: str) -> str:
         """

@@ -35,6 +35,8 @@ Notes:
 - Output is assigned to split=test (hard holdout by contract).
 """
 
+from datetime import datetime, timezone
+
 from __future__ import annotations
 
 import argparse
@@ -44,7 +46,6 @@ import os
 from collections import Counter
 from collections.abc import Iterator
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 

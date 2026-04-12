@@ -6,7 +6,6 @@ for discovering dataset sources from multiple platforms.
 """
 
 import logging
-from typing import Dict, List, Optional
 
 from ai.sourcing.journal.discovery.deduplication import Deduplicator
 from ai.sourcing.journal.discovery.doaj_client import DOAJClient
@@ -27,13 +26,13 @@ class DiscoveryService(DiscoveryServiceProtocol):
 
     def __init__(
         self,
-        config: Optional[Dict] = None,
-        pubmed_client: Optional[PubMedClient] = None,
-        doaj_client: Optional[DOAJClient] = None,
-        dryad_client: Optional[DryadClient] = None,
-        zenodo_client: Optional[ZenodoClient] = None,
-        clinical_trials_client: Optional[ClinicalTrialsClient] = None,
-        deduplicator: Optional[Deduplicator] = None,
+        config: dict | None = None,
+        pubmed_client: PubMedClient | None = None,
+        doaj_client: DOAJClient | None = None,
+        dryad_client: DryadClient | None = None,
+        zenodo_client: ZenodoClient | None = None,
+        clinical_trials_client: ClinicalTrialsClient | None = None,
+        deduplicator: Deduplicator | None = None,
     ):
         """Initialize discovery service."""
         self.config = config or {}
@@ -78,7 +77,7 @@ class DiscoveryService(DiscoveryServiceProtocol):
         # Deduplicator
         self.deduplicator = deduplicator or Deduplicator()
 
-    def discover_sources(self, session: ResearchSession) -> List[DatasetSource]:
+    def discover_sources(self, session: ResearchSession) -> list[DatasetSource]:
         """
         Discover dataset sources for the given research session.
 
@@ -88,7 +87,7 @@ class DiscoveryService(DiscoveryServiceProtocol):
         Returns:
             List of discovered DatasetSource objects
         """
-        all_sources: List[DatasetSource] = []
+        all_sources: list[DatasetSource] = []
         target_sources = session.target_sources or []
         search_keywords = session.search_keywords or {}
 
@@ -164,7 +163,7 @@ class DiscoveryService(DiscoveryServiceProtocol):
         logger.info(f"Total unique sources discovered: {len(all_sources)}")
         return all_sources
 
-    def _discover_pubmed(self, keywords: List[str]) -> List[DatasetSource]:
+    def _discover_pubmed(self, keywords: list[str]) -> list[DatasetSource]:
         """Discover sources from PubMed Central."""
         if not keywords:
             keywords = ["therapy", "counseling", "psychotherapy"]
@@ -175,8 +174,8 @@ class DiscoveryService(DiscoveryServiceProtocol):
         )
 
     def _discover_doaj(
-        self, keywords: List[str], therapeutic_keywords: List[str]
-    ) -> List[DatasetSource]:
+        self, keywords: list[str], therapeutic_keywords: list[str]
+    ) -> list[DatasetSource]:
         """Discover sources from DOAJ."""
         if not keywords and not therapeutic_keywords:
             keywords = ["therapy", "counseling", "psychotherapy"]
@@ -188,21 +187,21 @@ class DiscoveryService(DiscoveryServiceProtocol):
             max_results=100,
         )
 
-    def _discover_dryad(self, keywords: List[str]) -> List[DatasetSource]:
+    def _discover_dryad(self, keywords: list[str]) -> list[DatasetSource]:
         """Discover sources from Dryad."""
         if not keywords:
             keywords = ["therapy", "counseling", "psychotherapy"]
 
         return self.dryad_client.search(keywords=keywords, max_results=100)
 
-    def _discover_zenodo(self, keywords: List[str]) -> List[DatasetSource]:
+    def _discover_zenodo(self, keywords: list[str]) -> list[DatasetSource]:
         """Discover sources from Zenodo."""
         if not keywords:
             keywords = ["therapy", "counseling", "psychotherapy"]
 
         return self.zenodo_client.search(keywords=keywords, max_results=100)
 
-    def _discover_clinical_trials(self, keywords: List[str]) -> List[DatasetSource]:
+    def _discover_clinical_trials(self, keywords: list[str]) -> list[DatasetSource]:
         """Discover sources from ClinicalTrials.gov."""
         if not keywords:
             keywords = ["therapy", "counseling", "psychotherapy"]

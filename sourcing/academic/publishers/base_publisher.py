@@ -9,7 +9,7 @@ import abc
 import logging
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import requests
 from requests.adapters import HTTPAdapter
@@ -32,25 +32,25 @@ class BookFormat(Enum):
 class BookMetadata:
     """Metadata for an academic book"""
     title: str
-    authors: List[str]
+    authors: list[str]
     publisher: str
     publication_year: int
-    isbn: Optional[str] = None
-    doi: Optional[str] = None
-    abstract: Optional[str] = None
-    keywords: Optional[List[str]] = None
-    chapters: Optional[List[Dict[str, Any]]] = None
-    page_count: Optional[int] = None
-    language: Optional[str] = "en"
-    license: Optional[str] = None
-    copyright_status: Optional[str] = None
-    therapeutic_relevance_score: Optional[float] = None
-    stage_assignment: Optional[str] = None  # stage1_foundation, stage2_therapeutic_expertise, etc.
-    quality_score: Optional[float] = None
-    safety_score: Optional[float] = None
-    bias_score: Optional[float] = None
-    source_publisher: Optional[str] = None
-    raw_metadata: Optional[Dict[str, Any]] = None
+    isbn: str | None = None
+    doi: str | None = None
+    abstract: str | None = None
+    keywords: list[str] | None = None
+    chapters: list[dict[str, Any]] | None = None
+    page_count: int | None = None
+    language: str | None = "en"
+    license: str | None = None
+    copyright_status: str | None = None
+    therapeutic_relevance_score: float | None = None
+    stage_assignment: str | None = None  # stage1_foundation, stage2_therapeutic_expertise, etc.
+    quality_score: float | None = None
+    safety_score: float | None = None
+    bias_score: float | None = None
+    source_publisher: str | None = None
+    raw_metadata: dict[str, Any] | None = None
 
 @dataclass
 class BookContent:
@@ -58,9 +58,9 @@ class BookContent:
     metadata: BookMetadata
     content: str
     format: BookFormat
-    chapter_contents: Optional[List[Tuple[str, str]]] = None  # List of (chapter_title, chapter_content)
-    therapeutic_concepts: Optional[List[str]] = None
-    anonymized_content: Optional[str] = None
+    chapter_contents: list[tuple[str, str]] | None = None  # List of (chapter_title, chapter_content)
+    therapeutic_concepts: list[str] | None = None
+    anonymized_content: str | None = None
 
 class BasePublisher(abc.ABC):
     """Abstract base class for academic publisher integrations"""
@@ -100,7 +100,7 @@ class BasePublisher(abc.ABC):
 
         return session
 
-    def _get_headers(self) -> Dict[str, str]:
+    def _get_headers(self) -> dict[str, str]:
         """Get default headers for API requests"""
         headers = {
             "User-Agent": f"PixelatedEmpathyAcademicSourcing/1.0 ({self.name} Integration)",
@@ -113,7 +113,7 @@ class BasePublisher(abc.ABC):
 
         return headers
 
-    def authenticate(self, api_key: Optional[str] = None, **kwargs) -> bool:
+    def authenticate(self, api_key: str | None = None, **kwargs) -> bool:
         """
         Authenticate with the publisher's API
 
@@ -140,19 +140,18 @@ class BasePublisher(abc.ABC):
             return False
 
     @abc.abstractmethod
-    def _authenticate(self, api_key: Optional[str] = None, **kwargs) -> bool:
+    def _authenticate(self, api_key: str | None = None, **kwargs) -> bool:
         """Publisher-specific authentication implementation"""
-        pass
 
     @abc.abstractmethod
     def search_books(
         self,
         query: str,
-        year_range: Optional[Tuple[int, int]] = None,
-        therapeutic_topics: Optional[List[str]] = None,
+        year_range: tuple[int, int] | None = None,
+        therapeutic_topics: list[str] | None = None,
         limit: int = 20,
         offset: int = 0
-    ) -> List[BookMetadata]:
+    ) -> list[BookMetadata]:
         """
         Search for books in the publisher's catalog
 
@@ -166,10 +165,9 @@ class BasePublisher(abc.ABC):
         Returns:
             List of BookMetadata objects matching the search criteria
         """
-        pass
 
     @abc.abstractmethod
-    def get_book_metadata(self, identifier: str) -> Optional[BookMetadata]:
+    def get_book_metadata(self, identifier: str) -> BookMetadata | None:
         """
         Get metadata for a specific book
 
@@ -179,10 +177,9 @@ class BasePublisher(abc.ABC):
         Returns:
             BookMetadata object if found, None otherwise
         """
-        pass
 
     @abc.abstractmethod
-    def get_book_content(self, identifier: str, format: BookFormat = BookFormat.PLAIN_TEXT) -> Optional[BookContent]:
+    def get_book_content(self, identifier: str, format: BookFormat = BookFormat.PLAIN_TEXT) -> BookContent | None:
         """
         Get content for a specific book
 
@@ -193,10 +190,9 @@ class BasePublisher(abc.ABC):
         Returns:
             BookContent object if found and accessible, None otherwise
         """
-        pass
 
     @abc.abstractmethod
-    def get_chapter_content(self, identifier: str, chapter_id: str) -> Optional[str]:
+    def get_chapter_content(self, identifier: str, chapter_id: str) -> str | None:
         """
         Get content for a specific chapter of a book
 
@@ -207,7 +203,6 @@ class BasePublisher(abc.ABC):
         Returns:
             Chapter content as string if found, None otherwise
         """
-        pass
 
     def assess_therapeutic_relevance(self, metadata: BookMetadata) -> float:
         """
@@ -271,11 +266,11 @@ class BasePublisher(abc.ABC):
         self,
         method: str,
         endpoint: str,
-        params: Optional[Dict[str, Any]] = None,
-        data: Optional[Dict[str, Any]] = None,
-        json: Optional[Dict[str, Any]] = None,
+        params: dict[str, Any] | None = None,
+        data: dict[str, Any] | None = None,
+        json: dict[str, Any] | None = None,
         timeout: int = 30
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """
         Make an API request to the publisher's API
 
@@ -312,7 +307,7 @@ class BasePublisher(abc.ABC):
 
         except requests.exceptions.RequestException as e:
             logger.error(f"Request to {self.name} API failed: {e}")
-            if hasattr(e, 'response') and e.response is not None:
+            if hasattr(e, "response") and e.response is not None:
                 logger.error(f"Response status: {e.response.status_code}")
                 logger.error(f"Response content: {e.response.text}")
             return None

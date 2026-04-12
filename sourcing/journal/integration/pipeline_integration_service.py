@@ -12,7 +12,6 @@ into the training pipeline.
 """
 
 import logging
-from typing import Optional
 
 from ai.sourcing.journal.integration.integration_planning_engine import (
     IntegrationPlanningEngine,
@@ -37,7 +36,7 @@ class PipelineIntegrationService:
     def __init__(
         self,
         similarity_threshold: float = 0.85,
-        pipeline_schema: Optional[dict] = None,
+        pipeline_schema: dict | None = None,
     ):
         """Initialize the pipeline integration service."""
         self.format_converter = PipelineFormatConverter(pipeline_schema=pipeline_schema)
@@ -51,7 +50,7 @@ class PipelineIntegrationService:
         self,
         dataset: AcquiredDataset,
         integration_plan: IntegrationPlan,
-        existing_dataset_path: Optional[str] = None,
+        existing_dataset_path: str | None = None,
         output_path: str = "integrated_dataset.jsonl",
         target_format: str = "chatml",
         validate: bool = True,

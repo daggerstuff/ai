@@ -7,7 +7,6 @@ with sensible defaults.
 
 import os
 from functools import lru_cache
-from typing import List
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -23,7 +22,7 @@ class Settings(BaseSettings):
     debug: bool = False
 
     # CORS configuration
-    cors_origins: List[str] = [
+    cors_origins: list[str] = [
         "http://localhost:4321",  # Astro dev server
         "http://localhost:3000",  # Alternative dev port
         "http://localhost:5173",  # Vite dev server
@@ -56,7 +55,7 @@ class Settings(BaseSettings):
     )
 
 
-@lru_cache()
+@lru_cache
 def get_settings() -> Settings:
     """Get cached settings instance."""
     return Settings()

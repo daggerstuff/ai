@@ -7,16 +7,19 @@ management, progress tracking, reporting, and robust error recovery with retry
 logic.
 """
 
+from datetime import datetime, timedelta, timezone
+
+
 from __future__ import annotations
 
 import json
 import logging
 import threading
 import time
+from collections.abc import Callable, Sequence
 from dataclasses import asdict
-from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
+from typing import Any
 from uuid import uuid4
 
 from ai.sourcing.journal.models.dataset_models import (
@@ -53,11 +56,11 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
 
     def __init__(
         self,
-        discovery_service: Optional[DiscoveryServiceProtocol] = None,
-        evaluation_engine: Optional[EvaluationServiceProtocol] = None,
-        acquisition_manager: Optional[AcquisitionServiceProtocol] = None,
-        integration_engine: Optional[IntegrationServiceProtocol] = None,
-        config: Optional[OrchestratorConfig] = None,
+        discovery_service: DiscoveryServiceProtocol | None = None,
+        evaluation_engine: EvaluationServiceProtocol | None = None,
+        acquisition_manager: AcquisitionServiceProtocol | None = None,
+        integration_engine: IntegrationServiceProtocol | None = None,
+        config: OrchestratorConfig | None = None,
     ) -> None:
         self.discovery_service = discovery_service
         self.evaluation_engine = evaluation_engine
@@ -65,12 +68,12 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         self.integration_engine = integration_engine
         self.config = config or OrchestratorConfig()
 
-        self.sessions: Dict[str, ResearchSession] = {}
-        self.session_states: Dict[str, SessionState] = {}
-        self.progress_states: Dict[str, ResearchProgress] = {}
-        self.progress_history: Dict[str, List[ProgressSnapshot]] = {}
-        self.activity_logs: Dict[str, List[ResearchLog]] = {}
-        self.error_log: Dict[str, List[Dict[str, Any]]] = {}
+        self.sessions: dict[str, ResearchSession] = {}
+        self.session_states: dict[str, SessionState] = {}
+        self.progress_states: dict[str, ResearchProgress] = {}
+        self.progress_history: dict[str, list[ProgressSnapshot]] = {}
+        self.activity_logs: dict[str, list[ResearchLog]] = {}
+        self.error_log: dict[str, list[dict[str, Any]]] = {}
 
         self._session_storage_path = self._resolve_session_storage_path(
             self.config.session_storage_path
@@ -79,10 +82,10 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
 
     def start_research_session(
         self,
-        target_sources: List[str],
-        search_keywords: Dict[str, List[str]],
-        weekly_targets: Optional[Dict[str, int]] = None,
-        session_id: Optional[str] = None,
+        target_sources: list[str],
+        search_keywords: dict[str, list[str]],
+        weekly_targets: dict[str, int] | None = None,
+        session_id: str | None = None,
     ) -> ResearchSession:
         """
         Initialize a new research session with provided targets and keywords.
@@ -91,7 +94,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         """
         session_identifier = session_id or f"session_{uuid4().hex[:8]}"
         session = ResearchSession(session_id=session_identifier)
-        session.start_date = datetime.now()
+        session.start_date = datetime.now(timezone.utc)
         session.target_sources = target_sources
         session.search_keywords = search_keywords
         session.weekly_targets = weekly_targets or {}
@@ -139,7 +142,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
             )
         return session.current_phase
 
-    def update_progress(self, session_id: str, metrics: Dict[str, int]) -> None:
+    def update_progress(self, session_id: str, metrics: dict[str, int]) -> None:
         """Update progress metrics for a session and record a snapshot."""
         if not metrics:
             return
@@ -147,7 +150,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         self._ensure_session_tracking(session_id)
         session = self._get_session(session_id)
         progress = self.progress_states[session_id]
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
 
         with self._lock:
             for key, value in metrics.items():
@@ -214,7 +217,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
                     session_id,
                     "search",
                     "Source discovery failed, using fallback (empty sources)",
-                    outcome=f"Fallback: {str(exc)}",
+                    outcome=f"Fallback: {exc!s}",
                 )
                 sources = []
             else:
@@ -340,17 +343,17 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         self._ensure_session_tracking(session_id)
         return self.progress_states[session_id]
 
-    def get_progress_history(self, session_id: str) -> List[ProgressSnapshot]:
+    def get_progress_history(self, session_id: str) -> list[ProgressSnapshot]:
         """Return recorded progress history for the session."""
         self._ensure_session_tracking(session_id)
         return list(self.progress_history.get(session_id, []))
 
-    def get_activity_log(self, session_id: str) -> List[ResearchLog]:
+    def get_activity_log(self, session_id: str) -> list[ResearchLog]:
         """Retrieve recorded activity log entries for a session."""
         self._ensure_session_tracking(session_id)
         return list(self.activity_logs.get(session_id, []))
 
-    def get_error_log(self, session_id: str) -> List[Dict[str, str]]:
+    def get_error_log(self, session_id: str) -> list[dict[str, str]]:
         """Retrieve error log entries for a session."""
         self._ensure_session_tracking(session_id)
         return list(self.error_log.get(session_id, []))
@@ -358,7 +361,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
     def save_session_state(
         self,
         session_id: str,
-        directory: Optional[Union[str, Path]] = None,
+        directory: str | Path | None = None,
     ) -> Path:
         """
         Persist the current session, workflow state, progress metrics, and logs to disk.
@@ -378,7 +381,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
     def load_session_state(
         self,
         session_id: str,
-        directory: Optional[Union[str, Path]] = None,
+        directory: str | Path | None = None,
     ) -> ResearchSession:
         """
         Load a previously persisted session bundle and restore orchestrator state.
@@ -419,8 +422,8 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
     def generate_progress_visualization_data(
         self,
         session_id: str,
-        limit: Optional[int] = None,
-    ) -> Dict[str, Any]:
+        limit: int | None = None,
+    ) -> dict[str, Any]:
         """
         Produce chart-ready progress data with weekly target coverage.
 
@@ -453,12 +456,12 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         activity_type: str,
         description: str,
         outcome: str,
-        source_id: Optional[str] = None,
+        source_id: str | None = None,
         duration_minutes: int = 0,
     ) -> None:
         """Record a research activity entry for the session."""
         log_entry = ResearchLog(
-            timestamp=datetime.now(),
+            timestamp=datetime.now(timezone.utc),
             activity_type=activity_type,
             source_id=source_id,
             description=description,
@@ -478,7 +481,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         session_id: str,
         description: str,
         outcome: str,
-        source_id: Optional[str] = None,
+        source_id: str | None = None,
     ) -> None:
         """Record a manual intervention action for auditability."""
         self.log_activity(
@@ -490,8 +493,8 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         )
 
     def _evaluate_sources(
-        self, session_id: str, sources: List[DatasetSource], evaluator: str
-    ) -> List[DatasetEvaluation]:
+        self, session_id: str, sources: list[DatasetSource], evaluator: str
+    ) -> list[DatasetEvaluation]:
         """Evaluate dataset sources, optionally using parallel execution."""
         if not self.evaluation_engine or not sources:
             return []
@@ -499,7 +502,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         if self.config.parallel_evaluation and len(sources) > 1:
             return self._evaluate_sources_parallel(session_id, sources, evaluator)
 
-        evaluations: List[DatasetEvaluation] = []
+        evaluations: list[DatasetEvaluation] = []
         for source in sources:
             evaluation = self._evaluate_single_source(session_id, source, evaluator)
             if evaluation:
@@ -507,11 +510,11 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         return evaluations
 
     def _evaluate_sources_parallel(
-        self, session_id: str, sources: List[DatasetSource], evaluator: str
-    ) -> List[DatasetEvaluation]:
+        self, session_id: str, sources: list[DatasetSource], evaluator: str
+    ) -> list[DatasetEvaluation]:
         from concurrent.futures import ThreadPoolExecutor, as_completed
 
-        evaluations: List[DatasetEvaluation] = []
+        evaluations: list[DatasetEvaluation] = []
         with ThreadPoolExecutor(max_workers=self.config.max_workers) as executor:
             futures = {
                 executor.submit(
@@ -527,7 +530,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
 
     def _evaluate_single_source(
         self, session_id: str, source: DatasetSource, evaluator: str
-    ) -> Optional[DatasetEvaluation]:
+    ) -> DatasetEvaluation | None:
         engine = self.evaluation_engine
         if engine is None:
             return None
@@ -584,7 +587,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
 
     def _create_integration_plans(
         self, session_id: str, state: SessionState, target_format: str
-    ) -> List[IntegrationPlan]:
+    ) -> list[IntegrationPlan]:
         """Create integration plans for acquired datasets."""
         if not self.integration_engine or not state.acquired_datasets:
             return []
@@ -593,7 +596,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         if self.config.parallel_integration_planning and len(datasets) > 1:
             return self._create_plans_parallel(session_id, state, datasets, target_format)
 
-        plans: List[IntegrationPlan] = []
+        plans: list[IntegrationPlan] = []
         for dataset in datasets:
             plan = self._create_single_integration_plan(
                 session_id, state, dataset, target_format
@@ -606,12 +609,12 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         self,
         session_id: str,
         state: SessionState,
-        datasets: List[AcquiredDataset],
+        datasets: list[AcquiredDataset],
         target_format: str,
-    ) -> List[IntegrationPlan]:
+    ) -> list[IntegrationPlan]:
         from concurrent.futures import ThreadPoolExecutor, as_completed
 
-        plans: List[IntegrationPlan] = []
+        plans: list[IntegrationPlan] = []
         with ThreadPoolExecutor(max_workers=self.config.max_workers) as executor:
             futures = {
                 executor.submit(
@@ -635,7 +638,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         state: SessionState,
         dataset: AcquiredDataset,
         target_format: str,
-    ) -> Optional[IntegrationPlan]:
+    ) -> IntegrationPlan | None:
         engine = self.integration_engine
         if engine is None:
             return None
@@ -681,7 +684,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
     ):
         """Execute an operation with retry logic, exponential backoff, and error logging."""
         attempts = 0
-        last_exception: Optional[Exception] = None
+        last_exception: Exception | None = None
 
         while attempts < self.config.max_retries:
             try:
@@ -713,7 +716,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
     ) -> None:
         """Record an error entry for diagnostics and retry tracking."""
         entry = {
-            "timestamp": datetime.now(),
+            "timestamp": datetime.now(timezone.utc),
             "operation": operation,
             "attempt": str(attempt),
             "message": str(error),
@@ -730,7 +733,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         session_id: str,
         session: ResearchSession,
         max_points: int,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         history = self.progress_history.get(session_id, [])
         if max_points <= 0:
             max_points = len(history) or 1
@@ -746,7 +749,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         if not series:
             series.append(
                 {
-                    "timestamp": datetime.now().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                     "metrics": dict(session.progress_metrics),
                 }
             )
@@ -755,8 +758,8 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
 
     def _calculate_target_progress(
         self, session: ResearchSession
-    ) -> Dict[str, Dict[str, Any]]:
-        targets: Dict[str, Dict[str, Any]] = {}
+    ) -> dict[str, dict[str, Any]]:
+        targets: dict[str, dict[str, Any]] = {}
         for key, target in session.weekly_targets.items():
             achieved = session.progress_metrics.get(key, 0)
             percent_complete = (achieved / target * 100.0) if target else 0.0
@@ -768,7 +771,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
             }
         return targets
 
-    def _build_session_bundle(self, session_id: str) -> Dict[str, Any]:
+    def _build_session_bundle(self, session_id: str) -> dict[str, Any]:
         session = self.sessions[session_id]
         state = self.session_states[session_id]
         progress = self.progress_states[session_id]
@@ -791,14 +794,14 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         return bundle
 
     def _restore_session_components(
-        self, bundle: Dict[str, Any]
-    ) -> Tuple[
+        self, bundle: dict[str, Any]
+    ) -> tuple[
         ResearchSession,
         SessionState,
         ResearchProgress,
-        List[ProgressSnapshot],
-        List[ResearchLog],
-        List[Dict[str, Any]],
+        list[ProgressSnapshot],
+        list[ResearchLog],
+        list[dict[str, Any]],
     ]:
         session_data = dict(bundle.get("session", {}))
         session = ResearchSession(**session_data)
@@ -830,7 +833,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
 
         progress = ResearchProgress(**bundle.get("progress", {}))
 
-        history: List[ProgressSnapshot] = []
+        history: list[ProgressSnapshot] = []
         for entry in bundle.get("progress_history", []):
             history.append(
                 ProgressSnapshot(
@@ -844,7 +847,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
             ResearchLog(**log_entry) for log_entry in bundle.get("activity_logs", [])
         ]
 
-        error_entries: List[Dict[str, Any]] = []
+        error_entries: list[dict[str, Any]] = []
         for error_entry in bundle.get("error_log", []):
             error_entries.append(
                 {
@@ -859,7 +862,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
 
     @staticmethod
     def _resolve_session_storage_path(
-        path: Optional[Union[str, Path]]
+        path: str | Path | None
     ) -> Path:
         if path is None:
             return Path.cwd() / "ai" / "journal_dataset_research" / "sessions"
@@ -896,11 +899,11 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
 
     def _normalize_report_window(
         self,
-        start_date: Optional[datetime],
-        end_date: Optional[datetime],
-    ) -> Tuple[datetime, datetime]:
+        start_date: datetime | None,
+        end_date: datetime | None,
+    ) -> tuple[datetime, datetime]:
         if start_date is None or end_date is None:
-            resolved_end = datetime.now()
+            resolved_end = datetime.now(timezone.utc)
             resolved_start = resolved_end - timedelta(days=7)
         else:
             resolved_start, resolved_end = start_date, end_date
@@ -908,7 +911,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
 
     def _collect_progress_history(
         self, session_id: str, start_date: datetime, end_date: datetime
-    ) -> List[ProgressSnapshot]:
+    ) -> list[ProgressSnapshot]:
         history = self.progress_history.get(session_id, [])
         return [
             snapshot
@@ -919,9 +922,9 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
     def _resolve_progress_bounds(
         self,
         session_id: str,
-        history: List[ProgressSnapshot],
+        history: list[ProgressSnapshot],
         end_date: datetime,
-    ) -> Tuple[ResearchProgress, ResearchProgress]:
+    ) -> tuple[ResearchProgress, ResearchProgress]:
         if history:
             return history[0].progress, history[-1].progress
 
@@ -931,7 +934,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
     @staticmethod
     def _compute_progress_deltas(
         start_progress: ResearchProgress, end_progress: ResearchProgress
-    ) -> Dict[str, int]:
+    ) -> dict[str, int]:
         deltas = {
             "sources_identified": end_progress.sources_identified - start_progress.sources_identified,
             "datasets_evaluated": end_progress.datasets_evaluated - start_progress.datasets_evaluated,
@@ -943,8 +946,8 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         return {key: max(0, value) for key, value in deltas.items()}
 
     @staticmethod
-    def _build_key_findings(deltas: Dict[str, int]) -> List[str]:
-        findings: List[str] = []
+    def _build_key_findings(deltas: dict[str, int]) -> list[str]:
+        findings: list[str] = []
         if deltas["sources_identified"]:
             findings.append(f"Identified {deltas['sources_identified']} new dataset sources")
         if deltas["datasets_evaluated"]:
@@ -958,7 +961,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
 
     def _build_challenges(
         self, session_id: str, start_date: datetime, end_date: datetime
-    ) -> List[str]:
+    ) -> list[str]:
         errors = [
             entry
             for entry in self.error_log.get(session_id, [])
@@ -969,9 +972,9 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         return [f"Encountered {len(errors)} errors requiring manual review"]
 
     def _build_next_week_priorities(
-        self, session: ResearchSession, deltas: Dict[str, int]
-    ) -> List[str]:
-        priorities: List[str] = []
+        self, session: ResearchSession, deltas: dict[str, int]
+    ) -> list[str]:
+        priorities: list[str] = []
         if session.weekly_targets:
             for key, target in session.weekly_targets.items():
                 achieved = session.progress_metrics.get(key, 0)
@@ -1016,7 +1019,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         return self.sessions[session_id]
 
     @staticmethod
-    def _initial_progress_metrics() -> Dict[str, int]:
+    def _initial_progress_metrics() -> dict[str, int]:
         """Create initial progress metrics dictionary."""
         return {
             "sources_identified": 0,

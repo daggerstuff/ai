@@ -7,7 +7,7 @@ and other DOI registration agencies.
 
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import requests
 
@@ -20,21 +20,21 @@ class DOIMetadata:
 
     doi: str
     title: str
-    authors: List[str]
+    authors: list[str]
     publisher: str
     publication_year: int
     publication_type: str  # journal-article, book, book-chapter, etc.
-    journal: Optional[str] = None
-    volume: Optional[str] = None
-    issue: Optional[str] = None
-    pages: Optional[str] = None
-    abstract: Optional[str] = None
-    url: Optional[str] = None
-    pdf_url: Optional[str] = None
-    license: Optional[str] = None
+    journal: str | None = None
+    volume: str | None = None
+    issue: str | None = None
+    pages: str | None = None
+    abstract: str | None = None
+    url: str | None = None
+    pdf_url: str | None = None
+    license: str | None = None
     references_count: int = 0
     citations_count: int = 0
-    raw_metadata: Optional[Dict[str, Any]] = None
+    raw_metadata: dict[str, Any] | None = None
 
 
 class DOIResolver:
@@ -54,7 +54,7 @@ class DOIResolver:
 
         logger.info("Initialized DOI Resolver")
 
-    def resolve(self, doi: str) -> Optional[DOIMetadata]:
+    def resolve(self, doi: str) -> DOIMetadata | None:
         """
         Resolve a DOI to its metadata
 
@@ -82,7 +82,7 @@ class DOIResolver:
         logger.warning(f"Could not resolve DOI: {doi}")
         return None
 
-    def _resolve_crossref(self, doi: str) -> Optional[DOIMetadata]:
+    def _resolve_crossref(self, doi: str) -> DOIMetadata | None:
         """Resolve DOI using CrossRef API"""
         try:
             url = f"{self.crossref_api}/{doi}"
@@ -150,7 +150,7 @@ class DOIResolver:
             logger.debug(f"CrossRef resolution failed: {e}")
             return None
 
-    def _resolve_datacite(self, doi: str) -> Optional[DOIMetadata]:
+    def _resolve_datacite(self, doi: str) -> DOIMetadata | None:
         """Resolve DOI using DataCite API"""
         try:
             url = f"{self.datacite_api}/{doi}"
@@ -197,7 +197,7 @@ class DOIResolver:
             logger.debug(f"DataCite resolution failed: {e}")
             return None
 
-    def batch_resolve(self, dois: List[str]) -> List[DOIMetadata]:
+    def batch_resolve(self, dois: list[str]) -> list[DOIMetadata]:
         """
         Resolve multiple DOIs
 
@@ -235,8 +235,8 @@ class DOISearcher:
         logger.info("Initialized DOI Searcher")
 
     def search(
-        self, query: str, filters: Optional[Dict[str, Any]] = None, limit: int = 20
-    ) -> List[DOIMetadata]:
+        self, query: str, filters: dict[str, Any] | None = None, limit: int = 20
+    ) -> list[DOIMetadata]:
         """
         Search for DOIs by query
 
@@ -292,7 +292,7 @@ class DOISearcher:
             logger.error(f"DOI search error: {e}")
             return []
 
-    def search_by_title(self, title: str, limit: int = 10) -> List[DOIMetadata]:
+    def search_by_title(self, title: str, limit: int = 10) -> list[DOIMetadata]:
         """Search for DOIs by title"""
         return self.search(
             query=title,
@@ -300,13 +300,13 @@ class DOISearcher:
             limit=limit,
         )
 
-    def search_by_author(self, author: str, limit: int = 20) -> List[DOIMetadata]:
+    def search_by_author(self, author: str, limit: int = 20) -> list[DOIMetadata]:
         """Search for DOIs by author name"""
         return self.search(query=f"author:{author}", limit=limit)
 
     def search_psychology_books(
-        self, query: str, year_from: Optional[int] = None, limit: int = 20
-    ) -> List[DOIMetadata]:
+        self, query: str, year_from: int | None = None, limit: int = 20
+    ) -> list[DOIMetadata]:
         """
         Search for psychology books
 
@@ -331,7 +331,7 @@ class DOISearcher:
 
 
 # Helper method for DOIResolver
-def _parse_crossref_item(self, item: Dict[str, Any]) -> Optional[DOIMetadata]:
+def _parse_crossref_item(self, item: dict[str, Any]) -> DOIMetadata | None:
     """Parse a CrossRef search result item"""
     try:
         # Extract authors

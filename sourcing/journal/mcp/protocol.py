@@ -6,7 +6,7 @@ This module implements the Model Context Protocol (MCP) over JSON-RPC 2.0.
 
 import json
 import logging
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ class MCPError(Exception):
         self,
         code: int,
         message: str,
-        data: Optional[Any] = None,
+        data: Any | None = None,
     ) -> None:
         """
         Initialize MCP error.
@@ -72,8 +72,8 @@ class MCPRequest:
     def __init__(
         self,
         method: str,
-        params: Optional[Dict[str, Any]] = None,
-        id: Optional[Union[str, int]] = None,
+        params: dict[str, Any] | None = None,
+        id: str | int | None = None,
         jsonrpc: str = "2.0",
     ) -> None:
         """
@@ -91,7 +91,7 @@ class MCPRequest:
         self.jsonrpc = jsonrpc
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "MCPRequest":
+    def from_dict(cls, data: dict[str, Any]) -> "MCPRequest":
         """
         Create MCPRequest from dictionary.
 
@@ -132,9 +132,9 @@ class MCPRequest:
             jsonrpc=data.get("jsonrpc", "2.0"),
         )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert request to dictionary."""
-        result: Dict[str, Any] = {
+        result: dict[str, Any] = {
             "jsonrpc": self.jsonrpc,
             "method": self.method,
         }
@@ -150,9 +150,9 @@ class MCPResponse:
 
     def __init__(
         self,
-        result: Optional[Any] = None,
-        error: Optional[Dict[str, Any]] = None,
-        id: Optional[Union[str, int]] = None,
+        result: Any | None = None,
+        error: dict[str, Any] | None = None,
+        id: str | int | None = None,
         jsonrpc: str = "2.0",
     ) -> None:
         """
@@ -177,7 +177,7 @@ class MCPResponse:
     def success(
         cls,
         result: Any,
-        id: Optional[Union[str, int]] = None,
+        id: str | int | None = None,
     ) -> "MCPResponse":
         """
         Create success response.
@@ -196,8 +196,8 @@ class MCPResponse:
         cls,
         code: int,
         message: str,
-        data: Optional[Any] = None,
-        id: Optional[Union[str, int]] = None,
+        data: Any | None = None,
+        id: str | int | None = None,
     ) -> "MCPResponse":
         """
         Create error response.
@@ -211,7 +211,7 @@ class MCPResponse:
         Returns:
             MCPResponse instance
         """
-        error_dict: Dict[str, Any] = {
+        error_dict: dict[str, Any] = {
             "code": code,
             "message": message,
         }
@@ -220,9 +220,9 @@ class MCPResponse:
 
         return cls(error=error_dict, id=id)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert response to dictionary."""
-        result: Dict[str, Any] = {
+        result: dict[str, Any] = {
             "jsonrpc": self.jsonrpc,
         }
         if self.error is not None:
@@ -238,7 +238,7 @@ class MCPProtocolHandler:
     """Handles MCP protocol parsing and formatting."""
 
     @staticmethod
-    def parse_request(data: Union[str, bytes, Dict[str, Any]]) -> MCPRequest:
+    def parse_request(data: str | bytes | dict[str, Any]) -> MCPRequest:
         """
         Parse MCP request from JSON string, bytes, or dictionary.
 
@@ -261,7 +261,7 @@ class MCPProtocolHandler:
                 except json.JSONDecodeError as e:
                     raise MCPError(
                         JSONRPCErrorCode.PARSE_ERROR,
-                        f"Invalid JSON: {str(e)}",
+                        f"Invalid JSON: {e!s}",
                     ) from e
 
             if not isinstance(data, dict):
@@ -278,7 +278,7 @@ class MCPProtocolHandler:
             logger.exception("Unexpected error parsing request")
             raise MCPError(
                 JSONRPCErrorCode.INTERNAL_ERROR,
-                f"Internal error: {str(e)}",
+                f"Internal error: {e!s}",
             ) from e
 
     @staticmethod
@@ -299,7 +299,7 @@ class MCPProtocolHandler:
             # Return error response
             error_response = MCPResponse.error(
                 JSONRPCErrorCode.INTERNAL_ERROR,
-                f"Error formatting response: {str(e)}",
+                f"Error formatting response: {e!s}",
             )
             return json.dumps(error_response.to_dict())
 
@@ -307,8 +307,8 @@ class MCPProtocolHandler:
     def format_error(
         code: int,
         message: str,
-        data: Optional[Any] = None,
-        request_id: Optional[Union[str, int]] = None,
+        data: Any | None = None,
+        request_id: str | int | None = None,
     ) -> str:
         """
         Format error response as JSON string.

@@ -4,12 +4,13 @@ Enhanced base client for API interactions with caching and standardized error ha
 Provides common functionality for all repository and journal API clients.
 """
 
+from datetime import datetime, timedelta, timezone
+
+
 import hashlib
 import logging
 import time
-from datetime import datetime, timedelta
-from functools import wraps
-from typing import Any, Optional
+from typing import Any
 
 import requests
 
@@ -30,11 +31,11 @@ class CacheEntry:
             ttl_seconds: Time to live in seconds (default 5 minutes)
         """
         self.value = value
-        self.expires_at = datetime.now() + timedelta(seconds=ttl_seconds)
+        self.expires_at = datetime.now(timezone.utc) + timedelta(seconds=ttl_seconds)
 
     def is_expired(self) -> bool:
         """Check if cache entry has expired."""
-        return datetime.now() > self.expires_at
+        return datetime.now(timezone.utc) > self.expires_at
 
 
 class RequestCache:
@@ -53,7 +54,7 @@ class RequestCache:
         self._cache: dict[str, CacheEntry] = {}
         self._access_order: list[str] = []
 
-    def get(self, key: str) -> Optional[Any]:
+    def get(self, key: str) -> Any | None:
         """
         Get value from cache.
 
@@ -81,7 +82,7 @@ class RequestCache:
 
         return entry.value
 
-    def set(self, key: str, value: Any, ttl: Optional[int] = None) -> None:
+    def set(self, key: str, value: Any, ttl: int | None = None) -> None:
         """
         Set value in cache.
 
@@ -119,7 +120,7 @@ class RequestCache:
 class APIError(Exception):
     """Base exception for API errors."""
 
-    def __init__(self, message: str, status_code: Optional[int] = None, response: Optional[requests.Response] = None):
+    def __init__(self, message: str, status_code: int | None = None, response: requests.Response | None = None):
         """
         Initialize API error.
 
@@ -135,7 +136,6 @@ class APIError(Exception):
 
 class RateLimitError(APIError):
     """Exception for rate limit errors."""
-    pass
 
 
 class BaseAPIClient:
@@ -183,7 +183,7 @@ class BaseAPIClient:
 
         self._last_request_time = time.time()
 
-    def _generate_cache_key(self, endpoint: str, params: Optional[dict[str, str]] = None) -> str:
+    def _generate_cache_key(self, endpoint: str, params: dict[str, str] | None = None) -> str:
         """
         Generate cache key for request.
 
@@ -208,10 +208,10 @@ class BaseAPIClient:
     def _make_request(
         self,
         endpoint: str,
-        params: Optional[dict[str, str]] = None,
+        params: dict[str, str] | None = None,
         method: str = "GET",
         use_cache: bool = True,
-        cache_ttl: Optional[int] = None,
+        cache_ttl: int | None = None,
         attempt: int = 1
     ) -> requests.Response:
         """
@@ -294,10 +294,10 @@ class BaseAPIClient:
     def _retry_request(
         self,
         endpoint: str,
-        params: Optional[dict[str, str]],
+        params: dict[str, str] | None,
         method: str,
         use_cache: bool,
-        cache_ttl: Optional[int],
+        cache_ttl: int | None,
         attempt: int,
         error: Exception
     ) -> requests.Response:

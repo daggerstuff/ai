@@ -6,13 +6,12 @@ This module provides enhanced error handling for API endpoints.
 
 import logging
 import traceback
-from typing import Callable
+from collections.abc import Callable
 
 from fastapi import Request, Response, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import Response as StarletteResponse
 
 from ai.sourcing.journal.api.config import get_settings
 
@@ -42,7 +41,7 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
         except Exception as e:
             # Handle unexpected errors
             logger.error(
-                f"Unhandled exception: {str(e)}\n{traceback.format_exc()}",
+                f"Unhandled exception: {e!s}\n{traceback.format_exc()}",
                 exc_info=True,
             )
 

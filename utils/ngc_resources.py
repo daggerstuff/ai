@@ -155,7 +155,7 @@ class NGCResourceDownloader:
 
         if output_dir is None:
             # Create directory from resource name
-            resource_name = resource_path.split("/")[-1]
+            resource_name = resource_path.rsplit("/", maxsplit=1)[-1]
             output_dir = self.output_base / resource_name
 
         logger.info(f"Downloading {resource_path}...")

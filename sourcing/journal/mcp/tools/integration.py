@@ -5,7 +5,7 @@ This module provides tools for creating and managing integration plans through t
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ai.sourcing.journal.api.services.command_handler_service import (
     CommandHandlerService,
@@ -54,7 +54,7 @@ class CreateIntegrationPlansTool(MCPTool):
             },
         )
 
-    async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute(self, params: dict[str, Any]) -> dict[str, Any]:
         """
         Execute create_integration_plans tool.
 
@@ -100,18 +100,18 @@ class CreateIntegrationPlansTool(MCPTool):
         except ValueError as e:
             raise MCPError(
                 MCPErrorCode.TOOL_VALIDATION_ERROR,
-                f"Invalid parameters: {str(e)}",
+                f"Invalid parameters: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
         except Exception as e:
             logger.exception(f"Error creating integration plans: {e}")
             raise MCPError(
                 MCPErrorCode.TOOL_EXECUTION_ERROR,
-                f"Failed to create integration plans: {str(e)}",
+                f"Failed to create integration plans: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
 
-    def _plan_to_dict(self, plan: IntegrationPlan) -> Dict[str, Any]:
+    def _plan_to_dict(self, plan: IntegrationPlan) -> dict[str, Any]:
         """Convert IntegrationPlan to dictionary."""
         return {
             "plan_id": f"plan_{plan.source_id}",
@@ -187,7 +187,7 @@ class GetIntegrationPlansTool(MCPTool):
             },
         )
 
-    async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute(self, params: dict[str, Any]) -> dict[str, Any]:
         """
         Execute get_integration_plans tool.
 
@@ -229,20 +229,20 @@ class GetIntegrationPlansTool(MCPTool):
         except ValueError as e:
             raise MCPError(
                 MCPErrorCode.TOOL_VALIDATION_ERROR,
-                f"Invalid parameters: {str(e)}",
+                f"Invalid parameters: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
         except Exception as e:
             logger.exception(f"Error getting integration plans: {e}")
             raise MCPError(
                 MCPErrorCode.TOOL_EXECUTION_ERROR,
-                f"Failed to get integration plans: {str(e)}",
+                f"Failed to get integration plans: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
 
     def _apply_filters(
-        self, plans: List[IntegrationPlan], filters: Dict[str, Any]
-    ) -> List[IntegrationPlan]:
+        self, plans: list[IntegrationPlan], filters: dict[str, Any]
+    ) -> list[IntegrationPlan]:
         """Apply filters to integration plans list."""
         filtered = plans
 
@@ -265,28 +265,27 @@ class GetIntegrationPlansTool(MCPTool):
         return filtered
 
     def _apply_sorting(
-        self, plans: List[IntegrationPlan], sort_by: str, sort_order: str
-    ) -> List[IntegrationPlan]:
+        self, plans: list[IntegrationPlan], sort_by: str, sort_order: str
+    ) -> list[IntegrationPlan]:
         """Apply sorting to integration plans list."""
         reverse = sort_order == "desc"
 
         if sort_by == "created_date":
             return sorted(plans, key=lambda p: p.created_date, reverse=reverse)
-        elif sort_by == "estimated_effort_hours":
+        if sort_by == "estimated_effort_hours":
             return sorted(plans, key=lambda p: p.estimated_effort_hours, reverse=reverse)
-        elif sort_by == "complexity":
+        if sort_by == "complexity":
             complexity_order = {"low": 1, "medium": 2, "high": 3}
             return sorted(
                 plans,
                 key=lambda p: complexity_order.get(p.complexity, 0),
                 reverse=reverse,
             )
-        elif sort_by == "integration_priority":
+        if sort_by == "integration_priority":
             return sorted(plans, key=lambda p: p.integration_priority, reverse=reverse)
-        else:
-            return plans
+        return plans
 
-    def _plan_to_dict(self, plan: IntegrationPlan) -> Dict[str, Any]:
+    def _plan_to_dict(self, plan: IntegrationPlan) -> dict[str, Any]:
         """Convert IntegrationPlan to dictionary."""
         return {
             "plan_id": f"plan_{plan.source_id}",
@@ -333,7 +332,7 @@ class GetIntegrationPlanTool(MCPTool):
             },
         )
 
-    async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute(self, params: dict[str, Any]) -> dict[str, Any]:
         """
         Execute get_integration_plan tool.
 
@@ -361,18 +360,18 @@ class GetIntegrationPlanTool(MCPTool):
         except ValueError as e:
             raise MCPError(
                 MCPErrorCode.TOOL_VALIDATION_ERROR,
-                f"Invalid parameters: {str(e)}",
+                f"Invalid parameters: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
         except Exception as e:
             logger.exception(f"Error getting integration plan: {e}")
             raise MCPError(
                 MCPErrorCode.TOOL_EXECUTION_ERROR,
-                f"Failed to get integration plan: {str(e)}",
+                f"Failed to get integration plan: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
 
-    def _plan_to_dict(self, plan: IntegrationPlan) -> Dict[str, Any]:
+    def _plan_to_dict(self, plan: IntegrationPlan) -> dict[str, Any]:
         """Convert IntegrationPlan to dictionary."""
         return {
             "plan_id": f"plan_{plan.source_id}",
@@ -423,7 +422,7 @@ class GeneratePreprocessingScriptTool(MCPTool):
             },
         )
 
-    async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute(self, params: dict[str, Any]) -> dict[str, Any]:
         """
         Execute generate_preprocessing_script tool.
 
@@ -454,7 +453,6 @@ class GeneratePreprocessingScriptTool(MCPTool):
 
             # Generate default output path if not provided
             if not output_path:
-                import os
                 from pathlib import Path
 
                 scripts_dir = Path("data/integration_scripts")
@@ -482,14 +480,14 @@ class GeneratePreprocessingScriptTool(MCPTool):
         except ValueError as e:
             raise MCPError(
                 MCPErrorCode.TOOL_VALIDATION_ERROR,
-                f"Invalid parameters: {str(e)}",
+                f"Invalid parameters: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
         except Exception as e:
             logger.exception(f"Error generating preprocessing script: {e}")
             raise MCPError(
                 MCPErrorCode.TOOL_EXECUTION_ERROR,
-                f"Failed to generate preprocessing script: {str(e)}",
+                f"Failed to generate preprocessing script: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
 

@@ -7,7 +7,7 @@ This module provides the base MCPResource class that all MCP resources must inhe
 import json
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +37,7 @@ class MCPResource(ABC):
     self.mime_type = mime_type
 
   @property
-  def resource_schema(self) -> Dict[str, Any]:
+  def resource_schema(self) -> dict[str, Any]:
     """
     Get resource schema in MCP format.
 
@@ -52,7 +52,7 @@ class MCPResource(ABC):
     }
 
   @abstractmethod
-  async def read(self, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+  async def read(self, params: dict[str, Any] | None = None) -> dict[str, Any]:
     """
     Read resource content.
 
@@ -76,9 +76,8 @@ class MCPResource(ABC):
       ValueError: If parameters are invalid
       Exception: If resource read fails
     """
-    pass
 
-  async def list(self) -> List[Dict[str, Any]]:
+  async def list(self) -> list[dict[str, Any]]:
     """
     List sub-resources (if applicable).
 
@@ -104,8 +103,8 @@ class MCPResource(ABC):
   def format_content(
     self,
     content: Any,
-    mime_type: Optional[str] = None,
-  ) -> Dict[str, Any]:
+    mime_type: str | None = None,
+  ) -> dict[str, Any]:
     """
     Format content for MCP response.
 

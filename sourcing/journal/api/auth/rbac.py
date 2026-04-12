@@ -5,7 +5,7 @@ This module provides role-based permission checking and access control.
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import HTTPException, status
 
@@ -61,20 +61,20 @@ ROLES = {
 }
 
 
-def get_user_role(user: Optional[Dict[str, Any]]) -> str:
+def get_user_role(user: dict[str, Any] | None) -> str:
     """Get user role from user dictionary."""
     if not user:
         return "viewer"
     return user.get("role", "viewer")
 
 
-def get_role_permissions(role: str) -> List[str]:
+def get_role_permissions(role: str) -> list[str]:
     """Get permissions for a role."""
     role_config = ROLES.get(role, {})
     return role_config.get("permissions", [])
 
 
-def check_permission(user: Optional[Dict[str, Any]], permission: str) -> bool:
+def check_permission(user: dict[str, Any] | None, permission: str) -> bool:
     """Check if user has a specific permission."""
     if not user:
         return False
@@ -101,7 +101,7 @@ def check_permission(user: Optional[Dict[str, Any]], permission: str) -> bool:
     return False
 
 
-def require_role(user: Optional[Dict[str, Any]], required_role: str) -> None:
+def require_role(user: dict[str, Any] | None, required_role: str) -> None:
     """Require a specific role, raise HTTPException if not met."""
     if not user:
         raise HTTPException(
@@ -128,7 +128,7 @@ def require_role(user: Optional[Dict[str, Any]], required_role: str) -> None:
         )
 
 
-def require_permission(user: Optional[Dict[str, Any]], permission: str) -> None:
+def require_permission(user: dict[str, Any] | None, permission: str) -> None:
     """Require a specific permission, raise HTTPException if not met."""
     if not user:
         raise HTTPException(

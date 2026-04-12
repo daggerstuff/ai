@@ -2,12 +2,14 @@
 Shared type definitions for the Research Orchestrator.
 """
 
+from datetime import datetime
+
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, Protocol
+from typing import Protocol
 
 from ai.sourcing.journal.acquisition.acquisition_manager import DownloadProgress
 from ai.sourcing.journal.models.dataset_models import (
@@ -24,7 +26,7 @@ from ai.sourcing.journal.models.dataset_models import (
 class DiscoveryServiceProtocol(Protocol):
     """Protocol for dataset discovery services."""
 
-    def discover_sources(self, session: ResearchSession) -> List[DatasetSource]:
+    def discover_sources(self, session: ResearchSession) -> list[DatasetSource]:
         """Discover dataset sources for the given research session."""
         ...
 
@@ -45,7 +47,7 @@ class AcquisitionServiceProtocol(Protocol):
     def submit_access_request(
         self,
         source: DatasetSource,
-        access_method: Optional[str] = None,
+        access_method: str | None = None,
         notes: str = "",
     ) -> AccessRequest:
         """Submit an access request for a dataset source."""
@@ -54,8 +56,8 @@ class AcquisitionServiceProtocol(Protocol):
     def download_dataset(
         self,
         source: DatasetSource,
-        access_request: Optional[AccessRequest] = None,
-        progress_callback: Optional[Callable[[DownloadProgress], None]] = None,
+        access_request: AccessRequest | None = None,
+        progress_callback: Callable[[DownloadProgress], None] | None = None,
     ) -> AcquiredDataset:
         """Download a dataset using the provided access request."""
         ...
@@ -79,12 +81,12 @@ class IntegrationServiceProtocol(Protocol):
 class SessionState:
     """Maintains state accumulated during the research workflow."""
 
-    sources: List[DatasetSource] = field(default_factory=list)
-    evaluations: List[DatasetEvaluation] = field(default_factory=list)
-    access_requests: List[AccessRequest] = field(default_factory=list)
-    acquired_datasets: List[AcquiredDataset] = field(default_factory=list)
-    integration_plans: List[IntegrationPlan] = field(default_factory=list)
-    integration_feasibility: Dict[str, bool] = field(default_factory=dict)
+    sources: list[DatasetSource] = field(default_factory=list)
+    evaluations: list[DatasetEvaluation] = field(default_factory=list)
+    access_requests: list[AccessRequest] = field(default_factory=list)
+    acquired_datasets: list[AcquiredDataset] = field(default_factory=list)
+    integration_plans: list[IntegrationPlan] = field(default_factory=list)
+    integration_feasibility: dict[str, bool] = field(default_factory=dict)
 
 
 @dataclass
@@ -93,7 +95,7 @@ class ProgressSnapshot:
 
     timestamp: datetime
     progress: ResearchProgress
-    metrics: Dict[str, int]
+    metrics: dict[str, int]
 
 
 @dataclass
@@ -106,7 +108,7 @@ class OrchestratorConfig:
     parallel_evaluation: bool = False
     parallel_integration_planning: bool = False
     max_workers: int = 4
-    session_storage_path: Optional[Path] = None
+    session_storage_path: Path | None = None
     visualization_max_points: int = 100
     fallback_on_failure: bool = True
 

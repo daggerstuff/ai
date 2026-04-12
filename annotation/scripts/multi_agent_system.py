@@ -13,7 +13,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 try:
     from openai import OpenAI
@@ -46,13 +46,13 @@ class AnnotationResult:
     emotion_intensity: int  # 1-10
     valence: float  # -1.0 to 1.0
     arousal: float  # 0.0 to 1.0
-    empathy_score: Optional[int] = None  # 1-5
-    safety_pass: Optional[bool] = None
+    empathy_score: int | None = None  # 1-5
+    safety_pass: bool | None = None
     notes: str = ""
-    reasoning_chain: List[str] = field(default_factory=list)
-    confidence_scores: Dict[str, float] = field(default_factory=dict)
+    reasoning_chain: list[str] = field(default_factory=list)
+    confidence_scores: dict[str, float] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to JSON-serializable dictionary"""
         return {
             "crisis_label": self.crisis_label,
@@ -78,9 +78,9 @@ class AgentMetadata:
     model: str
     timestamp: float
     processing_time: float
-    token_count: Optional[int] = None
+    token_count: int | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to JSON-serializable dictionary"""
         return {
             "agent_id": self.agent_id,
@@ -112,7 +112,7 @@ class BaseAgent(ABC):
         self.client = self._initialize_client()
         self.guidelines = self._load_guidelines()
 
-    def _initialize_client(self) -> Optional[OpenAI]:
+    def _initialize_client(self) -> OpenAI | None:
         """Initialize OpenAI client with optional custom base URL"""
         import os
 
@@ -139,14 +139,12 @@ class BaseAgent(ABC):
     @abstractmethod
     def get_system_prompt(self) -> str:
         """Return agent-specific system prompt"""
-        pass
 
     @abstractmethod
     def get_user_prompt(self, conversation: str) -> str:
         """Generate user prompt for annotation task"""
-        pass
 
-    def annotate(self, task: Dict[str, Any]) -> tuple[AnnotationResult, AgentMetadata]:
+    def annotate(self, task: dict[str, Any]) -> tuple[AnnotationResult, AgentMetadata]:
         """
         Main annotation method
         Returns: (annotation_result, metadata)
@@ -173,7 +171,7 @@ class BaseAgent(ABC):
 
         return result, metadata
 
-    def _extract_conversation(self, task: Dict[str, Any]) -> str:
+    def _extract_conversation(self, task: dict[str, Any]) -> str:
         """Extract conversation text from task data"""
         data = task.get("data", {})
 
@@ -183,7 +181,7 @@ class BaseAgent(ABC):
 
         # Handle standard text/prompt/scenario fields
         for key in ["text", "scenario", "prompt", "input"]:
-            if key in data and data[key]:
+            if data.get(key):
                 return f"{key.upper()}:\n{data[key]}"
 
         # Handle messages format
@@ -277,9 +275,8 @@ class BaseAgent(ABC):
             return self._mock_annotation({})
 
     @abstractmethod
-    def _mock_annotation(self, task: Dict[str, Any]) -> AnnotationResult:
+    def _mock_annotation(self, task: dict[str, Any]) -> AnnotationResult:
         """Generate mock annotation for testing"""
-        pass
 
 
 class CrisisExpertAgent(BaseAgent):
@@ -346,7 +343,7 @@ Focus on:
 4. Substance abuse indicators
 5. Trauma responses"""
 
-    def _mock_annotation(self, task: Dict[str, Any]) -> AnnotationResult:
+    def _mock_annotation(self, task: dict[str, Any]) -> AnnotationResult:
         """Conservative mock with higher crisis sensitivity"""
         import random
 
@@ -439,7 +436,7 @@ Focus on:
 4. Emotional regulation patterns
 5. Therapeutic alliance indicators"""
 
-    def _mock_annotation(self, task: Dict[str, Any]) -> AnnotationResult:
+    def _mock_annotation(self, task: dict[str, Any]) -> AnnotationResult:
         """Balanced mock with focus on emotions"""
         import random
 
@@ -517,7 +514,7 @@ RESPOND WITH VALID JSON ONLY:
   "confidence_scores": {{"crisis": <float>, "emotion": <float>}}
 }}"""
 
-    def _mock_annotation(self, task: Dict[str, Any]) -> AnnotationResult:
+    def _mock_annotation(self, task: dict[str, Any]) -> AnnotationResult:
         import random
 
         seed = len(str(task)) + 2
@@ -543,13 +540,13 @@ class ConsensusOrchestrator:
     """
 
     def __init__(self):
-        self.agents: List[BaseAgent] = []
+        self.agents: list[BaseAgent] = []
 
     def add_agent(self, agent: BaseAgent):
         """Register an agent"""
         self.agents.append(agent)
 
-    def annotate_with_consensus(self, task: Dict[str, Any]) -> Dict[str, Any]:
+    def annotate_with_consensus(self, task: dict[str, Any]) -> dict[str, Any]:
         """
         Run all agents and build consensus
         """
@@ -634,7 +631,7 @@ class ConsensusOrchestrator:
             "failed_agents": failed_agents,
         }
 
-    def _build_consensus(self, results: List[AnnotationResult]) -> AnnotationResult:
+    def _build_consensus(self, results: list[AnnotationResult]) -> AnnotationResult:
         """Build consensus from multiple annotations"""
         if not results:
             raise ValueError("No results to build consensus from")
@@ -673,7 +670,7 @@ class ConsensusOrchestrator:
             reasoning_chain=["Aggregated from all agents"],
         )
 
-    def _calculate_agreement(self, results: List[AnnotationResult]) -> Dict[str, float]:
+    def _calculate_agreement(self, results: list[AnnotationResult]) -> dict[str, float]:
         """Calculate inter-agent agreement metrics"""
         if len(results) < 2:
             return {

@@ -5,10 +5,10 @@ Tests research logger, report generator, dataset catalog, tracking updater,
 and progress visualization components.
 """
 
+from datetime import datetime, timedelta, timezone
+
+
 import json
-import tempfile
-from datetime import datetime, timedelta
-from pathlib import Path
 
 import pytest
 
@@ -22,12 +22,7 @@ from ai.sourcing.journal.documentation.tracking_updater import (
     TrackingDocumentUpdater,
 )
 from ai.sourcing.journal.models.dataset_models import (
-    AcquiredDataset,
-    DatasetEvaluation,
-    DatasetSource,
-    IntegrationPlan,
     ResearchProgress,
-    ResearchSession,
     WeeklyReport,
 )
 
@@ -204,8 +199,8 @@ class TestReportGenerator:
         report_path = generator.generate_research_summary_report(
             sources=multiple_sources,
             evaluations=evaluations,
-            start_date=datetime.now() - timedelta(days=7),
-            end_date=datetime.now(),
+            start_date=datetime.now(timezone.utc) - timedelta(days=7),
+            end_date=datetime.now(timezone.utc),
         )
 
         assert report_path.exists()
@@ -316,9 +311,9 @@ class TestProgressVisualization:
         viz = ProgressVisualization()
 
         progress_history = [
-            ResearchProgress(sources_identified=5, last_updated=datetime.now() - timedelta(days=2)),
-            ResearchProgress(sources_identified=10, last_updated=datetime.now() - timedelta(days=1)),
-            ResearchProgress(sources_identified=15, last_updated=datetime.now()),
+            ResearchProgress(sources_identified=5, last_updated=datetime.now(timezone.utc) - timedelta(days=2)),
+            ResearchProgress(sources_identified=10, last_updated=datetime.now(timezone.utc) - timedelta(days=1)),
+            ResearchProgress(sources_identified=15, last_updated=datetime.now(timezone.utc)),
         ]
 
         chart_data = viz.generate_progress_chart_data(
@@ -335,7 +330,7 @@ class TestProgressVisualization:
         viz = ProgressVisualization()
 
         progress_history = [
-            ResearchProgress(sources_identified=i, last_updated=datetime.now() - timedelta(days=10-i))
+            ResearchProgress(sources_identified=i, last_updated=datetime.now(timezone.utc) - timedelta(days=10-i))
             for i in range(10)
         ]
 
@@ -364,7 +359,7 @@ class TestProgressVisualization:
         viz = ProgressVisualization()
 
         progress_history = [
-            ResearchProgress(sources_identified=10, last_updated=datetime.now()),
+            ResearchProgress(sources_identified=10, last_updated=datetime.now(timezone.utc)),
         ]
 
         output_path = temp_dir / "visualization.html"
@@ -467,8 +462,8 @@ Old status
 
         weekly_report = WeeklyReport(
             week_number=1,
-            start_date=datetime.now(),
-            end_date=datetime.now(),
+            start_date=datetime.now(timezone.utc),
+            end_date=datetime.now(timezone.utc),
             sources_identified=10,
             datasets_evaluated=5,
         )

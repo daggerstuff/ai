@@ -8,7 +8,7 @@ with sensible defaults.
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ai.sourcing.journal.cli.config import load_config
 
@@ -22,7 +22,7 @@ class AuthConfig:
     jwt_secret: str = os.getenv("MCP_JWT_SECRET", "change-me-in-production")
     jwt_algorithm: str = "HS256"
     jwt_expiration_minutes: int = 60 * 24  # 24 hours
-    allowed_api_keys: List[str] = field(default_factory=lambda: [
+    allowed_api_keys: list[str] = field(default_factory=lambda: [
         key for key in os.getenv("MCP_API_KEYS", "").split(",") if key
     ])
 
@@ -43,9 +43,9 @@ class LoggingConfig:
 
     level: str = os.getenv("MCP_LOG_LEVEL", "INFO")
     format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    file: Optional[str] = os.getenv("MCP_LOG_FILE")
+    file: str | None = os.getenv("MCP_LOG_FILE")
     enable_audit_logging: bool = True
-    audit_log_path: Optional[str] = os.getenv("MCP_AUDIT_LOG_PATH", "logs/mcp_audit.log")
+    audit_log_path: str | None = os.getenv("MCP_AUDIT_LOG_PATH", "logs/mcp_audit.log")
 
 
 @dataclass
@@ -73,8 +73,8 @@ class MCPConfig:
     logging: LoggingConfig = field(default_factory=LoggingConfig)
 
     # Backend integration
-    command_handler_config: Optional[Dict[str, Any]] = None
-    session_storage_path: Optional[str] = None
+    command_handler_config: dict[str, Any] | None = None
+    session_storage_path: str | None = None
 
     # Async operations
     async_timeout_seconds: int = int(os.getenv("MCP_ASYNC_TIMEOUT", "3600"))
@@ -114,7 +114,7 @@ class MCPConfig:
             log_path.parent.mkdir(parents=True, exist_ok=True)
 
 
-def load_mcp_config(config_path: Optional[Path] = None) -> MCPConfig:
+def load_mcp_config(config_path: Path | None = None) -> MCPConfig:
     """
     Load MCP configuration from environment variables and optional config file.
 

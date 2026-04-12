@@ -3,10 +3,11 @@
 Remote S3 Processor - Template for 60GB pixel-data processing on remote system
 """
 
+from datetime import datetime
+
 import json
 import subprocess
 from pathlib import Path
-from datetime import datetime
 
 
 def create_remote_processor_script():

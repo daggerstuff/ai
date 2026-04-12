@@ -2,9 +2,10 @@
 Unit tests for the Access & Acquisition Manager.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -81,7 +82,7 @@ class TestAccessAcquisitionManager:
             keywords=["test"],
             open_access=True,
             data_availability="available",
-            discovery_date=datetime.now(),
+            discovery_date=datetime.now(timezone.utc),
             discovery_method="repository_api",
         )
 
@@ -91,7 +92,7 @@ class TestAccessAcquisitionManager:
             source_id="test",
             title="Test",
             authors=[],
-            publication_date=datetime.now(),
+            publication_date=datetime.now(timezone.utc),
             source_type="repository",
             url="https://example.com/dataset.zip",
             open_access=True,
@@ -107,7 +108,7 @@ class TestAccessAcquisitionManager:
             source_id="test",
             title="Test",
             authors=[],
-            publication_date=datetime.now(),
+            publication_date=datetime.now(timezone.utc),
             source_type="repository",
             url="https://zenodo.org/api/datasets/123",
             open_access=True,
@@ -123,7 +124,7 @@ class TestAccessAcquisitionManager:
             source_id="test",
             title="Test",
             authors=[],
-            publication_date=datetime.now(),
+            publication_date=datetime.now(timezone.utc),
             source_type="journal",
             url="https://example.com/paper",
             open_access=False,
@@ -139,7 +140,7 @@ class TestAccessAcquisitionManager:
             source_id="test",
             title="Test",
             authors=[],
-            publication_date=datetime.now(),
+            publication_date=datetime.now(timezone.utc),
             source_type="clinical_trial",
             url="https://example.com/trial",
             open_access=False,
@@ -194,7 +195,7 @@ class TestAccessAcquisitionManager:
             source_id="test-002",
             title="Test 2",
             authors=[],
-            publication_date=datetime.now(),
+            publication_date=datetime.now(timezone.utc),
             source_type="repository",
             url="https://example.com/dataset2.zip",
             open_access=True,
@@ -214,7 +215,7 @@ class TestAccessAcquisitionManager:
         old_request = AccessRequest(
             source_id="old-001",
             access_method="request_form",
-            request_date=datetime.now() - timedelta(days=10),
+            request_date=datetime.now(timezone.utc) - timedelta(days=10),
             status="pending",
         )
         manager.access_requests["old-001"] = old_request
@@ -297,7 +298,7 @@ class TestAccessAcquisitionManager:
 
         dataset = AcquiredDataset(
             source_id=sample_source.source_id,
-            acquisition_date=datetime.now(),
+            acquisition_date=datetime.now(timezone.utc),
             storage_path=str(test_file),
             file_format="dat",
         )
@@ -306,7 +307,7 @@ class TestAccessAcquisitionManager:
 
         assert organized_path.exists()
         assert sample_source.source_type in str(organized_path)
-        assert str(datetime.now().year) in str(organized_path)
+        assert str(datetime.now(timezone.utc).year) in str(organized_path)
 
     def test_download_progress_tracking(self, manager, sample_source):
         """Test download progress tracking."""
@@ -314,7 +315,7 @@ class TestAccessAcquisitionManager:
             source_id=sample_source.source_id,
             url=sample_source.url,
             status="downloading",
-            start_time=datetime.now(),
+            start_time=datetime.now(timezone.utc),
         )
 
         progress.update(512, total_bytes=1024)

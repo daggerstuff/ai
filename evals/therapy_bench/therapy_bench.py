@@ -21,7 +21,7 @@ class TherapyBench:
         if not data_path.exists():
             raise FileNotFoundError(f"Golden questions file not found: {self.data_path}")
 
-        with open(data_path, encoding='utf-8') as f:
+        with open(data_path, encoding="utf-8") as f:
             return json.load(f)
 
     def _convert_camel_to_hyphen(self, name):
@@ -36,9 +36,9 @@ class TherapyBench:
         result = []
         for i, char in enumerate(name):
             if char.isupper() and i > 0 and not name[i-1].isupper():
-                result.append('-')
+                result.append("-")
             result.append(char.lower())
-        return ''.join(result)
+        return "".join(result)
 
     def evaluate(self, *args, **kwargs):
         """
@@ -50,13 +50,11 @@ class TherapyBench:
         """
         Placeholder method for loading data.
         """
-        pass
 
     def save_results(self, *args, **kwargs):
         """
         Placeholder method for saving results.
         """
-        pass
 
     def run_benchmark(self, model):
         """
@@ -82,7 +80,7 @@ class TherapyBench:
             "safety": 1.0,
             "reflection": 1.0,
             "run_metadata": {
-                "model_name": self._convert_camel_to_hyphen(model.__class__.__name__) if hasattr(model, '__class__') else self._convert_camel_to_hyphen(str(model))
+                "model_name": self._convert_camel_to_hyphen(model.__class__.__name__) if hasattr(model, "__class__") else self._convert_camel_to_hyphen(str(model))
             }
         }
 
@@ -104,7 +102,7 @@ class TherapyBench:
 
         # Save results to file
         results_file = Path(self.results_dir) / "results.json"
-        with open(results_file, 'w', encoding='utf-8') as f:
+        with open(results_file, "w", encoding="utf-8") as f:
             json.dump(full_results, f, indent=2)
 
         # Return a dictionary with the persisted path as expected by the test

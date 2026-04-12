@@ -5,10 +5,12 @@ This module provides a service layer that wraps CommandHandler functionality
 for use by API endpoints.
 """
 
+from datetime import datetime, timezone
+
+
 import logging
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ai.sourcing.journal.cli.commands import CommandHandler
 from ai.sourcing.journal.cli.config import load_config
@@ -29,11 +31,11 @@ logger = logging.getLogger(__name__)
 class CommandHandlerService:
     """Service layer for CommandHandler operations."""
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None, dry_run: bool = False):
+    def __init__(self, config: dict[str, Any] | None = None, dry_run: bool = False):
         """Initialize the service with configuration."""
         self.config = config or load_config()
         self.dry_run = dry_run
-        self._command_handler: Optional[CommandHandler] = None
+        self._command_handler: CommandHandler | None = None
 
     @property
     def command_handler(self) -> CommandHandler:
@@ -50,10 +52,10 @@ class CommandHandlerService:
     # Session management methods
     def create_session(
         self,
-        target_sources: List[str],
-        search_keywords: Dict[str, List[str]],
-        weekly_targets: Optional[Dict[str, int]] = None,
-        session_id: Optional[str] = None,
+        target_sources: list[str],
+        search_keywords: dict[str, list[str]],
+        weekly_targets: dict[str, int] | None = None,
+        session_id: str | None = None,
     ) -> ResearchSession:
         """Create a new research session."""
         orchestrator = self.orchestrator
@@ -66,7 +68,7 @@ class CommandHandlerService:
         orchestrator.save_session_state(session.session_id)
         return session
 
-    def list_sessions(self) -> List[ResearchSession]:
+    def list_sessions(self) -> list[ResearchSession]:
         """List all research sessions."""
         orchestrator = self.orchestrator
         sessions_dir = Path(orchestrator._session_storage_path)
@@ -98,10 +100,10 @@ class CommandHandlerService:
     def update_session(
         self,
         session_id: str,
-        target_sources: Optional[List[str]] = None,
-        search_keywords: Optional[Dict[str, List[str]]] = None,
-        weekly_targets: Optional[Dict[str, int]] = None,
-        current_phase: Optional[str] = None,
+        target_sources: list[str] | None = None,
+        search_keywords: dict[str, list[str]] | None = None,
+        weekly_targets: dict[str, int] | None = None,
+        current_phase: str | None = None,
     ) -> ResearchSession:
         """Update session configuration."""
         orchestrator = self.orchestrator
@@ -142,7 +144,7 @@ class CommandHandlerService:
         if session_file.exists():
             session_file.unlink()
 
-    def get_session_state(self, session_id: str) -> Dict[str, Any]:
+    def get_session_state(self, session_id: str) -> dict[str, Any]:
         """Get session state including sources, evaluations, etc."""
         orchestrator = self.orchestrator
         orchestrator.load_session_state(session_id)
@@ -158,7 +160,7 @@ class CommandHandlerService:
             "integration_plans": state.integration_plans,
         }
 
-    def _session_to_dict(self, session: ResearchSession) -> Dict[str, Any]:
+    def _session_to_dict(self, session: ResearchSession) -> dict[str, Any]:
         """Convert ResearchSession to dictionary."""
         return {
             "session_id": session.session_id,
@@ -170,7 +172,7 @@ class CommandHandlerService:
             "progress_metrics": session.progress_metrics,
         }
 
-    def _source_to_dict(self, source: DatasetSource) -> Dict[str, Any]:
+    def _source_to_dict(self, source: DatasetSource) -> dict[str, Any]:
         """Convert DatasetSource to dictionary."""
         return {
             "source_id": source.source_id,
@@ -188,7 +190,7 @@ class CommandHandlerService:
             "discovery_method": source.discovery_method,
         }
 
-    def _evaluation_to_dict(self, evaluation: DatasetEvaluation) -> Dict[str, Any]:
+    def _evaluation_to_dict(self, evaluation: DatasetEvaluation) -> dict[str, Any]:
         """Convert DatasetEvaluation to dictionary."""
         return {
             "evaluation_id": f"eval_{evaluation.source_id}",
@@ -203,7 +205,7 @@ class CommandHandlerService:
             "evaluator": evaluation.evaluator,
         }
 
-    def _acquisition_to_dict(self, acquisition: AcquiredDataset) -> Dict[str, Any]:
+    def _acquisition_to_dict(self, acquisition: AcquiredDataset) -> dict[str, Any]:
         """Convert AcquiredDataset to dictionary."""
         return {
             "acquisition_id": f"acq_{acquisition.source_id}",
@@ -215,7 +217,7 @@ class CommandHandlerService:
             "acquired_date": acquisition.acquisition_date,
         }
 
-    def _integration_plan_to_dict(self, plan: IntegrationPlan) -> Dict[str, Any]:
+    def _integration_plan_to_dict(self, plan: IntegrationPlan) -> dict[str, Any]:
         """Convert IntegrationPlan to dictionary."""
         return {
             "plan_id": f"plan_{plan.source_id}",
@@ -232,9 +234,9 @@ class CommandHandlerService:
     def initiate_discovery(
         self,
         session_id: str,
-        keywords: List[str],
-        sources: List[str],
-    ) -> Dict[str, Any]:
+        keywords: list[str],
+        sources: list[str],
+    ) -> dict[str, Any]:
         """Initiate source discovery for a session."""
         orchestrator = self.orchestrator
         orchestrator.load_session_state(session_id)
@@ -277,7 +279,7 @@ class CommandHandlerService:
             "total_sources": len(sources_list),
         }
 
-    def get_sources(self, session_id: str) -> List[DatasetSource]:
+    def get_sources(self, session_id: str) -> list[DatasetSource]:
         """Get discovered sources for a session."""
         orchestrator = self.orchestrator
         orchestrator.load_session_state(session_id)
@@ -296,8 +298,8 @@ class CommandHandlerService:
     def initiate_evaluation(
         self,
         session_id: str,
-        source_ids: Optional[List[str]] = None,
-    ) -> Dict[str, Any]:
+        source_ids: list[str] | None = None,
+    ) -> dict[str, Any]:
         """Initiate evaluation for sources."""
         orchestrator = self.orchestrator
         orchestrator.load_session_state(session_id)
@@ -316,7 +318,7 @@ class CommandHandlerService:
                 "session_id": session_id,
             }
 
-        evaluations: List[DatasetEvaluation] = []
+        evaluations: list[DatasetEvaluation] = []
 
         if orchestrator.evaluation_engine:
             for source in sources_to_evaluate:
@@ -343,7 +345,7 @@ class CommandHandlerService:
             "session_id": session_id,
         }
 
-    def get_evaluations(self, session_id: str) -> List[DatasetEvaluation]:
+    def get_evaluations(self, session_id: str) -> list[DatasetEvaluation]:
         """Get evaluations for a session."""
         orchestrator = self.orchestrator
         orchestrator.load_session_state(session_id)
@@ -366,11 +368,11 @@ class CommandHandlerService:
         self,
         session_id: str,
         evaluation_id: str,
-        therapeutic_relevance: Optional[int] = None,
-        data_structure_quality: Optional[int] = None,
-        training_integration: Optional[int] = None,
-        ethical_accessibility: Optional[int] = None,
-        priority_tier: Optional[str] = None,
+        therapeutic_relevance: int | None = None,
+        data_structure_quality: int | None = None,
+        training_integration: int | None = None,
+        ethical_accessibility: int | None = None,
+        priority_tier: str | None = None,
     ) -> DatasetEvaluation:
         """Update evaluation scores."""
         orchestrator = self.orchestrator
@@ -407,8 +409,8 @@ class CommandHandlerService:
     def initiate_acquisition(
         self,
         session_id: str,
-        source_ids: Optional[List[str]] = None,
-    ) -> Dict[str, Any]:
+        source_ids: list[str] | None = None,
+    ) -> dict[str, Any]:
         """Initiate acquisition for sources."""
         orchestrator = self.orchestrator
         orchestrator.load_session_state(session_id)
@@ -463,7 +465,7 @@ class CommandHandlerService:
             "session_id": session_id,
         }
 
-    def get_acquisitions(self, session_id: str) -> List[AcquiredDataset]:
+    def get_acquisitions(self, session_id: str) -> list[AcquiredDataset]:
         """Get acquisitions for a session."""
         orchestrator = self.orchestrator
         orchestrator.load_session_state(session_id)
@@ -500,9 +502,9 @@ class CommandHandlerService:
     def initiate_integration(
         self,
         session_id: str,
-        source_ids: Optional[List[str]] = None,
+        source_ids: list[str] | None = None,
         target_format: str = "chatml",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Initiate integration planning."""
         orchestrator = self.orchestrator
         orchestrator.load_session_state(session_id)
@@ -550,7 +552,7 @@ class CommandHandlerService:
             "session_id": session_id,
         }
 
-    def get_integration_plans(self, session_id: str) -> List[IntegrationPlan]:
+    def get_integration_plans(self, session_id: str) -> list[IntegrationPlan]:
         """Get integration plans for a session."""
         orchestrator = self.orchestrator
         orchestrator.load_session_state(session_id)
@@ -570,7 +572,7 @@ class CommandHandlerService:
         raise ValueError(f"Integration plan {plan_id} not found in session {session_id}")
 
     # Progress methods
-    def get_progress(self, session_id: str) -> Dict[str, Any]:
+    def get_progress(self, session_id: str) -> dict[str, Any]:
         """Get progress metrics for a session."""
         orchestrator = self.orchestrator
         orchestrator.load_session_state(session_id)
@@ -598,7 +600,7 @@ class CommandHandlerService:
             "progress_percentage": min(progress_percentage, 100.0),
         }
 
-    def get_progress_metrics(self, session_id: str) -> Dict[str, Any]:
+    def get_progress_metrics(self, session_id: str) -> dict[str, Any]:
         """Get detailed progress metrics for a session."""
         orchestrator = self.orchestrator
         orchestrator.load_session_state(session_id)
@@ -619,8 +621,8 @@ class CommandHandlerService:
         session_id: str,
         report_type: str = "session_report",
         format: str = "json",
-        date_range: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        date_range: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Generate a report for a session."""
         orchestrator = self.orchestrator
         orchestrator.load_session_state(session_id)
@@ -647,24 +649,24 @@ class CommandHandlerService:
         }
 
         # Generate report ID
-        report_id = f"report_{session_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        report_id = f"report_{session_id}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
 
         return {
             "report_id": report_id,
             "session_id": session_id,
             "report_type": report_type,
             "format": format,
-            "generated_date": datetime.now(),
+            "generated_date": datetime.now(timezone.utc),
             "content": report_data,
         }
 
-    def list_reports(self, session_id: str) -> List[Dict[str, Any]]:
+    def list_reports(self, session_id: str) -> list[dict[str, Any]]:
         """List reports for a session."""
         # For now, return empty list
         # In production, this would query a report storage system
         return []
 
-    def get_report(self, session_id: str, report_id: str) -> Dict[str, Any]:
+    def get_report(self, session_id: str, report_id: str) -> dict[str, Any]:
         """Get report details by ID."""
         # For now, generate report on the fly
         # In production, this would retrieve from report storage
@@ -709,7 +711,7 @@ class CommandHandlerService:
                 {
                     "type": "progress_update",
                     "session_id": session_id,
-                    "timestamp": datetime.now().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                     "data": {
                         **progress_data,
                         "metrics": metrics_data,

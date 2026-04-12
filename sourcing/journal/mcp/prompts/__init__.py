@@ -12,8 +12,8 @@ from ai.sourcing.journal.mcp.prompts.base import MCPPrompt
 logger = logging.getLogger(__name__)
 
 __all__ = [
-    "PromptRegistry",
     "MCPPrompt",
+    "PromptRegistry",
 ]
 
 
@@ -22,7 +22,7 @@ class PromptRegistry:
 
     def __init__(self) -> None:
         """Initialize prompt registry."""
-        self._prompts: Dict[str, MCPPrompt] = {}
+        self._prompts: dict[str, MCPPrompt] = {}
 
     def register(self, prompt: MCPPrompt) -> None:
         """
@@ -51,7 +51,7 @@ class PromptRegistry:
             del self._prompts[name]
             logger.info(f"Unregistered prompt: {name}")
 
-    def get(self, name: str) -> Optional[MCPPrompt]:
+    def get(self, name: str) -> MCPPrompt | None:
         """
         Get prompt by name.
 
@@ -63,7 +63,7 @@ class PromptRegistry:
         """
         return self._prompts.get(name)
 
-    def list_prompts(self) -> List[MCPPrompt]:
+    def list_prompts(self) -> list[MCPPrompt]:
         """
         List all registered prompts.
 
@@ -72,7 +72,7 @@ class PromptRegistry:
         """
         return list(self._prompts.values())
 
-    def list_prompt_names(self) -> List[str]:
+    def list_prompt_names(self) -> list[str]:
         """
         List all registered prompt names.
 
@@ -81,7 +81,7 @@ class PromptRegistry:
         """
         return list(self._prompts.keys())
 
-    def get_prompt_schemas(self) -> List[Dict[str, Any]]:
+    def get_prompt_schemas(self) -> list[dict[str, Any]]:
         """
         Get prompt schemas for all registered prompts.
 
@@ -102,7 +102,7 @@ class PromptRegistry:
         """
         return name in self._prompts
 
-    def find_by_pattern(self, pattern: str) -> List[MCPPrompt]:
+    def find_by_pattern(self, pattern: str) -> list[MCPPrompt]:
         """
         Find prompts matching name pattern.
 

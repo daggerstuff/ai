@@ -5,14 +5,14 @@ This module provides progress update broadcasting, progress resource updates,
 and progress subscription mechanism for async operations.
 """
 
+from datetime import datetime
+
 import asyncio
 import logging
-from dataclasses import asdict, dataclass
-from datetime import datetime
+from collections.abc import Callable
+from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Set
-
-from ai.sourcing.journal.mcp.protocol import MCPError, MCPErrorCode
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -37,9 +37,9 @@ class ProgressUpdate:
     progress_percent: float
     message: str
     timestamp: datetime
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert progress update to dictionary."""
         return {
             "operation_id": self.operation_id,
@@ -63,13 +63,13 @@ class ProgressStreamer:
     def __init__(self) -> None:
         """Initialize progress streamer."""
         # Subscriptions: operation_id -> set of callbacks
-        self._subscriptions: Dict[str, Set[Callable[[ProgressUpdate], None]]] = {}
+        self._subscriptions: dict[str, set[Callable[[ProgressUpdate], None]]] = {}
         # Session subscriptions: session_id -> set of callbacks
-        self._session_subscriptions: Dict[str, Set[Callable[[ProgressUpdate], None]]] = {}
+        self._session_subscriptions: dict[str, set[Callable[[ProgressUpdate], None]]] = {}
         # Operation status tracking: operation_id -> ProgressStatus
-        self._operation_status: Dict[str, ProgressStatus] = {}
+        self._operation_status: dict[str, ProgressStatus] = {}
         # Progress history: operation_id -> list of ProgressUpdate
-        self._progress_history: Dict[str, List[ProgressUpdate]] = {}
+        self._progress_history: dict[str, list[ProgressUpdate]] = {}
         # Lock for thread-safe operations
         self._lock = asyncio.Lock()
 
@@ -77,7 +77,7 @@ class ProgressStreamer:
         self,
         operation_id: str,
         callback: Callable[[ProgressUpdate], None],
-        session_id: Optional[str] = None,
+        session_id: str | None = None,
     ) -> None:
         """
         Subscribe to progress updates for an operation.
@@ -103,7 +103,7 @@ class ProgressStreamer:
         self,
         operation_id: str,
         callback: Callable[[ProgressUpdate], None],
-        session_id: Optional[str] = None,
+        session_id: str | None = None,
     ) -> None:
         """
         Unsubscribe from progress updates for an operation.
@@ -181,7 +181,7 @@ class ProgressStreamer:
             f"{update.status.value} - {update.progress_percent}%"
         )
 
-    async def get_operation_status(self, operation_id: str) -> Optional[ProgressStatus]:
+    async def get_operation_status(self, operation_id: str) -> ProgressStatus | None:
         """
         Get current status of an operation.
 
@@ -195,8 +195,8 @@ class ProgressStreamer:
             return self._operation_status.get(operation_id)
 
     async def get_progress_history(
-        self, operation_id: str, limit: Optional[int] = None
-    ) -> List[ProgressUpdate]:
+        self, operation_id: str, limit: int | None = None
+    ) -> list[ProgressUpdate]:
         """
         Get progress history for an operation.
 
@@ -214,8 +214,8 @@ class ProgressStreamer:
             return history.copy()
 
     async def get_session_progress(
-        self, session_id: str, limit: Optional[int] = None
-    ) -> List[ProgressUpdate]:
+        self, session_id: str, limit: int | None = None
+    ) -> list[ProgressUpdate]:
         """
         Get all progress updates for a session.
 
@@ -227,7 +227,7 @@ class ProgressStreamer:
             List of progress updates for the session
         """
         async with self._lock:
-            session_updates: List[ProgressUpdate] = []
+            session_updates: list[ProgressUpdate] = []
             for operation_id, history in self._progress_history.items():
                 for update in history:
                     if update.session_id == session_id:
@@ -279,7 +279,7 @@ class ProgressStreamer:
 
         logger.debug(f"Cleared all operations for session {session_id}")
 
-    def get_subscription_count(self, operation_id: Optional[str] = None) -> int:
+    def get_subscription_count(self, operation_id: str | None = None) -> int:
         """
         Get number of active subscriptions.
 

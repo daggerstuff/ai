@@ -4,9 +4,10 @@ Report generation tools for MCP Server.
 This module provides tools for generating and managing reports through the MCP protocol.
 """
 
-import logging
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+
+import logging
+from typing import Any
 
 from ai.sourcing.journal.api.services.command_handler_service import (
     CommandHandlerService,
@@ -71,7 +72,7 @@ class GenerateReportTool(MCPTool):
             },
         )
 
-    async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute(self, params: dict[str, Any]) -> dict[str, Any]:
         """
         Execute generate_report tool.
 
@@ -123,14 +124,14 @@ class GenerateReportTool(MCPTool):
         except ValueError as e:
             raise MCPError(
                 MCPErrorCode.TOOL_VALIDATION_ERROR,
-                f"Invalid parameters: {str(e)}",
+                f"Invalid parameters: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
         except Exception as e:
             logger.exception(f"Error generating report: {e}")
             raise MCPError(
                 MCPErrorCode.TOOL_EXECUTION_ERROR,
-                f"Failed to generate report: {str(e)}",
+                f"Failed to generate report: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
 
@@ -165,7 +166,7 @@ class GetReportTool(MCPTool):
             },
         )
 
-    async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute(self, params: dict[str, Any]) -> dict[str, Any]:
         """
         Execute get_report tool.
 
@@ -205,14 +206,14 @@ class GetReportTool(MCPTool):
         except ValueError as e:
             raise MCPError(
                 MCPErrorCode.TOOL_VALIDATION_ERROR,
-                f"Invalid parameters: {str(e)}",
+                f"Invalid parameters: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
         except Exception as e:
             logger.exception(f"Error getting report: {e}")
             raise MCPError(
                 MCPErrorCode.TOOL_EXECUTION_ERROR,
-                f"Failed to get report: {str(e)}",
+                f"Failed to get report: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
 
@@ -243,7 +244,7 @@ class ListReportsTool(MCPTool):
             },
         )
 
-    async def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute(self, params: dict[str, Any]) -> dict[str, Any]:
         """
         Execute list_reports tool.
 
@@ -280,14 +281,14 @@ class ListReportsTool(MCPTool):
         except ValueError as e:
             raise MCPError(
                 MCPErrorCode.TOOL_VALIDATION_ERROR,
-                f"Invalid parameters: {str(e)}",
+                f"Invalid parameters: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
         except Exception as e:
             logger.exception(f"Error listing reports: {e}")
             raise MCPError(
                 MCPErrorCode.TOOL_EXECUTION_ERROR,
-                f"Failed to list reports: {str(e)}",
+                f"Failed to list reports: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
 

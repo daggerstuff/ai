@@ -9,7 +9,6 @@ import logging
 import re
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Set, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -40,12 +39,12 @@ class PrivacyAssessment:
 
     source_id: str
     pii_detected: bool
-    pii_types: List[str]  # email, phone, ssn, name, address, etc.
+    pii_types: list[str]  # email, phone, ssn, name, address, etc.
     pii_count: int
     anonymization_quality: AnonymizationQuality
     re_identification_risk: PrivacyRiskLevel
-    privacy_issues: List[str]
-    recommendations: List[str]
+    privacy_issues: list[str]
+    recommendations: list[str]
     compliance_score: float  # 0.0-1.0
 
     def is_compliant(self, threshold: float = 0.7) -> bool:
@@ -129,9 +128,9 @@ class PrivacyVerifier:
     def verify_privacy(
         self,
         source_id: str,
-        dataset_sample: Optional[str] = None,
-        dataset_path: Optional[str] = None,
-        metadata: Optional[Dict] = None,
+        dataset_sample: str | None = None,
+        dataset_path: str | None = None,
+        metadata: dict | None = None,
     ) -> PrivacyAssessment:
         """
         Verify privacy and anonymization quality of a dataset.
@@ -216,7 +215,7 @@ class PrivacyVerifier:
 
         return assessment
 
-    def _detect_pii(self, text: str) -> Tuple[Set[str], int]:
+    def _detect_pii(self, text: str) -> tuple[set[str], int]:
         """Detect PII in text and return types and count."""
         pii_types = set()
         pii_count = 0
@@ -276,7 +275,7 @@ class PrivacyVerifier:
         return pii_types, pii_count
 
     def _assess_anonymization_quality(
-        self, text: str, pii_types: Set[str]
+        self, text: str, pii_types: set[str]
     ) -> AnonymizationQuality:
         """Assess anonymization quality of the dataset."""
         if not pii_types:
@@ -303,17 +302,16 @@ class PrivacyVerifier:
 
         if anonymization_ratio > 0.7:
             return AnonymizationQuality.GOOD
-        elif anonymization_ratio > 0.4:
+        if anonymization_ratio > 0.4:
             return AnonymizationQuality.ADEQUATE
-        elif pii_ratio < 0.3:
+        if pii_ratio < 0.3:
             return AnonymizationQuality.POOR
-        else:
-            return AnonymizationQuality.NONE
+        return AnonymizationQuality.NONE
 
     def _assess_re_identification_risk(
         self,
         text: str,
-        pii_types: Set[str],
+        pii_types: set[str],
         anonymization_quality: AnonymizationQuality,
     ) -> PrivacyRiskLevel:
         """Assess re-identification risk."""
@@ -330,12 +328,11 @@ class PrivacyVerifier:
         if high_risk_types.intersection(pii_types):
             if anonymization_quality == AnonymizationQuality.NONE:
                 return PrivacyRiskLevel.CRITICAL
-            elif anonymization_quality == AnonymizationQuality.POOR:
+            if anonymization_quality == AnonymizationQuality.POOR:
                 return PrivacyRiskLevel.HIGH
-            elif anonymization_quality == AnonymizationQuality.ADEQUATE:
+            if anonymization_quality == AnonymizationQuality.ADEQUATE:
                 return PrivacyRiskLevel.MEDIUM
-            else:
-                return PrivacyRiskLevel.LOW
+            return PrivacyRiskLevel.LOW
 
         # Medium-risk PII types
         medium_risk_types = {"phone", "name", "dates"}
@@ -345,21 +342,20 @@ class PrivacyVerifier:
                 AnonymizationQuality.POOR,
             ]:
                 return PrivacyRiskLevel.HIGH
-            elif anonymization_quality == AnonymizationQuality.ADEQUATE:
+            if anonymization_quality == AnonymizationQuality.ADEQUATE:
                 return PrivacyRiskLevel.MEDIUM
-            else:
-                return PrivacyRiskLevel.LOW
+            return PrivacyRiskLevel.LOW
 
         # Low-risk or unknown
         return PrivacyRiskLevel.MEDIUM
 
     def _generate_privacy_issues(
         self,
-        pii_types: Set[str],
+        pii_types: set[str],
         pii_count: int,
         anonymization_quality: AnonymizationQuality,
         re_identification_risk: PrivacyRiskLevel,
-    ) -> List[str]:
+    ) -> list[str]:
         """Generate list of privacy issues."""
         issues = []
 
@@ -386,10 +382,10 @@ class PrivacyVerifier:
 
     def _generate_recommendations(
         self,
-        pii_types: Set[str],
+        pii_types: set[str],
         anonymization_quality: AnonymizationQuality,
         re_identification_risk: PrivacyRiskLevel,
-    ) -> List[str]:
+    ) -> list[str]:
         """Generate privacy recommendations."""
         recommendations = []
 

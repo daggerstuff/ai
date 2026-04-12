@@ -5,9 +5,6 @@ Tests format conversion, schema validation, dataset merging, and quality checks.
 """
 
 import json
-import tempfile
-from pathlib import Path
-from unittest.mock import Mock, patch
 
 import pytest
 
@@ -22,7 +19,6 @@ from ai.sourcing.journal.integration.pipeline_integrator import (
 )
 from ai.sourcing.journal.models.dataset_models import (
     AcquiredDataset,
-    IntegrationPlan,
 )
 
 

@@ -4,13 +4,14 @@ Generate S3 Manifest - Complete inventory of what's on S3
 Shows sync status and generates manifest JSON
 """
 
+from datetime import datetime, timezone
+
 from __future__ import annotations
 
 import json
 import logging
 import sys
 from collections import defaultdict
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
