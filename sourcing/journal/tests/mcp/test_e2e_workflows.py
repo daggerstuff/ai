@@ -1,10 +1,9 @@
-from ai.sourcing.journal.mcp import server as server_module
-
 import html
 import json
 
 import pytest
 
+from ai.sourcing.journal.mcp import server as server_module
 from ai.sourcing.journal.mcp.config import MCPConfig
 from ai.sourcing.journal.mcp.server import MCPServer
 from ai.sourcing.journal.tests.mcp._stubs import (

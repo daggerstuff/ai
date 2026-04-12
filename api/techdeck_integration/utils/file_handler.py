@@ -4,11 +4,9 @@ File handling utilities for TechDeck-Python Pipeline Integration.
 This module provides secure file handling, storage management, and file processing
 capabilities with HIPAA++ compliance and encryption support.
 """
-import mimetypes
-
-
 import hashlib
 import logging
+import mimetypes
 import os
 import shutil
 from datetime import datetime, timezone

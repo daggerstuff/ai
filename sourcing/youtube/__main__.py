@@ -6,10 +6,8 @@ Can be run as:
 - Script: python ai/sourcing/youtube/__main__.py discovery --help
 - Direct function call
 """
-import json
-
-
 import argparse
+import json
 import logging
 import sys
 from pathlib import Path

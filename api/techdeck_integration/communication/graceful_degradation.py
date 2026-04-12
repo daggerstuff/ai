@@ -4,10 +4,8 @@ Graceful Degradation for Pipeline Communication - Fallback Mechanisms.
 This module provides comprehensive graceful degradation with fallback mechanisms,
 circuit breakers, and service degradation strategies for the six-stage pipeline.
 """
-import random
-
-
 import asyncio
+import random
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
@@ -16,6 +14,7 @@ from typing import Any
 
 from ai.api.techdeck_integration.error_handling.custom_errors import ServiceUnavailableError
 from ai.api.techdeck_integration.utils.logger import get_request_logger
+
 from .event_bus import EventBus
 
 

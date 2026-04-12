@@ -4,11 +4,9 @@ Validation & Quality Assurance System - Task 5.7.2 Complete Implementation
 Comprehensive system implementing all remaining subtasks for Task 5.7.2.
 """
 import hashlib
-import re
-
-
 import json
 import logging
+import re
 import time
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone

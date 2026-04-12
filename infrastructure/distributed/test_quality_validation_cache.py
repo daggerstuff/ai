@@ -2,11 +2,9 @@
 """
 Unit tests for Quality Validation Caching System
 """
-import shutil
-
-
 import json
 import os
+import shutil
 
 # Add parent directory to path for imports
 import sys

@@ -4,8 +4,6 @@ Quality Validation Caching System for Pixelated Empathy AI
 Implements caching to avoid reprocessing quality validations
 """
 import argparse
-
-
 import hashlib
 import json
 import logging

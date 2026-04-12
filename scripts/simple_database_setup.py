@@ -3,13 +3,12 @@
 Simple Database Setup
 Lightweight database setup without heavy migration.
 """
-from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
-import psycopg2
-
-
 import logging
 import os
 import sys
+
+import psycopg2
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 # Configure logging
 logging.basicConfig(

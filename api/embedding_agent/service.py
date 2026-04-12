@@ -7,18 +7,17 @@ This service wraps the ClinicalKnowledgeEmbedder and provides:
 - Caching and performance optimization
 - GPU acceleration support
 """
-import random
-import torch
-
-
 import hashlib
 import logging
+import random
 import time
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from threading import Lock
 from typing import TYPE_CHECKING, Any
+
+import torch
 
 if TYPE_CHECKING:
     from sentence_transformers import SentenceTransformer as _SentenceTransformerType

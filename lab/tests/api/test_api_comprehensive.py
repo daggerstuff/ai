@@ -1,7 +1,6 @@
 import queue
 import threading
 
-
 #!/usr/bin/env python3
 """
 Comprehensive API Test Suite

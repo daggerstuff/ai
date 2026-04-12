@@ -5,9 +5,6 @@ Task 3B.1: Execute end-to-end testing with complete 4.2M conversation dataset
 
 Enterprise-grade system validation testing for production readiness.
 """
-import httpx
-
-
 import asyncio
 import json
 import logging
@@ -17,6 +14,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+import httpx
 import psutil
 import pytest
 

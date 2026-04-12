@@ -3,9 +3,6 @@
 Quality Distribution Analysis System
 Analyzes quality score distributions across datasets, tiers, and time periods
 """
-from scipy.stats import gaussian_kde
-
-
 import json
 import sqlite3
 import warnings
@@ -18,6 +15,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from scipy import stats
+from scipy.stats import gaussian_kde
 
 warnings.filterwarnings("ignore")
 

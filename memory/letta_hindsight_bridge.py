@@ -4,13 +4,12 @@ Letta-Hindsight Bridge - Core integration layer.
 This bridge connects Hindsight's therapeutic memory system with Letta's
 persistent agent architecture, enabling clinically-safe AI agents.
 """
-from ai.memory.hindsight_manager import HindsightMemoryManager
-
-
 import asyncio
 import logging
 from dataclasses import dataclass
 from typing import Any
+
+from ai.memory.hindsight_manager import HindsightMemoryManager
 
 from .letta_crisis_handler import CrisisResult, CrisisSeverity, LettaCrisisHandler
 from .letta_pii_middleware import LettaPIIMiddleware, PIIBlockedException

@@ -4,18 +4,22 @@ Six-Stage Pipeline Coordinator for TechDeck-Python Integration.
 This module provides comprehensive pipeline coordination with Redis event bus
 integration, state management, bias detection, and HIPAA++ compliant data handling.
 """
-import uuid
-
-
 import time
+import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
-from ai.api.techdeck_integration.error_handling.custom_errors import BiasDetectionError, PipelineExecutionError, ResourceNotFoundError, ValidationError
+from ai.api.techdeck_integration.error_handling.custom_errors import (
+    BiasDetectionError,
+    PipelineExecutionError,
+    ResourceNotFoundError,
+    ValidationError,
+)
 from ai.api.techdeck_integration.integration.redis_client import RedisClient
 from ai.api.techdeck_integration.utils.logger import get_request_logger
 from ai.api.techdeck_integration.utils.validation import sanitize_input, validate_pipeline_input
+
 from .bias_integration import BiasDetectionIntegration
 from .error_recovery import ErrorRecoveryManager
 from .event_bus import EventBus, EventHandler, EventMessage, EventType

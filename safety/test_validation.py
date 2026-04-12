@@ -3,13 +3,11 @@
 Quick test script to verify dataset validation module works correctly
 Run this to test the validation system before deploying
 """
-from ai.safety.dataset_validation import DatasetValidator
-from ai.safety.dataset_validation import validate_jsonl_file
-
-
 import json
 import sys
 from pathlib import Path
+
+from ai.safety.dataset_validation import DatasetValidator, validate_jsonl_file
 
 # Test cases
 TEST_CASES = {

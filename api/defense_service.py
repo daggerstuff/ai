@@ -4,18 +4,16 @@ Defense Mechanism Analysis API Endpoint
 FastAPI endpoint for real-time defense mechanism classification
 of utterances within conversational context.
 """
-from training.defense_mechanisms.dataset import format_dialogue
-from training.defense_mechanisms.model import DefenseClassifier
-from transformers import AutoTokenizer
-import torch
-
-
 import logging
 
+import torch
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
+from transformers import AutoTokenizer
 
 from training.defense_mechanisms.constants import DEFENSE_LABELS, DEFENSE_MATURITY
+from training.defense_mechanisms.dataset import format_dialogue
+from training.defense_mechanisms.model import DefenseClassifier
 
 logger = logging.getLogger(__name__)
 

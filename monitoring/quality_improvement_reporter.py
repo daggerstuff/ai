@@ -5,11 +5,9 @@ Task 5.6.2.4: Quality Improvement Reporting System
 Enterprise-grade reporting system for quality improvement tracking with
 comprehensive analysis, visualizations, and executive summaries.
 """
-import sqlite3
-
-
 import json
 import logging
+import sqlite3
 import warnings
 from dataclasses import asdict
 from datetime import datetime, timedelta, timezone

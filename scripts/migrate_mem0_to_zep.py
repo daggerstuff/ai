@@ -21,16 +21,16 @@ Features:
     - Validation and error reporting
     - Dry-run mode for testing
 """
-from ai.api.memory.mem0_migration import get_mem0_migrator
-from zep_cloud import Zep
-
-
 import argparse
 import json
 import logging
 import os
 import sys
 from typing import Any
+
+from zep_cloud import Zep
+
+from ai.api.memory.mem0_migration import get_mem0_migrator
 
 # Configure logging
 logging.basicConfig(

@@ -3,9 +3,6 @@ Progress API routes.
 
 This module provides endpoints for progress tracking.
 """
-from ai.sourcing.journal.api.auth.jwt import get_user_from_token
-
-
 import asyncio
 import json
 import logging
@@ -14,6 +11,7 @@ from collections.abc import AsyncGenerator
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import StreamingResponse
 
+from ai.sourcing.journal.api.auth.jwt import get_user_from_token
 from ai.sourcing.journal.api.dependencies import (
     get_command_handler_service,
     get_current_user,

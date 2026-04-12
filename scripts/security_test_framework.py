@@ -9,10 +9,8 @@ This module provides comprehensive security testing including:
 - API security testing
 - Infrastructure security assessment
 """
-import base64
-
-
 import asyncio
+import base64
 import json
 import logging
 import time

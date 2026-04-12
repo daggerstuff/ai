@@ -4,10 +4,6 @@ Main Flask application factory for TechDeck-Python Pipeline Integration Service.
 This module implements the Flask application factory pattern with comprehensive
 configuration management, middleware registration, and blueprint initialization.
 """
-from .routes.datasets import datasets_bp
-from .routes.pipeline import pipeline_bp
-
-
 import logging
 from datetime import datetime, timezone
 
@@ -19,6 +15,8 @@ from .auth.middleware import JWTAuthMiddleware
 from .config import TechDeckServiceConfig
 from .error_handling.error_handler import ErrorHandler
 from .integration.redis_client import RedisClient
+from .routes.datasets import datasets_bp
+from .routes.pipeline import pipeline_bp
 from .utils.logger import setup_logging
 from .websocket.manager import WebSocketManager
 

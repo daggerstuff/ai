@@ -3,14 +3,11 @@
 Configuration Error Handling System for Pixelated Empathy AI
 Provides robust error handling and recovery mechanisms for configuration issues
 """
-from urllib.parse import urlparse, urlunparse
-import secrets
-import string
-
-
 import json
 import logging
 import os
+import secrets
+import string
 import sys
 import time
 import traceback
@@ -20,6 +17,7 @@ from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse, urlunparse
 
 # Configure logging
 logging.basicConfig(

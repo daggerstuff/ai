@@ -14,7 +14,12 @@ from typing import Any
 
 from werkzeug.datastructures import FileStorage
 
-from ai.api.techdeck_integration.error_handling.custom_errors import FileProcessingError, ResourceNotFoundError, StorageError, ValidationError
+from ai.api.techdeck_integration.error_handling.custom_errors import (
+    FileProcessingError,
+    ResourceNotFoundError,
+    StorageError,
+    ValidationError,
+)
 from ai.api.techdeck_integration.integration.redis_client import RedisClient
 from ai.api.techdeck_integration.utils.file_handler import FileHandler
 from ai.api.techdeck_integration.utils.logger import get_request_logger

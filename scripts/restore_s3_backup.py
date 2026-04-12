@@ -5,8 +5,6 @@ Restore S3 backup from Google Drive to Hetzner Object Storage.
 Syncs gdrive:backups/S3-Complete/* to BackupStorageS3:pixel-data/
 """
 import argparse
-
-
 import subprocess
 import sys
 from datetime import datetime, timezone

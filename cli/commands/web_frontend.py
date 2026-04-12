@@ -16,7 +16,14 @@ import click
 
 from ai.cli.auth import AuthManager
 from ai.cli.config import get_config
-from ai.cli.utils import check_api_health, format_file_size, get_logger, sanitize_filename, setup_logging, validate_environment
+from ai.cli.utils import (
+    check_api_health,
+    format_file_size,
+    get_logger,
+    sanitize_filename,
+    setup_logging,
+    validate_environment,
+)
 
 logger = get_logger(__name__)
 

@@ -5,13 +5,6 @@ Tasks 3.1, 3.2, 3.3: Validate Safety Certification Implementation
 
 Comprehensive validation script to verify Phase 3 safety certification implementation is enterprise-ready.
 """
-from clinical_safety_certifier import RiskLevel
-from clinical_safety_certifier import clinical_certifier
-from safety_accuracy_validator import safety_validator
-from safety_monitor_integration import AlertSeverity
-from safety_monitor_integration import safety_monitor
-
-
 import json
 import logging
 import os
@@ -21,6 +14,10 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+from clinical_safety_certifier import RiskLevel, clinical_certifier
+from safety_accuracy_validator import safety_validator
+from safety_monitor_integration import AlertSeverity, safety_monitor
 
 # Configure logging
 logging.basicConfig(

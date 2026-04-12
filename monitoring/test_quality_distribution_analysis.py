@@ -5,11 +5,6 @@ Test Suite for Quality Distribution Analysis System (Task 5.6.2.3)
 Comprehensive testing of distribution analysis, comparative analysis,
 and reporting functionality with statistical validation.
 """
-from .quality_distribution_analyzer import QualityDistributionAnalyzer
-from .quality_distribution_comparator import QualityDistributionComparator
-from .quality_distribution_reporter import QualityDistributionReporter
-
-
 import json
 import os
 import shutil
@@ -22,6 +17,9 @@ import numpy as np
 
 from .datetime import datetime, timedelta
 from .pathlib import Path
+from .quality_distribution_analyzer import QualityDistributionAnalyzer
+from .quality_distribution_comparator import QualityDistributionComparator
+from .quality_distribution_reporter import QualityDistributionReporter
 
 # Add the monitoring directory to the path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))

@@ -4,10 +4,8 @@ Async tool execution handler for MCP Server.
 This module provides async tool execution with operation status tracking,
 cancellation support, and timeout handling.
 """
-import inspect
-
-
 import asyncio
+import inspect
 import logging
 import uuid
 from collections.abc import Callable

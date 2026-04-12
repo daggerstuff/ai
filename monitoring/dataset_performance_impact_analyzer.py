@@ -11,14 +11,10 @@ Comprehensive analysis of dataset performance and business impact:
 - Strategic recommendations for dataset optimization
 - Business value quantification
 """
-from textstat import flesch_reading_ease
-import json
-import traceback
-
-
 import json
 import re
 import sqlite3
+import traceback
 import warnings
 from datetime import datetime, timezone
 from typing import Any
@@ -30,6 +26,7 @@ from scipy import stats
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 from sklearn.preprocessing import StandardScaler
+from textstat import flesch_reading_ease
 
 warnings.filterwarnings("ignore")
 

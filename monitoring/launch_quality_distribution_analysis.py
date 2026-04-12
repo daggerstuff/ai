@@ -5,9 +5,13 @@ Quality Distribution Analysis Launcher (Task 5.6.2.3)
 Enterprise-grade launcher for the quality distribution analysis system
 with comprehensive setup, validation, and execution capabilities.
 """
-from quality_distribution_analyzer import QualityDistributionAnalyzer
-from quality_distribution_comparator import QualityDistributionComparator
-from quality_distribution_reporter import QualityDistributionReporter
+import argparse
+import logging
+import sqlite3
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+
 import jinja2
 import matplotlib
 import numpy
@@ -15,14 +19,9 @@ import pandas
 import plotly
 import scipy
 import seaborn
-import sqlite3
-
-
-import argparse
-import logging
-import sys
-from datetime import datetime, timezone
-from pathlib import Path
+from quality_distribution_analyzer import QualityDistributionAnalyzer
+from quality_distribution_comparator import QualityDistributionComparator
+from quality_distribution_reporter import QualityDistributionReporter
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")

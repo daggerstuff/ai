@@ -1,8 +1,7 @@
-import sys
-import traceback
-
 import json
+import sys
 import time
+import traceback
 
 from ai.annotation.scripts.multi_agent_system import create_multi_agent_system
 

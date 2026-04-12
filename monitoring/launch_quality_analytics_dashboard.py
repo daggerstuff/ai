@@ -6,21 +6,20 @@ Enterprise-grade launcher for the quality analytics dashboard with
 comprehensive setup, validation, and monitoring capabilities.
 """
 import argparse
+import json
+import logging
+import sqlite3
+import subprocess
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+
 import matplotlib
 import numpy
 import pandas
 import plotly
 import seaborn
-import sqlite3
 import streamlit
-
-
-import json
-import logging
-import subprocess
-import sys
-from datetime import datetime, timezone
-from pathlib import Path
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")

@@ -1,6 +1,4 @@
 import shutil
-
-
 from datetime import datetime, timezone
 
 #!/usr/bin/env python3

@@ -5,17 +5,6 @@ Section 5.6.2 Integration Test Suite
 Tests the complete quality monitoring and analytics system integration
 across all five components to ensure they work together seamlessly.
 """
-from .quality_analytics_dashboard import QualityAnalyticsDashboard
-from .quality_comparator import QualityComparator
-from .quality_comparison_reporter import QualityComparisonReporter
-from .quality_distribution_analyzer import QualityDistributionAnalyzer
-from .quality_distribution_comparator import QualityDistributionComparator
-from .quality_distribution_reporter import QualityDistributionReporter
-from .quality_improvement_reporter import QualityImprovementReporter
-from .quality_improvement_tracker import QualityImprovementTracker
-from .quality_trend_analyzer import QualityTrendAnalyzer
-
-
 import json
 import os
 import shutil
@@ -28,6 +17,15 @@ import numpy as np
 
 from .datetime import datetime, timedelta
 from .pathlib import Path
+from .quality_analytics_dashboard import QualityAnalyticsDashboard
+from .quality_comparator import QualityComparator
+from .quality_comparison_reporter import QualityComparisonReporter
+from .quality_distribution_analyzer import QualityDistributionAnalyzer
+from .quality_distribution_comparator import QualityDistributionComparator
+from .quality_distribution_reporter import QualityDistributionReporter
+from .quality_improvement_reporter import QualityImprovementReporter
+from .quality_improvement_tracker import QualityImprovementTracker
+from .quality_trend_analyzer import QualityTrendAnalyzer
 
 # Add the monitoring directory to the path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))

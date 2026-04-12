@@ -1,14 +1,11 @@
-from ai.api.mcp_server.routes.agents import asyncio_run
-from flask import current_app, jsonify, request
-from flask import g
-from flask import g, jsonify
-from functools import wraps
-
 import logging
+from functools import wraps
 from typing import Any
 
 import jwt
-from flask import Request
+from flask import Request, current_app, g, jsonify, request
+
+from ai.api.mcp_server.routes.agents import asyncio_run
 
 
 class AuthenticationError(Exception):

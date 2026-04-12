@@ -4,8 +4,6 @@ Quality Validation Result Aggregation System for Pixelated Empathy AI
 Aggregates and analyzes results from distributed quality validation workers
 """
 import argparse
-
-
 import json
 import logging
 import sqlite3

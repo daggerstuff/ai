@@ -31,10 +31,6 @@ Usage:
         format=ExportFormat.PARQUET
     )
 """
-import pandas as pd
-import pyarrow
-
-
 import csv
 import json
 import logging
@@ -42,6 +38,9 @@ from collections.abc import Iterator
 from enum import Enum
 from pathlib import Path
 from typing import Any
+
+import pandas as pd
+import pyarrow
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
