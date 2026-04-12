@@ -6,6 +6,8 @@ Enterprise-grade test suite validating all dashboard functionality
 against the actual database schema with comprehensive coverage.
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import os
@@ -389,14 +391,14 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
     def test_09_caching_functionality(self):
         """Test data caching functionality."""
         # First load
-        start_time = datetime.now()
+        start_time = datetime.now(timezone.utc)
         df1 = self.dashboard.load_quality_data()
-        first_load_time = (datetime.now() - start_time).total_seconds()
+        first_load_time = (datetime.now(timezone.utc) - start_time).total_seconds()
 
         # Second load (should be cached)
-        start_time = datetime.now()
+        start_time = datetime.now(timezone.utc)
         df2 = self.dashboard.load_quality_data()
-        second_load_time = (datetime.now() - start_time).total_seconds()
+        second_load_time = (datetime.now(timezone.utc) - start_time).total_seconds()
 
         # Cached load should be faster
         self.assertLess(second_load_time, first_load_time)
@@ -474,17 +476,17 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
     def test_15_performance_benchmarks(self):
         """Test performance benchmarks."""
         # Test loading performance
-        start_time = datetime.now()
+        start_time = datetime.now(timezone.utc)
         df = self.dashboard.load_quality_data(force_refresh=True)
-        load_time = (datetime.now() - start_time).total_seconds()
+        load_time = (datetime.now(timezone.utc) - start_time).total_seconds()
 
         # Should load quickly (under 1 second for test data)
         self.assertLess(load_time, 1.0)
 
         # Test analytics calculation performance
-        start_time = datetime.now()
+        start_time = datetime.now(timezone.utc)
         analytics = self.dashboard.calculate_quality_analytics(df)
-        calc_time = (datetime.now() - start_time).total_seconds()
+        calc_time = (datetime.now(timezone.utc) - start_time).total_seconds()
 
         # Should calculate quickly (under 0.5 seconds for test data)
         self.assertLess(calc_time, 0.5)
@@ -507,7 +509,7 @@ def run_comprehensive_test():
     test_report = {
         "test_suite": "Quality Analytics Dashboard V2",
         "task": "5.6.2.1",
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "results": {
             "total_tests": result.testsRun,
             "passed_tests": result.testsRun - len(result.failures) - len(result.errors),

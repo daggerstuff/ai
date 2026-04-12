@@ -4,13 +4,14 @@ Quality Comparison System
 Compares quality metrics across tiers, datasets, and time periods
 """
 
+from datetime import datetime, timezone
+
 import json
 import sqlite3
 import warnings
 from dataclasses import dataclass
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -56,7 +57,7 @@ class QualityComparisonSystem:
         # Comparison categories
         self.comparison_categories = ["tier", "dataset_source"]
 
-    def perform_comprehensive_comparisons(self) -> Dict[str, List[QualityComparison]]:
+    def perform_comprehensive_comparisons(self) -> dict[str, list[QualityComparison]]:
         """Perform comprehensive quality comparisons"""
         print("🔍 Performing comprehensive quality comparisons...")
 
@@ -89,7 +90,7 @@ class QualityComparisonSystem:
             print(f"❌ Error performing comparisons: {e}")
             return {}
 
-    def _get_comparison_data(self) -> List[Dict]:
+    def _get_comparison_data(self) -> list[dict]:
         """Get data for quality comparisons"""
         try:
             conn = sqlite3.connect(self.db_path)
@@ -124,7 +125,7 @@ class QualityComparisonSystem:
 
     def _compare_by_category(
         self, df: pd.DataFrame, category: str
-    ) -> List[QualityComparison]:
+    ) -> list[QualityComparison]:
         """Compare quality metrics by category"""
         try:
             comparisons = []
@@ -156,7 +157,7 @@ class QualityComparisonSystem:
 
     def _compare_categories(
         self, df: pd.DataFrame, category_type: str, cat_a: str, cat_b: str, metric: str
-    ) -> Optional[QualityComparison]:
+    ) -> QualityComparison | None:
         """Compare two categories for a specific metric"""
         try:
             # Get data for each category
@@ -226,14 +227,14 @@ class QualityComparisonSystem:
             print(f"❌ Error comparing {cat_a} vs {cat_b} for {metric}: {e}")
             return None
 
-    def _calculate_metric_values(self, data: pd.DataFrame, metric: str) -> List[float]:
+    def _calculate_metric_values(self, data: pd.DataFrame, metric: str) -> list[float]:
         """Calculate metric values for a dataset"""
         try:
             if metric == "conversation_length":
                 return data["turn_count"].dropna().astype(float).tolist()
-            elif metric == "content_richness":
+            if metric == "content_richness":
                 return data["word_count"].dropna().astype(float).tolist()
-            elif metric == "processing_efficiency":
+            if metric == "processing_efficiency":
                 total = len(data)
                 successful = len(data[data["processing_status"] == "processed"])
                 return [100.0 * successful / total] if total > 0 else []
@@ -282,8 +283,8 @@ class QualityComparisonSystem:
             return "Unable to interpret"
 
     def create_comparison_visualizations(
-        self, comparisons: Dict[str, List[QualityComparison]]
-    ) -> Dict[str, str]:
+        self, comparisons: dict[str, list[QualityComparison]]
+    ) -> dict[str, str]:
         """Create comparison visualizations"""
         print("📈 Creating comparison visualizations...")
 
@@ -422,14 +423,14 @@ class QualityComparisonSystem:
 
     def export_comparison_report(
         self,
-        comparisons: Dict[str, List[QualityComparison]],
-        visualizations: Dict[str, str],
+        comparisons: dict[str, list[QualityComparison]],
+        visualizations: dict[str, str],
     ) -> str:
         """Export comprehensive comparison report"""
         print("📄 Exporting comparison analysis report...")
 
         try:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
             report_file = (
                 self.output_dir / f"quality_comparison_report_{timestamp}.json"
             )
@@ -440,7 +441,7 @@ class QualityComparisonSystem:
             # Prepare export data
             export_data = {
                 "report_metadata": {
-                    "generated_at": datetime.now().isoformat(),
+                    "generated_at": datetime.now(timezone.utc).isoformat(),
                     "analyzer_version": "1.0.0",
                     "total_comparisons": sum(
                         len(comps) for comps in comparisons.values()
@@ -481,8 +482,8 @@ class QualityComparisonSystem:
             return ""
 
     def _create_comparison_summary(
-        self, comparisons: Dict[str, List[QualityComparison]]
-    ) -> Dict[str, Any]:
+        self, comparisons: dict[str, list[QualityComparison]]
+    ) -> dict[str, Any]:
         """Create comparison summary statistics"""
         try:
             summary = {}

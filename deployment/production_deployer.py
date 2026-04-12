@@ -6,15 +6,17 @@ Enterprise Production Readiness Framework - Task 6.2
 Automated blue-green deployment with zero downtime and canary releases.
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import sqlite3
 import time
+from collections.abc import Callable
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any
 
 # Configure logging
 logging.basicConfig(
@@ -41,7 +43,6 @@ class EnvironmentType(Enum):
 class CanaryMonitoringError(Exception):
     """Raised when canary deployment monitoring fails."""
 
-    pass
 
 
 @dataclass
@@ -50,9 +51,9 @@ class DeploymentStep:
     name: str
     status: DeploymentStatus
     start_time: datetime
-    end_time: Optional[datetime]
+    end_time: datetime | None
     details: str
-    rollback_command: Optional[str] = None
+    rollback_command: str | None = None
 
 
 @dataclass
@@ -71,8 +72,8 @@ class ProductionDeployer:
         self.state_dir = Path(__file__).resolve().parent / "state"
         self.state_dir.mkdir(parents=True, exist_ok=True)
         self.db_path = str(self.state_dir / "production_deployment.db")
-        self.deployment_id = f"deploy_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        self.steps: List[DeploymentStep] = []
+        self.deployment_id = f"deploy_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
+        self.steps: list[DeploymentStep] = []
         self.start_time = time.time()
         self._init_database()
 
@@ -366,7 +367,7 @@ class ProductionDeployer:
             logger.info(f"  - {migration_step}")
             time.sleep(0.3)  # Simulate work
 
-    def _get_health_checks(self) -> List[HealthCheck]:
+    def _get_health_checks(self) -> list[HealthCheck]:
         """Get list of health checks for blue environment validation."""
         return [
             HealthCheck("API Health", "/health", 200, 30, 3),
@@ -376,7 +377,7 @@ class ProductionDeployer:
             HealthCheck("Safety Monitoring", "/safety/health", 200, 30, 3),
         ]
 
-    def _run_health_checks(self, health_checks: List[HealthCheck]) -> Tuple[int, int]:
+    def _run_health_checks(self, health_checks: list[HealthCheck]) -> tuple[int, int]:
         """Run health checks and return passed and total counts."""
         passed_checks = 0
         total_checks = len(health_checks)
@@ -392,7 +393,7 @@ class ProductionDeployer:
 
         return passed_checks, total_checks
 
-    def _get_traffic_stages(self) -> List[Dict[str, int]]:
+    def _get_traffic_stages(self) -> list[dict[str, int]]:
         """Get traffic shifting stages for canary deployment."""
         return [
             {"percentage": 5, "duration": 300},  # 5% for 5 minutes
@@ -436,7 +437,7 @@ class ProductionDeployer:
             logger.error(f"Traffic shifting failed: {e}")
             raise
 
-    def _monitor_canary_metrics(self, duration: int) -> Dict[str, Any]:
+    def _monitor_canary_metrics(self, duration: int) -> dict[str, Any]:
         """Monitor canary deployment metrics."""
         try:
             # Simulate monitoring
@@ -470,7 +471,7 @@ class ProductionDeployer:
         except Exception as e:
             return {"success": False, "metrics": {}, "error": str(e)}
 
-    def rollback_deployment(self, reason: str) -> Dict[str, Any]:
+    def rollback_deployment(self, reason: str) -> dict[str, Any]:
         """Rollback deployment to previous stable state."""
         logger.warning(f"Initiating deployment rollback: {reason}")
 
@@ -501,7 +502,7 @@ class ProductionDeployer:
                     logger.error(f"Rollback failed for {step.name}: {e}")
                     rollback_step.status = DeploymentStatus.FAILED
                     rollback_step.end_time = datetime.now(timezone.utc)
-                    rollback_step.details = f"Rollback failed: {str(e)}"
+                    rollback_step.details = f"Rollback failed: {e!s}"
 
                 rollback_steps.append(rollback_step)
                 self._save_deployment_step(rollback_step)
@@ -513,7 +514,7 @@ class ProductionDeployer:
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
-    def run_deployment(self) -> Dict[str, Any]:
+    def run_deployment(self) -> dict[str, Any]:
         """Run complete production deployment process."""
         logger.info(f"Starting production deployment: {self.deployment_id}")
 
@@ -527,13 +528,13 @@ class ProductionDeployer:
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             }
 
-    def _execute_deployment_pipeline(self) -> Dict[str, Any]:
+    def _execute_deployment_pipeline(self) -> dict[str, Any]:
         """Execute the ordered deployment pipeline.
 
         Each step must return a `DeploymentStep`. Steps are order-dependent.
         """
         # Execute deployment steps
-        step_functions: List[Callable[[], DeploymentStep]] = [
+        step_functions: list[Callable[[], DeploymentStep]] = [
             self.prepare_blue_environment,
             self.execute_database_migration,
             self.validate_blue_environment,
@@ -541,7 +542,7 @@ class ProductionDeployer:
             self.finalize_deployment,
         ]
 
-        deployment_steps: List[DeploymentStep] = []
+        deployment_steps: list[DeploymentStep] = []
         for index, step_func in enumerate(step_functions):
             step = step_func()
             if not isinstance(step, DeploymentStep):
@@ -622,7 +623,7 @@ class ProductionDeployer:
 
         return report
 
-    def _save_deployment_record(self, report: Dict[str, Any]):
+    def _save_deployment_record(self, report: dict[str, Any]):
         """Save deployment record to database."""
         try:
             with sqlite3.connect(self.db_path) as conn:
@@ -641,7 +642,7 @@ class ProductionDeployer:
                         self.deployment_id,
                         report["overall_status"],
                         datetime.fromtimestamp(self.start_time).isoformat(),
-                        datetime.now().isoformat(),
+                        datetime.now(timezone.utc).isoformat(),
                         report["environment"],
                         report["version"],
                         json.dumps(report),
@@ -654,8 +655,8 @@ class ProductionDeployer:
             logger.error(f"Failed to save deployment record: {e}")
 
     def _generate_deployment_recommendations(
-        self, steps: List[DeploymentStep], status: DeploymentStatus
-    ) -> List[str]:
+        self, steps: list[DeploymentStep], status: DeploymentStatus
+    ) -> list[str]:
         """Generate deployment recommendations."""
         recommendations = []
 
@@ -683,7 +684,7 @@ class ProductionDeployer:
         return recommendations
 
 
-def _print_deployment_results(results: Dict[str, Any]):
+def _print_deployment_results(results: dict[str, Any]):
     """Print deployment results to console."""
     print("\nPRODUCTION DEPLOYMENT RESULTS")
     print(f"Deployment ID: {results['deployment_id']}")

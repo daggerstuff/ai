@@ -4,13 +4,14 @@ Tier Distribution Analysis and Optimization System
 Analyzes tier distribution patterns and provides optimization recommendations
 """
 
+from datetime import datetime, timezone
+
 import json
 import sqlite3
 import warnings
 from dataclasses import dataclass
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -29,22 +30,22 @@ class TierAnalysis:
     percentage_of_total: float
     avg_word_count: float
     avg_turn_count: float
-    quality_metrics: Dict[str, float]
-    dataset_distribution: Dict[str, int]
+    quality_metrics: dict[str, float]
+    dataset_distribution: dict[str, int]
     processing_efficiency: float
-    characteristics: List[str]
+    characteristics: list[str]
 
 
 @dataclass
 class TierOptimization:
     """Tier optimization recommendations"""
 
-    current_distribution: Dict[str, float]
-    optimal_distribution: Dict[str, float]
-    rebalancing_recommendations: List[str]
-    quality_improvements: List[str]
-    resource_allocation: Dict[str, Any]
-    expected_impact: Dict[str, float]
+    current_distribution: dict[str, float]
+    optimal_distribution: dict[str, float]
+    rebalancing_recommendations: list[str]
+    quality_improvements: list[str]
+    resource_allocation: dict[str, Any]
+    expected_impact: dict[str, float]
 
 
 class TierDistributionOptimizer:
@@ -72,7 +73,7 @@ class TierDistributionOptimizer:
             "min_conversations_per_tier": 1000,
         }
 
-    def analyze_tier_distribution(self) -> Dict[str, TierAnalysis]:
+    def analyze_tier_distribution(self) -> dict[str, TierAnalysis]:
         """Analyze current tier distribution"""
         print("📊 Analyzing tier distribution patterns...")
 
@@ -129,7 +130,7 @@ class TierDistributionOptimizer:
 
     def _analyze_individual_tier(
         self, tier_data: pd.DataFrame, tier_name: str
-    ) -> Optional[TierAnalysis]:
+    ) -> TierAnalysis | None:
         """Analyze individual tier"""
         try:
             tier_subset = tier_data[tier_data["tier"] == tier_name]
@@ -187,7 +188,7 @@ class TierDistributionOptimizer:
 
     def _calculate_tier_quality_metrics(
         self, tier_data: pd.DataFrame
-    ) -> Dict[str, float]:
+    ) -> dict[str, float]:
         """Calculate quality metrics for tier"""
         try:
             # Synthetic quality metrics based on tier characteristics
@@ -216,7 +217,7 @@ class TierDistributionOptimizer:
 
     def _identify_tier_characteristics(
         self, tier_data: pd.DataFrame, tier_name: str
-    ) -> List[str]:
+    ) -> list[str]:
         """Identify characteristics of tier"""
         characteristics = []
 
@@ -267,7 +268,7 @@ class TierDistributionOptimizer:
             return []
 
     def generate_tier_optimization(
-        self, tier_analyses: Dict[str, TierAnalysis]
+        self, tier_analyses: dict[str, TierAnalysis]
     ) -> TierOptimization:
         """Generate tier optimization recommendations"""
         print("🎯 Generating tier optimization recommendations...")
@@ -324,8 +325,8 @@ class TierDistributionOptimizer:
             )
 
     def _calculate_optimal_distribution(
-        self, tier_analyses: Dict[str, TierAnalysis]
-    ) -> Dict[str, float]:
+        self, tier_analyses: dict[str, TierAnalysis]
+    ) -> dict[str, float]:
         """Calculate optimal tier distribution"""
         try:
             optimal_dist = {}
@@ -363,8 +364,8 @@ class TierDistributionOptimizer:
             return {}
 
     def _generate_rebalancing_recommendations(
-        self, current_dist: Dict[str, float], optimal_dist: Dict[str, float]
-    ) -> List[str]:
+        self, current_dist: dict[str, float], optimal_dist: dict[str, float]
+    ) -> list[str]:
         """Generate rebalancing recommendations"""
         recommendations = []
 
@@ -403,8 +404,8 @@ class TierDistributionOptimizer:
             return []
 
     def _generate_quality_improvements(
-        self, tier_analyses: Dict[str, TierAnalysis]
-    ) -> List[str]:
+        self, tier_analyses: dict[str, TierAnalysis]
+    ) -> list[str]:
         """Generate quality improvement recommendations"""
         improvements = []
 
@@ -453,8 +454,8 @@ class TierDistributionOptimizer:
             return []
 
     def _calculate_resource_allocation(
-        self, tier_analyses: Dict[str, TierAnalysis], optimal_dist: Dict[str, float]
-    ) -> Dict[str, Any]:
+        self, tier_analyses: dict[str, TierAnalysis], optimal_dist: dict[str, float]
+    ) -> dict[str, Any]:
         """Calculate resource allocation for optimization"""
         try:
             total_conversations = sum(
@@ -510,10 +511,10 @@ class TierDistributionOptimizer:
 
     def _estimate_optimization_impact(
         self,
-        current_dist: Dict[str, float],
-        optimal_dist: Dict[str, float],
-        tier_analyses: Dict[str, TierAnalysis],
-    ) -> Dict[str, float]:
+        current_dist: dict[str, float],
+        optimal_dist: dict[str, float],
+        tier_analyses: dict[str, TierAnalysis],
+    ) -> dict[str, float]:
         """Estimate impact of optimization"""
         try:
             # Calculate weighted quality improvement
@@ -554,8 +555,8 @@ class TierDistributionOptimizer:
             return {}
 
     def create_tier_visualizations(
-        self, tier_analyses: Dict[str, TierAnalysis], optimization: TierOptimization
-    ) -> Dict[str, str]:
+        self, tier_analyses: dict[str, TierAnalysis], optimization: TierOptimization
+    ) -> dict[str, str]:
         """Create tier distribution visualizations"""
         print("📈 Creating tier distribution visualizations...")
 
@@ -686,21 +687,21 @@ class TierDistributionOptimizer:
 
     def export_tier_optimization_report(
         self,
-        tier_analyses: Dict[str, TierAnalysis],
+        tier_analyses: dict[str, TierAnalysis],
         optimization: TierOptimization,
-        visualizations: Dict[str, str],
+        visualizations: dict[str, str],
     ) -> str:
         """Export comprehensive tier optimization report"""
         print("📄 Exporting tier optimization report...")
 
         try:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
             report_file = self.output_dir / f"tier_optimization_report_{timestamp}.json"
 
             # Prepare export data
             export_data = {
                 "report_metadata": {
-                    "generated_at": datetime.now().isoformat(),
+                    "generated_at": datetime.now(timezone.utc).isoformat(),
                     "optimizer_version": "1.0.0",
                     "tiers_analyzed": len(tier_analyses),
                     "optimization_scope": "distribution_and_quality",
@@ -744,8 +745,8 @@ class TierDistributionOptimizer:
             return ""
 
     def _create_tier_executive_summary(
-        self, tier_analyses: Dict[str, TierAnalysis], optimization: TierOptimization
-    ) -> Dict[str, Any]:
+        self, tier_analyses: dict[str, TierAnalysis], optimization: TierOptimization
+    ) -> dict[str, Any]:
         """Create executive summary of tier optimization"""
         try:
             total_conversations = sum(

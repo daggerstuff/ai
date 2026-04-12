@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, Iterable, List, Optional
+from collections.abc import Callable, Iterable
+from typing import Any
 
 from .hindsight_local_adapter import metadata_to_tags, normalize_tags, serialize_context
 from .hindsight_local_domain import parse_context_payload
@@ -23,14 +24,14 @@ class RetainScopeConflictError(ValueError):
 
 def scope_metadata(
     *,
-    org_id: Optional[str],
-    project_id: Optional[str],
-    session_id: Optional[str],
-    agent_id: Optional[str],
-    run_id: Optional[str],
-    visibility: Optional[str],
-) -> Dict[str, Any]:
-    metadata: Dict[str, Any] = {}
+    org_id: str | None,
+    project_id: str | None,
+    session_id: str | None,
+    agent_id: str | None,
+    run_id: str | None,
+    visibility: str | None,
+) -> dict[str, Any]:
+    metadata: dict[str, Any] = {}
     if org_id:
         metadata["org_id"] = org_id
     if project_id:
@@ -46,10 +47,10 @@ def scope_metadata(
     return metadata
 
 
-def metadata_from_context(context: Optional[str]) -> Dict[str, Any]:
+def metadata_from_context(context: str | None) -> dict[str, Any]:
     payload = parse_context_payload(context)
     metadata = payload.get("metadata")
-    merged: Dict[str, Any] = dict(metadata) if isinstance(metadata, dict) else {}
+    merged: dict[str, Any] = dict(metadata) if isinstance(metadata, dict) else {}
     category = payload.get("category")
     if isinstance(category, str) and category:
         merged["category"] = category
@@ -60,8 +61,8 @@ def metadata_from_context(context: Optional[str]) -> Dict[str, Any]:
     }
 
 
-def custom_tags(tags: Iterable[str]) -> List[str]:
-    filtered: List[str] = []
+def custom_tags(tags: Iterable[str]) -> list[str]:
+    filtered: list[str] = []
     for tag in tags:
         value = str(tag).strip()
         if not value or value.startswith(_RESERVED_TAG_PREFIXES):
@@ -72,10 +73,10 @@ def custom_tags(tags: Iterable[str]) -> List[str]:
 
 def _assert_scope_consistency(
     *,
-    context: Optional[str],
+    context: str | None,
     tags: Iterable[str],
     user_id: str,
-    base_metadata: Dict[str, Any],
+    base_metadata: dict[str, Any],
 ) -> None:
     payload = parse_context_payload(context)
     context_user_id = payload.get("user_id")
@@ -121,12 +122,12 @@ def _assert_scope_consistency(
 
 def build_scoped_retain_items(
     *,
-    items: Iterable[Dict[str, Any]],
+    items: Iterable[dict[str, Any]],
     user_id: str,
-    base_metadata: Dict[str, Any],
+    base_metadata: dict[str, Any],
     ownership_validator: Callable[[str], None],
-) -> List[Dict[str, Any]]:
-    prepared: List[Dict[str, Any]] = []
+) -> list[dict[str, Any]]:
+    prepared: list[dict[str, Any]] = []
     for item in items:
         document_id = item.get("document_id")
         if document_id:
@@ -163,17 +164,17 @@ def build_scoped_retain_items(
 
 def build_hindsight_retain_batch(
     *,
-    items: Iterable[Dict[str, Any]],
+    items: Iterable[dict[str, Any]],
     user_id: str,
-    actor_metadata: Dict[str, Any],
-    org_id: Optional[str],
-    project_id: Optional[str],
-    session_id: Optional[str],
-    agent_id: Optional[str],
-    run_id: Optional[str],
-    visibility: Optional[str],
+    actor_metadata: dict[str, Any],
+    org_id: str | None,
+    project_id: str | None,
+    session_id: str | None,
+    agent_id: str | None,
+    run_id: str | None,
+    visibility: str | None,
     ownership_validator: Callable[[str], None],
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     base_metadata = scope_metadata(
         org_id=org_id,
         project_id=project_id,

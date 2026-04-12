@@ -10,13 +10,15 @@ Implements advanced search capabilities for conversations:
 - Performance optimization
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import re
 import sqlite3
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Callable, Dict, List, Optional, Tuple, TypeVar
+from typing import Any, TypeVar
 
 # Enterprise imports - disabled, modules not available
 # import sys
@@ -33,7 +35,7 @@ def get_logger(name: str) -> logging.Logger:
     return logging.getLogger(name)
 
 
-def get_config() -> Dict[str, Any]:
+def get_config() -> dict[str, Any]:
     return {}
 
 
@@ -60,8 +62,8 @@ from .conversation_database import ConversationDatabase
 class SearchQuery:
     """Search query parameters."""
 
-    text: Optional[str] = None
-    filters: Dict[str, Any] = field(default_factory=dict)
+    text: str | None = None
+    filters: dict[str, Any] = field(default_factory=dict)
     sort_by: str = "relevance"  # relevance, date, quality
     sort_order: str = "desc"  # asc, desc
     limit: int = 20
@@ -75,11 +77,11 @@ class SearchResult:
     """Search result with metadata."""
 
     conversation_id: str
-    title: Optional[str]
+    title: str | None
     snippet: str
     score: float
-    highlights: List[str] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    highlights: list[str] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -89,8 +91,8 @@ class SearchStats:
     total_results: int
     search_time_ms: float
     query_text: str
-    filters_applied: Dict[str, Any]
-    facets: Dict[str, Dict[str, int]] = field(default_factory=dict)
+    filters_applied: dict[str, Any]
+    facets: dict[str, dict[str, int]] = field(default_factory=dict)
 
 
 class ConversationSearchEngine:
@@ -275,7 +277,7 @@ class ConversationSearchEngine:
             )
             return False
 
-    def _extract_searchable_content(self, conversation: Dict[str, Any]) -> str:
+    def _extract_searchable_content(self, conversation: dict[str, Any]) -> str:
         """Extract searchable text content from conversation."""
 
         content_parts = []
@@ -302,10 +304,10 @@ class ConversationSearchEngine:
         return " ".join(content_parts)
 
     @with_retry(component="conversation_search")
-    def search(self, query: SearchQuery) -> Tuple[List[SearchResult], SearchStats]:
+    def search(self, query: SearchQuery) -> tuple[list[SearchResult], SearchStats]:
         """Perform advanced search with ranking and filtering."""
 
-        start_time = datetime.now()
+        start_time = datetime.now(timezone.utc)
 
         try:
             with self.database._get_connection() as conn:
@@ -333,7 +335,7 @@ class ConversationSearchEngine:
                 ]
 
                 # Calculate search statistics
-                search_time = (datetime.now() - start_time).total_seconds() * 1000
+                search_time = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
 
                 # Get facets
                 facets = self._calculate_facets(conn, query)
@@ -364,7 +366,7 @@ class ConversationSearchEngine:
                 filters_applied=query.filters,
             )
 
-    def _build_search_query(self, query: SearchQuery) -> Tuple[str, List[Any]]:
+    def _build_search_query(self, query: SearchQuery) -> tuple[str, list[Any]]:
         """Build SQL search query with filters."""
 
         params = []
@@ -492,13 +494,12 @@ class ConversationSearchEngine:
         # Create FTS5 query with phrase matching and OR logic
         if len(filtered_words) == 1:
             return filtered_words[0]
-        else:
-            # Use phrase matching for exact phrases, OR for individual terms
-            return " OR ".join(filtered_words)
+        # Use phrase matching for exact phrases, OR for individual terms
+        return " OR ".join(filtered_words)
 
     def _process_search_result(
         self, row: sqlite3.Row, query: SearchQuery
-    ) -> Optional[SearchResult]:
+    ) -> SearchResult | None:
         """Process raw search result into SearchResult object."""
 
         try:
@@ -595,7 +596,7 @@ class ConversationSearchEngine:
         return max(0.0, base_score)
 
     def _generate_snippet(
-        self, content: str, query_text: Optional[str], max_length: int
+        self, content: str, query_text: str | None, max_length: int
     ) -> str:
         """Generate search result snippet with context."""
 
@@ -637,7 +638,7 @@ class ConversationSearchEngine:
 
     def _generate_highlights(
         self, content: str, query_text: str, max_highlights: int = 5
-    ) -> List[str]:
+    ) -> list[str]:
         """Generate highlighted excerpts from content."""
 
         if not query_text:
@@ -677,32 +678,31 @@ class ConversationSearchEngine:
         return highlights
 
     def _sort_results(
-        self, results: List[SearchResult], query: SearchQuery
-    ) -> List[SearchResult]:
+        self, results: list[SearchResult], query: SearchQuery
+    ) -> list[SearchResult]:
         """Sort search results based on query parameters."""
 
         if query.sort_by == "relevance":
             return sorted(
                 results, key=lambda x: x.score, reverse=(query.sort_order == "desc")
             )
-        elif query.sort_by == "date":
+        if query.sort_by == "date":
             return sorted(
                 results,
                 key=lambda x: x.metadata.get("created_at", ""),
                 reverse=(query.sort_order == "desc"),
             )
-        elif query.sort_by == "quality":
+        if query.sort_by == "quality":
             return sorted(
                 results,
                 key=lambda x: x.metadata.get("overall_quality", 0),
                 reverse=(query.sort_order == "desc"),
             )
-        else:
-            return results
+        return results
 
     def _calculate_facets(
         self, conn: sqlite3.Connection, query: SearchQuery
-    ) -> Dict[str, Dict[str, int]]:
+    ) -> dict[str, dict[str, int]]:
         """Calculate facets for search results."""
 
         facets = {}
@@ -752,7 +752,7 @@ class ConversationSearchEngine:
 
         return facets
 
-    def suggest_completions(self, partial_text: str, limit: int = 10) -> List[str]:
+    def suggest_completions(self, partial_text: str, limit: int = 10) -> list[str]:
         """Suggest search completions based on partial text."""
 
         try:

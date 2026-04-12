@@ -6,10 +6,11 @@ Enterprise-grade launcher for the quality improvement tracking system
 with comprehensive setup, validation, and execution capabilities.
 """
 
+from datetime import datetime, timezone
+
 import argparse
 import logging
 import sys
-from datetime import datetime
 from pathlib import Path
 
 # Configure logging
@@ -259,13 +260,12 @@ class QualityImprovementTrackingLauncher:
                     "status": "started",
                     "message": "Intervention started and baseline established",
                 }
-            else:
-                logger.error(f"❌ Failed to start intervention: {intervention_id}")
-                return {
-                    "success": False,
-                    "intervention_id": intervention_id,
-                    "error": "Failed to start intervention",
-                }
+            logger.error(f"❌ Failed to start intervention: {intervention_id}")
+            return {
+                "success": False,
+                "intervention_id": intervention_id,
+                "error": "Failed to start intervention",
+            }
 
         except Exception as e:
             logger.error(f"❌ Error starting intervention: {e}")
@@ -295,15 +295,14 @@ class QualityImprovementTrackingLauncher:
                     "status": "progress_recorded",
                     "message": "Progress measurement recorded successfully",
                 }
-            else:
-                logger.error(
-                    f"❌ Failed to record progress for intervention: {intervention_id}"
-                )
-                return {
-                    "success": False,
-                    "intervention_id": intervention_id,
-                    "error": "Failed to record progress measurement",
-                }
+            logger.error(
+                f"❌ Failed to record progress for intervention: {intervention_id}"
+            )
+            return {
+                "success": False,
+                "intervention_id": intervention_id,
+                "error": "Failed to record progress measurement",
+            }
 
         except Exception as e:
             logger.error(f"❌ Error recording progress: {e}")
@@ -358,13 +357,12 @@ class QualityImprovementTrackingLauncher:
                     }
 
                 return result
-            else:
-                logger.error(f"❌ Failed to complete intervention: {intervention_id}")
-                return {
-                    "success": False,
-                    "intervention_id": intervention_id,
-                    "error": "Failed to complete intervention",
-                }
+            logger.error(f"❌ Failed to complete intervention: {intervention_id}")
+            return {
+                "success": False,
+                "intervention_id": intervention_id,
+                "error": "Failed to complete intervention",
+            }
 
         except Exception as e:
             logger.error(f"❌ Error completing intervention: {e}")
@@ -417,7 +415,7 @@ class QualityImprovementTrackingLauncher:
 
                 # Save visualizations as HTML files
                 for viz_name, fig in visualizations.items():
-                    viz_filename = f"improvement_visualization_{viz_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
+                    viz_filename = f"improvement_visualization_{viz_name}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.html"
                     viz_path = self.reports_dir / viz_filename
                     fig.write_html(str(viz_path))
                     visualization_files.append(str(viz_path))
@@ -548,9 +546,8 @@ class QualityImprovementTrackingLauncher:
                 "🎉 Quality Improvement Tracking action completed successfully!"
             )
             return True
-        else:
-            logger.error("❌ Quality Improvement Tracking action failed")
-            return False
+        logger.error("❌ Quality Improvement Tracking action failed")
+        return False
 
 
 def main():

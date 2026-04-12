@@ -4,20 +4,20 @@ Conversation Content Analysis and Insights System
 Analyzes conversation content patterns, themes, and provides actionable insights
 """
 
+from datetime import datetime, timezone
+
 import json
 import re
 import sqlite3
 import warnings
 from collections import Counter
 from dataclasses import dataclass
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
-import pandas as pd
 
-warnings.filterwarnings('ignore')
+warnings.filterwarnings("ignore")
 
 @dataclass
 class ContentAnalysis:
@@ -27,23 +27,23 @@ class ContentAnalysis:
     sentence_count: int
     avg_sentence_length: float
     vocabulary_richness: float
-    sentiment_indicators: Dict[str, int]
-    topic_keywords: List[str]
+    sentiment_indicators: dict[str, int]
+    topic_keywords: list[str]
     conversation_flow: str
     content_quality_score: float
-    therapeutic_indicators: List[str]
+    therapeutic_indicators: list[str]
 
 @dataclass
 class ContentInsights:
     """Content analysis insights"""
     dataset_name: str
     total_conversations_analyzed: int
-    content_patterns: Dict[str, Any]
-    common_themes: List[str]
-    vocabulary_analysis: Dict[str, Any]
-    conversation_structures: Dict[str, int]
-    quality_distribution: Dict[str, int]
-    recommendations: List[str]
+    content_patterns: dict[str, Any]
+    common_themes: list[str]
+    vocabulary_analysis: dict[str, Any]
+    conversation_structures: dict[str, int]
+    quality_distribution: dict[str, int]
+    recommendations: list[str]
 
 class ConversationContentAnalyzer:
     """Enterprise-grade conversation content analysis system"""
@@ -55,20 +55,20 @@ class ConversationContentAnalyzer:
 
         # Analysis configuration
         self.analysis_config = {
-            'max_conversations_per_dataset': 1000,  # For performance
-            'min_word_count': 10,
-            'sentiment_keywords': {
-                'positive': ['good', 'great', 'excellent', 'happy', 'wonderful', 'amazing', 'love', 'like', 'enjoy'],
-                'negative': ['bad', 'terrible', 'awful', 'sad', 'hate', 'dislike', 'angry', 'frustrated', 'upset'],
-                'therapeutic': ['feel', 'emotion', 'therapy', 'counseling', 'support', 'help', 'understand', 'cope']
+            "max_conversations_per_dataset": 1000,  # For performance
+            "min_word_count": 10,
+            "sentiment_keywords": {
+                "positive": ["good", "great", "excellent", "happy", "wonderful", "amazing", "love", "like", "enjoy"],
+                "negative": ["bad", "terrible", "awful", "sad", "hate", "dislike", "angry", "frustrated", "upset"],
+                "therapeutic": ["feel", "emotion", "therapy", "counseling", "support", "help", "understand", "cope"]
             },
-            'therapeutic_indicators': [
-                'cognitive behavioral', 'mindfulness', 'anxiety', 'depression', 'stress', 'trauma',
-                'therapy', 'counseling', 'mental health', 'emotional', 'psychological'
+            "therapeutic_indicators": [
+                "cognitive behavioral", "mindfulness", "anxiety", "depression", "stress", "trauma",
+                "therapy", "counseling", "mental health", "emotional", "psychological"
             ]
         }
 
-    def analyze_conversation_content(self, dataset_name: Optional[str] = None) -> Dict[str, ContentInsights]:
+    def analyze_conversation_content(self, dataset_name: str | None = None) -> dict[str, ContentInsights]:
         """Analyze conversation content across datasets"""
         print("🔍 Analyzing conversation content and generating insights...")
 
@@ -94,7 +94,7 @@ class ConversationContentAnalyzer:
             print(f"❌ Error analyzing conversation content: {e}")
             return {}
 
-    def _get_dataset_list(self) -> List[str]:
+    def _get_dataset_list(self) -> list[str]:
         """Get list of datasets"""
         try:
             conn = sqlite3.connect(self.db_path)
@@ -117,7 +117,7 @@ class ConversationContentAnalyzer:
             print(f"❌ Error getting dataset list: {e}")
             return []
 
-    def _analyze_dataset_content(self, dataset_name: str) -> Optional[ContentInsights]:
+    def _analyze_dataset_content(self, dataset_name: str) -> ContentInsights | None:
         """Analyze content for specific dataset"""
         try:
             # Get conversations from dataset
@@ -128,7 +128,7 @@ class ConversationContentAnalyzer:
 
             # Analyze individual conversations
             content_analyses = []
-            for conv in conversations[:self.analysis_config['max_conversations_per_dataset']]:
+            for conv in conversations[:self.analysis_config["max_conversations_per_dataset"]]:
                 analysis = self._analyze_individual_conversation(conv)
                 if analysis:
                     content_analyses.append(analysis)
@@ -145,7 +145,7 @@ class ConversationContentAnalyzer:
             print(f"❌ Error analyzing dataset content for {dataset_name}: {e}")
             return None
 
-    def _get_dataset_conversations(self, dataset_name: str) -> List[Dict]:
+    def _get_dataset_conversations(self, dataset_name: str) -> list[dict]:
         """Get conversations for dataset"""
         try:
             conn = sqlite3.connect(self.db_path)
@@ -166,8 +166,8 @@ class ConversationContentAnalyzer:
 
             cursor = conn.execute(query, (
                 dataset_name,
-                self.analysis_config['min_word_count'],
-                self.analysis_config['max_conversations_per_dataset']
+                self.analysis_config["min_word_count"],
+                self.analysis_config["max_conversations_per_dataset"]
             ))
 
             columns = [desc[0] for desc in cursor.description]
@@ -177,7 +177,7 @@ class ConversationContentAnalyzer:
                 record = dict(zip(columns, row))
                 # Parse JSON conversation
                 try:
-                    record['conversations'] = json.loads(record['conversations_json'])
+                    record["conversations"] = json.loads(record["conversations_json"])
                     conversations.append(record)
                 except json.JSONDecodeError:
                     continue
@@ -189,11 +189,11 @@ class ConversationContentAnalyzer:
             print(f"❌ Error getting conversations for {dataset_name}: {e}")
             return []
 
-    def _analyze_individual_conversation(self, conversation_data: Dict) -> Optional[ContentAnalysis]:
+    def _analyze_individual_conversation(self, conversation_data: dict) -> ContentAnalysis | None:
         """Analyze individual conversation content"""
         try:
-            conversation_id = conversation_data['conversation_id']
-            conversations = conversation_data.get('conversations', [])
+            conversation_id = conversation_data["conversation_id"]
+            conversations = conversation_data.get("conversations", [])
 
             if not conversations:
                 return None
@@ -203,12 +203,12 @@ class ConversationContentAnalyzer:
             for turn in conversations:
                 if isinstance(turn, dict):
                     # Handle different conversation formats
-                    text = turn.get('human', '') + ' ' + turn.get('assistant', '')
-                    text += turn.get('user', '') + ' ' + turn.get('bot', '')
-                    text += turn.get('input', '') + ' ' + turn.get('output', '')
-                    all_text += text + ' '
+                    text = turn.get("human", "") + " " + turn.get("assistant", "")
+                    text += turn.get("user", "") + " " + turn.get("bot", "")
+                    text += turn.get("input", "") + " " + turn.get("output", "")
+                    all_text += text + " "
                 elif isinstance(turn, str):
-                    all_text += turn + ' '
+                    all_text += turn + " "
 
             all_text = all_text.strip()
 
@@ -260,48 +260,47 @@ class ConversationContentAnalyzer:
             print(f"❌ Error analyzing individual conversation: {e}")
             return None
 
-    def _split_sentences(self, text: str) -> List[str]:
+    def _split_sentences(self, text: str) -> list[str]:
         """Split text into sentences"""
         # Simple sentence splitting
-        sentences = re.split(r'[.!?]+', text)
+        sentences = re.split(r"[.!?]+", text)
         return [s.strip() for s in sentences if s.strip()]
 
-    def _analyze_sentiment_indicators(self, text: str) -> Dict[str, int]:
+    def _analyze_sentiment_indicators(self, text: str) -> dict[str, int]:
         """Analyze sentiment indicators in text"""
         sentiment_counts = {}
 
-        for sentiment_type, keywords in self.analysis_config['sentiment_keywords'].items():
+        for sentiment_type, keywords in self.analysis_config["sentiment_keywords"].items():
             count = sum(1 for keyword in keywords if keyword in text)
             sentiment_counts[sentiment_type] = count
 
         return sentiment_counts
 
-    def _extract_topic_keywords(self, text: str) -> List[str]:
+    def _extract_topic_keywords(self, text: str) -> list[str]:
         """Extract topic keywords from text"""
         # Simple keyword extraction based on frequency
-        words = re.findall(r'\b[a-zA-Z]{4,}\b', text.lower())  # Words with 4+ characters
+        words = re.findall(r"\b[a-zA-Z]{4,}\b", text.lower())  # Words with 4+ characters
 
         # Filter out common stop words
-        stop_words = {'that', 'this', 'with', 'have', 'will', 'from', 'they', 'been', 'were', 'said', 'each', 'which', 'their', 'time', 'would', 'there', 'could', 'other'}
+        stop_words = {"that", "this", "with", "have", "will", "from", "they", "been", "were", "said", "each", "which", "their", "time", "would", "there", "could", "other"}
         words = [w for w in words if w not in stop_words]
 
         # Get most common words
         word_counts = Counter(words)
         return [word for word, count in word_counts.most_common(10)]
 
-    def _analyze_conversation_flow(self, conversations: List) -> str:
+    def _analyze_conversation_flow(self, conversations: list) -> str:
         """Analyze conversation flow pattern"""
         if len(conversations) <= 2:
             return "short"
-        elif len(conversations) <= 5:
+        if len(conversations) <= 5:
             return "medium"
-        elif len(conversations) <= 10:
+        if len(conversations) <= 10:
             return "extended"
-        else:
-            return "long"
+        return "long"
 
     def _calculate_content_quality_score(self, word_count: int, vocabulary_richness: float,
-                                       sentiment_indicators: Dict[str, int], turn_count: int) -> float:
+                                       sentiment_indicators: dict[str, int], turn_count: int) -> float:
         """Calculate content quality score"""
         try:
             # Normalize factors
@@ -319,18 +318,18 @@ class ConversationContentAnalyzer:
             print(f"❌ Error calculating quality score: {e}")
             return 0.5
 
-    def _identify_therapeutic_indicators(self, text: str) -> List[str]:
+    def _identify_therapeutic_indicators(self, text: str) -> list[str]:
         """Identify therapeutic indicators in text"""
         indicators = []
 
-        for indicator in self.analysis_config['therapeutic_indicators']:
+        for indicator in self.analysis_config["therapeutic_indicators"]:
             if indicator in text:
                 indicators.append(indicator)
 
         return indicators
 
     def _generate_content_insights(self, dataset_name: str,
-                                 content_analyses: List[ContentAnalysis]) -> ContentInsights:
+                                 content_analyses: list[ContentAnalysis]) -> ContentInsights:
         """Generate insights from content analyses"""
         try:
             total_analyzed = len(content_analyses)
@@ -341,13 +340,13 @@ class ConversationContentAnalyzer:
             avg_quality_score = np.mean([a.content_quality_score for a in content_analyses])
 
             content_patterns = {
-                'average_word_count': float(avg_word_count),
-                'average_vocabulary_richness': float(avg_vocabulary_richness),
-                'average_quality_score': float(avg_quality_score),
-                'word_count_distribution': {
-                    'short': len([a for a in content_analyses if a.word_count < 50]),
-                    'medium': len([a for a in content_analyses if 50 <= a.word_count < 200]),
-                    'long': len([a for a in content_analyses if a.word_count >= 200])
+                "average_word_count": float(avg_word_count),
+                "average_vocabulary_richness": float(avg_vocabulary_richness),
+                "average_quality_score": float(avg_quality_score),
+                "word_count_distribution": {
+                    "short": len([a for a in content_analyses if a.word_count < 50]),
+                    "medium": len([a for a in content_analyses if 50 <= a.word_count < 200]),
+                    "long": len([a for a in content_analyses if a.word_count >= 200])
                 }
             }
 
@@ -361,12 +360,12 @@ class ConversationContentAnalyzer:
 
             # Vocabulary analysis
             vocabulary_analysis = {
-                'richness_distribution': {
-                    'low': len([a for a in content_analyses if a.vocabulary_richness < 0.3]),
-                    'medium': len([a for a in content_analyses if 0.3 <= a.vocabulary_richness < 0.6]),
-                    'high': len([a for a in content_analyses if a.vocabulary_richness >= 0.6])
+                "richness_distribution": {
+                    "low": len([a for a in content_analyses if a.vocabulary_richness < 0.3]),
+                    "medium": len([a for a in content_analyses if 0.3 <= a.vocabulary_richness < 0.6]),
+                    "high": len([a for a in content_analyses if a.vocabulary_richness >= 0.6])
                 },
-                'average_richness': float(avg_vocabulary_richness)
+                "average_richness": float(avg_vocabulary_richness)
             }
 
             # Conversation structures
@@ -375,9 +374,9 @@ class ConversationContentAnalyzer:
 
             # Quality distribution
             quality_distribution = {
-                'low': len([a for a in content_analyses if a.content_quality_score < 0.4]),
-                'medium': len([a for a in content_analyses if 0.4 <= a.content_quality_score < 0.7]),
-                'high': len([a for a in content_analyses if a.content_quality_score >= 0.7])
+                "low": len([a for a in content_analyses if a.content_quality_score < 0.4]),
+                "medium": len([a for a in content_analyses if 0.4 <= a.content_quality_score < 0.7]),
+                "high": len([a for a in content_analyses if a.content_quality_score >= 0.7])
             }
 
             # Generate recommendations
@@ -409,34 +408,34 @@ class ConversationContentAnalyzer:
                 recommendations=[]
             )
 
-    def _generate_content_recommendations(self, content_patterns: Dict[str, Any],
-                                        vocabulary_analysis: Dict[str, Any],
-                                        quality_distribution: Dict[str, int],
-                                        total_analyzed: int) -> List[str]:
+    def _generate_content_recommendations(self, content_patterns: dict[str, Any],
+                                        vocabulary_analysis: dict[str, Any],
+                                        quality_distribution: dict[str, int],
+                                        total_analyzed: int) -> list[str]:
         """Generate content improvement recommendations"""
         recommendations = []
 
         try:
             # Word count recommendations
-            avg_words = content_patterns.get('average_word_count', 0)
+            avg_words = content_patterns.get("average_word_count", 0)
             if avg_words < 50:
                 recommendations.append("Consider enhancing conversation depth - average word count is low")
             elif avg_words > 500:
                 recommendations.append("Monitor for overly verbose conversations that may reduce engagement")
 
             # Vocabulary richness recommendations
-            avg_richness = vocabulary_analysis.get('average_richness', 0)
+            avg_richness = vocabulary_analysis.get("average_richness", 0)
             if avg_richness < 0.3:
                 recommendations.append("Improve vocabulary diversity to enhance conversation quality")
             elif avg_richness > 0.8:
                 recommendations.append("Excellent vocabulary diversity - maintain current standards")
 
             # Quality distribution recommendations
-            low_quality_pct = (quality_distribution.get('low', 0) / total_analyzed) * 100
+            low_quality_pct = (quality_distribution.get("low", 0) / total_analyzed) * 100
             if low_quality_pct > 30:
                 recommendations.append("High percentage of low-quality conversations - review content standards")
 
-            high_quality_pct = (quality_distribution.get('high', 0) / total_analyzed) * 100
+            high_quality_pct = (quality_distribution.get("high", 0) / total_analyzed) * 100
             if high_quality_pct > 60:
                 recommendations.append("Strong content quality - consider using as training examples")
 
@@ -452,39 +451,39 @@ class ConversationContentAnalyzer:
             print(f"❌ Error generating recommendations: {e}")
             return ["Error generating recommendations - review analysis parameters"]
 
-    def export_content_analysis_report(self, content_insights: Dict[str, ContentInsights]) -> str:
+    def export_content_analysis_report(self, content_insights: dict[str, ContentInsights]) -> str:
         """Export comprehensive content analysis report"""
         print("📄 Exporting content analysis report...")
 
         try:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
             report_file = self.output_dir / f"content_analysis_report_{timestamp}.json"
 
             # Prepare export data
             export_data = {
-                'report_metadata': {
-                    'generated_at': datetime.now().isoformat(),
-                    'analyzer_version': '1.0.0',
-                    'datasets_analyzed': len(content_insights),
-                    'analysis_scope': 'conversation_content'
+                "report_metadata": {
+                    "generated_at": datetime.now(timezone.utc).isoformat(),
+                    "analyzer_version": "1.0.0",
+                    "datasets_analyzed": len(content_insights),
+                    "analysis_scope": "conversation_content"
                 },
-                'content_insights': {
+                "content_insights": {
                     dataset_name: {
-                        'total_conversations_analyzed': insights.total_conversations_analyzed,
-                        'content_patterns': insights.content_patterns,
-                        'common_themes': insights.common_themes,
-                        'vocabulary_analysis': insights.vocabulary_analysis,
-                        'conversation_structures': insights.conversation_structures,
-                        'quality_distribution': insights.quality_distribution,
-                        'recommendations': insights.recommendations
+                        "total_conversations_analyzed": insights.total_conversations_analyzed,
+                        "content_patterns": insights.content_patterns,
+                        "common_themes": insights.common_themes,
+                        "vocabulary_analysis": insights.vocabulary_analysis,
+                        "conversation_structures": insights.conversation_structures,
+                        "quality_distribution": insights.quality_distribution,
+                        "recommendations": insights.recommendations
                     }
                     for dataset_name, insights in content_insights.items()
                 },
-                'summary_statistics': self._create_summary_statistics(content_insights)
+                "summary_statistics": self._create_summary_statistics(content_insights)
             }
 
             # Save report
-            with open(report_file, 'w') as f:
+            with open(report_file, "w") as f:
                 json.dump(export_data, f, indent=2, default=str)
 
             print(f"✅ Exported content analysis report to: {report_file}")
@@ -494,7 +493,7 @@ class ConversationContentAnalyzer:
             print(f"❌ Error exporting content analysis report: {e}")
             return ""
 
-    def _create_summary_statistics(self, content_insights: Dict[str, ContentInsights]) -> Dict[str, Any]:
+    def _create_summary_statistics(self, content_insights: dict[str, ContentInsights]) -> dict[str, Any]:
         """Create summary statistics across all datasets"""
         try:
             if not content_insights:
@@ -505,8 +504,8 @@ class ConversationContentAnalyzer:
             # Average quality scores
             all_quality_scores = []
             for insights in content_insights.values():
-                if 'average_quality_score' in insights.content_patterns:
-                    all_quality_scores.append(insights.content_patterns['average_quality_score'])
+                if "average_quality_score" in insights.content_patterns:
+                    all_quality_scores.append(insights.content_patterns["average_quality_score"])
 
             avg_quality = np.mean(all_quality_scores) if all_quality_scores else 0
 
@@ -519,11 +518,11 @@ class ConversationContentAnalyzer:
             top_themes = [theme for theme, count in theme_counts.most_common(10)]
 
             return {
-                'total_conversations_analyzed': total_conversations,
-                'datasets_analyzed': len(content_insights),
-                'average_quality_score': float(avg_quality),
-                'top_themes_across_datasets': top_themes,
-                'analysis_completion_rate': 100.0  # Assuming all requested analyses completed
+                "total_conversations_analyzed": total_conversations,
+                "datasets_analyzed": len(content_insights),
+                "average_quality_score": float(avg_quality),
+                "top_themes_across_datasets": top_themes,
+                "analysis_completion_rate": 100.0  # Assuming all requested analyses completed
             }
 
         except Exception as e:
@@ -551,7 +550,7 @@ def main():
     # Display summary
     total_analyzed = sum(insights.total_conversations_analyzed for insights in content_insights.values())
 
-    print(f"\n✅ Content Analysis Complete")
+    print("\n✅ Content Analysis Complete")
     print(f"   - Datasets analyzed: {len(content_insights)}")
     print(f"   - Total conversations analyzed: {total_analyzed}")
     print(f"   - Report saved: {report_file}")
@@ -570,7 +569,7 @@ def main():
             print(f"   - Top themes: {', '.join(sample_insights.common_themes[:5])}")
 
         if sample_insights.recommendations:
-            print(f"\n💡 Sample Recommendations:")
+            print("\n💡 Sample Recommendations:")
             for rec in sample_insights.recommendations[:3]:
                 print(f"   • {rec}")
 

@@ -4,12 +4,13 @@ Validation & Quality Assurance System - Task 5.7.2 Complete Implementation
 Comprehensive system implementing all remaining subtasks for Task 5.7.2.
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import time
 from dataclasses import asdict, dataclass
-from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 
@@ -28,11 +29,11 @@ class QualityAssuranceResult:
     """Complete quality assurance result"""
 
     conversation_id: str
-    clinical_validation: Dict[str, Any]
-    workflow_results: Dict[str, Any]
-    automated_checks: Dict[str, Any]
-    quality_improvements: List[str]
-    monitoring_alerts: List[str]
+    clinical_validation: dict[str, Any]
+    workflow_results: dict[str, Any]
+    automated_checks: dict[str, Any]
+    quality_improvements: list[str]
+    monitoring_alerts: list[str]
     overall_qa_score: float
     qa_status: str
     processing_time: float
@@ -79,8 +80,8 @@ class ValidationQualityAssuranceSystem:
 
     def process_conversation_qa(
         self,
-        conversation: Dict[str, Any],
-        options: Dict[str, Any] = None,
+        conversation: dict[str, Any],
+        options: dict[str, Any] = None,
     ) -> QualityAssuranceResult:
         """
         Task 5.7.2.4: Implement automated quality checking and validation
@@ -169,7 +170,7 @@ class ValidationQualityAssuranceSystem:
                 overall_qa_score=overall_score,
                 qa_status=qa_status,
                 processing_time=processing_time,
-                timestamp=datetime.now().isoformat(),
+                timestamp=datetime.now(timezone.utc).isoformat(),
             )
 
             # Cache result for performance optimization
@@ -196,7 +197,7 @@ class ValidationQualityAssuranceSystem:
                 conversation_id, str(e), time.time() - start_time
             )
 
-    def _perform_automated_checks(self, conversation: Dict[str, Any]) -> Dict[str, Any]:
+    def _perform_automated_checks(self, conversation: dict[str, Any]) -> dict[str, Any]:
         """Task 5.7.2.4: Perform comprehensive automated quality checks"""
 
         text = str(conversation.get("conversation", ""))
@@ -225,8 +226,8 @@ class ValidationQualityAssuranceSystem:
         }
 
     def _generate_quality_improvements(
-        self, clinical_result, workflow_result, automated_checks: Dict[str, Any]
-    ) -> List[str]:
+        self, clinical_result, workflow_result, automated_checks: dict[str, Any]
+    ) -> list[str]:
         """Task 5.7.2.5: Generate quality improvement recommendations"""
 
         improvements = []
@@ -259,8 +260,8 @@ class ValidationQualityAssuranceSystem:
         return list(set(improvements))  # Remove duplicates
 
     def _check_monitoring_alerts(
-        self, clinical_result, workflow_result, automated_checks: Dict[str, Any]
-    ) -> List[str]:
+        self, clinical_result, workflow_result, automated_checks: dict[str, Any]
+    ) -> list[str]:
         """Task 5.7.2.9: Generate monitoring alerts based on thresholds"""
 
         alerts = []
@@ -297,7 +298,7 @@ class ValidationQualityAssuranceSystem:
         return alerts
 
     def _calculate_overall_qa_score(
-        self, clinical_result, workflow_result, automated_checks: Dict[str, Any]
+        self, clinical_result, workflow_result, automated_checks: dict[str, Any]
     ) -> float:
         """Calculate weighted overall QA score"""
 
@@ -319,7 +320,7 @@ class ValidationQualityAssuranceSystem:
         overall_score = clinical_score + workflow_score + automated_score
         return min(1.0, max(0.0, overall_score))
 
-    def _determine_qa_status(self, overall_score: float, alerts: List[str]) -> str:
+    def _determine_qa_status(self, overall_score: float, alerts: list[str]) -> str:
         """Determine overall QA status"""
 
         if alerts:
@@ -335,22 +336,21 @@ class ValidationQualityAssuranceSystem:
 
         if overall_score >= 0.9:
             return "EXCELLENT"
-        elif overall_score >= 0.8:
+        if overall_score >= 0.8:
             return "GOOD"
-        elif overall_score >= 0.7:
+        if overall_score >= 0.7:
             return "ACCEPTABLE"
-        else:
-            return "NEEDS_IMPROVEMENT"
+        return "NEEDS_IMPROVEMENT"
 
     def _apply_quality_improvements(
-        self, conversation_id: str, improvements: List[str]
+        self, conversation_id: str, improvements: list[str]
     ):
         """Task 5.7.2.5: Apply quality improvement feedback loops"""
 
         improvement_record = {
             "conversation_id": conversation_id,
             "improvements": improvements,
-            "applied_at": datetime.now().isoformat(),
+            "applied_at": datetime.now(timezone.utc).isoformat(),
             "status": "pending_implementation",
         }
 
@@ -379,14 +379,14 @@ class ValidationQualityAssuranceSystem:
             overall_qa_score=0.0,
             qa_status="ERROR",
             processing_time=processing_time,
-            timestamp=datetime.now().isoformat(),
+            timestamp=datetime.now(timezone.utc).isoformat(),
         )
 
     def process_batch_qa(
         self,
-        conversations: List[Dict[str, Any]],
-        options: Dict[str, Any] = None,
-    ) -> List[QualityAssuranceResult]:
+        conversations: list[dict[str, Any]],
+        options: dict[str, Any] = None,
+    ) -> list[QualityAssuranceResult]:
         """Process batch of conversations with quality assurance"""
 
         results = []
@@ -420,8 +420,8 @@ class ValidationQualityAssuranceSystem:
         return results
 
     def generate_qa_report(
-        self, results: List[QualityAssuranceResult]
-    ) -> Dict[str, Any]:
+        self, results: list[QualityAssuranceResult]
+    ) -> dict[str, Any]:
         """Task 5.7.2.6: Generate comprehensive QA reporting"""
 
         if not results:
@@ -489,10 +489,10 @@ class ValidationQualityAssuranceSystem:
                 ),
             },
             "system_statistics": self.get_system_statistics(),
-            "report_timestamp": datetime.now().isoformat(),
+            "report_timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
-    def get_system_statistics(self) -> Dict[str, Any]:
+    def get_system_statistics(self) -> dict[str, Any]:
         """Get comprehensive system statistics"""
         return {
             "system_stats": self.system_stats,
@@ -500,11 +500,11 @@ class ValidationQualityAssuranceSystem:
             "cache_size": len(self.processing_cache),
             "improvement_history_count": len(self.improvement_history),
             "quality_trends_count": len(self.quality_trends),
-            "statistics_timestamp": datetime.now().isoformat(),
+            "statistics_timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
     def export_qa_results(
-        self, results: List[QualityAssuranceResult], output_path: str
+        self, results: list[QualityAssuranceResult], output_path: str
     ) -> bool:
         """Task 5.7.2.6: Export QA results and documentation"""
 
@@ -516,7 +516,7 @@ class ValidationQualityAssuranceSystem:
                     "alert_thresholds": self.alert_thresholds,
                     "batch_size": self.batch_size,
                 },
-                "export_timestamp": datetime.now().isoformat(),
+                "export_timestamp": datetime.now(timezone.utc).isoformat(),
             }
 
             with open(output_path, "w", encoding="utf-8") as f:
@@ -530,7 +530,7 @@ class ValidationQualityAssuranceSystem:
             return False
 
     # Helper methods for automated checks
-    def _generate_cache_key(self, conversation: Dict[str, Any]) -> str:
+    def _generate_cache_key(self, conversation: dict[str, Any]) -> str:
         """Generate cache key for conversation"""
         import hashlib
 
@@ -549,10 +549,9 @@ class ValidationQualityAssuranceSystem:
         # Ideal range: 15-20 words per sentence
         if 15 <= avg_words_per_sentence <= 20:
             return 1.0
-        elif 10 <= avg_words_per_sentence <= 25:
+        if 10 <= avg_words_per_sentence <= 25:
             return 0.8
-        else:
-            return 0.6
+        return 0.6
 
     def _analyze_sentiment(self, text: str) -> float:
         """Analyze sentiment of text"""
@@ -649,7 +648,7 @@ class ValidationQualityAssuranceSystem:
 
         return bool(re.search(phone_pattern, text) or re.search(email_pattern, text))
 
-    def _identify_therapeutic_techniques(self, text: str) -> List[str]:
+    def _identify_therapeutic_techniques(self, text: str) -> list[str]:
         """Identify therapeutic techniques used"""
         techniques = []
         text_lower = text.lower()

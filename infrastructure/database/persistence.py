@@ -35,6 +35,9 @@ Usage:
         )
 """
 
+from datetime import datetime, timezone
+
+import builtins
 import json
 import logging
 import sqlite3
@@ -42,21 +45,14 @@ import threading
 import time
 import uuid
 from abc import ABC
+from collections.abc import AsyncIterator, Callable, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import (
     Any,
-    AsyncIterator,
-    Callable,
-    Dict,
     Generic,
-    List,
-    Optional,
-    Sequence,
-    Tuple,
     TypeVar,
     Union,
 )
@@ -101,14 +97,14 @@ class PersistenceConfig:
 
     # Database connection
     database_type: DatabaseType = DatabaseType.SQLITE
-    database_path: Union[str, Path] = "/home/vivi/pixelated/ai/database/consolidated.db"
+    database_path: str | Path = "/home/vivi/pixelated/ai/database/consolidated.db"
 
     # For PostgreSQL/MySQL
-    host: Optional[str] = None
-    port: Optional[int] = None
-    username: Optional[str] = None
-    password: Optional[str] = None
-    database_name: Optional[str] = None
+    host: str | None = None
+    port: int | None = None
+    username: str | None = None
+    password: str | None = None
+    database_name: str | None = None
 
     # Connection pooling
     pool_size: int = 10
@@ -162,14 +158,14 @@ class QueryFilter:
     operator: QueryOperator = QueryOperator.EQ
     value: Any = None
 
-    def to_sql(self) -> Tuple[str, List[Any]]:
+    def to_sql(self) -> tuple[str, list[Any]]:
         """Convert filter to SQL clause."""
-        placeholders: List[str] = []
-        params: List[Any] = []
+        placeholders: list[str] = []
+        params: list[Any] = []
 
         if self.operator in (QueryOperator.IS_NULL, QueryOperator.IS_NOT_NULL):
             return f"{self.field} {self.operator.value}", []
-        elif self.operator in (QueryOperator.IN, QueryOperator.NOT_IN):
+        if self.operator in (QueryOperator.IN, QueryOperator.NOT_IN):
             if isinstance(self.value, (list, tuple)):
                 placeholders = ["?" for _ in self.value]
                 params.extend(self.value)
@@ -177,31 +173,29 @@ class QueryFilter:
                     f"{self.field} {self.operator.value} ({', '.join(placeholders)})",
                     params,
                 )
-            else:
-                raise ValueError("IN/NOT IN operator requires list or tuple value")
-        else:
-            if isinstance(self.value, (list, tuple)):
-                raise ValueError(
-                    f"Operator {self.operator.value} requires single value, not list"
-                )
-            return f"{self.field} {self.operator.value} ?", [self.value]
+            raise ValueError("IN/NOT IN operator requires list or tuple value")
+        if isinstance(self.value, (list, tuple)):
+            raise ValueError(
+                f"Operator {self.operator.value} requires single value, not list"
+            )
+        return f"{self.field} {self.operator.value} ?", [self.value]
 
 
 @dataclass
 class QueryOptions:
     """Options for database queries."""
 
-    filters: List[QueryFilter] = field(default_factory=list)
-    order_by: Optional[str] = None
+    filters: list[QueryFilter] = field(default_factory=list)
+    order_by: str | None = None
     order_desc: bool = False
-    limit: Optional[int] = None
-    offset: Optional[int] = None
+    limit: int | None = None
+    offset: int | None = None
     include_deleted: bool = False
 
-    def to_sql(self) -> Tuple[str, List[str], List[Any]]:
+    def to_sql(self) -> tuple[str, list[str], list[Any]]:
         """Convert options to SQL WHERE clause and arguments."""
-        where_clauses: List[str] = []
-        params: List[Any] = []
+        where_clauses: list[str] = []
+        params: list[Any] = []
 
         # Add filters
         for query_filter in self.filters:
@@ -240,7 +234,7 @@ class BatchResult:
 
     success_count: int
     failed_count: int
-    errors: List[Tuple[int, str]] = field(default_factory=list)
+    errors: list[tuple[int, str]] = field(default_factory=list)
     total_time: float = 0.0
 
     @property
@@ -278,7 +272,7 @@ class DatabaseMetrics:
 
     last_reset: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert metrics to dictionary."""
         avg_query_time = (
             self.total_query_time / self.queries_executed
@@ -320,7 +314,7 @@ class ConnectionPool:
     def __init__(self, config: PersistenceConfig, create_connection: Callable):
         self.config = config
         self.create_connection = create_connection
-        self._pool: List[sqlite3.Connection] = []
+        self._pool: list[sqlite3.Connection] = []
         self._in_use: set = set()
         self._created_at: dict = {}
         self._lock = threading.Lock()
@@ -388,11 +382,11 @@ class SimpleCache:
     def __init__(self, max_size: int = 1000, ttl_seconds: int = 300):
         self.max_size = max_size
         self.ttl_seconds = ttl_seconds
-        self._cache: Dict[str, Tuple[Any, float]] = {}
-        self._access_order: List[str] = []
+        self._cache: dict[str, tuple[Any, float]] = {}
+        self._access_order: list[str] = []
         self._lock = threading.Lock()
 
-    def get(self, key: str) -> Optional[Any]:
+    def get(self, key: str) -> Any | None:
         """Get item from cache."""
         with self._lock:
             if key not in self._cache:
@@ -453,15 +447,15 @@ class BaseModelRepository(ABC, Generic[ModelT]):
         self.table_name = table_name
         self.logger = logging.getLogger(f"persistence.{table_name}")
 
-    async def create(self, data: Dict[str, Any]) -> ModelT:
+    async def create(self, data: dict[str, Any]) -> ModelT:
         """Create a new record."""
         raise NotImplementedError()
 
-    async def get(self, id: ID) -> Optional[ModelT]:
+    async def get(self, id: ID) -> ModelT | None:
         """Get a record by ID."""
         raise NotImplementedError()
 
-    async def update(self, id: ID, data: Dict[str, Any]) -> Optional[ModelT]:
+    async def update(self, id: ID, data: dict[str, Any]) -> ModelT | None:
         """Update a record."""
         raise NotImplementedError()
 
@@ -469,34 +463,34 @@ class BaseModelRepository(ABC, Generic[ModelT]):
         """Delete a record."""
         raise NotImplementedError()
 
-    async def list(self, options: Optional[QueryOptions] = None) -> List[ModelT]:
+    async def list(self, options: QueryOptions | None = None) -> list[ModelT]:
         """List records with optional filtering."""
         raise NotImplementedError()
 
     async def search(
         self,
         query: str,
-        fields: Optional[List[str]] = None,
+        fields: builtins.list[str] | None = None,
         limit: int = 100,
-    ) -> List[ModelT]:
+    ) -> builtins.list[ModelT]:
         """Full-text search across records."""
         raise NotImplementedError()
 
-    async def bulk_create(self, items: List[Dict[str, Any]]) -> BatchResult:
+    async def bulk_create(self, items: builtins.list[dict[str, Any]]) -> BatchResult:
         """Bulk create records."""
         raise NotImplementedError()
 
     async def bulk_update(
-        self, updates: List[Tuple[ID, Dict[str, Any]]]
+        self, updates: builtins.list[tuple[ID, dict[str, Any]]]
     ) -> BatchResult:
         """Bulk update records."""
         raise NotImplementedError()
 
-    async def bulk_delete(self, ids: List[ID], soft_delete: bool = True) -> BatchResult:
+    async def bulk_delete(self, ids: builtins.list[ID], soft_delete: bool = True) -> BatchResult:
         """Bulk delete records."""
         raise NotImplementedError()
 
-    async def count(self, options: Optional[QueryOptions] = None) -> int:
+    async def count(self, options: QueryOptions | None = None) -> int:
         """Count records."""
         raise NotImplementedError()
 
@@ -505,13 +499,13 @@ class BaseModelRepository(ABC, Generic[ModelT]):
         return (await self.get(id)) is not None
 
 
-class ConversationRepository(BaseModelRepository[Dict]):
+class ConversationRepository(BaseModelRepository[dict]):
     """Repository for conversation data."""
 
     def __init__(self, db_manager: "DatabaseManager"):
         super().__init__(db_manager, "conversations")
 
-    async def create(self, data: Dict[str, Any]) -> Dict:
+    async def create(self, data: dict[str, Any]) -> dict:
         """Create a new conversation."""
         sql = """
         INSERT INTO conversations (
@@ -552,7 +546,7 @@ class ConversationRepository(BaseModelRepository[Dict]):
 
         return data
 
-    async def get(self, id: ID) -> Optional[Dict]:
+    async def get(self, id: ID) -> dict | None:
         """Get a conversation by ID."""
         cache_key = f"conversation:{id}"
 
@@ -580,7 +574,7 @@ class ConversationRepository(BaseModelRepository[Dict]):
 
         return None
 
-    async def update(self, id: ID, data: Dict[str, Any]) -> Optional[Dict]:
+    async def update(self, id: ID, data: dict[str, Any]) -> dict | None:
         """Update a conversation."""
         build_clauses = []
         params = []
@@ -642,7 +636,7 @@ class ConversationRepository(BaseModelRepository[Dict]):
 
         return result > 0
 
-    async def list(self, options: Optional[QueryOptions] = None) -> List[Dict]:
+    async def list(self, options: QueryOptions | None = None) -> list[dict]:
         """List conversations with optional filtering."""
         options = options or QueryOptions()
 
@@ -665,16 +659,16 @@ class ConversationRepository(BaseModelRepository[Dict]):
     async def search(
         self,
         query: str,
-        fields: Optional[List[str]] = None,
+        fields: builtins.list[str] | None = None,
         limit: int = 100,
-    ) -> List[Dict]:
+    ) -> builtins.list[dict]:
         """Search conversations by text."""
         # For SQLite, use LIKE searches
         search_fields = fields or ["messages", "metadata"]
 
         like_clauses = [f"{field} LIKE ?" for field in search_fields]
         search_term = f"%{query}%"
-        params: List[Any] = [search_term] * len(like_clauses)
+        params: list[Any] = [search_term] * len(like_clauses)
 
         sql = f"""
         SELECT conversation_id, messages, metadata, tier, processing_status,
@@ -691,7 +685,7 @@ class ConversationRepository(BaseModelRepository[Dict]):
 
         return [self._row_to_dict(row) for row in results]
 
-    async def bulk_create(self, items: List[Dict[str, Any]]) -> BatchResult:
+    async def bulk_create(self, items: builtins.list[dict[str, Any]]) -> BatchResult:
         """Bulk create conversations."""
         start_time = time.time()
         success_count = 0
@@ -742,7 +736,7 @@ class ConversationRepository(BaseModelRepository[Dict]):
         return BatchResult(success_count, failed_count, errors, total_time)
 
     async def bulk_update(
-        self, updates: List[Tuple[ID, Dict[str, Any]]]
+        self, updates: builtins.list[tuple[ID, dict[str, Any]]]
     ) -> BatchResult:
         """Bulk update conversations."""
         start_time = time.time()
@@ -774,7 +768,7 @@ class ConversationRepository(BaseModelRepository[Dict]):
 
         return BatchResult(success_count, failed_count, errors, total_time)
 
-    async def bulk_delete(self, ids: List[ID], soft_delete: bool = True) -> BatchResult:
+    async def bulk_delete(self, ids: builtins.list[ID], soft_delete: bool = True) -> BatchResult:
         """Bulk delete conversations."""
         start_time = time.time()
         success_count = 0
@@ -805,7 +799,7 @@ class ConversationRepository(BaseModelRepository[Dict]):
 
         return BatchResult(success_count, failed_count, errors, total_time)
 
-    async def count(self, options: Optional[QueryOptions] = None) -> int:
+    async def count(self, options: QueryOptions | None = None) -> int:
         """Count conversations."""
         options = options or QueryOptions()
         where_sql, _, params = options.to_sql()
@@ -815,7 +809,7 @@ class ConversationRepository(BaseModelRepository[Dict]):
         result = await self.db_manager.fetch_one(sql, params)
         return int(result[0]) if result else 0
 
-    def _row_to_dict(self, row: tuple[Any, ...]) -> Dict:
+    def _row_to_dict(self, row: tuple[Any, ...]) -> dict:
         """Convert database row to dictionary."""
         return {
             "conversation_id": row[0],
@@ -830,8 +824,8 @@ class ConversationRepository(BaseModelRepository[Dict]):
         }
 
     async def _async_enumerate(
-        self, iterable: List[Any]
-    ) -> AsyncIterator[Tuple[int, Any]]:
+        self, iterable: builtins.list[Any]
+    ) -> AsyncIterator[tuple[int, Any]]:
         """Async enumerate helper."""
         for idx, item in enumerate(iterable):
             yield idx, item
@@ -840,9 +834,9 @@ class ConversationRepository(BaseModelRepository[Dict]):
 class DatabaseManager:
     """Consolidated database manager for all persistence operations."""
 
-    def __init__(self, config: Optional[PersistenceConfig] = None):
+    def __init__(self, config: PersistenceConfig | None = None):
         self.config = config or PersistenceConfig()
-        self._pool: Optional[ConnectionPool] = None
+        self._pool: ConnectionPool | None = None
         self._initialized = False
         self._lock = threading.Lock()
 
@@ -993,7 +987,7 @@ class DatabaseManager:
         return ConversationRepository(self)
 
     # Database operations
-    async def execute(self, sql: str, params: Optional[Sequence[Any]] = None) -> int:
+    async def execute(self, sql: str, params: Sequence[Any] | None = None) -> int:
         """Execute a SQL statement and return affected row count."""
         if not self._initialized:
             self.initialize()
@@ -1032,8 +1026,8 @@ class DatabaseManager:
             self._pool.release_connection(conn)
 
     async def fetch_one(
-        self, sql: str, params: Optional[Sequence[Any]] = None
-    ) -> Optional[tuple[Any, ...]]:
+        self, sql: str, params: Sequence[Any] | None = None
+    ) -> tuple[Any, ...] | None:
         """Fetch a single row from the database."""
         if not self._initialized:
             self.initialize()
@@ -1064,7 +1058,7 @@ class DatabaseManager:
             self._pool.release_connection(conn)
 
     async def fetch_all(
-        self, sql: str, params: Optional[Sequence[Any]] = None
+        self, sql: str, params: Sequence[Any] | None = None
     ) -> list[tuple[Any, ...]]:
         """Fetch all rows from the database."""
         if not self._initialized:
@@ -1096,8 +1090,8 @@ class DatabaseManager:
             self._pool.release_connection(conn)
 
     async def execute_transaction(
-        self, operations: List[Tuple[str, Optional[Sequence[Any]]]]
-    ) -> List[int]:
+        self, operations: list[tuple[str, Sequence[Any] | None]]
+    ) -> list[int]:
         """Execute multiple operations in a single transaction."""
         if not self._initialized:
             self.initialize()
@@ -1127,10 +1121,10 @@ class DatabaseManager:
             self.metrics.total_query_time += execution_time
 
             self.logger.debug(
-                (
+
                     f"Transaction completed: {len(operations)} operations "
                     f"in {execution_time:.3f}s"
-                )
+
             )
 
             return row_counts
@@ -1196,11 +1190,11 @@ class DatabaseManager:
 
 
 # Global database manager instance
-_global_db_manager: Optional[DatabaseManager] = None
+_global_db_manager: DatabaseManager | None = None
 _db_lock = threading.Lock()
 
 
-def get_database_manager(config: Optional[PersistenceConfig] = None) -> DatabaseManager:
+def get_database_manager(config: PersistenceConfig | None = None) -> DatabaseManager:
     """Get or create the global database manager instance."""
     global _global_db_manager
 
@@ -1224,19 +1218,19 @@ def close_database_manager():
 
 
 # Convenience functions for common operations
-async def create_conversation(data: Dict[str, Any]) -> Dict:
+async def create_conversation(data: dict[str, Any]) -> dict:
     """Create a conversation."""
     db = get_database_manager()
     return await db.conversations.create(data)
 
 
-async def get_conversation(id: ID) -> Optional[Dict]:
+async def get_conversation(id: ID) -> dict | None:
     """Get a conversation by ID."""
     db = get_database_manager()
     return await db.conversations.get(id)
 
 
-async def update_conversation(id: ID, data: Dict[str, Any]) -> Optional[Dict]:
+async def update_conversation(id: ID, data: dict[str, Any]) -> dict | None:
     """Update a conversation."""
     db = get_database_manager()
     return await db.conversations.update(id, data)
@@ -1249,10 +1243,10 @@ async def delete_conversation(id: ID, soft_delete: bool = True) -> bool:
 
 
 async def list_conversations(
-    filters: Optional[List[QueryFilter]] = None,
-    limit: Optional[int] = None,
-    offset: Optional[int] = None,
-) -> List[Dict]:
+    filters: list[QueryFilter] | None = None,
+    limit: int | None = None,
+    offset: int | None = None,
+) -> list[dict]:
     """List conversations."""
     db = get_database_manager()
     options = QueryOptions(filters=filters or [], limit=limit, offset=offset)
@@ -1260,20 +1254,20 @@ async def list_conversations(
 
 
 async def search_conversations(
-    query: str, fields: Optional[List[str]] = None, limit: int = 100
-) -> List[Dict]:
+    query: str, fields: list[str] | None = None, limit: int = 100
+) -> list[dict]:
     """Search conversations."""
     db = get_database_manager()
     return await db.conversations.search(query, fields, limit)
 
 
-async def bulk_create_conversations(items: List[Dict[str, Any]]) -> BatchResult:
+async def bulk_create_conversations(items: list[dict[str, Any]]) -> BatchResult:
     """Bulk create conversations."""
     db = get_database_manager()
     return await db.conversations.bulk_create(items)
 
 
-def get_database_metrics() -> Dict[str, Any]:
+def get_database_metrics() -> dict[str, Any]:
     """Get database metrics."""
     db = get_database_manager()
     return db.get_metrics().to_dict()

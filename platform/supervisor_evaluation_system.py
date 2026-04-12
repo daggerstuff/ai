@@ -7,11 +7,11 @@ This system provides supervisors with comprehensive tools to evaluate trainee
 performance and provide structured feedback during AI client role-play sessions.
 """
 
+from datetime import datetime, timezone
+
 import logging
 from dataclasses import dataclass
-from datetime import datetime
 from enum import Enum
-from typing import Dict, List
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -52,10 +52,10 @@ class SkillRubric:
     """Detailed rubric for evaluating therapeutic skills"""
 
     skill_name: str
-    competency_levels: Dict[CompetencyLevel, str]
-    behavioral_indicators: Dict[CompetencyLevel, List[str]]
-    common_mistakes: List[str]
-    development_recommendations: List[str]
+    competency_levels: dict[CompetencyLevel, str]
+    behavioral_indicators: dict[CompetencyLevel, list[str]]
+    common_mistakes: list[str]
+    development_recommendations: list[str]
 
 
 class SupervisorEvaluationEngine:
@@ -81,7 +81,7 @@ class SupervisorEvaluationEngine:
             },
         }
 
-    def _initialize_skill_rubrics(self) -> Dict[str, SkillRubric]:
+    def _initialize_skill_rubrics(self) -> dict[str, SkillRubric]:
         """Initialize comprehensive skill evaluation rubrics"""
 
         return {
@@ -173,7 +173,7 @@ class SupervisorEvaluationEngine:
 
     def start_evaluation_session(
         self, session_id: str, trainee_id: str, supervisor_id: str, trainee_level: str
-    ) -> Dict:
+    ) -> dict:
         """Initialize real-time evaluation for training session"""
 
         evaluation_session = {
@@ -181,7 +181,7 @@ class SupervisorEvaluationEngine:
             "trainee_id": trainee_id,
             "supervisor_id": supervisor_id,
             "trainee_level": trainee_level,
-            "start_time": datetime.now(),
+            "start_time": datetime.now(timezone.utc),
             "observations": [],
             "skill_ratings": {},
             "intervention_notes": [],
@@ -225,7 +225,7 @@ class SupervisorEvaluationEngine:
             intervention_timing = InterventionTiming.SESSION_BREAK
 
         observation = RealTimeObservation(
-            timestamp=datetime.now(),
+            timestamp=datetime.now(timezone.utc),
             observation_type=observation_type,
             description=description,
             skill_area=skill_area,

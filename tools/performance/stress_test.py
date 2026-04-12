@@ -4,10 +4,11 @@ Stress Testing for AI Inference
 Tests system behavior under extreme load
 """
 
+from datetime import datetime, timezone
+
 import asyncio
 import time
 import json
-from datetime import datetime
 from typing import List, Dict
 import aiohttp
 import argparse
@@ -245,7 +246,7 @@ class StressTest:
     def save_results(self, results: Dict, output_file: str):
         """Save stress test results"""
         output = {
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "endpoint": self.endpoint,
             "results": results
         }
@@ -286,5 +287,15 @@ async def main():
         
         if args.test in ["spike", "all"]:
             results["spike"] = await stress_test.spike_test()
-        
-        if args.test in ["enduranc
+        if args.test in ["enduranc        if args.test in ["endurance", "all"]:
+            results["endurance"] = await stress_test.endurance_test()
+            
+    except Exception as e:
+        print(f"Stress test failed: {e}")
+    finally:
+        with open(args.output, "w") as f:
+            json.dump(results, f, indent=4)
+        print(f"Results saved to {args.output}")
+
+if __name__ == "__main__":
+    asyncio.run(main())

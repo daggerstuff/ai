@@ -7,12 +7,13 @@ This system transforms client profiles into realistic, challenging therapeutic i
 for comprehensive therapist training and evaluation.
 """
 
+from datetime import datetime, timezone
+
 import logging
 import random
 import re
 from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any
 
 from pixelated_empathy_core import (
     ClientPersonality,
@@ -39,9 +40,9 @@ class SimulationState:
     breakthrough_opportunity: bool
     crisis_risk_level: float  # 0-1 scale
     last_therapist_intervention: str
-    client_response_history: List[str] = field(default_factory=list)
-    therapist_skill_demonstrations: List[str] = field(default_factory=list)
-    red_flags_triggered: List[str] = field(default_factory=list)
+    client_response_history: list[str] = field(default_factory=list)
+    therapist_skill_demonstrations: list[str] = field(default_factory=list)
+    red_flags_triggered: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -63,9 +64,9 @@ class ClientSimulationResponse:
     emotional_state: str
     resistance_level: float
     therapeutic_progress: float
-    supervisor_notes: List[str]
-    skill_feedback: Dict[str, float]
-    red_flags: List[str]
+    supervisor_notes: list[str]
+    skill_feedback: dict[str, float]
+    red_flags: list[str]
     breakthrough_achieved: bool
     next_challenge_level: float
 
@@ -147,7 +148,7 @@ class TherapeuticSimulationEngine:
     ) -> TrainingSession:
         """Initialize a new therapeutic simulation session"""
 
-        session_id = f"sim_{trainee_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        session_id = f"sim_{trainee_id}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
 
         # Create initial simulation state
         initial_state = SimulationState(
@@ -172,7 +173,7 @@ class TherapeuticSimulationEngine:
             client_profile=client_profile,
             session_objectives=client_profile.learning_objectives,
             difficulty_level=client_profile.difficulty_level,
-            start_time=datetime.now(),
+            start_time=datetime.now(timezone.utc),
             estimated_duration=50,  # Standard therapy session
             current_phase="opening",
         )
@@ -291,19 +292,18 @@ class TherapeuticSimulationEngine:
         """Assess initial crisis risk level"""
         if client_profile.personality_type == ClientPersonality.SUICIDAL_IDEATION:
             return 0.8
-        elif client_profile.personality_type == ClientPersonality.BORDERLINE_TRAITS:
+        if client_profile.personality_type == ClientPersonality.BORDERLINE_TRAITS:
             return 0.6
-        elif client_profile.personality_type == ClientPersonality.HOSTILE_AGGRESSIVE:
+        if client_profile.personality_type == ClientPersonality.HOSTILE_AGGRESSIVE:
             return 0.4
-        else:
-            return 0.2
+        return 0.2
 
     def _analyze_therapist_response(
         self,
         therapist_input: str,
         client_profile: DifficultClientProfile,
         state: SimulationState,
-    ) -> Dict:
+    ) -> dict:
         """Analyze therapist response for therapeutic skills and appropriateness"""
 
         analysis = {
@@ -362,7 +362,7 @@ class TherapeuticSimulationEngine:
         therapist_input: str,
         client_profile: DifficultClientProfile,
         state: SimulationState,
-    ) -> List[str]:
+    ) -> list[str]:
         """Identify common therapeutic mistakes for this client type"""
 
         mistakes = []
@@ -456,7 +456,7 @@ class TherapeuticSimulationEngine:
         therapist_input: str,
         client_profile: DifficultClientProfile,
         state: SimulationState,
-    ) -> Dict:
+    ) -> dict:
         """Predict impact of therapist response on client state"""
 
         impact = {
@@ -498,7 +498,7 @@ class TherapeuticSimulationEngine:
         self,
         state: SimulationState,
         client_profile: DifficultClientProfile,
-        therapist_analysis: Dict,
+        therapist_analysis: dict,
     ):
         """Update simulation state based on therapist intervention"""
 
@@ -562,7 +562,7 @@ class TherapeuticSimulationEngine:
         therapist_input: str,
         client_profile: DifficultClientProfile,
         state: SimulationState,
-        therapist_analysis: Dict,
+        therapist_analysis: dict,
     ) -> Any:
         """Generate realistic client response using therapeutic AI"""
 
@@ -600,17 +600,16 @@ class TherapeuticSimulationEngine:
 
         if state.crisis_risk_level > 0.6:
             return "empathetic + therapeutic"
-        elif state.resistance_level > 0.7:
+        if state.resistance_level > 0.7:
             return "therapeutic + practical"
-        elif state.breakthrough_opportunity:
+        if state.breakthrough_opportunity:
             return "empathetic + educational"
-        else:
-            return "therapeutic"
+        return "therapeutic"
 
     async def _call_therapeutic_ai(
         self,
         therapist_input: str,
-        context: Dict,
+        context: dict,
         expert_preference: str,
         client_profile: DifficultClientProfile,
     ) -> str:
@@ -639,7 +638,7 @@ class TherapeuticSimulationEngine:
         therapist_input: str,
         client_profile: DifficultClientProfile,
         state: SimulationState,
-        therapist_analysis: Dict,
+        therapist_analysis: dict,
     ) -> str:
         """Generate rule-based client response as fallback"""
 
@@ -678,22 +677,21 @@ class TherapeuticSimulationEngine:
                     "Nothing helps",
                 ]
 
+        # Default response based on personality
+        elif "opening" in response_patterns:
+            responses = response_patterns["opening"]
         else:
-            # Default response based on personality
-            if "opening" in response_patterns:
-                responses = response_patterns["opening"]
-            else:
-                responses = ["I guess so", "Maybe", "I don't know"]
+            responses = ["I guess so", "Maybe", "I don't know"]
 
         return random.choice(responses)
 
     def _generate_supervisor_feedback(
         self,
-        therapist_analysis: Dict,
+        therapist_analysis: dict,
         client_response: Any,
         client_profile: DifficultClientProfile,
         state: SimulationState,
-    ) -> Dict:
+    ) -> dict:
         """Generate real-time supervisor feedback"""
 
         feedback = {"notes": [], "skills": {}, "recommendations": []}

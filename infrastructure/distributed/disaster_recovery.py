@@ -4,13 +4,14 @@ Disaster Recovery and Automation System for Pixelated Empathy AI
 Comprehensive disaster recovery procedures with automated failover and restoration
 """
 
+from datetime import datetime, timezone
+
 import asyncio
 import logging
 import time
 from dataclasses import asdict, dataclass
-from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # Optional imports
 try:
@@ -59,12 +60,12 @@ class RecoveryStep:
     name: str
     description: str
     status: RecoveryStatus
-    start_time: Optional[datetime] = None
-    end_time: Optional[datetime] = None
+    start_time: datetime | None = None
+    end_time: datetime | None = None
     duration_seconds: float = 0.0
-    error_message: Optional[str] = None
+    error_message: str | None = None
 
-    dependencies: List[str] = None
+    dependencies: list[str] = None
 
 
 @dataclass
@@ -76,10 +77,10 @@ class DisasterRecoveryPlan:
     name: str
     description: str
     priority: str  # critical, high, medium, low
-    steps: List[RecoveryStep]
+    steps: list[RecoveryStep]
     estimated_recovery_time: int  # minutes
-    required_resources: List[str]
-    contact_information: Dict[str, str]
+    required_resources: list[str]
+    contact_information: dict[str, str]
     last_updated: datetime
 
 
@@ -90,25 +91,25 @@ class RecoverySession:
     session_id: str
     disaster_type: DisasterType
     start_time: datetime
-    end_time: Optional[datetime] = None
+    end_time: datetime | None = None
     status: RecoveryStatus = RecoveryStatus.NOT_STARTED
 
-    completed_steps: List[str] = None
+    completed_steps: list[str] = None
 
-    failed_steps: List[str] = None
-    recovery_plan: Optional[DisasterRecoveryPlan] = None
+    failed_steps: list[str] = None
+    recovery_plan: DisasterRecoveryPlan | None = None
 
-    logs: List[str] = None
+    logs: list[str] = None
 
 
 class DisasterRecoveryManager:
     """Manages disaster recovery procedures and automation"""
 
-    def __init__(self, config: Dict[str, Any] = None):
+    def __init__(self, config: dict[str, Any] = None):
         self.config = config or {}
-        self.recovery_plans: Dict[str, DisasterRecoveryPlan] = {}
-        self.active_sessions: Dict[str, RecoverySession] = {}
-        self.recovery_history: List[RecoverySession] = []
+        self.recovery_plans: dict[str, DisasterRecoveryPlan] = {}
+        self.active_sessions: dict[str, RecoverySession] = {}
+        self.recovery_history: list[RecoverySession] = []
 
         # Initialize default recovery plans
         self._initialize_default_plans()
@@ -166,7 +167,7 @@ class DisasterRecoveryManager:
                 "primary": "db-admin@pixelated.com",
                 "secondary": "ops-team@pixelated.com",
             },
-            last_updated=datetime.utcnow(),
+            last_updated=datetime.now(timezone.utc),
         )
 
         # Data corruption recovery plan
@@ -223,7 +224,7 @@ class DisasterRecoveryManager:
                 "primary": "data-team@pixelated.com",
                 "secondary": "ops-team@pixelated.com",
             },
-            last_updated=datetime.utcnow(),
+            last_updated=datetime.now(timezone.utc),
         )
 
         # Security breach recovery plan
@@ -288,7 +289,7 @@ class DisasterRecoveryManager:
                 "primary": "security-team@pixelated.com",
                 "secondary": "ops-team@pixelated.com",
             },
-            last_updated=datetime.utcnow(),
+            last_updated=datetime.now(timezone.utc),
         )
 
         # Register plans
@@ -300,7 +301,7 @@ class DisasterRecoveryManager:
 
     def get_recovery_plan(
         self, disaster_type: DisasterType
-    ) -> Optional[DisasterRecoveryPlan]:
+    ) -> DisasterRecoveryPlan | None:
         """Get recovery plan for a specific disaster type"""
         for plan in self.recovery_plans.values():
             if plan.disaster_type == disaster_type:
@@ -326,7 +327,7 @@ class DisasterRecoveryManager:
         session = RecoverySession(
             session_id=session_id,
             disaster_type=disaster_type,
-            start_time=datetime.utcnow(),
+            start_time=datetime.now(timezone.utc),
             status=RecoveryStatus.NOT_STARTED,
             completed_steps=[],
             failed_steps=[],
@@ -365,7 +366,7 @@ class DisasterRecoveryManager:
 
         # Update step status
         step.status = RecoveryStatus.IN_PROGRESS
-        step.start_time = datetime.utcnow()
+        step.start_time = datetime.now(timezone.utc)
         session.status = RecoveryStatus.IN_PROGRESS
         session.logs.append(f"Starting step {step.name} at {step.start_time}")
 
@@ -374,7 +375,7 @@ class DisasterRecoveryManager:
             success = await self._execute_step_logic(step_id, session)
 
             # Update step status
-            step.end_time = datetime.utcnow()
+            step.end_time = datetime.now(timezone.utc)
             step.duration_seconds = (step.end_time - step.start_time).total_seconds()
 
             if success:
@@ -383,17 +384,16 @@ class DisasterRecoveryManager:
                 session.logs.append(f"Completed step {step.name} successfully")
                 logger.info(f"Recovery step {step_id} completed successfully")
                 return True
-            else:
-                step.status = RecoveryStatus.FAILED
-                session.failed_steps.append(step_id)
-                session.logs.append(f"Failed step {step.name}")
-                logger.error(f"Recovery step {step_id} failed")
-                return False
+            step.status = RecoveryStatus.FAILED
+            session.failed_steps.append(step_id)
+            session.logs.append(f"Failed step {step.name}")
+            logger.error(f"Recovery step {step_id} failed")
+            return False
 
         except Exception as e:
             step.status = RecoveryStatus.FAILED
             step.error_message = str(e)
-            step.end_time = datetime.utcnow()
+            step.end_time = datetime.now(timezone.utc)
             step.duration_seconds = (step.end_time - step.start_time).total_seconds()
             session.failed_steps.append(step_id)
             session.logs.append(f"Failed step {step.name}: {e}")
@@ -475,7 +475,7 @@ class DisasterRecoveryManager:
         else:
             session.status = RecoveryStatus.FAILED
 
-        session.end_time = datetime.utcnow()
+        session.end_time = datetime.now(timezone.utc)
         self.recovery_history.append(session)
         del self.active_sessions[session_id]
 
@@ -484,7 +484,7 @@ class DisasterRecoveryManager:
         )
         return session.status
 
-    def get_recovery_status(self, session_id: str) -> Optional[Dict[str, Any]]:
+    def get_recovery_status(self, session_id: str) -> dict[str, Any] | None:
         """Get status of a recovery session"""
         if session_id not in self.active_sessions:
             # Check history
@@ -503,7 +503,7 @@ class DisasterRecoveryManager:
 
         session = self.active_sessions[session_id]
         session.status = RecoveryStatus.FAILED
-        session.end_time = datetime.utcnow()
+        session.end_time = datetime.now(timezone.utc)
         session.logs.append("Recovery session cancelled by user")
 
         self.recovery_history.append(session)
@@ -544,7 +544,7 @@ async def switch_to_standby_database(standby_host: str) -> bool:
         return False
 
 
-async def reset_compromised_credentials(credentials_list: List[str]) -> bool:
+async def reset_compromised_credentials(credentials_list: list[str]) -> bool:
     """Reset compromised credentials"""
     try:
         logger.info(f"Resetting {len(credentials_list)} compromised credentials")

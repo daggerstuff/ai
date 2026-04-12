@@ -4,11 +4,11 @@ Working Crisis Conversation Generator
 Uses the functional OpenAI-compatible endpoint to generate authentic crisis training data
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import time
-from datetime import datetime
-from typing import Dict, List
 
 import requests
 
@@ -59,7 +59,7 @@ class CrisisGenerator:
             },
         ]
 
-    def call_model(self, messages: List[Dict], max_tokens: int = 150) -> str:
+    def call_model(self, messages: list[dict], max_tokens: int = 150) -> str:
         """Call the abliterated model API"""
         payload = {
             "model": self.model_name,
@@ -89,20 +89,18 @@ class CrisisGenerator:
                         if len(parts) > 1:
                             content = parts[0].strip()
                     return content
-                else:
-                    logger.error(f"No choices in response: {result}")
-                    return ""
-            else:
-                logger.error(
-                    f"API call failed: {response.status_code} - {response.text}"
-                )
+                logger.error(f"No choices in response: {result}")
                 return ""
+            logger.error(
+                f"API call failed: {response.status_code} - {response.text}"
+            )
+            return ""
 
         except Exception as e:
             logger.error(f"Error calling model: {e}")
             return ""
 
-    def generate_client_message(self, scenario: Dict, exchange_num: int) -> str:
+    def generate_client_message(self, scenario: dict, exchange_num: int) -> str:
         """Generate a client message for the crisis scenario"""
         stage = (
             "initial"
@@ -130,7 +128,7 @@ Make this realistic for training crisis counselors. Keep it under 100 words."""
         messages = [{"role": "user", "content": prompt}]
         return self.call_model(messages, max_tokens=120)
 
-    def generate_counselor_response(self, scenario: Dict, client_message: str) -> str:
+    def generate_counselor_response(self, scenario: dict, client_message: str) -> str:
         """Generate a professional counselor response"""
         prompt = f"""You are a professional crisis counselor responding to this client message:
 
@@ -151,13 +149,13 @@ Keep response under 100 words and show best practices in crisis intervention."""
         messages = [{"role": "user", "content": prompt}]
         return self.call_model(messages, max_tokens=120)
 
-    def generate_conversation(self, scenario: Dict, num_exchanges: int = 5) -> Dict:
+    def generate_conversation(self, scenario: dict, num_exchanges: int = 5) -> dict:
         """Generate a complete crisis conversation"""
         logger.info(f"Generating conversation for: {scenario['name']}")
 
         conversation = {
             "scenario": scenario,
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "exchanges": [],
             "model_used": self.model_name,
         }
@@ -183,7 +181,7 @@ Keep response under 100 words and show best practices in crisis intervention."""
                 "exchange_number": i + 1,
                 "client": client_msg,
                 "counselor": counselor_msg,
-                "timestamp": datetime.now().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
 
             conversation["exchanges"].append(exchange)
@@ -195,7 +193,7 @@ Keep response under 100 words and show best practices in crisis intervention."""
 
     def generate_training_dataset(
         self, conversations_per_scenario: int = 2
-    ) -> List[Dict]:
+    ) -> list[dict]:
         """Generate complete training dataset"""
         logger.info(
             f"Generating {conversations_per_scenario} conversations per scenario"
@@ -218,10 +216,10 @@ Keep response under 100 words and show best practices in crisis intervention."""
 
         return dataset
 
-    def save_dataset(self, dataset: List[Dict], filename: str = None) -> str:
+    def save_dataset(self, dataset: list[dict], filename: str = None) -> str:
         """Save dataset to file"""
         if filename is None:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
             filename = f"crisis_training_dataset_{timestamp}.json"
 
         filepath = f"/home/vivi/pixelated/ai/{filename}"
@@ -256,7 +254,7 @@ def main():
         print("\n" + "=" * 60)
 
         # Save single conversation
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         filename = f"test_crisis_conversation_{timestamp}.json"
         filepath = f"/home/vivi/pixelated/ai/{filename}"
 

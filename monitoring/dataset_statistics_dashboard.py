@@ -4,14 +4,15 @@ Comprehensive Dataset Statistics Dashboard
 Provides detailed analytics and insights about dataset composition and characteristics
 """
 
+from datetime import datetime, timezone
+
 import json
 import sqlite3
 import warnings
 from collections import Counter
 from dataclasses import dataclass
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -31,12 +32,12 @@ class DatasetStatistics:
     total_characters: int
     avg_conversation_length: float
     avg_word_count: float
-    language_distribution: Dict[str, int]
-    tier_distribution: Dict[str, int]
-    processing_status: Dict[str, int]
-    quality_metrics: Dict[str, float]
-    temporal_distribution: Dict[str, int]
-    unique_characteristics: List[str]
+    language_distribution: dict[str, int]
+    tier_distribution: dict[str, int]
+    processing_status: dict[str, int]
+    quality_metrics: dict[str, float]
+    temporal_distribution: dict[str, int]
+    unique_characteristics: list[str]
 
 
 @dataclass
@@ -44,12 +45,12 @@ class DatasetInsights:
     """Dataset insights and recommendations"""
 
     dataset_name: str
-    key_insights: List[str]
-    strengths: List[str]
-    weaknesses: List[str]
-    recommendations: List[str]
-    comparative_analysis: Dict[str, Any]
-    optimization_opportunities: List[str]
+    key_insights: list[str]
+    strengths: list[str]
+    weaknesses: list[str]
+    recommendations: list[str]
+    comparative_analysis: dict[str, Any]
+    optimization_opportunities: list[str]
 
 
 class DatasetStatisticsDashboard:
@@ -68,7 +69,7 @@ class DatasetStatisticsDashboard:
             "color_palette": "husl",
         }
 
-    def generate_comprehensive_statistics(self) -> Dict[str, DatasetStatistics]:
+    def generate_comprehensive_statistics(self) -> dict[str, DatasetStatistics]:
         """Generate comprehensive statistics for all datasets"""
         print("📊 Generating comprehensive dataset statistics...")
 
@@ -96,7 +97,7 @@ class DatasetStatisticsDashboard:
             print(f"❌ Error generating dataset statistics: {e}")
             return {}
 
-    def _get_dataset_list(self) -> List[str]:
+    def _get_dataset_list(self) -> list[str]:
         """Get list of unique datasets"""
         try:
             conn = sqlite3.connect(self.db_path)
@@ -119,7 +120,7 @@ class DatasetStatisticsDashboard:
             print(f"❌ Error getting dataset list: {e}")
             return []
 
-    def _analyze_dataset(self, dataset_name: str) -> Optional[DatasetStatistics]:
+    def _analyze_dataset(self, dataset_name: str) -> DatasetStatistics | None:
         """Analyze individual dataset statistics"""
         try:
             conn = sqlite3.connect(self.db_path)
@@ -204,7 +205,7 @@ class DatasetStatisticsDashboard:
             print(f"❌ Error analyzing dataset {dataset_name}: {e}")
             return None
 
-    def _calculate_quality_metrics(self, df: pd.DataFrame) -> Dict[str, float]:
+    def _calculate_quality_metrics(self, df: pd.DataFrame) -> dict[str, float]:
         """Calculate quality metrics for dataset"""
         try:
             # Synthetic quality metrics for demonstration
@@ -228,7 +229,7 @@ class DatasetStatisticsDashboard:
             print(f"❌ Error calculating quality metrics: {e}")
             return {}
 
-    def _calculate_temporal_distribution(self, df: pd.DataFrame) -> Dict[str, int]:
+    def _calculate_temporal_distribution(self, df: pd.DataFrame) -> dict[str, int]:
         """Calculate temporal distribution of conversations"""
         try:
             # Convert created_at to datetime and extract date
@@ -246,7 +247,7 @@ class DatasetStatisticsDashboard:
 
     def _identify_unique_characteristics(
         self, df: pd.DataFrame, dataset_name: str
-    ) -> List[str]:
+    ) -> list[str]:
         """Identify unique characteristics of the dataset"""
         characteristics = []
 
@@ -298,8 +299,8 @@ class DatasetStatisticsDashboard:
             return []
 
     def generate_dataset_insights(
-        self, dataset_stats: Dict[str, DatasetStatistics]
-    ) -> Dict[str, DatasetInsights]:
+        self, dataset_stats: dict[str, DatasetStatistics]
+    ) -> dict[str, DatasetInsights]:
         """Generate insights and recommendations for datasets"""
         print("🔍 Generating dataset insights and recommendations...")
 
@@ -322,8 +323,8 @@ class DatasetStatisticsDashboard:
             return {}
 
     def _calculate_overall_statistics(
-        self, dataset_stats: Dict[str, DatasetStatistics]
-    ) -> Dict[str, float]:
+        self, dataset_stats: dict[str, DatasetStatistics]
+    ) -> dict[str, float]:
         """Calculate overall statistics across all datasets"""
         try:
             all_conversations = sum(
@@ -351,8 +352,8 @@ class DatasetStatisticsDashboard:
             return {}
 
     def _analyze_dataset_insights(
-        self, stats: DatasetStatistics, overall_stats: Dict[str, float]
-    ) -> Optional[DatasetInsights]:
+        self, stats: DatasetStatistics, overall_stats: dict[str, float]
+    ) -> DatasetInsights | None:
         """Analyze insights for individual dataset"""
         try:
             key_insights = []
@@ -449,7 +450,7 @@ class DatasetStatisticsDashboard:
             print(f"❌ Error analyzing insights for {stats.dataset_name}: {e}")
             return None
 
-    def _calculate_percentile(self, value: float, all_values: List[float]) -> float:
+    def _calculate_percentile(self, value: float, all_values: list[float]) -> float:
         """Calculate percentile rank of value in list"""
         try:
             if not all_values:
@@ -464,8 +465,8 @@ class DatasetStatisticsDashboard:
             return 50.0
 
     def create_dashboard_visualizations(
-        self, dataset_stats: Dict[str, DatasetStatistics]
-    ) -> Dict[str, str]:
+        self, dataset_stats: dict[str, DatasetStatistics]
+    ) -> dict[str, str]:
         """Create comprehensive dashboard visualizations"""
         print("📈 Creating dataset statistics dashboard visualizations...")
 
@@ -636,15 +637,15 @@ class DatasetStatisticsDashboard:
 
     def export_dashboard_report(
         self,
-        dataset_stats: Dict[str, DatasetStatistics],
-        insights: Dict[str, DatasetInsights],
-        visualizations: Dict[str, str],
+        dataset_stats: dict[str, DatasetStatistics],
+        insights: dict[str, DatasetInsights],
+        visualizations: dict[str, str],
     ) -> str:
         """Export comprehensive dashboard report"""
         print("📄 Exporting dataset statistics dashboard report...")
 
         try:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
             report_file = (
                 self.output_dir / f"dataset_statistics_report_{timestamp}.json"
             )
@@ -655,7 +656,7 @@ class DatasetStatisticsDashboard:
             # Prepare export data
             export_data = {
                 "report_metadata": {
-                    "generated_at": datetime.now().isoformat(),
+                    "generated_at": datetime.now(timezone.utc).isoformat(),
                     "dashboard_version": "1.0.0",
                     "total_datasets": len(dataset_stats),
                     "analysis_scope": "comprehensive_statistics",
@@ -704,9 +705,9 @@ class DatasetStatisticsDashboard:
 
     def _create_executive_summary(
         self,
-        dataset_stats: Dict[str, DatasetStatistics],
-        insights: Dict[str, DatasetInsights],
-    ) -> Dict[str, Any]:
+        dataset_stats: dict[str, DatasetStatistics],
+        insights: dict[str, DatasetInsights],
+    ) -> dict[str, Any]:
         """Create executive summary of dataset statistics"""
         try:
             # Overall statistics

@@ -9,7 +9,7 @@ creating their own cloud-backed Hindsight client.
 
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ai.memory.local_hindsight_manager import LocalHindsightMemoryManager
 from ai.memory.local_memory_settings import resolve_local_memory_settings
@@ -26,12 +26,12 @@ class AgentContext:
     """
 
     user_id: str
-    session_id: Optional[str] = None
-    agent_id: Optional[str] = None
-    run_id: Optional[str] = None
-    scope: Optional[str] = None
+    session_id: str | None = None
+    agent_id: str | None = None
+    run_id: str | None = None
+    scope: str | None = None
 
-    def to_metadata(self) -> Dict[str, Any]:
+    def to_metadata(self) -> dict[str, Any]:
         """Convert context to metadata dict for Hindsight."""
         metadata = {"user_id": self.user_id}
         if self.session_id:
@@ -60,10 +60,10 @@ class AgentMemoryTools:
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
-        memory_client: Optional[Any] = None,
-        db_path: Optional[str] = None,
-        bank_id: Optional[str] = None,
+        api_key: str | None = None,
+        memory_client: Any | None = None,
+        db_path: str | None = None,
+        bank_id: str | None = None,
     ):
         """
         Initialize agent memory tools.
@@ -88,8 +88,8 @@ class AgentMemoryTools:
         self,
         context: AgentContext,
         content: str,
-        category: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        category: str | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> str:
         """
         Add information to memory.
@@ -134,7 +134,7 @@ class AgentMemoryTools:
         context: AgentContext,
         query: str,
         limit: int = 10,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Search relevant memories.
 
@@ -169,7 +169,7 @@ class AgentMemoryTools:
         self,
         context: AgentContext,
         limit: int = 100,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Retrieve all memories for the user.
 
@@ -191,7 +191,7 @@ class AgentMemoryTools:
     async def get_memory(
         self,
         memory_id: str,
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """
         Retrieve a specific memory by ID.
 
@@ -261,7 +261,7 @@ class AgentMemoryTools:
             logger.error(f"Error deleting memory: {e}")
             return False
 
-    def get_tool_definitions(self) -> List[Dict[str, Any]]:
+    def get_tool_definitions(self) -> list[dict[str, Any]]:
         """
         Get OpenAI-compatible tool definitions for these memory tools.
 
@@ -364,7 +364,7 @@ def create_memory_tool_handler(
         Async function that handles tool calls
     """
 
-    async def handle_tool_call(name: str, arguments: Dict[str, Any]) -> Any:
+    async def handle_tool_call(name: str, arguments: dict[str, Any]) -> Any:
         """Handle a memory tool call from an agent."""
         if name == "add_to_memory":
             return await tools.add_to_memory(
@@ -372,19 +372,18 @@ def create_memory_tool_handler(
                 arguments["content"],
                 category=arguments.get("category"),
             )
-        elif name == "search_memory":
+        if name == "search_memory":
             return await tools.search_memory(context, arguments["query"])
-        elif name == "get_all_memory":
+        if name == "get_all_memory":
             return await tools.get_all_memory(context)
-        elif name == "update_memory":
+        if name == "update_memory":
             return await tools.update_memory(
                 context,
                 arguments["memory_id"],
                 arguments["new_content"],
             )
-        elif name == "delete_memory":
+        if name == "delete_memory":
             return await tools.delete_memory(context, arguments["memory_id"])
-        else:
-            raise ValueError(f"Unknown tool: {name}")
+        raise ValueError(f"Unknown tool: {name}")
 
     return handle_tool_call

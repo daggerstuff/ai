@@ -6,13 +6,14 @@ Enterprise-grade automated reporting system for quality trends with
 comprehensive analysis, visualizations, and executive summaries.
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import warnings
 from dataclasses import asdict
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -164,7 +165,7 @@ class QualityTrendReporter:
 
         # Create comprehensive report
         report = QualityTrendReport(
-            generated_at=datetime.now().isoformat(),
+            generated_at=datetime.now(timezone.utc).isoformat(),
             analysis_period=f"{days_back}_days",
             overall_trend=overall_trend,
             component_trends=component_trends,
@@ -200,7 +201,7 @@ class QualityTrendReporter:
         )
 
         return QualityTrendReport(
-            generated_at=datetime.now().isoformat(),
+            generated_at=datetime.now(timezone.utc).isoformat(),
             analysis_period="no_data",
             overall_trend=empty_trend,
             component_trends={},
@@ -217,10 +218,10 @@ class QualityTrendReporter:
     def _generate_comparative_analysis(
         self,
         overall_trend: TrendAnalysis,
-        component_trends: Dict[str, TrendAnalysis],
-        tier_trends: Dict[str, TrendAnalysis],
-        dataset_trends: Dict[str, TrendAnalysis],
-    ) -> Dict[str, Any]:
+        component_trends: dict[str, TrendAnalysis],
+        tier_trends: dict[str, TrendAnalysis],
+        dataset_trends: dict[str, TrendAnalysis],
+    ) -> dict[str, Any]:
         """Generate comparative analysis across different dimensions."""
         analysis = {}
 
@@ -304,9 +305,9 @@ class QualityTrendReporter:
     def _generate_executive_summary(
         self,
         overall_trend: TrendAnalysis,
-        component_trends: Dict[str, TrendAnalysis],
-        tier_trends: Dict[str, TrendAnalysis],
-    ) -> List[str]:
+        component_trends: dict[str, TrendAnalysis],
+        tier_trends: dict[str, TrendAnalysis],
+    ) -> list[str]:
         """Generate executive summary for the trend report."""
         summary = []
 
@@ -386,9 +387,9 @@ class QualityTrendReporter:
     def _generate_detailed_insights(
         self,
         overall_trend: TrendAnalysis,
-        component_trends: Dict[str, TrendAnalysis],
-        comparative_analysis: Dict[str, Any],
-    ) -> List[str]:
+        component_trends: dict[str, TrendAnalysis],
+        comparative_analysis: dict[str, Any],
+    ) -> list[str]:
         """Generate detailed insights for the trend report."""
         insights = []
 
@@ -444,9 +445,9 @@ class QualityTrendReporter:
     def _generate_action_items(
         self,
         overall_trend: TrendAnalysis,
-        component_trends: Dict[str, TrendAnalysis],
-        tier_trends: Dict[str, TrendAnalysis],
-    ) -> List[str]:
+        component_trends: dict[str, TrendAnalysis],
+        tier_trends: dict[str, TrendAnalysis],
+    ) -> list[str]:
         """Generate actionable items based on trend analysis."""
         actions = []
 
@@ -497,7 +498,7 @@ class QualityTrendReporter:
 
     def create_trend_visualizations(
         self, report: QualityTrendReport
-    ) -> Dict[str, go.Figure]:
+    ) -> dict[str, go.Figure]:
         """Create comprehensive trend visualizations."""
         visualizations = {}
 
@@ -645,7 +646,7 @@ class QualityTrendReporter:
 
     def save_report(self, report: QualityTrendReport, format: str = "json") -> str:
         """Save trend report to file."""
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
 
         if format == "json":
             filename = f"quality_trend_report_{timestamp}.json"
@@ -675,7 +676,7 @@ class QualityTrendReporter:
         template = Template(self.report_templates["detailed"])
 
         return template.render(
-            report=report, generated_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            report=report, generated_at=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
         )
 
     def _get_executive_template(self) -> str:

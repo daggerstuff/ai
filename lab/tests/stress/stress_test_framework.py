@@ -9,7 +9,7 @@ import random
 import statistics
 import time
 from concurrent.futures import ThreadPoolExecutor
-from typing import Any, Dict, List
+from typing import Any
 
 import psycopg2
 
@@ -30,7 +30,7 @@ class StressTestFramework:
         }
         self.test_results = []
 
-    def generate_test_conversation(self, conv_id: str) -> Dict[str, Any]:
+    def generate_test_conversation(self, conv_id: str) -> dict[str, Any]:
         """Generate a realistic test conversation."""
         conversation_templates = [
             {
@@ -112,8 +112,8 @@ class StressTestFramework:
         }
 
     def insert_conversation_batch(
-        self, conversations: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+        self, conversations: list[dict[str, Any]]
+    ) -> dict[str, Any]:
         """Insert a batch of conversations and measure performance."""
         start_time = time.time()
 
@@ -193,7 +193,7 @@ class StressTestFramework:
 
     def concurrent_insert_test(
         self, total_conversations: int, batch_size: int, num_threads: int
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Test concurrent conversation insertion."""
         logger.info(
             f"Starting concurrent insert test: {total_conversations} conversations, {batch_size} batch size, {num_threads} threads"
@@ -259,7 +259,7 @@ class StressTestFramework:
 
     def query_performance_test(
         self, num_queries: int, concurrent_queries: int
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Test database query performance under load."""
         logger.info(
             f"Starting query performance test: {num_queries} queries, {concurrent_queries} concurrent"
@@ -326,10 +326,9 @@ class StressTestFramework:
                 if len(all_results) > 20
                 else max(all_results),
             }
-        else:
-            return {"error": "No successful queries"}
+        return {"error": "No successful queries"}
 
-    def memory_usage_test(self, dataset_size: int) -> Dict[str, Any]:
+    def memory_usage_test(self, dataset_size: int) -> dict[str, Any]:
         """Test memory usage with large datasets."""
         logger.info(f"Starting memory usage test with {dataset_size} conversations")
 
@@ -374,7 +373,7 @@ class StressTestFramework:
             else 0,
         }
 
-    def run_comprehensive_stress_test(self) -> Dict[str, Any]:
+    def run_comprehensive_stress_test(self) -> dict[str, Any]:
         """Run comprehensive stress tests."""
         logger.info("🚀 STARTING COMPREHENSIVE STRESS TESTS")
 

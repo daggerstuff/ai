@@ -8,7 +8,7 @@ single async-friendly adapter over the shared local memory service.
 from __future__ import annotations
 
 import asyncio
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from .local_hindsight_manager import LocalHindsightMemoryManager
 from .reflection_memory_mapper import record_to_memory
@@ -18,7 +18,7 @@ from .reflection_types import Memory, MemoryCategory, MemoryMetadata
 class LocalReflectionMemoryClient:
     """Async-friendly adapter over LocalHindsightMemoryManager for reflection."""
 
-    def __init__(self, manager: Optional[LocalHindsightMemoryManager] = None) -> None:
+    def __init__(self, manager: LocalHindsightMemoryManager | None = None) -> None:
         self.manager = manager or LocalHindsightMemoryManager()
 
     async def add_memory(self, content: str, metadata: MemoryMetadata) -> str:
@@ -30,7 +30,7 @@ class LocalReflectionMemoryClient:
             category=metadata.category.value,
         )
 
-    async def get_memory(self, memory_id: str, user_id: Optional[str] = None) -> Memory:
+    async def get_memory(self, memory_id: str, user_id: str | None = None) -> Memory:
         record = await asyncio.to_thread(self.manager.get_memory, memory_id, user_id)
         if record is None:
             raise ValueError(f"Memory not found: {memory_id}")
@@ -39,8 +39,8 @@ class LocalReflectionMemoryClient:
     async def update_memory(
         self,
         memory_id: str,
-        content: Optional[str] = None,
-        metadata: Optional[MemoryMetadata] = None,
+        content: str | None = None,
+        metadata: MemoryMetadata | None = None,
     ) -> None:
         user_id = metadata.user_id if metadata is not None else None
         existing = await asyncio.to_thread(self.manager.get_memory, memory_id, user_id)
@@ -70,7 +70,7 @@ class LocalReflectionMemoryClient:
         query: str,
         user_id: str,
         limit: int = 10,
-    ) -> List[Memory]:
+    ) -> list[Memory]:
         records = await asyncio.to_thread(
             self.manager.search_memories,
             query,
@@ -83,16 +83,16 @@ class LocalReflectionMemoryClient:
         self,
         user_id: str,
         limit: int = 100,
-    ) -> List[Memory]:
+    ) -> list[Memory]:
         records = await asyncio.to_thread(self.manager.get_all_memories, user_id, limit)
         return [record_to_memory(record) for record in records]
 
     async def get_memories_by_category(
         self,
         category: MemoryCategory,
-        user_id: Optional[str] = None,
+        user_id: str | None = None,
         limit: int = 100,
-    ) -> List[Memory]:
+    ) -> list[Memory]:
         if user_id is None:
             raise ValueError("user_id is required for category-scoped reflection memory access")
         records = await asyncio.to_thread(
@@ -109,7 +109,7 @@ class LocalReflectionMemoryClient:
         *,
         user_id: str,
         allow_crisis_deletions: bool = False,
-    ) -> Dict[str, int]:
+    ) -> dict[str, int]:
         """
         Execute memory cleanup actions from a reflection result.
 

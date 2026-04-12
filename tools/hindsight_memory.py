@@ -33,11 +33,10 @@ async def _call_mcp_tool(tool_name: str, params: dict) -> str:
     """Call an MCP tool and return the result."""
     server_params = _get_server_params()
 
-    async with stdio_client(server_params) as (read, write):
-        async with ClientSession(read, write) as session:
-            await session.initialize()
-            result = await session.call_tool(tool_name, params)
-            return result.content[0].text if result.content else "No result"
+    async with stdio_client(server_params) as (read, write), ClientSession(read, write) as session:
+        await session.initialize()
+        result = await session.call_tool(tool_name, params)
+        return result.content[0].text if result.content else "No result"
 
 
 def memory_store(content: str, user_id: str = "vivi", category: str = "fact") -> str:

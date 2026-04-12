@@ -7,10 +7,10 @@ This is the core of Pixelated Empathy: AI role-playing as difficult clients for 
 therapist training and supervisor evaluation.
 """
 
+from datetime import datetime, timezone
+
 import logging
 from dataclasses import asdict, dataclass
-from datetime import datetime
-from typing import Dict, List
 
 from pixelated_empathy_core import (
     ClientPersonality,
@@ -35,9 +35,9 @@ class TrainingProgram:
     program_id: str
     program_name: str
     target_competency_level: str
-    required_scenarios: List[Dict]
-    assessment_criteria: Dict
-    completion_requirements: Dict
+    required_scenarios: list[dict]
+    assessment_criteria: dict
+    completion_requirements: dict
 
 
 @dataclass
@@ -48,10 +48,10 @@ class TraineeProfile:
     name: str
     level: str  # student, intern, junior_clinician
     specialization: str
-    completed_scenarios: List[str]
-    skill_assessments: Dict
-    current_competencies: Dict
-    development_goals: List[str]
+    completed_scenarios: list[str]
+    skill_assessments: dict
+    current_competencies: dict
+    development_goals: list[str]
 
 
 class PixelatedEmpathyPlatform:
@@ -155,9 +155,9 @@ class PixelatedEmpathyPlatform:
         supervisor_id: str,
         personality_type: ClientPersonality,
         difficulty_level: DifficultyLevel,
-        learning_objectives: List[SessionObjective],
-        custom_profile: Dict = None,
-    ) -> Dict:
+        learning_objectives: list[SessionObjective],
+        custom_profile: dict = None,
+    ) -> dict:
         """Create a new therapeutic training session"""
 
         logger.info(
@@ -229,8 +229,8 @@ class PixelatedEmpathyPlatform:
         self,
         session_id: str,
         therapist_input: str,
-        supervisor_observations: List[Dict] = None,
-    ) -> Dict:
+        supervisor_observations: list[dict] = None,
+    ) -> dict:
         """Process a single training interaction (therapist input + AI client response)"""
 
         if session_id not in self.active_sessions:
@@ -258,7 +258,7 @@ class PixelatedEmpathyPlatform:
 
         # Log interaction
         interaction_log = {
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "therapist_input": therapist_input,
             "client_response": client_response.content,
             "client_emotional_state": client_response.emotional_state,
@@ -308,7 +308,7 @@ class PixelatedEmpathyPlatform:
 
         return response
 
-    def get_supervisor_dashboard(self, session_id: str) -> Dict:
+    def get_supervisor_dashboard(self, session_id: str) -> dict:
         """Generate comprehensive supervisor dashboard"""
 
         if session_id not in self.active_sessions:
@@ -356,7 +356,7 @@ class PixelatedEmpathyPlatform:
                 "trainee_id": evaluation_session["trainee_id"],
                 "trainee_level": evaluation_session["trainee_level"],
                 "session_duration": str(
-                    datetime.now() - evaluation_session["start_time"]
+                    datetime.now(timezone.utc) - evaluation_session["start_time"]
                 ),
                 "total_interactions": len(session_data["session_log"]),
             },
@@ -385,8 +385,8 @@ class PixelatedEmpathyPlatform:
         return dashboard
 
     def complete_training_session(
-        self, session_id: str, supervisor_final_assessment: Dict
-    ) -> Dict:
+        self, session_id: str, supervisor_final_assessment: dict
+    ) -> dict:
         """Complete training session with final supervisor assessment"""
 
         if session_id not in self.active_sessions:
@@ -419,7 +419,7 @@ class PixelatedEmpathyPlatform:
             return self.trainee_profiles[trainee_id].level
         return "student"  # Default
 
-    def _generate_nonverbal_cues(self, client_response) -> Dict:
+    def _generate_nonverbal_cues(self, client_response) -> dict:
         """Generate nonverbal cues based on client emotional state"""
         cues = {
             "body_language": "Neutral posture",
@@ -447,7 +447,7 @@ class PixelatedEmpathyPlatform:
 
         return cues
 
-    def _generate_intervention_suggestions(self, client_response) -> List[str]:
+    def _generate_intervention_suggestions(self, client_response) -> list[str]:
         """Generate intervention suggestions based on client state"""
         suggestions = []
 
@@ -468,8 +468,8 @@ class PixelatedEmpathyPlatform:
         return suggestions
 
     def _generate_development_recommendations(
-        self, evaluation_session: Dict
-    ) -> List[str]:
+        self, evaluation_session: dict
+    ) -> list[str]:
         """Generate personalized development recommendations"""
         recommendations = []
 
@@ -486,7 +486,7 @@ class PixelatedEmpathyPlatform:
 
         return recommendations[:5]  # Top 5 recommendations
 
-    def _calculate_overall_competency(self, evaluation_session: Dict) -> float:
+    def _calculate_overall_competency(self, evaluation_session: dict) -> float:
         """Calculate overall competency score"""
         if not evaluation_session["skill_ratings"]:
             return 0.0
@@ -497,7 +497,7 @@ class PixelatedEmpathyPlatform:
 
         return statistics.mean(all_ratings) if all_ratings else 0.0
 
-    def _get_intervention_alerts(self, evaluation_session: Dict) -> List[Dict]:
+    def _get_intervention_alerts(self, evaluation_session: dict) -> list[dict]:
         """Get current intervention alerts"""
         alerts = []
 
@@ -519,8 +519,8 @@ class PixelatedEmpathyPlatform:
         return alerts
 
     def _generate_final_assessment(
-        self, session_data: Dict, supervisor_assessment: Dict
-    ) -> Dict:
+        self, session_data: dict, supervisor_assessment: dict
+    ) -> dict:
         """Generate comprehensive final assessment"""
         evaluation_session = session_data["evaluation_session"]
 
@@ -539,7 +539,7 @@ class PixelatedEmpathyPlatform:
 
         return {
             "session_id": session_data["training_session"].session_id,
-            "completion_time": datetime.now().isoformat(),
+            "completion_time": datetime.now(timezone.utc).isoformat(),
             "final_skill_ratings": final_skills,
             "overall_competency": self._calculate_overall_competency(
                 evaluation_session
@@ -563,12 +563,12 @@ class PixelatedEmpathyPlatform:
             ),
         }
 
-    def _update_trainee_profile(self, trainee_id: str, assessment: Dict):
+    def _update_trainee_profile(self, trainee_id: str, assessment: dict):
         """Update trainee profile with assessment results"""
         # Implementation would update trainee's skill assessments and progress
         logger.info(f"Updated trainee profile for {trainee_id}")
 
-    def _archive_session(self, session_id: str, final_assessment: Dict):
+    def _archive_session(self, session_id: str, final_assessment: dict):
         """Archive completed session for future reference"""
         # Implementation would save session data to database
         logger.info(f"Archived training session {session_id}")

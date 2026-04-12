@@ -6,16 +6,15 @@ Task 3B.1: Execute end-to-end testing with complete 4.2M conversation dataset
 Enterprise-grade system validation testing for production readiness.
 """
 
+from datetime import datetime, timezone
+
 import asyncio
 import json
 import logging
 import os
-import subprocess
 import sys
 import time
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
 
 import psutil
 import pytest
@@ -40,7 +39,7 @@ class SystemTestResult:
     """Results from full system testing."""
 
     def __init__(self):
-        self.start_time = datetime.now()
+        self.start_time = datetime.now(timezone.utc)
         self.end_time = None
         self.total_conversations_processed = 0
         self.successful_operations = 0
@@ -52,31 +51,31 @@ class SystemTestResult:
 
     def complete(self):
         """Mark test as complete."""
-        self.end_time = datetime.now()
+        self.end_time = datetime.now(timezone.utc)
         self.duration = (self.end_time - self.start_time).total_seconds()
 
     def add_error(self, error: str):
         """Add error to results."""
-        self.errors.append(f"{datetime.now()}: {error}")
+        self.errors.append(f"{datetime.now(timezone.utc)}: {error}")
         self.failed_operations += 1
         logger.error(error)
 
     def add_warning(self, warning: str):
         """Add warning to results."""
-        self.warnings.append(f"{datetime.now()}: {warning}")
+        self.warnings.append(f"{datetime.now(timezone.utc)}: {warning}")
         logger.warning(warning)
 
     def add_success(self):
         """Record successful operation."""
         self.successful_operations += 1
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         """Convert results to dictionary."""
         return {
             "test_summary": {
                 "start_time": self.start_time.isoformat(),
                 "end_time": self.end_time.isoformat() if self.end_time else None,
-                "duration_seconds": getattr(self, 'duration', None),
+                "duration_seconds": getattr(self, "duration", None),
                 "total_conversations_processed": self.total_conversations_processed,
                 "successful_operations": self.successful_operations,
                 "failed_operations": self.failed_operations,
@@ -145,7 +144,7 @@ class FullSystemValidator:
         # Check system resources
         memory_gb = psutil.virtual_memory().total / (1024**3)
         cpu_count = psutil.cpu_count()
-        disk_gb = psutil.disk_usage('/').total / (1024**3)
+        disk_gb = psutil.disk_usage("/").total / (1024**3)
 
         logger.info(f"System Resources: {memory_gb:.1f}GB RAM, {cpu_count} CPUs, {disk_gb:.1f}GB Disk")
 
@@ -201,8 +200,8 @@ class FullSystemValidator:
                             data = json.load(f)
                             if isinstance(data, list):
                                 total_conversations += len(data)
-                            elif 'conversations' in data:
-                                total_conversations += len(data['conversations'])
+                            elif "conversations" in data:
+                                total_conversations += len(data["conversations"])
                     except Exception as e:
                         logger.warning(f"Could not read {file}: {e}")
 
@@ -449,20 +448,20 @@ class FullSystemValidator:
 
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        with open(output_path, 'w') as f:
+        with open(output_path, "w") as f:
             json.dump(self.results.to_dict(), f, indent=2)
 
         logger.info(f"Test results saved to: {output_path}")
 
         # Also save a summary report
-        self._generate_summary_report(output_path.with_suffix('.md'))
+        self._generate_summary_report(output_path.with_suffix(".md"))
 
     def _generate_summary_report(self, output_path: Path):
         """Generate human-readable summary report."""
         results = self.results.to_dict()
 
         report = f"""# Full System Validation Report
-**Generated**: {datetime.now().isoformat()}
+**Generated**: {datetime.now(timezone.utc).isoformat()}
 **Duration**: {results['test_summary'].get('duration_seconds', 0):.1f} seconds
 
 ## Summary
@@ -475,35 +474,35 @@ class FullSystemValidator:
 ## Performance Metrics
 """
 
-        for metric, value in results['performance_metrics'].items():
+        for metric, value in results["performance_metrics"].items():
             if isinstance(value, float):
                 report += f"- **{metric}**: {value:.2f}\n"
             else:
                 report += f"- **{metric}**: {value}\n"
 
         report += "\n## Resource Usage\n"
-        for phase, usage in results['resource_usage'].items():
+        for phase, usage in results["resource_usage"].items():
             report += f"- **{phase}**: CPU {usage.get('cpu_percent', 0):.1f}%, Memory {usage.get('memory_percent', 0):.1f}%\n"
 
-        if results['errors']:
+        if results["errors"]:
             report += f"\n## Errors ({len(results['errors'])})\n"
-            for error in results['errors']:
+            for error in results["errors"]:
                 report += f"- {error}\n"
 
-        if results['warnings']:
+        if results["warnings"]:
             report += f"\n## Warnings ({len(results['warnings'])})\n"
-            for warning in results['warnings']:
+            for warning in results["warnings"]:
                 report += f"- {warning}\n"
 
-        report += f"\n## Conclusion\n"
-        if results['test_summary']['success_rate'] >= 95:
+        report += "\n## Conclusion\n"
+        if results["test_summary"]["success_rate"] >= 95:
             report += "✅ **System validation PASSED** - Ready for production deployment\n"
-        elif results['test_summary']['success_rate'] >= 80:
+        elif results["test_summary"]["success_rate"] >= 80:
             report += "⚠️ **System validation PASSED with warnings** - Address issues before production\n"
         else:
             report += "❌ **System validation FAILED** - Critical issues must be resolved\n"
 
-        with open(output_path, 'w') as f:
+        with open(output_path, "w") as f:
             f.write(report)
 
         logger.info(f"Summary report saved to: {output_path}")

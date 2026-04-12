@@ -4,6 +4,8 @@ Checkpoint Cleanup and Optimization System for Pixelated Empathy AI
 Advanced cleanup, optimization, and lifecycle management for checkpoints
 """
 
+from datetime import datetime, timezone
+
 import asyncio
 import gzip
 import json
@@ -11,10 +13,9 @@ import logging
 import threading
 import time
 from dataclasses import dataclass
-from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -46,8 +47,8 @@ class CleanupRule:
     rule_id: str
     name: str
     policy: CleanupPolicy
-    conditions: Dict[str, Any]
-    actions: List[str]
+    conditions: dict[str, Any]
+    actions: list[str]
     priority: int = 100
     enabled: bool = True
 
@@ -67,7 +68,7 @@ class OptimizationMetrics:
     deleted_checkpoints: int = 0
     space_saved_mb: float = 0.0
     optimization_time_seconds: float = 0.0
-    last_optimization: Optional[datetime] = None
+    last_optimization: datetime | None = None
 
 
 class CheckpointCleanupOptimizer:
@@ -80,7 +81,7 @@ class CheckpointCleanupOptimizer:
         )
 
         # Cleanup and optimization state
-        self.cleanup_rules: Dict[str, CleanupRule] = {}
+        self.cleanup_rules: dict[str, CleanupRule] = {}
         self.optimization_active = False
         self.optimization_thread = None
         self.metrics = OptimizationMetrics()
@@ -176,7 +177,7 @@ class CheckpointCleanupOptimizer:
 
         logger.info("Stopped checkpoint cleanup and optimization")
 
-    def run_cleanup(self) -> Dict[str, Any]:
+    def run_cleanup(self) -> dict[str, Any]:
         """Run cleanup based on configured rules"""
 
         cleanup_results = {
@@ -254,7 +255,7 @@ class CheckpointCleanupOptimizer:
             ]
             self.metrics.space_saved_mb += cleanup_results["space_freed_mb"]
             self.metrics.optimization_time_seconds = time.time() - start_time
-            self.metrics.last_optimization = datetime.utcnow()
+            self.metrics.last_optimization = datetime.now(timezone.utc)
 
         except Exception as e:
             cleanup_results["errors"].append(f"Cleanup failed: {e}")
@@ -264,8 +265,8 @@ class CheckpointCleanupOptimizer:
         return cleanup_results
 
     def _apply_cleanup_rule(
-        self, rule: CleanupRule, checkpoints: List, storage_usage_percent: float
-    ) -> Dict[str, Any]:
+        self, rule: CleanupRule, checkpoints: list, storage_usage_percent: float
+    ) -> dict[str, Any]:
         """Apply a specific cleanup rule"""
 
         rule_results = {
@@ -315,14 +316,14 @@ class CheckpointCleanupOptimizer:
         return rule_results
 
     def _checkpoint_matches_conditions(
-        self, checkpoint, conditions: Dict[str, Any], storage_usage_percent: float
+        self, checkpoint, conditions: dict[str, Any], storage_usage_percent: float
     ) -> bool:
         """Check if checkpoint matches rule conditions"""
 
         # Check age condition
         if "age_hours" in conditions:
             age_hours = (
-                datetime.utcnow() - checkpoint.created_at
+                datetime.now(timezone.utc) - checkpoint.created_at
             ).total_seconds() / 3600
             if not self._compare_value(age_hours, conditions["age_hours"]):
                 return False
@@ -363,24 +364,18 @@ class CheckpointCleanupOptimizer:
 
         return True
 
-    def _compare_value(self, value: float, condition: Dict[str, float]) -> bool:
+    def _compare_value(self, value: float, condition: dict[str, float]) -> bool:
         """Compare value against condition"""
 
         for operator, threshold in condition.items():
-            if operator == ">=" and value < threshold:
+            if (operator == ">=" and value < threshold) or (operator == ">" and value <= threshold):
                 return False
-            elif operator == ">" and value <= threshold:
-                return False
-            elif operator == "<=" and value > threshold:
-                return False
-            elif operator == "<" and value >= threshold:
-                return False
-            elif operator == "==" and value != threshold:
+            if (operator == "<=" and value > threshold) or (operator == "<" and value >= threshold) or (operator == "==" and value != threshold):
                 return False
 
         return True
 
-    def _execute_cleanup_action(self, action: str, checkpoint) -> Dict[str, Any]:
+    def _execute_cleanup_action(self, action: str, checkpoint) -> dict[str, Any]:
         """Execute a cleanup action on a checkpoint"""
 
         result = {"success": False, "space_freed_mb": 0.0}
@@ -452,16 +447,15 @@ class CheckpointCleanupOptimizer:
                 "data": data
                 if isinstance(data, (dict, list, str, int, float))
                 else str(data),
-                "archived_at": datetime.utcnow().isoformat(),
+                "archived_at": datetime.now(timezone.utc).isoformat(),
             }
 
             with open(archive_file, "w") as f:
                 json.dump(archive_data, f, indent=2, default=str)
 
             # Compress archive
-            with open(archive_file, "rb") as f_in:
-                with gzip.open(f"{archive_file}.gz", "wb") as f_out:
-                    f_out.writelines(f_in)
+            with open(archive_file, "rb") as f_in, gzip.open(f"{archive_file}.gz", "wb") as f_out:
+                f_out.writelines(f_in)
 
             archive_file.unlink()  # Remove uncompressed version
 
@@ -585,7 +579,7 @@ class CheckpointCleanupOptimizer:
                 logger.error(f"Optimization loop error: {e}")
                 time.sleep(3600)  # Wait 1 hour on error
 
-    def run_optimization(self) -> Dict[str, Any]:
+    def run_optimization(self) -> dict[str, Any]:
         """Run optimization operations"""
 
         optimization_results = {
@@ -626,7 +620,7 @@ class CheckpointCleanupOptimizer:
 
         return optimization_results
 
-    def _optimize_compression(self) -> Dict[str, Any]:
+    def _optimize_compression(self) -> dict[str, Any]:
         """Optimize checkpoint compression"""
 
         results = {"checkpoints_compressed": 0, "space_saved_mb": 0.0}
@@ -644,7 +638,7 @@ class CheckpointCleanupOptimizer:
 
         return results
 
-    def _optimize_deduplication(self) -> Dict[str, Any]:
+    def _optimize_deduplication(self) -> dict[str, Any]:
         """Optimize checkpoint deduplication"""
 
         results = {"checkpoints_deduplicated": 0}
@@ -668,7 +662,7 @@ class CheckpointCleanupOptimizer:
 
         return results
 
-    def _optimize_consolidation(self) -> Dict[str, Any]:
+    def _optimize_consolidation(self) -> dict[str, Any]:
         """Optimize checkpoint consolidation"""
 
         results = {"checkpoints_consolidated": 0}
@@ -678,7 +672,7 @@ class CheckpointCleanupOptimizer:
 
         return results
 
-    def get_optimization_status(self) -> Dict[str, Any]:
+    def get_optimization_status(self) -> dict[str, Any]:
         """Get comprehensive optimization status"""
 
         storage_stats = self.checkpoint_manager.storage.get_storage_stats()

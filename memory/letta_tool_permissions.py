@@ -12,9 +12,10 @@ Permission levels:
 """
 
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger("letta_permissions")
 
@@ -41,13 +42,13 @@ class ToolDefinition:
     """Definition of a client-side tool."""
     name: str
     description: str
-    parameters: Dict[str, Any]
+    parameters: dict[str, Any]
     permission_level: PermissionLevel
     allowed_in_crisis: bool = False
     requires_user_consent: bool = False
     pii_filter_enabled: bool = True
     risk_level: str = "low"  # low, medium, high
-    consent_message: Optional[str] = None  # Message for consent request
+    consent_message: str | None = None  # Message for consent request
 
 
 @dataclass
@@ -55,9 +56,9 @@ class PermissionResult:
     """Result of a permission check."""
     allowed: bool
     reason: str
-    filtered_params: Optional[Dict[str, Any]] = None
+    filtered_params: dict[str, Any] | None = None
     requires_consent: bool = False
-    consent_message: Optional[str] = None
+    consent_message: str | None = None
 
 
 class LettaToolRegistry:
@@ -76,7 +77,7 @@ class LettaToolRegistry:
             permission_level: Current permission level
         """
         self.permission_level = permission_level
-        self._tools: Dict[str, ToolDefinition] = {}
+        self._tools: dict[str, ToolDefinition] = {}
         self._register_default_tools()
 
     def _register_default_tools(self) -> None:
@@ -234,15 +235,15 @@ class LettaToolRegistry:
         """Register a tool definition."""
         self._tools[tool.name] = tool
 
-    def get_tool(self, name: str) -> Optional[ToolDefinition]:
+    def get_tool(self, name: str) -> ToolDefinition | None:
         """Get tool definition by name."""
         return self._tools.get(name)
 
-    def list_tools(self) -> List[str]:
+    def list_tools(self) -> list[str]:
         """List all registered tool names."""
         return list(self._tools.keys())
 
-    def get_allowed_tools(self) -> List[str]:
+    def get_allowed_tools(self) -> list[str]:
         """Get tools allowed at current permission level."""
         allowed = []
         for name, tool in self._tools.items():
@@ -278,8 +279,8 @@ class LettaPermissionHandler:
     def __init__(
         self,
         registry: LettaToolRegistry,
-        pii_filter: Optional[Any] = None,
-        crisis_detector: Optional[Any] = None,
+        pii_filter: Any | None = None,
+        crisis_detector: Any | None = None,
     ):
         """
         Initialize permission handler.
@@ -292,7 +293,7 @@ class LettaPermissionHandler:
         self.registry = registry
         self._pii_filter = pii_filter
         self._crisis_detector = crisis_detector
-        self._consent_callback: Optional[Callable] = None
+        self._consent_callback: Callable | None = None
 
     def set_consent_callback(self, callback: Callable) -> None:
         """
@@ -306,9 +307,9 @@ class LettaPermissionHandler:
     async def can_use_tool(
         self,
         tool_name: str,
-        tool_params: Dict[str, Any],
+        tool_params: dict[str, Any],
         user_id: str,
-        context: Optional[Dict[str, Any]] = None,
+        context: dict[str, Any] | None = None,
     ) -> PermissionResult:
         """
         Check if a tool can be used.
@@ -397,7 +398,7 @@ class LettaPermissionHandler:
 
     async def _get_crisis_context(
         self,
-        context: Optional[Dict[str, Any]]
+        context: dict[str, Any] | None
     ) -> CrisisContext:
         """
         Determine crisis context from message/context.
@@ -471,8 +472,8 @@ class LettaPermissionHandler:
 
 def create_permission_handler(
     permission_level: str = "therapeutic",
-    pii_filter: Optional[Any] = None,
-    crisis_detector: Optional[Any] = None,
+    pii_filter: Any | None = None,
+    crisis_detector: Any | None = None,
 ) -> LettaPermissionHandler:
     """
     Create a permission handler with default configuration.

@@ -23,7 +23,7 @@ Example:
 
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 
@@ -44,7 +44,7 @@ class FusedEmotionalState:
     """Fused emotional representation."""
 
     # Pixel EQ scores (5 dimensions)
-    eq_scores: List[float]
+    eq_scores: list[float]
     overall_eq: float
 
     # VAD representation
@@ -59,8 +59,8 @@ class FusedEmotionalState:
     confidence: float  # Overall confidence in fusion
 
     # Detailed breakdown
-    text_emotion: Optional[Dict[str, Any]] = None
-    audio_emotion: Optional[Dict[str, Any]] = None
+    text_emotion: dict[str, Any] | None = None
+    audio_emotion: dict[str, Any] | None = None
 
 
 class MultimodalFusion:
@@ -86,9 +86,9 @@ class MultimodalFusion:
 
     def fuse_emotions(
         self,
-        text_emotion: Optional[Dict[str, Any]] = None,
-        audio_emotion: Optional[Dict[str, Any]] = None,
-        weights: Optional[ModalityWeights] = None,
+        text_emotion: dict[str, Any] | None = None,
+        audio_emotion: dict[str, Any] | None = None,
+        weights: ModalityWeights | None = None,
     ) -> FusedEmotionalState:
         """
         Fuse text and audio emotions.
@@ -162,11 +162,11 @@ class MultimodalFusion:
 
     def _fuse_eq_scores(
         self,
-        text_eq: List[float],
-        audio_eq: List[float],
+        text_eq: list[float],
+        audio_eq: list[float],
         text_weight: float = 0.6,
         audio_weight: float = 0.4,
-    ) -> List[float]:
+    ) -> list[float]:
         """
         Fuse EQ scores from text and audio.
 
@@ -192,7 +192,7 @@ class MultimodalFusion:
         valence: float,
         arousal: float,
         dominance: float,
-    ) -> List[float]:
+    ) -> list[float]:
         """
         Convert VAD (Valence-Arousal-Dominance) to EQ scores.
 
@@ -218,7 +218,7 @@ class MultimodalFusion:
 
         return [float(np.clip(e, 0.0, 1.0)) for e in eq_scores]
 
-    def _eq_to_vad(self, eq_scores: List[float]) -> Tuple[float, float, float]:
+    def _eq_to_vad(self, eq_scores: list[float]) -> tuple[float, float, float]:
         """
         Convert EQ scores back to VAD.
 
@@ -240,8 +240,8 @@ class MultimodalFusion:
 
     def _calculate_conflict(
         self,
-        text_emotion: Dict[str, Any],
-        audio_emotion: Dict[str, Any],
+        text_emotion: dict[str, Any],
+        audio_emotion: dict[str, Any],
     ) -> float:
         """
         Calculate conflict between modalities.
@@ -269,7 +269,7 @@ class MultimodalFusion:
     def detect_modality_conflict(
         self,
         fused_state: FusedEmotionalState,
-        threshold: Optional[float] = None,
+        threshold: float | None = None,
     ) -> bool:
         """
         Detect if modalities are in conflict.
@@ -308,7 +308,7 @@ class MultimodalFusion:
 
         return True
 
-    def _default_text_emotion(self) -> Dict[str, Any]:
+    def _default_text_emotion(self) -> dict[str, Any]:
         """Default neutral text emotion."""
         return {
             "eq_scores": [0.5, 0.5, 0.5, 0.5, 0.5],
@@ -316,7 +316,7 @@ class MultimodalFusion:
             "confidence": 0.0,
         }
 
-    def _default_audio_emotion(self) -> Dict[str, Any]:
+    def _default_audio_emotion(self) -> dict[str, Any]:
         """Default neutral audio emotion."""
         return {
             "valence": 0.0,
@@ -339,9 +339,9 @@ class TextToSpeechGenerator:
         self,
         text: str,
         session_id: str,
-        emotional_state: Optional[Dict[str, float]] = None,
+        emotional_state: dict[str, float] | None = None,
         speaker_id: int = 0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Synthesize speech from text.
 
@@ -374,7 +374,7 @@ class TextToSpeechGenerator:
             }
 
         except Exception as e:
-            logger.error(f"TTS synthesis failed: {str(e)}")
+            logger.error(f"TTS synthesis failed: {e!s}")
             return {"error": str(e)}
 
 
@@ -391,7 +391,7 @@ class MultimodalResponseGenerator:
         text_response: str,
         fused_emotion: FusedEmotionalState,
         session_id: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Generate multimodal response with text + speech.
 
@@ -431,7 +431,7 @@ class MultimodalResponseGenerator:
             return result
 
         except Exception as e:
-            logger.error(f"Multimodal response generation failed: {str(e)}")
+            logger.error(f"Multimodal response generation failed: {e!s}")
             return {
                 "text": text_response,
                 "error": str(e),

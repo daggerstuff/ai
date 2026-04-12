@@ -1,3 +1,5 @@
+
+from datetime import datetime, timezone
 from ai.inference
 from ai.models.pixel_core
 from ai.pipelines.orchestrator
@@ -62,11 +64,11 @@ class TestModule(unittest.TestCase):
                     print(f"Model used: {result.get('model', 'unknown')}")
                     
                     # Save to file
-                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
                     filename = f"crisis_test_{timestamp}.json"
                     
                     test_result = {
-                        "timestamp": datetime.now().isoformat(),
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
                         "scenario": "Acute Suicidal Ideation Test",
                         "prompt": crisis_prompt,
                         "response": content,

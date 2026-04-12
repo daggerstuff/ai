@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-from typing import List, Tuple
-
 from .hindsight_local_adapter import encode_tags_json, normalize_tags
 
 
-def query_tokens(query: str) -> List[str]:
+def query_tokens(query: str) -> list[str]:
     return [token for token in query.replace('"', " ").split() if token]
 
 
@@ -20,15 +18,15 @@ def build_tag_filter(
     *,
     bank_id: str,
     column_alias: str,
-    tags: List[str],
+    tags: list[str],
     tags_match: str,
-) -> Tuple[str, List[str]]:
+) -> tuple[str, list[str]]:
     normalized_tags = normalize_tags(tags)
     if not normalized_tags:
         return "", []
 
     tags_json = encode_tags_json(normalized_tags)
-    params: List[str] = [bank_id, tags_json]
+    params: list[str] = [bank_id, tags_json]
     if tags_match == "all":
         params.append(len(normalized_tags))
         return (

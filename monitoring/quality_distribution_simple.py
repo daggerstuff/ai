@@ -4,12 +4,13 @@ Simple Quality Distribution Analysis System
 Analyzes quality score distributions across datasets, tiers, and time periods
 """
 
+from datetime import datetime, timezone
+
 import json
 import sqlite3
 import warnings
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -27,7 +28,7 @@ class SimpleQualityDistributionAnalyzer:
         self.output_dir = Path("monitoring/quality_distributions")
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
-    def analyze_distributions(self) -> Dict[str, Any]:
+    def analyze_distributions(self) -> dict[str, Any]:
         """Analyze quality distributions"""
         print("🔍 Analyzing quality distributions...")
 
@@ -64,7 +65,7 @@ class SimpleQualityDistributionAnalyzer:
             print(f"❌ Error analyzing distributions: {e}")
             return {}
 
-    def _get_data(self) -> List[Dict]:
+    def _get_data(self) -> list[dict]:
         """Get data from database"""
         try:
             conn = sqlite3.connect(self.db_path)
@@ -99,7 +100,7 @@ class SimpleQualityDistributionAnalyzer:
 
     def _analyze_metric(
         self, df: pd.DataFrame, column: str, title: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Analyze a numeric metric"""
         try:
             values = df[column].dropna().astype(float)
@@ -161,7 +162,7 @@ class SimpleQualityDistributionAnalyzer:
 
     def _analyze_categorical(
         self, df: pd.DataFrame, column: str, title: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Analyze a categorical variable"""
         try:
             value_counts = df[column].value_counts()
@@ -180,7 +181,7 @@ class SimpleQualityDistributionAnalyzer:
             print(f"❌ Error analyzing {column}: {e}")
             return {"error": str(e)}
 
-    def create_visualizations(self, results: Dict[str, Any]) -> Dict[str, str]:
+    def create_visualizations(self, results: dict[str, Any]) -> dict[str, str]:
         """Create distribution visualizations"""
         print("📈 Creating distribution visualizations...")
 
@@ -283,19 +284,19 @@ class SimpleQualityDistributionAnalyzer:
             return {}
 
     def export_report(
-        self, results: Dict[str, Any], visualizations: Dict[str, str]
+        self, results: dict[str, Any], visualizations: dict[str, str]
     ) -> str:
         """Export distribution analysis report"""
         print("📄 Exporting distribution analysis report...")
 
         try:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
             report_file = self.output_dir / f"distribution_report_{timestamp}.json"
 
             # Prepare export data
             export_data = {
                 "report_metadata": {
-                    "generated_at": datetime.now().isoformat(),
+                    "generated_at": datetime.now(timezone.utc).isoformat(),
                     "analyzer_version": "1.0.0",
                 },
                 "analysis_results": results,
@@ -314,7 +315,7 @@ class SimpleQualityDistributionAnalyzer:
             print(f"❌ Error exporting report: {e}")
             return ""
 
-    def _create_summary(self, results: Dict[str, Any]) -> Dict[str, Any]:
+    def _create_summary(self, results: dict[str, Any]) -> dict[str, Any]:
         """Create analysis summary"""
         summary = {}
 

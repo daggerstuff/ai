@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any, Awaitable, Callable, Dict, Optional
+from collections.abc import Awaitable, Callable
+from typing import Any
 
 from .reflection_prompt_provider import ReflectionPromptProvider
 from .reflection_response_parser import ReflectionResponseParser
@@ -16,12 +17,12 @@ LLMCallback = Callable[[str], Awaitable[str]]
 class ReflectionAnalysisService:
     """LLM-facing reflection analysis helpers kept out of the subagent shell."""
 
-    def __init__(self, llm_callback: Optional[LLMCallback]) -> None:
+    def __init__(self, llm_callback: LLMCallback | None) -> None:
         self.llm_callback = llm_callback
         self.prompt_provider = ReflectionPromptProvider()
         self.response_parser = ReflectionResponseParser()
 
-    async def detect_crisis(self, conversation_text: str) -> Dict[str, Any]:
+    async def detect_crisis(self, conversation_text: str) -> dict[str, Any]:
         if not self.llm_callback:
             return {"crisis_detected": False, "indicators": []}
 
@@ -44,7 +45,7 @@ class ReflectionAnalysisService:
         conversation_text: str,
         existing_memories: str,
         include_crisis_context: bool,
-        crisis_detected: Optional[bool],
+        crisis_detected: bool | None,
     ) -> str:
         if not self.llm_callback:
             logger.warning("No LLM callback - returning empty analysis")

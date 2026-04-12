@@ -109,9 +109,8 @@ def test_validation():
     if results["failed"] > 0:
         print(f"❌ {results['failed']} test(s) failed")
         return False
-    else:
-        print("✅ All tests passed!")
-        return True
+    print("✅ All tests passed!")
+    return True
 
 
 def test_batch_validation():
@@ -230,10 +229,9 @@ def main():
         print("\nThe dataset validation module is working correctly.")
         print("Ready to integrate with edge case pipeline.\n")
         return 0
-    else:
-        print("\n❌ Some tests failed")
-        print("\nPlease check the validation module installation.\n")
-        return 1
+    print("\n❌ Some tests failed")
+    print("\nPlease check the validation module installation.\n")
+    return 1
 
 
 if __name__ == "__main__":

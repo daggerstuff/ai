@@ -17,9 +17,8 @@ import logging
 import os
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any
 
 from openai import AsyncOpenAI, OpenAI
 from pydantic import BaseModel, Field, field_validator
@@ -103,11 +102,11 @@ class ModelCapabilities:
     supports_vision: bool = False
     supports_tools: bool = True
     cost_per_1k_tokens: float = 0.0
-    best_for: List[str] = field(default_factory=list)
+    best_for: list[str] = field(default_factory=list)
 
 
 # Model capability registry - Curated from 187 available NVIDIA NIM models
-MODEL_REGISTRY: Dict[str, ModelCapabilities] = {
+MODEL_REGISTRY: dict[str, ModelCapabilities] = {
     # === REASONING TIER ===
     ModelTier.NEMOTRON_SUPER.value: ModelCapabilities(
         model_id=ModelTier.NEMOTRON_SUPER.value,
@@ -300,7 +299,7 @@ class EnhancedNvidiaConfig(BaseModel):
     )
 
     # Model Selection Configuration
-    model_tiers: Dict[str, str] = Field(
+    model_tiers: dict[str, str] = Field(
         default_factory=lambda: {
             "reasoning": ModelTier.NEMOTRON_SUPER.value,
             "generation": ModelTier.NEMOTRON_NANO.value,
@@ -310,7 +309,7 @@ class EnhancedNvidiaConfig(BaseModel):
     )
 
     # Task-to-Tier Mapping
-    complexity_mapping: Dict[str, str] = Field(
+    complexity_mapping: dict[str, str] = Field(
         default_factory=lambda: {
             TaskComplexity.SIMPLE.value: "generation",
             TaskComplexity.MODERATE.value: "generation",
@@ -321,7 +320,7 @@ class EnhancedNvidiaConfig(BaseModel):
     )
 
     # Latency Requirements
-    latency_requirements: Dict[str, int] = Field(
+    latency_requirements: dict[str, int] = Field(
         default_factory=lambda: {
             "max_response_ms": 500,
             "p95_target_ms": 2000,
@@ -373,7 +372,7 @@ class TieredModelSelector:
     ):
         self.config = config
         self.strategy = strategy
-        self._latency_tracker: Dict[str, List[float]] = {}
+        self._latency_tracker: dict[str, list[float]] = {}
         self._initialize_latency_tracker()
 
     def _initialize_latency_tracker(self):
@@ -385,7 +384,7 @@ class TieredModelSelector:
         self,
         task_complexity: TaskComplexity,
         requires_streaming: bool = False,
-        latency_budget_ms: Optional[int] = None,
+        latency_budget_ms: int | None = None,
     ) -> str:
         """
         Select the appropriate model for a given task.
@@ -476,7 +475,7 @@ class CrisisDetector:
         self,
         content: str,
         threshold: float = 0.7,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Analyze content for crisis indicators.
 
@@ -536,7 +535,7 @@ Respond with a JSON object containing:
             logger.error(f"Error in crisis detection: {e}")
             return self._default_result()
 
-    def _default_result(self) -> Dict[str, Any]:
+    def _default_result(self) -> dict[str, Any]:
         """Return default safe result."""
         return {
             "risk_level": "low",
@@ -561,7 +560,7 @@ class EmbeddingGenerator:
         self.model_id = model_id
         self.dimension = dimension
 
-    async def embed_text(self, text: str) -> List[float]:
+    async def embed_text(self, text: str) -> list[float]:
         """Generate embedding for a single text."""
         response = await self.client.embeddings.create(
             model=self.model_id,
@@ -572,9 +571,9 @@ class EmbeddingGenerator:
 
     async def embed_batch(
         self,
-        texts: List[str],
+        texts: list[str],
         batch_size: int = 32,
-    ) -> List[List[float]]:
+    ) -> list[list[float]]:
         """Generate embeddings for a batch of texts."""
         embeddings = []
 
@@ -597,8 +596,8 @@ class EmbeddingGenerator:
     async def embed_multimodal(
         self,
         text: str,
-        image_data: Optional[bytes] = None,
-    ) -> List[float]:
+        image_data: bytes | None = None,
+    ) -> list[float]:
         """
         Generate embedding for multimodal content.
 
@@ -660,12 +659,12 @@ class EnhancedNvidiaNimManager:
     async def generate(
         self,
         prompt: str,
-        system_instruction: Optional[str] = None,
+        system_instruction: str | None = None,
         complexity: TaskComplexity = TaskComplexity.MODERATE,
-        temperature: Optional[float] = None,
+        temperature: float | None = None,
         max_tokens: int = 2048,
         stream: bool = False,
-    ) -> Union[str, Any]:
+    ) -> str | Any:
         """
         Generate content using appropriate model for task complexity.
 
@@ -693,22 +692,21 @@ class EnhancedNvidiaNimManager:
         try:
             if stream and self.config.streaming_enabled:
                 return await self._generate_stream(model, messages, temp, max_tokens)
-            else:
-                response = await self.client.chat.completions.create(
-                    model=model,
-                    messages=messages,
-                    temperature=temp,
-                    max_tokens=max_tokens,
-                )
+            response = await self.client.chat.completions.create(
+                model=model,
+                messages=messages,
+                temperature=temp,
+                max_tokens=max_tokens,
+            )
 
-                latency_ms = (time.time() - start_time) * 1000
-                self.model_selector.record_latency(model, latency_ms)
+            latency_ms = (time.time() - start_time) * 1000
+            self.model_selector.record_latency(model, latency_ms)
 
-                logger.debug(
-                    f"Generated response with {model} in {latency_ms:.0f}ms"
-                )
+            logger.debug(
+                f"Generated response with {model} in {latency_ms:.0f}ms"
+            )
 
-                return response.choices[0].message.content
+            return response.choices[0].message.content
 
         except Exception as e:
             logger.error(f"Error generating content: {e}")
@@ -717,7 +715,7 @@ class EnhancedNvidiaNimManager:
     async def _generate_stream(
         self,
         model: str,
-        messages: List[Dict],
+        messages: list[dict],
         temperature: float,
         max_tokens: int,
     ):
@@ -737,9 +735,9 @@ class EnhancedNvidiaNimManager:
     async def generate_with_crisis_check(
         self,
         prompt: str,
-        system_instruction: Optional[str] = None,
-        user_id: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        system_instruction: str | None = None,
+        user_id: str | None = None,
+    ) -> dict[str, Any]:
         """
         Generate response with automatic crisis detection.
 
@@ -785,8 +783,8 @@ Offer appropriate resources and encourage professional help."""
 
     async def embed(
         self,
-        content: Union[str, List[str]],
-    ) -> Union[List[float], List[List[float]]]:
+        content: str | list[str],
+    ) -> list[float] | list[list[float]]:
         """
         Generate embeddings for text content.
 
@@ -803,7 +801,7 @@ Offer appropriate resources and encourage professional help."""
     async def analyze_for_crisis(
         self,
         content: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Dedicated crisis analysis endpoint.
 
@@ -818,7 +816,7 @@ Offer appropriate resources and encourage professional help."""
         """Get the model that would be used for a given complexity."""
         return self.model_selector.select_model(complexity)
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """Check health of all configured models."""
         results = {}
 
@@ -855,7 +853,7 @@ Offer appropriate resources and encourage professional help."""
 
 # Factory function for easy instantiation
 def create_enhanced_manager(
-    nvidia_api_key: Optional[str] = None,
+    nvidia_api_key: str | None = None,
     strategy: ModelSelectionStrategy = ModelSelectionStrategy.QUALITY_OPTIMIZED,
     **kwargs,
 ) -> EnhancedNvidiaNimManager:
@@ -887,7 +885,7 @@ class EnhancedNvidiaNimContext:
 
     def __init__(self, config: EnhancedNvidiaConfig):
         self.config = config
-        self.manager: Optional[EnhancedNvidiaNimManager] = None
+        self.manager: EnhancedNvidiaNimManager | None = None
 
     async def __aenter__(self) -> EnhancedNvidiaNimManager:
         self.manager = EnhancedNvidiaNimManager(self.config)

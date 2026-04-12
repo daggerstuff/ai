@@ -6,6 +6,8 @@ Tests the complete quality monitoring and analytics system integration
 across all five components to ensure they work together seamlessly.
 """
 
+from datetime import datetime, timezone
+
 import json
 import os
 import shutil
@@ -59,7 +61,7 @@ def create_comprehensive_test_database():
     """)
 
     # Generate comprehensive test data
-    base_date = datetime.now() - timedelta(days=90)
+    base_date = datetime.now(timezone.utc) - timedelta(days=90)
     conversations_data = []
     quality_data = []
 
@@ -434,7 +436,7 @@ def run_integration_test():
         report_data = {
             "test_suite": "Section 5.6.2 Integration Test",
             "section": "5.6.2",
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "results": test_results,
             "success_rate": success_rate,
             "status": "PASSED" if success_rate == 100 else "FAILED",

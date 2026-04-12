@@ -4,13 +4,14 @@ Quality Trend Analysis and Reporting System
 Analyzes quality trends over time and generates comprehensive reports
 """
 
+from datetime import datetime, timedelta, timezone
+
 import json
 import sqlite3
 import warnings
 from dataclasses import dataclass
-from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -27,8 +28,8 @@ class QualityTrend:
 
     metric: str
     period: str
-    values: List[float]
-    timestamps: List[datetime]
+    values: list[float]
+    timestamps: list[datetime]
     trend_direction: str
     trend_strength: float
     statistical_significance: float
@@ -40,10 +41,10 @@ class TrendReport:
 
     period: str
     overall_trend: str
-    key_insights: List[str]
-    recommendations: List[str]
-    metrics_summary: Dict[str, Any]
-    statistical_tests: Dict[str, Any]
+    key_insights: list[str]
+    recommendations: list[str]
+    metrics_summary: dict[str, Any]
+    statistical_tests: dict[str, Any]
 
 
 class QualityTrendAnalyzer:
@@ -73,7 +74,7 @@ class QualityTrendAnalyzer:
 
     def analyze_quality_trends(
         self, period: str = "weekly", days_back: int = 90
-    ) -> Dict[str, QualityTrend]:
+    ) -> dict[str, QualityTrend]:
         """Analyze quality trends over specified period"""
         print(
             f"🔍 Analyzing quality trends for {period} period over {days_back} days..."
@@ -104,13 +105,13 @@ class QualityTrendAnalyzer:
             print(f"❌ Error analyzing quality trends: {e}")
             return {}
 
-    def _get_quality_data(self, days_back: int) -> List[Dict]:
+    def _get_quality_data(self, days_back: int) -> list[dict]:
         """Get quality data from database"""
         try:
             conn = sqlite3.connect(self.db_path)
 
             # Calculate date threshold
-            date_threshold = datetime.now() - timedelta(days=days_back)
+            date_threshold = datetime.now(timezone.utc) - timedelta(days=days_back)
 
             query = """
             SELECT
@@ -147,7 +148,7 @@ class QualityTrendAnalyzer:
             print(f"❌ Error getting quality data: {e}")
             return []
 
-    def _group_by_period(self, data: List[Dict], period: str) -> Dict[str, List[Dict]]:
+    def _group_by_period(self, data: list[dict], period: str) -> dict[str, list[dict]]:
         """Group data by time period"""
         grouped = {}
 
@@ -175,8 +176,8 @@ class QualityTrendAnalyzer:
         return grouped
 
     def _analyze_metric_trend(
-        self, grouped_data: Dict[str, List[Dict]], metric: str, period: str
-    ) -> Optional[QualityTrend]:
+        self, grouped_data: dict[str, list[dict]], metric: str, period: str
+    ) -> QualityTrend | None:
         """Analyze trend for specific metric"""
         try:
             # Extract metric values and timestamps
@@ -189,9 +190,7 @@ class QualityTrendAnalyzer:
                 if values:
                     period_values.append(np.mean(values))
                     # Convert period key back to datetime
-                    if period == "daily":
-                        timestamps.append(datetime.strptime(period_key, "%Y-%m-%d"))
-                    elif period == "weekly":
+                    if period == "daily" or period == "weekly":
                         timestamps.append(datetime.strptime(period_key, "%Y-%m-%d"))
                     elif period == "monthly":
                         timestamps.append(
@@ -225,8 +224,8 @@ class QualityTrendAnalyzer:
             return None
 
     def _calculate_trend_statistics(
-        self, values: List[float]
-    ) -> Tuple[str, float, float]:
+        self, values: list[float]
+    ) -> tuple[str, float, float]:
         """Calculate trend statistics using linear regression"""
         try:
             x = np.arange(len(values))
@@ -253,7 +252,7 @@ class QualityTrendAnalyzer:
             return "unknown", 0.0, 1.0
 
     def generate_trend_report(
-        self, trends: Dict[str, QualityTrend], period: str = "weekly"
+        self, trends: dict[str, QualityTrend], period: str = "weekly"
     ) -> TrendReport:
         """Generate comprehensive trend report"""
         print(f"📊 Generating trend report for {period} analysis...")
@@ -299,7 +298,7 @@ class QualityTrendAnalyzer:
                 statistical_tests={},
             )
 
-    def _assess_overall_trend(self, trends: Dict[str, QualityTrend]) -> str:
+    def _assess_overall_trend(self, trends: dict[str, QualityTrend]) -> str:
         """Assess overall quality trend"""
         if not trends:
             return "insufficient_data"
@@ -321,14 +320,13 @@ class QualityTrendAnalyzer:
 
         if total_significant == 0:
             return "stable"
-        elif improving_count > declining_count:
+        if improving_count > declining_count:
             return "improving"
-        elif declining_count > improving_count:
+        if declining_count > improving_count:
             return "declining"
-        else:
-            return "mixed"
+        return "mixed"
 
-    def _extract_key_insights(self, trends: Dict[str, QualityTrend]) -> List[str]:
+    def _extract_key_insights(self, trends: dict[str, QualityTrend]) -> list[str]:
         """Extract key insights from trends"""
         insights = []
 
@@ -373,7 +371,7 @@ class QualityTrendAnalyzer:
 
         return insights
 
-    def _generate_recommendations(self, trends: Dict[str, QualityTrend]) -> List[str]:
+    def _generate_recommendations(self, trends: dict[str, QualityTrend]) -> list[str]:
         """Generate actionable recommendations"""
         recommendations = []
 
@@ -427,8 +425,8 @@ class QualityTrendAnalyzer:
         return recommendations
 
     def _create_metrics_summary(
-        self, trends: Dict[str, QualityTrend]
-    ) -> Dict[str, Any]:
+        self, trends: dict[str, QualityTrend]
+    ) -> dict[str, Any]:
         """Create metrics summary"""
         summary = {}
 
@@ -449,8 +447,8 @@ class QualityTrendAnalyzer:
         return summary
 
     def _perform_statistical_tests(
-        self, trends: Dict[str, QualityTrend]
-    ) -> Dict[str, Any]:
+        self, trends: dict[str, QualityTrend]
+    ) -> dict[str, Any]:
         """Perform statistical tests on trends"""
         tests = {}
 
@@ -485,8 +483,8 @@ class QualityTrendAnalyzer:
         return tests
 
     def create_trend_visualizations(
-        self, trends: Dict[str, QualityTrend], period: str = "weekly"
-    ) -> Dict[str, str]:
+        self, trends: dict[str, QualityTrend], period: str = "weekly"
+    ) -> dict[str, str]:
         """Create trend visualizations"""
         print(f"📈 Creating trend visualizations for {len(trends)} metrics...")
 
@@ -629,14 +627,14 @@ class QualityTrendAnalyzer:
     def export_trend_report(
         self,
         report: TrendReport,
-        trends: Dict[str, QualityTrend],
-        visualizations: Dict[str, str],
+        trends: dict[str, QualityTrend],
+        visualizations: dict[str, str],
     ) -> str:
         """Export comprehensive trend report"""
         print("📄 Exporting comprehensive trend report...")
 
         try:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
             report_file = (
                 self.output_dir
                 / f"quality_trend_report_{report.period}_{timestamp}.json"
@@ -645,7 +643,7 @@ class QualityTrendAnalyzer:
             # Prepare export data
             export_data = {
                 "report_metadata": {
-                    "generated_at": datetime.now().isoformat(),
+                    "generated_at": datetime.now(timezone.utc).isoformat(),
                     "period": report.period,
                     "analyzer_version": "1.0.0",
                 },

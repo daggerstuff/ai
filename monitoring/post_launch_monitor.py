@@ -6,23 +6,22 @@ Enterprise Production Readiness Framework - Task 6.3
 24/7 monitoring with comprehensive dashboards and operational handover.
 """
 
+from datetime import datetime, timedelta, timezone
+
 import json
 import logging
-import os
 import sqlite3
-import sys
 import threading
 import time
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
+    format="%(asctime)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -45,8 +44,8 @@ class MetricData:
     value: float
     unit: str
     timestamp: datetime
-    threshold_warning: Optional[float] = None
-    threshold_critical: Optional[float] = None
+    threshold_warning: float | None = None
+    threshold_critical: float | None = None
 
 @dataclass
 class Alert:
@@ -78,9 +77,9 @@ class PostLaunchMonitor:
         self.state_dir.mkdir(parents=True, exist_ok=True)
         self.db_path = str(self.state_dir / "post_launch_monitoring.db")
         self.monitoring_active = False
-        self.alerts: List[Alert] = []
-        self.metrics_history: Dict[str, List[MetricData]] = {}
-        self.business_metrics: Dict[str, List[BusinessMetric]] = {}
+        self.alerts: list[Alert] = []
+        self.metrics_history: dict[str, list[MetricData]] = {}
+        self.business_metrics: dict[str, list[BusinessMetric]] = {}
         self._init_database()
 
     def _init_database(self):
@@ -89,7 +88,7 @@ class PostLaunchMonitor:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
 
-            cursor.execute('''
+            cursor.execute("""
                 CREATE TABLE IF NOT EXISTS system_metrics (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     metric_name TEXT NOT NULL,
@@ -99,9 +98,9 @@ class PostLaunchMonitor:
                     threshold_warning REAL,
                     threshold_critical REAL
                 )
-            ''')
+            """)
 
-            cursor.execute('''
+            cursor.execute("""
                 CREATE TABLE IF NOT EXISTS alerts (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     alert_id TEXT NOT NULL,
@@ -115,9 +114,9 @@ class PostLaunchMonitor:
                     acknowledged BOOLEAN DEFAULT FALSE,
                     resolved BOOLEAN DEFAULT FALSE
                 )
-            ''')
+            """)
 
-            cursor.execute('''
+            cursor.execute("""
                 CREATE TABLE IF NOT EXISTS business_metrics (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     metric_name TEXT NOT NULL,
@@ -127,9 +126,9 @@ class PostLaunchMonitor:
                     timestamp TEXT NOT NULL,
                     trend TEXT NOT NULL
                 )
-            ''')
+            """)
 
-            cursor.execute('''
+            cursor.execute("""
                 CREATE TABLE IF NOT EXISTS incidents (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     incident_id TEXT NOT NULL,
@@ -142,7 +141,7 @@ class PostLaunchMonitor:
                     resolution TEXT,
                     assigned_to TEXT
                 )
-            ''')
+            """)
 
             conn.commit()
             conn.close()
@@ -276,7 +275,7 @@ class PostLaunchMonitor:
                 logger.error(f"Alert processing error: {e}")
                 time.sleep(60)
 
-    def _collect_system_health_metrics(self) -> List[MetricData]:
+    def _collect_system_health_metrics(self) -> list[MetricData]:
         """Collect system health metrics."""
         metrics = []
         timestamp = datetime.now(timezone.utc)
@@ -299,7 +298,7 @@ class PostLaunchMonitor:
 
         return metrics
 
-    def _collect_performance_metrics(self) -> List[MetricData]:
+    def _collect_performance_metrics(self) -> list[MetricData]:
         """Collect performance metrics."""
         metrics = []
         timestamp = datetime.now(timezone.utc)
@@ -322,7 +321,7 @@ class PostLaunchMonitor:
 
         return metrics
 
-    def _collect_business_metrics(self) -> List[BusinessMetric]:
+    def _collect_business_metrics(self) -> list[BusinessMetric]:
         """Collect business metrics."""
         metrics = []
         timestamp = datetime.now(timezone.utc)
@@ -345,7 +344,7 @@ class PostLaunchMonitor:
 
         return metrics
 
-    def _collect_security_metrics(self) -> List[MetricData]:
+    def _collect_security_metrics(self) -> list[MetricData]:
         """Collect security metrics."""
         metrics = []
         timestamp = datetime.now(timezone.utc)
@@ -368,7 +367,7 @@ class PostLaunchMonitor:
 
         return metrics
 
-    def _collect_compliance_metrics(self) -> List[MetricData]:
+    def _collect_compliance_metrics(self) -> list[MetricData]:
         """Collect compliance metrics."""
         metrics = []
         timestamp = datetime.now(timezone.utc)
@@ -397,11 +396,11 @@ class PostLaunchMonitor:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
 
-            cursor.execute('''
+            cursor.execute("""
                 INSERT INTO system_metrics
                 (metric_name, value, unit, timestamp, threshold_warning, threshold_critical)
                 VALUES (?, ?, ?, ?, ?, ?)
-            ''', (
+            """, (
                 metric.metric_name,
                 metric.value,
                 metric.unit,
@@ -431,11 +430,11 @@ class PostLaunchMonitor:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
 
-            cursor.execute('''
+            cursor.execute("""
                 INSERT INTO business_metrics
                 (metric_name, value, target, unit, timestamp, trend)
                 VALUES (?, ?, ?, ?, ?, ?)
-            ''', (
+            """, (
                 metric.metric_name,
                 metric.value,
                 metric.target,
@@ -499,11 +498,11 @@ class PostLaunchMonitor:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
 
-            cursor.execute('''
+            cursor.execute("""
                 INSERT INTO alerts
                 (alert_id, severity, title, description, metric_name, current_value, threshold_value, timestamp)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (
+            """, (
                 alert.alert_id,
                 alert.severity.value,
                 alert.title,
@@ -546,7 +545,7 @@ class PostLaunchMonitor:
         logger.warning(f"HIGH PRIORITY ALERT: {alert.title} - {alert.description}")
         # In production, this would send email, Slack, etc.
 
-    def generate_dashboard_data(self) -> Dict[str, Any]:
+    def generate_dashboard_data(self) -> dict[str, Any]:
         """Generate dashboard data for monitoring interfaces."""
         try:
             # Get recent metrics
@@ -599,7 +598,7 @@ class PostLaunchMonitor:
             logger.error(f"Failed to generate dashboard data: {e}")
             return {"error": str(e)}
 
-    def _calculate_trend(self, metrics: List[MetricData]) -> str:
+    def _calculate_trend(self, metrics: list[MetricData]) -> str:
         """Calculate trend for metrics."""
         if len(metrics) < 2:
             return "stable"
@@ -612,10 +611,9 @@ class PostLaunchMonitor:
 
         if second_avg > first_avg * 1.05:
             return "up"
-        elif second_avg < first_avg * 0.95:
+        if second_avg < first_avg * 0.95:
             return "down"
-        else:
-            return "stable"
+        return "stable"
 
     def _calculate_system_health(self) -> str:
         """Calculate overall system health."""
@@ -625,15 +623,14 @@ class PostLaunchMonitor:
 
             if critical_alerts > 0:
                 return "critical"
-            elif high_alerts > 3:
+            if high_alerts > 3:
                 return "warning"
-            else:
-                return "healthy"
+            return "healthy"
 
         except:
             return "unknown"
 
-    def generate_operational_report(self) -> Dict[str, Any]:
+    def generate_operational_report(self) -> dict[str, Any]:
         """Generate operational handover report."""
         try:
             # Calculate uptime
@@ -649,7 +646,7 @@ class PostLaunchMonitor:
 
             # Generate report
             report = {
-                "report_id": f"operational_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                "report_id": f"operational_report_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "monitoring_duration": "24 hours",
                 "system_status": {
@@ -682,12 +679,12 @@ class PostLaunchMonitor:
                     if metrics
                 },
                 "operational_recommendations": self._generate_operational_recommendations(),
-                "next_review_date": (datetime.now() + timedelta(days=1)).isoformat()
+                "next_review_date": (datetime.now(timezone.utc) + timedelta(days=1)).isoformat()
             }
 
             # Save report
-            report_file = f"operational_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-            with open(report_file, 'w') as f:
+            report_file = f"operational_report_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.json"
+            with open(report_file, "w") as f:
                 json.dump(report, f, indent=2, default=str)
 
             logger.info(f"Operational report generated: {report_file}")
@@ -697,7 +694,7 @@ class PostLaunchMonitor:
             logger.error(f"Failed to generate operational report: {e}")
             return {"error": str(e)}
 
-    def _generate_operational_recommendations(self) -> List[str]:
+    def _generate_operational_recommendations(self) -> list[str]:
         """Generate operational recommendations."""
         recommendations = []
 
@@ -748,14 +745,14 @@ def main():
 
         # Generate initial dashboard data
         dashboard_data = monitor.generate_dashboard_data()
-        print(f"\nSYSTEM STATUS")
+        print("\nSYSTEM STATUS")
         print(f"Health: {dashboard_data['system_health'].upper()}")
         print(f"Active Alerts: {len(dashboard_data['active_alerts'])}")
         print(f"Monitoring: {dashboard_data['monitoring_status'].upper()}")
 
         # Generate operational report
         operational_report = monitor.generate_operational_report()
-        print(f"\nOPERATIONAL REPORT")
+        print("\nOPERATIONAL REPORT")
         print(f"Uptime: {operational_report['system_status']['uptime_percentage']:.2f}%")
         print(f"Response Time: {operational_report['system_status']['response_time_p95']:.1f}ms")
         print(f"Error Rate: {operational_report['system_status']['error_rate']:.2f}%")

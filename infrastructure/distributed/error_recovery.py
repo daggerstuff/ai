@@ -4,14 +4,16 @@ Automatic Error Recovery and Retry System for Pixelated Empathy AI
 Intelligent retry mechanisms with exponential backoff and failure classification
 """
 
+from datetime import datetime, timedelta, timezone
+
 import asyncio
 import json
 import logging
 import random
+from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -44,20 +46,20 @@ class RetryConfig:
     max_delay_seconds: float = 60.0
     strategy: RetryStrategy = RetryStrategy.EXPONENTIAL_BACKOFF
     jitter_factor: float = 0.1
-    timeout_seconds: Optional[float] = None
+    timeout_seconds: float | None = None
 
-    retryable_exceptions: List[type] = None
+    retryable_exceptions: list[type] = None
 
-    non_retryable_exceptions: List[type] = None
+    non_retryable_exceptions: list[type] = None
 
 
 class ErrorRecoveryManager:
     """Manages automatic error recovery and retry mechanisms"""
 
     def __init__(self):
-        self.retry_configs: Dict[str, RetryConfig] = {}
-        self.recovery_handlers: Dict[str, Callable] = {}
-        self.error_history: List[Dict[str, Any]] = []
+        self.retry_configs: dict[str, RetryConfig] = {}
+        self.recovery_handlers: dict[str, Callable] = {}
+        self.error_history: list[dict[str, Any]] = []
         self.default_config = RetryConfig()
 
     def register_retry_config(self, operation_name: str, config: RetryConfig):
@@ -194,7 +196,7 @@ class ErrorRecoveryManager:
         self.error_history.append(
             {
                 "operation": operation_name,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "success": True,
                 "attempt": attempt,
                 "total_attempts": attempt,
@@ -212,7 +214,7 @@ class ErrorRecoveryManager:
         self.error_history.append(
             {
                 "operation": operation_name,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "success": False,
                 "attempt": attempt,
                 "error_type": type(exception).__name__,
@@ -226,14 +228,14 @@ class ErrorRecoveryManager:
     def _cleanup_history(self):
         """Clean up old error history"""
 
-        cutoff_time = datetime.utcnow() - timedelta(hours=24)
+        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=24)
         self.error_history = [
             entry
             for entry in self.error_history
             if datetime.fromisoformat(entry["timestamp"]) > cutoff_time
         ]
 
-    def get_error_statistics(self) -> Dict[str, Any]:
+    def get_error_statistics(self) -> dict[str, Any]:
         """Get error and recovery statistics"""
 
         total_operations = len(self.error_history)

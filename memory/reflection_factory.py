@@ -8,7 +8,6 @@ Usage:
 import asyncio
 import logging
 import os
-from typing import Optional
 
 from .local_hindsight_manager import LocalHindsightMemoryManager
 from .nvidia_llm_callback import create_nvidia_callback
@@ -19,12 +18,12 @@ logger = logging.getLogger(__name__)
 
 
 async def create_reflection_subagent(
-    model: Optional[str] = None,
+    model: str | None = None,
     trigger: ReflectionTrigger = ReflectionTrigger.STEP_COUNT,
     step_threshold: int = 10,
     include_crisis_context: bool = True,
     auto_consolidate: bool = False,
-    memory_client: Optional[LocalReflectionMemoryClient] = None,
+    memory_client: LocalReflectionMemoryClient | None = None,
 ) -> ReflectionSubagent:
     """
     Create a reflection subagent with Nvidia NIM backend.

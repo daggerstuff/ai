@@ -6,15 +6,16 @@ Tasks 3.1, 3.2, 3.3: Validate Safety Certification Implementation
 Comprehensive validation script to verify Phase 3 safety certification implementation is enterprise-ready.
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import os
 import sys
 import tempfile
 import time
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 # Configure logging
 logging.basicConfig(
@@ -29,7 +30,7 @@ class Phase3Validator:
     def __init__(self):
         """Initialize validator"""
         self.results = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "phase": "Phase 3 - Safety Certification",
             "tasks": {
                 "3.1": {
@@ -54,7 +55,7 @@ class Phase3Validator:
             "recommendations": [],
         }
 
-    def validate_task_3_1_safety_accuracy(self) -> Tuple[int, List[str]]:
+    def validate_task_3_1_safety_accuracy(self) -> tuple[int, list[str]]:
         """Validate Task 3.1: Safety Accuracy Validation"""
         logger.info("Validating Task 3.1: Safety Accuracy Validation")
 
@@ -202,7 +203,7 @@ class Phase3Validator:
 
         return score, issues
 
-    def validate_task_3_2_clinical_certification(self) -> Tuple[int, List[str]]:
+    def validate_task_3_2_clinical_certification(self) -> tuple[int, list[str]]:
         """Validate Task 3.2: Clinical Safety Certification"""
         logger.info("Validating Task 3.2: Clinical Safety Certification")
 
@@ -352,7 +353,7 @@ class Phase3Validator:
 
         return score, issues
 
-    def validate_task_3_3_safety_monitoring(self) -> Tuple[int, List[str]]:
+    def validate_task_3_3_safety_monitoring(self) -> tuple[int, list[str]]:
         """Validate Task 3.3: Safety Monitoring Integration"""
         logger.info("Validating Task 3.3: Safety Monitoring Integration")
 
@@ -536,7 +537,7 @@ class Phase3Validator:
 
         return score, issues
 
-    def validate_integration(self) -> Tuple[int, List[str]]:
+    def validate_integration(self) -> tuple[int, list[str]]:
         """Validate safety certification integration"""
         logger.info("Validating safety certification integration")
 
@@ -654,7 +655,7 @@ class Phase3Validator:
 
         return score, issues
 
-    def run_validation(self) -> Dict[str, Any]:
+    def run_validation(self) -> dict[str, Any]:
         """Run complete Phase 3 validation"""
         logger.info("Starting Phase 3 validation...")
 

@@ -11,8 +11,9 @@ Features:
 - Export capabilities
 """
 
+from datetime import datetime, timezone
+
 import os
-from datetime import datetime
 
 from flask import Flask, jsonify, send_file
 
@@ -424,8 +425,7 @@ def view_dashboard(dashboard_type):
         if png_files:
             latest_file = sorted(png_files)[-1]
             return send_file(f"{dashboard_dir}/{latest_file}")
-        else:
-            return jsonify({"error": "No dashboard files found"}), 404
+        return jsonify({"error": "No dashboard files found"}), 404
     except FileNotFoundError:
         return jsonify({"error": "Dashboard not found"}), 404
 
@@ -437,7 +437,7 @@ def api_status():
         {
             "status": "operational",
             "systems": len(launcher.analytics_systems),
-            "last_updated": datetime.now().isoformat(),
+            "last_updated": datetime.now(timezone.utc).isoformat(),
             "analytics_systems": list(launcher.analytics_systems.keys()),
         }
     )
@@ -448,8 +448,7 @@ def run_analysis(analysis_type):
     """Run specific analysis"""
     if analysis_type == "full-analysis":
         return jsonify({"message": "Full analysis initiated", "status": "processing"})
-    else:
-        return jsonify({"error": "Unknown analysis type"}), 400
+    return jsonify({"error": "Unknown analysis type"}), 400
 
 
 def main():

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 
 class BaseMemoryManager(ABC):
@@ -13,8 +13,8 @@ class BaseMemoryManager(ABC):
         self,
         content: str,
         user_id: str,
-        metadata: Optional[Any] = None,
-        category: Optional[str] = None,
+        metadata: Any | None = None,
+        category: str | None = None,
     ) -> str:
         """Add a memory and return its ID."""
 
@@ -24,7 +24,7 @@ class BaseMemoryManager(ABC):
         query: str,
         user_id: str,
         limit: int = 10,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Search for relevant memories."""
 
     @abstractmethod
@@ -32,15 +32,15 @@ class BaseMemoryManager(ABC):
         self,
         user_id: str,
         limit: int = 100,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Retrieve all memories for a user."""
 
     @abstractmethod
     def get_memory(
         self,
         memory_id: str,
-        user_id: Optional[str] = None,
-    ) -> Optional[Dict[str, Any]]:
+        user_id: str | None = None,
+    ) -> dict[str, Any] | None:
         """Retrieve a specific memory by ID."""
 
     @abstractmethod
@@ -48,8 +48,8 @@ class BaseMemoryManager(ABC):
         self,
         memory_id: str,
         new_content: str,
-        metadata: Optional[Any] = None,
-        user_id: Optional[str] = None,
+        metadata: Any | None = None,
+        user_id: str | None = None,
     ) -> bool:
         """Update an existing memory."""
 
@@ -57,7 +57,7 @@ class BaseMemoryManager(ABC):
     def delete_memory(
         self,
         memory_id: str,
-        user_id: Optional[str] = None,
+        user_id: str | None = None,
     ) -> bool:
         """Delete a memory by ID."""
 
@@ -82,17 +82,17 @@ class ScopedMemoryManager(Protocol):
         self,
         *,
         user_id: str,
-        org_id: Optional[str] = None,
-        project_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        agent_id: Optional[str] = None,
-        run_id: Optional[str] = None,
+        org_id: str | None = None,
+        project_id: str | None = None,
+        session_id: str | None = None,
+        agent_id: str | None = None,
+        run_id: str | None = None,
         include_shared: bool = True,
         limit: int = 100,
         offset: int = 0,
-        category: Optional[str] = None,
-        tags: Optional[List[str]] = None,
-    ) -> List[Dict[str, Any]]:
+        category: str | None = None,
+        tags: list[str] | None = None,
+    ) -> list[dict[str, Any]]:
         """Return memories visible to the supplied user and scope."""
         ...
 
@@ -103,13 +103,13 @@ class CategoryScopedMemoryManager(ScopedMemoryManager, Protocol):
         self,
         *,
         user_id: str,
-        org_id: Optional[str] = None,
-        project_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        agent_id: Optional[str] = None,
-        run_id: Optional[str] = None,
+        org_id: str | None = None,
+        project_id: str | None = None,
+        session_id: str | None = None,
+        agent_id: str | None = None,
+        run_id: str | None = None,
         include_shared: bool = True,
-    ) -> Dict[str, int]:
+    ) -> dict[str, int]:
         """Return scoped memory counts grouped by category."""
         ...
 
@@ -117,8 +117,8 @@ class CategoryScopedMemoryManager(ScopedMemoryManager, Protocol):
 @runtime_checkable
 class HindsightCompatibleMemoryManager(Protocol):
     def retain_items(
-        self, bank_id: str, items: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+        self, bank_id: str, items: list[dict[str, Any]]
+    ) -> dict[str, Any]:
         """Store Hindsight-compatible memory items."""
         ...
 
@@ -128,9 +128,9 @@ class HindsightCompatibleMemoryManager(Protocol):
         *,
         query: str,
         limit: int = 10,
-        tags: Optional[List[str]] = None,
+        tags: list[str] | None = None,
         tags_match: str = "any",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Recall Hindsight-compatible memory items."""
         ...
 
@@ -141,9 +141,9 @@ class HindsightCompatibleMemoryManager(Protocol):
         user_id: str,
         query: str,
         limit: int = 10,
-        tags: Optional[List[str]] = None,
+        tags: list[str] | None = None,
         tags_match: str = "any",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Recall Hindsight-compatible memory items constrained to one user."""
         ...
 
@@ -154,7 +154,7 @@ class HindsightCompatibleMemoryManager(Protocol):
         user_id: str,
         limit: int = 100,
         offset: int = 0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """List Hindsight-compatible documents for one user."""
         ...
 
@@ -163,8 +163,8 @@ class HindsightCompatibleMemoryManager(Protocol):
         bank_id: str,
         document_id: str,
         *,
-        user_id: Optional[str] = None,
-    ) -> Optional[Dict[str, Any]]:
+        user_id: str | None = None,
+    ) -> dict[str, Any] | None:
         """Fetch a Hindsight-compatible document by ID."""
         ...
 
@@ -173,7 +173,7 @@ class HindsightCompatibleMemoryManager(Protocol):
         bank_id: str,
         document_id: str,
         *,
-        user_id: Optional[str] = None,
+        user_id: str | None = None,
     ) -> bool:
         """Delete a Hindsight-compatible document by ID."""
         ...
@@ -192,17 +192,17 @@ class HindsightCompatibleMemoryManager(Protocol):
         self,
         *,
         bank_id: str,
-        items: List[Dict[str, Any]],
+        items: list[dict[str, Any]],
         user_id: str,
-        base_metadata: Dict[str, Any],
-    ) -> List[Dict[str, Any]]:
+        base_metadata: dict[str, Any],
+    ) -> list[dict[str, Any]]:
         """Prepare scoped Hindsight items for retention."""
         ...
 
 
 @runtime_checkable
 class HealthReportingMemoryManager(Protocol):
-    def get_health_status(self) -> Dict[str, Any]:
+    def get_health_status(self) -> dict[str, Any]:
         """Return a health payload for the memory manager."""
         ...
 

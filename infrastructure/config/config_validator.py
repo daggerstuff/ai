@@ -14,7 +14,7 @@ import sys
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 from urllib.parse import urlparse
 
 import yaml
@@ -56,16 +56,16 @@ class ValidationResult:
 
     level: ValidationLevel
     message: str
-    field: Optional[str] = None
-    value: Optional[Any] = None
-    suggestion: Optional[str] = None
+    field: str | None = None
+    value: Any | None = None
+    suggestion: str | None = None
 
 
 @dataclass
 class ValidationReport:
     """Complete validation report"""
 
-    results: List[ValidationResult] = field(default_factory=list)
+    results: list[ValidationResult] = field(default_factory=list)
 
     def add_error(
         self, message: str, field: str = None, value: Any = None, suggestion: str = None
@@ -113,7 +113,7 @@ class ValidationReport:
         """Check if report contains warnings"""
         return any(r.level == ValidationLevel.WARNING for r in self.results)
 
-    def get_summary(self) -> Dict[str, int]:
+    def get_summary(self) -> dict[str, int]:
         """Get summary of validation results"""
         summary = {level.value: 0 for level in ValidationLevel}
         for result in self.results:
@@ -608,12 +608,11 @@ class ConfigValidator:
         if report.has_errors:
             print("❌ VALIDATION FAILED - Please fix errors before proceeding")
             return False
-        elif report.has_warnings:
+        if report.has_warnings:
             print("⚠️  VALIDATION PASSED WITH WARNINGS - Review warnings for production")
             return True
-        else:
-            print("✅ VALIDATION PASSED - Configuration is valid")
-            return True
+        print("✅ VALIDATION PASSED - Configuration is valid")
+        return True
 
 
 def main():

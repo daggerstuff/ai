@@ -3,13 +3,13 @@ GPU autoscaling and cost management system for Pixelated Empathy AI project.
 Implements dynamic scaling based on demand and provides cost optimization.
 """
 
-import json
+from datetime import datetime, timedelta, timezone
+
+
 import logging
-import time
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 import psutil
@@ -55,13 +55,13 @@ class ResourceUsage:
     """Current resource usage metrics"""
     cpu_percent: float
     memory_percent: float
-    gpu_memory_percent: Optional[float] = None
-    gpu_utilization_percent: Optional[float] = None
+    gpu_memory_percent: float | None = None
+    gpu_utilization_percent: float | None = None
     network_in_mbps: float = 0.0
     network_out_mbps: float = 0.0
     disk_io_read_mbps: float = 0.0
     disk_io_write_mbps: float = 0.0
-    timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
 @dataclass
@@ -87,7 +87,7 @@ class ScalingDecision:
     reason: str
     confidence: float
     estimated_cost_impact: float
-    timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
 @dataclass
@@ -98,7 +98,7 @@ class CostForecast:
     weekly_forecast: float
     monthly_forecast: float
     projected_savings: float
-    cost_drivers: List[Dict[str, Any]]
+    cost_drivers: list[dict[str, Any]]
     forecast_period_hours: int = 24
 
 
@@ -141,16 +141,16 @@ class Autoscaler:
                  model_name: str,
                  scaling_strategy: ScalingStrategy = ScalingStrategy.REACTIVE,
                  instance_type: InstanceType = InstanceType.GPU_T4,
-                 scaling_policy: Optional[ScalingPolicy] = None):
+                 scaling_policy: ScalingPolicy | None = None):
         self.model_name = model_name
         self.scaling_strategy = scaling_strategy
         self.instance_type = instance_type
         self.scaling_policy = scaling_policy or ScalingPolicy()
         self.current_instances = self.scaling_policy.min_instances
-        self.last_scaling_action = datetime.utcnow() - timedelta(minutes=self.scaling_policy.cooldown_period_minutes)
-        self.usage_history: List[ResourceUsage] = []
-        self.scaling_decisions: List[ScalingDecision] = []
-        self.cost_history: List[Dict[str, Any]] = []
+        self.last_scaling_action = datetime.now(timezone.utc) - timedelta(minutes=self.scaling_policy.cooldown_period_minutes)
+        self.usage_history: list[ResourceUsage] = []
+        self.scaling_decisions: list[ScalingDecision] = []
+        self.cost_history: list[dict[str, Any]] = []
         self.logger = logging.getLogger(__name__)
 
         # Predictive modeling components
@@ -171,7 +171,7 @@ class Autoscaler:
             try:
                 gpu_memory_percent = (torch.cuda.memory_allocated() / torch.cuda.get_device_properties(0).total_memory) * 100
                 # Approximate GPU utilization (this is a simplification)
-                gpu_utilization_percent = torch.cuda.utilization() if hasattr(torch.cuda, 'utilization') else 0
+                gpu_utilization_percent = torch.cuda.utilization() if hasattr(torch.cuda, "utilization") else 0
             except Exception as e:
                 self.logger.warning(f"Could not get GPU metrics: {e}")
 
@@ -180,7 +180,7 @@ class Autoscaler:
             memory_percent=memory_percent,
             gpu_memory_percent=gpu_memory_percent,
             gpu_utilization_percent=gpu_utilization_percent,
-            timestamp=datetime.utcnow().isoformat()
+            timestamp=datetime.now(timezone.utc).isoformat()
         )
 
         # Store in history (keep last 100 entries)
@@ -191,10 +191,10 @@ class Autoscaler:
         return usage
 
     def make_scaling_decision(self,
-                             current_load: Optional[float] = None,
-                             incoming_requests: Optional[int] = None) -> ScalingDecision:
+                             current_load: float | None = None,
+                             incoming_requests: int | None = None) -> ScalingDecision:
         """Make a scaling decision based on current metrics"""
-        current_time = datetime.utcnow()
+        current_time = datetime.now(timezone.utc)
 
         # Check cooldown period
         if (current_time - self.last_scaling_action).total_seconds() < (self.scaling_policy.cooldown_period_minutes * 60):
@@ -271,7 +271,7 @@ class Autoscaler:
                     self.scaling_policy.max_instances
                 )
                 decision.target_instances = target_instances
-                decision.reason += f" | Predictive adjustment for expected load increase"
+                decision.reason += " | Predictive adjustment for expected load increase"
                 decision.confidence *= 0.9  # Slightly lower confidence for predictions
 
         # Record the decision
@@ -293,10 +293,9 @@ class Autoscaler:
         # Prioritize GPU metrics if available, otherwise use CPU
         if usage.gpu_utilization_percent is not None:
             return usage.gpu_utilization_percent
-        elif usage.gpu_memory_percent is not None:
+        if usage.gpu_memory_percent is not None:
             return usage.gpu_memory_percent
-        else:
-            return usage.cpu_percent
+        return usage.cpu_percent
 
     def _estimate_cost_impact(self, current_instances: int, target_instances: int) -> float:
         """Estimate the cost impact of a scaling decision"""
@@ -367,7 +366,7 @@ class Autoscaler:
             forecast_period_hours=hours_ahead
         )
 
-    def _identify_cost_drivers(self, utilization: float, hourly_base_cost: float) -> List[Dict[str, Any]]:
+    def _identify_cost_drivers(self, utilization: float, hourly_base_cost: float) -> list[dict[str, Any]]:
         """Identify the main drivers of costs"""
         drivers = []
 
@@ -396,7 +395,7 @@ class Autoscaler:
 
         return drivers
 
-    def optimize_instance_allocation(self) -> Dict[str, Any]:
+    def optimize_instance_allocation(self) -> dict[str, Any]:
         """Optimize instance allocation based on workload patterns"""
         if len(self.usage_history) < 10:
             return {
@@ -435,7 +434,7 @@ class Autoscaler:
 
         return recommendation
 
-    def get_scaling_history(self, limit: int = 50) -> List[ScalingDecision]:
+    def get_scaling_history(self, limit: int = 50) -> list[ScalingDecision]:
         """Get recent scaling decisions"""
         return self.scaling_decisions[-limit:] if self.scaling_decisions else []
 
@@ -448,7 +447,7 @@ class RequestForecaster:
         self.logger = logging.getLogger(__name__)
 
     def predict_future_load(self,
-                          usage_history: List[ResourceUsage],
+                          usage_history: list[ResourceUsage],
                           horizon_minutes: int = 30) -> float:
         """Predict future load based on historical usage"""
         if not usage_history:
@@ -487,11 +486,10 @@ class RequestForecaster:
 
         return forecast
 
-    def train_model(self, historical_data: List[Dict[str, Any]]):
+    def train_model(self, historical_data: list[dict[str, Any]]):
         """Train the forecasting model (placeholder)"""
         # In a real implementation, you would train an ML model here
         self.logger.info("Training request forecasting model with historical data")
-        pass
 
 
 class CostForecaster:
@@ -507,7 +505,7 @@ class CostForecaster:
         return autoscaler.get_cost_forecast(hours_ahead)
 
     def identify_optimization_opportunities(self,
-                                           autoscaler: Autoscaler) -> List[Dict[str, Any]]:
+                                           autoscaler: Autoscaler) -> list[dict[str, Any]]:
         """Identify opportunities to reduce costs"""
         current_usage = autoscaler.get_current_resource_usage()
         utilization = autoscaler._get_utilization_metric(current_usage)
@@ -551,13 +549,13 @@ class MultiModelAutoscaler:
     """Manages autoscaling for multiple models"""
 
     def __init__(self):
-        self.autoscalers: Dict[str, Autoscaler] = {}
+        self.autoscalers: dict[str, Autoscaler] = {}
         self.logger = logging.getLogger(__name__)
 
     def register_model(self,
                       model_name: str,
                       instance_type: InstanceType = InstanceType.GPU_T4,
-                      scaling_policy: Optional[ScalingPolicy] = None) -> Autoscaler:
+                      scaling_policy: ScalingPolicy | None = None) -> Autoscaler:
         """Register a model for autoscaling"""
         autoscaler = Autoscaler(
             model_name=model_name,
@@ -568,11 +566,11 @@ class MultiModelAutoscaler:
         self.logger.info(f"Registered model {model_name} for autoscaling")
         return autoscaler
 
-    def get_autoscaler(self, model_name: str) -> Optional[Autoscaler]:
+    def get_autoscaler(self, model_name: str) -> Autoscaler | None:
         """Get autoscaler for a specific model"""
         return self.autoscalers.get(model_name)
 
-    def make_all_scaling_decisions(self) -> Dict[str, ScalingDecision]:
+    def make_all_scaling_decisions(self) -> dict[str, ScalingDecision]:
         """Make scaling decisions for all registered models"""
         decisions = {}
         for model_name, autoscaler in self.autoscalers.items():
@@ -622,14 +620,14 @@ multi_model_autoscaler = MultiModelAutoscaler()
 # Utility functions for API integration
 def register_model_for_autoscaling(model_name: str,
                                  instance_type: InstanceType = InstanceType.GPU_T4,
-                                 scaling_policy: Optional[ScalingPolicy] = None) -> Autoscaler:
+                                 scaling_policy: ScalingPolicy | None = None) -> Autoscaler:
     """Register a model for autoscaling"""
     return multi_model_autoscaler.register_model(model_name, instance_type, scaling_policy)
 
 
 def get_autoscaling_decision(model_name: str,
-                           current_load: Optional[float] = None,
-                           incoming_requests: Optional[int] = None) -> Optional[ScalingDecision]:
+                           current_load: float | None = None,
+                           incoming_requests: int | None = None) -> ScalingDecision | None:
     """Get autoscaling decision for a model"""
     autoscaler = multi_model_autoscaler.get_autoscaler(model_name)
     if autoscaler:
@@ -637,7 +635,7 @@ def get_autoscaling_decision(model_name: str,
     return None
 
 
-def get_cost_optimization_recommendations(model_name: str) -> List[Dict[str, Any]]:
+def get_cost_optimization_recommendations(model_name: str) -> list[dict[str, Any]]:
     """Get cost optimization recommendations for a model"""
     autoscaler = multi_model_autoscaler.get_autoscaler(model_name)
     if autoscaler:

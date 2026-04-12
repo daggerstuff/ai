@@ -15,11 +15,12 @@ import json
 import sqlite3
 import threading
 import uuid
+from collections.abc import Callable
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from types import ModuleType
-from typing import Any, Callable, Dict, List, Optional, Protocol, TypeVar, cast
+from typing import Any, Protocol, TypeVar, cast
 
 # Schema imports
 from ai.infrastructure.database.conversation_schema import (
@@ -80,7 +81,7 @@ class DatabaseConfig:
 class ConversationDatabase:
     """Database integration for conversation storage and management."""
 
-    def __init__(self, db_config: Optional[DatabaseConfig] = None):
+    def __init__(self, db_config: DatabaseConfig | None = None):
         self.config = get_config()
         self.logger = get_logger("conversation_database")
 
@@ -496,8 +497,8 @@ class ConversationDatabase:
 
     @with_retry(component="conversation_database")
     def batch_insert_conversations(
-        self, conversations: List[ConversationSchema], batch_size: int = 1000
-    ) -> Dict[str, int]:
+        self, conversations: list[ConversationSchema], batch_size: int = 1000
+    ) -> dict[str, int]:
         """Insert multiple conversations in batches."""
 
         results = {"inserted": 0, "failed": 0}
@@ -659,7 +660,7 @@ class ConversationDatabase:
             )
             return results
 
-    def get_conversation(self, conversation_id: str) -> Optional[Dict[str, Any]]:
+    def get_conversation(self, conversation_id: str) -> dict[str, Any] | None:
         """Retrieve a conversation by ID."""
 
         try:
@@ -676,7 +677,7 @@ class ConversationDatabase:
                 if not row:
                     return None
 
-                conversation: Dict[str, Any] = dict(row)
+                conversation: dict[str, Any] = dict(row)
 
                 # Parse JSON fields
                 conversation["conversations"] = json.loads(
@@ -707,7 +708,7 @@ class ConversationDatabase:
                 """,
                     (conversation_id,),
                 )
-                tags: Dict[str, List[str]] = {
+                tags: dict[str, list[str]] = {
                     "tags": [],
                     "categories": [],
                     "techniques": [],
@@ -736,10 +737,10 @@ class ConversationDatabase:
 
     def search_conversations(
         self,
-        filters: Optional[Dict[str, Any]] = None,
+        filters: dict[str, Any] | None = None,
         limit: int = 100,
         offset: int = 0,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Search conversations with filters."""
 
         try:
@@ -796,7 +797,7 @@ class ConversationDatabase:
             )
             return []
 
-    def get_database_statistics(self) -> Dict[str, Any]:
+    def get_database_statistics(self) -> dict[str, Any]:
         """Get comprehensive database statistics."""
 
         try:

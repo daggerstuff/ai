@@ -12,12 +12,13 @@ Comprehensive analysis of dataset performance and business impact:
 - Business value quantification
 """
 
+from datetime import datetime, timezone
+
 import json
 import re
 import sqlite3
 import warnings
-from datetime import datetime
-from typing import Any, Dict
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -43,7 +44,7 @@ class DatasetPerformanceImpactAnalyzer:
         """Connect to the conversations database"""
         return sqlite3.connect(self.db_path)
 
-    def analyze_performance_impact(self) -> Dict[str, Any]:
+    def analyze_performance_impact(self) -> dict[str, Any]:
         """Main function for dataset performance and impact analysis"""
         print("📊 Starting Dataset Performance and Impact Analysis...")
 
@@ -82,7 +83,7 @@ class DatasetPerformanceImpactAnalyzer:
         )
 
         return {
-            "analysis_timestamp": datetime.now().isoformat(),
+            "analysis_timestamp": datetime.now(timezone.utc).isoformat(),
             "datasets_analyzed": len(datasets_info),
             "performance_analysis": performance_analysis,
             "impact_analysis": impact_analysis,
@@ -151,8 +152,7 @@ class DatasetPerformanceImpactAnalyzer:
                     else:
                         text_parts.append(str(turn))
                 return "\n".join(text_parts)
-            else:
-                return str(conversations)
+            return str(conversations)
         except:
             return json_str
 
@@ -271,7 +271,7 @@ class DatasetPerformanceImpactAnalyzer:
 
     def _analyze_quality_performance(
         self, datasets_info: pd.DataFrame
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Analyze quality performance across datasets"""
         print("🏆 Analyzing quality performance...")
 
@@ -341,7 +341,7 @@ class DatasetPerformanceImpactAnalyzer:
 
     def _analyze_efficiency_metrics(
         self, datasets_info: pd.DataFrame
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Analyze efficiency metrics for datasets"""
         print("⚡ Analyzing efficiency metrics...")
 
@@ -413,7 +413,7 @@ class DatasetPerformanceImpactAnalyzer:
 
     def _analyze_utilization_patterns(
         self, datasets_info: pd.DataFrame
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Analyze dataset utilization patterns"""
         print("📈 Analyzing utilization patterns...")
 
@@ -464,7 +464,7 @@ class DatasetPerformanceImpactAnalyzer:
 
     def _perform_comparative_analysis(
         self, datasets_info: pd.DataFrame
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Perform comparative analysis across datasets"""
         print("🔍 Performing comparative analysis...")
 
@@ -536,7 +536,7 @@ class DatasetPerformanceImpactAnalyzer:
 
     def _analyze_performance_trends(
         self, datasets_info: pd.DataFrame
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Analyze performance trends over time"""
         print("📊 Analyzing performance trends...")
 
@@ -602,7 +602,7 @@ class DatasetPerformanceImpactAnalyzer:
                 "declining_datasets": declining_datasets,
                 "stable_datasets": [
                     d
-                    for d in trend_slopes.keys()
+                    for d in trend_slopes
                     if d not in improving_datasets and d not in declining_datasets
                 ],
             }
@@ -611,7 +611,7 @@ class DatasetPerformanceImpactAnalyzer:
 
     def _measure_value_contribution(
         self, datasets_info: pd.DataFrame
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Measure value contribution of each dataset"""
         print("💰 Measuring value contribution...")
 
@@ -670,7 +670,7 @@ class DatasetPerformanceImpactAnalyzer:
 
         return value_analysis
 
-    def _calculate_dataset_roi(self, datasets_info: pd.DataFrame) -> Dict[str, Any]:
+    def _calculate_dataset_roi(self, datasets_info: pd.DataFrame) -> dict[str, Any]:
         """Calculate ROI for each dataset"""
         print("📊 Calculating dataset ROI...")
 
@@ -740,7 +740,7 @@ class DatasetPerformanceImpactAnalyzer:
 
         return roi_analysis
 
-    def _assess_strategic_impact(self, datasets_info: pd.DataFrame) -> Dict[str, Any]:
+    def _assess_strategic_impact(self, datasets_info: pd.DataFrame) -> dict[str, Any]:
         """Assess strategic impact of datasets"""
         print("🎯 Assessing strategic impact...")
 
@@ -805,7 +805,7 @@ class DatasetPerformanceImpactAnalyzer:
 
     def _analyze_resource_efficiency(
         self, datasets_info: pd.DataFrame
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Analyze resource efficiency across datasets"""
         print("⚙️ Analyzing resource efficiency...")
 
@@ -855,7 +855,7 @@ class DatasetPerformanceImpactAnalyzer:
 
     def _analyze_scalability_potential(
         self, datasets_info: pd.DataFrame
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Analyze scalability potential of datasets"""
         print("📈 Analyzing scalability potential...")
 
@@ -932,10 +932,10 @@ class DatasetPerformanceImpactAnalyzer:
 
     def _generate_strategic_recommendations(
         self,
-        performance_analysis: Dict[str, Any],
-        impact_analysis: Dict[str, Any],
+        performance_analysis: dict[str, Any],
+        impact_analysis: dict[str, Any],
         datasets_info: pd.DataFrame,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Generate strategic recommendations based on analysis"""
         print("💡 Generating strategic recommendations...")
 
@@ -1019,8 +1019,8 @@ class DatasetPerformanceImpactAnalyzer:
         return recommendations
 
     def _generate_executive_summary(
-        self, performance_analysis: Dict[str, Any], impact_analysis: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, performance_analysis: dict[str, Any], impact_analysis: dict[str, Any]
+    ) -> dict[str, Any]:
         """Generate executive summary of findings"""
 
         # Key performance indicators
@@ -1052,8 +1052,8 @@ class DatasetPerformanceImpactAnalyzer:
         return summary
 
     def _define_action_priorities(
-        self, performance_analysis: Dict[str, Any], impact_analysis: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, performance_analysis: dict[str, Any], impact_analysis: dict[str, Any]
+    ) -> dict[str, Any]:
         """Define action priorities based on analysis"""
 
         priorities = {
@@ -1076,7 +1076,7 @@ class DatasetPerformanceImpactAnalyzer:
 
         return priorities
 
-    def _define_success_metrics(self) -> Dict[str, Any]:
+    def _define_success_metrics(self) -> dict[str, Any]:
         """Define success metrics for performance improvement"""
 
         return {
@@ -1099,8 +1099,8 @@ class DatasetPerformanceImpactAnalyzer:
 
     def _create_performance_impact_visualizations(
         self,
-        performance_analysis: Dict[str, Any],
-        impact_analysis: Dict[str, Any],
+        performance_analysis: dict[str, Any],
+        impact_analysis: dict[str, Any],
         datasets_info: pd.DataFrame,
     ):
         """Create comprehensive visualizations"""
@@ -1303,7 +1303,7 @@ class DatasetPerformanceImpactAnalyzer:
         plt.tight_layout()
 
         # Save the plot
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         plt.savefig(
             f"/home/vivi/pixelated/ai/monitoring/dataset_performance_impact_{timestamp}.png",
             dpi=300,
@@ -1316,7 +1316,7 @@ class DatasetPerformanceImpactAnalyzer:
         )
 
     # Helper methods
-    def _calculate_growth_trends(self, temporal_data: pd.DataFrame) -> Dict[str, float]:
+    def _calculate_growth_trends(self, temporal_data: pd.DataFrame) -> dict[str, float]:
         """Calculate growth trends for datasets"""
         growth_trends = {}
 
@@ -1345,7 +1345,7 @@ def main():
         results = analyzer.analyze_performance_impact()
 
         # Save results
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         output_file = f"/home/vivi/pixelated/ai/monitoring/dataset_performance_impact_{timestamp}.json"
 
         with open(output_file, "w") as f:
@@ -1386,7 +1386,7 @@ def main():
         return results
 
     except Exception as e:
-        print(f"❌ Error during analysis: {str(e)}")
+        print(f"❌ Error during analysis: {e!s}")
         import traceback
 
         traceback.print_exc()

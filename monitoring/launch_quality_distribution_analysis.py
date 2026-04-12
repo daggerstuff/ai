@@ -6,10 +6,11 @@ Enterprise-grade launcher for the quality distribution analysis system
 with comprehensive setup, validation, and execution capabilities.
 """
 
+from datetime import datetime, timezone
+
 import argparse
 import logging
 import sys
-from datetime import datetime
 from pathlib import Path
 
 # Configure logging
@@ -283,7 +284,7 @@ class QualityDistributionAnalysisLauncher:
 
                     # Save visualizations as HTML files
                     for viz_name, fig in visualizations.items():
-                        viz_filename = f"distribution_visualization_{viz_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
+                        viz_filename = f"distribution_visualization_{viz_name}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.html"
                         viz_path = self.reports_dir / viz_filename
                         fig.write_html(str(viz_path))
                         visualization_files.append(str(viz_path))
@@ -439,9 +440,8 @@ class QualityDistributionAnalysisLauncher:
         if summary.get("success", False):
             logger.info("🎉 Quality Distribution Analysis completed successfully!")
             return True
-        else:
-            logger.error("❌ Quality Distribution Analysis failed")
-            return False
+        logger.error("❌ Quality Distribution Analysis failed")
+        return False
 
 
 def main():

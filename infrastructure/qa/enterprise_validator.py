@@ -20,15 +20,16 @@ Version: 1.0.0
 Date: August 2025
 """
 
+from datetime import datetime, timedelta, timezone
+
 import asyncio
 import json
 import logging
 import time
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 import numpy as np
@@ -85,13 +86,13 @@ class ValidationTest:
     description: str
     category: ValidationCategory
     test_type: TestType
-    requirements: List[str]
+    requirements: list[str]
     expected_result: str
-    actual_result: Optional[str] = None
+    actual_result: str | None = None
     status: ValidationStatus = ValidationStatus.IN_PROGRESS
-    execution_time_ms: Optional[float] = None
-    error_message: Optional[str] = None
-    timestamp: Optional[datetime] = None
+    execution_time_ms: float | None = None
+    error_message: str | None = None
+    timestamp: datetime | None = None
 
 
 @dataclass
@@ -102,9 +103,9 @@ class ValidationSuite:
     name: str
     description: str
     category: ValidationCategory
-    tests: List[ValidationTest]
+    tests: list[ValidationTest]
 
-    prerequisites: List[str] = None
+    prerequisites: list[str] = None
 
 
 @dataclass
@@ -116,8 +117,8 @@ class ValidationResult:
     test_id: str
     status: ValidationStatus
     execution_time_ms: float
-    result_data: Dict[str, Any]
-    error_details: Optional[str] = None
+    result_data: dict[str, Any]
+    error_details: str | None = None
 
     timestamp: datetime = None
 
@@ -133,15 +134,15 @@ class EnterpriseValidationReport:
     report_id: str
     timestamp: datetime
     overall_score: float
-    category_scores: Dict[ValidationCategory, float]
+    category_scores: dict[ValidationCategory, float]
     total_tests: int
     passed_tests: int
     failed_tests: int
     warning_tests: int
     skipped_tests: int
     execution_time_ms: float
-    compliance_status: Dict[str, str]
-    recommendations: List[str]
+    compliance_status: dict[str, str]
+    recommendations: list[str]
     next_validation_date: datetime
 
 
@@ -621,7 +622,7 @@ class EnterpriseValidator:
         self.performance_validator = PerformanceValidator()
 
         # Validation results
-        self.validation_results: List[ValidationResult] = []
+        self.validation_results: list[ValidationResult] = []
 
     async def run_comprehensive_validation(self) -> EnterpriseValidationReport:
         """Run comprehensive enterprise validation"""
@@ -657,7 +658,7 @@ class EnterpriseValidator:
         )
         return report
 
-    async def _run_security_validation(self) -> List[ValidationResult]:
+    async def _run_security_validation(self) -> list[ValidationResult]:
         """Run all security validation tests"""
         results = []
 
@@ -675,7 +676,7 @@ class EnterpriseValidator:
 
         return results
 
-    async def _run_compliance_validation(self) -> List[ValidationResult]:
+    async def _run_compliance_validation(self) -> list[ValidationResult]:
         """Run all compliance validation tests"""
         results = []
 
@@ -685,7 +686,7 @@ class EnterpriseValidator:
 
         return results
 
-    async def _run_performance_validation(self) -> List[ValidationResult]:
+    async def _run_performance_validation(self) -> list[ValidationResult]:
         """Run all performance validation tests"""
         results = []
 
@@ -768,7 +769,7 @@ class EnterpriseValidator:
             recommendations.append("Optimize system performance")
 
         return EnterpriseValidationReport(
-            report_id=f"enterprise_validation_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            report_id=f"enterprise_validation_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
             timestamp=datetime.now(timezone.utc),
             overall_score=overall_score,
             category_scores=category_scores,

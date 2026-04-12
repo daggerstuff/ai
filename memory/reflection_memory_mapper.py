@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 from .reflection_types import Memory, MemoryCategory, MemoryMetadata
 
 
-def record_to_memory(record: Dict[str, Any]) -> Memory:
+def record_to_memory(record: dict[str, Any]) -> Memory:
     return Memory(
         id=record["id"],
         content=record.get("content") or record.get("memory", ""),
@@ -15,7 +15,7 @@ def record_to_memory(record: Dict[str, Any]) -> Memory:
     )
 
 
-def summary_to_record(item: Dict[str, Any]) -> Dict[str, Any]:
+def summary_to_record(item: dict[str, Any]) -> dict[str, Any]:
     return {
         "id": item["id"],
         "content": item.get("content", ""),
