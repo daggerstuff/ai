@@ -4,11 +4,10 @@ Simple Quality Distribution Analysis System
 Analyzes quality score distributions across datasets, tiers, and time periods
 """
 
-from datetime import datetime, timezone
-
 import json
 import sqlite3
 import warnings
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 

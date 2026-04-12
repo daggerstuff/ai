@@ -4,13 +4,12 @@ Intelligent Alert Grouping Algorithms for Pixelated Empathy AI
 Advanced pattern matching and machine learning-based alert grouping
 """
 
-from datetime import datetime, timedelta, timezone
-
 import asyncio
 import logging
 import re
 from collections import defaultdict
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import numpy as np
@@ -330,7 +329,7 @@ class IntelligentGroupingEngine:
 
         return similarity_matrix
 
-    async def _pattern_matching(self, alerts: list[dict[str, Any]],
+    async def _pattern_matching(self, _alerts: list[dict[str, Any]],
                               features: list[AlertFeatures]) -> list[list[int]]:
         """Group alerts using pattern matching"""
 
@@ -423,7 +422,7 @@ class IntelligentGroupingEngine:
         return categorical_score >= 0.7 and pattern_similarity >= 0.5
 
     async def _temporal_clustering(self, alerts: list[dict[str, Any]],
-                                 features: list[AlertFeatures]) -> list[list[int]]:
+                                 _features: list[AlertFeatures]) -> list[list[int]]:
         """Group alerts using temporal clustering"""
 
         # Sort alerts by timestamp

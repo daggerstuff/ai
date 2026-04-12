@@ -10,14 +10,12 @@ This module provides comprehensive compliance validation including:
 - Compliance monitoring and reporting
 """
 
-from datetime import datetime, timezone
-
-
 import asyncio
 import json
 import logging
 import time
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
@@ -357,7 +355,7 @@ class ComplianceValidationSystem:
             assessment_time=assessment_time
         )
 
-    async def _assess_access_control(self, control: ComplianceControl) -> tuple[float, list[str], list[str], int]:
+    async def _assess_access_control(self, _control: ComplianceControl) -> tuple[float, list[str], list[str], int]:
         """Assess access control compliance"""
         # Simulate access control assessment
         # In production, this would check actual access control implementations
@@ -372,7 +370,7 @@ class ComplianceValidationSystem:
 
         return score, gaps, recommendations, evidence_count
 
-    async def _assess_data_protection(self, control: ComplianceControl) -> tuple[float, list[str], list[str], int]:
+    async def _assess_data_protection(self, _control: ComplianceControl) -> tuple[float, list[str], list[str], int]:
         """Assess data protection compliance"""
         score = 90.0  # Good score with some improvements needed
         gaps = [
@@ -388,7 +386,7 @@ class ComplianceValidationSystem:
 
         return score, gaps, recommendations, evidence_count
 
-    async def _assess_security_management(self, control: ComplianceControl) -> tuple[float, list[str], list[str], int]:
+    async def _assess_security_management(self, _control: ComplianceControl) -> tuple[float, list[str], list[str], int]:
         """Assess security management compliance"""
         score = 92.0  # Good security management practices
         gaps = [
@@ -403,7 +401,7 @@ class ComplianceValidationSystem:
 
         return score, gaps, recommendations, evidence_count
 
-    async def _assess_incident_response(self, control: ComplianceControl) -> tuple[float, list[str], list[str], int]:
+    async def _assess_incident_response(self, _control: ComplianceControl) -> tuple[float, list[str], list[str], int]:
         """Assess incident response compliance"""
         score = 88.0  # Good incident response capabilities
         gaps = [
@@ -419,7 +417,7 @@ class ComplianceValidationSystem:
 
         return score, gaps, recommendations, evidence_count
 
-    async def _assess_audit_logging(self, control: ComplianceControl) -> tuple[float, list[str], list[str], int]:
+    async def _assess_audit_logging(self, _control: ComplianceControl) -> tuple[float, list[str], list[str], int]:
         """Assess audit logging compliance"""
         score = 85.0  # Adequate logging with improvements needed
         gaps = [
@@ -435,7 +433,7 @@ class ComplianceValidationSystem:
 
         return score, gaps, recommendations, evidence_count
 
-    async def _assess_privacy_protection(self, control: ComplianceControl) -> tuple[float, list[str], list[str], int]:
+    async def _assess_privacy_protection(self, _control: ComplianceControl) -> tuple[float, list[str], list[str], int]:
         """Assess privacy protection compliance"""
         score = 93.0  # Strong privacy protection measures
         gaps = [
@@ -450,7 +448,7 @@ class ComplianceValidationSystem:
 
         return score, gaps, recommendations, evidence_count
 
-    async def _assess_risk_management(self, control: ComplianceControl) -> tuple[float, list[str], list[str], int]:
+    async def _assess_risk_management(self, _control: ComplianceControl) -> tuple[float, list[str], list[str], int]:
         """Assess risk management compliance"""
         score = 87.0  # Good risk management framework
         gaps = [
@@ -466,7 +464,7 @@ class ComplianceValidationSystem:
 
         return score, gaps, recommendations, evidence_count
 
-    async def _assess_business_continuity(self, control: ComplianceControl) -> tuple[float, list[str], list[str], int]:
+    async def _assess_business_continuity(self, _control: ComplianceControl) -> tuple[float, list[str], list[str], int]:
         """Assess business continuity compliance"""
         score = 89.0  # Good business continuity planning
         gaps = [

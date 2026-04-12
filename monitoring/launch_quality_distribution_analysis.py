@@ -6,11 +6,10 @@ Enterprise-grade launcher for the quality distribution analysis system
 with comprehensive setup, validation, and execution capabilities.
 """
 
-from datetime import datetime, timezone
-
 import argparse
 import logging
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 # Configure logging

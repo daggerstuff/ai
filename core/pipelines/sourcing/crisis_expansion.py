@@ -484,7 +484,7 @@ class CrisisExpansion:
         return result
 
     def _generate_phrase_variants(
-        self, term: str, category: CrisisCategory
+        self, term: str, _category: CrisisCategory
     ) -> set[str]:
         """
         Generate phrase variants for a term based on common expressions.

@@ -5,10 +5,8 @@ This module provides integration with the American Psychological Association (AP
 for sourcing psychology and therapy books for AI training data expansion.
 """
 
-from datetime import datetime, timezone
-
-
 import logging
+from datetime import datetime, timezone
 from typing import Any
 
 from .base_publisher import BasePublisher, BookContent, BookFormat, BookMetadata
@@ -228,7 +226,7 @@ class APAPublisher(BasePublisher):
             return None
 
     def get_book_content(
-        self, identifier: str, format: BookFormat = BookFormat.PLAIN_TEXT
+        self, identifier: str, _format: BookFormat = BookFormat.PLAIN_TEXT
     ) -> BookContent | None:
         """
         Get content for a specific book from APA

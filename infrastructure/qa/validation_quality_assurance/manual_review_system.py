@@ -4,12 +4,11 @@ Manual Review and Validation System - Task 5.7.2.3
 Creates comprehensive manual review and validation systems for human oversight of conversation quality.
 """
 
-from datetime import datetime, timedelta, timezone
-
 import json
 import logging
 import uuid
 from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any
 
@@ -275,7 +274,7 @@ class ManualReviewSystem:
         return assignment_id
 
     def _auto_assign_reviewer(self, conversation: dict[str, Any],
-                            priority: ReviewPriority) -> str:
+                            _priority: ReviewPriority) -> str:
         """Automatically assign the best reviewer for a conversation"""
 
         # Extract conversation characteristics

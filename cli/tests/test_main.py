@@ -596,7 +596,7 @@ class TestCLIPerformance:
 
         with runner.isolated_filesystem():
             # Mock slow API response
-            def slow_response(*args, **kwargs):
+            def slow_response(*_args, **_kwargs):
                 import time
 
                 time.sleep(0.1)  # Simulate slow response

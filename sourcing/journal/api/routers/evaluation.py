@@ -30,7 +30,7 @@ router = APIRouter(prefix="/sessions/{session_id}/evaluation", tags=["evaluation
 async def initiate_evaluation(
     session_id: str,
     request: EvaluationInitiateRequest,
-    current_user: dict = Depends(require_permission_dependency("evaluation:read")),
+    _current_user: dict = Depends(require_permission_dependency("evaluation:read")),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> EvaluationResponse:
     """
@@ -89,7 +89,7 @@ async def initiate_evaluation(
 async def list_evaluations(
     session_id: str,
     pagination: PaginationParams = Depends(),
-    current_user: dict | None = Depends(get_current_user),
+    _current_user: dict | None = Depends(get_current_user),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> EvaluationListResponse:
     """
@@ -145,7 +145,7 @@ async def list_evaluations(
 async def get_evaluation(
     session_id: str,
     evaluation_id: str,
-    current_user: dict | None = Depends(get_current_user),
+    _current_user: dict | None = Depends(get_current_user),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> EvaluationResponse:
     """
@@ -185,7 +185,7 @@ async def update_evaluation(
     session_id: str,
     evaluation_id: str,
     request: EvaluationUpdateRequest,
-    current_user: dict = Depends(require_permission_dependency("evaluation:update")),
+    _current_user: dict = Depends(require_permission_dependency("evaluation:update")),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> EvaluationResponse:
     """

@@ -4,8 +4,6 @@ Automatic Resume Engine for Pixelated Empathy AI
 Provides seamless recovery and resumption of interrupted processing operations
 """
 
-from datetime import datetime, timedelta, timezone
-
 import asyncio
 import json
 import logging
@@ -15,6 +13,7 @@ import time
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any
 
@@ -164,7 +163,7 @@ class ProcessingInterruptionDetector:
 
         self.interruption_callbacks.append(callback)
 
-    def _handle_shutdown_signal(self, signum, frame):
+    def _handle_shutdown_signal(self, signum, _frame):
         """Handle shutdown signals"""
 
         logger.info(f"Received shutdown signal {signum}")
@@ -478,7 +477,7 @@ class AutoResumeEngine:
         self,
         state: ProcessingState,
         strategy: ResumeStrategy,
-        interruption_context: InterruptionContext = None,
+        _interruption_context: InterruptionContext = None,
     ) -> dict[str, Any]:
         """Apply resume strategy to determine resume point"""
 

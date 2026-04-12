@@ -7,13 +7,12 @@ This is the highest priority integration - providing 24/7 crisis support
 with intelligent escalation and professional backup.
 """
 
-from datetime import datetime, timedelta, timezone
-
 import asyncio
 import logging
 import os
 import re
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 
 logging.basicConfig(
@@ -324,7 +323,7 @@ class CrisisDetectionEngine:
         return RiskLevel.LOW, InterventionType.AI_SUPPORT
 
     def _generate_immediate_actions(
-        self, risk_level: RiskLevel, risk_factors: list[str]
+        self, risk_level: RiskLevel, _risk_factors: list[str]
     ) -> list[str]:
         """Generate immediate action recommendations based on risk level"""
         actions = []
@@ -530,10 +529,10 @@ class TherapeuticCrisisResponder:
 
     async def _generate_ai_response(
         self,
-        message: str,
-        assessment: CrisisAssessment,
-        expert_preference: str,
-        context: list[str],
+        _message: str,
+        _assessment: CrisisAssessment,
+        _expert_preference: str,
+        _context: list[str],
     ) -> str:
         """Generate response using therapeutic AI model"""
         # This would integrate with the trained H100 model
@@ -804,7 +803,7 @@ class CrisisInterventionSystem:
         }
 
     async def _handle_crisis_escalation(
-        self, user_id: str, assessment: CrisisAssessment, response: CrisisResponse
+        self, user_id: str, assessment: CrisisAssessment, _response: CrisisResponse
     ):
         """Handle crisis escalation procedures"""
         logger.warning(

@@ -5,10 +5,8 @@ This module provides a service layer that wraps CommandHandler functionality
 for use by API endpoints.
 """
 
-from datetime import datetime, timezone
-
-
 import logging
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -488,7 +486,7 @@ class CommandHandlerService:
         self,
         session_id: str,
         acquisition_id: str,
-        status: str,
+        _status: str,
     ) -> AcquiredDataset:
         """Update acquisition status."""
         # For now, we just return the acquisition
@@ -621,7 +619,7 @@ class CommandHandlerService:
         session_id: str,
         report_type: str = "session_report",
         format: str = "json",
-        date_range: dict[str, Any] | None = None,
+        _date_range: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Generate a report for a session."""
         orchestrator = self.orchestrator
@@ -660,13 +658,13 @@ class CommandHandlerService:
             "content": report_data,
         }
 
-    def list_reports(self, session_id: str) -> list[dict[str, Any]]:
+    def list_reports(self, _session_id: str) -> list[dict[str, Any]]:
         """List reports for a session."""
         # For now, return empty list
         # In production, this would query a report storage system
         return []
 
-    def get_report(self, session_id: str, report_id: str) -> dict[str, Any]:
+    def get_report(self, session_id: str, _report_id: str) -> dict[str, Any]:
         """Get report details by ID."""
         # For now, generate report on the fly
         # In production, this would retrieve from report storage

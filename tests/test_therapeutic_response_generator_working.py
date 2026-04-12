@@ -158,7 +158,7 @@ class MockTherapeuticResponseGenerator:
             "rationale": f"Selected {primary_technique} based on {analysis['therapeutic_needs']}"
         }
 
-    def _generate_contextual_response(self, analysis: dict[str, Any], approach: dict[str, Any], context: dict[str, Any]) -> str:
+    def _generate_contextual_response(self, analysis: dict[str, Any], approach: dict[str, Any], _context: dict[str, Any]) -> str:
         """Generate contextual therapeutic response."""
         primary_technique = approach["primary_technique"]
         emotions = analysis["emotions_detected"]
@@ -202,7 +202,7 @@ class MockTherapeuticResponseGenerator:
 
         return base_response.strip()
 
-    def _assess_response_quality(self, response: str, analysis: dict[str, Any], context: dict[str, Any]) -> dict[str, Any]:
+    def _assess_response_quality(self, response: str, _analysis: dict[str, Any], _context: dict[str, Any]) -> dict[str, Any]:
         """Assess the quality of the generated response."""
         response_lower = response.lower()
 

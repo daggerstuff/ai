@@ -3,14 +3,12 @@ Deployment management system for A/B testing and canary deployments.
 Enables safe rollout of new model versions with traffic splitting and metrics collection.
 """
 
-from datetime import datetime, timezone
-
-
 import hashlib
 import json
 import logging
 import random
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any

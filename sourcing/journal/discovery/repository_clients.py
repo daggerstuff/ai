@@ -5,11 +5,9 @@ Implements clients for searching Dryad, Zenodo, and ClinicalTrials.gov
 for therapeutic datasets.
 """
 
-from datetime import datetime, timezone
-
-
 import logging
 import time
+from datetime import datetime, timezone
 
 import requests
 

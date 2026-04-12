@@ -4,8 +4,6 @@ Comprehensive Test Suite for Automatic Resume System
 Tests interruption detection, resume strategies, orchestration, and recovery scenarios
 """
 
-from datetime import datetime, timezone
-
 import asyncio
 import logging
 import os
@@ -13,6 +11,7 @@ import shutil
 import tempfile
 import time
 import uuid
+from datetime import datetime, timezone
 
 from auto_resume_engine import (
     AutoResumeEngine,
@@ -125,7 +124,7 @@ class AutoResumeTestSuite:
 
         async def test_resume_handler(
             resume_point: Dict[str, Any],
-            interruption_context: InterruptionContext = None,
+            _interruption_context: InterruptionContext = None,
         ):
             nonlocal resume_called, resume_data
             resume_called = True
@@ -269,7 +268,7 @@ class AutoResumeTestSuite:
 
         async def strategy_test_handler(
             resume_point: Dict[str, Any],
-            interruption_context: InterruptionContext = None,
+            _interruption_context: InterruptionContext = None,
         ):
             strategy = resume_point["strategy"]
             strategies_tested.append(strategy)
@@ -364,7 +363,7 @@ class AutoResumeTestSuite:
 
         async def orchestrated_handler(
             resume_point: Dict[str, Any],
-            interruption_context: InterruptionContext = None,
+            _interruption_context: InterruptionContext = None,
         ):
             resume_calls.append(
                 {
@@ -433,7 +432,7 @@ class AutoResumeTestSuite:
 
         async def dependency_handler(
             resume_point: Dict[str, Any],
-            interruption_context: InterruptionContext = None,
+            _interruption_context: InterruptionContext = None,
         ):
             process_id = resume_point["process_id"]
             completion_order.append(process_id)
@@ -517,7 +516,7 @@ class AutoResumeTestSuite:
 
         async def priority_handler(
             resume_point: Dict[str, Any],
-            interruption_context: InterruptionContext = None,
+            _interruption_context: InterruptionContext = None,
         ):
             process_id = resume_point["process_id"]
             resume_order.append(process_id)
@@ -574,7 +573,7 @@ class AutoResumeTestSuite:
 
         async def resource_handler(
             resume_point: Dict[str, Any],
-            interruption_context: InterruptionContext = None,
+            _interruption_context: InterruptionContext = None,
         ):
             process_id = resume_point["process_id"]
 
@@ -641,7 +640,7 @@ class AutoResumeTestSuite:
 
         async def concurrent_handler(
             resume_point: Dict[str, Any],
-            interruption_context: InterruptionContext = None,
+            _interruption_context: InterruptionContext = None,
         ):
             process_id = resume_point["process_id"]
 
@@ -699,7 +698,7 @@ class AutoResumeTestSuite:
 
         async def failing_handler(
             resume_point: Dict[str, Any],
-            interruption_context: InterruptionContext = None,
+            _interruption_context: InterruptionContext = None,
         ):
             process_id = resume_point["process_id"]
             retry_attempts.append(process_id)
@@ -765,8 +764,8 @@ class AutoResumeTestSuite:
         resume_times = []
 
         async def benchmark_handler(
-            resume_point: Dict[str, Any],
-            interruption_context: InterruptionContext = None,
+            _resume_point: Dict[str, Any],
+            _interruption_context: InterruptionContext = None,
         ):
             start_time = time.time()
 

@@ -10,10 +10,9 @@ Designs comprehensive database schema for conversation storage and management:
 - Scalable architecture for 2.59M+ conversations
 """
 
-from datetime import datetime, timezone
-
 import logging
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -368,7 +367,7 @@ class DatabaseSchemaDesigner:
             ],
         }
 
-    def generate_sql_schema(self, database_type: str = "mysql") -> dict[str, list[str]]:
+    def generate_sql_schema(self, _database_type: str = "mysql") -> dict[str, list[str]]:
         """Generate SQL schema for specified database type."""
 
         sql_statements = {"tables": [], "indexes": [], "constraints": []}

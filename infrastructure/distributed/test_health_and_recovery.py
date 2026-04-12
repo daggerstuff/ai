@@ -3,13 +3,12 @@
 Unit tests for Health Check and Disaster Recovery Systems
 """
 
-from datetime import datetime, timezone
-
 import asyncio
 
 # Add parent directory to path for imports
 import sys
 import unittest
+from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent.parent))

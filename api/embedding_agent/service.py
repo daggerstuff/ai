@@ -8,13 +8,11 @@ This service wraps the ClinicalKnowledgeEmbedder and provides:
 - GPU acceleration support
 """
 
-from datetime import datetime, timezone
-
-
 import hashlib
 import logging
 import time
 import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 from threading import Lock
 from typing import TYPE_CHECKING, Any
@@ -292,7 +290,7 @@ class EmbeddingAgentService:
     def _generate_embedding(
         self,
         text: str,
-        model: EmbeddingModel,
+        _model: EmbeddingModel,
     ) -> list[float]:
         """
         Generate embedding using the model.
@@ -438,7 +436,7 @@ class EmbeddingAgentService:
     def _batch_generate_embeddings(
         self,
         texts: list[str],
-        model: EmbeddingModel,
+        _model: EmbeddingModel,
     ) -> list[list[float]]:
         """Generate embeddings for multiple texts efficiently."""
         if self._embedding_model is None:

@@ -4,12 +4,11 @@ Quality Trend Analysis Demo
 Creates synthetic date distribution to demonstrate trend analysis capabilities
 """
 
-from datetime import datetime, timedelta, timezone
-
 import random
 import sqlite3
 import warnings
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 

@@ -15,12 +15,11 @@ Usage:
     whisper = agent.get_whisper()
 """
 
-from datetime import datetime, timezone
-
 import asyncio
 import json
 import logging
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from typing import Any
 
 from .hindsight_subconscious_model_provider import SubconsciousModelProvider

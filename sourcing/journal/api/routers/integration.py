@@ -29,7 +29,7 @@ router = APIRouter(prefix="/sessions/{session_id}/integration", tags=["integrati
 async def initiate_integration(
     session_id: str,
     request: IntegrationInitiateRequest,
-    current_user: dict = Depends(require_permission_dependency("integration:read")),
+    _current_user: dict = Depends(require_permission_dependency("integration:read")),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> IntegrationPlanResponse:
     """
@@ -86,7 +86,7 @@ async def initiate_integration(
 async def list_integration_plans(
     session_id: str,
     pagination: PaginationParams = Depends(),
-    current_user: dict | None = Depends(get_current_user),
+    _current_user: dict | None = Depends(get_current_user),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> IntegrationPlanListResponse:
     """
@@ -140,7 +140,7 @@ async def list_integration_plans(
 async def get_integration_plan(
     session_id: str,
     plan_id: str,
-    current_user: dict | None = Depends(get_current_user),
+    _current_user: dict | None = Depends(get_current_user),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> IntegrationPlanResponse:
     """

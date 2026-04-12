@@ -25,35 +25,35 @@ class S3DatasetLoader:
         self.aws_access_key_id = aws_access_key_id
         self.aws_secret_access_key = aws_secret_access_key
 
-    def load_json(self, bucket: str, key: str) -> Any:
+    def load_json(self, _bucket: str, _key: str) -> Any:
         """Load JSON data from S3."""
         return None
 
-    def stream_jsonl(self, bucket: str, key: str) -> Iterator[dict[str, Any]]:
+    def stream_jsonl(self, _bucket: str, _key: str) -> Iterator[dict[str, Any]]:
         """Stream JSONL data from S3."""
         return iter([])
 
-    def stream_json_array(self, bucket: str, key: str) -> Iterator[dict[str, Any]]:
+    def stream_json_array(self, _bucket: str, _key: str) -> Iterator[dict[str, Any]]:
         """Stream JSON array from S3."""
         return iter([])
 
-    def stream_json(self, bucket: str, key: str) -> Iterator[dict[str, Any]]:
+    def stream_json(self, _bucket: str, _key: str) -> Iterator[dict[str, Any]]:
         """Stream JSON data from S3."""
         return iter([])
 
-    def upload_file(self, bucket: str, key: str, data: Any) -> bool:
+    def upload_file(self, _bucket: str, _key: str, _data: Any) -> bool:
         """Upload file to S3."""
         return True
 
-    def download_file(self, bucket: str, key: str, local_path: str) -> bool:
+    def download_file(self, _bucket: str, _key: str, _local_path: str) -> bool:
         """Download file from S3."""
         return True
 
-    def list_datasets(self, bucket: str, prefix: str = "") -> list[str]:
+    def list_datasets(self, _bucket: str, _prefix: str = "") -> list[str]:
         """List datasets in S3 bucket."""
         return []
 
-    def object_exists(self, bucket: str, key: str) -> bool:
+    def object_exists(self, _bucket: str, _key: str) -> bool:
         """Check if object exists in S3."""
         return False
 
@@ -63,7 +63,7 @@ def get_s3_dataset_path(dataset_name: str) -> str:
     return f"s3://datasets/{dataset_name}"
 
 
-def load_dataset_from_s3(dataset_name: str) -> Any:
+def load_dataset_from_s3(_dataset_name: str) -> Any:
     """Load dataset from S3."""
     return None
 

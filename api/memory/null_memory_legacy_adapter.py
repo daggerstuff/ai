@@ -68,5 +68,5 @@ class NullMemoryLegacyAdapter:
             return False
         return self.manager.delete_memory(memory_id, user_id=user_id)
 
-    def delete_all(self, user_id: str, **kwargs: Any) -> bool:
+    def delete_all(self, user_id: str, **_kwargs: Any) -> bool:
         return self.manager.clear_memory(user_id)

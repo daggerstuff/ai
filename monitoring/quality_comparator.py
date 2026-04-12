@@ -6,12 +6,11 @@ Enterprise-grade quality comparison system providing comprehensive
 cross-tier analysis, dataset benchmarking, and comparative reporting.
 """
 
-from datetime import datetime, timedelta, timezone
-
 import logging
 import sqlite3
 import warnings
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import numpy as np
@@ -558,9 +557,9 @@ class QualityComparator:
 
     def _generate_benchmark_recommendations(self,
                                           current_performance: float,
-                                          benchmark_value: float,
+                                          _benchmark_value: float,
                                           performance_gap: float,
-                                          benchmark_type: str) -> list[str]:
+                                          _benchmark_type: str) -> list[str]:
         """Generate recommendations based on benchmark analysis."""
         recommendations = []
 

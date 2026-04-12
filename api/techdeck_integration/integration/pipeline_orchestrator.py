@@ -6,12 +6,10 @@ and the Python dataset pipeline, handling communication, data transformation,
 and execution coordination.
 """
 
-from datetime import datetime, timezone
-
-
 import json
 import logging
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
@@ -290,7 +288,7 @@ class PipelineOrchestrator:
             self.logger.error(f"Error in Stage 3 bias detection: {e}")
             raise PipelineExecutionError(f"Bias detection failed: {e!s}")
 
-    async def _execute_stage_4_standardization(self, execution_id: str, previous_stage_result: dict[str, Any]) -> dict[str, Any]:
+    async def _execute_stage_4_standardization(self, execution_id: str, _previous_stage_result: dict[str, Any]) -> dict[str, Any]:
         """Execute Stage 4: Standardization."""
         try:
             self.logger.info(f"Executing Stage 4: Standardization for {execution_id}")
@@ -331,7 +329,7 @@ class PipelineOrchestrator:
             self.logger.error(f"Error in Stage 4 standardization: {e}")
             raise PipelineExecutionError(f"Standardization failed: {e!s}")
 
-    async def _execute_stage_5_validation(self, execution_id: str, previous_stage_result: dict[str, Any]) -> dict[str, Any]:
+    async def _execute_stage_5_validation(self, execution_id: str, _previous_stage_result: dict[str, Any]) -> dict[str, Any]:
         """Execute Stage 5: Validation."""
         try:
             self.logger.info(f"Executing Stage 5: Validation for {execution_id}")
@@ -378,7 +376,7 @@ class PipelineOrchestrator:
             self.logger.error(f"Error in Stage 5 validation: {e}")
             raise PipelineExecutionError(f"Validation failed: {e!s}")
 
-    async def _execute_stage_6_output_generation(self, execution_id: str, previous_stage_result: dict[str, Any]) -> dict[str, Any]:
+    async def _execute_stage_6_output_generation(self, execution_id: str, _previous_stage_result: dict[str, Any]) -> dict[str, Any]:
         """Execute Stage 6: Output Generation."""
         try:
             self.logger.info(f"Executing Stage 6: Output Generation for {execution_id}")

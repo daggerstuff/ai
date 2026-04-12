@@ -1,8 +1,8 @@
 
-from datetime import datetime, timezone
 from __future__ import annotations
 
 from copy import deepcopy
+from datetime import datetime, timezone
 from typing import Any
 
 from ai.sourcing.journal.mcp.auth.authorization import AuthorizationHandler
@@ -23,17 +23,17 @@ class AllowAllAuthorization(AuthorizationHandler):
 
     async def authorize(
         self,
-        user: dict[str, Any],
-        resource: str,
-        action: str,
+        _user: dict[str, Any],
+        _resource: str,
+        _action: str,
     ) -> bool:
         return True
 
     async def require_authorization(
         self,
-        user: dict[str, Any],
-        resource: str,
-        action: str,
+        _user: dict[str, Any],
+        _resource: str,
+        _action: str,
     ) -> None:
         return None
 

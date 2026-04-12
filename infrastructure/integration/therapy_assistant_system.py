@@ -10,12 +10,11 @@ This system provides real-time support to therapists with:
 - Treatment plan recommendations
 """
 
-from datetime import datetime, timezone
-
 import asyncio
 import logging
 import re
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from enum import Enum
 
 logging.basicConfig(
@@ -291,7 +290,7 @@ class SessionAnalyzer:
 
         return emotions
 
-    def _evaluate_alliance(self, text: str, context: dict) -> float:
+    def _evaluate_alliance(self, text: str, _context: dict) -> float:
         """Evaluate therapeutic alliance strength"""
         alliance_score = 0.5  # Baseline
 
@@ -366,7 +365,7 @@ class SessionAnalyzer:
         themes: list[str],
         emotions: dict[str, float],
         phase: SessionPhase,
-        context: dict,
+        _context: dict,
     ) -> list[dict]:
         """Generate intervention suggestions"""
         suggestions = []
@@ -473,7 +472,7 @@ class TherapyAssistantEngine:
         self,
         session_id: str,
         transcript_segment: str,
-        therapist_request: str = None,
+        _therapist_request: str = None,
     ) -> dict:
         """Provide real-time assistance during therapy session"""
 
@@ -536,7 +535,7 @@ class TherapyAssistantEngine:
         }
 
     async def _generate_ai_insights(
-        self, transcript: str, analysis: SessionAnalysis, context: dict
+        self, transcript: str, analysis: SessionAnalysis, _context: dict
     ) -> dict:
         """Generate AI-powered therapeutic insights"""
         if self.therapeutic_ai:
@@ -588,7 +587,7 @@ class TherapyAssistantEngine:
         return recommendations
 
     def _generate_documentation_assistance(
-        self, analysis: SessionAnalysis, context: dict
+        self, analysis: SessionAnalysis, _context: dict
     ) -> dict:
         """Generate session documentation assistance"""
         return {

@@ -6,12 +6,11 @@ Enterprise-grade automated reporting system for quality trends with
 comprehensive analysis, visualizations, and executive summaries.
 """
 
-from datetime import datetime, timezone
-
 import json
 import logging
 import warnings
 from dataclasses import asdict
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -63,7 +62,7 @@ class QualityTrendReporter:
         self,
         days_back: int = 90,
         include_predictions: bool = True,
-        include_visualizations: bool = True,
+        _include_visualizations: bool = True,
     ) -> QualityTrendReport:
         """Generate comprehensive quality trend report."""
         logger.info(f"📈 Generating comprehensive trend report ({days_back} days)")
@@ -217,7 +216,7 @@ class QualityTrendReporter:
 
     def _generate_comparative_analysis(
         self,
-        overall_trend: TrendAnalysis,
+        _overall_trend: TrendAnalysis,
         component_trends: dict[str, TrendAnalysis],
         tier_trends: dict[str, TrendAnalysis],
         dataset_trends: dict[str, TrendAnalysis],

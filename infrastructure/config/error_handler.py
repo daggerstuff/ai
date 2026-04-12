@@ -258,12 +258,12 @@ class ConfigErrorHandler:
 
         return False
 
-    def _recover_network_error(self, error: ConfigError) -> bool:
+    def _recover_network_error(self, _error: ConfigError) -> bool:
         """Recover from network-related errors"""
         # Implement network recovery strategies
         return False
 
-    def _recover_connection_timeout(self, error: ConfigError) -> bool:
+    def _recover_connection_timeout(self, _error: ConfigError) -> bool:
         """Recover from connection timeout errors"""
         # Implement timeout recovery strategies
         return False
@@ -293,7 +293,7 @@ class ConfigErrorHandler:
 
         return False
 
-    def _recover_database_schema(self, error: ConfigError) -> bool:
+    def _recover_database_schema(self, _error: ConfigError) -> bool:
         """Recover from database schema errors"""
         # Implement schema recovery strategies
         return False
@@ -328,7 +328,7 @@ class ConfigErrorHandler:
 
         return False
 
-    def _recover_resource_limits(self, error: ConfigError) -> bool:
+    def _recover_resource_limits(self, _error: ConfigError) -> bool:
         """Recover from resource limit errors"""
         # Implement resource limit recovery
         return False

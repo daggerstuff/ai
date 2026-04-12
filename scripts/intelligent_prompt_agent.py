@@ -174,7 +174,7 @@ class MultiPatternAgent:
         return best_match
 
     def detect_response_boundaries(
-        self, text: str, question: str = None
+        self, text: str, _question: str = None
     ) -> PatternMatch:
         """Detect where response begins using transition markers"""
         response_match = PatternMatch("response_boundary", 0.0)

@@ -12,13 +12,12 @@ Provides intelligent recommendations and optimization strategies:
 - Personalized optimization plans
 """
 
-from datetime import datetime, timezone
-
 import json
 import re
 import sqlite3
 import warnings
 from collections import Counter
+from datetime import datetime, timezone
 from typing import Any
 
 import matplotlib.pyplot as plt
@@ -837,7 +836,7 @@ class ConversationRecommendationOptimizer:
         return personalized_recs
 
     def _create_optimization_strategies(
-        self, recommendations: dict[str, Any], performance_analysis: dict[str, Any]
+        self, _recommendations: dict[str, Any], performance_analysis: dict[str, Any]
     ) -> dict[str, Any]:
         """Create comprehensive optimization strategies"""
         print("🚀 Creating optimization strategies...")
@@ -926,7 +925,7 @@ class ConversationRecommendationOptimizer:
         return strategies
 
     def _create_implementation_roadmap(
-        self, optimization_strategies: dict[str, Any]
+        self, _optimization_strategies: dict[str, Any]
     ) -> dict[str, Any]:
         """Create detailed implementation roadmap"""
         print("🗺️ Creating implementation roadmap...")

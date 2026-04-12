@@ -187,7 +187,7 @@ class LettaCrisisHandler:
         self,
         result: CrisisResult,
         user_id: str,
-        session_id: str | None = None
+        _session_id: str | None = None
     ) -> None:
         """Route to appropriate resources based on crisis type."""
         # Log resource routing

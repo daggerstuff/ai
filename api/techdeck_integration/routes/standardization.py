@@ -5,10 +5,8 @@ This module implements REST API endpoints for data standardization operations,
 including schema validation, format conversion, and data normalization.
 """
 
-from datetime import datetime, timezone
-
-
 import logging
+from datetime import datetime, timezone
 from typing import Any
 
 from flask import Blueprint, g, jsonify, request
@@ -667,7 +665,7 @@ def _get_schema_fields(schema_id: str) -> list[dict[str, Any]]:
     return fields_map.get(schema_id, [])
 
 
-def _get_validation_rules(schema_id: str) -> dict[str, Any]:
+def _get_validation_rules(_schema_id: str) -> dict[str, Any]:
     """Get validation rules for a schema."""
     # Placeholder validation rules
     return {
@@ -679,7 +677,7 @@ def _get_validation_rules(schema_id: str) -> dict[str, Any]:
     }
 
 
-def _get_transformation_rules(schema_id: str) -> dict[str, Any]:
+def _get_transformation_rules(_schema_id: str) -> dict[str, Any]:
     """Get transformation rules for a schema."""
     # Placeholder transformation rules
     return {
@@ -847,7 +845,7 @@ def _transform_data(
         raise StandardizationError(f"Failed to transform data: {e!s}")
 
 
-def _get_schema_statistics(redis_client: RedisClient, schema_id: str) -> dict[str, Any]:
+def _get_schema_statistics(_redis_client: RedisClient, schema_id: str) -> dict[str, Any]:
     """Get usage statistics for a schema."""
     try:
         # Generate some placeholder statistics

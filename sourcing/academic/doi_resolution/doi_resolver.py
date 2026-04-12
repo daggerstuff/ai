@@ -331,7 +331,7 @@ class DOISearcher:
 
 
 # Helper method for DOIResolver
-def _parse_crossref_item(self, item: dict[str, Any]) -> DOIMetadata | None:
+def _parse_crossref_item(_self, item: dict[str, Any]) -> DOIMetadata | None:
     """Parse a CrossRef search result item"""
     try:
         # Extract authors

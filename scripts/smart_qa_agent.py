@@ -100,7 +100,7 @@ class SmartQAAgent:
             "confidence": 0.3
         }
 
-    def analyze_semantic_content(self, text: str, sentences: list[str]) -> dict:
+    def analyze_semantic_content(self, text: str, _sentences: list[str]) -> dict:
         """Analyze the semantic meaning and main topic"""
 
         text_lower = text.lower()

@@ -4,14 +4,13 @@ Comprehensive Test Suite for Checkpoint System
 Tests checkpoint creation, recovery, optimization, and performance
 """
 
-from datetime import datetime, timezone
-
 import asyncio
 import logging
 import os
 import shutil
 import tempfile
 import time
+from datetime import datetime, timezone
 
 from checkpoint_system import (
     CheckpointType,

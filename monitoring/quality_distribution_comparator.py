@@ -373,7 +373,7 @@ class QualityDistributionComparator:
         return effect_sizes
 
     def _perform_pairwise_comparisons(
-        self, group_data: dict[str, pd.Series], dimension: str
+        self, group_data: dict[str, pd.Series], _dimension: str
     ) -> list[dict[str, Any]]:
         """Perform pairwise comparisons between groups."""
         comparisons = []

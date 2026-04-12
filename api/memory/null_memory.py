@@ -16,7 +16,7 @@ from .null_memory_manager_factory import build_null_memory_manager_runtime
 class NullMemoryManager(BaseMemoryManager):
     """High-level memory manager facade backed by an in-memory store."""
 
-    def __init__(self, runtime=None, *args, **kwargs) -> None:
+    def __init__(self, runtime=None, *_args, **_kwargs) -> None:
         runtime = runtime or build_null_memory_manager_runtime()
         self.coordination = runtime.coordination
         self.store = runtime.store
@@ -117,7 +117,7 @@ class NullMemoryManager(BaseMemoryManager):
     @property
     def project(self):
         class NullProject:
-            def update(self, **kwargs: Any) -> None:
+            def update(self, **_kwargs: Any) -> None:
                 return None
 
         return NullProject()

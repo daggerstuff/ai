@@ -383,7 +383,7 @@ def analyze_video_content(
 def analyze_channel_professional(
     description: str,
     credentials: list[str],
-    channel_id: str,
+    _channel_id: str,
     channel_url: str
 ) -> ProfessionalIndicators:
     """Analyze professional indicators."""

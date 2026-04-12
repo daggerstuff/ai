@@ -149,7 +149,7 @@ class SpringerPublisher(BasePublisher):
             return []
 
     def _parse_springer_record(
-        self, record: dict[str, Any], original_query: str
+        self, record: dict[str, Any], _original_query: str
     ) -> BookMetadata | None:
         """Parse a Springer API record into BookMetadata"""
         try:
@@ -322,7 +322,7 @@ class SpringerPublisher(BasePublisher):
         return None
 
     def get_chapter_content(
-        self, book_id: str, chapter_id: str, format: BookFormat = BookFormat.PDF
+        self, _book_id: str, _chapter_id: str, _format: BookFormat = BookFormat.PDF
     ) -> BookContent | None:
         """
         Get chapter content (Note: Requires institutional access)

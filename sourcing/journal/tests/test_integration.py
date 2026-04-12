@@ -30,7 +30,7 @@ from ai.sourcing.journal.orchestrator.types import OrchestratorConfig
 class TestComponentCommunication:
     """Tests for component communication and data flow."""
 
-    def test_discovery_to_evaluation_flow(self, sample_dataset_source, temp_dir):
+    def test_discovery_to_evaluation_flow(self, sample_dataset_source, _temp_dir):
         """Test data flow from discovery to evaluation."""
         # Create evaluation engine
         evaluation_engine = DatasetEvaluationEngine()
@@ -45,7 +45,7 @@ class TestComponentCommunication:
         assert evaluation.overall_score >= 0
         assert evaluation.priority_tier in ["high", "medium", "low"]
 
-    def test_evaluation_to_acquisition_flow(self, sample_dataset_source, sample_evaluation, temp_dir):
+    def test_evaluation_to_acquisition_flow(self, sample_dataset_source, _sample_evaluation, temp_dir):
         """Test data flow from evaluation to acquisition."""
         # Create acquisition manager
         config = AcquisitionConfig(storage_base_path=str(temp_dir))
@@ -60,7 +60,7 @@ class TestComponentCommunication:
         assert access_request.source_id == sample_dataset_source.source_id
         assert access_request.status == "pending"
 
-    def test_acquisition_to_integration_flow(self, sample_acquired_dataset, temp_dir):
+    def test_acquisition_to_integration_flow(self, sample_acquired_dataset, _temp_dir):
         """Test data flow from acquisition to integration."""
         # Create integration planning engine
         integration_engine = IntegrationPlanningEngine()
@@ -185,7 +185,7 @@ class TestErrorHandling:
             def __init__(self):
                 self.attempts = 0
 
-            def discover_sources(self, session):
+            def discover_sources(self, _session):
                 self.attempts += 1
                 if self.attempts < 3:
                     raise RuntimeError("Temporary error")
@@ -220,7 +220,7 @@ class TestErrorHandling:
     def test_fallback_strategy(self, temp_dir):
         """Test fallback strategy for failures."""
         class FailingService:
-            def discover_sources(self, session):
+            def discover_sources(self, _session):
                 raise RuntimeError("Service unavailable")
 
         config = OrchestratorConfig(

@@ -29,7 +29,7 @@ router = APIRouter(prefix="/sessions/{session_id}/reports", tags=["reports"])
 async def generate_report(
     session_id: str,
     request: ReportGenerateRequest,
-    current_user: dict = Depends(require_permission_dependency("reports:generate")),
+    _current_user: dict = Depends(require_permission_dependency("reports:generate")),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> ReportResponse:
     """
@@ -70,7 +70,7 @@ async def generate_report(
 async def list_reports(
     session_id: str,
     pagination: PaginationParams = Depends(),
-    current_user: dict | None = Depends(get_current_user),
+    _current_user: dict | None = Depends(get_current_user),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> ReportListResponse:
     """
@@ -123,7 +123,7 @@ async def list_reports(
 async def get_report(
     session_id: str,
     report_id: str,
-    current_user: dict | None = Depends(get_current_user),
+    _current_user: dict | None = Depends(get_current_user),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> ReportResponse:
     """

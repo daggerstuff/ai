@@ -2,11 +2,11 @@
 # Generated for test compatibility
 
 
-def clean(*args, **kwargs):
+def clean(*_args, **_kwargs):
     """Stub implementation for clean."""
     return
 
-def clean_and_deduplicate(*args, **kwargs):
+def clean_and_deduplicate(*_args, **_kwargs):
     """Stub implementation for clean_and_deduplicate."""
     return
 

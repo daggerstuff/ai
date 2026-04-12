@@ -7,9 +7,8 @@ for development environments or when external services are unavailable.
 This is a REAL implementation using in-memory dictionaries, not a stub.
 """
 
-from datetime import datetime, timezone
-
 import threading
+from datetime import datetime, timezone
 from typing import Any
 
 from .base import BaseMemoryManager
@@ -23,7 +22,7 @@ class NullMemoryManager(BaseMemoryManager):
     with actual in-memory storage using dictionaries.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *_args, **_kwargs):
         # In-memory storage: user_id -> list of memory dicts
         self._memories: dict[str, list[dict[str, Any]]] = {}
         self._memory_counter = 0
@@ -40,7 +39,7 @@ class NullMemoryManager(BaseMemoryManager):
         content: str,
         user_id: str,
         metadata: dict[str, Any] | None = None,
-        **kwargs,
+        **_kwargs,
     ):
         """Add memory (raw client interface)."""
         memory_id = self._generate_id()
@@ -65,7 +64,7 @@ class NullMemoryManager(BaseMemoryManager):
 
         return {"results": [{"id": memory_id}]}
 
-    def search(self, query: str, user_id: str, **kwargs):
+    def search(self, query: str, user_id: str, **_kwargs):
         """Search memories (raw client interface)."""
         with self._lock:
             if user_id not in self._memories:
@@ -80,12 +79,12 @@ class NullMemoryManager(BaseMemoryManager):
             ]
             return {"results": results}
 
-    def get_all(self, user_id: str, **kwargs):
+    def get_all(self, user_id: str, **_kwargs):
         """Get all memories for user (raw client interface)."""
         with self._lock:
             return {"results": list(self._memories.get(user_id, []))}
 
-    def get(self, memory_id: str, **kwargs):
+    def get(self, memory_id: str, **_kwargs):
         """Get specific memory by ID (raw client interface)."""
         with self._lock:
             for memories in self._memories.values():
@@ -107,7 +106,7 @@ class NullMemoryManager(BaseMemoryManager):
                         return True
         return False
 
-    def delete(self, memory_id: str, **kwargs):
+    def delete(self, memory_id: str, **_kwargs):
         """Delete memory (raw client interface)."""
         with self._lock:
             for user_id, memories in self._memories.items():
@@ -117,7 +116,7 @@ class NullMemoryManager(BaseMemoryManager):
                         return True
         return False
 
-    def delete_all(self, user_id: str, **kwargs):
+    def delete_all(self, user_id: str, **_kwargs):
         """Delete all memories for user (raw client interface)."""
         with self._lock:
             if user_id in self._memories:
@@ -156,7 +155,7 @@ class NullMemoryManager(BaseMemoryManager):
     def get_memory(
         self,
         memory_id: str,
-        user_id: str | None = None,
+        _user_id: str | None = None,
     ) -> dict[str, Any] | None:
         """Get specific memory by ID."""
         return self.get(memory_id)
@@ -166,12 +165,12 @@ class NullMemoryManager(BaseMemoryManager):
         memory_id: str,
         new_content: str,
         metadata: dict[str, Any] | None = None,
-        user_id: str | None = None,
+        _user_id: str | None = None,
     ) -> bool:
         """Update memory content."""
         return self.update(memory_id, new_content, metadata=metadata)
 
-    def delete_memory(self, memory_id: str, user_id: str | None = None) -> bool:
+    def delete_memory(self, memory_id: str, _user_id: str | None = None) -> bool:
         """Delete specific memory."""
         return self.delete(memory_id)
 

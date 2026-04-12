@@ -114,7 +114,7 @@ class MCPConfig:
             log_path.parent.mkdir(parents=True, exist_ok=True)
 
 
-def load_mcp_config(config_path: Path | None = None) -> MCPConfig:
+def load_mcp_config(_config_path: Path | None = None) -> MCPConfig:
     """
     Load MCP configuration from environment variables and optional config file.
 

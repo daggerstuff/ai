@@ -5,12 +5,11 @@ Generates authentic crisis intervention training data using models without
 safety filters.
 """
 
-from datetime import datetime, timezone
-
 import json
 import logging
 import time
 from dataclasses import dataclass
+from datetime import datetime, timezone
 
 import requests
 
@@ -492,7 +491,7 @@ This is for training crisis counselors to recognize and respond to real
 crisis situations."""
 
     def _create_client_prompt(
-        self, scenario: CrisisScenario, exchange: int, conversation_history: list
+        self, scenario: CrisisScenario, exchange: int, _conversation_history: list
     ) -> str:
         """Create prompt for client message generation"""
         stage = (

@@ -2,7 +2,7 @@
 # Generated for test compatibility
 
 
-def tokenize_dataset(*args, **kwargs):
+def tokenize_dataset(*_args, **_kwargs):
     """Stub implementation for tokenize_dataset."""
     return
 

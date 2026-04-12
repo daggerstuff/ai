@@ -5,11 +5,9 @@ This module provides comprehensive pipeline coordination with Redis event bus
 integration, state management, bias detection, and HIPAA++ compliant data handling.
 """
 
-from datetime import datetime, timezone
-
-
 import time
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import Any
 
 from ..error_handling.custom_errors import (
@@ -984,8 +982,8 @@ class ValidationStageCoordinator(StageCoordinator):
             "bias_detection"
         ]
 
-    async def _execute_stage_logic(self, context: PipelineContext,
-                                 input_data: dict[str, Any]) -> dict[str, Any]:
+    async def _execute_stage_logic(self, _context: PipelineContext,
+                                 _input_data: dict[str, Any]) -> dict[str, Any]:
         """Execute validation stage with comprehensive checks."""
         # Simulate validation process with bias detection
         validation_result = {
@@ -1016,8 +1014,8 @@ class ValidationStageCoordinator(StageCoordinator):
 class ProcessingStageCoordinator(StageCoordinator):
     """Specialized coordinator for processing stage with therapeutic analysis."""
 
-    async def _execute_stage_logic(self, context: PipelineContext,
-                                 input_data: dict[str, Any]) -> dict[str, Any]:
+    async def _execute_stage_logic(self, _context: PipelineContext,
+                                 _input_data: dict[str, Any]) -> dict[str, Any]:
         """Execute processing stage with therapeutic conversation analysis."""
         # Simulate therapeutic processing
         processing_result = {
@@ -1044,7 +1042,7 @@ class GenericStageCoordinator(StageCoordinator):
     """Generic coordinator for standard pipeline stages."""
 
     async def _execute_stage_logic(self, context: PipelineContext,
-                                 input_data: dict[str, Any]) -> dict[str, Any]:
+                                 _input_data: dict[str, Any]) -> dict[str, Any]:
         """Execute generic stage logic with appropriate simulation."""
         # Simulate stage-specific processing based on stage name
         if self.stage_name == "ingestion":

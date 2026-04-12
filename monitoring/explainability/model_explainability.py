@@ -3,13 +3,11 @@ Model explainability system for Pixelated Empathy AI project.
 Provides interpretability tools for debugging, auditing, and understanding model decisions.
 """
 
-from datetime import datetime, timezone
-
-
 import hashlib
 import logging
 import time
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
@@ -233,7 +231,7 @@ class ExplainabilityEngine:
         model: Any,
         tokenizer: Any,
         input_text: str,
-        target_class: int | None = None,
+        _target_class: int | None = None,
     ) -> FeatureImportance:
         """Calculate feature importance using LIME"""
         try:
@@ -285,7 +283,7 @@ class ExplainabilityEngine:
         model: Any,
         tokenizer: Any,
         input_text: str,
-        target_class: int | None = None,
+        _target_class: int | None = None,
     ) -> FeatureImportance:
         """Calculate feature importance using SHAP"""
         try:
@@ -1101,7 +1099,7 @@ def test_explainability_system():
         def __init__(self):
             self.config = type("Config", (), {"hidden_size": 768})()
 
-        def forward(self, input_ids, **kwargs):
+        def forward(self, input_ids, **_kwargs):
             # Mock forward pass
             batch_size, seq_len = input_ids.shape
             logits = torch.randn(batch_size, 2)  # Binary classification

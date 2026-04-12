@@ -3,14 +3,12 @@ Inference safety filtering integration system.
 Ensures all inference endpoints pass safety and content filters before returning content.
 """
 
-from datetime import datetime, timezone
-
-
 import hashlib
 import json
 import logging
 import time
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
@@ -325,7 +323,7 @@ class InferenceSafetyFilter:
         self.last_filtered_content = None
         self.logger.info("Safety filtering statistics reset")
 
-    def get_recent_filtered_content(self, limit: int = 10) -> list[dict[str, Any]]:
+    def get_recent_filtered_content(self, _limit: int = 10) -> list[dict[str, Any]]:
         """Get recent filtered content for review"""
         # In a real implementation, this would query a database or log system
         # For now, we'll just return the last filtered content if available
@@ -557,7 +555,7 @@ paranoid_safety_api = SafetyAwareInferenceAPI(paranoid_safety_filter)
 
 
 # Integration functions for the inference API
-def integrate_safety_filtering_with_inference_api(api_app):
+def integrate_safety_filtering_with_inference_api(_api_app):
     """Integrate safety filtering with the inference API"""
     # This function would be called during API initialization
     # to set up safety filtering for all endpoints

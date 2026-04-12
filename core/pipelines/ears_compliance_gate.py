@@ -41,7 +41,7 @@ class EarsComplianceGate:
             total_items=len(dataset_data)
         )
 
-    def validate_compliance(self, data: dict) -> EarsValidationResult:
+    def validate_compliance(self, _data: dict) -> EarsValidationResult:
         """Validate compliance for given data."""
         return EarsValidationResult(
             is_compliant=True,
@@ -49,7 +49,7 @@ class EarsComplianceGate:
             total_items=1
         )
 
-    def check_pipeline_sensitivity(self, pipeline_config: dict) -> dict:
+    def check_pipeline_sensitivity(self, _pipeline_config: dict) -> dict:
         """Check pipeline sensitivity settings."""
         return {
             "is_sensitive": False,

@@ -18,14 +18,13 @@ Version: 1.0.0
 Date: August 2025
 """
 
-from datetime import datetime, timezone
-
 import asyncio
 import json
 import logging
 import time
 from collections.abc import Callable
 from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -330,7 +329,7 @@ class SafetyMonitor:
         baseline = np.mean(recent_scores[-5:]) if len(recent_scores) >= 5 else np.mean(recent_scores)
         return current_risk > baseline + 0.3
 
-    async def _calculate_trend(self, user_id: str, current_risk: float) -> str:
+    async def _calculate_trend(self, user_id: str, _current_risk: float) -> str:
         """Calculate risk trend direction"""
 
         # Get recent risk scores
@@ -436,19 +435,19 @@ class SafetyMonitor:
         subject = f"URGENT: Safety Alert - {alert.safety_level.value.upper()}"
         logger.info(f"Email sent to {contact.email}: {subject}")
 
-    async def _send_push_alert(self, alert: SafetyAlert, contact: ClinicalContact):
+    async def _send_push_alert(self, _alert: SafetyAlert, contact: ClinicalContact):
         """Send push notification (simulated)"""
         logger.info(f"Push notification sent to {contact.name}")
 
-    async def _make_phone_call(self, alert: SafetyAlert, contact: ClinicalContact):
+    async def _make_phone_call(self, _alert: SafetyAlert, contact: ClinicalContact):
         """Make phone call (simulated)"""
         logger.info(f"Phone call initiated to {contact.phone}")
 
-    async def _update_dashboard(self, alert: SafetyAlert, contact: ClinicalContact):
+    async def _update_dashboard(self, alert: SafetyAlert, _contact: ClinicalContact):
         """Update clinical dashboard (simulated)"""
         logger.info(f"Dashboard updated with alert {alert.alert_id}")
 
-    async def _send_webhook(self, alert: SafetyAlert, contact: ClinicalContact):
+    async def _send_webhook(self, alert: SafetyAlert, _contact: ClinicalContact):
         """Send webhook notification (simulated)"""
         logger.info(f"Webhook sent for alert {alert.alert_id}")
 

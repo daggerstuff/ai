@@ -338,7 +338,7 @@ class MultiAgentMemory:
         context: CollaborationContext,
         target_agent: AgentIdentity,
         summary: str,
-        transfer_memories: bool = True,
+        _transfer_memories: bool = True,
     ) -> dict[str, Any]:
         """
         Perform agent handoff with memory transfer.

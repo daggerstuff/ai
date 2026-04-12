@@ -3,12 +3,10 @@ Startup script demonstrating the health check and graceful shutdown system.
 This script shows how to integrate the health check system with a service.
 """
 
-from datetime import datetime, timezone
-
-
 import asyncio
 import logging
 import time
+from datetime import datetime, timezone
 
 import uvicorn
 

@@ -10,14 +10,13 @@ Implements advanced search capabilities for conversations:
 - Performance optimization
 """
 
-from datetime import datetime, timezone
-
 import json
 import logging
 import re
 import sqlite3
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from typing import Any, TypeVar
 
 # Enterprise imports - disabled, modules not available
@@ -39,7 +38,7 @@ def get_config() -> dict[str, Any]:
     return {}
 
 
-def handle_error(*args: Any, **kwargs: Any) -> None:
+def handle_error(*args: Any, **_kwargs: Any) -> None:
     if args:
         logging.error(f"Error: {args[0]}")
 
@@ -47,7 +46,7 @@ def handle_error(*args: Any, **kwargs: Any) -> None:
 F = TypeVar("F", bound=Callable[..., Any])
 
 
-def with_retry(*args: Any, **kwargs: Any) -> Callable[[F], F]:
+def with_retry(*_args: Any, **_kwargs: Any) -> Callable[[F], F]:
     def decorator(func: F) -> F:
         return func
 
@@ -701,7 +700,7 @@ class ConversationSearchEngine:
         return results
 
     def _calculate_facets(
-        self, conn: sqlite3.Connection, query: SearchQuery
+        self, conn: sqlite3.Connection, _query: SearchQuery
     ) -> dict[str, dict[str, int]]:
         """Calculate facets for search results."""
 

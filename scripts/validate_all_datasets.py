@@ -5,12 +5,10 @@ Walks all dataset directories, validates file structure, counts
 conversations, checks role consistency, and outputs a manifest.
 """
 
-from datetime import datetime, timezone
-
-
 import json
 import logging
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 

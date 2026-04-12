@@ -6,13 +6,11 @@ Implements dataset structure analysis, schema mapping, transformation specificat
 complexity estimation, and preprocessing script generation.
 """
 
-from datetime import datetime, timezone
-
-
 import json
 import logging
 import os
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -359,7 +357,7 @@ class IntegrationPlanningEngine:
             logger.error(f"Error analyzing Parquet structure: {e}")
             raise
 
-    def _analyze_xml_structure(self, file_path: str) -> DatasetStructure:
+    def _analyze_xml_structure(self, _file_path: str) -> DatasetStructure:
         """Analyze XML file structure (basic implementation)."""
         # XML parsing is complex and format-specific
         # This is a placeholder that identifies XML format
@@ -372,7 +370,7 @@ class IntegrationPlanningEngine:
             sample_size=0,
         )
 
-    def _analyze_custom_structure(self, file_path: str) -> DatasetStructure:
+    def _analyze_custom_structure(self, _file_path: str) -> DatasetStructure:
         """Analyze custom/unknown file structure."""
         return DatasetStructure(
             format="custom",

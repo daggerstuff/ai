@@ -21,7 +21,7 @@ class TechDeckErrorHandler:
     def __init__(self, config: dict[str, Any] | None = None):
         self.config = config or {}
 
-    def register(self, app: Flask) -> None:
+    def register(self, _app: Flask) -> None:
         """Register error handlers on the Flask app (no-op placeholder)."""
         # No-op for test-time import; real implementation registers handlers
         # with app.errorhandler(...)

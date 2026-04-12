@@ -240,7 +240,7 @@ class AgentMemoryTools:
 
     async def delete_memory(
         self,
-        context: AgentContext,
+        _context: AgentContext,
         memory_id: str,
     ) -> bool:
         """
