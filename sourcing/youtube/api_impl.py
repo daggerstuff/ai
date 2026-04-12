@@ -5,9 +5,8 @@ This module provides the actual YouTube API integration functions
 replacing the TODO stubs in api.py.
 """
 
-from datetime import datetime, timezone
-
 import logging
+from datetime import datetime, timezone
 
 import requests
 

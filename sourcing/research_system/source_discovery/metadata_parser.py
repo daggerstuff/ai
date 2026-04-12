@@ -4,10 +4,9 @@ Metadata parser for extracting and normalizing dataset metadata from various sou
 Handles different metadata formats and provides unified parsing interface.
 """
 
-from datetime import datetime
-
 import logging
 import re
+from datetime import datetime
 from typing import Any
 
 logger = logging.getLogger(__name__)

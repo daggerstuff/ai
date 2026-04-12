@@ -5,10 +5,9 @@ This module provides pytest fixtures and configuration for testing the
 six-stage pipeline communication system with HIPAA++ compliance.
 """
 
-from datetime import datetime, timezone
-
 import asyncio
 import time
+from datetime import datetime, timezone
 from typing import Any
 from unittest.mock import AsyncMock, Mock
 

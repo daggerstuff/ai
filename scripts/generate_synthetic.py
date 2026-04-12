@@ -1,6 +1,4 @@
 
-from datetime import datetime, timezone
-
 import argparse
 import importlib.util
 import json
@@ -8,6 +6,7 @@ import os
 import re
 import sys
 import time
+from datetime import datetime, timezone
 
 import requests
 from dotenv import load_dotenv

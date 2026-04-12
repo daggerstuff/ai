@@ -3,8 +3,6 @@ Health check and graceful shutdown handlers for Pixelated Empathy AI model serve
 Implements comprehensive health monitoring and safe shutdown procedures.
 """
 
-from datetime import datetime, timedelta, timezone
-
 import atexit
 import json
 import logging
@@ -13,6 +11,7 @@ import time
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from functools import wraps
 from typing import Any

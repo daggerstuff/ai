@@ -4,8 +4,6 @@ Checkpoint Cleanup and Optimization System for Pixelated Empathy AI
 Advanced cleanup, optimization, and lifecycle management for checkpoints
 """
 
-from datetime import datetime, timezone
-
 import asyncio
 import gzip
 import json
@@ -13,6 +11,7 @@ import logging
 import threading
 import time
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any

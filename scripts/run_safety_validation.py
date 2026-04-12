@@ -10,12 +10,11 @@ This script runs comprehensive safety validation testing including:
 - Safety compliance certification
 """
 
-from datetime import datetime, timezone
-
 import asyncio
 import json
 import os
 import sys
+from datetime import datetime, timezone
 
 # Add the current directory to Python path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))

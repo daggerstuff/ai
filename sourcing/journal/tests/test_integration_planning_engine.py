@@ -2,10 +2,9 @@
 Tests for Integration Planning Engine
 """
 
-from datetime import datetime, timezone
-
 import json
 import os
+from datetime import datetime, timezone
 
 import pandas as pd
 import pytest

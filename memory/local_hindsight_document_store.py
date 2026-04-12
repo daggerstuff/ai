@@ -1,9 +1,8 @@
 
-from datetime import datetime, timezone
-
 import json
 import sqlite3
 from collections.abc import Iterable
+from datetime import datetime, timezone
 from typing import Any
 
 from .hindsight_local_adapter import encode_tags_json, normalize_tags

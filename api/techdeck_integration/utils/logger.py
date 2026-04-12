@@ -5,13 +5,12 @@ This module provides structured logging with HIPAA++ compliance,
 audit trail capabilities, and performance monitoring.
 """
 
-from datetime import datetime, timezone
-
 import json
 import logging
 import os
 import sys
 import time
+from datetime import datetime, timezone
 from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
 from typing import Any
 

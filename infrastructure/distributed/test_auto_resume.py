@@ -4,8 +4,6 @@ Comprehensive Test Suite for Automatic Resume System
 Tests interruption detection, resume strategies, orchestration, and recovery scenarios
 """
 
-from datetime import datetime, timezone
-
 import asyncio
 import logging
 import os
@@ -13,6 +11,7 @@ import shutil
 import tempfile
 import time
 import uuid
+from datetime import datetime, timezone
 
 from auto_resume_engine import (
     AutoResumeEngine,

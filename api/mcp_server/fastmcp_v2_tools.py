@@ -15,23 +15,22 @@ from enum import Enum
 from typing import Any, Optional
 
 from fastmcp import FastMCP
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
-from ai.api.mcp_server.memory_scope import memory_in_scope
 from ai.api.mcp_server.fastmcp_protocols import MemoryRemover, MemoryUpdater
+from ai.api.mcp_server.memory_scope import memory_in_scope
+from ai.api.memory.memory_status_service import build_memory_status_summary
 
 from .fastmcp_parsing import parse_metadata, parse_scope_context
 from .fastmcp_presenters import memory_store_success_message
-from .fastmcp_search import search_scoped_memories, get_scoped_recent_memories
-from .fastmcp_shared import authorized_tool_context_from_json, _stdio_trust_enabled, stdio_trusted_tool_context
+from .fastmcp_search import get_scoped_recent_memories, search_scoped_memories
+from .fastmcp_shared import _stdio_trust_enabled, authorized_tool_context_from_json, stdio_trusted_tool_context
 from .fastmcp_store import (
     ScopeEnrichedMemoryCreator,
     build_memory_store_plan,
     persist_memory_store_plan,
     scope_config_from_parsed,
 )
-from ai.api.memory.memory_status_service import build_memory_status_summary
-
 
 # =============================================================================
 # Enums

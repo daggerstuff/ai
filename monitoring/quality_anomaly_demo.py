@@ -4,13 +4,12 @@ Quality Anomaly Detection Demo
 Demonstrates anomaly detection with synthetic data
 """
 
-from datetime import datetime, timedelta, timezone
-
 import json
 import random
 import sqlite3
 import warnings
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 

@@ -4,11 +4,10 @@ Working Crisis Conversation Generator
 Uses the functional OpenAI-compatible endpoint to generate authentic crisis training data
 """
 
-from datetime import datetime, timezone
-
 import json
 import logging
 import time
+from datetime import datetime, timezone
 
 import requests
 

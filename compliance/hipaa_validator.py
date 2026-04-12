@@ -7,8 +7,6 @@ Enterprise-grade HIPAA compliance validation for healthcare data protection.
 Implements PHI protection, audit logging, and access controls per HIPAA requirements.
 """
 
-from datetime import datetime, timedelta, timezone
-
 import base64
 import hashlib
 import json
@@ -18,6 +16,7 @@ import re
 import sqlite3
 import uuid
 from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
 

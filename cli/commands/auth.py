@@ -7,7 +7,6 @@ token management, and user profile operations.
 
 from datetime import timezone
 
-
 import click
 
 from ..auth import AuthManager
