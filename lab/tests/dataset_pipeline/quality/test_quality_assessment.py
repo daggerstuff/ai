@@ -52,11 +52,11 @@ class TestQualityAssessment(unittest.TestCase):
         content = "I'm feeling depressed and anxious about my trauma history. It is affecting my mental health and relationships."
         score = self.framework._assess_therapeutic_relevance(content)
         # With improved scoring, this should be higher
-        self.assertGreater(score, 0.2)
+        assert score > 0.2
 
         junk_content = "123 456 789 000"
         junk_score = self.framework._assess_therapeutic_relevance(junk_content)
-        self.assertLess(junk_score, 0.2)
+        assert junk_score < 0.2
 
     def test_assess_safety_compliance(self):
         """Test safety compliance scoring."""
@@ -67,17 +67,17 @@ class TestQualityAssessment(unittest.TestCase):
         # Testing a scenario that might be considered a safety risk (should score lower)
         risk_content = "I want to hurt myself, I have no reason to go on."
         risk_score = self.framework._assess_safety_compliance(risk_content)
-        self.assertLess(risk_score, 1.0)
+        assert risk_score < 1.0
 
     def test_linguistic_quality(self):
         """Test linguistic quality assessment (grammar, length, repeated chars)."""
         good_text = "This is a well-structured sentence with appropriate length. It communicates clearly and effectively."
         good_score = self.framework._assess_linguistic_quality(good_text)
-        self.assertGreater(good_score, 0.4)
+        assert good_score > 0.4
 
         bad_text = "a" * 1000  # repetitive or very long without structure
         bad_score = self.framework._assess_linguistic_quality(bad_text)
-        self.assertLess(bad_score, 0.5)
+        assert bad_score < 0.5
 
     def test_overall_assessment(self):
         """Test end-to-end assessment of a conversation."""
@@ -90,8 +90,8 @@ class TestQualityAssessment(unittest.TestCase):
         assessment = self.framework.assess_conversation(self.high_quality_conv)
 
         assert assessment.conversation_id == "test_high_001"
-        self.assertGreater(assessment.metrics.overall_score, 0.7)
-        self.assertIsInstance(assessment.assigned_tier, QualityTier)
+        assert assessment.metrics.overall_score > 0.7
+        assert isinstance(assessment.assigned_tier, QualityTier)
         assert len(assessment.quality_strengths) > 0
 
     def test_low_quality_tier_assignment(self):

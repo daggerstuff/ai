@@ -15,13 +15,16 @@ from mcp.client.stdio import StdioServerParameters, stdio_client
 def _get_server_params() -> StdioServerParameters:
     """Get the MCP server parameters for hindsight memory."""
     return StdioServerParameters(
-        command="/home/vivi/pixelated/ai/.venv/bin/python3",
-        args=["-m", "ai.api.mcp_server.fastmcp_app"],
+        command="/home/vivi/pixelated/scripts/memory/run-hindsight-mcp-stdio-v2.sh",
+        args=[],
         env={
             "PYTHONUNBUFFERED": "1",
             "PYTHONPATH": "/home/vivi/pixelated",
             "MEMORY_PROVIDER": "local_hindsight",
             "HINDSIGHT_LOCAL_DB_PATH": "/home/vivi/pixelated/memory.db",
+            "HINDSIGHT_BANK_ID": "default",
+            "LOCAL_MEMORY_ACTOR_TOKENS_JSON": "{}",
+            "LOCAL_MEMORY_ACTOR_POLICIES_JSON": "{}",
             "HINDSIGHT_MCP_STDIO_TRUST": "true",
             "HINDSIGHT_COMPAT_DEFAULT_USER_ID": "vivi",
             "HINDSIGHT_COMPAT_BEARER_ACTOR_ID": "local-hindsight-cli",
@@ -55,7 +58,7 @@ def memory_store(content: str, user_id: str = "vivi", category: str = "fact") ->
         "user_id": user_id,
         "category": category,
     }
-    return asyncio.run(_call_mcp_tool("memory_store", params))
+    return asyncio.run(_call_mcp_tool("hindsight_store_memory", params))
 
 
 def memory_query(query: str, user_id: str = "vivi", limit: int = 5) -> str:
@@ -74,7 +77,7 @@ def memory_query(query: str, user_id: str = "vivi", limit: int = 5) -> str:
         "user_id": user_id,
         "limit": limit,
     }
-    return asyncio.run(_call_mcp_tool("memory_query", params))
+    return asyncio.run(_call_mcp_tool("hindsight_query_memories", params))
 
 
 def memory_status(user_id: str = "vivi") -> str:
@@ -87,7 +90,7 @@ def memory_status(user_id: str = "vivi") -> str:
         Memory statistics or error message
     """
     params = {"user_id": user_id}
-    return asyncio.run(_call_mcp_tool("memory_status", params))
+    return asyncio.run(_call_mcp_tool("hindsight_memory_status", params))
 
 
 def memory_update(memory_id: str, content: str, user_id: str = "vivi") -> str:
@@ -106,7 +109,7 @@ def memory_update(memory_id: str, content: str, user_id: str = "vivi") -> str:
         "content": content,
         "user_id": user_id,
     }
-    return asyncio.run(_call_mcp_tool("memory_update", params))
+    return asyncio.run(_call_mcp_tool("hindsight_update_memory", params))
 
 
 def memory_delete(memory_id: str, user_id: str = "vivi") -> str:
@@ -123,7 +126,7 @@ def memory_delete(memory_id: str, user_id: str = "vivi") -> str:
         "memory_id": memory_id,
         "user_id": user_id,
     }
-    return asyncio.run(_call_mcp_tool("memory_delete", params))
+    return asyncio.run(_call_mcp_tool("hindsight_delete_memory", params))
 
 
 # CLI interface for direct testing

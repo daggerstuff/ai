@@ -4,11 +4,12 @@ FINAL PRODUCTION VALIDATION
 Complete system validation and deployment readiness check
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import subprocess
 import sys
-from datetime import datetime, timezone
 from pathlib import Path
 
 # Setup logging

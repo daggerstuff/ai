@@ -6,9 +6,10 @@ across four dimensions: therapeutic relevance, data structure quality, training
 integration potential, and ethical accessibility.
 """
 
+from datetime import datetime, timezone
+
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 
 from ai.sourcing.journal.models.dataset_models import (
     DatasetEvaluation,

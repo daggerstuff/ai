@@ -325,7 +325,7 @@ class TestPipelineOrchestrator(unittest.TestCase):
         assert self.orchestrator is not None
         assert len(self.orchestrator.stages) == 0
         assert len(self.orchestrator.execution_history) == 0
-        self.assertIsInstance(self.orchestrator.retry_config, dict)
+        assert isinstance(self.orchestrator.retry_config, dict)
 
     def test_add_stage_success(self):
         """Test successful stage addition."""
@@ -373,9 +373,9 @@ class TestPipelineOrchestrator(unittest.TestCase):
         assert result["success"]
         assert result["error"] is None
         assert result["stages_completed"] == 2
-        self.assertGreater(result["execution_time"], 0)
-        self.assertIn("validation", result["results"])
-        self.assertIn("transformation", result["results"])
+        assert result["execution_time"] > 0
+        assert "validation" in result["results"]
+        assert "transformation" in result["results"]
 
     def test_pipeline_with_dependencies(self):
         """Test pipeline execution with stage dependencies."""
@@ -392,9 +392,9 @@ class TestPipelineOrchestrator(unittest.TestCase):
         assert result["stages_completed"] == 3
 
         # Check execution order through results
-        self.assertIn("input_validation", result["results"])
-        self.assertIn("transformation", result["results"])
-        self.assertIn("analysis", result["results"])
+        assert "input_validation" in result["results"]
+        assert "transformation" in result["results"]
+        assert "analysis" in result["results"]
 
     def test_pipeline_missing_dependencies(self):
         """Test pipeline execution with missing dependencies."""
@@ -405,7 +405,7 @@ class TestPipelineOrchestrator(unittest.TestCase):
         result = self.orchestrator.execute_pipeline(self.test_data)
 
         assert not result["success"]
-        self.assertIn("Dependencies not met", result["error"])
+        assert "Dependencies not met" in result["error"]
         assert result["stages_completed"] == 0
 
     def test_pipeline_execution_no_input(self):
@@ -415,7 +415,7 @@ class TestPipelineOrchestrator(unittest.TestCase):
         result = self.orchestrator.execute_pipeline(None)
 
         assert not result["success"]
-        self.assertIn("No input data", result["error"])
+        assert "No input data" in result["error"]
         assert result["stages_completed"] == 0
 
     def test_stage_enable_disable(self):
@@ -431,8 +431,8 @@ class TestPipelineOrchestrator(unittest.TestCase):
         exec_result = self.orchestrator.execute_pipeline(self.test_data)
         assert exec_result["success"]
         assert exec_result["stages_completed"] == 1
-        self.assertIn("validation", exec_result["results"])
-        self.assertNotIn("transformation", exec_result["results"])
+        assert "validation" in exec_result["results"]
+        assert "transformation" not in exec_result["results"]
 
         # Re-enable transformation stage
         result = self.orchestrator.enable_stage("transformation")
@@ -477,7 +477,7 @@ class TestPipelineOrchestrator(unittest.TestCase):
         validation_result = self.orchestrator.validate_pipeline()
 
         assert not validation_result["valid"]
-        self.assertIn("Duplicate stage names", validation_result["issues"][0])
+        assert "Duplicate stage names" in validation_result["issues"][0]
 
     def test_pipeline_validation_missing_dependencies(self):
         """Test pipeline validation with missing dependencies."""
@@ -487,7 +487,7 @@ class TestPipelineOrchestrator(unittest.TestCase):
         validation_result = self.orchestrator.validate_pipeline()
 
         assert not validation_result["valid"]
-        self.assertIn("non-existent stage", validation_result["issues"][0])
+        assert "non-existent stage" in validation_result["issues"][0]
 
     def test_pipeline_status(self):
         """Test getting pipeline status."""
@@ -502,7 +502,7 @@ class TestPipelineOrchestrator(unittest.TestCase):
         assert status["enabled_stages"] == 2
         assert status["disabled_stages"] == 0
         assert status["total_executions"] == 1
-        self.assertGreater(status["success_rate"], 0)
+        assert status["success_rate"] > 0
         assert status["last_execution"] is not None
 
     def test_performance_metrics(self):
@@ -519,7 +519,7 @@ class TestPipelineOrchestrator(unittest.TestCase):
         assert metrics["successful_executions"] == 3
         assert metrics["failed_executions"] == 0
         assert metrics["success_rate"] == 100.0
-        self.assertGreater(metrics["avg_execution_time"], 0)
+        assert metrics["avg_execution_time"] > 0
 
     def test_batch_processing(self):
         """Test batch processing of multiple inputs."""
@@ -568,7 +568,7 @@ class TestPipelineOrchestrator(unittest.TestCase):
 
         # Verify all stages executed
         for name, _, _ in stages_config:
-            self.assertIn(name, result["results"])
+            assert name in result["results"]
 
 
 class TestPipelineOrchestratorIntegration(unittest.TestCase):
@@ -600,7 +600,7 @@ class TestPipelineOrchestratorIntegration(unittest.TestCase):
         # Verify complete execution
         assert result["success"]
         assert result["stages_completed"] == 4
-        self.assertGreater(result["execution_time"], 0)
+        assert result["execution_time"] > 0
 
         # Check pipeline status
         status = self.orchestrator.get_pipeline_status()
@@ -623,12 +623,12 @@ class TestPipelineOrchestratorIntegration(unittest.TestCase):
 
         # Most executions should succeed (simulated reliability)
         successful_runs = sum(1 for r in results if r["success"])
-        self.assertGreaterEqual(successful_runs, 3)  # At least 60% success rate
+        assert successful_runs >= 3  # At least 60% success rate
 
         # Check performance metrics
         metrics = self.orchestrator.get_performance_metrics()
         assert metrics["total_executions"] == 5
-        self.assertGreater(metrics["success_rate"], 50)
+        assert metrics["success_rate"] > 50
 
 
 if __name__ == "__main__":

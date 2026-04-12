@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-from datetime import datetime, timezone
 
 """
 Stress Testing for AI Inference
@@ -10,7 +9,6 @@ import argparse
 import asyncio
 import json
 import time
-from typing import Any, Dict, List
 
 import aiohttp
 
@@ -35,14 +33,14 @@ class StressTest:
         start_time = time.time()
         successful = 0
         failed = 0
-        
+
         async with aiohttp.ClientSession() as session:
             while time.time() - start_time < duration:
                 tasks = [self._make_request(session) for _ in range(concurrency)]
                 batch_results = await asyncio.gather(*tasks)
                 successful += sum(1 for r in batch_results if r)
                 failed += sum(1 for r in batch_results if not r)
-                
+
         return {
             "concurrency": concurrency,
             "successful": successful,
@@ -75,11 +73,11 @@ async def main():
     parser.add_argument("--endpoint", default="http://localhost:8000/v1/chat/completions")
     parser.add_argument("--test", choices=["ramp-up", "spike", "endurance", "all"], default="all")
     parser.add_argument("--output", default="stress_test_results.json")
-    
+
     args = parser.parse_args()
     stress_test = StressTest(args.endpoint)
     results = {}
-    
+
     try:
         if args.test in ["ramp-up", "all"]:
             results["ramp_up"] = await stress_test.ramp_up_test()
@@ -87,7 +85,7 @@ async def main():
             results["spike"] = await stress_test.spike_test()
         if args.test in ["endurance", "all"]:
             results["endurance"] = await stress_test.endurance_test()
-            
+
     except Exception as e:
         print(f"Stress test failed: {e}")
     finally:

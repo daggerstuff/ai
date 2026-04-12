@@ -376,8 +376,8 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
     def test_initialization(self):
         """Test generator initialization."""
         assert self.generator is not None
-        self.assertIsInstance(self.generator.therapeutic_modalities, list)
-        self.assertIsInstance(self.generator.response_templates, dict)
+        assert isinstance(self.generator.therapeutic_modalities, list)
+        assert isinstance(self.generator.response_templates, dict)
         assert len(self.generator.generation_history) == 0
 
     def test_successful_response_generation(self):
@@ -389,9 +389,9 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
                 assert result["success"]
                 assert result["error"] is None
                 assert result["response"] is not None
-                self.assertGreater(len(result["response"]), 0)
-                self.assertGreaterEqual(result["therapeutic_quality"], 0.0)
-                self.assertLessEqual(result["therapeutic_quality"], 1.0)
+                assert len(result["response"]) > 0
+                assert result["therapeutic_quality"] >= 0.0
+                assert result["therapeutic_quality"] <= 1.0
 
     def test_invalid_input_handling(self):
         """Test handling of invalid inputs."""
@@ -422,11 +422,11 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
             responses[modality] = result["response"]
 
             assert result["success"]
-            self.assertGreater(result["therapeutic_quality"], 0.5)
+            assert result["therapeutic_quality"] > 0.5
 
         # Responses should be different for different modalities
         unique_responses = set(responses.values())
-        self.assertGreater(len(unique_responses), 1)
+        assert len(unique_responses) > 1
 
     def test_emotion_detection_and_response(self):
         """Test emotion detection and appropriate response generation."""
@@ -445,10 +445,10 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
                 )
 
                 assert result["success"]
-                self.assertIn(expected_emotion, result["analysis"]["emotions_detected"])
+                assert expected_emotion in result["analysis"]["emotions_detected"]
 
                 # Response should be empathetic
-                self.assertGreaterEqual(result["empathy_score"], 0.1)
+                assert result["empathy_score"] >= 0.1
 
     def test_session_number_adaptation(self):
         """Test adaptation based on session number."""
@@ -467,7 +467,7 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
         assert later_result["success"]
 
         # Early sessions should focus more on validation
-        self.assertIn("validation", early_result["techniques_used"])
+        assert "validation" in early_result["techniques_used"]
 
     def test_safety_assessment(self):
         """Test safety assessment of generated responses."""
@@ -475,13 +475,13 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
         result = self.generator.generate_response(safe_input, self.test_contexts["cbt_session"])
 
         assert result["success"]
-        self.assertGreaterEqual(result["safety_score"], 0.8)
+        assert result["safety_score"] >= 0.8
 
         # Response should not contain unsafe elements
         response_lower = result["response"].lower()
         unsafe_words = ["diagnose", "medication", "cure"]
         for word in unsafe_words:
-            self.assertNotIn(word, response_lower)
+            assert word not in response_lower
 
     def test_follow_up_question_generation(self):
         """Test generation of appropriate follow-up questions."""
@@ -489,13 +489,13 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
             with self.subTest(context=context_name):
                 questions = self.generator.generate_follow_up_questions(context)
 
-                self.assertIsInstance(questions, list)
-                self.assertGreater(len(questions), 0)
-                self.assertLessEqual(len(questions), 3)
+                assert isinstance(questions, list)
+                assert len(questions) > 0
+                assert len(questions) <= 3
 
                 # All questions should end with question marks
                 for question in questions:
-                    self.assertTrue(question.endswith("?"))
+                    assert question.endswith("?")
 
     def test_client_style_adaptation(self):
         """Test adaptation to client communication style."""
@@ -509,7 +509,7 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
             with self.subTest(style=style):
                 adaptations = self.generator.adapt_to_client_style(style)
 
-                self.assertIsInstance(adaptations, dict)
+                assert isinstance(adaptations, dict)
                 assert len(adaptations) >= 0
 
                 # Check appropriate adaptations
@@ -529,12 +529,12 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
         assert result["success"]
 
         # Quality scores should be within valid ranges
-        self.assertGreaterEqual(result["therapeutic_quality"], 0.0)
-        self.assertLessEqual(result["therapeutic_quality"], 1.0)
-        self.assertGreaterEqual(result["empathy_score"], 0.0)
-        self.assertLessEqual(result["empathy_score"], 1.0)
-        self.assertGreaterEqual(result["safety_score"], 0.0)
-        self.assertLessEqual(result["safety_score"], 1.0)
+        assert result["therapeutic_quality"] >= 0.0
+        assert result["therapeutic_quality"] <= 1.0
+        assert result["empathy_score"] >= 0.0
+        assert result["empathy_score"] <= 1.0
+        assert result["safety_score"] >= 0.0
+        assert result["safety_score"] <= 1.0
 
     def test_generation_statistics(self):
         """Test generation statistics collection."""
@@ -544,11 +544,11 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
 
         stats = self.generator.get_generation_statistics()
 
-        assert stats["total_generations"] == len(self.test_inputs
-        self.assertIn("average_quality", stats)
-        self.assertIn("technique_usage", stats)
-        self.assertIn("modality_distribution", stats)
-        self.assertGreaterEqual(stats["average_quality"], 0.0)
+        assert stats["total_generations"] == len(self.test_inputs)
+        assert "average_quality" in stats
+        assert "technique_usage" in stats
+        assert "modality_distribution" in stats
+        assert stats["average_quality"] >= 0.0
 
     def test_complex_input_handling(self):
         """Test handling of complex, multi-faceted client input."""
@@ -559,13 +559,13 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
 
         # Should detect multiple emotions
         emotions = result["analysis"]["emotions_detected"]
-        self.assertGreaterEqual(len(emotions), 1)
+        assert len(emotions) >= 1
 
         # Should have high complexity rating
-        self.assertIn(result["analysis"]["complexity"], ["high", "medium"])
+        assert result["analysis"]["complexity"] in ["high", "medium"]
 
         # Response should be comprehensive
-        self.assertGreater(len(result["response"]), 50)
+        assert len(result["response"]) > 50
 
     def test_batch_response_generation(self):
         """Test batch generation of responses."""
@@ -584,7 +584,7 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
         assert len(results) == 3
         for result in results:
             assert result["success"]
-            self.assertGreater(result["therapeutic_quality"], 0.5)
+            assert result["therapeutic_quality"] > 0.5
 
 
 class TestTherapeuticResponseGeneratorIntegration(unittest.TestCase):
@@ -625,7 +625,7 @@ class TestTherapeuticResponseGeneratorIntegration(unittest.TestCase):
 
             # Each response should be successful and appropriate
             assert result["success"]
-            self.assertGreater(result["therapeutic_quality"], 0.6)
+            assert result["therapeutic_quality"] > 0.6
 
         # Verify conversation progression
         assert len(responses) == 4
@@ -653,14 +653,14 @@ class TestTherapeuticResponseGeneratorIntegration(unittest.TestCase):
 
             # All modalities should generate appropriate responses
             assert result["success"]
-            self.assertGreater(result["therapeutic_quality"], 0.6)
+            assert result["therapeutic_quality"] > 0.6
 
         # Each modality should have distinct approaches
         techniques_used = set()
         for result in results.values():
             techniques_used.update(result["techniques_used"])
 
-        self.assertGreater(len(techniques_used), 2)  # Multiple techniques across modalities
+        assert len(techniques_used) > 2  # Multiple techniques across modalities
 
 
 if __name__ == "__main__":

@@ -9,10 +9,11 @@ Provides FastAPI endpoints for Pixel model inference with:
 - Performance optimization (<200ms latency)
 """
 
+from datetime import datetime, timezone
+
 import logging
 import os
 import sys
-from datetime import datetime, timezone
 
 # Import models and utilities
 from pathlib import Path

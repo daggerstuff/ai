@@ -1,7 +1,8 @@
 
+from datetime import datetime, timedelta, timezone
+
 import unittest
 from contextlib import suppress
-from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock, patch
 
 import jwt

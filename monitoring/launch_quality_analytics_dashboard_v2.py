@@ -6,6 +6,8 @@ Enterprise-grade launcher for the quality analytics dashboard with
 comprehensive validation, dependency checking, and production deployment.
 """
 
+from datetime import datetime, timezone
+
 import argparse
 import json
 import logging
@@ -14,7 +16,6 @@ import sqlite3
 import subprocess
 import sys
 import time
-from datetime import datetime, timezone
 from pathlib import Path
 
 # Configure logging

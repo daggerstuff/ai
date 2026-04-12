@@ -1,7 +1,8 @@
 
+from datetime import datetime, timezone
+
 from __future__ import annotations
 
-from datetime import datetime, timezone
 
 from ai.memory.hindsight_local_adapter import normalize_tags
 

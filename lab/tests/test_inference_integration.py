@@ -95,9 +95,9 @@ class TestInferenceAPIIntegration(unittest.TestCase):
         assert response.status_code == 200
 
         data = json.loads(response.data)
-        self.assertIn("status", data)
+        assert "status" in data
         assert data["status"] == "healthy"
-        self.assertIn("timestamp", data)
+        assert "timestamp" in data
 
     def test_list_models_endpoint(self):
         """Test list models endpoint"""
@@ -105,8 +105,8 @@ class TestInferenceAPIIntegration(unittest.TestCase):
         assert response.status_code == 200
 
         data = json.loads(response.data)
-        self.assertIn("data", data)
-        self.assertIsInstance(data["data"], list)
+        assert "data" in data
+        assert isinstance(data["data"], list)
 
     def test_api_key_validation(self):
         """Test API key validation"""
@@ -116,9 +116,9 @@ class TestInferenceAPIIntegration(unittest.TestCase):
 
         data = json.loads(response.data)
         assert data["valid"]
-        self.assertIn("user_id", data)
-        self.assertIn("tier", data)
-        self.assertIn("quota_remaining", data)
+        assert "user_id" in data
+        assert "tier" in data
+        assert "quota_remaining" in data
 
         # Test with invalid API key
         invalid_headers = {
@@ -134,10 +134,10 @@ class TestInferenceAPIIntegration(unittest.TestCase):
         assert response.status_code == 200
 
         data = json.loads(response.data)
-        self.assertIn("user_id", data)
-        self.assertIn("tier", data)
-        self.assertIn("quota_remaining", data)
-        self.assertIn("requests_count", data)
+        assert "user_id" in data
+        assert "tier" in data
+        assert "quota_remaining" in data
+        assert "requests_count" in data
 
     @patch("..inference.model_adapters.ModelAdapterManager.predict")
     def test_chat_completion_endpoint(self, mock_predict):
@@ -165,7 +165,7 @@ class TestInferenceAPIIntegration(unittest.TestCase):
 
         # For now, we expect this to fail because we don't have a real model loaded
         # But we want to verify the endpoint structure and validation
-        self.assertIn(response.status_code, [200, 404, 500])
+        assert response.status_code in [200, 404, 500]
 
         # Verify that the mock was called with expected arguments
         mock_predict.assert_called()
@@ -188,9 +188,7 @@ class TestInferenceAPIIntegration(unittest.TestCase):
 
         # Check that most requests succeeded (rate limit is not aggressive in test)
         successful_responses = [r for r in responses if r.status_code == 200]
-        self.assertGreater(
-            len(successful_responses), 2
-        )  # Expect at least some to succeed
+        assert len(successful_responses) > 2  # Expect at least some to succeed
 
     def test_safety_filtering(self):
         """Test safety filtering in API"""
@@ -208,8 +206,8 @@ class TestInferenceAPIIntegration(unittest.TestCase):
             unsafe_content
         )
         # The exact behavior depends on the safety filter implementation
-        self.assertLessEqual(confidence, 1.0)
-        self.assertGreaterEqual(confidence, 0.0)
+        assert confidence <= 1.0
+        assert confidence >= 0.0
 
     def test_content_redaction(self):
         """Test that sensitive content is properly redacted in logs"""
@@ -298,8 +296,8 @@ class TestObservability(unittest.TestCase):
 
         # Verify metrics were recorded
         system_metrics = observability.get_system_health()
-        self.assertIsInstance(system_metrics, dict)
-        self.assertGreater(len(system_metrics), 0)
+        assert isinstance(system_metrics, dict)
+        assert len(system_metrics) > 0
 
     def test_tracing_functionality(self):
         """Test distributed tracing"""
@@ -317,7 +315,7 @@ class TestObservability(unittest.TestCase):
 
         # Verify trace duration calculation
         duration = observability.tracer.get_span_duration(span)
-        self.assertGreater(duration, 0)
+        assert duration > 0
 
 
 class TestPerformanceBenchmarks(unittest.TestCase):
@@ -339,7 +337,7 @@ class TestPerformanceBenchmarks(unittest.TestCase):
         response_time = (end_time - start_time) * 1000  # Convert to milliseconds
 
         self.benchmark_results["api_response_time_ms"] = response_time
-        self.assertLess(response_time, 1000)  # Should respond within 1 second
+        assert response_time < 1000  # Should respond within 1 second
 
         logger.info(f"API response time: {response_time:.2f}ms")
 
@@ -390,9 +388,7 @@ class TestPerformanceBenchmarks(unittest.TestCase):
             # (allowing for some overhead)
             if time_per_item_first > 0:
                 ratio = time_per_item_last / time_per_item_first
-                self.assertLess(
-                    ratio, 3.0
-                )  # Should not be more than 3x slower per item
+                assert ratio < 3.0  # Should not be more than 3x slower per item
 
         logger.info(f"Batch processing results: {batch_results}")
 
@@ -437,7 +433,7 @@ class TestPerformanceBenchmarks(unittest.TestCase):
 
         # Should handle most requests successfully
         success_rate = len(successful_responses) / concurrent_requests
-        self.assertGreater(success_rate, 0.8)
+        assert success_rate > 0.8
 
         logger.info(
             f"Concurrent requests: {len(successful_responses)}/{concurrent_requests} successful in {total_time:.2f}ms"
@@ -473,17 +469,17 @@ class TestSafetyAndSecurity(unittest.TestCase):
         # Test safe content
         safe_text = "This is a normal therapeutic conversation."
         safety_result = safety_filter.check_input_safety(safe_text)
-        self.assertGreaterEqual(safety_result.overall_score, 0.5)
+        assert safety_result.overall_score >= 0.5
 
         # Test potentially unsafe content
         crisis_text = "I'm thinking about ending it all."
         safety_result = safety_filter.check_input_safety(crisis_text)
         # This should flag as potentially unsafe
-        self.assertLessEqual(safety_result.overall_score, 0.8)
+        assert safety_result.overall_score <= 0.8
 
         # Check that flagged categories are appropriate
         flagged_categories = [cat.value for cat in safety_result.flagged_categories]
-        self.assertIn("crisis", flagged_categories)
+        assert "crisis" in flagged_categories
 
     def test_api_key_security(self):
         """Test API key security features"""
@@ -520,7 +516,7 @@ class TestSafetyAndSecurity(unittest.TestCase):
         rate_limited = [r for r in responses if r.status_code == 429]
 
         # At least some should succeed, some may be rate limited
-        self.assertGreater(len(successful), 0)
+        assert len(successful) > 0
         logger.info(
             f"Rate limiting test: {len(successful)} successful, {len(rate_limited)} rate limited"
         )
@@ -538,7 +534,7 @@ class TestExplainabilityFeatures(unittest.TestCase):
         explainability_engine.register_model("test_explain_model", None)
 
         # Verify model is registered
-        self.assertIn("test_explain_model", explainability_engine.models)
+        assert "test_explain_model" in explainability_engine.models
 
     def test_limited_access_explainability(self):
         """Test limited access to explainability features"""
@@ -553,7 +549,7 @@ class TestExplainabilityFeatures(unittest.TestCase):
         )
 
         # Result may be None due to access limits, but shouldn't crash
-        self.assertTrue(result is None or hasattr(result, "explanation_id"))
+        assert result is None or hasattr(result, "explanation_id")
 
 
 class TestAutoscalingFeatures(unittest.TestCase):
@@ -597,12 +593,12 @@ class TestAutoscalingFeatures(unittest.TestCase):
         # Make a scaling decision with low utilization
         decision = autoscaler.make_scaling_decision(current_load=25.0)
         assert decision is not None
-        self.assertIn(decision.action, ["scale_down", "maintain"])
+        assert decision.action in ["scale_down", "maintain"]
 
         # Make a scaling decision with high utilization
         decision = autoscaler.make_scaling_decision(current_load=85.0)
         assert decision is not None
-        self.assertIn(decision.action, ["scale_up", "maintain"])
+        assert decision.action in ["scale_up", "maintain"]
 
 
 # Pytest-style tests for additional coverage

@@ -1,6 +1,7 @@
 
 from datetime import datetime, timezone
 
+
 #!/usr/bin/env python3
 """
 Integration Tests for End-to-End Processing
@@ -139,8 +140,8 @@ class TestEndToEndDataFlow(unittest.TestCase):
 
         # Verify data loading
         assert len(df) == 50
-        self.assertIn("conversation_id", df.columns)
-        self.assertIn("dataset_source", df.columns)
+        assert "conversation_id" in df.columns
+        assert "dataset_source" in df.columns
 
         # Step 2: Process conversation JSON
         def extract_text_from_json(json_str):
@@ -160,15 +161,15 @@ class TestEndToEndDataFlow(unittest.TestCase):
         df["conversation_text"] = df["conversations_json"].apply(extract_text_from_json)
 
         # Verify text extraction
-        self.assertTrue(all(len(text) > 0 for text in df["conversation_text"]))
+        assert all(len(text) > 0 for text in df["conversation_text"])
 
         # Step 3: Calculate analytics metrics
         df["quality_score"] = df.apply(lambda row: self._calculate_test_quality_score(row), axis=1)
         df["complexity_score"] = df["word_count"] * 2  # Simple complexity metric
 
         # Verify analytics calculations
-        self.assertTrue(all(score > 0 for score in df["quality_score"]))
-        self.assertTrue(all(score > 0 for score in df["complexity_score"]))
+        assert all(score > 0 for score in df["quality_score"])
+        assert all(score > 0 for score in df["complexity_score"])
 
         # Step 4: Aggregate by dataset
         dataset_stats = (
@@ -198,16 +199,16 @@ class TestEndToEndDataFlow(unittest.TestCase):
 
         # Test 1: Dataset Statistics Integration
         dataset_stats = self._run_dataset_statistics_analysis(df)
-        self.assertIsInstance(dataset_stats, dict)
-        self.assertIn("total_conversations", dataset_stats)
+        assert isinstance(dataset_stats, dict)
+        assert "total_conversations" in dataset_stats
 
         # Test 2: Quality Analysis Integration
         quality_analysis = self._run_quality_analysis(df)
-        self.assertIsInstance(quality_analysis, dict)
-        self.assertIn("average_quality", quality_analysis)
+        assert isinstance(quality_analysis, dict)
+        assert "average_quality" in quality_analysis
 
         # Test 3: Cross-system data consistency
-        assert dataset_stats["total_conversations"] == len(df
+        assert dataset_stats["total_conversations"] == len(df)
         self.assertAlmostEqual(
             quality_analysis["average_quality"],
             df.apply(lambda row: self._calculate_test_quality_score(row), axis=1).mean(),
@@ -230,21 +231,21 @@ class TestEndToEndDataFlow(unittest.TestCase):
         # Verify dashboard data structure
         required_sections = ["executive_metrics", "operational_metrics", "quality_distribution"]
         for section in required_sections:
-            self.assertIn(section, dashboard_data)
+            assert section in dashboard_data
 
         # Step 3: Create visualization data
         viz_data = self._create_visualization_data(dashboard_data)
 
         # Verify visualization data
-        self.assertIn("charts", viz_data)
-        self.assertIn("tables", viz_data)
+        assert "charts" in viz_data
+        assert "tables" in viz_data
 
         # Step 4: Generate output files
         output_files = self._generate_output_files(viz_data)
 
         # Verify output files were created
         for file_path in output_files:
-            self.assertTrue(os.path.exists(file_path))
+            assert os.path.exists(file_path)
 
         print("✅ Dashboard generation pipeline test passed")
 
@@ -264,14 +265,14 @@ class TestEndToEndDataFlow(unittest.TestCase):
         # Verify report structure
         required_sections = ["executive_summary", "detailed_analysis", "recommendations"]
         for section in required_sections:
-            self.assertIn(section, report_data)
+            assert section in report_data
 
         # Step 4: Report export
         report_file = self._export_report(report_data)
 
         # Verify report file
-        self.assertTrue(os.path.exists(report_file))
-        self.assertGreater(os.path.getsize(report_file), 0)
+        assert os.path.exists(report_file)
+        assert os.path.getsize(report_file) > 0
 
         print("✅ Report generation workflow test passed")
 
@@ -297,8 +298,8 @@ class TestEndToEndDataFlow(unittest.TestCase):
         # Test 3: Analytics error handling
         empty_data = pd.DataFrame()
         analytics_result = self._safe_analytics_processing(empty_data)
-        self.assertIsInstance(analytics_result, dict)
-        self.assertIn("error", analytics_result)
+        assert isinstance(analytics_result, dict)
+        assert "error" in analytics_result
 
         print("✅ Error handling integration test passed")
 
@@ -455,14 +456,14 @@ class TestSystemWorkflows(unittest.TestCase):
         system_status = {"database": "healthy", "analytics": "healthy", "dashboards": "healthy"}
 
         # Test workflow steps
-        self.assertTrue(self._check_system_health(system_status))
+        assert self._check_system_health(system_status)
 
         alerts = self._check_for_alerts(system_status)
-        self.assertIsInstance(alerts, list)
+        assert isinstance(alerts, list)
 
         report = self._generate_monitoring_report(system_status, alerts)
-        self.assertIn("status", report)
-        self.assertIn("timestamp", report)
+        assert "status" in report
+        assert "timestamp" in report
 
         print("✅ Monitoring system workflow test passed")
 
@@ -473,13 +474,13 @@ class TestSystemWorkflows(unittest.TestCase):
 
         # Test pipeline steps
         processed_data = self._process_input_data(input_data)
-        self.assertIn("processed_conversations", processed_data)
+        assert "processed_conversations" in processed_data
 
         analytics_results = self._run_analytics_pipeline(processed_data)
-        self.assertIn("quality_metrics", analytics_results)
+        assert "quality_metrics" in analytics_results
 
         output_reports = self._generate_pipeline_outputs(analytics_results)
-        self.assertGreater(len(output_reports), 0)
+        assert len(output_reports) > 0
 
         print("✅ Analytics pipeline workflow test passed")
 

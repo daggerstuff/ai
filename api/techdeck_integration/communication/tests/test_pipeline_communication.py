@@ -5,10 +5,11 @@ This module provides extensive testing for the six-stage pipeline communication
 system with HIPAA++ compliance, sub-50ms performance requirements, and bias detection.
 """
 
+from datetime import datetime, timezone
+
 import asyncio
 import json
 import time
-from datetime import datetime, timezone
 from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 

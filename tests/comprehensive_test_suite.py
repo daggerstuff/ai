@@ -16,13 +16,14 @@ Includes:
 - 5.7.1.10: Deployment and production readiness tests
 """
 
+from datetime import datetime, timezone
+
 import json
 import os
 import sqlite3
 import tempfile
 import unittest
 import warnings
-from datetime import datetime, timezone
 
 import pandas as pd
 
@@ -75,7 +76,7 @@ class TestQualityValidation(unittest.TestCase):
         }
         is_valid, issues = validate_conversation_quality(valid_conversation)
         assert not is_valid
-        self.assertIn("Word count too low", str(issues))
+        assert "Word count too low" in str(issues)
 
         # Test high-quality conversation
         quality_conversation = {
@@ -114,7 +115,7 @@ class TestErrorHandlingRecovery(unittest.TestCase):
         result, error = safe_database_query("/nonexistent/db.sqlite", "SELECT 1")
         assert result is None
         assert error is not None
-        self.assertIn("Failed after 3 attempts", error)
+        assert "Failed after 3 attempts" in error
 
         print("✅ Error handling and recovery tests passed")
 
@@ -228,7 +229,7 @@ class TestDataIntegrityValidation(unittest.TestCase):
 
         is_valid, issues = validate_data_consistency(inconsistent_data)
         assert not is_valid
-        self.assertGreater(len(issues), 0)
+        assert len(issues) > 0
 
         print("✅ Data integrity validation tests passed")
 
@@ -348,7 +349,7 @@ class TestProcessingPipeline(unittest.TestCase):
         # Test pipeline with error
         result = run_processing_pipeline([])
         assert result["status"] == "error"
-        self.assertIn("No input data", result["error"])
+        assert "No input data" in result["error"]
 
         print("✅ Processing pipeline tests passed")
 
@@ -447,7 +448,7 @@ class TestProductionReadiness(unittest.TestCase):
 
         is_valid, issues = validate_production_config(invalid_config)
         assert not is_valid
-        self.assertGreater(len(issues), 0)
+        assert len(issues) > 0
 
         print("✅ Production readiness tests passed")
 
@@ -482,9 +483,7 @@ class TestProductionReadiness(unittest.TestCase):
 
         deployment_status = validate_deployment_checklist()
         assert deployment_status["ready_for_deployment"]
-        self.assertEqual(
-            deployment_status["completed_items"], deployment_status["total_items"]
-        )
+        assert deployment_status["completed_items"] == deployment_status["total_items"]
         assert len(deployment_status["incomplete_items"]) == 0
 
         print("✅ Deployment checklist tests passed")

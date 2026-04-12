@@ -58,7 +58,7 @@ class TestQualityValidationCache(unittest.TestCase):
         # Different metadata should produce different hash
         metadata2 = {"version": "1.1", "config": {"threshold": 0.9}}
         hash3 = self.cache._calculate_data_hash(str(self.cache_file), metadata2)
-        self.assertNotEqual(hash1, hash3)
+        assert hash1 != hash3
 
     def test_generate_cache_key(self):
         """Test cache key generation"""
@@ -161,17 +161,17 @@ class TestQualityValidationCache(unittest.TestCase):
     def test_get_cache_statistics(self):
         """Test cache statistics"""
         stats = self.cache.get_cache_statistics()
-        self.assertIsInstance(stats, dict)
-        self.assertIn("memory_cache_size", stats)
-        self.assertIn("memory_cache_max_size", stats)
-        self.assertIn("file_cache_entries", stats)
-        self.assertIn("redis_available", stats)
+        assert isinstance(stats, dict)
+        assert "memory_cache_size" in stats
+        assert "memory_cache_max_size" in stats
+        assert "file_cache_entries" in stats
+        assert "redis_available" in stats
 
     def test_cleanup_expired_cache(self):
         """Test cleanup of expired cache entries"""
         # This test would require mocking file timestamps, so we'll just verify it runs
         cleaned_count = self.cache.cleanup_expired_cache()
-        self.assertIsInstance(cleaned_count, int)
+        assert isinstance(cleaned_count, int)
 
 
 class TestCachedQualityValidator(unittest.TestCase):

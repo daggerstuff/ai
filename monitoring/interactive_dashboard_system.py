@@ -11,10 +11,11 @@ Features:
 - No static images - all dynamic content
 """
 
+from datetime import datetime, timedelta, timezone
+
 import json
 import os
 import sqlite3
-from datetime import datetime, timedelta, timezone
 
 import pandas as pd
 from flask import Flask, jsonify, render_template

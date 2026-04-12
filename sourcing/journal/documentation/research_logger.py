@@ -5,10 +5,11 @@ Provides comprehensive logging for all research activities with rotation,
 archival, and structured log management.
 """
 
+from datetime import datetime, timedelta, timezone
+
 import json
 import logging
 import threading
-from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from ai.sourcing.journal.models.dataset_models import ResearchLog

@@ -4,12 +4,13 @@ Quality Improvement Tracking Demo
 Demonstrates improvement tracking with synthetic baseline and current data
 """
 
+from datetime import datetime, timezone
+
 import json
 import random
 import sqlite3
 import warnings
 from dataclasses import dataclass
-from datetime import datetime, timezone
 from pathlib import Path
 
 import matplotlib.pyplot as plt

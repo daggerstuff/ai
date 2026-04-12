@@ -6,10 +6,11 @@ responses still use the configured model endpoint, but durable memory is stored
 only in the repository's local shared memory backend.
 """
 
+from datetime import datetime, timezone
+
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
 from typing import Any
 
 from openai import AsyncOpenAI, OpenAI

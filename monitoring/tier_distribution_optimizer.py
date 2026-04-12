@@ -4,11 +4,12 @@ Tier Distribution Analysis and Optimization System
 Analyzes tier distribution patterns and provides optimization recommendations
 """
 
+from datetime import datetime, timezone
+
 import json
 import sqlite3
 import warnings
 from dataclasses import dataclass
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 

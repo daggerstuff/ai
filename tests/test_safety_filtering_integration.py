@@ -50,7 +50,7 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
         assert response.status_code == 200
 
         data = json.loads(response.data)
-        self.assertIn("status", data)
+        assert "status" in data
         assert data["status"] == "healthy"
 
     @patch("..inference.model_adapters.ModelAdapterManager.predict")
@@ -79,20 +79,18 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
         assert response.status_code == 200
 
         data = json.loads(response.data)
-        self.assertIn("choices", data)
-        self.assertGreater(len(data["choices"]), 0)
+        assert "choices" in data
+        assert len(data["choices"]) > 0
 
         # Check that the response content is as expected
         response_content = data["choices"][0]["message"]["content"]
-        self.assertIn("safe therapeutic response", response_content.lower())
+        assert "safe therapeutic response" in response_content.lower()
 
         # Check that safety filtering information is included
-        self.assertIn("safety_filtered", data)
+        assert "safety_filtered" in data
         assert not data["safety_filtered"]
-        self.assertIn("safety_score", data)
-        self.assertGreaterEqual(
-            data["safety_score"], 0.8
-        )  # Should be high for safe content
+        assert "safety_score" in data
+        assert data["safety_score"] >= 0.8  # Should be high for safe content
 
     @patch("..inference.model_adapters.ModelAdapterManager.predict")
     def test_crisis_content_gets_filtered(self, mock_predict):
@@ -122,30 +120,30 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
         assert response.status_code == 200
 
         data = json.loads(response.data)
-        self.assertIn("choices", data)
-        self.assertGreater(len(data["choices"]), 0)
+        assert "choices" in data
+        assert len(data["choices"]) > 0
 
         # Check that the response content has been filtered
         response_content = data["choices"][0]["message"]["content"]
-        self.assertNotIn("ending it all", response_content.lower())
-        self.assertNotIn("life isn't worth living", response_content.lower())
+        assert "ending it all" not in response_content.lower()
+        assert "life isn't worth living" not in response_content.lower()
 
         # Check that safety filtering was applied
-        self.assertIn("safety_filtered", data)
+        assert "safety_filtered" in data
         assert data["safety_filtered"]
-        self.assertIn("safety_score", data)
-        self.assertLess(data["safety_score"], 0.5)  # Should be low for crisis content
+        assert "safety_score" in data
+        assert data["safety_score"] < 0.5  # Should be low for crisis content
 
         # Check that crisis content was detected
-        self.assertIn("safety_categories", data)
-        self.assertIn("crisis", [cat.lower() for cat in data["safety_categories"]])
+        assert "safety_categories" in data
+        assert "crisis" in [cat.lower() for cat in data["safety_categories"]]
 
         # Check for crisis intervention information
-        self.assertIn("crisis_intervention", data)
+        assert "crisis_intervention" in data
         crisis_intervention = data["crisis_intervention"]
         assert crisis_intervention is not None
-        self.assertIn("status", crisis_intervention)
-        self.assertIn("response_content", crisis_intervention)
+        assert "status" in crisis_intervention
+        assert "response_content" in crisis_intervention
 
     @patch("..inference.model_adapters.ModelAdapterManager.predict")
     def test_toxic_content_gets_filtered(self, mock_predict):
@@ -175,20 +173,20 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
 
         # Check that the response content has been filtered
         response_content = data["choices"][0]["message"]["content"]
-        self.assertNotIn("stupid idiot", response_content.lower())
-        self.assertNotIn("worthless", response_content.lower())
+        assert "stupid idiot" not in response_content.lower()
+        assert "worthless" not in response_content.lower()
 
         # Check that safety filtering was applied
-        self.assertIn("safety_filtered", data)
+        assert "safety_filtered" in data
         # May or may not be filtered depending on threshold, but should have low safety score
-        self.assertIn("safety_score", data)
+        assert "safety_score" in data
 
         # Check that toxicity was detected
-        self.assertIn("safety_categories", data)
+        assert "safety_categories" in data
         safety_categories_lower = [cat.lower() for cat in data["safety_categories"]]
         # May not always detect toxicity depending on thresholds, but we can check the score
         if data["safety_score"] < 0.7:  # If score is low
-            self.assertGreater(len(safety_categories_lower), 0)
+            assert len(safety_categories_lower) > 0
 
     @patch("..inference.model_adapters.ModelAdapterManager.predict")
     def test_privacy_content_gets_redacted(self, mock_predict):
@@ -221,11 +219,11 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
 
         # Check that the response content has been redacted
         response_content = data["choices"][0]["message"]["content"]
-        self.assertNotIn("123-45-6789", response_content)
-        self.assertNotIn("test@example.com", response_content)
+        assert "123-45-6789" not in response_content
+        assert "test@example.com" not in response_content
 
         # Check for privacy-related safety categories
-        self.assertIn("safety_categories", data)
+        assert "safety_categories" in data
         safety_categories_lower = [cat.lower() for cat in data["safety_categories"]]
         # Privacy violations should be flagged
 
@@ -260,8 +258,8 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
         # The exact handling depends on the safety filter configuration
 
         # Check that safety information is included
-        self.assertIn("safety_score", data)
-        self.assertIn("safety_categories", data)
+        assert "safety_score" in data
+        assert "safety_categories" in data
 
     def test_empty_content_handling(self):
         """Test that empty or invalid content is handled properly"""
@@ -288,9 +286,9 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
             assert response.status_code == 200
 
             data = json.loads(response.data)
-            self.assertIn("choices", data)
+            assert "choices" in data
             if data["choices"]:  # If there are choices
-                self.assertIn("message", data["choices"][0])
+                assert "message" in data["choices"][0]
 
     @patch("..inference.model_adapters.ModelAdapterManager.predict")
     def test_mixed_content_handling(self, mock_predict):
@@ -319,22 +317,22 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
         data = json.loads(response.data)
 
         # Check that multiple safety issues were detected and handled
-        self.assertIn("safety_filtered", data)
+        assert "safety_filtered" in data
         assert data["safety_filtered"]
 
-        self.assertIn("safety_categories", data)
-        self.assertGreater(len(data["safety_categories"]), 0)
+        assert "safety_categories" in data
+        assert len(data["safety_categories"]) > 0
 
         # Check that crisis intervention was triggered
-        self.assertIn("crisis_intervention", data)
+        assert "crisis_intervention" in data
         crisis_intervention = data["crisis_intervention"]
         assert crisis_intervention is not None
 
         # Verify that the content was appropriately filtered/redacted
         response_content = data["choices"][0]["message"]["content"]
         # Should not contain the original sensitive information
-        self.assertNotIn("suicide tonight", response_content.lower())
-        self.assertNotIn("555-123-4567", response_content)
+        assert "suicide tonight" not in response_content.lower()
+        assert "555-123-4567" not in response_content
 
     def test_safety_filter_levels(self):
         """Test different safety filter levels"""
@@ -351,14 +349,12 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
 
         # Check paranoid filtering
         paranoid_result = paranoid_filter.check_output_safety(test_content)
-        self.assertLessEqual(
-            paranoid_result.overall_score, 0.5
-        )  # Should be very strict
+        assert paranoid_result.overall_score <= 0.5  # Should be very strict
 
         # Check lenient filtering
         lenient_result = lenient_filter.check_output_safety(test_content)
         # Even lenient should catch clear crisis content
-        self.assertLessEqual(lenient_result.overall_score, 0.7)
+        assert lenient_result.overall_score <= 0.7
 
     @patch("..inference.model_adapters.ModelAdapterManager.predict")
     def test_safety_filtering_performance(self, mock_predict):
@@ -391,7 +387,7 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
         avg_time_per_request = total_time / num_requests
 
         # Each request should take less than 2 seconds (including safety filtering)
-        self.assertLess(avg_time_per_request, 2.0)
+        assert avg_time_per_request < 2.0
         logger.info(
             f"Average time per request with safety filtering: {avg_time_per_request:.3f}s"
         )
@@ -404,19 +400,17 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
 
         assert crisis_result.is_crisis
         assert crisis_result.crisis_type is not None
-        self.assertGreater(crisis_result.confidence, 0.5)
-        self.assertIn(
-            crisis_result.urgency_level, ["low", "medium", "high", "immediate"]
-        )
+        assert crisis_result.confidence > 0.5
+        assert crisis_result.urgency_level in ["low", "medium", "high", "immediate"]
 
         # Test crisis handling
         crisis_response = crisis_intervention_system.handle_crisis_detection(
             crisis_result, user_context={"user_id": "test_user"}, content=crisis_content
         )
 
-        self.assertIn("status", crisis_response)
-        self.assertIn("response_content", crisis_response)
-        self.assertIn("logged", crisis_response)
+        assert "status" in crisis_response
+        assert "response_content" in crisis_response
+        assert "logged" in crisis_response
 
 
 class TestSafetyFilterIntegration(unittest.TestCase):
@@ -434,14 +428,14 @@ class TestSafetyFilterIntegration(unittest.TestCase):
         safety_filter = EnhancedSafetyFilter(SafetyLevel.MODERATE)
         result = safety_filter.check_output_safety("This is safe content.")
 
-        self.assertIsInstance(result, SafetyCheckResult)
-        self.assertTrue(hasattr(result, "is_safe"))
-        self.assertTrue(hasattr(result, "overall_score"))
-        self.assertTrue(hasattr(result, "category_scores"))
-        self.assertTrue(hasattr(result, "flagged_categories"))
-        self.assertTrue(hasattr(result, "confidence"))
-        self.assertTrue(hasattr(result, "explanation"))
-        self.assertTrue(hasattr(result, "timestamp"))
+        assert isinstance(result, SafetyCheckResult)
+        assert hasattr(result, "is_safe")
+        assert hasattr(result, "overall_score")
+        assert hasattr(result, "category_scores")
+        assert hasattr(result, "flagged_categories")
+        assert hasattr(result, "confidence")
+        assert hasattr(result, "explanation")
+        assert hasattr(result, "timestamp")
 
     def test_crisis_detection_result_structure(self):
         """Test that crisis detection results have correct structure"""
@@ -451,13 +445,13 @@ class TestSafetyFilterIntegration(unittest.TestCase):
             "I'm thinking about suicide."
         )
 
-        self.assertIsInstance(crisis_result, CrisisDetectionResult)
-        self.assertTrue(hasattr(crisis_result, "is_crisis"))
-        self.assertTrue(hasattr(crisis_result, "crisis_type"))
-        self.assertTrue(hasattr(crisis_result, "confidence"))
-        self.assertTrue(hasattr(crisis_result, "urgency_level"))
-        self.assertTrue(hasattr(crisis_result, "recommended_action"))
-        self.assertTrue(hasattr(crisis_result, "timestamp"))
+        assert isinstance(crisis_result, CrisisDetectionResult)
+        assert hasattr(crisis_result, "is_crisis")
+        assert hasattr(crisis_result, "crisis_type")
+        assert hasattr(crisis_result, "confidence")
+        assert hasattr(crisis_result, "urgency_level")
+        assert hasattr(crisis_result, "recommended_action")
+        assert hasattr(crisis_result, "timestamp")
 
     def test_batch_filtering(self):
         """Test batch filtering of multiple responses"""
@@ -472,15 +466,13 @@ class TestSafetyFilterIntegration(unittest.TestCase):
 
         results = safety_filter.batch_filter_responses(test_responses)
 
-        assert len(results) == len(test_responses
+        assert len(results) == len(test_responses)
         for result in results:
-            self.assertIsInstance(result, tuple)
-            self.assertEqual(
-                len(result), 3
-            )  # (is_safe, filtered_content, safety_result)
-            self.assertIsInstance(result[0], bool)
-            self.assertIsInstance(result[1], str)
-            self.assertIsInstance(result[2], SafetyCheckResult)
+            assert isinstance(result, tuple)
+            assert len(result) == 3  # (is_safe, filtered_content, safety_result)
+            assert isinstance(result[0], bool)
+            assert isinstance(result[1], str)
+            assert isinstance(result[2], SafetyCheckResult)
 
 
 # Pytest-style tests for additional coverage

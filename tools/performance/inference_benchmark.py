@@ -4,13 +4,14 @@ AI Inference Performance Benchmark
 Validates <2s response time SLO and other performance metrics
 """
 
+from datetime import datetime, timezone
+
 import argparse
 import asyncio
 import json
 import statistics
 import time
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
 
 import aiohttp
 import numpy as np

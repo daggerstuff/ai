@@ -1,6 +1,7 @@
 
 from datetime import datetime
 
+
 import pytest
 
 #!/usr/bin/env python3
@@ -111,8 +112,8 @@ class TestDatabaseOperations(unittest.TestCase):
         # Test pandas integration
         df = pd.read_sql_query("SELECT * FROM conversations", conn)
         assert len(df) == 3
-        self.assertIn("conversation_id", df.columns)
-        self.assertIn("dataset_source", df.columns)
+        assert "conversation_id" in df.columns
+        assert "dataset_source" in df.columns
 
         conn.close()
 
@@ -200,7 +201,7 @@ class TestDataProcessingFunctions(unittest.TestCase):
         # Test with question
         text_with_question = "How are you doing today?"
         score = calculate_basic_quality_score(text_with_question, 5)
-        self.assertGreater(score, 0)
+        assert score > 0
 
         # Test with empty text
         score = calculate_basic_quality_score("", 0)
@@ -218,8 +219,8 @@ class TestDataProcessingFunctions(unittest.TestCase):
 
         # Test tier aggregation
         tier_stats = self.sample_conversations.groupby("tier").size()
-        self.assertIn("priority_1", tier_stats.index)
-        self.assertIn("standard", tier_stats.index)
+        assert "priority_1" in tier_stats.index
+        assert "standard" in tier_stats.index
 
     def test_statistical_calculations(self):
         """Test statistical calculation functions"""
@@ -255,9 +256,9 @@ class TestAnalyticsCalculations(unittest.TestCase):
     def test_correlation_analysis(self):
         """Test correlation calculations"""
         correlation = self.test_data["quality_score"].corr(self.test_data["engagement_score"])
-        self.assertIsInstance(correlation, float)
-        self.assertGreaterEqual(correlation, -1)
-        self.assertLessEqual(correlation, 1)
+        assert isinstance(correlation, float)
+        assert correlation >= -1
+        assert correlation <= 1
 
     def test_distribution_analysis(self):
         """Test distribution analysis functions"""
@@ -266,15 +267,15 @@ class TestAnalyticsCalculations(unittest.TestCase):
         q2 = self.test_data["quality_score"].quantile(0.50)  # median
         q3 = self.test_data["quality_score"].quantile(0.75)
 
-        self.assertLess(q1, q2)
-        self.assertLess(q2, q3)
+        assert q1 < q2
+        assert q2 < q3
 
         # Test distribution categorization
         high_quality = len(self.test_data[self.test_data["quality_score"] > 70])
         low_quality = len(self.test_data[self.test_data["quality_score"] < 30])
 
-        self.assertIsInstance(high_quality, int)
-        self.assertIsInstance(low_quality, int)
+        assert isinstance(high_quality, int)
+        assert isinstance(low_quality, int)
 
     def test_trend_analysis(self):
         """Test trend analysis calculations"""
@@ -286,8 +287,8 @@ class TestAnalyticsCalculations(unittest.TestCase):
         x = np.arange(len(values))
         slope, intercept = np.polyfit(x, values, 1)
 
-        self.assertGreater(slope, 0)  # Positive trend
-        self.assertIsInstance(intercept, float)
+        assert slope > 0  # Positive trend
+        assert isinstance(intercept, float)
 
     def test_performance_metrics(self):
         """Test performance metrics calculations"""
@@ -299,8 +300,8 @@ class TestAnalyticsCalculations(unittest.TestCase):
         correct = sum(p == a for p, a in zip(predicted, actual))
         accuracy = correct / len(predicted)
 
-        self.assertGreaterEqual(accuracy, 0)
-        self.assertLessEqual(accuracy, 1)
+        assert accuracy >= 0
+        assert accuracy <= 1
 
         # Test R-squared calculation
         y_true = np.array([1, 2, 3, 4, 5])
@@ -310,7 +311,7 @@ class TestAnalyticsCalculations(unittest.TestCase):
         ss_tot = np.sum((y_true - np.mean(y_true)) ** 2)
         r2 = 1 - (ss_res / ss_tot)
 
-        self.assertGreater(r2, 0.8)  # Should be high for this test data
+        assert r2 > 0.8  # Should be high for this test data
 
 class TestUtilityFunctions(unittest.TestCase):
     """Test utility and helper functions"""
@@ -399,7 +400,7 @@ class TestUtilityFunctions(unittest.TestCase):
         # Test valid datetime
         valid_date = "2025-08-07T10:00:00"
         parsed = parse_datetime(valid_date)
-        self.assertIsInstance(parsed, datetime)
+        assert isinstance(parsed, datetime)
 
         # Test invalid datetime
         invalid_date = "not a date"
@@ -475,7 +476,7 @@ class TestErrorHandling(unittest.TestCase):
         # Test invalid JSON
         result, error = safe_json_parse("invalid json")
         assert result is None
-        self.assertIn("JSON decode error", error)
+        assert "JSON decode error" in error
 
 class TestSystemIntegration(unittest.TestCase):
     """Test system integration components"""

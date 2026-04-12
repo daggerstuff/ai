@@ -7,9 +7,10 @@ This system provides supervisors with comprehensive tools to evaluate trainee
 performance and provide structured feedback during AI client role-play sessions.
 """
 
+from datetime import datetime, timezone
+
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timezone
 from enum import Enum
 
 logging.basicConfig(

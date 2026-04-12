@@ -4,6 +4,8 @@ Progress State Persistence System for Pixelated Empathy AI
 Maintains processing state across system restarts and failures
 """
 
+from datetime import datetime, timedelta, timezone
+
 import asyncio
 import json
 import logging
@@ -13,7 +15,6 @@ import threading
 import time
 import uuid
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any

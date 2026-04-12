@@ -5,8 +5,9 @@ This module provides integration with the American Psychological Association (AP
 for sourcing psychology and therapy books for AI training data expansion.
 """
 
-import logging
 from datetime import datetime, timezone
+
+import logging
 from typing import Any
 
 from .base_publisher import BasePublisher, BookContent, BookFormat, BookMetadata

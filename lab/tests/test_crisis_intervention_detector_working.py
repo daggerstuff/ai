@@ -172,8 +172,8 @@ class TestCrisisInterventionDetector(unittest.TestCase):
     def test_initialization(self):
         """Test detector initialization."""
         assert self.detector is not None
-        self.assertIsInstance(self.detector.crisis_keywords, list)
-        self.assertGreater(len(self.detector.crisis_keywords), 0)
+        assert isinstance(self.detector.crisis_keywords, list)
+        assert len(self.detector.crisis_keywords) > 0
         assert len(self.detector.response_times) == 0
 
     def test_critical_crisis_detection(self):
@@ -184,11 +184,11 @@ class TestCrisisInterventionDetector(unittest.TestCase):
 
                 assert result["crisis_detected"]
                 assert result["severity"] == "critical"
-                self.assertGreaterEqual(result["confidence"], 0.9)
+                assert result["confidence"] >= 0.9
                 # Escalation may not always be required for all high severity cases
-                self.assertIsInstance(result["escalation_required"], bool)
+                assert isinstance(result["escalation_required"], bool)
                 assert result["immediate_intervention"]
-                self.assertGreater(len(result["keywords_found"]), 0)
+                assert len(result["keywords_found"]) > 0
 
     def test_high_severity_crisis_detection(self):
         """Test detection of high severity crisis situations."""
@@ -197,10 +197,10 @@ class TestCrisisInterventionDetector(unittest.TestCase):
                 result = self.detector.detect_crisis(text)
 
                 assert result["crisis_detected"]
-                self.assertIn(result["severity"], ["high", "medium", "low"])
-                self.assertGreaterEqual(result["confidence"], 0.5)
+                assert result["severity"] in ["high", "medium", "low"]
+                assert result["confidence"] >= 0.5
                 # Escalation may not always be required for all high severity cases
-                self.assertIsInstance(result["escalation_required"], bool)
+                assert isinstance(result["escalation_required"], bool)
                 assert not result["immediate_intervention"]
 
     def test_medium_severity_crisis_detection(self):
@@ -211,7 +211,7 @@ class TestCrisisInterventionDetector(unittest.TestCase):
 
                 assert result["crisis_detected"]
                 assert result["severity"] == "medium"
-                self.assertGreaterEqual(result["confidence"], 0.6)
+                assert result["confidence"] >= 0.6
                 assert not result["escalation_required"]
 
     def test_low_severity_detection(self):
@@ -223,7 +223,7 @@ class TestCrisisInterventionDetector(unittest.TestCase):
                 # Low severity may or may not be detected as crisis
                 if result["crisis_detected"]:
                     assert result["severity"] == "low"
-                    self.assertLess(result["confidence"], 0.7)
+                    assert result["confidence"] < 0.7
 
     def test_no_crisis_detection(self):
         """Test that normal text doesn't trigger crisis detection."""
@@ -252,11 +252,11 @@ class TestCrisisInterventionDetector(unittest.TestCase):
             with self.subTest(case=case):
                 result = self.detector.detect_crisis(case)
 
-                self.assertIsInstance(result, dict)
-                self.assertIn("crisis_detected", result)
-                self.assertIn("severity", result)
-                self.assertIn("confidence", result)
-                self.assertIn("response_time", result)
+                assert isinstance(result, dict)
+                assert "crisis_detected" in result
+                assert "severity" in result
+                assert "confidence" in result
+                assert "response_time" in result
 
     def test_response_time_requirements(self):
         """Test that response times meet requirements (<100ms)."""
@@ -265,7 +265,7 @@ class TestCrisisInterventionDetector(unittest.TestCase):
         # Run multiple detections to test consistency
         for _ in range(10):
             result = self.detector.detect_crisis(test_text)
-            self.assertLess(result["response_time"], 0.1)  # <100ms requirement
+            assert result["response_time"] < 0.1  # <100ms requirement
 
     def test_escalation_critical(self):
         """Test escalation for critical crises."""
@@ -322,7 +322,7 @@ class TestCrisisInterventionDetector(unittest.TestCase):
         escalation = self.detector.escalate_crisis(crisis_data)
 
         assert not escalation["escalated"]
-        self.assertIn("reason", escalation)
+        assert "reason" in escalation
 
     def test_performance_metrics(self):
         """Test performance metrics collection."""
@@ -338,11 +338,11 @@ class TestCrisisInterventionDetector(unittest.TestCase):
 
         metrics = self.detector.get_performance_metrics()
 
-        self.assertIn("avg_response_time", metrics)
-        self.assertIn("max_response_time", metrics)
-        self.assertIn("min_response_time", metrics)
-        self.assertIn("total_detections", metrics)
-        assert metrics["total_detections"] == len(test_texts
+        assert "avg_response_time" in metrics
+        assert "max_response_time" in metrics
+        assert "min_response_time" in metrics
+        assert "total_detections" in metrics
+        assert metrics["total_detections"] == len(test_texts)
 
     def test_keyword_detection_accuracy(self):
         """Test accuracy of keyword detection."""
@@ -359,7 +359,7 @@ class TestCrisisInterventionDetector(unittest.TestCase):
                 found_keywords = result["keywords_found"]
 
                 for keyword in expected_keywords:
-                    self.assertIn(keyword, found_keywords)
+                    assert keyword in found_keywords
 
     def test_confidence_scoring(self):
         """Test confidence scoring accuracy."""
@@ -368,8 +368,8 @@ class TestCrisisInterventionDetector(unittest.TestCase):
         high_result = self.detector.detect_crisis("I hurt myself")
         medium_result = self.detector.detect_crisis("Life is hopeless")
 
-        self.assertGreater(critical_result["confidence"], high_result["confidence"])
-        self.assertGreater(high_result["confidence"], medium_result["confidence"])
+        assert critical_result["confidence"] > high_result["confidence"]
+        assert high_result["confidence"] > medium_result["confidence"]
 
     def test_concurrent_detection(self):
         """Test concurrent crisis detection."""
@@ -424,7 +424,7 @@ class TestCrisisInterventionDetectorIntegration(unittest.TestCase):
 
         # Step 3: Verify performance
         metrics = self.detector.get_performance_metrics()
-        self.assertGreater(metrics["total_detections"], 0)
+        assert metrics["total_detections"] > 0
 
     def test_batch_processing(self):
         """Test batch processing of multiple texts."""
@@ -442,12 +442,12 @@ class TestCrisisInterventionDetectorIntegration(unittest.TestCase):
             results.append(result)
 
         # Verify batch processing
-        assert len(results) == len(batch_texts
+        assert len(results) == len(batch_texts)
 
         # Check that crises were detected appropriately
         crisis_count = sum(1 for r in results if r["crisis_detected"])
-        self.assertGreater(crisis_count, 0)
-        self.assertLess(crisis_count, len(batch_texts))
+        assert crisis_count > 0
+        assert crisis_count < len(batch_texts)
 
     def test_stress_testing(self):
         """Test system under stress with many concurrent requests."""
@@ -465,11 +465,11 @@ class TestCrisisInterventionDetectorIntegration(unittest.TestCase):
         total_time = end_time - start_time
 
         # Should process 100 detections in under 10 seconds
-        self.assertLess(total_time, 10.0)
+        assert total_time < 10.0
 
         # Average response time should be under 100ms
         metrics = self.detector.get_performance_metrics()
-        self.assertLess(metrics["avg_response_time"], 0.1)
+        assert metrics["avg_response_time"] < 0.1
 
 
 if __name__ == "__main__":

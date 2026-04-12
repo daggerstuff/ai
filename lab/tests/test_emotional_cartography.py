@@ -42,7 +42,7 @@ class TestEmotionalCartography(unittest.TestCase):
 
         result = self.cartographer.map_complex_state(states)
         assert result["primary_state"] == "joy"
-        self.assertIn("Love", result["complex_states"])
+        assert "Love" in result["complex_states"]
 
     def test_map_complex_state_empty(self):
         result = self.cartographer.map_complex_state([])

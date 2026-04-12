@@ -10,35 +10,30 @@ These tests verify:
 """
 import asyncio
 import json
-import pytest
 
+import pytest
 from fastmcp import FastMCP
 
+from ai.api.mcp_server import fastmcp_shared, fastmcp_v2_tools
+from ai.api.mcp_server.fastmcp_shared import AuthorizedToolContext
 from ai.api.mcp_server.fastmcp_v2_tools import (
-    MemoryStoreInput,
-    MemoryQueryInput,
     MemoryGetInput,
     MemoryListInput,
-    MemoryUpdateInput,
-    MemoryDeleteInput,
-    MemoryStatusInput,
+    MemoryQueryInput,
+    MemoryStoreInput,
     ResponseFormat,
     _format_error,
-    hindsight_store_memory,
-    hindsight_query_memories,
+    hindsight_delete_memory,
     hindsight_get_memory,
     hindsight_list_memories,
-    hindsight_update_memory,
-    hindsight_delete_memory,
     hindsight_memory_status,
+    hindsight_query_memories,
+    hindsight_store_memory,
+    hindsight_update_memory,
     register_memory_tools_v2,
 )
-from ai.api.mcp_server import fastmcp_v2_tools
-from ai.api.mcp_server import fastmcp_shared
-from ai.api.mcp_server.fastmcp_shared import AuthorizedToolContext
 from ai.api.mcp_server.memory_scope import scope_from_kwargs
 from ai.api.memory.null_memory import NullMemoryManager
-
 
 # =============================================================================
 # Test Fixtures

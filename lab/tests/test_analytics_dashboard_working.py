@@ -397,8 +397,8 @@ class TestAnalyticsDashboard(unittest.TestCase):
     def test_initialization(self):
         """Test dashboard initialization."""
         assert self.dashboard is not None
-        self.assertIsInstance(self.dashboard.metrics_data, dict)
-        self.assertIsInstance(self.dashboard.alert_thresholds, dict)
+        assert isinstance(self.dashboard.metrics_data, dict)
+        assert isinstance(self.dashboard.alert_thresholds, dict)
         assert self.dashboard.monitoring_active
 
     def test_successful_metrics_collection(self):
@@ -444,10 +444,10 @@ class TestAnalyticsDashboard(unittest.TestCase):
         assert result["report"] is not None
 
         report = result["report"]
-        self.assertIn("report_id", report)
-        self.assertIn("time_period", report)
-        self.assertIn("data", report)
-        self.assertIn("summary", report)
+        assert "report_id" in report
+        assert "time_period" in report
+        assert "data" in report
+        assert "summary" in report
 
     def test_report_generation_no_data(self):
         """Test report generation with no metrics data."""
@@ -464,7 +464,7 @@ class TestAnalyticsDashboard(unittest.TestCase):
         assert result["success"]
         assert result["error"] is None
         assert result["metrics"] is not None
-        self.assertIsInstance(result["alerts"], list)
+        assert isinstance(result["alerts"], list)
         assert result["monitoring_status"] == "active"
 
     def test_monitoring_inactive(self):
@@ -535,7 +535,7 @@ class TestAnalyticsDashboard(unittest.TestCase):
 
         analytics = result["analytics"]
         assert analytics["user_id"] == user_id
-        self.assertGreater(analytics["total_interactions"], 0)
+        assert analytics["total_interactions"] > 0
 
     def test_user_analytics_no_data(self):
         """Test user analytics with no data."""
@@ -616,10 +616,10 @@ class TestAnalyticsDashboard(unittest.TestCase):
 
         stats = self.dashboard.get_dashboard_statistics()
 
-        self.assertIn("total_metrics_collected", stats)
-        self.assertIn("metric_types", stats)
-        self.assertIn("reports_generated", stats)
-        self.assertIn("monitoring_status", stats)
+        assert "total_metrics_collected" in stats
+        assert "metric_types" in stats
+        assert "reports_generated" in stats
+        assert "monitoring_status" in stats
         assert stats["metric_types"] == 3
         assert stats["reports_generated"] == 1
 
@@ -681,8 +681,8 @@ class TestAnalyticsDashboardIntegration(unittest.TestCase):
 
         # Verify complete workflow
         stats = self.dashboard.get_dashboard_statistics()
-        self.assertGreater(stats["total_metrics_collected"], 0)
-        self.assertGreater(stats["reports_generated"], 0)
+        assert stats["total_metrics_collected"] > 0
+        assert stats["reports_generated"] > 0
 
     def test_multi_user_analytics_tracking(self):
         """Test analytics tracking across multiple users."""

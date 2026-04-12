@@ -4,11 +4,12 @@ Quality Comparison System
 Compares quality metrics across tiers, datasets, and time periods
 """
 
+from datetime import datetime, timezone
+
 import json
 import sqlite3
 import warnings
 from dataclasses import dataclass
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 

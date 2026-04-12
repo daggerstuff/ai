@@ -5,8 +5,9 @@ This module implements REST API endpoints for analytics operations,
 including usage metrics, performance tracking, and data insights.
 """
 
-import logging
 from datetime import datetime, timedelta, timezone
+
+import logging
 from typing import Any
 
 from flask import Blueprint, g, jsonify, request

@@ -5,9 +5,10 @@ Implements search integration with NCBI E-utilities API for discovering
 therapeutic datasets from PubMed Central.
 """
 
+from datetime import datetime, timezone
+
 import logging
 import time
-from datetime import datetime, timezone
 from xml.etree import ElementTree as ET
 
 import requests

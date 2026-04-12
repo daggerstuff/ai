@@ -1,8 +1,9 @@
 
+from datetime import datetime, timezone
+
 from __future__ import annotations
 
 from copy import deepcopy
-from datetime import datetime, timezone
 from typing import Any
 
 from ai.sourcing.journal.mcp.auth.authorization import AuthorizationHandler

@@ -4,8 +4,9 @@ Data models for YouTube channel curation.
 Defines channel metadata, quality scoring, licensing info, and status tracking.
 """
 
-from dataclasses import dataclass, field
 from datetime import datetime
+
+from dataclasses import dataclass, field
 from enum import Enum
 
 from pydantic import BaseModel, Field

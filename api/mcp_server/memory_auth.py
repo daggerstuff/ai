@@ -1,5 +1,6 @@
-
 from __future__ import annotations
+
+from datetime import datetime, timezone
 
 import hashlib
 import hmac
@@ -7,7 +8,6 @@ import json
 import os
 from collections.abc import Mapping
 from dataclasses import dataclass
-from datetime import datetime, timezone
 from functools import lru_cache
 from threading import Lock
 from time import time
