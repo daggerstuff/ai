@@ -13,8 +13,8 @@ from typing import Any
 
 import aiohttp
 
-from ..error_handling.custom_errors import BiasDetectionError, ServiceUnavailableError, ValidationError
-from ..utils.logger import get_logger
+from ai.api.techdeck_integration.error_handling.custom_errors import BiasDetectionError, ServiceUnavailableError, ValidationError
+from ai.api.techdeck_integration.utils.logger import get_logger
 
 logger = get_logger(__name__)
 

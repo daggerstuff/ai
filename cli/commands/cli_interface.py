@@ -12,13 +12,9 @@ from typing import Any
 
 import click
 
-from ..auth import AuthManager
-from ..config import get_config
-from ..utils import (
-    format_file_size,
-    get_logger,
-    setup_logging,
-)
+from ai.cli.auth import AuthManager
+from ai.cli.config import get_config
+from ai.cli.utils import format_file_size, get_logger, setup_logging
 
 logger = get_logger(__name__)
 

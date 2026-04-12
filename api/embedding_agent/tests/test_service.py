@@ -13,15 +13,8 @@ from pathlib import Path
 
 import pytest
 
-from ..models import (
-    BatchEmbeddingRequest,
-    EmbeddingAgentConfig,
-    EmbeddingModel,
-    EmbeddingRequest,
-    KnowledgeType,
-    SimilaritySearchRequest,
-)
-from ..service import EmbeddingAgentService
+from ai.api.embedding_agent.models import BatchEmbeddingRequest, EmbeddingAgentConfig, EmbeddingModel, EmbeddingRequest, KnowledgeType, SimilaritySearchRequest
+from ai.api.embedding_agent.service import EmbeddingAgentService
 
 
 @pytest.fixture

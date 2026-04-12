@@ -2,8 +2,8 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
 
-from ..academic_sourcing import AcademicSourcingEngine
-from ..therapy_dataset_sourcing import find_therapy_datasets
+from ai.sourcing.academic.academic_sourcing import AcademicSourcingEngine
+from ai.sourcing.academic.therapy_dataset_sourcing import find_therapy_datasets
 
 router = APIRouter()
 
