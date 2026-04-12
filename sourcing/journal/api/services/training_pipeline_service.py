@@ -3,6 +3,10 @@ Training Pipeline Service
 
 Service layer for connecting journal research system to training pipeline orchestrator.
 """
+from datetime import datetime
+from pathlib import Path
+from types import SimpleNamespace
+
 
 import logging
 from typing import Any
@@ -46,7 +50,7 @@ class TrainingPipelineService:
             return
 
         try:
-            from pathlib import Path
+            pass
 
             from ai.pipelines.orchestrator.orchestration.pipeline_orchestrator import (
                 PipelineConfig,
@@ -239,54 +243,50 @@ class TrainingPipelineService:
         """Convert dictionary to AcquiredDataset model."""
         if not PIPELINE_ORCHESTRATOR_AVAILABLE:
             # Create a simple object that can be used
-            from types import SimpleNamespace
             return SimpleNamespace(**data)
 
         try:
             # Handle datetime strings if present
             if "acquisition_date" in data and isinstance(data["acquisition_date"], str):
-                from datetime import datetime
+                pass
                 data["acquisition_date"] = datetime.fromisoformat(data["acquisition_date"])
 
             return AcquiredDatasetModel(**data)
         except Exception as e:
             logger.warning(f"Failed to convert to AcquiredDataset model: {e}, using dict")
-            from types import SimpleNamespace
             return SimpleNamespace(**data)
 
     def _dict_to_evaluation(self, data: dict[str, Any]) -> Any:
         """Convert dictionary to DatasetEvaluation model."""
         if not PIPELINE_ORCHESTRATOR_AVAILABLE:
-            from types import SimpleNamespace
+            pass
             return SimpleNamespace(**data)
 
         try:
             # Handle datetime strings if present
             if "evaluation_date" in data and isinstance(data["evaluation_date"], str):
-                from datetime import datetime
+                pass
                 data["evaluation_date"] = datetime.fromisoformat(data["evaluation_date"])
 
             return DatasetEvaluationModel(**data)
         except Exception as e:
             logger.warning(f"Failed to convert to DatasetEvaluation model: {e}, using dict")
-            from types import SimpleNamespace
             return SimpleNamespace(**data)
 
     def _dict_to_integration_plan(self, data: dict[str, Any]) -> Any:
         """Convert dictionary to IntegrationPlan model."""
         if not PIPELINE_ORCHESTRATOR_AVAILABLE:
-            from types import SimpleNamespace
+            pass
             return SimpleNamespace(**data)
 
         try:
             # Handle datetime strings if present
             if "created_date" in data and isinstance(data["created_date"], str):
-                from datetime import datetime
+                pass
                 data["created_date"] = datetime.fromisoformat(data["created_date"])
 
             return IntegrationPlanModel(**data)
         except Exception as e:
             logger.warning(f"Failed to convert to IntegrationPlan model: {e}, using dict")
-            from types import SimpleNamespace
             return SimpleNamespace(**data)
 

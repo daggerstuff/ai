@@ -1,3 +1,5 @@
+from slack_sdk.webhook import WebhookClient
+
 
 import argparse
 import importlib.util
@@ -29,7 +31,7 @@ def log(msg, log_file=None):
 def slack_alert(message, args, slack_available, log_file=None):
     if args.slack_webhook and slack_available:
         try:
-            from slack_sdk.webhook import WebhookClient
+            pass
 
             webhook = WebhookClient(args.slack_webhook)
             webhook.send(text=message)

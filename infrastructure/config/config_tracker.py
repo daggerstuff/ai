@@ -3,6 +3,8 @@
 Configuration Change Tracking and Rollback System for Pixelated Empathy AI
 Tracks configuration changes and provides rollback capabilities
 """
+import argparse
+
 
 import hashlib
 import json
@@ -570,7 +572,6 @@ class ConfigTracker:
 
 def main():
     """Main CLI interface"""
-    import argparse
 
     parser = argparse.ArgumentParser(description="Configuration Change Tracking System")
     parser.add_argument("--config-dir", help="Configuration directory")

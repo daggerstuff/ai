@@ -5,6 +5,8 @@ Enterprise Production Readiness Framework - Task 6.2
 
 Automated blue-green deployment with zero downtime and canary releases.
 """
+import random
+
 
 import json
 import logging
@@ -420,7 +422,6 @@ class ProductionDeployer:
         """Simulate health check execution."""
         try:
             # Simulate health check with high success rate
-            import random
 
             return random.random() > 0.05  # 95% success rate
         except Exception:

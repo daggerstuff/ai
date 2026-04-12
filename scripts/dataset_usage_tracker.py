@@ -3,6 +3,8 @@
 Dataset usage analytics tracking script that monitors access patterns,
 training job correlations, and data freshness.
 """
+import argparse
+
 
 import json
 from dataclasses import asdict, dataclass
@@ -348,7 +350,6 @@ class DatasetUsageTracker:
 
 def main():
     """Main entry point."""
-    import argparse
 
     parser = argparse.ArgumentParser(description="Track dataset usage analytics")
     parser.add_argument(

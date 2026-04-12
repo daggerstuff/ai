@@ -10,6 +10,9 @@ This test suite validates the crisis intervention detector's ability to:
 4. Maintain response time requirements
 5. Ensure safety and compliance
 """
+import threading
+import time
+
 
 import time
 import unittest
@@ -373,7 +376,6 @@ class TestCrisisInterventionDetector(unittest.TestCase):
 
     def test_concurrent_detection(self):
         """Test concurrent crisis detection."""
-        import threading
 
         results = []
 
@@ -451,7 +453,6 @@ class TestCrisisInterventionDetectorIntegration(unittest.TestCase):
 
     def test_stress_testing(self):
         """Test system under stress with many concurrent requests."""
-        import time
 
         start_time = time.time()
 

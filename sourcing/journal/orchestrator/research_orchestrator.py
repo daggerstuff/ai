@@ -6,6 +6,8 @@ acquisition, and integration planning phases. Provides research session
 management, progress tracking, reporting, and robust error recovery with retry
 logic.
 """
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 
 from __future__ import annotations
 
@@ -510,7 +512,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
     def _evaluate_sources_parallel(
         self, session_id: str, sources: list[DatasetSource], evaluator: str
     ) -> list[DatasetEvaluation]:
-        from concurrent.futures import ThreadPoolExecutor, as_completed
+        pass
 
         evaluations: list[DatasetEvaluation] = []
         with ThreadPoolExecutor(max_workers=self.config.max_workers) as executor:
@@ -610,7 +612,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         datasets: list[AcquiredDataset],
         target_format: str,
     ) -> list[IntegrationPlan]:
-        from concurrent.futures import ThreadPoolExecutor, as_completed
+        pass
 
         plans: list[IntegrationPlan] = []
         with ThreadPoolExecutor(max_workers=self.config.max_workers) as executor:

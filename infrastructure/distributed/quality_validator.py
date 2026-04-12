@@ -3,6 +3,10 @@
 Distributed Quality Validation System for Pixelated Empathy AI
 Parallelizes quality validation across multiple workers for high-performance processing
 """
+from pathlib import Path
+import argparse
+import glob
+
 
 import hashlib
 import json
@@ -822,7 +826,6 @@ if CELERY_AVAILABLE:
 
 def main():
     """Main CLI interface"""
-    import argparse
 
     parser = argparse.ArgumentParser(
         description="Distributed Quality Validation System"
@@ -888,8 +891,7 @@ def main():
                 print("Task failed or timed out")
 
         elif args.command == "batch":
-            import glob
-            from pathlib import Path
+            pass
 
             data_dir = Path(args.data_dir)
             if not data_dir.exists():

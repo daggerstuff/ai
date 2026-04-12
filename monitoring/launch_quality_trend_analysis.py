@@ -5,6 +5,16 @@ Quality Trend Analysis Launcher (Task 5.6.2.2)
 Enterprise-grade launcher for the quality trend analysis and reporting system
 with comprehensive setup, validation, and execution capabilities.
 """
+from quality_trend_analyzer import QualityTrendAnalyzer
+from quality_trend_reporter import QualityTrendReporter
+import jinja2
+import numpy
+import pandas
+import plotly
+import scipy
+import sklearn
+import sqlite3
+
 
 import argparse
 import logging
@@ -57,19 +67,19 @@ class QualityTrendAnalysisLauncher:
         for package in self.required_packages:
             try:
                 if package == "sqlite3":
-                    import sqlite3
+                    pass
                 elif package == "pandas":
-                    import pandas
+                    pass
                 elif package == "numpy":
-                    import numpy
+                    pass
                 elif package == "scipy":
-                    import scipy
+                    pass
                 elif package == "sklearn":
-                    import sklearn
+                    pass
                 elif package == "plotly":
-                    import plotly
+                    pass
                 elif package == "jinja2":
-                    import jinja2
+                    pass
 
                 logger.info(f"  ✅ {package}: Available")
 
@@ -98,7 +108,7 @@ class QualityTrendAnalysisLauncher:
             return False
 
         try:
-            import sqlite3
+            pass
 
             conn = sqlite3.connect(str(self.db_path))
             cursor = conn.cursor()
@@ -212,8 +222,6 @@ class QualityTrendAnalysisLauncher:
             # Import trend analysis components
             sys.path.append(str(self.monitoring_dir))
 
-            from quality_trend_analyzer import QualityTrendAnalyzer
-            from quality_trend_reporter import QualityTrendReporter
 
             # Initialize components
             analyzer = QualityTrendAnalyzer(db_path=str(self.db_path))

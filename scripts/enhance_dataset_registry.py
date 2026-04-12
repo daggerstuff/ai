@@ -3,6 +3,8 @@
 Script to enhance dataset registry with automated validation, usage analytics,
 lineage tracking, quality metrics, sync verification, and version control fields.
 """
+import argparse
+
 
 import json
 from datetime import datetime, timezone
@@ -224,7 +226,6 @@ def enhance_registry(
 
 def main():
     """Main entry point."""
-    import argparse
 
     parser = argparse.ArgumentParser(
         description="Enhance dataset registry with new fields"

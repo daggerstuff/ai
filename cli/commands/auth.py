@@ -4,6 +4,8 @@ Authentication Commands for Pixelated AI CLI
 This module provides commands for user authentication, including login, logout,
 token management, and user profile operations.
 """
+import datetime
+
 
 from datetime import timezone
 
@@ -145,7 +147,7 @@ def status(_ctx, profile: str | None):
             if token_info:
                 expires_at = token_info.get("expires_at")
                 if expires_at:
-                    import datetime
+                    pass
                     expires_datetime = datetime.datetime.fromtimestamp(expires_at)
                     time_remaining = expires_datetime - datetime.datetime.now(timezone.utc)
 

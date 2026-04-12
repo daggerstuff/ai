@@ -4,6 +4,9 @@ YouTube Data API v3 implementation.
 This module provides the actual YouTube API integration functions
 replacing the TODO stubs in api.py.
 """
+from dotenv import load_dotenv
+import os
+
 
 import logging
 from datetime import datetime, timezone
@@ -58,9 +61,7 @@ class YouTubeAPI:
         if api_key:
             return api_key
 
-        import os
 
-        from dotenv import load_dotenv
 
         load_dotenv(".env.youtube.example", override=True)
 
@@ -435,9 +436,8 @@ def get_api_quota_status() -> tuple[bool, int, int]:
         Tuple of (has_quota, used, limit)
     """
     try:
-        import os
+        pass
 
-        from dotenv import load_dotenv
 
         load_dotenv(".env.youtube.example", override=True)
         api_key = os.getenv("YOUTUBE_API_KEY")

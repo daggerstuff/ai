@@ -3,6 +3,8 @@ MCP Prompts for Journal Dataset Research System.
 
 This module provides prompt templates for common research workflows.
 """
+import fnmatch
+
 
 import logging
 from typing import Any, Dict, List, Optional
@@ -112,7 +114,6 @@ class PromptRegistry:
         Returns:
             List of matching prompts
         """
-        import fnmatch
         return [
             prompt
             for name, prompt in self._prompts.items()

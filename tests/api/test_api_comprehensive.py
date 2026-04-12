@@ -1,3 +1,6 @@
+import queue
+import threading
+
 
 #!/usr/bin/env python3
 """
@@ -380,8 +383,6 @@ class TestAPIPerformance:
 
     def test_concurrent_requests(self):
         """Test handling of concurrent requests."""
-        import queue
-        import threading
 
         results = queue.Queue()
 

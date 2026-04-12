@@ -3,6 +3,10 @@
 COMPREHENSIVE PRODUCTION FIX
 Addresses all critical infrastructure issues identified in audit
 """
+from caching_system import CacheManager
+from database_optimization import DatabaseOptimizationSystem
+from monitoring_system import ProductionMonitor
+
 
 import json
 import logging
@@ -120,7 +124,6 @@ class ComprehensiveProductionFix:
             # Test monitoring system
             sys.path.append("/home/vivi/pixelated/ai/production_deployment")
 
-            from monitoring_system import ProductionMonitor
 
             monitor = ProductionMonitor()
             self.test_results["monitoring"] = {
@@ -245,7 +248,6 @@ class ComprehensiveProductionFix:
             # Test database optimization
             sys.path.append("/home/vivi/pixelated/ai/production_deployment")
 
-            from database_optimization import DatabaseOptimizationSystem
 
             DatabaseOptimizationSystem()
             self.test_results["database"] = {
@@ -305,7 +307,6 @@ class ComprehensiveProductionFix:
             # Test caching system
             sys.path.append("/home/vivi/pixelated/ai/production_deployment")
 
-            from caching_system import CacheManager
 
             CacheManager()
             self.test_results["caching"] = {

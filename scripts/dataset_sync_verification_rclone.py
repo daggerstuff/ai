@@ -3,6 +3,8 @@
 Dataset sync verification using rclone.
 Verifies consistency between S3/DO Spaces and local/backup paths.
 """
+import argparse
+
 
 import json
 import sys
@@ -124,7 +126,7 @@ def verify_dataset_sync(
 
 
 def main():
-    import argparse
+    pass
 
     parser = argparse.ArgumentParser(description="Verify dataset sync using rclone")
     parser.add_argument(

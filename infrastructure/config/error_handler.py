@@ -3,6 +3,10 @@
 Configuration Error Handling System for Pixelated Empathy AI
 Provides robust error handling and recovery mechanisms for configuration issues
 """
+from urllib.parse import urlparse, urlunparse
+import secrets
+import string
+
 
 import json
 import logging
@@ -277,7 +281,7 @@ class ConfigErrorHandler:
             if "localhost" not in db_url and "127.0.0.1" not in db_url:
                 # Try localhost version
                 try:
-                    from urllib.parse import urlparse, urlunparse
+                    pass
 
                     parsed = urlparse(db_url)
                     localhost_url = urlunparse(
@@ -302,8 +306,6 @@ class ConfigErrorHandler:
         """Recover from security configuration errors"""
         if error.field in ["JWT_SECRET", "ENCRYPTION_KEY"]:
             # Generate secure random values
-            import secrets
-            import string
 
             alphabet = string.ascii_letters + string.digits
             secure_value = "".join(secrets.choice(alphabet) for _ in range(64))

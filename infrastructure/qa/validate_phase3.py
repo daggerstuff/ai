@@ -5,6 +5,12 @@ Tasks 3.1, 3.2, 3.3: Validate Safety Certification Implementation
 
 Comprehensive validation script to verify Phase 3 safety certification implementation is enterprise-ready.
 """
+from clinical_safety_certifier import RiskLevel
+from clinical_safety_certifier import clinical_certifier
+from safety_accuracy_validator import safety_validator
+from safety_monitor_integration import AlertSeverity
+from safety_monitor_integration import safety_monitor
+
 
 import json
 import logging
@@ -272,7 +278,7 @@ class Phase3Validator:
 
             # Test 4: Clinical Incident Simulation
             try:
-                from clinical_safety_certifier import RiskLevel
+                pass
 
                 with tempfile.NamedTemporaryFile(delete=False) as tmp:
                     certifier = ClinicalSafetyCertifier(db_path=tmp.name)
@@ -546,9 +552,7 @@ class Phase3Validator:
         try:
             # Test 1: All safety frameworks can be imported together
             try:
-                from clinical_safety_certifier import clinical_certifier
-                from safety_accuracy_validator import safety_validator
-                from safety_monitor_integration import safety_monitor
+                pass
 
                 score += 25
                 logger.info("✅ All safety frameworks integrate successfully")
@@ -558,7 +562,7 @@ class Phase3Validator:
 
             # Test 2: Cross-framework compatibility
             try:
-                from safety_monitor_integration import AlertSeverity
+                pass
 
                 # Test that frameworks can work with the same data
                 test_message = "I'm having thoughts of suicide and self-harm"
@@ -586,7 +590,7 @@ class Phase3Validator:
 
             # Test 3: End-to-end safety pipeline
             try:
-                from safety_monitor_integration import AlertSeverity
+                pass
 
                 # Simulate complete safety pipeline
                 test_input = "I want to end my life"
@@ -619,7 +623,7 @@ class Phase3Validator:
 
             # Test 4: Performance under load
             try:
-                from safety_monitor_integration import AlertSeverity
+                pass
 
                 start_time = time.time()
 

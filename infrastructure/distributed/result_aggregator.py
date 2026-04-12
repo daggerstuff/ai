@@ -3,6 +3,8 @@
 Quality Validation Result Aggregation System for Pixelated Empathy AI
 Aggregates and analyzes results from distributed quality validation workers
 """
+import argparse
+
 
 import json
 import logging
@@ -552,7 +554,6 @@ class ResultAggregator:
 
 def main():
     """Main CLI interface"""
-    import argparse
 
     parser = argparse.ArgumentParser(description="Quality Validation Result Aggregator")
     parser.add_argument("--db-path", help="Database path for storing results")

@@ -11,6 +11,10 @@ Comprehensive analysis of dataset performance and business impact:
 - Strategic recommendations for dataset optimization
 - Business value quantification
 """
+from textstat import flesch_reading_ease
+import json
+import traceback
+
 
 import json
 import re
@@ -138,7 +142,7 @@ class DatasetPerformanceImpactAnalyzer:
     def _extract_text_from_json(self, json_str: str) -> str:
         """Extract readable text from conversations JSON"""
         try:
-            import json
+            pass
 
             conversations = json.loads(json_str)
 
@@ -165,7 +169,7 @@ class DatasetPerformanceImpactAnalyzer:
 
         # Quality components
         try:
-            from textstat import flesch_reading_ease
+            pass
 
             readability = max(0, min(100, flesch_reading_ease(text))) / 100
         except:
@@ -1381,7 +1385,6 @@ def main():
 
     except Exception as e:
         print(f"❌ Error during analysis: {e!s}")
-        import traceback
 
         traceback.print_exc()
         return None

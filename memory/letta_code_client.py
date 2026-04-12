@@ -13,6 +13,10 @@ Migration from Claude Agent SDK:
 - unstable_v2_resumeSession(session_id) → resumeSession(agentId)
 - session.send/stream() remain similar but agent-anchored
 """
+from .letta_crisis_handler import LettaCrisisHandler
+from .letta_pii_middleware import LettaPIIMiddleware
+from letta import LettaClient as SDKClient
+
 
 import json
 import logging
@@ -198,7 +202,6 @@ class LettaCodeClient:
 
         try:
             # Import Letta Code SDK
-            from letta import LettaClient as SDKClient
 
             self._sdk_client = SDKClient(
                 api_key=self.config.api_key,
@@ -220,8 +223,7 @@ class LettaCodeClient:
         """Initialize PII filter and crisis detector middleware."""
         # Import Hindsight components for middleware
         try:
-            from .letta_crisis_handler import LettaCrisisHandler
-            from .letta_pii_middleware import LettaPIIMiddleware
+            pass
 
             if self.config.pii_filter_enabled:
                 self._pii_filter = LettaPIIMiddleware(

@@ -9,6 +9,9 @@ This script orchestrates the complete deployment pipeline:
 3. Generates all required scripts and configurations
 4. Provides upload instructions for Lightning.ai Studio
 """
+from lightning_h100_deployment import LightningH100Deployer
+from validate_deployment_readiness import DeploymentValidator
+
 
 import json
 import logging
@@ -51,7 +54,7 @@ class LightningDeploymentOrchestrator:
         logger.info("🔍 Running deployment readiness validation...")
 
         try:
-            from validate_deployment_readiness import DeploymentValidator
+            pass
 
             validator = DeploymentValidator()
             report = validator.generate_readiness_report()
@@ -74,7 +77,7 @@ class LightningDeploymentOrchestrator:
         logger.info("📦 Preparing Lightning.ai H100 deployment package...")
 
         try:
-            from lightning_h100_deployment import LightningH100Deployer
+            pass
 
             deployer = LightningH100Deployer(self.unified_dataset_path)
 

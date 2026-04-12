@@ -3,6 +3,9 @@
 Quality Validation Progress Tracking System for Pixelated Empathy AI
 Tracks progress of distributed quality validation across multiple workers
 """
+import argparse
+import statistics
+
 
 import json
 import logging
@@ -509,7 +512,7 @@ class ProgressTracker:
 
         time_stats = {}
         if processing_times:
-            import statistics
+            pass
 
             time_stats = {
                 "mean": statistics.mean(processing_times),
@@ -745,7 +748,6 @@ class ProgressTracker:
 
 def main():
     """Main CLI interface"""
-    import argparse
 
     parser = argparse.ArgumentParser(description="Quality Validation Progress Tracker")
     parser.add_argument("--db-path", help="Database path for storing progress")

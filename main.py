@@ -5,6 +5,8 @@ This script orchestrates the complete data pipeline for therapeutic conversation
 generation, from sourcing to deployment. Run from project root:
     uv run python -m ai.main
 """
+import json
+
 
 import logging
 
@@ -99,7 +101,7 @@ def run_synthesis():
     for split, items in splits.items():
         output = synth.output_path / f"final_{split}.jsonl"
         with open(output, "w") as f:
-            import json
+            pass
 
             for item in items:
                 f.write(json.dumps(item) + "\n")

@@ -4,6 +4,11 @@ Utility functions for Pixelated AI CLI
 This module provides utility functions for logging setup, environment validation,
 banner printing, and other common operations.
 """
+import base64
+import platform
+import psutil
+import re
+
 
 import json
 import logging
@@ -180,7 +185,6 @@ def sanitize_filename(filename: str) -> str:
     Returns:
         Sanitized filename
     """
-    import re
 
     # Remove or replace unsafe characters
     filename = re.sub(r"[<>:\"/\\|?*]", "_", filename)
@@ -216,7 +220,6 @@ def validate_jwt_token(token: str) -> dict[str, Any]:
             raise ValueError("Invalid JWT format")
 
         # Decode header and payload
-        import base64
 
         # Add padding if needed
         def add_padding(s):
@@ -380,9 +383,7 @@ def get_system_info() -> dict[str, Any]:
     Returns:
         Dictionary with system information
     """
-    import platform
 
-    import psutil
 
     return {
         "platform": platform.platform(),

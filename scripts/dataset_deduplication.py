@@ -3,6 +3,8 @@
 Dataset deduplication script that identifies and removes duplicate entries
 within and across datasets.
 """
+import argparse
+
 
 import hashlib
 import json
@@ -439,7 +441,6 @@ class DatasetDeduplicator:
 
 def main():
     """Main entry point."""
-    import argparse
 
     parser = argparse.ArgumentParser(description="Deduplicate datasets")
     parser.add_argument(

@@ -9,6 +9,8 @@ This module provides comprehensive security testing including:
 - API security testing
 - Infrastructure security assessment
 """
+import base64
+
 
 import asyncio
 import json
@@ -422,7 +424,6 @@ class SecurityTestFramework:
             token_data = login_response.json() if login_response.status_code == 200 else {}
             if "access_token" in token_data:
                 # Decode JWT to check expiration (basic check)
-                import base64
                 try:
                     token_parts = token_data["access_token"].split(".")
                     if len(token_parts) >= 2:

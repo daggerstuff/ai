@@ -2,6 +2,8 @@
 Startup script demonstrating the health check and graceful shutdown system.
 This script shows how to integrate the health check system with a service.
 """
+from .monitoring.health_check import ComponentHealth, ComponentStatus
+
 
 import asyncio
 import logging
@@ -95,7 +97,7 @@ health_manager.register_component("cache", mock_cache)
 
 # Custom health check for database
 def database_health_check():
-    from .monitoring.health_check import ComponentHealth, ComponentStatus
+    pass
 
     try:
         if mock_db.is_healthy():
@@ -129,7 +131,7 @@ def database_health_check():
 
 # Custom health check for cache
 def cache_health_check():
-    from .monitoring.health_check import ComponentHealth, ComponentStatus
+    pass
 
     try:
         if mock_cache.is_healthy():

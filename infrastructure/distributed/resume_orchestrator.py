@@ -3,6 +3,8 @@
 Resume Orchestrator for Pixelated Empathy AI
 Manages coordination and orchestration of multiple resumable processes
 """
+from checkpoint_system import CheckpointManager
+
 
 import asyncio
 import json
@@ -602,7 +604,6 @@ class ResumeOrchestrator:
 async def example_orchestrated_resume():
     """Example of using the resume orchestrator"""
 
-    from checkpoint_system import CheckpointManager
 
     # Initialize systems
     checkpoint_manager = CheckpointManager()

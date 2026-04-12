@@ -6,6 +6,8 @@ Can be run as:
 - Script: python ai/sourcing/youtube/__main__.py discovery --help
 - Direct function call
 """
+import json
+
 
 import argparse
 import logging
@@ -203,7 +205,6 @@ def command_import_channels(args) -> int:
     print(f"Importing channels from: {input_path}")
     print(f"Target registry: {args.registry}\n")
 
-    import json
 
     with open(input_path) as f:
         channels_data = json.load(f)

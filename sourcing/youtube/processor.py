@@ -9,6 +9,8 @@ Coordinates the full workflow:
 5. Score and rank channels
 6. Generate report
 """
+import json
+
 
 import logging
 
@@ -294,7 +296,6 @@ class ChannelProcessor:
             results: ChannelDiscoveryResults
             output_path: Path to output JSON file
         """
-        import json
 
         # Export qualified channels to JSON
         # Using list comprehension for better performance

@@ -2,6 +2,13 @@
 Integration tests and performance benchmarks for Pixelated Empathy AI inference system.
 Tests API endpoints, validates functionality, and measures performance.
 """
+from ..explainability.model_explainability import get_limited_explanation
+from ..inference.model_adapters import BaseModelAdapter
+from ..monitoring.observability import ObservabilityManager
+from ..safety.content_filter import SafetyFilter
+import concurrent.futures
+import shutil
+
 
 import asyncio
 import json
@@ -53,7 +60,7 @@ class TestInferenceAPIIntegration(unittest.TestCase):
     def tearDownClass(cls):
         """Clean up test environment"""
         if hasattr(cls, "test_model_path") and os.path.exists(cls.test_model_path):
-            import shutil
+            pass
 
             shutil.rmtree(cls.test_model_path)
 
@@ -538,7 +545,6 @@ class TestExplainabilityFeatures(unittest.TestCase):
 
     def test_limited_access_explainability(self):
         """Test limited access to explainability features"""
-        from ..explainability.model_explainability import get_limited_explanation
 
         # Test that limited explanation function exists and can be called
         result = get_limited_explanation(
@@ -618,7 +624,6 @@ async def test_async_api_endpoints():
 def test_model_adapter_interfaces():
     """Test that model adapter interfaces are consistent"""
 
-    from ..inference.model_adapters import BaseModelAdapter
 
     # Test that BaseModelAdapter has required methods
     methods = [
@@ -636,7 +641,6 @@ def test_model_adapter_interfaces():
 
 def test_safety_filter_interfaces():
     """Test that safety filter interfaces work correctly"""
-    from ..safety.content_filter import SafetyFilter
 
     # Test that SafetyFilter can be instantiated
     safety_filter = SafetyFilter()
@@ -651,7 +655,6 @@ def test_safety_filter_interfaces():
 
 def test_observability_interfaces():
     """Test that observability interfaces work correctly"""
-    from ..monitoring.observability import ObservabilityManager
 
     # Test that ObservabilityManager can be instantiated
     obs_manager = ObservabilityManager()
@@ -705,7 +708,6 @@ def benchmark_throughput():
     client = app.test_client()
 
     # Test throughput with concurrent requests
-    import concurrent.futures
 
     def make_request():
         start = time.time()

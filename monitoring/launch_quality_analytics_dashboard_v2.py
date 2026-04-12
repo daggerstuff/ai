@@ -5,6 +5,8 @@ Quality Analytics Dashboard V2 Launcher (Task 5.6.2.1)
 Enterprise-grade launcher for the quality analytics dashboard with
 comprehensive validation, dependency checking, and production deployment.
 """
+import sqlite3
+
 
 import argparse
 import json
@@ -90,7 +92,7 @@ class QualityAnalyticsDashboardLauncher:
         for package, min_version in self.required_packages.items():
             try:
                 if package == "sqlite3":
-                    import sqlite3
+                    pass
                     logger.info(f"  ✅ {package}: Available (built-in)")
                     continue
 

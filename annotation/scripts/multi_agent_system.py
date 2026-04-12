@@ -5,6 +5,9 @@ Inspired by NVIDIA AI Blueprints architecture
 This module implements a sophisticated multi-agent system for annotating
 therapeutic conversations with high reliability and psychological safety.
 """
+import os
+import random
+
 
 import concurrent.futures
 import json
@@ -114,7 +117,6 @@ class BaseAgent(ABC):
 
     def _initialize_client(self) -> OpenAI | None:
         """Initialize OpenAI client with optional custom base URL"""
-        import os
 
         if not OPENAI_AVAILABLE or not os.getenv("OPENAI_API_KEY"):
             logger.warning(f"[{self.agent_id}] Running in MOCK mode")
@@ -345,7 +347,6 @@ Focus on:
 
     def _mock_annotation(self, task: dict[str, Any]) -> AnnotationResult:
         """Conservative mock with higher crisis sensitivity"""
-        import random
 
         seed = len(str(task))
         random.seed(seed)
@@ -438,7 +439,6 @@ Focus on:
 
     def _mock_annotation(self, task: dict[str, Any]) -> AnnotationResult:
         """Balanced mock with focus on emotions"""
-        import random
 
         seed = len(str(task))
         random.seed(seed)
@@ -515,7 +515,7 @@ RESPOND WITH VALID JSON ONLY:
 }}"""
 
     def _mock_annotation(self, task: dict[str, Any]) -> AnnotationResult:
-        import random
+        pass
 
         seed = len(str(task)) + 2
         random.seed(seed)

@@ -3,6 +3,8 @@
 Automatic Resume Engine for Pixelated Empathy AI
 Provides seamless recovery and resumption of interrupted processing operations
 """
+from checkpoint_system import CheckpointManager
+
 
 import asyncio
 import json
@@ -668,7 +670,6 @@ class AutoResumeEngine:
 async def example_auto_resume():
     """Example of using the auto-resume engine"""
 
-    from checkpoint_system import CheckpointManager
 
     # Initialize systems
     checkpoint_manager = CheckpointManager()

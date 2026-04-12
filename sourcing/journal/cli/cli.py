@@ -1,6 +1,8 @@
 """
 Main CLI interface for journal dataset research system.
 """
+import json
+
 
 import logging
 import sys
@@ -232,7 +234,7 @@ def config_show(ctx: click.Context, key: str | None) -> None:
         value = get_config_value(key)
         console.print(f"{key}: {value}")
     else:
-        import json
+        pass
         console.print(json.dumps(config_data, indent=2, default=str))
 
 

@@ -3,6 +3,8 @@
 Dataset quality scoring script that computes quality metrics
 and assigns quality tiers based on configurable thresholds.
 """
+import argparse
+
 
 import json
 from datetime import datetime, timezone
@@ -358,7 +360,6 @@ class DatasetQualityScorer:
 
 def main():
     """Main entry point."""
-    import argparse
 
     parser = argparse.ArgumentParser(description="Score dataset quality")
     parser.add_argument(

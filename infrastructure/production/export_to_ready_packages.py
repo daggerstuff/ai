@@ -28,6 +28,8 @@ Usage:
     exporter = DatasetExporter(config)
     result = exporter.export()
 """
+import gzip
+
 
 import fcntl
 import hashlib
@@ -345,7 +347,7 @@ class DatasetExporter:
         encoding = None if self.config.compress_output else "utf-8"
 
         if self.config.compress_output and self.config.compression_format == "gzip":
-            import gzip
+            pass
 
             open_func = lambda: gzip.open(output_path, mode, encoding=encoding)
         else:

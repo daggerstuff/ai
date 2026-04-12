@@ -1,6 +1,9 @@
 """
 Basic functional tests for the CrisisExpansion module.
 """
+import os
+import tempfile
+
 
 from ai.core.pipelines.sourcing.crisis_expansion import (
     CrisisCategory,
@@ -186,8 +189,6 @@ def test_custom_terms():
   language: "es"
 """
 
-    import os
-    import tempfile
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
         f.write(custom_terms_yaml)

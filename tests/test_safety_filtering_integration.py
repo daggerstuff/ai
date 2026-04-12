@@ -2,6 +2,9 @@
 Integration tests for enhanced safety filtering in the inference API.
 Tests that all inference endpoints properly filter content for safety.
 """
+from ..inference.inference_api import safety_filtered_endpoint
+import time
+
 
 import json
 import logging
@@ -479,7 +482,6 @@ class TestSafetyFilterIntegration(unittest.TestCase):
 def test_safety_filter_decorator():
     """Test that safety filter decorator works correctly"""
 
-    from ..inference.inference_api import safety_filtered_endpoint
 
     # This would test the decorator functionality
     assert safety_filtered_endpoint is not None
@@ -508,7 +510,6 @@ def benchmark_safety_filtering():
         safety_filter.check_output_safety(test_content)
 
     # Benchmark
-    import time
 
     start_time = time.time()
     num_iterations = 100

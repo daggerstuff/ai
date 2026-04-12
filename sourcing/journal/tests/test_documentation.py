@@ -4,6 +4,8 @@ Unit tests for documentation module.
 Tests research logger, report generator, dataset catalog, tracking updater,
 and progress visualization components.
 """
+import pandas as pd
+
 
 import json
 from datetime import datetime, timedelta, timezone
@@ -266,7 +268,6 @@ class TestDatasetCatalog:
 
         assert output_path.exists()
         # Verify CSV content
-        import pandas as pd
         df = pd.read_csv(output_path)
         assert len(df) >= 1
         assert "source_id" in df.columns

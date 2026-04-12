@@ -3,6 +3,10 @@
 Progress State Persistence System for Pixelated Empathy AI
 Maintains processing state across system restarts and failures
 """
+from checkpoint_system import CheckpointManager
+import gzip
+import hashlib
+
 
 import asyncio
 import json
@@ -369,7 +373,7 @@ class StatePersistenceManager:
 
             # Compress if enabled
             if self.config.compression_enabled:
-                import gzip
+                pass
 
                 with open(snapshot_path, "rb") as f_in, gzip.open(f"{snapshot_path}.gz", "wb") as f_out:
                     f_out.writelines(f_in)
@@ -405,7 +409,7 @@ class StatePersistenceManager:
 
             # Load snapshot data
             if snapshot_path.suffix == ".gz":
-                import gzip
+                pass
 
                 with gzip.open(snapshot_path, "rt") as f:
                     system_state = json.load(f)
@@ -522,7 +526,6 @@ class StatePersistenceManager:
                 metadata_json = json.dumps(state.metadata)
 
                 # Calculate checksum
-                import hashlib
 
                 checksum = hashlib.sha256(state_data_json.encode()).hexdigest()
                 state.checksum = checksum
@@ -740,7 +743,6 @@ class StatePersistenceManager:
 async def example_state_persistence():
     """Example of using state persistence system"""
 
-    from checkpoint_system import CheckpointManager
 
     # Initialize systems
     checkpoint_manager = CheckpointManager()

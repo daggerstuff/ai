@@ -3,6 +3,8 @@ Access & Acquisition Manager
 
 Handles dataset access requests, downloads, and secure storage for acquired datasets.
 """
+import json
+
 
 import hashlib
 import logging
@@ -576,7 +578,6 @@ class AccessAcquisitionManager:
         access_request: AccessRequest,
     ) -> None:
         """Save dataset metadata to file."""
-        import json
 
         metadata = {
             "source_id": dataset.source_id,

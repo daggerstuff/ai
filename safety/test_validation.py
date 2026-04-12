@@ -3,6 +3,9 @@
 Quick test script to verify dataset validation module works correctly
 Run this to test the validation system before deploying
 """
+from ai.safety.dataset_validation import DatasetValidator
+from ai.safety.dataset_validation import validate_jsonl_file
+
 
 import json
 import sys
@@ -51,7 +54,7 @@ TEST_CASES = {
 def test_validation():
     """Test the validation module"""
     try:
-        from ai.safety.dataset_validation import DatasetValidator
+        pass
     except ImportError:
         print("❌ Cannot import dataset_validation module")
         print("   Make sure ai/safety/dataset_validation.py exists")
@@ -116,7 +119,7 @@ def test_validation():
 def test_batch_validation():
     """Test batch validation"""
     try:
-        from ai.safety.dataset_validation import DatasetValidator
+        pass
     except ImportError:
         print("❌ Cannot import dataset_validation module")
         return False
@@ -162,7 +165,7 @@ def test_batch_validation():
 def test_file_validation():
     """Test JSONL file validation"""
     try:
-        from ai.safety.dataset_validation import validate_jsonl_file
+        pass
     except ImportError:
         print("❌ Cannot import validate_jsonl_file")
         return False

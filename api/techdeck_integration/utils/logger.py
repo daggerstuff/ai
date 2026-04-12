@@ -4,6 +4,9 @@ Logging utilities for TechDeck Flask service.
 This module provides structured logging with HIPAA++ compliance,
 audit trail capabilities, and performance monitoring.
 """
+import functools
+import inspect
+
 
 import json
 import logging
@@ -285,8 +288,7 @@ def log_performance_metric(metric_name: str, value: float | None = None, unit: s
 
     # Decorator factory usage
     def decorator(func):
-        import functools
-        import inspect
+        pass
 
         @functools.wraps(func)
         def sync_wrapper(*args, **kwargs):

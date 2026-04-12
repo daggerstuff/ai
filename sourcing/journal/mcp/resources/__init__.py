@@ -3,6 +3,8 @@ MCP Resources for Journal Dataset Research System.
 
 This module provides resource implementations for research data access.
 """
+import fnmatch
+
 
 import logging
 from typing import Dict, List, Optional
@@ -122,7 +124,6 @@ class ResourceRegistry:
     Returns:
       List of matching resources
     """
-    import fnmatch
     return [
       resource
       for uri, resource in self._resources.items()

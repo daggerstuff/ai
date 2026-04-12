@@ -3,6 +3,9 @@
 Shared utilities for accessing datasets via rclone.
 Uses rclone instead of boto3 to work with Hetzner Object Storage.
 """
+import hashlib
+import os
+
 
 import json
 import subprocess
@@ -87,7 +90,6 @@ def download_file(s3_path: str, local_path: Path | None = None) -> Path | None:
         # Create temp file
         suffix = Path(s3_path).suffix
         fd, temp_path = tempfile.mkstemp(suffix=suffix)
-        import os
 
         os.close(fd)
         local_path = Path(temp_path)
@@ -166,7 +168,6 @@ def calculate_checksum(s3_path: str, algorithm: str = "sha256") -> str | None:
     Returns:
         Checksum string, or None if failed
     """
-    import hashlib
 
     local_file = download_file(s3_path)
     if local_file and local_file.exists():

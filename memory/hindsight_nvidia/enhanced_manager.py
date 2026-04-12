@@ -10,6 +10,8 @@ Nemotron model family with intelligent model selection based on task complexity:
 
 Implements Phase 1 requirements from the NVIDIA integration roadmap.
 """
+import os
+
 
 import asyncio
 import json
@@ -898,7 +900,6 @@ class EnhancedNvidiaNimContext:
 
 async def main():
     """Demo/test function."""
-    import os
 
     api_key = os.environ.get("NVIDIA_API_KEY")
     if not api_key:

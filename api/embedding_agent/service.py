@@ -7,6 +7,9 @@ This service wraps the ClinicalKnowledgeEmbedder and provides:
 - Caching and performance optimization
 - GPU acceleration support
 """
+import random
+import torch
+
 
 import hashlib
 import logging
@@ -148,7 +151,7 @@ class EmbeddingAgentService:
             # Check CUDA availability if GPU requested
             if self.config.use_gpu:
                 try:
-                    import torch
+                    pass
 
                     if not torch.cuda.is_available():
                         logger.warning(
@@ -340,7 +343,6 @@ class EmbeddingAgentService:
                 embedding = embedding / norm
             return embedding.tolist()
         # Simple deterministic mock
-        import random
 
         random.seed(hash_int)
         embedding = [
@@ -634,7 +636,7 @@ class EmbeddingAgentService:
         gpu_available = False
         if self.config.use_gpu:
             try:
-                import torch
+                pass
 
                 if torch.cuda.is_available():
                     gpu_available = True

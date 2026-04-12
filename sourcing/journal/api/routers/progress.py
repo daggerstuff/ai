@@ -3,6 +3,8 @@ Progress API routes.
 
 This module provides endpoints for progress tracking.
 """
+from ai.sourcing.journal.api.auth.jwt import get_user_from_token
+
 
 import asyncio
 import json
@@ -224,7 +226,7 @@ async def stream_progress_events(
     # Authenticate if token provided in query params
     if token:
         try:
-            from ai.sourcing.journal.api.auth.jwt import get_user_from_token
+            pass
 
             user = get_user_from_token(token)
             logger.info(f"SSE authenticated for user {user.get('user_id')}")

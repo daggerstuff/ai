@@ -2,6 +2,11 @@
 Integration tests for health check and graceful shutdown functionality.
 Tests that health checks work correctly and shutdown is graceful.
 """
+from ..monitoring.health_check import health_checked
+from ..monitoring.health_check import health_manager
+from ..monitoring.health_check import integrate_health_checks_with_fastapi
+import time
+
 
 import json
 import logging
@@ -543,7 +548,6 @@ class TestHealthCheckPerformance(unittest.TestCase):
 # Pytest-style tests
 def test_health_check_decorators():
     """Test health check decorators"""
-    from ..monitoring.health_check import health_checked
 
     @health_checked
     def sample_function():
@@ -555,7 +559,6 @@ def test_health_check_decorators():
 
 def test_health_manager_singleton():
     """Test that health manager can be used as singleton"""
-    from ..monitoring.health_check import health_manager
 
     # Should be able to access the global health manager
     assert health_manager is not None
@@ -566,7 +569,6 @@ def test_health_manager_singleton():
 def test_fastapi_health_integration():
     """Test integration with FastAPI health endpoints"""
     # Test that FastAPI integration function exists
-    from ..monitoring.health_check import integrate_health_checks_with_fastapi
 
     # Should be able to call the integration function
     assert integrate_health_checks_with_fastapi is not None
@@ -582,7 +584,6 @@ def benchmark_health_checks():
         health_manager.perform_health_check()
 
     # Benchmark
-    import time
 
     start_time = time.time()
     num_iterations = 10

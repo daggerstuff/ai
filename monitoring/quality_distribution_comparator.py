@@ -5,6 +5,8 @@ Task 5.6.2.3: Quality Distribution Comparative Analysis
 Enterprise-grade comparative analysis system for quality distributions
 across different dimensions (tiers, datasets, components, time periods).
 """
+from quality_distribution_analyzer import QualityDistributionAnalyzer
+
 
 import logging
 import warnings
@@ -601,7 +603,6 @@ class QualityDistributionComparator:
 def main():
     """Main function for testing the distribution comparator."""
 
-    from quality_distribution_analyzer import QualityDistributionAnalyzer
 
     analyzer = QualityDistributionAnalyzer()
     comparator = QualityDistributionComparator(analyzer)

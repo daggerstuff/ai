@@ -4,6 +4,8 @@ Test Configuration and Fixtures for Pipeline Communication Tests.
 This module provides pytest fixtures and configuration for testing the
 six-stage pipeline communication system with HIPAA++ compliance.
 """
+import os
+
 
 import asyncio
 import time
@@ -666,7 +668,6 @@ def test_database():
 @pytest.fixture(scope="session")
 def test_environment():
     """Set up test environment variables."""
-    import os
 
     # Set test environment variables
     os.environ["PIPELINE_TEST_MODE"] = "true"
