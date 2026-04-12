@@ -5,6 +5,9 @@ MCP Configuration Validator for Amazon Q Developer
 Validates the MCP server configuration for compatibility with Amazon Q Developer
 and tests connectivity to configured servers.
 """
+import urllib.error
+import urllib.request
+
 
 import json
 import logging
@@ -221,8 +224,7 @@ class MCPValidator:
 
             # Test HTTP/SSE servers
             elif "url" in server_config:
-                import urllib.error
-                import urllib.request
+                pass
 
                 try:
                     with urllib.request.urlopen(

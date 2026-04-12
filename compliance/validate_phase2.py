@@ -5,6 +5,12 @@ Tasks 2.1, 2.2, 2.3: Validate Regulatory Compliance Implementation
 
 Comprehensive validation script to verify Phase 2 regulatory compliance implementation is enterprise-ready.
 """
+from gdpr_validator import DataSubjectRequest
+from gdpr_validator import ProcessingPurpose
+from gdpr_validator import gdpr_validator
+from hipaa_validator import hipaa_validator
+from soc2_validator import soc2_validator
+
 
 import json
 import logging
@@ -397,7 +403,7 @@ class Phase2Validator:
 
             # Test 4: Data Processing Validation
             try:
-                from gdpr_validator import ProcessingPurpose
+                pass
 
                 with tempfile.NamedTemporaryFile(delete=False) as tmp:
                     validator = GDPRValidator(storage=GDPRStorage(db_path=tmp.name))
@@ -421,7 +427,7 @@ class Phase2Validator:
 
             # Test 5: Data Subject Request Processing
             try:
-                from gdpr_validator import DataSubjectRequest
+                pass
 
                 with tempfile.NamedTemporaryFile(delete=False) as tmp:
                     validator = GDPRValidator(storage=GDPRStorage(db_path=tmp.name))
@@ -484,9 +490,7 @@ class Phase2Validator:
         try:
             # Test 1: All frameworks can be imported together
             try:
-                from gdpr_validator import gdpr_validator
-                from hipaa_validator import hipaa_validator
-                from soc2_validator import soc2_validator
+                pass
 
                 score += 25
                 logger.info("✅ All compliance frameworks integrate successfully")

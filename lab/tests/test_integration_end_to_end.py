@@ -1,3 +1,5 @@
+import shutil
+
 
 from datetime import datetime, timezone
 
@@ -49,7 +51,6 @@ class TestEndToEndDataFlow(unittest.TestCase):
             os.unlink(self.test_db_path)
 
         # Clean up output directory
-        import shutil
 
         if os.path.exists(self.test_output_dir):
             shutil.rmtree(self.test_output_dir)

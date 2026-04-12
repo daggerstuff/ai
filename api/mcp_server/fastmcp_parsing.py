@@ -1,3 +1,5 @@
+import contextlib
+
 from __future__ import annotations
 
 import json
@@ -60,7 +62,7 @@ def parse_scope_context(scope_context: str | None) -> ParsedScopeContext:
 
 
 def parse_metadata(metadata: str | None) -> dict:
-    import contextlib
+    pass
 
     parsed: dict = {}
     if metadata:

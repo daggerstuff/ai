@@ -3,6 +3,10 @@
 Alert Escalation System for Pixelated Empathy AI
 Implements intelligent alert escalation procedures based on severity levels
 """
+import argparse
+import requests
+import uuid
+
 
 import json
 import logging
@@ -576,7 +580,6 @@ Please acknowledge this alert in the monitoring system.
         self, alert: Alert, _rule: EscalationRule, channel: NotificationChannel
     ):
         """Send Slack notification"""
-        import requests
 
         config = channel.config
         webhook_url = config.get("webhook_url")
@@ -626,7 +629,6 @@ Please acknowledge this alert in the monitoring system.
         self, alert: Alert, rule: EscalationRule, channel: NotificationChannel
     ):
         """Send webhook notification"""
-        import requests
 
         config = channel.config
         webhook_url = config.get("url")
@@ -796,7 +798,6 @@ Please acknowledge this alert in the monitoring system.
 
     def _generate_alert_id(self) -> str:
         """Generate unique alert ID"""
-        import uuid
 
         return f"alert_{int(time.time())}_{str(uuid.uuid4())[:8]}"
 
@@ -884,7 +885,6 @@ Please acknowledge this alert in the monitoring system.
 
 def main():
     """Main CLI interface"""
-    import argparse
 
     parser = argparse.ArgumentParser(description="Alert Escalation Manager")
     parser.add_argument("--db-path", help="Database path for alert storage")

@@ -5,6 +5,10 @@ Test Runner for Pipeline Communication System.
 This script provides a comprehensive test runner for the six-stage pipeline
 communication system with HIPAA++ compliance and sub-50ms performance requirements.
 """
+import json
+import re
+import subprocess
+
 
 import argparse
 import asyncio
@@ -87,7 +91,6 @@ class TestRunner:
         """Run a single test file using pytest."""
         logger.info("Running test file: %s", test_file.name)
 
-        import subprocess
 
         start_time = time.time()
 
@@ -160,7 +163,6 @@ class TestRunner:
 
     def _extract_test_count(self, output: str) -> int:
         """Extract test count from pytest output."""
-        import re
 
         # Look for patterns like "X passed" or "X failed"
         patterns = [
@@ -399,7 +401,7 @@ def main():
 
         # Save results if output file specified
         if args.output and isinstance(result, dict):
-            import json
+            pass
             with open(args.output, "w") as f:
                 json.dump(result, f, indent=2)
             logger.info("Test results saved to: %s", args.output)

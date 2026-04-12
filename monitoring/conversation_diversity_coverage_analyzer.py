@@ -11,6 +11,9 @@ Analyzes diversity and coverage patterns across conversations:
 - Conversation style diversity
 - Content gap identification
 """
+import json
+import traceback
+
 
 import json
 import re
@@ -108,7 +111,7 @@ class ConversationDiversityCoverageAnalyzer:
     def _extract_text_from_json(self, json_str: str) -> str:
         """Extract readable text from conversations JSON"""
         try:
-            import json
+            pass
 
             conversations = json.loads(json_str)
 
@@ -1136,7 +1139,6 @@ def main():
 
     except Exception as e:
         print(f"❌ Error during analysis: {e!s}")
-        import traceback
 
         traceback.print_exc()
         return None

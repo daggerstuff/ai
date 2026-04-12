@@ -3,6 +3,11 @@
 FINAL PRODUCTION VALIDATION
 Complete system validation and deployment readiness check
 """
+from cryptography.fernet import Fernet
+from prometheus_client import Counter, Gauge
+import bcrypt
+import redis
+
 
 import json
 import logging
@@ -35,7 +40,6 @@ class FinalProductionValidation:
 
             # Test bcrypt availability
 
-            import bcrypt
 
             test_password = "test_password_123"
             hashed = bcrypt.hashpw(test_password.encode("utf-8"), bcrypt.gensalt())
@@ -55,7 +59,7 @@ class FinalProductionValidation:
 
         # Test 2: Monitoring System
         try:
-            from prometheus_client import Counter, Gauge
+            pass
 
             # Test metrics creation
             test_counter = Counter("test_counter", "Test counter")
@@ -78,7 +82,7 @@ class FinalProductionValidation:
 
         # Test 3: Caching System
         try:
-            import redis
+            pass
 
             # Test Redis connection (with fallback)
             try:
@@ -115,7 +119,7 @@ class FinalProductionValidation:
 
         # Test 5: Configuration System
         try:
-            from cryptography.fernet import Fernet
+            pass
 
             # Test encryption
             key = Fernet.generate_key()

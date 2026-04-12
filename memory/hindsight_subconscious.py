@@ -14,6 +14,8 @@ Usage:
     agent.process_transcript(session_id, messages)
     whisper = agent.get_whisper()
 """
+from ai.memory.hindsight_manager import HindsightMemoryManager
+
 
 import asyncio
 import json
@@ -30,7 +32,7 @@ logger = logging.getLogger("hindsight_subconscious")
 
 # Lazy import to avoid circular dependency
 def _get_hindsight_manager_class():
-    from ai.memory.hindsight_manager import HindsightMemoryManager
+    pass
     return HindsightMemoryManager
 
 # Model priority fallback chain for Subconscious agent

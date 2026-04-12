@@ -19,6 +19,10 @@ Example:
     >>> print(f"Text: {result['text']}")
     >>> print(f"Confidence: {result['confidence']:.2f}")
 """
+import librosa
+import torch
+import torchaudio
+
 
 import asyncio
 import logging
@@ -239,7 +243,7 @@ class SpeechRecognizer:
         """Synchronous transcription (runs in thread)."""
         # Normalize sample rate to 16kHz if needed
         if sample_rate != 16000:
-            import librosa
+            pass
 
             waveform = librosa.resample(waveform, orig_sr=sample_rate, target_sr=16000)
             sample_rate = 16000
@@ -303,8 +307,6 @@ class SpeechRecognizer:
 
             # Create temporary file for transcription
             temp_path = f"/tmp/{session_id}_stream.wav"
-            import torch
-            import torchaudio
 
             torchaudio.save(
                 temp_path, torch.from_numpy(full_audio).unsqueeze(0), sample_rate

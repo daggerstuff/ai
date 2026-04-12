@@ -1,3 +1,6 @@
+from pathlib import Path
+import json
+
 class TherapyBench:
     """
     A minimal implementation of TherapyBench to satisfy import requirements.
@@ -14,8 +17,6 @@ class TherapyBench:
         """
         Load golden questions from the specified data path.
         """
-        import json
-        from pathlib import Path
 
         data_path = Path(self.data_path)
         if not data_path.exists():
@@ -61,8 +62,6 @@ class TherapyBench:
         Run the benchmark using the provided model.
         This is a placeholder implementation that returns dummy results.
         """
-        import json
-        from pathlib import Path
 
         # Create results directory if it doesn't exist
         Path(self.results_dir).mkdir(parents=True, exist_ok=True)

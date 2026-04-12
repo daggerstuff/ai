@@ -3,6 +3,8 @@ Integration planning tools for MCP Server.
 
 This module provides tools for creating and managing integration plans through the MCP protocol.
 """
+from pathlib import Path
+
 
 import logging
 from typing import Any
@@ -453,7 +455,7 @@ class GeneratePreprocessingScriptTool(MCPTool):
 
             # Generate default output path if not provided
             if not output_path:
-                from pathlib import Path
+                pass
 
                 scripts_dir = Path("data/integration_scripts")
                 scripts_dir.mkdir(parents=True, exist_ok=True)

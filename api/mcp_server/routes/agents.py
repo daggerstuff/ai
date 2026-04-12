@@ -4,6 +4,8 @@ Agent Management API Routes for MCP Server.
 This module provides REST API endpoints for agent registration, discovery,
 and health monitoring.
 """
+import asyncio
+
 
 import logging
 
@@ -124,7 +126,6 @@ def get_agent_health(agent_id):
 
 def asyncio_run(coro):
     """Helper to run async code in sync Flask route."""
-    import asyncio
     try:
         loop = asyncio.get_event_loop()
     except RuntimeError:

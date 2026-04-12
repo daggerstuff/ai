@@ -3,6 +3,8 @@
 Bottleneck Resolution Orchestrator
 Master script to execute the complete 3-week emergency resolution plan.
 """
+import json
+
 
 import logging
 import subprocess
@@ -307,7 +309,6 @@ if __name__ == "__main__":
 
         # Save report
         report_path = Path("bottleneck_resolution_report.json")
-        import json
         with open(report_path, "w") as f:
             json.dump(report, f, indent=2)
 

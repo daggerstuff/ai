@@ -4,6 +4,8 @@ Progress Visualization
 Generates progress metrics charts, timeline visualizations, and quality score
 distributions for research activities.
 """
+import warnings
+
 
 import json
 from datetime import datetime, timezone
@@ -52,7 +54,7 @@ class ProgressVisualization:
         self.output_directory.mkdir(parents=True, exist_ok=True)
 
         if not MATPLOTLIB_AVAILABLE:
-            import warnings
+            pass
 
             warnings.warn(
                 "matplotlib is not available. Visualization features will be limited. "

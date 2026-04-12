@@ -5,6 +5,14 @@ This module implements the Flask application factory pattern with comprehensive
 configuration management, middleware registration, and blueprint initialization
 specifically for agent interaction management.
 """
+from .core.agent_manager import AgentManager
+from .core.pipeline_integration import PipelineIntegrationManager
+from .core.task_orchestrator import TaskOrchestrator
+from .routes.agents import agents_bp
+from .routes.pipeline import pipeline_bp
+from .routes.system import system_bp
+from .routes.tasks import tasks_bp
+
 
 import logging
 from datetime import datetime, timezone
@@ -181,9 +189,6 @@ def _init_extensions(app: MCPFlask, config: MCPConfig) -> None:
         raise
 
     # Initialize Core Managers
-    from .core.agent_manager import AgentManager
-    from .core.pipeline_integration import PipelineIntegrationManager
-    from .core.task_orchestrator import TaskOrchestrator
 
     try:
         agent_manager = AgentManager(app.redis_client, app.mongodb_client)
@@ -218,10 +223,6 @@ def _register_blueprints(app: MCPFlask) -> None:
 
     # Import and register blueprints
 
-    from .routes.agents import agents_bp
-    from .routes.pipeline import pipeline_bp
-    from .routes.system import system_bp
-    from .routes.tasks import tasks_bp
 
     blueprints = [
         (agents_bp, "/api/v1/agents"),

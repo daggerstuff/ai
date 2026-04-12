@@ -4,6 +4,9 @@ Bias Detection Integration for Pipeline Communication - HIPAA++ Compliant Bias M
 This module provides comprehensive bias detection integration with real-time monitoring,
 HIPAA++ compliant data handling, and seamless integration with the six-stage pipeline.
 """
+import hashlib
+import random
+
 
 import asyncio
 import json
@@ -230,7 +233,6 @@ class BiasDetectionIntegration:
             # In real implementation, this would call the bias detection service
 
             # Simulate different bias scenarios
-            import random
 
             random.seed(hash(str(data)) % 1000)  # Deterministic for testing
 
@@ -279,7 +281,6 @@ class BiasDetectionIntegration:
         """Analyze processing stage data for bias."""
         try:
             # Simulate bias detection for processing data
-            import random
 
             random.seed(hash(str(data)) % 1000)
 
@@ -328,7 +329,6 @@ class BiasDetectionIntegration:
         """Analyze quality stage data for bias."""
         try:
             # Simulate bias detection for quality data
-            import random
 
             random.seed(hash(str(data)) % 1000)
 
@@ -378,7 +378,6 @@ class BiasDetectionIntegration:
         """Analyze generic stage data for bias."""
         try:
             # Simulate generic bias detection
-            import random
 
             random.seed(hash(str(data)) % 1000)
 
@@ -440,7 +439,6 @@ class BiasDetectionIntegration:
     def _generate_cache_key(self, data: dict[str, Any], stage_name: str) -> str:
         """Generate cache key for bias detection results."""
         # Create a hash of the data and stage name
-        import hashlib
 
         data_str = json.dumps(data, sort_keys=True)
         combined = f"{stage_name}:{data_str}"

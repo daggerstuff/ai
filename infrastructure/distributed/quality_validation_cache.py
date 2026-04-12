@@ -3,6 +3,8 @@
 Quality Validation Caching System for Pixelated Empathy AI
 Implements caching to avoid reprocessing quality validations
 """
+import argparse
+
 
 import hashlib
 import json
@@ -323,7 +325,6 @@ class CachedQualityValidator:
 
 def main():
     """Main CLI interface"""
-    import argparse
 
     parser = argparse.ArgumentParser(description="Quality Validation Caching System")
     parser.add_argument("--redis-url", help="Redis URL for caching")

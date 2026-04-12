@@ -4,6 +4,10 @@ Configuration Management Commands for Pixelated AI CLI
 This module provides commands for managing CLI configuration, including profiles,
 environment variables, and settings.
 """
+import psutil
+import sys
+import yaml
+
 
 import json
 import os
@@ -259,7 +263,6 @@ def export(_ctx, profile: str | None, output: str, format: str, include_secrets:
             with open(output_path, "w") as f:
                 json.dump(export_data, f, indent=2)
         else:  # yaml
-            import yaml
             with open(output_path, "w") as f:
                 yaml.dump(export_data, f, default_flow_style=False)
 
@@ -293,7 +296,7 @@ def import_config(_ctx, file: str, profile: str | None, overwrite: bool):
             with open(file_path) as f:
                 config_data = json.load(f)
         elif file_path.suffix.lower() in [".yaml", ".yml"]:
-            import yaml
+            pass
             with open(file_path) as f:
                 config_data = yaml.safe_load(f)
         else:
@@ -338,7 +341,6 @@ def env_info(_ctx):
         click.echo("-" * 50)
 
         # Python version
-        import sys
         click.echo(f"🐍 Python Version: {sys.version}")
 
         # Check required environment variables
@@ -394,7 +396,7 @@ def env_info(_ctx):
 
         # Memory information (if available)
         try:
-            import psutil
+            pass
             memory = psutil.virtual_memory()
             click.echo(f"  Memory: {memory.total // (1024**3)} GB total, {memory.available // (1024**3)} GB available")
         except ImportError:

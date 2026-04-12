@@ -12,6 +12,8 @@ Key Enhancements:
 3. Agent evaluation and profiling capabilities
 4. Multi-agent orchestration patterns
 """
+import random
+
 
 import argparse
 import json
@@ -334,7 +336,6 @@ Respond ONLY with valid JSON in this exact format:
         self, data: dict[str, Any], error: bool = False
     ) -> dict[str, Any]:
         """Generate mock annotation for testing"""
-        import random
 
         time.sleep(0.01)
 

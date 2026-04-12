@@ -10,6 +10,8 @@ This test suite validates the safety ethics validator's ability to:
 4. Maintain professional boundaries
 5. Handle edge cases and adversarial inputs
 """
+import re
+
 
 import unittest
 from typing import Any
@@ -127,7 +129,6 @@ class MockSafetyEthicsValidator:
         violations = []
 
         # Check for SSN pattern (XXX-XX-XXXX)
-        import re
         if re.search(r"\d{3}-\d{2}-\d{4}", content):
             violations.append("social security number")
 

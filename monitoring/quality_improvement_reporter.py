@@ -5,6 +5,8 @@ Task 5.6.2.4: Quality Improvement Reporting System
 Enterprise-grade reporting system for quality improvement tracking with
 comprehensive analysis, visualizations, and executive summaries.
 """
+import sqlite3
+
 
 import json
 import logging
@@ -130,7 +132,7 @@ class QualityImprovementReporter:
     def _get_interventions_by_status(self, status: str) -> list[QualityIntervention]:
         """Get interventions by status."""
         try:
-            import sqlite3
+            pass
 
             conn = sqlite3.connect(str(self.tracker.interventions_db))
             cursor = conn.cursor()
@@ -157,7 +159,7 @@ class QualityImprovementReporter:
     ) -> list[QualityIntervention]:
         """Get interventions completed within a specific period."""
         try:
-            import sqlite3
+            pass
 
             conn = sqlite3.connect(str(self.tracker.interventions_db))
             cursor = conn.cursor()

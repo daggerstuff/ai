@@ -1,3 +1,6 @@
+import sys
+import traceback
+
 import json
 import time
 
@@ -14,7 +17,6 @@ def test_single_item_nvidia():
         print("System initialized.")
     except Exception as e:
         print(f"FAILED to initialize: {e}")
-        import sys
 
         sys.exit(1)
 
@@ -28,7 +30,6 @@ def test_single_item_nvidia():
         print(f"Total time: {time.time() - start_time:.2f}s")
     except Exception as e:
         print(f"FAILED during annotation: {e}")
-        import traceback
 
         traceback.print_exc()
 

@@ -26,6 +26,9 @@ Usage:
         max_results=50
     )
 """
+import io
+import pdfplumber
+
 
 from __future__ import annotations
 
@@ -1322,9 +1325,8 @@ class PDFProcessor:
 
             # Extract text using pdfplumber if available
             try:
-                import io
+                pass
 
-                import pdfplumber
 
                 pdf_file = io.BytesIO(pdf_content)
                 text_parts = []

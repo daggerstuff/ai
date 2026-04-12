@@ -3,6 +3,9 @@
 Simple Test for Quality Trend Analysis System (Task 5.6.2.2)
 Tests core functionality without database dependencies.
 """
+from .quality_trend_analyzer import QualityTrendAnalyzer
+from .quality_trend_reporter import QualityTrendReporter
+
 
 import json
 import os
@@ -28,7 +31,7 @@ class TestModule(unittest.TestCase):
 
         # Test 1: Import QualityTrendAnalyzer
         try:
-            from .quality_trend_analyzer import QualityTrendAnalyzer
+            pass
 
             test_results["passed_tests"] += 1
             test_results["test_details"].append(
@@ -43,7 +46,7 @@ class TestModule(unittest.TestCase):
 
         # Test 2: Import QualityTrendReporter
         try:
-            from .quality_trend_reporter import QualityTrendReporter
+            pass
 
             test_results["passed_tests"] += 1
             test_results["test_details"].append(
@@ -69,7 +72,7 @@ class TestModule(unittest.TestCase):
 
         # Test 4: Check required methods exist
         try:
-            from .quality_trend_analyzer import QualityTrendAnalyzer
+            pass
 
             analyzer = QualityTrendAnalyzer()
 
@@ -93,7 +96,7 @@ class TestModule(unittest.TestCase):
 
         # Test 5: Check reporter methods exist
         try:
-            from .quality_trend_reporter import QualityTrendReporter
+            pass
 
             reporter = QualityTrendReporter()
 

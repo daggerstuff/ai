@@ -5,6 +5,8 @@ Enterprise Production Readiness Framework - Task 6.3
 
 24/7 monitoring with comprehensive dashboards and operational handover.
 """
+import random
+
 
 import json
 import logging
@@ -281,7 +283,6 @@ class PostLaunchMonitor:
 
         try:
             # Simulate system health metrics collection
-            import random
 
             metrics.extend([
                 MetricData("cpu_utilization", random.uniform(20, 80), "%", timestamp, 70, 90),
@@ -304,7 +305,6 @@ class PostLaunchMonitor:
 
         try:
             # Simulate performance metrics collection
-            import random
 
             metrics.extend([
                 MetricData("api_response_time_p95", random.uniform(50, 200), "ms", timestamp, 200, 500),
@@ -327,7 +327,6 @@ class PostLaunchMonitor:
 
         try:
             # Simulate business metrics collection
-            import random
 
             metrics.extend([
                 BusinessMetric("active_users", random.uniform(800, 1200), 1000, "count", timestamp, "up"),
@@ -350,7 +349,6 @@ class PostLaunchMonitor:
 
         try:
             # Simulate security metrics collection
-            import random
 
             metrics.extend([
                 MetricData("failed_login_attempts", random.uniform(0, 10), "count", timestamp, 50, 100),
@@ -373,7 +371,6 @@ class PostLaunchMonitor:
 
         try:
             # Simulate compliance metrics collection
-            import random
 
             metrics.extend([
                 MetricData("hipaa_compliance_score", random.uniform(98, 100), "score", timestamp, 95, 90),

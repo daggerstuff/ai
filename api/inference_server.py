@@ -1,3 +1,5 @@
+import sys
+
 import argparse
 import os
 
@@ -27,7 +29,7 @@ def load_model():
     model_path = os.environ.get("MODEL_PATH", "pixelated-v1-wayfarer.Q4_K_M.gguf")
 
     if not os.path.exists(model_path):
-        import sys
+        pass
         print(f"❌ CRITICAL ERROR: Model file not found at {model_path}")
         print("Please download the GGUF model from Modal before starting the server.")
         sys.exit(1)
@@ -42,7 +44,7 @@ def load_model():
         )
         print("✅ Model loaded successfully.")
     except Exception as e:
-        import sys
+        pass
         print(f"❌ CRITICAL ERROR: Failed to load model: {e}")
         sys.exit(1)
 

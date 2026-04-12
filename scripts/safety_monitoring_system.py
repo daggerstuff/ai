@@ -9,6 +9,8 @@ This module provides real-time safety monitoring and incident response capabilit
 - Crisis intervention protocols
 - Safety metrics tracking
 """
+import re
+
 
 import asyncio
 import logging
@@ -217,7 +219,7 @@ class SafetyMonitoringSystem:
         for level in ["emergency", "critical", "high", "medium", "low"]:
             patterns = crisis_patterns.get(level, [])
             for pattern in patterns:
-                import re
+                pass
                 if re.search(pattern, user_input_lower, re.IGNORECASE):
                     detected_patterns.append(pattern)
                     crisis_level = level

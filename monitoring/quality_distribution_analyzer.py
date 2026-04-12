@@ -3,6 +3,8 @@
 Quality Distribution Analysis System
 Analyzes quality score distributions across datasets, tiers, and time periods
 """
+from scipy.stats import gaussian_kde
+
 
 import json
 import sqlite3
@@ -508,7 +510,7 @@ class QualityDistributionAnalyzer:
 
                     # Add KDE curve
                     try:
-                        from scipy.stats import gaussian_kde
+                        pass
 
                         kde = gaussian_kde(analysis.values)
                         x_range = np.linspace(

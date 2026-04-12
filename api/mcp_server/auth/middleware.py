@@ -1,3 +1,9 @@
+from ..routes.agents import asyncio_run
+from flask import current_app, jsonify, request
+from flask import g
+from flask import g, jsonify
+from functools import wraps
+
 import logging
 from typing import Any
 
@@ -158,9 +164,7 @@ class MCPAuthMiddleware:
 
 def require_mcp_auth(f):
     """Decorator to require MCP authentication for a route."""
-    from functools import wraps
 
-    from flask import current_app, jsonify, request
 
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -173,10 +177,8 @@ def require_mcp_auth(f):
         try:
             # Note: authenticate_agent is async in MCPAuthMiddleware
             # We use the asyncio_run helper from the route file or similar
-            from ..routes.agents import asyncio_run
 
             context = asyncio_run(auth_middleware.authenticate_agent(request))
-            from flask import g
 
             g.agent_context = context
             return f(*args, **kwargs)
@@ -194,9 +196,7 @@ def require_mcp_auth(f):
 
 def require_mcp_role(roles: list[str]):
     """Decorator to require specific MCP roles for a route."""
-    from functools import wraps
 
-    from flask import g, jsonify
 
     def decorator(f):
         @wraps(f)

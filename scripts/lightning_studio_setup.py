@@ -3,6 +3,9 @@
 Lightning.ai Studio Setup Script
 Automated setup for H100 therapeutic AI training in Lightning.ai Studio environment.
 """
+import lightning
+import torch
+
 
 import logging
 import subprocess
@@ -78,7 +81,7 @@ class LightningStudioSetup:
 
             # Check PyTorch
             try:
-                import torch
+                pass
 
                 env_info["pytorch_available"] = True
                 env_info["pytorch_version"] = torch.__version__
@@ -88,7 +91,7 @@ class LightningStudioSetup:
 
             # Check Lightning
             try:
-                import lightning
+                pass
 
                 env_info["lightning_available"] = True
                 env_info["lightning_version"] = lightning.__version__

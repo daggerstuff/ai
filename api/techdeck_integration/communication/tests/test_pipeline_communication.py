@@ -4,6 +4,9 @@ Comprehensive Tests for Pipeline Communication System.
 This module provides extensive testing for the six-stage pipeline communication
 system with HIPAA++ compliance, sub-50ms performance requirements, and bias detection.
 """
+from ..communication.event_bus import EventBus
+from ..utils.validation import sanitize_input
+
 
 import asyncio
 import json
@@ -732,7 +735,6 @@ class TestSecurityAndCompliance:
     async def test_input_validation_and_sanitization(self):
         """Test comprehensive input validation and sanitization."""
 
-        from ..utils.validation import sanitize_input
 
         # Test malicious input
         malicious_input = {
@@ -760,7 +762,6 @@ class TestSecurityAndCompliance:
 
         # Verify rate limiting is configured
 
-        from ..communication.event_bus import EventBus
         event_bus = EventBus(redis_client)
 
         # Check that event publishing has rate limiting considerations

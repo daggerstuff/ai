@@ -6,6 +6,8 @@ API to power the reflection subagent with qwen/qwen3.5-397b-a17b.
 
 Uses NVIDIA_API_KEY from environment (already present in .env).
 """
+from openai import OpenAI
+
 import logging
 import os
 
@@ -50,7 +52,7 @@ class NvidiaNIMCallback:
     def client(self):
         """Lazy-load OpenAI client."""
         if self._client is None:
-            from openai import OpenAI
+            pass
             self._client = OpenAI(
                 api_key=self.api_key,
                 base_url=self.base_url,

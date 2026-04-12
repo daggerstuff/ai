@@ -3,6 +3,8 @@
 Checkpoint Cleanup and Optimization System for Pixelated Empathy AI
 Advanced cleanup, optimization, and lifecycle management for checkpoints
 """
+from checkpoint_system import CheckpointManager
+
 
 import asyncio
 import gzip
@@ -707,7 +709,6 @@ class CheckpointCleanupOptimizer:
 async def example_cleanup_optimization():
     """Example of using checkpoint cleanup and optimization"""
 
-    from checkpoint_system import CheckpointManager
 
     # Initialize checkpoint manager
     checkpoint_manager = CheckpointManager()

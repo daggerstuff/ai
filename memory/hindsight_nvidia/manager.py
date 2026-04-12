@@ -5,6 +5,8 @@ This replaces the old cloud/local split for Hindsight memory. NVIDIA-generated
 responses still use the configured model endpoint, but durable memory is stored
 only in the repository's local shared memory backend.
 """
+from ai.memory.therapeutic_processor import TherapeuticProcessor
+
 
 from __future__ import annotations
 
@@ -61,7 +63,6 @@ class NvidiaHindsightManager:
         self.config = config
         self.therapeutic_config = config.therapeutic_config or TherapeuticMemoryConfig()
 
-        from ai.memory.therapeutic_processor import TherapeuticProcessor
 
         self.processor = TherapeuticProcessor(self.therapeutic_config)
         self.client = OpenAI(base_url=self.config.base_url, api_key=self.config.nvidia_api_key)

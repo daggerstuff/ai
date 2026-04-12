@@ -4,6 +4,8 @@ Six-Stage Pipeline Coordinator for TechDeck-Python Integration.
 This module provides comprehensive pipeline coordination with Redis event bus
 integration, state management, bias detection, and HIPAA++ compliant data handling.
 """
+import uuid
+
 
 import time
 from dataclasses import dataclass
@@ -609,7 +611,6 @@ class PipelineCoordinator:
 
     def _generate_execution_id(self) -> str:
         """Generate unique execution ID."""
-        import uuid
         return f"pipeline_{uuid.uuid4().hex[:12]}_{int(time.time())}"
 
     def _get_stage_input(self, context: PipelineContext, stage_name: str,

@@ -18,6 +18,8 @@ Author: Pixelated Empathy AI Team
 Version: 1.0.0
 Date: August 2025
 """
+import random
+
 
 import asyncio
 import json
@@ -339,7 +341,6 @@ class ClinicalSafetyCertifier:
         # This would involve the clinician reviewing model outputs, safety protocols, etc.
 
         # Simulate realistic clinical assessment scores
-        import random
         random.seed(42)  # For reproducible results
 
         accuracy_assessment = random.uniform(0.92, 0.98)

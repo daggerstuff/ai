@@ -3,6 +3,8 @@
 Simplified dataset validation using rclone.
 Works with Hetzner Object Storage and handles directories properly.
 """
+import argparse
+
 
 import json
 import sys
@@ -104,7 +106,6 @@ def validate_dataset(
 
 def main():
     """Main entry point."""
-    import argparse
 
     parser = argparse.ArgumentParser(description="Validate datasets using rclone")
     parser.add_argument(

@@ -4,6 +4,8 @@ Restore S3 backup from Google Drive to Hetzner Object Storage.
 
 Syncs gdrive:backups/S3-Complete/* to BackupStorageS3:pixel-data/
 """
+import argparse
+
 
 import subprocess
 import sys
@@ -22,7 +24,7 @@ def run_rclone(args: list[str], dry_run: bool = False) -> tuple[int, str, str]:
 
 
 def main():
-    import argparse
+    pass
 
     parser = argparse.ArgumentParser(
         description="Restore S3 backup from Google Drive to DO Spaces"

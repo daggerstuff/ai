@@ -5,6 +5,15 @@ Quality Analytics Dashboard Launcher (Task 5.6.2.1)
 Enterprise-grade launcher for the quality analytics dashboard with
 comprehensive setup, validation, and monitoring capabilities.
 """
+import argparse
+import matplotlib
+import numpy
+import pandas
+import plotly
+import seaborn
+import sqlite3
+import streamlit
+
 
 import json
 import logging
@@ -54,19 +63,19 @@ class QualityAnalyticsDashboardLauncher:
         for package in self.required_packages:
             try:
                 if package == "sqlite3":
-                    import sqlite3
+                    pass
                 elif package == "streamlit":
-                    import streamlit
+                    pass
                 elif package == "pandas":
-                    import pandas
+                    pass
                 elif package == "plotly":
-                    import plotly
+                    pass
                 elif package == "numpy":
-                    import numpy
+                    pass
                 elif package == "seaborn":
-                    import seaborn
+                    pass
                 elif package == "matplotlib":
-                    import matplotlib
+                    pass
 
                 logger.info(f"  ✅ {package}: Available")
 
@@ -95,7 +104,7 @@ class QualityAnalyticsDashboardLauncher:
             return False
 
         try:
-            import sqlite3
+            pass
 
             conn = sqlite3.connect(str(self.db_path))
             cursor = conn.cursor()
@@ -315,7 +324,6 @@ class QualityAnalyticsDashboardLauncher:
 
 def main():
     """Main function to launch the quality analytics dashboard."""
-    import argparse
 
     parser = argparse.ArgumentParser(description="Launch Quality Analytics Dashboard")
     parser.add_argument(

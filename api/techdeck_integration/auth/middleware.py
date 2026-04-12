@@ -4,6 +4,8 @@ JWT Authentication middleware for TechDeck Flask service.
 This module implements JWT-based authentication with role-based access control,
 rate limiting, and comprehensive security measures for HIPAA++ compliance.
 """
+import uuid
+
 
 from collections.abc import Callable
 from datetime import datetime, timezone
@@ -284,7 +286,6 @@ class JWTAuthMiddleware:
 
     def _generate_request_id(self) -> str:
         """Generate unique request ID for tracking."""
-        import uuid
 
         return str(uuid.uuid4())
 

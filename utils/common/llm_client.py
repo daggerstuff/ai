@@ -1,3 +1,7 @@
+from openai import OpenAI
+import json
+import os
+
 import abc
 import logging
 from typing import Any
@@ -44,9 +48,8 @@ class OpenAIDriver(LLMDriver):
     """
 
     def __init__(self):
-        import os
+        pass
 
-        from openai import OpenAI
 
         # Load config from env or defaults
         self.api_key = os.environ.get("LLM_API_KEY", os.environ.get("OPENAI_API_KEY"))
@@ -87,7 +90,6 @@ class OpenAIDriver(LLMDriver):
         Generate structured JSON output.
         Note: Actual JSON mode depends on provider support.
         """
-        import json
 
         # Append schema instruction
         schema_prompt = (

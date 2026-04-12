@@ -5,6 +5,15 @@ Quality Improvement Tracking Launcher (Task 5.6.2.4)
 Enterprise-grade launcher for the quality improvement tracking system
 with comprehensive setup, validation, and execution capabilities.
 """
+from quality_improvement_reporter import QualityImprovementReporter
+from quality_improvement_tracker import QualityImprovementTracker
+import jinja2
+import numpy
+import pandas
+import plotly
+import scipy
+import sqlite3
+
 
 import argparse
 import logging
@@ -56,17 +65,17 @@ class QualityImprovementTrackingLauncher:
         for package in self.required_packages:
             try:
                 if package == "sqlite3":
-                    import sqlite3
+                    pass
                 elif package == "pandas":
-                    import pandas
+                    pass
                 elif package == "numpy":
-                    import numpy
+                    pass
                 elif package == "scipy":
-                    import scipy
+                    pass
                 elif package == "plotly":
-                    import plotly
+                    pass
                 elif package == "jinja2":
-                    import jinja2
+                    pass
 
                 logger.info(f"  ✅ {package}: Available")
 
@@ -95,7 +104,7 @@ class QualityImprovementTrackingLauncher:
             return False
 
         try:
-            import sqlite3
+            pass
 
             conn = sqlite3.connect(str(self.db_path))
             cursor = conn.cursor()
@@ -203,7 +212,6 @@ class QualityImprovementTrackingLauncher:
             # Import improvement tracker
             sys.path.append(str(self.monitoring_dir))
 
-            from quality_improvement_tracker import QualityImprovementTracker
 
             # Initialize tracker
             tracker = QualityImprovementTracker(db_path=str(self.db_path))
@@ -243,7 +251,6 @@ class QualityImprovementTrackingLauncher:
             # Import improvement tracker
             sys.path.append(str(self.monitoring_dir))
 
-            from quality_improvement_tracker import QualityImprovementTracker
 
             # Initialize tracker
             tracker = QualityImprovementTracker(db_path=str(self.db_path))
@@ -278,7 +285,6 @@ class QualityImprovementTrackingLauncher:
             # Import improvement tracker
             sys.path.append(str(self.monitoring_dir))
 
-            from quality_improvement_tracker import QualityImprovementTracker
 
             # Initialize tracker
             tracker = QualityImprovementTracker(db_path=str(self.db_path))
@@ -315,7 +321,6 @@ class QualityImprovementTrackingLauncher:
             # Import improvement tracker
             sys.path.append(str(self.monitoring_dir))
 
-            from quality_improvement_tracker import QualityImprovementTracker
 
             # Initialize tracker
             tracker = QualityImprovementTracker(db_path=str(self.db_path))
@@ -377,8 +382,6 @@ class QualityImprovementTrackingLauncher:
             # Import improvement components
             sys.path.append(str(self.monitoring_dir))
 
-            from quality_improvement_reporter import QualityImprovementReporter
-            from quality_improvement_tracker import QualityImprovementTracker
 
             # Initialize components
             tracker = QualityImprovementTracker(db_path=str(self.db_path))

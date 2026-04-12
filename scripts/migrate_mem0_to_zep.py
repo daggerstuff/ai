@@ -21,6 +21,9 @@ Features:
     - Validation and error reporting
     - Dry-run mode for testing
 """
+from ai.api.memory.mem0_migration import get_mem0_migrator
+from zep_cloud import Zep
+
 
 import argparse
 import json
@@ -51,7 +54,6 @@ def migrate_user(
     zep_client: Any, mem0_user: dict[str, Any], dry_run: bool = False
 ) -> str | None:
     """Migrate single user from mem0 to Zep."""
-    from ai.api.memory.mem0_migration import get_mem0_migrator
 
     try:
         if dry_run:
@@ -77,7 +79,6 @@ def migrate_session(
     dry_run: bool = False,
 ) -> bool:
     """Migrate session conversation from mem0 to Zep."""
-    from ai.api.memory.mem0_migration import get_mem0_migrator
 
     try:
         if dry_run:
@@ -102,7 +103,6 @@ def validate_migration(
     zep_client: Any, user_id: str, session_id: str
 ) -> dict[str, Any]:
     """Validate migration result."""
-    from ai.api.memory.mem0_migration import get_mem0_migrator
 
     try:
         migrator = get_mem0_migrator(zep_client)
@@ -122,7 +122,6 @@ def validate_migration(
 
 def _handle_migration_report(zep_client: Any) -> None:
     """Handle migration report generation."""
-    from ai.api.memory.mem0_migration import get_mem0_migrator
 
     migrator = get_mem0_migrator(zep_client)
     report = migrator.get_migration_report()
@@ -200,7 +199,7 @@ Examples:
         return 1
 
     try:
-        from zep_cloud import Zep
+        pass
 
         zep_client = Zep(api_key=api_key)
         logger.info("✓ Connected to Zep Cloud")

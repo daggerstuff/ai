@@ -4,6 +4,8 @@ Encryption Manager
 Implements encryption for sensitive data at rest and in transit. Provides secure
 key management and encryption/decryption operations for datasets and configuration data.
 """
+import json
+
 
 import logging
 import os
@@ -319,7 +321,6 @@ class EncryptionManager:
         Returns:
             Encrypted configuration (JSON string, encrypted)
         """
-        import json
 
         try:
             # Serialize configuration
@@ -343,7 +344,6 @@ class EncryptionManager:
         Returns:
             Decrypted configuration dictionary
         """
-        import json
 
         try:
             # Decrypt

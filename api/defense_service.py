@@ -4,6 +4,11 @@ Defense Mechanism Analysis API Endpoint
 FastAPI endpoint for real-time defense mechanism classification
 of utterances within conversational context.
 """
+from training.defense_mechanisms.dataset import format_dialogue
+from training.defense_mechanisms.model import DefenseClassifier
+from transformers import AutoTokenizer
+import torch
+
 
 import logging
 
@@ -73,10 +78,7 @@ def load_defense_model(
     """
     global _defense_model, _defense_tokenizer
 
-    import torch
-    from transformers import AutoTokenizer
 
-    from training.defense_mechanisms.model import DefenseClassifier
 
     checkpoint = torch.load(
         checkpoint_path,
@@ -129,7 +131,6 @@ async def analyze_defense(
         )
 
 
-    from training.defense_mechanisms.dataset import format_dialogue
 
     turns = [{"speaker": t.speaker, "text": t.text} for t in request.dialogue]
 

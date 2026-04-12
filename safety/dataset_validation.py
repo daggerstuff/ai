@@ -4,6 +4,8 @@ Dataset Validation Module for Bias and Stereotype Detection
 Validates therapeutic training data before writing to disk to prevent
 ingestion of biased or inappropriate content into the model training pipeline.
 """
+import re
+
 
 import json
 import logging
@@ -185,7 +187,6 @@ class DatasetValidator:
         found = False
 
         # Check for common name patterns (basic)
-        import re
 
         name_pattern = r"\b[A-Z][a-z]+ [A-Z][a-z]+\b"
         names = re.findall(name_pattern, text)

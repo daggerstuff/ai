@@ -4,6 +4,8 @@ Graceful Degradation for Pipeline Communication - Fallback Mechanisms.
 This module provides comprehensive graceful degradation with fallback mechanisms,
 circuit breakers, and service degradation strategies for the six-stage pipeline.
 """
+import random
+
 
 import asyncio
 from collections.abc import Callable
@@ -536,7 +538,6 @@ class GracefulDegradationManager:
         try:
             # Simulate health check - in real implementation,
             # this would check actual service health
-            import random
 
             # Simulate occasional failures for demonstration
             failure_probability = 0.1  # 10% chance of failure

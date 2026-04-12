@@ -4,6 +4,8 @@ Letta-Hindsight Bridge - Core integration layer.
 This bridge connects Hindsight's therapeutic memory system with Letta's
 persistent agent architecture, enabling clinically-safe AI agents.
 """
+from ai.memory.hindsight_manager import HindsightMemoryManager
+
 
 import asyncio
 import logging
@@ -174,7 +176,7 @@ class LettaHindsightBridge:
     def _init_hindsight_manager(self):
         """Initialize the local shared-memory manager."""
         try:
-            from ai.memory.hindsight_manager import HindsightMemoryManager
+            pass
             return HindsightMemoryManager(
                 bank_id=self.config.hindsight_bank_id,
                 db_path=self.config.hindsight_db_path,

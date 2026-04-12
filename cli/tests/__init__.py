@@ -9,6 +9,12 @@ This package contains comprehensive tests for all CLI components including:
 - Error handling
 - Integration tests
 """
+from cli.auth import AuthManager
+from cli.config import CLIConfig
+from cli.pipeline import PipelineManager
+from cli.progress import ProgressTracker
+from click.testing import CliRunner
+
 
 import os
 import tempfile
@@ -48,7 +54,6 @@ def temp_config_dir():
 def mock_config(temp_config_dir):
     """Create a mock configuration for testing"""
 
-    from cli.config import CLIConfig
 
     config_file = temp_config_dir / "config.yaml"
     config_file.write_text("""
@@ -72,7 +77,6 @@ profiles:
 def mock_auth_manager(mock_config):
     """Create a mock authentication manager for testing"""
 
-    from cli.auth import AuthManager
 
     auth_manager = AuthManager(mock_config)
     # Mock successful authentication
@@ -87,7 +91,6 @@ def mock_auth_manager(mock_config):
 def mock_pipeline_manager(mock_config, mock_auth_manager):
     """Create a mock pipeline manager for testing"""
 
-    from cli.pipeline import PipelineManager
 
     return PipelineManager(mock_config, mock_auth_manager)
 
@@ -96,7 +99,6 @@ def mock_pipeline_manager(mock_config, mock_auth_manager):
 def mock_progress_tracker(mock_config):
     """Create a mock progress tracker for testing"""
 
-    from cli.progress import ProgressTracker
 
     return ProgressTracker(mock_config)
 
@@ -104,7 +106,6 @@ def mock_progress_tracker(mock_config):
 @pytest.fixture
 def cli_runner():
     """Create a CLI test runner"""
-    from click.testing import CliRunner
 
     return CliRunner()
 
