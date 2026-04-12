@@ -12,7 +12,7 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
-from ..models import DatasetSource
+from ai.sourcing.research_system.models import DatasetSource
 from .base_client import APIError, BaseAPIClient
 
 logger = logging.getLogger(__name__)

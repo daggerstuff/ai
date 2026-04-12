@@ -4,8 +4,8 @@ Comprehensive Tests for Pipeline Communication System.
 This module provides extensive testing for the six-stage pipeline communication
 system with HIPAA++ compliance, sub-50ms performance requirements, and bias detection.
 """
-from ..communication.event_bus import EventBus
-from ..utils.validation import sanitize_input
+from ai.api.techdeck_integration.communication.communication.event_bus import EventBus
+from ai.api.techdeck_integration.communication.utils.validation import sanitize_input
 
 
 import asyncio
@@ -17,20 +17,16 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from ...error_handling.custom_errors import (
-    BiasDetectionError,
-    TimeoutError,
-    ValidationError,
-)
-from ...integration.redis_client import RedisClient
-from ..bias_integration import BiasDetectionIntegration, BiasMetrics
-from ..error_recovery import ErrorRecoveryManager, RecoveryResult, RecoveryStrategy
-from ..event_bus import EventBus, EventMessage, EventType
-from ..graceful_degradation import GracefulDegradationManager
-from ..performance_monitor import PerformanceMonitor
-from ..pipeline_coordinator import PipelineContext, PipelineCoordinator
-from ..progress_tracker import ProgressTracker
-from ..state_manager import StateManager
+from ai.api.techdeck_integration.error_handling.custom_errors import BiasDetectionError, TimeoutError, ValidationError
+from ai.api.techdeck_integration.integration.redis_client import RedisClient
+from ai.api.techdeck_integration.communication.bias_integration import BiasDetectionIntegration, BiasMetrics
+from ai.api.techdeck_integration.communication.error_recovery import ErrorRecoveryManager, RecoveryResult, RecoveryStrategy
+from ai.api.techdeck_integration.communication.event_bus import EventBus, EventMessage, EventType
+from ai.api.techdeck_integration.communication.graceful_degradation import GracefulDegradationManager
+from ai.api.techdeck_integration.communication.performance_monitor import PerformanceMonitor
+from ai.api.techdeck_integration.communication.pipeline_coordinator import PipelineContext, PipelineCoordinator
+from ai.api.techdeck_integration.communication.progress_tracker import ProgressTracker
+from ai.api.techdeck_integration.communication.state_manager import StateManager
 
 
 class TestEventBus:

@@ -14,8 +14,8 @@ from enum import Enum
 from typing import Any
 
 # Internal imports
-from ..integration.mongodb_client import MCPMongoDBClient
-from ..integration.redis_client import MCPRedisClient
+from ai.api.mcp_server.integration.mongodb_client import MCPMongoDBClient
+from ai.api.mcp_server.integration.redis_client import MCPRedisClient
 from .agent_manager import Agent, AgentDiscoveryCriteria, AgentManager, AgentStatus
 
 logger = logging.getLogger(__name__)

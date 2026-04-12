@@ -16,8 +16,8 @@ from typing import Any
 
 import click
 
-from ..config import CLIConfig, get_config, save_config
-from ..utils import get_logger, setup_logging
+from ai.cli.config import CLIConfig, get_config, save_config
+from ai.cli.utils import get_logger, setup_logging
 
 logger = get_logger(__name__)
 

@@ -14,10 +14,8 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any
 
-from ..error_handling.custom_errors import (
-    ServiceUnavailableError,
-)
-from ..utils.logger import get_request_logger
+from ai.api.techdeck_integration.error_handling.custom_errors import ServiceUnavailableError
+from ai.api.techdeck_integration.utils.logger import get_request_logger
 from .event_bus import EventBus
 
 

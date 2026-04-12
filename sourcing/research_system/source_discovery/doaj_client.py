@@ -12,7 +12,7 @@ from collections.abc import Callable
 from datetime import datetime, timezone
 from typing import Any, NotRequired, TypedDict
 
-from ..models import DatasetSource
+from ai.sourcing.research_system.models import DatasetSource
 from .base_client import APIError, BaseAPIClient
 
 logger = logging.getLogger(__name__)
