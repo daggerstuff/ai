@@ -13,15 +13,11 @@ from typing import Any
 
 from flask import Blueprint, g, jsonify, request
 
-from ..auth.decorators import require_auth
-from ..error_handling.custom_errors import (
-    ResourceNotFoundError,
-    StandardizationError,
-    ValidationError,
-)
-from ..integration.redis_client import RedisClient
-from ..utils.logger import get_request_logger
-from ..utils.validation import sanitize_input, validate_standardization_request
+from ai.api.techdeck_integration.auth.decorators import require_auth
+from ai.api.techdeck_integration.error_handling.custom_errors import ResourceNotFoundError, StandardizationError, ValidationError
+from ai.api.techdeck_integration.integration.redis_client import RedisClient
+from ai.api.techdeck_integration.utils.logger import get_request_logger
+from ai.api.techdeck_integration.utils.validation import sanitize_input, validate_standardization_request
 
 # Initialize blueprint
 standardization_bp = Blueprint("standardization", __name__)

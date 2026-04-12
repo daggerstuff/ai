@@ -10,14 +10,11 @@ from typing import Any
 
 from flask import Blueprint, current_app, jsonify, request
 
-from ..auth.middleware import require_auth, require_role
-from ..error_handling.custom_errors import (
-    PipelineNotFoundError,
-    ValidationError,
-)
-from ..services.pipeline_service import PipelineService
-from ..utils.logger import get_logger
-from ..utils.validation import validate_pipeline_config
+from ai.api.techdeck_integration.auth.middleware import require_auth, require_role
+from ai.api.techdeck_integration.error_handling.custom_errors import PipelineNotFoundError, ValidationError
+from ai.api.techdeck_integration.services.pipeline_service import PipelineService
+from ai.api.techdeck_integration.utils.logger import get_logger
+from ai.api.techdeck_integration.utils.validation import validate_pipeline_config
 
 logger = get_logger(__name__)
 pipeline_bp = Blueprint("pipeline", __name__, url_prefix="/api/v1/pipeline")

@@ -13,12 +13,9 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
-from ..error_handling.custom_errors import (
-    EventBusError,
-    ValidationError,
-)
-from ..integration.redis_client import RedisClient
-from ..utils.logger import get_request_logger, log_performance_metric
+from ai.api.techdeck_integration.error_handling.custom_errors import EventBusError, ValidationError
+from ai.api.techdeck_integration.integration.redis_client import RedisClient
+from ai.api.techdeck_integration.utils.logger import get_request_logger, log_performance_metric
 
 
 class EventType(Enum):
