@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from .hindsight_local_adapter import memory_record_from_storage
 from .local_hindsight_repository import LocalHindsightRepository
@@ -18,7 +18,7 @@ class LocalHindsightMemoryQueryService:
         self.default_bank_id = default_bank_id
         self.repository = repository
 
-    def get_all_memories(self, *, user_id: str, limit: int = 100) -> List[Dict[str, Any]]:
+    def get_all_memories(self, *, user_id: str, limit: int = 100) -> list[dict[str, Any]]:
         records = self.repository.list_documents_for_user(
             self.default_bank_id,
             user_id=user_id,
@@ -31,17 +31,17 @@ class LocalHindsightMemoryQueryService:
         self,
         *,
         user_id: str,
-        org_id: Optional[str] = None,
-        project_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        agent_id: Optional[str] = None,
-        run_id: Optional[str] = None,
+        org_id: str | None = None,
+        project_id: str | None = None,
+        session_id: str | None = None,
+        agent_id: str | None = None,
+        run_id: str | None = None,
         include_shared: bool = True,
         limit: int = 100,
         offset: int = 0,
-        category: Optional[str] = None,
-        tags: Optional[List[str]] = None,
-    ) -> List[Dict[str, Any]]:
+        category: str | None = None,
+        tags: list[str] | None = None,
+    ) -> list[dict[str, Any]]:
         records = self.repository.list_documents_for_scope(
             self.default_bank_id,
             user_id=user_id,
@@ -64,7 +64,7 @@ class LocalHindsightMemoryQueryService:
         user_id: str,
         category: str,
         limit: int = 100,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         records = self.repository.list_documents_for_user_by_category(
             self.default_bank_id,
             user_id=user_id,
@@ -79,15 +79,15 @@ class LocalHindsightMemoryQueryService:
         *,
         query: str,
         user_id: str,
-        org_id: Optional[str] = None,
-        project_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        agent_id: Optional[str] = None,
-        run_id: Optional[str] = None,
+        org_id: str | None = None,
+        project_id: str | None = None,
+        session_id: str | None = None,
+        agent_id: str | None = None,
+        run_id: str | None = None,
         include_shared: bool = True,
         limit: int = 10,
         offset: int = 0,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         records = self.repository.search_documents_for_scope(
             self.default_bank_id,
             user_id=user_id,
@@ -107,13 +107,13 @@ class LocalHindsightMemoryQueryService:
         self,
         *,
         user_id: str,
-        org_id: Optional[str] = None,
-        project_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        agent_id: Optional[str] = None,
-        run_id: Optional[str] = None,
+        org_id: str | None = None,
+        project_id: str | None = None,
+        session_id: str | None = None,
+        agent_id: str | None = None,
+        run_id: str | None = None,
         include_shared: bool = True,
-    ) -> Dict[str, int]:
+    ) -> dict[str, int]:
         return self.repository.count_documents_by_category_for_scope(
             self.default_bank_id,
             user_id=user_id,

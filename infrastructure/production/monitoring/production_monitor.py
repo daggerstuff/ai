@@ -4,10 +4,10 @@ Enhanced V5 Production Monitoring
 Real-time monitoring and alerting system
 """
 
+from datetime import datetime, timezone
+
 import json
-import logging
 import time
-from datetime import datetime, timedelta
 from pathlib import Path
 
 
@@ -22,7 +22,7 @@ class ProductionMonitor:
     def monitor_system(self):
         """Monitor production system"""
         print("🔍 Enhanced V5 Production Monitor Started")
-        print(f"Monitoring started: {datetime.now()}")
+        print(f"Monitoring started: {datetime.now(timezone.utc)}")
 
         while True:
             try:
@@ -52,7 +52,7 @@ class ProductionMonitor:
         """Check system health"""
         return {
             "status": "healthy",
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "uptime": "active"
         }
 
@@ -81,21 +81,21 @@ class ProductionMonitor:
     def _log_status(self, health, metrics, alerts):
         """Log monitoring status"""
         status = {
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "health": health,
             "metrics": metrics,
             "alerts": alerts
         }
 
         # Save to metrics file
-        with open(self.metrics_file, 'a') as f:
+        with open(self.metrics_file, "a") as f:
             f.write(json.dumps(status) + "\n")
 
         # Print status
         if alerts:
-            print(f"⚠️  {datetime.now().strftime('%H:%M:%S')} - Alerts: {', '.join(alerts)}")
+            print(f"⚠️  {datetime.now(timezone.utc).strftime('%H:%M:%S')} - Alerts: {', '.join(alerts)}")
         else:
-            print(f"✅ {datetime.now().strftime('%H:%M:%S')} - System healthy")
+            print(f"✅ {datetime.now(timezone.utc).strftime('%H:%M:%S')} - System healthy")
 
 if __name__ == "__main__":
     monitor = ProductionMonitor()

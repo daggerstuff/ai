@@ -8,7 +8,6 @@ Uses NVIDIA_API_KEY from environment (already present in .env).
 """
 import logging
 import os
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +22,7 @@ class NvidiaNIMCallback:
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         base_url: str = "https://integrate.api.nvidia.com/v1",
         model: str = "qwen/qwen3.5-397b-a17b",
     ):
@@ -84,8 +83,8 @@ class NvidiaNIMCallback:
 
 
 def create_nvidia_callback(
-    model: Optional[str] = None,
-    base_url: Optional[str] = None,
+    model: str | None = None,
+    base_url: str | None = None,
 ) -> NvidiaNIMCallback:
     """
     Create Nvidia NIM callback for reflection subagent.

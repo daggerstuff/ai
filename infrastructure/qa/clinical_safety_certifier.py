@@ -19,21 +19,22 @@ Version: 1.0.0
 Date: August 2025
 """
 
+from datetime import datetime, timezone
+
 import asyncio
 import json
 import logging
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler('/home/vivi/pixelated/ai/logs/clinical_certification.log'),
+        logging.FileHandler("/home/vivi/pixelated/ai/logs/clinical_certification.log"),
         logging.StreamHandler()
     ]
 )
@@ -64,11 +65,11 @@ class ClinicalReviewer:
     license_number: str
     license_state: str
     license_expiry: datetime
-    specializations: List[str]
+    specializations: list[str]
     years_experience: int
-    board_certifications: List[str]
+    board_certifications: list[str]
     contact_email: str
-    signature_date: Optional[datetime] = None
+    signature_date: datetime | None = None
 
 @dataclass
 class SafetyProtocol:
@@ -76,10 +77,10 @@ class SafetyProtocol:
     protocol_id: str
     name: str
     description: str
-    trigger_conditions: List[str]
-    response_actions: List[str]
-    escalation_criteria: List[str]
-    contact_information: Dict[str, str]
+    trigger_conditions: list[str]
+    response_actions: list[str]
+    escalation_criteria: list[str]
+    contact_information: dict[str, str]
     response_time_sla: int  # minutes
     clinical_reviewer: str
     last_updated: datetime
@@ -95,8 +96,8 @@ class ClinicalValidationResult:
     clinical_appropriateness: float
     safety_assessment: float
     bias_assessment: float
-    recommendations: List[str]
-    concerns: List[str]
+    recommendations: list[str]
+    concerns: list[str]
     approval_status: CertificationStatus
     clinical_notes: str
 
@@ -105,16 +106,16 @@ class MedicalAdvisoryBoardReview:
     """Medical advisory board review results"""
     review_id: str
     meeting_date: datetime
-    attendees: List[str]
+    attendees: list[str]
     quorum_met: bool
     unanimous_approval: bool
     approval_votes: int
     total_votes: int
-    key_recommendations: List[str]
-    safety_concerns: List[str]
-    implementation_requirements: List[str]
+    key_recommendations: list[str]
+    safety_concerns: list[str]
+    implementation_requirements: list[str]
     follow_up_required: bool
-    next_review_date: Optional[datetime]
+    next_review_date: datetime | None
     meeting_minutes: str
 
 class ClinicalSafetyCertifier:
@@ -124,10 +125,10 @@ class ClinicalSafetyCertifier:
         self.cert_path = Path("/home/vivi/pixelated/ai/infrastructure/qa/clinical_certification")
         self.cert_path.mkdir(parents=True, exist_ok=True)
 
-        self.reviewers: List[ClinicalReviewer] = []
-        self.safety_protocols: List[SafetyProtocol] = []
-        self.validation_results: List[ClinicalValidationResult] = []
-        self.advisory_board_reviews: List[MedicalAdvisoryBoardReview] = []
+        self.reviewers: list[ClinicalReviewer] = []
+        self.safety_protocols: list[SafetyProtocol] = []
+        self.validation_results: list[ClinicalValidationResult] = []
+        self.advisory_board_reviews: list[MedicalAdvisoryBoardReview] = []
 
     async def initialize_clinical_reviewers(self):
         """Initialize clinical reviewer panel"""
@@ -188,7 +189,7 @@ class ClinicalSafetyCertifier:
 
         # Save reviewers
         reviewers_data = [asdict(reviewer) for reviewer in self.reviewers]
-        with open(self.cert_path / "clinical_reviewers.json", 'w') as f:
+        with open(self.cert_path / "clinical_reviewers.json", "w") as f:
             json.dump(reviewers_data, f, indent=2, default=str)
 
     async def initialize_safety_protocols(self):
@@ -309,10 +310,10 @@ class ClinicalSafetyCertifier:
 
         # Save protocols
         protocols_data = [asdict(protocol) for protocol in self.safety_protocols]
-        with open(self.cert_path / "safety_protocols.json", 'w') as f:
+        with open(self.cert_path / "safety_protocols.json", "w") as f:
             json.dump(protocols_data, f, indent=2, default=str)
 
-    async def conduct_clinical_validation(self) -> List[ClinicalValidationResult]:
+    async def conduct_clinical_validation(self) -> list[ClinicalValidationResult]:
         """Conduct clinical validation with licensed professionals"""
         logger.info("Conducting clinical validation with licensed professionals...")
 
@@ -325,7 +326,7 @@ class ClinicalSafetyCertifier:
 
         # Save validation results
         results_data = [asdict(result) for result in self.validation_results]
-        with open(self.cert_path / "clinical_validation_results.json", 'w') as f:
+        with open(self.cert_path / "clinical_validation_results.json", "w") as f:
             json.dump(results_data, f, indent=2, default=str)
 
         logger.info(f"Completed clinical validation with {len(self.validation_results)} reviewers")
@@ -373,7 +374,7 @@ class ClinicalSafetyCertifier:
             approval_status = CertificationStatus.REJECTED
 
         return ClinicalValidationResult(
-            validation_id=f"validation_{reviewer.reviewer_id}_{datetime.now().strftime('%Y%m%d')}",
+            validation_id=f"validation_{reviewer.reviewer_id}_{datetime.now(timezone.utc).strftime('%Y%m%d')}",
             reviewer_id=reviewer.reviewer_id,
             model_version="pixelated_empathy_v1.0",
             validation_date=datetime.now(timezone.utc),
@@ -431,7 +432,7 @@ class ClinicalSafetyCertifier:
 
         # Follow-up requirements
         follow_up_required = len(safety_concerns) > 0 or approval_rate < 1.0
-        next_review_date = datetime.now(timezone.utc).replace(month=datetime.now().month + 3) if follow_up_required else None
+        next_review_date = datetime.now(timezone.utc).replace(month=datetime.now(timezone.utc).month + 3) if follow_up_required else None
 
         # Meeting minutes
         meeting_minutes = f"""
@@ -480,7 +481,7 @@ Meeting adjourned: {datetime.now(timezone.utc).strftime('%H:%M UTC')}
         """
 
         review = MedicalAdvisoryBoardReview(
-            review_id=f"advisory_board_{datetime.now().strftime('%Y%m%d')}",
+            review_id=f"advisory_board_{datetime.now(timezone.utc).strftime('%Y%m%d')}",
             meeting_date=datetime.now(timezone.utc),
             attendees=attendees,
             quorum_met=quorum_met,
@@ -498,13 +499,13 @@ Meeting adjourned: {datetime.now(timezone.utc).strftime('%H:%M UTC')}
         self.advisory_board_reviews.append(review)
 
         # Save advisory board review
-        with open(self.cert_path / "medical_advisory_board_review.json", 'w') as f:
+        with open(self.cert_path / "medical_advisory_board_review.json", "w") as f:
             json.dump(asdict(review), f, indent=2, default=str)
 
         logger.info("Medical advisory board review completed")
         return review
 
-    async def generate_clinical_certification_report(self) -> Dict[str, Any]:
+    async def generate_clinical_certification_report(self) -> dict[str, Any]:
         """Generate comprehensive clinical certification report"""
         logger.info("Generating clinical certification report...")
 
@@ -585,13 +586,13 @@ Meeting adjourned: {datetime.now(timezone.utc).strftime('%H:%M UTC')}
         }
 
         # Save certification report
-        with open(self.cert_path / "clinical_certification_report.json", 'w') as f:
+        with open(self.cert_path / "clinical_certification_report.json", "w") as f:
             json.dump(certification_report, f, indent=2, default=str)
 
         logger.info("Clinical certification report generated")
         return certification_report
 
-    async def run_clinical_certification(self) -> Dict[str, Any]:
+    async def run_clinical_certification(self) -> dict[str, Any]:
         """Run complete clinical certification process"""
         logger.info("Starting clinical safety certification process...")
 
@@ -629,32 +630,32 @@ async def main():
     print(f"Approved Reviews: {report['certification_summary']['approved_reviews']}")
     print(f"Approval Rate: {report['certification_summary']['approval_rate']:.1%}")
 
-    print(f"\nClinical Validation Metrics:")
+    print("\nClinical Validation Metrics:")
     print(f"  Accuracy Assessment: {report['clinical_validation_metrics']['average_accuracy_assessment']:.3f}")
     print(f"  Clinical Appropriateness: {report['clinical_validation_metrics']['average_clinical_appropriateness']:.3f}")
     print(f"  Safety Assessment: {report['clinical_validation_metrics']['average_safety_assessment']:.3f}")
     print(f"  Bias Assessment: {report['clinical_validation_metrics']['average_bias_assessment']:.3f}")
 
-    print(f"\nMedical Advisory Board:")
-    board_info = report['medical_advisory_board']
+    print("\nMedical Advisory Board:")
+    board_info = report["medical_advisory_board"]
     print(f"  Review Completed: {board_info['review_completed']}")
     print(f"  Approval Votes: {board_info['approval_votes']}/{board_info['total_votes']}")
     print(f"  Unanimous Approval: {board_info['unanimous_approval']}")
 
     print(f"\nSafety Protocols: {len(report['safety_protocols'])} protocols established")
-    print(f"Compliance Status: All requirements COMPLIANT")
+    print("Compliance Status: All requirements COMPLIANT")
 
     # Certification status
-    meets_requirements = report['certification_summary']['meets_clinical_requirements']
-    certification_approved = report['certification_summary']['certification_status'] == "APPROVED"
+    meets_requirements = report["certification_summary"]["meets_clinical_requirements"]
+    certification_approved = report["certification_summary"]["certification_status"] == "APPROVED"
 
     print("\n" + "="*70)
     print("CERTIFICATION STATUS")
     print("="*70)
     print(f"✅ Clinical Score Target Met: {meets_requirements}")
     print(f"✅ Medical Advisory Board Review: {board_info['review_completed']}")
-    print(f"✅ Safety Protocols Established: True")
-    print(f"✅ Compliance Requirements: True")
+    print("✅ Safety Protocols Established: True")
+    print("✅ Compliance Requirements: True")
 
     print(f"\n🎯 CLINICAL CERTIFICATION: {'✅ APPROVED' if certification_approved else '⚠️ REQUIRES REVISION'}")
 

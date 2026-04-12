@@ -3,10 +3,11 @@
 Simplified Crisis Generator - Uses minimal prompts to avoid timeouts
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import time
-from datetime import datetime
 
 import requests
 
@@ -49,9 +50,8 @@ class SimpleCrisisGenerator:
                     content = content.split("<think>")[0].strip()
 
                 return content.strip()
-            else:
-                logger.error(f"API failed: {response.status_code}")
-                return ""
+            logger.error(f"API failed: {response.status_code}")
+            return ""
 
         except Exception as e:
             logger.error(f"Error: {e}")
@@ -73,7 +73,7 @@ class SimpleCrisisGenerator:
 
         conversation = {
             "crisis_type": crisis_type,
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "exchanges": [],
         }
 
@@ -121,7 +121,7 @@ def main():
             print(f"COUNSELOR: {ex['counselor']}")
 
         # Save it
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         filename = f"/home/vivi/pixelated/ai/crisis_conv_{timestamp}.json"
 
         with open(filename, "w") as f:

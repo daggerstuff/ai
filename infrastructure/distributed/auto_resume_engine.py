@@ -4,6 +4,8 @@ Automatic Resume Engine for Pixelated Empathy AI
 Provides seamless recovery and resumption of interrupted processing operations
 """
 
+from datetime import datetime, timedelta, timezone
+
 import asyncio
 import json
 import logging
@@ -11,10 +13,10 @@ import signal
 import threading
 import time
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 import psutil
 from checkpoint_system import (
@@ -63,9 +65,9 @@ class InterruptionContext:
     task_id: str
     interruption_type: InterruptionType
     timestamp: datetime
-    last_checkpoint_id: Optional[str] = None
-    error_details: Optional[str] = None
-    system_state: Dict[str, Any] = field(default_factory=dict)
+    last_checkpoint_id: str | None = None
+    error_details: str | None = None
+    system_state: dict[str, Any] = field(default_factory=dict)
     recovery_attempts: int = 0
     max_recovery_attempts: int = 3
 
@@ -90,7 +92,7 @@ class ResumeConfiguration:
     enable_graceful_shutdown: bool = True
     enable_crash_detection: bool = True
     enable_resource_monitoring: bool = True
-    resume_strategies: Dict[InterruptionType, ResumeStrategy] = field(
+    resume_strategies: dict[InterruptionType, ResumeStrategy] = field(
         default_factory=dict
     )
 
@@ -117,7 +119,7 @@ class ProcessingInterruptionDetector:
         self.config = config
         self.monitoring_active = False
         self.monitor_thread = None
-        self.interruption_callbacks: List[Callable] = []
+        self.interruption_callbacks: list[Callable] = []
         self.last_heartbeat = {}
         self.resource_history = []
 
@@ -155,7 +157,7 @@ class ProcessingInterruptionDetector:
     def register_process_heartbeat(self, process_id: str):
         """Register a heartbeat for a process"""
 
-        self.last_heartbeat[process_id] = datetime.utcnow()
+        self.last_heartbeat[process_id] = datetime.now(timezone.utc)
 
     def add_interruption_callback(self, callback: Callable):
         """Add callback for interruption detection"""
@@ -173,7 +175,7 @@ class ProcessingInterruptionDetector:
             process_id="system",
             task_id="shutdown",
             interruption_type=InterruptionType.SYSTEM_SHUTDOWN,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             error_details=f"Received signal {signum}",
         )
 
@@ -190,7 +192,7 @@ class ProcessingInterruptionDetector:
 
                 # Store resource history
                 resource_data = {
-                    "timestamp": datetime.utcnow(),
+                    "timestamp": datetime.now(timezone.utc),
                     "cpu_percent": cpu_percent,
                     "memory_percent": memory.percent,
                     "memory_available": memory.available,
@@ -199,7 +201,7 @@ class ProcessingInterruptionDetector:
                 self.resource_history.append(resource_data)
 
                 # Keep only last hour of data
-                cutoff_time = datetime.utcnow() - timedelta(hours=1)
+                cutoff_time = datetime.now(timezone.utc) - timedelta(hours=1)
                 self.resource_history = [
                     r for r in self.resource_history if r["timestamp"] > cutoff_time
                 ]
@@ -213,7 +215,7 @@ class ProcessingInterruptionDetector:
                         process_id="system",
                         task_id="resource_monitoring",
                         interruption_type=InterruptionType.MEMORY_EXHAUSTION,
-                        timestamp=datetime.utcnow(),
+                        timestamp=datetime.now(timezone.utc),
                         error_details=f"Memory usage: {memory.percent:.1f}%",
                         system_state=resource_data,
                     )
@@ -237,7 +239,7 @@ class ProcessingInterruptionDetector:
         """Check for process timeouts based on heartbeats"""
 
         timeout_threshold = timedelta(minutes=self.config.timeout_threshold_minutes)
-        current_time = datetime.utcnow()
+        current_time = datetime.now(timezone.utc)
 
         for process_id, last_heartbeat in list(self.last_heartbeat.items()):
             if current_time - last_heartbeat > timeout_threshold:
@@ -278,9 +280,9 @@ class AutoResumeEngine:
         self.checkpoint_manager = checkpoint_manager
         self.config = config or ResumeConfiguration()
         self.detector = ProcessingInterruptionDetector(self.config)
-        self.resume_handlers: Dict[str, Callable] = {}
-        self.active_processes: Dict[str, Dict[str, Any]] = {}
-        self.interruption_history: List[InterruptionContext] = []
+        self.resume_handlers: dict[str, Callable] = {}
+        self.active_processes: dict[str, dict[str, Any]] = {}
+        self.interruption_history: list[InterruptionContext] = []
 
         # Register for interruption detection
         self.detector.add_interruption_callback(self._handle_interruption)
@@ -306,7 +308,7 @@ class AutoResumeEngine:
         process_id: str,
         task_id: str,
         resume_handler: Callable,
-        metadata: Dict[str, Any] = None,
+        metadata: dict[str, Any] = None,
     ):
         """Register a process for automatic resumption"""
 
@@ -314,8 +316,8 @@ class AutoResumeEngine:
             "task_id": task_id,
             "resume_handler": resume_handler,
             "metadata": metadata or {},
-            "registered_at": datetime.utcnow(),
-            "last_heartbeat": datetime.utcnow(),
+            "registered_at": datetime.now(timezone.utc),
+            "last_heartbeat": datetime.now(timezone.utc),
         }
 
         self.resume_handlers[process_id] = resume_handler
@@ -333,11 +335,11 @@ class AutoResumeEngine:
 
         logger.info(f"Unregistered process {process_id} from auto-resume")
 
-    def heartbeat(self, process_id: str, metadata: Dict[str, Any] = None):
+    def heartbeat(self, process_id: str, metadata: dict[str, Any] = None):
         """Send heartbeat for a process"""
 
         if process_id in self.active_processes:
-            self.active_processes[process_id]["last_heartbeat"] = datetime.utcnow()
+            self.active_processes[process_id]["last_heartbeat"] = datetime.now(timezone.utc)
             if metadata:
                 self.active_processes[process_id]["metadata"].update(metadata)
 
@@ -386,15 +388,14 @@ class AutoResumeEngine:
 
                 # Update process registration
                 if process_id in self.active_processes:
-                    self.active_processes[process_id]["last_resume"] = datetime.utcnow()
+                    self.active_processes[process_id]["last_resume"] = datetime.now(timezone.utc)
                     self.active_processes[process_id]["resume_count"] = (
                         self.active_processes[process_id].get("resume_count", 0) + 1
                     )
 
                 return True
-            else:
-                logger.error(f"Failed to resume process {process_id}")
-                return False
+            logger.error(f"Failed to resume process {process_id}")
+            return False
 
         except Exception as e:
             logger.error(f"Error resuming process {process_id}: {e}")
@@ -478,7 +479,7 @@ class AutoResumeEngine:
         state: ProcessingState,
         strategy: ResumeStrategy,
         interruption_context: InterruptionContext = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Apply resume strategy to determine resume point"""
 
         resume_point = {
@@ -611,7 +612,7 @@ class AutoResumeEngine:
                         process_id=process_id,
                         task_id=latest_checkpoint.task_id,
                         interruption_type=InterruptionType.SYSTEM_SHUTDOWN,
-                        timestamp=datetime.utcnow(),
+                        timestamp=datetime.now(timezone.utc),
                         last_checkpoint_id=latest_checkpoint.checkpoint_id,
                         error_details="Process found incomplete on startup",
                     )
@@ -624,7 +625,7 @@ class AutoResumeEngine:
                             f"No resume handler for process {process_id}, skipping auto-resume"
                         )
 
-    def get_resume_statistics(self) -> Dict[str, Any]:
+    def get_resume_statistics(self) -> dict[str, Any]:
         """Get statistics about resume operations"""
 
         total_interruptions = len(self.interruption_history)
@@ -681,7 +682,7 @@ async def example_auto_resume():
 
     # Example resume handler
     async def example_resume_handler(
-        resume_point: Dict[str, Any],
+        resume_point: dict[str, Any],
         interruption_context: InterruptionContext = None,
     ):
         """Example resume handler for a processing operation"""
@@ -744,7 +745,7 @@ async def example_auto_resume():
         )
 
         # Simulate some progress
-        for step in range(0, 10):
+        for step in range(10):
             checkpoint_manager.update_process_progress(
                 process_id=process_id, completed_steps=step, current_step=f"Step {step}"
             )
@@ -760,7 +761,7 @@ async def example_auto_resume():
             process_id=process_id,
             task_id=task_id,
             interruption_type=InterruptionType.PROCESS_CRASH,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             error_details="Simulated crash for testing",
         )
 

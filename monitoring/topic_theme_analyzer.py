@@ -4,20 +4,19 @@ Conversation Topic and Theme Analysis System
 Analyzes conversation topics, themes, and provides insights about content patterns
 """
 
+from datetime import datetime, timezone
+
 import json
-import re
 import sqlite3
 import warnings
-from collections import Counter, defaultdict
+from collections import defaultdict
 from dataclasses import dataclass
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
-import pandas as pd
 
-warnings.filterwarnings('ignore')
+warnings.filterwarnings("ignore")
 
 @dataclass
 class TopicAnalysis:
@@ -25,22 +24,22 @@ class TopicAnalysis:
     topic_name: str
     frequency: int
     percentage: float
-    keywords: List[str]
-    related_themes: List[str]
-    conversation_examples: List[str]
+    keywords: list[str]
+    related_themes: list[str]
+    conversation_examples: list[str]
     quality_score: float
-    datasets: List[str]
+    datasets: list[str]
 
 @dataclass
 class ThemeAnalysis:
     """Theme analysis results"""
     theme_name: str
-    topic_clusters: List[str]
+    topic_clusters: list[str]
     conversation_count: int
-    emotional_indicators: Dict[str, int]
+    emotional_indicators: dict[str, int]
     complexity_score: float
     therapeutic_relevance: float
-    common_patterns: List[str]
+    common_patterns: list[str]
 
 class TopicThemeAnalyzer:
     """Enterprise-grade topic and theme analysis system"""
@@ -52,30 +51,30 @@ class TopicThemeAnalyzer:
 
         # Analysis configuration
         self.analysis_config = {
-            'max_conversations_per_dataset': 500,
-            'min_topic_frequency': 5,
-            'topic_keywords': {
-                'mental_health': ['anxiety', 'depression', 'stress', 'mental', 'emotional', 'therapy', 'counseling'],
-                'relationships': ['relationship', 'partner', 'family', 'friend', 'love', 'marriage', 'dating'],
-                'work_career': ['work', 'job', 'career', 'workplace', 'professional', 'employment', 'boss'],
-                'health_wellness': ['health', 'wellness', 'exercise', 'diet', 'sleep', 'medical', 'doctor'],
-                'personal_growth': ['growth', 'development', 'learning', 'goals', 'motivation', 'success'],
-                'life_challenges': ['problem', 'challenge', 'difficulty', 'struggle', 'issue', 'conflict'],
-                'emotions': ['feel', 'emotion', 'happy', 'sad', 'angry', 'frustrated', 'excited', 'worried'],
-                'communication': ['talk', 'speak', 'listen', 'communicate', 'conversation', 'discuss'],
-                'decision_making': ['decision', 'choice', 'option', 'decide', 'consider', 'think'],
-                'support_help': ['help', 'support', 'advice', 'guidance', 'assistance', 'recommend']
+            "max_conversations_per_dataset": 500,
+            "min_topic_frequency": 5,
+            "topic_keywords": {
+                "mental_health": ["anxiety", "depression", "stress", "mental", "emotional", "therapy", "counseling"],
+                "relationships": ["relationship", "partner", "family", "friend", "love", "marriage", "dating"],
+                "work_career": ["work", "job", "career", "workplace", "professional", "employment", "boss"],
+                "health_wellness": ["health", "wellness", "exercise", "diet", "sleep", "medical", "doctor"],
+                "personal_growth": ["growth", "development", "learning", "goals", "motivation", "success"],
+                "life_challenges": ["problem", "challenge", "difficulty", "struggle", "issue", "conflict"],
+                "emotions": ["feel", "emotion", "happy", "sad", "angry", "frustrated", "excited", "worried"],
+                "communication": ["talk", "speak", "listen", "communicate", "conversation", "discuss"],
+                "decision_making": ["decision", "choice", "option", "decide", "consider", "think"],
+                "support_help": ["help", "support", "advice", "guidance", "assistance", "recommend"]
             },
-            'therapeutic_themes': {
-                'cognitive_behavioral': ['thought', 'thinking', 'belief', 'behavior', 'pattern', 'habit'],
-                'mindfulness': ['mindful', 'present', 'awareness', 'meditation', 'breathing', 'focus'],
-                'trauma_recovery': ['trauma', 'recovery', 'healing', 'past', 'memory', 'overcome'],
-                'coping_strategies': ['cope', 'manage', 'handle', 'deal', 'strategy', 'technique'],
-                'self_esteem': ['confidence', 'self-worth', 'value', 'worth', 'self-esteem', 'identity']
+            "therapeutic_themes": {
+                "cognitive_behavioral": ["thought", "thinking", "belief", "behavior", "pattern", "habit"],
+                "mindfulness": ["mindful", "present", "awareness", "meditation", "breathing", "focus"],
+                "trauma_recovery": ["trauma", "recovery", "healing", "past", "memory", "overcome"],
+                "coping_strategies": ["cope", "manage", "handle", "deal", "strategy", "technique"],
+                "self_esteem": ["confidence", "self-worth", "value", "worth", "self-esteem", "identity"]
             }
         }
 
-    def analyze_topics_and_themes(self, dataset_name: Optional[str] = None) -> Dict[str, Any]:
+    def analyze_topics_and_themes(self, dataset_name: str | None = None) -> dict[str, Any]:
         """Analyze conversation topics and themes"""
         print("🔍 Analyzing conversation topics and themes...")
 
@@ -97,10 +96,10 @@ class TopicThemeAnalyzer:
             insights = self._generate_topic_theme_insights(topic_analyses, theme_analyses)
 
             results = {
-                'topics': topic_analyses,
-                'themes': theme_analyses,
-                'insights': insights,
-                'total_conversations_analyzed': len(conversations)
+                "topics": topic_analyses,
+                "themes": theme_analyses,
+                "insights": insights,
+                "total_conversations_analyzed": len(conversations)
             }
 
             print(f"✅ Analyzed {len(topic_analyses)} topics and {len(theme_analyses)} themes from {len(conversations)} conversations")
@@ -110,7 +109,7 @@ class TopicThemeAnalyzer:
             print(f"❌ Error analyzing topics and themes: {e}")
             return {}
 
-    def _get_conversation_data(self, dataset_name: Optional[str] = None) -> List[Dict]:
+    def _get_conversation_data(self, dataset_name: str | None = None) -> list[dict]:
         """Get conversation data for analysis"""
         try:
             conn = sqlite3.connect(self.db_path)
@@ -130,7 +129,7 @@ class TopicThemeAnalyzer:
                 ORDER BY RANDOM()
                 LIMIT ?
                 """
-                params = (dataset_name, self.analysis_config['max_conversations_per_dataset'])
+                params = (dataset_name, self.analysis_config["max_conversations_per_dataset"])
             else:
                 query = """
                 SELECT
@@ -145,7 +144,7 @@ class TopicThemeAnalyzer:
                 ORDER BY RANDOM()
                 LIMIT ?
                 """
-                params = (self.analysis_config['max_conversations_per_dataset'] * 3,)
+                params = (self.analysis_config["max_conversations_per_dataset"] * 3,)
 
             cursor = conn.execute(query, params)
             columns = [desc[0] for desc in cursor.description]
@@ -154,7 +153,7 @@ class TopicThemeAnalyzer:
             for row in cursor.fetchall():
                 record = dict(zip(columns, row))
                 try:
-                    record['conversations'] = json.loads(record['conversations_json'])
+                    record["conversations"] = json.loads(record["conversations_json"])
                     conversations.append(record)
                 except json.JSONDecodeError:
                     continue
@@ -166,7 +165,7 @@ class TopicThemeAnalyzer:
             print(f"❌ Error getting conversation data: {e}")
             return []
 
-    def _analyze_topics(self, conversations: List[Dict]) -> Dict[str, TopicAnalysis]:
+    def _analyze_topics(self, conversations: list[dict]) -> dict[str, TopicAnalysis]:
         """Analyze topics in conversations"""
         try:
             topic_counts = defaultdict(int)
@@ -176,16 +175,16 @@ class TopicThemeAnalyzer:
 
             # Analyze each conversation
             for conv_data in conversations:
-                conversation_text = self._extract_conversation_text(conv_data['conversations'])
+                conversation_text = self._extract_conversation_text(conv_data["conversations"])
                 if not conversation_text:
                     continue
 
                 text_lower = conversation_text.lower()
-                conv_id = conv_data['conversation_id']
-                dataset = conv_data['dataset_source']
+                conv_id = conv_data["conversation_id"]
+                dataset = conv_data["dataset_source"]
 
                 # Check for each topic
-                for topic_name, keywords in self.analysis_config['topic_keywords'].items():
+                for topic_name, keywords in self.analysis_config["topic_keywords"].items():
                     found_keywords = []
                     for keyword in keywords:
                         if keyword in text_lower:
@@ -202,7 +201,7 @@ class TopicThemeAnalyzer:
             topic_analyses = {}
 
             for topic_name, count in topic_counts.items():
-                if count >= self.analysis_config['min_topic_frequency']:
+                if count >= self.analysis_config["min_topic_frequency"]:
                     percentage = (count / total_conversations) * 100
 
                     # Generate related themes
@@ -228,7 +227,7 @@ class TopicThemeAnalyzer:
             print(f"❌ Error analyzing topics: {e}")
             return {}
 
-    def _analyze_themes(self, conversations: List[Dict]) -> Dict[str, ThemeAnalysis]:
+    def _analyze_themes(self, conversations: list[dict]) -> dict[str, ThemeAnalysis]:
         """Analyze themes in conversations"""
         try:
             theme_counts = defaultdict(int)
@@ -237,14 +236,14 @@ class TopicThemeAnalyzer:
 
             # Analyze each conversation
             for conv_data in conversations:
-                conversation_text = self._extract_conversation_text(conv_data['conversations'])
+                conversation_text = self._extract_conversation_text(conv_data["conversations"])
                 if not conversation_text:
                     continue
 
                 text_lower = conversation_text.lower()
 
                 # Check for therapeutic themes
-                for theme_name, keywords in self.analysis_config['therapeutic_themes'].items():
+                for theme_name, keywords in self.analysis_config["therapeutic_themes"].items():
                     found_keywords = []
                     for keyword in keywords:
                         if keyword in text_lower:
@@ -254,12 +253,12 @@ class TopicThemeAnalyzer:
                         theme_counts[theme_name] += 1
 
                         # Find related topics
-                        for topic_name, topic_keywords in self.analysis_config['topic_keywords'].items():
+                        for topic_name, topic_keywords in self.analysis_config["topic_keywords"].items():
                             if any(kw in text_lower for kw in topic_keywords):
                                 theme_topics[theme_name].add(topic_name)
 
                         # Analyze emotional indicators
-                        emotion_words = ['happy', 'sad', 'angry', 'anxious', 'excited', 'worried', 'calm', 'stressed']
+                        emotion_words = ["happy", "sad", "angry", "anxious", "excited", "worried", "calm", "stressed"]
                         for emotion in emotion_words:
                             if emotion in text_lower:
                                 theme_emotions[theme_name][emotion] += 1
@@ -268,7 +267,7 @@ class TopicThemeAnalyzer:
             theme_analyses = {}
 
             for theme_name, count in theme_counts.items():
-                if count >= self.analysis_config['min_topic_frequency']:
+                if count >= self.analysis_config["min_topic_frequency"]:
                     # Calculate complexity score
                     complexity_score = min(1.0, len(theme_topics[theme_name]) / 5)  # Normalize to max 5 topics
 
@@ -294,7 +293,7 @@ class TopicThemeAnalyzer:
             print(f"❌ Error analyzing themes: {e}")
             return {}
 
-    def _extract_conversation_text(self, conversations: List) -> str:
+    def _extract_conversation_text(self, conversations: list) -> str:
         """Extract text from conversation structure"""
         try:
             all_text = ""
@@ -303,15 +302,15 @@ class TopicThemeAnalyzer:
                 if isinstance(turn, dict):
                     # Handle different conversation formats
                     text = ""
-                    text += turn.get('human', '') + ' '
-                    text += turn.get('assistant', '') + ' '
-                    text += turn.get('user', '') + ' '
-                    text += turn.get('bot', '') + ' '
-                    text += turn.get('input', '') + ' '
-                    text += turn.get('output', '') + ' '
+                    text += turn.get("human", "") + " "
+                    text += turn.get("assistant", "") + " "
+                    text += turn.get("user", "") + " "
+                    text += turn.get("bot", "") + " "
+                    text += turn.get("input", "") + " "
+                    text += turn.get("output", "") + " "
                     all_text += text
                 elif isinstance(turn, str):
-                    all_text += turn + ' '
+                    all_text += turn + " "
 
             return all_text.strip()
 
@@ -319,50 +318,50 @@ class TopicThemeAnalyzer:
             print(f"❌ Error extracting conversation text: {e}")
             return ""
 
-    def _find_related_themes(self, topic_name: str) -> List[str]:
+    def _find_related_themes(self, topic_name: str) -> list[str]:
         """Find themes related to a topic"""
         related_themes = []
 
         # Define topic-theme relationships
         topic_theme_map = {
-            'mental_health': ['cognitive_behavioral', 'mindfulness', 'coping_strategies'],
-            'relationships': ['communication', 'self_esteem'],
-            'work_career': ['coping_strategies', 'self_esteem'],
-            'emotions': ['mindfulness', 'coping_strategies'],
-            'life_challenges': ['coping_strategies', 'trauma_recovery'],
-            'support_help': ['cognitive_behavioral', 'coping_strategies']
+            "mental_health": ["cognitive_behavioral", "mindfulness", "coping_strategies"],
+            "relationships": ["communication", "self_esteem"],
+            "work_career": ["coping_strategies", "self_esteem"],
+            "emotions": ["mindfulness", "coping_strategies"],
+            "life_challenges": ["coping_strategies", "trauma_recovery"],
+            "support_help": ["cognitive_behavioral", "coping_strategies"]
         }
 
         return topic_theme_map.get(topic_name, [])
 
-    def _identify_theme_patterns(self, theme_name: str, count: int) -> List[str]:
+    def _identify_theme_patterns(self, theme_name: str, count: int) -> list[str]:
         """Identify common patterns for a theme"""
         patterns = []
 
         # Theme-specific patterns
-        if theme_name == 'cognitive_behavioral':
-            patterns = ['Thought pattern analysis', 'Behavior modification focus', 'Belief system exploration']
-        elif theme_name == 'mindfulness':
-            patterns = ['Present moment awareness', 'Breathing techniques', 'Meditation practices']
-        elif theme_name == 'trauma_recovery':
-            patterns = ['Past event processing', 'Healing journey focus', 'Recovery milestone tracking']
-        elif theme_name == 'coping_strategies':
-            patterns = ['Problem-solving approaches', 'Stress management techniques', 'Adaptive behavior development']
-        elif theme_name == 'self_esteem':
-            patterns = ['Self-worth exploration', 'Confidence building', 'Identity development']
+        if theme_name == "cognitive_behavioral":
+            patterns = ["Thought pattern analysis", "Behavior modification focus", "Belief system exploration"]
+        elif theme_name == "mindfulness":
+            patterns = ["Present moment awareness", "Breathing techniques", "Meditation practices"]
+        elif theme_name == "trauma_recovery":
+            patterns = ["Past event processing", "Healing journey focus", "Recovery milestone tracking"]
+        elif theme_name == "coping_strategies":
+            patterns = ["Problem-solving approaches", "Stress management techniques", "Adaptive behavior development"]
+        elif theme_name == "self_esteem":
+            patterns = ["Self-worth exploration", "Confidence building", "Identity development"]
 
         # Add frequency-based patterns
         if count > 50:
-            patterns.append('High frequency theme - core therapeutic focus')
+            patterns.append("High frequency theme - core therapeutic focus")
         elif count > 20:
-            patterns.append('Moderate frequency theme - regular therapeutic element')
+            patterns.append("Moderate frequency theme - regular therapeutic element")
         else:
-            patterns.append('Emerging theme - specialized therapeutic area')
+            patterns.append("Emerging theme - specialized therapeutic area")
 
         return patterns
 
-    def _generate_topic_theme_insights(self, topics: Dict[str, TopicAnalysis],
-                                     themes: Dict[str, ThemeAnalysis]) -> List[str]:
+    def _generate_topic_theme_insights(self, topics: dict[str, TopicAnalysis],
+                                     themes: dict[str, ThemeAnalysis]) -> list[str]:
         """Generate insights from topic and theme analysis"""
         insights = []
 
@@ -410,51 +409,51 @@ class TopicThemeAnalyzer:
             print(f"❌ Error generating insights: {e}")
             return ["Error generating topic and theme insights"]
 
-    def export_topic_theme_report(self, analysis_results: Dict[str, Any]) -> str:
+    def export_topic_theme_report(self, analysis_results: dict[str, Any]) -> str:
         """Export comprehensive topic and theme analysis report"""
         print("📄 Exporting topic and theme analysis report...")
 
         try:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
             report_file = self.output_dir / f"topic_theme_analysis_report_{timestamp}.json"
 
             # Prepare export data
             export_data = {
-                'report_metadata': {
-                    'generated_at': datetime.now().isoformat(),
-                    'analyzer_version': '1.0.0',
-                    'analysis_type': 'topic_and_theme_analysis',
-                    'conversations_analyzed': analysis_results.get('total_conversations_analyzed', 0)
+                "report_metadata": {
+                    "generated_at": datetime.now(timezone.utc).isoformat(),
+                    "analyzer_version": "1.0.0",
+                    "analysis_type": "topic_and_theme_analysis",
+                    "conversations_analyzed": analysis_results.get("total_conversations_analyzed", 0)
                 },
-                'topic_analysis': {
+                "topic_analysis": {
                     name: {
-                        'frequency': analysis.frequency,
-                        'percentage': analysis.percentage,
-                        'keywords': analysis.keywords,
-                        'related_themes': analysis.related_themes,
-                        'conversation_examples': analysis.conversation_examples,
-                        'quality_score': analysis.quality_score,
-                        'datasets': analysis.datasets
+                        "frequency": analysis.frequency,
+                        "percentage": analysis.percentage,
+                        "keywords": analysis.keywords,
+                        "related_themes": analysis.related_themes,
+                        "conversation_examples": analysis.conversation_examples,
+                        "quality_score": analysis.quality_score,
+                        "datasets": analysis.datasets
                     }
-                    for name, analysis in analysis_results.get('topics', {}).items()
+                    for name, analysis in analysis_results.get("topics", {}).items()
                 },
-                'theme_analysis': {
+                "theme_analysis": {
                     name: {
-                        'topic_clusters': analysis.topic_clusters,
-                        'conversation_count': analysis.conversation_count,
-                        'emotional_indicators': analysis.emotional_indicators,
-                        'complexity_score': analysis.complexity_score,
-                        'therapeutic_relevance': analysis.therapeutic_relevance,
-                        'common_patterns': analysis.common_patterns
+                        "topic_clusters": analysis.topic_clusters,
+                        "conversation_count": analysis.conversation_count,
+                        "emotional_indicators": analysis.emotional_indicators,
+                        "complexity_score": analysis.complexity_score,
+                        "therapeutic_relevance": analysis.therapeutic_relevance,
+                        "common_patterns": analysis.common_patterns
                     }
-                    for name, analysis in analysis_results.get('themes', {}).items()
+                    for name, analysis in analysis_results.get("themes", {}).items()
                 },
-                'insights': analysis_results.get('insights', []),
-                'summary_statistics': self._create_summary_statistics(analysis_results)
+                "insights": analysis_results.get("insights", []),
+                "summary_statistics": self._create_summary_statistics(analysis_results)
             }
 
             # Save report
-            with open(report_file, 'w') as f:
+            with open(report_file, "w") as f:
                 json.dump(export_data, f, indent=2, default=str)
 
             print(f"✅ Exported topic and theme analysis report to: {report_file}")
@@ -464,11 +463,11 @@ class TopicThemeAnalyzer:
             print(f"❌ Error exporting report: {e}")
             return ""
 
-    def _create_summary_statistics(self, analysis_results: Dict[str, Any]) -> Dict[str, Any]:
+    def _create_summary_statistics(self, analysis_results: dict[str, Any]) -> dict[str, Any]:
         """Create summary statistics"""
         try:
-            topics = analysis_results.get('topics', {})
-            themes = analysis_results.get('themes', {})
+            topics = analysis_results.get("topics", {})
+            themes = analysis_results.get("themes", {})
 
             # Topic statistics
             topic_frequencies = [analysis.frequency for analysis in topics.values()]
@@ -479,17 +478,17 @@ class TopicThemeAnalyzer:
             avg_theme_count = np.mean(theme_counts) if theme_counts else 0
 
             # Coverage statistics
-            total_conversations = analysis_results.get('total_conversations_analyzed', 0)
+            total_conversations = analysis_results.get("total_conversations_analyzed", 0)
             topic_coverage = sum(topic_frequencies) / total_conversations if total_conversations > 0 else 0
 
             return {
-                'total_topics_identified': len(topics),
-                'total_themes_identified': len(themes),
-                'average_topic_frequency': float(avg_topic_frequency),
-                'average_theme_count': float(avg_theme_count),
-                'topic_coverage_rate': float(topic_coverage),
-                'most_frequent_topic': max(topics.items(), key=lambda x: x[1].frequency)[0] if topics else None,
-                'most_relevant_theme': max(themes.items(), key=lambda x: x[1].therapeutic_relevance)[0] if themes else None
+                "total_topics_identified": len(topics),
+                "total_themes_identified": len(themes),
+                "average_topic_frequency": float(avg_topic_frequency),
+                "average_theme_count": float(avg_theme_count),
+                "topic_coverage_rate": float(topic_coverage),
+                "most_frequent_topic": max(topics.items(), key=lambda x: x[1].frequency)[0] if topics else None,
+                "most_relevant_theme": max(themes.items(), key=lambda x: x[1].therapeutic_relevance)[0] if themes else None
             }
 
         except Exception as e:
@@ -515,11 +514,11 @@ def main():
     report_file = analyzer.export_topic_theme_report(analysis_results)
 
     # Display summary
-    topics = analysis_results.get('topics', {})
-    themes = analysis_results.get('themes', {})
-    insights = analysis_results.get('insights', [])
+    topics = analysis_results.get("topics", {})
+    themes = analysis_results.get("themes", {})
+    insights = analysis_results.get("insights", [])
 
-    print(f"\n✅ Topic and Theme Analysis Complete")
+    print("\n✅ Topic and Theme Analysis Complete")
     print(f"   - Topics identified: {len(topics)}")
     print(f"   - Themes identified: {len(themes)}")
     print(f"   - Conversations analyzed: {analysis_results.get('total_conversations_analyzed', 0)}")
@@ -528,20 +527,20 @@ def main():
 
     # Show top topics
     if topics:
-        print(f"\n📊 Top Topics by Frequency:")
+        print("\n📊 Top Topics by Frequency:")
         sorted_topics = sorted(topics.items(), key=lambda x: x[1].frequency, reverse=True)
         for name, analysis in sorted_topics[:5]:
             print(f"   • {name.replace('_', ' ').title()}: {analysis.frequency} conversations ({analysis.percentage:.1f}%)")
 
     # Show themes
     if themes:
-        print(f"\n🎭 Therapeutic Themes:")
+        print("\n🎭 Therapeutic Themes:")
         for name, analysis in themes.items():
             print(f"   • {name.replace('_', ' ').title()}: {analysis.conversation_count} conversations")
 
     # Show key insights
     if insights:
-        print(f"\n🔍 Key Insights:")
+        print("\n🔍 Key Insights:")
         for insight in insights[:3]:
             print(f"   • {insight}")
 

@@ -4,13 +4,12 @@ Production Health Check Service
 Comprehensive health monitoring for production deployment
 """
 
+from datetime import datetime, timezone
+
 import json
 import time
-from datetime import datetime
-from pathlib import Path
 
 import psutil
-import requests
 
 
 class ProductionHealthService:
@@ -24,7 +23,7 @@ class ProductionHealthService:
         try:
             cpu_percent = psutil.cpu_percent(interval=1)
             memory = psutil.virtual_memory()
-            disk = psutil.disk_usage('/')
+            disk = psutil.disk_usage("/")
 
             return {
                 "status": "healthy" if cpu_percent < 80 and memory.percent < 85 else "degraded",
@@ -69,7 +68,7 @@ class ProductionHealthService:
 
         return {
             "status": overall_status,
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "system": system_health,
             "dependencies": dependency_health,
             "version": "1.0.0",

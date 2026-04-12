@@ -26,14 +26,16 @@ Usage:
     response = await pipeline.query("What are CBT techniques for anxiety?")
 """
 
+from datetime import datetime, timezone
+
+
 import asyncio
 import hashlib
 import logging
 import os
 from dataclasses import dataclass, field
-from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 
@@ -205,12 +207,12 @@ class DocumentMetadata(BaseModel):
     doc_id: str
     category: KnowledgeCategory
     source: str
-    title: Optional[str] = None
+    title: str | None = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     tags: list[str] = Field(default_factory=list)
-    url: Optional[str] = None
-    author: Optional[str] = None
+    url: str | None = None
+    author: str | None = None
 
     class Config:
         use_enum_values = True
@@ -246,7 +248,7 @@ class Document:
     doc_id: str
     content: str
     metadata: DocumentMetadata
-    embedding: Optional[np.ndarray] = None
+    embedding: np.ndarray | None = None
     embedding_id: int = -1
 
 
@@ -255,19 +257,19 @@ class DocumentStore:
     """In-memory document storage with FAISS indexing."""
 
     documents: dict[str, Document] = field(default_factory=dict)
-    index: Optional[Any] = None  # faiss.Index
+    index: Any | None = None  # faiss.Index
     is_trained: bool = False
 
     def __len__(self) -> int:
         return len(self.documents)
 
-    def get(self, doc_id: str) -> Optional[Document]:
+    def get(self, doc_id: str) -> Document | None:
         return self.documents.get(doc_id)
 
     def add(self, doc: Document) -> None:
         self.documents[doc.doc_id] = doc
 
-    def get_by_index(self, idx: int) -> Optional[Document]:
+    def get_by_index(self, idx: int) -> Document | None:
         """Get document by embedding index."""
         for doc in self.documents.values():
             if doc.embedding_id == idx:
@@ -363,7 +365,7 @@ class TherapeuticRAGPipeline:
         self,
         document: str,
         metadata: dict[str, Any],
-        doc_id: Optional[str] = None
+        doc_id: str | None = None
     ) -> str:
         """
         Ingest a document into the knowledge base.
@@ -524,8 +526,8 @@ class TherapeuticRAGPipeline:
     async def retrieve(
         self,
         query: str,
-        category: Optional[KnowledgeCategory] = None,
-        n_results: Optional[int] = None
+        category: KnowledgeCategory | None = None,
+        n_results: int | None = None
     ) -> list[Document]:
         """
         Retrieve relevant documents for a query.
@@ -561,7 +563,7 @@ class TherapeuticRAGPipeline:
     def _search_faiss(
         self,
         query_embedding: np.ndarray,
-        category: Optional[KnowledgeCategory]
+        category: KnowledgeCategory | None
     ) -> list[dict]:
         """Search using FAISS index."""
         distances, indices = self.store.index.search(
@@ -589,7 +591,7 @@ class TherapeuticRAGPipeline:
     def _search_memory(
         self,
         query_embedding: np.ndarray,
-        category: Optional[KnowledgeCategory]
+        category: KnowledgeCategory | None
     ) -> list[dict]:
         """Fallback in-memory search when FAISS is unavailable."""
         candidates = []
@@ -614,8 +616,8 @@ class TherapeuticRAGPipeline:
     async def query(
         self,
         query: str,
-        category: Optional[KnowledgeCategory] = None,
-        user_id: Optional[str] = None,
+        category: KnowledgeCategory | None = None,
+        user_id: str | None = None,
         include_citations: bool = True
     ) -> RAGResponse:
         """
@@ -636,7 +638,7 @@ class TherapeuticRAGPipeline:
         Returns:
             RAGResponse with generated text and sources
         """
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
 
         # Select appropriate model based on query complexity
         selected_model = self._select_model_for_query(query)
@@ -648,7 +650,7 @@ class TherapeuticRAGPipeline:
         if not context_docs:
             # No relevant documents found
             response_text = await self._generate_without_context(query, selected_model)
-            latency = (datetime.utcnow() - start_time).total_seconds() * 1000
+            latency = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
 
             return RAGResponse(
                 response=response_text,
@@ -670,7 +672,7 @@ class TherapeuticRAGPipeline:
         if include_citations:
             citations = [doc.metadata.source for doc in context_docs]
 
-        latency = (datetime.utcnow() - start_time).total_seconds() * 1000
+        latency = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
 
         return RAGResponse(
             response=response_text,
@@ -700,7 +702,7 @@ class TherapeuticRAGPipeline:
         self,
         query: str,
         context: str,
-        model: Optional[str] = None
+        model: str | None = None
     ) -> str:
         """Generate response using retrieved context.
 
@@ -734,7 +736,7 @@ class TherapeuticRAGPipeline:
     async def _generate_without_context(
         self,
         query: str,
-        model: Optional[str] = None
+        model: str | None = None
     ) -> str:
         """Generate response when no relevant context is found.
 
@@ -832,7 +834,7 @@ Important safety considerations:
 # =============================================================================
 
 def create_rag_pipeline(
-    api_key: Optional[str] = None,
+    api_key: str | None = None,
     index_type: IndexType = IndexType.IVF,
     **kwargs
 ) -> TherapeuticRAGPipeline:
@@ -860,7 +862,7 @@ def create_rag_pipeline(
 # Convenience Functions
 # =============================================================================
 
-async def embed_text(text: str, api_key: Optional[str] = None) -> np.ndarray:
+async def embed_text(text: str, api_key: str | None = None) -> np.ndarray:
     """
     Quick embedding generation for a single text.
 

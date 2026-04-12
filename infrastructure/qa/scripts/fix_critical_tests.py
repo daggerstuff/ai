@@ -7,12 +7,10 @@ This script specifically targets the safety-critical and core business logic
 test files that are essential for production readiness.
 """
 
-import os
 import re
 import subprocess
 import sys
 from pathlib import Path
-from typing import Dict, List
 
 
 class CriticalTestFixer:
@@ -31,7 +29,7 @@ class CriticalTestFixer:
             "analytics_dashboard"
         ]
 
-    def get_critical_test_files(self) -> List[Path]:
+    def get_critical_test_files(self) -> list[Path]:
         """Get list of critical test files that need fixing."""
         critical_tests = []
 
@@ -71,46 +69,46 @@ class CriticalTestFixer:
             # Fix common import issues
             fixes = [
                 # Add missing unittest import
-                (r'^(?!.*import unittest)', 'import unittest\n'),
+                (r"^(?!.*import unittest)", "import unittest\n"),
                 # Fix missing pytest import
-                (r'^(?!.*import pytest)', 'import pytest\n'),
+                (r"^(?!.*import pytest)", "import pytest\n"),
                 # Fix missing mock imports
-                (r'^(?!.*from unittest.mock)', 'from unittest.mock import Mock, patch, MagicMock\n'),
+                (r"^(?!.*from unittest.mock)", "from unittest.mock import Mock, patch, MagicMock\n"),
                 # Fix missing typing imports
-                (r'from typing import', 'from typing import Dict, List, Optional, Union, Any, Tuple, Callable'),
+                (r"from typing import", "from typing import Dict, List, Optional, Union, Any, Tuple, Callable"),
                 # Fix relative imports
-                (r'from (\w+_\w+) import', r'from .\1 import'),
+                (r"from (\w+_\w+) import", r"from .\1 import"),
                 # Fix dataset_pipeline imports
-                (r'from dataset_pipeline', 'from ai.pipelines.orchestrator'),
+                (r"from dataset_pipeline", "from ai.pipelines.orchestrator"),
                 # Fix pixel imports
-                (r'from pixel', 'from ai.models.pixel_core'),
+                (r"from pixel", "from ai.models.pixel_core"),
                 # Fix inference imports
-                (r'from inference', 'from ai.inference'),
+                (r"from inference", "from ai.inference"),
             ]
 
             for pattern, replacement in fixes:
                 if not re.search(pattern, content, re.MULTILINE):
-                    content = replacement + '\n' + content
+                    content = replacement + "\n" + content
 
             # Fix specific module imports
             module_fixes = {
-                'crisis_intervention_detector': 'from ai.pipelines.orchestrator.crisis_intervention_detector import CrisisInterventionDetector',
-                'safety_ethics_validator': 'from ai.models.pixel_core.validation.safety_ethics_validator import SafetyEthicsValidator',
-                'clinical_accuracy_validator': 'from ai.models.pixel_core.validation.clinical_accuracy_validator import ClinicalAccuracyValidator',
-                'production_exporter': 'from ai.inference.production_exporter import ProductionExporter',
-                'pipeline_orchestrator': 'from ai.pipelines.orchestrator.pipeline_orchestrator import PipelineOrchestrator',
-                'adaptive_learner': 'from ai.pipelines.orchestrator.adaptive_learner import AdaptiveLearner',
-                'therapeutic_response_generator': 'from ai.pipelines.orchestrator.therapeutic_response_generator import TherapeuticResponseGenerator',
-                'analytics_dashboard': 'from ai.pipelines.orchestrator.analytics_dashboard import AnalyticsDashboard'
+                "crisis_intervention_detector": "from ai.pipelines.orchestrator.crisis_intervention_detector import CrisisInterventionDetector",
+                "safety_ethics_validator": "from ai.models.pixel_core.validation.safety_ethics_validator import SafetyEthicsValidator",
+                "clinical_accuracy_validator": "from ai.models.pixel_core.validation.clinical_accuracy_validator import ClinicalAccuracyValidator",
+                "production_exporter": "from ai.inference.production_exporter import ProductionExporter",
+                "pipeline_orchestrator": "from ai.pipelines.orchestrator.pipeline_orchestrator import PipelineOrchestrator",
+                "adaptive_learner": "from ai.pipelines.orchestrator.adaptive_learner import AdaptiveLearner",
+                "therapeutic_response_generator": "from ai.pipelines.orchestrator.therapeutic_response_generator import TherapeuticResponseGenerator",
+                "analytics_dashboard": "from ai.pipelines.orchestrator.analytics_dashboard import AnalyticsDashboard"
             }
 
             for module, import_line in module_fixes.items():
                 if module in test_file.name and import_line not in content:
-                    content = import_line + '\n' + content
+                    content = import_line + "\n" + content
 
             # Write back if changed
             if content != original_content:
-                with open(test_file, 'w') as f:
+                with open(test_file, "w") as f:
                     f.write(content)
                 return True
 
@@ -204,13 +202,13 @@ if __name__ == '__main__':
             test_file.write_text(test_template)
             print(f"Created basic test structure for {test_file}")
 
-    def run_specific_tests(self, test_files: List[Path]) -> Dict[str, int]:
+    def run_specific_tests(self, test_files: list[Path]) -> dict[str, int]:
         """Run specific test files and return results."""
         results = {
-            'passed': 0,
-            'failed': 0,
-            'errors': 0,
-            'collected': 0
+            "passed": 0,
+            "failed": 0,
+            "errors": 0,
+            "collected": 0
         }
 
         for test_file in test_files[:5]:  # Test first 5 files
@@ -224,20 +222,20 @@ if __name__ == '__main__':
                 )
 
                 output = result.stdout + result.stderr
-                results['passed'] += len(re.findall(r'PASSED', output))
-                results['failed'] += len(re.findall(r'FAILED', output))
-                results['errors'] += len(re.findall(r'ERROR', output))
-                results['collected'] += len(re.findall(r'::test_', output))
+                results["passed"] += len(re.findall(r"PASSED", output))
+                results["failed"] += len(re.findall(r"FAILED", output))
+                results["errors"] += len(re.findall(r"ERROR", output))
+                results["collected"] += len(re.findall(r"::test_", output))
 
             except subprocess.TimeoutExpired:
-                results['errors'] += 1
+                results["errors"] += 1
             except Exception as e:
                 print(f"Error running {test_file}: {e}")
-                results['errors'] += 1
+                results["errors"] += 1
 
         return results
 
-    def generate_coverage_for_critical_modules(self) -> Dict[str, float]:
+    def generate_coverage_for_critical_modules(self) -> dict[str, float]:
         """Generate coverage specifically for critical modules."""
         coverage_results = {}
 
@@ -253,7 +251,7 @@ if __name__ == '__main__':
                 # Run coverage on specific module
                 result = subprocess.run(
                     [sys.executable, "-m", "pytest", f"--cov={module_file.parent}",
-                     f"--cov-report=term", "-k", module],
+                     "--cov-report=term", "-k", module],
                     cwd=self.project_root,
                     capture_output=True,
                     text=True,
@@ -261,7 +259,7 @@ if __name__ == '__main__':
                 )
 
                 # Extract coverage percentage
-                coverage_match = re.search(rf'{module}.*?(\d+)%', result.stdout)
+                coverage_match = re.search(rf"{module}.*?(\d+)%", result.stdout)
                 if coverage_match:
                     coverage_results[module] = float(coverage_match.group(1))
                 else:
@@ -317,7 +315,7 @@ if __name__ == '__main__':
         print(f"📄 Report saved to: {report_file}")
         print(report)
 
-    def generate_critical_report(self, test_results: Dict, coverage_results: Dict) -> str:
+    def generate_critical_report(self, test_results: dict, coverage_results: dict) -> str:
         """Generate a report for critical test fixes."""
 
         coverage_summary = "\n".join([

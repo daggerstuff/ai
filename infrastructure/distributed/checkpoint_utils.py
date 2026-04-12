@@ -4,6 +4,8 @@ Checkpoint Utilities and Configuration for Pixelated Empathy AI
 Advanced utilities for checkpoint management, optimization, and monitoring
 """
 
+from datetime import datetime, timedelta, timezone
+
 import asyncio
 import json
 import logging
@@ -11,7 +13,6 @@ import sqlite3
 import threading
 import time
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 

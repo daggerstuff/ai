@@ -4,16 +4,18 @@ Circuit Breaker System for Pixelated Empathy AI
 Implements circuit breaker patterns for external dependencies and fault isolation
 """
 
+from datetime import datetime, timedelta, timezone
+
 import asyncio
 import json
 import logging
 import statistics
 import threading
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -51,8 +53,8 @@ class CallResult:
     """Result of a circuit breaker call"""
     success: bool
     duration_seconds: float
-    error: Optional[Exception] = None
-    failure_type: Optional[FailureType] = None
+    error: Exception | None = None
+    failure_type: FailureType | None = None
     timestamp: datetime = field(default_factory=datetime.utcnow)
 
 class CircuitBreaker:
@@ -67,14 +69,14 @@ class CircuitBreaker:
         self.failure_count = 0
         self.success_count = 0
         self.last_failure_time = None
-        self.state_changed_time = datetime.utcnow()
+        self.state_changed_time = datetime.now(timezone.utc)
 
         # Call history for monitoring
-        self.call_history: List[CallResult] = []
+        self.call_history: list[CallResult] = []
         self.lock = threading.Lock()
 
         # Fallback function
-        self.fallback_function: Optional[Callable] = None
+        self.fallback_function: Callable | None = None
 
         # Metrics
         self.total_calls = 0
@@ -107,11 +109,11 @@ class CircuitBreaker:
         if self.state == CircuitState.OPEN:
             return await self._handle_open_circuit(func, *args, **kwargs)
 
-        elif self.state == CircuitState.HALF_OPEN:
+        if self.state == CircuitState.HALF_OPEN:
             return await self._handle_half_open_circuit(func, *args, **kwargs)
 
-        else:  # CLOSED
-            return await self._handle_closed_circuit(func, *args, **kwargs)
+        # CLOSED
+        return await self._handle_closed_circuit(func, *args, **kwargs)
 
     async def _handle_closed_circuit(self, func: Callable, *args, **kwargs) -> Any:
         """Handle call when circuit is closed (normal operation)"""
@@ -143,7 +145,7 @@ class CircuitBreaker:
 
             return result
 
-        except asyncio.TimeoutError as e:
+        except TimeoutError as e:
             duration = time.time() - start_time
             call_result = CallResult(
                 success=False,
@@ -158,7 +160,7 @@ class CircuitBreaker:
                 self.total_failures += 1
                 self.total_timeouts += 1
                 self.failure_count += 1
-                self.last_failure_time = datetime.utcnow()
+                self.last_failure_time = datetime.now(timezone.utc)
 
             raise
 
@@ -178,7 +180,7 @@ class CircuitBreaker:
             with self.lock:
                 self.total_failures += 1
                 self.failure_count += 1
-                self.last_failure_time = datetime.utcnow()
+                self.last_failure_time = datetime.now(timezone.utc)
 
             raise
 
@@ -283,14 +285,14 @@ class CircuitBreaker:
         if not self.last_failure_time:
             return False
 
-        time_since_failure = datetime.utcnow() - self.last_failure_time
+        time_since_failure = datetime.now(timezone.utc) - self.last_failure_time
         return time_since_failure.total_seconds() >= self.config.recovery_timeout_seconds
 
     def _open_circuit(self):
         """Open the circuit"""
 
         self.state = CircuitState.OPEN
-        self.state_changed_time = datetime.utcnow()
+        self.state_changed_time = datetime.now(timezone.utc)
         self.total_circuit_opens += 1
 
         logger.warning(f"Circuit breaker {self.name} opened due to failures")
@@ -299,7 +301,7 @@ class CircuitBreaker:
         """Set circuit to half-open state"""
 
         self.state = CircuitState.HALF_OPEN
-        self.state_changed_time = datetime.utcnow()
+        self.state_changed_time = datetime.now(timezone.utc)
         self.success_count = 0
 
         logger.info(f"Circuit breaker {self.name} set to HALF-OPEN for testing")
@@ -308,7 +310,7 @@ class CircuitBreaker:
         """Close the circuit (normal operation)"""
 
         self.state = CircuitState.CLOSED
-        self.state_changed_time = datetime.utcnow()
+        self.state_changed_time = datetime.now(timezone.utc)
         self.failure_count = 0
         self.success_count = 0
 
@@ -319,17 +321,15 @@ class CircuitBreaker:
 
         if isinstance(exception, asyncio.TimeoutError):
             return FailureType.TIMEOUT
-        elif isinstance(exception, ConnectionError):
+        if isinstance(exception, ConnectionError):
             return FailureType.CONNECTION_ERROR
-        elif hasattr(exception, 'status_code'):
+        if hasattr(exception, "status_code"):
             if exception.status_code == 429:
                 return FailureType.RATE_LIMIT
-            elif exception.status_code >= 500:
+            if exception.status_code >= 500:
                 return FailureType.SERVICE_UNAVAILABLE
-            else:
-                return FailureType.HTTP_ERROR
-        else:
-            return FailureType.CUSTOM
+            return FailureType.HTTP_ERROR
+        return FailureType.CUSTOM
 
     def _record_call_result(self, call_result: CallResult):
         """Record call result for monitoring"""
@@ -338,19 +338,19 @@ class CircuitBreaker:
             self.call_history.append(call_result)
 
             # Keep only recent history
-            cutoff_time = datetime.utcnow() - timedelta(seconds=self.config.monitoring_window_seconds * 2)
+            cutoff_time = datetime.now(timezone.utc) - timedelta(seconds=self.config.monitoring_window_seconds * 2)
             self.call_history = [
                 call for call in self.call_history
                 if call.timestamp > cutoff_time
             ]
 
-    def _get_recent_calls(self) -> List[CallResult]:
+    def _get_recent_calls(self) -> list[CallResult]:
         """Get calls within monitoring window"""
 
-        cutoff_time = datetime.utcnow() - timedelta(seconds=self.config.monitoring_window_seconds)
+        cutoff_time = datetime.now(timezone.utc) - timedelta(seconds=self.config.monitoring_window_seconds)
         return [call for call in self.call_history if call.timestamp > cutoff_time]
 
-    def get_metrics(self) -> Dict[str, Any]:
+    def get_metrics(self) -> dict[str, Any]:
         """Get circuit breaker metrics"""
 
         recent_calls = self._get_recent_calls()
@@ -412,13 +412,12 @@ class CircuitBreaker:
 
 class CircuitBreakerOpenException(Exception):
     """Exception raised when circuit breaker is open"""
-    pass
 
 class CircuitBreakerManager:
     """Manages multiple circuit breakers for different services"""
 
     def __init__(self):
-        self.circuit_breakers: Dict[str, CircuitBreaker] = {}
+        self.circuit_breakers: dict[str, CircuitBreaker] = {}
         self.default_config = CircuitBreakerConfig()
 
     def get_circuit_breaker(self, name: str, config: CircuitBreakerConfig = None) -> CircuitBreaker:
@@ -445,7 +444,7 @@ class CircuitBreakerManager:
         circuit_breaker = self.get_circuit_breaker(service_name)
         circuit_breaker.set_fallback(fallback_function)
 
-    def get_all_metrics(self) -> Dict[str, Any]:
+    def get_all_metrics(self) -> dict[str, Any]:
         """Get metrics for all circuit breakers"""
 
         return {
@@ -478,7 +477,7 @@ async def example_circuit_breaker():
         if call_count <= 10:
             if call_count % 3 == 0:
                 raise ConnectionError("Service unavailable")
-            elif call_count % 4 == 0:
+            if call_count % 4 == 0:
                 await asyncio.sleep(2)  # Slow response
                 raise Exception("Internal server error")
 
@@ -521,7 +520,7 @@ async def example_circuit_breaker():
 
     # Get metrics
     metrics = cb_manager.get_all_metrics()
-    print(f"\nCircuit Breaker Metrics:")
+    print("\nCircuit Breaker Metrics:")
     print(json.dumps(metrics, indent=2))
 
 if __name__ == "__main__":

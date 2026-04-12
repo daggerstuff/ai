@@ -7,14 +7,9 @@ Creates comprehensive dashboard for supervising therapeutic training sessions
 with live assessment tools, intervention capabilities, and analytics.
 """
 
-import json
 import logging
-from dataclasses import dataclass
-from datetime import datetime
-from pathlib import Path
-from typing import Any, Dict, List, Optional
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 class SupervisorDashboardBuilder:
@@ -59,7 +54,7 @@ class SupervisorDashboardBuilder:
 
     def _generate_session_monitor_react(self) -> str:
         """Generate React component for session monitoring"""
-        return '''
+        return """
 import React, { useState, useEffect } from 'react';
 import { CompetencyRating } from './CompetencyRating';
 import { InterventionPanel } from './InterventionPanel';
@@ -239,11 +234,11 @@ export const SessionMonitor = ({
       </div>
     </div>
   );
-};'''
+};"""
 
     def _generate_competency_grid_react(self) -> str:
         """Generate React component for competency assessment grid"""
-        return '''
+        return """
 import React, { useState, useEffect } from 'react';
 import { SkillRubric } from './SkillRubric';
 import { EvidenceCollector } from './EvidenceCollector';
@@ -436,4 +431,4 @@ export const CompetencyGrid = ({
       )}
     </div>
   );
-};'''
+};"""

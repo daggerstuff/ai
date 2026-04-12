@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, List, Optional
+from typing import Any
 
 from .hindsight_local_adapter import encode_tags_json, normalize_tags
 from .local_hindsight_queries import query_tokens
@@ -92,12 +92,12 @@ def filtered_query(
     *,
     fts: bool,
     source: str,
-    required_tags: List[str],
-    optional_tags: List[str],
+    required_tags: list[str],
+    optional_tags: list[str],
     optional_match: str,
 ) -> str:
     layout = query_layout(fts=fts)
-    filters: List[str] = []
+    filters: list[str] = []
     if required_tags:
         filters.append(
             tag_requirements_clause(table_alias=layout.table_alias, tags_match="all").strip()
@@ -122,11 +122,11 @@ def filtered_query(
 
 def filtered_params(
     *,
-    required_tags: List[str],
-    optional_tags: List[str],
+    required_tags: list[str],
+    optional_tags: list[str],
     optional_match: str,
-) -> List[Any]:
-    params: List[Any] = []
+) -> list[Any]:
+    params: list[Any] = []
     if required_tags:
         params.append(encode_tags_json(required_tags))
         params.append(len(required_tags))
@@ -139,13 +139,13 @@ def filtered_params(
 
 def scope_tags(
     *,
-    org_id: Optional[str],
-    project_id: Optional[str],
-    session_id: Optional[str],
-    agent_id: Optional[str],
-    run_id: Optional[str],
-) -> List[str]:
-    tags: List[str] = []
+    org_id: str | None,
+    project_id: str | None,
+    session_id: str | None,
+    agent_id: str | None,
+    run_id: str | None,
+) -> list[str]:
+    tags: list[str] = []
     for value, prefix in (
         (org_id, "org_id"),
         (project_id, "project_id"),
@@ -192,16 +192,16 @@ def build_scoped_search_query(
     fts: bool,
     source: str,
     user_id: str,
-    required_scope_tags: List[str],
+    required_scope_tags: list[str],
     include_shared: bool,
-    non_private_visibility_tags: Optional[List[str]],
+    non_private_visibility_tags: list[str] | None,
     fetch_limit: int,
     offset: int,
-    leading_params: List[Any],
+    leading_params: list[Any],
 ) -> BuiltQuery:
     layout = query_layout(fts=fts)
     conditions = ["d.user_id = ?"]
-    params: List[Any] = [*leading_params, user_id]
+    params: list[Any] = [*leading_params, user_id]
     _apply_scope_filters(
         conditions=conditions,
         params=params,
@@ -229,15 +229,15 @@ def build_scope_listing_query(
     *,
     bank_id: str,
     user_id: str,
-    required_scope_tags: List[str],
-    required_filter_tags: Optional[List[str]],
+    required_scope_tags: list[str],
+    required_filter_tags: list[str] | None,
     include_shared: bool,
-    non_private_visibility_tags: Optional[List[str]],
+    non_private_visibility_tags: list[str] | None,
     limit: int,
     offset: int,
 ) -> BuiltQuery:
     conditions = ["d.bank_id = ?", "d.user_id = ?"]
-    params: List[Any] = [bank_id, user_id]
+    params: list[Any] = [bank_id, user_id]
     _apply_scope_filters(
         conditions=conditions,
         params=params,
@@ -262,12 +262,12 @@ def build_scope_category_count_query(
     *,
     bank_id: str,
     user_id: str,
-    required_scope_tags: List[str],
+    required_scope_tags: list[str],
     include_shared: bool,
-    non_private_visibility_tags: Optional[List[str]],
+    non_private_visibility_tags: list[str] | None,
 ) -> BuiltQuery:
     conditions = ["d.bank_id = ?", "d.user_id = ?"]
-    params: List[Any] = [bank_id, user_id]
+    params: list[Any] = [bank_id, user_id]
     _apply_scope_filters(
         conditions=conditions,
         params=params,
@@ -302,14 +302,14 @@ def build_scope_category_count_query(
 
 def _scoped_conditions_and_params(
     *,
-    required_scope_tags: List[str],
-    required_filter_tags: List[str],
+    required_scope_tags: list[str],
+    required_filter_tags: list[str],
     include_shared: bool,
-    non_private_visibility_tags: Optional[List[str]],
-) -> tuple[List[str], List[Any]]:
+    non_private_visibility_tags: list[str] | None,
+) -> tuple[list[str], list[Any]]:
     all_required_tags = [*required_scope_tags, *required_filter_tags]
-    conditions: List[str] = []
-    params: List[Any] = []
+    conditions: list[str] = []
+    params: list[Any] = []
     if all_required_tags:
         conditions.append(required_tags_clause(len(all_required_tags)))
         params.append(encode_tags_json(all_required_tags))
@@ -321,12 +321,12 @@ def _scoped_conditions_and_params(
 
 def _apply_scope_filters(
     *,
-    conditions: List[str],
-    params: List[Any],
-    required_scope_tags: List[str],
-    required_filter_tags: List[str],
+    conditions: list[str],
+    params: list[Any],
+    required_scope_tags: list[str],
+    required_filter_tags: list[str],
     include_shared: bool,
-    non_private_visibility_tags: Optional[List[str]],
+    non_private_visibility_tags: list[str] | None,
 ) -> None:
     scoped_conditions, scoped_params = _scoped_conditions_and_params(
         required_scope_tags=required_scope_tags,

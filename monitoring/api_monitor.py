@@ -20,26 +20,26 @@ Version: 1.0.0
 Date: August 2025
 """
 
+from datetime import datetime, timedelta, timezone
+
 import asyncio
-import json
 import logging
 import statistics
 import time
 from collections import defaultdict, deque
-from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta, timezone
+from collections.abc import Callable
+from dataclasses import dataclass
 from enum import Enum
-from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 import numpy as np
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler('/home/vivi/pixelated/ai/logs/api_monitoring.log'),
+        logging.FileHandler("/home/vivi/pixelated/ai/logs/api_monitoring.log"),
         logging.StreamHandler()
     ]
 )
@@ -73,7 +73,7 @@ class Metric:
     value: float
     metric_type: MetricType
     timestamp: datetime
-    tags: Dict[str, str]
+    tags: dict[str, str]
     unit: str = ""
 
 @dataclass
@@ -86,9 +86,9 @@ class PerformanceMetrics:
     request_size_bytes: int
     response_size_bytes: int
     timestamp: datetime
-    user_id: Optional[str] = None
-    session_id: Optional[str] = None
-    trace_id: Optional[str] = None
+    user_id: str | None = None
+    session_id: str | None = None
+    trace_id: str | None = None
 
 @dataclass
 class ErrorEvent:
@@ -99,9 +99,9 @@ class ErrorEvent:
     stack_trace: str
     endpoint: str
     method: str
-    user_id: Optional[str]
+    user_id: str | None
     timestamp: datetime
-    context: Dict[str, Any]
+    context: dict[str, Any]
     resolved: bool = False
 
 @dataclass
@@ -110,7 +110,7 @@ class BusinessMetrics:
     metric_name: str
     value: float
     timestamp: datetime
-    dimensions: Dict[str, str]
+    dimensions: dict[str, str]
 
 @dataclass
 class Alert:
@@ -130,16 +130,16 @@ class MetricsCollector:
     """Collects and aggregates metrics"""
 
     def __init__(self):
-        self.metrics: List[Metric] = []
-        self.performance_metrics: List[PerformanceMetrics] = []
-        self.error_events: List[ErrorEvent] = []
-        self.business_metrics: List[BusinessMetrics] = []
+        self.metrics: list[Metric] = []
+        self.performance_metrics: list[PerformanceMetrics] = []
+        self.error_events: list[ErrorEvent] = []
+        self.business_metrics: list[BusinessMetrics] = []
 
         # Time-series data storage (last 24 hours)
-        self.time_series_data: Dict[str, deque] = defaultdict(lambda: deque(maxlen=1440))  # 1 minute intervals
+        self.time_series_data: dict[str, deque] = defaultdict(lambda: deque(maxlen=1440))  # 1 minute intervals
 
     def record_metric(self, name: str, value: float, metric_type: MetricType,
-                     tags: Dict[str, str] = None, unit: str = ""):
+                     tags: dict[str, str] = None, unit: str = ""):
         """Record a metric"""
         metric = Metric(
             name=name,
@@ -194,7 +194,7 @@ class MetricsCollector:
 
     def record_error(self, error_type: str, error_message: str, stack_trace: str,
                     endpoint: str, method: str, user_id: str = None,
-                    context: Dict[str, Any] = None):
+                    context: dict[str, Any] = None):
         """Record error event"""
         error_event = ErrorEvent(
             error_id=f"error_{int(time.time() * 1000)}",
@@ -219,7 +219,7 @@ class MetricsCollector:
         )
 
     def record_business_metric(self, metric_name: str, value: float,
-                              dimensions: Dict[str, str] = None):
+                              dimensions: dict[str, str] = None):
         """Record business metric"""
         business_metric = BusinessMetrics(
             metric_name=metric_name,
@@ -245,7 +245,7 @@ class PerformanceAnalyzer:
         self.collector = metrics_collector
 
     def get_response_time_percentiles(self, endpoint: str = None,
-                                    time_window_minutes: int = 60) -> Dict[str, float]:
+                                    time_window_minutes: int = 60) -> dict[str, float]:
         """Calculate response time percentiles"""
         cutoff_time = datetime.now(timezone.utc) - timedelta(minutes=time_window_minutes)
 
@@ -303,7 +303,7 @@ class PerformanceAnalyzer:
         return request_count / time_window_minutes
 
     def get_top_errors(self, limit: int = 10,
-                      time_window_minutes: int = 60) -> List[Dict[str, Any]]:
+                      time_window_minutes: int = 60) -> list[dict[str, Any]]:
         """Get most frequent errors"""
         cutoff_time = datetime.now(timezone.utc) - timedelta(minutes=time_window_minutes)
 
@@ -344,12 +344,12 @@ class AlertManager:
 
     def __init__(self, metrics_collector: MetricsCollector):
         self.collector = metrics_collector
-        self.alerts: List[Alert] = []
-        self.alert_rules: List[Dict[str, Any]] = []
-        self.alert_callbacks: List[Callable] = []
+        self.alerts: list[Alert] = []
+        self.alert_rules: list[dict[str, Any]] = []
+        self.alert_callbacks: list[Callable] = []
 
         # Alert suppression to reduce noise
-        self.alert_suppression: Dict[str, datetime] = {}
+        self.alert_suppression: dict[str, datetime] = {}
         self.suppression_duration = timedelta(minutes=15)
 
     def add_alert_rule(self, metric_name: str, threshold: float,
@@ -384,11 +384,7 @@ class AlertManager:
 
             # Check threshold
             should_alert = False
-            if comparison == "gt" and current_value > threshold:
-                should_alert = True
-            elif comparison == "lt" and current_value < threshold:
-                should_alert = True
-            elif comparison == "eq" and current_value == threshold:
+            if (comparison == "gt" and current_value > threshold) or (comparison == "lt" and current_value < threshold) or (comparison == "eq" and current_value == threshold):
                 should_alert = True
 
             if should_alert:
@@ -422,7 +418,7 @@ class AlertManager:
 
                 logger.warning(f"Alert triggered: {alert.title}")
 
-    def _get_metric_value(self, metric_name: str, time_window_minutes: int) -> Optional[float]:
+    def _get_metric_value(self, metric_name: str, time_window_minutes: int) -> float | None:
         """Get current metric value for alert checking"""
         cutoff_time = datetime.now(timezone.utc) - timedelta(minutes=time_window_minutes)
 
@@ -449,7 +445,7 @@ class DashboardGenerator:
         self.collector = metrics_collector
         self.analyzer = performance_analyzer
 
-    def generate_executive_dashboard(self) -> Dict[str, Any]:
+    def generate_executive_dashboard(self) -> dict[str, Any]:
         """Generate executive dashboard with high-level KPIs"""
         current_time = datetime.now(timezone.utc)
 
@@ -490,7 +486,7 @@ class DashboardGenerator:
             }
         }
 
-    def generate_technical_dashboard(self) -> Dict[str, Any]:
+    def generate_technical_dashboard(self) -> dict[str, Any]:
         """Generate technical dashboard with detailed metrics"""
         current_time = datetime.now(timezone.utc)
 
@@ -529,7 +525,7 @@ class DashboardGenerator:
             }
         }
 
-    def generate_business_dashboard(self) -> Dict[str, Any]:
+    def generate_business_dashboard(self) -> dict[str, Any]:
         """Generate business dashboard with business metrics"""
         current_time = datetime.now(timezone.utc)
 
@@ -664,7 +660,7 @@ class APIMonitor:
             if e.timestamp >= cutoff_time
         ]
 
-    def get_monitoring_status(self) -> Dict[str, Any]:
+    def get_monitoring_status(self) -> dict[str, Any]:
         """Get current monitoring system status"""
         return {
             "monitoring_active": self.monitoring_active,
@@ -724,34 +720,34 @@ async def main():
     print("ENTERPRISE API MONITORING SYSTEM")
     print("="*70)
 
-    print(f"\nExecutive Dashboard:")
+    print("\nExecutive Dashboard:")
     print(f"  System Health: {executive_dashboard['kpis']['system_health']}")
     print(f"  Total Users (24h): {executive_dashboard['kpis']['total_users_24h']}")
     print(f"  Total Requests (24h): {executive_dashboard['kpis']['total_requests_24h']}")
     print(f"  Error Rate (1h): {executive_dashboard['kpis']['error_rate_1h']}%")
     print(f"  Avg Response Time (1h): {executive_dashboard['kpis']['avg_response_time_1h']}ms")
 
-    print(f"\nTechnical Dashboard:")
-    perf = technical_dashboard['performance']
+    print("\nTechnical Dashboard:")
+    perf = technical_dashboard["performance"]
     print(f"  Response Time P95: {perf['response_times'].get('p95', 0):.1f}ms")
     print(f"  Error Rate: {perf['error_rate']:.2f}%")
     print(f"  Throughput: {perf['throughput']:.1f} req/min")
     print(f"  Top Errors: {len(technical_dashboard['top_errors'])}")
 
-    print(f"\nBusiness Dashboard:")
+    print("\nBusiness Dashboard:")
     print(f"  Active Users: {business_dashboard['user_engagement']['active_users']}")
     print(f"  Business KPIs: {len(business_dashboard['business_kpis'])}")
 
     # Show monitoring status
     status = monitor.get_monitoring_status()
-    print(f"\nMonitoring Status:")
+    print("\nMonitoring Status:")
     print(f"  Active: {status['monitoring_active']}")
     print(f"  Total Metrics: {status['total_metrics']}")
     print(f"  Performance Metrics: {status['total_performance_metrics']}")
     print(f"  Error Events: {status['total_errors']}")
     print(f"  Alert Rules: {status['alert_rules']}")
 
-    print(f"\n🎯 API MONITORING: ✅ OPERATIONAL")
+    print("\n🎯 API MONITORING: ✅ OPERATIONAL")
     print("Enterprise monitoring and observability platform is active!")
 
     return True

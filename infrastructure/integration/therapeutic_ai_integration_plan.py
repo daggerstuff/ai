@@ -11,9 +11,8 @@ import logging
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List, Optional
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 class DeploymentEnvironment(Enum):
@@ -36,9 +35,9 @@ class IntegrationRequirement:
     name: str
     priority: str  # "critical", "high", "medium", "low"
     description: str
-    technical_specs: Dict
-    compliance_needs: List[str]
-    testing_requirements: List[str]
+    technical_specs: dict
+    compliance_needs: list[str]
+    testing_requirements: list[str]
 
 class TherapeuticAIIntegrationPlanner:
     """Plan post-training integration for therapeutic AI applications"""
@@ -67,7 +66,7 @@ class TherapeuticAIIntegrationPlanner:
             }
         }
 
-    def define_therapeutic_applications(self) -> Dict[TherapeuticApplication, Dict]:
+    def define_therapeutic_applications(self) -> dict[TherapeuticApplication, dict]:
         """Define specific therapeutic applications and their requirements"""
         logger.info("🎯 Defining therapeutic AI applications...")
 
@@ -190,7 +189,7 @@ class TherapeuticAIIntegrationPlanner:
         logger.info(f"✅ Defined {len(applications)} therapeutic applications")
         return applications
 
-    def design_api_architecture(self) -> Dict:
+    def design_api_architecture(self) -> dict:
         """Design API architecture for therapeutic AI integration"""
         logger.info("🏗️  Designing API architecture...")
 
@@ -318,7 +317,7 @@ class TherapeuticAIIntegrationPlanner:
         logger.info("✅ API architecture designed")
         return api_architecture
 
-    def plan_safety_systems(self) -> Dict:
+    def plan_safety_systems(self) -> dict:
         """Plan comprehensive safety systems for therapeutic AI"""
         logger.info("🛡️  Planning safety systems...")
 
@@ -418,7 +417,7 @@ class TherapeuticAIIntegrationPlanner:
         logger.info("✅ Safety systems planned")
         return safety_systems
 
-    def design_integration_workflows(self) -> Dict:
+    def design_integration_workflows(self) -> dict:
         """Design integration workflows for different therapeutic applications"""
         logger.info("🔄 Designing integration workflows...")
 
@@ -564,7 +563,7 @@ class TherapeuticAIIntegrationPlanner:
         logger.info("✅ Integration workflows designed")
         return workflows
 
-    def plan_deployment_phases(self) -> Dict:
+    def plan_deployment_phases(self) -> dict:
         """Plan phased deployment strategy for therapeutic AI"""
         logger.info("📅 Planning deployment phases...")
 
@@ -665,7 +664,7 @@ class TherapeuticAIIntegrationPlanner:
         logger.info("✅ Deployment phases planned")
         return deployment_phases
 
-    def generate_integration_roadmap(self) -> Dict:
+    def generate_integration_roadmap(self) -> dict:
         """Generate comprehensive integration roadmap"""
         logger.info("🗺️  Generating integration roadmap...")
 
@@ -754,11 +753,11 @@ class TherapeuticAIIntegrationPlanner:
         logger.info("✅ Integration roadmap generated")
         return roadmap
 
-    def save_integration_plan(self, roadmap: Dict) -> Path:
+    def save_integration_plan(self, roadmap: dict) -> Path:
         """Save complete integration plan to file"""
         plan_path = self.integration_workspace / "therapeutic_ai_integration_roadmap.json"
 
-        with open(plan_path, 'w', encoding='utf-8') as f:
+        with open(plan_path, "w", encoding="utf-8") as f:
             json.dump(roadmap, f, indent=2, ensure_ascii=False)
 
         logger.info(f"📄 Integration roadmap saved: {plan_path}")

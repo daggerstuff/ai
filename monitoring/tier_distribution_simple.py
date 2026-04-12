@@ -4,12 +4,13 @@ Simple Tier Distribution Analysis and Optimization System
 Analyzes tier distribution patterns and provides optimization recommendations
 """
 
+from datetime import datetime, timezone
+
 import json
 import sqlite3
 import warnings
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -27,7 +28,7 @@ class SimpleTierDistributionOptimizer:
         self.output_dir = Path("monitoring/tier_optimization")
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
-    def analyze_tier_distribution(self) -> Dict[str, Any]:
+    def analyze_tier_distribution(self) -> dict[str, Any]:
         """Analyze tier distribution"""
         print("📊 Analyzing tier distribution patterns...")
 
@@ -108,7 +109,7 @@ class SimpleTierDistributionOptimizer:
             print(f"❌ Error analyzing tier distribution: {e}")
             return {}
 
-    def _generate_recommendations(self, tier_summary: pd.DataFrame) -> List[str]:
+    def _generate_recommendations(self, tier_summary: pd.DataFrame) -> list[str]:
         """Generate optimization recommendations"""
         recommendations = []
 
@@ -167,7 +168,7 @@ class SimpleTierDistributionOptimizer:
             print(f"❌ Error generating recommendations: {e}")
             return ["Error generating recommendations"]
 
-    def _generate_quality_insights(self, tier_summary: pd.DataFrame) -> List[str]:
+    def _generate_quality_insights(self, tier_summary: pd.DataFrame) -> list[str]:
         """Generate quality insights"""
         insights = []
 
@@ -203,7 +204,7 @@ class SimpleTierDistributionOptimizer:
             print(f"❌ Error generating quality insights: {e}")
             return ["Error generating insights"]
 
-    def create_visualizations(self, analysis_results: Dict[str, Any]) -> Dict[str, str]:
+    def create_visualizations(self, analysis_results: dict[str, Any]) -> dict[str, str]:
         """Create tier distribution visualizations"""
         print("📈 Creating tier distribution visualizations...")
 
@@ -310,19 +311,19 @@ class SimpleTierDistributionOptimizer:
             return {}
 
     def export_report(
-        self, analysis_results: Dict[str, Any], visualizations: Dict[str, str]
+        self, analysis_results: dict[str, Any], visualizations: dict[str, str]
     ) -> str:
         """Export tier distribution report"""
         print("📄 Exporting tier distribution report...")
 
         try:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
             report_file = self.output_dir / f"tier_distribution_report_{timestamp}.json"
 
             # Prepare export data
             export_data = {
                 "report_metadata": {
-                    "generated_at": datetime.now().isoformat(),
+                    "generated_at": datetime.now(timezone.utc).isoformat(),
                     "analyzer_version": "1.0.0",
                     "analysis_type": "tier_distribution",
                 },

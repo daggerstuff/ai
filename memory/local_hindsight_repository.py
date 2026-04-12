@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-import json
 import sqlite3
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from .hindsight_local_adapter import normalize_tags
 from .hindsight_local_domain import NON_PRIVATE_VISIBILITY_TAGS, resolve_user_id_from_record
@@ -20,10 +19,10 @@ class LocalHindsightRepository:
         self.db = LocalHindsightDatabase(db_path)
         self.documents = LocalHindsightDocumentStore(self.db)
 
-    def upsert_document(self, **kwargs: Any) -> Dict[str, Any]:
+    def upsert_document(self, **kwargs: Any) -> dict[str, Any]:
         return self.documents.upsert_document(**kwargs)
 
-    def upsert_documents(self, bank_id: str, items: List[Dict[str, Any]]) -> None:
+    def upsert_documents(self, bank_id: str, items: list[dict[str, Any]]) -> None:
         self.documents.upsert_documents(bank_id, items)
 
     def get_document(
@@ -31,8 +30,8 @@ class LocalHindsightRepository:
         bank_id: str,
         document_id: str,
         *,
-        user_id: Optional[str] = None,
-    ) -> Optional[Dict[str, Any]]:
+        user_id: str | None = None,
+    ) -> dict[str, Any] | None:
         return self.documents.get_document(bank_id, document_id, user_id=user_id)
 
     def list_documents(
@@ -41,7 +40,7 @@ class LocalHindsightRepository:
         *,
         limit: int = 100,
         offset: int = 0,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         return self.documents.list_documents(bank_id, limit=limit, offset=offset)
 
     def list_documents_for_user(
@@ -51,7 +50,7 @@ class LocalHindsightRepository:
         user_id: str,
         limit: int = 100,
         offset: int = 0,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         return self.documents.list_documents_for_user(
             bank_id,
             user_id=user_id,
@@ -64,17 +63,17 @@ class LocalHindsightRepository:
         bank_id: str,
         *,
         user_id: str,
-        org_id: Optional[str] = None,
-        project_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        agent_id: Optional[str] = None,
-        run_id: Optional[str] = None,
+        org_id: str | None = None,
+        project_id: str | None = None,
+        session_id: str | None = None,
+        agent_id: str | None = None,
+        run_id: str | None = None,
         include_shared: bool = True,
-        category: Optional[str] = None,
-        tags: Optional[List[str]] = None,
+        category: str | None = None,
+        tags: list[str] | None = None,
         limit: int = 100,
         offset: int = 0,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         return self.documents.list_documents_for_scope(
             bank_id,
             user_id=user_id,
@@ -98,7 +97,7 @@ class LocalHindsightRepository:
         category: str,
         limit: int = 100,
         offset: int = 0,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         return self.documents.list_documents_for_user_by_category(
             bank_id,
             user_id=user_id,
@@ -112,13 +111,13 @@ class LocalHindsightRepository:
         bank_id: str,
         *,
         user_id: str,
-        org_id: Optional[str] = None,
-        project_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        agent_id: Optional[str] = None,
-        run_id: Optional[str] = None,
+        org_id: str | None = None,
+        project_id: str | None = None,
+        session_id: str | None = None,
+        agent_id: str | None = None,
+        run_id: str | None = None,
         include_shared: bool = True,
-    ) -> Dict[str, int]:
+    ) -> dict[str, int]:
         return self.documents.count_documents_by_category_for_scope(
             bank_id,
             user_id=user_id,
@@ -135,16 +134,16 @@ class LocalHindsightRepository:
         bank_id: str,
         document_id: str,
         *,
-        user_id: Optional[str] = None,
+        user_id: str | None = None,
     ) -> bool:
         return self.delete_documents(bank_id, [document_id], user_id=user_id) > 0
 
     def delete_documents(
         self,
         bank_id: str,
-        document_ids: List[str],
+        document_ids: list[str],
         *,
-        user_id: Optional[str] = None,
+        user_id: str | None = None,
     ) -> int:
         return self.documents.delete_documents(bank_id, document_ids, user_id=user_id)
 
@@ -155,10 +154,10 @@ class LocalHindsightRepository:
         bank_id: str,
         query: str,
         fetch_limit: int,
-        normalized_tags: List[str],
-        required_tags: List[str],
+        normalized_tags: list[str],
+        required_tags: list[str],
         tags_match: str,
-    ) -> List[sqlite3.Row]:
+    ) -> list[sqlite3.Row]:
         fts_query = build_fts_query(query)
         if fts_query:
             rows = self._recall_rows_via_fts(
@@ -190,10 +189,10 @@ normalized_tags=normalized_tags,
         bank_id: str,
         fts_query: str,
         fetch_limit: int,
-        normalized_tags: List[str],
-        required_tags: List[str],
+        normalized_tags: list[str],
+        required_tags: list[str],
         tags_match: str,
-    ) -> List[sqlite3.Row]:
+    ) -> list[sqlite3.Row]:
         try:
             return LocalHindsightQueryExecutor.execute_fts_query(
                 conn,
@@ -214,10 +213,10 @@ normalized_tags=normalized_tags,
         bank_id: str,
         query: str,
         fetch_limit: int,
-        normalized_tags: List[str],
-        required_tags: List[str],
+        normalized_tags: list[str],
+        required_tags: list[str],
         tags_match: str,
-    ) -> List[sqlite3.Row]:
+    ) -> list[sqlite3.Row]:
         return LocalHindsightQueryExecutor.execute_like_query(
             conn,
             bank_id=bank_id,
@@ -234,10 +233,10 @@ normalized_tags=normalized_tags,
         *,
         query: str,
         fetch_limit: int,
-        tags: Optional[List[str]] = None,
-        required_tags: Optional[List[str]] = None,
+        tags: list[str] | None = None,
+        required_tags: list[str] | None = None,
         tags_match: str = "any",
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         normalized_tags = normalize_tags(tags)
         normalized_required_tags = normalize_tags(required_tags)
         with self.db.lease() as conn:
@@ -266,13 +265,13 @@ normalized_tags=normalized_tags,
         query: str,
         limit: int,
         offset: int = 0,
-        org_id: Optional[str] = None,
-        project_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        agent_id: Optional[str] = None,
-        run_id: Optional[str] = None,
+        org_id: str | None = None,
+        project_id: str | None = None,
+        session_id: str | None = None,
+        agent_id: str | None = None,
+        run_id: str | None = None,
         include_shared: bool = True,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         with self.db.lease() as conn:
             rows = LocalHindsightQueryExecutor.execute_scoped_search_query(
                 conn,
@@ -300,7 +299,7 @@ normalized_tags=normalized_tags,
     def delete_documents_for_user(self, bank_id: str, *, user_id: str) -> bool:
         return self.documents.delete_documents_for_user(bank_id, user_id=user_id)
 
-    def resolve_user_id(self, record: Dict[str, Any]) -> Optional[str]:
+    def resolve_user_id(self, record: dict[str, Any]) -> str | None:
         return resolve_user_id_from_record(record)
 
     def close(self) -> None:

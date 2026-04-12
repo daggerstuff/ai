@@ -4,6 +4,8 @@ Simple Test for Quality Trend Analysis System (Task 5.6.2.2)
 Tests core functionality without database dependencies.
 """
 
+from datetime import datetime, timezone
+
 import json
 import os
 import sys
@@ -127,7 +129,7 @@ def main():
     report_data = {
         "test_suite": "Quality Trend Analysis System (Simple)",
         "task": "5.6.2.2",
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "results": test_results,
         "success_rate": success_rate,
         "status": "PASSED" if success_rate >= 80 else "FAILED",

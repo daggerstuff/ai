@@ -4,16 +4,18 @@ Quality Validation Progress Tracking System for Pixelated Empathy AI
 Tracks progress of distributed quality validation across multiple workers
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import os
 import sqlite3
 import threading
 from collections import defaultdict
+from collections.abc import Callable
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 # Redis for real-time progress updates
 try:
@@ -64,22 +66,22 @@ class TaskProgress:
     batch_id: str
     file_path: str
     status: TaskStatus
-    worker_id: Optional[str] = None
+    worker_id: str | None = None
     progress_percentage: float = 0.0
-    started_at: Optional[str] = None
-    completed_at: Optional[str] = None
-    error_message: Optional[str] = None
+    started_at: str | None = None
+    completed_at: str | None = None
+    error_message: str | None = None
     retry_count: int = 0
-    estimated_completion: Optional[str] = None
+    estimated_completion: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary"""
         data = asdict(self)
         data["status"] = self.status.value
         return data
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "TaskProgress":
+    def from_dict(cls, data: dict[str, Any]) -> "TaskProgress":
         """Create from dictionary"""
         data["status"] = TaskStatus(data["status"])
         return cls(**data)
@@ -99,18 +101,18 @@ class BatchProgress:
     failed_tasks: int = 0
     cancelled_tasks: int = 0
     progress_percentage: float = 0.0
-    started_at: Optional[str] = None
-    estimated_completion: Optional[str] = None
-    completed_at: Optional[str] = None
+    started_at: str | None = None
+    estimated_completion: str | None = None
+    completed_at: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary"""
         data = asdict(self)
         data["status"] = self.status.value
         return data
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "BatchProgress":
+    def from_dict(cls, data: dict[str, Any]) -> "BatchProgress":
         """Create from dictionary"""
         data["status"] = BatchStatus(data["status"])
         return cls(**data)
@@ -138,12 +140,12 @@ class ProgressTracker:
                 self.redis_client = None
 
         # In-memory cache for fast access
-        self.task_cache: Dict[str, TaskProgress] = {}
-        self.batch_cache: Dict[str, BatchProgress] = {}
+        self.task_cache: dict[str, TaskProgress] = {}
+        self.batch_cache: dict[str, BatchProgress] = {}
         self.lock = threading.Lock()
 
         # Progress update callbacks
-        self.progress_callbacks: List[Callable] = []
+        self.progress_callbacks: list[Callable] = []
 
         # Load existing data from database
         self._load_from_database()
@@ -254,7 +256,7 @@ class ProgressTracker:
             logger.error(f"Failed to load progress data from database: {e}")
 
     def create_batch(
-        self, batch_id: str, batch_name: str, task_ids: List[str]
+        self, batch_id: str, batch_name: str, task_ids: list[str]
     ) -> BatchProgress:
         """Create a new batch for tracking"""
         with self.lock:
@@ -395,7 +397,7 @@ class ProgressTracker:
         # Trigger callbacks
         self._trigger_callbacks("batch_updated", batch_progress)
 
-    def _estimate_completion_time(self, batch_id: str) -> Optional[str]:
+    def _estimate_completion_time(self, batch_id: str) -> str | None:
         """Estimate completion time for a batch"""
         try:
             # Get completed tasks for this batch
@@ -446,25 +448,25 @@ class ProgressTracker:
             logger.warning(f"Failed to estimate completion time: {e}")
             return None
 
-    def get_batch_progress(self, batch_id: str) -> Optional[BatchProgress]:
+    def get_batch_progress(self, batch_id: str) -> BatchProgress | None:
         """Get progress for a specific batch"""
         return self.batch_cache.get(batch_id)
 
-    def get_task_progress(self, task_id: str) -> Optional[TaskProgress]:
+    def get_task_progress(self, task_id: str) -> TaskProgress | None:
         """Get progress for a specific task"""
         return self.task_cache.get(task_id)
 
-    def get_batch_tasks(self, batch_id: str) -> List[TaskProgress]:
+    def get_batch_tasks(self, batch_id: str) -> list[TaskProgress]:
         """Get all tasks for a batch"""
         return [task for task in self.task_cache.values() if task.batch_id == batch_id]
 
-    def get_worker_tasks(self, worker_id: str) -> List[TaskProgress]:
+    def get_worker_tasks(self, worker_id: str) -> list[TaskProgress]:
         """Get all tasks assigned to a worker"""
         return [
             task for task in self.task_cache.values() if task.worker_id == worker_id
         ]
 
-    def get_active_batches(self) -> List[BatchProgress]:
+    def get_active_batches(self) -> list[BatchProgress]:
         """Get all active (non-completed) batches"""
         return [
             batch
@@ -473,7 +475,7 @@ class ProgressTracker:
             not in [BatchStatus.COMPLETED, BatchStatus.FAILED, BatchStatus.CANCELLED]
         ]
 
-    def get_batch_statistics(self, batch_id: str) -> Dict[str, Any]:
+    def get_batch_statistics(self, batch_id: str) -> dict[str, Any]:
         """Get detailed statistics for a batch"""
         batch_progress = self.get_batch_progress(batch_id)
         if not batch_progress:

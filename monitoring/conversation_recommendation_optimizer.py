@@ -12,13 +12,14 @@ Provides intelligent recommendations and optimization strategies:
 - Personalized optimization plans
 """
 
+from datetime import datetime, timezone
+
 import json
 import re
 import sqlite3
 import warnings
 from collections import Counter
-from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -41,7 +42,7 @@ class ConversationRecommendationOptimizer:
         """Connect to the conversations database"""
         return sqlite3.connect(self.db_path)
 
-    def generate_recommendations(self) -> Dict[str, Any]:
+    def generate_recommendations(self) -> dict[str, Any]:
         """Main function for generating conversation recommendations and optimizations"""
         print("🎯 Starting Conversation Recommendation and Optimization...")
 
@@ -95,7 +96,7 @@ class ConversationRecommendationOptimizer:
         )
 
         return {
-            "analysis_timestamp": datetime.now().isoformat(),
+            "analysis_timestamp": datetime.now(timezone.utc).isoformat(),
             "total_conversations": len(conversations),
             "benchmarks": benchmarks,
             "performance_analysis": performance_analysis,
@@ -150,14 +151,13 @@ class ConversationRecommendationOptimizer:
                     else:
                         text_parts.append(str(turn))
                 return "\n".join(text_parts)
-            else:
-                return str(conversations)
+            return str(conversations)
         except:
             return json_str
 
     def _establish_quality_benchmarks(
         self, conversations: pd.DataFrame
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Establish quality benchmarks based on top-performing conversations"""
         print("📏 Establishing quality benchmarks...")
 
@@ -310,8 +310,8 @@ class ConversationRecommendationOptimizer:
         return overall_score
 
     def _analyze_current_performance(
-        self, conversations: pd.DataFrame, benchmarks: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, conversations: pd.DataFrame, benchmarks: dict[str, Any]
+    ) -> dict[str, Any]:
         """Analyze current performance against benchmarks"""
         print("📊 Analyzing current performance...")
 
@@ -407,8 +407,8 @@ class ConversationRecommendationOptimizer:
         return performance_analysis
 
     def _generate_content_recommendations(
-        self, conversations: pd.DataFrame, benchmarks: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, conversations: pd.DataFrame, benchmarks: dict[str, Any]
+    ) -> dict[str, Any]:
         """Generate content optimization recommendations"""
         print("📝 Generating content recommendations...")
 
@@ -482,8 +482,8 @@ class ConversationRecommendationOptimizer:
         return recommendations
 
     def _generate_style_recommendations(
-        self, conversations: pd.DataFrame, benchmarks: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, conversations: pd.DataFrame, benchmarks: dict[str, Any]
+    ) -> dict[str, Any]:
         """Generate style optimization recommendations"""
         print("🎨 Generating style recommendations...")
 
@@ -562,8 +562,8 @@ class ConversationRecommendationOptimizer:
         return recommendations
 
     def _generate_structure_recommendations(
-        self, conversations: pd.DataFrame, benchmarks: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, conversations: pd.DataFrame, benchmarks: dict[str, Any]
+    ) -> dict[str, Any]:
         """Generate structure optimization recommendations"""
         print("🏗️ Generating structure recommendations...")
 
@@ -613,8 +613,8 @@ class ConversationRecommendationOptimizer:
         return recommendations
 
     def _generate_engagement_recommendations(
-        self, conversations: pd.DataFrame, benchmarks: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, conversations: pd.DataFrame, benchmarks: dict[str, Any]
+    ) -> dict[str, Any]:
         """Generate engagement optimization recommendations"""
         print("🎯 Generating engagement recommendations...")
 
@@ -665,8 +665,8 @@ class ConversationRecommendationOptimizer:
         return recommendations
 
     def _generate_quality_improvement_plans(
-        self, conversations: pd.DataFrame, benchmarks: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, conversations: pd.DataFrame, benchmarks: dict[str, Any]
+    ) -> dict[str, Any]:
         """Generate comprehensive quality improvement plans"""
         print("📈 Generating quality improvement plans...")
 
@@ -744,8 +744,8 @@ class ConversationRecommendationOptimizer:
         return improvement_plans
 
     def _generate_personalized_recommendations(
-        self, conversations: pd.DataFrame, benchmarks: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, conversations: pd.DataFrame, benchmarks: dict[str, Any]
+    ) -> dict[str, Any]:
         """Generate personalized recommendations by dataset and tier"""
         print("👤 Generating personalized recommendations...")
 
@@ -837,8 +837,8 @@ class ConversationRecommendationOptimizer:
         return personalized_recs
 
     def _create_optimization_strategies(
-        self, recommendations: Dict[str, Any], performance_analysis: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, recommendations: dict[str, Any], performance_analysis: dict[str, Any]
+    ) -> dict[str, Any]:
         """Create comprehensive optimization strategies"""
         print("🚀 Creating optimization strategies...")
 
@@ -926,8 +926,8 @@ class ConversationRecommendationOptimizer:
         return strategies
 
     def _create_implementation_roadmap(
-        self, optimization_strategies: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, optimization_strategies: dict[str, Any]
+    ) -> dict[str, Any]:
         """Create detailed implementation roadmap"""
         print("🗺️ Creating implementation roadmap...")
 
@@ -995,8 +995,8 @@ class ConversationRecommendationOptimizer:
         return roadmap
 
     def _generate_optimization_insights(
-        self, performance_analysis: Dict[str, Any], recommendations: Dict[str, Any]
-    ) -> List[str]:
+        self, performance_analysis: dict[str, Any], recommendations: dict[str, Any]
+    ) -> list[str]:
         """Generate key insights from optimization analysis"""
         insights = []
 
@@ -1049,7 +1049,7 @@ class ConversationRecommendationOptimizer:
 
         return insights
 
-    def _define_success_metrics(self, benchmarks: Dict[str, Any]) -> Dict[str, Any]:
+    def _define_success_metrics(self, benchmarks: dict[str, Any]) -> dict[str, Any]:
         """Define success metrics for optimization efforts"""
         return {
             "quality_metrics": {
@@ -1075,9 +1075,9 @@ class ConversationRecommendationOptimizer:
 
     def _create_recommendation_visualizations(
         self,
-        performance_analysis: Dict[str, Any],
-        recommendations: Dict[str, Any],
-        benchmarks: Dict[str, Any],
+        performance_analysis: dict[str, Any],
+        recommendations: dict[str, Any],
+        benchmarks: dict[str, Any],
     ):
         """Create visualizations for recommendations and optimization"""
         print("📊 Creating recommendation visualizations...")
@@ -1267,7 +1267,7 @@ class ConversationRecommendationOptimizer:
         plt.tight_layout()
 
         # Save the plot
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         plt.savefig(
             f"/home/vivi/pixelated/ai/monitoring/recommendation_optimization_{timestamp}.png",
             dpi=300,
@@ -1281,8 +1281,8 @@ class ConversationRecommendationOptimizer:
 
     # Helper methods
     def _analyze_performance_distribution(
-        self, conversations: pd.DataFrame, benchmarks: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, conversations: pd.DataFrame, benchmarks: dict[str, Any]
+    ) -> dict[str, Any]:
         """Analyze the distribution of performance levels"""
         quality_scores = [
             self._calculate_conversation_quality_score(conv)
@@ -1311,7 +1311,7 @@ class ConversationRecommendationOptimizer:
         }
         return descriptions.get(area, f"Improve {area} by {abs(gap_value):.1f}")
 
-    def _define_phase_success_criteria(self, phase_name: str) -> List[str]:
+    def _define_phase_success_criteria(self, phase_name: str) -> list[str]:
         """Define success criteria for implementation phases"""
         criteria_map = {
             "phase_1_immediate": [
@@ -1350,7 +1350,7 @@ def main():
         results = optimizer.generate_recommendations()
 
         # Save results
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         output_file = f"/home/vivi/pixelated/ai/monitoring/recommendation_optimization_{timestamp}.json"
 
         with open(output_file, "w") as f:
@@ -1405,7 +1405,7 @@ def main():
         return results
 
     except Exception as e:
-        print(f"❌ Error during analysis: {str(e)}")
+        print(f"❌ Error during analysis: {e!s}")
         import traceback
 
         traceback.print_exc()

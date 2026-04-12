@@ -1,5 +1,4 @@
 import logging
-from typing import Optional, Type
 
 from .base import BaseMemoryManager
 from .local_hindsight_manager import LocalHindsightMemoryManager
@@ -17,13 +16,13 @@ class MemoryManagerFactory:
     def __init__(
         self,
         *,
-        provider: Optional[str] = None,
-        local_manager_class: Type[BaseMemoryManager] = LocalHindsightMemoryManager,
+        provider: str | None = None,
+        local_manager_class: type[BaseMemoryManager] = LocalHindsightMemoryManager,
     ) -> None:
         self.provider = provider
         self.local_manager_class = local_manager_class
 
-    def create_manager(self, provider: Optional[str] = None) -> BaseMemoryManager:
+    def create_manager(self, provider: str | None = None) -> BaseMemoryManager:
         """
         Creates a memory manager based on environment configuration.
 

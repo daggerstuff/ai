@@ -4,15 +4,14 @@ Intelligent Alert Grouping Algorithms for Pixelated Empathy AI
 Advanced pattern matching and machine learning-based alert grouping
 """
 
+from datetime import datetime, timedelta, timezone
+
 import asyncio
-import hashlib
-import json
 import logging
 import re
-from collections import Counter, defaultdict
+from collections import defaultdict
 from dataclasses import dataclass
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any
 
 import numpy as np
 from sklearn.cluster import DBSCAN
@@ -27,10 +26,10 @@ logger = logging.getLogger(__name__)
 class AlertFeatures:
     """Extracted features from an alert for grouping"""
     text_features: np.ndarray
-    categorical_features: Dict[str, str]
-    numerical_features: Dict[str, float]
-    temporal_features: Dict[str, float]
-    pattern_features: Dict[str, Any]
+    categorical_features: dict[str, str]
+    numerical_features: dict[str, float]
+    temporal_features: dict[str, float]
+    pattern_features: dict[str, Any]
 
 class TextPatternExtractor:
     """Extract patterns from alert text for intelligent grouping"""
@@ -38,43 +37,43 @@ class TextPatternExtractor:
     def __init__(self):
         self.common_patterns = [
             # Error patterns
-            (r'error\s+code\s*:?\s*(\d+)', 'error_code'),
-            (r'exception\s*:?\s*([A-Za-z][A-Za-z0-9_]*Exception)', 'exception_type'),
-            (r'failed\s+to\s+([a-z_]+)', 'failure_action'),
-            (r'timeout\s+(?:after\s+)?(\d+(?:\.\d+)?)\s*(ms|s|seconds?|minutes?)', 'timeout_duration'),
+            (r"error\s+code\s*:?\s*(\d+)", "error_code"),
+            (r"exception\s*:?\s*([A-Za-z][A-Za-z0-9_]*Exception)", "exception_type"),
+            (r"failed\s+to\s+([a-z_]+)", "failure_action"),
+            (r"timeout\s+(?:after\s+)?(\d+(?:\.\d+)?)\s*(ms|s|seconds?|minutes?)", "timeout_duration"),
 
             # Resource patterns
-            (r'cpu\s+usage\s*:?\s*(\d+(?:\.\d+)?)%?', 'cpu_usage'),
-            (r'memory\s+usage\s*:?\s*(\d+(?:\.\d+)?)%?', 'memory_usage'),
-            (r'disk\s+usage\s*:?\s*(\d+(?:\.\d+)?)%?', 'disk_usage'),
-            (r'(\d+(?:\.\d+)?)\s*%\s+(?:cpu|memory|disk)', 'resource_percentage'),
+            (r"cpu\s+usage\s*:?\s*(\d+(?:\.\d+)?)%?", "cpu_usage"),
+            (r"memory\s+usage\s*:?\s*(\d+(?:\.\d+)?)%?", "memory_usage"),
+            (r"disk\s+usage\s*:?\s*(\d+(?:\.\d+)?)%?", "disk_usage"),
+            (r"(\d+(?:\.\d+)?)\s*%\s+(?:cpu|memory|disk)", "resource_percentage"),
 
             # Network patterns
-            (r'connection\s+(?:to\s+)?([a-zA-Z0-9.-]+)(?:\s+port\s+(\d+))?\s+(?:failed|refused|timeout)', 'connection_target'),
-            (r'(\d+\.\d+\.\d+\.\d+)(?::(\d+))?', 'ip_address'),
-            (r'status\s+code\s*:?\s*(\d{3})', 'http_status'),
+            (r"connection\s+(?:to\s+)?([a-zA-Z0-9.-]+)(?:\s+port\s+(\d+))?\s+(?:failed|refused|timeout)", "connection_target"),
+            (r"(\d+\.\d+\.\d+\.\d+)(?::(\d+))?", "ip_address"),
+            (r"status\s+code\s*:?\s*(\d{3})", "http_status"),
 
             # Service patterns
-            (r'service\s+([a-zA-Z0-9_-]+)\s+(?:is\s+)?(?:down|unavailable|failed)', 'failed_service'),
-            (r'([a-zA-Z0-9_-]+)\s+service\s+(?:is\s+)?(?:down|unavailable|failed)', 'failed_service'),
+            (r"service\s+([a-zA-Z0-9_-]+)\s+(?:is\s+)?(?:down|unavailable|failed)", "failed_service"),
+            (r"([a-zA-Z0-9_-]+)\s+service\s+(?:is\s+)?(?:down|unavailable|failed)", "failed_service"),
 
             # Database patterns
-            (r'database\s+connection\s+(?:to\s+)?([a-zA-Z0-9_-]+)\s+failed', 'db_connection_target'),
-            (r'query\s+timeout\s+(?:after\s+)?(\d+(?:\.\d+)?)\s*(ms|s|seconds?)', 'query_timeout'),
+            (r"database\s+connection\s+(?:to\s+)?([a-zA-Z0-9_-]+)\s+failed", "db_connection_target"),
+            (r"query\s+timeout\s+(?:after\s+)?(\d+(?:\.\d+)?)\s*(ms|s|seconds?)", "query_timeout"),
 
             # Queue patterns
-            (r'queue\s+([a-zA-Z0-9_-]+)\s+(?:has\s+)?(\d+)\s+(?:pending\s+)?(?:items?|messages?)', 'queue_info'),
-            (r'(\d+)\s+(?:items?|messages?)\s+(?:in\s+)?queue', 'queue_size'),
+            (r"queue\s+([a-zA-Z0-9_-]+)\s+(?:has\s+)?(\d+)\s+(?:pending\s+)?(?:items?|messages?)", "queue_info"),
+            (r"(\d+)\s+(?:items?|messages?)\s+(?:in\s+)?queue", "queue_size"),
         ]
 
         self.severity_keywords = {
-            'critical': ['critical', 'fatal', 'emergency', 'disaster'],
-            'high': ['error', 'failed', 'failure', 'exception', 'crash'],
-            'medium': ['warning', 'warn', 'degraded', 'slow', 'timeout'],
-            'low': ['info', 'notice', 'debug', 'trace']
+            "critical": ["critical", "fatal", "emergency", "disaster"],
+            "high": ["error", "failed", "failure", "exception", "crash"],
+            "medium": ["warning", "warn", "degraded", "slow", "timeout"],
+            "low": ["info", "notice", "debug", "trace"]
         }
 
-    def extract_patterns(self, text: str) -> Dict[str, Any]:
+    def extract_patterns(self, text: str) -> dict[str, Any]:
         """Extract patterns from alert text"""
         if not text:
             return {}
@@ -94,23 +93,23 @@ class TextPatternExtractor:
         # Extract severity indicators
         for severity, keywords in self.severity_keywords.items():
             if any(keyword in text_lower for keyword in keywords):
-                patterns['inferred_severity'] = severity
+                patterns["inferred_severity"] = severity
                 break
 
         # Extract numeric values
-        numbers = re.findall(r'\d+(?:\.\d+)?', text)
+        numbers = re.findall(r"\d+(?:\.\d+)?", text)
         if numbers:
-            patterns['numeric_values'] = [float(n) for n in numbers[:5]]  # Limit to first 5
+            patterns["numeric_values"] = [float(n) for n in numbers[:5]]  # Limit to first 5
 
         # Extract identifiers (UUIDs, hashes, etc.)
-        uuids = re.findall(r'\b[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\b', text_lower)
+        uuids = re.findall(r"\b[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\b", text_lower)
         if uuids:
-            patterns['has_uuid'] = True
+            patterns["has_uuid"] = True
 
         # Extract timestamps
-        timestamps = re.findall(r'\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}:\d{2}', text)
+        timestamps = re.findall(r"\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}:\d{2}", text)
         if timestamps:
-            patterns['has_timestamp'] = True
+            patterns["has_timestamp"] = True
 
         return patterns
 
@@ -120,14 +119,14 @@ class AlertFeatureExtractor:
     def __init__(self):
         self.text_vectorizer = TfidfVectorizer(
             max_features=1000,
-            stop_words='english',
+            stop_words="english",
             ngram_range=(1, 2),
             min_df=2
         )
         self.pattern_extractor = TextPatternExtractor()
         self.fitted = False
 
-    def fit(self, alerts: List[Dict[str, Any]]):
+    def fit(self, alerts: list[dict[str, Any]]):
         """Fit the feature extractor on a collection of alerts"""
         # Extract text content for TF-IDF fitting
         texts = []
@@ -140,7 +139,7 @@ class AlertFeatureExtractor:
             self.fitted = True
             logger.info(f"Fitted feature extractor on {len(alerts)} alerts")
 
-    def extract_features(self, alert: Dict[str, Any]) -> AlertFeatures:
+    def extract_features(self, alert: dict[str, Any]) -> AlertFeatures:
         """Extract comprehensive features from an alert"""
 
         # Text features
@@ -152,39 +151,37 @@ class AlertFeatureExtractor:
 
         # Categorical features
         categorical_features = {
-            'source': alert.get('source', 'unknown'),
-            'alert_type': alert.get('alert_type', alert.get('title', 'unknown')),
-            'priority': alert.get('priority', alert.get('severity', 'medium')),
-            'service': alert.get('metadata', {}).get('service_name',
-                      alert.get('metadata', {}).get('service', 'unknown'))
+            "source": alert.get("source", "unknown"),
+            "alert_type": alert.get("alert_type", alert.get("title", "unknown")),
+            "priority": alert.get("priority", alert.get("severity", "medium")),
+            "service": alert.get("metadata", {}).get("service_name",
+                      alert.get("metadata", {}).get("service", "unknown"))
         }
 
         # Numerical features
         numerical_features = {}
-        metadata = alert.get('metadata', {})
+        metadata = alert.get("metadata", {})
 
         # Extract numerical values from metadata
         for key, value in metadata.items():
-            if isinstance(value, (int, float)):
-                numerical_features[key] = float(value)
-            elif isinstance(value, str) and value.replace('.', '').isdigit():
+            if isinstance(value, (int, float)) or (isinstance(value, str) and value.replace(".", "").isdigit()):
                 numerical_features[key] = float(value)
 
         # Temporal features
-        timestamp = alert.get('timestamp', datetime.utcnow())
+        timestamp = alert.get("timestamp", datetime.now(timezone.utc))
         if isinstance(timestamp, str):
-            timestamp = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+            timestamp = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
 
         temporal_features = {
-            'hour_of_day': timestamp.hour,
-            'day_of_week': timestamp.weekday(),
-            'is_weekend': timestamp.weekday() >= 5,
-            'is_business_hours': 9 <= timestamp.hour <= 17
+            "hour_of_day": timestamp.hour,
+            "day_of_week": timestamp.weekday(),
+            "is_weekend": timestamp.weekday() >= 5,
+            "is_business_hours": 9 <= timestamp.hour <= 17
         }
 
         # Pattern features
-        message = alert.get('message', '')
-        title = alert.get('title', '')
+        message = alert.get("message", "")
+        title = alert.get("title", "")
         full_text = f"{title} {message}"
 
         pattern_features = self.pattern_extractor.extract_patterns(full_text)
@@ -197,27 +194,27 @@ class AlertFeatureExtractor:
             pattern_features=pattern_features
         )
 
-    def _extract_text_content(self, alert: Dict[str, Any]) -> str:
+    def _extract_text_content(self, alert: dict[str, Any]) -> str:
         """Extract text content from alert for TF-IDF processing"""
         parts = []
 
         # Add title/alert_type
-        if 'title' in alert:
-            parts.append(alert['title'])
-        elif 'alert_type' in alert:
-            parts.append(alert['alert_type'])
+        if "title" in alert:
+            parts.append(alert["title"])
+        elif "alert_type" in alert:
+            parts.append(alert["alert_type"])
 
         # Add message
-        if 'message' in alert:
-            parts.append(alert['message'])
+        if "message" in alert:
+            parts.append(alert["message"])
 
         # Add relevant metadata
-        metadata = alert.get('metadata', {})
-        for key in ['description', 'details', 'error_message']:
+        metadata = alert.get("metadata", {})
+        for key in ["description", "details", "error_message"]:
             if key in metadata:
                 parts.append(str(metadata[key]))
 
-        return ' '.join(parts)
+        return " ".join(parts)
 
 class IntelligentGroupingEngine:
     """Main engine for intelligent alert grouping using multiple algorithms"""
@@ -225,23 +222,23 @@ class IntelligentGroupingEngine:
     def __init__(self):
         self.feature_extractor = AlertFeatureExtractor()
         self.grouping_algorithms = {
-            'similarity_clustering': self._similarity_clustering,
-            'pattern_matching': self._pattern_matching,
-            'temporal_clustering': self._temporal_clustering,
-            'hybrid_approach': self._hybrid_approach
+            "similarity_clustering": self._similarity_clustering,
+            "pattern_matching": self._pattern_matching,
+            "temporal_clustering": self._temporal_clustering,
+            "hybrid_approach": self._hybrid_approach
         }
         self.alert_history = []
         self.group_cache = {}
 
-    async def initialize(self, historical_alerts: List[Dict[str, Any]]):
+    async def initialize(self, historical_alerts: list[dict[str, Any]]):
         """Initialize the grouping engine with historical data"""
         if historical_alerts:
             self.alert_history = historical_alerts
             self.feature_extractor.fit(historical_alerts)
             logger.info(f"Initialized grouping engine with {len(historical_alerts)} historical alerts")
 
-    async def suggest_groups(self, alerts: List[Dict[str, Any]],
-                           algorithm: str = 'hybrid_approach') -> List[List[int]]:
+    async def suggest_groups(self, alerts: list[dict[str, Any]],
+                           algorithm: str = "hybrid_approach") -> list[list[int]]:
         """Suggest groupings for a list of alerts"""
 
         if not alerts:
@@ -249,7 +246,7 @@ class IntelligentGroupingEngine:
 
         if algorithm not in self.grouping_algorithms:
             logger.warning(f"Unknown algorithm '{algorithm}', using hybrid_approach")
-            algorithm = 'hybrid_approach'
+            algorithm = "hybrid_approach"
 
         # Extract features for all alerts
         features = []
@@ -264,8 +261,8 @@ class IntelligentGroupingEngine:
         logger.info(f"Grouped {len(alerts)} alerts into {len(groups)} groups using {algorithm}")
         return groups
 
-    async def _similarity_clustering(self, alerts: List[Dict[str, Any]],
-                                   features: List[AlertFeatures]) -> List[List[int]]:
+    async def _similarity_clustering(self, alerts: list[dict[str, Any]],
+                                   features: list[AlertFeatures]) -> list[list[int]]:
         """Group alerts using similarity-based clustering"""
 
         if len(alerts) < 2:
@@ -291,7 +288,7 @@ class IntelligentGroupingEngine:
         clustering = DBSCAN(
             eps=0.3,  # Maximum distance between samples in the same cluster
             min_samples=2,  # Minimum samples in a cluster
-            metric='precomputed'
+            metric="precomputed"
         )
 
         cluster_labels = clustering.fit_predict(distance_matrix)
@@ -306,7 +303,7 @@ class IntelligentGroupingEngine:
 
         return list(groups.values())
 
-    def _calculate_categorical_similarity(self, features: List[AlertFeatures]) -> np.ndarray:
+    def _calculate_categorical_similarity(self, features: list[AlertFeatures]) -> np.ndarray:
         """Calculate similarity matrix based on categorical features"""
 
         n = len(features)
@@ -333,8 +330,8 @@ class IntelligentGroupingEngine:
 
         return similarity_matrix
 
-    async def _pattern_matching(self, alerts: List[Dict[str, Any]],
-                              features: List[AlertFeatures]) -> List[List[int]]:
+    async def _pattern_matching(self, alerts: list[dict[str, Any]],
+                              features: list[AlertFeatures]) -> list[list[int]]:
         """Group alerts using pattern matching"""
 
         groups = defaultdict(list)
@@ -381,24 +378,24 @@ class IntelligentGroupingEngine:
 
         # Add pattern features
         pattern_features = feature.pattern_features
-        if 'error_code' in pattern_features:
+        if "error_code" in pattern_features:
             sig_parts.append(f"err:{pattern_features['error_code']}")
-        if 'exception_type' in pattern_features:
+        if "exception_type" in pattern_features:
             sig_parts.append(f"exc:{pattern_features['exception_type']}")
-        if 'inferred_severity' in pattern_features:
+        if "inferred_severity" in pattern_features:
             sig_parts.append(f"sev:{pattern_features['inferred_severity']}")
 
         # Add temporal context
         temporal = feature.temporal_features
-        if temporal.get('is_business_hours'):
+        if temporal.get("is_business_hours"):
             sig_parts.append("time:business")
         else:
             sig_parts.append("time:off")
 
         return "|".join(sorted(sig_parts))
 
-    def _should_merge_groups(self, group1_features: List[AlertFeatures],
-                           group2_features: List[AlertFeatures]) -> bool:
+    def _should_merge_groups(self, group1_features: list[AlertFeatures],
+                           group2_features: list[AlertFeatures]) -> bool:
         """Determine if two groups should be merged"""
 
         # Sample features from each group
@@ -425,16 +422,16 @@ class IntelligentGroupingEngine:
         # Merge if similarity is high enough
         return categorical_score >= 0.7 and pattern_similarity >= 0.5
 
-    async def _temporal_clustering(self, alerts: List[Dict[str, Any]],
-                                 features: List[AlertFeatures]) -> List[List[int]]:
+    async def _temporal_clustering(self, alerts: list[dict[str, Any]],
+                                 features: list[AlertFeatures]) -> list[list[int]]:
         """Group alerts using temporal clustering"""
 
         # Sort alerts by timestamp
         alert_times = []
         for i, alert in enumerate(alerts):
-            timestamp = alert.get('timestamp', datetime.utcnow())
+            timestamp = alert.get("timestamp", datetime.now(timezone.utc))
             if isinstance(timestamp, str):
-                timestamp = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+                timestamp = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
             alert_times.append((i, timestamp))
 
         alert_times.sort(key=lambda x: x[1])
@@ -475,8 +472,8 @@ class IntelligentGroupingEngine:
 
         return groups
 
-    async def _hybrid_approach(self, alerts: List[Dict[str, Any]],
-                             features: List[AlertFeatures]) -> List[List[int]]:
+    async def _hybrid_approach(self, alerts: list[dict[str, Any]],
+                             features: list[AlertFeatures]) -> list[list[int]]:
         """Hybrid approach combining multiple grouping strategies"""
 
         # Start with similarity clustering
@@ -520,8 +517,8 @@ class IntelligentGroupingEngine:
 
         return final_groups
 
-    async def evaluate_grouping_quality(self, alerts: List[Dict[str, Any]],
-                                      groups: List[List[int]]) -> Dict[str, float]:
+    async def evaluate_grouping_quality(self, alerts: list[dict[str, Any]],
+                                      groups: list[list[int]]) -> dict[str, float]:
         """Evaluate the quality of alert grouping"""
 
         if not groups or not alerts:
@@ -630,7 +627,7 @@ async def example_usage():
     await engine.initialize(test_alerts[:3])
 
     # Test different grouping algorithms
-    algorithms = ['similarity_clustering', 'pattern_matching', 'temporal_clustering', 'hybrid_approach']
+    algorithms = ["similarity_clustering", "pattern_matching", "temporal_clustering", "hybrid_approach"]
 
     for algorithm in algorithms:
         print(f"\n=== {algorithm.upper()} ===")

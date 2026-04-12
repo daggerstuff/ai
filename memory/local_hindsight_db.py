@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import sqlite3
 import threading
+from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
 from queue import Empty, LifoQueue
-from typing import Iterator
 
 from .local_hindsight_schema import LocalHindsightSchemaManager
 
@@ -45,9 +45,8 @@ class LocalHindsightDatabase:
                 conn.close()
 
     def ensure_schema(self) -> None:
-        with self._schema_lock:
-            with self.lease() as conn:
-                LocalHindsightSchemaManager.ensure_schema(conn)
+        with self._schema_lock, self.lease() as conn:
+            LocalHindsightSchemaManager.ensure_schema(conn)
 
     def health_details(self) -> dict[str, object]:
         conn = self._create_connection()

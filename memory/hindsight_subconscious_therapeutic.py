@@ -13,11 +13,6 @@ Extends the base Subconscious agent with therapeutic training capabilities:
 
 import logging
 import re
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
-
-from ai.memory.hindsight_subconscious import MemoryBlock, SubconsciousAgent
 
 logger = logging.getLogger("therapeutic_subconscious")
 

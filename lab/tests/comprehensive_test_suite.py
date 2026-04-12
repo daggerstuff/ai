@@ -16,13 +16,14 @@ Includes:
 - 5.7.1.10: Deployment and production readiness tests
 """
 
+from datetime import datetime, timezone
+
 import json
 import os
 import sqlite3
 import tempfile
 import unittest
 import warnings
-from datetime import datetime
 
 import pandas as pd
 
@@ -106,7 +107,7 @@ class TestErrorHandlingRecovery(unittest.TestCase):
                     return result, None
                 except Exception as e:
                     if attempt == max_retries - 1:
-                        return None, f"Failed after {max_retries} attempts: {str(e)}"
+                        return None, f"Failed after {max_retries} attempts: {e!s}"
                     continue
             return None, "Unexpected error"
 
@@ -262,11 +263,11 @@ class TestExportFormatValidation(unittest.TestCase):
                 return True, "Valid JSON export"
 
             except Exception as e:
-                return False, f"JSON export error: {str(e)}"
+                return False, f"JSON export error: {e!s}"
 
         # Test valid JSON export
         test_data = {
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "data": {"conversations": 100, "quality_score": 75.5},
             "metadata": {"version": "1.0", "source": "test"},
         }

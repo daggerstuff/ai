@@ -4,17 +4,15 @@ Quality Validation Caching System for Pixelated Empathy AI
 Implements caching to avoid reprocessing quality validations
 """
 
+from datetime import datetime, timedelta, timezone
+
 import hashlib
 import json
 import logging
 import os
-import pickle
-import sys
-import time
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 
 # Redis for distributed caching
 try:
@@ -28,7 +26,7 @@ except ImportError:
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -43,12 +41,12 @@ class CacheEntry:
     expires_at: str
     hit_count: int = 0
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary"""
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'CacheEntry':
+    def from_dict(cls, data: dict[str, Any]) -> "CacheEntry":
         """Create from dictionary"""
         return cls(**data)
 
@@ -57,7 +55,7 @@ class QualityValidationCache:
     """Caching system for quality validation results"""
 
     def __init__(self, redis_url: str = None, cache_ttl: int = 86400):  # 24 hours default
-        self.redis_url = redis_url or os.getenv('REDIS_URL', 'redis://localhost:6379/1')
+        self.redis_url = redis_url or os.getenv("REDIS_URL", "redis://localhost:6379/1")
         self.cache_ttl = cache_ttl
 
         # Initialize Redis connection
@@ -72,20 +70,20 @@ class QualityValidationCache:
                 self.redis_client = None
 
         # Local cache directory
-        self.cache_dir = Path.home() / '.pixelated' / 'quality_cache'
+        self.cache_dir = Path.home() / ".pixelated" / "quality_cache"
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 
         # In-memory cache for frequently accessed items
-        self.memory_cache: Dict[str, Tuple[bytes, datetime]] = {}
+        self.memory_cache: dict[str, tuple[bytes, datetime]] = {}
         self.memory_cache_max_size = 1000
 
         logger.info("Quality validation cache initialized")
 
-    def _calculate_data_hash(self, data_path: str, metadata: Dict[str, Any]) -> str:
+    def _calculate_data_hash(self, data_path: str, metadata: dict[str, Any]) -> str:
         """Calculate hash of data and metadata for cache key"""
         # Hash the file content
         try:
-            with open(data_path, 'rb') as f:
+            with open(data_path, "rb") as f:
                 content_hash = hashlib.md5(f.read()).hexdigest()
         except Exception as e:
             logger.warning(f"Could not hash file {data_path}: {e}")
@@ -104,7 +102,7 @@ class QualityValidationCache:
         return f"quality_val:{validation_type}:{data_hash}"
 
     def get_cached_result(self, data_path: str, validation_type: str,
-                         metadata: Dict[str, Any]) -> Optional[bytes]:
+                         metadata: dict[str, Any]) -> bytes | None:
         """Get cached validation result"""
         data_hash = self._calculate_data_hash(data_path, metadata)
         cache_key = self._generate_cache_key(data_hash, validation_type)
@@ -112,14 +110,13 @@ class QualityValidationCache:
         # Check memory cache first
         if cache_key in self.memory_cache:
             cached_data, timestamp = self.memory_cache[cache_key]
-            if datetime.now() - timestamp < timedelta(hours=1):  # Memory cache for 1 hour
+            if datetime.now(timezone.utc) - timestamp < timedelta(hours=1):  # Memory cache for 1 hour
                 logger.debug(f"Cache hit (memory): {cache_key}")
                 # Update hit count
-                self.memory_cache[cache_key] = (cached_data, datetime.now())
+                self.memory_cache[cache_key] = (cached_data, datetime.now(timezone.utc))
                 return cached_data
-            else:
-                # Expired, remove from memory cache
-                del self.memory_cache[cache_key]
+            # Expired, remove from memory cache
+            del self.memory_cache[cache_key]
 
         # Check Redis cache
         if self.redis_client:
@@ -129,7 +126,7 @@ class QualityValidationCache:
                     logger.debug(f"Cache hit (Redis): {cache_key}")
                     # Add to memory cache
                     if len(self.memory_cache) < self.memory_cache_max_size:
-                        self.memory_cache[cache_key] = (cached_data, datetime.now())
+                        self.memory_cache[cache_key] = (cached_data, datetime.now(timezone.utc))
                     return cached_data
             except Exception as e:
                 logger.warning(f"Redis cache get failed: {e}")
@@ -139,27 +136,26 @@ class QualityValidationCache:
         if cache_file.exists():
             try:
                 # Check if file is expired
-                file_age = datetime.now() - datetime.fromtimestamp(cache_file.stat().st_mtime)
+                file_age = datetime.now(timezone.utc) - datetime.fromtimestamp(cache_file.stat().st_mtime)
                 if file_age < timedelta(seconds=self.cache_ttl):
-                    with open(cache_file, 'rb') as f:
+                    with open(cache_file, "rb") as f:
                         cached_data = f.read()
 
                     logger.debug(f"Cache hit (file): {cache_key}")
                     # Add to memory cache
                     if len(self.memory_cache) < self.memory_cache_max_size:
-                        self.memory_cache[cache_key] = (cached_data, datetime.now())
+                        self.memory_cache[cache_key] = (cached_data, datetime.now(timezone.utc))
                     return cached_data
-                else:
-                    # Expired, remove file
-                    cache_file.unlink()
-                    logger.debug(f"Cache expired (file): {cache_key}")
+                # Expired, remove file
+                cache_file.unlink()
+                logger.debug(f"Cache expired (file): {cache_key}")
             except Exception as e:
                 logger.warning(f"File cache get failed: {e}")
 
         logger.debug(f"Cache miss: {cache_key}")
         return None
 
-    def cache_result(self, data_path: str, validation_type: str, metadata: Dict[str, Any],
+    def cache_result(self, data_path: str, validation_type: str, metadata: dict[str, Any],
                     result_data: bytes) -> bool:
         """Cache validation result"""
         try:
@@ -168,7 +164,7 @@ class QualityValidationCache:
 
             # Store in memory cache
             if len(self.memory_cache) < self.memory_cache_max_size:
-                self.memory_cache[cache_key] = (result_data, datetime.now())
+                self.memory_cache[cache_key] = (result_data, datetime.now(timezone.utc))
 
             # Store in Redis cache
             if self.redis_client:
@@ -185,7 +181,7 @@ class QualityValidationCache:
             # Store in file cache
             cache_file = self.cache_dir / f"{cache_key}.pkl"
             try:
-                with open(cache_file, 'wb') as f:
+                with open(cache_file, "wb") as f:
                     f.write(result_data)
                 # Set file modification time to control expiration
                 os.utime(cache_file, None)
@@ -240,7 +236,6 @@ class QualityValidationCache:
                         logger.warning(f"Redis cache clear failed: {e}")
 
                 # Clear file cache
-                import shutil
                 if self.cache_dir.exists():
                     for cache_file in self.cache_dir.glob("*.pkl"):
                         try:
@@ -256,28 +251,28 @@ class QualityValidationCache:
             logger.error(f"Failed to invalidate cache: {e}")
             return False
 
-    def get_cache_statistics(self) -> Dict[str, Any]:
+    def get_cache_statistics(self) -> dict[str, Any]:
         """Get cache statistics"""
         stats = {
-            'memory_cache_size': len(self.memory_cache),
-            'memory_cache_max_size': self.memory_cache_max_size,
-            'file_cache_entries': len(list(self.cache_dir.glob("*.pkl"))),
-            'redis_available': self.redis_client is not None
+            "memory_cache_size": len(self.memory_cache),
+            "memory_cache_max_size": self.memory_cache_max_size,
+            "file_cache_entries": len(list(self.cache_dir.glob("*.pkl"))),
+            "redis_available": self.redis_client is not None
         }
 
         if self.redis_client:
             try:
-                stats['redis_cache_entries'] = self.redis_client.dbsize()
+                stats["redis_cache_entries"] = self.redis_client.dbsize()
             except Exception as e:
                 logger.warning(f"Could not get Redis cache size: {e}")
-                stats['redis_cache_entries'] = 0
+                stats["redis_cache_entries"] = 0
 
         return stats
 
     def cleanup_expired_cache(self) -> int:
         """Clean up expired file cache entries"""
         cleaned_count = 0
-        current_time = datetime.now()
+        current_time = datetime.now(timezone.utc)
 
         try:
             for cache_file in self.cache_dir.glob("*.pkl"):
@@ -310,7 +305,7 @@ class CachedQualityValidator:
         logger.info("Cached quality validator initialized")
 
     def validate_with_cache(self, data_path: str, validation_type: str,
-                          metadata: Dict[str, Any] = None) -> Tuple[bool, Optional[bytes]]:
+                          metadata: dict[str, Any] = None) -> tuple[bool, bytes | None]:
         """Validate with caching"""
         metadata = metadata or {}
 
@@ -323,7 +318,7 @@ class CachedQualityValidator:
         return False, None
 
     def cache_validation_result(self, data_path: str, validation_type: str,
-                              metadata: Dict[str, Any], result_data: bytes) -> bool:
+                              metadata: dict[str, Any], result_data: bytes) -> bool:
         """Cache validation result"""
         return self.cache.cache_result(data_path, validation_type, metadata, result_data)
 
@@ -333,20 +328,20 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(description="Quality Validation Caching System")
-    parser.add_argument('--redis-url', help="Redis URL for caching")
+    parser.add_argument("--redis-url", help="Redis URL for caching")
 
-    subparsers = parser.add_subparsers(dest='command', help='Available commands')
+    subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # Cache stats command
-    stats_parser = subparsers.add_parser('stats', help='Show cache statistics')
+    stats_parser = subparsers.add_parser("stats", help="Show cache statistics")
 
     # Cleanup command
-    cleanup_parser = subparsers.add_parser('cleanup', help='Clean up expired cache entries')
+    cleanup_parser = subparsers.add_parser("cleanup", help="Clean up expired cache entries")
 
     # Invalidate command
-    invalidate_parser = subparsers.add_parser('invalidate', help='Invalidate cache entries')
-    invalidate_parser.add_argument('--data-path', help='Specific data path to invalidate')
-    invalidate_parser.add_argument('--type', help='Specific validation type to invalidate')
+    invalidate_parser = subparsers.add_parser("invalidate", help="Invalidate cache entries")
+    invalidate_parser.add_argument("--data-path", help="Specific data path to invalidate")
+    invalidate_parser.add_argument("--type", help="Specific validation type to invalidate")
 
     args = parser.parse_args()
 
@@ -358,15 +353,15 @@ def main():
     cache = QualityValidationCache(args.redis_url)
 
     try:
-        if args.command == 'stats':
+        if args.command == "stats":
             stats = cache.get_cache_statistics()
             print(json.dumps(stats, indent=2))
 
-        elif args.command == 'cleanup':
+        elif args.command == "cleanup":
             cleaned = cache.cleanup_expired_cache()
             print(f"Cleaned up {cleaned} expired cache entries")
 
-        elif args.command == 'invalidate':
+        elif args.command == "invalidate":
             if args.data_path and args.type:
                 success = cache.invalidate_cache(args.data_path, args.type)
                 if success:
@@ -384,5 +379,5 @@ def main():
         cache.close()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

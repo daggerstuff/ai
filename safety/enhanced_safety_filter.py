@@ -3,19 +3,18 @@ Enhanced safety and content filtering system for Pixelated Empathy AI project.
 Ensures all inference outputs pass rigorous safety checks before being returned.
 """
 
-import hashlib
-import json
+from datetime import datetime, timezone
+
+
 import logging
 import re
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
-import numpy as np
 import torch
-from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipeline
+from transformers import pipeline
 
 logger = logging.getLogger(__name__)
 
@@ -45,25 +44,25 @@ class SafetyCheckResult:
     """Result of a safety check"""
     is_safe: bool
     overall_score: float  # 0.0 to 1.0, where 1.0 is completely safe
-    category_scores: Dict[SafetyCategory, float]
-    flagged_categories: List[SafetyCategory]
+    category_scores: dict[SafetyCategory, float]
+    flagged_categories: list[SafetyCategory]
     confidence: float  # Confidence in the safety assessment
     explanation: str
-    filtered_content: Optional[str] = None
-    redacted_sections: Optional[List[Dict[str, Any]]] = None
-    timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    filtered_content: str | None = None
+    redacted_sections: list[dict[str, Any]] | None = None
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
 @dataclass
 class CrisisDetectionResult:
     """Result of crisis detection"""
     is_crisis: bool
-    crisis_type: Optional[str]
+    crisis_type: str | None
     confidence: float
     urgency_level: str  # low, medium, high, immediate
     recommended_action: str
-    resources: Optional[List[str]] = None
-    timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    resources: list[str] | None = None
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
 class EnhancedSafetyFilter:
@@ -112,68 +111,68 @@ class EnhancedSafetyFilter:
             self.logger.warning(f"Could not load bias classifier: {e}")
             self.bias_classifier = None
 
-    def _initialize_crisis_patterns(self) -> Dict[str, List[str]]:
+    def _initialize_crisis_patterns(self) -> dict[str, list[str]]:
         """Initialize crisis detection patterns"""
         return {
-            'suicide': [
-                r'\bkill myself\b', r'\bsuicide\b', r'\bharm myself\b', r'\bend it all\b',
-                r'\bnot want to live\b', r'\boverdose\b', r'\bcut\b', r'\bhurt myself\b',
-                r'\bself-harm\b', r'\bself injury\b', r'\bhanging\b', r'\bjump off\b'
+            "suicide": [
+                r"\bkill myself\b", r"\bsuicide\b", r"\bharm myself\b", r"\bend it all\b",
+                r"\bnot want to live\b", r"\boverdose\b", r"\bcut\b", r"\bhurt myself\b",
+                r"\bself-harm\b", r"\bself injury\b", r"\bhanging\b", r"\bjump off\b"
             ],
-            'harm_to_others': [
-                r'\bkill.*[a-z ]*other\b', r'\bhurt.*people\b', r'\bviolence\b', r'\battack\b',
-                r'\bharm.*others\b', r'\bmurder\b', r'\bphysically.*harm\b', r'\bhurt.*someone\b'
+            "harm_to_others": [
+                r"\bkill.*[a-z ]*other\b", r"\bhurt.*people\b", r"\bviolence\b", r"\battack\b",
+                r"\bharm.*others\b", r"\bmurder\b", r"\bphysically.*harm\b", r"\bhurt.*someone\b"
             ],
-            'substance_abuse': [
-                r'\boverdose\b', r'\bdrugs\b', r'\balcohol\b', r'\bsubstance\b',
-                r'\baddiction\b', r'\babuse\b', r'\brehab\b', r'\bdetox\b'
+            "substance_abuse": [
+                r"\boverdose\b", r"\bdrugs\b", r"\balcohol\b", r"\bsubstance\b",
+                r"\baddiction\b", r"\babuse\b", r"\brehab\b", r"\bdetox\b"
             ],
-            'eating_disorders': [
-                r'\banorexia\b', r'\bbulimia\b', r'\beating disorder\b', r'\bpurge\b',
-                r'\bvomit\b', r'\bstomach pump\b', r'\bthin\b', r'\bskinny\b'
+            "eating_disorders": [
+                r"\banorexia\b", r"\bbulimia\b", r"\beating disorder\b", r"\bpurge\b",
+                r"\bvomit\b", r"\bstomach pump\b", r"\bthin\b", r"\bskinny\b"
             ]
         }
 
-    def _initialize_harm_patterns(self) -> Dict[str, List[str]]:
+    def _initialize_harm_patterns(self) -> dict[str, list[str]]:
         """Initialize harm detection patterns"""
         return {
-            'physical_harm': [
-                r'\bhit\b', r'\bpunch\b', r'\bkick\b', r'\bstrike\b',
-                r'\bbeat\b', r'\binjure\b', r'\bhurt\b', r'\bdamage\b'
+            "physical_harm": [
+                r"\bhit\b", r"\bpunch\b", r"\bkick\b", r"\bstrike\b",
+                r"\bbeat\b", r"\binjure\b", r"\bhurt\b", r"\bdamage\b"
             ],
-            'emotional_harm': [
-                r'\bhurt feelings\b', r'\bemotional abuse\b', r'\bmanipulat\b',
-                r'\bgaslight\b', r'\bcontrol\b', r'\bdominat\b', r'\bintimidat\b'
+            "emotional_harm": [
+                r"\bhurt feelings\b", r"\bemotional abuse\b", r"\bmanipulat\b",
+                r"\bgaslight\b", r"\bcontrol\b", r"\bdominat\b", r"\bintimidat\b"
             ],
-            'sexual_harm': [
-                r'\bsexual\b', r'\bharass\b', r'\bgrope\b', r'\btouch\b.*\binappropriate\b',
-                r'\binappropriate contact\b', r'\bnon-consensual\b'
+            "sexual_harm": [
+                r"\bsexual\b", r"\bharass\b", r"\bgrope\b", r"\btouch\b.*\binappropriate\b",
+                r"\binappropriate contact\b", r"\bnon-consensual\b"
             ]
         }
 
-    def _initialize_privacy_patterns(self) -> Dict[str, str]:
+    def _initialize_privacy_patterns(self) -> dict[str, str]:
         """Initialize privacy detection patterns"""
         return {
-            'ssn': r'\b\d{3}-\d{2}-\d{4}\b',
-            'email': r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',
-            'phone': r'\b(?:\+?1[-.\s]?)?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}\b',
-            'address': r'\b\d{1,4} [A-Za-z ]+ [A-Za-z. ]+\b',
-            'credit_card': r'\b(?:\d{4}[-\s]?){3}\d{4}\b|\b\d{16}\b',
-            'medical_record': r'\b[A-Z]{2,3}\d{2,}\b'  # Simplified medical record pattern
+            "ssn": r"\b\d{3}-\d{2}-\d{4}\b",
+            "email": r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b",
+            "phone": r"\b(?:\+?1[-.\s]?)?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}\b",
+            "address": r"\b\d{1,4} [A-Za-z ]+ [A-Za-z. ]+\b",
+            "credit_card": r"\b(?:\d{4}[-\s]?){3}\d{4}\b|\b\d{16}\b",
+            "medical_record": r"\b[A-Z]{2,3}\d{2,}\b"  # Simplified medical record pattern
         }
 
-    def _initialize_inappropriate_patterns(self) -> List[str]:
+    def _initialize_inappropriate_patterns(self) -> list[str]:
         """Initialize inappropriate content patterns"""
         return [
-            r'\bexplicit\b', r'\bporn\b', r'\badult content\b', r'\bnudity\b',
-            r'\bsexual content\b', r'\berotic\b', r'\bxxx\b', r'\badult\b',
-            r'\bviolence\b.*\bdetail\b', r'\bgore\b', r'\bgraphic\b.*\bviolence\b'
+            r"\bexplicit\b", r"\bporn\b", r"\badult content\b", r"\bnudity\b",
+            r"\bsexual content\b", r"\berotic\b", r"\bxxx\b", r"\badult\b",
+            r"\bviolence\b.*\bdetail\b", r"\bgore\b", r"\bgraphic\b.*\bviolence\b"
         ]
 
     def check_output_safety(self,
                            content: str,
-                           user_context: Optional[Dict[str, Any]] = None,
-                           request_metadata: Optional[Dict[str, Any]] = None) -> SafetyCheckResult:
+                           user_context: dict[str, Any] | None = None,
+                           request_metadata: dict[str, Any] | None = None) -> SafetyCheckResult:
         """Check safety of model output content"""
         start_time = time.time()
 
@@ -197,7 +196,7 @@ class EnhancedSafetyFilter:
         category_scores[SafetyCategory.CRISIS] = crisis_result.confidence if crisis_result.is_crisis else 0.0
         if crisis_result.is_crisis:
             flagged_categories.append(SafetyCategory.CRISIS)
-            if crisis_result.urgency_level in ['high', 'immediate']:
+            if crisis_result.urgency_level in ["high", "immediate"]:
                 # For high urgency crisis, we must flag regardless of safety level
                 pass
 
@@ -275,7 +274,7 @@ class EnhancedSafetyFilter:
             explanation=explanation,
             filtered_content=filtered_content if not is_safe else None,
             redacted_sections=redacted_sections if redacted_sections else None,
-            timestamp=datetime.utcnow().isoformat()
+            timestamp=datetime.now(timezone.utc).isoformat()
         )
 
         self.logger.debug(f"Safety check completed in {processing_time:.2f}ms - Safe: {is_safe}")
@@ -298,7 +297,7 @@ class EnhancedSafetyFilter:
                     return CrisisDetectionResult(
                         is_crisis=True,
                         crisis_type=crisis_type,
-                        confidence=min(1.0, len(re.findall('|'.join(patterns), content_lower)) * 0.4),
+                        confidence=min(1.0, len(re.findall("|".join(patterns), content_lower)) * 0.4),
                         urgency_level=urgency,
                         recommended_action=recommended_action,
                         resources=resources
@@ -316,62 +315,62 @@ class EnhancedSafetyFilter:
     def _determine_crisis_urgency(self, content: str, crisis_type: str) -> str:
         """Determine the urgency level of a crisis"""
         urgency_indicators = {
-            'immediate': [r'\bnow\b', r'\bimmediately\b', r'\btonight\b', r'\btoday\b'],
-            'high': [r'\bsoon\b', r'\blater\b', r'\btomorrow\b', r'\bthis week\b'],
-            'medium': [r'\bweek\b', r'\bmonth\b', r'\bsoon\b', r'\bplanning\b'],
-            'low': [r'\bthinking\b', r'\bwondering\b', r'\bconsidering\b', r'\bmaybe\b']
+            "immediate": [r"\bnow\b", r"\bimmediately\b", r"\btonight\b", r"\btoday\b"],
+            "high": [r"\bsoon\b", r"\blater\b", r"\btomorrow\b", r"\bthis week\b"],
+            "medium": [r"\bweek\b", r"\bmonth\b", r"\bsoon\b", r"\bplanning\b"],
+            "low": [r"\bthinking\b", r"\bwondering\b", r"\bconsidering\b", r"\bmaybe\b"]
         }
 
-        immediate_matches = sum(1 for pattern in urgency_indicators['immediate'] if re.search(pattern, content, re.IGNORECASE))
+        immediate_matches = sum(1 for pattern in urgency_indicators["immediate"] if re.search(pattern, content, re.IGNORECASE))
         if immediate_matches > 0:
-            return 'immediate'
+            return "immediate"
 
-        high_matches = sum(1 for pattern in urgency_indicators['high'] if re.search(pattern, content, re.IGNORECASE))
+        high_matches = sum(1 for pattern in urgency_indicators["high"] if re.search(pattern, content, re.IGNORECASE))
         if high_matches > 0:
-            return 'high'
+            return "high"
 
-        medium_matches = sum(1 for pattern in urgency_indicators['medium'] if re.search(pattern, content, re.IGNORECASE))
+        medium_matches = sum(1 for pattern in urgency_indicators["medium"] if re.search(pattern, content, re.IGNORECASE))
         if medium_matches > 0:
-            return 'medium'
+            return "medium"
 
-        return 'low'
+        return "low"
 
     def _get_crisis_action(self, crisis_type: str, urgency: str) -> str:
         """Get recommended action for a crisis"""
         actions = {
-            'suicide': {
-                'immediate': 'Contact emergency services immediately',
-                'high': 'Escalate to crisis intervention team',
-                'medium': 'Schedule urgent follow-up',
-                'low': 'Monitor closely and provide resources'
+            "suicide": {
+                "immediate": "Contact emergency services immediately",
+                "high": "Escalate to crisis intervention team",
+                "medium": "Schedule urgent follow-up",
+                "low": "Monitor closely and provide resources"
             },
-            'harm_to_others': {
-                'immediate': 'Contact law enforcement and emergency services',
-                'high': 'Notify authorities and safety team',
-                'medium': 'Increase supervision and monitoring',
-                'low': 'Document and develop prevention plan'
+            "harm_to_others": {
+                "immediate": "Contact law enforcement and emergency services",
+                "high": "Notify authorities and safety team",
+                "medium": "Increase supervision and monitoring",
+                "low": "Document and develop prevention plan"
             }
         }
 
         crisis_actions = actions.get(crisis_type, {})
-        return crisis_actions.get(urgency, 'Continue monitoring and provide support')
+        return crisis_actions.get(urgency, "Continue monitoring and provide support")
 
-    def _get_crisis_resources(self, crisis_type: str) -> List[str]:
+    def _get_crisis_resources(self, crisis_type: str) -> list[str]:
         """Get crisis resources for a specific crisis type"""
         resources = {
-            'suicide': [
-                'National Suicide Prevention Lifeline: 988',
-                'Crisis Text Line: Text HOME to 741741',
-                'Emergency Services: 911'
+            "suicide": [
+                "National Suicide Prevention Lifeline: 988",
+                "Crisis Text Line: Text HOME to 741741",
+                "Emergency Services: 911"
             ],
-            'harm_to_others': [
-                'Law Enforcement: 911',
-                'Local Crisis Center Hotline',
-                'Mental Health Emergency Services'
+            "harm_to_others": [
+                "Law Enforcement: 911",
+                "Local Crisis Center Hotline",
+                "Mental Health Emergency Services"
             ]
         }
 
-        return resources.get(crisis_type, ['Emergency Services: 911'])
+        return resources.get(crisis_type, ["Emergency Services: 911"])
 
     def _check_harm_content(self, content: str) -> float:
         """Check for harmful content"""
@@ -392,17 +391,17 @@ class EnhancedSafetyFilter:
                 result = self.toxicity_classifier(content[:512])  # Limit length for model
                 if result and isinstance(result, list) and len(result) > 0:
                     toxicity_result = result[0]
-                    if toxicity_result['label'] == 'TOXIC':
-                        return min(1.0, toxicity_result['score'])
+                    if toxicity_result["label"] == "TOXIC":
+                        return min(1.0, toxicity_result["score"])
             except Exception as e:
                 self.logger.warning(f"Toxicity classifier error: {e}")
 
         # Fallback to keyword matching
-        toxic_matches = sum(1 for pattern in self.harm_patterns['physical_harm']
+        toxic_matches = sum(1 for pattern in self.harm_patterns["physical_harm"]
                            if re.search(pattern, content.lower()))
         return min(1.0, toxic_matches * 0.1)
 
-    def _check_privacy_content(self, content: str) -> List[Dict[str, Any]]:
+    def _check_privacy_content(self, content: str) -> list[dict[str, Any]]:
         """Check for privacy violations and return redaction information"""
         violations = []
 
@@ -422,14 +421,14 @@ class EnhancedSafetyFilter:
     def _get_privacy_replacement(self, privacy_type: str) -> str:
         """Get replacement text for privacy violations"""
         replacements = {
-            'ssn': '[REDACTED_SSN]',
-            'email': '[REDACTED_EMAIL]',
-            'phone': '[REDACTED_PHONE]',
-            'address': '[REDACTED_ADDRESS]',
-            'credit_card': '[REDACTED_CC]',
-            'medical_record': '[REDACTED_MR]'
+            "ssn": "[REDACTED_SSN]",
+            "email": "[REDACTED_EMAIL]",
+            "phone": "[REDACTED_PHONE]",
+            "address": "[REDACTED_ADDRESS]",
+            "credit_card": "[REDACTED_CC]",
+            "medical_record": "[REDACTED_MR]"
         }
-        return replacements.get(privacy_type, '[REDACTED]')
+        return replacements.get(privacy_type, "[REDACTED]")
 
     def _check_inappropriate_content(self, content: str) -> float:
         """Check for inappropriate content"""
@@ -444,16 +443,16 @@ class EnhancedSafetyFilter:
                 result = self.bias_classifier(content[:256])  # Shorter text for bias detection
                 if result and isinstance(result, list) and len(result) > 0:
                     bias_result = result[0]
-                    if bias_result['label'] in ['BIASED', 'STEREOTYPE']:
-                        return min(1.0, bias_result['score'])
+                    if bias_result["label"] in ["BIASED", "STEREOTYPE"]:
+                        return min(1.0, bias_result["score"])
             except Exception as e:
                 self.logger.warning(f"Bias classifier error: {e}")
 
         # Fallback to simple keyword matching for biased content
         bias_keywords = [
-            r'\bracist\b', r'\bsexist\b', r'\bageist\b', r'\bhomophobic\b',
-            r'\btransphobic\b', r'\bxenophobic\b', r'\bislamophobic\b',
-            r'\bantisemitic\b', r'\bcolorist\b'
+            r"\bracist\b", r"\bsexist\b", r"\bageist\b", r"\bhomophobic\b",
+            r"\btransphobic\b", r"\bxenophobic\b", r"\bislamophobic\b",
+            r"\bantisemitic\b", r"\bcolorist\b"
         ]
 
         bias_matches = sum(1 for pattern in bias_keywords if re.search(pattern, content.lower()))
@@ -462,24 +461,24 @@ class EnhancedSafetyFilter:
     def _check_legal_medical_advisory(self, content: str) -> float:
         """Check for legal or medical advisory content that should not be given by AI"""
         advisory_patterns = [
-            r'\byou should\b.*\blawyer\b', r'\blegal advice\b', r'\bmedical diagnosis\b',
-            r'\bprescribe\b', r'\bdiagnose\b', r'\btreatment plan\b',
-            r'\bmedication\b.*\bdosage\b', r'\bsurgery\b', r'\bprocedure\b.*\bmedical\b'
+            r"\byou should\b.*\blawyer\b", r"\blegal advice\b", r"\bmedical diagnosis\b",
+            r"\bprescribe\b", r"\bdiagnose\b", r"\btreatment plan\b",
+            r"\bmedication\b.*\bdosage\b", r"\bsurgery\b", r"\bprocedure\b.*\bmedical\b"
         ]
 
         advisory_matches = sum(1 for pattern in advisory_patterns if re.search(pattern, content.lower()))
         return min(1.0, advisory_matches * 0.4)
 
-    def _redact_content(self, content: str, redactions: List[Dict[str, Any]]) -> str:
+    def _redact_content(self, content: str, redactions: list[dict[str, Any]]) -> str:
         """Redact sensitive content from text"""
         # Sort redactions by position (reverse order) to maintain indices
-        sorted_redactions = sorted(redactions, key=lambda x: x['start_position'], reverse=True)
+        sorted_redactions = sorted(redactions, key=lambda x: x["start_position"], reverse=True)
 
         redacted_content = content
         for redaction in sorted_redactions:
-            start = redaction['start_position']
-            end = redaction['end_position']
-            replacement = redaction['replacement']
+            start = redaction["start_position"]
+            end = redaction["end_position"]
+            replacement = redaction["replacement"]
             redacted_content = redacted_content[:start] + replacement + redacted_content[end:]
 
         return redacted_content
@@ -541,7 +540,7 @@ class EnhancedSafetyFilter:
         }
         return thresholds[self.safety_level]
 
-    def _calculate_assessment_confidence(self, category_scores: Dict[SafetyCategory, float]) -> float:
+    def _calculate_assessment_confidence(self, category_scores: dict[SafetyCategory, float]) -> float:
         """Calculate confidence in the safety assessment"""
         if not category_scores:
             return 1.0
@@ -552,24 +551,23 @@ class EnhancedSafetyFilter:
 
     def filter_response(self,
                         response: str,
-                        user_context: Optional[Dict[str, Any]] = None,
-                        request_metadata: Optional[Dict[str, Any]] = None) -> Tuple[bool, str, SafetyCheckResult]:
+                        user_context: dict[str, Any] | None = None,
+                        request_metadata: dict[str, Any] | None = None) -> tuple[bool, str, SafetyCheckResult]:
         """Filter a response to ensure safety, returning (is_safe, filtered_response, safety_result)"""
         safety_result = self.check_output_safety(response, user_context, request_metadata)
 
         if safety_result.is_safe:
             return True, response, safety_result
-        elif safety_result.filtered_content:
+        if safety_result.filtered_content:
             return False, safety_result.filtered_content, safety_result
-        else:
-            # If filtering failed, return a safe default response
-            safe_response = "[Response filtered for safety - content requires human review]"
-            return False, safe_response, safety_result
+        # If filtering failed, return a safe default response
+        safe_response = "[Response filtered for safety - content requires human review]"
+        return False, safe_response, safety_result
 
     def batch_filter_responses(self,
-                              responses: List[str],
-                              user_context: Optional[Dict[str, Any]] = None,
-                              request_metadata: Optional[Dict[str, Any]] = None) -> List[Tuple[bool, str, SafetyCheckResult]]:
+                              responses: list[str],
+                              user_context: dict[str, Any] | None = None,
+                              request_metadata: dict[str, Any] | None = None) -> list[tuple[bool, str, SafetyCheckResult]]:
         """Filter multiple responses in batch"""
         results = []
         for response in responses:
@@ -586,19 +584,19 @@ class CrisisInterventionSystem:
         self.logger = logging.getLogger(__name__)
         self.crisis_handlers = self._initialize_crisis_handlers()
 
-    def _initialize_crisis_handlers(self) -> Dict[str, callable]:
+    def _initialize_crisis_handlers(self) -> dict[str, callable]:
         """Initialize crisis handlers for different crisis types"""
         return {
-            'suicide': self._handle_suicide_crisis,
-            'harm_to_others': self._handle_harm_to_others_crisis,
-            'substance_abuse': self._handle_substance_abuse_crisis,
-            'eating_disorders': self._handle_eating_disorder_crisis
+            "suicide": self._handle_suicide_crisis,
+            "harm_to_others": self._handle_harm_to_others_crisis,
+            "substance_abuse": self._handle_substance_abuse_crisis,
+            "eating_disorders": self._handle_eating_disorder_crisis
         }
 
     def handle_crisis_detection(self,
                               crisis_result: CrisisDetectionResult,
-                              user_context: Optional[Dict[str, Any]] = None,
-                              content: Optional[str] = None) -> Dict[str, Any]:
+                              user_context: dict[str, Any] | None = None,
+                              content: str | None = None) -> dict[str, Any]:
         """Handle a detected crisis situation"""
         if not crisis_result.is_crisis:
             return {"status": "no_crisis", "action_taken": "none"}
@@ -621,14 +619,14 @@ class CrisisInterventionSystem:
 
     def _handle_suicide_crisis(self,
                               crisis_result: CrisisDetectionResult,
-                              user_context: Optional[Dict[str, Any]] = None,
-                              content: Optional[str] = None) -> Dict[str, Any]:
+                              user_context: dict[str, Any] | None = None,
+                              content: str | None = None) -> dict[str, Any]:
         """Handle suicide crisis detection"""
         # Log the crisis event
         crisis_log = {
             "crisis_type": "suicide",
             "urgency": crisis_result.urgency_level,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "user_context": user_context,
             "content_preview": content[:100] + "..." if content and len(content) > 100 else content,
             "confidence": crisis_result.confidence
@@ -661,14 +659,14 @@ class CrisisInterventionSystem:
 
     def _handle_harm_to_others_crisis(self,
                                     crisis_result: CrisisDetectionResult,
-                                    user_context: Optional[Dict[str, Any]] = None,
-                                    content: Optional[str] = None) -> Dict[str, Any]:
+                                    user_context: dict[str, Any] | None = None,
+                                    content: str | None = None) -> dict[str, Any]:
         """Handle harm to others crisis detection"""
         # Log the crisis event
         crisis_log = {
             "crisis_type": "harm_to_others",
             "urgency": crisis_result.urgency_level,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "user_context": user_context,
             "content_preview": content[:100] + "..." if content and len(content) > 100 else content,
             "confidence": crisis_result.confidence
@@ -701,13 +699,13 @@ class CrisisInterventionSystem:
 
     def _handle_substance_abuse_crisis(self,
                                       crisis_result: CrisisDetectionResult,
-                                      user_context: Optional[Dict[str, Any]] = None,
-                                      content: Optional[str] = None) -> Dict[str, Any]:
+                                      user_context: dict[str, Any] | None = None,
+                                      content: str | None = None) -> dict[str, Any]:
         """Handle substance abuse crisis detection"""
         crisis_log = {
             "crisis_type": "substance_abuse",
             "urgency": crisis_result.urgency_level,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "user_context": user_context,
             "content_preview": content[:100] + "..." if content and len(content) > 100 else content,
             "confidence": crisis_result.confidence
@@ -736,13 +734,13 @@ class CrisisInterventionSystem:
 
     def _handle_eating_disorder_crisis(self,
                                       crisis_result: CrisisDetectionResult,
-                                      user_context: Optional[Dict[str, Any]] = None,
-                                      content: Optional[str] = None) -> Dict[str, Any]:
+                                      user_context: dict[str, Any] | None = None,
+                                      content: str | None = None) -> dict[str, Any]:
         """Handle eating disorder crisis detection"""
         crisis_log = {
             "crisis_type": "eating_disorders",
             "urgency": crisis_result.urgency_level,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "user_context": user_context,
             "content_preview": content[:100] + "..." if content and len(content) > 100 else content,
             "confidence": crisis_result.confidence
@@ -770,7 +768,7 @@ class CrisisInterventionSystem:
 
     def _basic_crisis_response(self,
                                crisis_result: CrisisDetectionResult,
-                               user_context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+                               user_context: dict[str, Any] | None = None) -> dict[str, Any]:
         """Basic crisis response for unhandled crisis types"""
         basic_response = {
             "message": "I'm concerned about what you're experiencing. Professional help is available.",
@@ -789,7 +787,7 @@ class CrisisInterventionSystem:
             "logged": True
         }
 
-    def _trigger_external_alert(self, crisis_log: Dict[str, Any]):
+    def _trigger_external_alert(self, crisis_log: dict[str, Any]):
         """Trigger external alerting system for urgent crises"""
         # In a real system, this would:
         # 1. Send alerts to crisis intervention teams
@@ -812,10 +810,10 @@ def safety_filtered_endpoint(func):
         result = func(*args, **kwargs)
 
         # Extract response content (adjust based on your API response structure)
-        if isinstance(result, dict) and 'content' in result:
-            content = result['content']
-            user_context = kwargs.get('user_context') or getattr(args[0] if args else None, 'user_context', None)
-            request_metadata = kwargs.get('request_metadata') or getattr(args[0] if args else None, 'request_metadata', None)
+        if isinstance(result, dict) and "content" in result:
+            content = result["content"]
+            user_context = kwargs.get("user_context") or getattr(args[0] if args else None, "user_context", None)
+            request_metadata = kwargs.get("request_metadata") or getattr(args[0] if args else None, "request_metadata", None)
 
             # Apply safety filtering
             is_safe, filtered_content, safety_result = enhanced_safety_filter.filter_response(
@@ -823,10 +821,10 @@ def safety_filtered_endpoint(func):
             )
 
             # Update the response
-            result['content'] = filtered_content
-            result['safety_filtered'] = not is_safe
-            result['safety_score'] = safety_result.overall_score
-            result['safety_categories'] = [cat.value for cat in safety_result.flagged_categories]
+            result["content"] = filtered_content
+            result["safety_filtered"] = not is_safe
+            result["safety_score"] = safety_result.overall_score
+            result["safety_categories"] = [cat.value for cat in safety_result.flagged_categories]
 
             # Handle crisis situations
             if safety_result.category_scores.get(SafetyCategory.CRISIS, 0) > 0.5:
@@ -841,11 +839,10 @@ def safety_filtered_endpoint(func):
                 crisis_response = crisis_intervention_system.handle_crisis_detection(
                     crisis_result, user_context, content
                 )
-                result['crisis_intervention'] = crisis_response
+                result["crisis_intervention"] = crisis_response
 
             return result
-        else:
-            return result
+        return result
 
     return wrapper
 
@@ -865,25 +862,25 @@ def integrate_safety_filtering_with_api():
             response = endpoint_func(*args, **kwargs)
 
             # If response contains content that should be filtered
-            if hasattr(response, 'content') or (isinstance(response, dict) and 'content' in response):
-                content = response.content if hasattr(response, 'content') else response['content']
-                user_context = kwargs.get('user_context', {})
-                request_metadata = kwargs.get('request_metadata', {})
+            if hasattr(response, "content") or (isinstance(response, dict) and "content" in response):
+                content = response.content if hasattr(response, "content") else response["content"]
+                user_context = kwargs.get("user_context", {})
+                request_metadata = kwargs.get("request_metadata", {})
 
                 is_safe, filtered_content, safety_result = enhanced_safety_filter.filter_response(
                     content, user_context, request_metadata
                 )
 
                 # Update response with safety information
-                if hasattr(response, '__dict__'):
+                if hasattr(response, "__dict__"):
                     response.content = filtered_content
                     response.safety_filtered = not is_safe
                     response.safety_score = safety_result.overall_score
                 elif isinstance(response, dict):
-                    response['content'] = filtered_content
-                    response['safety_filtered'] = not is_safe
-                    response['safety_score'] = safety_result.overall_score
-                    response['safety_categories'] = [cat.value for cat in safety_result.flagged_categories]
+                    response["content"] = filtered_content
+                    response["safety_filtered"] = not is_safe
+                    response["safety_score"] = safety_result.overall_score
+                    response["safety_categories"] = [cat.value for cat in safety_result.flagged_categories]
 
             return response
         return wrapped

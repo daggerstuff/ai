@@ -3,10 +3,12 @@ Startup script demonstrating the health check and graceful shutdown system.
 This script shows how to integrate the health check system with a service.
 """
 
+from datetime import datetime, timezone
+
+
 import asyncio
 import logging
 import time
-from datetime import datetime
 
 import uvicorn
 
@@ -46,15 +48,14 @@ class MockDatabase:
         return {
             "connected": self.connected,
             "query_count": self.query_count,
-            "last_query": datetime.utcnow().isoformat(),
+            "last_query": datetime.now(timezone.utc).isoformat(),
         }
 
     def execute_query(self):
         if self.connected:
             self.query_count += 1
             return {"result": "success", "query_id": self.query_count}
-        else:
-            raise Exception("Database not connected")
+        raise Exception("Database not connected")
 
 
 class MockCache:
@@ -81,8 +82,7 @@ class MockCache:
             # Simulate cache behavior
             self.hit_count += 1
             return f"value_for_{key}"
-        else:
-            raise Exception("Cache not connected")
+        raise Exception("Cache not connected")
 
 
 # Create mock components
@@ -104,29 +104,28 @@ def database_health_check():
             return ComponentHealth(
                 name="database",
                 status=ComponentStatus.OPERATIONAL,
-                last_checked=datetime.utcnow().isoformat(),
+                last_checked=datetime.now(timezone.utc).isoformat(),
                 health_score=1.0,
                 details=mock_db.get_stats(),
             )
-        else:
-            return ComponentHealth(
-                name="database",
-                status=ComponentStatus.FAILED,
-                last_checked=datetime.utcnow().isoformat(),
-                health_score=0.0,
-                last_error="Database connection failed",
-                error_count=1,
-                error_timestamps=[datetime.utcnow().isoformat()],
-            )
+        return ComponentHealth(
+            name="database",
+            status=ComponentStatus.FAILED,
+            last_checked=datetime.now(timezone.utc).isoformat(),
+            health_score=0.0,
+            last_error="Database connection failed",
+            error_count=1,
+            error_timestamps=[datetime.now(timezone.utc).isoformat()],
+        )
     except Exception as e:
         return ComponentHealth(
             name="database",
             status=ComponentStatus.FAILED,
-            last_checked=datetime.utcnow().isoformat(),
+            last_checked=datetime.now(timezone.utc).isoformat(),
             health_score=0.0,
             last_error=str(e),
             error_count=1,
-            error_timestamps=[datetime.utcnow().isoformat()],
+            error_timestamps=[datetime.now(timezone.utc).isoformat()],
         )
 
 
@@ -152,29 +151,28 @@ def cache_health_check():
             return ComponentHealth(
                 name="cache",
                 status=status,
-                last_checked=datetime.utcnow().isoformat(),
+                last_checked=datetime.now(timezone.utc).isoformat(),
                 health_score=health_score,
                 details=cache_stats,
             )
-        else:
-            return ComponentHealth(
-                name="cache",
-                status=ComponentStatus.FAILED,
-                last_checked=datetime.utcnow().isoformat(),
-                health_score=0.0,
-                last_error="Cache connection failed",
-                error_count=1,
-                error_timestamps=[datetime.utcnow().isoformat()],
-            )
+        return ComponentHealth(
+            name="cache",
+            status=ComponentStatus.FAILED,
+            last_checked=datetime.now(timezone.utc).isoformat(),
+            health_score=0.0,
+            last_error="Cache connection failed",
+            error_count=1,
+            error_timestamps=[datetime.now(timezone.utc).isoformat()],
+        )
     except Exception as e:
         return ComponentHealth(
             name="cache",
             status=ComponentStatus.FAILED,
-            last_checked=datetime.utcnow().isoformat(),
+            last_checked=datetime.now(timezone.utc).isoformat(),
             health_score=0.0,
             last_error=str(e),
             error_count=1,
-            error_timestamps=[datetime.utcnow().isoformat()],
+            error_timestamps=[datetime.now(timezone.utc).isoformat()],
         )
 
 
@@ -189,7 +187,7 @@ async def root():
     """Root endpoint"""
     return {
         "message": "Health Check Demo Service",
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
 
@@ -206,11 +204,11 @@ async def get_data():
         return {
             "data": result,
             "cached_value": cached_value,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
     except Exception as e:
         logger.error(f"Data endpoint error: {e}")
-        return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}, 500
+        return {"error": str(e), "timestamp": datetime.now(timezone.utc).isoformat()}, 500
 
 
 # Integrate health checks with FastAPI

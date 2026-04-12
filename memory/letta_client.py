@@ -9,15 +9,16 @@ Provides integration with Letta Code SDK for autonomous agent capabilities:
 - Multi-project memory sharing
 """
 
+from datetime import datetime, timezone
+
 import asyncio
 import json
 import logging
 import os
 import stat
 from dataclasses import dataclass
-from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger("letta_client")
 
@@ -66,11 +67,11 @@ def retry_on_failure(max_retries=MAX_RETRIES, delay=RETRY_DELAY, backoff=RETRY_B
 @dataclass
 class LettaConfig:
     """Configuration for Letta SDK integration."""
-    api_key: Optional[str] = None
+    api_key: str | None = None
     base_url: str = DEFAULT_BASE_URL
-    agent_id: Optional[str] = None
+    agent_id: str | None = None
     mode: str = "whisper"  # whisper, full, off
-    sdk_tools: Optional[List[str]] = None
+    sdk_tools: list[str] | None = None
 
     def __post_init__(self):
         if self.sdk_tools is None:
@@ -94,7 +95,7 @@ class LettaClient:
     - Background transcript streaming
     """
 
-    def __init__(self, config: Optional[LettaConfig] = None):
+    def __init__(self, config: LettaConfig | None = None):
         """
         Initialize Letta client.
 
@@ -178,7 +179,6 @@ class LettaClient:
         CONFIG_DIR.mkdir(parents=True, exist_ok=True)
 
         # P0 Fix: Set secure permissions on config directory
-        import stat
         os.chmod(CONFIG_DIR, stat.S_IRWXU)  # 0o700 - owner rwx only
 
         config_data = {}
@@ -195,7 +195,7 @@ class LettaClient:
         CONFIG_FILE.write_text(json.dumps(config_data, indent=2))
         os.chmod(CONFIG_FILE, stat.S_IRUSR | stat.S_IWUSR)  # 0o600
 
-    async def stream_transcript(self, messages: List[Dict[str, Any]], session_id: str) -> None:
+    async def stream_transcript(self, messages: list[dict[str, Any]], session_id: str) -> None:
         """
         Stream session transcript to Letta agent.
 
@@ -220,12 +220,12 @@ class LettaClient:
             )
             logger.info(f"Streamed {len(messages)} messages to Letta agent")
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.error(f"Timeout streaming transcript for session {session_id}")
         except Exception as e:
             logger.error(f"Failed to stream transcript: {e}")
 
-    async def _stream_messages(self, messages: List[Dict[str, Any]], session_id: str) -> None:
+    async def _stream_messages(self, messages: list[dict[str, Any]], session_id: str) -> None:
         """Internal method to stream messages (called with timeout)."""
         for message in messages:
             self.client.send_message(
@@ -238,7 +238,7 @@ class LettaClient:
                 },
             )
 
-    async def get_memory_blocks(self) -> Dict[str, str]:
+    async def get_memory_blocks(self) -> dict[str, str]:
         """
         Get current memory blocks from agent.
 
@@ -292,7 +292,7 @@ class LettaClient:
         except Exception as e:
             logger.error(f"Failed to update memory block: {e}")
 
-    async def execute_tool(self, tool_name: str, arguments: Dict[str, Any]) -> Any:
+    async def execute_tool(self, tool_name: str, arguments: dict[str, Any]) -> Any:
         """
         Execute a client-side tool.
 
@@ -336,10 +336,10 @@ class LettaClient:
 
 
 # Singleton instance
-_client: Optional[LettaClient] = None
+_client: LettaClient | None = None
 
 
-def get_client(config: Optional[LettaConfig] = None) -> LettaClient:
+def get_client(config: LettaConfig | None = None) -> LettaClient:
     """Get or create the global Letta client instance."""
     global _client
     if _client is None:
@@ -347,7 +347,7 @@ def get_client(config: Optional[LettaConfig] = None) -> LettaClient:
     return _client
 
 
-async def initialize_client(config: Optional[LettaConfig] = None) -> LettaClient:
+async def initialize_client(config: LettaConfig | None = None) -> LettaClient:
     """Initialize and return the global client."""
     client = get_client(config)
     await client.initialize()

@@ -4,15 +4,16 @@ Conversation Length and Complexity Analysis System
 Analyzes conversation length patterns, complexity metrics, and provides insights
 """
 
+from datetime import datetime, timezone
+
 import json
 import re
 import sqlite3
 import warnings
 from collections import Counter
 from dataclasses import dataclass
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import numpy as np
 
@@ -41,12 +42,12 @@ class ComplexityAnalysis:
 
     dataset_name: str
     total_conversations: int
-    length_distribution: Dict[str, int]
-    complexity_distribution: Dict[str, int]
-    average_metrics: Dict[str, float]
-    correlation_analysis: Dict[str, float]
-    patterns: List[str]
-    recommendations: List[str]
+    length_distribution: dict[str, int]
+    complexity_distribution: dict[str, int]
+    average_metrics: dict[str, float]
+    correlation_analysis: dict[str, float]
+    patterns: list[str]
+    recommendations: list[str]
 
 
 class ConversationComplexityAnalyzer:
@@ -77,8 +78,8 @@ class ConversationComplexityAnalyzer:
         }
 
     def analyze_conversation_complexity(
-        self, dataset_name: Optional[str] = None
-    ) -> Dict[str, ComplexityAnalysis]:
+        self, dataset_name: str | None = None
+    ) -> dict[str, ComplexityAnalysis]:
         """Analyze conversation length and complexity patterns"""
         print("📏 Analyzing conversation length and complexity patterns...")
 
@@ -104,7 +105,7 @@ class ConversationComplexityAnalyzer:
             print(f"❌ Error analyzing conversation complexity: {e}")
             return {}
 
-    def _get_dataset_list(self) -> List[str]:
+    def _get_dataset_list(self) -> list[str]:
         """Get list of datasets"""
         try:
             conn = sqlite3.connect(self.db_path)
@@ -129,7 +130,7 @@ class ConversationComplexityAnalyzer:
 
     def _analyze_dataset_complexity(
         self, dataset_name: str
-    ) -> Optional[ComplexityAnalysis]:
+    ) -> ComplexityAnalysis | None:
         """Analyze complexity for specific dataset"""
         try:
             # Get conversations from dataset
@@ -159,7 +160,7 @@ class ConversationComplexityAnalyzer:
             print(f"❌ Error analyzing dataset complexity for {dataset_name}: {e}")
             return None
 
-    def _get_dataset_conversations(self, dataset_name: str) -> List[Dict]:
+    def _get_dataset_conversations(self, dataset_name: str) -> list[dict]:
         """Get conversations for dataset"""
         try:
             conn = sqlite3.connect(self.db_path)
@@ -207,8 +208,8 @@ class ConversationComplexityAnalyzer:
             return []
 
     def _analyze_individual_conversation(
-        self, conversation_data: Dict
-    ) -> Optional[ConversationMetrics]:
+        self, conversation_data: dict
+    ) -> ConversationMetrics | None:
         """Analyze individual conversation metrics"""
         try:
             conversation_id = conversation_data["conversation_id"]
@@ -265,7 +266,7 @@ class ConversationComplexityAnalyzer:
             print(f"❌ Error analyzing individual conversation: {e}")
             return None
 
-    def _extract_conversation_text(self, conversations: List) -> str:
+    def _extract_conversation_text(self, conversations: list) -> str:
         """Extract text from conversation structure"""
         try:
             all_text = ""
@@ -332,7 +333,7 @@ class ConversationComplexityAnalyzer:
             print(f"❌ Error calculating sentence complexity: {e}")
             return 0.0
 
-    def _calculate_dialogue_depth(self, conversations: List) -> float:
+    def _calculate_dialogue_depth(self, conversations: list) -> float:
         """Calculate dialogue depth based on turn patterns"""
         try:
             if not conversations:
@@ -471,7 +472,7 @@ class ConversationComplexityAnalyzer:
             return 0.0
 
     def _generate_complexity_analysis(
-        self, dataset_name: str, conversation_metrics: List[ConversationMetrics]
+        self, dataset_name: str, conversation_metrics: list[ConversationMetrics]
     ) -> ComplexityAnalysis:
         """Generate complexity analysis from conversation metrics"""
         try:
@@ -569,8 +570,8 @@ class ConversationComplexityAnalyzer:
             )
 
     def _calculate_correlations(
-        self, conversation_metrics: List[ConversationMetrics]
-    ) -> Dict[str, float]:
+        self, conversation_metrics: list[ConversationMetrics]
+    ) -> dict[str, float]:
         """Calculate correlations between different metrics"""
         try:
             if len(conversation_metrics) < 10:  # Need sufficient data
@@ -615,9 +616,9 @@ class ConversationComplexityAnalyzer:
 
     def _identify_complexity_patterns(
         self,
-        conversation_metrics: List[ConversationMetrics],
-        average_metrics: Dict[str, float],
-    ) -> List[str]:
+        conversation_metrics: list[ConversationMetrics],
+        average_metrics: dict[str, float],
+    ) -> list[str]:
         """Identify patterns in complexity data"""
         patterns = []
 
@@ -670,10 +671,10 @@ class ConversationComplexityAnalyzer:
 
     def _generate_complexity_recommendations(
         self,
-        average_metrics: Dict[str, float],
-        length_distribution: Dict[str, int],
-        complexity_distribution: Dict[str, int],
-    ) -> List[str]:
+        average_metrics: dict[str, float],
+        length_distribution: dict[str, int],
+        complexity_distribution: dict[str, int],
+    ) -> list[str]:
         """Generate recommendations based on complexity analysis"""
         recommendations = []
 
@@ -734,13 +735,13 @@ class ConversationComplexityAnalyzer:
             return ["Error generating complexity recommendations"]
 
     def export_complexity_report(
-        self, complexity_analyses: Dict[str, ComplexityAnalysis]
+        self, complexity_analyses: dict[str, ComplexityAnalysis]
     ) -> str:
         """Export comprehensive complexity analysis report"""
         print("📄 Exporting complexity analysis report...")
 
         try:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
             report_file = (
                 self.output_dir / f"complexity_analysis_report_{timestamp}.json"
             )
@@ -748,7 +749,7 @@ class ConversationComplexityAnalyzer:
             # Prepare export data
             export_data = {
                 "report_metadata": {
-                    "generated_at": datetime.now().isoformat(),
+                    "generated_at": datetime.now(timezone.utc).isoformat(),
                     "analyzer_version": "1.0.0",
                     "datasets_analyzed": len(complexity_analyses),
                     "analysis_type": "conversation_length_and_complexity",
@@ -782,8 +783,8 @@ class ConversationComplexityAnalyzer:
             return ""
 
     def _create_complexity_summary(
-        self, complexity_analyses: Dict[str, ComplexityAnalysis]
-    ) -> Dict[str, Any]:
+        self, complexity_analyses: dict[str, ComplexityAnalysis]
+    ) -> dict[str, Any]:
         """Create summary statistics across all datasets"""
         try:
             if not complexity_analyses:

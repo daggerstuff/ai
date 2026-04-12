@@ -14,7 +14,7 @@ TDD anchors: Red phase (tests must fail until implemented)
 import shutil
 import tempfile
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 from unittest import mock
 
 import pandas as pd
@@ -31,23 +31,23 @@ def temp_data_dir():
     shutil.rmtree(d)
 
 
-def make_csv(path: Path, data: List[Dict[str, Any]]):
+def make_csv(path: Path, data: list[dict[str, Any]]):
     df = pd.DataFrame(data)
     df.to_csv(path, index=False)
 
 
-def make_json(path: Path, data: List[Dict[str, Any]]):
+def make_json(path: Path, data: list[dict[str, Any]]):
     df = pd.DataFrame(data)
     df.to_json(path, orient="records")
 
 
-def make_jsonl(path: Path, data: List[Dict[str, Any]]):
+def make_jsonl(path: Path, data: list[dict[str, Any]]):
     with open(path, "w", encoding="utf-8") as f:
         for rec in data:
             f.write(pd.Series(rec).to_json(force_ascii=False) + "\n")
 
 
-def make_parquet(path: Path, data: List[Dict[str, Any]]):
+def make_parquet(path: Path, data: list[dict[str, Any]]):
     df = pd.DataFrame(data)
     df.to_parquet(path)
 

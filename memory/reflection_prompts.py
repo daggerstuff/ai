@@ -5,7 +5,6 @@ This module provides prompts for the reflection subagent that ensure
 crisis content is handled appropriately during memory consolidation.
 """
 from dataclasses import dataclass
-from typing import List
 
 
 @dataclass
@@ -14,7 +13,7 @@ class ReflectionPrompt:
     name: str
     template: str
     priority: int  # 1 = highest, 5 = lowest
-    categories: List[str]  # Categories this prompt applies to
+    categories: list[str]  # Categories this prompt applies to
 
 
 # Crisis-aware reflection prompt
@@ -212,6 +211,6 @@ def get_reflection_prompt(
     return STANDARD_REFLECTION
 
 
-def get_all_prompts() -> List[ReflectionPrompt]:
+def get_all_prompts() -> list[ReflectionPrompt]:
     """Get all available prompts."""
     return [CRISIS_AWARE_REFLECTION, STANDARD_REFLECTION, CRISIS_DETECTION_PROMPT]

@@ -7,9 +7,10 @@ for development environments or when external services are unavailable.
 This is a REAL implementation using in-memory dictionaries, not a stub.
 """
 
-import threading
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+
+import threading
+from typing import Any
 
 from .base import BaseMemoryManager
 
@@ -24,7 +25,7 @@ class NullMemoryManager(BaseMemoryManager):
 
     def __init__(self, *args, **kwargs):
         # In-memory storage: user_id -> list of memory dicts
-        self._memories: Dict[str, List[Dict[str, Any]]] = {}
+        self._memories: dict[str, list[dict[str, Any]]] = {}
         self._memory_counter = 0
         self._lock = threading.Lock()
         self.MAX_MEMORIES_PER_USER = 1000  # Prevent OOM
@@ -38,7 +39,7 @@ class NullMemoryManager(BaseMemoryManager):
         self,
         content: str,
         user_id: str,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
         **kwargs,
     ):
         """Add memory (raw client interface)."""
@@ -130,8 +131,8 @@ class NullMemoryManager(BaseMemoryManager):
         self,
         content: str,
         user_id: str,
-        metadata: Optional[Dict[str, Any]] = None,
-        category: Optional[str] = None,
+        metadata: dict[str, Any] | None = None,
+        category: str | None = None,
     ) -> str:
         """Add memory and return ID."""
         if category and metadata:
@@ -142,12 +143,12 @@ class NullMemoryManager(BaseMemoryManager):
         result = self.add(content, user_id, metadata)
         return result["results"][0]["id"]
 
-    def search_memories(self, query: str, user_id: str) -> List[Dict[str, Any]]:
+    def search_memories(self, query: str, user_id: str) -> list[dict[str, Any]]:
         """Search memories and return list."""
         result = self.search(query, user_id)
         return result["results"]
 
-    def get_all_memories(self, user_id: str) -> List[Dict[str, Any]]:
+    def get_all_memories(self, user_id: str) -> list[dict[str, Any]]:
         """Get all memories for user."""
         result = self.get_all(user_id)
         return result["results"]
@@ -155,8 +156,8 @@ class NullMemoryManager(BaseMemoryManager):
     def get_memory(
         self,
         memory_id: str,
-        user_id: Optional[str] = None,
-    ) -> Optional[Dict[str, Any]]:
+        user_id: str | None = None,
+    ) -> dict[str, Any] | None:
         """Get specific memory by ID."""
         return self.get(memory_id)
 
@@ -164,13 +165,13 @@ class NullMemoryManager(BaseMemoryManager):
         self,
         memory_id: str,
         new_content: str,
-        metadata: Optional[Dict[str, Any]] = None,
-        user_id: Optional[str] = None,
+        metadata: dict[str, Any] | None = None,
+        user_id: str | None = None,
     ) -> bool:
         """Update memory content."""
         return self.update(memory_id, new_content, metadata=metadata)
 
-    def delete_memory(self, memory_id: str, user_id: Optional[str] = None) -> bool:
+    def delete_memory(self, memory_id: str, user_id: str | None = None) -> bool:
         """Delete specific memory."""
         return self.delete(memory_id)
 

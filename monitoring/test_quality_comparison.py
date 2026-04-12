@@ -6,6 +6,8 @@ Comprehensive testing of quality comparison, benchmarking, and reporting
 functionality with statistical validation and performance testing.
 """
 
+from datetime import datetime, timezone
+
 import json
 import os
 import shutil
@@ -64,7 +66,7 @@ def run_comprehensive_test():
         """)
 
         # Generate test data with clear differences between tiers and datasets
-        base_date = datetime.now() - timedelta(days=30)
+        base_date = datetime.now(timezone.utc) - timedelta(days=30)
         conversations_data = []
         quality_data = []
 
@@ -337,7 +339,7 @@ def run_comprehensive_test():
         report_data = {
             "test_suite": "Quality Comparison System",
             "task": "5.6.2.5",
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "results": test_results,
             "success_rate": success_rate,
             "status": "PASSED" if success_rate >= 80 else "FAILED",

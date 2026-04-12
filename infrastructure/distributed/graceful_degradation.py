@@ -6,9 +6,10 @@ Handles partial system failures with intelligent service prioritization and fall
 
 import asyncio
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -39,10 +40,10 @@ class ServiceConfig:
 
     name: str
     priority: ServicePriority
-    fallback_handler: Optional[Callable] = None
-    health_check: Optional[Callable] = None
+    fallback_handler: Callable | None = None
+    health_check: Callable | None = None
 
-    dependencies: List[str] = None
+    dependencies: list[str] = None
 
     def __post_init__(self):
         if self.dependencies is None:
@@ -53,8 +54,8 @@ class GracefulDegradationManager:
     """Manages graceful degradation during partial system failures"""
 
     def __init__(self):
-        self.services: Dict[str, ServiceConfig] = {}
-        self.service_status: Dict[str, ServiceStatus] = {}
+        self.services: dict[str, ServiceConfig] = {}
+        self.service_status: dict[str, ServiceStatus] = {}
         self.degradation_active = False
         self.disabled_services: set = set()
 

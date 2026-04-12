@@ -1,7 +1,8 @@
-from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from __future__ import annotations
+
+from typing import Any
 
 from .local_hindsight_protocol_adapter import LocalHindsightProtocolAdapter
 
@@ -14,7 +15,7 @@ class LocalHindsightMemoryWriteService:
         self.default_bank_id = default_bank_id
 
     @staticmethod
-    def _metadata_dict(metadata: Optional[Any]) -> Dict[str, Any]:
+    def _metadata_dict(metadata: Any | None) -> dict[str, Any]:
         if metadata is None:
             return {}
         if isinstance(metadata, dict):
@@ -24,7 +25,7 @@ class LocalHindsightMemoryWriteService:
             return dict(data) if isinstance(data, dict) else {}
         raise TypeError("metadata must be a mapping or expose to_dict()")
 
-    def coerce_metadata(self, metadata: Optional[Any]) -> Dict[str, Any]:
+    def coerce_metadata(self, metadata: Any | None) -> dict[str, Any]:
         return self._metadata_dict(metadata)
 
     @staticmethod
@@ -34,10 +35,10 @@ class LocalHindsightMemoryWriteService:
     def prepare_metadata(
         self,
         *,
-        metadata: Optional[Any],
-        category: Optional[str],
-        scope_metadata: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        metadata: Any | None,
+        category: str | None,
+        scope_metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         merged = self._metadata_dict(metadata)
         if scope_metadata:
             merged.update(scope_metadata)
@@ -51,9 +52,9 @@ class LocalHindsightMemoryWriteService:
         *,
         content: str,
         user_id: str,
-        metadata: Optional[Any] = None,
-        category: Optional[str] = None,
-        scope_metadata: Optional[Dict[str, Any]] = None,
+        metadata: Any | None = None,
+        category: str | None = None,
+        scope_metadata: dict[str, Any] | None = None,
     ) -> str:
         merged = self.prepare_metadata(
             metadata=metadata,

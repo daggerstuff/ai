@@ -2,7 +2,6 @@
 """Check date range in database"""
 
 import sqlite3
-from datetime import datetime
 from pathlib import Path
 
 
@@ -21,7 +20,7 @@ def check_date_range():
         cursor.execute("SELECT MIN(created_at), MAX(created_at), COUNT(*) FROM conversations")
         min_date, max_date, count = cursor.fetchone()
 
-        print(f"📅 Date Range Analysis:")
+        print("📅 Date Range Analysis:")
         print(f"   Earliest: {min_date}")
         print(f"   Latest: {max_date}")
         print(f"   Total Records: {count:,}")
@@ -35,7 +34,7 @@ def check_date_range():
         """)
 
         dates = cursor.fetchall()
-        print(f"\n📊 Daily Distribution:")
+        print("\n📊 Daily Distribution:")
         for date, count in dates:
             print(f"   {date}: {count:,} conversations")
 

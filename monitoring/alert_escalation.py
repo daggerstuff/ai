@@ -4,6 +4,8 @@ Alert Escalation System for Pixelated Empathy AI
 Implements intelligent alert escalation procedures based on severity levels
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import smtplib
@@ -11,12 +13,11 @@ import sqlite3
 import threading
 import time
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
 from email.mime.multipart import MimeMultipart
 from email.mime.text import MimeText
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # Configure logging
 logging.basicConfig(
@@ -67,15 +68,15 @@ class Alert:
     status: AlertStatus = AlertStatus.ACTIVE
 
     created_at: str = None
-    acknowledged_at: Optional[str] = None
-    resolved_at: Optional[str] = None
-    acknowledged_by: Optional[str] = None
-    resolved_by: Optional[str] = None
+    acknowledged_at: str | None = None
+    resolved_at: str | None = None
+    acknowledged_by: str | None = None
+    resolved_by: str | None = None
     escalation_level: EscalationLevel = EscalationLevel.LEVEL_1
     escalation_count: int = 0
-    last_escalated_at: Optional[str] = None
+    last_escalated_at: str | None = None
 
-    metadata: Dict[str, Any] = None
+    metadata: dict[str, Any] = None
 
     def __post_init__(self):
         if self.created_at is None:
@@ -83,7 +84,7 @@ class Alert:
         if self.metadata is None:
             self.metadata = {}
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary"""
         data = asdict(self)
         data["severity"] = self.severity.value
@@ -92,7 +93,7 @@ class Alert:
         return data
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "Alert":
+    def from_dict(cls, data: dict[str, Any]) -> "Alert":
         """Create from dictionary"""
         data["severity"] = AlertSeverity(data["severity"])
         data["status"] = AlertStatus(data["status"])
@@ -107,10 +108,10 @@ class EscalationRule:
     severity: AlertSeverity
     level: EscalationLevel
     delay_minutes: int
-    recipients: List[str]
-    channels: List[str]  # email, slack, sms, webhook
+    recipients: list[str]
+    channels: list[str]  # email, slack, sms, webhook
 
-    conditions: Dict[str, Any] = None
+    conditions: dict[str, Any] = None
 
     def __post_init__(self):
         if self.conditions is None:
@@ -123,7 +124,7 @@ class NotificationChannel:
 
     name: str
     type: str  # email, slack, sms, webhook
-    config: Dict[str, Any]
+    config: dict[str, Any]
     enabled: bool = True
 
 
@@ -138,13 +139,13 @@ class AlertEscalationManager:
         self._init_database()
 
         # Load configuration
-        self.escalation_rules: Dict[AlertSeverity, List[EscalationRule]] = {}
-        self.notification_channels: Dict[str, NotificationChannel] = {}
+        self.escalation_rules: dict[AlertSeverity, list[EscalationRule]] = {}
+        self.notification_channels: dict[str, NotificationChannel] = {}
         self._load_configuration()
 
         # Active alerts
-        self.active_alerts: Dict[str, Alert] = {}
-        self.escalation_timers: Dict[str, threading.Timer] = {}
+        self.active_alerts: dict[str, Alert] = {}
+        self.escalation_timers: dict[str, threading.Timer] = {}
 
         # Load active alerts from database
         self._load_active_alerts()
@@ -340,7 +341,7 @@ class AlertEscalationManager:
         description: str,
         severity: AlertSeverity,
         source: str,
-        metadata: Dict[str, Any] = None,
+        metadata: dict[str, Any] = None,
     ) -> str:
         """Create a new alert and start escalation process"""
         alert_id = self._generate_alert_id()
@@ -612,7 +613,7 @@ Please acknowledge this alert in the monitoring system.
                         {"title": "Created", "value": alert.created_at, "short": True},
                     ],
                     "footer": "Pixelated Empathy AI Monitoring",
-                    "ts": int(datetime.now().timestamp()),
+                    "ts": int(datetime.now(timezone.utc).timestamp()),
                 }
             ],
         }
@@ -800,11 +801,11 @@ Please acknowledge this alert in the monitoring system.
 
         return f"alert_{int(time.time())}_{str(uuid.uuid4())[:8]}"
 
-    def get_active_alerts(self) -> List[Alert]:
+    def get_active_alerts(self) -> list[Alert]:
         """Get all active alerts"""
         return list(self.active_alerts.values())
 
-    def get_alert_history(self, alert_id: str) -> List[Dict[str, Any]]:
+    def get_alert_history(self, alert_id: str) -> list[dict[str, Any]]:
         """Get escalation history for an alert"""
         try:
             with sqlite3.connect(self.db_path) as conn:
@@ -836,7 +837,7 @@ Please acknowledge this alert in the monitoring system.
             logger.error(f"Failed to get alert history: {e}")
             return []
 
-    def get_escalation_statistics(self) -> Dict[str, Any]:
+    def get_escalation_statistics(self) -> dict[str, Any]:
         """Get escalation statistics"""
         try:
             with sqlite3.connect(self.db_path) as conn:

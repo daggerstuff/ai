@@ -14,15 +14,17 @@ Migration from Claude Agent SDK:
 - session.send/stream() remain similar but agent-anchored
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import os
 import stat
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger("letta_code_client")
 
@@ -59,15 +61,15 @@ class ToolPermission:
     can_use: bool
     requires_consent: bool = False
     allowed_for_crisis: bool = False
-    filters: List[str] = field(default_factory=list)
+    filters: list[str] = field(default_factory=list)
 
 
 @dataclass
 class LettaCodeConfig:
     """Configuration for Letta Code SDK integration."""
-    api_key: Optional[str] = None
+    api_key: str | None = None
     base_url: str = DEFAULT_BASE_URL
-    agent_id: Optional[str] = None
+    agent_id: str | None = None
     permission_mode: PermissionMode = PermissionMode.THERAPEUTIC
     model_provider: ModelProvider = ModelProvider.CLAUDE
     crisis_detection_enabled: bool = True
@@ -75,14 +77,14 @@ class LettaCodeConfig:
     dual_storage_enabled: bool = True
 
     # Tool permissions
-    tool_permissions: Dict[str, ToolPermission] = field(default_factory=dict)
+    tool_permissions: dict[str, ToolPermission] = field(default_factory=dict)
 
     def __post_init__(self):
         """Initialize default tool permissions based on mode."""
         if not self.tool_permissions:
             self.tool_permissions = self._get_default_permissions()
 
-    def _get_default_permissions(self) -> Dict[str, ToolPermission]:
+    def _get_default_permissions(self) -> dict[str, ToolPermission]:
         """Get default tool permissions based on mode."""
         if self.permission_mode == PermissionMode.READONLY:
             return {
@@ -92,7 +94,7 @@ class LettaCodeConfig:
                 "web_search": ToolPermission(True, requires_consent=True),
                 "fetch_webpage": ToolPermission(True, requires_consent=True),
             }
-        elif self.permission_mode == PermissionMode.THERAPEUTIC:
+        if self.permission_mode == PermissionMode.THERAPEUTIC:
             return {
                 "Read": ToolPermission(True),
                 "Grep": ToolPermission(True),
@@ -103,7 +105,7 @@ class LettaCodeConfig:
                 "reflect": ToolPermission(True, allowed_for_crisis=True),
                 "consolidate": ToolPermission(True, allowed_for_crisis=False),
             }
-        elif self.permission_mode == PermissionMode.FULL:
+        if self.permission_mode == PermissionMode.FULL:
             return {
                 "Read": ToolPermission(True),
                 "Grep": ToolPermission(True),
@@ -115,8 +117,8 @@ class LettaCodeConfig:
                 "Write": ToolPermission(True, requires_consent=True),
                 "Task": ToolPermission(True, requires_consent=True),
             }
-        else:  # WHISPER
-            return {}
+        # WHISPER
+        return {}
 
 
 class LettaCodeClient:
@@ -143,7 +145,7 @@ class LettaCodeClient:
         conv2 = await client.create_conversation(agent_id)
     """
 
-    def __init__(self, config: Optional[LettaCodeConfig] = None):
+    def __init__(self, config: LettaCodeConfig | None = None):
         """
         Initialize Letta Code client.
 
@@ -154,7 +156,7 @@ class LettaCodeClient:
         self._sdk_client = None
         self._agent = None
         self._initialized = False
-        self._conversations: Dict[str, Any] = {}
+        self._conversations: dict[str, Any] = {}
 
         # Middleware components
         self._pii_filter = None
@@ -237,8 +239,8 @@ class LettaCodeClient:
     async def create_agent(
         self,
         system_prompt: str,
-        name: Optional[str] = None,
-        description: Optional[str] = None,
+        name: str | None = None,
+        description: str | None = None,
     ) -> str:
         """
         Create a new persistent agent.
@@ -340,7 +342,7 @@ class LettaCodeClient:
             logger.error(f"Failed to create conversation: {e}")
             raise
 
-    async def get_memory_blocks(self, agent_id: str) -> Dict[str, str]:
+    async def get_memory_blocks(self, agent_id: str) -> dict[str, str]:
         """
         Get all memory blocks for an agent.
 
@@ -424,7 +426,7 @@ class LettaCodeClient:
         self,
         agent_id: str,
         tool_name: str,
-        context: Optional[Dict[str, Any]] = None,
+        context: dict[str, Any] | None = None,
     ) -> bool:
         """
         Check if a tool can be used based on permissions and crisis state.
@@ -504,8 +506,8 @@ class LettaSession:
         self,
         client: LettaCodeClient,
         agent_id: str,
-        pii_filter: Optional[Any] = None,
-        crisis_detector: Optional[Any] = None,
+        pii_filter: Any | None = None,
+        crisis_detector: Any | None = None,
     ):
         self.client = client
         self.agent_id = agent_id
@@ -515,7 +517,7 @@ class LettaSession:
     async def send(
         self,
         message: str,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> str:
         """
         Send a message to the agent.
@@ -573,7 +575,7 @@ class LettaSession:
         self,
         message: str,
         callback: Callable[[str], None],
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> None:
         """
         Stream agent response.
@@ -628,10 +630,10 @@ class LettaSession:
 
 
 # Convenience functions
-_client: Optional[LettaCodeClient] = None
+_client: LettaCodeClient | None = None
 
 
-def get_client(config: Optional[LettaCodeConfig] = None) -> LettaCodeClient:
+def get_client(config: LettaCodeConfig | None = None) -> LettaCodeClient:
     """Get or create global Letta Code client."""
     global _client
     if _client is None:
@@ -639,7 +641,7 @@ def get_client(config: Optional[LettaCodeConfig] = None) -> LettaCodeClient:
     return _client
 
 
-async def initialize_client(config: Optional[LettaCodeConfig] = None) -> LettaCodeClient:
+async def initialize_client(config: LettaCodeConfig | None = None) -> LettaCodeClient:
     """Initialize and return global client."""
     client = get_client(config)
     await client.initialize()

@@ -4,16 +4,18 @@ Resume Orchestrator for Pixelated Empathy AI
 Manages coordination and orchestration of multiple resumable processes
 """
 
+from datetime import datetime, timedelta, timezone
+
 import asyncio
 import json
 import logging
 import threading
 import time
 from collections import defaultdict, deque
+from collections.abc import Callable
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Set
+from typing import Any
 
 from auto_resume_engine import (
     AutoResumeEngine,
@@ -69,7 +71,7 @@ class ProcessMetrics:
     successful_resumes: int = 0
     failed_resumes: int = 0
     avg_resume_time_seconds: float = 0.0
-    last_resume_time: Optional[datetime] = None
+    last_resume_time: datetime | None = None
     interruption_frequency: float = 0.0  # interruptions per hour
     reliability_score: float = 100.0
 
@@ -77,7 +79,7 @@ class ProcessMetrics:
         """Update metrics for successful resume"""
         self.total_resumes += 1
         self.successful_resumes += 1
-        self.last_resume_time = datetime.utcnow()
+        self.last_resume_time = datetime.now(timezone.utc)
 
         # Update average resume time
         if self.avg_resume_time_seconds == 0:
@@ -111,30 +113,30 @@ class ResumeOrchestrator:
         self.resume_engine = AutoResumeEngine(checkpoint_manager, self.resume_config)
 
         # Process management
-        self.registered_processes: Dict[str, Dict[str, Any]] = {}
-        self.process_dependencies: List[ProcessDependency] = []
-        self.process_priorities: Dict[str, ProcessPriority] = {}
-        self.process_metrics: Dict[str, ProcessMetrics] = {}
+        self.registered_processes: dict[str, dict[str, Any]] = {}
+        self.process_dependencies: list[ProcessDependency] = []
+        self.process_priorities: dict[str, ProcessPriority] = {}
+        self.process_metrics: dict[str, ProcessMetrics] = {}
 
         # Resume coordination
         self.resume_queue = deque()
-        self.active_resumes: Set[str] = set()
-        self.resume_locks: Dict[str, asyncio.Lock] = {}
-        self.dependency_graph: Dict[str, List[str]] = defaultdict(list)
+        self.active_resumes: set[str] = set()
+        self.resume_locks: dict[str, asyncio.Lock] = {}
+        self.dependency_graph: dict[str, list[str]] = defaultdict(list)
 
         # Monitoring
         self.orchestrator_active = False
         self.orchestrator_thread = None
-        self.resume_history: List[Dict[str, Any]] = []
+        self.resume_history: list[dict[str, Any]] = []
 
         # Resource management
         self.max_concurrent_resumes = 5
-        self.resource_pools: Dict[str, int] = {
+        self.resource_pools: dict[str, int] = {
             "cpu_intensive": 2,
             "memory_intensive": 2,
             "io_intensive": 3,
         }
-        self.resource_usage: Dict[str, int] = defaultdict(int)
+        self.resource_usage: dict[str, int] = defaultdict(int)
 
     def start(self):
         """Start the resume orchestrator"""
@@ -166,8 +168,8 @@ class ResumeOrchestrator:
         task_id: str,
         resume_handler: Callable,
         priority: ProcessPriority = ProcessPriority.MEDIUM,
-        resource_requirements: Dict[str, int] = None,
-        metadata: Dict[str, Any] = None,
+        resource_requirements: dict[str, int] = None,
+        metadata: dict[str, Any] = None,
     ):
         """Register a process for orchestrated resumption"""
 
@@ -183,7 +185,7 @@ class ResumeOrchestrator:
             "priority": priority,
             "resource_requirements": resource_requirements or {},
             "metadata": metadata or {},
-            "registered_at": datetime.utcnow(),
+            "registered_at": datetime.now(timezone.utc),
         }
 
         self.process_priorities[process_id] = priority
@@ -243,7 +245,7 @@ class ResumeOrchestrator:
             "process_id": process_id,
             "priority": priority,
             "interruption_context": interruption_context,
-            "requested_at": datetime.utcnow(),
+            "requested_at": datetime.now(timezone.utc),
             "force_immediate": force_immediate,
         }
 
@@ -316,7 +318,7 @@ class ResumeOrchestrator:
                     "process_id": process_id,
                     "success": success,
                     "resume_time_seconds": resume_time,
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                     "interruption_type": interruption_context.interruption_type.value
                     if interruption_context
                     else None,
@@ -503,14 +505,14 @@ class ResumeOrchestrator:
         """Clean up old data to prevent memory leaks"""
 
         # Clean up old resume history (keep last 24 hours)
-        cutoff_time = datetime.utcnow() - timedelta(hours=24)
+        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=24)
         self.resume_history = [
             entry
             for entry in self.resume_history
             if datetime.fromisoformat(entry["timestamp"]) > cutoff_time
         ]
 
-    def get_orchestrator_status(self) -> Dict[str, Any]:
+    def get_orchestrator_status(self) -> dict[str, Any]:
         """Get comprehensive orchestrator status"""
 
         # Calculate overall metrics
@@ -523,7 +525,7 @@ class ResumeOrchestrator:
             entry
             for entry in self.resume_history
             if datetime.fromisoformat(entry["timestamp"])
-            > datetime.utcnow() - timedelta(hours=1)
+            > datetime.now(timezone.utc) - timedelta(hours=1)
         ]
 
         successful_resumes = sum(1 for entry in recent_history if entry["success"])
@@ -560,7 +562,7 @@ class ResumeOrchestrator:
             "resume_history_count": len(self.resume_history),
         }
 
-    def get_process_status(self, process_id: str) -> Optional[Dict[str, Any]]:
+    def get_process_status(self, process_id: str) -> dict[str, Any] | None:
         """Get detailed status for a specific process"""
 
         if process_id not in self.registered_processes:
@@ -609,7 +611,7 @@ async def example_orchestrated_resume():
 
     # Example resume handlers
     async def data_processor_handler(
-        resume_point: Dict[str, Any], interruption_context: InterruptionContext = None
+        resume_point: dict[str, Any], interruption_context: InterruptionContext = None
     ):
         print(f"Resuming data processor from step {resume_point['resume_step']}")
         # Simulate data processing resume
@@ -617,7 +619,7 @@ async def example_orchestrated_resume():
         return True
 
     async def model_trainer_handler(
-        resume_point: Dict[str, Any], interruption_context: InterruptionContext = None
+        resume_point: dict[str, Any], interruption_context: InterruptionContext = None
     ):
         print(f"Resuming model trainer from step {resume_point['resume_step']}")
         # Simulate model training resume

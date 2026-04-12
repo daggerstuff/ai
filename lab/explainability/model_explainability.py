@@ -3,13 +3,15 @@ Model explainability system for Pixelated Empathy AI project.
 Provides interpretability tools for debugging, auditing, and understanding model decisions.
 """
 
+from datetime import datetime, timezone
+
+
 import hashlib
 import logging
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 import numpy as np
 import shap
@@ -49,45 +51,45 @@ class ExplanationResult:
     explanation_type: ExplanationType
     scope: ExplanationScope
     model_name: str
-    input_data: Union[str, List[str], Dict[str, Any]]
-    explanation_output: Dict[str, Any]
+    input_data: str | list[str] | dict[str, Any]
+    explanation_output: dict[str, Any]
     confidence_score: float
     computation_time_ms: float
-    created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
-    metadata: Optional[Dict[str, Any]] = None
+    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    metadata: dict[str, Any] | None = None
 
 
 @dataclass
 class AttentionWeights:
     """Attention weights for visualization"""
 
-    layer_weights: List[np.ndarray]
-    head_weights: List[np.ndarray]
-    token_weights: List[float]
-    attention_map: Optional[np.ndarray] = None
+    layer_weights: list[np.ndarray]
+    head_weights: list[np.ndarray]
+    token_weights: list[float]
+    attention_map: np.ndarray | None = None
 
 
 @dataclass
 class FeatureImportance:
     """Feature importance scores"""
 
-    features: List[str]
-    importance_scores: List[float]
-    feature_types: List[str]
-    confidence_intervals: Optional[List[Tuple[float, float]]] = None
+    features: list[str]
+    importance_scores: list[float]
+    feature_types: list[str]
+    confidence_intervals: list[tuple[float, float]] | None = None
 
 
 class ExplainabilityEngine:
     """Main engine for model explainability"""
 
     def __init__(self):
-        self.explanations: Dict[str, ExplanationResult] = {}
-        self.models: Dict[str, Any] = {}  # Model cache
-        self.tokenizers: Dict[str, Any] = {}  # Tokenizer cache
+        self.explanations: dict[str, ExplanationResult] = {}
+        self.models: dict[str, Any] = {}  # Model cache
+        self.tokenizers: dict[str, Any] = {}  # Tokenizer cache
         self.logger = logging.getLogger(__name__)
 
     def register_model(
-        self, model_name: str, model: Any, tokenizer: Optional[Any] = None
+        self, model_name: str, model: Any, tokenizer: Any | None = None
     ):
         """Register a model for explainability"""
         self.models[model_name] = model
@@ -100,7 +102,7 @@ class ExplainabilityEngine:
         model_name: str,
         input_text: str,
         method: str = "gradient",
-        target_class: Optional[int] = None,
+        target_class: int | None = None,
     ) -> ExplanationResult:
         """Get feature importance explanation for input text"""
         start_time = time.time()
@@ -172,7 +174,7 @@ class ExplainabilityEngine:
         model: Any,
         tokenizer: Any,
         input_text: str,
-        target_class: Optional[int] = None,
+        target_class: int | None = None,
     ) -> FeatureImportance:
         """Calculate feature importance using gradient-based methods"""
         if not tokenizer or not hasattr(model, "forward"):
@@ -231,7 +233,7 @@ class ExplainabilityEngine:
         model: Any,
         tokenizer: Any,
         input_text: str,
-        target_class: Optional[int] = None,
+        target_class: int | None = None,
     ) -> FeatureImportance:
         """Calculate feature importance using LIME"""
         try:
@@ -283,7 +285,7 @@ class ExplainabilityEngine:
         model: Any,
         tokenizer: Any,
         input_text: str,
-        target_class: Optional[int] = None,
+        target_class: int | None = None,
     ) -> FeatureImportance:
         """Calculate feature importance using SHAP"""
         try:
@@ -350,7 +352,7 @@ class ExplainabilityEngine:
         )
 
     def get_attention_visualization(
-        self, model_name: str, input_text: str, layer_idx: Optional[int] = None
+        self, model_name: str, input_text: str, layer_idx: int | None = None
     ) -> ExplanationResult:
         """Get attention visualization for input text"""
         start_time = time.time()
@@ -416,7 +418,7 @@ class ExplainabilityEngine:
         model: Any,
         tokenizer: Any,
         input_text: str,
-        layer_idx: Optional[int] = None,
+        layer_idx: int | None = None,
     ) -> AttentionWeights:
         """Extract attention weights from model"""
         if not tokenizer or not hasattr(model, "config"):
@@ -489,7 +491,7 @@ class ExplainabilityEngine:
 
     def _create_attention_visualization(
         self, attention_weights: AttentionWeights, tokenizer: Any, input_text: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Create visualization data for attention weights"""
         # Extract tokens from input text
         if tokenizer:
@@ -574,7 +576,7 @@ class ExplainabilityEngine:
 
     def _generate_counterfactuals(
         self, model_name: str, input_text: str, target_outcome: Any, max_changes: int
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Generate counterfactual examples"""
         if model_name not in self.models:
             return []
@@ -634,7 +636,7 @@ class ExplainabilityEngine:
         return counterfactuals
 
     def get_similarity_analysis(
-        self, model_name: str, input_text: str, reference_texts: List[str]
+        self, model_name: str, input_text: str, reference_texts: list[str]
     ) -> ExplanationResult:
         """Analyze similarity between input and reference texts"""
         start_time = time.time()
@@ -677,8 +679,8 @@ class ExplainabilityEngine:
             raise
 
     def _calculate_similarities(
-        self, input_text: str, reference_texts: List[str]
-    ) -> List[Dict[str, Any]]:
+        self, input_text: str, reference_texts: list[str]
+    ) -> list[dict[str, Any]]:
         """Calculate similarity scores using simple text similarity"""
         similarities = []
 
@@ -722,7 +724,7 @@ class ExplainabilityEngine:
         return similarities
 
     def get_global_model_behavior(
-        self, model_name: str, sample_inputs: List[str]
+        self, model_name: str, sample_inputs: list[str]
     ) -> ExplanationResult:
         """Analyze global model behavior across sample inputs"""
         start_time = time.time()
@@ -769,8 +771,8 @@ class ExplainabilityEngine:
             raise
 
     def _analyze_global_behavior(
-        self, model_name: str, sample_inputs: List[str]
-    ) -> Dict[str, Any]:
+        self, model_name: str, sample_inputs: list[str]
+    ) -> dict[str, Any]:
         """Analyze global model behavior"""
         if model_name not in self.models:
             return {"error": "Model not registered"}
@@ -852,8 +854,8 @@ class ExplainabilityEngine:
         return {"error": "No samples analyzed successfully"}
 
     def _aggregate_feature_importances(
-        self, importance_lists: List[List[float]]
-    ) -> Dict[str, float]:
+        self, importance_lists: list[list[float]]
+    ) -> dict[str, float]:
         """Aggregate feature importance scores"""
         if not importance_lists:
             return {}
@@ -884,7 +886,7 @@ class ExplainabilityEngine:
 
         return sorted_features
 
-    def _calculate_explanation_confidence(self, scores: List[float]) -> float:
+    def _calculate_explanation_confidence(self, scores: list[float]) -> float:
         """Calculate confidence score for explanation based on importance scores"""
         if not scores:
             return 0.0
@@ -902,17 +904,17 @@ class ExplainabilityEngine:
     ) -> str:
         """Generate unique ID for explanation"""
         input_hash = hashlib.md5(str(input_data).encode()).hexdigest()[:16]
-        return f"exp_{model_name}_{explanation_type}_{input_hash}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
+        return f"exp_{model_name}_{explanation_type}_{input_hash}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
 
-    def get_explanation(self, explanation_id: str) -> Optional[ExplanationResult]:
+    def get_explanation(self, explanation_id: str) -> ExplanationResult | None:
         """Retrieve a stored explanation by ID"""
         return self.explanations.get(explanation_id)
 
     def list_explanations(
         self,
-        model_name: Optional[str] = None,
-        explanation_type: Optional[ExplanationType] = None,
-    ) -> List[ExplanationResult]:
+        model_name: str | None = None,
+        explanation_type: ExplanationType | None = None,
+    ) -> list[ExplanationResult]:
         """List stored explanations with optional filtering"""
         explanations = list(self.explanations.values())
 
@@ -929,7 +931,7 @@ class ExplainabilityEngine:
 
         return explanations
 
-    def clear_explanations(self, older_than_hours: Optional[int] = None) -> int:
+    def clear_explanations(self, older_than_hours: int | None = None) -> int:
         """Clear stored explanations, optionally only older ones"""
         if older_than_hours is None:
             count = len(self.explanations)
@@ -937,7 +939,7 @@ class ExplainabilityEngine:
             return count
 
         # Clear only older explanations
-        cutoff_time = datetime.utcnow() - timedelta(hours=older_than_hours)
+        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=older_than_hours)
         expired_ids = [
             exp_id
             for exp_id, exp in self.explanations.items()
@@ -956,14 +958,14 @@ class LimitedAccessExplainability:
 
     def __init__(self, explainability_engine: ExplainabilityEngine):
         self.engine = explainability_engine
-        self.access_log: List[Dict[str, Any]] = []
+        self.access_log: list[dict[str, Any]] = []
         self.max_daily_requests = 1000
         self.requests_today = 0
-        self.daily_reset_time = datetime.utcnow().date()
+        self.daily_reset_time = datetime.now(timezone.utc).date()
 
     def _check_access_limits(self) -> bool:
         """Check if access limits have been reached"""
-        today = datetime.utcnow().date()
+        today = datetime.now(timezone.utc).date()
 
         # Reset daily counter if new day
         if today != self.daily_reset_time:
@@ -976,11 +978,11 @@ class LimitedAccessExplainability:
         self.requests_today += 1
         return True
 
-    def _log_access(self, user_id: str, action: str, details: Dict[str, Any]):
+    def _log_access(self, user_id: str, action: str, details: dict[str, Any]):
         """Log access for auditing"""
         self.access_log.append(
             {
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "user_id": user_id,
                 "action": action,
                 "details": details,
@@ -990,7 +992,7 @@ class LimitedAccessExplainability:
 
     def get_limited_feature_importance(
         self, user_id: str, model_name: str, input_text: str, method: str = "gradient"
-    ) -> Optional[ExplanationResult]:
+    ) -> ExplanationResult | None:
         """Get feature importance with access restrictions"""
         if not self._check_access_limits():
             self._log_access(
@@ -1020,7 +1022,7 @@ class LimitedAccessExplainability:
 
     def get_limited_attention_visualization(
         self, user_id: str, model_name: str, input_text: str
-    ) -> Optional[ExplanationResult]:
+    ) -> ExplanationResult | None:
         """Get attention visualization with access restrictions"""
         if not self._check_access_limits():
             self._log_access(
@@ -1046,7 +1048,7 @@ class LimitedAccessExplainability:
             )
             return None
 
-    def get_audit_log(self, limit: int = 100) -> List[Dict[str, Any]]:
+    def get_audit_log(self, limit: int = 100) -> list[dict[str, Any]]:
         """Get access audit log"""
         return self.access_log[-limit:]
 
@@ -1058,7 +1060,7 @@ limited_access_explainability = LimitedAccessExplainability(explainability_engin
 
 # Utility functions for API integration
 def register_model_for_explainability(
-    model_name: str, model: Any, tokenizer: Optional[Any] = None
+    model_name: str, model: Any, tokenizer: Any | None = None
 ):
     """Register a model for explainability analysis"""
     explainability_engine.register_model(model_name, model, tokenizer)
@@ -1068,9 +1070,9 @@ def get_limited_explanation(
     user_id: str,
     explanation_type: str,
     model_name: str,
-    input_data: Union[str, List[str]],
+    input_data: str | list[str],
     **kwargs,
-) -> Optional[ExplanationResult]:
+) -> ExplanationResult | None:
     """Get limited-access explanation for API endpoints"""
 
     if explanation_type == "feature_importance":
@@ -1080,14 +1082,13 @@ def get_limited_explanation(
             input_data,
             kwargs.get("method", "gradient"),
         )
-    elif explanation_type == "attention_visualization":
+    if explanation_type == "attention_visualization":
         return limited_access_explainability.get_limited_attention_visualization(
             user_id,
             model_name,
             input_data,
         )
-    else:
-        return None
+    return None
 
 
 # Example usage and testing

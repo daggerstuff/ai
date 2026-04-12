@@ -6,11 +6,12 @@ Enterprise-grade launcher for the quality analytics dashboard with
 comprehensive setup, validation, and monitoring capabilities.
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import subprocess
 import sys
-from datetime import datetime
 from pathlib import Path
 
 # Configure logging
@@ -164,7 +165,7 @@ class QualityAnalyticsDashboardLauncher:
             "port": 8501,
             "host": "localhost",
             "db_path": str(self.db_path),
-            "launch_time": datetime.now().isoformat(),
+            "launch_time": datetime.now(timezone.utc).isoformat(),
             "project_root": str(self.project_root),
             "monitoring_dir": str(self.monitoring_dir),
         }
@@ -254,9 +255,8 @@ class QualityAnalyticsDashboardLauncher:
             if result.returncode == 0:
                 logger.info("✅ Pre-launch tests passed")
                 return True
-            else:
-                logger.error(f"❌ Pre-launch tests failed: {result.stderr}")
-                return False
+            logger.error(f"❌ Pre-launch tests failed: {result.stderr}")
+            return False
 
         except subprocess.TimeoutExpired:
             logger.error("❌ Pre-launch tests timed out")
@@ -310,9 +310,8 @@ class QualityAnalyticsDashboardLauncher:
         if success:
             logger.info("🎉 Quality Analytics Dashboard launched successfully!")
             return True
-        else:
-            logger.error("❌ Dashboard launch failed")
-            return False
+        logger.error("❌ Dashboard launch failed")
+        return False
 
 
 def main():

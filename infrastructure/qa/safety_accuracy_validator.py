@@ -19,13 +19,13 @@ Version: 1.0.0
 Date: August 2025
 """
 
+from datetime import datetime, timezone
+
 import asyncio
 import json
 import logging
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
 from pathlib import Path
-from typing import List, Optional, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -63,11 +63,11 @@ class SafetyValidationConfig:
     confidence_level: float = 0.95
     cross_validation_folds: int = 5
 
-    demographic_groups: List[str] = None
+    demographic_groups: list[str] = None
 
-    languages: List[str] = None
+    languages: list[str] = None
 
-    age_groups: List[str] = None
+    age_groups: list[str] = None
 
     def __post_init__(self):
         if self.demographic_groups is None:
@@ -137,7 +137,7 @@ class SafetyMetrics:
     age_bias_score: float
     clinical_validation_score: float
     statistical_significance: float
-    confidence_interval: Tuple[float, float]
+    confidence_interval: tuple[float, float]
 
 
 class ClinicalValidationDataset:
@@ -145,11 +145,11 @@ class ClinicalValidationDataset:
 
     def __init__(self, config: SafetyValidationConfig):
         self.config = config
-        self.scenarios: List[ValidationScenario] = []
+        self.scenarios: list[ValidationScenario] = []
         self.data_path = Path("/home/vivi/pixelated/ai/data/clinical_validation")
         self.data_path.mkdir(parents=True, exist_ok=True)
 
-    async def load_clinical_scenarios(self) -> List[ValidationScenario]:
+    async def load_clinical_scenarios(self) -> list[ValidationScenario]:
         """Load clinical validation scenarios from licensed providers"""
         logger.info("Loading clinical validation scenarios...")
 
@@ -285,8 +285,8 @@ class SafetyAccuracyValidator:
     def __init__(self, config: SafetyValidationConfig):
         self.config = config
         self.dataset = ClinicalValidationDataset(config)
-        self.results: List[ValidationResult] = []
-        self.metrics: Optional[SafetyMetrics] = None
+        self.results: list[ValidationResult] = []
+        self.metrics: SafetyMetrics | None = None
 
     async def run_validation(self) -> SafetyMetrics:
         """Run comprehensive safety accuracy validation"""
@@ -321,14 +321,14 @@ class SafetyAccuracyValidator:
         self, scenario: ValidationScenario
     ) -> ValidationResult:
         """Validate individual scenario"""
-        start_time = datetime.now()
+        start_time = datetime.now(timezone.utc)
 
         # Simulate AI model prediction (replace with actual model inference)
         predicted_score, predicted_risk_level = await self._simulate_model_prediction(
             scenario
         )
 
-        end_time = datetime.now()
+        end_time = datetime.now(timezone.utc)
         response_time_ms = (end_time - start_time).total_seconds() * 1000
 
         # Determine if prediction is correct
@@ -348,7 +348,7 @@ class SafetyAccuracyValidator:
 
     async def _simulate_model_prediction(
         self, scenario: ValidationScenario
-    ) -> Tuple[float, str]:
+    ) -> tuple[float, str]:
         """Simulate model prediction (replace with actual model)"""
         # Simulate prediction based on ground truth with some noise
         base_score = scenario.ground_truth_label / 2.0  # 0, 0.5, 1.0
@@ -521,7 +521,7 @@ class SafetyAccuracyValidator:
 
     async def _calculate_confidence_interval(
         self, accuracy: float, n: int
-    ) -> Tuple[float, float]:
+    ) -> tuple[float, float]:
         """Calculate confidence interval for accuracy"""
         z_score = 1.96  # 95% confidence
         margin_error = z_score * np.sqrt(accuracy * (1 - accuracy) / n)

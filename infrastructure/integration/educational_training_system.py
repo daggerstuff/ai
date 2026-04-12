@@ -10,17 +10,14 @@ This system provides:
 - Real-time feedback and coaching
 """
 
-import asyncio
-import json
+from datetime import datetime, timezone
+
 import logging
 import random
 from dataclasses import dataclass
-from datetime import datetime, timedelta
 from enum import Enum
-from pathlib import Path
-from typing import Dict, List, Optional, Tuple
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 class LearnerLevel(Enum):
@@ -58,8 +55,8 @@ class LearningObjective:
     description: str
     competency_area: CompetencyArea
     target_level: LearnerLevel
-    assessment_criteria: List[str]
-    prerequisite_objectives: List[str]
+    assessment_criteria: list[str]
+    prerequisite_objectives: list[str]
 
 @dataclass
 class TrainingScenario:
@@ -68,11 +65,11 @@ class TrainingScenario:
     title: str
     scenario_type: ScenarioType
     difficulty_level: int  # 1-5 scale
-    learning_objectives: List[str]
-    client_background: Dict
+    learning_objectives: list[str]
+    client_background: dict
     presenting_problem: str
-    session_context: Dict
-    assessment_rubric: Dict
+    session_context: dict
+    assessment_rubric: dict
     expected_duration_minutes: int
 
 @dataclass
@@ -81,10 +78,10 @@ class PerformanceAssessment:
     assessment_id: str
     scenario_id: str
     learner_id: str
-    competency_scores: Dict[CompetencyArea, float]  # 0-1 scale
-    specific_feedback: List[str]
-    strengths_identified: List[str]
-    areas_for_improvement: List[str]
+    competency_scores: dict[CompetencyArea, float]  # 0-1 scale
+    specific_feedback: list[str]
+    strengths_identified: list[str]
+    areas_for_improvement: list[str]
     overall_score: float
     assessment_timestamp: datetime
 
@@ -153,7 +150,7 @@ class ScenarioGenerator:
         }
 
     def generate_scenario(self, scenario_type: ScenarioType, difficulty: int,
-                         learning_objectives: List[str]) -> TrainingScenario:
+                         learning_objectives: list[str]) -> TrainingScenario:
         """Generate a training scenario based on parameters"""
 
         # Select appropriate client profile
@@ -170,7 +167,7 @@ class ScenarioGenerator:
                 "Medical complications"
             ]
 
-        scenario_id = f"{scenario_type.value}_{difficulty}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        scenario_id = f"{scenario_type.value}_{difficulty}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
 
         return TrainingScenario(
             scenario_id=scenario_id,

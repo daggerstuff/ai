@@ -1,19 +1,19 @@
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
-def detect_bias(text: str, bias_engine: Any) -> Dict[str, float]:
+def detect_bias(text: str, bias_engine: Any) -> dict[str, float]:
     """Detect bias using the provided bias_engine."""
     if bias_engine is None:
         return {}
     return bias_engine.analyze(text)
 
-def check_pii(text: str, privacy_engine: Any) -> List[str]:
+def check_pii(text: str, privacy_engine: Any) -> list[str]:
     """Check for PII using the provided privacy_engine."""
     if privacy_engine is None:
         return []
     return privacy_engine.check_pii(text)
 
-def check_phi(text: str, privacy_engine: Any) -> List[str]:
+def check_phi(text: str, privacy_engine: Any) -> list[str]:
     """Check for PHI using the provided privacy_engine."""
     if privacy_engine is None:
         return []
@@ -29,10 +29,10 @@ def log_audit_event(event_type: str, text: str, logger: Any) -> None:
 
 def run_bias_privacy_pipeline(
     text: str,
-    bias_engine: Optional[Any] = None,
-    privacy_engine: Optional[Any] = None,
-    audit_logger: Optional[Any] = None,
-) -> Dict[str, Any]:
+    bias_engine: Any | None = None,
+    privacy_engine: Any | None = None,
+    audit_logger: Any | None = None,
+) -> dict[str, Any]:
     """Run bias and privacy checks, and log audit event."""
     if text is None:
         raise ValueError("Input text cannot be None")

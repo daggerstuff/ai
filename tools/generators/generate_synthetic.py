@@ -1,3 +1,5 @@
+
+from datetime import datetime, timezone
 import argparse
 import importlib.util
 import json
@@ -5,7 +7,6 @@ import os
 import re
 import sys
 import time
-from datetime import datetime
 
 import requests
 from dotenv import load_dotenv
@@ -123,15 +124,14 @@ def load_chain_templates(path, chain_type):
                     "template": "As a clinical supervisor, critique the therapist's response to the client's threats in the following dialogue. Be detailed and specific.\n\n{dialogue}",
                 }
             ]
-        elif chain_type == "session_note":
+        if chain_type == "session_note":
             return [
                 {
                     "id": "session_note",
                     "template": "Write a professional session note based on the following therapy dialogue.\n\n{dialogue}",
                 }
             ]
-        else:
-            return [{"id": chain_type, "template": f"{chain_type}: {{dialogue}}"}]
+        return [{"id": chain_type, "template": f"{chain_type}: {{dialogue}}"}]
     with open(path, encoding="utf-8") as f:
         data = json.load(f)
     return data
@@ -247,7 +247,7 @@ if __name__ == "__main__":
     slack_available = False
     if args.slack_webhook:
         slack_available = bool(importlib.util.find_spec("slack_sdk.webhook"))
-    now_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+    now_str = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     model_safe = args.model.replace("/", "_").replace(":", "_")
     output_path = (
         args.output or f"synthetic_therapy_dialogues_{model_safe}_{now_str}.jsonl"

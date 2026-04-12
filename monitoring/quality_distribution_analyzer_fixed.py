@@ -4,13 +4,13 @@ Quality Distribution Analysis System - Fixed Version
 Analyzes quality score distributions across datasets, tiers, and time periods
 """
 
+from datetime import datetime, timezone
+
 import json
 import sqlite3
 import warnings
 from dataclasses import dataclass
-from datetime import datetime
 from pathlib import Path
-from typing import Dict, List
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -27,11 +27,11 @@ class DistributionAnalysis:
 
     metric: str
     category: str
-    values: List[float]
-    statistics: Dict[str, float]
+    values: list[float]
+    statistics: dict[str, float]
     distribution_type: str
-    outliers: List[float]
-    percentiles: Dict[str, float]
+    outliers: list[float]
+    percentiles: dict[str, float]
 
 
 class QualityDistributionAnalyzer:
@@ -58,7 +58,7 @@ class QualityDistributionAnalyzer:
 
     def analyze_quality_distributions(
         self,
-    ) -> Dict[str, Dict[str, DistributionAnalysis]]:
+    ) -> dict[str, dict[str, DistributionAnalysis]]:
         """Analyze quality distributions across all metrics and categories"""
         print("🔍 Analyzing quality distributions across all metrics and categories...")
 
@@ -100,7 +100,7 @@ class QualityDistributionAnalyzer:
             print(f"❌ Error analyzing quality distributions: {e}")
             return {}
 
-    def _get_conversation_data(self) -> List[Dict]:
+    def _get_conversation_data(self) -> list[dict]:
         """Get conversation data from database"""
         try:
             conn = sqlite3.connect(self.db_path)
@@ -136,16 +136,16 @@ class QualityDistributionAnalyzer:
             print(f"❌ Error getting conversation data: {e}")
             return []
 
-    def _calculate_metric_values(self, df: pd.DataFrame, metric: str) -> List[float]:
+    def _calculate_metric_values(self, df: pd.DataFrame, metric: str) -> list[float]:
         """Calculate metric values for all records"""
         try:
             if metric == "conversation_length":
                 return df["turn_count"].fillna(0).astype(float).tolist()
 
-            elif metric == "content_richness":
+            if metric == "content_richness":
                 return df["word_count"].fillna(0).astype(float).tolist()
 
-            elif metric == "processing_efficiency":
+            if metric == "processing_efficiency":
                 # Simple efficiency score based on processing status
                 return [
                     1.0 if status == "processed" else 0.0
@@ -160,7 +160,7 @@ class QualityDistributionAnalyzer:
 
     def _analyze_distribution_by_category(
         self, df: pd.DataFrame, metric_col: str, category_col: str
-    ) -> Dict[str, DistributionAnalysis]:
+    ) -> dict[str, DistributionAnalysis]:
         """Analyze distribution for each category value"""
         try:
             results = {}
@@ -207,8 +207,8 @@ class QualityDistributionAnalyzer:
             return {}
 
     def _calculate_distribution_statistics(
-        self, values: List[float]
-    ) -> Dict[str, float]:
+        self, values: list[float]
+    ) -> dict[str, float]:
         """Calculate comprehensive distribution statistics"""
         try:
             values_array = np.array(values, dtype=float)
@@ -235,7 +235,7 @@ class QualityDistributionAnalyzer:
             print(f"❌ Error calculating statistics: {e}")
             return {}
 
-    def _detect_distribution_type(self, values: List[float]) -> str:
+    def _detect_distribution_type(self, values: list[float]) -> str:
         """Detect the type of distribution"""
         try:
             values_array = np.array(values, dtype=float)
@@ -257,12 +257,11 @@ class QualityDistributionAnalyzer:
                 skewness = stats.skew(values_array)
                 if abs(skewness) < 0.5:
                     return "approximately_normal"
-                elif skewness > 1:
+                if skewness > 1:
                     return "right_skewed"
-                elif skewness < -1:
+                if skewness < -1:
                     return "left_skewed"
-                else:
-                    return "moderately_skewed"
+                return "moderately_skewed"
             except:
                 return "unknown"
 
@@ -270,7 +269,7 @@ class QualityDistributionAnalyzer:
             print(f"❌ Error detecting distribution type: {e}")
             return "unknown"
 
-    def _find_outliers(self, values: List[float]) -> List[float]:
+    def _find_outliers(self, values: list[float]) -> list[float]:
         """Find outliers using IQR method"""
         try:
             values_array = np.array(values, dtype=float)
@@ -293,7 +292,7 @@ class QualityDistributionAnalyzer:
             print(f"❌ Error finding outliers: {e}")
             return []
 
-    def _calculate_percentiles(self, values: List[float]) -> Dict[str, float]:
+    def _calculate_percentiles(self, values: list[float]) -> dict[str, float]:
         """Calculate key percentiles"""
         try:
             values_array = np.array(values, dtype=float)
@@ -314,8 +313,8 @@ class QualityDistributionAnalyzer:
             return {}
 
     def create_distribution_visualizations(
-        self, distributions: Dict[str, Dict[str, DistributionAnalysis]]
-    ) -> Dict[str, str]:
+        self, distributions: dict[str, dict[str, DistributionAnalysis]]
+    ) -> dict[str, str]:
         """Create comprehensive distribution visualizations"""
         print("📈 Creating distribution visualizations...")
 
@@ -433,14 +432,14 @@ Outliers: {len(analysis.outliers)}"""
 
     def export_distribution_report(
         self,
-        distributions: Dict[str, Dict[str, DistributionAnalysis]],
-        visualizations: Dict[str, str],
+        distributions: dict[str, dict[str, DistributionAnalysis]],
+        visualizations: dict[str, str],
     ) -> str:
         """Export comprehensive distribution analysis report"""
         print("📄 Exporting distribution analysis report...")
 
         try:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
             report_file = (
                 self.output_dir / f"quality_distribution_report_{timestamp}.json"
             )
@@ -448,7 +447,7 @@ Outliers: {len(analysis.outliers)}"""
             # Prepare export data
             export_data = {
                 "report_metadata": {
-                    "generated_at": datetime.now().isoformat(),
+                    "generated_at": datetime.now(timezone.utc).isoformat(),
                     "analyzer_version": "1.0.0",
                     "total_metrics": len(distributions),
                     "total_categories": sum(

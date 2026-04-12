@@ -10,11 +10,12 @@ import os
 import sys
 import time
 import traceback
+from collections.abc import Callable
 from contextlib import contextmanager
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 # Configure logging
 logging.basicConfig(
@@ -51,12 +52,12 @@ class ConfigError:
     category: ErrorCategory
     severity: ErrorSeverity
     message: str
-    field: Optional[str] = None
-    value: Optional[Any] = None
-    exception: Optional[Exception] = None
+    field: str | None = None
+    value: Any | None = None
+    exception: Exception | None = None
 
     timestamp: float = None
-    recovery_suggestion: Optional[str] = None
+    recovery_suggestion: str | None = None
 
     def __post_init__(self):
         if self.timestamp is None:
@@ -68,8 +69,8 @@ class ConfigErrorHandler:
 
     def __init__(self, config_dir: str = None):
         self.config_dir = Path(config_dir) if config_dir else Path(__file__).parent
-        self.errors: List[ConfigError] = []
-        self.recovery_strategies: Dict[ErrorCategory, List[Callable]] = {
+        self.errors: list[ConfigError] = []
+        self.recovery_strategies: dict[ErrorCategory, list[Callable]] = {
             ErrorCategory.CONFIGURATION: [
                 self._recover_missing_config,
                 self._recover_invalid_format,
@@ -246,7 +247,7 @@ class ConfigErrorHandler:
                     os.environ[error.field] = str(int_value)
                     logger.info(f"Converted {error.field} to integer: {int_value}")
                     return True
-                elif error.field in ["DEBUG"]:
+                if error.field in ["DEBUG"]:
                     # Should be boolean
                     bool_value = str(error.value).lower() in ["true", "1", "yes", "on"]
                     os.environ[error.field] = str(bool_value).lower()
@@ -366,7 +367,7 @@ class ConfigErrorHandler:
 
         return False
 
-    def _get_default_config(self, filename: str) -> Optional[str]:
+    def _get_default_config(self, filename: str) -> str | None:
         """Get default configuration content for a file"""
         defaults = {
             "database.yaml": """
@@ -491,7 +492,7 @@ backup:
             self.handle_error(error)
             raise
 
-    def get_error_summary(self) -> Dict[str, Any]:
+    def get_error_summary(self) -> dict[str, Any]:
         """Get summary of all errors"""
         if not self.errors:
             return {"total": 0, "by_category": {}, "by_severity": {}}

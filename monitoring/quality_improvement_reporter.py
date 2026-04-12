@@ -6,13 +6,14 @@ Enterprise-grade reporting system for quality improvement tracking with
 comprehensive analysis, visualizations, and executive summaries.
 """
 
+from datetime import datetime, timedelta, timezone
+
 import json
 import logging
 import warnings
 from dataclasses import asdict
-from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 import plotly.graph_objects as go
@@ -69,7 +70,7 @@ class QualityImprovementReporter:
 
         try:
             # Get interventions from the specified period
-            end_date = datetime.now()
+            end_date = datetime.now(timezone.utc)
             start_date = end_date - timedelta(days=report_period_days)
 
             active_interventions = self._get_interventions_by_status("active")
@@ -108,7 +109,7 @@ class QualityImprovementReporter:
 
             # Create comprehensive report
             report = ImprovementReport(
-                generated_at=datetime.now().isoformat(),
+                generated_at=datetime.now(timezone.utc).isoformat(),
                 report_period=f"{report_period_days}_days",
                 active_interventions=active_interventions,
                 completed_interventions=completed_interventions,
@@ -127,7 +128,7 @@ class QualityImprovementReporter:
             logger.error(f"❌ Error generating improvement report: {e}")
             return self._create_empty_report()
 
-    def _get_interventions_by_status(self, status: str) -> List[QualityIntervention]:
+    def _get_interventions_by_status(self, status: str) -> list[QualityIntervention]:
         """Get interventions by status."""
         try:
             import sqlite3
@@ -154,7 +155,7 @@ class QualityImprovementReporter:
 
     def _get_interventions_by_period(
         self, start_date: datetime, end_date: datetime, status: str
-    ) -> List[QualityIntervention]:
+    ) -> list[QualityIntervention]:
         """Get interventions completed within a specific period."""
         try:
             import sqlite3
@@ -189,8 +190,8 @@ class QualityImprovementReporter:
             return []
 
     def _calculate_overall_impact(
-        self, analyses: List[ImprovementAnalysis]
-    ) -> Dict[str, Any]:
+        self, analyses: list[ImprovementAnalysis]
+    ) -> dict[str, Any]:
         """Calculate overall impact across all interventions."""
         if not analyses:
             return {
@@ -254,8 +255,8 @@ class QualityImprovementReporter:
         }
 
     def _calculate_success_metrics(
-        self, analyses: List[ImprovementAnalysis]
-    ) -> Dict[str, float]:
+        self, analyses: list[ImprovementAnalysis]
+    ) -> dict[str, float]:
         """Calculate success metrics for interventions."""
         if not analyses:
             return {
@@ -308,11 +309,11 @@ class QualityImprovementReporter:
 
     def _generate_executive_summary(
         self,
-        active_interventions: List[QualityIntervention],
-        completed_interventions: List[QualityIntervention],
-        analyses: List[ImprovementAnalysis],
-        overall_impact: Dict[str, Any],
-    ) -> List[str]:
+        active_interventions: list[QualityIntervention],
+        completed_interventions: list[QualityIntervention],
+        analyses: list[ImprovementAnalysis],
+        overall_impact: dict[str, Any],
+    ) -> list[str]:
         """Generate executive summary for the improvement report."""
         summary = []
 
@@ -368,10 +369,10 @@ class QualityImprovementReporter:
 
     def _generate_detailed_insights(
         self,
-        analyses: List[ImprovementAnalysis],
-        overall_impact: Dict[str, Any],
-        success_metrics: Dict[str, float],
-    ) -> List[str]:
+        analyses: list[ImprovementAnalysis],
+        overall_impact: dict[str, Any],
+        success_metrics: dict[str, float],
+    ) -> list[str]:
         """Generate detailed insights for the improvement report."""
         insights = []
 
@@ -439,10 +440,10 @@ class QualityImprovementReporter:
 
     def _generate_action_items(
         self,
-        active_interventions: List[QualityIntervention],
-        analyses: List[ImprovementAnalysis],
-        success_metrics: Dict[str, float],
-    ) -> List[str]:
+        active_interventions: list[QualityIntervention],
+        analyses: list[ImprovementAnalysis],
+        success_metrics: dict[str, float],
+    ) -> list[str]:
         """Generate actionable items based on improvement analysis."""
         actions = []
 
@@ -451,7 +452,7 @@ class QualityImprovementReporter:
             overdue_interventions = []
             for intervention in active_interventions:
                 start_date = datetime.fromisoformat(intervention.start_date)
-                if (datetime.now() - start_date).days > 60:  # 60 days threshold
+                if (datetime.now(timezone.utc) - start_date).days > 60:  # 60 days threshold
                     overdue_interventions.append(intervention)
 
             if overdue_interventions:
@@ -511,7 +512,7 @@ class QualityImprovementReporter:
 
     def create_improvement_visualizations(
         self, report: ImprovementReport
-    ) -> Dict[str, go.Figure]:
+    ) -> dict[str, go.Figure]:
         """Create comprehensive improvement visualizations."""
         visualizations = {}
 
@@ -528,7 +529,7 @@ class QualityImprovementReporter:
                 end_date = (
                     datetime.fromisoformat(intervention.end_date)
                     if intervention.end_date
-                    else datetime.now()
+                    else datetime.now(timezone.utc)
                 )
 
                 color = "green" if intervention.status == "completed" else "blue"
@@ -710,7 +711,7 @@ class QualityImprovementReporter:
 
     def save_report(self, report: ImprovementReport, format: str = "json") -> str:
         """Save improvement report to file."""
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
 
         if format == "json":
             filename = f"quality_improvement_report_{timestamp}.json"
@@ -740,13 +741,13 @@ class QualityImprovementReporter:
         template = Template(self.report_templates["detailed"])
 
         return template.render(
-            report=report, generated_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            report=report, generated_at=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
         )
 
     def _create_empty_report(self) -> ImprovementReport:
         """Create empty report when no data is available."""
         return ImprovementReport(
-            generated_at=datetime.now().isoformat(),
+            generated_at=datetime.now(timezone.utc).isoformat(),
             report_period="no_data",
             active_interventions=[],
             completed_interventions=[],

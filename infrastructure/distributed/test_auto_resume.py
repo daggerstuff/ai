@@ -4,6 +4,8 @@ Comprehensive Test Suite for Automatic Resume System
 Tests interruption detection, resume strategies, orchestration, and recovery scenarios
 """
 
+from datetime import datetime, timezone
+
 import asyncio
 import logging
 import os
@@ -11,7 +13,6 @@ import shutil
 import tempfile
 import time
 import uuid
-from datetime import datetime
 
 from auto_resume_engine import (
     AutoResumeEngine,
@@ -178,7 +179,7 @@ class AutoResumeTestSuite:
             process_id=process_id,
             task_id=task_id,
             interruption_type=InterruptionType.PROCESS_CRASH,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
         )
 
         success = await self.resume_engine.resume_process(process_id, interruption)
@@ -236,7 +237,7 @@ class AutoResumeTestSuite:
                 process_id="manual_test",
                 task_id="manual_test",
                 interruption_type=InterruptionType.USER_TERMINATION,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(timezone.utc),
             )
 
             detector._trigger_interruption_callbacks(manual_interruption)
@@ -333,7 +334,7 @@ class AutoResumeTestSuite:
                 process_id=process_id,
                 task_id=task_id,
                 interruption_type=interruption_type,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(timezone.utc),
             )
 
             # Test resume
@@ -368,7 +369,7 @@ class AutoResumeTestSuite:
             resume_calls.append(
                 {
                     "process_id": resume_point["process_id"],
-                    "timestamp": datetime.utcnow(),
+                    "timestamp": datetime.now(timezone.utc),
                     "strategy": resume_point["strategy"],
                 }
             )
@@ -735,7 +736,7 @@ class AutoResumeTestSuite:
             process_id=process_id,
             task_id="error_recovery_task",
             interruption_type=InterruptionType.PROCESS_CRASH,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
         )
 
         # Trigger automatic retry through interruption handling

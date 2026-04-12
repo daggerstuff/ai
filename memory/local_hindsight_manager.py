@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from .base import BaseMemoryManager
 from .local_hindsight_compat_mixin import LocalHindsightCompatibilityMixin
@@ -18,7 +18,7 @@ class LocalHindsightMemoryManager(LocalHindsightCompatibilityMixin, BaseMemoryMa
     def __init__(
         self,
         db_path: str,
-        bank_id: Optional[str] = None,
+        bank_id: str | None = None,
     ) -> None:
         self.db_path = db_path
         self.default_bank_id = bank_id or "pixelated"
@@ -48,8 +48,8 @@ class LocalHindsightMemoryManager(LocalHindsightCompatibilityMixin, BaseMemoryMa
         self,
         content: str,
         user_id: str,
-        metadata: Optional[Any] = None,
-        category: Optional[str] = None,
+        metadata: Any | None = None,
+        category: str | None = None,
     ) -> str:
         return self.writes.add_memory(
             content=content,
@@ -63,9 +63,9 @@ class LocalHindsightMemoryManager(LocalHindsightCompatibilityMixin, BaseMemoryMa
         *,
         content: str,
         user_id: str,
-        metadata: Optional[Any] = None,
-        category: Optional[str] = None,
-        scope_metadata: Optional[Dict[str, Any]] = None,
+        metadata: Any | None = None,
+        category: str | None = None,
+        scope_metadata: dict[str, Any] | None = None,
     ) -> str:
         return self.writes.add_memory(
             content=content,
@@ -75,18 +75,18 @@ class LocalHindsightMemoryManager(LocalHindsightCompatibilityMixin, BaseMemoryMa
             scope_metadata=scope_metadata,
         )
 
-    def get_all_memories(self, user_id: str, limit: int = 100) -> List[Dict[str, Any]]:
+    def get_all_memories(self, user_id: str, limit: int = 100) -> list[dict[str, Any]]:
         return self.queries.get_all_memories(user_id=user_id, limit=limit)
 
-    def get_memory(self, memory_id: str, user_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    def get_memory(self, memory_id: str, user_id: str | None = None) -> dict[str, Any] | None:
         return self.records.get_memory(memory_id, user_id=user_id)
 
     def update_memory(
         self,
         memory_id: str,
         new_content: str,
-        metadata: Optional[Any] = None,
-        user_id: Optional[str] = None,
+        metadata: Any | None = None,
+        user_id: str | None = None,
     ) -> bool:
         return self.records.update_memory(
             memory_id=memory_id,
@@ -95,13 +95,13 @@ class LocalHindsightMemoryManager(LocalHindsightCompatibilityMixin, BaseMemoryMa
             user_id=user_id,
         )
 
-    def delete_memory(self, memory_id: str, user_id: Optional[str] = None) -> bool:
+    def delete_memory(self, memory_id: str, user_id: str | None = None) -> bool:
         return self.records.delete_memory(
             memory_id=memory_id,
             user_id=user_id,
         )
 
-    def _delete_memories(self, memory_ids: List[str], user_id: Optional[str] = None) -> int:
+    def _delete_memories(self, memory_ids: list[str], user_id: str | None = None) -> int:
         return self.records.delete_memories(
             memory_ids,
             user_id=user_id,
@@ -110,7 +110,7 @@ class LocalHindsightMemoryManager(LocalHindsightCompatibilityMixin, BaseMemoryMa
     def clear_memory(self, user_id: str) -> bool:
         return self.records.clear_memory(user_id)
 
-    def get_health_status(self) -> Dict[str, Any]:
+    def get_health_status(self) -> dict[str, Any]:
         return self.records.get_health_status()
 
     def close(self) -> None:

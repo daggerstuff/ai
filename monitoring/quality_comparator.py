@@ -6,28 +6,24 @@ Enterprise-grade quality comparison system providing comprehensive
 cross-tier analysis, dataset benchmarking, and comparative reporting.
 """
 
-import json
+from datetime import datetime, timedelta, timezone
+
 import logging
 import sqlite3
 import warnings
-from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from dataclasses import dataclass
+from typing import Any
 
 import numpy as np
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 from scipy import stats
-from scipy.stats import chi2_contingency, f_oneway, kruskal, mannwhitneyu
+from scipy.stats import mannwhitneyu
 
 # Suppress warnings for cleaner output
 warnings.filterwarnings("ignore")
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
 @dataclass
@@ -36,13 +32,13 @@ class QualityComparison:
     comparison_type: str  # 'tier', 'dataset', 'component', 'time_period'
     group1_name: str
     group2_name: str
-    group1_stats: Dict[str, float]
-    group2_stats: Dict[str, float]
-    statistical_tests: List[Dict[str, Any]]
+    group1_stats: dict[str, float]
+    group2_stats: dict[str, float]
+    statistical_tests: list[dict[str, Any]]
     effect_size: float
     practical_significance: bool
-    confidence_interval: Tuple[float, float]
-    recommendations: List[str]
+    confidence_interval: tuple[float, float]
+    recommendations: list[str]
 
 @dataclass
 class BenchmarkAnalysis:
@@ -53,22 +49,22 @@ class BenchmarkAnalysis:
     performance_gap: float
     percentile_ranking: float
     improvement_potential: float
-    benchmark_metrics: Dict[str, float]
-    recommendations: List[str]
+    benchmark_metrics: dict[str, float]
+    recommendations: list[str]
 
 @dataclass
 class ComparisonReport:
     """Complete quality comparison report."""
     generated_at: str
     analysis_period: str
-    tier_comparisons: List[QualityComparison]
-    dataset_comparisons: List[QualityComparison]
-    component_comparisons: List[QualityComparison]
-    benchmark_analyses: List[BenchmarkAnalysis]
-    performance_rankings: Dict[str, List[Dict[str, Any]]]
-    executive_summary: List[str]
-    detailed_insights: List[str]
-    action_items: List[str]
+    tier_comparisons: list[QualityComparison]
+    dataset_comparisons: list[QualityComparison]
+    component_comparisons: list[QualityComparison]
+    benchmark_analyses: list[BenchmarkAnalysis]
+    performance_rankings: dict[str, list[dict[str, Any]]]
+    executive_summary: list[str]
+    detailed_insights: list[str]
+    action_items: list[str]
 
 class QualityComparator:
     """
@@ -91,33 +87,33 @@ class QualityComparator:
 
         # Effect size thresholds (Cohen's conventions)
         self.effect_size_thresholds = {
-            'small': 0.2,
-            'medium': 0.5,
-            'large': 0.8
+            "small": 0.2,
+            "medium": 0.5,
+            "large": 0.8
         }
 
         # Quality components for comparison
         self.quality_components = [
-            'therapeutic_accuracy',
-            'conversation_coherence',
-            'emotional_authenticity',
-            'clinical_compliance',
-            'personality_consistency',
-            'language_quality',
-            'safety_score',
-            'overall_quality'
+            "therapeutic_accuracy",
+            "conversation_coherence",
+            "emotional_authenticity",
+            "clinical_compliance",
+            "personality_consistency",
+            "language_quality",
+            "safety_score",
+            "overall_quality"
         ]
 
         # Industry benchmarks (placeholder values - would be updated with real data)
         self.industry_benchmarks = {
-            'therapeutic_accuracy': 0.75,
-            'conversation_coherence': 0.78,
-            'emotional_authenticity': 0.72,
-            'clinical_compliance': 0.80,
-            'personality_consistency': 0.70,
-            'language_quality': 0.76,
-            'safety_score': 0.85,
-            'overall_quality': 0.75
+            "therapeutic_accuracy": 0.75,
+            "conversation_coherence": 0.78,
+            "emotional_authenticity": 0.72,
+            "clinical_compliance": 0.80,
+            "personality_consistency": 0.70,
+            "language_quality": 0.76,
+            "safety_score": 0.85,
+            "overall_quality": 0.75
         }
 
         logger.info("🎯 Quality Comparator initialized")
@@ -127,7 +123,7 @@ class QualityComparator:
                            force_refresh: bool = False) -> pd.DataFrame:
         """Load quality data for comparison analysis."""
         cache_key = f"comparison_data_{days_back}"
-        current_time = datetime.now()
+        current_time = datetime.now(timezone.utc)
 
         # Check cache validity
         if (not force_refresh and
@@ -140,7 +136,7 @@ class QualityComparator:
             conn = sqlite3.connect(self.db_path)
 
             # Calculate date range
-            end_date = datetime.now()
+            end_date = datetime.now(timezone.utc)
             start_date = end_date - timedelta(days=days_back)
 
             # Load comprehensive quality data
@@ -183,9 +179,9 @@ class QualityComparator:
                 return df
 
             # Convert timestamps
-            df['created_at'] = pd.to_datetime(df['created_at'])
-            df['validated_at'] = pd.to_datetime(df['validated_at'])
-            df['date'] = pd.to_datetime(df['date'])
+            df["created_at"] = pd.to_datetime(df["created_at"])
+            df["validated_at"] = pd.to_datetime(df["validated_at"])
+            df["date"] = pd.to_datetime(df["date"])
 
             # Cache the data
             self._cached_data[cache_key] = df
@@ -198,53 +194,53 @@ class QualityComparator:
             logger.error(f"❌ Error loading comparison data: {e}")
             return pd.DataFrame()
 
-    def compare_tiers(self, df: pd.DataFrame, metric: str = 'overall_quality') -> List[QualityComparison]:
+    def compare_tiers(self, df: pd.DataFrame, metric: str = "overall_quality") -> list[QualityComparison]:
         """Compare quality across different tiers."""
         if df.empty or metric not in df.columns:
             return []
 
         comparisons = []
-        tiers = df['tier'].unique()
+        tiers = df["tier"].unique()
 
         # Pairwise tier comparisons
         for i, tier1 in enumerate(tiers):
             for tier2 in tiers[i+1:]:
-                tier1_data = df[df['tier'] == tier1][metric].dropna()
-                tier2_data = df[df['tier'] == tier2][metric].dropna()
+                tier1_data = df[df["tier"] == tier1][metric].dropna()
+                tier2_data = df[df["tier"] == tier2][metric].dropna()
 
                 if len(tier1_data) >= self.min_sample_size and len(tier2_data) >= self.min_sample_size:
                     comparison = self._perform_comparison(
-                        tier1_data, tier2_data, tier1, tier2, 'tier'
+                        tier1_data, tier2_data, tier1, tier2, "tier"
                     )
                     if comparison:
                         comparisons.append(comparison)
 
         return comparisons
 
-    def compare_datasets(self, df: pd.DataFrame, metric: str = 'overall_quality') -> List[QualityComparison]:
+    def compare_datasets(self, df: pd.DataFrame, metric: str = "overall_quality") -> list[QualityComparison]:
         """Compare quality across different datasets."""
         if df.empty or metric not in df.columns:
             return []
 
         comparisons = []
-        datasets = df['dataset_name'].unique()
+        datasets = df["dataset_name"].unique()
 
         # Pairwise dataset comparisons
         for i, dataset1 in enumerate(datasets):
             for dataset2 in datasets[i+1:]:
-                dataset1_data = df[df['dataset_name'] == dataset1][metric].dropna()
-                dataset2_data = df[df['dataset_name'] == dataset2][metric].dropna()
+                dataset1_data = df[df["dataset_name"] == dataset1][metric].dropna()
+                dataset2_data = df[df["dataset_name"] == dataset2][metric].dropna()
 
                 if len(dataset1_data) >= self.min_sample_size and len(dataset2_data) >= self.min_sample_size:
                     comparison = self._perform_comparison(
-                        dataset1_data, dataset2_data, dataset1, dataset2, 'dataset'
+                        dataset1_data, dataset2_data, dataset1, dataset2, "dataset"
                     )
                     if comparison:
                         comparisons.append(comparison)
 
         return comparisons
 
-    def compare_components(self, df: pd.DataFrame) -> List[QualityComparison]:
+    def compare_components(self, df: pd.DataFrame) -> list[QualityComparison]:
         """Compare quality across different components."""
         if df.empty:
             return []
@@ -260,7 +256,7 @@ class QualityComparator:
 
                 if len(comp1_data) >= self.min_sample_size and len(comp2_data) >= self.min_sample_size:
                     comparison = self._perform_comparison(
-                        comp1_data, comp2_data, comp1, comp2, 'component'
+                        comp1_data, comp2_data, comp1, comp2, "component"
                     )
                     if comparison:
                         comparisons.append(comparison)
@@ -272,26 +268,26 @@ class QualityComparator:
                           data2: pd.Series,
                           name1: str,
                           name2: str,
-                          comparison_type: str) -> Optional[QualityComparison]:
+                          comparison_type: str) -> QualityComparison | None:
         """Perform statistical comparison between two groups."""
         try:
             # Calculate basic statistics
             group1_stats = {
-                'mean': float(data1.mean()),
-                'median': float(data1.median()),
-                'std': float(data1.std()),
-                'count': len(data1),
-                'min': float(data1.min()),
-                'max': float(data1.max())
+                "mean": float(data1.mean()),
+                "median": float(data1.median()),
+                "std": float(data1.std()),
+                "count": len(data1),
+                "min": float(data1.min()),
+                "max": float(data1.max())
             }
 
             group2_stats = {
-                'mean': float(data2.mean()),
-                'median': float(data2.median()),
-                'std': float(data2.std()),
-                'count': len(data2),
-                'min': float(data2.min()),
-                'max': float(data2.max())
+                "mean": float(data2.mean()),
+                "median": float(data2.median()),
+                "std": float(data2.std()),
+                "count": len(data2),
+                "min": float(data2.min()),
+                "max": float(data2.max())
             }
 
             # Perform statistical tests
@@ -299,13 +295,13 @@ class QualityComparator:
 
             # Mann-Whitney U test (non-parametric)
             try:
-                statistic, p_value = mannwhitneyu(data1, data2, alternative='two-sided')
+                statistic, p_value = mannwhitneyu(data1, data2, alternative="two-sided")
                 statistical_tests.append({
-                    'test_name': 'Mann-Whitney U',
-                    'statistic': float(statistic),
-                    'p_value': float(p_value),
-                    'significant': p_value < self.significance_threshold,
-                    'interpretation': f"{'Significant' if p_value < self.significance_threshold else 'Non-significant'} difference (p={p_value:.4f})"
+                    "test_name": "Mann-Whitney U",
+                    "statistic": float(statistic),
+                    "p_value": float(p_value),
+                    "significant": p_value < self.significance_threshold,
+                    "interpretation": f"{'Significant' if p_value < self.significance_threshold else 'Non-significant'} difference (p={p_value:.4f})"
                 })
             except Exception as e:
                 logger.warning(f"Mann-Whitney U test failed: {e}")
@@ -314,11 +310,11 @@ class QualityComparator:
             try:
                 statistic, p_value = stats.ttest_ind(data1, data2)
                 statistical_tests.append({
-                    'test_name': 'Independent t-test',
-                    'statistic': float(statistic),
-                    'p_value': float(p_value),
-                    'significant': p_value < self.significance_threshold,
-                    'interpretation': f"{'Significant' if p_value < self.significance_threshold else 'Non-significant'} difference (p={p_value:.4f})"
+                    "test_name": "Independent t-test",
+                    "statistic": float(statistic),
+                    "p_value": float(p_value),
+                    "significant": p_value < self.significance_threshold,
+                    "interpretation": f"{'Significant' if p_value < self.significance_threshold else 'Non-significant'} difference (p={p_value:.4f})"
                 })
             except Exception as e:
                 logger.warning(f"Independent t-test failed: {e}")
@@ -333,7 +329,7 @@ class QualityComparator:
                 effect_size = 0.0
 
             # Determine practical significance
-            practical_significance = effect_size >= self.effect_size_thresholds['small']
+            practical_significance = effect_size >= self.effect_size_thresholds["small"]
 
             # Calculate confidence interval for difference in means
             diff_mean = data1.mean() - data2.mean()
@@ -364,7 +360,7 @@ class QualityComparator:
             logger.error(f"❌ Error performing comparison: {e}")
             return None
 
-    def perform_benchmark_analysis(self, df: pd.DataFrame) -> List[BenchmarkAnalysis]:
+    def perform_benchmark_analysis(self, df: pd.DataFrame) -> list[BenchmarkAnalysis]:
         """Perform benchmark analysis against industry standards."""
         if df.empty:
             return []
@@ -372,8 +368,8 @@ class QualityComparator:
         benchmark_analyses = []
 
         # Tier benchmarking
-        for tier in df['tier'].unique():
-            tier_data = df[df['tier'] == tier]
+        for tier in df["tier"].unique():
+            tier_data = df[df["tier"] == tier]
             if len(tier_data) >= self.min_sample_size:
                 for component in self.quality_components:
                     if component in tier_data.columns:
@@ -382,23 +378,23 @@ class QualityComparator:
                             tier,
                             f"industry_standard_{component}",
                             self.industry_benchmarks.get(component, 0.75),
-                            'tier_benchmark'
+                            "tier_benchmark"
                         )
                         if analysis:
                             benchmark_analyses.append(analysis)
 
         # Dataset benchmarking
-        for dataset in df['dataset_name'].unique():
-            dataset_data = df[df['dataset_name'] == dataset]
+        for dataset in df["dataset_name"].unique():
+            dataset_data = df[df["dataset_name"] == dataset]
             if len(dataset_data) >= self.min_sample_size:
-                overall_quality = dataset_data['overall_quality'].dropna()
+                overall_quality = dataset_data["overall_quality"].dropna()
                 if len(overall_quality) > 0:
                     analysis = self._perform_benchmark_analysis(
                         overall_quality,
                         dataset,
                         "industry_standard_overall",
-                        self.industry_benchmarks['overall_quality'],
-                        'dataset_benchmark'
+                        self.industry_benchmarks["overall_quality"],
+                        "dataset_benchmark"
                     )
                     if analysis:
                         benchmark_analyses.append(analysis)
@@ -410,7 +406,7 @@ class QualityComparator:
                                   target_name: str,
                                   benchmark_name: str,
                                   benchmark_value: float,
-                                  benchmark_type: str) -> Optional[BenchmarkAnalysis]:
+                                  benchmark_type: str) -> BenchmarkAnalysis | None:
         """Perform benchmark analysis for a specific group."""
         try:
             if data.empty:
@@ -428,12 +424,12 @@ class QualityComparator:
 
             # Benchmark metrics
             benchmark_metrics = {
-                'current_performance': float(current_performance),
-                'benchmark_value': float(benchmark_value),
-                'performance_gap': float(performance_gap),
-                'percentile_ranking': float(percentile_ranking),
-                'improvement_potential': float(improvement_potential),
-                'sample_size': len(data)
+                "current_performance": float(current_performance),
+                "benchmark_value": float(benchmark_value),
+                "performance_gap": float(performance_gap),
+                "percentile_ranking": float(percentile_ranking),
+                "improvement_potential": float(improvement_potential),
+                "sample_size": len(data)
             }
 
             # Generate recommendations
@@ -456,7 +452,7 @@ class QualityComparator:
             logger.error(f"❌ Error performing benchmark analysis: {e}")
             return None
 
-    def calculate_performance_rankings(self, df: pd.DataFrame) -> Dict[str, List[Dict[str, Any]]]:
+    def calculate_performance_rankings(self, df: pd.DataFrame) -> dict[str, list[dict[str, Any]]]:
         """Calculate performance rankings across different dimensions."""
         rankings = {}
 
@@ -465,35 +461,35 @@ class QualityComparator:
 
         # Tier rankings
         tier_performance = []
-        for tier in df['tier'].unique():
-            tier_data = df[df['tier'] == tier]['overall_quality'].dropna()
+        for tier in df["tier"].unique():
+            tier_data = df[df["tier"] == tier]["overall_quality"].dropna()
             if len(tier_data) >= self.min_sample_size:
                 tier_performance.append({
-                    'name': tier,
-                    'mean_quality': float(tier_data.mean()),
-                    'median_quality': float(tier_data.median()),
-                    'std_quality': float(tier_data.std()),
-                    'sample_size': len(tier_data)
+                    "name": tier,
+                    "mean_quality": float(tier_data.mean()),
+                    "median_quality": float(tier_data.median()),
+                    "std_quality": float(tier_data.std()),
+                    "sample_size": len(tier_data)
                 })
 
-        tier_performance.sort(key=lambda x: x['mean_quality'], reverse=True)
-        rankings['tiers'] = tier_performance
+        tier_performance.sort(key=lambda x: x["mean_quality"], reverse=True)
+        rankings["tiers"] = tier_performance
 
         # Dataset rankings
         dataset_performance = []
-        for dataset in df['dataset_name'].unique():
-            dataset_data = df[df['dataset_name'] == dataset]['overall_quality'].dropna()
+        for dataset in df["dataset_name"].unique():
+            dataset_data = df[df["dataset_name"] == dataset]["overall_quality"].dropna()
             if len(dataset_data) >= self.min_sample_size:
                 dataset_performance.append({
-                    'name': dataset,
-                    'mean_quality': float(dataset_data.mean()),
-                    'median_quality': float(dataset_data.median()),
-                    'std_quality': float(dataset_data.std()),
-                    'sample_size': len(dataset_data)
+                    "name": dataset,
+                    "mean_quality": float(dataset_data.mean()),
+                    "median_quality": float(dataset_data.median()),
+                    "std_quality": float(dataset_data.std()),
+                    "sample_size": len(dataset_data)
                 })
 
-        dataset_performance.sort(key=lambda x: x['mean_quality'], reverse=True)
-        rankings['datasets'] = dataset_performance
+        dataset_performance.sort(key=lambda x: x["mean_quality"], reverse=True)
+        rankings["datasets"] = dataset_performance
 
         # Component rankings
         component_performance = []
@@ -502,29 +498,29 @@ class QualityComparator:
                 component_data = df[component].dropna()
                 if len(component_data) >= self.min_sample_size:
                     component_performance.append({
-                        'name': component,
-                        'mean_quality': float(component_data.mean()),
-                        'median_quality': float(component_data.median()),
-                        'std_quality': float(component_data.std()),
-                        'sample_size': len(component_data)
+                        "name": component,
+                        "mean_quality": float(component_data.mean()),
+                        "median_quality": float(component_data.median()),
+                        "std_quality": float(component_data.std()),
+                        "sample_size": len(component_data)
                     })
 
-        component_performance.sort(key=lambda x: x['mean_quality'], reverse=True)
-        rankings['components'] = component_performance
+        component_performance.sort(key=lambda x: x["mean_quality"], reverse=True)
+        rankings["components"] = component_performance
 
         return rankings
 
     def _generate_comparison_recommendations(self,
-                                           group1_stats: Dict[str, float],
-                                           group2_stats: Dict[str, float],
-                                           statistical_tests: List[Dict[str, Any]],
+                                           group1_stats: dict[str, float],
+                                           group2_stats: dict[str, float],
+                                           statistical_tests: list[dict[str, Any]],
                                            effect_size: float,
-                                           comparison_type: str) -> List[str]:
+                                           comparison_type: str) -> list[str]:
         """Generate recommendations based on comparison results."""
         recommendations = []
 
         # Performance difference
-        mean_diff = group1_stats['mean'] - group2_stats['mean']
+        mean_diff = group1_stats["mean"] - group2_stats["mean"]
         if abs(mean_diff) > 0.05:  # 5% threshold
             better_group = group1_stats if mean_diff > 0 else group2_stats
             worse_group = group2_stats if mean_diff > 0 else group1_stats
@@ -534,27 +530,27 @@ class QualityComparator:
             recommendations.append(f"📊 {better_name} outperforms {worse_name} by {abs(mean_diff):.3f} points")
 
         # Statistical significance
-        significant_tests = [test for test in statistical_tests if test.get('significant', False)]
+        significant_tests = [test for test in statistical_tests if test.get("significant", False)]
         if significant_tests:
             recommendations.append("📈 Difference is statistically significant - results are reliable")
         else:
             recommendations.append("⚠️ Difference lacks statistical significance - collect more data")
 
         # Effect size interpretation
-        if effect_size >= self.effect_size_thresholds['large']:
+        if effect_size >= self.effect_size_thresholds["large"]:
             recommendations.append(f"💪 Large effect size ({effect_size:.3f}) indicates substantial practical difference")
-        elif effect_size >= self.effect_size_thresholds['medium']:
+        elif effect_size >= self.effect_size_thresholds["medium"]:
             recommendations.append(f"📊 Medium effect size ({effect_size:.3f}) indicates moderate practical difference")
-        elif effect_size >= self.effect_size_thresholds['small']:
+        elif effect_size >= self.effect_size_thresholds["small"]:
             recommendations.append(f"📈 Small effect size ({effect_size:.3f}) indicates limited practical difference")
         else:
             recommendations.append(f"📊 Negligible effect size ({effect_size:.3f}) - difference may not be meaningful")
 
         # Comparison-specific recommendations
-        if comparison_type == 'tier':
+        if comparison_type == "tier":
             if mean_diff > 0.1:
                 recommendations.append("🎯 Consider applying best practices from higher-performing tier")
-        elif comparison_type == 'dataset':
+        elif comparison_type == "dataset":
             if mean_diff > 0.1:
                 recommendations.append("📁 Review data quality and processing methods for lower-performing dataset")
 
@@ -564,7 +560,7 @@ class QualityComparator:
                                           current_performance: float,
                                           benchmark_value: float,
                                           performance_gap: float,
-                                          benchmark_type: str) -> List[str]:
+                                          benchmark_type: str) -> list[str]:
         """Generate recommendations based on benchmark analysis."""
         recommendations = []
 
@@ -598,7 +594,7 @@ def main():
     # Perform tier comparisons
     tier_comparisons = comparator.compare_tiers(df)
 
-    print(f"📊 Quality Comparison Results:")
+    print("📊 Quality Comparison Results:")
     print(f"Tier Comparisons: {len(tier_comparisons)}")
 
     if tier_comparisons:
@@ -607,7 +603,7 @@ def main():
         print(f"Effect Size: {comparison.effect_size:.3f}")
         print(f"Practical Significance: {comparison.practical_significance}")
 
-        print(f"\n💡 Recommendations:")
+        print("\n💡 Recommendations:")
         for i, rec in enumerate(comparison.recommendations, 1):
             print(f"{i}. {rec}")
 

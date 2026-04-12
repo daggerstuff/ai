@@ -4,15 +4,17 @@ Quality Assurance Workflows - Task 5.7.2.2
 Builds comprehensive quality assurance workflows and processes for conversation validation.
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import queue
 import threading
 import time
+from collections.abc import Callable
 from dataclasses import asdict, dataclass
-from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List
+from typing import Any
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -51,7 +53,7 @@ class WorkflowStep:
     timeout_seconds: int = 300
     retry_count: int = 3
 
-    dependencies: List[str] = None
+    dependencies: list[str] = None
 
 
 @dataclass
@@ -61,16 +63,16 @@ class WorkflowResult:
     workflow_id: str
     conversation_id: str
     status: WorkflowStatus
-    steps_completed: List[str]
-    steps_failed: List[str]
+    steps_completed: list[str]
+    steps_failed: list[str]
     quality_level: QualityLevel
     quality_score: float
-    issues_found: List[str]
-    recommendations: List[str]
+    issues_found: list[str]
+    recommendations: list[str]
     execution_time: float
     start_time: str
     end_time: str
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
 
 
 class QualityAssuranceWorkflow:
@@ -196,13 +198,13 @@ class QualityAssuranceWorkflow:
             "✅ Setup default QA workflows: standard_qa, comprehensive_qa, rapid_qa"
         )
 
-    def register_workflow(self, workflow_id: str, name: str, steps: List[WorkflowStep]):
+    def register_workflow(self, workflow_id: str, name: str, steps: list[WorkflowStep]):
         """Register a new quality assurance workflow"""
         self.workflows[workflow_id] = {
             "id": workflow_id,
             "name": name,
             "steps": steps,
-            "created_at": datetime.now().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
             "execution_count": 0,
         }
         logger.info(f"✅ Registered workflow: {workflow_id} with {len(steps)} steps")
@@ -210,8 +212,8 @@ class QualityAssuranceWorkflow:
     def execute_workflow(
         self,
         workflow_id: str,
-        conversation: Dict[str, Any],
-        options: Dict[str, Any] = None,
+        conversation: dict[str, Any],
+        options: dict[str, Any] = None,
     ) -> WorkflowResult:
         """Execute a quality assurance workflow"""
 
@@ -222,7 +224,7 @@ class QualityAssuranceWorkflow:
         conversation_id = conversation.get("id", "unknown")
         execution_id = f"{workflow_id}_{conversation_id}_{int(time.time())}"
 
-        start_time = datetime.now()
+        start_time = datetime.now(timezone.utc)
 
         logger.info(
             f"🔄 Starting workflow {workflow_id} for conversation {conversation_id}"
@@ -291,10 +293,9 @@ class QualityAssuranceWorkflow:
 
                     if step.required:
                         raise Exception(f"Required step {step.name} failed: {e}")
-                    else:
-                        logger.warning(
-                            f"  ⚠️ Optional step {step.name} failed, continuing..."
-                        )
+                    logger.warning(
+                        f"  ⚠️ Optional step {step.name} failed, continuing..."
+                    )
 
             # Calculate final results
             result.quality_score = self._calculate_final_quality_score(workflow_context)
@@ -311,7 +312,7 @@ class QualityAssuranceWorkflow:
             result.metadata["error"] = str(e)
 
         finally:
-            end_time = datetime.now()
+            end_time = datetime.now(timezone.utc)
             result.end_time = end_time.isoformat()
             result.execution_time = (end_time - start_time).total_seconds()
 
@@ -329,7 +330,7 @@ class QualityAssuranceWorkflow:
         return result
 
     def _execute_step_with_timeout(
-        self, step: WorkflowStep, context: Dict[str, Any], timeout: int
+        self, step: WorkflowStep, context: dict[str, Any], timeout: int
     ) -> Any:
         """Execute a workflow step with timeout"""
         result_queue = queue.Queue()
@@ -358,7 +359,7 @@ class QualityAssuranceWorkflow:
 
         raise Exception(f"Step {step.name} completed without result")
 
-    def _validate_content(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def _validate_content(self, context: dict[str, Any]) -> dict[str, Any]:
         """Validate conversation content and structure"""
         conversation = context["conversation"]
         issues = []
@@ -394,7 +395,7 @@ class QualityAssuranceWorkflow:
             "text_length": text_length,
         }
 
-    def _check_clinical_standards(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def _check_clinical_standards(self, context: dict[str, Any]) -> dict[str, Any]:
         """Check against clinical standards"""
         # This would integrate with the clinical standards validator
         # For now, implementing basic checks
@@ -422,7 +423,7 @@ class QualityAssuranceWorkflow:
 
         return {"clinical_compliant": len(issues) == 0, "issues_found": len(issues)}
 
-    def _assess_safety(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def _assess_safety(self, context: dict[str, Any]) -> dict[str, Any]:
         """Assess conversation safety"""
         conversation = context["conversation"]
         text = str(conversation.get("conversation", "")).lower()
@@ -466,7 +467,7 @@ class QualityAssuranceWorkflow:
             "issues_found": len(issues),
         }
 
-    def _calculate_quality_metrics(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def _calculate_quality_metrics(self, context: dict[str, Any]) -> dict[str, Any]:
         """Calculate comprehensive quality metrics"""
         results = context["results"]
 
@@ -500,7 +501,7 @@ class QualityAssuranceWorkflow:
             },
         }
 
-    def _generate_recommendations(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def _generate_recommendations(self, context: dict[str, Any]) -> dict[str, Any]:
         """Generate improvement recommendations"""
         results = context["results"]
         recommendations = []
@@ -534,41 +535,41 @@ class QualityAssuranceWorkflow:
             "recommendations": recommendations,
         }
 
-    def _perform_linguistic_analysis(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def _perform_linguistic_analysis(self, context: dict[str, Any]) -> dict[str, Any]:
         """Perform detailed linguistic analysis"""
         # Placeholder for comprehensive linguistic analysis
         return {"linguistic_score": 0.8, "complexity_score": 0.7}
 
     def _assess_therapeutic_effectiveness(
-        self, context: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, context: dict[str, Any]
+    ) -> dict[str, Any]:
         """Assess therapeutic effectiveness"""
         # Placeholder for therapeutic effectiveness assessment
         return {"effectiveness_score": 0.75, "therapeutic_techniques": 3}
 
-    def _check_cultural_sensitivity(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def _check_cultural_sensitivity(self, context: dict[str, Any]) -> dict[str, Any]:
         """Check cultural sensitivity"""
         # Placeholder for cultural sensitivity check
         return {"cultural_sensitivity_score": 0.85, "inclusive_language": True}
 
-    def _review_ethical_compliance(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def _review_ethical_compliance(self, context: dict[str, Any]) -> dict[str, Any]:
         """Review ethical compliance"""
         # Placeholder for ethical compliance review
         return {"ethical_score": 0.9, "compliance_issues": 0}
 
-    def _basic_validation(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def _basic_validation(self, context: dict[str, Any]) -> dict[str, Any]:
         """Basic conversation validation"""
         return self._validate_content(context)
 
-    def _safety_screening(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def _safety_screening(self, context: dict[str, Any]) -> dict[str, Any]:
         """Rapid safety screening"""
         return self._assess_safety(context)
 
-    def _basic_quality_scoring(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def _basic_quality_scoring(self, context: dict[str, Any]) -> dict[str, Any]:
         """Basic quality scoring"""
         return self._calculate_quality_metrics(context)
 
-    def _calculate_final_quality_score(self, context: Dict[str, Any]) -> float:
+    def _calculate_final_quality_score(self, context: dict[str, Any]) -> float:
         """Calculate final quality score from all workflow results"""
         results = context["results"]
 
@@ -589,14 +590,13 @@ class QualityAssuranceWorkflow:
         """Determine quality level from score"""
         if score >= 0.9:
             return QualityLevel.EXCELLENT
-        elif score >= 0.8:
+        if score >= 0.8:
             return QualityLevel.GOOD
-        elif score >= 0.7:
+        if score >= 0.7:
             return QualityLevel.ACCEPTABLE
-        elif score >= 0.5:
+        if score >= 0.5:
             return QualityLevel.NEEDS_IMPROVEMENT
-        else:
-            return QualityLevel.UNACCEPTABLE
+        return QualityLevel.UNACCEPTABLE
 
     def _update_workflow_stats(self, result: WorkflowResult):
         """Update workflow execution statistics"""
@@ -620,9 +620,9 @@ class QualityAssuranceWorkflow:
     def execute_batch_workflow(
         self,
         workflow_id: str,
-        conversations: List[Dict[str, Any]],
-        options: Dict[str, Any] = None,
-    ) -> List[WorkflowResult]:
+        conversations: list[dict[str, Any]],
+        options: dict[str, Any] = None,
+    ) -> list[WorkflowResult]:
         """Execute workflow on a batch of conversations"""
         results = []
 
@@ -649,25 +649,25 @@ class QualityAssuranceWorkflow:
         )
         return results
 
-    def get_workflow_statistics(self) -> Dict[str, Any]:
+    def get_workflow_statistics(self) -> dict[str, Any]:
         """Get workflow execution statistics"""
         return {
             "workflow_stats": self.workflow_stats,
             "registered_workflows": list(self.workflows.keys()),
             "active_workflows": len(self.active_workflows),
             "workflow_history_count": len(self.workflow_history),
-            "statistics_timestamp": datetime.now().isoformat(),
+            "statistics_timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
     def export_workflow_results(
-        self, results: List[WorkflowResult], output_path: str
+        self, results: list[WorkflowResult], output_path: str
     ) -> bool:
         """Export workflow results to JSON file"""
         try:
             output_data = {
                 "workflow_results": [asdict(result) for result in results],
                 "summary_statistics": self.get_workflow_statistics(),
-                "export_timestamp": datetime.now().isoformat(),
+                "export_timestamp": datetime.now(timezone.utc).isoformat(),
             }
 
             with open(output_path, "w", encoding="utf-8") as f:

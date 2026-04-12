@@ -4,23 +4,23 @@ Processing Checkpoint System for Pixelated Empathy AI
 Implements checkpoint creation, storage, and recovery for fault tolerance
 """
 
+from datetime import datetime, timedelta, timezone
+
 import asyncio
 import gzip
 import hashlib
 import json
 import logging
-import os
 import pickle
-import shutil
 import sqlite3
 import threading
 import time
 import uuid
+from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -53,8 +53,8 @@ class CheckpointMetadata:
     task_id: str
     version: str = "1.0"
     description: str = ""
-    tags: List[str] = field(default_factory=list)
-    dependencies: List[str] = field(default_factory=list)
+    tags: list[str] = field(default_factory=list)
+    dependencies: list[str] = field(default_factory=list)
     size_bytes: int = 0
     compression: bool = True
     encryption: bool = False
@@ -80,11 +80,11 @@ class ProcessingState:
     progress_percentage: float
     start_time: datetime
     last_update: datetime
-    estimated_completion: Optional[datetime] = None
-    current_batch: Optional[Dict[str, Any]] = None
-    processed_items: List[str] = field(default_factory=list)
-    failed_items: List[str] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    estimated_completion: datetime | None = None
+    current_batch: dict[str, Any] | None = None
+    processed_items: list[str] = field(default_factory=list)
+    failed_items: list[str] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     def update_progress(self, completed_steps: int = None, current_step: str = None):
         """Update processing progress"""
@@ -95,7 +95,7 @@ class ProcessingState:
         if current_step is not None:
             self.current_step = current_step
 
-        self.last_update = datetime.utcnow()
+        self.last_update = datetime.now(timezone.utc)
 
         # Estimate completion time
         if self.progress_percentage > 0:
@@ -171,10 +171,10 @@ class CheckpointStorage:
 
             # Compress if enabled
             if metadata.compression:
-                with gzip.open(file_path, 'wb') as f:
+                with gzip.open(file_path, "wb") as f:
                     f.write(serialized_data)
             else:
-                with open(file_path, 'wb') as f:
+                with open(file_path, "wb") as f:
                     f.write(serialized_data)
 
             # Calculate size and checksum
@@ -265,10 +265,10 @@ class CheckpointStorage:
             # Load data
             try:
                 if metadata.compression:
-                    with gzip.open(file_path, 'rb') as f:
+                    with gzip.open(file_path, "rb") as f:
                         data = pickle.load(f)
                 else:
-                    with open(file_path, 'rb') as f:
+                    with open(file_path, "rb") as f:
                         data = pickle.load(f)
 
                 logger.info(f"Loaded checkpoint {checkpoint_id}")
@@ -280,7 +280,7 @@ class CheckpointStorage:
 
     def list_checkpoints(self, process_id: str = None, task_id: str = None,
                         checkpoint_type: CheckpointType = None,
-                        status: CheckpointStatus = None) -> List[CheckpointMetadata]:
+                        status: CheckpointStatus = None) -> list[CheckpointMetadata]:
         """List checkpoints with optional filters"""
 
         query = "SELECT * FROM checkpoints WHERE 1=1"
@@ -369,7 +369,7 @@ class CheckpointStorage:
 
         with sqlite3.connect(self.db_path) as conn:
             # Find expired checkpoints
-            cutoff_time = datetime.utcnow()
+            cutoff_time = datetime.now(timezone.utc)
 
             expired_checkpoints = conn.execute("""
                 SELECT checkpoint_id, file_path, created_at, ttl_hours
@@ -401,7 +401,7 @@ class CheckpointStorage:
 
         return deleted_count
 
-    def get_storage_stats(self) -> Dict[str, Any]:
+    def get_storage_stats(self) -> dict[str, Any]:
         """Get storage statistics"""
 
         with sqlite3.connect(self.db_path) as conn:
@@ -450,8 +450,8 @@ class CheckpointManager:
 
     def __init__(self, storage_path: str = None):
         self.storage = CheckpointStorage(storage_path)
-        self.active_processes: Dict[str, ProcessingState] = {}
-        self.checkpoint_callbacks: Dict[str, List[Callable]] = {}
+        self.active_processes: dict[str, ProcessingState] = {}
+        self.checkpoint_callbacks: dict[str, list[Callable]] = {}
         self.auto_checkpoint_interval = 300  # 5 minutes
         self.cleanup_interval = 3600  # 1 hour
         self._cleanup_thread = None
@@ -489,8 +489,8 @@ class CheckpointManager:
             total_steps=total_steps,
             completed_steps=0,
             progress_percentage=0.0,
-            start_time=datetime.utcnow(),
-            last_update=datetime.utcnow(),
+            start_time=datetime.now(timezone.utc),
+            last_update=datetime.now(timezone.utc),
             metadata={"description": description}
         )
 
@@ -510,7 +510,7 @@ class CheckpointManager:
 
     def create_checkpoint(self, process_id: str, task_id: str,
                          checkpoint_type: CheckpointType, data: Any,
-                         description: str = "", tags: List[str] = None,
+                         description: str = "", tags: list[str] = None,
                          ttl_hours: int = 24) -> str:
         """Create a new checkpoint"""
 
@@ -519,7 +519,7 @@ class CheckpointManager:
         metadata = CheckpointMetadata(
             checkpoint_id=checkpoint_id,
             checkpoint_type=checkpoint_type,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
             process_id=process_id,
             task_id=task_id,
             description=description,
@@ -541,7 +541,7 @@ class CheckpointManager:
             raise
 
     def update_process_progress(self, process_id: str, completed_steps: int = None,
-                              current_step: str = None, metadata: Dict[str, Any] = None,
+                              current_step: str = None, metadata: dict[str, Any] = None,
                               auto_checkpoint: bool = True) -> ProcessingState:
         """Update process progress and optionally create checkpoint"""
 
@@ -579,7 +579,7 @@ class CheckpointManager:
         state.completed_steps = state.total_steps
         state.progress_percentage = 100.0
         state.current_step = "completed"
-        state.last_update = datetime.utcnow()
+        state.last_update = datetime.now(timezone.utc)
 
         # Create final checkpoint
         checkpoint_data = {
@@ -605,7 +605,7 @@ class CheckpointManager:
         logger.info(f"Completed process {process_id}")
         return checkpoint_id
 
-    def recover_process(self, process_id: str) -> Optional[ProcessingState]:
+    def recover_process(self, process_id: str) -> ProcessingState | None:
         """Recover process state from latest checkpoint"""
 
         checkpoints = self.storage.list_checkpoints(
@@ -688,7 +688,7 @@ class CheckpointManager:
                 logger.error(f"Background cleanup error: {e}")
                 time.sleep(60)  # Wait 1 minute before retrying
 
-    def get_system_stats(self) -> Dict[str, Any]:
+    def get_system_stats(self) -> dict[str, Any]:
         """Get comprehensive system statistics"""
 
         storage_stats = self.storage.get_storage_stats()

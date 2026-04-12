@@ -6,6 +6,8 @@ Comprehensive testing of distribution analysis, comparative analysis,
 and reporting functionality with statistical validation.
 """
 
+from datetime import datetime, timezone
+
 import json
 import os
 import shutil
@@ -64,7 +66,7 @@ def run_comprehensive_test():
         """)
 
         # Generate test data with different distributions
-        base_date = datetime.now() - timedelta(days=30)
+        base_date = datetime.now(timezone.utc) - timedelta(days=30)
         conversations_data = []
         quality_data = []
 
@@ -330,7 +332,7 @@ def run_comprehensive_test():
         report_data = {
             "test_suite": "Quality Distribution Analysis System",
             "task": "5.6.2.3",
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "results": test_results,
             "success_rate": success_rate,
             "status": "PASSED" if success_rate >= 80 else "FAILED",

@@ -5,7 +5,6 @@ Therapeutic interaction service for NVIDIA-backed agents using local memory.
 from __future__ import annotations
 
 import logging
-from typing import Dict, Optional
 
 from ai.memory.local_hindsight_manager import LocalHindsightMemoryManager
 
@@ -21,7 +20,7 @@ class NvidiaTherapeuticInteractionService:
         self.memory = memory
         self.processor = processor
 
-    def filter_for_storage(self, content: str) -> Optional[str]:
+    def filter_for_storage(self, content: str) -> str | None:
         filtered, _memory_type = self.processor.filter_for_storage(content)
         return filtered
 
@@ -43,13 +42,13 @@ class NvidiaTherapeuticInteractionService:
         user_id: str,
         query: str,
         response: str,
-        session_id: Optional[str],
-        provider_metadata: Dict[str, str],
+        session_id: str | None,
+        provider_metadata: dict[str, str],
         crisis_severity: str,
     ) -> None:
         filtered_query = self.filter_for_storage(f"User shared: {query}")
         if filtered_query:
-            metadata: Dict[str, object] = {"role": "user", **provider_metadata}
+            metadata: dict[str, object] = {"role": "user", **provider_metadata}
             if session_id:
                 metadata["session_id"] = session_id
             if crisis_severity != "none":

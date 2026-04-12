@@ -35,9 +35,10 @@ Usage:
 import csv
 import json
 import logging
+from collections.abc import Iterator
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, Iterator, List, Optional, Union
+from typing import Any
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -58,7 +59,7 @@ class ExportConfig:
     def __init__(
         self,
         format: ExportFormat = ExportFormat.JSONL,
-        compression: Optional[str] = None,
+        compression: str | None = None,
         batch_size: int = 1000,
         include_metadata: bool = True,
         flatten_nested: bool = False,
@@ -102,8 +103,8 @@ class ExportResult:
         format: ExportFormat,
         records_exported: int,
         bytes_written: int,
-        errors: List[str],
-        metadata: Optional[Dict[str, Any]] = None,
+        errors: list[str],
+        metadata: dict[str, Any] | None = None,
     ):
         """
         Initialize export result.
@@ -125,7 +126,7 @@ class ExportResult:
         self.errors = errors
         self.metadata = metadata or {}
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert result to dictionary."""
         return {
             "success": self.success,
@@ -153,7 +154,7 @@ class MultiFormatExporter:
         ExportFormat.PARQUET: ".parquet",
     }
 
-    def __init__(self, config: Optional[ExportConfig] = None):
+    def __init__(self, config: ExportConfig | None = None):
         """
         Initialize the multi-format exporter.
 
@@ -165,10 +166,10 @@ class MultiFormatExporter:
 
     def export_dataset(
         self,
-        dataset_path: Union[str, Path],
-        output_path: Union[str, Path],
-        format: Optional[ExportFormat] = None,
-        config: Optional[ExportConfig] = None,
+        dataset_path: str | Path,
+        output_path: str | Path,
+        format: ExportFormat | None = None,
+        config: ExportConfig | None = None,
     ) -> ExportResult:
         """
         Export a dataset to the specified format.
@@ -206,21 +207,20 @@ class MultiFormatExporter:
         try:
             if format == ExportFormat.JSONL:
                 return self._export_jsonl(dataset_path, output_path, config)
-            elif format == ExportFormat.JSON:
+            if format == ExportFormat.JSON:
                 return self._export_json(dataset_path, output_path, config)
-            elif format == ExportFormat.CSV:
+            if format == ExportFormat.CSV:
                 return self._export_csv(dataset_path, output_path, config)
-            elif format == ExportFormat.PARQUET:
+            if format == ExportFormat.PARQUET:
                 return self._export_parquet(dataset_path, output_path, config)
-            else:
-                return ExportResult(
-                    success=False,
-                    output_path=output_path,
-                    format=format,
-                    records_exported=0,
-                    bytes_written=0,
-                    errors=[f"Unsupported format: {format}"],
-                )
+            return ExportResult(
+                success=False,
+                output_path=output_path,
+                format=format,
+                records_exported=0,
+                bytes_written=0,
+                errors=[f"Unsupported format: {format}"],
+            )
         except Exception as e:
             self.logger.error(f"Export failed: {e}")
             return ExportResult(
@@ -232,7 +232,7 @@ class MultiFormatExporter:
                 errors=[str(e)],
             )
 
-    def _load_dataset(self, dataset_path: Path) -> Iterator[Dict[str, Any]]:
+    def _load_dataset(self, dataset_path: Path) -> Iterator[dict[str, Any]]:
         """
         Load dataset as a streaming iterator.
 
@@ -297,7 +297,7 @@ class MultiFormatExporter:
             metadata={"format": "JSON Array"},
         )
 
-    def _flatten_record(self, record: Dict[str, Any], prefix: str = "") -> Dict[str, Any]:
+    def _flatten_record(self, record: dict[str, Any], prefix: str = "") -> dict[str, Any]:
         """
         Flatten a nested dictionary for CSV export.
 
@@ -438,8 +438,8 @@ class MultiFormatExporter:
 
     def convert_format(
         self,
-        input_path: Union[str, Path],
-        output_path: Union[str, Path],
+        input_path: str | Path,
+        output_path: str | Path,
         input_format: ExportFormat,
         output_format: ExportFormat,
     ) -> ExportResult:
@@ -469,10 +469,10 @@ class MultiFormatExporter:
 
     def batch_export(
         self,
-        datasets: List[Dict[str, Any]],
-        output_dir: Union[str, Path],
+        datasets: list[dict[str, Any]],
+        output_dir: str | Path,
         base_name: str = "dataset",
-    ) -> List[ExportResult]:
+    ) -> list[ExportResult]:
         """
         Export a dataset to all supported formats.
 
@@ -520,8 +520,8 @@ class MultiFormatExporter:
 # Convenience functions for common use cases
 
 def export_to_jsonl(
-    input_path: Union[str, Path],
-    output_path: Union[str, Path],
+    input_path: str | Path,
+    output_path: str | Path,
 ) -> ExportResult:
     """Convenience function to export dataset to JSONL."""
     exporter = MultiFormatExporter(config=ExportConfig(format=ExportFormat.JSONL))
@@ -529,8 +529,8 @@ def export_to_jsonl(
 
 
 def export_to_csv(
-    input_path: Union[str, Path],
-    output_path: Union[str, Path],
+    input_path: str | Path,
+    output_path: str | Path,
     flatten_nested: bool = True,
 ) -> ExportResult:
     """Convenience function to export dataset to CSV."""
@@ -540,8 +540,8 @@ def export_to_csv(
 
 
 def export_to_parquet(
-    input_path: Union[str, Path],
-    output_path: Union[str, Path],
+    input_path: str | Path,
+    output_path: str | Path,
     compression: str = "snappy",
 ) -> ExportResult:
     """Convenience function to export dataset to Parquet."""

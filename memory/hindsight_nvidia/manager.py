@@ -6,11 +6,12 @@ responses still use the configured model endpoint, but durable memory is stored
 only in the repository's local shared memory backend.
 """
 
+from datetime import datetime, timezone
+
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from openai import AsyncOpenAI, OpenAI
 from pydantic import BaseModel, Field
@@ -36,15 +37,15 @@ class NvidiaHindsightConfig(BaseModel):
     user_id: str = Field("default_user", description="Default user ID for memory")
     db_path: str = Field(..., description="Path to the shared local memory database")
     bank_id: str = Field("pixelated", description="Shared memory bank identifier")
-    hindsight_api_key: Optional[str] = Field(
+    hindsight_api_key: str | None = Field(
         default=None,
         description="Deprecated; local shared memory is the only supported backend",
     )
-    memory_config: Optional[Dict[str, Any]] = Field(
+    memory_config: dict[str, Any] | None = Field(
         default=None,
         description="Deprecated; local shared memory is the only supported backend",
     )
-    therapeutic_config: Optional[TherapeuticMemoryConfig] = Field(
+    therapeutic_config: TherapeuticMemoryConfig | None = Field(
         default=None, description="Therapeutic memory ingestion configuration"
     )
 
@@ -82,17 +83,17 @@ class NvidiaHindsightManager:
             self.config.model_name,
         )
 
-    def _memory_metadata(self, metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def _memory_metadata(self, metadata: dict[str, Any] | None = None) -> dict[str, Any]:
         merged = dict(metadata or {})
         merged.setdefault("provider", "nvidia")
         merged.setdefault("model_name", self.config.model_name)
         return merged
 
-    def _filter_for_storage(self, content: str) -> Optional[str]:
+    def _filter_for_storage(self, content: str) -> str | None:
         return self.interactions.filter_for_storage(content)
 
     async def generate_content(
-        self, prompt: str, system_instruction: Optional[str] = None
+        self, prompt: str, system_instruction: str | None = None
     ) -> str:
         messages = []
         if system_instruction:
@@ -113,7 +114,7 @@ Your goal is to provide empathetic, validating, and safe support.
 Maintain professional boundaries and safety protocols at all times."""
 
     async def get_response(
-        self, user_id: str, message: str, session_id: Optional[str] = None
+        self, user_id: str, message: str, session_id: str | None = None
     ) -> str:
         memories = self.search_memories(message, user_id)
         facts = [m.get("memory", "") or m.get("content", "") for m in memories]
@@ -134,8 +135,8 @@ Maintain professional boundaries and safety protocols at all times."""
         self,
         memory_id: str,
         new_content: str,
-        metadata: Optional[Dict[str, Any]] = None,
-        user_id: Optional[str] = None,
+        metadata: dict[str, Any] | None = None,
+        user_id: str | None = None,
     ) -> bool:
         filtered_content = self._filter_for_storage(new_content)
         if not filtered_content:
@@ -148,13 +149,13 @@ Maintain professional boundaries and safety protocols at all times."""
             user_id=user_id,
         )
 
-    def delete_memory(self, memory_id: str, user_id: Optional[str] = None) -> bool:
+    def delete_memory(self, memory_id: str, user_id: str | None = None) -> bool:
         return self.memory.delete_memory(memory_id, user_id=user_id)
 
     def clear_memory(self, user_id: str) -> None:
         self.memory.clear_memory(user_id)
 
-    def list_entities(self, limit: int = 20, page: int = 1) -> List[Dict[str, Any]]:
+    def list_entities(self, limit: int = 20, page: int = 1) -> list[dict[str, Any]]:
         entities = [{"id": self.config.user_id, "type": "user"}]
         start = max(page - 1, 0) * limit
         end = start + limit
@@ -162,7 +163,7 @@ Maintain professional boundaries and safety protocols at all times."""
 
     def get_all_memories(
         self, user_id: str, limit: int = 100, page: int = 1
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         offset = max(page - 1, 0) * limit
         if hasattr(self.memory, "get_all_memories_scoped"):
             return self.memory.get_all_memories_scoped(
@@ -175,7 +176,7 @@ Maintain professional boundaries and safety protocols at all times."""
 
     def search_memories(
         self, query: str, user_id: str, limit: int = 10, page: int = 1
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         offset = max(page - 1, 0) * limit
         if hasattr(self.memory, "search_memories_scoped"):
             return self.memory.search_memories_scoped(
@@ -187,7 +188,7 @@ Maintain professional boundaries and safety protocols at all times."""
         memories = self.memory.search_memories(query=query, user_id=user_id, limit=limit * max(page, 1))
         return self._paginate(memories, limit, page)
 
-    def _paginate(self, items: List[Any], limit: int, page: int) -> List[Any]:
+    def _paginate(self, items: list[Any], limit: int, page: int) -> list[Any]:
         if not items:
             return []
         start = max(page - 1, 0) * limit
@@ -197,17 +198,17 @@ Maintain professional boundaries and safety protocols at all times."""
     def get_memory(
         self,
         memory_id: str,
-        user_id: Optional[str] = None,
-    ) -> Optional[Dict[str, Any]]:
+        user_id: str | None = None,
+    ) -> dict[str, Any] | None:
         return self.memory.get_memory(memory_id, user_id=user_id)
 
     def add_memory(
         self,
         content: str,
         user_id: str,
-        metadata: Optional[Dict[str, Any]] = None,
-        category: Optional[str] = None,
-    ) -> Optional[str]:
+        metadata: dict[str, Any] | None = None,
+        category: str | None = None,
+    ) -> str | None:
         filtered_content = self._filter_for_storage(content)
         if not filtered_content:
             logger.warning("Memory addition rejected: content failed filtering")

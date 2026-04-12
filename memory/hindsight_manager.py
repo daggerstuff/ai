@@ -5,8 +5,6 @@ import path while delegating directly to the local Hindsight-compatible manager.
 """
 from __future__ import annotations
 
-from typing import Optional
-
 from .local_hindsight_manager import LocalHindsightMemoryManager
 
 
@@ -15,12 +13,12 @@ class HindsightMemoryManager(LocalHindsightMemoryManager):
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
-        api_url: Optional[str] = None,
-        bank_id: Optional[str] = None,
+        api_key: str | None = None,
+        api_url: str | None = None,
+        bank_id: str | None = None,
         timeout: float = 30.0,
         session: object | None = None,
-        db_path: Optional[str] = None,
+        db_path: str | None = None,
     ) -> None:
         del api_key, api_url, timeout, session
         super().__init__(db_path=db_path, bank_id=bank_id)

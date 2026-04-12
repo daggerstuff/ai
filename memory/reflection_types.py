@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class ReflectionTrigger(str, Enum):
@@ -32,11 +32,11 @@ class ReflectionResult:
     """Result of reflection analysis."""
 
     crisis_detected: bool = False
-    crisis_indicators: List[str] = field(default_factory=list)
-    memories_preserved: List[str] = field(default_factory=list)
-    memories_consolidated: List[str] = field(default_factory=list)
-    memories_deleted: List[str] = field(default_factory=list)
-    recommendations: List[str] = field(default_factory=list)
+    crisis_indicators: list[str] = field(default_factory=list)
+    memories_preserved: list[str] = field(default_factory=list)
+    memories_consolidated: list[str] = field(default_factory=list)
+    memories_deleted: list[str] = field(default_factory=list)
+    recommendations: list[str] = field(default_factory=list)
     requires_manual_review: bool = False
 
 
@@ -61,13 +61,13 @@ class CrisisSeverity(str, Enum):
 class MemoryMetadata:
     category: MemoryCategory = MemoryCategory.GENERAL
     crisis_severity: CrisisSeverity = CrisisSeverity.NONE
-    user_id: Optional[str] = None
-    session_id: Optional[str] = None
-    tags: List[str] = field(default_factory=list)
-    created_at: Optional[float] = None
-    updated_at: Optional[float] = None
+    user_id: str | None = None
+    session_id: str | None = None
+    tags: list[str] = field(default_factory=list)
+    created_at: float | None = None
+    updated_at: float | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "category": self.category.value,
             "crisis_severity": self.crisis_severity.value,
@@ -79,7 +79,7 @@ class MemoryMetadata:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "MemoryMetadata":
+    def from_dict(cls, data: dict[str, Any]) -> MemoryMetadata:
         return cls(
             category=MemoryCategory(data.get("category", MemoryCategory.GENERAL.value)),
             crisis_severity=CrisisSeverity(

@@ -1,9 +1,11 @@
+
+from datetime import datetime, timezone
 from __future__ import annotations
 
 import json
 import sqlite3
-from datetime import datetime, timezone
-from typing import Any, Dict, Iterable, List, Optional
+from collections.abc import Iterable
+from typing import Any
 
 from .hindsight_local_adapter import encode_tags_json, normalize_tags
 from .hindsight_local_domain import NON_PRIVATE_VISIBILITY_TAGS, resolve_user_id_from_context
@@ -23,7 +25,7 @@ class LocalHindsightDocumentStore:
         return datetime.now(timezone.utc).isoformat()
 
     @staticmethod
-    def parse_row(row: sqlite3.Row) -> Dict[str, Any]:
+    def parse_row(row: sqlite3.Row) -> dict[str, Any]:
         raw_tags = row["tags_json"] or "[]"
         try:
             tags = json.loads(raw_tags)
@@ -47,7 +49,7 @@ class LocalHindsightDocumentStore:
         conn: sqlite3.Connection,
         bank_id: str,
         document_id: str,
-        tags: List[str],
+        tags: list[str],
     ) -> None:
         conn.execute(
             "DELETE FROM document_tags WHERE bank_id = ? AND document_id = ?",
@@ -60,7 +62,7 @@ class LocalHindsightDocumentStore:
             )
 
     @staticmethod
-    def _json_payload(values: List[str]) -> str:
+    def _json_payload(values: list[str]) -> str:
         return json.dumps(values, separators=(",", ":"))
 
     def _document_ids_matching_payload(
@@ -69,8 +71,8 @@ class LocalHindsightDocumentStore:
         *,
         bank_id: str,
         payload: str,
-        user_id: Optional[str] = None,
-    ) -> List[str]:
+        user_id: str | None = None,
+    ) -> list[str]:
         rows = conn.execute(
             """
             SELECT id
@@ -88,7 +90,7 @@ class LocalHindsightDocumentStore:
         conn: sqlite3.Connection,
         *,
         bank_id: str,
-        document_ids: List[str],
+        document_ids: list[str],
     ) -> int:
         if not document_ids:
             return 0
@@ -118,8 +120,8 @@ class LocalHindsightDocumentStore:
         bank_id: str,
         document_id: str,
         content: str,
-        context: Optional[str],
-        tags: Optional[Iterable[str]],
+        context: str | None,
+        tags: Iterable[str] | None,
     ) -> None:
         now = self._now()
         user_id = resolve_user_id_from_context(context)
@@ -154,9 +156,9 @@ class LocalHindsightDocumentStore:
         bank_id: str,
         document_id: str,
         content: str,
-        context: Optional[str],
-        tags: Optional[Iterable[str]],
-    ) -> Dict[str, Any]:
+        context: str | None,
+        tags: Iterable[str] | None,
+    ) -> dict[str, Any]:
         normalized = normalize_tags(tags)
         with self.db.lease() as conn:
             self._upsert_document_tx(
@@ -176,7 +178,7 @@ class LocalHindsightDocumentStore:
             "tags": normalized,
         }
 
-    def upsert_documents(self, bank_id: str, items: List[Dict[str, Any]]) -> None:
+    def upsert_documents(self, bank_id: str, items: list[dict[str, Any]]) -> None:
         with self.db.lease() as conn:
             for item in items:
                 self._upsert_document_tx(
@@ -193,8 +195,8 @@ class LocalHindsightDocumentStore:
         bank_id: str,
         document_id: str,
         *,
-        user_id: Optional[str] = None,
-    ) -> Optional[Dict[str, Any]]:
+        user_id: str | None = None,
+    ) -> dict[str, Any] | None:
         with self.db.lease() as conn:
             cursor = conn.execute(
                 """
@@ -215,7 +217,7 @@ class LocalHindsightDocumentStore:
         *,
         limit: int = 100,
         offset: int = 0,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         with self.db.lease() as conn:
             rows = conn.execute(
                 """
@@ -236,7 +238,7 @@ class LocalHindsightDocumentStore:
         user_id: str,
         limit: int = 100,
         offset: int = 0,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         with self.db.lease() as conn:
             rows = conn.execute(
                 """
@@ -256,17 +258,17 @@ class LocalHindsightDocumentStore:
         bank_id: str,
         *,
         user_id: str,
-        org_id: Optional[str] = None,
-        project_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        agent_id: Optional[str] = None,
-        run_id: Optional[str] = None,
+        org_id: str | None = None,
+        project_id: str | None = None,
+        session_id: str | None = None,
+        agent_id: str | None = None,
+        run_id: str | None = None,
         include_shared: bool = True,
-        category: Optional[str] = None,
-        tags: Optional[List[str]] = None,
+        category: str | None = None,
+        tags: list[str] | None = None,
         limit: int = 100,
         offset: int = 0,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         required_tags = [*normalize_tags(tags)]
         if category:
             required_tags.append(f"category:{category}")
@@ -296,7 +298,7 @@ class LocalHindsightDocumentStore:
         category: str,
         limit: int = 100,
         offset: int = 0,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         with self.db.lease() as conn:
             rows = conn.execute(
                 """
@@ -320,13 +322,13 @@ class LocalHindsightDocumentStore:
         bank_id: str,
         *,
         user_id: str,
-        org_id: Optional[str] = None,
-        project_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        agent_id: Optional[str] = None,
-        run_id: Optional[str] = None,
+        org_id: str | None = None,
+        project_id: str | None = None,
+        session_id: str | None = None,
+        agent_id: str | None = None,
+        run_id: str | None = None,
         include_shared: bool = True,
-    ) -> Dict[str, int]:
+    ) -> dict[str, int]:
         required_scope_tags = scope_tags(
             org_id=org_id,
             project_id=project_id,
@@ -348,9 +350,9 @@ class LocalHindsightDocumentStore:
     def delete_documents(
         self,
         bank_id: str,
-        document_ids: List[str],
+        document_ids: list[str],
         *,
-        user_id: Optional[str] = None,
+        user_id: str | None = None,
     ) -> int:
         if not document_ids:
             return 0

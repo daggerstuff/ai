@@ -14,7 +14,6 @@ The current implementation is local-service-first and does not depend on mem0.
 import re
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Optional
 
 
 class InferenceMode(str, Enum):
@@ -46,7 +45,7 @@ class MemoryCategory(str, Enum):
 
 
 # Default PII patterns to never store (HIPAA-compliant)
-DEFAULT_PII_PATTERNS: List[str] = [
+DEFAULT_PII_PATTERNS: list[str] = [
     r"\b\d{3}[-.]?\d{2}[-.]?\d{4}\b",  # SSN
     r"\b\d{9,18}\b",  # Insurance/credit card numbers
     r"\b\d{10,}\b",  # Long numeric identifiers
@@ -112,9 +111,9 @@ class TherapeuticMemoryConfig:
 
     custom_instructions: str = field(default=DEFAULT_MEMORY_INSTRUCTIONS)
     confidence_threshold: float = field(default=0.8)
-    pii_patterns: List[str] = field(default_factory=lambda: DEFAULT_PII_PATTERNS.copy())
+    pii_patterns: list[str] = field(default_factory=lambda: DEFAULT_PII_PATTERNS.copy())
     inference_mode: InferenceMode = field(default=InferenceMode.QUALITY)
-    categories: List[MemoryCategory] = field(default_factory=lambda: list(MemoryCategory))
+    categories: list[MemoryCategory] = field(default_factory=lambda: list(MemoryCategory))
     enable_crisis_detection: bool = field(default=True)
     max_memory_length: int = field(default=2000)
 
@@ -136,7 +135,7 @@ class PIIFilter:
     to maintain HIPAA compliance.
     """
 
-    def __init__(self, patterns: Optional[List[str]] = None):
+    def __init__(self, patterns: list[str] | None = None):
         """
         Initialize PII filter with patterns.
 
@@ -177,7 +176,7 @@ class PIIFilter:
             result = pattern.sub(replacement, result)
         return result
 
-    def filter_for_storage(self, text: str) -> Optional[str]:
+    def filter_for_storage(self, text: str) -> str | None:
         """
         Filter text for safe memory storage.
 
@@ -294,7 +293,7 @@ class SpeculationFilter:
 
         if speculation_count >= 2:
             return 0.5
-        elif speculation_count == 1:
+        if speculation_count == 1:
             return 0.7
 
         return 0.9  # Neutral statements

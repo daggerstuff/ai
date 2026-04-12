@@ -10,14 +10,16 @@ This module provides comprehensive production launch coordination:
 - Final production readiness assessment
 """
 
+from datetime import datetime, timedelta, timezone
+
+
 import asyncio
 import json
 import logging
 import time
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -54,7 +56,7 @@ class LaunchChecklistItem:
     priority: str
     status: LaunchStatus
     assigned_to: str
-    completion_date: Optional[datetime] = None
+    completion_date: datetime | None = None
     verification_notes: str = ""
 
 
@@ -65,7 +67,7 @@ class LaunchTeamMember:
     member_id: str
     name: str
     role: str
-    responsibilities: List[str]
+    responsibilities: list[str]
     contact_info: str
     availability_status: str = "available"
 
@@ -78,8 +80,8 @@ class ProductionLaunchCoordinator:
     """
 
     def __init__(self):
-        self.checklist_items: List[LaunchChecklistItem] = []
-        self.team_members: List[LaunchTeamMember] = []
+        self.checklist_items: list[LaunchChecklistItem] = []
+        self.team_members: list[LaunchTeamMember] = []
         self.launch_ready = False
         self.go_live_approved = False
 
@@ -102,7 +104,7 @@ class ProductionLaunchCoordinator:
                 priority="critical",
                 status=LaunchStatus.COMPLETED,
                 assigned_to="DevOps Team",
-                completion_date=datetime.utcnow(),
+                completion_date=datetime.now(timezone.utc),
                 verification_notes="Production environment validated and ready",
             ),
             LaunchChecklistItem(
@@ -113,7 +115,7 @@ class ProductionLaunchCoordinator:
                 priority="critical",
                 status=LaunchStatus.COMPLETED,
                 assigned_to="Database Team",
-                completion_date=datetime.utcnow(),
+                completion_date=datetime.now(timezone.utc),
                 verification_notes="Database migration completed successfully",
             ),
             LaunchChecklistItem(
@@ -124,7 +126,7 @@ class ProductionLaunchCoordinator:
                 priority="high",
                 status=LaunchStatus.COMPLETED,
                 assigned_to="DevOps Team",
-                completion_date=datetime.utcnow(),
+                completion_date=datetime.now(timezone.utc),
                 verification_notes="Load balancers configured and tested",
             ),
             # Security Validation
@@ -136,7 +138,7 @@ class ProductionLaunchCoordinator:
                 priority="critical",
                 status=LaunchStatus.COMPLETED,
                 assigned_to="Security Team",
-                completion_date=datetime.utcnow(),
+                completion_date=datetime.now(timezone.utc),
                 verification_notes="Security scans completed - no critical vulnerabilities",
             ),
             LaunchChecklistItem(
@@ -147,7 +149,7 @@ class ProductionLaunchCoordinator:
                 priority="critical",
                 status=LaunchStatus.COMPLETED,
                 assigned_to="DevOps Team",
-                completion_date=datetime.utcnow(),
+                completion_date=datetime.now(timezone.utc),
                 verification_notes="SSL certificates installed and validated",
             ),
             # Application Readiness
@@ -159,7 +161,7 @@ class ProductionLaunchCoordinator:
                 priority="critical",
                 status=LaunchStatus.COMPLETED,
                 assigned_to="Development Team",
-                completion_date=datetime.utcnow(),
+                completion_date=datetime.now(timezone.utc),
                 verification_notes="Application deployed and functionality validated",
             ),
             LaunchChecklistItem(
@@ -170,7 +172,7 @@ class ProductionLaunchCoordinator:
                 priority="high",
                 status=LaunchStatus.COMPLETED,
                 assigned_to="QA Team",
-                completion_date=datetime.utcnow(),
+                completion_date=datetime.now(timezone.utc),
                 verification_notes="All API endpoints tested and functional",
             ),
             # Monitoring and Alerting
@@ -182,7 +184,7 @@ class ProductionLaunchCoordinator:
                 priority="critical",
                 status=LaunchStatus.COMPLETED,
                 assigned_to="DevOps Team",
-                completion_date=datetime.utcnow(),
+                completion_date=datetime.now(timezone.utc),
                 verification_notes="Monitoring systems active with proper alerting",
             ),
             LaunchChecklistItem(
@@ -193,7 +195,7 @@ class ProductionLaunchCoordinator:
                 priority="high",
                 status=LaunchStatus.COMPLETED,
                 assigned_to="DevOps Team",
-                completion_date=datetime.utcnow(),
+                completion_date=datetime.now(timezone.utc),
                 verification_notes="Production dashboards configured and operational",
             ),
             # Safety and Compliance
@@ -205,7 +207,7 @@ class ProductionLaunchCoordinator:
                 priority="critical",
                 status=LaunchStatus.COMPLETED,
                 assigned_to="Safety Team",
-                completion_date=datetime.utcnow(),
+                completion_date=datetime.now(timezone.utc),
                 verification_notes="Safety systems activated and tested",
             ),
             LaunchChecklistItem(
@@ -216,7 +218,7 @@ class ProductionLaunchCoordinator:
                 priority="critical",
                 status=LaunchStatus.COMPLETED,
                 assigned_to="Compliance Team",
-                completion_date=datetime.utcnow(),
+                completion_date=datetime.now(timezone.utc),
                 verification_notes="Compliance validation completed",
             ),
             # Rollback Preparation
@@ -228,7 +230,7 @@ class ProductionLaunchCoordinator:
                 priority="critical",
                 status=LaunchStatus.COMPLETED,
                 assigned_to="DevOps Team",
-                completion_date=datetime.utcnow(),
+                completion_date=datetime.now(timezone.utc),
                 verification_notes="Rollback procedures tested and validated",
             ),
             LaunchChecklistItem(
@@ -239,7 +241,7 @@ class ProductionLaunchCoordinator:
                 priority="high",
                 status=LaunchStatus.COMPLETED,
                 assigned_to="DevOps Team",
-                completion_date=datetime.utcnow(),
+                completion_date=datetime.now(timezone.utc),
                 verification_notes="Backup systems validated and recovery tested",
             ),
             # Team Readiness
@@ -251,7 +253,7 @@ class ProductionLaunchCoordinator:
                 priority="high",
                 status=LaunchStatus.COMPLETED,
                 assigned_to="Project Manager",
-                completion_date=datetime.utcnow(),
+                completion_date=datetime.now(timezone.utc),
                 verification_notes="Launch team briefed and prepared",
             ),
             LaunchChecklistItem(
@@ -262,7 +264,7 @@ class ProductionLaunchCoordinator:
                 priority="high",
                 status=LaunchStatus.COMPLETED,
                 assigned_to="Support Manager",
-                completion_date=datetime.utcnow(),
+                completion_date=datetime.now(timezone.utc),
                 verification_notes="Support team ready for post-launch operations",
             ),
         ]
@@ -344,7 +346,7 @@ class ProductionLaunchCoordinator:
         self.team_members = team_members
         logger.info(f"Initialized {len(team_members)} launch team members")
 
-    async def run_production_launch_coordination(self) -> Dict[str, Any]:
+    async def run_production_launch_coordination(self) -> dict[str, Any]:
         """Run comprehensive production launch coordination"""
         logger.info("Starting production launch coordination...")
         start_time = time.time()
@@ -390,7 +392,7 @@ class ProductionLaunchCoordinator:
 
         return report
 
-    async def _validate_launch_checklist(self) -> Dict[str, Any]:
+    async def _validate_launch_checklist(self) -> dict[str, Any]:
         """Validate launch checklist completion"""
 
         total_items = len(self.checklist_items)
@@ -441,7 +443,7 @@ class ProductionLaunchCoordinator:
             "checklist_ready": checklist_ready,
         }
 
-    async def _validate_team_readiness(self) -> Dict[str, Any]:
+    async def _validate_team_readiness(self) -> dict[str, Any]:
         """Validate launch team readiness"""
 
         total_members = len(self.team_members)
@@ -483,7 +485,7 @@ class ProductionLaunchCoordinator:
             "team_ready": team_ready,
         }
 
-    async def _perform_go_live_assessment(self) -> Dict[str, Any]:
+    async def _perform_go_live_assessment(self) -> dict[str, Any]:
         """Perform comprehensive go-live readiness assessment"""
 
         # Assessment criteria
@@ -516,7 +518,7 @@ class ProductionLaunchCoordinator:
             "go_live_ready": go_live_ready,
         }
 
-    async def _validate_rollback_procedures(self) -> Dict[str, Any]:
+    async def _validate_rollback_procedures(self) -> dict[str, Any]:
         """Validate rollback procedures"""
 
         rollback_tests = {
@@ -548,11 +550,11 @@ class ProductionLaunchCoordinator:
 
     def _generate_launch_approval(
         self,
-        checklist_validation: Dict[str, Any],
-        team_readiness: Dict[str, Any],
-        go_live_assessment: Dict[str, Any],
-        rollback_validation: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        checklist_validation: dict[str, Any],
+        team_readiness: dict[str, Any],
+        go_live_assessment: dict[str, Any],
+        rollback_validation: dict[str, Any],
+    ) -> dict[str, Any]:
         """Generate final launch approval"""
 
         # Launch approval criteria
@@ -575,7 +577,7 @@ class ProductionLaunchCoordinator:
             approval_level = "NO_APPROVAL"
 
         # Set launch window
-        launch_window_start = datetime.utcnow() + timedelta(hours=1)
+        launch_window_start = datetime.now(timezone.utc) + timedelta(hours=1)
         launch_window_end = launch_window_start + timedelta(hours=4)
 
         return {
@@ -583,7 +585,7 @@ class ProductionLaunchCoordinator:
             "approval_status": approval_status,
             "approval_level": approval_level,
             "approval_criteria": approval_criteria,
-            "approval_date": datetime.utcnow().isoformat(),
+            "approval_date": datetime.now(timezone.utc).isoformat(),
             "launch_window_start": launch_window_start.isoformat(),
             "launch_window_end": launch_window_end.isoformat(),
             "approved_by": "Production Launch Coordinator",
@@ -592,18 +594,18 @@ class ProductionLaunchCoordinator:
     def _generate_launch_coordination_report(
         self,
         execution_time: float,
-        checklist_validation: Dict[str, Any],
-        team_readiness: Dict[str, Any],
-        go_live_assessment: Dict[str, Any],
-        rollback_validation: Dict[str, Any],
-        launch_approval: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        checklist_validation: dict[str, Any],
+        team_readiness: dict[str, Any],
+        go_live_assessment: dict[str, Any],
+        rollback_validation: dict[str, Any],
+        launch_approval: dict[str, Any],
+    ) -> dict[str, Any]:
         """Generate comprehensive launch coordination report"""
 
         return {
             "task_106_summary": {
                 "task_name": "Task 106: Production Launch Coordination",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "execution_time": execution_time,
                 "launch_ready": self.launch_ready,
                 "go_live_approved": self.go_live_approved,
@@ -666,7 +668,7 @@ class ProductionLaunchCoordinator:
             "next_steps": self._generate_launch_next_steps(),
         }
 
-    def _generate_launch_recommendations(self) -> List[str]:
+    def _generate_launch_recommendations(self) -> list[str]:
         """Generate launch recommendations"""
         recommendations = []
 
@@ -692,7 +694,7 @@ class ProductionLaunchCoordinator:
 
         return recommendations
 
-    def _generate_launch_next_steps(self) -> List[str]:
+    def _generate_launch_next_steps(self) -> list[str]:
         """Generate next steps based on launch coordination"""
         if self.go_live_approved:
             return [
@@ -702,13 +704,12 @@ class ProductionLaunchCoordinator:
                 "🔄 Execute production launch within approved window",
                 "📊 Begin Phase 2: Validation & Testing Framework",
             ]
-        else:
-            return [
-                "🔧 Complete remaining launch preparation items",
-                "🧪 Re-run launch coordination validation",
-                "📋 Address launch approval requirements",
-                "🔄 Repeat process until launch approved",
-            ]
+        return [
+            "🔧 Complete remaining launch preparation items",
+            "🧪 Re-run launch coordination validation",
+            "📋 Address launch approval requirements",
+            "🔄 Repeat process until launch approved",
+        ]
 
 
 # Example usage and testing
@@ -733,7 +734,7 @@ if __name__ == "__main__":
         )
         print(f"Approval Status: {report['task_106_summary']['approval_status']}")
 
-        print(f"\nLaunch Metrics:")
+        print("\nLaunch Metrics:")
         metrics = report["launch_metrics"]
         print(f"  Checklist Completion: {metrics['checklist_completion_rate']:.1f}%")
         print(
@@ -744,7 +745,7 @@ if __name__ == "__main__":
         print(f"  Rollback Readiness: {metrics['rollback_readiness_score']:.1f}%")
 
         # Save report
-        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         report_file = f"task_106_launch_coordination_report_{timestamp}.json"
         with open(report_file, "w") as f:
             json.dump(report, f, indent=2)

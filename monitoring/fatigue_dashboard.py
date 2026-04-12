@@ -4,12 +4,13 @@ Alert Fatigue Dashboard and Management Interface
 Web-based dashboard for monitoring and managing alert fatigue prevention
 """
 
+from datetime import datetime, timedelta, timezone
+
 import asyncio
 import json
 import logging
 import sqlite3
-from datetime import datetime, timedelta
-from typing import Any, Dict, List
+from typing import Any
 
 import plotly.graph_objs as go
 import plotly.utils
@@ -127,7 +128,7 @@ class FatigueDashboard:
                             json.dumps(data["actions"]),
                             data.get("enabled", True),
                             data.get("priority", 100),
-                            datetime.utcnow().isoformat(),
+                            datetime.now(timezone.utc).isoformat(),
                             rule_id,
                         ),
                     )
@@ -209,12 +210,12 @@ class FatigueDashboard:
                 logger.error(f"Error testing grouping: {e}")
                 return jsonify({"error": str(e), "status": "error"}), 500
 
-    def get_dashboard_metrics(self) -> Dict[str, Any]:
+    def get_dashboard_metrics(self) -> dict[str, Any]:
         """Get key metrics for dashboard"""
 
         with sqlite3.connect(self.afp_system.db_path) as conn:
             # Total groups in last 24 hours
-            cutoff_24h = (datetime.utcnow() - timedelta(hours=24)).isoformat()
+            cutoff_24h = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
             total_groups = conn.execute(
                 """
                 SELECT COUNT(*) FROM alert_groups WHERE last_seen > ?
@@ -273,10 +274,10 @@ class FatigueDashboard:
             "avg_group_size": round(avg_group_size, 2),
         }
 
-    def get_active_groups(self, hours: int = 24) -> List[Dict[str, Any]]:
+    def get_active_groups(self, hours: int = 24) -> list[dict[str, Any]]:
         """Get active alert groups"""
 
-        cutoff_time = (datetime.utcnow() - timedelta(hours=hours)).isoformat()
+        cutoff_time = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat()
 
         with sqlite3.connect(self.afp_system.db_path) as conn:
             groups = conn.execute(
@@ -312,7 +313,7 @@ class FatigueDashboard:
 
             return result
 
-    def get_fatigue_rules(self) -> List[Dict[str, Any]]:
+    def get_fatigue_rules(self) -> list[dict[str, Any]]:
         """Get all fatigue prevention rules"""
 
         with sqlite3.connect(self.afp_system.db_path) as conn:
@@ -343,7 +344,7 @@ class FatigueDashboard:
 
         # Get hourly alert counts for last 24 hours
         with sqlite3.connect(self.afp_system.db_path) as conn:
-            cutoff_time = datetime.utcnow() - timedelta(hours=24)
+            cutoff_time = datetime.now(timezone.utc) - timedelta(hours=24)
 
             # Generate hourly buckets
             hours = []
@@ -394,7 +395,7 @@ class FatigueDashboard:
         """Generate suppression statistics chart"""
 
         with sqlite3.connect(self.afp_system.db_path) as conn:
-            cutoff_time = (datetime.utcnow() - timedelta(hours=24)).isoformat()
+            cutoff_time = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
 
             # Get suppression counts by rule
             suppressions = conn.execute(

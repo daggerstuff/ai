@@ -8,9 +8,9 @@ import asyncio
 import hashlib
 import logging
 import os
-from typing import Callable, Optional
+from collections.abc import Callable
 
-from .reflection_factory import create_reflection_subagent  # noqa: E402
+from .reflection_factory import create_reflection_subagent
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ class ReflectionBootstrap:
 
     def __init__(
         self,
-        model: Optional[str] = None,
+        model: str | None = None,
         step_threshold: int = 10,
     ):
         self.model = model or os.environ.get("SUBCONSCIOUS_MODEL", "qwen/qwen3.5-397b-a17b")
@@ -37,7 +37,7 @@ class ReflectionBootstrap:
         self._subagent = None
         self._running = False
         self._task: asyncio.Task | None = None
-        self._last_reflection_fingerprint: Optional[str] = None
+        self._last_reflection_fingerprint: str | None = None
 
     async def start(self):
         """Initialize and start reflection subagent."""
@@ -153,7 +153,7 @@ class ReflectionBootstrap:
 
 
 async def create_and_start(
-    model: Optional[str] = None,
+    model: str | None = None,
     step_threshold: int = 10,
 ) -> ReflectionBootstrap:
     """
