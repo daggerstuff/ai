@@ -5,7 +5,6 @@ Refined Intelligent Agent - Enhanced dialogue detection for embedded Q/A pattern
 
 import re
 import sys
-from typing import Dict
 
 sys.path.append("/root/pixelated/ai/scripts")
 
@@ -16,7 +15,7 @@ class RefinedIntelligentAgent(IntelligentQAAgent):
     def __init__(self):
         super().__init__()
 
-    def detect_dialogue_patterns(self, text: str) -> Dict:
+    def detect_dialogue_patterns(self, text: str) -> dict:
         """Enhanced dialogue detection for embedded Q/A patterns"""
 
         confidence = 0.0
@@ -103,7 +102,7 @@ class RefinedIntelligentAgent(IntelligentQAAgent):
 
         return {"confidence": min(confidence, 1.0), "indicators": indicators}
 
-    def extract_question_patterns(self, text: str) -> Dict:
+    def extract_question_patterns(self, text: str) -> dict:
         """Enhanced question extraction with better boundary detection"""
 
         # More sophisticated question patterns
@@ -171,7 +170,7 @@ class RefinedIntelligentAgent(IntelligentQAAgent):
 
         return {"question": None, "position": None, "confidence": 0.0}
 
-    def detect_response_boundaries(self, text: str, question_signals: Dict) -> Dict:
+    def detect_response_boundaries(self, text: str, question_signals: dict) -> dict:
         """Enhanced response boundary detection"""
 
         if not question_signals["question"] or not question_signals["position"]:

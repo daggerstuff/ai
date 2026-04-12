@@ -5,10 +5,10 @@ Restore S3 backup from Google Drive to Hetzner Object Storage.
 Syncs gdrive:backups/S3-Complete/* to BackupStorageS3:pixel-data/
 """
 
+from datetime import datetime, timezone
+
 import subprocess
 import sys
-from datetime import datetime
-from pathlib import Path
 
 
 def run_rclone(args: list[str], dry_run: bool = False) -> tuple[int, str, str]:
@@ -51,7 +51,7 @@ def main():
     print(f"Source: {source}")
     print(f"Destination: {dest}")
     print(f"Dry run: {args.dry_run}")
-    print(f"Time: {datetime.utcnow().isoformat()}Z")
+    print(f"Time: {datetime.now(timezone.utc).isoformat()}Z")
     print()
 
     if args.check:

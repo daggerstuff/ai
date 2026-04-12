@@ -8,7 +8,6 @@ import json
 import random
 import re
 from pathlib import Path
-from typing import Dict, List, Tuple
 
 
 class TherapeuticPromptGenerator:
@@ -71,7 +70,7 @@ class TherapeuticPromptGenerator:
             r"stress|burnout|overwhelm|exhaustion"
         ]
 
-    def extract_key_topics(self, text: str) -> List[str]:
+    def extract_key_topics(self, text: str) -> list[str]:
         """Extract key therapeutic topics from segment text"""
         topics = []
         text_lower = text.lower()
@@ -82,14 +81,14 @@ class TherapeuticPromptGenerator:
             topics.extend(matches)
 
         # Extract noun phrases that might be topics
-        sentences = re.split(r'[.!?]+', text)
+        sentences = re.split(r"[.!?]+", text)
         for sentence in sentences[:3]:  # Focus on first few sentences
             words = sentence.split()
             if len(words) > 5:
                 # Look for key therapeutic terms
                 for word in words:
-                    if any(term in word.lower() for term in ['trauma', 'heal', 'therap', 'relation', 'emotion']):
-                        context = ' '.join(words[max(0, words.index(word)-2):words.index(word)+3])
+                    if any(term in word.lower() for term in ["trauma", "heal", "therap", "relation", "emotion"]):
+                        context = " ".join(words[max(0, words.index(word)-2):words.index(word)+3])
                         topics.append(context.strip())
                         break
 
@@ -99,10 +98,10 @@ class TherapeuticPromptGenerator:
 
         return list(set(topics))[:3]  # Return up to 3 unique topics
 
-    def generate_prompt(self, segment: Dict) -> str:
+    def generate_prompt(self, segment: dict) -> str:
         """Generate an authentic therapeutic question for a segment"""
-        style = segment['style']
-        text = segment['text']
+        style = segment["style"]
+        text = segment["text"]
 
         # Extract topics from the segment
         topics = self.extract_key_topics(text)
@@ -112,7 +111,7 @@ class TherapeuticPromptGenerator:
         topic = selected_topic.lower().strip()
 
         # Select appropriate template
-        templates = self.prompt_templates.get(style, self.prompt_templates['therapeutic'])
+        templates = self.prompt_templates.get(style, self.prompt_templates["therapeutic"])
         template = random.choice(templates)
 
         # Generate the prompt
@@ -120,23 +119,23 @@ class TherapeuticPromptGenerator:
 
         return prompt
 
-    def create_training_pair(self, segment: Dict) -> Dict:
+    def create_training_pair(self, segment: dict) -> dict:
         """Convert a segment into a training pair"""
         prompt = self.generate_prompt(segment)
 
         return {
             "input": prompt,
-            "output": segment['text'],
-            "style": segment['style'],
-            "confidence": segment['confidence'],
-            "quality": segment['quality'],
-            "source": segment['source'],
-            "file": segment['file']
+            "output": segment["text"],
+            "style": segment["style"],
+            "confidence": segment["confidence"],
+            "quality": segment["quality"],
+            "source": segment["source"],
+            "file": segment["file"]
         }
 
-    def process_segments_file(self, input_path: Path, output_path: Path) -> Dict:
+    def process_segments_file(self, input_path: Path, output_path: Path) -> dict:
         """Process a segments file and convert to training pairs"""
-        with open(input_path, encoding='utf-8') as f:
+        with open(input_path, encoding="utf-8") as f:
             segments = json.load(f)
 
         training_pairs = []
@@ -152,7 +151,7 @@ class TherapeuticPromptGenerator:
                 stats["errors"] += 1
 
         # Save training pairs
-        with open(output_path, 'w', encoding='utf-8') as f:
+        with open(output_path, "w", encoding="utf-8") as f:
             json.dump(training_pairs, f, indent=2, ensure_ascii=False)
 
         return stats
@@ -178,14 +177,14 @@ def main():
         stats = generator.process_segments_file(segment_file, output_file)
 
         print(f"  Processed: {stats['processed']}/{stats['total']} segments")
-        if stats['errors'] > 0:
+        if stats["errors"] > 0:
             print(f"  Errors: {stats['errors']}")
 
         # Update totals
         for key in total_stats:
             total_stats[key] += stats[key]
 
-    print(f"\nTotal conversion complete:")
+    print("\nTotal conversion complete:")
     print(f"  Processed: {total_stats['processed']}/{total_stats['total']} segments")
     print(f"  Success rate: {total_stats['processed']/total_stats['total']*100:.1f}%")
     print(f"  Output directory: {output_dir}")

@@ -10,14 +10,15 @@ This module provides enterprise-grade API authentication with:
 - Authentication validation
 """
 
+from datetime import datetime, timedelta, timezone
+
+
 import hashlib
 import logging
 import secrets
 from dataclasses import dataclass
-from datetime import datetime, timedelta
 from enum import Enum
 from functools import wraps
-from typing import Dict, List, Optional
 
 import bcrypt
 import jwt
@@ -63,7 +64,7 @@ class User:
 
     def __post_init__(self):
         if self.created_at is None:
-            self.created_at = datetime.utcnow()
+            self.created_at = datetime.now(timezone.utc)
 
 
 @dataclass
@@ -73,16 +74,16 @@ class APIKey:
     key_id: str
     key_hash: str
     name: str
-    permissions: List[PermissionLevel]
+    permissions: list[PermissionLevel]
     is_active: bool = True
 
     created_at: datetime = None
-    expires_at: Optional[datetime] = None
-    last_used: Optional[datetime] = None
+    expires_at: datetime | None = None
+    last_used: datetime | None = None
 
     def __post_init__(self):
         if self.created_at is None:
-            self.created_at = datetime.utcnow()
+            self.created_at = datetime.now(timezone.utc)
 
 
 class AuthenticationSystem:
@@ -98,8 +99,8 @@ class AuthenticationSystem:
         self.algorithm = "HS256"
 
         # In-memory storage (replace with database in production)
-        self.users: Dict[str, User] = {}
-        self.api_keys: Dict[str, APIKey] = {}
+        self.users: dict[str, User] = {}
+        self.api_keys: dict[str, APIKey] = {}
         self.revoked_tokens: set = set()
 
         # Role permissions mapping
@@ -161,8 +162,8 @@ class AuthenticationSystem:
     def create_api_key(
         self,
         name: str,
-        permissions: List[PermissionLevel],
-        expires_in_days: Optional[int] = None,
+        permissions: list[PermissionLevel],
+        expires_in_days: int | None = None,
     ) -> tuple[str, APIKey]:
         """Create new API key with specified permissions"""
         key_id = secrets.token_urlsafe(16)
@@ -171,7 +172,7 @@ class AuthenticationSystem:
 
         expires_at = None
         if expires_in_days:
-            expires_at = datetime.utcnow() + timedelta(days=expires_in_days)
+            expires_at = datetime.now(timezone.utc) + timedelta(days=expires_in_days)
 
         api_key_obj = APIKey(
             key_id=key_id,
@@ -187,7 +188,7 @@ class AuthenticationSystem:
         )
         return api_key, api_key_obj
 
-    def authenticate_user(self, username: str, password: str) -> Optional[User]:
+    def authenticate_user(self, username: str, password: str) -> User | None:
         """Authenticate user with username/password"""
         for user in self.users.values():
             if (
@@ -195,14 +196,14 @@ class AuthenticationSystem:
                 and user.is_active
                 and self.verify_password(password, user.password_hash)
             ):
-                user.last_login = datetime.utcnow()
+                user.last_login = datetime.now(timezone.utc)
                 logger.info(f"User authenticated: {username}")
                 return user
 
         logger.warning(f"Authentication failed for user: {username}")
         return None
 
-    def authenticate_api_key(self, api_key: str) -> Optional[APIKey]:
+    def authenticate_api_key(self, api_key: str) -> APIKey | None:
         """Authenticate API key"""
         key_hash = self.hash_api_key(api_key)
 
@@ -212,12 +213,12 @@ class AuthenticationSystem:
                 if (
                     api_key_obj.expires_at
                     and
-                    datetime.utcnow() > api_key_obj.expires_at
+                    datetime.now(timezone.utc) > api_key_obj.expires_at
                 ):
                     logger.warning(f"Expired API key used: {api_key_obj.name}")
                     return None
 
-                api_key_obj.last_used = datetime.utcnow()
+                api_key_obj.last_used = datetime.now(timezone.utc)
                 logger.info(f"API key authenticated: {api_key_obj.name}")
                 return api_key_obj
 
@@ -230,8 +231,8 @@ class AuthenticationSystem:
             "user_id": user.user_id,
             "username": user.username,
             "role": user.role.value,
-            "exp": datetime.utcnow() + timedelta(hours=self.token_expiry_hours),
-            "iat": datetime.utcnow(),
+            "exp": datetime.now(timezone.utc) + timedelta(hours=self.token_expiry_hours),
+            "iat": datetime.now(timezone.utc),
             "jti": secrets.token_urlsafe(16),  # JWT ID for revocation
         }
 
@@ -239,7 +240,7 @@ class AuthenticationSystem:
         logger.info(f"JWT token generated for user: {user.username}")
         return token
 
-    def verify_jwt_token(self, token: str) -> Optional[Dict]:
+    def verify_jwt_token(self, token: str) -> dict | None:
         """Verify and decode JWT token"""
         try:
             # Check if token is revoked
@@ -367,7 +368,7 @@ class AuthenticationTester:
         self.auth_system = auth_system
         self.test_results = []
 
-    def run_security_tests(self) -> Dict[str, bool]:
+    def run_security_tests(self) -> dict[str, bool]:
         """Run comprehensive security tests"""
         tests = [
             self.test_password_hashing,

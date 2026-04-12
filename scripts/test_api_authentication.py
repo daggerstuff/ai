@@ -25,7 +25,6 @@ class TestApiAuthentication:
 
     def teardown_method(self):
         """Cleanup after tests"""
-        pass
 
     def test_api_authentication_initialization(self):
         """Test api authentication initialization"""

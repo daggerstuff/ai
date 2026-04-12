@@ -14,7 +14,6 @@ import json
 import logging
 import shutil
 from pathlib import Path
-from typing import Dict
 
 # Configure logging
 logging.basicConfig(
@@ -33,7 +32,7 @@ class LightningH100Deployer:
         self.lightning_workspace = get_lightning_dir() / "production"
         self.lightning_workspace.mkdir(parents=True, exist_ok=True)
 
-    def validate_unified_dataset(self) -> Dict:
+    def validate_unified_dataset(self) -> dict:
         """Validate the unified dataset is ready for deployment"""
         logger.info("🔍 Validating unified dataset for Lightning.ai deployment...")
 
@@ -384,7 +383,7 @@ if __name__ == "__main__":
         logger.info(f"✅ Training script created: {script_path}")
         return script_path
 
-    def create_deployment_config(self, validation_results: Dict) -> Path:
+    def create_deployment_config(self, validation_results: dict) -> Path:
         """Create Lightning.ai deployment configuration"""
         logger.info("⚙️  Creating Lightning.ai deployment configuration...")
 
@@ -535,7 +534,7 @@ if __name__ == "__main__":
         logger.info(f"✅ Data preparation script created: {script_path}")
         return script_path
 
-    def create_deployment_instructions(self, validation_results: Dict) -> Path:
+    def create_deployment_instructions(self, validation_results: dict) -> Path:
         """Create comprehensive deployment instructions"""
         instructions = f"""# Lightning.ai H100 Therapeutic AI Deployment Guide
 

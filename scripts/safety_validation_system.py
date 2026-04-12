@@ -10,18 +10,17 @@ This module provides comprehensive safety validation including:
 - Real-time safety assessment
 """
 
+from datetime import datetime, timezone
+
+
 import asyncio
 import json
 import logging
 import re
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
 from enum import Enum
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
-
-import numpy as np
+from typing import Any
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -65,7 +64,7 @@ class SafetyValidationResult:
     accuracy: float
     response_appropriate: bool
     execution_time: float
-    details: Dict[str, Any] = field(default_factory=dict)
+    details: dict[str, Any] = field(default_factory=dict)
 
 class SafetyValidationSystem:
     """
@@ -75,8 +74,8 @@ class SafetyValidationSystem:
     """
 
     def __init__(self):
-        self.test_cases: List[SafetyTestCase] = []
-        self.validation_results: List[SafetyValidationResult] = []
+        self.test_cases: list[SafetyTestCase] = []
+        self.validation_results: list[SafetyValidationResult] = []
         self.crisis_detection_accuracy = 0.0
         self.overall_safety_score = 0.0
         self.production_ready = False
@@ -87,23 +86,23 @@ class SafetyValidationSystem:
         # Crisis detection patterns (simplified for demonstration)
         self.crisis_patterns = {
             CrisisLevel.CRITICAL: [
-                r'\b(suicide|kill myself|end my life|want to die)\b',
-                r'\b(self harm|cut myself|hurt myself)\b',
-                r'\b(overdose|pills to die)\b'
+                r"\b(suicide|kill myself|end my life|want to die)\b",
+                r"\b(self harm|cut myself|hurt myself)\b",
+                r"\b(overdose|pills to die)\b"
             ],
             CrisisLevel.HIGH: [
-                r'\b(depressed|hopeless|worthless)\b',
-                r'\b(can\'t go on|give up|no point)\b',
-                r'\b(abuse|violence|threat)\b'
+                r"\b(depressed|hopeless|worthless)\b",
+                r"\b(can\'t go on|give up|no point)\b",
+                r"\b(abuse|violence|threat)\b"
             ],
             CrisisLevel.MEDIUM: [
-                r'\b(sad|upset|anxious|worried)\b',
-                r'\b(stressed|overwhelmed|struggling)\b',
-                r'\b(lonely|isolated|alone)\b'
+                r"\b(sad|upset|anxious|worried)\b",
+                r"\b(stressed|overwhelmed|struggling)\b",
+                r"\b(lonely|isolated|alone)\b"
             ],
             CrisisLevel.LOW: [
-                r'\b(tired|frustrated|annoyed)\b',
-                r'\b(confused|uncertain|unsure)\b'
+                r"\b(tired|frustrated|annoyed)\b",
+                r"\b(confused|uncertain|unsure)\b"
             ]
         }
 
@@ -263,7 +262,7 @@ class SafetyValidationSystem:
         self.test_cases = crisis_test_cases + content_safety_cases + privacy_cases
         logger.info(f"Loaded {len(self.test_cases)} safety test cases")
 
-    def detect_crisis_level(self, text: str) -> Tuple[CrisisLevel, float]:
+    def detect_crisis_level(self, text: str) -> tuple[CrisisLevel, float]:
         """
         Detect crisis level in text using pattern matching
         Returns (crisis_level, confidence_score)
@@ -295,7 +294,7 @@ class SafetyValidationSystem:
 
         return expected_response_type in appropriate_responses.get(crisis_level, [])
 
-    async def run_comprehensive_safety_validation(self) -> Dict[str, Any]:
+    async def run_comprehensive_safety_validation(self) -> dict[str, Any]:
         """Run comprehensive safety validation tests"""
         logger.info("Starting comprehensive safety validation...")
         start_time = time.time()
@@ -372,7 +371,7 @@ class SafetyValidationSystem:
 
         return report
 
-    def _calculate_category_accuracies(self) -> Dict[str, float]:
+    def _calculate_category_accuracies(self) -> dict[str, float]:
         """Calculate accuracy for each safety category"""
         category_accuracies = {}
 
@@ -387,7 +386,7 @@ class SafetyValidationSystem:
 
         return category_accuracies
 
-    def _calculate_overall_safety_score(self, category_accuracies: Dict[str, float]) -> float:
+    def _calculate_overall_safety_score(self, category_accuracies: dict[str, float]) -> float:
         """Calculate weighted overall safety score"""
 
         # Category weights (crisis detection is most critical)
@@ -411,7 +410,7 @@ class SafetyValidationSystem:
         return weighted_score / total_weight if total_weight > 0 else 0.0
 
     def _generate_safety_report(self, execution_time: float,
-                               category_accuracies: Dict[str, float]) -> Dict[str, Any]:
+                               category_accuracies: dict[str, float]) -> dict[str, Any]:
         """Generate comprehensive safety validation report"""
 
         # Count results by severity
@@ -445,7 +444,7 @@ class SafetyValidationSystem:
 
         report = {
             "safety_validation_summary": {
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "execution_time": execution_time,
                 "crisis_detection_accuracy": round(self.crisis_detection_accuracy, 2),
                 "overall_safety_score": round(self.overall_safety_score, 2),
@@ -502,7 +501,7 @@ class SafetyValidationSystem:
 
         return report
 
-    def _generate_safety_recommendations(self) -> List[str]:
+    def _generate_safety_recommendations(self) -> list[str]:
         """Generate safety improvement recommendations"""
         recommendations = []
 
@@ -553,9 +552,9 @@ if __name__ == "__main__":
         print(f"Production Ready: {'YES' if report['safety_validation_summary']['production_ready'] else 'NO'}")
 
         # Save report
-        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         report_file = f"safety_validation_report_{timestamp}.json"
-        with open(report_file, 'w') as f:
+        with open(report_file, "w") as f:
             json.dump(report, f, indent=2)
 
         print(f"\nDetailed report saved to: {report_file}")

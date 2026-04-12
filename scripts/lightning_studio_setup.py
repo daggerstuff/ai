@@ -7,7 +7,6 @@ Automated setup for H100 therapeutic AI training in Lightning.ai Studio environm
 import logging
 import subprocess
 from pathlib import Path
-from typing import Dict
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -22,7 +21,7 @@ class LightningStudioSetup:
         self.studio_workspace = Path("/teamspace/studios/this_studio")
         self.project_dir = self.studio_workspace / "therapeutic-ai-training"
 
-    def check_lightning_environment(self) -> Dict:
+    def check_lightning_environment(self) -> dict:
         """Check Lightning.ai Studio environment capabilities"""
         logger.info("🔍 Checking Lightning.ai Studio environment...")
 
@@ -336,7 +335,7 @@ This training represents a breakthrough in therapeutic AI - the first system tra
         logger.info(f"✅ Studio README created: {readme_path}")
         return readme_path
 
-    def run_full_setup(self) -> Dict:
+    def run_full_setup(self) -> dict:
         """Run complete Lightning Studio setup"""
         logger.info("🚀 Running complete Lightning.ai Studio setup...")
 

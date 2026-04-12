@@ -4,11 +4,11 @@ Dataset sync verification script that checks consistency between
 source (Google Drive) and canonical (S3) storage.
 """
 
+from datetime import datetime, timezone
+
 import json
-import subprocess
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from botocore.exceptions import ClientError
 from s3_client_helper import get_s3_client
@@ -21,14 +21,14 @@ class DatasetSyncVerifier:
         self.registry_path = registry_path
         self.s3_client = get_s3_client()
 
-    def load_registry(self) -> Dict[str, Any]:
+    def load_registry(self) -> dict[str, Any]:
         """Load the dataset registry."""
         with open(self.registry_path) as f:
             return json.load(f)
 
-    def save_registry(self, registry: Dict[str, Any]) -> None:
+    def save_registry(self, registry: dict[str, Any]) -> None:
         """Save the updated registry."""
-        registry["last_updated"] = datetime.utcnow().isoformat() + "Z"
+        registry["last_updated"] = datetime.now(timezone.utc).isoformat() + "Z"
         with open(self.registry_path, "w") as f:
             json.dump(registry, f, indent=2, ensure_ascii=False)
 
@@ -62,7 +62,7 @@ class DatasetSyncVerifier:
         full_path = Path("/mnt/gdrive/datasets") / gdrive_path.lstrip("/")
         return full_path.exists()
 
-    def get_s3_metadata(self, s3_path: str) -> Optional[Dict[str, Any]]:
+    def get_s3_metadata(self, s3_path: str) -> dict[str, Any] | None:
         """Get metadata for S3 object."""
         try:
             if not s3_path.startswith("s3://"):
@@ -85,7 +85,7 @@ class DatasetSyncVerifier:
         except ClientError:
             return None
 
-    def get_gdrive_metadata(self, gdrive_path: str) -> Optional[Dict[str, Any]]:
+    def get_gdrive_metadata(self, gdrive_path: str) -> dict[str, Any] | None:
         """Get metadata for Google Drive file."""
         try:
             if not gdrive_path:
@@ -110,7 +110,7 @@ class DatasetSyncVerifier:
         except Exception:
             return None
 
-    def compare_sources(self, s3_path: str, gdrive_path: str) -> Dict[str, Any]:
+    def compare_sources(self, s3_path: str, gdrive_path: str) -> dict[str, Any]:
         """Compare S3 and GDrive versions of dataset."""
         comparison = {
             "s3_exists": False,
@@ -177,8 +177,8 @@ class DatasetSyncVerifier:
         return comparison
 
     def verify_dataset_sync(
-        self, dataset_name: str, dataset_entry: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, dataset_name: str, dataset_entry: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Verify sync status for a single dataset.
 
@@ -200,7 +200,7 @@ class DatasetSyncVerifier:
         sync_status = {
             "gdrive_synced": comparison["gdrive_exists"],
             "s3_synced": comparison["s3_exists"],
-            "last_sync_timestamp": datetime.utcnow().isoformat() + "Z",
+            "last_sync_timestamp": datetime.now(timezone.utc).isoformat() + "Z",
             "sync_discrepancies": comparison["discrepancies"],
             "sync_verified": comparison["s3_exists"]
             and (
@@ -210,7 +210,7 @@ class DatasetSyncVerifier:
 
         return sync_status
 
-    def verify_all_datasets(self, limit: Optional[int] = None) -> Dict[str, Any]:
+    def verify_all_datasets(self, limit: int | None = None) -> dict[str, Any]:
         """
         Verify sync status for all datasets.
 
@@ -316,7 +316,7 @@ class DatasetSyncVerifier:
         # Update source_staging sync info
         if "source_staging" in registry:
             registry["source_staging"]["sync_configuration"]["last_sync_check"] = (
-                datetime.utcnow().isoformat() + "Z"
+                datetime.now(timezone.utc).isoformat() + "Z"
             )
             registry["source_staging"]["sync_configuration"][
                 "automated_verification"
@@ -345,7 +345,7 @@ def main():
 
     args = parser.parse_args()
 
-    print(f"Dataset Sync Verification")
+    print("Dataset Sync Verification")
     print(f"Registry: {args.registry}")
     print(f"Limit: {args.limit or 'None (all datasets)'}")
     print()

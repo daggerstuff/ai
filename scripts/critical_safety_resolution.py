@@ -9,14 +9,16 @@ This module provides final resolution of all critical safety issues:
 - Final safety validation
 """
 
+from datetime import datetime, timezone
+
+
 import asyncio
 import json
 import logging
 import time
-from dataclasses import dataclass, field
-from datetime import datetime
+from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -39,7 +41,7 @@ class CriticalSafetyIssue:
     identified_date: datetime
     resolution_status: SafetyIssueStatus
     resolution_description: str = ""
-    verification_date: Optional[datetime] = None
+    verification_date: datetime | None = None
     verification_notes: str = ""
 
 class CriticalSafetyResolutionSystem:
@@ -50,7 +52,7 @@ class CriticalSafetyResolutionSystem:
     """
 
     def __init__(self):
-        self.critical_issues: List[CriticalSafetyIssue] = []
+        self.critical_issues: list[CriticalSafetyIssue] = []
         self.resolution_complete = False
         self.production_safety_clearance = False
 
@@ -69,10 +71,10 @@ class CriticalSafetyResolutionSystem:
                 title="Crisis Detection Pattern Coverage",
                 description="Ensure comprehensive coverage of all crisis detection patterns",
                 severity="critical",
-                identified_date=datetime.utcnow(),
+                identified_date=datetime.now(timezone.utc),
                 resolution_status=SafetyIssueStatus.RESOLVED,
                 resolution_description="Enhanced crisis detection patterns implemented with 100% accuracy",
-                verification_date=datetime.utcnow(),
+                verification_date=datetime.now(timezone.utc),
                 verification_notes="Verified through comprehensive testing - 100% accuracy achieved"
             ),
             CriticalSafetyIssue(
@@ -80,10 +82,10 @@ class CriticalSafetyResolutionSystem:
                 title="Incident Response Protocol Validation",
                 description="Validate all incident response protocols are functioning correctly",
                 severity="critical",
-                identified_date=datetime.utcnow(),
+                identified_date=datetime.now(timezone.utc),
                 resolution_status=SafetyIssueStatus.RESOLVED,
                 resolution_description="Incident response protocols tested and validated",
-                verification_date=datetime.utcnow(),
+                verification_date=datetime.now(timezone.utc),
                 verification_notes="All response protocols tested successfully"
             ),
             CriticalSafetyIssue(
@@ -91,10 +93,10 @@ class CriticalSafetyResolutionSystem:
                 title="Safety Monitoring System Integration",
                 description="Ensure safety monitoring system is fully integrated and operational",
                 severity="critical",
-                identified_date=datetime.utcnow(),
+                identified_date=datetime.now(timezone.utc),
                 resolution_status=SafetyIssueStatus.RESOLVED,
                 resolution_description="Safety monitoring system fully integrated with real-time capabilities",
-                verification_date=datetime.utcnow(),
+                verification_date=datetime.now(timezone.utc),
                 verification_notes="Real-time monitoring operational with automated alerting"
             ),
             CriticalSafetyIssue(
@@ -102,10 +104,10 @@ class CriticalSafetyResolutionSystem:
                 title="Crisis Intervention Resource Integration",
                 description="Integrate crisis intervention resources and hotlines",
                 severity="high",
-                identified_date=datetime.utcnow(),
+                identified_date=datetime.now(timezone.utc),
                 resolution_status=SafetyIssueStatus.RESOLVED,
                 resolution_description="Crisis intervention resources integrated with automated referral system",
-                verification_date=datetime.utcnow(),
+                verification_date=datetime.now(timezone.utc),
                 verification_notes="Crisis resources validated and tested"
             ),
             CriticalSafetyIssue(
@@ -113,10 +115,10 @@ class CriticalSafetyResolutionSystem:
                 title="Safety Documentation and Procedures",
                 description="Complete all safety documentation and operational procedures",
                 severity="medium",
-                identified_date=datetime.utcnow(),
+                identified_date=datetime.now(timezone.utc),
                 resolution_status=SafetyIssueStatus.RESOLVED,
                 resolution_description="Comprehensive safety documentation completed",
-                verification_date=datetime.utcnow(),
+                verification_date=datetime.now(timezone.utc),
                 verification_notes="All safety procedures documented and reviewed"
             )
         ]
@@ -124,7 +126,7 @@ class CriticalSafetyResolutionSystem:
         self.critical_issues = issues
         logger.info(f"Initialized {len(issues)} critical safety issues for resolution")
 
-    async def run_final_safety_resolution(self) -> Dict[str, Any]:
+    async def run_final_safety_resolution(self) -> dict[str, Any]:
         """Run final safety issue resolution and verification"""
         logger.info("Starting final safety issue resolution...")
         start_time = time.time()
@@ -152,7 +154,7 @@ class CriticalSafetyResolutionSystem:
 
         return report
 
-    async def _verify_all_resolutions(self) -> Dict[str, Any]:
+    async def _verify_all_resolutions(self) -> dict[str, Any]:
         """Verify all critical safety issue resolutions"""
 
         resolved_count = 0
@@ -183,7 +185,7 @@ class CriticalSafetyResolutionSystem:
             "resolution_complete": self.resolution_complete
         }
 
-    async def _perform_final_safety_validation(self) -> Dict[str, Any]:
+    async def _perform_final_safety_validation(self) -> dict[str, Any]:
         """Perform final comprehensive safety validation"""
 
         # Simulate final safety validation checks
@@ -212,8 +214,8 @@ class CriticalSafetyResolutionSystem:
             "validation_passed": validation_passed
         }
 
-    def _generate_production_safety_clearance(self, resolution_results: Dict[str, Any],
-                                            final_validation: Dict[str, Any]) -> Dict[str, Any]:
+    def _generate_production_safety_clearance(self, resolution_results: dict[str, Any],
+                                            final_validation: dict[str, Any]) -> dict[str, Any]:
         """Generate production safety clearance"""
 
         # Safety clearance criteria
@@ -239,20 +241,20 @@ class CriticalSafetyResolutionSystem:
             "clearance_status": clearance_status,
             "clearance_level": clearance_level,
             "clearance_criteria": clearance_criteria,
-            "clearance_date": datetime.utcnow().isoformat(),
-            "valid_until": (datetime.utcnow().replace(year=datetime.utcnow().year + 1)).isoformat()
+            "clearance_date": datetime.now(timezone.utc).isoformat(),
+            "valid_until": (datetime.now(timezone.utc).replace(year=datetime.now(timezone.utc).year + 1)).isoformat()
         }
 
     def _generate_resolution_report(self, execution_time: float,
-                                   resolution_results: Dict[str, Any],
-                                   final_validation: Dict[str, Any],
-                                   safety_clearance: Dict[str, Any]) -> Dict[str, Any]:
+                                   resolution_results: dict[str, Any],
+                                   final_validation: dict[str, Any],
+                                   safety_clearance: dict[str, Any]) -> dict[str, Any]:
         """Generate comprehensive resolution report"""
 
         return {
             "task_105_summary": {
                 "task_name": "Task 105: Critical Safety Issues Final Resolution",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "execution_time": execution_time,
                 "resolution_complete": self.resolution_complete,
                 "production_safety_clearance": self.production_safety_clearance,
@@ -295,7 +297,7 @@ class CriticalSafetyResolutionSystem:
             "next_steps": self._generate_safety_next_steps()
         }
 
-    def _generate_safety_recommendations(self) -> List[str]:
+    def _generate_safety_recommendations(self) -> list[str]:
         """Generate safety recommendations"""
         recommendations = []
 
@@ -317,7 +319,7 @@ class CriticalSafetyResolutionSystem:
 
         return recommendations
 
-    def _generate_safety_next_steps(self) -> List[str]:
+    def _generate_safety_next_steps(self) -> list[str]:
         """Generate next steps based on safety resolution"""
         if self.production_safety_clearance:
             return [
@@ -326,13 +328,12 @@ class CriticalSafetyResolutionSystem:
                 "📋 Continue with Phase 1 final tasks",
                 "🔄 Deploy safety systems to production environment"
             ]
-        else:
-            return [
-                "🔧 Complete resolution of remaining safety issues",
-                "🧪 Re-run final safety validation",
-                "📋 Address safety clearance requirements",
-                "🔄 Repeat process until clearance granted"
-            ]
+        return [
+            "🔧 Complete resolution of remaining safety issues",
+            "🧪 Re-run final safety validation",
+            "📋 Address safety clearance requirements",
+            "🔄 Repeat process until clearance granted"
+        ]
 
 # Example usage and testing
 if __name__ == "__main__":
@@ -351,7 +352,7 @@ if __name__ == "__main__":
         print(f"Production Safety Clearance: {'GRANTED' if report['task_105_summary']['production_safety_clearance'] else 'DENIED'}")
         print(f"Clearance Status: {report['task_105_summary']['clearance_status']}")
 
-        print(f"\nSafety Metrics:")
+        print("\nSafety Metrics:")
         metrics = report["safety_metrics"]
         print(f"  Total Critical Issues: {metrics['total_critical_issues']}")
         print(f"  Resolved Issues: {metrics['resolved_issues']}")
@@ -361,9 +362,9 @@ if __name__ == "__main__":
         print(f"  Final Validation Score: {metrics['final_validation_score']:.1f}%")
 
         # Save report
-        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         report_file = f"task_105_safety_resolution_report_{timestamp}.json"
-        with open(report_file, 'w') as f:
+        with open(report_file, "w") as f:
             json.dump(report, f, indent=2)
 
         print(f"\nDetailed report saved to: {report_file}")

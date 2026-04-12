@@ -4,13 +4,14 @@ Master orchestration script that runs all dataset registry enhancement
 and maintenance operations in sequence.
 """
 
+from datetime import datetime, timezone
+
 import argparse
 import json
 import subprocess
 import sys
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 
 class DatasetRegistryOrchestrator:
@@ -21,7 +22,7 @@ class DatasetRegistryOrchestrator:
         self.scripts_dir = scripts_dir
         self.results = {}
 
-    def run_script(self, script_name: str, args: list = None) -> Dict[str, Any]:
+    def run_script(self, script_name: str, args: list = None) -> dict[str, Any]:
         """
         Run a Python script and capture results.
 
@@ -223,7 +224,7 @@ class DatasetRegistryOrchestrator:
 
         return result["success"]
 
-    def generate_report(self) -> Dict[str, Any]:
+    def generate_report(self) -> dict[str, Any]:
         """Generate summary report of all operations."""
         print("\n### GENERATING FINAL REPORT ###\n")
 
@@ -232,7 +233,7 @@ class DatasetRegistryOrchestrator:
             registry = json.load(f)
 
         report = {
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
             "registry_version": registry.get("schema_version", "1.0.0"),
             "enhancements_applied": registry.get("registry_metadata", {}).get(
                 "enhancements_applied", []
@@ -253,35 +254,35 @@ class DatasetRegistryOrchestrator:
         print("=" * 80)
         print(f"\nTimestamp: {report['timestamp']}")
         print(f"Registry Version: {report['registry_version']}")
-        print(f"\nEnhancements Applied:")
+        print("\nEnhancements Applied:")
         for enhancement in report["enhancements_applied"]:
             print(f"  ✓ {enhancement}")
 
-        print(f"\nStatistics:")
+        print("\nStatistics:")
         stats = report["statistics"]
         print(f"  Total Datasets: {stats.get('total_datasets', 'N/A')}")
 
         if "datasets_by_stage" in stats:
-            print(f"\n  By Stage:")
+            print("\n  By Stage:")
             for stage, count in stats["datasets_by_stage"].items():
                 print(f"    {stage}: {count}")
 
         if "datasets_by_quality" in stats:
-            print(f"\n  By Quality:")
+            print("\n  By Quality:")
             for tier, count in stats["datasets_by_quality"].items():
                 print(f"    {tier}: {count}")
 
         if "validation_summary" in stats:
-            print(f"\n  Validation Summary:")
+            print("\n  Validation Summary:")
             for status, count in stats["validation_summary"].items():
                 print(f"    {status}: {count}")
 
         if "sync_summary" in stats:
-            print(f"\n  Sync Summary:")
+            print("\n  Sync Summary:")
             for status, count in stats["sync_summary"].items():
                 print(f"    {status}: {count}")
 
-        print(f"\nOperation Results:")
+        print("\nOperation Results:")
         all_success = True
         for operation, result in report["operation_results"].items():
             status = "✓" if result["success"] else "✗"

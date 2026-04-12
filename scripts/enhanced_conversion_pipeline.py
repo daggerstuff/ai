@@ -12,7 +12,6 @@ import logging
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Tuple
 
 # Import our intelligent agent
 sys.path.append(str(Path(__file__).parent))
@@ -48,7 +47,7 @@ class EnhancedConversionPipeline:
         self.min_confidence_threshold = min_confidence_threshold
         self.stats = ConversionStats()
 
-    def process_segment(self, segment: Dict) -> Tuple[Dict, str]:
+    def process_segment(self, segment: dict) -> tuple[dict, str]:
         """Process a single segment with intelligent analysis"""
         try:
             # Step 1: Analyze segment with intelligent agent
@@ -135,7 +134,7 @@ class EnhancedConversionPipeline:
         }
         return expert_mapping.get(style, 0)
 
-    def _assess_quality(self, training_pair: Dict, analysis: Dict) -> float:
+    def _assess_quality(self, training_pair: dict, analysis: dict) -> float:
         """Assess the quality of the generated training pair"""
         quality_score = 0.0
 
@@ -161,7 +160,7 @@ class EnhancedConversionPipeline:
 
         return max(0.0, min(1.0, quality_score))
 
-    def process_segments_file(self, input_path: Path, output_path: Path) -> Dict:
+    def process_segments_file(self, input_path: Path, output_path: Path) -> dict:
         """Process a complete segments file"""
         logger.info(f"Processing {input_path.name}")
 
@@ -234,7 +233,7 @@ class EnhancedConversionPipeline:
             "errors": file_stats.errors,
         }
 
-    def create_lightning_dataset(self, training_pairs: List[Dict], output_dir: Path):
+    def create_lightning_dataset(self, training_pairs: list[dict], output_dir: Path):
         """Create Lightning.ai H100 LoRA format dataset"""
         logger.info("Creating Lightning.ai H100 LoRA dataset")
 
@@ -254,7 +253,7 @@ class EnhancedConversionPipeline:
 
         # Create expert-specific datasets
         experts = {"therapeutic": 0, "educational": 1, "empathetic": 2, "practical": 3}
-        expert_data = {style: [] for style in experts.keys()}
+        expert_data = {style: [] for style in experts}
 
         for pair in training_pairs:
             style = pair["style"]
@@ -293,7 +292,7 @@ class EnhancedConversionPipeline:
                 "validation_file": "validation.json",
                 "expert_files": {
                     f"expert_{style}": f"expert_{style}.json"
-                    for style in experts.keys()
+                    for style in experts
                 },
             },
             "expert_mapping": experts,
@@ -312,7 +311,7 @@ class EnhancedConversionPipeline:
 
         return config
 
-    def generate_quality_report(self, all_stats: List[Dict], output_dir: Path):
+    def generate_quality_report(self, all_stats: list[dict], output_dir: Path):
         """Generate comprehensive quality report"""
         report = {
             "conversion_summary": {

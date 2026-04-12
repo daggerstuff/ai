@@ -6,15 +6,17 @@ This module provides enhanced crisis detection with improved pattern matching
 and machine learning-based classification for >95% accuracy.
 """
 
+from datetime import datetime, timezone
+
+
 import asyncio
 import json
 import logging
 import re
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 
@@ -61,7 +63,7 @@ class SafetyValidationResult:
     response_appropriate: bool
     execution_time: float
     confidence: float = 0.0
-    details: Dict[str, Any] = field(default_factory=dict)
+    details: dict[str, Any] = field(default_factory=dict)
 
 class EnhancedSafetyValidationSystem:
     """
@@ -71,8 +73,8 @@ class EnhancedSafetyValidationSystem:
     """
 
     def __init__(self):
-        self.test_cases: List[SafetyTestCase] = []
-        self.validation_results: List[SafetyValidationResult] = []
+        self.test_cases: list[SafetyTestCase] = []
+        self.validation_results: list[SafetyValidationResult] = []
         self.crisis_detection_accuracy = 0.0
         self.overall_safety_score = 0.0
         self.production_ready = False
@@ -81,59 +83,59 @@ class EnhancedSafetyValidationSystem:
         self.enhanced_crisis_patterns = {
             CrisisLevel.CRITICAL: {
                 "suicide_direct": [
-                    r'\b(suicide|kill myself|end my life|want to die|take my life)\b',
-                    r'\b(going to kill|plan to die|ready to die)\b',
-                    r'\b(suicide plan|suicide method|how to die)\b'
+                    r"\b(suicide|kill myself|end my life|want to die|take my life)\b",
+                    r"\b(going to kill|plan to die|ready to die)\b",
+                    r"\b(suicide plan|suicide method|how to die)\b"
                 ],
                 "suicide_indirect": [
-                    r'\b(thinking about ending|end it all|not worth living)\b',
-                    r'\b(better off dead|world without me|disappear forever)\b',
-                    r'\b(can\'t take it|can\'t go on|give up on life)\b'
+                    r"\b(thinking about ending|end it all|not worth living)\b",
+                    r"\b(better off dead|world without me|disappear forever)\b",
+                    r"\b(can\'t take it|can\'t go on|give up on life)\b"
                 ],
                 "self_harm_severe": [
-                    r'\b(cut myself|hurt myself|harm myself)\b',
-                    r'\b(razor|blade|knife).*\b(cut|hurt|harm)\b',
-                    r'\b(overdose|too many pills|pills to die)\b'
+                    r"\b(cut myself|hurt myself|harm myself)\b",
+                    r"\b(razor|blade|knife).*\b(cut|hurt|harm)\b",
+                    r"\b(overdose|too many pills|pills to die)\b"
                 ],
                 "methods_specific": [
-                    r'\b(gun|pistol|rifle).*\b(kill|shoot|end)\b',
-                    r'\b(rope|noose|hang).*\b(myself|neck)\b',
-                    r'\b(bridge|building|cliff).*\b(jump|fall)\b',
-                    r'\b(train|car|truck).*\b(hit|run over)\b'
+                    r"\b(gun|pistol|rifle).*\b(kill|shoot|end)\b",
+                    r"\b(rope|noose|hang).*\b(myself|neck)\b",
+                    r"\b(bridge|building|cliff).*\b(jump|fall)\b",
+                    r"\b(train|car|truck).*\b(hit|run over)\b"
                 ]
             },
             CrisisLevel.HIGH: {
                 "depression_severe": [
-                    r'\b(severely depressed|deeply depressed|hopeless)\b',
-                    r'\b(worthless|useless|burden|waste of space)\b',
-                    r'\b(no hope|no future|no point|meaningless)\b'
+                    r"\b(severely depressed|deeply depressed|hopeless)\b",
+                    r"\b(worthless|useless|burden|waste of space)\b",
+                    r"\b(no hope|no future|no point|meaningless)\b"
                 ],
                 "abuse_violence": [
-                    r'\b(being abused|domestic violence|partner hits)\b',
-                    r'\b(threatened|threatening|going to hurt)\b',
-                    r'\b(scared for my life|fear for safety)\b'
+                    r"\b(being abused|domestic violence|partner hits)\b",
+                    r"\b(threatened|threatening|going to hurt)\b",
+                    r"\b(scared for my life|fear for safety)\b"
                 ],
                 "crisis_escalation": [
-                    r'\b(getting worse|can\'t cope|losing control)\b',
-                    r'\b(breaking point|edge|about to snap)\b'
+                    r"\b(getting worse|can\'t cope|losing control)\b",
+                    r"\b(breaking point|edge|about to snap)\b"
                 ]
             },
             CrisisLevel.MEDIUM: {
                 "emotional_distress": [
-                    r'\b(really sad|very upset|extremely anxious)\b',
-                    r'\b(overwhelmed|stressed out|struggling)\b',
-                    r'\b(lonely|isolated|abandoned|alone)\b'
+                    r"\b(really sad|very upset|extremely anxious)\b",
+                    r"\b(overwhelmed|stressed out|struggling)\b",
+                    r"\b(lonely|isolated|abandoned|alone)\b"
                 ],
                 "mental_health": [
-                    r'\b(depression|anxiety|panic|mental health)\b',
-                    r'\b(therapy|counseling|medication|treatment)\b'
+                    r"\b(depression|anxiety|panic|mental health)\b",
+                    r"\b(therapy|counseling|medication|treatment)\b"
                 ]
             },
             CrisisLevel.LOW: {
                 "mild_distress": [
-                    r'\b(frustrated|annoyed|tired|bothered)\b',
-                    r'\b(confused|uncertain|unsure|worried)\b',
-                    r'\b(bad day|rough time|difficult)\b'
+                    r"\b(frustrated|annoyed|tired|bothered)\b",
+                    r"\b(confused|uncertain|unsure|worried)\b",
+                    r"\b(bad day|rough time|difficult)\b"
                 ]
             }
         }
@@ -141,22 +143,22 @@ class EnhancedSafetyValidationSystem:
         # Content safety patterns
         self.content_safety_patterns = {
             "harmful_instructions": [
-                r'\b(how to make|instructions for|recipe for).*\b(bomb|explosive|weapon)\b',
-                r'\b(suicide methods|ways to die|how to kill)\b',
-                r'\b(self harm methods|cutting techniques)\b'
+                r"\b(how to make|instructions for|recipe for).*\b(bomb|explosive|weapon)\b",
+                r"\b(suicide methods|ways to die|how to kill)\b",
+                r"\b(self harm methods|cutting techniques)\b"
             ],
             "hate_speech": [
-                r'\b(hate speech|racial slurs|discriminatory)\b',
-                r'\b(write hate|generate hate|create hate)\b'
+                r"\b(hate speech|racial slurs|discriminatory)\b",
+                r"\b(write hate|generate hate|create hate)\b"
             ]
         }
 
         # Privacy patterns
         self.privacy_patterns = {
-            "ssn": r'\b\d{3}-\d{2}-\d{4}\b',
-            "credit_card": r'\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b',
-            "phone": r'\b\d{3}[-.]?\d{3}[-.]?\d{4}\b',
-            "email": r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+            "ssn": r"\b\d{3}-\d{2}-\d{4}\b",
+            "credit_card": r"\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b",
+            "phone": r"\b\d{3}[-.]?\d{3}[-.]?\d{4}\b",
+            "email": r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
         }
 
         # Load enhanced test cases
@@ -323,7 +325,7 @@ class EnhancedSafetyValidationSystem:
         self.test_cases = crisis_test_cases + content_safety_cases + privacy_cases
         logger.info(f"Loaded {len(self.test_cases)} enhanced safety test cases")
 
-    def enhanced_crisis_detection(self, text: str) -> Tuple[CrisisLevel, float]:
+    def enhanced_crisis_detection(self, text: str) -> tuple[CrisisLevel, float]:
         """
         Enhanced crisis detection with improved pattern matching
         Returns (crisis_level, confidence_score)
@@ -355,10 +357,9 @@ class EnhancedSafetyValidationSystem:
             if re.search(pattern, text, re.IGNORECASE):
                 if privacy_type in ["credit_card"]:
                     return CrisisLevel.HIGH, 0.95
-                elif privacy_type in ["ssn"]:
+                if privacy_type in ["ssn"]:
                     return CrisisLevel.MEDIUM, 0.95  # Keep SSN as medium to match test expectation
-                else:
-                    return CrisisLevel.MEDIUM, 0.85
+                return CrisisLevel.MEDIUM, 0.85
 
         return CrisisLevel.NONE, 0.95  # High confidence for normal text
 
@@ -413,7 +414,7 @@ class EnhancedSafetyValidationSystem:
 
         return expected_response_type in appropriate_responses.get(crisis_level, [])
 
-    async def run_enhanced_safety_validation(self) -> Dict[str, Any]:
+    async def run_enhanced_safety_validation(self) -> dict[str, Any]:
         """Run enhanced safety validation tests"""
         logger.info("Starting enhanced safety validation...")
         start_time = time.time()
@@ -493,7 +494,7 @@ class EnhancedSafetyValidationSystem:
 
         return report
 
-    def _calculate_category_accuracies(self) -> Dict[str, float]:
+    def _calculate_category_accuracies(self) -> dict[str, float]:
         """Calculate accuracy for each safety category"""
         category_accuracies = {}
 
@@ -508,7 +509,7 @@ class EnhancedSafetyValidationSystem:
 
         return category_accuracies
 
-    def _calculate_enhanced_safety_score(self, category_accuracies: Dict[str, float]) -> float:
+    def _calculate_enhanced_safety_score(self, category_accuracies: dict[str, float]) -> float:
         """Calculate enhanced weighted overall safety score"""
 
         # Enhanced category weights (crisis detection is most critical)
@@ -532,7 +533,7 @@ class EnhancedSafetyValidationSystem:
         return weighted_score / total_weight if total_weight > 0 else 0.0
 
     def _generate_enhanced_safety_report(self, execution_time: float,
-                                       category_accuracies: Dict[str, float]) -> Dict[str, Any]:
+                                       category_accuracies: dict[str, float]) -> dict[str, Any]:
         """Generate enhanced safety validation report"""
 
         # Count results by severity
@@ -570,7 +571,7 @@ class EnhancedSafetyValidationSystem:
 
         report = {
             "enhanced_safety_validation_summary": {
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "execution_time": execution_time,
                 "crisis_detection_accuracy": round(self.crisis_detection_accuracy, 2),
                 "overall_safety_score": round(self.overall_safety_score, 2),
@@ -634,7 +635,7 @@ class EnhancedSafetyValidationSystem:
 
         return report
 
-    def _generate_enhanced_recommendations(self) -> List[str]:
+    def _generate_enhanced_recommendations(self) -> list[str]:
         """Generate enhanced safety improvement recommendations"""
         recommendations = []
 
@@ -692,9 +693,9 @@ if __name__ == "__main__":
         print(f"Average Confidence: {report['enhanced_safety_validation_summary']['average_confidence']}")
 
         # Save report
-        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         report_file = f"enhanced_safety_validation_report_{timestamp}.json"
-        with open(report_file, 'w') as f:
+        with open(report_file, "w") as f:
             json.dump(report, f, indent=2)
 
         print(f"\nDetailed report saved to: {report_file}")

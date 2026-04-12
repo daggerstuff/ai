@@ -4,10 +4,11 @@ Dataset quality scoring script that computes quality metrics
 and assigns quality tiers based on configurable thresholds.
 """
 
+from datetime import datetime, timezone
+
 import json
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from s3_client_helper import get_s3_client
 
@@ -27,18 +28,18 @@ class DatasetQualityScorer:
         self.registry_path = registry_path
         self.s3_client = get_s3_client()
 
-    def load_registry(self) -> Dict[str, Any]:
+    def load_registry(self) -> dict[str, Any]:
         """Load the dataset registry."""
         with open(self.registry_path) as f:
             return json.load(f)
 
-    def save_registry(self, registry: Dict[str, Any]) -> None:
+    def save_registry(self, registry: dict[str, Any]) -> None:
         """Save the updated registry."""
-        registry["last_updated"] = datetime.utcnow().isoformat() + "Z"
+        registry["last_updated"] = datetime.now(timezone.utc).isoformat() + "Z"
         with open(self.registry_path, "w") as f:
             json.dump(registry, f, indent=2, ensure_ascii=False)
 
-    def calculate_completeness_score(self, dataset_entry: Dict[str, Any]) -> float:
+    def calculate_completeness_score(self, dataset_entry: dict[str, Any]) -> float:
         """
         Calculate completeness score based on metadata presence.
 
@@ -77,7 +78,7 @@ class DatasetQualityScorer:
 
         return round(score, 2)
 
-    def calculate_consistency_score(self, dataset_entry: Dict[str, Any]) -> float:
+    def calculate_consistency_score(self, dataset_entry: dict[str, Any]) -> float:
         """
         Calculate consistency score based on validation and sync status.
 
@@ -112,8 +113,8 @@ class DatasetQualityScorer:
         return max(0.0, round(score, 2))
 
     def calculate_annotation_quality(
-        self, dataset_entry: Dict[str, Any]
-    ) -> Optional[float]:
+        self, dataset_entry: dict[str, Any]
+    ) -> float | None:
         """
         Calculate annotation quality based on dataset type and profile.
 
@@ -165,14 +166,13 @@ class DatasetQualityScorer:
         """
         if quality_score >= self.QUALITY_THRESHOLDS["excellent"]:
             return "excellent"
-        elif quality_score >= self.QUALITY_THRESHOLDS["good"]:
+        if quality_score >= self.QUALITY_THRESHOLDS["good"]:
             return "good"
-        elif quality_score >= self.QUALITY_THRESHOLDS["acceptable"]:
+        if quality_score >= self.QUALITY_THRESHOLDS["acceptable"]:
             return "acceptable"
-        else:
-            return "needs_review"
+        return "needs_review"
 
-    def detect_anomalies(self, dataset_entry: Dict[str, Any]) -> List[str]:
+    def detect_anomalies(self, dataset_entry: dict[str, Any]) -> list[str]:
         """
         Detect anomalies in dataset.
 
@@ -218,8 +218,8 @@ class DatasetQualityScorer:
         return anomalies
 
     def score_dataset(
-        self, dataset_name: str, dataset_entry: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, dataset_name: str, dataset_entry: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Compute quality metrics for a dataset.
 
@@ -269,7 +269,7 @@ class DatasetQualityScorer:
             "anomaly_flags": anomaly_flags,
         }
 
-    def score_all_datasets(self, limit: Optional[int] = None) -> Dict[str, Any]:
+    def score_all_datasets(self, limit: int | None = None) -> dict[str, Any]:
         """
         Score all datasets in the registry.
 
@@ -374,7 +374,7 @@ def main():
 
     args = parser.parse_args()
 
-    print(f"Dataset Quality Scoring")
+    print("Dataset Quality Scoring")
     print(f"Registry: {args.registry}")
     print(f"Limit: {args.limit or 'None (all datasets)'}")
     print()
@@ -385,7 +385,7 @@ def main():
     print("\nQuality Scoring Statistics:")
     print(f"  Total scored: {stats['total_scored']}")
     print(f"  Anomalies detected: {stats['anomalies_detected']}")
-    print(f"\nBy Quality Tier:")
+    print("\nBy Quality Tier:")
     for tier, count in stats["by_tier"].items():
         print(f"  {tier}: {count}")
 

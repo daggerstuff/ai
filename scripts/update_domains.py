@@ -4,15 +4,13 @@ Script to update all domain references from pixelated-empathy.ai to pixelatedemp
 """
 
 import os
-import re
-from pathlib import Path
 
 
 def update_domains_in_file(file_path):
     """Update domain references in a single file."""
 
     try:
-        with open(file_path, encoding='utf-8') as f:
+        with open(file_path, encoding="utf-8") as f:
             content = f.read()
 
         # Track if any changes were made
@@ -20,17 +18,17 @@ def update_domains_in_file(file_path):
 
         # Replace all variations of the old domain
         replacements = [
-            ('pixelated-empathy.ai', 'pixelatedempathy.com'),
-            ('api.pixelated-empathy.ai', 'api.pixelatedempathy.com'),
-            ('status.pixelated-empathy.ai', 'status.pixelatedempathy.com'),
-            ('api-support@pixelated-empathy.ai', 'api-support@pixelatedempathy.com'),
-            ('research@pixelated-empathy.ai', 'research@pixelatedempathy.com'),
-            ('billing@pixelated-empathy.ai', 'billing@pixelatedempathy.com'),
-            ('emergency@pixelated-empathy.ai', 'emergency@pixelatedempathy.com'),
-            ('dev-support@pixelated-empathy.ai', 'dev-support@pixelatedempathy.com'),
-            ('research-support@pixelated-empathy.ai', 'research-support@pixelatedempathy.com'),
-            ('research-stats@pixelated-empathy.ai', 'research-stats@pixelatedempathy.com'),
-            ('data-quality@pixelated-empathy.ai', 'data-quality@pixelatedempathy.com'),
+            ("pixelated-empathy.ai", "pixelatedempathy.com"),
+            ("api.pixelated-empathy.ai", "api.pixelatedempathy.com"),
+            ("status.pixelated-empathy.ai", "status.pixelatedempathy.com"),
+            ("api-support@pixelated-empathy.ai", "api-support@pixelatedempathy.com"),
+            ("research@pixelated-empathy.ai", "research@pixelatedempathy.com"),
+            ("billing@pixelated-empathy.ai", "billing@pixelatedempathy.com"),
+            ("emergency@pixelated-empathy.ai", "emergency@pixelatedempathy.com"),
+            ("dev-support@pixelated-empathy.ai", "dev-support@pixelatedempathy.com"),
+            ("research-support@pixelated-empathy.ai", "research-support@pixelatedempathy.com"),
+            ("research-stats@pixelated-empathy.ai", "research-stats@pixelatedempathy.com"),
+            ("data-quality@pixelated-empathy.ai", "data-quality@pixelatedempathy.com"),
         ]
 
         for old_domain, new_domain in replacements:
@@ -38,12 +36,11 @@ def update_domains_in_file(file_path):
 
         # Write back if changes were made
         if content != original_content:
-            with open(file_path, 'w', encoding='utf-8') as f:
+            with open(file_path, "w", encoding="utf-8") as f:
                 f.write(content)
             print(f"✅ Updated: {file_path}")
             return True
-        else:
-            return False
+        return False
 
     except Exception as e:
         print(f"❌ Error updating {file_path}: {e}")
@@ -54,13 +51,13 @@ def main():
 
     # Define directories to search
     search_dirs = [
-        '/home/vivi/pixelated/ai/docs',
-        '/home/vivi/pixelated/ai/inference/api',
-        '/home/vivi/pixelated/ai/infrastructure/qa/reports'
+        "/home/vivi/pixelated/ai/docs",
+        "/home/vivi/pixelated/ai/inference/api",
+        "/home/vivi/pixelated/ai/infrastructure/qa/reports"
     ]
 
     # File extensions to process
-    extensions = ['.md', '.py', '.js', '.json', '.yaml', '.yml', '.txt']
+    extensions = [".md", ".py", ".js", ".json", ".yaml", ".yml", ".txt"]
 
     updated_files = []
     total_files = 0
@@ -76,16 +73,16 @@ def main():
                         if update_domains_in_file(file_path):
                             updated_files.append(file_path)
 
-    print(f"\n📊 Summary:")
+    print("\n📊 Summary:")
     print(f"   Total files processed: {total_files}")
     print(f"   Files updated: {len(updated_files)}")
 
     if updated_files:
-        print(f"\n📝 Updated files:")
+        print("\n📝 Updated files:")
         for file_path in updated_files:
             print(f"   - {file_path}")
 
-    print(f"\n✅ Domain update completed!")
+    print("\n✅ Domain update completed!")
 
 if __name__ == "__main__":
     main()

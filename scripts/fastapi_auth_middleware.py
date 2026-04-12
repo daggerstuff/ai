@@ -6,7 +6,7 @@ This module provides FastAPI-specific middleware and decorators for the authenti
 """
 
 import logging
-from typing import Callable, Optional
+from collections.abc import Callable
 
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer
@@ -112,8 +112,8 @@ class AuthenticationDependencies:
 
     async def get_current_user(
         self,
-        credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
-    ) -> Optional[User]:
+        credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+    ) -> User | None:
         """Get current authenticated user from JWT token"""
         print(f"DEBUG: get_current_user called with credentials: {credentials}")
         if not credentials:
@@ -136,8 +136,8 @@ class AuthenticationDependencies:
         return user
 
     async def get_api_key(
-        self, api_key: Optional[str] = Depends(api_key_header)
-    ) -> Optional[APIKey]:
+        self, api_key: str | None = Depends(api_key_header)
+    ) -> APIKey | None:
         """Get current authenticated API key"""
         print(f"DEBUG: get_api_key called with api_key: {api_key}")
         if not api_key:
@@ -157,8 +157,8 @@ class AuthenticationDependencies:
 
         async def permission_checker(
             request: Request,
-            user: Optional[User] = Depends(self.get_current_user),
-            api_key: Optional[APIKey] = Depends(self.get_api_key),
+            user: User | None = Depends(self.get_current_user),
+            api_key: APIKey | None = Depends(self.get_api_key),
         ):
             # Check user permissions
             if user:
@@ -172,7 +172,7 @@ class AuthenticationDependencies:
                 return user
 
             # Check API key permissions
-            elif api_key:
+            if api_key:
                 if not self.auth_system.check_api_key_permission(
                     api_key, required_permission
                 ):
@@ -182,12 +182,11 @@ class AuthenticationDependencies:
                     )
                 return api_key
 
-            else:
-                print("DEBUG: Authentication required block reached!")
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Authentication required",
-                )
+            print("DEBUG: Authentication required block reached!")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication required",
+            )
 
         return permission_checker
 
@@ -255,7 +254,7 @@ def create_auth_routes(app: FastAPI, auth_system: AuthenticationSystem):
     async def create_api_key(
         name: str,
         permissions: list[str],
-        expires_in_days: Optional[int] = None,
+        expires_in_days: int | None = None,
         user: User = Depends(auth_deps.require_role(UserRole.ADMIN)),
     ):
         """Create new API key (admin only)"""

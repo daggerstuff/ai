@@ -18,7 +18,7 @@ def analyze_text():
         context_end = min(len(text), how_can_pos + 200)
         context = text[context_start:context_end]
 
-        print(f"Context around 'How can':")
+        print("Context around 'How can':")
         print(f"'{context}'")
         print()
 

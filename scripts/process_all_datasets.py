@@ -85,18 +85,17 @@ class ComprehensiveDatasetProcessor:
             for word in ["trauma", "heal", "therapy", "recover", "therapeutic"]
         ):
             return "therapeutic"
-        elif any(
+        if any(
             word in text_lower
             for word in ["understand", "explain", "learn", "study", "education"]
         ):
             return "educational"
-        elif any(
+        if any(
             word in text_lower
             for word in ["feel", "hurt", "pain", "support", "empathy"]
         ):
             return "empathetic"
-        else:
-            return "practical"
+        return "practical"
 
     def process_raw_conversations(self):
         """Process raw conversation datasets from pixelated-training"""

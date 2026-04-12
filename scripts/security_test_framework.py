@@ -10,22 +10,17 @@ This module provides comprehensive security testing including:
 - Infrastructure security assessment
 """
 
+from datetime import datetime, timezone
+
+
 import asyncio
-import hashlib
 import json
 import logging
-import secrets
-import socket
-import ssl
-import subprocess
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
-from urllib.parse import urljoin, urlparse
+from typing import Any
 
-import aiohttp
 import requests
 
 # Configure logging
@@ -61,10 +56,10 @@ class SecurityVulnerability:
     description: str
     severity: VulnerabilityLevel
     category: TestCategory
-    affected_endpoint: Optional[str] = None
-    proof_of_concept: Optional[str] = None
-    remediation: Optional[str] = None
-    cvss_score: Optional[float] = None
+    affected_endpoint: str | None = None
+    proof_of_concept: str | None = None
+    remediation: str | None = None
+    cvss_score: float | None = None
     discovered_at: datetime = field(default_factory=datetime.utcnow)
 
 @dataclass
@@ -73,9 +68,9 @@ class SecurityTestResult:
     test_name: str
     category: TestCategory
     passed: bool
-    vulnerabilities: List[SecurityVulnerability] = field(default_factory=list)
+    vulnerabilities: list[SecurityVulnerability] = field(default_factory=list)
     execution_time: float = 0.0
-    details: Dict[str, Any] = field(default_factory=dict)
+    details: dict[str, Any] = field(default_factory=dict)
 
 class SecurityTestFramework:
     """
@@ -84,12 +79,12 @@ class SecurityTestFramework:
     Provides automated security testing capabilities for the Pixelated Empathy AI system
     """
 
-    def __init__(self, base_url: str = "http://localhost:8000", api_key: Optional[str] = None):
-        self.base_url = base_url.rstrip('/')
+    def __init__(self, base_url: str = "http://localhost:8000", api_key: str | None = None):
+        self.base_url = base_url.rstrip("/")
         self.api_key = api_key
         self.session = requests.Session()
-        self.vulnerabilities: List[SecurityVulnerability] = []
-        self.test_results: List[SecurityTestResult] = []
+        self.vulnerabilities: list[SecurityVulnerability] = []
+        self.test_results: list[SecurityTestResult] = []
 
         # Common payloads for testing
         self.sql_injection_payloads = [
@@ -123,7 +118,7 @@ class SecurityTestFramework:
         self.vulnerabilities.append(vulnerability)
         logger.warning(f"Vulnerability discovered: {vulnerability.title} ({vulnerability.severity.value})")
 
-    async def run_comprehensive_security_scan(self) -> Dict[str, Any]:
+    async def run_comprehensive_security_scan(self) -> dict[str, Any]:
         """Run comprehensive security testing suite"""
         logger.info("Starting comprehensive security scan...")
         start_time = time.time()
@@ -462,7 +457,7 @@ class SecurityTestFramework:
             execution_time=execution_time
         )
 
-    def generate_security_report(self, total_execution_time: float) -> Dict[str, Any]:
+    def generate_security_report(self, total_execution_time: float) -> dict[str, Any]:
         """Generate comprehensive security test report"""
 
         # Aggregate vulnerabilities by severity
@@ -503,7 +498,7 @@ class SecurityTestFramework:
 
         report = {
             "scan_summary": {
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "execution_time": total_execution_time,
                 "security_score": security_score,
                 "overall_status": overall_status,
@@ -551,14 +546,14 @@ class SecurityTestFramework:
 
         return report
 
-    def _count_vulnerabilities_by_category(self) -> Dict[str, int]:
+    def _count_vulnerabilities_by_category(self) -> dict[str, int]:
         """Count vulnerabilities by category"""
         category_counts = {category.value: 0 for category in TestCategory}
         for vuln in self.vulnerabilities:
             category_counts[vuln.category.value] += 1
         return category_counts
 
-    def _generate_recommendations(self, security_score: float, vulnerability_counts: Dict[str, int]) -> List[str]:
+    def _generate_recommendations(self, security_score: float, vulnerability_counts: dict[str, int]) -> list[str]:
         """Generate security recommendations based on findings"""
         recommendations = []
 
@@ -639,6 +634,6 @@ if __name__ == "__main__":
         with open("security_scan_report.json", "w") as f:
             json.dump(report, f, indent=2)
 
-        print(f"\nDetailed report saved to: security_scan_report.json")
+        print("\nDetailed report saved to: security_scan_report.json")
 
     asyncio.run(main())

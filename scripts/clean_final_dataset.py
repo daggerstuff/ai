@@ -7,12 +7,11 @@ import hashlib
 import json
 import re
 from pathlib import Path
-from typing import Dict, List, Set
 
 
 class DatasetCleaner:
     def __init__(self):
-        self.seen_hashes: Set[str] = set()
+        self.seen_hashes: set[str] = set()
         self.duplicates_removed = 0
         self.cleaned_count = 0
 
@@ -22,12 +21,12 @@ class DatasetCleaner:
             return ""
 
         # Remove extra whitespace
-        text = re.sub(r'\s+', ' ', text.strip())
+        text = re.sub(r"\s+", " ", text.strip())
 
         # Fix common transcription artifacts
-        text = re.sub(r'\b(um|uh|like|you know)\b', '', text, flags=re.IGNORECASE)
-        text = re.sub(r'[,\s]+', ' ', text)  # Multiple commas/spaces
-        text = re.sub(r'\s+', ' ', text)     # Normalize whitespace again
+        text = re.sub(r"\b(um|uh|like|you know)\b", "", text, flags=re.IGNORECASE)
+        text = re.sub(r"[,\s]+", " ", text)  # Multiple commas/spaces
+        text = re.sub(r"\s+", " ", text)     # Normalize whitespace again
 
         # Remove very short or empty responses
         if len(text.strip()) < 50:
@@ -35,18 +34,18 @@ class DatasetCleaner:
 
         return text.strip()
 
-    def get_content_hash(self, conversation: Dict) -> str:
+    def get_content_hash(self, conversation: dict) -> str:
         """Generate hash for duplicate detection"""
         human_text = conversation["conversations"][0]["value"]
         gpt_text = conversation["conversations"][1]["value"]
 
         # Normalize for hashing
         combined = f"{human_text.lower().strip()}{gpt_text.lower().strip()}"
-        combined = re.sub(r'\s+', ' ', combined)
+        combined = re.sub(r"\s+", " ", combined)
 
         return hashlib.md5(combined.encode()).hexdigest()
 
-    def validate_conversation(self, conversation: Dict) -> bool:
+    def validate_conversation(self, conversation: dict) -> bool:
         """Validate conversation structure and content"""
         try:
             # Check structure
@@ -83,11 +82,11 @@ class DatasetCleaner:
         except Exception:
             return False
 
-    def clean_dataset(self, input_file: Path, output_file: Path) -> Dict:
+    def clean_dataset(self, input_file: Path, output_file: Path) -> dict:
         """Clean and deduplicate dataset"""
         print(f"Cleaning {input_file.name}...")
 
-        with open(input_file, encoding='utf-8') as f:
+        with open(input_file, encoding="utf-8") as f:
             conversations = json.load(f)
 
         cleaned_conversations = []
@@ -116,14 +115,14 @@ class DatasetCleaner:
         stats["final_count"] = len(cleaned_conversations)
 
         # Save cleaned dataset
-        with open(output_file, 'w', encoding='utf-8') as f:
+        with open(output_file, "w", encoding="utf-8") as f:
             json.dump(cleaned_conversations, f, indent=2, ensure_ascii=False)
 
         return stats
 
-    def update_config(self, config_file: Path, train_stats: Dict, val_stats: Dict):
+    def update_config(self, config_file: Path, train_stats: dict, val_stats: dict):
         """Update configuration with cleaned stats"""
-        with open(config_file, encoding='utf-8') as f:
+        with open(config_file, encoding="utf-8") as f:
             config = json.load(f)
 
         # Update data config
@@ -140,7 +139,7 @@ class DatasetCleaner:
             "retention_rate": round((train_stats["final_count"] + val_stats["final_count"]) / (train_stats["original_count"] + val_stats["original_count"]) * 100, 2)
         }
 
-        with open(config_file, 'w', encoding='utf-8') as f:
+        with open(config_file, "w", encoding="utf-8") as f:
             json.dump(config, f, indent=2, ensure_ascii=False)
 
 def main():
@@ -167,13 +166,13 @@ def main():
     train_clean.rename(train_file)
     val_clean.rename(val_file)
 
-    print(f"\n=== DATASET CLEANING COMPLETE ===")
+    print("\n=== DATASET CLEANING COMPLETE ===")
     print(f"Original total: {train_stats['original_count'] + val_stats['original_count']:,}")
     print(f"Duplicates removed: {train_stats['duplicates_removed'] + val_stats['duplicates_removed']:,}")
     print(f"Invalid removed: {train_stats['invalid_removed'] + val_stats['invalid_removed']:,}")
     print(f"Final total: {train_stats['final_count'] + val_stats['final_count']:,}")
     print(f"Retention rate: {round((train_stats['final_count'] + val_stats['final_count']) / (train_stats['original_count'] + val_stats['original_count']) * 100, 2)}%")
-    print(f"\nCleaned dataset ready for Lightning.ai H100 training!")
+    print("\nCleaned dataset ready for Lightning.ai H100 training!")
 
 if __name__ == "__main__":
     main()
