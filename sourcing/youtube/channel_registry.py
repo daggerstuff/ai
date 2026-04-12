@@ -192,7 +192,7 @@ class ChannelRegistryDB:
 
         except sqlite3.Error as e:
             self.conn.rollback()
-            raise RuntimeError(f"Failed to add channel: {e}")
+            raise RuntimeError(f"Failed to add channel: {e}") from e
 
     def get_channel(self, channel_id: str) -> Channel | None:
         """

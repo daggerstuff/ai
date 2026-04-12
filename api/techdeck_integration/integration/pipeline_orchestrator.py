@@ -93,7 +93,7 @@ class PipelineOrchestrator:
             raise
         except Exception as e:
             request_logger.error(f"Error executing pipeline: {e}")
-            raise PipelineExecutionError(f"Pipeline execution failed: {e!s}")
+            raise PipelineExecutionError(f"Pipeline execution failed: {e!s}") from e
 
     async def _execute_six_stage_pipeline(self, execution_id: str, pipeline_input: dict[str, Any]) -> dict[str, Any]:
         """Execute the six-stage pipeline process."""
@@ -142,7 +142,7 @@ class PipelineOrchestrator:
 
         except Exception as e:
             self.logger.error(f"Error in six-stage pipeline execution: {e}")
-            raise PipelineExecutionError(f"Six-stage pipeline execution failed: {e!s}")
+            raise PipelineExecutionError(f"Six-stage pipeline execution failed: {e!s}") from e
 
     async def _execute_stage_1_data_ingestion(self, execution_id: str, pipeline_input: dict[str, Any]) -> dict[str, Any]:
         """Execute Stage 1: Data Ingestion."""
@@ -184,7 +184,7 @@ class PipelineOrchestrator:
 
         except Exception as e:
             self.logger.error(f"Error in Stage 1 data ingestion: {e}")
-            raise PipelineExecutionError(f"Data ingestion failed: {e!s}")
+            raise PipelineExecutionError(f"Data ingestion failed: {e!s}") from e
 
     async def _execute_stage_2_preprocessing(self, execution_id: str, previous_stage_result: dict[str, Any]) -> dict[str, Any]:
         """Execute Stage 2: Preprocessing."""
@@ -232,7 +232,7 @@ class PipelineOrchestrator:
 
         except Exception as e:
             self.logger.error(f"Error in Stage 2 preprocessing: {e}")
-            raise PipelineExecutionError(f"Preprocessing failed: {e!s}")
+            raise PipelineExecutionError(f"Preprocessing failed: {e!s}") from e
 
     async def _execute_stage_3_bias_detection(self, execution_id: str, previous_stage_result: dict[str, Any]) -> dict[str, Any]:
         """Execute Stage 3: Bias Detection."""
@@ -286,7 +286,7 @@ class PipelineOrchestrator:
 
         except Exception as e:
             self.logger.error(f"Error in Stage 3 bias detection: {e}")
-            raise PipelineExecutionError(f"Bias detection failed: {e!s}")
+            raise PipelineExecutionError(f"Bias detection failed: {e!s}") from e
 
     async def _execute_stage_4_standardization(self, execution_id: str, _previous_stage_result: dict[str, Any]) -> dict[str, Any]:
         """Execute Stage 4: Standardization."""
@@ -327,7 +327,7 @@ class PipelineOrchestrator:
 
         except Exception as e:
             self.logger.error(f"Error in Stage 4 standardization: {e}")
-            raise PipelineExecutionError(f"Standardization failed: {e!s}")
+            raise PipelineExecutionError(f"Standardization failed: {e!s}") from e
 
     async def _execute_stage_5_validation(self, execution_id: str, _previous_stage_result: dict[str, Any]) -> dict[str, Any]:
         """Execute Stage 5: Validation."""
@@ -374,7 +374,7 @@ class PipelineOrchestrator:
 
         except Exception as e:
             self.logger.error(f"Error in Stage 5 validation: {e}")
-            raise PipelineExecutionError(f"Validation failed: {e!s}")
+            raise PipelineExecutionError(f"Validation failed: {e!s}") from e
 
     async def _execute_stage_6_output_generation(self, execution_id: str, _previous_stage_result: dict[str, Any]) -> dict[str, Any]:
         """Execute Stage 6: Output Generation."""
@@ -433,7 +433,7 @@ class PipelineOrchestrator:
 
         except Exception as e:
             self.logger.error(f"Error in Stage 6 output generation: {e}")
-            raise PipelineExecutionError(f"Output generation failed: {e!s}")
+            raise PipelineExecutionError(f"Output generation failed: {e!s}") from e
 
     def _prepare_pipeline_input(self, execution_id: str, config: dict[str, Any],
                               dataset_info: dict[str, Any], user_id: str) -> dict[str, Any]:
@@ -450,7 +450,7 @@ class PipelineOrchestrator:
 
         except Exception as e:
             self.logger.error(f"Error preparing pipeline input: {e}")
-            raise IntegrationError(f"Failed to prepare pipeline input: {e!s}")
+            raise IntegrationError(f"Failed to prepare pipeline input: {e!s}") from e
 
     async def _publish_progress_update(self, execution_id: str, stage: str,
                                      progress_percent: float, message: str):
@@ -539,7 +539,7 @@ class PipelineOrchestrator:
             raise
         except Exception as e:
             self.logger.error(f"Error cancelling pipeline execution: {e}")
-            raise IntegrationError(f"Failed to cancel pipeline execution: {e!s}")
+            raise IntegrationError(f"Failed to cancel pipeline execution: {e!s}") from e
 
     async def get_execution_results(self, execution_id: str, user_id: str) -> dict[str, Any]:
         """
@@ -584,7 +584,7 @@ class PipelineOrchestrator:
             raise
         except Exception as e:
             self.logger.error(f"Error getting execution results: {e}")
-            raise IntegrationError(f"Failed to get execution results: {e!s}")
+            raise IntegrationError(f"Failed to get execution results: {e!s}") from e
 
     async def validate_pipeline_config(self, config: dict[str, Any]) -> dict[str, Any]:
         """
@@ -655,4 +655,4 @@ class PipelineOrchestrator:
 
         except Exception as e:
             self.logger.error(f"Error validating pipeline configuration: {e}")
-            raise ValidationError(f"Configuration validation failed: {e!s}")
+            raise ValidationError(f"Configuration validation failed: {e!s}") from e

@@ -131,7 +131,7 @@ def start(
     except Exception as e:
         logger.error(f"Pipeline start failed: {e}")
         click.echo(f"❌ Pipeline start failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @pipeline_group.command()
@@ -189,7 +189,7 @@ def stop(_ctx, pipeline_id: str | None, stop_all: bool, force: bool):
     except Exception as e:
         logger.error(f"Pipeline stop failed: {e}")
         click.echo(f"❌ Pipeline stop failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @pipeline_group.command()
@@ -260,7 +260,7 @@ def monitor(_ctx, pipeline_id: str, refresh: int, verbose: bool, output: str):
     except Exception as e:
         logger.error(f"Pipeline monitoring failed: {e}")
         click.echo(f"❌ Pipeline monitoring failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @pipeline_group.command()
@@ -305,7 +305,7 @@ def list_executions(_ctx, status: str, limit: int, detailed: bool):
     except Exception as e:
         logger.error(f"Pipeline list failed: {e}")
         click.echo(f"❌ Pipeline list failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @pipeline_group.command()
@@ -381,7 +381,7 @@ def configure(
     except Exception as e:
         logger.error(f"Pipeline configuration failed: {e}")
         click.echo(f"❌ Pipeline configuration failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @pipeline_group.command()
@@ -426,7 +426,7 @@ def analyze(_ctx, pipeline_id: str, metric: str, output: str | None):
     except Exception as e:
         logger.error(f"Pipeline analysis failed: {e}")
         click.echo(f"❌ Pipeline analysis failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @pipeline_group.command()
@@ -490,7 +490,7 @@ def validate_input(_ctx, input: str, output: str | None, _format: str):
     except Exception as e:
         logger.error(f"Input validation failed: {e}")
         click.echo(f"❌ Input validation failed: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 # Helper functions

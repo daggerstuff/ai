@@ -131,7 +131,7 @@ class EventHandler:
                 f"Error in event handler {self.name} for execution "
                 f"{event.execution_id}: {e}"
             )
-            raise EventBusError(f"Event handler {self.name} failed: {e!s}")
+            raise EventBusError(f"Event handler {self.name} failed: {e!s}") from e
 
     async def _process_event(self, event: EventMessage) -> dict[str, Any] | None:
         """
@@ -247,7 +247,7 @@ class EventBus:
         except Exception as e:
             self.logger.error(f"Failed to publish event {event.event_type}: {e}")
             self.metrics["errors_encountered"] += 1
-            raise EventBusError(f"Event publishing failed: {e!s}")
+            raise EventBusError(f"Event publishing failed: {e!s}") from e
 
     async def _publish_with_retry(
         self, channel: str, event_json: str, event: EventMessage
@@ -346,7 +346,7 @@ class EventBus:
 
         except Exception as e:
             self.logger.error(f"Event subscription failed: {e}")
-            raise EventBusError(f"Event subscription failed: {e!s}")
+            raise EventBusError(f"Event subscription failed: {e!s}") from e
 
     async def _process_incoming_message(
         self,

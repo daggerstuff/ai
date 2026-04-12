@@ -73,7 +73,7 @@ def create_app(config: TechDeckServiceConfig | None = None) -> Flask:
 
     except Exception as e:
         logger.critical(f"Failed to initialize Flask application: {e}")
-        raise RuntimeError(f"Application initialization failed: {e}")
+        raise RuntimeError(f"Application initialization failed: {e}") from e
 
 
 def _validate_configuration(config: TechDeckServiceConfig) -> None:

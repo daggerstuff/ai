@@ -763,7 +763,7 @@ class RayExecutor:
         try:
             return int(memory_str)
         except ValueError:
-            raise ValueError(f"Invalid memory format: {memory_str}")
+            raise ValueError(f"Invalid memory format: {memory_str}") from None
 
     def get_stats(self) -> ExecutorStats:
         """Get current executor statistics."""

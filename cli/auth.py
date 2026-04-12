@@ -132,9 +132,9 @@ class AuthManager:
             raise AuthenticationError(error_msg)
 
         except requests.exceptions.RequestException as e:
-            raise AuthenticationError(f"Network error during authentication: {e}")
+            raise AuthenticationError(f"Network error during authentication: {e}") from e
         except Exception as e:
-            raise AuthenticationError(f"Authentication failed: {e}")
+            raise AuthenticationError(f"Authentication failed: {e}") from e
 
     def refresh_token(self) -> bool:
         """
@@ -196,9 +196,9 @@ class AuthManager:
             )
 
         except requests.exceptions.RequestException as e:
-            raise AuthenticationError(f"Network error during token refresh: {e}")
+            raise AuthenticationError(f"Network error during token refresh: {e}") from e
         except Exception as e:
-            raise AuthenticationError(f"Token refresh failed: {e}")
+            raise AuthenticationError(f"Token refresh failed: {e}") from e
 
     def validate_token(self) -> bool:
         """
@@ -230,9 +230,9 @@ class AuthManager:
             return True
 
         except ValueError as e:
-            raise AuthenticationError(f"Invalid JWT token: {e}")
+            raise AuthenticationError(f"Invalid JWT token: {e}") from e
         except Exception as e:
-            raise AuthenticationError(f"Token validation failed: {e}")
+            raise AuthenticationError(f"Token validation failed: {e}") from e
 
     def is_token_expired(self) -> bool:
         """
@@ -276,7 +276,7 @@ class AuthManager:
             try:
                 self.refresh_token()
             except AuthenticationError:
-                raise TokenExpiredError("JWT token expired and refresh failed")
+                raise TokenExpiredError("JWT token expired and refresh failed") from None
 
         return {"Authorization": f"Bearer {self.config.auth.jwt_token}"}
 
@@ -439,7 +439,7 @@ class AuthManager:
             try:
                 self.refresh_token()
             except AuthenticationError:
-                raise TokenExpiredError("Token expired and refresh failed")
+                raise TokenExpiredError("Token expired and refresh failed") from None
 
         # Build URL
         base_url = self.config.api.base_url.rstrip("/")
@@ -506,7 +506,7 @@ def require_auth(auth_manager: AuthManager):
                 try:
                     auth_manager.refresh_token()
                 except AuthenticationError as e:
-                    raise AuthenticationError(f"Token expired and refresh failed: {e}")
+                    raise AuthenticationError(f"Token expired and refresh failed: {e}") from e
 
             return func(*args, **kwargs)
 

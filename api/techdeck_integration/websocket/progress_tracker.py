@@ -289,7 +289,7 @@ class ProgressTracker:
 
         except Exception as e:
             self.logger.error(f"Error starting progress tracking: {e}")
-            raise WebSocketError(f"Failed to start progress tracking: {e!s}")
+            raise WebSocketError(f"Failed to start progress tracking: {e!s}") from e
 
     def update_progress(self, operation_id: str, user_id: str, status: str, progress_percent: float,
                        current_step: str, message: str, details: dict[str, Any] | None = None,
@@ -350,7 +350,7 @@ class ProgressTracker:
             raise
         except Exception as e:
             self.logger.error(f"Error updating progress: {e}")
-            raise WebSocketError(f"Failed to update progress: {e!s}")
+            raise WebSocketError(f"Failed to update progress: {e!s}") from e
 
     def complete_operation(self, operation_id: str, user_id: str, message: str = "Operation completed successfully",
                           details: dict[str, Any] | None = None):
@@ -370,7 +370,7 @@ class ProgressTracker:
 
         except Exception as e:
             self.logger.error(f"Error completing operation: {e}")
-            raise WebSocketError(f"Failed to complete operation: {e!s}")
+            raise WebSocketError(f"Failed to complete operation: {e!s}") from e
 
     def fail_operation(self, operation_id: str, user_id: str, error_message: str,
                       error_details: dict[str, Any] | None = None):
@@ -390,7 +390,7 @@ class ProgressTracker:
 
         except Exception as e:
             self.logger.error(f"Error failing operation: {e}")
-            raise WebSocketError(f"Failed to fail operation: {e!s}")
+            raise WebSocketError(f"Failed to fail operation: {e!s}") from e
 
     def cancel_operation(self, operation_id: str, user_id: str, message: str = "Operation cancelled"):
         """Cancel an ongoing operation."""
@@ -408,7 +408,7 @@ class ProgressTracker:
 
         except Exception as e:
             self.logger.error(f"Error cancelling operation: {e}")
-            raise WebSocketError(f"Failed to cancel operation: {e!s}")
+            raise WebSocketError(f"Failed to cancel operation: {e!s}") from e
 
     def get_progress(self, operation_id: str, user_id: str) -> dict[str, Any] | None:
         """Get current progress for an operation."""
@@ -429,7 +429,7 @@ class ProgressTracker:
             raise
         except Exception as e:
             self.logger.error(f"Error getting progress: {e}")
-            raise WebSocketError(f"Failed to get progress: {e!s}")
+            raise WebSocketError(f"Failed to get progress: {e!s}") from e
 
     def get_user_operations(self, user_id: str, limit: int = 10) -> list[dict[str, Any]]:
         """Get recent operations for a user."""
@@ -459,7 +459,7 @@ class ProgressTracker:
 
         except Exception as e:
             self.logger.error(f"Error getting user operations: {e}")
-            raise WebSocketError(f"Failed to get user operations: {e!s}")
+            raise WebSocketError(f"Failed to get user operations: {e!s}") from e
 
     def _broadcast_progress(self, operation_id: str, event: ProgressEvent):
         """Broadcast progress update to connected clients."""

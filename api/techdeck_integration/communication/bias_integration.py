@@ -117,7 +117,7 @@ class BiasDetectionIntegration:
         except Exception as e:
             self.logger.error(f"Failed to initialize bias detection service: {e}")
             self.bias_service_available = False
-            raise BiasDetectionError(f"Bias service initialization failed: {e!s}")
+            raise BiasDetectionError(f"Bias service initialization failed: {e!s}") from e
 
     async def analyze_stage_data(
         self, stage_data: dict[str, Any], stage_name: str
@@ -221,7 +221,7 @@ class BiasDetectionIntegration:
             self._update_performance_metrics(
                 False, time.time() - start_time, failed=True
             )
-            raise BiasDetectionError(f"Bias analysis failed: {e!s}")
+            raise BiasDetectionError(f"Bias analysis failed: {e!s}") from e
 
     async def _analyze_validation_data(self, data: dict[str, Any]) -> BiasMetrics:
         """Analyze validation stage data for bias."""
@@ -273,7 +273,7 @@ class BiasDetectionIntegration:
 
         except Exception as e:
             self.logger.error(f"Validation data bias analysis failed: {e}")
-            raise BiasDetectionError(f"Validation bias analysis failed: {e!s}")
+            raise BiasDetectionError(f"Validation bias analysis failed: {e!s}") from e
 
     async def _analyze_processing_data(self, data: dict[str, Any]) -> BiasMetrics:
         """Analyze processing stage data for bias."""
@@ -322,7 +322,7 @@ class BiasDetectionIntegration:
 
         except Exception as e:
             self.logger.error(f"Processing data bias analysis failed: {e}")
-            raise BiasDetectionError(f"Processing bias analysis failed: {e!s}")
+            raise BiasDetectionError(f"Processing bias analysis failed: {e!s}") from e
 
     async def _analyze_quality_data(self, data: dict[str, Any]) -> BiasMetrics:
         """Analyze quality stage data for bias."""
@@ -370,7 +370,7 @@ class BiasDetectionIntegration:
 
         except Exception as e:
             self.logger.error(f"Quality data bias analysis failed: {e}")
-            raise BiasDetectionError(f"Quality bias analysis failed: {e!s}")
+            raise BiasDetectionError(f"Quality bias analysis failed: {e!s}") from e
 
     async def _analyze_generic_data(
         self, data: dict[str, Any], stage_name: str
@@ -421,7 +421,7 @@ class BiasDetectionIntegration:
             self.logger.error(
                 f"Generic data bias analysis failed for stage {stage_name}: {e}"
             )
-            raise BiasDetectionError(f"Generic bias analysis failed: {e!s}")
+            raise BiasDetectionError(f"Generic bias analysis failed: {e!s}") from e
 
     def _create_disabled_metrics(self) -> BiasMetrics:
         """Create metrics when bias detection is disabled."""
