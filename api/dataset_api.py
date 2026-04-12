@@ -320,6 +320,10 @@ async def query_dataset(
                         detail=f"Invalid filter column: {col}"
                     )
 
+                # Validate column identifier to prevent SQL injection
+                # This ensures column names only contain safe characters
+                validate_identifier(col)
+
                 # Escape identifier quotes defensively before interpolation
                 safe_col = escape_identifier(col)
                 filter_clauses.append(f'"{safe_col}" = ?')
