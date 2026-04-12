@@ -5,9 +5,8 @@ Automatically updates JOURNAL_RESEARCH_TARGETS.md with current progress metrics,
 completed tasks, and status summaries.
 """
 
-from datetime import datetime, timezone
-
 import re
+from datetime import datetime, timezone
 from pathlib import Path
 
 from ai.sourcing.journal.models.dataset_models import (

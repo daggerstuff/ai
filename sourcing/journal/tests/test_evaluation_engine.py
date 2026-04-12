@@ -4,7 +4,6 @@ Unit tests for the Dataset Evaluation Engine.
 
 from datetime import datetime, timezone
 
-
 import pytest
 
 from ai.sourcing.journal.evaluation.evaluation_engine import (

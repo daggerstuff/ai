@@ -5,12 +5,11 @@ This module provides a comprehensive event-driven communication system
 with Redis pub/sub, connection pooling, and HIPAA++ compliant logging.
 """
 
-from datetime import datetime, timezone
-
 import asyncio
 import json
 import time
 from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 

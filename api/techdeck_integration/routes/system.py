@@ -5,11 +5,10 @@ This module implements REST API endpoints for system operations,
 including health checks, configuration management, and system status.
 """
 
-from datetime import datetime, timezone
-
 import logging
 import os
 import platform
+from datetime import datetime, timezone
 from typing import Any
 
 from flask import Blueprint, g, jsonify, request

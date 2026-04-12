@@ -5,11 +5,10 @@ This module provides audit logging functionality to track all security-relevant
 events including tool executions, resource access, and authentication/authorization events.
 """
 
-from datetime import datetime, timezone
-
 import json
 import logging
 from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 

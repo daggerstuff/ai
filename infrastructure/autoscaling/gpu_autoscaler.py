@@ -3,10 +3,9 @@ GPU autoscaling and cost management system for Pixelated Empathy AI project.
 Implements dynamic scaling based on demand and provides cost optimization.
 """
 
-from datetime import datetime, timedelta, timezone
-
 import logging
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any
 

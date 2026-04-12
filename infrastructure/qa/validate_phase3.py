@@ -6,14 +6,13 @@ Tasks 3.1, 3.2, 3.3: Validate Safety Certification Implementation
 Comprehensive validation script to verify Phase 3 safety certification implementation is enterprise-ready.
 """
 
-from datetime import datetime, timezone
-
 import json
 import logging
 import os
 import sys
 import tempfile
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 

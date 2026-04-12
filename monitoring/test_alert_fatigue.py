@@ -4,14 +4,13 @@ Comprehensive Testing Suite for Alert Fatigue Prevention System
 Tests various scenarios including duplicate detection, intelligent grouping, and rule evaluation
 """
 
-from datetime import datetime, timedelta, timezone
-
 import asyncio
 import logging
 import os
 import random
 import tempfile
 import time
+from datetime import datetime, timedelta, timezone
 
 from alert_fatigue_prevention import (
     AlertFatiguePreventionSystem,

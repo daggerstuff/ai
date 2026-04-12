@@ -5,11 +5,10 @@ Converts orchestrator output (JSONL, manifest) to Lightning-specific structure
 (JSON, experts), standardizing roles and formats.
 """
 
-from datetime import datetime, timezone
-
 import json
 import logging
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent))

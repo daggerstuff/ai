@@ -11,14 +11,13 @@ Processes:
 4. .notes/pixel-training/ - Transcript sources
 """
 
-from datetime import datetime, timezone
-
 import hashlib
 import json
 import logging
 import sys
 from collections import defaultdict
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 
 # Import path utilities and intelligent agent

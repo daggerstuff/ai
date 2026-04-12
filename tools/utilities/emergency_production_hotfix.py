@@ -4,10 +4,9 @@ EMERGENCY PRODUCTION HOTFIX
 Critical fixes for live production system with security vulnerabilities
 """
 
-from datetime import datetime, timezone
-
 import logging
 import os
+from datetime import datetime, timezone
 
 # Setup logging
 logging.basicConfig(
