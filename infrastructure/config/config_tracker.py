@@ -4,8 +4,6 @@ Configuration Change Tracking and Rollback System for Pixelated Empathy AI
 Tracks configuration changes and provides rollback capabilities
 """
 import argparse
-
-
 import hashlib
 import json
 import logging

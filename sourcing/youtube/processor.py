@@ -10,8 +10,6 @@ Coordinates the full workflow:
 6. Generate report
 """
 import json
-
-
 import logging
 
 from ai.sourcing.youtube.api import (

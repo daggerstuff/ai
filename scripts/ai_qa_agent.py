@@ -2,13 +2,11 @@
 """
 AI Q/A Agent - Uses actual AI to intelligently analyze content and generate appropriate Q/A pairs
 """
-from transformers import pipeline
-
-
 import json
 import os
 
 import openai
+from transformers import pipeline
 
 
 class AIQAAgent:

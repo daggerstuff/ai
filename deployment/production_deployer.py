@@ -5,11 +5,9 @@ Enterprise Production Readiness Framework - Task 6.2
 
 Automated blue-green deployment with zero downtime and canary releases.
 """
-import random
-
-
 import json
 import logging
+import random
 import sqlite3
 import time
 from collections.abc import Callable

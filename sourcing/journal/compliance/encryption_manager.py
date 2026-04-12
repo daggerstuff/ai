@@ -5,8 +5,6 @@ Implements encryption for sensitive data at rest and in transit. Provides secure
 key management and encryption/decryption operations for datasets and configuration data.
 """
 import json
-
-
 import logging
 import os
 from pathlib import Path

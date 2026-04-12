@@ -4,17 +4,15 @@ Configuration Management Commands for Pixelated AI CLI
 This module provides commands for managing CLI configuration, including profiles,
 environment variables, and settings.
 """
-import psutil
-import sys
-import yaml
-
-
 import json
 import os
+import sys
 from pathlib import Path
 from typing import Any
 
 import click
+import psutil
+import yaml
 
 from ai.cli.config import CLIConfig, get_config, save_config
 from ai.cli.utils import get_logger, setup_logging

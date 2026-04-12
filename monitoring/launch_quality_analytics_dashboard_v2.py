@@ -5,9 +5,6 @@ Quality Analytics Dashboard V2 Launcher (Task 5.6.2.1)
 Enterprise-grade launcher for the quality analytics dashboard with
 comprehensive validation, dependency checking, and production deployment.
 """
-import sqlite3
-
-
 import argparse
 import json
 import logging

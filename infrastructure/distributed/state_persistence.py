@@ -3,12 +3,9 @@
 Progress State Persistence System for Pixelated Empathy AI
 Maintains processing state across system restarts and failures
 """
-from checkpoint_system import CheckpointManager
+import asyncio
 import gzip
 import hashlib
-
-
-import asyncio
 import json
 import logging
 import pickle

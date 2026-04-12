@@ -5,15 +5,6 @@ This module implements the Flask application factory pattern with comprehensive
 configuration management, middleware registration, and blueprint initialization
 specifically for agent interaction management.
 """
-from .core.agent_manager import AgentManager
-from .core.pipeline_integration import PipelineIntegrationManager
-from .core.task_orchestrator import TaskOrchestrator
-from .routes.agents import agents_bp
-from .routes.pipeline import pipeline_bp
-from .routes.system import system_bp
-from .routes.tasks import tasks_bp
-
-
 import logging
 from datetime import datetime, timezone
 from typing import Any, cast
@@ -25,9 +16,16 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 
 from .auth.middleware import MCPAuthMiddleware
 from .config import MCPConfig
+from .core.agent_manager import AgentManager
+from .core.pipeline_integration import PipelineIntegrationManager
+from .core.task_orchestrator import TaskOrchestrator
 from .error_handling.error_handler import MCPErrorRecoveryManager
 from .integration.mongodb_client import MCPMongoDBClient
 from .integration.redis_client import MCPRedisClient
+from .routes.agents import agents_bp
+from .routes.pipeline import pipeline_bp
+from .routes.system import system_bp
+from .routes.tasks import tasks_bp
 from .utils.logger import setup_logging
 from .websocket.manager import WebSocketManager
 

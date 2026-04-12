@@ -4,15 +4,13 @@ Report Generator
 Generates structured markdown reports for dataset evaluations, weekly progress,
 and final research summaries.
 """
-from ai.sourcing.journal.models.dataset_models import ResearchProgress
-
-
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from ai.sourcing.journal.models.dataset_models import (
     DatasetEvaluation,
     DatasetSource,
+    ResearchProgress,
     ResearchSession,
     WeeklyReport,
 )

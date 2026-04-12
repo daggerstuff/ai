@@ -5,8 +5,6 @@ This module provides REST API endpoints for agent registration, discovery,
 and health monitoring.
 """
 import asyncio
-
-
 import logging
 
 from flask import Blueprint, current_app, jsonify, request

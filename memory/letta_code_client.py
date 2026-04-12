@@ -13,11 +13,6 @@ Migration from Claude Agent SDK:
 - unstable_v2_resumeSession(session_id) → resumeSession(agentId)
 - session.send/stream() remain similar but agent-anchored
 """
-from .letta_crisis_handler import LettaCrisisHandler
-from .letta_pii_middleware import LettaPIIMiddleware
-from letta import LettaClient as SDKClient
-
-
 import json
 import logging
 import os
@@ -28,6 +23,11 @@ from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any
+
+from letta import LettaClient as SDKClient
+
+from .letta_crisis_handler import LettaCrisisHandler
+from .letta_pii_middleware import LettaPIIMiddleware
 
 logger = logging.getLogger("letta_code_client")
 

@@ -8,9 +8,6 @@ Provides integration with Letta Code SDK for autonomous agent capabilities:
 - Autonomous memory updates
 - Multi-project memory sharing
 """
-from letta import LettaClient as SDKClient
-
-
 import asyncio
 import json
 import logging
@@ -20,6 +17,8 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+from letta import LettaClient as SDKClient
 
 logger = logging.getLogger("letta_client")
 

@@ -4,14 +4,12 @@ CommandHandler service for API endpoints.
 This module provides a service layer that wraps CommandHandler functionality
 for use by API endpoints.
 """
-from ai.sourcing.journal.api.websocket.manager import manager
-
-
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from ai.sourcing.journal.api.websocket.manager import manager
 from ai.sourcing.journal.cli.commands import CommandHandler
 from ai.sourcing.journal.cli.config import load_config
 from ai.sourcing.journal.models.dataset_models import (

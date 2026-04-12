@@ -1,6 +1,3 @@
-from ai.sourcing.journal.mcp import server as server_module
-
-
 import html
 import json
 from datetime import datetime, timezone
@@ -8,6 +5,7 @@ from typing import Any
 
 import pytest
 
+from ai.sourcing.journal.mcp import server as server_module
 from ai.sourcing.journal.mcp.config import MCPConfig
 from ai.sourcing.journal.mcp.server import MCPServer
 from ai.sourcing.journal.mcp.utils.progress_streaming import (

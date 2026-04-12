@@ -11,8 +11,6 @@ This test suite validates the safety ethics validator's ability to:
 5. Handle edge cases and adversarial inputs
 """
 import re
-
-
 import unittest
 from typing import Any
 

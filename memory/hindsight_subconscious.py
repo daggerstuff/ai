@@ -14,15 +14,14 @@ Usage:
     agent.process_transcript(session_id, messages)
     whisper = agent.get_whisper()
 """
-from ai.memory.hindsight_manager import HindsightMemoryManager
-
-
 import asyncio
 import json
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any
+
+from ai.memory.hindsight_manager import HindsightMemoryManager
 
 from .hindsight_subconscious_model_provider import SubconsciousModelProvider
 from .hindsight_subconscious_security import validate_and_sanitize_content

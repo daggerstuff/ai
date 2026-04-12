@@ -2,9 +2,6 @@
 Startup script demonstrating the health check and graceful shutdown system.
 This script shows how to integrate the health check system with a service.
 """
-from .monitoring.health_check import ComponentHealth, ComponentStatus
-
-
 import asyncio
 import logging
 import time
@@ -17,6 +14,8 @@ from fastapi import FastAPI
 
 # Import our health check system
 from .monitoring.health_check import (
+    ComponentHealth,
+    ComponentStatus,
     HealthCheckManager,
     integrate_health_checks_with_fastapi,
 )

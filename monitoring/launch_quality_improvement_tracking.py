@@ -5,21 +5,20 @@ Quality Improvement Tracking Launcher (Task 5.6.2.4)
 Enterprise-grade launcher for the quality improvement tracking system
 with comprehensive setup, validation, and execution capabilities.
 """
-from quality_improvement_reporter import QualityImprovementReporter
-from quality_improvement_tracker import QualityImprovementTracker
+import argparse
+import logging
+import sqlite3
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+
 import jinja2
 import numpy
 import pandas
 import plotly
 import scipy
-import sqlite3
-
-
-import argparse
-import logging
-import sys
-from datetime import datetime, timezone
-from pathlib import Path
+from quality_improvement_reporter import QualityImprovementReporter
+from quality_improvement_tracker import QualityImprovementTracker
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")

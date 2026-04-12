@@ -5,14 +5,12 @@ Test Runner for Pipeline Communication System.
 This script provides a comprehensive test runner for the six-stage pipeline
 communication system with HIPAA++ compliance and sub-50ms performance requirements.
 """
-import json
-import re
-import subprocess
-
-
 import argparse
 import asyncio
+import json
 import logging
+import re
+import subprocess
 import sys
 import time
 from pathlib import Path

@@ -9,12 +9,10 @@ This module provides complete API implementation including:
 - API documentation complete
 - RESTful API standards compliance
 """
-import random
-
-
 import asyncio
 import json
 import logging
+import random
 import time
 from dataclasses import dataclass
 from datetime import datetime, timezone

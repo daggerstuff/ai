@@ -4,8 +4,6 @@ Dataset deduplication script that identifies and removes duplicate entries
 within and across datasets.
 """
 import argparse
-
-
 import hashlib
 import json
 from collections import defaultdict

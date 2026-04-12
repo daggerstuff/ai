@@ -4,10 +4,8 @@ Custom error types for TechDeck Flask service.
 This module defines comprehensive error types for different failure scenarios
 with HIPAA++ compliant error handling and audit logging capabilities.
 """
-import uuid
-
-
 import logging
+import uuid
 from datetime import datetime, timezone
 from typing import Any
 

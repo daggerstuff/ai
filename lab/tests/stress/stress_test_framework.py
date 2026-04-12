@@ -3,9 +3,6 @@
 Stress Testing Framework
 Tests system performance under heavy load with large datasets.
 """
-import psutil
-
-
 import logging
 import random
 import statistics
@@ -13,6 +10,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
+import psutil
 import psycopg2
 
 logging.basicConfig(level=logging.INFO)

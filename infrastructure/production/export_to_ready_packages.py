@@ -28,10 +28,8 @@ Usage:
     exporter = DatasetExporter(config)
     result = exporter.export()
 """
-import gzip
-
-
 import fcntl
+import gzip
 import hashlib
 import json
 import logging

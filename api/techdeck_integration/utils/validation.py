@@ -5,8 +5,6 @@ This module provides comprehensive input validation, data sanitization,
 and security measures for HIPAA++ compliance.
 """
 import json
-
-
 import mimetypes
 import os
 import re

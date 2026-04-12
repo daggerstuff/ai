@@ -3,18 +3,17 @@
 FINAL PRODUCTION VALIDATION
 Complete system validation and deployment readiness check
 """
-from cryptography.fernet import Fernet
-from prometheus_client import Counter, Gauge
-import bcrypt
-import redis
-
-
 import json
 import logging
 import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+
+import bcrypt
+import redis
+from cryptography.fernet import Fernet
+from prometheus_client import Counter, Gauge
 
 # Setup logging
 logging.basicConfig(

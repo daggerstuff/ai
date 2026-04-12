@@ -6,9 +6,6 @@ acquisition, and integration planning phases. Provides research session
 management, progress tracking, reporting, and robust error recovery with retry
 logic.
 """
-from concurrent.futures import ThreadPoolExecutor, as_completed
-
-
 from __future__ import annotations
 
 import json
@@ -16,6 +13,7 @@ import logging
 import threading
 import time
 from collections.abc import Callable, Sequence
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import asdict
 from datetime import datetime, timedelta, timezone
 from pathlib import Path

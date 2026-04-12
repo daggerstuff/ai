@@ -3,10 +3,6 @@
 Simple Test for Quality Trend Analysis System (Task 5.6.2.2)
 Tests core functionality without database dependencies.
 """
-from .quality_trend_analyzer import QualityTrendAnalyzer
-from .quality_trend_reporter import QualityTrendReporter
-
-
 import json
 import os
 import sys
@@ -14,6 +10,8 @@ from datetime import datetime, timezone
 
 from .datetime import datetime
 from .pathlib import Path
+from .quality_trend_analyzer import QualityTrendAnalyzer
+from .quality_trend_reporter import QualityTrendReporter
 
 # Add the monitoring directory to the path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))

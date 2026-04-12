@@ -3,11 +3,8 @@
 Distributed Quality Validation System for Pixelated Empathy AI
 Parallelizes quality validation across multiple workers for high-performance processing
 """
-from pathlib import Path
 import argparse
 import glob
-
-
 import hashlib
 import json
 import logging
@@ -19,6 +16,7 @@ from concurrent.futures import ProcessPoolExecutor
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from enum import Enum
+from pathlib import Path
 from typing import Any
 
 # Redis for distributed task queue

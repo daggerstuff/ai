@@ -5,10 +5,6 @@ Test Suite for Quality Comparison System (Task 5.6.2.5)
 Comprehensive testing of quality comparison, benchmarking, and reporting
 functionality with statistical validation and performance testing.
 """
-from .quality_comparator import QualityComparator
-from .quality_comparison_reporter import QualityComparisonReporter
-
-
 import json
 import os
 import shutil
@@ -21,6 +17,8 @@ import numpy as np
 
 from .datetime import datetime, timedelta
 from .pathlib import Path
+from .quality_comparator import QualityComparator
+from .quality_comparison_reporter import QualityComparisonReporter
 
 # Add the monitoring directory to the path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))

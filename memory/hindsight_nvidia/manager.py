@@ -5,9 +5,6 @@ This replaces the old cloud/local split for Hindsight memory. NVIDIA-generated
 responses still use the configured model endpoint, but durable memory is stored
 only in the repository's local shared memory backend.
 """
-from ai.memory.therapeutic_processor import TherapeuticProcessor
-
-
 from __future__ import annotations
 
 import logging
@@ -18,6 +15,7 @@ from openai import AsyncOpenAI, OpenAI
 from pydantic import BaseModel, Field
 
 from ai.memory.local_hindsight_manager import LocalHindsightMemoryManager
+from ai.memory.therapeutic_processor import TherapeuticProcessor
 
 from .interaction_service import NvidiaTherapeuticInteractionService
 from .memory_ingestion_config import TherapeuticMemoryConfig

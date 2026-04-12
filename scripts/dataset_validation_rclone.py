@@ -4,8 +4,6 @@ Simplified dataset validation using rclone.
 Works with Hetzner Object Storage and handles directories properly.
 """
 import argparse
-
-
 import json
 import sys
 from datetime import datetime, timezone

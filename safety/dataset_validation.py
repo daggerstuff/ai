@@ -4,11 +4,9 @@ Dataset Validation Module for Bias and Stereotype Detection
 Validates therapeutic training data before writing to disk to prevent
 ingestion of biased or inappropriate content into the model training pipeline.
 """
-import re
-
-
 import json
 import logging
+import re
 from dataclasses import dataclass
 from typing import Any
 

@@ -1,6 +1,3 @@
-from slack_sdk.webhook import WebhookClient
-
-
 import argparse
 import importlib.util
 import json
@@ -12,6 +9,7 @@ from datetime import datetime, timezone
 
 import requests
 from dotenv import load_dotenv
+from slack_sdk.webhook import WebhookClient
 from tqdm import tqdm
 
 # Set up environment

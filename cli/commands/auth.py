@@ -5,8 +5,6 @@ This module provides commands for user authentication, including login, logout,
 token management, and user profile operations.
 """
 import datetime
-
-
 from datetime import timezone
 
 import click

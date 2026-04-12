@@ -6,8 +6,6 @@ generation, from sourcing to deployment. Run from project root:
     uv run python -m ai.main
 """
 import json
-
-
 import logging
 
 import ai.training.ready_packages.scripts.upload_to_s3 as s3_uploader

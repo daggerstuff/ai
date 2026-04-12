@@ -4,10 +4,8 @@ Shared utilities for accessing datasets via rclone.
 Uses rclone instead of boto3 to work with Hetzner Object Storage.
 """
 import hashlib
-import os
-
-
 import json
+import os
 import subprocess
 import tempfile
 from pathlib import Path

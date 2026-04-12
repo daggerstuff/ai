@@ -3,10 +3,6 @@ FastAPI dependencies for authentication and authorization.
 
 This module provides dependency injection for authentication and authorization.
 """
-from ai.sourcing.journal.api.config import get_settings
-
-
-
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
@@ -15,6 +11,7 @@ from ai.sourcing.journal.api.auth.rbac import (
     require_permission,
     require_role,
 )
+from ai.sourcing.journal.api.config import get_settings
 from ai.sourcing.journal.api.services.command_handler_service import (
     CommandHandlerService,
 )

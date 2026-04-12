@@ -13,7 +13,12 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
-from ai.api.techdeck_integration.error_handling.custom_errors import IntegrationError, PipelineExecutionError, ResourceNotFoundError, ValidationError
+from ai.api.techdeck_integration.error_handling.custom_errors import (
+    IntegrationError,
+    PipelineExecutionError,
+    ResourceNotFoundError,
+    ValidationError,
+)
 from ai.api.techdeck_integration.utils.logger import get_request_logger
 from ai.api.techdeck_integration.utils.validation import validate_pipeline_input
 

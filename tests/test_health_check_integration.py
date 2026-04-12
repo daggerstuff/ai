@@ -2,12 +2,6 @@
 Integration tests for health check and graceful shutdown functionality.
 Tests that health checks work correctly and shutdown is graceful.
 """
-from ai.monitoring.health_check import health_checked
-from ai.monitoring.health_check import health_manager
-from ai.monitoring.health_check import integrate_health_checks_with_fastapi
-import time
-
-
 import json
 import logging
 import threading
@@ -18,7 +12,18 @@ from datetime import datetime, timezone
 from ai.inference.inference_api import app
 
 # Import our modules
-from ai.monitoring.health_check import ComponentHealth, ComponentStatus, HealthCheckManager, HealthCheckMiddleware, HealthCheckResult, HealthStatus, ShutdownResult
+from ai.monitoring.health_check import (
+    ComponentHealth,
+    ComponentStatus,
+    HealthCheckManager,
+    HealthCheckMiddleware,
+    HealthCheckResult,
+    HealthStatus,
+    ShutdownResult,
+    health_checked,
+    health_manager,
+    integrate_health_checks_with_fastapi,
+)
 
 logger = logging.getLogger(__name__)
 
