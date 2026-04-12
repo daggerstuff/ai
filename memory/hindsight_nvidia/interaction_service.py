@@ -1,8 +1,8 @@
+from __future__ import annotations
+
 """
 Therapeutic interaction service for NVIDIA-backed agents using local memory.
 """
-
-from __future__ import annotations
 
 import logging
 

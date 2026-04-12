@@ -1,6 +1,6 @@
+from __future__ import annotations
 """Mapping helpers for reflection memory records."""
 
-from __future__ import annotations
 
 from typing import Any
 

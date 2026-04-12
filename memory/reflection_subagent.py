@@ -1,11 +1,11 @@
+from __future__ import annotations
+
 """
 Reflection subagent for crisis-aware memory consolidation.
 
 This subagent orchestrates reflection flow and delegates LLM-facing analysis
 to `reflection_analysis`, keeping the shared service shell narrow.
 """
-
-from __future__ import annotations
 
 import asyncio
 import logging

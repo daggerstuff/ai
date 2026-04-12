@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Local-only reflection memory models and client wrapper.
 
@@ -5,7 +6,6 @@ This replaces the old unified/dual/cloud reflection memory layer with a
 single async-friendly adapter over the shared local memory service.
 """
 
-from __future__ import annotations
 
 import asyncio
 from typing import Any
