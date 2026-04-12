@@ -33,7 +33,7 @@ router = APIRouter(prefix="/sessions/{session_id}/progress", tags=["progress"])
 @router.get("", response_model=ProgressResponse)
 async def get_progress(
     session_id: str,
-    current_user: dict | None = Depends(get_current_user),
+    _current_user: dict | None = Depends(get_current_user),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> ProgressResponse:
     """
@@ -66,7 +66,7 @@ async def get_progress(
 @router.get("/metrics", response_model=ProgressMetricsResponse)
 async def get_progress_metrics(
     session_id: str,
-    current_user: dict | None = Depends(get_current_user),
+    _current_user: dict | None = Depends(get_current_user),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> ProgressMetricsResponse:
     """
@@ -186,7 +186,7 @@ async def stream_progress_events(
     session_id: str,
     request: Request,
     token: str | None = Query(None, description="JWT token for authentication"),
-    current_user: dict | None = Depends(get_optional_user),
+    _current_user: dict | None = Depends(get_optional_user),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> StreamingResponse:
     """

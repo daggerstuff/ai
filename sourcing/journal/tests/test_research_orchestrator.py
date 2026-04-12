@@ -2,10 +2,8 @@
 Unit tests for the Research Orchestrator.
 """
 
-from datetime import datetime, timedelta, timezone
-
-
 from collections.abc import Callable
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
@@ -51,7 +49,7 @@ class FakeDiscoveryService:
         self.sources = sources
         self.invocations = 0
 
-    def discover_sources(self, session):
+    def discover_sources(self, _session):
         self.invocations += 1
         return list(self.sources)
 
@@ -119,8 +117,8 @@ class FakeAcquisitionManager:
     def download_dataset(
         self,
         source: DatasetSource,
-        access_request: AccessRequest | None = None,
-        progress_callback: Callable[[DownloadProgress], None] | None = None,
+        _access_request: AccessRequest | None = None,
+        _progress_callback: Callable[[DownloadProgress], None] | None = None,
     ):
         self.downloads += 1
         return AcquiredDataset(
@@ -144,7 +142,7 @@ class FakeIntegrationEngine:
         self.requests = 0
 
     def create_integration_plan(
-        self, dataset: AcquiredDataset, target_format: str = "chatml"
+        self, dataset: AcquiredDataset, _target_format: str = "chatml"
     ) -> IntegrationPlan:
         self.requests += 1
         return IntegrationPlan(
@@ -159,7 +157,7 @@ class FakeIntegrationEngine:
             integration_priority=1,
         )
 
-    def validate_integration_feasibility(self, plan: IntegrationPlan) -> bool:
+    def validate_integration_feasibility(self, _plan: IntegrationPlan) -> bool:
         return self.feasible
 
 
@@ -375,9 +373,9 @@ class TestResearchOrchestrator:
         assert elapsed >= 0.3
         assert len(state.sources) == len(sample_sources)
 
-    def test_fallback_strategy_for_discovery_failure(self, sample_sources):
+    def test_fallback_strategy_for_discovery_failure(self, _sample_sources):
         class FailingDiscoveryService:
-            def discover_sources(self, session):
+            def discover_sources(self, _session):
                 raise RuntimeError("Discovery service unavailable")
 
         config = OrchestratorConfig(
@@ -412,9 +410,9 @@ class TestResearchOrchestrator:
         ]
         assert len(fallback_activities) > 0
 
-    def test_fallback_disabled_raises_on_discovery_failure(self, sample_sources):
+    def test_fallback_disabled_raises_on_discovery_failure(self, _sample_sources):
         class FailingDiscoveryService:
-            def discover_sources(self, session):
+            def discover_sources(self, _session):
                 raise RuntimeError("Discovery service unavailable")
 
         config = OrchestratorConfig(

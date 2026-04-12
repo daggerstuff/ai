@@ -26,8 +26,6 @@ Usage:
         )
 """
 
-from datetime import datetime, timezone
-
 import json
 import logging
 import os
@@ -35,6 +33,7 @@ import time
 import traceback
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import (
     Any,
@@ -696,7 +695,7 @@ class RayExecutor:
         except Exception as e:
             self.logger.warning(f"Failed to create checkpoint: {e}")
 
-    def _restore_from_checkpoint(self, task_name: str, items_list: list[T]) -> int:
+    def _restore_from_checkpoint(self, task_name: str, _items_list: list[T]) -> int:
         """Restore from checkpoint and return start index."""
         if not self.checkpoint_manager:
             return 0
@@ -736,7 +735,7 @@ class RayExecutor:
 
         return 0
 
-    def _should_create_checkpoint(self, task_name: str) -> bool:
+    def _should_create_checkpoint(self, _task_name: str) -> bool:
         """Determine if a checkpoint should be created."""
         total_processed = self.stats.completed_items + self.stats.failed_items
         return total_processed % self.config.checkpoint_interval == 0

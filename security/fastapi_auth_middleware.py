@@ -156,7 +156,7 @@ class AuthenticationDependencies:
         """Dependency to require specific permission level"""
 
         async def permission_checker(
-            request: Request,
+            _request: Request,
             user: User | None = Depends(self.get_current_user),
             api_key: APIKey | None = Depends(self.get_api_key),
         ):
@@ -255,7 +255,7 @@ def create_auth_routes(app: FastAPI, auth_system: AuthenticationSystem):
         name: str,
         permissions: list[str],
         expires_in_days: int | None = None,
-        user: User = Depends(auth_deps.require_role(UserRole.ADMIN)),
+        _user: User = Depends(auth_deps.require_role(UserRole.ADMIN)),
     ):
         """Create new API key (admin only)"""
         try:
@@ -282,7 +282,7 @@ def create_auth_routes(app: FastAPI, auth_system: AuthenticationSystem):
 
     @app.get("/auth/api-keys")
     async def list_api_keys(
-        user: User = Depends(auth_deps.require_role(UserRole.ADMIN)),
+        _user: User = Depends(auth_deps.require_role(UserRole.ADMIN)),
     ):
         """List all API keys (admin only)"""
         return [
@@ -304,7 +304,7 @@ def create_auth_routes(app: FastAPI, auth_system: AuthenticationSystem):
 
     @app.delete("/auth/api-keys/{key_id}")
     async def revoke_api_key(
-        key_id: str, user: User = Depends(auth_deps.require_role(UserRole.ADMIN))
+        key_id: str, _user: User = Depends(auth_deps.require_role(UserRole.ADMIN))
     ):
         """Revoke API key (admin only)"""
         if key_id not in auth_system.api_keys:
@@ -332,7 +332,7 @@ def create_protected_routes(app: FastAPI, auth_system: AuthenticationSystem):
     @app.post("/protected/write")
     async def protected_write(
         data: dict,
-        auth_info=Depends(auth_deps.require_permission(PermissionLevel.WRITE)),
+        _auth_info=Depends(auth_deps.require_permission(PermissionLevel.WRITE)),
     ):
         """Protected endpoint requiring WRITE permission"""
         return {"message": "Data written successfully", "data": data}
@@ -340,14 +340,14 @@ def create_protected_routes(app: FastAPI, auth_system: AuthenticationSystem):
     @app.delete("/protected/delete")
     async def protected_delete(
         item_id: str,
-        auth_info=Depends(auth_deps.require_permission(PermissionLevel.DELETE)),
+        _auth_info=Depends(auth_deps.require_permission(PermissionLevel.DELETE)),
     ):
         """Protected endpoint requiring DELETE permission"""
         return {"message": f"Item {item_id} deleted successfully"}
 
     @app.get("/admin/users")
     async def admin_list_users(
-        user: User = Depends(auth_deps.require_role(UserRole.ADMIN)),
+        _user: User = Depends(auth_deps.require_role(UserRole.ADMIN)),
     ):
         """Admin-only endpoint to list all users"""
         return [

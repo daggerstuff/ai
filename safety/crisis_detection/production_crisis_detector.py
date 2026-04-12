@@ -33,11 +33,10 @@ Usage:
         print(f"Crisis detected: {result.category} (severity: {result.severity})")
 """
 
-from datetime import datetime, timezone
-
 import logging
 import re
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
@@ -456,7 +455,7 @@ class CrisisDetector:
 
         return context
 
-    def _analyze_text(self, text: str, original_input: Any) -> dict[str, Any]:
+    def _analyze_text(self, text: str, _original_input: Any) -> dict[str, Any]:
         """
         Analyze text for crisis signals.
 
@@ -659,7 +658,7 @@ class CrisisDetector:
     def _determine_severity(
         self,
         score: float,
-        category: CrisisCategory
+        _category: CrisisCategory
     ) -> CrisisSeverity:
         """
         Determine severity level based on score and category.

@@ -5,10 +5,8 @@ This module implements REST API endpoints for analytics operations,
 including usage metrics, performance tracking, and data insights.
 """
 
-from datetime import datetime, timedelta, timezone
-
-
 import logging
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from flask import Blueprint, g, jsonify, request
@@ -607,7 +605,7 @@ def get_export_status(task_id: str):
 
 # Helper Functions
 def _get_usage_metrics(
-    redis_client: RedisClient,
+    _redis_client: RedisClient,
     start_date: datetime,
     end_date: datetime,
     metric_type: str,
@@ -678,7 +676,7 @@ def _get_usage_metrics(
 
 
 def _get_performance_metrics(
-    redis_client: RedisClient,
+    _redis_client: RedisClient,
     start_date: datetime,
     end_date: datetime,
     metric_type: str,
@@ -749,7 +747,7 @@ def _get_performance_metrics(
 
 
 def _get_pipeline_metrics(
-    redis_client: RedisClient,
+    _redis_client: RedisClient,
     pipeline_id: str | None,
     status: str | None,
     start_date: datetime,
@@ -833,11 +831,11 @@ def _get_pipeline_metrics(
 
 
 def _get_dataset_metrics(
-    redis_client: RedisClient,
+    _redis_client: RedisClient,
     dataset_id: str | None,
     metric_type: str,
     start_date: datetime,
-    end_date: datetime,
+    _end_date: datetime,
 ) -> dict[str, Any]:
     """Retrieve dataset usage and quality metrics."""
     try:
@@ -949,7 +947,7 @@ def _get_dataset_metrics(
 
 
 def _get_real_time_metrics(
-    redis_client: RedisClient, metric_types: list[str]
+    _redis_client: RedisClient, metric_types: list[str]
 ) -> dict[str, Any]:
     """Retrieve real-time system metrics."""
     try:
@@ -1099,7 +1097,7 @@ def _get_export_task_status(
 
 
 def _get_dataset_context(
-    redis_client: RedisClient, dataset_id: str
+    _redis_client: RedisClient, dataset_id: str
 ) -> dict[str, Any] | None:
     """Retrieve dataset context information."""
     try:

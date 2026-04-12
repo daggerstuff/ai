@@ -3,9 +3,6 @@ Observability system for Pixelated Empathy AI project.
 Implements comprehensive logging, monitoring, and metrics collection.
 """
 
-from datetime import datetime, timezone
-
-
 import asyncio
 import hashlib
 import json
@@ -13,6 +10,7 @@ import logging
 import re
 import time
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
 from functools import wraps
 from typing import Any
@@ -370,8 +368,8 @@ class ObservabilityManager:
                    request_id: str,
                    user_id: str | None = None,
                    model_name: str | None = None,
-                   input_data: dict | str | None = None,
-                   output_data: dict | str | None = None,
+                   _input_data: dict | str | None = None,
+                   _output_data: dict | str | None = None,
                    processing_time_ms: float | None = None,
                    status: str = "success",
                    error_message: str | None = None,

@@ -4,12 +4,11 @@ Validation & Quality Assurance System - Task 5.7.2 Complete Implementation
 Comprehensive system implementing all remaining subtasks for Task 5.7.2.
 """
 
-from datetime import datetime, timezone
-
 import json
 import logging
 import time
 from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
 from typing import Any
 
 import numpy as np
@@ -260,7 +259,7 @@ class ValidationQualityAssuranceSystem:
         return list(set(improvements))  # Remove duplicates
 
     def _check_monitoring_alerts(
-        self, clinical_result, workflow_result, automated_checks: dict[str, Any]
+        self, clinical_result, _workflow_result, automated_checks: dict[str, Any]
     ) -> list[str]:
         """Task 5.7.2.9: Generate monitoring alerts based on thresholds"""
 

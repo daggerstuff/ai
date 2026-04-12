@@ -4,12 +4,11 @@ Quality Performance Optimization Analytics System
 Analyzes quality performance and provides optimization recommendations
 """
 
-from datetime import datetime, timezone
-
 import json
 import sqlite3
 import warnings
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -260,7 +259,7 @@ class QualityPerformanceOptimizer:
             return ["Error analyzing bottlenecks"]
 
     def _generate_optimization_recommendations(self, metric_name: str, current_value: float,
-                                             target_value: float, bottlenecks: list[str]) -> list[str]:
+                                             target_value: float, _bottlenecks: list[str]) -> list[str]:
         """Generate optimization recommendations for specific metric"""
         recommendations = []
 

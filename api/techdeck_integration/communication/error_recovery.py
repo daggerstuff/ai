@@ -5,13 +5,11 @@ This module provides sophisticated error recovery, retry mechanisms, and gracefu
 degradation for the six-stage pipeline with HIPAA++ compliant error handling.
 """
 
-from datetime import datetime, timedelta, timezone
-
-
 import asyncio
 import json
 import time
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any
 
@@ -394,9 +392,9 @@ class ErrorRecoveryManager:
             ]
         )
 
-    async def _execute_retry_strategy(self, context: "PipelineContext",
+    async def _execute_retry_strategy(self, _context: "PipelineContext",
                                     stage_name: str, error: Exception,
-                                    attempt_number: int, config: RecoveryConfig) -> dict[str, Any]:
+                                    attempt_number: int, _config: RecoveryConfig) -> dict[str, Any]:
         """Execute retry recovery strategy."""
         self.logger.info(
             f"Executing retry strategy for stage {stage_name}, attempt {attempt_number}"
@@ -428,9 +426,9 @@ class ErrorRecoveryManager:
         # Simulate retry failure
         raise PipelineExecutionError(f"Retry attempt {attempt_number} failed")
 
-    async def _execute_fallback_strategy(self, context: "PipelineContext",
+    async def _execute_fallback_strategy(self, _context: "PipelineContext",
                                        stage_name: str, error: Exception,
-                                       attempt_number: int, config: RecoveryConfig) -> dict[str, Any]:
+                                       attempt_number: int, _config: RecoveryConfig) -> dict[str, Any]:
         """Execute fallback recovery strategy."""
         self.logger.info(
             f"Executing fallback strategy for stage {stage_name}, attempt {attempt_number}"
@@ -458,9 +456,9 @@ class ErrorRecoveryManager:
         # Simulate fallback failure
         raise PipelineExecutionError("Fallback strategy failed")
 
-    async def _execute_skip_strategy(self, context: "PipelineContext",
-                                   stage_name: str, error: Exception,
-                                   attempt_number: int, config: RecoveryConfig) -> dict[str, Any]:
+    async def _execute_skip_strategy(self, _context: "PipelineContext",
+                                   stage_name: str, _error: Exception,
+                                   attempt_number: int, _config: RecoveryConfig) -> dict[str, Any]:
         """Execute skip recovery strategy."""
         self.logger.info(
             f"Executing skip strategy for stage {stage_name}, attempt {attempt_number}"
@@ -478,9 +476,9 @@ class ErrorRecoveryManager:
             }
         raise PipelineExecutionError(f"Stage {stage_name} cannot be skipped")
 
-    async def _execute_rollback_strategy(self, context: "PipelineContext",
-                                       stage_name: str, error: Exception,
-                                       attempt_number: int, config: RecoveryConfig) -> dict[str, Any]:
+    async def _execute_rollback_strategy(self, _context: "PipelineContext",
+                                       stage_name: str, _error: Exception,
+                                       attempt_number: int, _config: RecoveryConfig) -> dict[str, Any]:
         """Execute rollback recovery strategy."""
         self.logger.info(
             f"Executing rollback strategy for stage {stage_name}, attempt {attempt_number}"
@@ -503,7 +501,7 @@ class ErrorRecoveryManager:
 
     async def _execute_escalation_strategy(self, context: "PipelineContext",
                                          stage_name: str, error: Exception,
-                                         attempt_number: int, config: RecoveryConfig) -> dict[str, Any]:
+                                         attempt_number: int, _config: RecoveryConfig) -> dict[str, Any]:
         """Execute escalation recovery strategy."""
         self.logger.warning(
             f"Executing escalation strategy for stage {stage_name}, attempt {attempt_number}"
@@ -530,7 +528,7 @@ class ErrorRecoveryManager:
 
     def _get_next_recovery_strategy(self, current_strategy: RecoveryStrategy,
                                   attempt_number: int, config: RecoveryConfig,
-                                  last_error: Exception) -> RecoveryStrategy:
+                                  _last_error: Exception) -> RecoveryStrategy:
         """Determine the next recovery strategy to try."""
         # If we've hit max retries, escalate
         if attempt_number >= config.max_retries:

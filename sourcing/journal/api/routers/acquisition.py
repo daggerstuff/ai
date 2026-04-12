@@ -30,7 +30,7 @@ router = APIRouter(prefix="/sessions/{session_id}/acquisition", tags=["acquisiti
 async def initiate_acquisition(
     session_id: str,
     request: AcquisitionInitiateRequest,
-    current_user: dict = Depends(require_permission_dependency("acquisition:read")),
+    _current_user: dict = Depends(require_permission_dependency("acquisition:read")),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> AcquisitionResponse:
     """
@@ -85,7 +85,7 @@ async def initiate_acquisition(
 async def list_acquisitions(
     session_id: str,
     pagination: PaginationParams = Depends(),
-    current_user: dict | None = Depends(get_current_user),
+    _current_user: dict | None = Depends(get_current_user),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> AcquisitionListResponse:
     """
@@ -138,7 +138,7 @@ async def list_acquisitions(
 async def get_acquisition(
     session_id: str,
     acquisition_id: str,
-    current_user: dict | None = Depends(get_current_user),
+    _current_user: dict | None = Depends(get_current_user),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> AcquisitionResponse:
     """
@@ -175,7 +175,7 @@ async def update_acquisition(
     session_id: str,
     acquisition_id: str,
     request: AcquisitionUpdateRequest,
-    current_user: dict = Depends(require_permission_dependency("acquisition:approve")),
+    _current_user: dict = Depends(require_permission_dependency("acquisition:approve")),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> AcquisitionResponse:
     """

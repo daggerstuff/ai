@@ -4,14 +4,13 @@ Conversation Length and Complexity Analysis System
 Analyzes conversation length patterns, complexity metrics, and provides insights
 """
 
-from datetime import datetime, timezone
-
 import json
 import re
 import sqlite3
 import warnings
 from collections import Counter
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -616,7 +615,7 @@ class ConversationComplexityAnalyzer:
 
     def _identify_complexity_patterns(
         self,
-        conversation_metrics: list[ConversationMetrics],
+        _conversation_metrics: list[ConversationMetrics],
         average_metrics: dict[str, float],
     ) -> list[str]:
         """Identify patterns in complexity data"""
@@ -673,7 +672,7 @@ class ConversationComplexityAnalyzer:
         self,
         average_metrics: dict[str, float],
         length_distribution: dict[str, int],
-        complexity_distribution: dict[str, int],
+        _complexity_distribution: dict[str, int],
     ) -> list[str]:
         """Generate recommendations based on complexity analysis"""
         recommendations = []

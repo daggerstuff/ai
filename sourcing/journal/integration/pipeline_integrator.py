@@ -12,8 +12,6 @@ This module provides:
 - Quality checks for integrated data
 """
 
-from datetime import datetime, timezone
-
 import hashlib
 import json
 import logging
@@ -21,6 +19,7 @@ import os
 import re
 import uuid
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from typing import Any
 
 import pandas as pd
@@ -936,7 +935,7 @@ class DatasetMerger:
         return similar_indices
 
     def _resolve_conflicts(
-        self, records: list[dict[str, Any]], target_format: str
+        self, records: list[dict[str, Any]], _target_format: str
     ) -> int:
         """Resolve conflicts in merged dataset (e.g., duplicate IDs)."""
         conflicts_resolved = 0
@@ -954,7 +953,7 @@ class DatasetMerger:
         return conflicts_resolved
 
     def _save_merged_dataset(
-        self, records: list[dict[str, Any]], output_path: str, target_format: str
+        self, records: list[dict[str, Any]], output_path: str, _target_format: str
     ) -> None:
         """Save merged dataset to file."""
         with open(output_path, "w", encoding="utf-8") as f:

@@ -7,12 +7,11 @@ This system transforms client profiles into realistic, challenging therapeutic i
 for comprehensive therapist training and evaluation.
 """
 
-from datetime import datetime, timezone
-
 import logging
 import random
 import re
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from typing import Any
 
 from pixelated_empathy_core import (
@@ -192,7 +191,7 @@ class TherapeuticSimulationEngine:
         return training_session
 
     async def process_therapist_response(
-        self, session_id: str, therapist_input: str, intervention_type: str = "unknown"
+        self, session_id: str, therapist_input: str, _intervention_type: str = "unknown"
     ) -> ClientSimulationResponse:
         """Process therapist input and generate realistic client response"""
 
@@ -412,7 +411,7 @@ class TherapeuticSimulationEngine:
     def _assess_intervention_appropriateness(
         self,
         therapist_input: str,
-        client_profile: DifficultClientProfile,
+        _client_profile: DifficultClientProfile,
         state: SimulationState,
     ) -> float:
         """Assess how appropriate the intervention is for current situation"""
@@ -455,7 +454,7 @@ class TherapeuticSimulationEngine:
         self,
         therapist_input: str,
         client_profile: DifficultClientProfile,
-        state: SimulationState,
+        _state: SimulationState,
     ) -> dict:
         """Predict impact of therapist response on client state"""
 
@@ -594,7 +593,7 @@ class TherapeuticSimulationEngine:
         return type("ClientResponse", (), {"content": ai_response})
 
     def _determine_expert_routing(
-        self, client_profile: DifficultClientProfile, state: SimulationState
+        self, _client_profile: DifficultClientProfile, state: SimulationState
     ) -> str:
         """Determine which AI expert to use for response generation"""
 
@@ -610,7 +609,7 @@ class TherapeuticSimulationEngine:
         self,
         therapist_input: str,
         context: dict,
-        expert_preference: str,
+        _expert_preference: str,
         client_profile: DifficultClientProfile,
     ) -> str:
         """Call the trained therapeutic AI model for response generation"""
@@ -635,7 +634,7 @@ class TherapeuticSimulationEngine:
 
     def _generate_rule_based_response(
         self,
-        therapist_input: str,
+        _therapist_input: str,
         client_profile: DifficultClientProfile,
         state: SimulationState,
         therapist_analysis: dict,
@@ -688,8 +687,8 @@ class TherapeuticSimulationEngine:
     def _generate_supervisor_feedback(
         self,
         therapist_analysis: dict,
-        client_response: Any,
-        client_profile: DifficultClientProfile,
+        _client_response: Any,
+        _client_profile: DifficultClientProfile,
         state: SimulationState,
     ) -> dict:
         """Generate real-time supervisor feedback"""
@@ -733,7 +732,7 @@ class TherapeuticSimulationEngine:
         return feedback
 
     def _check_phase_transitions(
-        self, state: SimulationState, client_profile: DifficultClientProfile
+        self, state: SimulationState, _client_profile: DifficultClientProfile
     ):
         """Check if session should transition to next phase"""
 

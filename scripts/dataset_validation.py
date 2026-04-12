@@ -4,10 +4,9 @@ Dataset validation script that computes checksums, validates schemas,
 and updates the dataset registry with validation results.
 """
 
-from datetime import datetime, timezone
-
 import hashlib
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -68,7 +67,7 @@ class DatasetValidator:
             print(f"Error calculating checksum for {file_path}: {e}")
             return None
 
-    def validate_schema(self, dataset_path: str, dataset_type: str) -> dict[str, Any]:
+    def validate_schema(self, _dataset_path: str, _dataset_type: str) -> dict[str, Any]:
         """Validate dataset schema based on type."""
         # Placeholder for schema validation logic
         # In production, this would validate against known schemas
@@ -80,7 +79,7 @@ class DatasetValidator:
 
         return validation_result
 
-    def check_integrity(self, dataset_path: str, size_mb: float) -> dict[str, Any]:
+    def check_integrity(self, _dataset_path: str, _size_mb: float) -> dict[str, Any]:
         """Check dataset integrity."""
         integrity_result = {"integrity_check": True, "errors": [], "warnings": []}
 

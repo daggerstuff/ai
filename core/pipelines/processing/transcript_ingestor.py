@@ -23,8 +23,6 @@ Usage:
     batch_result = ingestor.ingest_batch(["transcript1.jsonl", "transcript2.srt"])
 """
 
-from datetime import datetime, timezone
-
 from __future__ import annotations
 
 import hashlib
@@ -32,6 +30,7 @@ import json
 import logging
 import re
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any

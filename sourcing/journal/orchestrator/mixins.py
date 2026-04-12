@@ -2,15 +2,13 @@
 Utility mixins used by the Research Orchestrator.
 """
 
-from datetime import datetime, timedelta, timezone
-
-
 from __future__ import annotations
 
 import logging
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import asdict
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from ai.sourcing.journal.models.dataset_models import (
@@ -202,7 +200,7 @@ class ProgressReportingMixin(RetryMixin):
         self,
         session_id: str,
         history: list[ProgressSnapshot],
-        end_date: datetime,
+        _end_date: datetime,
     ) -> tuple[ResearchProgress, ResearchProgress]:
         if history:
             return history[0].progress, history[-1].progress

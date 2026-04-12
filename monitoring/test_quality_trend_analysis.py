@@ -4,11 +4,10 @@ Simple Test for Quality Trend Analysis System (Task 5.6.2.2)
 Tests core functionality without database dependencies.
 """
 
-from datetime import datetime, timezone
-
 import json
 import os
 import sys
+from datetime import datetime, timezone
 
 from .datetime import datetime
 from .pathlib import Path

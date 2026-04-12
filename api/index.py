@@ -92,7 +92,7 @@ async def _run_reflection(request) -> JSONResponse:
     })
 
 @asynccontextmanager
-async def lifespan(app):
+async def lifespan(_app):
     """Manage application lifespan - startup and shutdown."""
     global _reflection_bootstrap
 
@@ -109,7 +109,7 @@ async def lifespan(app):
         logger.info("Reflection subagent stopped")
 
 
-async def root(request):
+async def root(_request):
     return JSONResponse({"status": "ok", "service": "pixelated-empathy-ai"})
 
 

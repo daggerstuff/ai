@@ -308,7 +308,7 @@ class LettaPermissionHandler:
         self,
         tool_name: str,
         tool_params: dict[str, Any],
-        user_id: str,
+        _user_id: str,
         context: dict[str, Any] | None = None,
     ) -> PermissionResult:
         """

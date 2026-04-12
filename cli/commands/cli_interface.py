@@ -63,7 +63,7 @@ def cli_interface_group(ctx):
 @click.option("--dry-run", is_flag=True, help="Preview without executing")
 @click.pass_context
 def run(
-    ctx,
+    _ctx,
     input: str,
     pipeline: str,
     output: str | None,
@@ -140,7 +140,7 @@ def run(
 @click.option("--limit", default=10, help="Maximum number of results")
 @click.pass_context
 def status(
-    ctx, pipeline_id: str | None, list_all: bool, status: str | None, limit: int
+    _ctx, pipeline_id: str | None, list_all: bool, status: str | None, limit: int
 ):
     """Check pipeline status and results."""
     try:
@@ -182,7 +182,7 @@ def status(
 )
 @click.option("--validate-only", is_flag=True, help="Only validate, don't process")
 @click.pass_context
-def process(ctx, input: str, output: str | None, format: str, validate_only: bool):
+def process(_ctx, input: str, output: str | None, format: str, validate_only: bool):
     """Process data files through various transformations."""
     try:
         config_obj = get_config()
@@ -251,7 +251,7 @@ def process(ctx, input: str, output: str | None, format: str, validate_only: boo
 @click.option("--limit", default=20, help="Maximum results")
 @click.option("--json-output", is_flag=True, help="Output in JSON format")
 @click.pass_context
-def search(ctx, query: str, type: str, limit: int, json_output: bool):
+def search(_ctx, query: str, type: str, limit: int, json_output: bool):
     """Search through models, datasets, and results."""
     try:
         config_obj = get_config()
@@ -282,7 +282,7 @@ def search(ctx, query: str, type: str, limit: int, json_output: bool):
 @click.option("--pipelines", is_flag=True, help="List available pipelines")
 @click.option("--detailed", is_flag=True, help="Show detailed information")
 @click.pass_context
-def list_resources(ctx, models: bool, datasets: bool, pipelines: bool, detailed: bool):
+def list_resources(_ctx, models: bool, datasets: bool, pipelines: bool, detailed: bool):
     """List available resources (models, datasets, pipelines)."""
     try:
         config_obj = get_config()
@@ -321,7 +321,7 @@ def list_resources(ctx, models: bool, datasets: bool, pipelines: bool, detailed:
 )
 @click.pass_context
 def batch(
-    ctx, input: str, output: str | None, parallel: int, continue_on_error: bool
+    _ctx, input: str, output: str | None, parallel: int, continue_on_error: bool
 ):
     """Execute batch operations from a configuration file."""
     try:
@@ -377,7 +377,7 @@ def batch(
     help="Activity type filter",
 )
 @click.pass_context
-def activity(ctx, days: int, type: str):
+def activity(_ctx, days: int, type: str):
     """Show recent activity and usage statistics."""
     try:
         config_obj = get_config()
@@ -421,13 +421,13 @@ def _preview_pipeline(input_path: Path, pipeline: str, config: dict[str, Any]) -
 
 
 def _execute_pipeline(
-    auth_manager: AuthManager,
+    _auth_manager: AuthManager,
     input_path: Path,
     pipeline: str,
-    config: dict[str, Any],
-    output_path: Path,
-    batch_size: int,
-    parallel: int,
+    _config: dict[str, Any],
+    _output_path: Path,
+    _batch_size: int,
+    _parallel: int,
 ) -> str | None:
     """Execute a pipeline and return pipeline ID."""
     logger.info(f"Executing {pipeline} pipeline for {input_path}")
@@ -438,7 +438,7 @@ def _execute_pipeline(
 
 
 def _get_pipeline_status(
-    auth_manager: AuthManager, pipeline_id: str
+    _auth_manager: AuthManager, pipeline_id: str
 ) -> dict[str, Any] | None:
     """Get pipeline status information."""
     # This would call the actual API endpoint
@@ -456,7 +456,7 @@ def _get_pipeline_status(
 
 
 def _list_pipelines(
-    auth_manager: AuthManager, status: str | None, limit: int
+    _auth_manager: AuthManager, _status: str | None, _limit: int
 ) -> list[dict[str, Any]]:
     """List pipelines with optional status filter."""
     # This would call the actual API endpoint
@@ -513,7 +513,7 @@ def _display_pipelines_list(pipelines: list[dict[str, Any]]) -> None:
 
 
 def _process_data_file(
-    auth_manager: AuthManager, input_path: Path, output_path: Path, format: str
+    _auth_manager: AuthManager, input_path: Path, output_path: Path, _format: str
 ) -> dict[str, Any]:
     """Process a data file and return results."""
     logger.info(f"Processing data file: {input_path} -> {output_path}")
@@ -529,7 +529,7 @@ def _process_data_file(
     }
 
 
-def _validate_data_file(input_path: Path) -> dict[str, Any]:
+def _validate_data_file(_input_path: Path) -> dict[str, Any]:
     """Validate data file integrity."""
     # This would perform actual validation
     return {
@@ -556,7 +556,7 @@ def _display_validation_results(validation: dict[str, Any]) -> None:
 
 
 def _search_resources(
-    auth_manager: AuthManager, query: str, type: str, limit: int
+    _auth_manager: AuthManager, _query: str, _type: str, _limit: int
 ) -> list[dict[str, Any]]:
     """Search for resources."""
     # This would call the actual API endpoint
@@ -577,7 +577,7 @@ def _search_resources(
     ]
 
 
-def _display_search_results(results: list[dict[str, Any]], type: str) -> None:
+def _display_search_results(results: list[dict[str, Any]], _type: str) -> None:
     """Display search results."""
     click.echo(f"🔍 Found {len(results)} results:")
 
@@ -588,7 +588,7 @@ def _display_search_results(results: list[dict[str, Any]], type: str) -> None:
         click.echo()
 
 
-def _list_models(auth_manager: AuthManager, detailed: bool) -> None:
+def _list_models(_auth_manager: AuthManager, detailed: bool) -> None:
     """List available models."""
     click.echo("🤖 Available Models:")
     models = [
@@ -604,7 +604,7 @@ def _list_models(auth_manager: AuthManager, detailed: bool) -> None:
             click.echo(f"     Status: {model['status']}")
 
 
-def _list_datasets(auth_manager: AuthManager, detailed: bool) -> None:
+def _list_datasets(_auth_manager: AuthManager, detailed: bool) -> None:
     """List available datasets."""
     click.echo("📊 Available Datasets:")
     datasets = [
@@ -619,7 +619,7 @@ def _list_datasets(auth_manager: AuthManager, detailed: bool) -> None:
             click.echo(f"     Records: {dataset['records']}")
 
 
-def _list_pipelines(auth_manager: AuthManager, detailed: bool) -> None:
+def _list_pipelines(_auth_manager: AuthManager, detailed: bool) -> None:
     """List available pipelines."""
     click.echo("🔄 Available Pipelines:")
     pipelines = [
@@ -639,10 +639,10 @@ def _list_pipelines(auth_manager: AuthManager, detailed: bool) -> None:
 
 
 def _execute_batch_operations(
-    auth_manager: AuthManager,
+    _auth_manager: AuthManager,
     batch_config: dict[str, Any],
-    parallel: int,
-    continue_on_error: bool,
+    _parallel: int,
+    _continue_on_error: bool,
 ) -> dict[str, Any]:
     """Execute batch operations."""
     logger.info(f"Executing {len(batch_config.get('operations', []))} batch operations")
@@ -684,7 +684,7 @@ def _display_batch_summary(results: dict[str, Any]) -> None:
 
 
 def _get_activity_data(
-    auth_manager: AuthManager, days: int, type: str
+    _auth_manager: AuthManager, days: int, _type: str
 ) -> dict[str, Any]:
     """Get activity data for specified period."""
     # This would call the actual API endpoint

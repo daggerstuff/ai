@@ -27,7 +27,7 @@ def mock_mem0_client():
         yield mock_instance
 
 def test_nvidia_manager_initialization(
-    mock_openai, mock_async_openai, mock_mem0_client
+    mock_openai, mock_async_openai, _mock_mem0_client
 ):
     config = NvidiaMem0Config(
         nvidia_api_key="test-nv",
@@ -42,7 +42,7 @@ def test_nvidia_manager_initialization(
 
 @pytest.mark.asyncio
 async def test_nvidia_manager_search(
-    mock_openai, mock_async_openai, mock_mem0_client
+    _mock_openai, _mock_async_openai, mock_mem0_client
 ):
     config = NvidiaMem0Config(
         nvidia_api_key="test-nv",
@@ -61,7 +61,7 @@ async def test_nvidia_manager_search(
     mock_mem0_client.search.assert_called_with("query", user_id="u1", limit=10)
 
 @pytest.mark.asyncio
-async def test_nvidia_manager_add(mock_openai, mock_async_openai, mock_mem0_client):
+async def test_nvidia_manager_add(_mock_openai, _mock_async_openai, mock_mem0_client):
     config = NvidiaMem0Config(
         nvidia_api_key="test-nv",
         mem0_api_key="test-mem0"
@@ -86,7 +86,7 @@ async def test_nvidia_manager_add(mock_openai, mock_async_openai, mock_mem0_clie
 
 @pytest.mark.asyncio
 async def test_nvidia_manager_get_response(
-    mock_openai, mock_async_openai, mock_mem0_client
+    _mock_openai, mock_async_openai, mock_mem0_client
 ):
     config = NvidiaMem0Config(
         nvidia_api_key="test-nv",

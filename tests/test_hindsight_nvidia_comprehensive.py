@@ -27,7 +27,7 @@ def mock_hindsight_client():
         yield mock_instance
 
 def test_nvidia_manager_initialization(
-    mock_openai, mock_async_openai, mock_hindsight_client
+    mock_openai, mock_async_openai, _mock_hindsight_client
 ):
     config = NvidiaHindsightConfig(
         nvidia_api_key="test-nv",
@@ -42,7 +42,7 @@ def test_nvidia_manager_initialization(
 
 @pytest.mark.asyncio
 async def test_nvidia_manager_search(
-    mock_openai, mock_async_openai, mock_hindsight_client
+    _mock_openai, _mock_async_openai, mock_hindsight_client
 ):
     config = NvidiaHindsightConfig(
         nvidia_api_key="test-nv",
@@ -61,7 +61,7 @@ async def test_nvidia_manager_search(
     mock_hindsight_client.search.assert_called_with("query", user_id="u1", limit=10)
 
 @pytest.mark.asyncio
-async def test_nvidia_manager_add(mock_openai, mock_async_openai, mock_hindsight_client):
+async def test_nvidia_manager_add(_mock_openai, _mock_async_openai, mock_hindsight_client):
     config = NvidiaHindsightConfig(
         nvidia_api_key="test-nv",
         hindsight_api_key="test-hindsight"
@@ -86,7 +86,7 @@ async def test_nvidia_manager_add(mock_openai, mock_async_openai, mock_hindsight
 
 @pytest.mark.asyncio
 async def test_nvidia_manager_get_response(
-    mock_openai, mock_async_openai, mock_hindsight_client
+    _mock_openai, mock_async_openai, mock_hindsight_client
 ):
     config = NvidiaHindsightConfig(
         nvidia_api_key="test-nv",

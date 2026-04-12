@@ -68,7 +68,7 @@ def get_embedding_service() -> EmbeddingAgentService:
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_app: FastAPI):
     """Application lifespan manager."""
     # Startup
     logger.info("Starting Embedding Agent Service")
@@ -119,7 +119,7 @@ embedding_router = APIRouter(prefix="/api/v1/embeddings", tags=["Embeddings"])
 
 # Error handler
 @app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+async def global_exception_handler(_request: Request, exc: Exception) -> JSONResponse:
     """Global exception handler."""
     logger.error(f"Unhandled exception: {exc}", exc_info=True)
     return JSONResponse(

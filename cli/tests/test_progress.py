@@ -439,7 +439,7 @@ class TestProgressIntegration:
     """Integration tests for progress tracking"""
 
     def test_progress_with_pipeline_integration(
-        self, mock_config, mock_pipeline_manager
+        self, mock_config, _mock_pipeline_manager
     ):
         """Test progress tracking with pipeline manager integration"""
         tracker = ProgressTracker(mock_config)
@@ -481,7 +481,7 @@ class TestProgressIntegration:
         assert len(report.steps) == 3
         assert all(step.status == ProgressStatus.COMPLETED for step in report.steps)
 
-    def test_progress_with_auth_integration(self, mock_config, mock_auth_manager):
+    def test_progress_with_auth_integration(self, mock_config, _mock_auth_manager):
         """Test progress tracking with authentication integration"""
         tracker = ProgressTracker(mock_config)
 

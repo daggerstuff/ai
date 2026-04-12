@@ -4,11 +4,10 @@ Quality Recommendation System
 Provides intelligent recommendations for quality improvements based on analysis
 """
 
-from datetime import datetime, timezone
-
 import json
 import warnings
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -250,7 +249,7 @@ class QualityRecommendationSystem:
 
         return quality_data
 
-    def _classify_performance(self, score: float, pass_rate: float, metric: str) -> str:
+    def _classify_performance(self, _score: float, pass_rate: float, metric: str) -> str:
         """Classify performance level for a metric"""
         if metric == "safety_score":
             if pass_rate < 95:
@@ -435,7 +434,7 @@ class QualityRecommendationSystem:
             print(f"❌ Error generating strategic recommendations: {e}")
             return []
 
-    def _generate_operational_recommendations(self, quality_analysis: dict[str, Any]) -> list[QualityRecommendation]:
+    def _generate_operational_recommendations(self, _quality_analysis: dict[str, Any]) -> list[QualityRecommendation]:
         """Generate operational-level recommendations"""
         operational_recs = []
 
@@ -519,7 +518,7 @@ class QualityRecommendationSystem:
             }
         }
 
-    def _define_success_metrics(self, recommendations: list[QualityRecommendation]) -> list[str]:
+    def _define_success_metrics(self, _recommendations: list[QualityRecommendation]) -> list[str]:
         """Define overall success metrics"""
         return [
             'Overall quality health improvement to "good" or "excellent"',
@@ -529,7 +528,7 @@ class QualityRecommendationSystem:
             "No new critical quality issues introduced"
         ]
 
-    def _create_review_schedule(self, recommendations: list[QualityRecommendation]) -> list[str]:
+    def _create_review_schedule(self, _recommendations: list[QualityRecommendation]) -> list[str]:
         """Create review schedule"""
         return [
             "Weekly progress reviews for critical recommendations",

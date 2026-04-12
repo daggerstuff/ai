@@ -7,10 +7,9 @@ This is the core of Pixelated Empathy: AI role-playing as difficult clients for 
 therapist training and supervisor evaluation.
 """
 
-from datetime import datetime, timezone
-
 import logging
 from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
 
 from pixelated_empathy_core import (
     ClientPersonality,
@@ -563,12 +562,12 @@ class PixelatedEmpathyPlatform:
             ),
         }
 
-    def _update_trainee_profile(self, trainee_id: str, assessment: dict):
+    def _update_trainee_profile(self, trainee_id: str, _assessment: dict):
         """Update trainee profile with assessment results"""
         # Implementation would update trainee's skill assessments and progress
         logger.info(f"Updated trainee profile for {trainee_id}")
 
-    def _archive_session(self, session_id: str, final_assessment: dict):
+    def _archive_session(self, session_id: str, _final_assessment: dict):
         """Archive completed session for future reference"""
         # Implementation would save session data to database
         logger.info(f"Archived training session {session_id}")

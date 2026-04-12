@@ -30,7 +30,7 @@ router = APIRouter(prefix="/sessions/{session_id}/discovery", tags=["discovery"]
 async def initiate_discovery(
     session_id: str,
     request: DiscoveryInitiateRequest,
-    current_user: dict = Depends(require_permission_dependency("discovery:initiate")),
+    _current_user: dict = Depends(require_permission_dependency("discovery:initiate")),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> DiscoveryResponse:
     """
@@ -89,7 +89,7 @@ async def initiate_discovery(
 async def list_sources(
     session_id: str,
     pagination: PaginationParams = Depends(),
-    current_user: dict | None = Depends(get_current_user),
+    _current_user: dict | None = Depends(get_current_user),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> SourceListResponse:
     """
@@ -148,7 +148,7 @@ async def list_sources(
 async def get_source(
     session_id: str,
     source_id: str,
-    current_user: dict | None = Depends(get_current_user),
+    _current_user: dict | None = Depends(get_current_user),
     service: CommandHandlerService = Depends(get_command_handler_service),
 ) -> SourceResponse:
     """

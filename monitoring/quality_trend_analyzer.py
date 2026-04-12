@@ -4,12 +4,11 @@ Quality Trend Analysis and Reporting System
 Analyzes quality trends over time and generates comprehensive reports
 """
 
-from datetime import datetime, timedelta, timezone
-
 import json
 import sqlite3
 import warnings
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 

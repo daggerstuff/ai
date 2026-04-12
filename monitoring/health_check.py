@@ -3,9 +3,6 @@ Health check and graceful shutdown handlers for Pixelated Empathy AI model serve
 Implements comprehensive health monitoring and safe shutdown procedures.
 """
 
-from datetime import datetime, timedelta, timezone
-
-
 import atexit
 import json
 import logging
@@ -14,6 +11,7 @@ import time
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from functools import wraps
 from typing import Any
@@ -702,7 +700,7 @@ class HealthCheckManager:
 
     def _setup_signal_handlers(self):
         """Set up signal handlers for graceful shutdown"""
-        def signal_handler(signum, frame):
+        def signal_handler(signum, _frame):
             signal_name = {signal.SIGTERM: "SIGTERM", signal.SIGINT: "SIGINT", signal.SIGHUP: "SIGHUP"}.get(signum, f"UNKNOWN({signum})")
             self.logger.info(f"Received signal {signal_name} ({signum}), initiating graceful shutdown...")
 
@@ -1310,7 +1308,7 @@ def integrate_health_checks_with_fastapi(app):
 def integrate_with_asgi_server(server_type: str = "uvicorn"):
     """Integrate health checks with ASGI servers like Uvicorn or Gunicorn"""
 
-    def shutdown_handler(signum, frame):
+    def shutdown_handler(signum, _frame):
         """Handler for shutdown signals"""
         logger.info(f"Received {server_type} shutdown signal {signum}")
         # Initiate graceful shutdown

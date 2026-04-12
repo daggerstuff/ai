@@ -144,7 +144,7 @@ class ListSessionsTool(MCPTool):
             },
         )
 
-    async def execute(self, params: dict[str, Any]) -> dict[str, Any]:
+    async def execute(self, _params: dict[str, Any]) -> dict[str, Any]:
         """
         Execute list_sessions tool.
 

@@ -5,7 +5,7 @@ from utils.transcript_corrector import TranscriptCorrector
 
 @patch("utils.transcript_corrector.Path.exists", return_value=True)
 @patch("builtins.open", new_callable=mock_open, read_data='{"common_misinterpretations": {"bad": "good"}}')
-def test_clean_structure_edge_cases(mock_file, mock_exists):
+def test_clean_structure_edge_cases(_mock_file, _mock_exists):
     corrector = TranscriptCorrector("mock.json")
 
     assert corrector.correct_transcript("") == ""
@@ -15,7 +15,7 @@ def test_clean_structure_edge_cases(mock_file, mock_exists):
 
 @patch("utils.transcript_corrector.Path.exists", return_value=True)
 @patch("builtins.open", new_callable=mock_open, read_data='{"cptsd_terms": ["trauma"], "medical_terms": ["brain"]}')
-def test_validate_term_coverage(mock_file, mock_exists):
+def test_validate_term_coverage(_mock_file, _mock_exists):
     corrector = TranscriptCorrector("mock.json")
 
     metrics = corrector.validate_term_coverage("Trauma affects the brain.")
@@ -29,7 +29,7 @@ def test_validate_term_coverage(mock_file, mock_exists):
 
 @patch("utils.transcript_corrector.Path.exists", return_value=True)
 @patch("builtins.open", new_callable=mock_open, read_data='{"common_misinterpretations": {"bad term": "good term"}}')
-def test_apply_terminology_fixes_edge_cases(mock_file, mock_exists):
+def test_apply_terminology_fixes_edge_cases(_mock_file, _mock_exists):
     corrector = TranscriptCorrector("mock.json")
 
     assert corrector._apply_terminology_fixes("This is a BAD TERM.") == "This is a good term."

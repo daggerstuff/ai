@@ -9,12 +9,10 @@ Provides FastAPI endpoints for Pixel model inference with:
 - Performance optimization (<200ms latency)
 """
 
-from datetime import datetime, timezone
-
-
 import logging
 import os
 import sys
+from datetime import datetime, timezone
 
 # Import models and utilities
 from pathlib import Path
@@ -283,7 +281,7 @@ class PixelInferenceEngine:
         )
 
     def _build_metadata(
-        self, model_output: dict[str, Any], request: PixelInferenceRequest
+        self, _model_output: dict[str, Any], request: PixelInferenceRequest
     ) -> ConversationMetadata:
         """Build conversation metadata from model output"""
         # Simulate technique detection
@@ -303,7 +301,7 @@ class PixelInferenceEngine:
         )
 
     def _generate_response_text(
-        self, query: str, persona_mode: str, eq_scores: EQScores
+        self, _query: str, persona_mode: str, eq_scores: EQScores
     ) -> str:
         """Generate response text based on query and persona"""
         # Simple template-based response (in production, use language head)
@@ -399,7 +397,7 @@ async def get_model_status():
 
 
 @app.post("/infer", response_model=PixelInferenceResponse)
-async def infer(request: PixelInferenceRequest, background_tasks: BackgroundTasks):
+async def infer(request: PixelInferenceRequest, _background_tasks: BackgroundTasks):
     """Generate response using Pixel model"""
     if not inference_engine.model_loaded:
         raise HTTPException(status_code=503, detail="Model not loaded")

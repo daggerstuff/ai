@@ -6,13 +6,11 @@ tracking for long-running operations like pipeline execution, file processing,
 and data transformations.
 """
 
-from datetime import datetime, timezone
-
-
 import threading
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
@@ -158,7 +156,7 @@ class ProgressTracker:
                 if error:
                     step.error = error
 
-    def complete_operation(self, operation_id: str, success: bool = True):
+    def complete_operation(self, operation_id: str, _success: bool = True):
         """Mark an operation as complete"""
         with self._lock:
             if operation_id not in self._progress_reports:
@@ -355,7 +353,7 @@ class ProgressTracker:
         thread.daemon = True
         thread.start()
 
-    def create_progress_callback(self, operation_id: str, total: int) -> Callable[[int], None]:
+    def create_progress_callback(self, _operation_id: str, total: int) -> Callable[[int], None]:
         """Create a callback function for updating progress"""
         def callback(completed: int):
             progress = min(completed / total * 100, 100)

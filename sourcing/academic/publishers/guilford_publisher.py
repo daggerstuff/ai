@@ -115,7 +115,7 @@ class GuilfordPublisher(BasePublisher):
             return []
 
     def _parse_record(
-        self, record: dict[str, Any], query: str
+        self, record: dict[str, Any], _query: str
     ) -> BookMetadata | None:
         """Parse Guilford record"""
         try:
@@ -175,14 +175,14 @@ class GuilfordPublisher(BasePublisher):
             return None
 
     def get_book_content(
-        self, book_id: str, format: BookFormat = BookFormat.PDF
+        self, _book_id: str, _format: BookFormat = BookFormat.PDF
     ) -> BookContent | None:
         """Get book content (typically requires purchase)"""
         logger.warning("Guilford content typically requires purchase")
         return None
 
     def get_chapter_content(
-        self, book_id: str, chapter_id: str, format: BookFormat = BookFormat.PDF
+        self, _book_id: str, _chapter_id: str, _format: BookFormat = BookFormat.PDF
     ) -> BookContent | None:
         """Get chapter content"""
         return None

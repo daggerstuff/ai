@@ -73,7 +73,7 @@ Be very careful to ensure the question and response actually match and make logi
             print(f"AI analysis failed: {e}")
             return self.create_fallback_analysis(text, metadata)
 
-    def create_fallback_analysis(self, text: str, metadata: dict) -> dict:
+    def create_fallback_analysis(self, text: str, _metadata: dict) -> dict:
         """Fallback analysis when AI call fails"""
         return {
             "content_type": "unknown",

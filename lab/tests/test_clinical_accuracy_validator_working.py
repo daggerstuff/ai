@@ -89,7 +89,7 @@ class MockClinicalAccuracyValidator:
         self.validation_history.append(result)
         return result
 
-    def _assess_dsm5_compliance(self, response: str, context: dict[str, Any]) -> float:
+    def _assess_dsm5_compliance(self, response: str, _context: dict[str, Any]) -> float:
         """Assess DSM-5 compliance of the response."""
         score = 0.8  # Base score
 
@@ -107,7 +107,7 @@ class MockClinicalAccuracyValidator:
 
         return max(0.0, min(1.0, score))
 
-    def _assess_evidence_based_practice(self, response: str, context: dict[str, Any]) -> float:
+    def _assess_evidence_based_practice(self, response: str, _context: dict[str, Any]) -> float:
         """Assess evidence-based practice compliance."""
         score = 0.7  # Base score
 
@@ -127,7 +127,7 @@ class MockClinicalAccuracyValidator:
 
         return max(0.0, min(1.0, score))
 
-    def _assess_therapeutic_appropriateness(self, response: str, context: dict[str, Any]) -> float:
+    def _assess_therapeutic_appropriateness(self, response: str, _context: dict[str, Any]) -> float:
         """Assess therapeutic appropriateness of the response."""
         score = 0.8  # Base score
 
@@ -151,7 +151,7 @@ class MockClinicalAccuracyValidator:
 
         return max(0.0, min(1.0, score))
 
-    def _assess_professional_boundaries(self, response: str, context: dict[str, Any]) -> float:
+    def _assess_professional_boundaries(self, response: str, _context: dict[str, Any]) -> float:
         """Assess professional boundary maintenance."""
         score = 0.9  # Base score
 
@@ -182,7 +182,7 @@ class MockClinicalAccuracyValidator:
             return "concerning"
         return "unacceptable"
 
-    def _identify_violations(self, response: str, context: dict[str, Any]) -> list[str]:
+    def _identify_violations(self, response: str, _context: dict[str, Any]) -> list[str]:
         """Identify specific clinical violations."""
         violations = []
         response_lower = response.lower()

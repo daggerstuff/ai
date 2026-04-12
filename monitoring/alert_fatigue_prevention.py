@@ -4,8 +4,6 @@ Alert Fatigue Prevention System for Pixelated Empathy AI
 Implements intelligent alert grouping, deduplication, and fatigue prevention
 """
 
-from datetime import datetime, timedelta, timezone
-
 import asyncio
 import hashlib
 import json
@@ -14,6 +12,7 @@ import re
 import sqlite3
 import time
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any
 
@@ -394,7 +393,7 @@ class AlertFatiguePreventionSystem:
         return group
 
     async def _find_similar_group(self, fingerprint: AlertFingerprint,
-                                alert_data: dict[str, Any]) -> AlertGroup | None:
+                                _alert_data: dict[str, Any]) -> AlertGroup | None:
         """Find similar existing group using various strategies"""
 
         # Strategy 1: Source and alert type matching

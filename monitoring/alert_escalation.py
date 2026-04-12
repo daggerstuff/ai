@@ -4,8 +4,6 @@ Alert Escalation System for Pixelated Empathy AI
 Implements intelligent alert escalation procedures based on severity levels
 """
 
-from datetime import datetime, timezone
-
 import json
 import logging
 import smtplib
@@ -13,6 +11,7 @@ import sqlite3
 import threading
 import time
 from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
 from email.mime.multipart import MimeMultipart
 from email.mime.text import MimeText
 from enum import Enum
@@ -574,7 +573,7 @@ Please acknowledge this alert in the monitoring system.
         logger.info(f"Sent email notification for alert {alert.alert_id}")
 
     def _send_slack_notification(
-        self, alert: Alert, rule: EscalationRule, channel: NotificationChannel
+        self, alert: Alert, _rule: EscalationRule, channel: NotificationChannel
     ):
         """Send Slack notification"""
         import requests

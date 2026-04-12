@@ -60,7 +60,7 @@ class CommandHandler:
         keywords: list[str],
         sources: list[str],
         session_id: str | None = None,
-        interactive: bool = False,
+        _interactive: bool = False,
     ) -> dict[str, Any]:
         """Search for dataset sources."""
         console.print("[bold blue]Searching for dataset sources...[/bold blue]\n")

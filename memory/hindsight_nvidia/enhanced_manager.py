@@ -383,7 +383,7 @@ class TieredModelSelector:
     def select_model(
         self,
         task_complexity: TaskComplexity,
-        requires_streaming: bool = False,
+        _requires_streaming: bool = False,
         latency_budget_ms: int | None = None,
     ) -> str:
         """
@@ -596,7 +596,7 @@ class EmbeddingGenerator:
     async def embed_multimodal(
         self,
         text: str,
-        image_data: bytes | None = None,
+        _image_data: bytes | None = None,
     ) -> list[float]:
         """
         Generate embedding for multimodal content.
@@ -736,7 +736,7 @@ class EnhancedNvidiaNimManager:
         self,
         prompt: str,
         system_instruction: str | None = None,
-        user_id: str | None = None,
+        _user_id: str | None = None,
     ) -> dict[str, Any]:
         """
         Generate response with automatic crisis detection.
@@ -854,7 +854,7 @@ Offer appropriate resources and encourage professional help."""
 # Factory function for easy instantiation
 def create_enhanced_manager(
     nvidia_api_key: str | None = None,
-    strategy: ModelSelectionStrategy = ModelSelectionStrategy.QUALITY_OPTIMIZED,
+    _strategy: ModelSelectionStrategy = ModelSelectionStrategy.QUALITY_OPTIMIZED,
     **kwargs,
 ) -> EnhancedNvidiaNimManager:
     """

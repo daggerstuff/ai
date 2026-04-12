@@ -5,10 +5,8 @@ This module implements REST API endpoints for data validation operations,
 including quality checks, bias detection, and compliance validation.
 """
 
-from datetime import datetime, timezone
-
-
 import logging
+from datetime import datetime, timezone
 from typing import Any
 
 from flask import Blueprint, g, jsonify, request
@@ -517,7 +515,7 @@ def get_validation_history():
 
 
 # Helper Functions
-def _perform_quality_checks(data: dict[str, Any], checks: list[str], dataset_context: dict[str, Any] | None, options: dict[str, Any]) -> dict[str, Any]:
+def _perform_quality_checks(data: dict[str, Any], checks: list[str], dataset_context: dict[str, Any] | None, _options: dict[str, Any]) -> dict[str, Any]:
     """Perform comprehensive quality checks on data."""
     try:
         check_results = {}
@@ -581,7 +579,7 @@ def _perform_quality_checks(data: dict[str, Any], checks: list[str], dataset_con
         raise ValidationError(f"Quality check failed: {e!s}")
 
 
-def _perform_bias_detection(data: dict[str, Any], context: dict[str, Any], detection_type: str, options: dict[str, Any]) -> dict[str, Any]:
+def _perform_bias_detection(_data: dict[str, Any], _context: dict[str, Any], detection_type: str, _options: dict[str, Any]) -> dict[str, Any]:
     """Perform bias detection analysis."""
     try:
         # Placeholder bias detection logic
@@ -726,7 +724,7 @@ def _get_validation_schema(redis_client: RedisClient, schema_id: str) -> dict[st
         return None
 
 
-def _validate_against_schema(data: dict[str, Any], schema: dict[str, Any], strict_mode: bool, options: dict[str, Any]) -> dict[str, Any]:
+def _validate_against_schema(data: dict[str, Any], schema: dict[str, Any], strict_mode: bool, _options: dict[str, Any]) -> dict[str, Any]:
     """Validate data against a specific schema."""
     start_time = datetime.now(timezone.utc)
 
@@ -815,7 +813,7 @@ def _validate_field_against_schema(field_name: str, field_value: Any, field_def:
         return [f"Error validating field '{field_name}': {e!s}"]
 
 
-def _get_validation_history(redis_client: RedisClient, dataset_id: str | None, validation_type: str | None, start_date: str | None, end_date: str | None, limit: int) -> dict[str, Any]:
+def _get_validation_history(_redis_client: RedisClient, dataset_id: str | None, validation_type: str | None, _start_date: str | None, _end_date: str | None, limit: int) -> dict[str, Any]:
     """Retrieve validation history with optional filters."""
     try:
         # Placeholder validation history
@@ -865,7 +863,7 @@ def _get_validation_history(redis_client: RedisClient, dataset_id: str | None, v
 
 
 # Utility functions for quality checks
-def _check_completeness(data: dict[str, Any], dataset_context: dict[str, Any] | None) -> tuple:
+def _check_completeness(data: dict[str, Any], _dataset_context: dict[str, Any] | None) -> tuple:
     """Check data completeness."""
     if not data:
         return 0.0, ["No data provided"]
@@ -882,7 +880,7 @@ def _check_completeness(data: dict[str, Any], dataset_context: dict[str, Any] | 
     return completeness_score, issues
 
 
-def _check_consistency(data: dict[str, Any], dataset_context: dict[str, Any] | None) -> tuple:
+def _check_consistency(data: dict[str, Any], _dataset_context: dict[str, Any] | None) -> tuple:
     """Check data consistency."""
     consistency_score = 0.95  # Placeholder score
     issues = []
@@ -896,7 +894,7 @@ def _check_consistency(data: dict[str, Any], dataset_context: dict[str, Any] | N
     return max(0.0, consistency_score), issues
 
 
-def _check_accuracy(data: dict[str, Any], dataset_context: dict[str, Any] | None) -> tuple:
+def _check_accuracy(data: dict[str, Any], _dataset_context: dict[str, Any] | None) -> tuple:
     """Check data accuracy."""
     accuracy_score = 0.90  # Placeholder score
     issues = []

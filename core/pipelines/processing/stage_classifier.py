@@ -353,8 +353,8 @@ class StageClassifier:
         self,
         therapeutic_modality: str,
         topic_tags: list[str],
-        content_type: str,
-        source: str,
+        _content_type: str,
+        _source: str,
     ) -> ClassificationResult | None:
         """Check for therapeutic expertise content (Stage 2)."""
         reasons: list[str] = []

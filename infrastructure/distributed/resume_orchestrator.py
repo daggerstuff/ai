@@ -4,8 +4,6 @@ Resume Orchestrator for Pixelated Empathy AI
 Manages coordination and orchestration of multiple resumable processes
 """
 
-from datetime import datetime, timedelta, timezone
-
 import asyncio
 import json
 import logging
@@ -14,6 +12,7 @@ import time
 from collections import defaultdict, deque
 from collections.abc import Callable
 from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any
 
@@ -611,7 +610,7 @@ async def example_orchestrated_resume():
 
     # Example resume handlers
     async def data_processor_handler(
-        resume_point: dict[str, Any], interruption_context: InterruptionContext = None
+        resume_point: dict[str, Any], _interruption_context: InterruptionContext = None
     ):
         print(f"Resuming data processor from step {resume_point['resume_step']}")
         # Simulate data processing resume
@@ -619,7 +618,7 @@ async def example_orchestrated_resume():
         return True
 
     async def model_trainer_handler(
-        resume_point: dict[str, Any], interruption_context: InterruptionContext = None
+        resume_point: dict[str, Any], _interruption_context: InterruptionContext = None
     ):
         print(f"Resuming model trainer from step {resume_point['resume_step']}")
         # Simulate model training resume

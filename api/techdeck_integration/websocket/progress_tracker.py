@@ -5,12 +5,10 @@ This module implements real-time progress tracking using WebSocket connections,
 providing live updates for pipeline execution, file uploads, and system operations.
 """
 
-from datetime import datetime, timezone
-
-
 import logging
 import time
 from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
@@ -538,7 +536,7 @@ class ProgressTracker:
 
 # Convenience functions for different operation types
 def track_pipeline_execution(progress_tracker: ProgressTracker, operation_id: str, user_id: str,
-                           pipeline_config: dict[str, Any]):
+                           _pipeline_config: dict[str, Any]):
     """Start tracking pipeline execution progress."""
     total_steps = 6  # Six-stage pipeline
     progress_tracker.start_progress_tracking(
@@ -550,7 +548,7 @@ def track_pipeline_execution(progress_tracker: ProgressTracker, operation_id: st
 
 
 def track_file_upload(progress_tracker: ProgressTracker, operation_id: str, user_id: str,
-                     file_info: dict[str, Any]):
+                     _file_info: dict[str, Any]):
     """Start tracking file upload progress."""
     total_steps = 3  # Upload, validation, processing
     progress_tracker.start_progress_tracking(
@@ -562,7 +560,7 @@ def track_file_upload(progress_tracker: ProgressTracker, operation_id: str, user
 
 
 def track_data_validation(progress_tracker: ProgressTracker, operation_id: str, user_id: str,
-                         validation_config: dict[str, Any]):
+                         _validation_config: dict[str, Any]):
     """Start tracking data validation progress."""
     total_steps = 4  # Schema check, quality check, bias check, compliance check
     progress_tracker.start_progress_tracking(
@@ -574,7 +572,7 @@ def track_data_validation(progress_tracker: ProgressTracker, operation_id: str, 
 
 
 def track_bias_detection(progress_tracker: ProgressTracker, operation_id: str, user_id: str,
-                        detection_config: dict[str, Any]):
+                        _detection_config: dict[str, Any]):
     """Start tracking bias detection progress."""
     total_steps = 3  # Preprocessing, detection, analysis
     progress_tracker.start_progress_tracking(

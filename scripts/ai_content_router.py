@@ -116,7 +116,7 @@ class AIContentRouter:
 
         return analysis
 
-    def determine_qa_strategy(self, format_type: str, text: str, metadata: dict) -> str:
+    def determine_qa_strategy(self, format_type: str, text: str, _metadata: dict) -> str:
         """Determine optimal Q/A generation strategy based on format analysis"""
 
         if format_type == "interview_qa":
@@ -138,7 +138,7 @@ class AIContentRouter:
 
         return "create_general_therapeutic_question"
 
-    def generate_reasoning(self, format_type: str, confidence: float, text: str) -> str:
+    def generate_reasoning(self, format_type: str, confidence: float, _text: str) -> str:
         """Generate human-readable reasoning for the classification"""
 
         reasoning_map = {

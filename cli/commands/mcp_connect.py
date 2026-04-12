@@ -35,7 +35,7 @@ def mcp_connect_group(ctx):
 @click.option("--timeout", default=30, help="Connection timeout in seconds")
 @click.option("--retry", default=3, help="Number of retry attempts")
 @click.pass_context
-def connect(ctx, host: str, port: int, timeout: int, retry: int):
+def connect(_ctx, host: str, port: int, timeout: int, retry: int):
     """Connect to an MCP agent server."""
     try:
         config_obj = get_config()
@@ -110,7 +110,7 @@ def connect(ctx, host: str, port: int, timeout: int, retry: int):
 )
 @click.option("--detailed", is_flag=True, help="Show detailed connection information")
 @click.pass_context
-def list_agents(ctx, status: str, detailed: bool):
+def list_agents(_ctx, status: str, detailed: bool):
     """List available MCP agents and their status."""
     try:
         config_obj = get_config()
@@ -161,7 +161,7 @@ def list_agents(ctx, status: str, detailed: bool):
 @click.option("--agent-id", required=True, help="MCP agent ID to disconnect")
 @click.option("--force", is_flag=True, help="Force disconnect without confirmation")
 @click.pass_context
-def disconnect(ctx, agent_id: str, force: bool):
+def disconnect(_ctx, agent_id: str, force: bool):
     """Disconnect from an MCP agent."""
     try:
         config_obj = get_config()
@@ -212,7 +212,7 @@ def disconnect(ctx, agent_id: str, force: bool):
 @click.option("--async", "async_mode", is_flag=True, help="Execute asynchronously")
 @click.pass_context
 def execute(
-    ctx,
+    _ctx,
     agent_id: str,
     tool: str,
     params: str | None,
@@ -297,7 +297,7 @@ def execute(
 @click.option("--agent-id", help="Filter by agent ID")
 @click.option("--limit", default=10, help="Maximum number of results")
 @click.pass_context
-def status(ctx, execution_id: str | None, agent_id: str | None, limit: int):
+def status(_ctx, execution_id: str | None, agent_id: str | None, limit: int):
     """Check execution status of MCP agent tools."""
     try:
         config_obj = get_config()
@@ -326,7 +326,7 @@ def status(ctx, execution_id: str | None, agent_id: str | None, limit: int):
 @click.option("--agent-id", required=True, help="MCP agent ID")
 @click.option("--capability", required=True, help="Capability to test")
 @click.pass_context
-def test(ctx, agent_id: str, capability: str):
+def test(_ctx, agent_id: str, capability: str):
     """Test MCP agent capabilities."""
     try:
         config_obj = get_config()
@@ -362,7 +362,7 @@ def test(ctx, agent_id: str, capability: str):
 
 @mcp_connect_group.command()
 @click.pass_context
-def interactive(ctx):
+def interactive(_ctx):
     """Start interactive MCP agent session."""
     try:
         config_obj = get_config()
@@ -432,7 +432,7 @@ def interactive(ctx):
 
 
 def _connect_to_mcp_agent(
-    auth_manager: AuthManager, host: str, port: int, timeout: int
+    _auth_manager: AuthManager, host: str, port: int, _timeout: int
 ) -> dict[str, Any]:
     """Connect to MCP agent server."""
     logger.info(f"Connecting to MCP agent at {host}:{port}")
@@ -452,7 +452,7 @@ def _connect_to_mcp_agent(
     }
 
 
-def _get_mcp_agents(auth_manager: AuthManager, status: str) -> list[dict[str, Any]]:
+def _get_mcp_agents(_auth_manager: AuthManager, status: str) -> list[dict[str, Any]]:
     """Get list of MCP agents."""
     # This would call the actual API endpoint
     # For now, return mock data
@@ -487,7 +487,7 @@ def _get_mcp_agents(auth_manager: AuthManager, status: str) -> list[dict[str, An
     return agents
 
 
-def _disconnect_from_agent(auth_manager: AuthManager, agent_id: str) -> dict[str, Any]:
+def _disconnect_from_agent(_auth_manager: AuthManager, agent_id: str) -> dict[str, Any]:
     """Disconnect from MCP agent."""
     logger.info(f"Disconnecting from agent: {agent_id}")
 
@@ -509,7 +509,7 @@ def _get_agent_info(
     return None
 
 
-def _save_connection_info(host: str, port: int, agent_id: str) -> None:
+def _save_connection_info(_host: str, _port: int, agent_id: str) -> None:
     """Save connection information for future use."""
     # This would save to a local cache or config file
     logger.info(f"Saved connection info for {agent_id}")
@@ -522,7 +522,7 @@ def _remove_connection_info(agent_id: str) -> None:
 
 
 def _execute_tool_sync(
-    auth_manager: AuthManager, agent_id: str, tool: str, params: dict[str, Any]
+    _auth_manager: AuthManager, agent_id: str, tool: str, _params: dict[str, Any]
 ) -> dict[str, Any]:
     """Execute tool synchronously."""
     logger.info(f"Executing tool {tool} on agent {agent_id}")
@@ -543,7 +543,7 @@ def _execute_tool_sync(
 
 
 def _execute_tool_async(
-    auth_manager: AuthManager, agent_id: str, tool: str, params: dict[str, Any]
+    _auth_manager: AuthManager, agent_id: str, tool: str, _params: dict[str, Any]
 ) -> str:
     """Execute tool asynchronously."""
     logger.info(f"Async execution of tool {tool} on agent {agent_id}")
@@ -553,7 +553,7 @@ def _execute_tool_async(
 
 
 def _get_execution_status(
-    auth_manager: AuthManager, execution_id: str
+    _auth_manager: AuthManager, execution_id: str
 ) -> dict[str, Any] | None:
     """Get execution status."""
     # This would call the actual API endpoint
@@ -568,7 +568,7 @@ def _get_execution_status(
 
 
 def _list_executions(
-    auth_manager: AuthManager, agent_id: str | None, limit: int
+    _auth_manager: AuthManager, agent_id: str | None, limit: int
 ) -> list[dict[str, Any]]:
     """List recent executions."""
     # This would call the actual API endpoint
@@ -631,7 +631,7 @@ def _display_executions_list(executions: list[dict[str, Any]]) -> None:
 
 
 def _test_agent_capability(
-    auth_manager: AuthManager, agent_id: str, capability: str
+    _auth_manager: AuthManager, agent_id: str, capability: str
 ) -> dict[str, Any]:
     """Test agent capability."""
     logger.info(f"Testing capability {capability} on agent {agent_id}")

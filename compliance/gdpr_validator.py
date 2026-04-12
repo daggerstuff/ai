@@ -7,14 +7,13 @@ Enterprise-grade GDPR compliance validation for data protection, right to erasur
 and consent management per GDPR requirements.
 """
 
-from datetime import datetime, timedelta, timezone
-
 import json
 import logging
 import re
 import sqlite3
 import uuid
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -575,7 +574,7 @@ class GDPRValidator:
             "status": "completed"
         }
 
-    def _process_rectification_request(self, data_subject_id: str, cursor) -> dict[str, Any]:
+    def _process_rectification_request(self, _data_subject_id: str, _cursor) -> dict[str, Any]:
         """Process data rectification request"""
         # In practice, this would update specific fields based on the request
         return {

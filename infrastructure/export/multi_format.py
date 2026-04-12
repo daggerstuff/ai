@@ -253,7 +253,7 @@ class MultiFormatExporter:
                     self.logger.warning(f"Line {line_num}: JSON parse error - {e}")
 
     def _export_jsonl(
-        self, dataset_path: Path, output_path: Path, config: ExportConfig
+        self, dataset_path: Path, output_path: Path, _config: ExportConfig
     ) -> ExportResult:
         """Export to JSONL format."""
         records_exported = 0
@@ -277,7 +277,7 @@ class MultiFormatExporter:
         )
 
     def _export_json(
-        self, dataset_path: Path, output_path: Path, config: ExportConfig
+        self, dataset_path: Path, output_path: Path, _config: ExportConfig
     ) -> ExportResult:
         """Export to JSON array format."""
         records = list(self._load_dataset(dataset_path))

@@ -54,7 +54,7 @@ def test_crisis_detector():
     assert detector.get_crisis_severity("This is my final goodbye forever") == "critical"
 
 
-def test_gemini_manager_initialization(mock_genai):
+def test_gemini_manager_initialization(_mock_genai):
     config = GeminiHindsightConfig(gemini_api_key="test", hindsight_api_key="test")
     # Patching hindsight.MemoryClient so GeminiHindsightManager can instantiate it
     with patch("mem0.MemoryClient"):

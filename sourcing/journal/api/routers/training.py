@@ -40,7 +40,7 @@ async def integrate_dataset(
     session_id: str,
     source_id: str,
     auto_integrate: bool = True,
-    current_user: dict = Depends(require_permission_dependency("training:write")),
+    _current_user: dict = Depends(require_permission_dependency("training:write")),
     service: CommandHandlerService = Depends(get_command_handler_service),
     training_service: TrainingPipelineService = Depends(get_training_pipeline_service),
 ) -> dict[str, Any]:
@@ -133,7 +133,7 @@ async def integrate_dataset(
 )
 async def get_training_status(
     session_id: str,
-    current_user: dict = Depends(require_permission_dependency("training:read")),
+    _current_user: dict = Depends(require_permission_dependency("training:read")),
     service: CommandHandlerService = Depends(get_command_handler_service),
     training_service: TrainingPipelineService = Depends(get_training_pipeline_service),
 ) -> dict[str, Any]:
@@ -176,7 +176,7 @@ async def get_training_status(
 async def integrate_all_datasets(
     session_id: str,
     auto_integrate: bool = True,
-    current_user: dict = Depends(require_permission_dependency("training:write")),
+    _current_user: dict = Depends(require_permission_dependency("training:write")),
     service: CommandHandlerService = Depends(get_command_handler_service),
     training_service: TrainingPipelineService = Depends(get_training_pipeline_service),
 ) -> dict[str, Any]:
@@ -294,7 +294,7 @@ async def integrate_all_datasets(
     },
 )
 async def get_pipeline_status(
-    current_user: dict = Depends(require_permission_dependency("training:read")),
+    _current_user: dict = Depends(require_permission_dependency("training:read")),
     training_service: TrainingPipelineService = Depends(get_training_pipeline_service),
 ) -> dict[str, Any]:
     """

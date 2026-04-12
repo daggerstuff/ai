@@ -34,7 +34,7 @@ settings = get_settings()
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_app: FastAPI):
     """Lifespan context manager for startup and shutdown."""
     # Startup
     logger.info("Starting Journal Dataset Research API server")

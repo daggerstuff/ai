@@ -5,11 +5,9 @@ This module implements business logic for pipeline operations including
 configuration management, execution control, progress tracking, and monitoring.
 """
 
-from datetime import datetime, timezone
-
-
 import logging
 import uuid
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
@@ -804,32 +802,32 @@ class PipelineService:
             self.logger.error(f"Error processing stage {stage.value}: {e}")
             raise PipelineExecutionError(f"Stage {stage.value} failed: {e!s}")
 
-    def _process_data_ingestion(self, config: dict[str, Any], dataset_record: dict[str, Any], execution_id: str):
+    def _process_data_ingestion(self, _config: dict[str, Any], _dataset_record: dict[str, Any], execution_id: str):
         """Process data ingestion stage."""
         # Implement data ingestion logic
         self.logger.info(f"Data ingestion completed for execution {execution_id}")
 
-    def _process_preprocessing(self, config: dict[str, Any], dataset_record: dict[str, Any], execution_id: str):
+    def _process_preprocessing(self, _config: dict[str, Any], _dataset_record: dict[str, Any], execution_id: str):
         """Process preprocessing stage."""
         # Implement preprocessing logic
         self.logger.info(f"Preprocessing completed for execution {execution_id}")
 
-    def _process_bias_detection(self, config: dict[str, Any], dataset_record: dict[str, Any], execution_id: str):
+    def _process_bias_detection(self, _config: dict[str, Any], _dataset_record: dict[str, Any], execution_id: str):
         """Process bias detection stage."""
         # Implement bias detection logic
         self.logger.info(f"Bias detection completed for execution {execution_id}")
 
-    def _process_standardization(self, config: dict[str, Any], dataset_record: dict[str, Any], execution_id: str):
+    def _process_standardization(self, _config: dict[str, Any], _dataset_record: dict[str, Any], execution_id: str):
         """Process standardization stage."""
         # Implement standardization logic
         self.logger.info(f"Standardization completed for execution {execution_id}")
 
-    def _process_validation(self, config: dict[str, Any], dataset_record: dict[str, Any], execution_id: str):
+    def _process_validation(self, _config: dict[str, Any], _dataset_record: dict[str, Any], execution_id: str):
         """Process validation stage."""
         # Implement validation logic
         self.logger.info(f"Validation completed for execution {execution_id}")
 
-    def _process_output_generation(self, config: dict[str, Any], dataset_record: dict[str, Any], execution_id: str):
+    def _process_output_generation(self, _config: dict[str, Any], _dataset_record: dict[str, Any], execution_id: str):
         """Process output generation stage."""
         # Implement output generation logic
         self.logger.info(f"Output generation completed for execution {execution_id}")

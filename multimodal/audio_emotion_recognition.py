@@ -316,7 +316,7 @@ class AudioEmotionRecognizer:
     def _calculate_speech_rate(
         self,
         waveform: np.ndarray,
-        sample_rate: int,
+        _sample_rate: int,
     ) -> float:
         """
         Estimate speech rate in words per minute.

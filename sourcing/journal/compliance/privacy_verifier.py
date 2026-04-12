@@ -130,7 +130,7 @@ class PrivacyVerifier:
         source_id: str,
         dataset_sample: str | None = None,
         dataset_path: str | None = None,
-        metadata: dict | None = None,
+        _metadata: dict | None = None,
     ) -> PrivacyAssessment:
         """
         Verify privacy and anonymization quality of a dataset.
@@ -310,7 +310,7 @@ class PrivacyVerifier:
 
     def _assess_re_identification_risk(
         self,
-        text: str,
+        _text: str,
         pii_types: set[str],
         anonymization_quality: AnonymizationQuality,
     ) -> PrivacyRiskLevel:

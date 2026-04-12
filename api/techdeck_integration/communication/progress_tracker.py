@@ -5,11 +5,9 @@ This module provides comprehensive progress tracking with WebSocket support,
 real-time updates, and HIPAA++ compliant data handling for the six-stage pipeline.
 """
 
-from datetime import datetime, timezone
-
-
 import json
 from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
 from typing import Any
 
 from ..error_handling.custom_errors import (
@@ -952,7 +950,7 @@ class ProgressTracker:
             return 0.0
 
     def _calculate_completion_estimates(
-        self, progress_config: dict[str, Any], stage_states: list[Any]
+        self, progress_config: dict[str, Any], _stage_states: list[Any]
     ) -> dict[str, Any]:
         """Calculate completion time estimates."""
         try:

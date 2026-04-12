@@ -5,10 +5,8 @@ Automatically updates JOURNAL_RESEARCH_TARGETS.md with current progress metrics,
 completed tasks, and status summaries.
 """
 
-from datetime import datetime, timezone
-
-
 import re
+from datetime import datetime, timezone
 from pathlib import Path
 
 from ai.sourcing.journal.models.dataset_models import (
@@ -307,7 +305,7 @@ Add research notes and findings here.
     def _generate_status_summary_markdown(
         self,
         progress: ResearchProgress,
-        session: ResearchSession | None = None,
+        _session: ResearchSession | None = None,
         weekly_report: WeeklyReport | None = None,
     ) -> str:
         """Generate markdown for status summary section."""

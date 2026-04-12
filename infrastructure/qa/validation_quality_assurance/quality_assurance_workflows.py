@@ -4,8 +4,6 @@ Quality Assurance Workflows - Task 5.7.2.2
 Builds comprehensive quality assurance workflows and processes for conversation validation.
 """
 
-from datetime import datetime, timezone
-
 import json
 import logging
 import queue
@@ -13,6 +11,7 @@ import threading
 import time
 from collections.abc import Callable
 from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
@@ -535,24 +534,24 @@ class QualityAssuranceWorkflow:
             "recommendations": recommendations,
         }
 
-    def _perform_linguistic_analysis(self, context: dict[str, Any]) -> dict[str, Any]:
+    def _perform_linguistic_analysis(self, _context: dict[str, Any]) -> dict[str, Any]:
         """Perform detailed linguistic analysis"""
         # Placeholder for comprehensive linguistic analysis
         return {"linguistic_score": 0.8, "complexity_score": 0.7}
 
     def _assess_therapeutic_effectiveness(
-        self, context: dict[str, Any]
+        self, _context: dict[str, Any]
     ) -> dict[str, Any]:
         """Assess therapeutic effectiveness"""
         # Placeholder for therapeutic effectiveness assessment
         return {"effectiveness_score": 0.75, "therapeutic_techniques": 3}
 
-    def _check_cultural_sensitivity(self, context: dict[str, Any]) -> dict[str, Any]:
+    def _check_cultural_sensitivity(self, _context: dict[str, Any]) -> dict[str, Any]:
         """Check cultural sensitivity"""
         # Placeholder for cultural sensitivity check
         return {"cultural_sensitivity_score": 0.85, "inclusive_language": True}
 
-    def _review_ethical_compliance(self, context: dict[str, Any]) -> dict[str, Any]:
+    def _review_ethical_compliance(self, _context: dict[str, Any]) -> dict[str, Any]:
         """Review ethical compliance"""
         # Placeholder for ethical compliance review
         return {"ethical_score": 0.9, "compliance_issues": 0}

@@ -7,8 +7,6 @@ Enterprise-grade HIPAA compliance validation for healthcare data protection.
 Implements PHI protection, audit logging, and access controls per HIPAA requirements.
 """
 
-from datetime import datetime, timedelta, timezone
-
 import base64
 import hashlib
 import json
@@ -18,6 +16,7 @@ import re
 import sqlite3
 import uuid
 from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
 
@@ -561,7 +560,7 @@ class HIPAAValidator:
         is_complete = len(issues) == 0
         return is_complete, issues
 
-    def _check_user_authorization(self, user_id: str, phi_detections: list[PHIDetection]) -> bool:
+    def _check_user_authorization(self, user_id: str, _phi_detections: list[PHIDetection]) -> bool:
         """Check if user is authorized to access PHI (simplified implementation)"""
         # In a real implementation, this would check against user roles,
         # permissions, and the minimum necessary standard

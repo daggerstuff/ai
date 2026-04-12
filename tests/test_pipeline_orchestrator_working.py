@@ -45,7 +45,7 @@ class MockPipelineOrchestrator:
         self.stages.append(stage)
         return True
 
-    def execute_pipeline(self, input_data: Any, pipeline_config: dict[str, Any] = None) -> dict[str, Any]:
+    def execute_pipeline(self, input_data: Any, _pipeline_config: dict[str, Any] = None) -> dict[str, Any]:
         """Execute the complete pipeline."""
         if not input_data:
             return {

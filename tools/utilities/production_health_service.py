@@ -4,10 +4,9 @@ Production Health Check Service
 Comprehensive health monitoring for production deployment
 """
 
-from datetime import datetime, timezone
-
 import json
 import time
+from datetime import datetime, timezone
 
 import psutil
 

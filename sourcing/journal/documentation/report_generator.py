@@ -6,7 +6,6 @@ and final research summaries.
 """
 
 from datetime import datetime, timedelta, timezone
-
 from pathlib import Path
 
 from ai.sourcing.journal.models.dataset_models import (
@@ -175,7 +174,7 @@ class ReportGenerator:
     def generate_weekly_report(
         self,
         weekly_report: WeeklyReport | None = None,
-        session: ResearchSession | None = None,
+        _session: ResearchSession | None = None,
         progress: dict | None = None,
         week_number: int | None = None,
         output_path: Path | None = None,

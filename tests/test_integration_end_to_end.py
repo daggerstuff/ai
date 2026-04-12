@@ -382,7 +382,7 @@ class TestEndToEndDataFlow(unittest.TestCase):
 
         return output_files
 
-    def _calculate_performance_metrics(self, df):
+    def _calculate_performance_metrics(self, _df):
         """Calculate performance metrics"""
         return {
             "processing_efficiency": 95.5,
@@ -529,7 +529,7 @@ class TestSystemWorkflows(unittest.TestCase):
             "insights": ["Quality is improving", "Processing is efficient"],
         }
 
-    def _generate_pipeline_outputs(self, analytics_results):
+    def _generate_pipeline_outputs(self, _analytics_results):
         """Generate pipeline outputs"""
         return ["quality_report.json", "performance_dashboard.png", "insights_summary.txt"]
 

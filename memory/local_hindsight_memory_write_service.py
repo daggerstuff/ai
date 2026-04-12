@@ -1,7 +1,7 @@
 
-from datetime import datetime, timezone
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from typing import Any
 
 from .local_hindsight_protocol_adapter import LocalHindsightProtocolAdapter

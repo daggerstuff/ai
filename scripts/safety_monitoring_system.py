@@ -10,15 +10,13 @@ This module provides real-time safety monitoring and incident response capabilit
 - Safety metrics tracking
 """
 
-from datetime import datetime, timedelta, timezone
-
-
 import asyncio
 import logging
 import time
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any
 
@@ -311,7 +309,7 @@ class SafetyMonitoringSystem:
         return IncidentSeverity.LOW
 
     async def _create_incident(self, user_input: str, crisis_assessment: dict[str, Any],
-                              severity: IncidentSeverity, user_id: str = None) -> SafetyIncident:
+                              severity: IncidentSeverity, _user_id: str = None) -> SafetyIncident:
         """Create safety incident record"""
 
         incident_id = str(uuid.uuid4())[:8]
@@ -462,7 +460,7 @@ class SafetyMonitoringSystem:
 
         return response
 
-    def _update_metrics(self, crisis_assessment: dict[str, Any], processing_time: float):
+    def _update_metrics(self, _crisis_assessment: dict[str, Any], processing_time: float):
         """Update safety monitoring metrics"""
 
         # Update response time average

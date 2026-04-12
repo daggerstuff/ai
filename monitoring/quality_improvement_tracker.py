@@ -4,12 +4,11 @@ Quality Improvement Tracking System
 Tracks quality improvements over time and provides actionable recommendations
 """
 
-from datetime import datetime, timedelta, timezone
-
 import json
 import sqlite3
 import warnings
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -331,7 +330,7 @@ class QualityImprovementTracker:
             return None
 
     def _generate_action_items(
-        self, metric: str, improvement: QualityImprovement
+        self, metric: str, _improvement: QualityImprovement
     ) -> list[str]:
         """Generate action items for metric improvement"""
         actions = []
