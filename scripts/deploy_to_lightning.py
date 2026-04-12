@@ -10,12 +10,13 @@ This script orchestrates the complete deployment pipeline:
 4. Provides upload instructions for Lightning.ai Studio
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import shutil
 import sys
 import zipfile
-from datetime import datetime, timezone
 from pathlib import Path
 
 # Import path utilities

@@ -5,11 +5,12 @@ Generates authentic crisis intervention training data using models without
 safety filters.
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import time
 from dataclasses import dataclass
-from datetime import datetime, timezone
 
 import requests
 

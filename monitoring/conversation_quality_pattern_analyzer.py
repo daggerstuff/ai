@@ -11,12 +11,13 @@ Analyzes patterns in conversation quality across datasets, identifying:
 - Quality degradation/improvement patterns
 """
 
+from datetime import datetime, timezone
+
 import json
 import re
 import sqlite3
 import warnings
 from collections import Counter, defaultdict
-from datetime import datetime, timezone
 from typing import Any
 
 import matplotlib.pyplot as plt

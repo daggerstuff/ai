@@ -6,6 +6,8 @@ Enterprise-grade test suite validating all dashboard functionality
 against the actual database schema with comprehensive coverage.
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import os
@@ -13,7 +15,6 @@ import sqlite3
 import sys
 import tempfile
 import unittest
-from datetime import datetime, timezone
 
 import pandas as pd
 
@@ -229,10 +230,10 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
 
     def test_01_dashboard_initialization(self):
         """Test dashboard initialization with correct database."""
-        self.assertIsInstance(self.dashboard, QualityAnalyticsDashboard)
+        assert isinstance(self.dashboard, QualityAnalyticsDashboard)
         assert str(self.dashboard.db_path) == self.test_db_path
-        self.assertIsInstance(self.dashboard.quality_components, dict)
-        self.assertIn("overall_quality", self.dashboard.quality_components)
+        assert isinstance(self.dashboard.quality_components, dict)
+        assert "overall_quality" in self.dashboard.quality_components
 
     def test_02_database_connection(self):
         """Test database connection and schema validation."""
@@ -243,8 +244,8 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
         # Check tables exist
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
         tables = [row[0] for row in cursor.fetchall()]
-        self.assertIn("conversations", tables)
-        self.assertIn("conversation_quality", tables)
+        assert "conversations" in tables
+        assert "conversation_quality" in tables
 
         # Check data exists
         cursor.execute("SELECT COUNT(*) FROM conversations")
@@ -261,7 +262,7 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
         """Test basic data loading functionality."""
         df = self.dashboard.load_quality_data()
 
-        self.assertIsInstance(df, pd.DataFrame)
+        assert isinstance(df, pd.DataFrame)
         assert not df.empty
         assert len(df) == 5
 
@@ -275,18 +276,18 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
             "safety_score",
         ]
         for col in required_columns:
-            self.assertIn(col, df.columns)
+            assert col in df.columns
 
         # Check data types
-        self.assertTrue(pd.api.types.is_datetime64_any_dtype(df["created_at"]))
-        self.assertTrue(pd.api.types.is_numeric_dtype(df["overall_quality"]))
+        assert pd.api.types.is_datetime64_any_dtype(df["created_at"])
+        assert pd.api.types.is_numeric_dtype(df["overall_quality"])
 
     def test_04_load_quality_data_with_filters(self):
         """Test data loading with various filters."""
         # Test tier filter
         df_priority = self.dashboard.load_quality_data(tier_filter=["priority_1"])
         assert len(df_priority) == 2
-        self.assertTrue(all(df_priority["tier"] == "priority_1"))
+        assert all(df_priority["tier"] == "priority_1")
 
         # Test date range filter
         start_date = datetime(2025, 8, 2)
@@ -297,28 +298,28 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
         # Test quality threshold filter
         df_quality = self.dashboard.load_quality_data(min_quality=0.7)
         assert len(df_quality) == 3
-        self.assertTrue(all(df_quality["overall_quality"] >= 0.7))
+        assert all(df_quality["overall_quality"] >= 0.7)
 
     def test_05_calculate_quality_analytics_basic(self):
         """Test basic analytics calculation."""
         df = self.dashboard.load_quality_data()
         analytics = self.dashboard.calculate_quality_analytics(df)
 
-        self.assertIsInstance(analytics, QualityAnalytics)
+        assert isinstance(analytics, QualityAnalytics)
         assert analytics.total_conversations == 5
         self.assertAlmostEqual(
             analytics.average_quality, 0.73, places=2
         )  # (0.85+0.65+0.92+0.45+0.78)/5
 
         # Check quality distribution
-        self.assertIsInstance(analytics.quality_distribution, dict)
-        self.assertIn("Good", analytics.quality_distribution)
-        self.assertIn("Excellent", analytics.quality_distribution)
+        assert isinstance(analytics.quality_distribution, dict)
+        assert "Good" in analytics.quality_distribution
+        assert "Excellent" in analytics.quality_distribution
 
         # Check tier performance
-        self.assertIsInstance(analytics.tier_performance, dict)
-        self.assertIn("priority_1", analytics.tier_performance)
-        self.assertIn("professional", analytics.tier_performance)
+        assert isinstance(analytics.tier_performance, dict)
+        assert "priority_1" in analytics.tier_performance
+        assert "professional" in analytics.tier_performance
 
     def test_06_calculate_quality_analytics_empty_data(self):
         """Test analytics calculation with empty data."""
@@ -329,7 +330,7 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
         assert analytics.average_quality == 0.0
         assert analytics.quality_distribution == {}
         assert analytics.tier_performance == {}
-        self.assertIn("No quality data available", analytics.recommendations[0])
+        assert "No quality data available" in analytics.recommendations[0]
 
     def test_07_anomaly_detection(self):
         """Test quality anomaly detection."""
@@ -337,22 +338,18 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
 
         # Test IQR method
         anomalies_iqr = self.dashboard._detect_quality_anomalies(df, method="iqr")
-        self.assertIsInstance(anomalies_iqr, list)
+        assert isinstance(anomalies_iqr, list)
 
         # Test zscore method (should detect conv_4 as anomaly since it's 0.45 vs mean 0.73)
         anomalies_zscore = self.dashboard._detect_quality_anomalies(df, method="zscore")
-        self.assertIsInstance(anomalies_zscore, list)
+        assert isinstance(anomalies_zscore, list)
 
         # With our test data (0.45, 0.65, 0.78, 0.85, 0.92), conv_4 (0.45) should be detected
         # as an anomaly using zscore method since it's more than 2 standard deviations from mean
         if anomalies_zscore:
             anomaly_ids = [a["conversation_id"] for a in anomalies_zscore]
             # Check if any anomaly was detected (the exact detection depends on the statistical method)
-            self.assertGreater(
-                len(anomalies_zscore),
-                0,
-                "Should detect at least one anomaly with zscore method",
-            )
+            assert len(anomalies_zscore) > 0, "Should detect at least one anomaly with zscore method"
 
         # Check anomaly structure if any anomalies found
         all_anomalies = anomalies_iqr + anomalies_zscore
@@ -360,24 +357,20 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
             anomaly = all_anomalies[0]
             required_keys = ["conversation_id", "tier", "quality_score", "anomaly_type"]
             for key in required_keys:
-                self.assertIn(key, anomaly)
+                assert key in anomaly
 
         # Test with insufficient data
         small_df = df.head(2)  # Only 2 records
         anomalies_small = self.dashboard._detect_quality_anomalies(small_df)
-        self.assertEqual(
-            len(anomalies_small),
-            0,
-            "Should not detect anomalies with insufficient data",
-        )
+        assert len(anomalies_small) == 0, "Should not detect anomalies with insufficient data"
 
     def test_08_recommendation_generation(self):
         """Test recommendation generation."""
         df = self.dashboard.load_quality_data()
         analytics = self.dashboard.calculate_quality_analytics(df)
 
-        self.assertIsInstance(analytics.recommendations, list)
-        self.assertGreater(len(analytics.recommendations), 0)
+        assert isinstance(analytics.recommendations, list)
+        assert len(analytics.recommendations) > 0
 
         # Should have overall quality assessment
         overall_rec = [
@@ -385,7 +378,7 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
             for r in analytics.recommendations
             if "Overall quality" in r or "GOOD:" in r or "WARNING:" in r
         ]
-        self.assertGreater(len(overall_rec), 0)
+        assert len(overall_rec) > 0
 
     def test_09_caching_functionality(self):
         """Test data caching functionality."""
@@ -400,7 +393,7 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
         second_load_time = (datetime.now(timezone.utc) - start_time).total_seconds()
 
         # Cached load should be faster
-        self.assertLess(second_load_time, first_load_time)
+        assert second_load_time < first_load_time
 
         # Data should be identical
         pd.testing.assert_frame_equal(df1, df2)
@@ -413,7 +406,7 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
         # Test overview chart
         overview_fig = self.dashboard.create_quality_overview_chart(analytics)
         assert overview_fig is not None
-        self.assertGreater(len(overview_fig.data), 0)
+        assert len(overview_fig.data) > 0
 
         # Test detailed charts
         heatmap_fig, corr_fig = self.dashboard.create_detailed_analysis_charts(df)
@@ -436,15 +429,15 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
         df = self.dashboard.load_quality_data()
         analytics = self.dashboard.calculate_quality_analytics(df)
 
-        self.assertIsInstance(analytics.component_performance, dict)
+        assert isinstance(analytics.component_performance, dict)
 
         # Check that components are calculated correctly
         for component_name, metrics in analytics.component_performance.items():
-            self.assertIn("average_score", metrics)
-            self.assertIn("sample_count", metrics)
-            self.assertIn("coverage_percent", metrics)
-            self.assertGreaterEqual(metrics["average_score"], 0.0)
-            self.assertLessEqual(metrics["average_score"], 1.0)
+            assert "average_score" in metrics
+            assert "sample_count" in metrics
+            assert "coverage_percent" in metrics
+            assert metrics["average_score"] >= 0.0
+            assert metrics["average_score"] <= 1.0
 
     def test_13_trend_data_calculation(self):
         """Test trend data calculation."""
@@ -452,25 +445,25 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
         analytics = self.dashboard.calculate_quality_analytics(df)
 
         # Should have trend data since we have data within 30 days
-        self.assertIsInstance(analytics.trend_data, list)
-        self.assertGreater(len(analytics.trend_data), 0)
+        assert isinstance(analytics.trend_data, list)
+        assert len(analytics.trend_data) > 0
 
         # Check trend data structure
         if analytics.trend_data:
             trend_item = analytics.trend_data[0]
             required_keys = ["date", "average_quality", "conversation_count"]
             for key in required_keys:
-                self.assertIn(key, trend_item)
+                assert key in trend_item
 
     def test_14_data_freshness_calculation(self):
         """Test data freshness calculation."""
         df = self.dashboard.load_quality_data()
         analytics = self.dashboard.calculate_quality_analytics(df)
 
-        self.assertIsInstance(analytics.data_freshness, str)
-        self.assertNotEqual(analytics.data_freshness, "No data")
+        assert isinstance(analytics.data_freshness, str)
+        assert analytics.data_freshness != "No data"
         # Should indicate recent data since test data is from recent dates
-        self.assertIn("day", analytics.data_freshness.lower())
+        assert "day" in analytics.data_freshness.lower()
 
     def test_15_performance_benchmarks(self):
         """Test performance benchmarks."""
@@ -480,7 +473,7 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
         load_time = (datetime.now(timezone.utc) - start_time).total_seconds()
 
         # Should load quickly (under 1 second for test data)
-        self.assertLess(load_time, 1.0)
+        assert load_time < 1.0
 
         # Test analytics calculation performance
         start_time = datetime.now(timezone.utc)
@@ -488,7 +481,7 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
         calc_time = (datetime.now(timezone.utc) - start_time).total_seconds()
 
         # Should calculate quickly (under 0.5 seconds for test data)
-        self.assertLess(calc_time, 0.5)
+        assert calc_time < 0.5
 
 
 def run_comprehensive_test():

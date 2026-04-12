@@ -4,9 +4,10 @@ Comprehensive inventory of actual datasets in Hetzner Object Storage backup.
 Creates a new registry based on actual backup structure.
 """
 
+from datetime import datetime, timezone
+
 import json
 import subprocess
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 

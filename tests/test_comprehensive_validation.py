@@ -19,7 +19,7 @@ class TestComprehensiveValidation(unittest.TestCase):
             with open(audit_file) as f:
                 results = json.load(f)
 
-            self.assertIn("production_readiness_score", results)
+            assert "production_readiness_score" in results
 
     def test_validation_evidence_files(self):
         """Test that validation evidence files exist"""
@@ -34,7 +34,7 @@ class TestComprehensiveValidation(unittest.TestCase):
             files = list(Path("/home/vivi/pixelated/ai").glob(pattern))
             total_evidence += len(files)
 
-        self.assertGreater(total_evidence, 0, "No validation evidence files found")
+        assert total_evidence > 0, "No validation evidence files found"
 
     def test_infrastructure_components(self):
         """Test that infrastructure components exist"""
@@ -54,7 +54,7 @@ class TestComprehensiveValidation(unittest.TestCase):
         for task_num in validation_tasks:
             result_file = Path(f"/home/vivi/pixelated/ai/task_{task_num}_*_validation_results.json")
             matching_files = list(Path("/home/vivi/pixelated/ai").glob(f"task_{task_num}_*_validation_results.json"))
-            self.assertGreater(len(matching_files), 0, f"No validation results for task {task_num}")
+            assert len(matching_files) > 0, f"No validation results for task {task_num}"
 
 if __name__ == "__main__":
     unittest.main()

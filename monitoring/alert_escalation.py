@@ -4,6 +4,8 @@ Alert Escalation System for Pixelated Empathy AI
 Implements intelligent alert escalation procedures based on severity levels
 """
 
+from datetime import datetime, timezone
+
 import json
 import logging
 import smtplib
@@ -11,7 +13,6 @@ import sqlite3
 import threading
 import time
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
 from email.mime.multipart import MimeMultipart
 from email.mime.text import MimeText
 from enum import Enum

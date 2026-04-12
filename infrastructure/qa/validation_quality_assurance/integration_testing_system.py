@@ -71,22 +71,22 @@ class QAIntegrationTestSuite(unittest.TestCase):
 
             # Verify result structure
             assert result.conversation_id is not None
-            self.assertIsInstance(result.overall_clinical_score, float)
-            self.assertGreaterEqual(result.overall_clinical_score, 0.0)
-            self.assertLessEqual(result.overall_clinical_score, 1.0)
+            assert isinstance(result.overall_clinical_score, float)
+            assert result.overall_clinical_score >= 0.0
+            assert result.overall_clinical_score <= 1.0
 
             # Verify component scores
-            self.assertIsInstance(result.dsm5_compliance, float)
-            self.assertIsInstance(result.therapeutic_boundaries, float)
-            self.assertIsInstance(result.ethical_guidelines, float)
-            self.assertIsInstance(result.crisis_intervention, float)
-            self.assertIsInstance(result.evidence_based_practice, float)
-            self.assertIsInstance(result.cultural_competency, float)
-            self.assertIsInstance(result.safety_protocols, float)
+            assert isinstance(result.dsm5_compliance, float)
+            assert isinstance(result.therapeutic_boundaries, float)
+            assert isinstance(result.ethical_guidelines, float)
+            assert isinstance(result.crisis_intervention, float)
+            assert isinstance(result.evidence_based_practice, float)
+            assert isinstance(result.cultural_competency, float)
+            assert isinstance(result.safety_protocols, float)
 
             # Verify lists
-            self.assertIsInstance(result.violations, list)
-            self.assertIsInstance(result.recommendations, list)
+            assert isinstance(result.violations, list)
+            assert isinstance(result.recommendations, list)
 
         logger.info("✅ Clinical standards validator integration test passed")
 
@@ -106,14 +106,14 @@ class QAIntegrationTestSuite(unittest.TestCase):
                 # Verify result structure
                 assert result.workflow_id == workflow_id
                 assert result.conversation_id is not None
-                self.assertIsInstance(result.quality_score, float)
-                self.assertGreaterEqual(result.quality_score, 0.0)
-                self.assertLessEqual(result.quality_score, 1.0)
+                assert isinstance(result.quality_score, float)
+                assert result.quality_score >= 0.0
+                assert result.quality_score <= 1.0
 
                 # Verify workflow completion
-                self.assertGreater(len(result.steps_completed), 0)
-                self.assertIsInstance(result.issues_found, list)
-                self.assertIsInstance(result.recommendations, list)
+                assert len(result.steps_completed) > 0
+                assert isinstance(result.issues_found, list)
+                assert isinstance(result.recommendations, list)
 
         logger.info("✅ Workflow system integration test passed")
 
@@ -131,7 +131,7 @@ class QAIntegrationTestSuite(unittest.TestCase):
 
         # Test pending assignments
         pending = review_system.get_pending_assignments()
-        self.assertGreater(len(pending), 0)
+        assert len(pending) > 0
 
         # Test review submission
         assignment = pending[0]
@@ -156,7 +156,7 @@ class QAIntegrationTestSuite(unittest.TestCase):
 
         # Test review results retrieval
         results = review_system.get_review_results()
-        self.assertGreater(len(results), 0)
+        assert len(results) > 0
 
         logger.info("✅ Manual review system integration test passed")
 
@@ -167,36 +167,26 @@ class QAIntegrationTestSuite(unittest.TestCase):
         # Process all test conversations
         results = self.qa_system.process_batch_qa(self.test_conversations)
 
-        assert len(results) == len(self.test_conversations
+        assert len(results) == len(self.test_conversations)
 
         for result in results:
             # Verify result structure
             assert result.conversation_id is not None
-            self.assertIsInstance(result.overall_qa_score, float)
-            self.assertGreaterEqual(result.overall_qa_score, 0.0)
-            self.assertLessEqual(result.overall_qa_score, 1.0)
+            assert isinstance(result.overall_qa_score, float)
+            assert result.overall_qa_score >= 0.0
+            assert result.overall_qa_score <= 1.0
 
             # Verify component integration
-            self.assertIn("overall_clinical_score", result.clinical_validation)
-            self.assertIn("quality_score", result.workflow_results)
-            self.assertIsInstance(result.automated_checks, dict)
+            assert "overall_clinical_score" in result.clinical_validation
+            assert "quality_score" in result.workflow_results
+            assert isinstance(result.automated_checks, dict)
 
             # Verify quality improvements and alerts
-            self.assertIsInstance(result.quality_improvements, list)
-            self.assertIsInstance(result.monitoring_alerts, list)
+            assert isinstance(result.quality_improvements, list)
+            assert isinstance(result.monitoring_alerts, list)
 
             # Verify status determination
-            self.assertIn(
-                result.qa_status,
-                [
-                    "EXCELLENT",
-                    "GOOD",
-                    "ACCEPTABLE",
-                    "NEEDS_IMPROVEMENT",
-                    "NEEDS_ATTENTION",
-                    "CRITICAL_ISSUES",
-                ],
-            )
+            assert result.qa_status in ["EXCELLENT", "GOOD", "ACCEPTABLE", "NEEDS_IMPROVEMENT", "NEEDS_ATTENTION", "CRITICAL_ISSUES"]
 
         # Store results for further testing
         self.test_results = results
@@ -215,18 +205,18 @@ class QAIntegrationTestSuite(unittest.TestCase):
         report = self.qa_system.generate_qa_report(self.test_results)
 
         # Verify report structure
-        self.assertIn("report_summary", report)
-        self.assertIn("status_analysis", report)
-        self.assertIn("alert_analysis", report)
-        self.assertIn("improvement_analysis", report)
-        self.assertIn("performance_metrics", report)
-        self.assertIn("system_statistics", report)
+        assert "report_summary" in report
+        assert "status_analysis" in report
+        assert "alert_analysis" in report
+        assert "improvement_analysis" in report
+        assert "performance_metrics" in report
+        assert "system_statistics" in report
 
         # Verify report content
         summary = report["report_summary"]
-        assert summary["total_conversations"] == len(self.test_conversations
-        self.assertIsInstance(summary["average_qa_score"], float)
-        self.assertIn("score_distribution", summary)
+        assert summary["total_conversations"] == len(self.test_conversations)
+        assert isinstance(summary["average_qa_score"], float)
+        assert "score_distribution" in summary
 
         logger.info("✅ Reporting system integration test passed")
 
@@ -245,16 +235,16 @@ class QAIntegrationTestSuite(unittest.TestCase):
 
         # Verify exported file
         export_file = Path(output_path)
-        self.assertTrue(export_file.exists())
+        assert export_file.exists()
 
         # Verify exported content
         with open(output_path, encoding="utf-8") as f:
             exported_data = json.load(f)
 
-        self.assertIn("qa_results", exported_data)
-        self.assertIn("qa_report", exported_data)
-        self.assertIn("system_configuration", exported_data)
-        assert len(exported_data["qa_results"]) == len(self.test_results
+        assert "qa_results" in exported_data
+        assert "qa_report" in exported_data
+        assert "system_configuration" in exported_data
+        assert len(exported_data["qa_results"]) == len(self.test_results)
 
         logger.info("✅ Export functionality integration test passed")
 
@@ -270,12 +260,12 @@ class QAIntegrationTestSuite(unittest.TestCase):
         processing_time = time.time() - start_time
 
         # Verify performance metrics
-        self.assertLess(processing_time, 10.0)  # Should complete within 10 seconds
+        assert processing_time < 10.0  # Should complete within 10 seconds
         assert len(results) == len(self.test_conversations) * 2
 
         # Test throughput
         throughput = len(results) / processing_time
-        self.assertGreater(throughput, 1.0)  # At least 1 conversation per second
+        assert throughput > 1.0  # At least 1 conversation per second
 
         logger.info(
             f"✅ Performance test passed: {throughput:.2f} conversations/second"
@@ -295,7 +285,7 @@ class QAIntegrationTestSuite(unittest.TestCase):
         try:
             result = self.qa_system.process_conversation_qa(malformed_conversation)
             assert result.qa_status == "ERROR"
-            self.assertIn("error", result.clinical_validation)
+            assert "error" in result.clinical_validation
         except Exception as e:
             self.fail(f"Error handling failed: {e}")
 
@@ -340,11 +330,11 @@ class QAIntegrationTestSuite(unittest.TestCase):
 
         # 1. Process conversations
         results = self.qa_system.process_batch_qa(self.test_conversations)
-        assert len(results) == len(self.test_conversations
+        assert len(results) == len(self.test_conversations)
 
         # 2. Generate comprehensive report
         report = self.qa_system.generate_qa_report(results)
-        self.assertIsInstance(report, dict)
+        assert isinstance(report, dict)
 
         # 3. Export results
         output_path = (
@@ -358,7 +348,7 @@ class QAIntegrationTestSuite(unittest.TestCase):
             exported_data = json.load(f)
 
         # Verify data integrity
-        assert len(exported_data["qa_results"]) == len(results
+        assert len(exported_data["qa_results"]) == len(results)
 
         # Verify all conversations processed
         exported_ids = {r["conversation_id"] for r in exported_data["qa_results"]}
@@ -367,7 +357,7 @@ class QAIntegrationTestSuite(unittest.TestCase):
 
         # 5. Verify system statistics
         stats = self.qa_system.get_system_statistics()
-        self.assertGreater(stats["system_stats"]["total_processed"], 0)
+        assert stats["system_stats"]["total_processed"] > 0
 
         logger.info("✅ End-to-end integration test passed")
 

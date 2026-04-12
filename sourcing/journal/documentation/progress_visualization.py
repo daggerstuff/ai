@@ -5,8 +5,9 @@ Generates progress metrics charts, timeline visualizations, and quality score
 distributions for research activities.
 """
 
-import json
 from datetime import datetime, timezone
+
+import json
 from pathlib import Path
 from typing import Any
 

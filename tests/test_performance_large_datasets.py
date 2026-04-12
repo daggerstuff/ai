@@ -167,8 +167,8 @@ class TestLargeDatasetLoading(PerformanceTestBase):
             assert len(perf_metrics["result"]) == 10000
 
             # Performance assertions
-            self.assertLess(perf_metrics["execution_time"], 10.0, "Loading should complete within 10 seconds")
-            self.assertLess(perf_metrics["memory_delta_mb"], 500, "Memory usage should be under 500MB")
+            assert perf_metrics["execution_time"] < 10.0, "Loading should complete within 10 seconds"
+            assert perf_metrics["memory_delta_mb"] < 500, "Memory usage should be under 500MB"
 
             print(f"  ✅ Loaded 10K conversations in {perf_metrics['execution_time']:.2f}s")
             print(f"  ✅ Memory usage: {perf_metrics['memory_delta_mb']:.1f}MB")
@@ -207,8 +207,8 @@ class TestLargeDatasetLoading(PerformanceTestBase):
             assert len(perf_metrics["result"]) == 50000
 
             # Performance assertions (more lenient for larger dataset)
-            self.assertLess(perf_metrics["execution_time"], 30.0, "Loading should complete within 30 seconds")
-            self.assertLess(perf_metrics["memory_delta_mb"], 1000, "Memory usage should be under 1GB")
+            assert perf_metrics["execution_time"] < 30.0, "Loading should complete within 30 seconds"
+            assert perf_metrics["memory_delta_mb"] < 1000, "Memory usage should be under 1GB"
 
             print(f"  ✅ Loaded 50K conversations in {perf_metrics['execution_time']:.2f}s")
             print(f"  ✅ Memory usage: {perf_metrics['memory_delta_mb']:.1f}MB")
@@ -249,11 +249,11 @@ class TestLargeDatasetLoading(PerformanceTestBase):
 
             # Verify processing
             assert perf_metrics["result"]["total_processed"] == 25000
-            self.assertGreater(perf_metrics["result"]["avg_quality"], 0)
+            assert perf_metrics["result"]["avg_quality"] > 0
 
             # Performance assertions
-            self.assertLess(perf_metrics["execution_time"], 20.0, "Streaming processing should be efficient")
-            self.assertLess(perf_metrics["memory_delta_mb"], 300, "Streaming should use less memory")
+            assert perf_metrics["execution_time"] < 20.0, "Streaming processing should be efficient"
+            assert perf_metrics["memory_delta_mb"] < 300, "Streaming should use less memory"
 
             print(f"  ✅ Processed 25K conversations in {perf_metrics['execution_time']:.2f}s")
             print(f"  ✅ Memory usage: {perf_metrics['memory_delta_mb']:.1f}MB")
@@ -307,13 +307,13 @@ class TestAnalyticsPerformance(PerformanceTestBase):
 
         # Verify aggregations
         result = perf_metrics["result"]
-        self.assertGreater(len(result["dataset_stats"]), 0)
-        self.assertGreater(len(result["tier_stats"]), 0)
-        self.assertGreater(len(result["cross_stats"]), 0)
+        assert len(result["dataset_stats"]) > 0
+        assert len(result["tier_stats"]) > 0
+        assert len(result["cross_stats"]) > 0
 
         # Performance assertions
-        self.assertLess(perf_metrics["execution_time"], 5.0, "Aggregations should complete quickly")
-        self.assertLess(perf_metrics["memory_delta_mb"], 200, "Aggregations should be memory efficient")
+        assert perf_metrics["execution_time"] < 5.0, "Aggregations should complete quickly"
+        assert perf_metrics["memory_delta_mb"] < 200, "Aggregations should be memory efficient"
 
         print(f"  ✅ Aggregated 20K records in {perf_metrics['execution_time']:.2f}s")
         print(f"  ✅ Memory usage: {perf_metrics['memory_delta_mb']:.1f}MB")
@@ -363,12 +363,12 @@ class TestAnalyticsPerformance(PerformanceTestBase):
 
         # Verify analysis results
         result = perf_metrics["result"]
-        self.assertIn("correlation_matrix", result)
-        self.assertIn("quality_scores_stats", result)
+        assert "correlation_matrix" in result
+        assert "quality_scores_stats" in result
 
         # Performance assertions
-        self.assertLess(perf_metrics["execution_time"], 3.0, "Statistical analysis should be fast")
-        self.assertLess(perf_metrics["memory_delta_mb"], 150, "Statistical analysis should be memory efficient")
+        assert perf_metrics["execution_time"] < 3.0, "Statistical analysis should be fast"
+        assert perf_metrics["memory_delta_mb"] < 150, "Statistical analysis should be memory efficient"
 
         print(f"  ✅ Analyzed 15K records in {perf_metrics['execution_time']:.2f}s")
         print(f"  ✅ Memory usage: {perf_metrics['memory_delta_mb']:.1f}MB")
@@ -417,12 +417,12 @@ class TestAnalyticsPerformance(PerformanceTestBase):
         # Verify ML results
         result = perf_metrics["result"]
         assert result["model"] is not None
-        self.assertIsInstance(result["mse"], float)
-        self.assertIsInstance(result["r2_score"], float)
+        assert isinstance(result["mse"], float)
+        assert isinstance(result["r2_score"], float)
 
         # Performance assertions
-        self.assertLess(perf_metrics["execution_time"], 15.0, "ML training should complete within reasonable time")
-        self.assertLess(perf_metrics["memory_delta_mb"], 300, "ML training should manage memory well")
+        assert perf_metrics["execution_time"] < 15.0, "ML training should complete within reasonable time"
+        assert perf_metrics["memory_delta_mb"] < 300, "ML training should manage memory well"
 
         print(f"  ✅ Trained ML model on 10K samples in {perf_metrics['execution_time']:.2f}s")
         print(f"  ✅ Memory usage: {perf_metrics['memory_delta_mb']:.1f}MB")
@@ -474,8 +474,8 @@ class TestScalabilityLimits(PerformanceTestBase):
         print(f"  ✅ Time growth rate: {time_growth_rate:.6f} seconds per 1K conversations")
 
         # Scalability assertions
-        self.assertLess(memory_growth_rate, 10.0, "Memory growth should be reasonable")
-        self.assertLess(time_growth_rate, 0.1, "Processing time should scale well")
+        assert memory_growth_rate < 10.0, "Memory growth should be reasonable"
+        assert time_growth_rate < 0.1, "Processing time should scale well"
 
     def test_concurrent_processing_simulation(self):
         """Test concurrent processing simulation"""
@@ -548,7 +548,7 @@ class TestScalabilityLimits(PerformanceTestBase):
         assert len(results) == 20
 
         # Performance assertions
-        self.assertLess(perf_metrics["execution_time"], 10.0, "Concurrent processing should be efficient")
+        assert perf_metrics["execution_time"] < 10.0, "Concurrent processing should be efficient"
 
         print(f"  ✅ Processed 20 tasks concurrently in {perf_metrics['execution_time']:.2f}s")
         print(f"  ✅ Memory usage: {perf_metrics['memory_delta_mb']:.1f}MB")

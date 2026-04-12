@@ -7,8 +7,9 @@ for development environments or when external services are unavailable.
 This is a REAL implementation using in-memory dictionaries, not a stub.
 """
 
-import threading
 from datetime import datetime, timezone
+
+import threading
 from typing import Any
 
 from .base import BaseMemoryManager

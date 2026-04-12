@@ -12,12 +12,13 @@ Analyzes diversity and coverage patterns across conversations:
 - Content gap identification
 """
 
+from datetime import datetime, timezone
+
 import json
 import re
 import sqlite3
 import warnings
 from collections import Counter, defaultdict
-from datetime import datetime, timezone
 from typing import Any
 
 import matplotlib.pyplot as plt

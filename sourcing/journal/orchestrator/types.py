@@ -2,11 +2,12 @@
 Shared type definitions for the Research Orchestrator.
 """
 
+from datetime import datetime
+
 from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime
 from pathlib import Path
 from typing import Protocol
 

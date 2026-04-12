@@ -327,9 +327,9 @@ class TestSafetyEthicsValidator(unittest.TestCase):
     def test_initialization(self):
         """Test validator initialization."""
         assert self.validator is not None
-        self.assertIsInstance(self.validator.harmful_patterns, list)
-        self.assertIsInstance(self.validator.ethical_violations, list)
-        self.assertIsInstance(self.validator.privacy_patterns, list)
+        assert isinstance(self.validator.harmful_patterns, list)
+        assert isinstance(self.validator.ethical_violations, list)
+        assert isinstance(self.validator.privacy_patterns, list)
         assert len(self.validator.validation_history) == 0
 
     def test_safe_ethical_content(self):
@@ -342,7 +342,7 @@ class TestSafetyEthicsValidator(unittest.TestCase):
                 assert result["is_ethical"]
                 assert len(result["violations"]) == 0
                 assert result["severity"] == "none"
-                self.assertGreaterEqual(result["confidence"], 0.7)
+                assert result["confidence"] >= 0.7
 
     def test_harmful_content_detection(self):
         """Test detection of harmful content."""
@@ -351,9 +351,9 @@ class TestSafetyEthicsValidator(unittest.TestCase):
                 result = self.validator.validate_content(content)
 
                 assert not result["is_safe"]
-                self.assertGreater(len(result["violations"]), 0)
-                self.assertIn(result["severity"], ["low", "medium", "high"])
-                self.assertGreaterEqual(result["confidence"], 0.8)
+                assert len(result["violations"]) > 0
+                assert result["severity"] in ["low", "medium", "high"]
+                assert result["confidence"] >= 0.8
 
     def test_ethical_violations_detection(self):
         """Test detection of ethical violations."""
@@ -362,8 +362,8 @@ class TestSafetyEthicsValidator(unittest.TestCase):
                 result = self.validator.validate_content(content)
 
                 assert not result["is_ethical"]
-                self.assertGreater(len(result["violations"]), 0)
-                self.assertIn("boundaries", " ".join(result["recommendations"]).lower())
+                assert len(result["violations"]) > 0
+                assert "boundaries" in " ".join(result["recommendations"]).lower()
 
     def test_privacy_violations_detection(self):
         """Test detection of privacy violations."""
@@ -372,9 +372,9 @@ class TestSafetyEthicsValidator(unittest.TestCase):
                 result = self.validator.validate_content(content)
 
                 assert not result["is_safe"]
-                self.assertGreater(len(result["privacy_violations"]), 0)
-                self.assertIn("privacy", " ".join(result["recommendations"]).lower() +
-                             " ".join(result["violations"]).lower())
+                assert len(result["privacy_violations"]) > 0
+                full_violations = " ".join(result["recommendations"]).lower() + " " + " ".join(result["violations"]).lower()
+                assert "privacy" in full_violations
 
     def test_edge_cases(self):
         """Test edge cases and error handling."""
@@ -392,12 +392,12 @@ class TestSafetyEthicsValidator(unittest.TestCase):
             with self.subTest(case=case):
                 result = self.validator.validate_content(case)
 
-                self.assertIsInstance(result, dict)
-                self.assertIn("is_safe", result)
-                self.assertIn("is_ethical", result)
-                self.assertIn("violations", result)
-                self.assertIn("severity", result)
-                self.assertIn("confidence", result)
+                assert isinstance(result, dict)
+                assert "is_safe" in result
+                assert "is_ethical" in result
+                assert "violations" in result
+                assert "severity" in result
+                assert "confidence" in result
 
     def test_therapeutic_response_validation(self):
         """Test validation of therapeutic responses."""
@@ -417,7 +417,7 @@ class TestSafetyEthicsValidator(unittest.TestCase):
 
         assert not result["is_therapeutic"]
         assert not result["is_ethical"]
-        self.assertGreater(len(result["therapeutic_issues"]), 0)
+        assert len(result["therapeutic_issues"]) > 0
 
     def test_hipaa_compliance_checking(self):
         """Test HIPAA compliance checking."""
@@ -433,7 +433,7 @@ class TestSafetyEthicsValidator(unittest.TestCase):
         result = self.validator.check_hipaa_compliance(non_compliant_content)
 
         assert not result["hipaa_compliant"]
-        self.assertGreater(len(result["privacy_violations"]), 0)
+        assert len(result["privacy_violations"]) > 0
 
     def test_severity_calculation(self):
         """Test severity level calculation."""
@@ -443,33 +443,33 @@ class TestSafetyEthicsValidator(unittest.TestCase):
 
         # Multiple violations - should be higher severity
         result = self.validator.validate_content("violence and abuse and harassment")
-        self.assertIn(result["severity"], ["medium", "high"])
+        assert result["severity"] in ["medium", "high"]
 
     def test_confidence_scoring(self):
         """Test confidence scoring accuracy."""
         # Clear violation should have high confidence
         clear_violation = self.validator.validate_content("This contains violence and abuse")
-        self.assertGreaterEqual(clear_violation["confidence"], 0.9)
+        assert clear_violation["confidence"] >= 0.9
 
         # Safe content should have good confidence
         safe_content = self.validator.validate_content("This is a supportive therapeutic message")
-        self.assertGreaterEqual(safe_content["confidence"], 0.8)
+        assert safe_content["confidence"] >= 0.8
 
         # Very short content should have lower confidence
         short_content = self.validator.validate_content("Hi")
-        self.assertLess(short_content["confidence"], 0.8)
+        assert short_content["confidence"] < 0.8
 
     def test_recommendations_generation(self):
         """Test that appropriate recommendations are generated."""
         # Harmful content should get safety recommendations
         result = self.validator.validate_content("This contains violence")
         recommendations = " ".join(result["recommendations"]).lower()
-        self.assertIn("safety", recommendations)
+        assert "safety" in recommendations
 
         # Privacy violations should get HIPAA recommendations
         result = self.validator.validate_content("My SSN is 123-45-6789")
         recommendations = " ".join(result["recommendations"]).lower()
-        self.assertIn("privacy", recommendations)
+        assert "privacy" in recommendations
 
     def test_validation_statistics(self):
         """Test validation statistics collection."""
@@ -486,11 +486,11 @@ class TestSafetyEthicsValidator(unittest.TestCase):
 
         stats = self.validator.get_validation_statistics()
 
-        assert stats["total_validations"] == len(test_contents
-        self.assertIn("safe_percentage", stats)
-        self.assertIn("ethical_percentage", stats)
-        self.assertIn("severity_distribution", stats)
-        self.assertIn("average_confidence", stats)
+        assert stats["total_validations"] == len(test_contents)
+        assert "safe_percentage" in stats
+        assert "ethical_percentage" in stats
+        assert "severity_distribution" in stats
+        assert "average_confidence" in stats
 
     def test_context_awareness(self):
         """Test that validator considers context appropriately."""
@@ -522,12 +522,12 @@ class TestSafetyEthicsValidator(unittest.TestCase):
             results.append(result)
 
         # Verify batch processing
-        assert len(results) == len(batch_contents
+        assert len(results) == len(batch_contents)
 
         # Check that violations were detected appropriately
         violation_count = sum(1 for r in results if len(r["violations"]) > 0)
-        self.assertGreater(violation_count, 0)
-        self.assertLess(violation_count, len(batch_contents))
+        assert violation_count > 0
+        assert violation_count < len(batch_contents)
 
 
 class TestSafetyEthicsValidatorIntegration(unittest.TestCase):
@@ -582,10 +582,10 @@ class TestSafetyEthicsValidatorIntegration(unittest.TestCase):
         # Should detect multiple serious violations
         assert not result["is_safe"]
         # Lower expectation for ethical detection since harmful content is primary concern
-        self.assertGreater(len(result["violations"]), 0)
-        self.assertIn(result["severity"], ["high", "medium", "low"])
-        self.assertGreaterEqual(len(result["violations"]), 1)
-        self.assertGreater(len(result["recommendations"]), 1)
+        assert len(result["violations"]) > 0
+        assert result["severity"] in ["high", "medium", "low"]
+        assert len(result["violations"]) >= 1
+        assert len(result["recommendations"]) > 1
 
 
 if __name__ == "__main__":

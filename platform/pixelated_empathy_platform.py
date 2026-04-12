@@ -7,9 +7,10 @@ This is the core of Pixelated Empathy: AI role-playing as difficult clients for 
 therapist training and supervisor evaluation.
 """
 
+from datetime import datetime, timezone
+
 import logging
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
 
 from pixelated_empathy_core import (
     ClientPersonality,

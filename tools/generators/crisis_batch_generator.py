@@ -3,9 +3,10 @@
 Batch Crisis Generator - Ultra-short prompts to avoid timeouts
 """
 
+from datetime import datetime, timezone
+
 import json
 import time
-from datetime import datetime, timezone
 
 import requests
 
