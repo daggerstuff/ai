@@ -16,13 +16,13 @@ class TestEndToEndPipeline(unittest.TestCase):
             "generate_nemo_synthetic_data.py"
         ]
         for script in required_scripts:
-            self.assertTrue((self.scripts_dir / script).exists(), f"Missing {script}")
+            assert (self.scripts_dir / script).exists(), f"Missing {script}"
 
     def test_imports(self):
         """Verify that scripts can import the S3Loader from the new utils location."""
         # Simple dry-run import check
         utils_path = self.project_root / "ai/training/utils/s3_dataset_loader.py"
-        self.assertTrue(utils_path.exists(), "S3DatasetLoader shim missing")
+        assert utils_path.exists(), "S3DatasetLoader shim missing"
 
     def test_production_script_paths(self):
         """Verify run_phase1_production.sh points to the correct ready_packages path."""

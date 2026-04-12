@@ -62,7 +62,7 @@ class TestQualityAssessment(unittest.TestCase):
         """Test safety compliance scoring."""
         safe_content = "I had a good day going for a walk in the park."
         safe_score = self.framework._assess_safety_compliance(safe_content)
-        self.assertEqual(safe_score, 1.0)
+        assert safe_score == 1.0
 
         # Testing a scenario that might be considered a safety risk (should score lower)
         risk_content = "I want to hurt myself, I have no reason to go on."
@@ -89,10 +89,10 @@ class TestQualityAssessment(unittest.TestCase):
 
         assessment = self.framework.assess_conversation(self.high_quality_conv)
 
-        self.assertEqual(assessment.conversation_id, "test_high_001")
+        assert assessment.conversation_id == "test_high_001"
         self.assertGreater(assessment.metrics.overall_score, 0.7)
         self.assertIsInstance(assessment.assigned_tier, QualityTier)
-        self.assertTrue(len(assessment.quality_strengths) > 0)
+        assert len(assessment.quality_strengths) > 0
 
     def test_low_quality_tier_assignment(self):
         """Test that low-quality conversations are assigned to lower tiers."""
@@ -101,8 +101,8 @@ class TestQualityAssessment(unittest.TestCase):
         # Depending on specific thresholds in QualityTier:
         # PRIORITY (0.99), PROFESSIONAL (0.90), CORE (0.80), BASIC (0.70), ARCHIVE (0.60)
         # Low quality should likely be ARCHIVE or FAIL (if there is one)
-        self.assertTrue(assessment.metrics.overall_score < 0.7)
-        self.assertEqual(assessment.assigned_tier.tier_name, "archive")
+        assert assessment.metrics.overall_score < 0.7
+        assert assessment.assigned_tier.tier_name == "archive"
 
 
 if __name__ == "__main__":

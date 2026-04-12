@@ -138,7 +138,7 @@ class TestEndToEndDataFlow(unittest.TestCase):
         conn.close()
 
         # Verify data loading
-        self.assertEqual(len(df), 50)
+        assert len(df) == 50
         self.assertIn("conversation_id", df.columns)
         self.assertIn("dataset_source", df.columns)
 
@@ -184,7 +184,7 @@ class TestEndToEndDataFlow(unittest.TestCase):
         )
 
         # Verify aggregation
-        self.assertEqual(len(dataset_stats), 4)  # 4 unique datasets
+        assert len(dataset_stats) == 4
 
         print("✅ Database to DataFrame pipeline test passed")
 
@@ -207,7 +207,7 @@ class TestEndToEndDataFlow(unittest.TestCase):
         self.assertIn("average_quality", quality_analysis)
 
         # Test 3: Cross-system data consistency
-        self.assertEqual(dataset_stats["total_conversations"], len(df))
+        assert dataset_stats["total_conversations"] == len(df
         self.assertAlmostEqual(
             quality_analysis["average_quality"],
             df.apply(lambda row: self._calculate_test_quality_score(row), axis=1).mean(),
@@ -287,12 +287,12 @@ class TestEndToEndDataFlow(unittest.TestCase):
         # Test 1: Database connection error handling
         invalid_db_path = "/nonexistent/database.db"
         result = self._safe_database_operation(invalid_db_path)
-        self.assertIsNone(result)
+        assert result is None
 
         # Test 2: Data processing error handling
         invalid_data = pd.DataFrame({"invalid_column": [1, 2, 3]})
         processed_data = self._safe_data_processing(invalid_data)
-        self.assertIsNotNone(processed_data)  # Should handle gracefully
+        assert processed_data is not None
 
         # Test 3: Analytics error handling
         empty_data = pd.DataFrame()

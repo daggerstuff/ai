@@ -322,19 +322,19 @@ class TestPipelineOrchestrator(unittest.TestCase):
 
     def test_initialization(self):
         """Test orchestrator initialization."""
-        self.assertIsNotNone(self.orchestrator)
-        self.assertEqual(len(self.orchestrator.stages), 0)
-        self.assertEqual(len(self.orchestrator.execution_history), 0)
+        assert self.orchestrator is not None
+        assert len(self.orchestrator.stages) == 0
+        assert len(self.orchestrator.execution_history) == 0
         self.assertIsInstance(self.orchestrator.retry_config, dict)
 
     def test_add_stage_success(self):
         """Test successful stage addition."""
         result = self.orchestrator.add_stage("validation", self.mock_validator)
 
-        self.assertTrue(result)
-        self.assertEqual(len(self.orchestrator.stages), 1)
-        self.assertEqual(self.orchestrator.stages[0]["name"], "validation")
-        self.assertTrue(self.orchestrator.stages[0]["enabled"])
+        assert result
+        assert len(self.orchestrator.stages) == 1
+        assert self.orchestrator.stages[0]["name"] == "validation"
+        assert self.orchestrator.stages[0]["enabled"]
 
     def test_add_stage_with_config(self):
         """Test adding stage with configuration."""
@@ -346,11 +346,11 @@ class TestPipelineOrchestrator(unittest.TestCase):
 
         result = self.orchestrator.add_stage("transformation", self.mock_transformer, config)
 
-        self.assertTrue(result)
+        assert result
         stage = self.orchestrator.stages[0]
-        self.assertEqual(stage["config"], config)
-        self.assertEqual(stage["timeout"], 600)
-        self.assertEqual(stage["dependencies"], ["input_validation"])
+        assert stage["config"] == config
+        assert stage["timeout"] == 600
+        assert stage["dependencies"] == ["input_validation"]
 
     def test_add_stage_invalid_name(self):
         """Test adding stage with invalid name."""
@@ -359,7 +359,7 @@ class TestPipelineOrchestrator(unittest.TestCase):
         for name in invalid_names:
             with self.subTest(name=name):
                 result = self.orchestrator.add_stage(name, self.mock_validator)
-                self.assertFalse(result)
+                assert not result
 
     def test_simple_pipeline_execution(self):
         """Test execution of simple pipeline."""
@@ -370,9 +370,9 @@ class TestPipelineOrchestrator(unittest.TestCase):
         # Execute pipeline
         result = self.orchestrator.execute_pipeline(self.test_data)
 
-        self.assertTrue(result["success"])
-        self.assertIsNone(result["error"])
-        self.assertEqual(result["stages_completed"], 2)
+        assert result["success"]
+        assert result["error"] is None
+        assert result["stages_completed"] == 2
         self.assertGreater(result["execution_time"], 0)
         self.assertIn("validation", result["results"])
         self.assertIn("transformation", result["results"])
@@ -388,8 +388,8 @@ class TestPipelineOrchestrator(unittest.TestCase):
 
         result = self.orchestrator.execute_pipeline(self.test_data)
 
-        self.assertTrue(result["success"])
-        self.assertEqual(result["stages_completed"], 3)
+        assert result["success"]
+        assert result["stages_completed"] == 3
 
         # Check execution order through results
         self.assertIn("input_validation", result["results"])
@@ -404,9 +404,9 @@ class TestPipelineOrchestrator(unittest.TestCase):
 
         result = self.orchestrator.execute_pipeline(self.test_data)
 
-        self.assertFalse(result["success"])
+        assert not result["success"]
         self.assertIn("Dependencies not met", result["error"])
-        self.assertEqual(result["stages_completed"], 0)
+        assert result["stages_completed"] == 0
 
     def test_pipeline_execution_no_input(self):
         """Test pipeline execution with no input data."""
@@ -414,9 +414,9 @@ class TestPipelineOrchestrator(unittest.TestCase):
 
         result = self.orchestrator.execute_pipeline(None)
 
-        self.assertFalse(result["success"])
+        assert not result["success"]
         self.assertIn("No input data", result["error"])
-        self.assertEqual(result["stages_completed"], 0)
+        assert result["stages_completed"] == 0
 
     def test_stage_enable_disable(self):
         """Test enabling and disabling stages."""
@@ -425,22 +425,22 @@ class TestPipelineOrchestrator(unittest.TestCase):
 
         # Disable transformation stage
         result = self.orchestrator.disable_stage("transformation")
-        self.assertTrue(result)
+        assert result
 
         # Execute pipeline - should only run validation
         exec_result = self.orchestrator.execute_pipeline(self.test_data)
-        self.assertTrue(exec_result["success"])
-        self.assertEqual(exec_result["stages_completed"], 1)
+        assert exec_result["success"]
+        assert exec_result["stages_completed"] == 1
         self.assertIn("validation", exec_result["results"])
         self.assertNotIn("transformation", exec_result["results"])
 
         # Re-enable transformation stage
         result = self.orchestrator.enable_stage("transformation")
-        self.assertTrue(result)
+        assert result
 
         # Execute again - should run both stages
         exec_result = self.orchestrator.execute_pipeline(self.test_data)
-        self.assertEqual(exec_result["stages_completed"], 2)
+        assert exec_result["stages_completed"] == 2
 
     def test_stage_removal(self):
         """Test removing stages from pipeline."""
@@ -449,12 +449,12 @@ class TestPipelineOrchestrator(unittest.TestCase):
 
         # Remove validation stage
         result = self.orchestrator.remove_stage("validation")
-        self.assertTrue(result)
-        self.assertEqual(len(self.orchestrator.stages), 1)
+        assert result
+        assert len(self.orchestrator.stages) == 1
 
         # Try to remove non-existent stage
         result = self.orchestrator.remove_stage("non_existent")
-        self.assertFalse(result)
+        assert not result
 
     def test_pipeline_validation(self):
         """Test pipeline configuration validation."""
@@ -465,9 +465,9 @@ class TestPipelineOrchestrator(unittest.TestCase):
 
         validation_result = self.orchestrator.validate_pipeline()
 
-        self.assertTrue(validation_result["valid"])
-        self.assertEqual(len(validation_result["issues"]), 0)
-        self.assertEqual(validation_result["total_stages"], 2)
+        assert validation_result["valid"]
+        assert len(validation_result["issues"]) == 0
+        assert validation_result["total_stages"] == 2
 
     def test_pipeline_validation_duplicate_names(self):
         """Test pipeline validation with duplicate stage names."""
@@ -476,7 +476,7 @@ class TestPipelineOrchestrator(unittest.TestCase):
 
         validation_result = self.orchestrator.validate_pipeline()
 
-        self.assertFalse(validation_result["valid"])
+        assert not validation_result["valid"]
         self.assertIn("Duplicate stage names", validation_result["issues"][0])
 
     def test_pipeline_validation_missing_dependencies(self):
@@ -486,7 +486,7 @@ class TestPipelineOrchestrator(unittest.TestCase):
 
         validation_result = self.orchestrator.validate_pipeline()
 
-        self.assertFalse(validation_result["valid"])
+        assert not validation_result["valid"]
         self.assertIn("non-existent stage", validation_result["issues"][0])
 
     def test_pipeline_status(self):
@@ -498,12 +498,12 @@ class TestPipelineOrchestrator(unittest.TestCase):
 
         status = self.orchestrator.get_pipeline_status()
 
-        self.assertEqual(status["total_stages"], 2)
-        self.assertEqual(status["enabled_stages"], 2)
-        self.assertEqual(status["disabled_stages"], 0)
-        self.assertEqual(status["total_executions"], 1)
+        assert status["total_stages"] == 2
+        assert status["enabled_stages"] == 2
+        assert status["disabled_stages"] == 0
+        assert status["total_executions"] == 1
         self.assertGreater(status["success_rate"], 0)
-        self.assertIsNotNone(status["last_execution"])
+        assert status["last_execution"] is not None
 
     def test_performance_metrics(self):
         """Test performance metrics collection."""
@@ -515,10 +515,10 @@ class TestPipelineOrchestrator(unittest.TestCase):
 
         metrics = self.orchestrator.get_performance_metrics()
 
-        self.assertEqual(metrics["total_executions"], 3)
-        self.assertEqual(metrics["successful_executions"], 3)
-        self.assertEqual(metrics["failed_executions"], 0)
-        self.assertEqual(metrics["success_rate"], 100.0)
+        assert metrics["total_executions"] == 3
+        assert metrics["successful_executions"] == 3
+        assert metrics["failed_executions"] == 0
+        assert metrics["success_rate"] == 100.0
         self.assertGreater(metrics["avg_execution_time"], 0)
 
     def test_batch_processing(self):
@@ -538,10 +538,10 @@ class TestPipelineOrchestrator(unittest.TestCase):
             results.append(result)
 
         # All should succeed
-        self.assertEqual(len(results), 3)
+        assert len(results) == 3
         for result in results:
-            self.assertTrue(result["success"])
-            self.assertEqual(result["stages_completed"], 2)
+            assert result["success"]
+            assert result["stages_completed"] == 2
 
     def test_complex_pipeline_workflow(self):
         """Test complex pipeline with multiple stages and dependencies."""
@@ -563,8 +563,8 @@ class TestPipelineOrchestrator(unittest.TestCase):
         # Execute pipeline
         result = self.orchestrator.execute_pipeline(self.test_data)
 
-        self.assertTrue(result["success"])
-        self.assertEqual(result["stages_completed"], 6)
+        assert result["success"]
+        assert result["stages_completed"] == 6
 
         # Verify all stages executed
         for name, _, _ in stages_config:
@@ -591,21 +591,21 @@ class TestPipelineOrchestratorIntegration(unittest.TestCase):
 
         # Validate pipeline
         validation = self.orchestrator.validate_pipeline()
-        self.assertTrue(validation["valid"])
+        assert validation["valid"]
 
         # Execute pipeline
         input_data = {"text": "Sample therapeutic conversation", "metadata": {"session_id": 123}}
         result = self.orchestrator.execute_pipeline(input_data)
 
         # Verify complete execution
-        self.assertTrue(result["success"])
-        self.assertEqual(result["stages_completed"], 4)
+        assert result["success"]
+        assert result["stages_completed"] == 4
         self.assertGreater(result["execution_time"], 0)
 
         # Check pipeline status
         status = self.orchestrator.get_pipeline_status()
-        self.assertEqual(status["total_executions"], 1)
-        self.assertEqual(status["success_rate"], 100.0)
+        assert status["total_executions"] == 1
+        assert status["success_rate"] == 100.0
 
     def test_pipeline_resilience_and_recovery(self):
         """Test pipeline resilience and error recovery."""
@@ -627,7 +627,7 @@ class TestPipelineOrchestratorIntegration(unittest.TestCase):
 
         # Check performance metrics
         metrics = self.orchestrator.get_performance_metrics()
-        self.assertEqual(metrics["total_executions"], 5)
+        assert metrics["total_executions"] == 5
         self.assertGreater(metrics["success_rate"], 50)
 
 

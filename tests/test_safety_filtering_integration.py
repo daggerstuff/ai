@@ -47,11 +47,11 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
     def test_health_endpoint_safety(self):
         """Test that health endpoint works even with safety filtering"""
         response = self.test_client.get("/health")
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == 200
 
         data = json.loads(response.data)
         self.assertIn("status", data)
-        self.assertEqual(data["status"], "healthy")
+        assert data["status"] == "healthy"
 
     @patch("..inference.model_adapters.ModelAdapterManager.predict")
     def test_safe_content_passes_through(self, mock_predict):
@@ -76,7 +76,7 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
             "/chat/completions", json=test_request, headers=self.headers
         )
 
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == 200
 
         data = json.loads(response.data)
         self.assertIn("choices", data)
@@ -88,7 +88,7 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
 
         # Check that safety filtering information is included
         self.assertIn("safety_filtered", data)
-        self.assertFalse(data["safety_filtered"])
+        assert not data["safety_filtered"]
         self.assertIn("safety_score", data)
         self.assertGreaterEqual(
             data["safety_score"], 0.8
@@ -119,7 +119,7 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
             "/chat/completions", json=test_request, headers=self.headers
         )
 
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == 200
 
         data = json.loads(response.data)
         self.assertIn("choices", data)
@@ -132,7 +132,7 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
 
         # Check that safety filtering was applied
         self.assertIn("safety_filtered", data)
-        self.assertTrue(data["safety_filtered"])
+        assert data["safety_filtered"]
         self.assertIn("safety_score", data)
         self.assertLess(data["safety_score"], 0.5)  # Should be low for crisis content
 
@@ -143,7 +143,7 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
         # Check for crisis intervention information
         self.assertIn("crisis_intervention", data)
         crisis_intervention = data["crisis_intervention"]
-        self.assertIsNotNone(crisis_intervention)
+        assert crisis_intervention is not None
         self.assertIn("status", crisis_intervention)
         self.assertIn("response_content", crisis_intervention)
 
@@ -169,7 +169,7 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
             "/chat/completions", json=test_request, headers=self.headers
         )
 
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == 200
 
         data = json.loads(response.data)
 
@@ -215,7 +215,7 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
             "/chat/completions", json=test_request, headers=self.headers
         )
 
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == 200
 
         data = json.loads(response.data)
 
@@ -251,7 +251,7 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
             "/chat/completions", json=test_request, headers=self.headers
         )
 
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == 200
 
         data = json.loads(response.data)
 
@@ -285,7 +285,7 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
             )
 
             # Empty content should still return a valid response
-            self.assertEqual(response.status_code, 200)
+            assert response.status_code == 200
 
             data = json.loads(response.data)
             self.assertIn("choices", data)
@@ -314,13 +314,13 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
             "/chat/completions", json=test_request, headers=self.headers
         )
 
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == 200
 
         data = json.loads(response.data)
 
         # Check that multiple safety issues were detected and handled
         self.assertIn("safety_filtered", data)
-        self.assertTrue(data["safety_filtered"])
+        assert data["safety_filtered"]
 
         self.assertIn("safety_categories", data)
         self.assertGreater(len(data["safety_categories"]), 0)
@@ -328,7 +328,7 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
         # Check that crisis intervention was triggered
         self.assertIn("crisis_intervention", data)
         crisis_intervention = data["crisis_intervention"]
-        self.assertIsNotNone(crisis_intervention)
+        assert crisis_intervention is not None
 
         # Verify that the content was appropriately filtered/redacted
         response_content = data["choices"][0]["message"]["content"]
@@ -384,7 +384,7 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
             response = self.test_client.post(
                 "/chat/completions", json=test_request, headers=self.headers
             )
-            self.assertEqual(response.status_code, 200)
+            assert response.status_code == 200
 
         end_time = time.time()
         total_time = end_time - start_time
@@ -402,8 +402,8 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
         crisis_content = "I don't want to live anymore. I'm going to overdose."
         crisis_result = self.safety_filter._check_crisis_content(crisis_content)
 
-        self.assertTrue(crisis_result.is_crisis)
-        self.assertIsNotNone(crisis_result.crisis_type)
+        assert crisis_result.is_crisis
+        assert crisis_result.crisis_type is not None
         self.assertGreater(crisis_result.confidence, 0.5)
         self.assertIn(
             crisis_result.urgency_level, ["low", "medium", "high", "immediate"]
@@ -425,8 +425,8 @@ class TestSafetyFilterIntegration(unittest.TestCase):
     def test_safety_filter_initialization(self):
         """Test that safety filter initializes correctly"""
         safety_filter = EnhancedSafetyFilter(SafetyLevel.MODERATE)
-        self.assertIsNotNone(safety_filter)
-        self.assertEqual(safety_filter.safety_level, SafetyLevel.MODERATE)
+        assert safety_filter is not None
+        assert safety_filter.safety_level == SafetyLevel.MODERATE
 
     def test_safety_check_result_structure(self):
         """Test that safety check results have correct structure"""
@@ -472,7 +472,7 @@ class TestSafetyFilterIntegration(unittest.TestCase):
 
         results = safety_filter.batch_filter_responses(test_responses)
 
-        self.assertEqual(len(results), len(test_responses))
+        assert len(results) == len(test_responses
         for result in results:
             self.assertIsInstance(result, tuple)
             self.assertEqual(

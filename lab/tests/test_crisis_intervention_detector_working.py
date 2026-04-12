@@ -171,10 +171,10 @@ class TestCrisisInterventionDetector(unittest.TestCase):
 
     def test_initialization(self):
         """Test detector initialization."""
-        self.assertIsNotNone(self.detector)
+        assert self.detector is not None
         self.assertIsInstance(self.detector.crisis_keywords, list)
         self.assertGreater(len(self.detector.crisis_keywords), 0)
-        self.assertEqual(len(self.detector.response_times), 0)
+        assert len(self.detector.response_times) == 0
 
     def test_critical_crisis_detection(self):
         """Test detection of critical crisis situations."""
@@ -182,12 +182,12 @@ class TestCrisisInterventionDetector(unittest.TestCase):
             with self.subTest(text=text):
                 result = self.detector.detect_crisis(text)
 
-                self.assertTrue(result["crisis_detected"])
-                self.assertEqual(result["severity"], "critical")
+                assert result["crisis_detected"]
+                assert result["severity"] == "critical"
                 self.assertGreaterEqual(result["confidence"], 0.9)
                 # Escalation may not always be required for all high severity cases
                 self.assertIsInstance(result["escalation_required"], bool)
-                self.assertTrue(result["immediate_intervention"])
+                assert result["immediate_intervention"]
                 self.assertGreater(len(result["keywords_found"]), 0)
 
     def test_high_severity_crisis_detection(self):
@@ -196,12 +196,12 @@ class TestCrisisInterventionDetector(unittest.TestCase):
             with self.subTest(text=text):
                 result = self.detector.detect_crisis(text)
 
-                self.assertTrue(result["crisis_detected"])
+                assert result["crisis_detected"]
                 self.assertIn(result["severity"], ["high", "medium", "low"])
                 self.assertGreaterEqual(result["confidence"], 0.5)
                 # Escalation may not always be required for all high severity cases
                 self.assertIsInstance(result["escalation_required"], bool)
-                self.assertFalse(result["immediate_intervention"])
+                assert not result["immediate_intervention"]
 
     def test_medium_severity_crisis_detection(self):
         """Test detection of medium severity crisis situations."""
@@ -209,10 +209,10 @@ class TestCrisisInterventionDetector(unittest.TestCase):
             with self.subTest(text=text):
                 result = self.detector.detect_crisis(text)
 
-                self.assertTrue(result["crisis_detected"])
-                self.assertEqual(result["severity"], "medium")
+                assert result["crisis_detected"]
+                assert result["severity"] == "medium"
                 self.assertGreaterEqual(result["confidence"], 0.6)
-                self.assertFalse(result["escalation_required"])
+                assert not result["escalation_required"]
 
     def test_low_severity_detection(self):
         """Test detection of low severity situations."""
@@ -222,7 +222,7 @@ class TestCrisisInterventionDetector(unittest.TestCase):
 
                 # Low severity may or may not be detected as crisis
                 if result["crisis_detected"]:
-                    self.assertEqual(result["severity"], "low")
+                    assert result["severity"] == "low"
                     self.assertLess(result["confidence"], 0.7)
 
     def test_no_crisis_detection(self):
@@ -231,10 +231,10 @@ class TestCrisisInterventionDetector(unittest.TestCase):
             with self.subTest(text=text):
                 result = self.detector.detect_crisis(text)
 
-                self.assertFalse(result["crisis_detected"])
-                self.assertEqual(result["severity"], "none")
-                self.assertEqual(result["confidence"], 0.0)
-                self.assertEqual(len(result["keywords_found"]), 0)
+                assert not result["crisis_detected"]
+                assert result["severity"] == "none"
+                assert result["confidence"] == 0.0
+                assert len(result["keywords_found"]) == 0
 
     def test_edge_cases(self):
         """Test edge cases and error handling."""
@@ -277,10 +277,10 @@ class TestCrisisInterventionDetector(unittest.TestCase):
 
         escalation = self.detector.escalate_crisis(crisis_data)
 
-        self.assertTrue(escalation["escalated"])
-        self.assertEqual(escalation["authority"], "emergency_services")
-        self.assertEqual(escalation["contact"], "911")
-        self.assertEqual(escalation["priority"], "immediate")
+        assert escalation["escalated"]
+        assert escalation["authority"] == "emergency_services"
+        assert escalation["contact"] == "911"
+        assert escalation["priority"] == "immediate"
 
     def test_escalation_high(self):
         """Test escalation for high severity crises."""
@@ -292,10 +292,10 @@ class TestCrisisInterventionDetector(unittest.TestCase):
 
         escalation = self.detector.escalate_crisis(crisis_data)
 
-        self.assertTrue(escalation["escalated"])
-        self.assertEqual(escalation["authority"], "crisis_hotline")
-        self.assertEqual(escalation["contact"], "988")
-        self.assertEqual(escalation["priority"], "urgent")
+        assert escalation["escalated"]
+        assert escalation["authority"] == "crisis_hotline"
+        assert escalation["contact"] == "988"
+        assert escalation["priority"] == "urgent"
 
     def test_escalation_medium(self):
         """Test escalation for medium severity crises."""
@@ -307,9 +307,9 @@ class TestCrisisInterventionDetector(unittest.TestCase):
 
         escalation = self.detector.escalate_crisis(crisis_data)
 
-        self.assertTrue(escalation["escalated"])
-        self.assertEqual(escalation["authority"], "mental_health_professional")
-        self.assertEqual(escalation["priority"], "scheduled")
+        assert escalation["escalated"]
+        assert escalation["authority"] == "mental_health_professional"
+        assert escalation["priority"] == "scheduled"
 
     def test_no_escalation_for_low_severity(self):
         """Test that low severity doesn't trigger escalation."""
@@ -321,7 +321,7 @@ class TestCrisisInterventionDetector(unittest.TestCase):
 
         escalation = self.detector.escalate_crisis(crisis_data)
 
-        self.assertFalse(escalation["escalated"])
+        assert not escalation["escalated"]
         self.assertIn("reason", escalation)
 
     def test_performance_metrics(self):
@@ -342,7 +342,7 @@ class TestCrisisInterventionDetector(unittest.TestCase):
         self.assertIn("max_response_time", metrics)
         self.assertIn("min_response_time", metrics)
         self.assertIn("total_detections", metrics)
-        self.assertEqual(metrics["total_detections"], len(test_texts))
+        assert metrics["total_detections"] == len(test_texts
 
     def test_keyword_detection_accuracy(self):
         """Test accuracy of keyword detection."""
@@ -392,10 +392,10 @@ class TestCrisisInterventionDetector(unittest.TestCase):
         for thread in threads:
             thread.join()
 
-        self.assertEqual(len(results), 5)
+        assert len(results) == 5
         for result in results:
-            self.assertTrue(result["crisis_detected"])
-            self.assertEqual(result["severity"], "critical")
+            assert result["crisis_detected"]
+            assert result["severity"] == "critical"
 
 
 class TestCrisisInterventionDetectorIntegration(unittest.TestCase):
@@ -412,15 +412,15 @@ class TestCrisisInterventionDetectorIntegration(unittest.TestCase):
         detection_result = self.detector.detect_crisis(crisis_text)
 
         # Verify detection
-        self.assertTrue(detection_result["crisis_detected"])
-        self.assertEqual(detection_result["severity"], "critical")
+        assert detection_result["crisis_detected"]
+        assert detection_result["severity"] == "critical"
 
         # Step 2: Escalate crisis
         escalation_result = self.detector.escalate_crisis(detection_result)
 
         # Verify escalation
-        self.assertTrue(escalation_result["escalated"])
-        self.assertEqual(escalation_result["authority"], "emergency_services")
+        assert escalation_result["escalated"]
+        assert escalation_result["authority"] == "emergency_services"
 
         # Step 3: Verify performance
         metrics = self.detector.get_performance_metrics()
@@ -442,7 +442,7 @@ class TestCrisisInterventionDetectorIntegration(unittest.TestCase):
             results.append(result)
 
         # Verify batch processing
-        self.assertEqual(len(results), len(batch_texts))
+        assert len(results) == len(batch_texts
 
         # Check that crises were detected appropriately
         crisis_count = sum(1 for r in results if r["crisis_detected"])
@@ -459,7 +459,7 @@ class TestCrisisInterventionDetectorIntegration(unittest.TestCase):
         for i in range(100):
             text = f"Crisis text number {i}: I want to kill myself"
             result = self.detector.detect_crisis(text)
-            self.assertTrue(result["crisis_detected"])
+            assert result["crisis_detected"]
 
         end_time = time.time()
         total_time = end_time - start_time

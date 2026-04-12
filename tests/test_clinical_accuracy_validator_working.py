@@ -331,10 +331,10 @@ class TestClinicalAccuracyValidator(unittest.TestCase):
 
     def test_initialization(self):
         """Test validator initialization."""
-        self.assertIsNotNone(self.validator)
+        assert self.validator is not None
         self.assertIsInstance(self.validator.clinical_standards, dict)
         self.assertIsInstance(self.validator.severity_levels, list)
-        self.assertEqual(len(self.validator.validation_history), 0)
+        assert len(self.validator.validation_history) == 0
 
     def test_excellent_clinical_responses(self):
         """Test validation of excellent clinical responses."""
@@ -344,8 +344,8 @@ class TestClinicalAccuracyValidator(unittest.TestCase):
 
                 self.assertGreaterEqual(result["clinical_accuracy"], 0.8)
                 self.assertIn(result["severity"], ["excellent", "good", "acceptable"])
-                self.assertTrue(result["dsm5_compliance"])
-                self.assertTrue(result["evidence_based"])
+                assert result["dsm5_compliance"]
+                assert result["evidence_based"]
                 self.assertGreaterEqual(result["therapeutic_appropriateness"], 0.7)
 
     def test_good_clinical_responses(self):
@@ -381,7 +381,7 @@ class TestClinicalAccuracyValidator(unittest.TestCase):
                 # Check that violations contain expected violation types
                 expected_violations = ["safety_violation", "boundary_violation", "inappropriate_diagnosis"]
                 violation_found = any(violation in expected_violations for violation in result["violations"])
-                self.assertTrue(violation_found, f"Expected one of {expected_violations}, got {result['violations']}")
+                assert violation_found, f"Expected one of {expected_violations}, got {result['violations']}"
 
     def test_edge_cases(self):
         """Test edge cases and error handling."""
@@ -409,24 +409,24 @@ class TestClinicalAccuracyValidator(unittest.TestCase):
         # Good DSM-5 compliance
         good_response = "Let's explore these symptoms and consider the criteria for anxiety disorders."
         result = self.validator.validate_clinical_accuracy(good_response, self.test_context)
-        self.assertTrue(result["dsm5_compliance"])
+        assert result["dsm5_compliance"]
 
         # Poor DSM-5 compliance
         poor_response = "You have severe depression and bipolar disorder."
         result = self.validator.validate_clinical_accuracy(poor_response, self.test_context)
-        self.assertFalse(result["dsm5_compliance"])
+        assert not result["dsm5_compliance"]
 
     def test_evidence_based_practice_assessment(self):
         """Test evidence-based practice assessment."""
         # Evidence-based response
         evidence_response = "Research shows that cognitive behavioral therapy is effective for anxiety."
         result = self.validator.validate_clinical_accuracy(evidence_response, self.test_context)
-        self.assertTrue(result["evidence_based"])
+        assert result["evidence_based"]
 
         # Non-evidence-based response
         non_evidence_response = "This treatment always works and is guaranteed to cure you."
         result = self.validator.validate_clinical_accuracy(non_evidence_response, self.test_context)
-        self.assertFalse(result["evidence_based"])
+        assert not result["evidence_based"]
 
     def test_therapeutic_appropriateness_assessment(self):
         """Test therapeutic appropriateness assessment."""
@@ -487,7 +487,7 @@ class TestClinicalAccuracyValidator(unittest.TestCase):
 
         stats = self.validator.get_validation_statistics()
 
-        self.assertEqual(stats["total_validations"], len(test_responses))
+        assert stats["total_validations"] == len(test_responses
         self.assertIn("average_accuracy", stats)
         self.assertIn("severity_distribution", stats)
         self.assertIn("dsm5_compliance_rate", stats)
@@ -566,7 +566,7 @@ class TestClinicalAccuracyValidatorIntegration(unittest.TestCase):
             results.append(result)
 
         # Verify batch processing
-        self.assertEqual(len(results), len(responses))
+        assert len(results) == len(responses
 
         # Check accuracy distribution
         accuracies = [r["clinical_accuracy"] for r in results]
