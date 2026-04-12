@@ -440,7 +440,7 @@ class IntegrationPlanningEngine:
         if target_format == "chatml":
             # Map to ChatML format
             required_pipeline_fields = self.pipeline_schema["required_fields"]
-            message_fields = self.pipeline_schema["message_structure"]
+            self.pipeline_schema["message_structure"]
 
             # Try to identify conversation fields
             conversation_field_candidates = [

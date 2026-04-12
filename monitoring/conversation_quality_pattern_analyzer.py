@@ -116,9 +116,8 @@ class ConversationQualityPatternAnalyzer:
         )  # Avoid division by zero
 
         # Filter out empty conversations
-        df = df[df["conversation_text"].str.len() > 10]
+        return df[df["conversation_text"].str.len() > 10]
 
-        return df
 
     def _extract_text_from_json(self, json_str: str) -> str:
         """Extract readable text from conversations JSON"""
@@ -419,7 +418,7 @@ class ConversationQualityPatternAnalyzer:
 
             # Specificity indicators
             specific_terms = len(re.findall(r"\b\d+\b", text))  # Numbers
-            proper_nouns = len(re.findall(r"\b[A-Z][a-z]+\b", text))
+            len(re.findall(r"\b[A-Z][a-z]+\b", text))
 
             # Depth indicators
             explanatory_phrases = len(
@@ -977,8 +976,7 @@ class ConversationQualityPatternAnalyzer:
             phrase_counts[phrase] += 1
 
         # Count phrases that appear more than once
-        repetitive_count = sum(1 for count in phrase_counts.values() if count > 1)
-        return repetitive_count
+        return sum(1 for count in phrase_counts.values() if count > 1)
 
     def _detect_topic_shifts(self, lines: list[str]) -> int:
         """Detect abrupt topic shifts in conversation"""
@@ -1064,8 +1062,7 @@ class ConversationQualityPatternAnalyzer:
         if mean_length == 0:
             return 0
 
-        variety_score = min(1.0, std_length / mean_length)
-        return variety_score
+        return min(1.0, std_length / mean_length)
 
     def _check_temporal_consistency(self, text: str) -> float:
         """Check temporal consistency in text"""
@@ -1088,9 +1085,8 @@ class ConversationQualityPatternAnalyzer:
 
         # Calculate consistency (dominant tense should be > 60% of markers)
         max_markers = max(past_markers, present_markers, future_markers)
-        consistency = max_markers / total_markers
+        return max_markers / total_markers
 
-        return consistency
 
     def _extract_quality_indicators(
         self, conversations: pd.DataFrame

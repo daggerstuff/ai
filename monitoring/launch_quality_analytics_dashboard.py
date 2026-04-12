@@ -301,7 +301,7 @@ class QualityAnalyticsDashboardLauncher:
                 logger.warning("⚠️ Pre-launch tests failed, but continuing...")
 
         # Step 5: Create launch configuration
-        config = self.create_launch_config()
+        self.create_launch_config()
 
         # Step 6: Launch dashboard
         success = self.launch_dashboard(port=port, host=host)

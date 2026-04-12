@@ -521,8 +521,6 @@ class QualityComparator:
         # Performance difference
         mean_diff = group1_stats["mean"] - group2_stats["mean"]
         if abs(mean_diff) > 0.05:  # 5% threshold
-            better_group = group1_stats if mean_diff > 0 else group2_stats
-            worse_group = group2_stats if mean_diff > 0 else group1_stats
             better_name = "Group 1" if mean_diff > 0 else "Group 2"
             worse_name = "Group 2" if mean_diff > 0 else "Group 1"
 

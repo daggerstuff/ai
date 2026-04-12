@@ -247,7 +247,7 @@ class ComprehensiveProductionFix:
 
             from database_optimization import DatabaseOptimizationSystem
 
-            optimizer = DatabaseOptimizationSystem()
+            DatabaseOptimizationSystem()
             self.test_results["database"] = {
                 "status": "functional",
                 "config_loaded": True,
@@ -307,7 +307,7 @@ class ComprehensiveProductionFix:
 
             from caching_system import CacheManager
 
-            cache_manager = CacheManager()
+            CacheManager()
             self.test_results["caching"] = {
                 "status": "functional",
                 "redis_available": True,

@@ -63,8 +63,7 @@ Be very careful to ensure the question and response actually match and make logi
 
             # Parse JSON response
             try:
-                analysis = json.loads(analysis_text)
-                return analysis
+                return json.loads(analysis_text)
             except json.JSONDecodeError:
                 # Fallback if JSON parsing fails
                 return self.create_fallback_analysis(text, metadata)

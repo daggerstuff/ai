@@ -196,7 +196,7 @@ class DatasetSyncVerifier:
 
         comparison = self.compare_sources(s3_path, gdrive_path)
 
-        sync_status = {
+        return {
             "gdrive_synced": comparison["gdrive_exists"],
             "s3_synced": comparison["s3_exists"],
             "last_sync_timestamp": datetime.now(timezone.utc).isoformat() + "Z",
@@ -207,7 +207,6 @@ class DatasetSyncVerifier:
             ),
         }
 
-        return sync_status
 
     def verify_all_datasets(self, limit: int | None = None) -> dict[str, Any]:
         """

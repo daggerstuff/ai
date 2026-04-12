@@ -142,7 +142,7 @@ class SmartQAAgent:
 
         # Generate based on topic and content type
         main_topic = analysis.get("main_topic", "general_therapeutic")
-        content_type = analysis.get("content_type", "unclear")
+        analysis.get("content_type", "unclear")
 
         topic_questions = {
             "trauma_therapy": {

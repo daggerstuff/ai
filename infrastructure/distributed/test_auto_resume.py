@@ -159,7 +159,7 @@ class AutoResumeTestSuite:
         )
 
         # Create a process with some progress
-        state = self.checkpoint_manager.register_process(
+        self.checkpoint_manager.register_process(
             process_id=process_id,
             task_id=task_id,
             total_steps=10,
@@ -315,7 +315,7 @@ class AutoResumeTestSuite:
             )
 
             # Create process with progress
-            state = self.checkpoint_manager.register_process(
+            self.checkpoint_manager.register_process(
                 process_id=process_id,
                 task_id=task_id,
                 total_steps=20,
@@ -469,7 +469,7 @@ class AutoResumeTestSuite:
 
         # Create processes with some progress to make them resumable
         for process_id in ["dependency_fast", "dependent_slow"]:
-            state = self.checkpoint_manager.register_process(
+            self.checkpoint_manager.register_process(
                 process_id=process_id,
                 task_id=f"{process_id}_task",
                 total_steps=10,
@@ -718,7 +718,7 @@ class AutoResumeTestSuite:
         )
 
         # Create process state
-        state = self.checkpoint_manager.register_process(
+        self.checkpoint_manager.register_process(
             process_id=process_id,
             task_id="error_recovery_task",
             total_steps=10,
@@ -802,10 +802,10 @@ class AutoResumeTestSuite:
         # Calculate performance metrics
         if resume_times:
             avg_resume_time = sum(resume_times) / len(resume_times)
-            max_resume_time = max(resume_times)
-            min_resume_time = min(resume_times)
+            max(resume_times)
+            min(resume_times)
         else:
-            avg_resume_time = max_resume_time = min_resume_time = 0
+            avg_resume_time = 0
 
         # Performance assertions
         assert avg_resume_time < 1.0, (

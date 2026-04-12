@@ -718,11 +718,11 @@ def main():
     # Step 2: Create all deployment components
     logger.info("📝 Creating Lightning.ai deployment components...")
 
-    training_script = deployer.create_lightning_training_script()
-    config_file = deployer.create_deployment_config(validation_results)
-    requirements_file = deployer.create_requirements_file()
-    data_prep_script = deployer.create_data_preparation_script()
-    deployment_guide = deployer.create_deployment_instructions(validation_results)
+    deployer.create_lightning_training_script()
+    deployer.create_deployment_config(validation_results)
+    deployer.create_requirements_file()
+    deployer.create_data_preparation_script()
+    deployer.create_deployment_instructions(validation_results)
 
     # Step 3: Package for deployment
     package_dir = deployer.package_for_deployment()

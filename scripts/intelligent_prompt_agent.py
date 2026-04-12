@@ -406,7 +406,7 @@ class MultiPatternAgent:
 
         # Extract actual topics from the text
         topics = self._extract_actual_topics(text)
-        selected_topic = topics[0] if topics else "this situation"
+        topics[0] if topics else "this situation"
 
         # Generate contextual question based on what the text actually discusses
         if "trauma" in text.lower() or "hurt" in text.lower():

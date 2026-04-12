@@ -107,8 +107,7 @@ def load_templates(path):
     if not path:
         return [{"id": "default", "template": "{scenario}"}]
     with open(path, encoding="utf-8") as f:
-        data = json.load(f)
-    return data
+        return json.load(f)
 
 
 def apply_template(template, scenario):
@@ -133,8 +132,7 @@ def load_chain_templates(path, chain_type):
             ]
         return [{"id": chain_type, "template": f"{chain_type}: {{dialogue}}"}]
     with open(path, encoding="utf-8") as f:
-        data = json.load(f)
-    return data
+        return json.load(f)
 
 
 def apply_chain_template(template, dialogue):

@@ -35,13 +35,12 @@ def transform_record(record, expert_id):
             from_val = "human" if role == "user" else "gpt"
             new_messages.append({"from": from_val, "value": msg.get("content", "")})
 
-    new_record = {
+    return {
         "conversations": new_messages,
         "expert_id": expert_id,
         "computed_quality": record.get("metadata", {}).get("quality_score", 0.8),
         "metadata": record.get("metadata", {}),
     }
-    return new_record
 
 
 def convert_jsonl_to_json(input_path: Path, output_path: Path, expert_id=0):

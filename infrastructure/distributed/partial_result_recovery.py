@@ -440,13 +440,12 @@ async def example_partial_result_recovery():
         print(f"Checkpoint data: {checkpoint_data}")
 
         # Continue processing from where we left off
-        continuation_result = {
+        return {
             "recovered_batches": len(all_results) - 1,  # Exclude checkpoint
             "last_checkpoint": checkpoint_data,
             "continuation_successful": True
         }
 
-        return continuation_result
 
     # Test recovery
     result = manager.continue_processing_from_results(

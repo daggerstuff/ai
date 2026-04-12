@@ -70,7 +70,7 @@ class CreateIntegrationPlansPrompt(MCPPrompt):
             source_ids_str = "all acquired datasets in session"
             source_ids_json = "null"
 
-        template = f"""# Integration Planning Workflow
+        return f"""# Integration Planning Workflow
 
 ## Overview
 This workflow guides you through creating integration plans for acquired datasets for research session `{session_id}`. Integration plans specify how datasets will be transformed and integrated into the training pipeline.
@@ -209,5 +209,4 @@ generate_preprocessing_script(
 - You can review and modify integration plans if needed
 """
 
-        return template
 

@@ -349,7 +349,7 @@ class PixelatedEmpathyPlatform:
                 }
             )
 
-        dashboard = {
+        return {
             "session_overview": {
                 "session_id": session_id,
                 "trainee_id": evaluation_session["trainee_id"],
@@ -381,7 +381,6 @@ class PixelatedEmpathyPlatform:
             "intervention_alerts": self._get_intervention_alerts(evaluation_session),
         }
 
-        return dashboard
 
     def complete_training_session(
         self, session_id: str, supervisor_final_assessment: dict

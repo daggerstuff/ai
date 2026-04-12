@@ -38,8 +38,7 @@ class TranscriptCorrector:
 
     def _clean_structure(self, text: str) -> str:
         """Clean filler words and structure from text."""
-        text = re.sub(r"\b(Um|um|Uh|uh|Like|like),?\s*", "", text)
-        return text
+        return re.sub(r"\b(Um|um|Uh|uh|Like|like),?\s*", "", text)
 
     def _apply_terminology_fixes(self, text: str) -> str:
         """Apply terminology corrections."""
@@ -54,8 +53,7 @@ class TranscriptCorrector:
     def correct_transcript(self, text: str, _context: str = "") -> str:
         """Correct transcript text."""
         result = self._clean_structure(text)
-        result = self._apply_terminology_fixes(result)
-        return result
+        return self._apply_terminology_fixes(result)
 
     def validate_term_coverage(self, text: str) -> dict[str, Any]:
         """Validate term coverage in text."""

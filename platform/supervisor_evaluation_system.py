@@ -212,7 +212,7 @@ class SupervisorEvaluationEngine:
 
         # Determine if intervention is needed
         evaluation_session = self.active_evaluations[session_id]
-        thresholds = evaluation_session["thresholds"]
+        evaluation_session["thresholds"]
 
         intervention_timing = InterventionTiming.POST_SESSION
         if competency_level == CompetencyLevel.UNSATISFACTORY:

@@ -736,7 +736,7 @@ async def example_auto_resume():
         )
 
         # Create a process that will be "interrupted"
-        state = checkpoint_manager.register_process(
+        checkpoint_manager.register_process(
             process_id=process_id,
             task_id=task_id,
             total_steps=20,

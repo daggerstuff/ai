@@ -460,7 +460,7 @@ class DisasterRecoveryManager:
                 for step_id in executable_steps
             ]
 
-            results = await asyncio.gather(*tasks, return_exceptions=True)
+            await asyncio.gather(*tasks, return_exceptions=True)
 
             # Mark steps as executed
             for step_id in executable_steps:
@@ -573,7 +573,7 @@ async def example_disaster_recovery():
 
     # Execute recovery plan
     print("Executing recovery plan...")
-    final_status = await dr_manager.execute_recovery_plan(session_id)
+    await dr_manager.execute_recovery_plan(session_id)
 
     # Get final status
     status = dr_manager.get_recovery_status(session_id)

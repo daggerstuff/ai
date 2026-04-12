@@ -15,9 +15,8 @@ class PreciseCleaner:
 
         # Remove only: "And I guess to take this one step further, I've heard you talk about"
         pattern = r"^And I guess to take this one step further, I\'ve heard you talk about\s*"
-        cleaned = re.sub(pattern, "", text, flags=re.IGNORECASE).strip()
+        return re.sub(pattern, "", text, flags=re.IGNORECASE).strip()
 
-        return cleaned
 
     def process_segment(self, segment: dict) -> dict:
         """Process segment with precise cleaning"""

@@ -219,7 +219,7 @@ class ProductionDeployment:
 
         try:
             # Pre-deployment
-            validation_data = self.pre_deployment_checks()
+            self.pre_deployment_checks()
             self.backup_current_system()
 
             # Deployment

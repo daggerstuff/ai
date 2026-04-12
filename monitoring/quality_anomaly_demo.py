@@ -496,7 +496,7 @@ DEMO ALERT: Quality anomaly detected in {metric.replace("_", " ")}.
             confidences = [a.confidence for a in anomalies]
             deviations = [abs(a.deviation) for a in anomalies]
 
-            scatter = ax.scatter(confidences, deviations, alpha=0.7, s=100)
+            ax.scatter(confidences, deviations, alpha=0.7, s=100)
             ax.set_title("Confidence vs Deviation")
             ax.set_xlabel("Confidence Level")
             ax.set_ylabel("Absolute Deviation")

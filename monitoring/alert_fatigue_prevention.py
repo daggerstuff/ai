@@ -328,9 +328,8 @@ class AlertFatiguePreventionSystem:
             normalized = re.sub(pattern, "<REDACTED>", normalized)
 
         # Remove extra whitespace
-        normalized = re.sub(r"\s+", " ", normalized).strip()
+        return re.sub(r"\s+", " ", normalized).strip()
 
-        return normalized
 
     async def process_alert(self, alert_data: dict[str, Any]) -> dict[str, Any]:
         """Process an incoming alert through the fatigue prevention system"""

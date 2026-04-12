@@ -315,12 +315,11 @@ class LettaClient:
             return None
 
         try:
-            result = self.client.execute_tool(
+            return self.client.execute_tool(
                 agent_id=self._agent.id,
                 tool_name=tool_name,
                 arguments=arguments,
             )
-            return result
 
         except Exception as e:
             logger.error(f"Tool execution failed: {e}")

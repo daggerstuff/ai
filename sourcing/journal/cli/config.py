@@ -213,8 +213,7 @@ def load_config(config_path: Path | str | None = None) -> dict[str, Any]:
         config_path = Path(config_path)
     manager = ConfigManager(config_path) if config_path else _config_manager
     config = manager.load()
-    config = manager.apply_env_overrides(config)
-    return config
+    return manager.apply_env_overrides(config)
 
 
 def save_config(config: dict[str, Any], config_path: Path | str | None = None) -> None:

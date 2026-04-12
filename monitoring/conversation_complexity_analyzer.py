@@ -149,11 +149,10 @@ class ConversationComplexityAnalyzer:
                 return None
 
             # Generate complexity analysis
-            analysis = self._generate_complexity_analysis(
+            return self._generate_complexity_analysis(
                 dataset_name, conversation_metrics
             )
 
-            return analysis
 
         except Exception as e:
             print(f"❌ Error analyzing dataset complexity for {dataset_name}: {e}")
@@ -324,9 +323,8 @@ class ConversationComplexityAnalyzer:
             avg_sentence_length = np.mean([len(s.split()) for s in sentences])
 
             # Normalize to 0-1 scale (assuming max 30 words per sentence)
-            complexity = min(1.0, avg_sentence_length / 30)
+            return min(1.0, avg_sentence_length / 30)
 
-            return complexity
 
         except Exception as e:
             print(f"❌ Error calculating sentence complexity: {e}")
@@ -342,9 +340,8 @@ class ConversationComplexityAnalyzer:
             turn_count = len(conversations)
 
             # Normalize to 0-1 scale (assuming max 20 turns for high depth)
-            depth = min(1.0, turn_count / 20)
+            return min(1.0, turn_count / 20)
 
-            return depth
 
         except Exception as e:
             print(f"❌ Error calculating dialogue depth: {e}")
@@ -361,7 +358,7 @@ class ConversationComplexityAnalyzer:
                 return 0.0
 
             # Calculate word frequency
-            word_counts = Counter(words)
+            Counter(words)
 
             # Calculate coherence based on repeated important words
             # (excluding common stop words)

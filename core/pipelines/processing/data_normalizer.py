@@ -398,8 +398,7 @@ class DataNormalizer:
         # Insert underscore before uppercase letters (camelCase → camel_case)
         key = re.sub(r"(?<!^)(?=[A-Z])", "_", key)
         # Collapse multiple underscores
-        key = re.sub(r"_+", "_", key)
-        return key
+        return re.sub(r"_+", "_", key)
 
     def _normalize_message(self, message: dict[str, Any]) -> dict[str, Any]:
         """Normalize a single message dict."""

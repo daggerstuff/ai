@@ -115,7 +115,7 @@ def rebuild_dataset():
         quality_level = "high" if conv.get("quality", 0.7) >= 0.75 else "medium"
         stats["by_quality"][quality_level] += 1
 
-    config = converter.create_config_file(output_dir, stats)
+    converter.create_config_file(output_dir, stats)
 
     print("\nContextual dataset created:")
     print(f"  Total: {stats['total_pairs']:,}")

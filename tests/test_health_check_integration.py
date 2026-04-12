@@ -230,7 +230,7 @@ class TestHealthCheckSystem(unittest.TestCase):
     def test_component_health_lookup(self):
         """Test looking up specific component health"""
         # Perform a health check first
-        health_result = self.health_manager.perform_health_check()
+        self.health_manager.perform_health_check()
 
         # Look up specific component
         component_health = self.health_manager.get_component_health("system_resources")

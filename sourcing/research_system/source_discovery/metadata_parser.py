@@ -33,9 +33,8 @@ class MetadataParser:
         normalized = " ".join(normalized.split())
 
         # Remove punctuation at start/end
-        normalized = normalized.strip(".,;:!?-")
+        return normalized.strip(".,;:!?-")
 
-        return normalized
 
     @staticmethod
     def normalize_doi(doi: str | None) -> str | None:
@@ -217,8 +216,7 @@ class MetadataParser:
             List of URLs
         """
         url_pattern = r'https?://[^\s<>"{}|\\^`\[\]]+'
-        urls = re.findall(url_pattern, text)
-        return urls
+        return re.findall(url_pattern, text)
 
     @staticmethod
     def extract_dois(text: str) -> list[str]:

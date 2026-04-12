@@ -575,7 +575,7 @@ class CommandHandlerService:
         orchestrator = self.orchestrator
         orchestrator.load_session_state(session_id)
         session = orchestrator.sessions[session_id]
-        state = orchestrator.get_session_state(session_id)
+        orchestrator.get_session_state(session_id)
         progress = orchestrator.get_progress(session_id)
 
         # Calculate progress percentage

@@ -398,8 +398,7 @@ class CrisisDetector:
             text = input_data.strip()
             # Replace common variations
             text = text.replace("'", "'")  # Smart quote to regular
-            text = text.replace("'", "'")  # Another smart quote variant
-            return text
+            return text.replace("'", "'")  # Another smart quote variant
 
         if isinstance(input_data, dict):
             # Try common keys

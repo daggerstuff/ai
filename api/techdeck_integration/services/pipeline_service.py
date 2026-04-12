@@ -262,7 +262,7 @@ class PipelineService:
 
         try:
             # Get configuration to verify access
-            config_record = self.get_pipeline_config(config_id, user_id)
+            self.get_pipeline_config(config_id, user_id)
 
             # Remove from Redis
             config_key = f"pipeline_config:{config_id}"

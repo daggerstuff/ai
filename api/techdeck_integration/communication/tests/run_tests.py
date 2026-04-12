@@ -191,7 +191,7 @@ class TestRunner:
         # Security compliance analysis
         security_compliance = self._analyze_security_compliance(results)
 
-        summary = {
+        return {
             "status": "completed",
             "total_files": len(results),
             "passed_files": passed_files,
@@ -206,7 +206,6 @@ class TestRunner:
             "timestamp": time.time()
         }
 
-        return summary
 
     def _analyze_performance(self, results: list[dict[str, Any]]) -> dict[str, Any]:
         """Analyze performance metrics from test results."""
@@ -379,12 +378,11 @@ def main():
 
     async def run_tests():
         if args.specific_test:
-            result = await run_specific_test(
+            return await run_specific_test(
                 args.specific_test,
                 args.test_dir,
                 args.verbose
             )
-            return result
         runner = TestRunner(
             args.test_dir,
             args.verbose,

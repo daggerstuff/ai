@@ -432,7 +432,7 @@ class ExplainabilityEngine:
             input_text, return_tensors="pt", padding=True, truncation=True
         )
         input_ids = inputs["input_ids"]
-        attention_mask = inputs.get("attention_mask")
+        inputs.get("attention_mask")
 
         # Forward pass with attention weights
         with torch.no_grad():
@@ -878,11 +878,10 @@ class ExplainabilityEngine:
                 top_features[f"feature_{i}"] = round(importance, 4)
 
         # Sort by importance
-        sorted_features = dict(
+        return dict(
             sorted(top_features.items(), key=lambda x: x[1], reverse=True)[:10]
         )
 
-        return sorted_features
 
     def _calculate_explanation_confidence(self, scores: list[float]) -> float:
         """Calculate confidence score for explanation based on importance scores"""

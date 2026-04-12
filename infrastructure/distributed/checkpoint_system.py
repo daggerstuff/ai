@@ -527,7 +527,7 @@ class CheckpointManager:
         )
 
         try:
-            file_path = self.storage.save_checkpoint(metadata, data)
+            self.storage.save_checkpoint(metadata, data)
 
             # Trigger callbacks
             self._trigger_callbacks(checkpoint_id, "created", metadata)

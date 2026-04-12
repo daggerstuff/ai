@@ -130,9 +130,8 @@ class ConversationRecommendationOptimizer:
         )
 
         # Filter out empty conversations
-        df = df[df["conversation_text"].str.len() > 10]
+        return df[df["conversation_text"].str.len() > 10]
 
-        return df
 
     def _extract_text_from_json(self, json_str: str) -> str:
         """Extract readable text from conversations JSON"""
@@ -298,7 +297,7 @@ class ConversationRecommendationOptimizer:
         length_component = max(0, 1 - length_penalty)
 
         # Weighted overall score
-        overall_score = (
+        return (
             readability_component * 0.25
             + engagement_component * 0.25
             + empathy_component * 0.20
@@ -306,7 +305,6 @@ class ConversationRecommendationOptimizer:
             + length_component * 0.15
         ) * 100
 
-        return overall_score
 
     def _analyze_current_performance(
         self, conversations: pd.DataFrame, benchmarks: dict[str, Any]
@@ -314,7 +312,6 @@ class ConversationRecommendationOptimizer:
         """Analyze current performance against benchmarks"""
         print("📊 Analyzing current performance...")
 
-        performance_analysis = {}
 
         # Calculate current metrics
         current_metrics = {
@@ -391,7 +388,7 @@ class ConversationRecommendationOptimizer:
             if quality_score < benchmarks["overall_quality_threshold"]:
                 conversations_needing_improvement += 1
 
-        performance_analysis = {
+        return {
             "current_metrics": current_metrics,
             "benchmark_comparison": performance_gaps,
             "improvement_needed_count": conversations_needing_improvement,
@@ -403,7 +400,6 @@ class ConversationRecommendationOptimizer:
             ),
         }
 
-        return performance_analysis
 
     def _generate_content_recommendations(
         self, conversations: pd.DataFrame, benchmarks: dict[str, Any]

@@ -612,7 +612,7 @@ class GDPRValidator:
         # Generate recommendations
         recommendations = self._generate_gdpr_recommendations(overall_score, violations)
 
-        report = GDPRComplianceReport(
+        return GDPRComplianceReport(
             assessment_id=assessment_id,
             timestamp=timestamp,
             compliance_score=overall_score,
@@ -626,7 +626,6 @@ class GDPRValidator:
             dpo_appointed=True            # Assume DPO is appointed
         )
 
-        return report
 
     def _calculate_consent_compliance(self) -> float:
         """Calculate consent compliance score"""

@@ -117,9 +117,8 @@ class ConversationEffectivenessPredictor:
         )
 
         # Filter out empty conversations
-        df = df[df["conversation_text"].str.len() > 10]
+        return df[df["conversation_text"].str.len() > 10]
 
-        return df
 
     def _extract_text_from_json(self, json_str: str) -> str:
         """Extract readable text from conversations JSON"""

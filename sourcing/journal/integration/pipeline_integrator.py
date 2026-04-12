@@ -332,7 +332,7 @@ class PipelineFormatConverter:
             raise ValueError("No turns found in record")
 
         # Build ConversationRecord
-        conversation_record = {
+        return {
             "id": record_id,
             "title": record.get("title") or f"Conversation from {dataset.source_id}",
             "turns": turns,
@@ -344,7 +344,6 @@ class PipelineFormatConverter:
             },
         }
 
-        return conversation_record
 
     def _extract_messages(
         self, record: dict[str, Any], schema_mapping: dict[str, str]
@@ -498,8 +497,7 @@ class PipelineFormatConverter:
         content_str = json.dumps(record, sort_keys=True)
         content_hash = hashlib.sha256(content_str.encode()).hexdigest()
         namespace = uuid.UUID("6ba7b810-9dad-11d1-80b4-00c04fd430c8")
-        record_id = str(uuid.uuid5(namespace, f"{source_id}:{content_hash}"))
-        return record_id
+        return str(uuid.uuid5(namespace, f"{source_id}:{content_hash}"))
 
     def _save_converted_dataset(
         self, records: list[dict[str, Any]], output_path: str, target_format: str

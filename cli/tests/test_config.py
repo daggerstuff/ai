@@ -316,7 +316,7 @@ class TestConfigProfile:
 
     def test_config_profile_inheritance(self):
         """Test configuration profile inheritance"""
-        base_profile = ConfigProfile(
+        ConfigProfile(
             name="base",
             api_base_url="http://base.example.com",
             timeout=30,

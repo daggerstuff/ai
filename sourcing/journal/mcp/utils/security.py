@@ -64,9 +64,8 @@ def sanitize_string(value: str, max_length: int | None = None) -> str:
         value = pattern.sub("", value)
 
     # Escape HTML entities
-    value = html.escape(value, quote=True)
+    return html.escape(value, quote=True)
 
-    return value
 
 
 def sanitize_dict(data: dict[str, Any], max_string_length: int | None = None) -> dict[str, Any]:

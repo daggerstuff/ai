@@ -566,10 +566,10 @@ class CheckpointCleanupOptimizer:
         while self.optimization_active:
             try:
                 # Run cleanup
-                cleanup_results = self.run_cleanup()
+                self.run_cleanup()
 
                 # Run optimization
-                optimization_results = self.run_optimization()
+                self.run_optimization()
 
                 # Sleep until next cycle
                 time.sleep(self.cleanup_interval_hours * 3600)
@@ -664,12 +664,11 @@ class CheckpointCleanupOptimizer:
     def _optimize_consolidation(self) -> dict[str, Any]:
         """Optimize checkpoint consolidation"""
 
-        results = {"checkpoints_consolidated": 0}
+        return {"checkpoints_consolidated": 0}
 
         # This would implement checkpoint consolidation logic
         # For now, just return empty results
 
-        return results
 
     def get_optimization_status(self) -> dict[str, Any]:
         """Get comprehensive optimization status"""
@@ -724,7 +723,7 @@ async def example_cleanup_optimization():
         for i in range(10):
             process_id = f"test_process_{i % 3}"  # Create some duplicates
 
-            checkpoint_id = checkpoint_manager.create_checkpoint(
+            checkpoint_manager.create_checkpoint(
                 process_id=process_id,
                 task_id="cleanup_test",
                 checkpoint_type=checkpoint_manager.storage.CheckpointType.CUSTOM,

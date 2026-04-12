@@ -364,7 +364,7 @@ def _parse_crossref_item(_self, item: dict[str, Any]) -> DOIMetadata | None:
         doi = item.get("DOI", "")
 
         # Create metadata
-        metadata = DOIMetadata(
+        return DOIMetadata(
             doi=doi,
             title=title,
             authors=authors,
@@ -381,7 +381,6 @@ def _parse_crossref_item(_self, item: dict[str, Any]) -> DOIMetadata | None:
             raw_metadata=item,
         )
 
-        return metadata
 
     except Exception as e:
         logger.warning(f"Error parsing CrossRef item: {e}")

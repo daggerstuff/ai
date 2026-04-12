@@ -43,7 +43,6 @@ def cmd_discover(args):
     print(f"  Min videos: {args.min_videos}")
     print(f"  Output: {args.output}\n")
 
-    progress = None
     if args.verbose:
         def progress_callback(percent, step):
             print(f"  [{percent*100:5.1f}%] {step}")

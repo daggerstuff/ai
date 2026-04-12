@@ -374,7 +374,7 @@ class APAPublisher(BasePublisher):
                         )
 
             # Create metadata object
-            metadata = BookMetadata(
+            return BookMetadata(
                 title=book_data.get("title", "Unknown Title"),
                 authors=authors,
                 publisher="American Psychological Association",
@@ -392,7 +392,6 @@ class APAPublisher(BasePublisher):
                 raw_metadata=book_data,
             )
 
-            return metadata
 
         except Exception as e:
             logger.error(f"Error parsing APA book metadata: {e}")

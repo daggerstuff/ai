@@ -118,12 +118,11 @@ class AgentMemoryTools:
             if metadata:
                 full_metadata.update(metadata)
 
-            result = self.memory.add_memory(
+            return self.memory.add_memory(
                 content=content,
                 user_id=context.user_id,
                 metadata=full_metadata,
             )
-            return result
 
         except Exception as e:
             logger.error(f"Error adding to memory: {e}")

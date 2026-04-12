@@ -155,14 +155,6 @@ class TestInfrastructureFixer:
             original_content = content
 
             # Fix common test issues
-            fixes = [
-                # Fix missing test class inheritance
-                (r"class Test(\w+):", r"class Test\1(unittest.TestCase):"),
-                # Fix missing unittest import
-                (r"^(?!.*import unittest)", "import unittest\n"),
-                # Fix missing pytest fixtures
-                (r"def test_", "@pytest.fixture\ndef test_"),
-            ]
 
             # Add proper test structure if missing
             if "class Test" not in content and "def test_" in content:
@@ -251,7 +243,7 @@ class TestInfrastructureFixer:
 
     def generate_report(self, validation_results: dict, coverage_results: dict) -> str:
         """Generate a fix report."""
-        report = f"""
+        return f"""
 # Test Infrastructure Fix Report
 
 ## Summary
@@ -272,7 +264,6 @@ class TestInfrastructureFixer:
 ## Status
 {"✅ Infrastructure fixes successful" if validation_results["collection_errors"] < 10 else "❌ More fixes needed"}
 """
-        return report
 
     def run_full_fix(self) -> None:
         """Run the complete fix process."""
@@ -283,7 +274,7 @@ class TestInfrastructureFixer:
         self.scan_test_files()
 
         # Step 2: Analyze current errors
-        errors = self.analyze_import_errors()
+        self.analyze_import_errors()
 
         # Step 3: Create missing infrastructure
         self.create_missing_modules()

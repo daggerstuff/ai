@@ -202,7 +202,7 @@ class DeploymentValidator:
 
             from lightning_h100_deployment import LightningH100Deployer
 
-            deployer = LightningH100Deployer()
+            LightningH100Deployer()
             validation["deployment_config_valid"] = True
 
         except Exception as e:

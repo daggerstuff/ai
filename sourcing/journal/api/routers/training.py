@@ -102,7 +102,7 @@ async def integrate_dataset(
                     break
 
         # Integrate with training pipeline
-        result = await training_service.integrate_dataset(
+        return await training_service.integrate_dataset(
             session_id=session_id,
             source_id=source_id,
             acquired_dataset=acquired_dataset,
@@ -111,7 +111,6 @@ async def integrate_dataset(
             auto_integrate=auto_integrate,
         )
 
-        return result
 
     except HTTPException:
         raise
@@ -150,9 +149,8 @@ async def get_training_status(
         state = orchestrator.get_session_state(session_id)
 
         # Get training status for all datasets in session
-        status_result = await training_service.get_session_status(session_id, state)
+        return await training_service.get_session_status(session_id, state)
 
-        return status_result
 
     except Exception as e:
         logger.error(
@@ -304,8 +302,7 @@ async def get_pipeline_status(
         Current status of the training pipeline orchestrator
     """
     try:
-        status_result = await training_service.get_pipeline_status()
-        return status_result
+        return await training_service.get_pipeline_status()
 
     except Exception as e:
         logger.error(f"Error getting pipeline status: {e}", exc_info=True)
