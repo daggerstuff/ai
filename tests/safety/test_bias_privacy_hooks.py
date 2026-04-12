@@ -11,7 +11,6 @@ Covers:
 London School TDD: All dependencies are mocked/stubbed.
 """
 
-from typing import Any
 from unittest import mock
 
 import pytest

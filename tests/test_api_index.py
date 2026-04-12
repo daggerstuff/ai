@@ -100,9 +100,8 @@ def test_reflection_startup_failure_propagates(monkeypatch) -> None:
 
     monkeypatch.setattr(api_index, "create_and_start", fail_startup)
 
-    with pytest.raises(RuntimeError, match="bootstrap failed"):
-        with TestClient(api_index.app):
-            pass
+    with pytest.raises(RuntimeError, match="bootstrap failed"), TestClient(api_index.app):
+        pass
 
 
 def test_reflect_requires_header_user_scope_to_match_body(monkeypatch) -> None:
