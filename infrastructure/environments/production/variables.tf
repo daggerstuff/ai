@@ -165,7 +165,7 @@ variable "datadog_api_key" {
 variable "allowed_cidr_blocks" {
   description = "CIDR blocks allowed to access the application"
   type        = list(string)
-  default     = ["0.0.0.0/0"]  # Restrict in production
+  default     = ["0.0.0.0/0"] # Restrict in production
 }
 
 # Backup Configuration
@@ -198,7 +198,7 @@ variable "enable_encryption_in_transit" {
 variable "enable_spot_instances" {
   description = "Enable spot instances for non-critical workloads"
   type        = bool
-  default     = false  # Disabled for production stability
+  default     = false # Disabled for production stability
 }
 
 variable "enable_scheduled_scaling" {
