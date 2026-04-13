@@ -12,6 +12,7 @@ Canonical JSONL schema fields:
 """
 from __future__ import annotations
 
+import functools
 import hashlib
 import json
 import logging
@@ -69,6 +70,14 @@ class NormalizationResult:
     rejected_records: int = 0
     rejected_reasons: dict[str, int] = field(default_factory=dict)
     normalization_errors: list[str] = field(default_factory=list)
+
+
+# ---------------------------------------------------------------------------
+# Pre-compiled Regexes for Performance
+# ---------------------------------------------------------------------------
+_RE_SNAKE_CASE_SPACE_HYPHEN = re.compile(r"[\s\-]+")
+_RE_SNAKE_CASE_CAMEL = re.compile(r"(?<!^)(?=[A-Z])")
+_RE_SNAKE_CASE_MULTIPLE_UNDERSCORES = re.compile(r"_+")
 
 
 # ---------------------------------------------------------------------------
@@ -388,16 +397,20 @@ class DataNormalizer:
     # Private helpers
     # ------------------------------------------------------------------
 
+
     @staticmethod
+    @functools.lru_cache(maxsize=1024)
     def _to_snake_case(key: str) -> str:
-        """Convert a string key to lower_snake_case."""
+        """Convert a string key to lower_snake_case (cached)."""
+        # Bolt Performance Optimization:
+        # Caching and pre-compiled regexes improve perf on repetitive keys.
         key = key.strip().lower()
         # Replace spaces and hyphens with underscores
-        key = re.sub(r"[\s\-]+", "_", key)
+        key = _RE_SNAKE_CASE_SPACE_HYPHEN.sub("_", key)
         # Insert underscore before uppercase letters (camelCase → camel_case)
-        key = re.sub(r"(?<!^)(?=[A-Z])", "_", key)
+        key = _RE_SNAKE_CASE_CAMEL.sub("_", key)
         # Collapse multiple underscores
-        return re.sub(r"_+", "_", key)
+        return _RE_SNAKE_CASE_MULTIPLE_UNDERSCORES.sub("_", key)
 
     def _normalize_message(self, message: dict[str, Any]) -> dict[str, Any]:
         """Normalize a single message dict."""
