@@ -372,8 +372,30 @@ resource "aws_wafv2_web_acl" "static_assets" {
   }
 
   rule {
-    name     = "AWSManagedCommonRules"
+    name     = "AWSManagedKnownBadInputs"
     priority = 1
+
+    override_action {
+      none {}
+    }
+
+    statement {
+      managed_rule_group_statement {
+        name        = "AWSManagedRulesKnownBadInputsRuleSet"
+        vendor_name = "AWS"
+      }
+    }
+
+    visibility_config {
+      sampled_requests_enabled   = true
+      cloudwatch_metrics_enabled = true
+      metric_name                = "${local.name_prefix}-waf-known-bad-inputs"
+    }
+  }
+
+  rule {
+    name     = "AWSManagedCommonRules"
+    priority = 2
 
     override_action {
       none {}
@@ -390,6 +412,28 @@ resource "aws_wafv2_web_acl" "static_assets" {
       sampled_requests_enabled   = true
       cloudwatch_metrics_enabled = true
       metric_name                = "${local.name_prefix}-waf-common"
+    }
+  }
+
+  rule {
+    name     = "AWSManagedAnonymousIpList"
+    priority = 3
+
+    override_action {
+      none {}
+    }
+
+    statement {
+      managed_rule_group_statement {
+        name        = "AWSManagedRulesAnonymousIpList"
+        vendor_name = "AWS"
+      }
+    }
+
+    visibility_config {
+      sampled_requests_enabled   = true
+      cloudwatch_metrics_enabled = true
+      metric_name                = "${local.name_prefix}-waf-anon-ip-list"
     }
   }
 }
