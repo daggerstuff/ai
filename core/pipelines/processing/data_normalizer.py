@@ -12,6 +12,7 @@ Canonical JSONL schema fields:
 """
 from __future__ import annotations
 
+import functools
 import hashlib
 import json
 import logging
@@ -389,6 +390,8 @@ class DataNormalizer:
     # ------------------------------------------------------------------
 
     @staticmethod
+    # ⚡ Bolt: Cache snake_case conversions to eliminate redundant regex operations on identical JSON keys during bulk processing.
+    @functools.lru_cache(maxsize=1024)
     def _to_snake_case(key: str) -> str:
         """Convert a string key to lower_snake_case."""
         key = key.strip().lower()
