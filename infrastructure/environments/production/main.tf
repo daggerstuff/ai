@@ -34,6 +34,11 @@ provider "aws" {
   }
 }
 
+provider "aws" {
+  alias  = "backup"
+  region = var.backup_region
+}
+
 # Data sources
 data "aws_availability_zones" "available" {
   state = "available"
@@ -336,6 +341,40 @@ resource "aws_s3_bucket" "cloudfront_access_logs" {
   bucket = "${local.name_prefix}-cloudfront-access-logs"
 }
 
+resource "aws_s3_bucket_versioning" "cloudfront_access_logs" {
+  bucket = aws_s3_bucket.cloudfront_access_logs.id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "cloudfront_access_logs" {
+  bucket = aws_s3_bucket.cloudfront_access_logs.id
+
+  rule {
+    id     = "cleanup-old-objects"
+    status = "Enabled"
+
+    noncurrent_version_expiration {
+      noncurrent_days = 30
+    }
+
+    expiration {
+      days = 90
+    }
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+  }
+}
+
+resource "aws_s3_bucket_notification" "cloudfront_access_logs" {
+  bucket      = aws_s3_bucket.cloudfront_access_logs.id
+  eventbridge = true
+}
+
 resource "aws_s3_bucket_public_access_block" "cloudfront_access_logs" {
   bucket = aws_s3_bucket.cloudfront_access_logs.id
 
@@ -354,6 +393,156 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "cloudfront_access
       sse_algorithm     = "aws:kms"
     }
   }
+}
+
+resource "aws_s3_bucket" "cloudfront_access_logs_replica" {
+  provider = aws.backup
+  bucket   = "${local.name_prefix}-cloudfront-access-logs-replica"
+}
+
+resource "aws_s3_bucket_versioning" "cloudfront_access_logs_replica" {
+  provider = aws.backup
+  bucket   = aws_s3_bucket.cloudfront_access_logs_replica.id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "cloudfront_access_logs_replica" {
+  provider = aws.backup
+  bucket   = aws_s3_bucket.cloudfront_access_logs_replica.id
+
+  rule {
+    id     = "cleanup-old-objects"
+    status = "Enabled"
+
+    noncurrent_version_expiration {
+      noncurrent_days = 30
+    }
+
+    expiration {
+      days = 90
+    }
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+  }
+}
+
+resource "aws_s3_bucket_notification" "cloudfront_access_logs_replica" {
+  provider    = aws.backup
+  bucket      = aws_s3_bucket.cloudfront_access_logs_replica.id
+  eventbridge = true
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "cloudfront_access_logs_replica" {
+  provider = aws.backup
+  bucket   = aws_s3_bucket.cloudfront_access_logs_replica.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "cloudfront_access_logs_replica" {
+  provider                = aws.backup
+  bucket                  = aws_s3_bucket.cloudfront_access_logs_replica.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_replication_configuration" "cloudfront_access_logs" {
+  depends_on = [
+    aws_iam_role_policy_attachment.s3_replication,
+    aws_s3_bucket_versioning.cloudfront_access_logs,
+    aws_s3_bucket_versioning.cloudfront_access_logs_replica
+  ]
+
+  bucket = aws_s3_bucket.cloudfront_access_logs.id
+  role   = aws_iam_role.s3_replication.arn
+
+  rule {
+    id     = "replicate-to-backup-region"
+    status = "Enabled"
+
+    destination {
+      bucket       = aws_s3_bucket.cloudfront_access_logs_replica.arn
+      storage_class = "STANDARD_IA"
+    }
+  }
+}
+
+data "aws_iam_policy_document" "s3_replication_assume_role" {
+  statement {
+    sid     = "S3ReplicationAssumeRole"
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["s3.amazonaws.com"]
+    }
+  }
+}
+
+data "aws_iam_policy_document" "s3_replication_access" {
+  statement {
+    sid = "S3ReplicationSourceAccess"
+    actions = [
+      "s3:GetReplicationConfiguration",
+      "s3:ListBucket",
+      "s3:GetBucketVersioning",
+      "s3:PutReplicationConfiguration",
+      "s3:GetObjectVersionForReplication",
+      "s3:GetObjectVersionAcl",
+      "s3:GetObjectVersionTagging",
+      "s3:ListMultipartUploadParts",
+      "s3:GetObjectVersion"
+    ]
+
+    resources = [
+      aws_s3_bucket.cloudfront_access_logs.arn,
+      "${aws_s3_bucket.cloudfront_access_logs.arn}/*",
+      aws_s3_bucket.app_data.arn,
+      "${aws_s3_bucket.app_data.arn}/*"
+    ]
+  }
+
+  statement {
+    sid = "S3ReplicationDestinationAccess"
+    actions = [
+      "s3:ReplicateObject",
+      "s3:ReplicateDelete",
+      "s3:ReplicateTags",
+      "s3:ObjectOwnerOverrideToBucketOwner"
+    ]
+
+    resources = [
+      "${aws_s3_bucket.cloudfront_access_logs_replica.arn}/*",
+      "${aws_s3_bucket.app_data_replica.arn}/*"
+    ]
+  }
+}
+
+resource "aws_iam_role" "s3_replication" {
+  name               = "${local.name_prefix}-s3-replication-role"
+  assume_role_policy = data.aws_iam_policy_document.s3_replication_assume_role.json
+}
+
+resource "aws_iam_policy" "s3_replication" {
+  name        = "${local.name_prefix}-s3-replication-policy"
+  description = "Allow S3 cross-region replication for compliance logs and app data"
+  policy      = data.aws_iam_policy_document.s3_replication_access.json
+}
+
+resource "aws_iam_role_policy_attachment" "s3_replication" {
+  role       = aws_iam_role.s3_replication.name
+  policy_arn = aws_iam_policy.s3_replication.arn
 }
 
 resource "aws_wafv2_web_acl" "static_assets" {
@@ -438,6 +627,16 @@ resource "aws_wafv2_web_acl" "static_assets" {
   }
 }
 
+resource "aws_cloudwatch_log_group" "waf_static_assets" {
+  name              = "/aws/wafv2/${local.name_prefix}/cloudfront-static-assets"
+  retention_in_days = 30
+}
+
+resource "aws_wafv2_web_acl_logging_configuration" "static_assets" {
+  log_destination_configs = [aws_cloudwatch_log_group.waf_static_assets.arn]
+  resource_arn           = aws_wafv2_web_acl.static_assets.arn
+}
+
 # S3 buckets for application data
 resource "aws_s3_bucket" "app_data" {
   bucket = "${local.name_prefix}-app-data"
@@ -468,6 +667,90 @@ resource "aws_s3_bucket_public_access_block" "app_data" {
   block_public_policy     = true
   ignore_public_acls      = true
   restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket" "app_data_replica" {
+  #checkov:skip=CKV_AWS_144: "Replication target bucket for cross-region backup destination."
+  provider = aws.backup
+  bucket   = "${local.name_prefix}-app-data-replica"
+}
+
+resource "aws_s3_bucket_versioning" "app_data_replica" {
+  provider = aws.backup
+  bucket   = aws_s3_bucket.app_data_replica.id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "app_data_replica" {
+  provider = aws.backup
+  bucket   = aws_s3_bucket.app_data_replica.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "app_data_replica" {
+  provider                = aws.backup
+  bucket                  = aws_s3_bucket.app_data_replica.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "app_data_replica" {
+  provider = aws.backup
+  bucket   = aws_s3_bucket.app_data_replica.id
+
+  rule {
+    id     = "cleanup-old-versions"
+    status = "Enabled"
+
+    noncurrent_version_expiration {
+      noncurrent_days = 90
+    }
+
+    expiration {
+      days = 365
+    }
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+  }
+}
+
+resource "aws_s3_bucket_notification" "app_data_replica" {
+  provider    = aws.backup
+  bucket      = aws_s3_bucket.app_data_replica.id
+  eventbridge = true
+}
+
+resource "aws_s3_bucket_replication_configuration" "app_data" {
+  depends_on = [
+    aws_iam_role_policy_attachment.s3_replication,
+    aws_s3_bucket_versioning.app_data,
+    aws_s3_bucket_versioning.app_data_replica
+  ]
+
+  bucket = aws_s3_bucket.app_data.id
+  role   = aws_iam_role.s3_replication.arn
+
+  rule {
+    id     = "replicate-to-backup-region"
+    status = "Enabled"
+
+    destination {
+      bucket       = aws_s3_bucket.app_data_replica.arn
+      storage_class = "STANDARD_IA"
+    }
+  }
 }
 
 # Add lifecycle configuration
@@ -504,6 +787,44 @@ resource "aws_s3_bucket_logging" "app_data" {
 resource "aws_s3_bucket_notification" "app_data" {
   bucket      = aws_s3_bucket.app_data.id
   eventbridge = true
+}
+
+resource "aws_cloudfront_response_headers_policy" "security_headers" {
+  name = "${local.name_prefix}-security-headers-policy"
+
+  security_headers_config {
+    content_type_options {
+      override = true
+    }
+
+    frame_options {
+      frame_option = "DENY"
+      override     = true
+    }
+
+    referrer_policy {
+      referrer_policy = "strict-origin-when-cross-origin"
+      override        = true
+    }
+
+    strict_transport_security {
+      access_control_max_age_sec = 31536000
+      include_subdomains        = true
+      preload                   = true
+      override                  = true
+    }
+
+    xss_protection {
+      mode_block = true
+      override   = true
+      protection = true
+    }
+
+    content_security_policy {
+      content_security_policy = "default-src 'self'; object-src 'none'; frame-ancestors 'none'; upgrade-insecure-requests; block-all-mixed-content;"
+      override               = true
+    }
+  }
 }
 
 # CloudFront distribution for static assets
@@ -561,6 +882,7 @@ resource "aws_cloudfront_distribution" "static_assets" {
     target_origin_id       = "origin-group-${aws_s3_bucket.app_data.id}"
     compress               = true
     viewer_protocol_policy = "redirect-to-https"
+  response_headers_policy_id = aws_cloudfront_response_headers_policy.security_headers.id
 
     forwarded_values {
       query_string = false
