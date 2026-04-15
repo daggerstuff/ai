@@ -197,7 +197,19 @@ definitions:
         az aks get-credentials --resource-group "$AZURE_AKS_RESOURCE_GROUP" --name "$AZURE_AKS_CLUSTER_NAME" --overwrite-existing
         IMAGE="${ACR_NAME}.azurecr.io/pixelatedempathy:${BITBUCKET_COMMIT}"
         kubectl -n pixelated-staging set image deployment/pixelated app="$IMAGE"
-        kubectl -n pixelated-staging rollout status deployment/pixelated --timeout=300s
+        if ! kubectl -n pixelated-staging rollout status deployment/pixelated --timeout=600s; then
+          echo "Rollout failed or timed out."
+          kubectl -n pixelated-staging describe deployment pixelated || true
+          kubectl -n pixelated-staging get deployment pixelated -o wide || true
+          kubectl -n pixelated-staging get pods -l app=pixelated -o wide || true
+          for pod in $(kubectl -n pixelated-staging get pods -l app=pixelated --no-headers -o custom-columns=":metadata.name"); do
+            echo "=== Logs for ${pod} (previous) ==="
+            kubectl -n pixelated-staging logs "${pod}" --previous --tail=120 || true
+            echo "=== Logs for ${pod} (current) ==="
+            kubectl -n pixelated-staging logs "${pod}" --tail=120 || true
+          done
+          exit 1
+        fi
         echo "Staging AKS deployment completed"
 
   - step: &deploy-production
@@ -222,7 +234,19 @@ definitions:
         az aks get-credentials --resource-group "$AZURE_AKS_RESOURCE_GROUP" --name "$AZURE_AKS_CLUSTER_NAME" --overwrite-existing
         IMAGE="${ACR_NAME}.azurecr.io/pixelatedempathy:${BITBUCKET_COMMIT}"
         kubectl -n pixelated-production set image deployment/pixelated app="$IMAGE"
-        kubectl -n pixelated-production rollout status deployment/pixelated --timeout=300s
+        if ! kubectl -n pixelated-production rollout status deployment/pixelated --timeout=600s; then
+          echo "Rollout failed or timed out."
+          kubectl -n pixelated-production describe deployment pixelated || true
+          kubectl -n pixelated-production get deployment pixelated -o wide || true
+          kubectl -n pixelated-production get pods -l app=pixelated -o wide || true
+          for pod in $(kubectl -n pixelated-production get pods -l app=pixelated --no-headers -o custom-columns=":metadata.name"); do
+            echo "=== Logs for ${pod} (previous) ==="
+            kubectl -n pixelated-production logs "${pod}" --previous --tail=120 || true
+            echo "=== Logs for ${pod} (current) ==="
+            kubectl -n pixelated-production logs "${pod}" --tail=120 || true
+          done
+          exit 1
+        fi
         echo "Production AKS deployment completed"
 
   # Governance validation step for dataset expansion
