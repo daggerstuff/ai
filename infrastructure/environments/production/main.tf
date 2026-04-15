@@ -395,6 +395,13 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "cloudfront_access
   }
 }
 
+resource "aws_s3_bucket_logging" "cloudfront_access_logs" {
+  bucket = aws_s3_bucket.cloudfront_access_logs.id
+
+  target_bucket = aws_s3_bucket.cloudfront_access_logs.id
+  target_prefix = "access-logs/"
+}
+
 resource "aws_s3_bucket" "cloudfront_access_logs_replica" {
   provider = aws.backup
   bucket   = "${local.name_prefix}-cloudfront-access-logs-replica"
@@ -443,9 +450,18 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "cloudfront_access
 
   rule {
     apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
+      kms_master_key_id = "alias/aws/s3"
+      sse_algorithm     = "aws:kms"
     }
   }
+}
+
+resource "aws_s3_bucket_logging" "cloudfront_access_logs_replica" {
+  provider = aws.backup
+  bucket   = aws_s3_bucket.cloudfront_access_logs_replica.id
+
+  target_bucket = aws_s3_bucket.cloudfront_access_logs_replica.id
+  target_prefix = "access-logs/"
 }
 
 resource "aws_s3_bucket_public_access_block" "cloudfront_access_logs_replica" {
@@ -629,7 +645,8 @@ resource "aws_wafv2_web_acl" "static_assets" {
 
 resource "aws_cloudwatch_log_group" "waf_static_assets" {
   name              = "/aws/wafv2/${local.name_prefix}/cloudfront-static-assets"
-  retention_in_days = 30
+  retention_in_days = 365
+  kms_key_id        = "alias/aws/logs"
 }
 
 resource "aws_wafv2_web_acl_logging_configuration" "static_assets" {
@@ -690,9 +707,18 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "app_data_replica"
 
   rule {
     apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
+      kms_master_key_id = "alias/aws/s3"
+      sse_algorithm     = "aws:kms"
     }
   }
+}
+
+resource "aws_s3_bucket_logging" "app_data_replica" {
+  provider = aws.backup
+  bucket   = aws_s3_bucket.app_data_replica.id
+
+  target_bucket = aws_s3_bucket.app_data_replica.id
+  target_prefix = "access-logs/"
 }
 
 resource "aws_s3_bucket_public_access_block" "app_data_replica" {
