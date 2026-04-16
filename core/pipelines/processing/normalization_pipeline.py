@@ -186,13 +186,48 @@ class SimilarityDeduplicator:
         final: list[Conversation] = []
         kept_ids: set[str] = set()
 
-        for i, conv in enumerate(unique):
+        # Bolt: Precompute features to avoid O(N^2) recomputation of sets and lists
+        precomputed = []
+        for conv in unique:
+            words = set()
+            for msg in conv.messages:
+                words.update(msg.content.lower().split())
+            roles = [m.role for m in conv.messages]
+            precomputed.append((conv, words, len(conv.messages), roles))
+
+        final_precomputed = []
+
+        for conv, words_a, len_a, roles_a in precomputed:
             if conv.conversation_id in kept_ids:
                 continue
 
             is_dup = False
-            for kept in final:
-                sim = self._compute_similarity(conv, kept)
+            for kept_conv, words_b, len_b, roles_b in final_precomputed:
+                # Calculate structural similarity inline
+                max_count = max(len_a, len_b)
+                if max_count == 0:
+                    count_sim = 1.0
+                else:
+                    count_sim = 1.0 - abs(len_a - len_b) / max_count
+
+                if not roles_a and not roles_b:
+                    role_sim = 1.0
+                else:
+                    matches = sum(1 for x, y in zip(roles_a, roles_b) if x == y)
+                    role_sim = matches / max(len(roles_a), len(roles_b))
+
+                structural_sim = 0.5 * count_sim + 0.5 * role_sim
+
+                # Calculate content similarity inline
+                if not words_a and not words_b:
+                    content_sim = 1.0
+                elif not words_a or not words_b:
+                    content_sim = 0.0
+                else:
+                    content_sim = len(words_a & words_b) / len(words_a | words_b)
+
+                sim = 0.7 * content_sim + 0.3 * structural_sim
+
                 if sim >= self.similarity_threshold:
                     is_dup = True
                     break
@@ -201,52 +236,10 @@ class SimilarityDeduplicator:
                 self.duplicates_found += 1
             else:
                 final.append(conv)
+                final_precomputed.append((conv, words_a, len_a, roles_a))
                 kept_ids.add(conv.conversation_id)
 
         return final
-
-    @staticmethod
-    def _compute_similarity(a: Conversation, b: Conversation) -> float:
-        """Compute weighted similarity between two conversations."""
-        content_sim = SimilarityDeduplicator._content_similarity(a, b)
-        structural_sim = SimilarityDeduplicator._structural_similarity(a, b)
-        return 0.7 * content_sim + 0.3 * structural_sim
-
-    @staticmethod
-    def _content_similarity(a: Conversation, b: Conversation) -> float:
-        """Jaccard word-level similarity."""
-        words_a = set()
-        words_b = set()
-        for msg in a.messages:
-            words_a.update(msg.content.lower().split())
-        for msg in b.messages:
-            words_b.update(msg.content.lower().split())
-
-        if not words_a and not words_b:
-            return 1.0
-        if not words_a or not words_b:
-            return 0.0
-        return len(words_a & words_b) / len(words_a | words_b)
-
-    @staticmethod
-    def _structural_similarity(a: Conversation, b: Conversation) -> float:
-        """Message count and role pattern similarity."""
-        # Message count similarity
-        max_count = max(len(a.messages), len(b.messages))
-        if max_count == 0:
-            return 1.0
-        count_sim = 1.0 - abs(len(a.messages) - len(b.messages)) / max_count
-
-        # Role pattern similarity
-        roles_a = [m.role for m in a.messages]
-        roles_b = [m.role for m in b.messages]
-        if not roles_a and not roles_b:
-            role_sim = 1.0
-        else:
-            matches = sum(1 for x, y in zip(roles_a, roles_b) if x == y)
-            role_sim = matches / max(len(roles_a), len(roles_b))
-
-        return 0.5 * count_sim + 0.5 * role_sim
 
 
 # ---------------------------------------------------------------------------
