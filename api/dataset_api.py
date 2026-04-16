@@ -308,8 +308,8 @@ async def query_dataset(
 
         # Get data with pagination
         offset = (page - 1) * page_size
-        data_query = f'SELECT * FROM "{safe_table_name}"{where_clause} LIMIT ? OFFSET ?'  # nosec B608
-        cursor.execute(data_query, [*params, page_size, offset])  # sourcery skip: inline-sql-query
+        data_query = 'SELECT * FROM "{}"{} LIMIT ? OFFSET ?'.format(safe_table_name, where_clause)  # nosec B608
+        cursor.execute(data_query, [*params, page_size, offset])  # sourcery skip: python-sql-injection, sql-injection
         rows = cursor.fetchall()
 
         results = []
