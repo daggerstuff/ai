@@ -1,3 +1,4 @@
 rules:
-  - id: sqlalchemy-execute-raw-query
-    pattern: "cursor.execute(...)"
+ - id: sqlalchemy-execute-raw-query
+   description: Detects raw SQL execution via cursor.execute(), which may indicate SQL injection risk or inefficient query usage
+   pattern: "cursor.execute(...)"
