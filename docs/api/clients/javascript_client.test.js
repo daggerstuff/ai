@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { PixelatedEmpathyAPI, PixelatedEmpathyAPIError, RateLimitError } from './javascript_client';
 
 describe('PixelatedEmpathyAPI Error Handling', () => {
@@ -47,5 +47,29 @@ describe('PixelatedEmpathyAPI Constructor', () => {
         expect(api.baseUrl).toBe('https://test.api.com/v1');
         expect(api.timeout).toBe(15000);
         expect(api.maxRetries).toBe(5);
+    });
+});
+
+describe('PixelatedEmpathyAPI Methods', () => {
+    let api;
+
+    beforeEach(() => {
+        api = new PixelatedEmpathyAPI('test_key');
+        // Mock the internal request method
+        api._makeRequest = vi.fn();
+    });
+
+    it('getConversations should handle pagination options correctly', async () => {
+        api._makeRequest.mockResolvedValueOnce({ data: { conversations: [] } });
+
+        await api.getConversations({ limit: 50, offset: 100, dataset: 'test_dataset' });
+
+        expect(api._makeRequest).toHaveBeenCalledWith('GET', '/conversations', expect.objectContaining({
+            params: expect.objectContaining({
+                limit: 50,
+                offset: 100,
+                dataset: 'test_dataset'
+            })
+        }));
     });
 });
