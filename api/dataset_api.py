@@ -155,7 +155,7 @@ async def list_datasets(
                 continue
 
             # Get row count
-            cursor.execute(f'SELECT COUNT(*) FROM "{safe_table_name}"')  # nosec B608
+            cursor.execute(f'SELECT COUNT(*) FROM "{safe_table_name}"')  # sourcery skip: sqlalchemy-execute-raw-query # nosec B608
             row_count = cursor.fetchone()[0]
 
             # Get columns
@@ -215,7 +215,7 @@ async def get_dataset_metadata(
 
         safe_table_name = validate_identifier(table_row["name"])
 
-        cursor.execute(f'SELECT COUNT(*) FROM "{safe_table_name}"')  # nosec B608
+        cursor.execute(f'SELECT COUNT(*) FROM "{safe_table_name}"')  # sourcery skip: sqlalchemy-execute-raw-query # nosec B608
         row_count = cursor.fetchone()[0]
 
         # Get columns
@@ -303,13 +303,13 @@ async def query_dataset(
 
         # Get total rows matching filters
         count_query = f'SELECT COUNT(*) FROM "{safe_table_name}"{where_clause}'  # nosec B608
-        cursor.execute(count_query, params)
+        cursor.execute(count_query, params)  # sourcery skip: sqlalchemy-execute-raw-query # nosec B608
         total_rows = cursor.fetchone()[0]
 
         # Get data with pagination
         offset = (page - 1) * page_size
         data_query = f'SELECT * FROM "{safe_table_name}"{where_clause} LIMIT ? OFFSET ?'  # nosec B608
-        cursor.execute(data_query, params + [page_size, offset])
+        cursor.execute(data_query, params + [page_size, offset])  # sourcery skip: sqlalchemy-execute-raw-query # nosec B608
         rows = cursor.fetchall()
 
         results = []

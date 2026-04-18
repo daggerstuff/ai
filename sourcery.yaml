@@ -1,0 +1,3 @@
+rules:
+  - id: sqlalchemy-execute-raw-query
+    pattern: "cursor.execute(...)"
