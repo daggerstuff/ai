@@ -404,11 +404,12 @@ class DataNormalizer:
         """Convert a string key to lower_snake_case (cached)."""
         # Bolt Performance Optimization:
         # Caching and pre-compiled regexes improve perf on repetitive keys.
-        key = key.strip().lower()
-        # Replace spaces and hyphens with underscores
-        key = _RE_SNAKE_CASE_SPACE_HYPHEN.sub("_", key)
+        key = key.strip()
         # Insert underscore before uppercase letters (camelCase → camel_case)
         key = _RE_SNAKE_CASE_CAMEL.sub("_", key)
+        key = key.lower()
+        # Replace spaces and hyphens with underscores
+        key = _RE_SNAKE_CASE_SPACE_HYPHEN.sub("_", key)
         # Collapse multiple underscores
         return _RE_SNAKE_CASE_MULTIPLE_UNDERSCORES.sub("_", key)
 
