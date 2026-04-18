@@ -53,8 +53,7 @@ def validate_identifier(identifier: str) -> str:
 def escape_identifier(identifier: str) -> str:
     """
     Escapes double quotes in an identifier by doubling them.
-    This is a defensive measure to ensure identifiers are safely quoted
-    even if they somehow contain special characters.
+    This is a defensive measure to ensure identifiers are safely quoted even if they somehow contain special characters.
     """
     return identifier.replace('"', '""')
 
@@ -154,7 +153,6 @@ async def list_datasets(
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
         tables = cursor.fetchall()
 
@@ -176,7 +174,6 @@ async def list_datasets(
             # Get columns
             cursor.execute("SELECT * FROM pragma_table_info(?);", (safe_table_name,))
             columns_info = cursor.fetchall()
-
             columns = []
             for col in columns_info:
                 columns.append(
@@ -228,7 +225,6 @@ async def get_dataset_metadata(
             (dataset_id,),
         )
         table_row = cursor.fetchone()
-
         if not table_row:
             raise HTTPException(status_code=404, detail="Dataset (table) not found")
 
@@ -240,7 +236,6 @@ async def get_dataset_metadata(
         # Get columns
         cursor.execute("SELECT * FROM pragma_table_info(?);", (safe_table_name,))
         columns_info = cursor.fetchall()
-
         columns = []
         for col in columns_info:
             columns.append(
@@ -293,7 +288,6 @@ async def query_dataset(
             (dataset_id,),
         )
         table_row = cursor.fetchone()
-
         if not table_row:
             raise HTTPException(status_code=404, detail="Dataset (table) not found")
 
@@ -331,14 +325,11 @@ async def query_dataset(
 
         # Get data with pagination
         offset = (page - 1) * page_size
-        data_query = 'SELECT * FROM "{}"{} LIMIT ? OFFSET ?'.format(
-            escape_identifier(safe_table_name), where_clause
-        )  # nosec B608
+        data_query = f'SELECT * FROM "{escape_identifier(safe_table_name)}"{where_clause} LIMIT ? OFFSET ?'  # nosec B608
         cursor.execute(data_query, [*params, page_size, offset])
 
         # sourcery skip: python-sql-injection, sql-injection
         rows = cursor.fetchall()
-
         results = []
         for row in rows:
             results.append(dict(row))
