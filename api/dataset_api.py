@@ -32,7 +32,8 @@ TEST_API_KEY, _ = auth_system.create_api_key(
 )
 
 app = FastAPI(
-    title="Dataset Access API", description="API for accessing and querying datasets."
+    title="Dataset Access API",
+    description="API for accessing and querying datasets."
 )
 
 DATABASE_URL = "/home/vivi/pixelated/ai/data/conversation_system.db"
@@ -47,6 +48,14 @@ def validate_identifier(identifier: str) -> str:
     if not re.match(r"^[a-zA-Z0-9_]+$", identifier):
         raise HTTPException(status_code=400, detail=f"Invalid identifier format: {identifier}")
     return identifier
+
+
+def escape_identifier(identifier: str) -> str:
+    """
+    Escapes double quotes in an identifier by doubling them.
+    This is a defensive measure to ensure identifiers are safely quoted even if they somehow contain special characters.
+    """
+    return identifier.replace('"', '""')
 
 
 def get_db_connection():
@@ -76,14 +85,16 @@ async def get_api_key_user(api_key: str = Security(api_key_header)) -> dict[str,
     """Dedicated API key authentication dependency"""
     if not api_key:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="API key required"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="API key required"
         )
 
     # Validate API key using the authentication system
     api_key_obj = auth_system.authenticate_api_key(api_key)
     if not api_key_obj:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid API key"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid API key"
         )
 
     return {
@@ -94,9 +105,11 @@ async def get_api_key_user(api_key: str = Security(api_key_header)) -> dict[str,
 
 
 async def get_current_active_user_or_api_key(
-    request: Request, api_key: str | None = Depends(api_key_header)
+    request: Request,
+    api_key: str | None = Depends(api_key_header)
 ):
     """Modified authentication function that supports both user tokens and API keys"""
+
     # First try to get authenticated user from request state (JWT token auth)
     user = getattr(request.state, "authenticated_user", None)
     if user:
@@ -155,11 +168,11 @@ async def list_datasets(
                 continue
 
             # Get row count
-            cursor.execute(f'SELECT COUNT(*) FROM "{safe_table_name}"')
+            cursor.execute(f'SELECT COUNT(*) FROM "{safe_table_name}"')  # nosec B608
             row_count = cursor.fetchone()[0]
 
             # Get columns
-            cursor.execute(f'PRAGMA table_info("{safe_table_name}");')
+            cursor.execute("SELECT * FROM pragma_table_info(?);", (safe_table_name,))
             columns_info = cursor.fetchall()
             columns = []
             for col in columns_info:
@@ -181,12 +194,14 @@ async def list_datasets(
                     columns=columns,
                 )
             )
+
     except sqlite3.Error as e:
         logger.error(f"Database error: {e}")
         raise HTTPException(status_code=500, detail="Database error occurred") from e
     finally:
         if conn:
             conn.close()
+
     return datasets
 
 
@@ -215,11 +230,11 @@ async def get_dataset_metadata(
 
         safe_table_name = validate_identifier(table_row["name"])
 
-        cursor.execute(f'SELECT COUNT(*) FROM "{safe_table_name}"')
+        cursor.execute(f'SELECT COUNT(*) FROM "{safe_table_name}"')  # nosec B608
         row_count = cursor.fetchone()[0]
 
         # Get columns
-        cursor.execute(f'PRAGMA table_info("{safe_table_name}");')
+        cursor.execute("SELECT * FROM pragma_table_info(?);", (safe_table_name,))
         columns_info = cursor.fetchall()
         columns = []
         for col in columns_info:
@@ -239,6 +254,7 @@ async def get_dataset_metadata(
             row_count=row_count,
             columns=columns,
         )
+
     except sqlite3.Error as e:
         logger.error(f"Database error: {e}")
         raise HTTPException(status_code=500, detail="Database error occurred") from e
@@ -278,7 +294,7 @@ async def query_dataset(
         safe_table_name = validate_identifier(table_row["name"])
 
         # Get valid columns for the table to validate filters
-        cursor.execute(f'PRAGMA table_info("{safe_table_name}");')
+        cursor.execute("SELECT * FROM pragma_table_info(?);", (safe_table_name,))
         valid_columns = {c["name"] for c in cursor.fetchall()}
 
         # Build WHERE clause for filters
@@ -290,34 +306,39 @@ async def query_dataset(
                 # Check if column exists in table (sanitization allow-list)
                 if col not in valid_columns:
                     raise HTTPException(
-                        status_code=400, detail=f"Invalid filter column: {col}"
+                        status_code=400,
+                        detail=f"Invalid filter column: {col}"
                     )
 
-                # Since col is verified to be in valid_columns (from DB metadata),
-                # it is safe to use in the query as a column identifier.
-                filter_clauses.append(f'"{col}" = ?')
+                # Escape identifier quotes defensively before interpolation
+                safe_col = escape_identifier(col)
+                filter_clauses.append(f'"{safe_col}" = ?')
                 params.append(val)
 
             if filter_clauses:
                 where_clause = " WHERE " + " AND ".join(filter_clauses)
 
         # Get total rows matching filters
-        count_query = f'SELECT COUNT(*) FROM "{safe_table_name}"{where_clause}'
+        count_query = f'SELECT COUNT(*) FROM "{safe_table_name}"{where_clause}'  # nosec B608
         cursor.execute(count_query, params)
         total_rows = cursor.fetchone()[0]
 
         # Get data with pagination
         offset = (page - 1) * page_size
-        data_query = f'SELECT * FROM "{safe_table_name}"{where_clause} LIMIT ? OFFSET ?'
-        cursor.execute(data_query, params + [page_size, offset])
-        rows = cursor.fetchall()
+        data_query = f'SELECT * FROM "{escape_identifier(safe_table_name)}"{where_clause} LIMIT ? OFFSET ?'  # nosec B608
+        cursor.execute(data_query, [*params, page_size, offset])
 
+        # sourcery skip: python-sql-injection, sql-injection
+        rows = cursor.fetchall()
         results = []
         for row in rows:
             results.append(dict(row))
 
         return QueryResult(
-            data=results, total_rows=total_rows, page=page, page_size=page_size
+            data=results,
+            total_rows=total_rows,
+            page=page,
+            page_size=page_size
         )
 
     except sqlite3.Error as e:
@@ -330,5 +351,4 @@ async def query_dataset(
 
 if __name__ == "__main__":
     import uvicorn
-
     uvicorn.run(app, host="0.0.0.0", port=8000)
