@@ -117,9 +117,21 @@ describe('PixelatedEmpathyAPI Method waitForJob', () => {
         api.getJobStatus = async (jobId) => {
             return { status: 'processing', progress: 50 };
         };
-        api._sleep = async (ms) => {}; // Mock sleep to avoid actual delay
 
-        await expect(api.waitForJob('job-123', { timeout: 0.1, pollInterval: 0.01 })).rejects.toThrow(PixelatedEmpathyAPIError);
+        const originalNow = Date.now;
+        let now = 0;
+        Date.now = () => now;
+        api._sleep = async (ms) => {
+            now += ms;
+        };
+
+        try {
+            await expect(
+                api.waitForJob('job-123', { timeout: 0.1, pollInterval: 0.01 }),
+            ).rejects.toThrow(PixelatedEmpathyAPIError);
+        } finally {
+            Date.now = originalNow;
+        }
     });
 });
 
