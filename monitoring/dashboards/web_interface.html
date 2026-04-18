@@ -384,10 +384,14 @@
               e.preventDefault()
               this.innerHTML = '⏳ Processing...'
               this.style.pointerEvents = 'none'
+              this.setAttribute('aria-disabled', 'true')
+              this.setAttribute('aria-busy', 'true')
 
               // Simulate processing time
               setTimeout(() => {
                 this.innerHTML = '✅ Complete'
+                this.removeAttribute('aria-disabled')
+                this.removeAttribute('aria-busy')
                 setTimeout(() => {
                   location.reload()
                 }, 2000)
