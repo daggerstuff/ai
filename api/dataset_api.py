@@ -155,7 +155,7 @@ async def list_datasets(
                 continue
 
             # Get row count
-            cursor.execute(f'SELECT COUNT(*) FROM "{safe_table_name}"')  # nosec B608
+            cursor.execute(f'SELECT COUNT(*) FROM "{safe_table_name}"')  # nosec B608 # noqa: S608
             row_count = cursor.fetchone()[0]
 
             # Get columns
@@ -215,7 +215,7 @@ async def get_dataset_metadata(
 
         safe_table_name = validate_identifier(table_row["name"])
 
-        cursor.execute(f'SELECT COUNT(*) FROM "{safe_table_name}"')  # nosec B608
+        cursor.execute(f'SELECT COUNT(*) FROM "{safe_table_name}"')  # nosec B608 # noqa: S608
         row_count = cursor.fetchone()[0]
 
         # Get columns
@@ -302,13 +302,13 @@ async def query_dataset(
                 where_clause = " WHERE " + " AND ".join(filter_clauses)
 
         # Get total rows matching filters
-        count_query = f'SELECT COUNT(*) FROM "{safe_table_name}"{where_clause}'  # nosec B608
+        count_query = f'SELECT COUNT(*) FROM "{safe_table_name}"{where_clause}'  # nosec B608 # noqa: S608
         cursor.execute(count_query, params)
         total_rows = cursor.fetchone()[0]
 
         # Get data with pagination
         offset = (page - 1) * page_size
-        data_query = f'SELECT * FROM "{safe_table_name}"{where_clause} LIMIT ? OFFSET ?'  # nosec B608
+        data_query = f'SELECT * FROM "{safe_table_name}"{where_clause} LIMIT ? OFFSET ?'  # nosec B608 # noqa: S608
         cursor.execute(data_query, params + [page_size, offset])
         rows = cursor.fetchall()
 
