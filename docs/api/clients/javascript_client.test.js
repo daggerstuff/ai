@@ -23,6 +23,22 @@ describe('PixelatedEmpathyAPI Error Handling', () => {
     });
 });
 
+describe('PixelatedEmpathyAPI healthCheck', () => {
+    it('should return true when API is healthy', async () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        api._makeRequest = async () => ({ success: true });
+        const result = await api.healthCheck();
+        expect(result).toBe(true);
+    });
+
+    it('should return false when API request fails', async () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        api._makeRequest = async () => { throw new Error('Network error'); };
+        const result = await api.healthCheck();
+        expect(result).toBe(false);
+    });
+});
+
 describe('PixelatedEmpathyAPI Constructor', () => {
     it('should initialize with default options', () => {
         const api = new PixelatedEmpathyAPI('test_key');
