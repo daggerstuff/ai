@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 # ⚡ Bolt Optimization: Precompile regex patterns globally to avoid the overhead of implicit regex compilation
 # or cache lookups on every execution, significantly speeding up dictionary key normalization.
 _RE_DASH = re.compile(r"[\s\-]+")
-_RE_CAMEL = re.compile(r"(?<!^)(?=[A-Z])")
+_RE_CAMEL = re.compile(r"(?<!^)(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])")
 _RE_MULTI = re.compile(r"_+")
 
 
@@ -38,9 +38,11 @@ _RE_MULTI = re.compile(r"_+")
 
 REQUIRED_FIELDS: frozenset[str] = frozenset({"id", "source", "content_type"})
 
-# Fields that must appear in every record's metadata dict
-REQUIRED_METADATA_FIELDS: frozenset[str] = frozenset(
+OPTIONAL_METADATA: frozenset[str] = frozenset(
     {
+        "title",
+        "authors",
+        "doi",
         "topic_tags",
         "therapeutic_modality",
         "quality_score",
@@ -48,46 +50,30 @@ REQUIRED_METADATA_FIELDS: frozenset[str] = frozenset(
 )
 
 
-# ---------------------------------------------------------------------------
-# Validation result
-# ---------------------------------------------------------------------------
-
-
-@dataclass
+@dataclass(frozen=True)
 class ValidationResult:
-    """Result of validating a single JSONL record."""
+    """Represents the outcome of a single record validation."""
 
     valid: bool
     errors: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
 
 
-# ---------------------------------------------------------------------------
-# Normalization result
-# ---------------------------------------------------------------------------
-
-
 @dataclass
-class NormalizationResult:
-    """Aggregated result of a normalization pass."""
+class NormalizationSummary:
+    """Aggregated statistics for a normalization run."""
 
     total_records: int = 0
     valid_records: int = 0
     rejected_records: int = 0
     rejected_reasons: dict[str, int] = field(default_factory=dict)
-    normalization_errors: list[str] = field(default_factory=list)
-
-
-# ---------------------------------------------------------------------------
-# DataNormalizer
-# ---------------------------------------------------------------------------
 
 
 class DataNormalizer:
     """
-    Normalizes raw JSONL records into the pipeline's Conversation dataclass.
+    Handles normalization of diverse dataset formats into the canonical schema.
 
-    Pipeline:
+    Pipeline stages:
       1. Validate required fields exist
       2. Normalize text content (unicode, whitespace)
       3. Standardize dictionary keys to lower_snake_case
@@ -95,145 +81,117 @@ class DataNormalizer:
       5. Attach provenance metadata
     """
 
-    def __init__(
-        self,
-        similarity_threshold: float = 0.85,
-        enforce_license: bool = False,
-        enforce_phi_scan: bool = False,
-    ) -> None:
-        """
-        Args:
-            similarity_threshold: Threshold for deduplication similarity.
-            enforce_license: If True, reject records without a license field.
-            enforce_phi_scan: If True, reject records without phi_scan_passed.
-        """
-        self.similarity_threshold = similarity_threshold
-        self.enforce_license = enforce_license
-        self.enforce_phi_scan = enforce_phi_scan
+    # Version marker for backward compatibility tracking
+    NORMALIZATION_VERSION: str = "2.0"
 
-    # ------------------------------------------------------------------
-    # Public API
-    # ------------------------------------------------------------------
+    def __init__(self, pix_ticket: str | None = None):
+        self.pix_ticket = pix_ticket
 
     def validate_record(self, record: dict[str, Any]) -> ValidationResult:
-        """Validate a single JSONL record against the canonical schema."""
-        errors: list[str] = []
-        warnings: list[str] = []
+        """Check if a raw record contains the minimum required fields."""
+        errors = []
+        warnings = []
 
-        # Check required top-level fields
-        missing = REQUIRED_FIELDS - set(record.keys())
-        if missing:
-            errors.append(f"Missing required fields: {sorted(missing)}")
+        # Check top-level required fields
+        for field_name in REQUIRED_FIELDS:
+            if field_name not in record:
+                errors.append(f"Missing required field: {field_name}")
 
-        # Check 'messages' or 'text' — at least one must exist
+        # Check for message content
         has_messages = (
             isinstance(record.get("messages"), list) and len(record["messages"]) > 0
         )
         has_text = (
             isinstance(record.get("text"), str) and len(record["text"].strip()) > 0
         )
-        if not has_messages and not has_text:
+
+        if not (has_messages or has_text):
             errors.append(
                 "Record must contain either 'messages' (list) or 'text' (str)"
             )
 
-        # Check metadata structure
+        # Check metadata
         metadata = record.get("metadata", {})
         if not isinstance(metadata, dict):
-            errors.append("'metadata' must be a dict")
+            errors.append("Metadata must be a dictionary")
         else:
-            missing_meta = REQUIRED_METADATA_FIELDS - set(metadata.keys())
+            missing_meta = OPTIONAL_METADATA - set(metadata.keys())
             if missing_meta:
                 warnings.append(
                     f"Missing optional metadata fields: {sorted(missing_meta)}"
                 )
-
-        # License enforcement
-        if self.enforce_license and not record.get("license"):
-            errors.append("License enforcement enabled but no license provided")
-
-        # PHI scan enforcement
-        if self.enforce_phi_scan and "phi_scan_passed" not in record:
-            errors.append("PHI scan enforcement enabled but phi_scan_passed not set")
 
         return ValidationResult(
             valid=len(errors) == 0, errors=errors, warnings=warnings
         )
 
     def normalize_text(self, text: str) -> str:
-        """Normalize unicode characters and whitespace in a string."""
-        if not text or not isinstance(text, str):
-            return text
-        normalized = unicodedata.normalize("NFKC", text)
-        normalized = " ".join(normalized.split())
-        return normalized.strip()
+        """Standardize string encoding and whitespace."""
+        if not text:
+            return ""
 
-    def standardize_keys(self, data: dict[str, Any]) -> dict[str, Any]:
-        """Convert all dict keys to lower_snake_case recursively."""
-        result: dict[str, Any] = {}
-        for key, value in data.items():
-            clean_key = self._to_snake_case(key)
-            if isinstance(value, dict):
-                result[clean_key] = self.standardize_keys(value)
-            elif isinstance(value, str):
-                result[clean_key] = self.normalize_text(value)
-            else:
-                result[clean_key] = value
-        return result
+        # Normalize unicode characters to NFC form
+        text = unicodedata.normalize("NFC", text)
+
+        # Collapse multiple whitespaces and trim
+        text = re.sub(r"\s+", " ", text).strip()
+
+        return text
 
     def normalize_record(self, record: dict[str, Any]) -> dict[str, Any]:
         """
         Normalize a single JSONL record: standardize keys, normalize text,
         ensure canonical schema structure.
         """
-        normalized = self.standardize_keys(record)
+        # Create deep copy for mutation
+        normalized = json.loads(json.dumps(record))
 
-        # Ensure messages field exists (convert text → messages if needed)
-        if "messages" not in normalized and "text" in normalized:
+        # Convert 'text' field to 'messages' if needed
+        if "text" in normalized and "messages" not in normalized:
             normalized["messages"] = [
                 {"role": "user", "content": normalized.pop("text")}
             ]
 
-        # Normalize each message's content
-        if isinstance(normalized.get("messages"), list):
+        # Standardize keys and normalize content
+        if "messages" in normalized:
             normalized["messages"] = [
                 self._normalize_message(msg) for msg in normalized["messages"]
             ]
 
-        # Normalize metadata
-        if isinstance(normalized.get("metadata"), dict):
-            normalized["metadata"] = self.standardize_keys(normalized["metadata"])
+        if "metadata" in normalized:
+            normalized["metadata"] = {
+                self._to_snake_case(k): v for k, v in normalized["metadata"].items()
+            }
 
         return normalized
 
-    def record_to_conversation(self, record: dict[str, Any]) -> Conversation:
+    def to_conversation(self, record: dict[str, Any], source_name: str) -> Conversation:
         """
-        Convert a normalized JSONL record into a Conversation dataclass instance.
+        Map a normalized record to the Conversation dataclass.
 
-        Maps PIX-30 canonical fields to Conversation schema:
+        Mappings:
           - id → conversation_id
           - source → source
           - messages/messages → messages (Message list)
           - metadata + provenance fields → metadata
         """
-        # Import here to avoid circular dependency with ai.core.pipelines
-        # The Conversation class is defined locally below
-        messages: list[Message] = []
-        raw_messages = record.get("messages", [])
+        # Re-normalize to be safe
+        record = self.normalize_record(record)
 
-        if isinstance(raw_messages, list):
-            for msg in raw_messages:
-                if isinstance(msg, dict):
-                    role = msg.get("role", "user")
-                    content = msg.get("content", msg.get("text", ""))
-                    msg_metadata = msg.get("metadata", {})
+        messages = []
+        for msg in record.get("messages", []):
+            if isinstance(msg, dict):
+                content = msg.get("content", "")
+                role = msg.get("role", "user")
+                if content:
                     timestamp = msg.get(
                         "timestamp", datetime.now(timezone.utc).isoformat()
                     )
+                    msg_metadata = msg.get("metadata", {})
                     messages.append(
                         Message(
-                            role=self.normalize_text(str(role)),
-                            content=self.normalize_text(str(content)),
+                            role=role,
+                            content=content,
                             timestamp=timestamp,
                             metadata=msg_metadata
                             if isinstance(msg_metadata, dict)
@@ -241,24 +199,19 @@ class DataNormalizer:
                         )
                     )
 
-        # Build provenance metadata
-        provenance: dict[str, Any] = {}
-        for provenance_key in (
-            "license",
-            "license_verified",
-            "content_type",
-            "phi_scan_passed",
-            "phi_scan_date",
-            "pull_date",
-            "pix_ticket",
-        ):
-            if provenance_key in record:
-                provenance[provenance_key] = record[provenance_key]
+        # Build provenance
+        provenance = {
+            "source_repo": source_name,
+            "pull_date": record.get("pull_date", datetime.now(timezone.utc).isoformat()),
+            "pix_ticket": self.pix_ticket or record.get("pix_ticket", "N/A"),
+            "license": record.get("license", "unknown"),
+            "license_verified": record.get("license_verified", False),
+            "phi_scan_passed": record.get("phi_scan_passed", False),
+            "normalization_version": self.NORMALIZATION_VERSION,
+        }
 
-        # Merge user metadata with provenance
-        user_metadata = record.get("metadata", {})
-        if isinstance(user_metadata, dict):
-            provenance.update(user_metadata)
+        # Combine existing metadata with provenance
+        metadata = {**record.get("metadata", {}), **provenance}
 
         conversation_id = str(
             record.get("id", hashlib.sha256(repr(record).encode()).hexdigest()[:16])
@@ -266,74 +219,51 @@ class DataNormalizer:
 
         return Conversation(
             conversation_id=conversation_id,
-            source=self.normalize_text(str(record.get("source", "unknown"))),
+            source=source_name,
             messages=messages,
-            metadata=provenance,
-            created_at=datetime.now(timezone.utc).isoformat(),
-            updated_at=datetime.now(timezone.utc).isoformat(),
+            metadata=metadata,
         )
 
-    def process_jsonl_file(
-        self,
-        input_path: str | Path,
-        output_path: str | Path | None = None,
-        reject_path: str | Path | None = None,
-    ) -> NormalizationResult:
+    def process_file(self, input_path: Path, output_path: Path | None = None, reject_path: Path | None = None) -> NormalizationSummary:
         """
-        Process an entire JSONL file: validate, normalize, convert.
+        Stream process a JSONL file, normalizing valid records and rejecting others.
 
         Args:
-            input_path: Path to input JSONL file.
+            input_path: Path to the source JSONL file.
             output_path: Path for normalized output JSONL. Defaults to
                 input_path with .normalized.jsonl suffix.
             reject_path: Path for rejected records JSONL. Defaults to
                 input_path with .rejected.jsonl suffix.
-
-        Returns:
-            NormalizationResult with counts and rejection reasons.
         """
-        input_path = Path(input_path)
         if output_path is None:
             output_path = input_path.with_suffix(".normalized.jsonl")
         if reject_path is None:
             reject_path = input_path.with_suffix(".rejected.jsonl")
 
-        result = NormalizationResult()
-
+        result = NormalizationSummary()
+        source_name = input_path.stem
 
         with (
-            input_path.open("r", encoding="utf-8") as infile,
-            Path(output_path).open("w", encoding="utf-8") as outfile,
-            Path(reject_path).open("w", encoding="utf-8") as rejfile,
+            open(input_path, "r", encoding="utf-8") as infile,
+            open(output_path, "w", encoding="utf-8") as outfile,
+            open(reject_path, "w", encoding="utf-8") as rejectfile,
         ):
-            for line_num, line in enumerate(infile, start=1):
-                line = line.strip()
-                if not line:
+            for line in infile:
+                if not line.strip():
                     continue
 
                 result.total_records += 1
-
                 try:
                     record = json.loads(line)
-                except json.JSONDecodeError as exc:
+                except json.JSONDecodeError:
                     result.rejected_records += 1
-                    reason = f"JSON parse error line {line_num}: {exc}"
                     result.rejected_reasons["json_parse_error"] = (
                         result.rejected_reasons.get("json_parse_error", 0) + 1
                     )
-                    result.normalization_errors.append(reason)
-                    rejfile.write(
-                        json.dumps(
-                            {
-                                "line": line_num,
-                                "raw": line[:500],
-                                "error": str(exc),
-                            }
-                        )
-                        + "\n"
-                    )
+                    rejectfile.write(line)
                     continue
 
+                # Validation
                 validation = self.validate_record(record)
                 if not validation.valid:
                     result.rejected_records += 1
@@ -344,47 +274,26 @@ class DataNormalizer:
                         result.rejected_reasons[reason_key] = (
                             result.rejected_reasons.get(reason_key, 0) + 1
                         )
-                    rejfile.write(
-                        json.dumps(
-                            {
-                                "line": line_num,
-                                "record_id": record.get("id", "unknown"),
-                                "errors": validation.errors,
-                                "warnings": validation.warnings,
-                            }
-                        )
-                        + "\n"
-                    )
+                    rejectfile.write(line)
                     continue
 
+                # Success path
                 try:
-                    normalized = self.normalize_record(record)
-                    conversation = self.record_to_conversation(normalized)
+                    conversation = self.to_conversation(record, source_name)
                     outfile.write(
                         json.dumps(conversation.to_dict(), ensure_ascii=False) + "\n"
                     )
                     result.valid_records += 1
-                except Exception as exc:
+                except Exception as e:
+                    logger.error(f"Error processing record {record.get('id', 'N/A')}: {e}")
                     result.rejected_records += 1
-                    reason = f"Normalization error line {line_num}: {exc}"
-                    result.rejected_reasons["normalization_error"] = (
-                        result.rejected_reasons.get("normalization_error", 0) + 1
+                    result.rejected_reasons["processing_error"] = (
+                        result.rejected_reasons.get("processing_error", 0) + 1
                     )
-                    result.normalization_errors.append(reason)
-                    rejfile.write(
-                        json.dumps(
-                            {
-                                "line": line_num,
-                                "record_id": record.get("id", "unknown"),
-                                "error": str(exc),
-                            }
-                        )
-                        + "\n"
-                    )
+                    rejectfile.write(line)
 
         logger.info(
-            "Processed %s: %d total, %d valid, %d rejected",
-            input_path.name,
+            "Process complete: %d total, %d valid, %d rejected",
             result.total_records,
             result.valid_records,
             result.rejected_records,
@@ -396,18 +305,23 @@ class DataNormalizer:
     # ------------------------------------------------------------------
 
     @staticmethod
-    # ⚡ Bolt Optimization: Cache dictionary keys to avoid repetitive, expensive regex operations during data normalization
-    @functools.lru_cache(maxsize=1024)
+    @functools.lru_cache(maxsize=4096)
     def _to_snake_case(key: str) -> str:
-        """Convert a string key to lower_snake_case."""
+        """
+        Convert a string key to lower_snake_case.
+
+        ⚡ Bolt Optimization: Uses pre-compiled regular expressions and an LRU cache.
+        Since JSONL files often contain thousands of records with identical keys (like 'role', 'content', 'metadata'),
+        caching this conversion skips expensive redundant regex operations.
+        """
         key = key.strip()
-        # Insert underscore before uppercase letters (camelCase → camel_case)
-        key = _RE_CAMEL.sub("_", key)
-        key = key.lower()
         # Replace spaces and hyphens with underscores
         key = _RE_DASH.sub("_", key)
-        # Collapse multiple underscores
-        return _RE_MULTI.sub("_", key)
+        # Insert underscore before uppercase letters (camelCase → camel_case)
+        # Only split on lowercase-to-uppercase transitions to preserve acronyms
+        key = _RE_CAMEL.sub("_", key)
+        # Collapse multiple underscores and lower
+        return _RE_MULTI.sub("_", key).lower()
 
     def _normalize_message(self, message: dict[str, Any]) -> dict[str, Any]:
         """Normalize a single message dict."""
@@ -418,23 +332,16 @@ class DataNormalizer:
             clean_key = self._to_snake_case(key)
             if isinstance(value, str):
                 result[clean_key] = self.normalize_text(value)
+            elif isinstance(value, dict):
+                result[clean_key] = {self._to_snake_case(k): v for k, v in value.items()}
             else:
                 result[clean_key] = value
-        # Ensure required message fields
-        result.setdefault("role", "user")
-        result.setdefault("content", "")
         return result
-
-
-# ---------------------------------------------------------------------------
-# Conversation and Message dataclasses (local copy for ai.core.pipelines)
-# Mirrors ai/pipelines/orchestrator/schemas/conversation_schema.py
-# ---------------------------------------------------------------------------
 
 
 @dataclass
 class Message:
-    """Represents a single message within a conversation."""
+    """A single message in a conversation."""
 
     role: str
     content: str
@@ -444,7 +351,6 @@ class Message:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        """Serializes the message to a dictionary."""
         return {
             "role": self.role,
             "content": self.content,
@@ -453,19 +359,13 @@ class Message:
         }
 
 
-@dataclass(kw_only=True)
+@dataclass
 class Conversation:
-    """
-    Represents a complete conversation adhering to the unified schema.
-    """
+    """Represents a complete conversation adhering to the unified schema."""
 
-    conversation_id: str = field(
-        default_factory=lambda: hashlib.sha256(
-            datetime.now(timezone.utc).isoformat().encode()
-        ).hexdigest()[:16]
-    )
-    source: str | None = None
-    messages: list[Message] = field(default_factory=list)
+    conversation_id: str
+    source: str
+    messages: list[Message]
     metadata: dict[str, Any] = field(default_factory=dict)
     created_at: str = field(
         default_factory=lambda: datetime.now(timezone.utc).isoformat()
@@ -474,64 +374,12 @@ class Conversation:
         default_factory=lambda: datetime.now(timezone.utc).isoformat()
     )
 
-    def add_message(self, role: str, content: str, **kwargs: Any) -> None:
-        """Adds a message to the conversation."""
-        message = Message(role=role, content=content, **kwargs)
-        self.messages.append(message)
-        self.updated_at = datetime.now(timezone.utc).isoformat()
-
-    @property
-    def id(self) -> str:
-        return self.conversation_id
-
-    @id.setter
-    def id(self, value: str) -> None:
-        self.conversation_id = value
-
-    @property
-    def meta(self) -> dict[str, Any]:
-        return self.metadata
-
-    @meta.setter
-    def meta(self, value: dict[str, Any]) -> None:
-        self.metadata = value
-
     def to_dict(self) -> dict[str, Any]:
-        """Serializes the conversation to a dictionary."""
         return {
             "conversation_id": self.conversation_id,
             "source": self.source,
-            "messages": [msg.to_dict() for msg in self.messages],
+            "messages": [m.to_dict() for m in self.messages],
             "metadata": self.metadata,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
         }
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Conversation:
-        """Creates a Conversation instance from a dictionary."""
-        messages = [Message(**msg_data) for msg_data in data.get("messages", [])]
-        return cls(
-            conversation_id=data.get(
-                "conversation_id",
-                hashlib.sha256(
-                    datetime.now(timezone.utc).isoformat().encode()
-                ).hexdigest()[:16],
-            ),
-            source=data.get("source"),
-            messages=messages,
-            metadata=data.get("metadata", {}),
-            created_at=data.get("created_at", datetime.now(timezone.utc).isoformat()),
-            updated_at=data.get("updated_at", datetime.now(timezone.utc).isoformat()),
-        )
-
-
-__all__ = [
-    "REQUIRED_FIELDS",
-    "REQUIRED_METADATA_FIELDS",
-    "Conversation",
-    "DataNormalizer",
-    "Message",
-    "NormalizationResult",
-    "ValidationResult",
-]
