@@ -10,11 +10,11 @@ Canonical JSONL schema fields:
   metadata (title, authors, doi, topic_tags, therapeutic_modality, quality_score),
   phi_scan_passed, phi_scan_date, pull_date, pix_ticket
 """
-
 from __future__ import annotations
 
 import functools
 import hashlib
+import json
 import logging
 import re
 import unicodedata
@@ -25,11 +25,12 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+# ⚡ Bolt Optimization: Precompile regex patterns globally to avoid the overhead of implicit regex compilation
+# or cache lookups on every execution, significantly speeding up dictionary key normalization.
+_RE_DASH = re.compile(r"[\s\-]+")
+_RE_CAMEL = re.compile(r"(?<!^)(?=[A-Z])")
+_RE_MULTI = re.compile(r"_+")
 
-# ⚡ Bolt Optimization: Pre-compile regexes used in to_snake_case to eliminate regex compilation overhead in high-throughput parsing loops.
-_SNAKE_CASE_SPACES_RE = re.compile(r"[\s\-]+")
-_SNAKE_CASE_CAMEL_RE = re.compile(r"(?<!^)(?=[A-Z])")
-_SNAKE_CASE_UNDERSCORE_RE = re.compile(r"_+")
 
 # ---------------------------------------------------------------------------
 # Required fields for the PIX-30 canonical JSONL schema
@@ -205,7 +206,7 @@ class DataNormalizer:
 
         return normalized
 
-    def record_to_conversation(self, record: dict[str, Any]) -> "Conversation":
+    def record_to_conversation(self, record: dict[str, Any]) -> Conversation:
         """
         Convert a normalized JSONL record into a Conversation dataclass instance.
 
@@ -299,7 +300,6 @@ class DataNormalizer:
 
         result = NormalizationResult()
 
-        import json
 
         with (
             input_path.open("r", encoding="utf-8") as infile,
@@ -396,18 +396,18 @@ class DataNormalizer:
     # ------------------------------------------------------------------
 
     @staticmethod
-    # ⚡ Bolt Optimization: Cache repeated lower_snake_case conversions. JSONL datasets exhibit high key repetition (e.g., 'id', 'source'), so LRU caching skips redundant string manipulations and regex passes.
+    # ⚡ Bolt Optimization: Cache dictionary keys to avoid repetitive, expensive regex operations during data normalization
     @functools.lru_cache(maxsize=1024)
     def _to_snake_case(key: str) -> str:
         """Convert a string key to lower_snake_case."""
-        key = key.strip().lower()
-        # Replace spaces and hyphens with underscores
-        key = _SNAKE_CASE_SPACES_RE.sub("_", key)
+        key = key.strip()
         # Insert underscore before uppercase letters (camelCase → camel_case)
-        key = _SNAKE_CASE_CAMEL_RE.sub("_", key)
+        key = _RE_CAMEL.sub("_", key)
+        key = key.lower()
+        # Replace spaces and hyphens with underscores
+        key = _RE_DASH.sub("_", key)
         # Collapse multiple underscores
-        key = _SNAKE_CASE_UNDERSCORE_RE.sub("_", key)
-        return key
+        return _RE_MULTI.sub("_", key)
 
     def _normalize_message(self, message: dict[str, Any]) -> dict[str, Any]:
         """Normalize a single message dict."""
@@ -508,7 +508,7 @@ class Conversation:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "Conversation":
+    def from_dict(cls, data: dict[str, Any]) -> Conversation:
         """Creates a Conversation instance from a dictionary."""
         messages = [Message(**msg_data) for msg_data in data.get("messages", [])]
         return cls(
@@ -527,11 +527,11 @@ class Conversation:
 
 
 __all__ = [
-    "DataNormalizer",
-    "ValidationResult",
-    "NormalizationResult",
-    "Message",
-    "Conversation",
     "REQUIRED_FIELDS",
     "REQUIRED_METADATA_FIELDS",
+    "Conversation",
+    "DataNormalizer",
+    "Message",
+    "NormalizationResult",
+    "ValidationResult",
 ]
