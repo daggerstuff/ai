@@ -10,11 +10,11 @@ Canonical JSONL schema fields:
   metadata (title, authors, doi, topic_tags, therapeutic_modality, quality_score),
   phi_scan_passed, phi_scan_date, pull_date, pix_ticket
 """
-
 from __future__ import annotations
 
 import functools
 import hashlib
+import json
 import logging
 import re
 import unicodedata
@@ -23,29 +23,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-# Pre-compiled regex patterns for snake_case conversion
-_SNAKE_CASE_SPACES_RE = re.compile(r"[\s\-]+")
-_SNAKE_CASE_CAMEL_RE = re.compile(r"(?<!^)(?=[A-Z])")
-_SNAKE_CASE_COLLAPSE_RE = re.compile(r"_+")
-
-# ⚡ Bolt: Added @functools.lru_cache and pre-compiled regex to optimize
-# repetitive key and text normalization during large dataset processing.
-@functools.lru_cache(maxsize=4096)
-def _cached_to_snake_case(key: str) -> str:
-    """Convert a string key to lower_snake_case (cached)."""
-    key = key.strip().lower()
-    key = _SNAKE_CASE_SPACES_RE.sub("_", key)
-    key = _SNAKE_CASE_CAMEL_RE.sub("_", key)
-    return _SNAKE_CASE_COLLAPSE_RE.sub("_", key)
-
-@functools.lru_cache(maxsize=4096)
-def _cached_normalize_text(text: str) -> str:
-    """Normalize unicode characters and whitespace in a string (cached)."""
-    normalized = unicodedata.normalize("NFKC", text)
-    normalized = " ".join(normalized.split())
-    return normalized.strip()
-
 logger = logging.getLogger(__name__)
+
+# ⚡ Bolt Optimization: Precompile regex patterns globally to avoid the overhead of implicit regex compilation
+# or cache lookups on every execution, significantly speeding up dictionary key normalization.
+_RE_DASH = re.compile(r"[\s\-]+")
+_RE_CAMEL = re.compile(r"(?<!^)(?=[A-Z])")
+_RE_MULTI = re.compile(r"_+")
 
 
 # ---------------------------------------------------------------------------
@@ -180,7 +164,9 @@ class DataNormalizer:
         """Normalize unicode characters and whitespace in a string."""
         if not text or not isinstance(text, str):
             return text
-        return _cached_normalize_text(text)
+        normalized = unicodedata.normalize("NFKC", text)
+        normalized = " ".join(normalized.split())
+        return normalized.strip()
 
     def standardize_keys(self, data: dict[str, Any]) -> dict[str, Any]:
         """Convert all dict keys to lower_snake_case recursively."""
@@ -314,7 +300,6 @@ class DataNormalizer:
 
         result = NormalizationResult()
 
-        import json
 
         with (
             input_path.open("r", encoding="utf-8") as infile,
@@ -411,9 +396,18 @@ class DataNormalizer:
     # ------------------------------------------------------------------
 
     @staticmethod
+    # ⚡ Bolt Optimization: Cache dictionary keys to avoid repetitive, expensive regex operations during data normalization
+    @functools.lru_cache(maxsize=1024)
     def _to_snake_case(key: str) -> str:
         """Convert a string key to lower_snake_case."""
-        return _cached_to_snake_case(key)
+        key = key.strip()
+        # Insert underscore before uppercase letters (camelCase → camel_case)
+        key = _RE_CAMEL.sub("_", key)
+        key = key.lower()
+        # Replace spaces and hyphens with underscores
+        key = _RE_DASH.sub("_", key)
+        # Collapse multiple underscores
+        return _RE_MULTI.sub("_", key)
 
     def _normalize_message(self, message: dict[str, Any]) -> dict[str, Any]:
         """Normalize a single message dict."""
