@@ -1,5 +1,17 @@
-""" PIX-32: Data Normalizer for Pixelated Empathy AI Dataset Pipeline. Bridges the canonical JSONL schema (PIX-30) with the Conversation dataclass. Provides text normalization, key standardization, schema validation, and provenance metadata attachment for all ingested records. Canonical JSONL schema fields: id, source, license, license_verified, content_type, messages/text, metadata (title, authors, doi, topic_tags, therapeutic_modality, quality_score), phi_scan_passed, phi_scan_date, pull_date, pix_ticket """
+"""
+PIX-32: Data Normalizer for Pixelated Empathy AI Dataset Pipeline.
+
+Bridges the canonical JSONL schema (PIX-30) with the Conversation dataclass.
+Provides text normalization, key standardization, schema validation, and
+provenance metadata attachment for all ingested records.
+
+Canonical JSONL schema fields:
+  id, source, license, license_verified, content_type, messages/text,
+  metadata (title, authors, doi, topic_tags, therapeutic_modality, quality_score),
+  phi_scan_passed, phi_scan_date, pull_date, pix_ticket
+"""
 from __future__ import annotations
+
 import functools
 import hashlib
 import json
@@ -16,11 +28,14 @@ logger = logging.getLogger(__name__)
 # ⚡ Bolt Optimization: Precompile regex patterns globally to avoid the overhead of implicit regex compilation
 # or cache lookups on every execution, significantly speeding up dictionary key normalization.
 _RE_DASH = re.compile(r"[\s\-]+")
+_RE_CAMEL = re.compile(r"(?<!^)(?=[A-Z])")
 _RE_MULTI = re.compile(r"_+")
+
 
 # ---------------------------------------------------------------------------
 # Required fields for the PIX-30 canonical JSONL schema
 # ---------------------------------------------------------------------------
+
 REQUIRED_FIELDS: frozenset[str] = frozenset({"id", "source", "content_type"})
 
 # Fields that must appear in every record's metadata dict
@@ -32,9 +47,12 @@ REQUIRED_METADATA_FIELDS: frozenset[str] = frozenset(
     }
 )
 
+
 # ---------------------------------------------------------------------------
 # Validation result
 # ---------------------------------------------------------------------------
+
+
 @dataclass
 class ValidationResult:
     """Result of validating a single JSONL record."""
@@ -47,6 +65,8 @@ class ValidationResult:
 # ---------------------------------------------------------------------------
 # Normalization result
 # ---------------------------------------------------------------------------
+
+
 @dataclass
 class NormalizationResult:
     """Aggregated result of a normalization pass."""
@@ -61,16 +81,18 @@ class NormalizationResult:
 # ---------------------------------------------------------------------------
 # DataNormalizer
 # ---------------------------------------------------------------------------
+
+
 class DataNormalizer:
     """
     Normalizes raw JSONL records into the pipeline's Conversation dataclass.
 
     Pipeline:
-        1. Validate required fields exist
-        2. Normalize text content (unicode, whitespace)
-        3. Standardize dictionary keys to lower_snake_case
-        4. Convert to Conversation dataclass
-        5. Attach provenance metadata
+      1. Validate required fields exist
+      2. Normalize text content (unicode, whitespace)
+      3. Standardize dictionary keys to lower_snake_case
+      4. Convert to Conversation dataclass
+      5. Attach provenance metadata
     """
 
     def __init__(
@@ -92,6 +114,7 @@ class DataNormalizer:
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
+
     def validate_record(self, record: dict[str, Any]) -> ValidationResult:
         """Validate a single JSONL record against the canonical schema."""
         errors: list[str] = []
@@ -104,12 +127,10 @@ class DataNormalizer:
 
         # Check 'messages' or 'text' — at least one must exist
         has_messages = (
-            isinstance(record.get("messages"), list)
-            and len(record["messages"]) > 0
+            isinstance(record.get("messages"), list) and len(record["messages"]) > 0
         )
         has_text = (
-            isinstance(record.get("text"), str)
-            and len(record["text"].strip()) > 0
+            isinstance(record.get("text"), str) and len(record["text"].strip()) > 0
         )
         if not has_messages and not has_text:
             errors.append(
@@ -136,9 +157,7 @@ class DataNormalizer:
             errors.append("PHI scan enforcement enabled but phi_scan_passed not set")
 
         return ValidationResult(
-            valid=len(errors) == 0,
-            errors=errors,
-            warnings=warnings,
+            valid=len(errors) == 0, errors=errors, warnings=warnings
         )
 
     def normalize_text(self, text: str) -> str:
@@ -164,7 +183,8 @@ class DataNormalizer:
 
     def normalize_record(self, record: dict[str, Any]) -> dict[str, Any]:
         """
-        Normalize a single JSONL record: standardize keys, normalize text, ensure canonical schema structure.
+        Normalize a single JSONL record: standardize keys, normalize text,
+        ensure canonical schema structure.
         """
         normalized = self.standardize_keys(record)
 
@@ -191,15 +211,16 @@ class DataNormalizer:
         Convert a normalized JSONL record into a Conversation dataclass instance.
 
         Maps PIX-30 canonical fields to Conversation schema:
-            - id → conversation_id
-            - source → source
-            - messages/messages → messages (Message list)
-            - metadata + provenance fields → metadata
+          - id → conversation_id
+          - source → source
+          - messages/messages → messages (Message list)
+          - metadata + provenance fields → metadata
         """
         # Import here to avoid circular dependency with ai.core.pipelines
         # The Conversation class is defined locally below
         messages: list[Message] = []
         raw_messages = record.get("messages", [])
+
         if isinstance(raw_messages, list):
             for msg in raw_messages:
                 if isinstance(msg, dict):
@@ -214,7 +235,9 @@ class DataNormalizer:
                             role=self.normalize_text(str(role)),
                             content=self.normalize_text(str(content)),
                             timestamp=timestamp,
-                            metadata=msg_metadata if isinstance(msg_metadata, dict) else {},
+                            metadata=msg_metadata
+                            if isinstance(msg_metadata, dict)
+                            else {},
                         )
                     )
 
@@ -261,8 +284,10 @@ class DataNormalizer:
 
         Args:
             input_path: Path to input JSONL file.
-            output_path: Path for normalized output JSONL. Defaults to input_path with .normalized.jsonl suffix.
-            reject_path: Path for rejected records JSONL. Defaults to input_path with .rejected.jsonl suffix.
+            output_path: Path for normalized output JSONL. Defaults to
+                input_path with .normalized.jsonl suffix.
+            reject_path: Path for rejected records JSONL. Defaults to
+                input_path with .rejected.jsonl suffix.
 
         Returns:
             NormalizationResult with counts and rejection reasons.
@@ -274,6 +299,7 @@ class DataNormalizer:
             reject_path = input_path.with_suffix(".rejected.jsonl")
 
         result = NormalizationResult()
+
 
         with (
             input_path.open("r", encoding="utf-8") as infile,
@@ -363,32 +389,30 @@ class DataNormalizer:
             result.valid_records,
             result.rejected_records,
         )
-
         return result
 
     # ------------------------------------------------------------------
     # Private helpers
     # ------------------------------------------------------------------
+
     @staticmethod
     # ⚡ Bolt Optimization: Cache dictionary keys to avoid repetitive, expensive regex operations during data normalization
     @functools.lru_cache(maxsize=1024)
     def _to_snake_case(key: str) -> str:
         """Convert a string key to lower_snake_case."""
-        key = key.strip().lower()
-
+        key = key.strip()
+        # Insert underscore before uppercase letters (camelCase → camel_case)
+        key = _RE_CAMEL.sub("_", key)
+        key = key.lower()
         # Replace spaces and hyphens with underscores
         key = _RE_DASH.sub("_", key)
-
         # Collapse multiple underscores
-        key = _RE_MULTI.sub("_", key)
-
-        return key
+        return _RE_MULTI.sub("_", key)
 
     def _normalize_message(self, message: dict[str, Any]) -> dict[str, Any]:
         """Normalize a single message dict."""
         if not isinstance(message, dict):
             return {"role": "user", "content": str(message)}
-
         result = {}
         for key, value in message.items():
             clean_key = self._to_snake_case(key)
@@ -396,11 +420,9 @@ class DataNormalizer:
                 result[clean_key] = self.normalize_text(value)
             else:
                 result[clean_key] = value
-
         # Ensure required message fields
         result.setdefault("role", "user")
         result.setdefault("content", "")
-
         return result
 
 
@@ -408,6 +430,8 @@ class DataNormalizer:
 # Conversation and Message dataclasses (local copy for ai.core.pipelines)
 # Mirrors ai/pipelines/orchestrator/schemas/conversation_schema.py
 # ---------------------------------------------------------------------------
+
+
 @dataclass
 class Message:
     """Represents a single message within a conversation."""
