@@ -25,6 +25,12 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+# ⚡ Bolt Optimization: Precompile regex patterns globally to avoid the overhead of implicit regex compilation
+# or cache lookups on every execution, significantly speeding up dictionary key normalization.
+_RE_DASH = re.compile(r"[\s\-]+")
+_RE_CAMEL = re.compile(r"(?<!^)(?=[A-Z])")
+_RE_MULTI = re.compile(r"_+")
+
 
 # ---------------------------------------------------------------------------
 # Required fields for the PIX-30 canonical JSONL schema
@@ -390,17 +396,18 @@ class DataNormalizer:
     # ------------------------------------------------------------------
 
     @staticmethod
-    # ⚡ Bolt: Cache snake_case conversions to eliminate redundant regex operations on identical JSON keys during bulk processing.
+    # ⚡ Bolt Optimization: Cache dictionary keys to avoid repetitive, expensive regex operations during data normalization
     @functools.lru_cache(maxsize=1024)
     def _to_snake_case(key: str) -> str:
         """Convert a string key to lower_snake_case."""
-        key = key.strip().lower()
-        # Replace spaces and hyphens with underscores
-        key = re.sub(r"[\s\-]+", "_", key)
+        key = key.strip()
         # Insert underscore before uppercase letters (camelCase → camel_case)
-        key = re.sub(r"(?<!^)(?=[A-Z])", "_", key)
+        key = _RE_CAMEL.sub("_", key)
+        key = key.lower()
+        # Replace spaces and hyphens with underscores
+        key = _RE_DASH.sub("_", key)
         # Collapse multiple underscores
-        return re.sub(r"_+", "_", key)
+        return _RE_MULTI.sub("_", key)
 
     def _normalize_message(self, message: dict[str, Any]) -> dict[str, Any]:
         """Normalize a single message dict."""
