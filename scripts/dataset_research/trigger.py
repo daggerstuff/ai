@@ -5,11 +5,10 @@ Automates the cadence-based execution of academic sourcing fetching.
 """
 
 import logging
-import os
+import subprocess
+import sys
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("journal_trigger")
 
 
@@ -17,7 +16,7 @@ def run_academic_sourcing():
     """Triggers the backend academic sourcing engine via the AI submodule."""
     logger.info("Triggering Academic Sourcing pipeline...")
     # This invokes ai/sourcing/academic/academic_sourcing.py integration
-    os.system("python3 -m ai.sourcing.academic.academic_sourcing")
+    subprocess.run([sys.executable, "-m", "ai.sourcing.academic.academic_sourcing"], check=True)  # nosec B603
     logger.info("Academic sourcing run completed.")
 
 
