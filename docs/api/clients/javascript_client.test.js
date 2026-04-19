@@ -72,4 +72,13 @@ describe('PixelatedEmpathyAPI Methods', () => {
             })
         }));
     });
+
+    it('getConversation should call _makeRequest with correct endpoint', async () => {
+        api._makeRequest.mockResolvedValueOnce({ data: { id: 'conv-123' } });
+
+        const result = await api.getConversation('conv-123');
+
+        expect(api._makeRequest).toHaveBeenCalledWith('GET', '/conversations/conv-123');
+        expect(result).toEqual({ id: 'conv-123' });
+    });
 });
