@@ -55,6 +55,10 @@ class InputValidator:
         r"\b\d+\.\d+\.\d+\.\d+\b",  # IP address
     ]
 
+    # ⚡ Bolt Optimization: Precompile regex patterns globally to avoid the overhead of implicit compilation
+    _COMPILED_SENSITIVE_PATTERNS = [re.compile(p) for p in SENSITIVE_PATTERNS]
+    _RE_CONTROL_CHARS = re.compile(r"[\x00-\x1f\x7f-\x9f]")
+
     def __init__(self, max_string_length: int = 1000, max_file_size_mb: int = 100):
         """
         Initialize validator with configuration.
@@ -406,8 +410,8 @@ class InputValidator:
         if isinstance(data, str):
             # Remove sensitive patterns
             sanitized = data
-            for pattern in self.SENSITIVE_PATTERNS:
-                sanitized = re.sub(pattern, "[REDACTED]", sanitized)
+            for pattern in self._COMPILED_SENSITIVE_PATTERNS:
+                sanitized = pattern.sub("[REDACTED]", sanitized)
             return sanitized
         return data
 
@@ -423,7 +427,7 @@ class InputValidator:
         """
         # Remove null bytes and control characters
         sanitized = value.replace("\x00", "")
-        sanitized = re.sub(r"[\x00-\x1f\x7f-\x9f]", "", sanitized)
+        sanitized = self._RE_CONTROL_CHARS.sub("", sanitized)
 
         # Trim whitespace
         return sanitized.strip()
