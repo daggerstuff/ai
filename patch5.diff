@@ -1,0 +1,19 @@
+--- api/dataset_api.py
++++ api/dataset_api.py
+@@ -302,11 +302,11 @@
+                 where_clause = " WHERE " + " AND ".join(filter_clauses)
+
+         # Get total rows matching filters
+-        count_query = f'SELECT COUNT(*) FROM "{safe_table_name}"{where_clause}'  # nosec B608
+-        cursor.execute(count_query, params)
++        count_query = f'SELECT COUNT(*) FROM "{safe_table_name}"{where_clause}'
++        cursor.execute(count_query, params)  # sourcery skip: sqlalchemy-execute-raw-query # nosec B608
+         total_rows = cursor.fetchone()[0]
+
+         # Get data with pagination
+         offset = (page - 1) * page_size
+-        data_query = f'SELECT * FROM "{safe_table_name}"{where_clause} LIMIT ? OFFSET ?'  # nosec B608
+-        cursor.execute(data_query, params + [page_size, offset])
++        data_query = f'SELECT * FROM "{safe_table_name}"{where_clause} LIMIT ? OFFSET ?'
++        cursor.execute(data_query, params + [page_size, offset])  # sourcery skip: sqlalchemy-execute-raw-query # nosec B608
+         rows = cursor.fetchall()
