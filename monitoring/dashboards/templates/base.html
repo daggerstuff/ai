@@ -139,8 +139,8 @@
     {% block extra_css %}{% endblock %}
   </head>
   <body>
-    <div class="refresh-indicator" id="refreshIndicator">
-      <i class="fas fa-sync-alt fa-spin"></i> Updating data...
+    <div class="refresh-indicator" id="refreshIndicator" role="status" aria-live="polite">
+      <i class="fas fa-sync-alt fa-spin" aria-hidden="true"></i> Updating data...
     </div>
 
     <div class="dashboard-header">
