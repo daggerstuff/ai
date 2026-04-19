@@ -335,11 +335,11 @@ async def query_dataset(
 
         # Get data with pagination
         offset = (page - 1) * page_size
+        # Combined fix: using escape_identifier from HEAD and fetchall from PR
         data_query = f'SELECT * FROM "{escape_identifier(safe_table_name)}"{where_clause} LIMIT ? OFFSET ?'  # nosec B608
         cursor.execute(data_query, [*params, page_size, offset])
-
-        # sourcery skip: python-sql-injection, sql-injection
         rows = cursor.fetchall()
+
         results = []
         for row in rows:
             results.append(dict(row))
