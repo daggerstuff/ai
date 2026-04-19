@@ -22,6 +22,7 @@ Date: August 2025
 
 import asyncio
 import json
+import os
 import logging
 import time
 from dataclasses import asdict, dataclass
@@ -229,7 +230,7 @@ class SecurityValidator:
                     )
 
             # Test with valid token (simulated)
-            valid_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.test"
+            valid_token = os.environ.get("VALID_AUTH_TOKEN", "dummy_test_token")
             headers = {"Authorization": f"Bearer {valid_token}"}
             # In real implementation, this would test with actual valid token
 
