@@ -18,11 +18,9 @@ def run_s3_command(cmd):
         env["AWS_ACCESS_KEY_ID"] = os.environ.get("AWS_ACCESS_KEY_ID", "")
         env["AWS_SECRET_ACCESS_KEY"] = os.environ.get("AWS_SECRET_ACCESS_KEY", "")
 
-        if isinstance(cmd, str):
-            import shlex
-            cmd = shlex.split(cmd)
-        result = subprocess.run(  # nosec B603
-            cmd, shell=False, capture_output=True, text=True, env=env
+        # nosec B603
+        result = subprocess.run(
+            cmd, capture_output=True, text=True, env=env
         )
 
         if result.returncode == 0:
@@ -46,10 +44,20 @@ def discover_pixel_data():
     endpoint = "https://s3.us-east-va.io.cloud.ovh.us"
 
     # List objects with AWS CLI
-    cmd = ["aws", "s3", "ls", f"s3://{bucket}", "--recursive", "--endpoint-url", endpoint, "--human-readable", "--summarize"]
+    cmd = [
+        "aws",
+        "s3",
+        "ls",
+        f"s3://{bucket}",
+        "--recursive",
+        "--endpoint-url",
+        endpoint,
+        "--human-readable",
+        "--summarize",
+    ]
 
     try:
-        result = subprocess.run(cmd, shell=False, capture_output=True, text=True)  # nosec B603
+        result = subprocess.run(cmd, capture_output=True, text=True)  # nosec B603
         if result.returncode == 0:
             lines = result.stdout.strip().split("\n")
 
@@ -138,10 +146,20 @@ def list_s3_with_aws_cli():
     """Use AWS CLI to list S3 bucket contents"""
     print("🔍 Using AWS CLI to discover pixel-data...")
 
-    cmd = ["aws", "s3", "ls", "s3://pixel-data", "--recursive", "--endpoint-url", "https://s3.us-east-va.io.cloud.ovh.us", "--human-readable", "--summarize"]
+    cmd = [
+        "aws",
+        "s3",
+        "ls",
+        "s3://pixel-data",
+        "--recursive",
+        "--endpoint-url",
+        "https://s3.us-east-va.io.cloud.ovh.us",
+        "--human-readable",
+        "--summarize",
+    ]
 
     try:
-        result = subprocess.run(cmd, shell=False, capture_output=True, text=True)  # nosec B603
+        result = subprocess.run(cmd, capture_output=True, text=True)  # nosec B603
         if result.returncode == 0:
             # Parse the output
             lines = result.stdout.strip().split("\n")
@@ -211,8 +229,16 @@ def main():
         # Generate download commands
         print("\n🚀 Download commands:")
         for file_info in files[:5]:
-            cmd = ["aws", "s3", "cp", f"s3://pixel-data/{file_info['path']}", f"{download_dir}/", "--endpoint-url", "https://s3.us-east-va.io.cloud.ovh.us"]
-            print(f"   {cmd}")
+            cmd = [
+                "aws",
+                "s3",
+                "cp",
+                f"s3://pixel-data/{file_info['path']}",
+                f"{download_dir}/",
+                "--endpoint-url",
+                "https://s3.us-east-va.io.cloud.ovh.us",
+            ]
+            print(f"   {' '.join(cmd)}")
     else:
         print("❌ No files found - checking with discovery...")
         discover_pixel_data()
