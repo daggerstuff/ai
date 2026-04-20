@@ -12,6 +12,7 @@ This module provides enterprise-grade API authentication with:
 
 import hashlib
 import logging
+import os
 import secrets
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
@@ -394,7 +395,7 @@ class AuthenticationTester:
 
     def test_password_hashing(self) -> bool:
         """Test password hashing security"""
-        password = "test_password_123"
+        password = os.environ.get("TEST_PASSWORD", secrets.token_urlsafe(16))
         hash1 = self.auth_system.hash_password(password)
         hash2 = self.auth_system.hash_password(password)
 
@@ -495,14 +496,14 @@ class AuthenticationTester:
 # Example usage and testing
 if __name__ == "__main__":
     # Initialize authentication system
-    auth_system = AuthenticationSystem(secret_key="your-secret-key-here")
+    auth_system = AuthenticationSystem(secret_key=os.environ.get("API_SECRET_KEY", secrets.token_urlsafe(32)))
 
     # Create test users
     admin_user = auth_system.create_user(
-        "admin", "admin@example.com", "admin_password", UserRole.ADMIN
+        "admin", "admin@example.com", "os.environ.get("ADMIN_PASSWORD", secrets.token_urlsafe(16))", UserRole.ADMIN
     )
     regular_user = auth_system.create_user(
-        "user", "user@example.com", "user_password", UserRole.USER
+        "user", "user@example.com", "os.environ.get("USER_PASSWORD", secrets.token_urlsafe(16))", UserRole.USER
     )
 
     # Create API key
@@ -515,7 +516,7 @@ if __name__ == "__main__":
     print(f"Created API key: {api_key}")
 
     # Test authentication
-    authenticated_user = auth_system.authenticate_user("admin", "admin_password")
+    authenticated_user = auth_system.authenticate_user("admin", "os.environ.get("ADMIN_PASSWORD", secrets.token_urlsafe(16))")
     if authenticated_user:
         token = auth_system.generate_jwt_token(authenticated_user)
         print(f"Generated JWT token: {token[:50]}...")
