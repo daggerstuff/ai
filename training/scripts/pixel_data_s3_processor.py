@@ -6,19 +6,22 @@ Pixel-Data S3 Processor - Uses actual S3 endpoint for 60GB dataset
 import json
 import os
 import subprocess
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 
 
 def run_s3_command(cmd):
-    """Run AWS S3 command with HETZNER credentials"""
+    """Run AWS S3 command with OVH credentials"""
     try:
-        # Use AWS CLI with HETZNER S3 endpoint
+        # Use AWS CLI with OVH S3 endpoint
         env = os.environ.copy()
         env["AWS_ACCESS_KEY_ID"] = os.environ.get("AWS_ACCESS_KEY_ID", "")
         env["AWS_SECRET_ACCESS_KEY"] = os.environ.get("AWS_SECRET_ACCESS_KEY", "")
 
-        result = subprocess.run(cmd, shell=False, check=False, capture_output=True, text=True, env=env)
+        # nosec B603
+        result = subprocess.run(
+            cmd, capture_output=True, text=True, env=env
+        )
 
         if result.returncode == 0:
             try:
@@ -38,7 +41,7 @@ def discover_pixel_data():
     print("🔍 Discovering 60GB pixel-data S3 bucket...")
 
     bucket = "pixel-data"
-    endpoint = "https://hel1.your-objectstorage.com"
+    endpoint = "https://s3.us-east-va.io.cloud.ovh.us"
 
     # List objects with AWS CLI
     cmd = [
@@ -54,7 +57,7 @@ def discover_pixel_data():
     ]
 
     try:
-        result = subprocess.run(cmd, shell=False, check=False, capture_output=True, text=True)
+        result = subprocess.run(cmd, capture_output=True, text=True)  # nosec B603
         if result.returncode == 0:
             lines = result.stdout.strip().split("\n")
 
@@ -63,7 +66,9 @@ def discover_pixel_data():
             total_size = 0
 
             for line in lines:
-                if line.startswith("202") and "Total" not in line:  # AWS format: 2024-01-01 12:00:00 1.2G file.json
+                if (
+                    line.startswith("202") and "Total" not in line
+                ):  # AWS format: 2024-01-01 12:00:00 1.2G file.json
                     parts = line.split()
                     if len(parts) >= 3:
                         size_str = parts[2]
@@ -72,15 +77,25 @@ def discover_pixel_data():
                         # Convert size to bytes
                         size_bytes = 0
                         if "GiB" in size_str or "GB" in size_str:
-                            size_bytes = float(size_str.replace("GiB", "").replace("GB", "")) * (1024**3)
+                            size_bytes = float(
+                                size_str.replace("GiB", "").replace("GB", "")
+                            ) * (1024**3)
                         elif "MiB" in size_str or "MB" in size_str:
-                            size_bytes = float(size_str.replace("MiB", "").replace("MB", "")) * (1024**2)
+                            size_bytes = float(
+                                size_str.replace("MiB", "").replace("MB", "")
+                            ) * (1024**2)
                         elif "KiB" in size_str or "KB" in size_str:
-                            size_bytes = float(size_str.replace("KiB", "").replace("KB", "")) * 1024
+                            size_bytes = (
+                                float(size_str.replace("KiB", "").replace("KB", ""))
+                                * 1024
+                            )
                         else:
                             size_bytes = float(size_str)
 
-                        if any(ext in file_path.lower() for ext in [".json", ".jsonl", ".csv"]):
+                        if any(
+                            ext in file_path.lower()
+                            for ext in [".json", ".jsonl", ".csv"]
+                        ):
                             files.append(
                                 {
                                     "path": file_path,
@@ -91,7 +106,7 @@ def discover_pixel_data():
                             total_size += size_bytes
 
             report = {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now().isoformat(),
                 "bucket": bucket,
                 "endpoint": endpoint,
                 "total_files": len(files),
@@ -138,16 +153,19 @@ def list_s3_with_aws_cli():
         "s3://pixel-data",
         "--recursive",
         "--endpoint-url",
-        "https://hel1.your-objectstorage.com",
+        "https://s3.us-east-va.io.cloud.ovh.us",
         "--human-readable",
         "--summarize",
     ]
 
     try:
-        result = subprocess.run(cmd, shell=False, check=False, capture_output=True, text=True)
+        result = subprocess.run(cmd, capture_output=True, text=True)  # nosec B603
         if result.returncode == 0:
             # Parse the output
             lines = result.stdout.strip().split("\n")
+
+            total_line = [l for l in lines if "Total Objects:" in l]
+            size_line = [l for l in lines if "Total Size:" in l]
 
             print("📊 S3 Discovery Results:")
             for line in lines:
@@ -161,7 +179,10 @@ def list_s3_with_aws_cli():
                     if len(parts) >= 4:
                         date, time, size, *path = parts
                         file_path = " ".join(path)
-                        if any(ext in file_path.lower() for ext in [".json", ".jsonl", ".csv"]):
+                        if any(
+                            ext in file_path.lower()
+                            for ext in [".json", ".jsonl", ".csv"]
+                        ):
                             dataset_files.append(
                                 {
                                     "path": file_path,
@@ -192,7 +213,7 @@ def main():
         print("🔧 Set these environment variables:")
         print("   export AWS_ACCESS_KEY_ID=your-s3-access-key")
         print("   export AWS_SECRET_ACCESS_KEY=your-s3-secret-key")
-        print("   export AWS_DEFAULT_REGION=hel1")
+        print("   export AWS_DEFAULT_REGION=us-east-va")
         return
 
     print(f"✅ Using credentials: {access_key[:8]}...")
@@ -215,9 +236,8 @@ def main():
                 f"s3://pixel-data/{file_info['path']}",
                 f"{download_dir}/",
                 "--endpoint-url",
-                "https://hel1.your-objectstorage.com",
+                "https://s3.us-east-va.io.cloud.ovh.us",
             ]
-
             print(f"   {' '.join(cmd)}")
     else:
         print("❌ No files found - checking with discovery...")
