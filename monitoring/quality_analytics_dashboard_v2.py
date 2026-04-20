@@ -344,13 +344,18 @@ class QualityAnalyticsDashboard:
                 daily_quality = recent_df.groupby(recent_df["created_at"].dt.date)[
                     "overall_quality"
                 ].agg(["mean", "count"])
+                # OPTIMIZATION: Avoid iterrows() for performance by using zip on column arrays
                 trend_data = [
                     {
                         "date": str(date),
-                        "average_quality": float(stats["mean"]),
-                        "conversation_count": int(stats["count"]),
+                        "average_quality": float(mean_val),
+                        "conversation_count": int(count_val),
                     }
-                    for date, stats in daily_quality.iterrows()
+                    for date, mean_val, count_val in zip(
+                        daily_quality.index,
+                        daily_quality["mean"],
+                        daily_quality["count"]
+                    )
                 ]
                 # Sort by date
                 trend_data.sort(key=lambda x: x["date"])
@@ -460,17 +465,25 @@ class QualityAnalyticsDashboard:
                 anomaly_df = df[z_scores > 2]
 
             # Convert to list of dictionaries (limit to top 20)
-            for _, row in anomaly_df.head(20).iterrows():
+            # OPTIMIZATION: Avoid iterrows() for performance by using zip on column arrays
+            top_anomalies = anomaly_df.head(20)
+            overall_mean = df["overall_quality"].mean()
+
+            for conv_id, tier, source, quality, created_at in zip(
+                top_anomalies["conversation_id"],
+                top_anomalies["tier"],
+                top_anomalies["dataset_source"],
+                top_anomalies["overall_quality"],
+                top_anomalies["created_at"]
+            ):
                 anomalies.append(
                     {
-                        "conversation_id": str(row["conversation_id"]),
-                        "tier": str(row["tier"]),
-                        "dataset_source": str(row["dataset_source"]),
-                        "quality_score": float(row["overall_quality"]),
-                        "date": str(row["created_at"].date()),
-                        "anomaly_type": "low"
-                        if row["overall_quality"] < df["overall_quality"].mean()
-                        else "high",
+                        "conversation_id": str(conv_id),
+                        "tier": str(tier),
+                        "dataset_source": str(source),
+                        "quality_score": float(quality),
+                        "date": str(created_at.date()),
+                        "anomaly_type": "low" if quality < overall_mean else "high",
                     }
                 )
 
