@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { PixelatedEmpathyAPI } from './javascript_client';
+import { PixelatedEmpathyAPI, PixelatedEmpathyAPIError } from './javascript_client';
 
 describe('PixelatedEmpathyAPI healthCheck', () => {
     it('should return true when health check succeeds', async () => {
@@ -36,13 +36,13 @@ describe('PixelatedEmpathyAPI healthCheck', () => {
 describe('PixelatedEmpathyAPI Rate Limiting', () => {
     it('should retry after 429 error and succeed', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        api._makeRequest = vi.fn()
-            .mockRejectedValueOnce({ status: 429 })
-            .mockResolvedValueOnce({ success: true });
+        api._httpRequest = vi.fn()
+            .mockResolvedValueOnce({ statusCode: 429, headers: { 'retry-after': '0' }, body: '' })
+            .mockResolvedValueOnce({ statusCode: 200, headers: {}, body: '{"success": true}' });
 
         const result = await api.healthCheck();
 
-        expect(api._makeRequest).toHaveBeenCalledTimes(2);
+        expect(api._httpRequest).toHaveBeenCalledTimes(2);
         expect(result).toBe(true);
     });
 });
