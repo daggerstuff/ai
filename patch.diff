@@ -1,0 +1,10 @@
+<<<<<<< SEARCH
+        result = subprocess.run(
+            cmd, capture_output=True, text=True, env=env
+        )  # nosec B603
+=======
+        # nosec B603
+        result = subprocess.run(
+            cmd, capture_output=True, text=True, env=env
+        )
+>>>>>>> REPLACE
