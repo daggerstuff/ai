@@ -17,13 +17,13 @@ from datetime import datetime, timezone
 
 import pandas as pd
 
-from .datetime import datetime
-from .pathlib import Path
+from datetime import datetime
+from pathlib import Path
 
 # Add the monitoring directory to the path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from .quality_analytics_dashboard_v2 import QualityAnalytics, QualityAnalyticsDashboard
+from quality_analytics_dashboard_v2 import QualityAnalytics, QualityAnalyticsDashboard
 
 # Configure logging for tests
 logging.basicConfig(level=logging.WARNING)  # Reduce noise during tests
@@ -76,6 +76,8 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
         """)
 
         # Insert test data
+        from datetime import timedelta
+        base_time = datetime.now() - timedelta(days=15)
         test_conversations = [
             (
                 "conv_1",
@@ -85,8 +87,8 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
                 4,
                 150,
                 "processed",
-                "2025-08-01 10:00:00",
-                "2025-08-01 10:00:00",
+                (base_time + timedelta(days=0)).strftime("%Y-%m-%d %H:%M:%S"),
+                (base_time + timedelta(days=0)).strftime("%Y-%m-%d %H:%M:%S"),
             ),
             (
                 "conv_2",
@@ -96,8 +98,8 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
                 6,
                 200,
                 "processed",
-                "2025-08-02 11:00:00",
-                "2025-08-02 11:00:00",
+                (base_time + timedelta(days=1)).strftime("%Y-%m-%d %H:%M:%S"),
+                (base_time + timedelta(days=1)).strftime("%Y-%m-%d %H:%M:%S"),
             ),
             (
                 "conv_3",
@@ -107,8 +109,8 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
                 8,
                 300,
                 "processed",
-                "2025-08-03 12:00:00",
-                "2025-08-03 12:00:00",
+                (base_time + timedelta(days=2)).strftime("%Y-%m-%d %H:%M:%S"),
+                (base_time + timedelta(days=2)).strftime("%Y-%m-%d %H:%M:%S"),
             ),
             (
                 "conv_4",
@@ -118,8 +120,8 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
                 10,
                 400,
                 "processed",
-                "2025-08-04 13:00:00",
-                "2025-08-04 13:00:00",
+                (base_time + timedelta(days=3)).strftime("%Y-%m-%d %H:%M:%S"),
+                (base_time + timedelta(days=3)).strftime("%Y-%m-%d %H:%M:%S"),
             ),
             (
                 "conv_5",
@@ -129,8 +131,8 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
                 3,
                 100,
                 "processed",
-                "2025-08-05 14:00:00",
-                "2025-08-05 14:00:00",
+                (base_time + timedelta(days=4)).strftime("%Y-%m-%d %H:%M:%S"),
+                (base_time + timedelta(days=4)).strftime("%Y-%m-%d %H:%M:%S"),
             ),
         ]
 
@@ -152,7 +154,7 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
                 0.95,
                 0.8,
                 0.75,
-                "2025-08-01 10:05:00",
+                (base_time + timedelta(days=0, minutes=5)).strftime("%Y-%m-%d %H:%M:%S"),
                 "5.6.2",
             ),
             (
@@ -164,7 +166,7 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
                 0.8,
                 0.6,
                 0.55,
-                "2025-08-02 11:05:00",
+                (base_time + timedelta(days=1, minutes=5)).strftime("%Y-%m-%d %H:%M:%S"),
                 "5.6.2",
             ),
             (
@@ -176,7 +178,7 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
                 0.98,
                 0.9,
                 0.88,
-                "2025-08-03 12:05:00",
+                (base_time + timedelta(days=2, minutes=5)).strftime("%Y-%m-%d %H:%M:%S"),
                 "5.6.2",
             ),
             (
@@ -188,7 +190,7 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
                 0.6,
                 0.4,
                 0.35,
-                "2025-08-04 13:05:00",
+                (base_time + timedelta(days=3, minutes=5)).strftime("%Y-%m-%d %H:%M:%S"),
                 "5.6.2",
             ),  # Low quality
             (
@@ -200,7 +202,7 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
                 0.85,
                 0.75,
                 0.7,
-                "2025-08-05 14:05:00",
+                (base_time + timedelta(days=4, minutes=5)).strftime("%Y-%m-%d %H:%M:%S"),
                 "5.6.2",
             ),
         ]
@@ -289,8 +291,10 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
         assert all(df_priority["tier"] == "priority_1")
 
         # Test date range filter
-        start_date = datetime(2025, 8, 2)
-        end_date = datetime(2025, 8, 4)
+        from datetime import timedelta
+        base_time = datetime.now() - timedelta(days=15)
+        start_date = base_time + timedelta(days=1)
+        end_date = base_time + timedelta(days=3)
         df_date = self.dashboard.load_quality_data(date_range=(start_date, end_date))
         assert len(df_date) == 3
 
