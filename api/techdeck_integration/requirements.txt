@@ -384,7 +384,7 @@ python-dateutil==2.9.0.post0
     #   celery
     #   pandas
     #   pendulum
-python-dotenv==1.2.1
+python-dotenv==1.2.2
     # via
     #   -r ai/api/techdeck_integration/requirements.txt
     #   environs
