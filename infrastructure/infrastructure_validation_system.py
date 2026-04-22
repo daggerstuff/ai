@@ -346,7 +346,7 @@ if __name__ == "__main__":
 
         # Print summary
 
-        for task_id, result in report["task_validation_results"].items():
+        for _task_id, _result in report["task_validation_results"].items():
             pass
 
         report["infrastructure_metrics"]

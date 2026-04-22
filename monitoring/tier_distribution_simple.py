@@ -351,13 +351,13 @@ def main():
     # Show tier distribution
     tier_dist = analysis_results.get("tier_distribution", {})
     if tier_dist:
-        for tier, data in tier_dist.items():
+        for _tier, _data in tier_dist.items():
             pass
 
     # Show top recommendations
     recommendations = analysis_results.get("optimization_recommendations", [])
     if recommendations:
-        for rec in recommendations[:3]:
+        for _rec in recommendations[:3]:
             pass
 
 

@@ -810,7 +810,7 @@ class ConversationEffectivenessPredictor:
             axes[1, 0].set_title("Top Features for Effectiveness Prediction")
 
             # Add value labels
-            for i, (bar, value) in enumerate(zip(bars, importance_values, strict=False)):
+            for _i, (bar, value) in enumerate(zip(bars, importance_values, strict=False)):
                 width = bar.get_width()
                 axes[1, 0].text(
                     width + 0.001,
@@ -844,7 +844,7 @@ class ConversationEffectivenessPredictor:
         key_features = ["empathy_density", "question_density", "flesch_score"]
         colors = ["red", "blue", "green"]
 
-        for i, (feature, color) in enumerate(zip(key_features, colors, strict=False)):
+        for _i, (feature, color) in enumerate(zip(key_features, colors, strict=False)):
             if feature in modeling_data.columns:
                 x_vals = modeling_data[feature]
                 y_vals = modeling_data["effectiveness_score"]
@@ -897,14 +897,14 @@ def main():
 
 
         # Display model performance
-        for model_name, metrics in results["model_performance"].items():
+        for _model_name, _metrics in results["model_performance"].items():
             pass
 
         # Display key insights
-        for insight in results["insights"][:5]:
+        for _insight in results["insights"][:5]:
             pass
 
-        for rec in results["recommendations"][:3]:
+        for _rec in results["recommendations"][:3]:
             pass
 
         # Display prediction summary

@@ -375,7 +375,7 @@ def main():
     scorer = DatasetQualityScorer(args.registry)
     stats = scorer.score_all_datasets(limit=args.limit)
 
-    for tier, count in stats["by_tier"].items():
+    for _tier, _count in stats["by_tier"].items():
         pass
 
 

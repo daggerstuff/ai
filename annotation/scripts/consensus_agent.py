@@ -118,7 +118,7 @@ class ConsensusAgent:
         """Merge clinical notes from all annotators"""
         merged = "CONSENSUS ANNOTATION\n\n"
 
-        for i, (ann, annotator_id) in enumerate(zip(annotations, annotator_ids, strict=False)):
+        for _i, (ann, annotator_id) in enumerate(zip(annotations, annotator_ids, strict=False)):
             merged += f"[{annotator_id.upper()}]: {ann['notes']}\n\n"
 
         return merged.strip()

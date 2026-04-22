@@ -139,13 +139,11 @@ class LettaCrisisHandler:
                 return True
 
         # Block based on indicators
-        if "self-harm" in result.indicators:
-            if operation in ["file_write", "shell_command"]:
-                return True
+        if "self-harm" in result.indicators and operation in ["file_write", "shell_command"]:
+            return True
 
-        if "violence" in result.indicators:
-            if operation in ["shell_command", "code_execution"]:
-                return True
+        if "violence" in result.indicators and operation in ["shell_command", "code_execution"]:
+            return True
 
         return False
 

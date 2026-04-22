@@ -50,12 +50,12 @@ def analyze_combined_results(results_file: str):
                 )
 
 
-    for category, items in disagreements.items():
+    for _category, items in disagreements.items():
         count = len(items)
         (count / total_items * 100) if total_items > 0 else 0
 
         if count > 0:
-            for item in items[:5]:
+            for _item in items[:5]:
                 pass
 
 

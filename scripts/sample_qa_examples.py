@@ -24,7 +24,7 @@ def sample_random_examples(dataset_file: Path, _num_samples: int = 5):
     ]
 
 
-    for i, idx in enumerate(indices, 1):
+    for _i, idx in enumerate(indices, 1):
         conversations[idx]
 
 

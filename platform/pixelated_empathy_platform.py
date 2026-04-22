@@ -477,10 +477,9 @@ class PixelatedEmpathyPlatform:
                 avg_rating = statistics.mean(ratings)
                 target = evaluation_session["thresholds"]["target_level"].value
 
-                if avg_rating < target:
-                    if skill in self.evaluation_engine.skill_rubrics:
-                        rubric = self.evaluation_engine.skill_rubrics[skill]
-                        recommendations.extend(rubric.development_recommendations[:2])
+                if avg_rating < target and skill in self.evaluation_engine.skill_rubrics:
+                    rubric = self.evaluation_engine.skill_rubrics[skill]
+                    recommendations.extend(rubric.development_recommendations[:2])
 
         return recommendations[:5]  # Top 5 recommendations
 

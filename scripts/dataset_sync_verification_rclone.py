@@ -185,19 +185,18 @@ def main():
         parts = result["dataset"].split(".")
         if len(parts) == 3:
             cat, subcat, name = parts
-            if cat in registry.get("datasets", {}):
-                if subcat in registry["datasets"][cat]:
-                    if name in registry["datasets"][cat][subcat]:
-                        entry = registry["datasets"][cat][subcat][name]
-                        if "sync_status" not in entry:
-                            entry["sync_status"] = {}
+            if cat in registry.get("datasets", {}) and subcat in registry["datasets"][cat]:
+                if name in registry["datasets"][cat][subcat]:
+                    entry = registry["datasets"][cat][subcat][name]
+                    if "sync_status" not in entry:
+                        entry["sync_status"] = {}
 
-                        entry["sync_status"]["last_verified"] = (
-                            datetime.now(timezone.utc).isoformat() + "Z"
-                        )
-                        entry["sync_status"]["in_sync"] = result["in_sync"]
-                        entry["sync_status"]["s3_file_count"] = result["s3_files"]
-                        entry["sync_status"]["s3_size_bytes"] = result["s3_size_bytes"]
+                    entry["sync_status"]["last_verified"] = (
+                        datetime.now(timezone.utc).isoformat() + "Z"
+                    )
+                    entry["sync_status"]["in_sync"] = result["in_sync"]
+                    entry["sync_status"]["s3_file_count"] = result["s3_files"]
+                    entry["sync_status"]["s3_size_bytes"] = result["s3_size_bytes"]
 
     registry["last_updated"] = datetime.now(timezone.utc).isoformat() + "Z"
     with open(args.registry, "w") as f:

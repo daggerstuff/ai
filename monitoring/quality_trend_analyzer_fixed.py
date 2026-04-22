@@ -541,12 +541,12 @@ def main():
 
         # Show key insights
         if report.key_insights:
-            for insight in report.key_insights[:3]:
+            for _insight in report.key_insights[:3]:
                 pass
 
         # Show recommendations
         if report.recommendations:
-            for rec in report.recommendations[:3]:
+            for _rec in report.recommendations[:3]:
                 pass
 
 

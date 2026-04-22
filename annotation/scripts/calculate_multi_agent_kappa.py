@@ -202,7 +202,7 @@ def print_metrics_report(metrics: dict):
     """Print formatted metrics report"""
 
 
-    for pair, scores in metrics["kappa_scores"].items():
+    for _pair, scores in metrics["kappa_scores"].items():
 
         # Interpret Kappa
         avg_kappa = scores["average_kappa"]

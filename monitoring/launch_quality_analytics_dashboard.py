@@ -297,9 +297,8 @@ class QualityAnalyticsDashboardLauncher:
             return False
 
         # Step 4: Run pre-launch tests (optional)
-        if not skip_tests:
-            if not self.run_pre_launch_tests():
-                logger.warning("⚠️ Pre-launch tests failed, but continuing...")
+        if not skip_tests and not self.run_pre_launch_tests():
+            logger.warning("⚠️ Pre-launch tests failed, but continuing...")
 
         # Step 5: Create launch configuration
         self.create_launch_config()

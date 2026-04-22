@@ -574,11 +574,11 @@ async def main():
     # Print results
 
 
-    for result in report.test_results:
+    for _result in report.test_results:
         pass
 
     if report.recommendations:
-        for rec in report.recommendations:
+        for _rec in report.recommendations:
             pass
 
     # Validation status

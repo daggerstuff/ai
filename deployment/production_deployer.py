@@ -686,7 +686,7 @@ def _print_deployment_results(results: dict[str, Any]):
     """Print deployment results to console."""
 
     if results.get("recommendations"):
-        for rec in results["recommendations"]:
+        for _rec in results["recommendations"]:
             pass
 
 

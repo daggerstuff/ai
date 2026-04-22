@@ -32,7 +32,7 @@ def demo_basic_search():
         query="therapy conversation mental health", min_turns=20, limit=20
     )
 
-    for i, dataset in enumerate(datasets[:5], 1):
+    for _i, _dataset in enumerate(datasets[:5], 1):
         pass
 
 
@@ -51,7 +51,7 @@ def demo_filtered_search():
     datasets = sourcing.filter_by_therapeutic_relevance(datasets, min_relevance=0.6)
     datasets = sourcing.rank_datasets(datasets)
 
-    for i, dataset in enumerate(datasets[:5], 1):
+    for _i, _dataset in enumerate(datasets[:5], 1):
         pass
 
 
@@ -83,7 +83,7 @@ def demo_custom_ranking():
 
     datasets = sourcing.rank_datasets(datasets, weights=custom_weights)
 
-    for i, dataset in enumerate(datasets[:5], 1):
+    for _i, _dataset in enumerate(datasets[:5], 1):
         pass
 
 

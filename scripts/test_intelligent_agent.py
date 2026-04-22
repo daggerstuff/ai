@@ -149,7 +149,7 @@ def test_contextual_prompt_generation():
         },
     ]
 
-    for i, segment in enumerate(test_segments):
+    for _i, segment in enumerate(test_segments):
         analysis = agent.analyze_segment(segment["text"])
         prompt = agent.generate_contextual_prompt(segment, analysis)
 
@@ -189,7 +189,7 @@ def test_edge_cases():
         "??????",  # Only punctuation
     ]
 
-    for i, case in enumerate(edge_cases):
+    for _i, case in enumerate(edge_cases):
         with contextlib.suppress(Exception):
             agent.analyze_segment(case)
 

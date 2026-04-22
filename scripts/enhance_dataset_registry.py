@@ -252,7 +252,7 @@ def main():
 
     stats = enhance_registry(args.input, args.output, limit=args.limit)
 
-    for stage, count in stats["datasets_by_stage"].items():
+    for _stage, _count in stats["datasets_by_stage"].items():
         pass
 
 

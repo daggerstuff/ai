@@ -297,7 +297,7 @@ class MultiPatternAgent:
             ],
         }
 
-        for theme, keywords in therapeutic_themes.items():
+        for _theme, keywords in therapeutic_themes.items():
             question_has_theme = any(word in question_lower for word in keywords)
             response_has_theme = any(word in response_lower for word in keywords)
             if question_has_theme and response_has_theme:

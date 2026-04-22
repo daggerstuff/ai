@@ -227,7 +227,7 @@ class ProgressStreamer:
         """
         async with self._lock:
             session_updates: list[ProgressUpdate] = []
-            for operation_id, history in self._progress_history.items():
+            for _operation_id, history in self._progress_history.items():
                 for update in history:
                     if update.session_id == session_id:
                         session_updates.append(update)

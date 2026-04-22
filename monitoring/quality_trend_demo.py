@@ -454,17 +454,17 @@ def main():
     # Show key insights
     insights = report.get("key_insights", [])
     if insights:
-        for insight in insights[:3]:
+        for _insight in insights[:3]:
             pass
 
     # Show recommendations
     recommendations = report.get("recommendations", [])
     if recommendations:
-        for rec in recommendations[:3]:
+        for _rec in recommendations[:3]:
             pass
 
     # Show metrics summary
-    for name, summary in report.get("metrics_summary", {}).items():
+    for _name, summary in report.get("metrics_summary", {}).items():
         summary["trend_direction"]
         summary["current_value"]
         "✓" if summary["is_significant"] else "✗"

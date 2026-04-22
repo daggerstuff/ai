@@ -138,7 +138,7 @@ def main():
         json.dump(report_data, f, indent=2)
 
 
-    for detail in test_results["test_details"]:
+    for _detail in test_results["test_details"]:
         pass
 
 

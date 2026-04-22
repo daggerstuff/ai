@@ -413,14 +413,13 @@ class PipelineFormatConverter:
                     messages.append({"role": "user", "content": str(content)})
 
         # If no messages found, try prompt/response pattern
-        if not messages:
-            if "prompt" in record and "response" in record:
-                prompt = record.get("prompt", "")
-                response = record.get("response", "")
-                if prompt:
-                    messages.append({"role": "user", "content": str(prompt)})
-                if response:
-                    messages.append({"role": "assistant", "content": str(response)})
+        if not messages and "prompt" in record and "response" in record:
+            prompt = record.get("prompt", "")
+            response = record.get("response", "")
+            if prompt:
+                messages.append({"role": "user", "content": str(prompt)})
+            if response:
+                messages.append({"role": "assistant", "content": str(response)})
 
         return messages
 

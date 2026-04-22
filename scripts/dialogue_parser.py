@@ -51,7 +51,7 @@ class DialogueParser:
         current_speaker = "unknown"
         current_content = []
 
-        for i, sentence in enumerate(sentences):
+        for _i, sentence in enumerate(sentences):
             sentence = sentence.strip()
             if not sentence:
                 continue

@@ -494,12 +494,11 @@ class StatePersistenceManager:
                 if (
                     state.metadata.get("needs_persistence", False)
                     or self.config.persistence_level == PersistenceLevel.PARANOID
-                ):
-                    if self._persist_state(state_id):
-                        persisted_count += 1
+                ) and self._persist_state(state_id):
+                    persisted_count += 1
 
-                        # Clear persistence flag
-                        state.metadata["needs_persistence"] = False
+                    # Clear persistence flag
+                    state.metadata["needs_persistence"] = False
 
             except Exception as e:
                 logger.error(f"Failed to persist state {state_id}: {e}")

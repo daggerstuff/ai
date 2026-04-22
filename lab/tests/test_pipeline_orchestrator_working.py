@@ -70,7 +70,7 @@ class MockPipelineOrchestrator:
         stages_completed = 0
 
         try:
-            for i, stage in enumerate(self.stages):
+            for _i, stage in enumerate(self.stages):
                 if not stage["enabled"]:
                     continue
 
@@ -311,9 +311,8 @@ class MockPipelineOrchestrator:
             return False
 
         for stage in self.stages:
-            if stage["name"] not in visited:
-                if has_cycle(stage["name"]):
-                    return True
+            if stage["name"] not in visited and has_cycle(stage["name"]):
+                return True
 
         return False
 

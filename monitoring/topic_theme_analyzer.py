@@ -504,17 +504,17 @@ def main():
     # Show top topics
     if topics:
         sorted_topics = sorted(topics.items(), key=lambda x: x[1].frequency, reverse=True)
-        for name, analysis in sorted_topics[:5]:
+        for _name, _analysis in sorted_topics[:5]:
             pass
 
     # Show themes
     if themes:
-        for name, analysis in themes.items():
+        for _name, _analysis in themes.items():
             pass
 
     # Show key insights
     if insights:
-        for insight in insights[:3]:
+        for _insight in insights[:3]:
             pass
 
 if __name__ == "__main__":

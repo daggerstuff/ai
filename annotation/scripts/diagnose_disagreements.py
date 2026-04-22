@@ -116,7 +116,7 @@ def compare_annotations(dr_a_file, dr_b_file):
 
 
         if disagree_count > 0 and disagree_count <= 10:
-            for item in disagreements[field][:5]:
+            for _item in disagreements[field][:5]:
                 pass
 
 

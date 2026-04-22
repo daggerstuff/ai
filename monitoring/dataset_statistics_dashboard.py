@@ -791,13 +791,13 @@ def main():
         dataset_stats.items(), key=lambda x: x[1].total_conversations, reverse=True
     )[:5]
 
-    for i, (name, stats) in enumerate(top_datasets, 1):
+    for _i, (_name, _stats) in enumerate(top_datasets, 1):
         pass
 
     # Show key insights
     if insights:
         sample_insights = list(insights.values())[0]
-        for insight in sample_insights.key_insights[:3]:
+        for _insight in sample_insights.key_insights[:3]:
             pass
 
 

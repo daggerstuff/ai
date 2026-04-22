@@ -119,7 +119,7 @@ async def test_priority_levels():
             },
         )
 
-        for channel, success in results.items():
+        for _channel, _success in results.items():
             pass
 
 
@@ -211,7 +211,7 @@ def print_configuration_status():
         ),
     ]
 
-    for item, status in config_items:
+    for _item, _status in config_items:
         pass
 
 

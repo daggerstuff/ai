@@ -809,14 +809,14 @@ async def main():
 
     # Print results
 
-    for category, score in report.category_scores.items():
+    for _category, _score in report.category_scores.items():
         pass
 
-    for standard, status in report.compliance_status.items():
+    for _standard, _status in report.compliance_status.items():
         pass
 
     if report.recommendations:
-        for rec in report.recommendations:
+        for _rec in report.recommendations:
             pass
 
     # Validation status

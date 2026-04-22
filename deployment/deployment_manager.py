@@ -724,11 +724,10 @@ class DeploymentManager:
                         return user_hash_normalized > threshold
 
             # Handle random sampling conditions
-            if "random_sampling" in condition:
-                if "<" in condition:
-                    _, threshold_str = condition.split("<")
-                    threshold = float(threshold_str.strip())
-                    return random.random() < threshold
+            if "random_sampling" in condition and "<" in condition:
+                _, threshold_str = condition.split("<")
+                threshold = float(threshold_str.strip())
+                return random.random() < threshold
 
             # Default to false for unrecognized conditions
             return False
@@ -890,7 +889,7 @@ def test_deployment_manager():
         {"user_id": "user_345", "session_id": "sess_678"}
     ]
 
-    for i, context in enumerate(test_contexts):
+    for _i, context in enumerate(test_contexts):
         deployment_manager.get_route_version("therapy_model", context)
 
     # Test deployment evaluation
@@ -905,7 +904,7 @@ def test_deployment_manager():
 
     # List all deployments
     all_deployments = deployment_manager.list_deployments()
-    for dep in all_deployments:
+    for _dep in all_deployments:
         pass
 
 

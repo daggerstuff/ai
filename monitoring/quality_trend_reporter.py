@@ -401,17 +401,16 @@ class QualityTrendReporter:
         )
 
         # Seasonal pattern insights
-        if overall_trend.seasonal_patterns:
-            if "day_of_week" in overall_trend.seasonal_patterns:
-                dow_data = overall_trend.seasonal_patterns["day_of_week"]
-                best_day = max(dow_data.items(), key=lambda x: x[1]["mean"])
-                worst_day = min(dow_data.items(), key=lambda x: x[1]["mean"])
-                insights.append(
-                    f"📅 Best quality day: {best_day[0]} ({best_day[1]['mean']:.3f})"
-                )
-                insights.append(
-                    f"📅 Worst quality day: {worst_day[0]} ({worst_day[1]['mean']:.3f})"
-                )
+        if overall_trend.seasonal_patterns and "day_of_week" in overall_trend.seasonal_patterns:
+            dow_data = overall_trend.seasonal_patterns["day_of_week"]
+            best_day = max(dow_data.items(), key=lambda x: x[1]["mean"])
+            worst_day = min(dow_data.items(), key=lambda x: x[1]["mean"])
+            insights.append(
+                f"📅 Best quality day: {best_day[0]} ({best_day[1]['mean']:.3f})"
+            )
+            insights.append(
+                f"📅 Worst quality day: {worst_day[0]} ({worst_day[1]['mean']:.3f})"
+            )
 
         # Component-specific insights
         if component_trends:
@@ -515,7 +514,7 @@ class QualityTrendReporter:
             # Simulate historical quality data based on trend
             historical_quality = []
             base_quality = 0.7
-            for i, date in enumerate(dates):
+            for i, _date in enumerate(dates):
                 trend_component = report.overall_trend.slope * i
                 noise = np.random.normal(0, 0.05)  # Small random variation
                 quality = base_quality + trend_component + noise
@@ -803,7 +802,7 @@ def main():
 
 
     # Display summary
-    for item in report.executive_summary:
+    for _item in report.executive_summary:
         pass
 
 

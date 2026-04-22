@@ -109,18 +109,18 @@ def command_list_registry(args) -> int:
 
         stats = registry.get_statistics()
 
-        for status, count in sorted(stats["by_status"].items()):
+        for _status, _count in sorted(stats["by_status"].items()):
             pass
-        for lang, count in sorted(stats["by_language"].items(), key=lambda x: -x[1])[
+        for _lang, _count in sorted(stats["by_language"].items(), key=lambda x: -x[1])[
             :10
         ]:
             pass
-        for cat, count in sorted(stats["by_category"].items(), key=lambda x: -x[1])[
+        for _cat, _count in sorted(stats["by_category"].items(), key=lambda x: -x[1])[
             :10
         ]:
             pass
 
-        for i, channel in enumerate(channels[:50]):
+        for _i, channel in enumerate(channels[:50]):
             {
                 ChannelStatus.ACTIVE: "🟢",
                 ChannelStatus.AT_RISK: "🟡",

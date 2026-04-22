@@ -90,10 +90,9 @@ class RequestCache:
             ttl: Optional TTL override
         """
         # Evict oldest entry if cache is full
-        if len(self._cache) >= self.max_size and key not in self._cache:
-            if self._access_order:
-                oldest_key = self._access_order.pop(0)
-                del self._cache[oldest_key]
+        if len(self._cache) >= self.max_size and key not in self._cache and self._access_order:
+            oldest_key = self._access_order.pop(0)
+            del self._cache[oldest_key]
 
         ttl_seconds = ttl if ttl is not None else self.default_ttl
         self._cache[key] = CacheEntry(value, ttl_seconds)

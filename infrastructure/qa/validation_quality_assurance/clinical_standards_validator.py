@@ -566,11 +566,11 @@ def main():
 
 
     if result.violations:
-        for violation in result.violations:
+        for _violation in result.violations:
             pass
 
     if result.recommendations:
-        for rec in result.recommendations:
+        for _rec in result.recommendations:
             pass
 
     # Get statistics

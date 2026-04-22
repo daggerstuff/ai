@@ -273,9 +273,8 @@ class CommandHandler:
 
         if orchestrator.acquisition_manager:
             for source in sources_to_acquire:
-                if interactive:
-                    if not prompt_for_acquisition_approval(source.source_id):
-                        continue
+                if interactive and not prompt_for_acquisition_approval(source.source_id):
+                    continue
 
                 try:
                     # Submit access request
@@ -377,11 +376,10 @@ class CommandHandler:
                         dataset, target_format
                     )
 
-                    if interactive:
-                        if not prompt_for_integration_approval(
-                            dataset.source_id, self._plan_to_dict(plan)
-                        ):
-                            continue
+                    if interactive and not prompt_for_integration_approval(
+                        dataset.source_id, self._plan_to_dict(plan)
+                    ):
+                        continue
 
                     state.integration_plans.append(plan)
                     plans_count += 1

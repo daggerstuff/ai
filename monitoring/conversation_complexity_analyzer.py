@@ -831,7 +831,7 @@ def main():
 
 
         if sample_analysis.patterns:
-            for pattern in sample_analysis.patterns[:3]:
+            for _pattern in sample_analysis.patterns[:3]:
                 pass
 
 

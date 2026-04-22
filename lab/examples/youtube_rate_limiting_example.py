@@ -69,7 +69,7 @@ async def example_conservative_rate_limiting():
         if result.success:
             pass
         else:
-            for error in result.errors[:3]:
+            for _error in result.errors[:3]:
                 pass
 
     except Exception:
@@ -271,7 +271,7 @@ def example_configuration_templates():
         },
     }
 
-    for name, config in templates.items():
+    for _name, config in templates.items():
         if "rate_config" in config:
             config["rate_config"]
 

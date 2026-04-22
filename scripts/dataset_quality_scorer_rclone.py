@@ -243,50 +243,49 @@ def main():
             parts = result["dataset"].split(".")
             if len(parts) == 3:
                 cat, subcat, name = parts
-                if cat in registry.get("datasets", {}):
-                    if subcat in registry["datasets"][cat]:
-                        if name in registry["datasets"][cat][subcat]:
-                            entry = registry["datasets"][cat][subcat][name]
-                            if "quality_metrics" not in entry:
-                                entry["quality_metrics"] = {}
+                if cat in registry.get("datasets", {}) and subcat in registry["datasets"][cat]:
+                    if name in registry["datasets"][cat][subcat]:
+                        entry = registry["datasets"][cat][subcat][name]
+                        if "quality_metrics" not in entry:
+                            entry["quality_metrics"] = {}
 
-                            entry["quality_metrics"]["completeness_score"] = round(
-                                result["completeness_score"], 2
+                        entry["quality_metrics"]["completeness_score"] = round(
+                            result["completeness_score"], 2
+                        )
+                        entry["quality_metrics"]["consistency_score"] = round(
+                            result["consistency_score"], 2
+                        )
+                        entry["quality_metrics"]["annotation_quality_score"] = (
+                            round(result["annotation_quality_score"], 2)
+                        )
+                        entry["quality_metrics"]["overall_score"] = round(
+                            result["overall_score"], 2
+                        )
+                        entry["quality_metrics"]["quality_score"] = round(
+                            result["overall_score"], 2
+                        )
+                        entry["quality_metrics"]["quality_tier"] = result[
+                            "quality_tier"
+                        ]
+                        entry["quality_metrics"]["anomaly_detected"] = result[
+                            "anomaly_detected"
+                        ]
+                        entry["quality_metrics"]["data_freshness_days"] = None
+                        entry["quality_metrics"]["anomaly_flags"] = []
+                        if result["anomaly_detected"]:
+                            entry["quality_metrics"]["anomaly_flags"].append(
+                                "low_quality_score"
                             )
-                            entry["quality_metrics"]["consistency_score"] = round(
-                                result["consistency_score"], 2
-                            )
-                            entry["quality_metrics"]["annotation_quality_score"] = (
-                                round(result["annotation_quality_score"], 2)
-                            )
-                            entry["quality_metrics"]["overall_score"] = round(
-                                result["overall_score"], 2
-                            )
-                            entry["quality_metrics"]["quality_score"] = round(
-                                result["overall_score"], 2
-                            )
-                            entry["quality_metrics"]["quality_tier"] = result[
-                                "quality_tier"
-                            ]
-                            entry["quality_metrics"]["anomaly_detected"] = result[
-                                "anomaly_detected"
-                            ]
-                            entry["quality_metrics"]["data_freshness_days"] = None
-                            entry["quality_metrics"]["anomaly_flags"] = []
-                            if result["anomaly_detected"]:
-                                entry["quality_metrics"]["anomaly_flags"].append(
-                                    "low_quality_score"
-                                )
-                            entry["quality_metrics"]["last_scored"] = (
-                                datetime.now(timezone.utc).isoformat() + "Z"
-                            )
+                        entry["quality_metrics"]["last_scored"] = (
+                            datetime.now(timezone.utc).isoformat() + "Z"
+                        )
 
     registry["last_updated"] = datetime.now(timezone.utc).isoformat() + "Z"
     with open(args.registry, "w") as f:
         json.dump(registry, f, indent=2, ensure_ascii=False)
 
     # Print summary
-    for tier, count in stats["by_tier"].items():
+    for _tier, _count in stats["by_tier"].items():
         pass
 
     # Show datasets needing review

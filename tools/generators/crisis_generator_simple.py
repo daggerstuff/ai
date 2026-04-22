@@ -111,7 +111,7 @@ def main():
 
     if conversation["exchanges"]:
 
-        for ex in conversation["exchanges"]:
+        for _ex in conversation["exchanges"]:
             pass
 
         # Save it

@@ -173,27 +173,26 @@ def main():
             dataset_name_parts = result["dataset"].split(".")
             if len(dataset_name_parts) == 3:
                 cat, subcat, name = dataset_name_parts
-                if cat in registry.get("datasets", {}):
-                    if subcat in registry["datasets"][cat]:
-                        if name in registry["datasets"][cat][subcat]:
-                            entry = registry["datasets"][cat][subcat][name]
-                            if "validation" not in entry:
-                                entry["validation"] = {}
+                if cat in registry.get("datasets", {}) and subcat in registry["datasets"][cat]:
+                    if name in registry["datasets"][cat][subcat]:
+                        entry = registry["datasets"][cat][subcat][name]
+                        if "validation" not in entry:
+                            entry["validation"] = {}
 
-                            entry["validation"]["last_validated"] = (
-                                datetime.now(timezone.utc).isoformat() + "Z"
-                            )
-                            entry["validation"]["integrity_valid"] = (
-                                result["valid_files"] > 0
-                            )
-                            entry["validation"]["schema_valid"] = result.get(
-                                "sample_validation", {}
-                            ).get("valid_json", False)
+                        entry["validation"]["last_validated"] = (
+                            datetime.now(timezone.utc).isoformat() + "Z"
+                        )
+                        entry["validation"]["integrity_valid"] = (
+                            result["valid_files"] > 0
+                        )
+                        entry["validation"]["schema_valid"] = result.get(
+                            "sample_validation", {}
+                        ).get("valid_json", False)
 
-                            if result["checksums"]:
-                                entry["validation"]["checksum_sha256"] = list(
-                                    result["checksums"].values()
-                                )[0].get("sha256")
+                        if result["checksums"]:
+                            entry["validation"]["checksum_sha256"] = list(
+                                result["checksums"].values()
+                            )[0].get("sha256")
 
     # Save updated registry
     registry["last_updated"] = datetime.now(timezone.utc).isoformat() + "Z"

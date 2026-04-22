@@ -242,7 +242,7 @@ def main():
 
     if conversation["exchanges"]:
 
-        for exchange in conversation["exchanges"]:
+        for _exchange in conversation["exchanges"]:
             pass
 
 

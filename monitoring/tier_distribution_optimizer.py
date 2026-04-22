@@ -800,12 +800,12 @@ def main():
 
 
     # Show current distribution
-    for tier, percentage in optimization.current_distribution.items():
+    for _tier, _percentage in optimization.current_distribution.items():
         pass
 
     # Show top recommendations
     if optimization.rebalancing_recommendations:
-        for rec in optimization.rebalancing_recommendations[:3]:
+        for _rec in optimization.rebalancing_recommendations[:3]:
             pass
 
 

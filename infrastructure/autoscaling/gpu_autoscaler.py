@@ -690,7 +690,7 @@ def test_autoscaling_system():
 
     # Test optimization recommendations
     recommendations = get_cost_optimization_recommendations(model_name)
-    for rec in recommendations[:3]:  # Show top 3
+    for _rec in recommendations[:3]:  # Show top 3
         pass
 
     # Test instance optimization

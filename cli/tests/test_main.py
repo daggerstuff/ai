@@ -548,7 +548,7 @@ class TestCLIPerformance:
         with runner.isolated_filesystem():
             # Run multiple commands concurrently
             results = []
-            for i in range(5):
+            for _i in range(5):
                 result = runner.invoke(cli, ["version"])
                 results.append(result)
 
@@ -583,7 +583,7 @@ class TestCLIPerformance:
 
         with runner.isolated_filesystem():
             # Run many operations and check for memory leaks
-            for i in range(50):
+            for _i in range(50):
                 result = runner.invoke(cli, ["version"])
                 assert result.exit_code == 0
 

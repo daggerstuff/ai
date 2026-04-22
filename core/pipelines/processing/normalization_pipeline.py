@@ -202,7 +202,7 @@ class SimilarityDeduplicator:
                 continue
 
             is_dup = False
-            for kept_conv, words_b, len_b, roles_b in final_precomputed:
+            for _kept_conv, words_b, len_b, roles_b in final_precomputed:
                 # Calculate structural similarity inline
                 max_count = max(len_a, len_b)
                 if max_count == 0:
