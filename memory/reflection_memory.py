@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """
 Local-only reflection memory models and client wrapper.
 

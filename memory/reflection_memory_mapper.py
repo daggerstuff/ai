@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Mapping helpers for reflection memory records."""
 
 

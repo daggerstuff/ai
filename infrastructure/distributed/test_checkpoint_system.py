@@ -595,9 +595,7 @@ class CheckpointTestSuite:
             len(passed_tests) / len(self.test_results) * 100 if self.test_results else 0
         )
 
-        if success_rate == 100:
-            pass
-        elif success_rate >= 80:
+        if success_rate == 100 or success_rate >= 80:
             pass
         else:
             pass

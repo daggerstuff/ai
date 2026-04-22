@@ -5,12 +5,12 @@ Handles partial system failures with intelligent service prioritization and fall
 """
 
 import asyncio
+import contextlib
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any
-import contextlib
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

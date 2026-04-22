@@ -3,6 +3,7 @@ Health check and graceful shutdown handlers for Pixelated Empathy AI model serve
 Implements comprehensive health monitoring and safe shutdown procedures.
 """
 import atexit
+import contextlib
 import gc
 import json
 import logging
@@ -22,7 +23,6 @@ import torch
 from fastapi import Response
 
 from .model_adapters import model_manager
-import contextlib
 
 logger = logging.getLogger(__name__)
 

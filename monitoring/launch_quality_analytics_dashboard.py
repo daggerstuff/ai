@@ -14,7 +14,6 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -55,19 +54,7 @@ class QualityAnalyticsDashboardLauncher:
 
         for package in self.required_packages:
             try:
-                if package == "sqlite3":
-                    pass
-                elif package == "streamlit":
-                    pass
-                elif package == "pandas":
-                    pass
-                elif package == "plotly":
-                    pass
-                elif package == "numpy":
-                    pass
-                elif package == "seaborn":
-                    pass
-                elif package == "matplotlib":
+                if package == "sqlite3" or package == "streamlit" or package == "pandas" or package == "plotly" or package == "numpy" or package == "seaborn" or package == "matplotlib":
                     pass
 
                 logger.info(f"  ✅ {package}: Available")

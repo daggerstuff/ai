@@ -4,11 +4,11 @@ Wiley Publisher Integration
 Provides integration with Wiley for sourcing psychology and therapy books.
 """
 
+import contextlib
 import logging
 from typing import Any
 
 from .base_publisher import BasePublisher, BookContent, BookFormat, BookMetadata
-import contextlib
 
 logger = logging.getLogger(__name__)
 

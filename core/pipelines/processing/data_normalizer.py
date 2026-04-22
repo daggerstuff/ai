@@ -244,7 +244,7 @@ class DataNormalizer:
         source_name = input_path.stem
 
         with (
-            open(input_path, "r", encoding="utf-8") as infile,
+            open(input_path, encoding="utf-8") as infile,
             open(output_path, "w", encoding="utf-8") as outfile,
             open(reject_path, "w", encoding="utf-8") as rejectfile,
         ):
