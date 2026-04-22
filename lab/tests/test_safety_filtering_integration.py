@@ -2,6 +2,7 @@
 Integration tests for enhanced safety filtering in the inference API.
 Tests that all inference endpoints properly filter content for safety.
 """
+import contextlib
 import json
 import logging
 import time
@@ -16,7 +17,6 @@ from ai.lab.safety.enhanced_safety_filter import (
     SafetyCheckResult,
     SafetyLevel,
 )
-import contextlib
 
 logger = logging.getLogger(__name__)
 

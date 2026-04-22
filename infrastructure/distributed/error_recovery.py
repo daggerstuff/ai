@@ -5,6 +5,7 @@ Intelligent retry mechanisms with exponential backoff and failure classification
 """
 
 import asyncio
+import contextlib
 import logging
 import random
 from collections.abc import Callable
@@ -12,7 +13,6 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any
-import contextlib
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

@@ -11,6 +11,7 @@ This module replaces:
 - ai/scripts/acquire_academic_psychology_books.py
 """
 
+import contextlib
 import json
 import logging
 import os
@@ -27,7 +28,6 @@ from bs4 import BeautifulSoup
 # Import publisher integrations
 from .publishers.apa_publisher import APAPublisher
 from .publishers.base_publisher import BasePublisher
-import contextlib
 
 logger = logging.getLogger(__name__)
 

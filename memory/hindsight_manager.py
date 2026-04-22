@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Compatibility shim for older code paths that still import HindsightMemoryManager.
 
 The shared memory architecture is now local-only. This class preserves the old

@@ -14,17 +14,16 @@ import sys
 import tempfile
 import unittest
 from datetime import datetime, timezone
+from pathlib import Path
 
 import pandas as pd
-
-from datetime import datetime
-from pathlib import Path
 
 # Add the monitoring directory to the path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from quality_analytics_dashboard_v2 import QualityAnalytics, QualityAnalyticsDashboard
 import contextlib
+
+from quality_analytics_dashboard_v2 import QualityAnalytics, QualityAnalyticsDashboard
 
 # Configure logging for tests
 logging.basicConfig(level=logging.WARNING)  # Reduce noise during tests
