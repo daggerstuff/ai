@@ -29,7 +29,6 @@ class TestModule(unittest.TestCase):
 
         # Test 1: Import QualityTrendAnalyzer
         try:
-            pass
 
             test_results["passed_tests"] += 1
             test_results["test_details"].append(
@@ -44,7 +43,6 @@ class TestModule(unittest.TestCase):
 
         # Test 2: Import QualityTrendReporter
         try:
-            pass
 
             test_results["passed_tests"] += 1
             test_results["test_details"].append(
@@ -70,7 +68,6 @@ class TestModule(unittest.TestCase):
 
         # Test 4: Check required methods exist
         try:
-            pass
 
             analyzer = QualityTrendAnalyzer()
 
@@ -94,7 +91,6 @@ class TestModule(unittest.TestCase):
 
         # Test 5: Check reporter methods exist
         try:
-            pass
 
             reporter = QualityTrendReporter()
 
@@ -119,7 +115,6 @@ class TestModule(unittest.TestCase):
 
 def main():
     """Run the simple test suite."""
-    print("🧪 Running Quality Trend Analysis Simple Test Suite...")
 
     test_results = test_imports_and_initialization()
 
@@ -142,18 +137,10 @@ def main():
     with open(report_path, "w") as f:
         json.dump(report_data, f, indent=2)
 
-    print("\n📊 Test Results Summary:")
-    print(f"Total Tests: {test_results['total_tests']}")
-    print(f"Passed: {test_results['passed_tests']}")
-    print(f"Failed: {test_results['failed_tests']}")
-    print(f"Success Rate: {success_rate:.1f}%")
-    print(f"Status: {report_data['status']}")
 
-    print("\n📋 Test Details:")
     for detail in test_results["test_details"]:
-        print(f"  {detail}")
+        pass
 
-    print(f"\n📁 Test report saved to: {report_path}")
 
     return report_data
 

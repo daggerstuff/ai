@@ -62,7 +62,6 @@ def deduplicate_dataset(
     if not s3_path:
         return {"error": "No path defined"}
 
-    print(f"Deduplicating: {dataset_name}")
 
     results = {
         "dataset": dataset_name,
@@ -118,7 +117,6 @@ def deduplicate_dataset(
 
 
 def main():
-    pass
 
     parser = argparse.ArgumentParser(description="Deduplicate datasets using rclone")
     parser.add_argument(
@@ -146,13 +144,6 @@ def main():
     if args.key_fields:
         key_fields = [f.strip() for f in args.key_fields.split(",")]
 
-    print("=" * 80)
-    print("DATASET DEDUPLICATION (RCLONE)")
-    print("=" * 80)
-    print(f"Registry: {args.registry}")
-    print(f"Limit: {args.limit or 'None (all datasets)'}")
-    print(f"Key fields: {key_fields or 'All fields'}")
-    print()
 
     with open(args.registry) as f:
         registry = json.load(f)
@@ -215,23 +206,13 @@ def main():
         json.dump(registry, f, indent=2, ensure_ascii=False)
 
     # Print summary
-    print("\n" + "=" * 80)
-    print("DEDUPLICATION SUMMARY")
-    print("=" * 80)
-    print(f"Datasets checked: {stats['datasets_checked']}")
-    print(f"Total records: {stats['total_records']}")
-    print(f"Duplicates found: {stats['duplicates_found']}")
-    print(f"Duplicate groups: {stats['duplicate_groups']}")
 
     # Show per-dataset results
-    print("\nPer-Dataset Results:")
     for result in all_results:
         if "error" in result:
-            print(f"  {result['dataset']}: ERROR - {result['error']}")
+            pass
         else:
-            print(
-                f"  {result['dataset']}: {result['duplicates_found']} duplicates ({result['deduplication_ratio']}%)"
-            )
+            pass
 
 
 if __name__ == "__main__":

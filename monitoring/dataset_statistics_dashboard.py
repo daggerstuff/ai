@@ -70,30 +70,25 @@ class DatasetStatisticsDashboard:
 
     def generate_comprehensive_statistics(self) -> dict[str, DatasetStatistics]:
         """Generate comprehensive statistics for all datasets"""
-        print("📊 Generating comprehensive dataset statistics...")
 
         try:
             # Get dataset information
             datasets = self._get_dataset_list()
 
             if not datasets:
-                print("❌ No datasets found")
                 return {}
 
             # Generate statistics for each dataset
             dataset_stats = {}
 
             for dataset_name in datasets:
-                print(f"   Analyzing {dataset_name}...")
                 stats = self._analyze_dataset(dataset_name)
                 if stats:
                     dataset_stats[dataset_name] = stats
 
-            print(f"✅ Generated statistics for {len(dataset_stats)} datasets")
             return dataset_stats
 
-        except Exception as e:
-            print(f"❌ Error generating dataset statistics: {e}")
+        except Exception:
             return {}
 
     def _get_dataset_list(self) -> list[str]:
@@ -115,8 +110,7 @@ class DatasetStatisticsDashboard:
             conn.close()
             return datasets
 
-        except Exception as e:
-            print(f"❌ Error getting dataset list: {e}")
+        except Exception:
             return []
 
     def _analyze_dataset(self, dataset_name: str) -> DatasetStatistics | None:
@@ -145,7 +139,7 @@ class DatasetStatisticsDashboard:
 
             data = []
             for row in cursor.fetchall():
-                record = dict(zip(columns, row))
+                record = dict(zip(columns, row, strict=False))
                 data.append(record)
 
             conn.close()
@@ -200,8 +194,7 @@ class DatasetStatisticsDashboard:
                 unique_characteristics=unique_characteristics,
             )
 
-        except Exception as e:
-            print(f"❌ Error analyzing dataset {dataset_name}: {e}")
+        except Exception:
             return None
 
     def _calculate_quality_metrics(self, df: pd.DataFrame) -> dict[str, float]:
@@ -223,8 +216,7 @@ class DatasetStatisticsDashboard:
             }
 
 
-        except Exception as e:
-            print(f"❌ Error calculating quality metrics: {e}")
+        except Exception:
             return {}
 
     def _calculate_temporal_distribution(self, df: pd.DataFrame) -> dict[str, int]:
@@ -239,8 +231,7 @@ class DatasetStatisticsDashboard:
             # Convert dates to strings for JSON serialization
             return {str(date): count for date, count in temporal_dist.items()}
 
-        except Exception as e:
-            print(f"❌ Error calculating temporal distribution: {e}")
+        except Exception:
             return {}
 
     def _identify_unique_characteristics(
@@ -292,15 +283,13 @@ class DatasetStatisticsDashboard:
 
             return characteristics
 
-        except Exception as e:
-            print(f"❌ Error identifying characteristics: {e}")
+        except Exception:
             return []
 
     def generate_dataset_insights(
         self, dataset_stats: dict[str, DatasetStatistics]
     ) -> dict[str, DatasetInsights]:
         """Generate insights and recommendations for datasets"""
-        print("🔍 Generating dataset insights and recommendations...")
 
         try:
             insights = {}
@@ -313,11 +302,9 @@ class DatasetStatisticsDashboard:
                 if insight:
                     insights[dataset_name] = insight
 
-            print(f"✅ Generated insights for {len(insights)} datasets")
             return insights
 
-        except Exception as e:
-            print(f"❌ Error generating insights: {e}")
+        except Exception:
             return {}
 
     def _calculate_overall_statistics(
@@ -345,8 +332,7 @@ class DatasetStatisticsDashboard:
                 "dataset_count": len(dataset_stats),
             }
 
-        except Exception as e:
-            print(f"❌ Error calculating overall statistics: {e}")
+        except Exception:
             return {}
 
     def _analyze_dataset_insights(
@@ -444,8 +430,7 @@ class DatasetStatisticsDashboard:
                 optimization_opportunities=optimization_opportunities,
             )
 
-        except Exception as e:
-            print(f"❌ Error analyzing insights for {stats.dataset_name}: {e}")
+        except Exception:
             return None
 
     def _calculate_percentile(self, value: float, all_values: list[float]) -> float:
@@ -458,15 +443,13 @@ class DatasetStatisticsDashboard:
             rank = sum(1 for v in sorted_values if v <= value)
             return (rank / len(sorted_values)) * 100
 
-        except Exception as e:
-            print(f"❌ Error calculating percentile: {e}")
+        except Exception:
             return 50.0
 
     def create_dashboard_visualizations(
         self, dataset_stats: dict[str, DatasetStatistics]
     ) -> dict[str, str]:
         """Create comprehensive dashboard visualizations"""
-        print("📈 Creating dataset statistics dashboard visualizations...")
 
         viz_files = {}
 
@@ -502,7 +485,7 @@ class DatasetStatisticsDashboard:
             ax.grid(True, alpha=0.3)
 
             # Add value labels
-            for bar, count in zip(bars, conversation_counts):
+            for bar, count in zip(bars, conversation_counts, strict=False):
                 height = bar.get_height()
                 ax.text(
                     bar.get_x() + bar.get_width() / 2.0,
@@ -626,11 +609,9 @@ class DatasetStatisticsDashboard:
 
             viz_files["main_dashboard"] = str(dashboard_file)
 
-            print(f"✅ Created {len(viz_files)} dashboard visualization files")
             return viz_files
 
-        except Exception as e:
-            print(f"❌ Error creating visualizations: {e}")
+        except Exception:
             return {}
 
     def export_dashboard_report(
@@ -640,7 +621,6 @@ class DatasetStatisticsDashboard:
         visualizations: dict[str, str],
     ) -> str:
         """Export comprehensive dashboard report"""
-        print("📄 Exporting dataset statistics dashboard report...")
 
         try:
             timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -694,11 +674,9 @@ class DatasetStatisticsDashboard:
             with open(report_file, "w") as f:
                 json.dump(export_data, f, indent=2, default=str)
 
-            print(f"✅ Exported dashboard report to: {report_file}")
             return str(report_file)
 
-        except Exception as e:
-            print(f"❌ Error exporting dashboard report: {e}")
+        except Exception:
             return ""
 
     def _create_executive_summary(
@@ -774,15 +752,12 @@ class DatasetStatisticsDashboard:
                 else "poor",
             }
 
-        except Exception as e:
-            print(f"❌ Error creating executive summary: {e}")
+        except Exception:
             return {}
 
 
 def main():
     """Main execution function"""
-    print("📊 Comprehensive Dataset Statistics Dashboard")
-    print("=" * 50)
 
     # Initialize dashboard
     dashboard = DatasetStatisticsDashboard()
@@ -791,7 +766,6 @@ def main():
     dataset_stats = dashboard.generate_comprehensive_statistics()
 
     if not dataset_stats:
-        print("❌ No dataset statistics generated")
         return
 
     # Generate insights
@@ -801,39 +775,30 @@ def main():
     visualizations = dashboard.create_dashboard_visualizations(dataset_stats)
 
     # Export report
-    report_file = dashboard.export_dashboard_report(
+    dashboard.export_dashboard_report(
         dataset_stats, insights, visualizations
     )
 
     # Display summary
-    total_conversations = sum(
+    sum(
         stats.total_conversations for stats in dataset_stats.values()
     )
-    total_words = sum(stats.total_words for stats in dataset_stats.values())
+    sum(stats.total_words for stats in dataset_stats.values())
 
-    print("\n✅ Dataset Statistics Dashboard Complete")
-    print(f"   - Datasets analyzed: {len(dataset_stats)}")
-    print(f"   - Total conversations: {total_conversations:,}")
-    print(f"   - Total words: {total_words:,}")
-    print(f"   - Insights generated: {len(insights)}")
-    print(f"   - Visualizations created: {len(visualizations)}")
-    print(f"   - Report saved: {report_file}")
 
     # Show top datasets
     top_datasets = sorted(
         dataset_stats.items(), key=lambda x: x[1].total_conversations, reverse=True
     )[:5]
 
-    print("\n📊 Top 5 Datasets by Volume:")
     for i, (name, stats) in enumerate(top_datasets, 1):
-        print(f"   {i}. {name}: {stats.total_conversations:,} conversations")
+        pass
 
     # Show key insights
     if insights:
-        print("\n🔍 Sample Key Insights:")
         sample_insights = list(insights.values())[0]
         for insight in sample_insights.key_insights[:3]:
-            print(f"   • {insight}")
+            pass
 
 
 if __name__ == "__main__":

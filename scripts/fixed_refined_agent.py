@@ -105,21 +105,8 @@ def test_fixed_agent():
         "file": "test.txt",
     }
 
-    result = agent.process_segment(test_segment)
+    agent.process_segment(test_segment)
 
-    print("=== FIXED REFINED AGENT TEST ===\n")
-    print(f"**Method**: {result['agent_analysis']['method']}")
-    print(
-        f"**Dialogue Confidence**: {result['agent_analysis']['dialogue_confidence']:.2f}"
-    )
-    print(
-        f"**Semantic Coherence**: {result['agent_analysis']['semantic_coherence']:.2f}"
-    )
-    print(
-        f"**Extraction Confidence**: {result['agent_analysis']['extraction_confidence']:.2f}"
-    )
-    print(f"\n**Question**: {result['input']}")
-    print(f"\n**Answer**: {result['output'][:400]}...")
 
 
 if __name__ == "__main__":

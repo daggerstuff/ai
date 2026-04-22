@@ -23,20 +23,10 @@ def sample_random_examples(dataset_file: Path, _num_samples: int = 5):
         random.randint(4*total//5, total-1)     # Late part
     ]
 
-    print("=== 5 RANDOM Q/A EXAMPLES FROM DATASET ===\n")
 
     for i, idx in enumerate(indices, 1):
-        conv = conversations[idx]
+        conversations[idx]
 
-        print(f"**Example {i}** (Index: {idx:,}/{total:,})")
-        print(f"**Style**: {conv['style']} (Expert {conv['expert_id']})")
-        print(f"**Source**: {conv.get('source', 'unknown')}")
-        print(f"**Quality**: {conv.get('quality', 'N/A')}")
-        print()
-        print(f"**Q**: {conv['conversations'][0]['value']}")
-        print()
-        print(f"**A**: {conv['conversations'][1]['value'][:500]}{'...' if len(conv['conversations'][1]['value']) > 500 else ''}")
-        print("\n" + "="*80 + "\n")
 
 if __name__ == "__main__":
     dataset_file = Path("/root/pixelated/ai/data/lightning_h100_complete/train.json")

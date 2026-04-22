@@ -4,7 +4,6 @@ Automatic Resume Engine for Pixelated Empathy AI
 Provides seamless recovery and resumption of interrupted processing operations
 """
 import asyncio
-import json
 import logging
 import signal
 import threading
@@ -684,13 +683,9 @@ async def example_auto_resume():
     ):
         """Example resume handler for a processing operation"""
 
-        print(
-            f"Resuming process {resume_point['process_id']} from step {resume_point['resume_step']}"
-        )
-        print(f"Strategy: {resume_point['strategy'].value}")
 
         if interruption_context:
-            print(f"Interruption type: {interruption_context.interruption_type.value}")
+            pass
 
         # Simulate resuming processing
         original_state = resume_point["original_state"]
@@ -751,7 +746,6 @@ async def example_auto_resume():
             await asyncio.sleep(0.1)
 
         # Simulate interruption
-        print("Simulating process interruption...")
 
         interruption = InterruptionContext(
             interruption_id=str(uuid.uuid4()),
@@ -769,8 +763,7 @@ async def example_auto_resume():
         await asyncio.sleep(5)
 
         # Get statistics
-        stats = resume_engine.get_resume_statistics()
-        print(f"Resume statistics: {json.dumps(stats, indent=2)}")
+        resume_engine.get_resume_statistics()
 
     finally:
         resume_engine.stop()

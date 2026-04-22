@@ -275,7 +275,6 @@ class Phase3Validator:
 
             # Test 4: Clinical Incident Simulation
             try:
-                pass
 
                 with tempfile.NamedTemporaryFile(delete=False) as tmp:
                     certifier = ClinicalSafetyCertifier(db_path=tmp.name)
@@ -549,7 +548,6 @@ class Phase3Validator:
         try:
             # Test 1: All safety frameworks can be imported together
             try:
-                pass
 
                 score += 25
                 logger.info("✅ All safety frameworks integrate successfully")
@@ -559,7 +557,6 @@ class Phase3Validator:
 
             # Test 2: Cross-framework compatibility
             try:
-                pass
 
                 # Test that frameworks can work with the same data
                 test_message = "I'm having thoughts of suicide and self-harm"
@@ -587,7 +584,6 @@ class Phase3Validator:
 
             # Test 3: End-to-end safety pipeline
             try:
-                pass
 
                 # Simulate complete safety pipeline
                 test_input = "I want to end my life"
@@ -620,7 +616,6 @@ class Phase3Validator:
 
             # Test 4: Performance under load
             try:
-                pass
 
                 start_time = time.time()
 
@@ -792,8 +787,6 @@ class Phase3Validator:
 
 def main():
     """Main validation function"""
-    print("Pixelated Empathy AI - Phase 3 Validation")
-    print("=" * 50)
 
     # Add current directory to path for imports
     current_dir = Path(__file__).parent
@@ -806,7 +799,6 @@ def main():
 
     # Generate and display report
     report = validator.generate_report()
-    print(report)
 
     # Save results to file
     results_file = current_dir / "phase3_validation_results.json"
@@ -817,8 +809,6 @@ def main():
     with open(report_file, "w") as f:
         f.write(report)
 
-    print(f"\nResults saved to: {results_file}")
-    print(f"Report saved to: {report_file}")
 
     # Exit with appropriate code
     exit_code = 0 if results["enterprise_ready"] else 1

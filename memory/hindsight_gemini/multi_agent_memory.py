@@ -7,7 +7,7 @@ backed by the repository's single shared local memory service.
 
 import logging
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from ai.memory.hindsight_local_adapter import normalize_tags
@@ -17,7 +17,7 @@ from ai.memory.local_memory_settings import resolve_local_memory_settings
 logger = logging.getLogger("multi_agent_memory")
 
 
-class AgentRole(str, Enum):
+class AgentRole(StrEnum):
     """Predefined agent roles for therapeutic workflows."""
 
     TRAINER = "trainer"  # Primary empathy training agent
@@ -27,7 +27,7 @@ class AgentRole(str, Enum):
     COORDINATOR = "coordinator"  # Multi-agent orchestrator
 
 
-class MemoryScope(str, Enum):
+class MemoryScope(StrEnum):
     """Memory visibility scopes."""
 
     PRIVATE = "private"  # Only accessible by the creating agent

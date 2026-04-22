@@ -19,7 +19,7 @@ import os
 import statistics
 import time
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 import aiohttp
@@ -27,7 +27,7 @@ import numpy as np
 from tqdm import tqdm
 
 
-class TaskType(str, Enum):
+class TaskType(StrEnum):
     """Therapeutic task types for benchmarking"""
     EMPATHY = "empathy"
     SAFETY = "safety"
@@ -240,7 +240,6 @@ class NemotronBenchmark:
         session: aiohttp.ClientSession,
     ) -> dict[str, ModelResult]:
         """Benchmark a single model across all task types"""
-        print(f"\n🔍 Benchmarking model: {model}")
 
         task_results: dict[str, list[dict[str, Any]]] = {
             task_type.value: [] for task_type in TaskType
@@ -314,29 +313,16 @@ class NemotronBenchmark:
 
     def print_results(self, all_results: dict[str, dict[str, ModelResult]]):
         """Print formatted benchmark results"""
-        print("\n" + "=" * 80)
-        print("📊 NEMOTRON MODEL BENCHMARK RESULTS - THERAPEUTIC TASKS")
-        print("=" * 80)
 
         for model, task_results in all_results.items():
-            print(f"\n🤖 Model: {model}")
-            print("-" * 80)
 
             for task_type_value, result in task_results.items():
-                print(f"\n  {result.task_type.value.upper()}:")
-                print(f"    Requests: {result.successful_requests}/{result.total_requests} ({result.success_rate:.1f}%)")
-                print("    Latency:")
-                print(f"      Avg: {result.avg_latency_ms:.1f}ms | P50: {result.p50_latency_ms:.1f}ms | P95: {result.p95_latency_ms:.1f}ms")
 
                 if result.errors:
-                    print("    Errors:")
                     for error, count in result.errors.items():
-                        print(f"      {error}: {count}")
+                        pass
 
         # Comparison summary
-        print("\n" + "=" * 80)
-        print("📈 MODEL COMPARISON SUMMARY")
-        print("=" * 80)
 
         # Aggregate metrics per model
         model_scores = {}
@@ -359,10 +345,8 @@ class NemotronBenchmark:
             reverse=True,
         )
 
-        print("\n  Rank | Model | Success Rate | Avg Latency")
-        print("  " + "-" * 60)
         for i, (model, scores) in enumerate(sorted_models, 1):
-            print(f"  {i}.   {model[:40]:<40} {scores['success_rate']:.1f}% | {scores['avg_latency']:.1f}ms")
+            pass
 
     def save_results(
         self,
@@ -400,7 +384,6 @@ class NemotronBenchmark:
         with open(output_file, "w") as f:
             json.dump(output, f, indent=2)
 
-        print(f"\n💾 Results saved to: {output_file}")
 
 
 async def main():
@@ -445,7 +428,6 @@ async def main():
     args = parser.parse_args()
 
     if not args.api_key:
-        print("❌ Error: NVIDIA_API_KEY not found. Set --api-key or NVIDIA_API_KEY env var.")
         exit(1)
 
     config = BenchmarkConfig(

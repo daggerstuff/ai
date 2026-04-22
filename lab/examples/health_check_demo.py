@@ -96,7 +96,6 @@ health_manager.register_component("cache", mock_cache)
 
 # Custom health check for database
 def database_health_check():
-    pass
 
     try:
         if mock_db.is_healthy():
@@ -130,7 +129,6 @@ def database_health_check():
 
 # Custom health check for cache
 def cache_health_check():
-    pass
 
     try:
         if mock_cache.is_healthy():
@@ -298,62 +296,42 @@ def main():
 # Test function to demonstrate health checking
 def test_health_check():
     """Test the health check system"""
-    print("Testing Health Check System...")
 
     # Perform a health check
     health_result = health_manager.perform_health_check()
 
-    print(f"Overall Status: {health_result.status.value}")
-    print(f"Overall Score: {health_result.overall_score:.2f}")
-    print(f"Timestamp: {health_result.timestamp}")
 
-    print("\nComponent Statuses:")
     for component_name, component_health in health_result.components.items():
-        print(
-            f"  {component_name}: {component_health.status.value} (score: {component_health.health_score:.2f})"
-        )
         if component_health.details:
-            print(f"    Details: {component_health.details}")
+            pass
 
-    print("\nCritical Issues:")
     for issue in health_result.critical_issues:
-        print(f"  - {issue}")
+        pass
 
-    print("\nWarnings:")
     for warning in health_result.warnings:
-        print(f"  - {warning}")
+        pass
 
     # Test system metrics
-    print("\nSystem Metrics:")
     metrics = health_manager.get_system_metrics()
     for key, value in metrics.items():
-        print(f"  {key}: {value}")
+        pass
 
-    print("\nHealth check test completed!")
 
 
 # Test graceful shutdown
 def test_graceful_shutdown():
     """Test graceful shutdown"""
-    print("Testing Graceful Shutdown...")
 
     # Register a test shutdown callback
     def test_callback():
-        print("Test shutdown callback executed")
         time.sleep(0.1)  # Simulate cleanup work
 
     health_manager.register_shutdown_callback(test_callback)
 
     # Initiate graceful shutdown
-    shutdown_result = health_manager.initiate_graceful_shutdown()
+    health_manager.initiate_graceful_shutdown()
 
-    print(f"Shutdown Success: {shutdown_result.success}")
-    print(f"Shutdown Duration: {shutdown_result.duration_seconds:.2f} seconds")
-    print(f"Components Shutdown: {shutdown_result.components_shutdown}")
-    print(f"Components Failed: {shutdown_result.components_failed}")
-    print(f"Error Messages: {shutdown_result.error_messages}")
 
-    print("Graceful shutdown test completed!")
 
 
 if __name__ == "__main__":
@@ -368,8 +346,7 @@ if __name__ == "__main__":
         elif command == "start":
             main()
         else:
-            print(f"Unknown command: {command}")
-            print("Available commands: test-health, test-shutdown, start")
+            pass
     else:
         # Run health check test by default
         test_health_check()

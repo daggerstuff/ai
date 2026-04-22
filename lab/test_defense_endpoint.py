@@ -1,5 +1,4 @@
 import asyncio
-import json
 
 from api.defense_service import (
     DefenseAnalysisRequest,
@@ -12,9 +11,7 @@ checkpoint_path = (
     "/home/vivi/pixelated/ai/models/defense_mechanisms/fold_0/best_model.pt"
 )
 
-print(f"Loading model from {checkpoint_path}...")
 load_defense_model(checkpoint_path)
-print("Model loaded successfully.\\n")
 
 request = DefenseAnalysisRequest(
     dialogue=[
@@ -42,10 +39,7 @@ request = DefenseAnalysisRequest(
 
 
 async def test():
-    print("Testing utterance:", request.target_utterance)
-    res = await analyze_defense(request)
-    print("\\n--- RESPONSE ---")
-    print(json.dumps(res.model_dump(), indent=2))
+    await analyze_defense(request)
 
 
 if __name__ == "__main__":

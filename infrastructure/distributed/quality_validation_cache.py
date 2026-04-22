@@ -351,26 +351,24 @@ def main():
 
     try:
         if args.command == "stats":
-            stats = cache.get_cache_statistics()
-            print(json.dumps(stats, indent=2))
+            cache.get_cache_statistics()
 
         elif args.command == "cleanup":
-            cleaned = cache.cleanup_expired_cache()
-            print(f"Cleaned up {cleaned} expired cache entries")
+            cache.cleanup_expired_cache()
 
         elif args.command == "invalidate":
             if args.data_path and args.type:
                 success = cache.invalidate_cache(args.data_path, args.type)
                 if success:
-                    print(f"Invalidated cache for {args.data_path} ({args.type})")
+                    pass
                 else:
-                    print("Failed to invalidate cache")
+                    pass
             else:
                 success = cache.invalidate_cache()
                 if success:
-                    print("Invalidated all cache entries")
+                    pass
                 else:
-                    print("Failed to invalidate cache")
+                    pass
 
     finally:
         cache.close()

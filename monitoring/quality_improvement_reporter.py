@@ -130,7 +130,6 @@ class QualityImprovementReporter:
     def _get_interventions_by_status(self, status: str) -> list[QualityIntervention]:
         """Get interventions by status."""
         try:
-            pass
 
             conn = sqlite3.connect(str(self.tracker.interventions_db))
             cursor = conn.cursor()
@@ -141,7 +140,7 @@ class QualityImprovementReporter:
 
             interventions = []
             for row in rows:
-                intervention_data = dict(zip(columns, row))
+                intervention_data = dict(zip(columns, row, strict=False))
                 intervention = QualityIntervention(**intervention_data)
                 interventions.append(intervention)
 
@@ -157,7 +156,6 @@ class QualityImprovementReporter:
     ) -> list[QualityIntervention]:
         """Get interventions completed within a specific period."""
         try:
-            pass
 
             conn = sqlite3.connect(str(self.tracker.interventions_db))
             cursor = conn.cursor()
@@ -177,7 +175,7 @@ class QualityImprovementReporter:
 
             interventions = []
             for row in rows:
-                intervention_data = dict(zip(columns, row))
+                intervention_data = dict(zip(columns, row, strict=False))
                 intervention = QualityIntervention(**intervention_data)
                 interventions.append(intervention)
 
@@ -875,17 +873,13 @@ def main():
     report = reporter.generate_comprehensive_report(report_period_days=30)
 
     # Save report
-    json_path = reporter.save_report(report, format="json")
-    html_path = reporter.save_report(report, format="html")
+    reporter.save_report(report, format="json")
+    reporter.save_report(report, format="html")
 
-    print("📊 Improvement Report Generated:")
-    print(f"JSON: {json_path}")
-    print(f"HTML: {html_path}")
 
     # Display summary
-    print("\n📈 Executive Summary:")
     for item in report.executive_summary:
-        print(f"  {item}")
+        pass
 
 
 if __name__ == "__main__":

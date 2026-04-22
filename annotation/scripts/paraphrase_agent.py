@@ -64,7 +64,6 @@ class TherapeuticParaphraser:
             paraphrased_messages = json.loads(response.choices[0].message.content)
         except json.JSONDecodeError:
             # If model didn't return valid JSON, use original
-            print(f"Warning: Failed to parse paraphrase for variation {variation_type}")
             paraphrased_messages = messages
 
         # Create new conversation with paraphrased messages
@@ -180,11 +179,7 @@ Paraphrased: "My family situation is making me anxious"
                 if line.strip():
                     conversations.append(json.loads(line))
 
-        print(f"📚 Loaded {len(conversations)} conversations from {source_file}")
-        print(f"🎯 Generating {len(variation_types)} variation types")
-        print(f"🔢 {per_sample} variations per type per sample")
-        total_output = len(conversations) * len(variation_types) * per_sample
-        print(f"📊 Total output: {total_output} paraphrases\n")
+        len(conversations) * len(variation_types) * per_sample
 
         total_generated = 0
 
@@ -192,7 +187,6 @@ Paraphrased: "My family situation is making me anxious"
             var_dir = output_path / var_type
             var_dir.mkdir(exist_ok=True)
 
-            print(f"🔄 Generating {var_type} variations...")
 
             for i, conv in enumerate(conversations):
                 task_id = conv.get("task_id", f"task_{i}")
@@ -213,13 +207,11 @@ Paraphrased: "My family situation is making me anxious"
                         total_generated += 1
 
                         if (total_generated) % 10 == 0:
-                            print(f"  ✅ Generated {total_generated} paraphrases...")
+                            pass
 
-                    except Exception as e:
-                        print(f"  ❌ Error paraphrasing {task_id} ({var_type}): {e}")
+                    except Exception:
+                        pass
 
-        print(f"\n🎉 Complete! Generated {total_generated} paraphrases")
-        print(f"📁 Saved to: {output_path}")
 
         # Combine all variations into single file
         combined_file = output_path / "all_paraphrases.jsonl"
@@ -230,7 +222,6 @@ Paraphrased: "My family situation is making me anxious"
                     with open(jsonl_file) as in_f:
                         out_f.write(in_f.read())
 
-        print(f"📦 Combined file: {combined_file}")
 
 
 def main():

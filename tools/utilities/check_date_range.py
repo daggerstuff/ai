@@ -9,7 +9,6 @@ def check_date_range():
     db_path = Path("database/conversations.db")
 
     if not db_path.exists():
-        print(f"❌ Database not found at: {db_path}")
         return
 
     try:
@@ -18,12 +17,8 @@ def check_date_range():
 
         # Get date range
         cursor.execute("SELECT MIN(created_at), MAX(created_at), COUNT(*) FROM conversations")
-        min_date, max_date, count = cursor.fetchone()
+        _min_date, _max_date, count = cursor.fetchone()
 
-        print("📅 Date Range Analysis:")
-        print(f"   Earliest: {min_date}")
-        print(f"   Latest: {max_date}")
-        print(f"   Total Records: {count:,}")
 
         # Get date distribution
         cursor.execute("""
@@ -34,14 +29,13 @@ def check_date_range():
         """)
 
         dates = cursor.fetchall()
-        print("\n📊 Daily Distribution:")
         for date, count in dates:
-            print(f"   {date}: {count:,} conversations")
+            pass
 
         conn.close()
 
-    except Exception as e:
-        print(f"❌ Error checking date range: {e}")
+    except Exception:
+        pass
 
 if __name__ == "__main__":
     check_date_range()

@@ -22,7 +22,6 @@ def call_model_robust(prompt, max_tokens=30, max_retries=2):
 
     for attempt in range(max_retries):
         try:
-            print(f"  Attempt {attempt + 1}/{max_retries}...")
 
             response = requests.post(
                 "https://api.pixelatedempathy.com/v1/chat/completions",
@@ -42,15 +41,11 @@ def call_model_robust(prompt, max_tokens=30, max_retries=2):
                     content = content.split("<think>")[0].strip()
 
                 return content.strip()
-            print(f"  API Error: {response.status_code} - {response.text}")
 
         except requests.exceptions.Timeout:
-            print(f"  Timeout on attempt {attempt + 1}")
             if attempt < max_retries - 1:
-                print("  Retrying...")
                 time.sleep(10)
-        except Exception as e:
-            print(f"  Error: {e}")
+        except Exception:
             if attempt < max_retries - 1:
                 time.sleep(5)
 
@@ -71,18 +66,13 @@ def generate_crisis_training_data():
 
     dataset = []
 
-    print("🚀 Starting Crisis Training Data Generation")
-    print("=" * 50)
 
     for i, prompt in enumerate(crisis_prompts):
-        print(f"\n📝 Generating crisis response {i + 1}/5")
-        print(f"Prompt: '{prompt}'")
 
         # Generate crisis response
         response = call_model_robust(prompt, max_tokens=40)
 
         if response:
-            print(f"✅ Response: {response}")
 
             # Create training pair
             training_pair = {
@@ -97,10 +87,9 @@ def generate_crisis_training_data():
             dataset.append(training_pair)
 
         else:
-            print("❌ Failed to generate response")
+            pass
 
         # Pause between requests to avoid overwhelming server
-        print("⏳ Waiting 10 seconds...")
         time.sleep(10)
 
     # Save dataset
@@ -123,17 +112,11 @@ def generate_crisis_training_data():
             ensure_ascii=False,
         )
 
-    print("\n🎉 SUCCESS!")
-    print(f"📁 Dataset saved to: {filename}")
-    print(f"📊 Generated {len(dataset)} training pairs")
 
     # Display summary
     if dataset:
-        print("\n📋 SUMMARY:")
         for pair in dataset:
-            print(
-                f"  {pair['id']}: '{pair['crisis_prompt']}' -> {len(pair['crisis_response'])} chars"
-            )
+            pass
 
     return dataset
 

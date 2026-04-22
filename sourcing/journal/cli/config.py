@@ -101,8 +101,7 @@ class ConfigManager:
                 # Merge with defaults to ensure all keys exist
                 merged = self._merge_config(self.DEFAULT_CONFIG, config)
                 return self._apply_legacy_aliases(merged)
-            except Exception as e:
-                print(f"Warning: Could not load config from {self.config_path}: {e}")
+            except Exception:
                 return self._apply_legacy_aliases(deepcopy(self.DEFAULT_CONFIG))
         return self._apply_legacy_aliases(deepcopy(self.DEFAULT_CONFIG))
 

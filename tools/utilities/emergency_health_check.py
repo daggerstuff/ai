@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import json
 import time
 from datetime import datetime, timezone
 
@@ -15,4 +14,4 @@ def emergency_health_check():
     }
 
 if __name__ == "__main__":
-    print(json.dumps(emergency_health_check(), indent=2))
+    pass

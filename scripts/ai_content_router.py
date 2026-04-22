@@ -241,18 +241,10 @@ def test_ai_router():
         }
     ]
 
-    print("=== AI CONTENT ROUTER TEST ===\n")
 
     for i, segment in enumerate(test_segments, 1):
-        result = router.process_segment(segment)
+        router.process_segment(segment)
 
-        print(f"**Test {i}**")
-        print(f"**Format Detected**: {result['ai_analysis']['format_detected']}")
-        print(f"**Strategy**: {result['ai_analysis']['strategy_used']}")
-        print(f"**Reasoning**: {result['ai_analysis']['reasoning']}")
-        print(f"**Generated Q**: {result['input']}")
-        print(f"**Original A**: {result['output'][:200]}...")
-        print("\n" + "="*60 + "\n")
 
 if __name__ == "__main__":
     test_ai_router()

@@ -118,7 +118,7 @@ class ConsensusAgent:
         """Merge clinical notes from all annotators"""
         merged = "CONSENSUS ANNOTATION\n\n"
 
-        for i, (ann, annotator_id) in enumerate(zip(annotations, annotator_ids)):
+        for i, (ann, annotator_id) in enumerate(zip(annotations, annotator_ids, strict=False)):
             merged += f"[{annotator_id.upper()}]: {ann['notes']}\n\n"
 
         return merged.strip()
@@ -233,10 +233,6 @@ def create_consensus_annotations(
         output_file: Path to save consensus results
         strategy: Consensus strategy ("weighted", "majority", "average")
     """
-    print("Creating consensus annotations...")
-    print(f"  Annotator 1: {file1}")
-    print(f"  Annotator 2: {file2}")
-    print(f"  Strategy: {strategy}")
 
     # Load annotations
     ann1 = load_annotations(Path(file1))
@@ -244,10 +240,8 @@ def create_consensus_annotations(
 
     # Find common tasks
     common_tasks = set(ann1.keys()) & set(ann2.keys())
-    print(f"\nFound {len(common_tasks)} common tasks")
 
     if not common_tasks:
-        print("ERROR: No common tasks found between annotators")
         return
 
     # Create consensus agent
@@ -270,21 +264,14 @@ def create_consensus_annotations(
 
             f_out.write(json.dumps(consensus) + "\n")
 
-    print(f"\n✅ Consensus annotations saved to {output_path}")
 
     # Print agreement report
     report = agent.get_agreement_report()
-    print("\n📊 Agreement Report:")
-    print(f"  Total tasks: {report['total_consensus_annotations']}")
-    print(f"  Crisis agreement: {report['crisis_agreement_rate']:.1%}")
-    print(f"  Emotion agreement: {report['emotion_agreement_rate']:.1%}")
-    print(f"  Overall agreement: {report['overall_agreement_rate']:.1%}")
 
     # Save report
     report_path = output_path.parent / f"{output_path.stem}_report.json"
     with open(report_path, "w") as f:
         json.dump(report, f, indent=2)
-    print(f"\n📄 Agreement report saved to {report_path}")
 
 
 if __name__ == "__main__":

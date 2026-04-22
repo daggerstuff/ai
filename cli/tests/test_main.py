@@ -597,7 +597,6 @@ class TestCLIPerformance:
         with runner.isolated_filesystem():
             # Mock slow API response
             def slow_response(*_args, **_kwargs):
-                pass
 
                 time.sleep(0.1)  # Simulate slow response
                 response = MagicMock()

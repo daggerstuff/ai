@@ -37,7 +37,6 @@ async def websocket_progress(
     token = websocket.query_params.get("token")
     if token:
         try:
-            pass
 
             user = get_user_from_token(token)
             logger.info(f"WebSocket authenticated for user {user.get('user_id')}")
@@ -132,7 +131,6 @@ async def websocket_progress_poll(
     token = websocket.query_params.get("token")
     if token:
         try:
-            pass
 
             user = get_user_from_token(token)
             logger.info(f"WebSocket authenticated for user {user.get('user_id')}")

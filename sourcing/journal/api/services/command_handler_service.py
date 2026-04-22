@@ -697,7 +697,6 @@ class CommandHandlerService:
     async def _async_broadcast_progress_update(self, session_id: str) -> None:
         """Async helper to broadcast progress update to WebSocket connections."""
         try:
-            pass
 
             # Get current progress
             progress_data = self.get_progress(session_id)

@@ -109,8 +109,7 @@ class DatasetDeduplicator:
                 records = []
 
             return records
-        except Exception as e:
-            print(f"Error loading dataset from {s3_path}: {e}")
+        except Exception:
             return []
 
     def find_duplicates_in_dataset(
@@ -189,7 +188,6 @@ class DatasetDeduplicator:
         Returns:
             Deduplication statistics
         """
-        print(f"Deduplicating dataset: {dataset_name}")
 
         s3_path = dataset_entry.get("path", "")
         if not s3_path:
@@ -315,7 +313,6 @@ class DatasetDeduplicator:
                     )
 
             except Exception as e:
-                print(f"Error deduplicating {dataset_path_key}: {e}")
                 results[dataset_path_key] = {"error": str(e)}
 
         # Save updated registry
@@ -389,17 +386,14 @@ class DatasetDeduplicator:
                 datasets_to_load[name] = entry.get("path")
 
         # Load all datasets
-        print(f"Loading {len(datasets_to_load)} datasets for cross-dataset analysis...")
         loaded_datasets = {}
 
         for name, path in datasets_to_load.items():
             records = self.load_dataset_from_s3(path)
             if records:
                 loaded_datasets[name] = records
-                print(f"  {name}: {len(records)} records")
 
         # Find cross-dataset duplicates
-        print("\nAnalyzing cross-dataset duplicates...")
         cross_duplicates = self.find_duplicates_across_datasets(
             loaded_datasets, key_fields
         )
@@ -484,39 +478,20 @@ def main():
     deduplicator = DatasetDeduplicator(args.registry)
 
     if args.action in ["dedupe", "both"]:
-        print("=" * 80)
-        print("DATASET DEDUPLICATION")
-        print("=" * 80)
-        print(f"\nRegistry: {args.registry}")
-        print(f"Limit: {args.limit or 'None (all datasets)'}")
-        print(f"Key fields: {key_fields or 'All fields'}")
-        print(f"Write output: {args.write_output}")
-        print()
 
         results = deduplicator.deduplicate_all_datasets(
             limit=args.limit, key_fields=key_fields, write_output=args.write_output
         )
 
-        print("\nDeduplication Statistics:")
         stats = results["statistics"]
-        print(f"  Datasets checked: {stats['datasets_checked']}")
-        print(f"  Total records: {stats['total_records']}")
-        print(f"  Duplicates found: {stats['duplicates_found']}")
-        print(f"  Duplicate groups: {stats['duplicate_groups']}")
 
-        print("\nPer-Dataset Results:")
         for dataset_name, result in results["dataset_results"].items():
             if "error" in result:
-                print(f"  {dataset_name}: ERROR - {result['error']}")
+                pass
             else:
-                print(
-                    f"  {dataset_name}: {result['duplicates_found']} duplicates ({result['deduplication_ratio']}%)"
-                )
+                pass
 
     if args.action in ["cross-dataset", "both"]:
-        print("\n" + "=" * 80)
-        print("CROSS-DATASET DUPLICATE ANALYSIS")
-        print("=" * 80)
 
         dataset_names = None
         if args.datasets:
@@ -526,21 +501,11 @@ def main():
             dataset_names=dataset_names, key_fields=key_fields, limit=args.limit
         )
 
-        print("\nCross-Dataset Statistics:")
         stats = results["statistics"]
-        print(f"  Datasets analyzed: {stats['datasets_analyzed']}")
-        print(f"  Total records: {stats['total_records_analyzed']}")
-        print(
-            f"  Unique hashes appearing in multiple datasets: {stats['total_unique_hashes']}"
-        )
-        print(
-            f"  Cross-dataset duplicate instances: {stats['cross_dataset_duplicate_count']}"
-        )
 
         if stats.get("dataset_overlaps"):
-            print("\nTop Dataset Overlaps:")
             for overlap, count in list(stats["dataset_overlaps"].items())[:10]:
-                print(f"  {overlap}: {count} shared records")
+                pass
 
 
 if __name__ == "__main__":

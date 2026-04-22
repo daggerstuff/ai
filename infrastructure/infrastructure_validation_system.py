@@ -345,23 +345,11 @@ if __name__ == "__main__":
         report = await infra_validator.run_infrastructure_validation()
 
         # Print summary
-        print(f"\n{'='*60}")
-        print("INFRASTRUCTURE PRODUCTION VALIDATION REPORT")
-        print(f"{'='*60}")
-        print(f"Overall Score: {report['infrastructure_validation_summary']['overall_score']}%")
-        print(f"Infrastructure Status: {report['infrastructure_validation_summary']['infrastructure_status']}")
-        print(f"Production Ready: {'YES' if report['infrastructure_validation_summary']['production_ready'] else 'NO'}")
 
-        print("\nTask Validation Results:")
         for task_id, result in report["task_validation_results"].items():
-            print(f"  Task {task_id}: {result['score']:.1f}% - {result['status'].upper()}")
+            pass
 
-        print("\nInfrastructure Metrics:")
-        metrics = report["infrastructure_metrics"]
-        print(f"  Deployment Validation: {metrics['deployment_validation_score']:.1f}%")
-        print(f"  Monitoring Validation: {metrics['monitoring_validation_score']:.1f}%")
-        print(f"  Deployment Ready: {'YES' if metrics['deployment_ready'] else 'NO'}")
-        print(f"  Monitoring Ready: {'YES' if metrics['monitoring_ready'] else 'NO'}")
+        report["infrastructure_metrics"]
 
         # Save report
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -369,6 +357,5 @@ if __name__ == "__main__":
         with open(report_file, "w") as f:
             json.dump(report, f, indent=2, default=str)
 
-        print(f"\nDetailed report saved to: {report_file}")
 
     asyncio.run(main())

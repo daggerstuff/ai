@@ -31,7 +31,6 @@ logger = logging.getLogger("hindsight_subconscious")
 
 # Lazy import to avoid circular dependency
 def _get_hindsight_manager_class():
-    pass
     return HindsightMemoryManager
 
 # Model priority fallback chain for Subconscious agent

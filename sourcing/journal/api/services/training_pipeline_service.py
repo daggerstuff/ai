@@ -48,7 +48,6 @@ class TrainingPipelineService:
             return
 
         try:
-            pass
 
             from ai.pipelines.orchestrator.orchestration.pipeline_orchestrator import (
                 PipelineConfig,
@@ -246,7 +245,6 @@ class TrainingPipelineService:
         try:
             # Handle datetime strings if present
             if "acquisition_date" in data and isinstance(data["acquisition_date"], str):
-                pass
                 data["acquisition_date"] = datetime.fromisoformat(data["acquisition_date"])
 
             return AcquiredDatasetModel(**data)
@@ -257,13 +255,11 @@ class TrainingPipelineService:
     def _dict_to_evaluation(self, data: dict[str, Any]) -> Any:
         """Convert dictionary to DatasetEvaluation model."""
         if not PIPELINE_ORCHESTRATOR_AVAILABLE:
-            pass
             return SimpleNamespace(**data)
 
         try:
             # Handle datetime strings if present
             if "evaluation_date" in data and isinstance(data["evaluation_date"], str):
-                pass
                 data["evaluation_date"] = datetime.fromisoformat(data["evaluation_date"])
 
             return DatasetEvaluationModel(**data)
@@ -274,13 +270,11 @@ class TrainingPipelineService:
     def _dict_to_integration_plan(self, data: dict[str, Any]) -> Any:
         """Convert dictionary to IntegrationPlan model."""
         if not PIPELINE_ORCHESTRATOR_AVAILABLE:
-            pass
             return SimpleNamespace(**data)
 
         try:
             # Handle datetime strings if present
             if "created_date" in data and isinstance(data["created_date"], str):
-                pass
                 data["created_date"] = datetime.fromisoformat(data["created_date"])
 
             return IntegrationPlanModel(**data)

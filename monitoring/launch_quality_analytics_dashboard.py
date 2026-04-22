@@ -14,12 +14,6 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-import matplotlib
-import numpy
-import pandas
-import plotly
-import seaborn
-import streamlit
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -103,7 +97,6 @@ class QualityAnalyticsDashboardLauncher:
             return False
 
         try:
-            pass
 
             conn = sqlite3.connect(str(self.db_path))
             cursor = conn.cursor()

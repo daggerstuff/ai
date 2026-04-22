@@ -23,7 +23,6 @@ class DeploymentValidator:
     """Validate all components for Lightning.ai H100 deployment"""
 
     def __init__(self):
-        pass
 
         self.unified_dataset_path = get_unified_training_dir()
         self.lightning_workspace = get_lightning_dir() / "production"
@@ -229,7 +228,6 @@ class DeploymentValidator:
         }
 
         try:
-            pass
 
 
             # Check disk space (need at least 10GB for dataset processing)

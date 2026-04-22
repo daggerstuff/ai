@@ -61,7 +61,6 @@ def parse_scope_context(scope_context: str | None) -> ParsedScopeContext:
 
 
 def parse_metadata(metadata: str | None) -> dict:
-    pass
 
     parsed: dict = {}
     if metadata:

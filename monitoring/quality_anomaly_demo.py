@@ -69,14 +69,12 @@ class QualityAnomalyDemo:
 
     def create_demo_anomalies(self) -> list[QualityAnomaly]:
         """Create demo anomalies with synthetic data"""
-        print("🎭 Creating demo quality anomalies...")
 
         try:
             # Get base data for realistic values
             base_data = self._get_base_data()
 
             if not base_data:
-                print("❌ No base data found")
                 return []
 
             # Create synthetic anomalies
@@ -95,11 +93,9 @@ class QualityAnomalyDemo:
                 reverse=True,
             )
 
-            print(f"✅ Created {len(anomalies)} demo anomalies")
             return anomalies
 
-        except Exception as e:
-            print(f"❌ Error creating demo anomalies: {e}")
+        except Exception:
             return []
 
     def _get_base_data(self) -> list[dict]:
@@ -125,14 +121,13 @@ class QualityAnomalyDemo:
 
             data = []
             for row in cursor.fetchall():
-                record = dict(zip(columns, row))
+                record = dict(zip(columns, row, strict=False))
                 data.append(record)
 
             conn.close()
             return data
 
-        except Exception as e:
-            print(f"❌ Error getting base data: {e}")
+        except Exception:
             return []
 
     def _create_metric_anomalies(
@@ -157,8 +152,7 @@ class QualityAnomalyDemo:
 
             return anomalies
 
-        except Exception as e:
-            print(f"❌ Error creating anomalies for {metric}: {e}")
+        except Exception:
             return []
 
     def _calculate_baseline_value(
@@ -192,8 +186,7 @@ class QualityAnomalyDemo:
 
             return None
 
-        except Exception as e:
-            print(f"❌ Error calculating baseline for {metric}: {e}")
+        except Exception:
             return None
 
     def _create_synthetic_anomaly(
@@ -253,13 +246,11 @@ class QualityAnomalyDemo:
                 },
             )
 
-        except Exception as e:
-            print(f"❌ Error creating synthetic anomaly: {e}")
+        except Exception:
             return None
 
     def generate_demo_alerts(self, anomalies: list[QualityAnomaly]) -> list[Alert]:
         """Generate demo alerts from anomalies"""
-        print(f"🚨 Generating demo alerts from {len(anomalies)} anomalies...")
 
         try:
             alerts = []
@@ -278,11 +269,9 @@ class QualityAnomalyDemo:
                 if alert:
                     alerts.append(alert)
 
-            print(f"✅ Generated {len(alerts)} demo alerts")
             return alerts
 
-        except Exception as e:
-            print(f"❌ Error generating demo alerts: {e}")
+        except Exception:
             return []
 
     def _create_demo_alert(
@@ -326,8 +315,7 @@ DEMO ALERT: Quality anomaly detected in {metric.replace("_", " ")}.
                 auto_resolved=False,
             )
 
-        except Exception as e:
-            print(f"❌ Error creating demo alert: {e}")
+        except Exception:
             return None
 
     def _generate_demo_actions(self, metric: str, severity: str) -> list[str]:
@@ -390,13 +378,11 @@ DEMO ALERT: Quality anomaly detected in {metric.replace("_", " ")}.
         self, anomalies: list[QualityAnomaly]
     ) -> dict[str, str]:
         """Create demo anomaly visualizations"""
-        print("📈 Creating demo anomaly visualizations...")
 
         viz_files = {}
 
         try:
             if not anomalies:
-                print("⚠️ No anomalies to visualize")
                 return viz_files
 
             # Set style
@@ -449,7 +435,7 @@ DEMO ALERT: Quality anomaly detected in {metric.replace("_", " ")}.
             ax.grid(True, alpha=0.3)
 
             # Add count labels
-            for bar, count in zip(bars, metric_counts.values):
+            for bar, count in zip(bars, metric_counts.values, strict=False):
                 height = bar.get_height()
                 ax.text(
                     bar.get_x() + bar.get_width() / 2.0,
@@ -473,7 +459,7 @@ DEMO ALERT: Quality anomaly detected in {metric.replace("_", " ")}.
             }
             for severity in set(severities):
                 severity_times = [
-                    t for t, s in zip(timestamps, severities) if s == severity
+                    t for t, s in zip(timestamps, severities, strict=False) if s == severity
                 ]
                 severity_values = [1] * len(severity_times)  # Just for plotting
                 ax.scatter(
@@ -517,11 +503,9 @@ DEMO ALERT: Quality anomaly detected in {metric.replace("_", " ")}.
 
             viz_files["dashboard"] = str(dashboard_file)
 
-            print(f"✅ Created {len(viz_files)} demo visualization files")
             return viz_files
 
-        except Exception as e:
-            print(f"❌ Error creating demo visualizations: {e}")
+        except Exception:
             return {}
 
     def export_demo_report(
@@ -531,7 +515,6 @@ DEMO ALERT: Quality anomaly detected in {metric.replace("_", " ")}.
         visualizations: dict[str, str],
     ) -> str:
         """Export demo anomaly detection report"""
-        print("📄 Exporting demo anomaly detection report...")
 
         try:
             timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -612,18 +595,14 @@ DEMO ALERT: Quality anomaly detected in {metric.replace("_", " ")}.
             with open(report_file, "w") as f:
                 json.dump(export_data, f, indent=2, default=str)
 
-            print(f"✅ Exported demo anomaly report to: {report_file}")
             return str(report_file)
 
-        except Exception as e:
-            print(f"❌ Error exporting demo report: {e}")
+        except Exception:
             return ""
 
 
 def main():
     """Main demo execution"""
-    print("🎭 Quality Anomaly Detection Demo")
-    print("=" * 40)
 
     # Initialize demo
     demo = QualityAnomalyDemo()
@@ -632,7 +611,6 @@ def main():
     anomalies = demo.create_demo_anomalies()
 
     if not anomalies:
-        print("❌ No demo anomalies created")
         return
 
     # Generate alerts
@@ -642,47 +620,29 @@ def main():
     visualizations = demo.create_demo_visualizations(anomalies)
 
     # Export report
-    report_file = demo.export_demo_report(anomalies, alerts, visualizations)
+    demo.export_demo_report(anomalies, alerts, visualizations)
 
     # Display summary
-    print("\n🚨 Demo Anomaly Detection Complete")
-    print(f"   - Anomalies detected: {len(anomalies)}")
-    print(f"   - Alerts generated: {len(alerts)}")
-    print(f"   - Visualizations created: {len(visualizations)}")
-    print(f"   - Report saved: {report_file}")
 
     # Show critical alerts
     critical_alerts = [a for a in alerts if a.severity == "critical"]
     if critical_alerts:
-        print(f"\n🚨 CRITICAL ALERTS ({len(critical_alerts)}):")
         for alert in critical_alerts[:2]:  # Show top 2
-            print(f"   • {alert.title}")
-            print(f"     {alert.message.split('.')[0]}")
+            pass
 
     # Show anomaly summary
     severity_counts = pd.Series([a.severity for a in anomalies]).value_counts()
-    print("\n📊 Anomaly Summary:")
     for severity, count in severity_counts.items():
-        icon = (
-            "🔴"
-            if severity == "critical"
-            else "🟠"
-            if severity == "high"
-            else "🟡"
-            if severity == "medium"
-            else "🔵"
-        )
-        print(f"   {icon} {severity.title()}: {count}")
+        pass
 
     # Show top recommendations
     if alerts:
-        print("\n💡 Top Recommendations:")
         all_actions = []
         for alert in alerts:
             all_actions.extend(alert.recommended_actions[:2])  # Top 2 per alert
 
         for action in list(set(all_actions))[:4]:  # Top 4 unique actions
-            print(f"   • {action}")
+            pass
 
 
 if __name__ == "__main__":

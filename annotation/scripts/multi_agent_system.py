@@ -513,7 +513,6 @@ RESPOND WITH VALID JSON ONLY:
 }}"""
 
     def _mock_annotation(self, task: dict[str, Any]) -> AnnotationResult:
-        pass
 
         seed = len(str(task)) + 2
         random.seed(seed)

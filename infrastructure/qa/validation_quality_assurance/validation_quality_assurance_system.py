@@ -736,33 +736,18 @@ def main():
     # Process conversations
     results = qa_system.process_batch_qa(test_conversations)
 
-    print("\n🎯 QA Processing Results:")
     for result in results:
-        print(f"\nConversation: {result.conversation_id}")
-        print(f"Overall QA Score: {result.overall_qa_score:.3f}")
-        print(f"QA Status: {result.qa_status}")
-        print(f"Processing Time: {result.processing_time:.2f}s")
-        clinical_score = result.clinical_validation["overall_clinical_score"]
-        print(f"Clinical Score: {clinical_score:.3f}")
-        print(f"Workflow Score: {result.workflow_results['quality_score']:.3f}")
-        print(f"Alerts: {len(result.monitoring_alerts)}")
-        print(f"Improvements: {len(result.quality_improvements)}")
+        result.clinical_validation["overall_clinical_score"]
 
     # Generate comprehensive report
     report = qa_system.generate_qa_report(results)
-    print("\n📊 QA Report Summary:")
-    print(f"Total Conversations: {report['report_summary']['total_conversations']}")
-    print(f"Average QA Score: {report['report_summary']['average_qa_score']}")
-    print(f"Status Distribution: {report['status_analysis']}")
-    cps = report["performance_metrics"]["conversations_per_second"]
-    print(f"Performance: {cps:.2f} conv/sec")
+    report["performance_metrics"]["conversations_per_second"]
 
     # Export results
     output_path = (
         "/home/vivi/pixelated/ai/validation_quality_assurance/qa_results_test.json"
     )
-    success = qa_system.export_qa_results(results, output_path)
-    print(f"\n💾 Export Success: {success}")
+    qa_system.export_qa_results(results, output_path)
 
 
 if __name__ == "__main__":

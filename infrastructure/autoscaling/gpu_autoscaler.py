@@ -666,62 +666,37 @@ def test_autoscaling_system():
         scaling_policy=policy
     )
 
-    print(f"Registered model {model_name} for autoscaling")
 
     # Test current resource usage
-    print("\nTesting Resource Usage Collection...")
     usage = autoscaler.get_current_resource_usage()
-    print(f"Current CPU: {usage.cpu_percent:.1f}%")
-    print(f"Current Memory: {usage.memory_percent:.1f}%")
     if usage.gpu_memory_percent:
-        print(f"GPU Memory: {usage.gpu_memory_percent:.1f}%")
+        pass
     if usage.gpu_utilization_percent:
-        print(f"GPU Utilization: {usage.gpu_utilization_percent:.1f}%")
+        pass
 
     # Test scaling decisions under different conditions
-    print("\nTesting Scaling Decisions...")
 
     # Low utilization scenario
-    print("Low utilization scenario (< 30%)")
-    low_util_decision = autoscaler.make_scaling_decision(current_load=25.0)
-    print(f"Decision: {low_util_decision.action} ({low_util_decision.reason})")
+    autoscaler.make_scaling_decision(current_load=25.0)
 
     # High utilization scenario
-    print("High utilization scenario (> 70%)")
-    high_util_decision = autoscaler.make_scaling_decision(current_load=85.0)
-    print(f"Decision: {high_util_decision.action} ({high_util_decision.reason})")
+    autoscaler.make_scaling_decision(current_load=85.0)
 
     # Normal utilization scenario
-    print("Normal utilization scenario (30-70%)")
-    normal_util_decision = autoscaler.make_scaling_decision(current_load=50.0)
-    print(f"Decision: {normal_util_decision.action} ({normal_util_decision.reason})")
+    autoscaler.make_scaling_decision(current_load=50.0)
 
     # Test cost forecasting
-    print("\nTesting Cost Forecasting...")
-    cost_forecast = autoscaler.get_cost_forecast(hours_ahead=24)
-    print(f"Hourly forecast: ${cost_forecast.hourly_forecast:.2f}")
-    print(f"Daily forecast: ${cost_forecast.daily_forecast:.2f}")
-    print(f"Weekly forecast: ${cost_forecast.weekly_forecast:.2f}")
-    print(f"Monthly forecast: ${cost_forecast.monthly_forecast:.2f}")
-    print(f"Projected savings: ${cost_forecast.projected_savings:.2f}")
+    autoscaler.get_cost_forecast(hours_ahead=24)
 
     # Test optimization recommendations
-    print("\nTesting Optimization Recommendations...")
     recommendations = get_cost_optimization_recommendations(model_name)
-    print(f"Found {len(recommendations)} optimization opportunities:")
     for rec in recommendations[:3]:  # Show top 3
-        print(f"  - {rec.get('opportunity', 'N/A')}: {rec.get('description', 'N/A')}")
-        print(f"    Potential savings: ${rec.get('potential_savings', 0):.2f}")
+        pass
 
     # Test instance optimization
-    print("\nTesting Instance Allocation Optimization...")
-    optimization = autoscaler.optimize_instance_allocation()
-    print(f"Optimization recommendation: {optimization.get('recommendation', 'N/A')}")
-    print(f"Reason: {optimization.get('reason', 'N/A')}")
-    print(f"Recommended instances: {optimization.get('recommended_instances', 'N/A')}")
+    autoscaler.optimize_instance_allocation()
 
     # Test multi-model autoscaler
-    print("\nTesting Multi-Model Autoscaler...")
 
     # Register another model
     model2_name = "crisis_detection_model"
@@ -731,27 +706,18 @@ def test_autoscaling_system():
         scaling_policy=ScalingPolicy(min_instances=2, max_instances=8)
     )
 
-    print(f"Registered second model {model2_name}")
 
     # Make scaling decisions for all models
-    all_decisions = multi_model_autoscaler.make_all_scaling_decisions()
-    print(f"Made scaling decisions for {len(all_decisions)} models")
+    multi_model_autoscaler.make_all_scaling_decisions()
 
     # Get total cost forecast
-    total_forecast = multi_model_autoscaler.get_total_cost_forecast(hours_ahead=24)
-    print(f"Total hourly cost for all models: ${total_forecast.hourly_forecast:.2f}")
-    print(f"Total daily cost for all models: ${total_forecast.daily_forecast:.2f}")
-    print(f"Total monthly cost for all models: ${total_forecast.monthly_forecast:.2f}")
+    multi_model_autoscaler.get_total_cost_forecast(hours_ahead=24)
 
     # Test scaling history
-    print("\nTesting Scaling History...")
     history = autoscaler.get_scaling_history(limit=5)
-    print(f"Retrieved {len(history)} recent scaling decisions")
     if history:
-        latest = history[-1]
-        print(f"Most recent decision: {latest.action} at {latest.timestamp}")
+        history[-1]
 
-    print("\nGPU autoscaling system tests completed!")
 
 
 if __name__ == "__main__":

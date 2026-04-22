@@ -12,13 +12,6 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-import jinja2
-import matplotlib
-import numpy
-import pandas
-import plotly
-import scipy
-import seaborn
 from quality_distribution_analyzer import QualityDistributionAnalyzer
 from quality_distribution_comparator import QualityDistributionComparator
 from quality_distribution_reporter import QualityDistributionReporter
@@ -112,7 +105,6 @@ class QualityDistributionAnalysisLauncher:
             return False
 
         try:
-            pass
 
             conn = sqlite3.connect(str(self.db_path))
             cursor = conn.cursor()
@@ -340,51 +332,28 @@ class QualityDistributionAnalysisLauncher:
     def display_analysis_summary(self, summary: dict):
         """Display analysis summary to console."""
         if not summary.get("success", False):
-            print(f"❌ Analysis failed: {summary.get('error', 'Unknown error')}")
             return
 
-        print("\n📊 Quality Distribution Analysis Summary")
-        print(f"{'=' * 50}")
-        print(f"Analysis Period: {summary['analysis_period']}")
-        print(f"Total Conversations: {summary['total_conversations']:,}")
-        print(
-            f"Distribution Type: {summary['distribution_type'].replace('_', ' ').title()}"
-        )
-        print(f"Mean Quality: {summary['mean_quality']:.3f}")
-        print(f"Median Quality: {summary['median_quality']:.3f}")
-        print(f"Standard Deviation: {summary['std_dev']:.3f}")
-        print(f"Skewness: {summary['skewness']:.3f}")
-        print(f"Kurtosis: {summary['kurtosis']:.3f}")
-        print(f"Outliers Detected: {summary['outliers_detected']}")
-        print(f"Normality Tests: {summary['normality_tests']}")
 
-        print("\n📄 Generated Files:")
         for file_path in summary["report_files"]:
-            print(f"  📋 {file_path}")
+            pass
 
         if summary["visualization_files"]:
-            print("\n📊 Visualization Files:")
             for file_path in summary["visualization_files"]:
-                print(f"  📈 {file_path}")
+                pass
 
-        print("\n🔍 Comparative Analyses:")
         for name, comp_summary in summary["comparative_analyses"].items():
-            status = (
+            (
                 "✅ Significant differences"
                 if comp_summary["significant_differences"]
                 else "📊 No significant differences"
             )
-            print(
-                f"  {name.title()}: {comp_summary['groups']} groups, {comp_summary['statistical_tests']} tests - {status}"
-            )
 
-        print("\n💡 Executive Summary:")
         for i, item in enumerate(summary["executive_summary"][:5], 1):
-            print(f"  {i}. {item}")
+            pass
 
-        print("\n🎯 Action Items:")
         for i, item in enumerate(summary["action_items"][:5], 1):
-            print(f"  {i}. {item}")
+            pass
 
     def launch(
         self,

@@ -694,22 +694,11 @@ if __name__ == "__main__":
         report = await compliance_validator.run_comprehensive_compliance_assessment()
 
         # Print summary
-        print(f"\n{'='*60}")
-        print("COMPLIANCE VALIDATION REPORT")
-        print(f"{'='*60}")
-        print(f"Overall Compliance Score: {report['compliance_assessment_summary']['overall_compliance_score']}%")
-        print(f"Certification Status: {report['compliance_assessment_summary']['certification_status']}")
-        print(f"Production Ready: {'YES' if report['compliance_assessment_summary']['production_ready'] else 'NO'}")
 
-        print("\nStandard Compliance Scores:")
         for standard, score in report["standard_compliance"].items():
-            print(f"  {standard.upper()}: {score}%")
+            pass
 
-        print("\nCompliance Distribution:")
-        distribution = report["compliance_distribution"]
-        print(f"  Compliant: {distribution['compliant']}")
-        print(f"  Partially Compliant: {distribution['partially_compliant']}")
-        print(f"  Non-Compliant: {distribution['non_compliant']}")
+        report["compliance_distribution"]
 
         # Save report
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -717,6 +706,5 @@ if __name__ == "__main__":
         with open(report_file, "w") as f:
             json.dump(report, f, indent=2)
 
-        print(f"\nDetailed report saved to: {report_file}")
 
     asyncio.run(main())

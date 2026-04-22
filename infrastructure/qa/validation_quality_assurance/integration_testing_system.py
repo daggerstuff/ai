@@ -511,47 +511,30 @@ class QAIntegrationTestRunner:
 def main():
     """Run comprehensive integration testing"""
 
-    print("🧪 VALIDATION & QUALITY ASSURANCE INTEGRATION TESTING")
-    print("=" * 60)
 
     # Run integration tests
     test_runner = QAIntegrationTestRunner()
     report = test_runner.run_all_tests()
 
     # Display results
-    print("\n📊 INTEGRATION TEST RESULTS:")
-    print(f"Total Tests: {report['integration_test_summary']['total_tests']}")
-    print(f"Passed: {report['integration_test_summary']['passed_tests']}")
-    print(f"Failed: {report['integration_test_summary']['failed_tests']}")
-    print(f"Errors: {report['integration_test_summary']['error_tests']}")
-    print(f"Success Rate: {report['integration_test_summary']['success_rate']:.1%}")
-    print(
-        f"Execution Time: {report['integration_test_summary']['total_execution_time']}s"
-    )
 
-    print("\n🔧 TEST CATEGORIES:")
     for category, status in report["test_categories"].items():
-        print(f"  {category}: {status}")
+        pass
 
-    print("\n⚡ PERFORMANCE METRICS:")
-    print(f"Average Test Time: {report['performance_metrics']['average_test_time']}s")
-    print(f"Tests Per Second: {report['performance_metrics']['tests_per_second']:.2f}")
 
-    print("\n✅ SYSTEM VALIDATION:")
     for validation, status in report["system_validation"].items():
-        print(f"  {validation}: {'✅' if status else '❌'}")
+        pass
 
     # Export report
     output_path = "/home/vivi/pixelated/ai/validation_quality_assurance/integration_test_report.json"
-    success = test_runner.export_test_report(report, output_path)
+    test_runner.export_test_report(report, output_path)
 
-    print(f"\n💾 Report Export: {'✅ Success' if success else '❌ Failed'}")
 
     # Final status
     if report["integration_test_summary"]["success_rate"] == 1.0:
-        print("\n🎉 ALL INTEGRATION TESTS PASSED - SYSTEM READY FOR PRODUCTION!")
+        pass
     else:
-        print("\n⚠️ SOME TESTS FAILED - REVIEW REQUIRED BEFORE PRODUCTION")
+        pass
 
     return report["integration_test_summary"]["success_rate"] == 1.0
 

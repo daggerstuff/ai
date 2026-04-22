@@ -124,7 +124,6 @@ def verify_dataset_sync(
 
 
 def main():
-    pass
 
     parser = argparse.ArgumentParser(description="Verify dataset sync using rclone")
     parser.add_argument(
@@ -139,12 +138,6 @@ def main():
 
     args = parser.parse_args()
 
-    print("=" * 80)
-    print("DATASET SYNC VERIFICATION (RCLONE)")
-    print("=" * 80)
-    print(f"Registry: {args.registry}")
-    print(f"Limit: {args.limit or 'None (all datasets)'}")
-    print()
 
     with open(args.registry) as f:
         registry = json.load(f)
@@ -174,7 +167,6 @@ def main():
     }
 
     for dataset_name, dataset_entry in datasets:
-        print(f"Verifying: {dataset_name}")
         result = verify_dataset_sync(dataset_name, dataset_entry)
         all_results.append(result)
 
@@ -212,20 +204,11 @@ def main():
         json.dump(registry, f, indent=2, ensure_ascii=False)
 
     # Print summary
-    print("\n" + "=" * 80)
-    print("SYNC VERIFICATION SUMMARY")
-    print("=" * 80)
-    print(f"Total datasets: {stats['total']}")
-    print(f"In sync: {stats['in_sync']}")
-    print(f"Out of sync: {stats['out_of_sync']}")
-    print(f"Missing from S3: {stats['missing_s3']}")
-    print(f"Missing from fallback: {stats['missing_fallback']}")
 
     if stats["out_of_sync"] > 0:
-        print("\nDatasets with issues:")
         for result in all_results:
             if not result["in_sync"]:
-                print(f"  - {result['dataset']}: {', '.join(result['issues'])}")
+                pass
 
 
 if __name__ == "__main__":

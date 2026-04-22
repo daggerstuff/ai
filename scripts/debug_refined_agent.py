@@ -18,7 +18,6 @@ def debug_question_extraction():
 
     agent = RefinedIntelligentAgent()
 
-    print("=== DEBUGGING QUESTION EXTRACTION ===\n")
 
     # Test each question pattern
     question_patterns = [
@@ -28,31 +27,20 @@ def debug_question_extraction():
         r"([A-Z][^.!?]{20,}\?)",
     ]
 
-    print("**Testing question patterns:**")
     for i, pattern in enumerate(question_patterns):
         matches = list(re.finditer(pattern, text, re.IGNORECASE))
-        print(f"Pattern {i + 1}: {pattern}")
-        print(f"Matches found: {len(matches)}")
         for match in matches:
-            print(f"  - '{match.group(1)}'")
-        print()
+            pass
 
     # Test the actual extraction method
-    print("**Agent extraction result:**")
-    result = agent.extract_question_patterns(text)
-    print(f"Question: {result['question']}")
-    print(f"Confidence: {result['confidence']}")
-    print(f"Position: {result['position']}")
+    agent.extract_question_patterns(text)
 
     # Manual search for the specific question we expect
-    print("\n**Manual search for expected question:**")
     expected_question = "How can somebody begin to take that path and make sure that they're finding somebody that is trained in that and then also that they're able to self-regulate themselves"
     if expected_question in text:
-        start_pos = text.find(expected_question)
-        print(f"Found at position: {start_pos}")
-        print(f"Full question: '{expected_question}?'")
+        text.find(expected_question)
     else:
-        print("Expected question not found")
+        pass
 
 
 if __name__ == "__main__":

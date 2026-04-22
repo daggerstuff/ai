@@ -721,26 +721,8 @@ if __name__ == "__main__":
         report = await launch_coordinator.run_production_launch_coordination()
 
         # Print summary
-        print(f"\n{'=' * 60}")
-        print("PRODUCTION LAUNCH COORDINATION REPORT")
-        print(f"{'=' * 60}")
-        print(
-            f"Launch Ready: {'YES' if report['task_106_summary']['launch_ready'] else 'NO'}"
-        )
-        print(
-            f"Go-Live Approved: {'YES' if report['task_106_summary']['go_live_approved'] else 'NO'}"
-        )
-        print(f"Approval Status: {report['task_106_summary']['approval_status']}")
 
-        print("\nLaunch Metrics:")
-        metrics = report["launch_metrics"]
-        print(f"  Checklist Completion: {metrics['checklist_completion_rate']:.1f}%")
-        print(
-            f"  Critical Items Completion: {metrics['critical_items_completion_rate']:.1f}%"
-        )
-        print(f"  Team Availability: {metrics['team_availability_rate']:.1f}%")
-        print(f"  Go-Live Assessment: {metrics['go_live_assessment_score']:.1f}%")
-        print(f"  Rollback Readiness: {metrics['rollback_readiness_score']:.1f}%")
+        report["launch_metrics"]
 
         # Save report
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -748,6 +730,5 @@ if __name__ == "__main__":
         with open(report_file, "w") as f:
             json.dump(report, f, indent=2)
 
-        print(f"\nDetailed report saved to: {report_file}")
 
     asyncio.run(main())

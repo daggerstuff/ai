@@ -43,9 +43,9 @@ def process_file():
                 records.append(record)
 
             except json.JSONDecodeError:
-                print(f"Skipping invalid JSON line: {line[:50]}...")
-            except Exception as e:
-                print(f"Error processing line: {e}")
+                pass
+            except Exception:
+                pass
 
     # Process a subset (e.g., first 50 records) for the batch
     subset_records = records[:50]
@@ -55,7 +55,6 @@ def process_file():
         for record in subset_records:
             outfile.write(json.dumps(record) + "\n")
 
-    print(f"Successfully created {len(subset_records)} records in {output_file_path}")
 
 
 if __name__ == "__main__":

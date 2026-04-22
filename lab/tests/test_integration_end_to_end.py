@@ -185,7 +185,6 @@ class TestEndToEndDataFlow(unittest.TestCase):
         # Verify aggregation
         assert len(dataset_stats) == 4
 
-        print("✅ Database to DataFrame pipeline test passed")
 
     def test_analytics_system_integration(self):
         """Test integration between different analytics systems"""
@@ -213,7 +212,6 @@ class TestEndToEndDataFlow(unittest.TestCase):
             places=1,
         )
 
-        print("✅ Analytics system integration test passed")
 
     def test_dashboard_generation_pipeline(self):
         """Test complete dashboard generation pipeline"""
@@ -245,7 +243,6 @@ class TestEndToEndDataFlow(unittest.TestCase):
         for file_path in output_files:
             assert os.path.exists(file_path)
 
-        print("✅ Dashboard generation pipeline test passed")
 
     def test_report_generation_workflow(self):
         """Test complete report generation workflow"""
@@ -272,7 +269,6 @@ class TestEndToEndDataFlow(unittest.TestCase):
         assert os.path.exists(report_file)
         assert os.path.getsize(report_file) > 0
 
-        print("✅ Report generation workflow test passed")
 
     # TODO Rename this here and in `test_analytics_system_integration`, `test_dashboard_generation_pipeline` and `test_report_generation_workflow`
     def _extracted_from_test_report_generation_workflow_4(self):
@@ -299,7 +295,6 @@ class TestEndToEndDataFlow(unittest.TestCase):
         assert isinstance(analytics_result, dict)
         assert "error" in analytics_result
 
-        print("✅ Error handling integration test passed")
 
     # Helper methods for testing
     def _calculate_test_quality_score(self, row):
@@ -463,7 +458,6 @@ class TestSystemWorkflows(unittest.TestCase):
         assert "status" in report
         assert "timestamp" in report
 
-        print("✅ Monitoring system workflow test passed")
 
     def test_analytics_pipeline_workflow(self):
         """Test complete analytics pipeline workflow"""
@@ -480,7 +474,6 @@ class TestSystemWorkflows(unittest.TestCase):
         output_reports = self._generate_pipeline_outputs(analytics_results)
         assert len(output_reports) > 0
 
-        print("✅ Analytics pipeline workflow test passed")
 
     # Helper methods for workflow testing
     def _check_system_health(self, status):
@@ -535,8 +528,6 @@ class TestSystemWorkflows(unittest.TestCase):
 
 def run_integration_tests():
     """Run all integration tests and return results"""
-    print("🔗 Running Integration Tests for End-to-End Processing")
-    print("=" * 70)
 
     # Create test suite
     test_suite = unittest.TestSuite()
@@ -553,34 +544,21 @@ def run_integration_tests():
     result = runner.run(test_suite)
 
     # Print summary
-    print("\n" + "=" * 70)
-    print("🔗 Integration Test Results Summary:")
-    print(f"  • Tests Run: {result.testsRun}")
-    print(f"  • Failures: {len(result.failures)}")
-    print(f"  • Errors: {len(result.errors)}")
-    print(
-        f"  • Success Rate: {((result.testsRun - len(result.failures) - len(result.errors)) / result.testsRun * 100):.1f}%"
-    )
 
     if result.failures:
-        print(f"\n❌ Failures ({len(result.failures)}):")
         for test, traceback in result.failures:
-            error_msg = (
+            (
                 traceback.split("AssertionError: ")[-1].split("\n")[0]
                 if "AssertionError:" in traceback
                 else "Unknown failure"
             )
-            print(f"  • {test}: {error_msg}")
 
     if result.errors:
-        print(f"\n🚨 Errors ({len(result.errors)}):")
         for test, traceback in result.errors:
-            error_msg = traceback.split("\n")[-2] if traceback else "Unknown error"
-            print(f"  • {test}: {error_msg}")
+            traceback.split("\n")[-2] if traceback else "Unknown error"
 
     if not result.failures and not result.errors:
-        print("\n✅ All integration tests passed successfully!")
-        print("🎉 End-to-end processing workflows are working correctly!")
+        pass
 
     return result
 

@@ -107,7 +107,7 @@ class InMemoryRecordStore:
             user_records = self._records.get(user_id)
             if user_records is None or len(user_records) == 0:
                 return None
-            record_id, record = user_records.popitem(last=False)
+            _record_id, record = user_records.popitem(last=False)
             if record is None:
                 return None
             self._search_index.remove(user_id=user_id, record=record)

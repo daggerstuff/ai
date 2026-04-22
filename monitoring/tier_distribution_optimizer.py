@@ -74,14 +74,12 @@ class TierDistributionOptimizer:
 
     def analyze_tier_distribution(self) -> dict[str, TierAnalysis]:
         """Analyze current tier distribution"""
-        print("📊 Analyzing tier distribution patterns...")
 
         try:
             # Get tier data
             tier_data = self._get_tier_data()
 
             if not tier_data:
-                print("❌ No tier data found")
                 return {}
 
             # Analyze each tier
@@ -93,11 +91,9 @@ class TierDistributionOptimizer:
                     if analysis:
                         tier_analyses[tier_name] = analysis
 
-            print(f"✅ Analyzed {len(tier_analyses)} tiers")
             return tier_analyses
 
-        except Exception as e:
-            print(f"❌ Error analyzing tier distribution: {e}")
+        except Exception:
             return {}
 
     def _get_tier_data(self) -> pd.DataFrame:
@@ -123,8 +119,7 @@ class TierDistributionOptimizer:
 
             return df
 
-        except Exception as e:
-            print(f"❌ Error getting tier data: {e}")
+        except Exception:
             return pd.DataFrame()
 
     def _analyze_individual_tier(
@@ -181,8 +176,7 @@ class TierDistributionOptimizer:
                 characteristics=characteristics,
             )
 
-        except Exception as e:
-            print(f"❌ Error analyzing tier {tier_name}: {e}")
+        except Exception:
             return None
 
     def _calculate_tier_quality_metrics(
@@ -210,8 +204,7 @@ class TierDistributionOptimizer:
                 "completeness_score": float(completeness_score),
             }
 
-        except Exception as e:
-            print(f"❌ Error calculating tier quality metrics: {e}")
+        except Exception:
             return {}
 
     def _identify_tier_characteristics(
@@ -262,15 +255,13 @@ class TierDistributionOptimizer:
 
             return characteristics
 
-        except Exception as e:
-            print(f"❌ Error identifying tier characteristics: {e}")
+        except Exception:
             return []
 
     def generate_tier_optimization(
         self, tier_analyses: dict[str, TierAnalysis]
     ) -> TierOptimization:
         """Generate tier optimization recommendations"""
-        print("🎯 Generating tier optimization recommendations...")
 
         try:
             # Calculate current distribution
@@ -312,8 +303,7 @@ class TierDistributionOptimizer:
                 expected_impact=expected_impact,
             )
 
-        except Exception as e:
-            print(f"❌ Error generating tier optimization: {e}")
+        except Exception:
             return TierOptimization(
                 current_distribution={},
                 optimal_distribution={},
@@ -358,8 +348,7 @@ class TierDistributionOptimizer:
 
             return optimal_dist
 
-        except Exception as e:
-            print(f"❌ Error calculating optimal distribution: {e}")
+        except Exception:
             return {}
 
     def _generate_rebalancing_recommendations(
@@ -398,8 +387,7 @@ class TierDistributionOptimizer:
 
             return recommendations
 
-        except Exception as e:
-            print(f"❌ Error generating rebalancing recommendations: {e}")
+        except Exception:
             return []
 
     def _generate_quality_improvements(
@@ -448,8 +436,7 @@ class TierDistributionOptimizer:
 
             return improvements
 
-        except Exception as e:
-            print(f"❌ Error generating quality improvements: {e}")
+        except Exception:
             return []
 
     def _calculate_resource_allocation(
@@ -504,8 +491,7 @@ class TierDistributionOptimizer:
                 ),
             }
 
-        except Exception as e:
-            print(f"❌ Error calculating resource allocation: {e}")
+        except Exception:
             return {}
 
     def _estimate_optimization_impact(
@@ -549,15 +535,13 @@ class TierDistributionOptimizer:
                 ),
             }
 
-        except Exception as e:
-            print(f"❌ Error estimating optimization impact: {e}")
+        except Exception:
             return {}
 
     def create_tier_visualizations(
         self, tier_analyses: dict[str, TierAnalysis], optimization: TierOptimization
     ) -> dict[str, str]:
         """Create tier distribution visualizations"""
-        print("📈 Creating tier distribution visualizations...")
 
         viz_files = {}
 
@@ -621,7 +605,7 @@ class TierDistributionOptimizer:
             ax.grid(True, alpha=0.3)
 
             # Add value labels
-            for bar, score in zip(bars, quality_scores):
+            for bar, score in zip(bars, quality_scores, strict=False):
                 height = bar.get_height()
                 ax.text(
                     bar.get_x() + bar.get_width() / 2.0,
@@ -677,11 +661,9 @@ class TierDistributionOptimizer:
 
             viz_files["dashboard"] = str(dashboard_file)
 
-            print(f"✅ Created {len(viz_files)} tier visualization files")
             return viz_files
 
-        except Exception as e:
-            print(f"❌ Error creating visualizations: {e}")
+        except Exception:
             return {}
 
     def export_tier_optimization_report(
@@ -691,7 +673,6 @@ class TierDistributionOptimizer:
         visualizations: dict[str, str],
     ) -> str:
         """Export comprehensive tier optimization report"""
-        print("📄 Exporting tier optimization report...")
 
         try:
             timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -736,11 +717,9 @@ class TierDistributionOptimizer:
             with open(report_file, "w") as f:
                 json.dump(export_data, f, indent=2, default=str)
 
-            print(f"✅ Exported tier optimization report to: {report_file}")
             return str(report_file)
 
-        except Exception as e:
-            print(f"❌ Error exporting tier optimization report: {e}")
+        except Exception:
             return ""
 
     def _create_tier_executive_summary(
@@ -787,15 +766,12 @@ class TierDistributionOptimizer:
                 ),
             }
 
-        except Exception as e:
-            print(f"❌ Error creating tier executive summary: {e}")
+        except Exception:
             return {}
 
 
 def main():
     """Main execution function"""
-    print("📊 Tier Distribution Analysis and Optimization System")
-    print("=" * 60)
 
     # Initialize optimizer
     optimizer = TierDistributionOptimizer()
@@ -804,7 +780,6 @@ def main():
     tier_analyses = optimizer.analyze_tier_distribution()
 
     if not tier_analyses:
-        print("❌ No tier analyses generated")
         return
 
     # Generate optimization
@@ -814,35 +789,24 @@ def main():
     visualizations = optimizer.create_tier_visualizations(tier_analyses, optimization)
 
     # Export report
-    report_file = optimizer.export_tier_optimization_report(
+    optimizer.export_tier_optimization_report(
         tier_analyses, optimization, visualizations
     )
 
     # Display summary
-    total_conversations = sum(
+    sum(
         analysis.conversation_count for analysis in tier_analyses.values()
     )
 
-    print("\n✅ Tier Optimization Analysis Complete")
-    print(f"   - Tiers analyzed: {len(tier_analyses)}")
-    print(f"   - Total conversations: {total_conversations:,}")
-    print(
-        f"   - Rebalancing recommendations: {len(optimization.rebalancing_recommendations)}"
-    )
-    print(f"   - Quality improvements: {len(optimization.quality_improvements)}")
-    print(f"   - Visualizations created: {len(visualizations)}")
-    print(f"   - Report saved: {report_file}")
 
     # Show current distribution
-    print("\n📊 Current Tier Distribution:")
     for tier, percentage in optimization.current_distribution.items():
-        print(f"   {tier}: {percentage:.1f}%")
+        pass
 
     # Show top recommendations
     if optimization.rebalancing_recommendations:
-        print("\n🎯 Top Rebalancing Recommendations:")
         for rec in optimization.rebalancing_recommendations[:3]:
-            print(f"   • {rec}")
+            pass
 
 
 if __name__ == "__main__":

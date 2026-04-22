@@ -249,20 +249,12 @@ def main():
 
     args = parser.parse_args()
 
-    print("Enhancing dataset registry...")
-    print(f"Input: {args.input}")
-    print(f"Output: {args.output}")
 
     stats = enhance_registry(args.input, args.output, limit=args.limit)
 
-    print("\nEnhancement complete!")
-    print(f"Total datasets: {stats['total_datasets']}")
-    print(f"Enhanced datasets: {stats['enhanced_datasets']}")
-    print("\nDatasets by stage:")
     for stage, count in stats["datasets_by_stage"].items():
-        print(f"  {stage}: {count}")
+        pass
 
-    print(f"\nEnhanced registry written to: {args.output}")
 
 
 if __name__ == "__main__":

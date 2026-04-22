@@ -6,14 +6,14 @@ with special handling for crisis content.
 """
 import logging
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 from .reflection_memory import CrisisSeverity, Memory, MemoryCategory
 
 logger = logging.getLogger(__name__)
 
 
-class ConsolidationRule(str, Enum):
+class ConsolidationRule(StrEnum):
     """Types of consolidation rules."""
     PRESERVE = "preserve"  # Never consolidate
     CONSOLIDATE = "consolidate"  # Can consolidate

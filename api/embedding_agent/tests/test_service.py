@@ -104,7 +104,7 @@ class TestSingleEmbedding:
         response2 = service.embed_text(request)
 
         # Should produce same embedding
-        for v1, v2 in zip(response1.embedding, response2.embedding):
+        for v1, v2 in zip(response1.embedding, response2.embedding, strict=False):
             assert abs(v1 - v2) < 0.0001
 
 

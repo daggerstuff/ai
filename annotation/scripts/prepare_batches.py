@@ -9,7 +9,6 @@ def prepare_batches(input_file, output_dir, batch_size=100, num_batches=1):
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
 
-    print(f"Reading from {input_path}...")
     data = []
     with open(input_path) as f:
         for line in f:
@@ -19,7 +18,6 @@ def prepare_batches(input_file, output_dir, batch_size=100, num_batches=1):
                 except json.JSONDecodeError:
                     continue
 
-    print(f"Total records found: {len(data)}")
 
     # Shuffle data
     random.shuffle(data)
@@ -45,7 +43,6 @@ def prepare_batches(input_file, output_dir, batch_size=100, num_batches=1):
                 item["id"] = f"sample_{start_idx + idx}"
 
         batch_filename = output_path / f"batch_{i + 1:03d}.jsonl"
-        print(f"Writing {len(batch_data)} records to {batch_filename}...")
 
         with open(batch_filename, "w") as f:
             for item in batch_data:

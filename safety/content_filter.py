@@ -373,22 +373,16 @@ def test_safety_filter():
     ]
 
     for i, text in enumerate(test_cases):
-        print(f"\nTest case {i+1}: {text}")
 
         # Check safety
-        safety_score = safety_filter.check_input_safety(text)
-        print(f"Safety score: {safety_score.overall_score:.2f}")
-        print(f"Flagged categories: {[cat.value for cat in safety_score.flagged_categories]}")
+        safety_filter.check_input_safety(text)
 
         # Check for crisis specifically
-        crisis_result = check_crisis_content(text)
-        print(f"Crisis detected: {crisis_result['is_crisis']}, Types: {crisis_result['crisis_types']}")
+        check_crisis_content(text)
 
         # Filter the response
-        filtered = safety_filter.filter_response(text)
-        print(f"Filtered: {filtered}")
+        safety_filter.filter_response(text)
 
-    print("\nSafety filter tests completed!")
 
 
 if __name__ == "__main__":

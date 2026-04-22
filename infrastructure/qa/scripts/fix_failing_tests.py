@@ -83,7 +83,6 @@ class TestFixer:
             f.write(content)
 
         self.fixes_applied += 1
-        print("Fixed safety ethics validator tests")
 
     def fix_clinical_accuracy_validator_tests(self):
         """Fix clinical accuracy validator test failures."""
@@ -185,7 +184,6 @@ class TestFixer:
             f.write(content)
 
         self.fixes_applied += 1
-        print("Fixed clinical accuracy validator tests")
 
     def fix_crisis_intervention_detector_tests(self):
         """Fix crisis intervention detector test failures."""
@@ -266,7 +264,6 @@ class TestFixer:
             f.write(content)
 
         self.fixes_applied += 1
-        print("Fixed crisis intervention detector tests")
 
     def fix_production_exporter_tests(self):
         """Fix production exporter test failures."""
@@ -298,7 +295,6 @@ class TestFixer:
             f.write(content)
 
         self.fixes_applied += 1
-        print("Fixed production exporter tests")
 
     def fix_pipeline_orchestrator_tests(self):
         """Fix pipeline orchestrator test failures."""
@@ -320,7 +316,6 @@ class TestFixer:
             f.write(content)
 
         self.fixes_applied += 1
-        print("Fixed pipeline orchestrator tests")
 
     def fix_therapeutic_response_generator_tests(self):
         """Fix therapeutic response generator test failures."""
@@ -375,11 +370,9 @@ class TestFixer:
             f.write(content)
 
         self.fixes_applied += 1
-        print("Fixed therapeutic response generator tests")
 
     def run_all_fixes(self):
         """Run all test fixes."""
-        print("🔧 Starting systematic test fixes...")
 
         self.fix_safety_ethics_validator_tests()
         self.fix_clinical_accuracy_validator_tests()
@@ -388,14 +381,12 @@ class TestFixer:
         self.fix_pipeline_orchestrator_tests()
         self.fix_therapeutic_response_generator_tests()
 
-        print(f"\n✅ Applied {self.fixes_applied} test fixes")
         return self.fixes_applied
 
 def main():
     """Main entry point."""
     fixer = TestFixer()
-    fixes_applied = fixer.run_all_fixes()
-    print(f"\n🎉 Test fixing complete! Applied {fixes_applied} fixes.")
+    fixer.run_all_fixes()
 
 if __name__ == "__main__":
     main()

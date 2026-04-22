@@ -29,7 +29,6 @@ def get_s3_client():
     secret_key = os.environ.get("HETZNER_S3_SECRET_KEY")
 
     if not access_key or not secret_key:
-        print("❌ Error: Missing credentials (HETZNER_S3_ACCESS_KEY/SECRET_KEY).")
         sys.exit(1)
 
     return boto3.client(
@@ -47,7 +46,6 @@ def scan_for_large_files(root):
     to_upload = []
     skipped_duplicates = []
 
-    print(f"🔍 Scanning {root} for files > 100MB...")
 
     for path in root.rglob("*"):
         if not path.is_file():
@@ -74,7 +72,7 @@ def upload_file(s3_client, file_path, root_path):
     s3_key = f"{UPLOAD_PREFIX}{relative_path}"
 
     file_size = file_path.stat().st_size
-    human_size = f"{file_size / (1024 * 1024):.2f} MB"
+    f"{file_size / (1024 * 1024):.2f} MB"
 
     max_retries = 5
     retry_delay = 10
@@ -85,22 +83,14 @@ def upload_file(s3_client, file_path, root_path):
             try:
                 head = s3_client.head_object(Bucket=BUCKET_NAME, Key=s3_key)
                 if head["ContentLength"] == file_size:
-                    print(f"⏭️  Skipping {file_path.name} (Already on S3: {human_size})")
                     return True
             except Exception:
                 pass  # Not on S3 or error checking
 
-            print(
-                f"⬆️  Uploading {file_path.name} ({human_size}) -> {s3_key}... "
-                f"(Attempt {attempt + 1}/{max_retries})"
-            )
             s3_client.upload_file(str(file_path), BUCKET_NAME, s3_key)
-            print(f"✅ Uploaded {file_path.name}")
             return True
-        except Exception as e:
-            print(f"❌ Failed to upload {file_path.name} on attempt {attempt + 1}: {e}")
+        except Exception:
             if attempt < max_retries - 1:
-                print(f"🕒 Waiting {retry_delay}s before retry...")
                 time.sleep(retry_delay)
             else:
                 return False
@@ -108,35 +98,19 @@ def upload_file(s3_client, file_path, root_path):
 
 
 def main():
-    print("🧹 Starting Full AI Sweep & S3 Migration")
 
-    to_upload, duplicates = scan_for_large_files(PROJECT_ROOT)
+    to_upload, _duplicates = scan_for_large_files(PROJECT_ROOT)
 
-    total_size = sum(f.stat().st_size for f in to_upload)
-    print(
-        f"\n📦 Found {len(to_upload)} unique large files "
-        f"totaling {total_size / (1024**3):.2f} GB"
-    )
-    print(
-        f"👯 Found {len(duplicates)} duplicate files (matching sizes) "
-        f"that will be skipped."
-    )
+    sum(f.stat().st_size for f in to_upload)
 
     if not to_upload:
-        print("Nothing to upload.")
         return
 
     s3 = get_s3_client()
 
-    print("\nStarting sequential uploads...")
     for f in to_upload:
         upload_file(s3, f, PROJECT_ROOT)
 
-    print("\n🎉 Sweep Completed.")
-    print(
-        "Once you verify these in the 'full_ai_sweep/' prefix on S3, "
-        "you can safely wipe the local duplicates."
-    )
 
 
 if __name__ == "__main__":

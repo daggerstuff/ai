@@ -14,13 +14,13 @@ import sqlite3
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger(__name__)
 
-class DataCategory(str, Enum):
+class DataCategory(StrEnum):
     """GDPR data categories"""
     PERSONAL_DATA = "personal_data"
     SENSITIVE_DATA = "sensitive_data"
@@ -31,7 +31,7 @@ class DataCategory(str, Enum):
     LOCATION_DATA = "location_data"
     ONLINE_IDENTIFIERS = "online_identifiers"
 
-class LegalBasis(str, Enum):
+class LegalBasis(StrEnum):
     """GDPR legal basis for processing"""
     CONSENT = "consent"
     CONTRACT = "contract"
@@ -40,7 +40,7 @@ class LegalBasis(str, Enum):
     PUBLIC_TASK = "public_task"
     LEGITIMATE_INTERESTS = "legitimate_interests"
 
-class DataSubjectRight(str, Enum):
+class DataSubjectRight(StrEnum):
     """GDPR data subject rights"""
     ACCESS = "access"
     RECTIFICATION = "rectification"
@@ -50,14 +50,14 @@ class DataSubjectRight(str, Enum):
     OBJECT = "object"
     AUTOMATED_DECISION_MAKING = "automated_decision_making"
 
-class ConsentStatus(str, Enum):
+class ConsentStatus(StrEnum):
     """Consent status"""
     GIVEN = "given"
     WITHDRAWN = "withdrawn"
     EXPIRED = "expired"
     PENDING = "pending"
 
-class ProcessingPurpose(str, Enum):
+class ProcessingPurpose(StrEnum):
     """Data processing purposes"""
     SERVICE_PROVISION = "service_provision"
     ANALYTICS = "analytics"
@@ -784,7 +784,6 @@ if __name__ == "__main__":
     # Test GDPR validator
     validator = GDPRValidator()
 
-    print("GDPR Compliance Test:")
 
     # Test data processing validation
     test_data = "John Doe, email: john@example.com, health condition: diabetes"
@@ -796,14 +795,6 @@ if __name__ == "__main__":
         consent_id="consent_456"
     )
 
-    print(f"Data Processing Compliant: {is_compliant}")
-    print(f"Violations: {violations}")
 
     # Generate compliance report
     report = validator.generate_gdpr_compliance_report()
-    print("\nGDPR Compliance Report:")
-    print(f"Assessment ID: {report.assessment_id}")
-    print(f"Overall Score: {report.compliance_score:.1f}%")
-    print(f"Consent Compliance: {report.consent_compliance:.1f}%")
-    print(f"Data Protection: {report.data_protection_compliance:.1f}%")
-    print(f"Rights Fulfillment: {report.rights_fulfillment_rate:.1f}%")

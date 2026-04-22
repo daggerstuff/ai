@@ -117,8 +117,7 @@ def load_json_file(s3_path: str) -> Any | None:
             # Clean up temp file
             local_file.unlink()
             return data
-        except Exception as e:
-            print(f"Error loading JSON: {e}")
+        except Exception:
             if local_file.exists():
                 local_file.unlink()
     return None
@@ -146,8 +145,8 @@ def load_jsonl_file(s3_path: str, limit: int | None = None) -> list[dict[str, An
                         break
                     if line.strip():
                         records.append(json.loads(line))
-        except Exception as e:
-            print(f"Error loading JSONL: {e}")
+        except Exception:
+            pass
         finally:
             if local_file.exists():
                 local_file.unlink()
@@ -184,8 +183,7 @@ def calculate_checksum(s3_path: str, algorithm: str = "sha256") -> str | None:
             checksum = hasher.hexdigest()
             local_file.unlink()
             return checksum
-        except Exception as e:
-            print(f"Error calculating checksum: {e}")
+        except Exception:
             if local_file.exists():
                 local_file.unlink()
 

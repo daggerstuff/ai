@@ -4,7 +4,6 @@ Resume Orchestrator for Pixelated Empathy AI
 Manages coordination and orchestration of multiple resumable processes
 """
 import asyncio
-import json
 import logging
 import threading
 import time
@@ -610,7 +609,6 @@ async def example_orchestrated_resume():
     async def data_processor_handler(
         resume_point: dict[str, Any], _interruption_context: InterruptionContext = None
     ):
-        print(f"Resuming data processor from step {resume_point['resume_step']}")
         # Simulate data processing resume
         await asyncio.sleep(2)
         return True
@@ -618,7 +616,6 @@ async def example_orchestrated_resume():
     async def model_trainer_handler(
         resume_point: dict[str, Any], _interruption_context: InterruptionContext = None
     ):
-        print(f"Resuming model trainer from step {resume_point['resume_step']}")
         # Simulate model training resume
         await asyncio.sleep(3)
         return True
@@ -660,8 +657,7 @@ async def example_orchestrated_resume():
         await asyncio.sleep(10)
 
         # Get status
-        status = orchestrator.get_orchestrator_status()
-        print(f"Orchestrator status: {json.dumps(status, indent=2, default=str)}")
+        orchestrator.get_orchestrator_status()
 
     finally:
         orchestrator.stop()

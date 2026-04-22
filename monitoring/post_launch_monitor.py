@@ -721,8 +721,6 @@ class PostLaunchMonitor:
 
 def main():
     """Main execution function."""
-    print("Pixelated Empathy AI - Post-Launch Monitoring")
-    print("=" * 60)
 
     try:
         monitor = PostLaunchMonitor()
@@ -735,17 +733,9 @@ def main():
 
         # Generate initial dashboard data
         dashboard_data = monitor.generate_dashboard_data()
-        print("\nSYSTEM STATUS")
-        print(f"Health: {dashboard_data['system_health'].upper()}")
-        print(f"Active Alerts: {len(dashboard_data['active_alerts'])}")
-        print(f"Monitoring: {dashboard_data['monitoring_status'].upper()}")
 
         # Generate operational report
         operational_report = monitor.generate_operational_report()
-        print("\nOPERATIONAL REPORT")
-        print(f"Uptime: {operational_report['system_status']['uptime_percentage']:.2f}%")
-        print(f"Response Time: {operational_report['system_status']['response_time_p95']:.1f}ms")
-        print(f"Error Rate: {operational_report['system_status']['error_rate']:.2f}%")
 
         # Keep monitoring active for demonstration
         try:

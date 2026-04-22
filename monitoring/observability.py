@@ -643,13 +643,12 @@ def test_observability():
     logger.info("Testing Observability System...")
 
     # Test logging
-    log_entry = observability.logger.info(
+    observability.logger.info(
         "Test log message with user context",
         user_id="user_123",
         model_name="therapy_model_v1",
         extra_field="test_value"
     )
-    print(f"Logged: {log_entry.message}")
 
     # Test metrics collection
     observability.metrics_collector.record_histogram("request_latency_ms", 150.5)
@@ -658,12 +657,10 @@ def test_observability():
     observability.metrics_collector.increment_counter("requests_processed")
 
     # Test system metrics
-    system_metrics = observability.get_system_health()
-    print(f"System metrics collected: {len(system_metrics)} metrics")
+    observability.get_system_health()
 
     # Test service metrics
-    service_metrics = observability.get_service_metrics()
-    print(f"Service metrics: {service_metrics}")
+    observability.get_service_metrics()
 
     # Test tracing
     span = observability.create_traced_request("test_operation", "user_123", "test_model")
@@ -679,7 +676,6 @@ def test_observability():
         success=True
     )
 
-    print("Observability system test completed!")
 
 
 if __name__ == "__main__":

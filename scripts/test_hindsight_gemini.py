@@ -27,25 +27,17 @@ async def run_cookook_demo():
     manager = GeminiHindsightManager(config)
 
     # Step 1: Initial conversation
-    print("\n--- STAGE 1: Information Gathering ---")
     q1 = "Hi! I'm Sarah. I prefer a clinical but supportive feedback style during my training."
-    print(f"SARAH: {q1}")
-    r1 = await manager.get_response(q1)
-    print(f"PIXEL: {r1['response']}")
+    await manager.get_response(q1)
 
     # Step 2: Test recall
-    print("\n--- STAGE 2: Memory Recall & Continuity ---")
     q2 = "What do you know about my background and preferred style?"
-    print(f"SARAH: {q2}")
-    r2 = await manager.get_response(q2)
-    print(f"PIXEL: {r2['response']}")
-    print(f"[Stats: Latency {r2['latency_ms']:.2f}ms, Memories retrieved: {r2['memories_used']}]")
+    await manager.get_response(q2)
 
     # Step 3: View stored memories
-    print("\n--- STAGE 3: Inspection of Stored Memories ---")
     memories = manager.get_all_memories(user_id="empathy_gym_sarah")
     for i, m in enumerate(memories):
-        print(f"{i + 1}. {m['content']}")
+        pass
 
 
 if __name__ == "__main__":

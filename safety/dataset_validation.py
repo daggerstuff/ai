@@ -341,6 +341,3 @@ if __name__ == "__main__":
     }
 
     result = validator.validate_edge_case(test_case)
-    print(f"Valid: {result.is_valid}")
-    print(f"Errors: {result.errors}")
-    print(f"Warnings: {result.warnings}")

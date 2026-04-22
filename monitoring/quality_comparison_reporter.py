@@ -776,17 +776,13 @@ def main():
     report = reporter.generate_comprehensive_report(days_back=30)
 
     # Save report
-    json_path = reporter.save_report(report, format="json")
-    html_path = reporter.save_report(report, format="html")
+    reporter.save_report(report, format="json")
+    reporter.save_report(report, format="html")
 
-    print("📊 Comparison Report Generated:")
-    print(f"JSON: {json_path}")
-    print(f"HTML: {html_path}")
 
     # Display summary
-    print("\n📈 Executive Summary:")
     for item in report.executive_summary:
-        print(f"  {item}")
+        pass
 
 
 if __name__ == "__main__":

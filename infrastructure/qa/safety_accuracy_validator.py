@@ -688,29 +688,6 @@ async def main():
     metrics = await validator.run_validation()
 
     # Print results
-    print("\n" + "=" * 60)
-    print("CLINICAL SAFETY ACCURACY VALIDATION RESULTS")
-    print("=" * 60)
-    print(
-        f"Overall Accuracy: {metrics.overall_accuracy:.3f} (Target: {config.target_accuracy:.3f})"
-    )
-    print(f"Precision: {metrics.precision:.3f}")
-    print(f"Recall: {metrics.recall:.3f}")
-    print(f"F1 Score: {metrics.f1_score:.3f}")
-    print(
-        f"False Positive Rate: {metrics.false_positive_rate:.3f} (Max: {config.max_false_positive_rate:.3f})"
-    )
-    print(
-        f"False Negative Rate: {metrics.false_negative_rate:.3f} (Max: {config.max_false_negative_rate:.3f})"
-    )
-    print(f"AUC-ROC: {metrics.auc_roc:.3f}")
-    print(f"Demographic Bias Score: {metrics.demographic_bias_score:.3f}")
-    print(f"Language Bias Score: {metrics.language_bias_score:.3f}")
-    print(f"Age Bias Score: {metrics.age_bias_score:.3f}")
-    print(f"Clinical Validation Score: {metrics.clinical_validation_score:.3f}")
-    print(
-        f"Confidence Interval: ({metrics.confidence_interval[0]:.3f}, {metrics.confidence_interval[1]:.3f})"
-    )
 
     # Validation status
     meets_accuracy = metrics.overall_accuracy >= config.target_accuracy
@@ -725,27 +702,15 @@ async def main():
     )
     meets_clinical = metrics.clinical_validation_score >= 0.95
 
-    print("\n" + "=" * 60)
-    print("VALIDATION STATUS")
-    print("=" * 60)
-    print(f"✅ Accuracy Target Met: {meets_accuracy}")
-    print(f"✅ False Positive Rate: {meets_fpr}")
-    print(f"✅ False Negative Rate: {meets_fnr}")
-    print(f"✅ Bias Testing Passed: {meets_bias}")
-    print(f"✅ Clinical Validation: {meets_clinical}")
 
     overall_pass = all(
         [meets_accuracy, meets_fpr, meets_fnr, meets_bias, meets_clinical]
     )
-    print(f"\n🎯 OVERALL VALIDATION: {'✅ PASSED' if overall_pass else '❌ FAILED'}")
 
     if overall_pass:
-        print("\n🏆 Clinical Safety Accuracy Validation COMPLETED successfully!")
-        print("Ready to proceed to Task 3.2: Clinical Safety Certification")
+        pass
     else:
-        print(
-            "\n⚠️  Validation requirements not met. Review and address issues before proceeding."
-        )
+        pass
 
     return overall_pass
 

@@ -515,26 +515,15 @@ if __name__ == "__main__":
     # Test the database schema designer
     designer = DatabaseSchemaDesigner()
 
-    print("🗄️ DATABASE SCHEMA DESIGN")
-    print("=" * 50)
 
     # Generate SQL schema
     sql_schema = designer.generate_sql_schema()
-    print(
-        f"✅ Generated schema: {len(sql_schema['tables'])} tables, {len(sql_schema['indexes'])} indexes"
-    )
 
     # Get documentation
     docs = designer.get_schema_documentation()
-    print(
-        f"📚 Schema documentation: {docs['overview']['total_tables']} tables documented"
-    )
 
     # Estimate storage requirements
     storage = designer.estimate_storage_requirements()
-    print(
-        f"💾 Storage estimate: {storage['summary']['total_estimated_size_gb']} GB for 2.59M conversations"
-    )
 
     # Save schema to file
     schema_file = Path("/home/vivi/pixelated/ai/database/conversation_schema.sql")
@@ -556,5 +545,3 @@ if __name__ == "__main__":
         for statement in sql_schema["constraints"]:
             f.write(statement + ";\n")
 
-    print(f"💾 Schema saved to: {schema_file}")
-    print("✅ Database schema design complete!")

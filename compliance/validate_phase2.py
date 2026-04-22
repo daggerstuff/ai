@@ -400,7 +400,6 @@ class Phase2Validator:
 
             # Test 4: Data Processing Validation
             try:
-                pass
 
                 with tempfile.NamedTemporaryFile(delete=False) as tmp:
                     validator = GDPRValidator(storage=GDPRStorage(db_path=tmp.name))
@@ -424,7 +423,6 @@ class Phase2Validator:
 
             # Test 5: Data Subject Request Processing
             try:
-                pass
 
                 with tempfile.NamedTemporaryFile(delete=False) as tmp:
                     validator = GDPRValidator(storage=GDPRStorage(db_path=tmp.name))
@@ -487,7 +485,6 @@ class Phase2Validator:
         try:
             # Test 1: All frameworks can be imported together
             try:
-                pass
 
                 score += 25
                 logger.info("✅ All compliance frameworks integrate successfully")
@@ -704,8 +701,6 @@ class Phase2Validator:
 
 def main():
     """Main validation function"""
-    print("Pixelated Empathy AI - Phase 2 Validation")
-    print("=" * 50)
 
     # Add current directory to path for imports
     current_dir = Path(__file__).parent
@@ -717,7 +712,6 @@ def main():
 
     # Generate and display report
     report = validator.generate_report()
-    print(report)
 
     # Save results to file
     results_file = current_dir / "phase2_validation_results.json"
@@ -728,8 +722,6 @@ def main():
     with open(report_file, "w") as f:
         f.write(report)
 
-    print(f"\nResults saved to: {results_file}")
-    print(f"Report saved to: {report_file}")
 
     # Exit with appropriate code
     exit_code = 0 if results["enterprise_ready"] else 1

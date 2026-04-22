@@ -12,12 +12,6 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-import jinja2
-import numpy
-import pandas
-import plotly
-import scipy
-import sklearn
 from quality_trend_analyzer import QualityTrendAnalyzer
 from quality_trend_reporter import QualityTrendReporter
 
@@ -107,7 +101,6 @@ class QualityTrendAnalysisLauncher:
             return False
 
         try:
-            pass
 
             conn = sqlite3.connect(str(self.db_path))
             cursor = conn.cursor()
@@ -302,36 +295,21 @@ class QualityTrendAnalysisLauncher:
     def display_analysis_summary(self, summary: dict):
         """Display analysis summary to console."""
         if not summary.get("success", False):
-            print(f"❌ Analysis failed: {summary.get('error', 'Unknown error')}")
             return
 
-        print("\n📊 Quality Trend Analysis Summary")
-        print(f"{'=' * 50}")
-        print(f"Analysis Period: {summary['analysis_period']}")
-        print(f"Total Conversations: {summary['total_conversations']:,}")
-        print(f"Trend Direction: {summary['trend_direction']}")
-        print(f"Trend Strength: {summary['trend_strength']:.3f}")
-        print(f"Quality Change: {summary['quality_change']:.3f}")
-        print(f"Statistical Significance: {summary['statistical_significance']:.3f}")
-        print(f"Predictions Generated: {summary['predictions_generated']}")
-        print(f"Anomalies Detected: {summary['anomalies_detected']}")
 
-        print("\n📄 Generated Files:")
         for file_path in summary["report_files"]:
-            print(f"  📋 {file_path}")
+            pass
 
         if summary["visualization_files"]:
-            print("\n📊 Visualization Files:")
             for file_path in summary["visualization_files"]:
-                print(f"  📈 {file_path}")
+                pass
 
-        print("\n💡 Executive Summary:")
         for i, item in enumerate(summary["executive_summary"][:5], 1):
-            print(f"  {i}. {item}")
+            pass
 
-        print("\n🎯 Action Items:")
         for i, item in enumerate(summary["action_items"][:5], 1):
-            print(f"  {i}. {item}")
+            pass
 
     def launch(
         self,

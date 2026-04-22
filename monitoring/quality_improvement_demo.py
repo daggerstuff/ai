@@ -52,14 +52,12 @@ class QualityImprovementDemo:
 
     def create_demo_improvements(self) -> dict[str, QualityImprovement]:
         """Create demo improvement data"""
-        print("🎭 Creating demo improvement tracking data...")
 
         try:
             # Get base data from database
             base_data = self._get_base_data()
 
             if not base_data:
-                print("❌ No base data found")
                 return {}
 
             # Create synthetic improvements
@@ -70,11 +68,9 @@ class QualityImprovementDemo:
                 if improvement:
                     improvements[metric] = improvement
 
-            print(f"✅ Created demo improvements for {len(improvements)} metrics")
             return improvements
 
-        except Exception as e:
-            print(f"❌ Error creating demo improvements: {e}")
+        except Exception:
             return {}
 
     def _get_base_data(self) -> list[dict]:
@@ -100,14 +96,13 @@ class QualityImprovementDemo:
 
             data = []
             for row in cursor.fetchall():
-                record = dict(zip(columns, row))
+                record = dict(zip(columns, row, strict=False))
                 data.append(record)
 
             conn.close()
             return data
 
-        except Exception as e:
-            print(f"❌ Error getting base data: {e}")
+        except Exception:
             return []
 
     def _create_synthetic_improvement(
@@ -130,7 +125,7 @@ class QualityImprovementDemo:
 
             # Weight scenarios (more likely to improve for demo)
             scenario_weights = [0.6, 0.2, 0.2]  # 60% improve, 20% decline, 20% stable
-            direction, change_percent = random.choices(
+            _direction, change_percent = random.choices(
                 improvement_scenarios, weights=scenario_weights
             )[0]
 
@@ -178,8 +173,7 @@ class QualityImprovementDemo:
                 recommendation=recommendation,
             )
 
-        except Exception as e:
-            print(f"❌ Error creating synthetic improvement for {metric}: {e}")
+        except Exception:
             return None
 
     def _calculate_metric_value(self, data: list[dict], metric: str) -> float | None:
@@ -218,8 +212,7 @@ class QualityImprovementDemo:
 
             return None
 
-        except Exception as e:
-            print(f"❌ Error calculating {metric}: {e}")
+        except Exception:
             return None
 
     def _generate_improvement_recommendation(
@@ -244,15 +237,13 @@ class QualityImprovementDemo:
             # stable
             return f"{metric.replace('_', ' ').title()} remains stable. Consider optimization opportunities"
 
-        except Exception as e:
-            print(f"❌ Error generating recommendation: {e}")
+        except Exception:
             return "Unable to generate recommendation"
 
     def create_improvement_visualizations(
         self, improvements: dict[str, QualityImprovement]
     ) -> dict[str, str]:
         """Create improvement tracking visualizations"""
-        print("📈 Creating improvement tracking visualizations...")
 
         viz_files = {}
 
@@ -289,7 +280,7 @@ class QualityImprovementDemo:
             ax.grid(True, alpha=0.3)
 
             # Add value labels on bars
-            for bar, percentage in zip(bars, percentages):
+            for bar, percentage in zip(bars, percentages, strict=False):
                 height = bar.get_height()
                 ax.text(
                     bar.get_x() + bar.get_width() / 2.0,
@@ -340,7 +331,7 @@ class QualityImprovementDemo:
             ax.grid(True, alpha=0.3)
 
             # Add confidence values on bars
-            for bar, confidence in zip(bars, confidence_levels):
+            for bar, confidence in zip(bars, confidence_levels, strict=False):
                 height = bar.get_height()
                 ax.text(
                     bar.get_x() + bar.get_width() / 2.0,
@@ -374,11 +365,9 @@ class QualityImprovementDemo:
 
             viz_files["dashboard"] = str(dashboard_file)
 
-            print(f"✅ Created {len(viz_files)} improvement visualization files")
             return viz_files
 
-        except Exception as e:
-            print(f"❌ Error creating visualizations: {e}")
+        except Exception:
             return {}
 
     def export_demo_report(
@@ -387,7 +376,6 @@ class QualityImprovementDemo:
         visualizations: dict[str, str],
     ) -> str:
         """Export demo improvement tracking report"""
-        print("📄 Exporting demo improvement tracking report...")
 
         try:
             timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -453,18 +441,14 @@ class QualityImprovementDemo:
             with open(report_file, "w") as f:
                 json.dump(export_data, f, indent=2, default=str)
 
-            print(f"✅ Exported demo improvement report to: {report_file}")
             return str(report_file)
 
-        except Exception as e:
-            print(f"❌ Error exporting demo report: {e}")
+        except Exception:
             return ""
 
 
 def main():
     """Main demo execution"""
-    print("🎭 Quality Improvement Tracking Demo")
-    print("=" * 45)
 
     # Initialize demo
     demo = QualityImprovementDemo()
@@ -473,56 +457,33 @@ def main():
     improvements = demo.create_demo_improvements()
 
     if not improvements:
-        print("❌ No demo improvement data created")
         return
 
     # Create visualizations
     visualizations = demo.create_improvement_visualizations(improvements)
 
     # Export report
-    report_file = demo.export_demo_report(improvements, visualizations)
+    demo.export_demo_report(improvements, visualizations)
 
     # Display summary
-    print("\n✅ Demo Improvement Tracking Complete")
-    print(f"   - Metrics tracked: {len(improvements)}")
-    print(f"   - Visualizations created: {len(visualizations)}")
-    print(f"   - Report saved: {report_file}")
 
     # Show key findings
-    print("\n🔍 Key Findings:")
     for metric, improvement in improvements.items():
-        direction_icon = (
-            "📈"
-            if improvement.improvement_direction == "improving"
-            else "📉"
-            if improvement.improvement_direction == "declining"
-            else "➡️"
-        )
-        print(
-            f"   {direction_icon} {metric.replace('_', ' ').title()}: {improvement.improvement_percentage:+.1f}% (confidence: {improvement.confidence_level:.2f})"
-        )
+        pass
 
     # Show top recommendations
-    print("\n💡 Top Recommendations:")
     for metric, improvement in list(improvements.items())[:3]:
-        print(f"   • {improvement.recommendation}")
+        pass
 
     # Show summary statistics
-    avg_improvement = np.mean([i.improvement_percentage for i in improvements.values()])
-    improving_count = sum(
+    np.mean([i.improvement_percentage for i in improvements.values()])
+    sum(
         1 for i in improvements.values() if i.improvement_direction == "improving"
     )
-    declining_count = sum(
+    sum(
         1 for i in improvements.values() if i.improvement_direction == "declining"
     )
 
-    print("\n📊 Summary Statistics:")
-    print(f"   - Average improvement: {avg_improvement:+.1f}%")
-    print(f"   - Improving metrics: {improving_count}")
-    print(f"   - Declining metrics: {declining_count}")
-    print(
-        f"   - Overall trend: {'📈 Positive' if avg_improvement > 2 else '📉 Negative' if avg_improvement < -2 else '➡️ Stable'}"
-    )
 
 
 if __name__ == "__main__":

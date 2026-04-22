@@ -26,20 +26,10 @@ def test_with_full_text():
 
     result = agent.process_segment(test_segment)
 
-    print("=== FULL SEGMENT ANALYSIS ===\n")
-    print(f"**Content Type**: {result['smart_analysis']['content_type']}")
-    print(f"**Dialogue Structure**: {result['smart_analysis']['dialogue_structure']}")
-    print(f"**Main Topic**: {result['smart_analysis']['main_topic']}")
-    print(f"**Confidence**: {result['smart_analysis']['confidence']}")
 
     if result["smart_analysis"].get("question_embedded"):
-        print(
-            f"**Embedded Question Found**: {result['smart_analysis']['question_embedded']}"
-        )
+        pass
 
-    print(f"\n**Generated Question**: {result['input']}")
-    print("\n**Full Answer**:")
-    print(result["output"])
 
 
 if __name__ == "__main__":

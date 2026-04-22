@@ -69,7 +69,6 @@ class ConversationContentAnalyzer:
 
     def analyze_conversation_content(self, dataset_name: str | None = None) -> dict[str, ContentInsights]:
         """Analyze conversation content across datasets"""
-        print("🔍 Analyzing conversation content and generating insights...")
 
         try:
             # Get datasets to analyze
@@ -81,16 +80,13 @@ class ConversationContentAnalyzer:
             content_insights = {}
 
             for dataset in datasets:
-                print(f"   Analyzing content for {dataset}...")
                 insights = self._analyze_dataset_content(dataset)
                 if insights:
                     content_insights[dataset] = insights
 
-            print(f"✅ Analyzed content for {len(content_insights)} datasets")
             return content_insights
 
-        except Exception as e:
-            print(f"❌ Error analyzing conversation content: {e}")
+        except Exception:
             return {}
 
     def _get_dataset_list(self) -> list[str]:
@@ -112,8 +108,7 @@ class ConversationContentAnalyzer:
             conn.close()
             return datasets
 
-        except Exception as e:
-            print(f"❌ Error getting dataset list: {e}")
+        except Exception:
             return []
 
     def _analyze_dataset_content(self, dataset_name: str) -> ContentInsights | None:
@@ -139,8 +134,7 @@ class ConversationContentAnalyzer:
             return self._generate_content_insights(dataset_name, content_analyses)
 
 
-        except Exception as e:
-            print(f"❌ Error analyzing dataset content for {dataset_name}: {e}")
+        except Exception:
             return None
 
     def _get_dataset_conversations(self, dataset_name: str) -> list[dict]:
@@ -172,7 +166,7 @@ class ConversationContentAnalyzer:
             conversations = []
 
             for row in cursor.fetchall():
-                record = dict(zip(columns, row))
+                record = dict(zip(columns, row, strict=False))
                 # Parse JSON conversation
                 try:
                     record["conversations"] = json.loads(record["conversations_json"])
@@ -183,8 +177,7 @@ class ConversationContentAnalyzer:
             conn.close()
             return conversations
 
-        except Exception as e:
-            print(f"❌ Error getting conversations for {dataset_name}: {e}")
+        except Exception:
             return []
 
     def _analyze_individual_conversation(self, conversation_data: dict) -> ContentAnalysis | None:
@@ -254,8 +247,7 @@ class ConversationContentAnalyzer:
                 therapeutic_indicators=therapeutic_indicators
             )
 
-        except Exception as e:
-            print(f"❌ Error analyzing individual conversation: {e}")
+        except Exception:
             return None
 
     def _split_sentences(self, text: str) -> list[str]:
@@ -312,8 +304,7 @@ class ConversationContentAnalyzer:
 
             return min(1.0, quality_score)
 
-        except Exception as e:
-            print(f"❌ Error calculating quality score: {e}")
+        except Exception:
             return 0.5
 
     def _identify_therapeutic_indicators(self, text: str) -> list[str]:
@@ -393,8 +384,7 @@ class ConversationContentAnalyzer:
                 recommendations=recommendations
             )
 
-        except Exception as e:
-            print(f"❌ Error generating content insights: {e}")
+        except Exception:
             return ContentInsights(
                 dataset_name=dataset_name,
                 total_conversations_analyzed=0,
@@ -445,13 +435,11 @@ class ConversationContentAnalyzer:
 
             return recommendations
 
-        except Exception as e:
-            print(f"❌ Error generating recommendations: {e}")
+        except Exception:
             return ["Error generating recommendations - review analysis parameters"]
 
     def export_content_analysis_report(self, content_insights: dict[str, ContentInsights]) -> str:
         """Export comprehensive content analysis report"""
-        print("📄 Exporting content analysis report...")
 
         try:
             timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -484,11 +472,9 @@ class ConversationContentAnalyzer:
             with open(report_file, "w") as f:
                 json.dump(export_data, f, indent=2, default=str)
 
-            print(f"✅ Exported content analysis report to: {report_file}")
             return str(report_file)
 
-        except Exception as e:
-            print(f"❌ Error exporting content analysis report: {e}")
+        except Exception:
             return ""
 
     def _create_summary_statistics(self, content_insights: dict[str, ContentInsights]) -> dict[str, Any]:
@@ -523,14 +509,11 @@ class ConversationContentAnalyzer:
                 "analysis_completion_rate": 100.0  # Assuming all requested analyses completed
             }
 
-        except Exception as e:
-            print(f"❌ Error creating summary statistics: {e}")
+        except Exception:
             return {}
 
 def main():
     """Main execution function"""
-    print("🔍 Conversation Content Analysis and Insights System")
-    print("=" * 60)
 
     # Initialize analyzer
     analyzer = ConversationContentAnalyzer()
@@ -539,37 +522,27 @@ def main():
     content_insights = analyzer.analyze_conversation_content()
 
     if not content_insights:
-        print("❌ No content insights generated")
         return
 
     # Export report
-    report_file = analyzer.export_content_analysis_report(content_insights)
+    analyzer.export_content_analysis_report(content_insights)
 
     # Display summary
-    total_analyzed = sum(insights.total_conversations_analyzed for insights in content_insights.values())
+    sum(insights.total_conversations_analyzed for insights in content_insights.values())
 
-    print("\n✅ Content Analysis Complete")
-    print(f"   - Datasets analyzed: {len(content_insights)}")
-    print(f"   - Total conversations analyzed: {total_analyzed}")
-    print(f"   - Report saved: {report_file}")
 
     # Show sample insights
     if content_insights:
         sample_dataset = list(content_insights.keys())[0]
         sample_insights = content_insights[sample_dataset]
 
-        print(f"\n🔍 Sample Insights for {sample_dataset}:")
-        print(f"   - Conversations analyzed: {sample_insights.total_conversations_analyzed}")
-        print(f"   - Average word count: {sample_insights.content_patterns.get('average_word_count', 0):.1f}")
-        print(f"   - Average quality score: {sample_insights.content_patterns.get('average_quality_score', 0):.3f}")
 
         if sample_insights.common_themes:
-            print(f"   - Top themes: {', '.join(sample_insights.common_themes[:5])}")
+            pass
 
         if sample_insights.recommendations:
-            print("\n💡 Sample Recommendations:")
             for rec in sample_insights.recommendations[:3]:
-                print(f"   • {rec}")
+                pass
 
 if __name__ == "__main__":
     main()

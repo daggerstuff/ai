@@ -162,15 +162,9 @@ def test_contextual_generation():
         }
     ]
 
-    print("=== CONTEXTUAL PROMPT GENERATION TEST ===\n")
 
     for i, segment in enumerate(test_segments, 1):
-        pair = generator.create_training_pair(segment)
-        print(f"**Test {i}**")
-        print(f"**Q**: {pair['input']}")
-        print(f"**A**: {pair['output'][:200]}...")
-        print(f"**Style**: {pair['style']}")
-        print("\n" + "="*60 + "\n")
+        generator.create_training_pair(segment)
 
 if __name__ == "__main__":
     test_contextual_generation()

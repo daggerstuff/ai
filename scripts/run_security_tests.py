@@ -38,15 +38,11 @@ class ComprehensiveSecurityValidator:
 
     async def run_all_security_tests(self) -> dict:
         """Run all security tests and generate comprehensive report"""
-        print("🚀 Starting Comprehensive Security Validation")
-        print("=" * 60)
 
         # Task 101: Authentication System Testing
-        print("\n📋 TASK 101: API Authentication System Testing")
         auth_results = await self.test_authentication_system()
 
         # Task 102: Security Test Coverage Framework
-        print("\n📋 TASK 102: Security Test Coverage Framework")
         security_results = await self.test_security_framework()
 
         # Generate comprehensive report
@@ -64,7 +60,6 @@ class ComprehensiveSecurityValidator:
 
     async def test_authentication_system(self) -> dict:
         """Test Task 101: API Authentication System"""
-        print("  🔐 Initializing Authentication System...")
 
         # Initialize authentication system
         auth_system = AuthenticationSystem(secret_key="test-secret-key-for-validation")
@@ -81,7 +76,7 @@ class ComprehensiveSecurityValidator:
         )
 
         # Create test API keys
-        admin_api_key, _ = auth_system.create_api_key(
+        _admin_api_key, _ = auth_system.create_api_key(
             "admin_key",
             [
                 PermissionLevel.READ,
@@ -90,17 +85,15 @@ class ComprehensiveSecurityValidator:
                 PermissionLevel.ADMIN,
             ],
         )
-        user_api_key, _ = auth_system.create_api_key(
+        _user_api_key, _ = auth_system.create_api_key(
             "user_key", [PermissionLevel.READ, PermissionLevel.WRITE]
         )
-        readonly_api_key, _ = auth_system.create_api_key(
+        _readonly_api_key, _ = auth_system.create_api_key(
             "readonly_key", [PermissionLevel.READ]
         )
 
-        print("  ✅ Test users and API keys created")
 
         # Run authentication security tests
-        print("  🧪 Running Authentication Security Tests...")
         tester = AuthenticationTester(auth_system)
         test_results = tester.run_security_tests()
 
@@ -109,9 +102,6 @@ class ComprehensiveSecurityValidator:
         total_tests = len(test_results)
         auth_score = (passed_tests / total_tests) * 100 if total_tests > 0 else 0
 
-        print(
-            f"  📊 Authentication Tests: {passed_tests}/{total_tests} passed ({auth_score:.1f}%)"
-        )
 
         # Additional validation tests
         validation_results = self.run_authentication_validation_tests(auth_system)
@@ -204,7 +194,7 @@ class ComprehensiveSecurityValidator:
         # Test 4: API key functionality
         try:
             # Create and authenticate API key
-            api_key, api_key_obj = auth_system.create_api_key(
+            api_key, _api_key_obj = auth_system.create_api_key(
                 "test_validation", [PermissionLevel.READ]
             )
 
@@ -229,12 +219,10 @@ class ComprehensiveSecurityValidator:
 
     async def test_security_framework(self) -> dict:
         """Test Task 102: Security Test Coverage Framework"""
-        print("  🛡️  Initializing Security Test Framework...")
 
         # Initialize security test framework
         security_tester = SecurityTestFramework("http://localhost:8000")
 
-        print("  🧪 Running Security Test Framework...")
 
         # Run individual security test categories
         test_categories = [
@@ -255,7 +243,6 @@ class ComprehensiveSecurityValidator:
 
         for category_name, test_method in test_categories:
             try:
-                print(f"    🔍 Testing {category_name}...")
                 result = await test_method()
                 category_results[category_name] = {
                     "passed": result.passed,
@@ -266,7 +253,6 @@ class ComprehensiveSecurityValidator:
                 security_tester.vulnerabilities.extend(result.vulnerabilities)
 
             except Exception as e:
-                print(f"    ❌ {category_name} failed: {e}")
                 category_results[category_name] = {
                     "passed": False,
                     "error": str(e),
@@ -290,10 +276,6 @@ class ComprehensiveSecurityValidator:
             )  # Max 30 point penalty
             framework_score = max(0, framework_score - vulnerability_penalty)
 
-        print(
-            f"  📊 Security Framework Tests: {passed_categories}/{total_categories} passed ({framework_score:.1f}%)"
-        )
-        print(f"  🚨 Total Vulnerabilities Found: {total_vulnerabilities}")
 
         return {
             "task": "Task 102: Security Test Coverage Framework",
@@ -433,7 +415,6 @@ class ComprehensiveSecurityValidator:
         with open(report_file, "w") as f:
             json.dump(report, f, indent=2)
 
-        print(f"  💾 Comprehensive report saved: {report_file}")
 
         # Save summary report
         summary = {
@@ -456,46 +437,26 @@ class ComprehensiveSecurityValidator:
         with open(summary_file, "w") as f:
             json.dump(summary, f, indent=2)
 
-        print(f"  💾 Summary report saved: {summary_file}")
 
     def print_summary(self, report: dict):
         """Print comprehensive test summary"""
-        print("\n" + "=" * 60)
-        print("🛡️  COMPREHENSIVE SECURITY VALIDATION REPORT")
-        print("=" * 60)
 
-        summary = report["validation_summary"]
-        print(f"📊 Overall Score: {summary['overall_score']}/100")
-        print(f"🎯 Status: {summary['status']}")
-        print(f"🚀 Production Ready: {'YES' if summary['production_ready'] else 'NO'}")
+        report["validation_summary"]
 
-        print("\n📋 TASK BREAKDOWN:")
-        task_101 = report["task_results"]["task_101_authentication"]
-        task_102 = report["task_results"]["task_102_security_framework"]
+        report["task_results"]["task_101_authentication"]
+        report["task_results"]["task_102_security_framework"]
 
-        print(
-            f"  Task 101 (Authentication): {task_101['score']:.1f}/100 {'✅' if task_101['production_ready'] else '❌'}"
-        )
-        print(
-            f"  Task 102 (Security Framework): {task_102['score']:.1f}/100 {'✅' if task_102['production_ready'] else '❌'}"
-        )
 
-        print("\n🚨 SECURITY METRICS:")
-        metrics = report["security_metrics"]
-        print(f"  Total Vulnerabilities: {metrics['total_vulnerabilities']}")
-        print(f"  Critical Vulnerabilities: {metrics['critical_vulnerabilities']}")
+        report["security_metrics"]
 
         if report["recommendations"]:
-            print("\n💡 RECOMMENDATIONS:")
             for i, rec in enumerate(report["recommendations"], 1):
-                print(f"  {i}. {rec}")
+                pass
 
         if report["next_steps"]:
-            print("\n🎯 NEXT STEPS:")
             for step in report["next_steps"]:
-                print(f"  {step}")
+                pass
 
-        print("\n" + "=" * 60)
 
 
 async def main():
@@ -508,22 +469,14 @@ async def main():
 
         # Return appropriate exit code
         if report["validation_summary"]["production_ready"]:
-            print("\n🎉 SUCCESS: Tasks 101 & 102 completed successfully!")
-            print("✅ Ready for production deployment")
             sys.exit(0)
         else:
-            print("\n⚠️  WARNING: Security validation incomplete")
-            print("🔧 Additional work required before production")
             sys.exit(1)
 
-    except Exception as e:
-        print(f"\n❌ ERROR: Security validation failed: {e}")
+    except Exception:
         sys.exit(2)
 
 
 if __name__ == "__main__":
-    print("🚀 Starting Tasks 101 & 102: Security Validation")
-    print("📋 API Authentication System + Security Test Coverage Framework")
-    print("⏰ Starting at:", datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"))
 
     asyncio.run(main())

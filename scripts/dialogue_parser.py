@@ -254,13 +254,8 @@ def test_dialogue_parser():
         "file": "test.txt"
     }
 
-    result = parser.process_segment(test_segment)
+    parser.process_segment(test_segment)
 
-    print("=== DIALOGUE PARSER TEST ===\n")
-    print(f"**Method**: {result['parsing_info']['method']}")
-    print(f"**Q**: {result['input']}")
-    print(f"**A**: {result['output'][:300]}...")
-    print(f"**Parsing Info**: {result['parsing_info']}")
 
 if __name__ == "__main__":
     test_dialogue_parser()

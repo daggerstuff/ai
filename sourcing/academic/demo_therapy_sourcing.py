@@ -24,9 +24,6 @@ logger = logging.getLogger(__name__)
 
 def demo_basic_search():
     """Demo: Basic search for therapy datasets"""
-    print("\n" + "=" * 70)
-    print("DEMO 1: Basic Search for Therapy Datasets")
-    print("=" * 70)
 
     sourcing = TherapyDatasetSourcing()
 
@@ -35,20 +32,12 @@ def demo_basic_search():
         query="therapy conversation mental health", min_turns=20, limit=20
     )
 
-    print(f"\nFound {len(datasets)} datasets")
     for i, dataset in enumerate(datasets[:5], 1):
-        print(f"\n{i}. {dataset.name}")
-        print(f"   Turns: {dataset.avg_turns:.0f if dataset.avg_turns else 'unknown'}")
-        print(f"   Quality: {dataset.quality_score:.2f}")
-        print(f"   Relevance: {dataset.therapeutic_relevance:.2f}")
-        print(f"   Downloads: {dataset.downloads}")
+        pass
 
 
 def demo_filtered_search():
     """Demo: Search with quality and relevance filters"""
-    print("\n" + "=" * 70)
-    print("DEMO 2: Filtered Search (High Quality + High Relevance)")
-    print("=" * 70)
 
     sourcing = TherapyDatasetSourcing()
 
@@ -62,35 +51,20 @@ def demo_filtered_search():
     datasets = sourcing.filter_by_therapeutic_relevance(datasets, min_relevance=0.6)
     datasets = sourcing.rank_datasets(datasets)
 
-    print(f"\nFound {len(datasets)} high-quality, relevant datasets")
     for i, dataset in enumerate(datasets[:5], 1):
-        turns_info = f"{dataset.avg_turns:.0f}" if dataset.avg_turns else "?"
-        print(f"\n{i}. {dataset.name}")
-        print(f"   Composite Score: {dataset.quality_score:.2f}")
-        print(f"   Turns: {turns_info} | Downloads: {dataset.downloads}")
-        print(f"   URL: {dataset.url}")
+        pass
 
 
 def demo_full_pipeline():
     """Demo: Full pipeline with report generation"""
-    print("\n" + "=" * 70)
-    print("DEMO 3: Full Pipeline (20+ Turns, Quality ≥0.5)")
-    print("=" * 70)
 
     # Use convenience function
-    datasets = find_therapy_datasets(min_turns=20, min_quality=0.5)
+    find_therapy_datasets(min_turns=20, min_quality=0.5)
 
-    print(f"\n✅ Pipeline complete! Found {len(datasets)} datasets")
-    print(
-        "📁 Results saved to: ai/training/ready_packages/datasets/sourced/therapy_datasets.json"
-    )
 
 
 def demo_custom_ranking():
     """Demo: Custom ranking weights"""
-    print("\n" + "=" * 70)
-    print("DEMO 4: Custom Ranking (Prioritize Long Conversations)")
-    print("=" * 70)
 
     sourcing = TherapyDatasetSourcing()
 
@@ -109,18 +83,12 @@ def demo_custom_ranking():
 
     datasets = sourcing.rank_datasets(datasets, weights=custom_weights)
 
-    print("\nTop 5 datasets (prioritizing conversation length):")
     for i, dataset in enumerate(datasets[:5], 1):
-        turns_info = f"{dataset.avg_turns:.0f}" if dataset.avg_turns else "unknown"
-        print(f"\n{i}. {dataset.name}")
-        print(f"   Turns: {turns_info}")
-        print(f"   Score: {dataset.quality_score:.2f}")
+        pass
 
 
 def main():
     """Run all demos"""
-    print("\n🎯 Therapy Dataset Sourcing - Demo Suite")
-    print("=" * 70)
 
     try:
         demo_basic_search()
@@ -128,9 +96,6 @@ def main():
         demo_full_pipeline()
         demo_custom_ranking()
 
-        print("\n" + "=" * 70)
-        print("✅ All demos completed successfully!")
-        print("=" * 70)
 
     except Exception as e:
         logger.error(f"Demo failed: {e}", exc_info=True)

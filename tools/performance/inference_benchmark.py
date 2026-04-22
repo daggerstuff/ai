@@ -180,7 +180,6 @@ class InferenceBenchmark:
 
     async def warmup(self, session: aiohttp.ClientSession):
         """Warmup requests to initialize caches"""
-        print(f"🔥 Warming up with {self.config.warmup_requests} requests...")
 
         tasks = []
         for i in range(self.config.warmup_requests):
@@ -188,23 +187,15 @@ class InferenceBenchmark:
             tasks.append(self.make_request(session, scenario))
 
         await asyncio.gather(*tasks)
-        print("✅ Warmup complete")
 
     async def run_benchmark(self):
         """Run the benchmark"""
-        print("\n🚀 Starting benchmark")
-        print(f"   Endpoint: {self.config.endpoint}")
-        print(f"   Requests: {self.config.num_requests}")
-        print(f"   Concurrency: {self.config.concurrency}")
-        print(f"   Scenarios: {', '.join(self.config.test_scenarios)}")
-        print()
 
         async with aiohttp.ClientSession() as session:
             # Warmup
             await self.warmup(session)
 
             # Benchmark
-            print("\n📊 Running benchmark...")
             start_time = time.time()
 
             # Create request tasks
@@ -241,7 +232,6 @@ class InferenceBenchmark:
 
     def analyze_results(self, total_duration: float) -> BenchmarkResults:
         """Analyze benchmark results"""
-        print("\n📈 Analyzing results...")
 
         # Filter successful requests
         successful = [r for r in self.results if r.success]
@@ -309,65 +299,27 @@ class InferenceBenchmark:
 
     def print_results(self, results: BenchmarkResults):
         """Print formatted results"""
-        print("\n" + "=" * 70)
-        print("📊 BENCHMARK RESULTS")
-        print("=" * 70)
 
         # Summary
-        print("\n📈 Summary:")
-        print(f"   Total Requests:      {results.total_requests:,}")
-        print(
-            f"   Successful:          {results.successful_requests:,} ({results.success_rate:.2f}%)"
-        )
-        print(
-            f"   Failed:              {results.failed_requests:,} ({results.error_rate:.2f}%)"
-        )
-        print(f"   Duration:            {results.total_duration:.2f}s")
-        print(f"   Throughput:          {results.requests_per_second:.2f} req/s")
 
         # Latency
-        print("\n⏱️  Latency (seconds):")
-        print(f"   Min:                 {results.min_latency:.3f}s")
-        print(f"   Mean:                {results.mean_latency:.3f}s")
-        print(f"   Median:              {results.median_latency:.3f}s")
-        print(f"   P50:                 {results.p50_latency:.3f}s")
-        print(f"   P95:                 {results.p95_latency:.3f}s")
-        print(f"   P99:                 {results.p99_latency:.3f}s")
-        print(f"   Max:                 {results.max_latency:.3f}s")
 
         # SLO Compliance
-        print("\n🎯 SLO Compliance:")
-        slo_2s_status = "✅ PASS" if results.slo_2s_compliance >= 95 else "❌ FAIL"
-        slo_3s_status = "✅ PASS" if results.slo_3s_compliance >= 99 else "❌ FAIL"
 
-        print(
-            f"   P95 < 2s:            {results.slo_2s_compliance:.2f}% {slo_2s_status}"
-        )
-        print(
-            f"   P99 < 3s:            {results.slo_3s_compliance:.2f}% {slo_3s_status}"
-        )
 
         # Scenario breakdown
         if results.scenario_results:
-            print("\n📋 Scenario Breakdown:")
             for scenario, metrics in results.scenario_results.items():
-                print(f"\n   {scenario.upper()}:")
-                print(f"      Requests:         {metrics['count']:,}")
-                print(f"      Mean:             {metrics['mean']:.3f}s")
-                print(f"      P50:              {metrics['p50']:.3f}s")
-                print(f"      P95:              {metrics['p95']:.3f}s")
-                print(f"      P99:              {metrics['p99']:.3f}s")
+                pass
 
         # Errors
         if results.errors:
-            print("\n❌ Errors:")
             for error, count in sorted(
                 results.errors.items(), key=lambda x: x[1], reverse=True
             ):
-                print(f"   {error}: {count}")
+                pass
 
         # Overall assessment
-        print(f"\n{'=' * 70}")
 
         overall_pass = (
             results.success_rate >= 99.0
@@ -376,18 +328,16 @@ class InferenceBenchmark:
         )
 
         if overall_pass:
-            print("✅ OVERALL: PASS - All SLOs met!")
+            pass
         else:
-            print("❌ OVERALL: FAIL - Some SLOs not met")
 
             if results.success_rate < 99.0:
-                print(f"   ⚠️  Success rate {results.success_rate:.2f}% < 99%")
+                pass
             if results.p95_latency >= 2.0:
-                print(f"   ⚠️  P95 latency {results.p95_latency:.3f}s >= 2s")
+                pass
             if results.p99_latency >= 3.0:
-                print(f"   ⚠️  P99 latency {results.p99_latency:.3f}s >= 3s")
+                pass
 
-        print("=" * 70)
 
     def save_results(self, results: BenchmarkResults, output_file: str):
         """Save results to JSON file"""
@@ -401,7 +351,6 @@ class InferenceBenchmark:
         with open(output_file, "w") as f:
             json.dump(output, f, indent=2)
 
-        print(f"\n💾 Results saved to: {output_file}")
 
 
 async def main():
@@ -457,8 +406,7 @@ async def main():
         else:
             exit(1)
 
-    except Exception as e:
-        print(f"\n❌ Benchmark failed: {e}")
+    except Exception:
         exit(1)
 
 

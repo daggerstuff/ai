@@ -27,7 +27,6 @@ def process_v2_enhanced_data():
         if "summary" in enhanced_file.name:
             continue
 
-        print(f"Processing {enhanced_file.name}...")
 
         with open(enhanced_file, encoding="utf-8") as f:
             segments = json.load(f)
@@ -39,17 +38,15 @@ def process_v2_enhanced_data():
                 training_pair = generator.create_training_pair(segment)
                 training_pairs.append(training_pair)
                 total_processed += 1
-            except Exception as e:
-                print(f"Error processing segment: {e}")
+            except Exception:
+                pass
 
         # Save converted pairs
         output_file = output_dir / f"v2_{enhanced_file.name}"
         with open(output_file, "w", encoding="utf-8") as f:
             json.dump(training_pairs, f, indent=2, ensure_ascii=False)
 
-        print(f"  Converted: {len(training_pairs)} segments")
 
-    print(f"\nTotal v2 segments processed: {total_processed}")
     return total_processed
 
 

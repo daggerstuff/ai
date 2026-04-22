@@ -20,7 +20,6 @@ logger = logging.getLogger(__name__)
 def check_postgresql():
     """Check if PostgreSQL is available."""
     try:
-        pass
 
         logger.info("✅ psycopg2 available")
         return True
@@ -100,7 +99,6 @@ def check_database_connection():
 def create_database():
     """Create the pixelated_empathy database."""
     try:
-        pass
 
         # Connect to postgres database
         conn = psycopg2.connect(
@@ -135,7 +133,6 @@ def create_database():
 def test_database_schema():
     """Test if we can create a simple table."""
     try:
-        pass
 
         conn = psycopg2.connect(
             host="localhost",

@@ -587,25 +587,24 @@ def main():
     if args.command == "aggregate":
         result = aggregator.aggregate_results(args.batch_id, args.force_refresh)
         if result:
-            print(json.dumps(result.to_dict(), indent=2))
+            pass
         else:
-            print(f"No results found for batch: {args.batch_id}")
+            pass
 
     elif args.command == "report":
-        report = aggregator.generate_report(args.batch_id, args.output)
+        aggregator.generate_report(args.batch_id, args.output)
         if not args.output:
-            print(report)
+            pass
 
     elif args.command == "list":
-        batches = aggregator.get_all_batches()
-        print(json.dumps(batches, indent=2))
+        aggregator.get_all_batches()
 
     elif args.command == "summary":
         summary = aggregator.get_batch_summary(args.batch_id)
         if summary:
-            print(json.dumps(summary, indent=2))
+            pass
         else:
-            print(f"No summary found for batch: {args.batch_id}")
+            pass
 
 
 if __name__ == "__main__":

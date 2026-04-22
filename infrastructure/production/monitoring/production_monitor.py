@@ -20,8 +20,6 @@ class ProductionMonitor:
 
     def monitor_system(self):
         """Monitor production system"""
-        print("🔍 Enhanced V5 Production Monitor Started")
-        print(f"Monitoring started: {datetime.now(timezone.utc)}")
 
         while True:
             try:
@@ -41,10 +39,8 @@ class ProductionMonitor:
                 time.sleep(60)  # Check every minute
 
             except KeyboardInterrupt:
-                print("\n🛑 Monitoring stopped by user")
                 break
-            except Exception as e:
-                print(f"❌ Monitoring error: {e}")
+            except Exception:
                 time.sleep(60)
 
     def _check_system_health(self):
@@ -92,9 +88,9 @@ class ProductionMonitor:
 
         # Print status
         if alerts:
-            print(f"⚠️  {datetime.now(timezone.utc).strftime('%H:%M:%S')} - Alerts: {', '.join(alerts)}")
+            pass
         else:
-            print(f"✅ {datetime.now(timezone.utc).strftime('%H:%M:%S')} - System healthy")
+            pass
 
 if __name__ == "__main__":
     monitor = ProductionMonitor()

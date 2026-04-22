@@ -84,8 +84,6 @@ def main():
     with open(registry_path, "w") as f:
         json.dump(registry, f, indent=2, ensure_ascii=False)
 
-    print(f"Updated {updated_count} dataset entries")
-    print(f"Registry saved to {registry_path}")
 
 
 if __name__ == "__main__":

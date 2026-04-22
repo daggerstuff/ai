@@ -296,7 +296,7 @@ class TestAnalyticsCalculations(unittest.TestCase):
         actual = [1, 0, 1, 0, 0, 1, 1, 0, 1, 1]
 
         # Calculate accuracy
-        correct = sum(p == a for p, a in zip(predicted, actual))
+        correct = sum(p == a for p, a in zip(predicted, actual, strict=False))
         accuracy = correct / len(predicted)
 
         assert accuracy >= 0
@@ -361,7 +361,7 @@ class TestUtilityFunctions(unittest.TestCase):
 
         # Test invalid data
         invalid_data = {"conversation_id": ""}
-        is_valid, message = validate_conversation_data(invalid_data)
+        is_valid, _message = validate_conversation_data(invalid_data)
         assert not is_valid
 
     def test_text_processing(self):
@@ -528,8 +528,6 @@ class TestSystemIntegration(unittest.TestCase):
 
 def run_all_tests():
     """Run all unit tests and return results"""
-    print("🧪 Running Comprehensive Unit Tests for Processing Components")
-    print("=" * 70)
 
     # Create test suite
     test_suite = unittest.TestSuite()
@@ -553,28 +551,17 @@ def run_all_tests():
     result = runner.run(test_suite)
 
     # Print summary
-    print("\n" + "=" * 70)
-    print("🧪 Unit Test Results Summary:")
-    print(f"  • Tests Run: {result.testsRun}")
-    print(f"  • Failures: {len(result.failures)}")
-    print(f"  • Errors: {len(result.errors)}")
-    print(f"  • Success Rate: {((result.testsRun - len(result.failures) - len(result.errors)) / result.testsRun * 100):.1f}%")
 
     if result.failures:
-        print(f"\n❌ Failures ({len(result.failures)}):")
         for test, traceback in result.failures:
-            error_msg = traceback.split("AssertionError: ")[-1].split("\n")[0] if "AssertionError:" in traceback else "Unknown failure"
-            print(f"  • {test}: {error_msg}")
+            traceback.split("AssertionError: ")[-1].split("\n")[0] if "AssertionError:" in traceback else "Unknown failure"
 
     if result.errors:
-        print(f"\n🚨 Errors ({len(result.errors)}):")
         for test, traceback in result.errors:
-            error_msg = traceback.split("\n")[-2] if traceback else "Unknown error"
-            print(f"  • {test}: {error_msg}")
+            traceback.split("\n")[-2] if traceback else "Unknown error"
 
     if not result.failures and not result.errors:
-        print("\n✅ All tests passed successfully!")
-        print("🎉 Processing components are working correctly!")
+        pass
 
     return result
 

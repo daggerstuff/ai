@@ -53,7 +53,6 @@ class LightningDeploymentOrchestrator:
         logger.info("🔍 Running deployment readiness validation...")
 
         try:
-            pass
 
             validator = DeploymentValidator()
             report = validator.generate_readiness_report()
@@ -76,7 +75,6 @@ class LightningDeploymentOrchestrator:
         logger.info("📦 Preparing Lightning.ai H100 deployment package...")
 
         try:
-            pass
 
             deployer = LightningH100Deployer(self.unified_dataset_path)
 

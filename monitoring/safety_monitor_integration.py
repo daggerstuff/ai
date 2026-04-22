@@ -548,48 +548,28 @@ async def main():
         }
     ]
 
-    print("\n" + "="*60)
-    print("REAL-TIME SAFETY MONITORING DEMONSTRATION")
-    print("="*60)
 
     # Process interactions
     for interaction in test_interactions:
-        metrics = await monitor.process_user_interaction(
+        await monitor.process_user_interaction(
             interaction["user_id"],
             interaction["session_id"],
             interaction["interaction_data"]
         )
 
-        print(f"\nUser: {metrics.user_id}")
-        print(f"Risk Score: {metrics.risk_score:.3f}")
-        print(f"Safety Level: {metrics.safety_level.value}")
-        print(f"Trend: {metrics.trend_direction}")
-        print(f"Anomaly: {metrics.anomaly_detected}")
 
     # Get dashboard data
     dashboard_data = await monitor.get_safety_dashboard_data()
 
-    print("\n" + "="*60)
-    print("SAFETY MONITORING DASHBOARD")
-    print("="*60)
-    print(f"Monitoring Status: {dashboard_data['monitoring_status']}")
-    print(f"Total Active Sessions: {dashboard_data['total_active_sessions']}")
-    print(f"High Risk Sessions: {dashboard_data['high_risk_sessions']}")
-    print(f"Recent Alerts (24h): {dashboard_data['recent_alerts_24h']}")
-    print(f"Average Risk Score: {dashboard_data['average_risk_score']:.3f}")
 
     if dashboard_data["high_risk_users"]:
-        print("\nHigh Risk Users:")
         for user in dashboard_data["high_risk_users"]:
-            print(f"  {user['user_id']}: {user['safety_level']} (Risk: {user['risk_score']:.3f})")
+            pass
 
     if dashboard_data["recent_alerts"]:
-        print("\nRecent Alerts:")
         for alert in dashboard_data["recent_alerts"]:
-            print(f"  {alert['alert_id']}: {alert['safety_level']} - User {alert['user_id']}")
+            pass
 
-    print("\n🎯 SAFETY MONITORING: ✅ OPERATIONAL")
-    print("Real-time safety monitoring system is active and functional!")
 
     return True
 

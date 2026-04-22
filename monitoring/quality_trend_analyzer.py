@@ -75,16 +75,12 @@ class QualityTrendAnalyzer:
         self, period: str = "weekly", days_back: int = 90
     ) -> dict[str, QualityTrend]:
         """Analyze quality trends over specified period"""
-        print(
-            f"🔍 Analyzing quality trends for {period} period over {days_back} days..."
-        )
 
         try:
             # Get quality data from database
             quality_data = self._get_quality_data(days_back)
 
             if not quality_data:
-                print("⚠️ No quality data found for trend analysis")
                 return {}
 
             # Group data by period
@@ -97,11 +93,9 @@ class QualityTrendAnalyzer:
                 if trend:
                     trends[metric] = trend
 
-            print(f"✅ Analyzed trends for {len(trends)} quality metrics")
             return trends
 
-        except Exception as e:
-            print(f"❌ Error analyzing quality trends: {e}")
+        except Exception:
             return {}
 
     def _get_quality_data(self, days_back: int) -> list[dict]:
@@ -136,15 +130,14 @@ class QualityTrendAnalyzer:
 
             data = []
             for row in cursor.fetchall():
-                record = dict(zip(columns, row))
+                record = dict(zip(columns, row, strict=False))
                 record["created_at"] = datetime.fromisoformat(record["created_at"])
                 data.append(record)
 
             conn.close()
             return data
 
-        except Exception as e:
-            print(f"❌ Error getting quality data: {e}")
+        except Exception:
             return []
 
     def _group_by_period(self, data: list[dict], period: str) -> dict[str, list[dict]]:
@@ -218,8 +211,7 @@ class QualityTrendAnalyzer:
                 statistical_significance=p_value,
             )
 
-        except Exception as e:
-            print(f"❌ Error analyzing trend for {metric}: {e}")
+        except Exception:
             return None
 
     def _calculate_trend_statistics(
@@ -231,7 +223,7 @@ class QualityTrendAnalyzer:
             y = np.array(values)
 
             # Linear regression
-            slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
+            slope, _intercept, r_value, p_value, _std_err = stats.linregress(x, y)
 
             # Determine trend direction
             if abs(slope) < 0.001:  # Very small slope
@@ -246,15 +238,13 @@ class QualityTrendAnalyzer:
 
             return direction, strength, p_value
 
-        except Exception as e:
-            print(f"❌ Error calculating trend statistics: {e}")
+        except Exception:
             return "unknown", 0.0, 1.0
 
     def generate_trend_report(
         self, trends: dict[str, QualityTrend], period: str = "weekly"
     ) -> TrendReport:
         """Generate comprehensive trend report"""
-        print(f"📊 Generating trend report for {period} analysis...")
 
         try:
             # Overall trend assessment
@@ -281,13 +271,9 @@ class QualityTrendAnalyzer:
                 statistical_tests=statistical_tests,
             )
 
-            print(
-                f"✅ Generated comprehensive trend report with {len(insights)} insights"
-            )
             return report
 
-        except Exception as e:
-            print(f"❌ Error generating trend report: {e}")
+        except Exception:
             return TrendReport(
                 period=period,
                 overall_trend="unknown",
@@ -485,7 +471,6 @@ class QualityTrendAnalyzer:
         self, trends: dict[str, QualityTrend], period: str = "weekly"
     ) -> dict[str, str]:
         """Create trend visualizations"""
-        print(f"📈 Creating trend visualizations for {len(trends)} metrics...")
 
         viz_files = {}
 
@@ -616,11 +601,9 @@ class QualityTrendAnalyzer:
 
                 viz_files["dashboard"] = str(dashboard_file)
 
-            print(f"✅ Created {len(viz_files)} visualization files")
             return viz_files
 
-        except Exception as e:
-            print(f"❌ Error creating visualizations: {e}")
+        except Exception:
             return {}
 
     def export_trend_report(
@@ -630,7 +613,6 @@ class QualityTrendAnalyzer:
         visualizations: dict[str, str],
     ) -> str:
         """Export comprehensive trend report"""
-        print("📄 Exporting comprehensive trend report...")
 
         try:
             timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -672,18 +654,14 @@ class QualityTrendAnalyzer:
             with open(report_file, "w") as f:
                 json.dump(export_data, f, indent=2, default=str)
 
-            print(f"✅ Exported trend report to: {report_file}")
             return str(report_file)
 
-        except Exception as e:
-            print(f"❌ Error exporting trend report: {e}")
+        except Exception:
             return ""
 
 
 def main():
     """Main execution function"""
-    print("🔍 Quality Trend Analysis and Reporting System")
-    print("=" * 50)
 
     # Initialize analyzer
     analyzer = QualityTrendAnalyzer()
@@ -692,13 +670,11 @@ def main():
     periods = ["daily", "weekly", "monthly"]
 
     for period in periods:
-        print(f"\n📊 Analyzing {period} trends...")
 
         # Analyze trends
         trends = analyzer.analyze_quality_trends(period=period, days_back=90)
 
         if not trends:
-            print(f"⚠️ No trend data available for {period} analysis")
             continue
 
         # Generate report
@@ -708,14 +684,8 @@ def main():
         visualizations = analyzer.create_trend_visualizations(trends, period)
 
         # Export report
-        report_file = analyzer.export_trend_report(report, trends, visualizations)
+        analyzer.export_trend_report(report, trends, visualizations)
 
-        print(f"✅ {period.title()} trend analysis complete")
-        print(f"   - Trends analyzed: {len(trends)}")
-        print(f"   - Overall trend: {report.overall_trend}")
-        print(f"   - Key insights: {len(report.key_insights)}")
-        print(f"   - Recommendations: {len(report.recommendations)}")
-        print(f"   - Report saved: {report_file}")
 
 
 if __name__ == "__main__":

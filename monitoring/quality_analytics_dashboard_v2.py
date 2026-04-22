@@ -354,7 +354,7 @@ class QualityAnalyticsDashboard:
                     for date, mean_val, count_val in zip(
                         daily_quality.index,
                         daily_quality["mean"],
-                        daily_quality["count"]
+                        daily_quality["count"], strict=False
                     )
                 ]
                 # Sort by date
@@ -474,7 +474,7 @@ class QualityAnalyticsDashboard:
                 top_anomalies["tier"],
                 top_anomalies["dataset_source"],
                 top_anomalies["overall_quality"],
-                top_anomalies["created_at"]
+                top_anomalies["created_at"], strict=False
             ):
                 anomalies.append(
                     {
@@ -670,7 +670,7 @@ class QualityAnalyticsDashboard:
                         y=qualities,
                         text=[
                             f"{q:.3f}<br>({c:,} conv)"
-                            for q, c in zip(qualities, counts)
+                            for q, c in zip(qualities, counts, strict=False)
                         ],
                         textposition="auto",
                         marker_color=self.color_schemes["tiers"][: len(tiers)],
@@ -717,7 +717,7 @@ class QualityAnalyticsDashboard:
                         y=components,
                         x=scores,
                         orientation="h",
-                        text=[f"{s:.3f} ({c:.1f}%)" for s, c in zip(scores, coverages)],
+                        text=[f"{s:.3f} ({c:.1f}%)" for s, c in zip(scores, coverages, strict=False)],
                         textposition="auto",
                         marker_color=self.color_schemes["components"][
                             : len(components)
