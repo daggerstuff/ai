@@ -187,19 +187,18 @@ def main():
             parts = result["dataset"].split(".")
             if len(parts) == 3:
                 cat, subcat, name = parts
-                if cat in registry.get("datasets", {}):
-                    if subcat in registry["datasets"][cat]:
-                        if name in registry["datasets"][cat][subcat]:
-                            entry = registry["datasets"][cat][subcat][name]
-                            if "quality_metrics" not in entry:
-                                entry["quality_metrics"] = {}
+                if cat in registry.get("datasets", {}) and subcat in registry["datasets"][cat]:
+                    if name in registry["datasets"][cat][subcat]:
+                        entry = registry["datasets"][cat][subcat][name]
+                        if "quality_metrics" not in entry:
+                            entry["quality_metrics"] = {}
 
-                            entry["quality_metrics"]["duplicate_count"] = result[
-                                "duplicates_found"
-                            ]
-                            entry["quality_metrics"]["deduplication_ratio"] = result[
-                                "deduplication_ratio"
-                            ]
+                        entry["quality_metrics"]["duplicate_count"] = result[
+                            "duplicates_found"
+                        ]
+                        entry["quality_metrics"]["deduplication_ratio"] = result[
+                            "deduplication_ratio"
+                        ]
 
     registry["last_updated"] = datetime.now(timezone.utc).isoformat() + "Z"
     with open(args.registry, "w") as f:

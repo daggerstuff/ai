@@ -51,7 +51,7 @@ class Deduplicator:
         deduplicated = []
 
         # Process DOI groups
-        for doi, group in doi_groups.items():
+        for _doi, group in doi_groups.items():
             if group:
                 best = self._select_best_source(group)
                 deduplicated.append(best)

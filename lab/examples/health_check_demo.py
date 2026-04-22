@@ -301,19 +301,19 @@ def test_health_check():
     health_result = health_manager.perform_health_check()
 
 
-    for component_name, component_health in health_result.components.items():
+    for _component_name, component_health in health_result.components.items():
         if component_health.details:
             pass
 
-    for issue in health_result.critical_issues:
+    for _issue in health_result.critical_issues:
         pass
 
-    for warning in health_result.warnings:
+    for _warning in health_result.warnings:
         pass
 
     # Test system metrics
     metrics = health_manager.get_system_metrics()
-    for key, value in metrics.items():
+    for _key, _value in metrics.items():
         pass
 
 

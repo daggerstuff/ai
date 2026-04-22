@@ -648,8 +648,8 @@ def main():
     # Display summary
 
     # Show key findings
-    for metric, metric_distributions in distributions.items():
-        for category, analysis in metric_distributions.items():
+    for _metric, metric_distributions in distributions.items():
+        for _category, analysis in metric_distributions.items():
             analysis.statistics.get("mean", 0)
             analysis.statistics.get("std", 0)
             len(analysis.outliers)

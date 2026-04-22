@@ -518,11 +518,11 @@ def main():
 
     # Display results
 
-    for category, status in report["test_categories"].items():
+    for _category, _status in report["test_categories"].items():
         pass
 
 
-    for validation, status in report["system_validation"].items():
+    for _validation, _status in report["system_validation"].items():
         pass
 
     # Export report

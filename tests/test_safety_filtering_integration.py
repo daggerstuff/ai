@@ -371,7 +371,7 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
         start_time = time.time()
         num_requests = 10
 
-        for i in range(num_requests):
+        for _i in range(num_requests):
             response = self.test_client.post(
                 "/chat/completions", json=test_request, headers=self.headers
             )
@@ -542,11 +542,11 @@ def run_safety_filtering_tests():
     # Summary
 
     if result.failures:
-        for test, traceback in result.failures:
+        for _test, _traceback in result.failures:
             pass
 
     if result.errors:
-        for test, traceback in result.errors:
+        for _test, _traceback in result.errors:
             pass
 
     success = result.wasSuccessful()

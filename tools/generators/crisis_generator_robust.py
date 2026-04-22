@@ -115,7 +115,7 @@ def generate_crisis_training_data():
 
     # Display summary
     if dataset:
-        for pair in dataset:
+        for _pair in dataset:
             pass
 
     return dataset

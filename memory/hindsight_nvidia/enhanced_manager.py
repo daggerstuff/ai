@@ -907,7 +907,7 @@ async def main():
 
     # Health check
     health = await manager.health_check()
-    for tier, status in health.items():
+    for _tier, _status in health.items():
         pass
 
     # Test generation

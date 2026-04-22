@@ -468,11 +468,11 @@ def main():
     # Display summary
 
     # Show key findings
-    for metric, improvement in improvements.items():
+    for _metric, _improvement in improvements.items():
         pass
 
     # Show top recommendations
-    for metric, improvement in list(improvements.items())[:3]:
+    for _metric, _improvement in list(improvements.items())[:3]:
         pass
 
     # Show summary statistics

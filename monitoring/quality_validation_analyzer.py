@@ -692,7 +692,7 @@ def main():
     # Display summary
 
     # Show key findings
-    for metric, analysis in analyses.items():
+    for _metric, analysis in analyses.items():
         pass
 
     # Show top recommendations
@@ -701,7 +701,7 @@ def main():
         all_recommendations.extend(analysis.recommendations[:2])  # Top 2 per metric
 
     if all_recommendations:
-        for rec in list(set(all_recommendations))[:5]:  # Top 5 unique recommendations
+        for _rec in list(set(all_recommendations))[:5]:  # Top 5 unique recommendations
             pass
 
 

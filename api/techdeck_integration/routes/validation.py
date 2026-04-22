@@ -900,10 +900,9 @@ def _check_accuracy(data: dict[str, Any], _dataset_context: dict[str, Any] | Non
     issues = []
 
     # Basic accuracy checks
-    if "age" in data and isinstance(data["age"], (int, float)):
-        if data["age"] < 0 or data["age"] > 150:
-            issues.append("Age value appears to be outside reasonable range")
-            accuracy_score -= 0.2
+    if "age" in data and isinstance(data["age"], (int, float)) and (data["age"] < 0 or data["age"] > 150):
+        issues.append("Age value appears to be outside reasonable range")
+        accuracy_score -= 0.2
 
     return max(0.0, accuracy_score), issues
 

@@ -541,7 +541,7 @@ def main():
             pass
 
         if sample_insights.recommendations:
-            for rec in sample_insights.recommendations[:3]:
+            for _rec in sample_insights.recommendations[:3]:
                 pass
 
 if __name__ == "__main__":

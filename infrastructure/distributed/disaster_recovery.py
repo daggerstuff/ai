@@ -583,7 +583,7 @@ async def example_disaster_recovery():
 
 
     if status["logs"]:
-        for log_entry in status["logs"]:
+        for _log_entry in status["logs"]:
             pass
 
 

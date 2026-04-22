@@ -40,7 +40,7 @@ async def example_simple_processing():
         if result.success:
             pass
         else:
-            for error in result.errors[:3]:
+            for _error in result.errors[:3]:
                 pass
 
     except Exception:
@@ -181,7 +181,7 @@ def example_cli_usage():
         "python scripts/run_voice_pipeline.py --url-file playlists.txt --dry-run"
     ]
 
-    for line in cli_examples:
+    for _line in cli_examples:
         pass
 
 

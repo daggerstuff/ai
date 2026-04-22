@@ -485,7 +485,7 @@ def main():
 
         stats = results["statistics"]
 
-        for dataset_name, result in results["dataset_results"].items():
+        for _dataset_name, result in results["dataset_results"].items():
             if "error" in result:
                 pass
             else:
@@ -504,7 +504,7 @@ def main():
         stats = results["statistics"]
 
         if stats.get("dataset_overlaps"):
-            for overlap, count in list(stats["dataset_overlaps"].items())[:10]:
+            for _overlap, _count in list(stats["dataset_overlaps"].items())[:10]:
                 pass
 
 

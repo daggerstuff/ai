@@ -625,7 +625,7 @@ def run_comprehensive_validation_qa_system():
         "Quality validation integration testing"
     ]
 
-    for component in additional_components:
+    for _component in additional_components:
         pass
 
 

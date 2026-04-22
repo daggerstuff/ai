@@ -158,7 +158,7 @@ class ProgressVisualization:
 
         # Plot phase transitions
         y_positions = {phase: i for i, phase in enumerate(phases)}
-        for i, transition in enumerate(phase_transitions):
+        for _i, transition in enumerate(phase_transitions):
             phase = transition.get("phase", session.current_phase)
             timestamp = datetime.fromisoformat(
                 transition.get("timestamp", datetime.now(timezone.utc).isoformat())

@@ -441,12 +441,12 @@ async def example_health_check():
         if check.message and check.message != "Health check passed":
             pass
 
-    for category, metrics in report.system_metrics.items():
+    for _category, metrics in report.system_metrics.items():
         if isinstance(metrics, dict) and "error" not in metrics:
-            for key, value in metrics.items():
+            for _key, _value in metrics.items():
                 pass
 
-    for i, recommendation in enumerate(report.recommendations, 1):
+    for _i, _recommendation in enumerate(report.recommendations, 1):
         pass
 
     return report

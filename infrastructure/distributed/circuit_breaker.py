@@ -99,9 +99,8 @@ class CircuitBreaker:
                     self._open_circuit()
 
             # Check if circuit should transition to half-open
-            elif self.state == CircuitState.OPEN:
-                if self._should_attempt_reset():
-                    self._half_open_circuit()
+            elif self.state == CircuitState.OPEN and self._should_attempt_reset():
+                self._half_open_circuit()
 
         # Handle different circuit states
         if self.state == CircuitState.OPEN:

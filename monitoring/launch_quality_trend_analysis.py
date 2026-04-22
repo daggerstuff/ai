@@ -186,12 +186,11 @@ class QualityTrendAnalysisLauncher:
                             f"❌ QualityTrendAnalyzer class not found in {filename}"
                         )
                         return False
-                elif filename == "quality_trend_reporter.py":
-                    if "QualityTrendReporter" not in content:
-                        logger.error(
-                            f"❌ QualityTrendReporter class not found in {filename}"
-                        )
-                        return False
+                elif filename == "quality_trend_reporter.py" and "QualityTrendReporter" not in content:
+                    logger.error(
+                        f"❌ QualityTrendReporter class not found in {filename}"
+                    )
+                    return False
 
             except Exception as e:
                 logger.error(f"❌ Error reading {filename}: {e}")
@@ -298,17 +297,17 @@ class QualityTrendAnalysisLauncher:
             return
 
 
-        for file_path in summary["report_files"]:
+        for _file_path in summary["report_files"]:
             pass
 
         if summary["visualization_files"]:
-            for file_path in summary["visualization_files"]:
+            for _file_path in summary["visualization_files"]:
                 pass
 
-        for i, item in enumerate(summary["executive_summary"][:5], 1):
+        for _i, _item in enumerate(summary["executive_summary"][:5], 1):
             pass
 
-        for i, item in enumerate(summary["action_items"][:5], 1):
+        for _i, _item in enumerate(summary["action_items"][:5], 1):
             pass
 
     def launch(
@@ -340,10 +339,9 @@ class QualityTrendAnalysisLauncher:
             return False
 
         # Step 2: Validate database (unless skipped)
-        if not skip_validation:
-            if not self.validate_database():
-                logger.error("❌ Launch aborted: Database validation failed")
-                return False
+        if not skip_validation and not self.validate_database():
+            logger.error("❌ Launch aborted: Database validation failed")
+            return False
 
         # Step 3: Validate trend analysis files
         if not self.validate_trend_analysis_files():

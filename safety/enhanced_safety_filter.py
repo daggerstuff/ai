@@ -376,7 +376,7 @@ class EnhancedSafetyFilter:
         harm_score = 0.0
 
         # Check each harm pattern category
-        for harm_type, patterns in self.harm_patterns.items():
+        for _harm_type, patterns in self.harm_patterns.items():
             matches = sum(1 for pattern in patterns if re.search(pattern, content_lower, re.IGNORECASE))
             harm_score += matches * 0.2  # Weight each match
 
@@ -931,7 +931,7 @@ def test_enhanced_safety_filter():
 
 
         if safety_result.flagged_categories:
-            for category, score in safety_result.category_scores.items():
+            for _category, score in safety_result.category_scores.items():
                 if score > 0.1:
                     pass
 
@@ -967,7 +967,7 @@ def test_enhanced_safety_filter():
 
     batch_results = enhanced_safety_filter.batch_filter_responses(batch_content)
 
-    for i, (is_safe, filtered_content, safety_result) in enumerate(batch_results):
+    for _i, (is_safe, _filtered_content, safety_result) in enumerate(batch_results):
         pass
 
     # Test different safety levels

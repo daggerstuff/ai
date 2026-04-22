@@ -234,7 +234,7 @@ class FileHandler:
             total_size = 0
             file_counts = {}
 
-            for root, dirs, files in os.walk(self.storage_path):
+            for root, _dirs, files in os.walk(self.storage_path):
                 for file in files:
                     file_path = os.path.join(root, file)
                     try:

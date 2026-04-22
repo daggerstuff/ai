@@ -546,7 +546,7 @@ class IntelligentGroupingEngine:
         # Calculate inter-group separation
         separation_scores = []
         for i, group1 in enumerate(groups):
-            for j, group2 in enumerate(groups[i+1:], i+1):
+            for _j, group2 in enumerate(groups[i+1:], i+1):
                 if len(group1) == 0 or len(group2) == 0:
                     continue
 
@@ -631,7 +631,7 @@ async def example_usage():
     for algorithm in algorithms:
         groups = await engine.suggest_groups(test_alerts, algorithm)
 
-        for i, group in enumerate(groups):
+        for _i, group in enumerate(groups):
             for idx in group:
                 test_alerts[idx]
 

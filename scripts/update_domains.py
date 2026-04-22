@@ -62,7 +62,7 @@ def main():
 
     for search_dir in search_dirs:
         if os.path.exists(search_dir):
-            for root, dirs, files in os.walk(search_dir):
+            for root, _dirs, files in os.walk(search_dir):
                 for file in files:
                     if any(file.endswith(ext) for ext in extensions):
                         file_path = os.path.join(root, file)

@@ -551,12 +551,12 @@ if __name__ == "__main__":
 
         # Print metrics
         metrics = monitor.get_safety_metrics()
-        for key, value in metrics.items():
+        for _key, _value in metrics.items():
             pass
 
         # Print recent incidents
         incidents = monitor.get_recent_incidents()
-        for incident in incidents:
+        for _incident in incidents:
             pass
 
     asyncio.run(test_safety_monitoring())

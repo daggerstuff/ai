@@ -411,17 +411,16 @@ class SessionAnalyzer:
             )
 
         # Phase-appropriate interventions
-        if phase == SessionPhase.INTERVENTION:
-            if "cognitive_restructuring" not in [
-                s.get("intervention") for s in suggestions
-            ]:
-                suggestions.append(
-                    {
-                        "intervention": InterventionType.COGNITIVE_RESTRUCTURING,
-                        "description": "Challenge negative thought patterns",
-                        "timing": "immediate",
-                    }
-                )
+        if phase == SessionPhase.INTERVENTION and "cognitive_restructuring" not in [
+            s.get("intervention") for s in suggestions
+        ]:
+            suggestions.append(
+                {
+                    "intervention": InterventionType.COGNITIVE_RESTRUCTURING,
+                    "description": "Challenge negative thought patterns",
+                    "timing": "immediate",
+                }
+            )
 
         return suggestions
 

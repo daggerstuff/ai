@@ -300,13 +300,11 @@ class ComplianceChecker:
             if self.license_checker.flag_incompatible_licenses(result.license_check):
                 issues.append("License incompatible or requires review")
 
-        if result.privacy_assessment:
-            if result.privacy_assessment.privacy_issues:
-                issues.extend(result.privacy_assessment.privacy_issues)
+        if result.privacy_assessment and result.privacy_assessment.privacy_issues:
+            issues.extend(result.privacy_assessment.privacy_issues)
 
-        if result.hipaa_compliance:
-            if result.hipaa_compliance.issues:
-                issues.extend(result.hipaa_compliance.issues)
+        if result.hipaa_compliance and result.hipaa_compliance.issues:
+            issues.extend(result.hipaa_compliance.issues)
 
         return issues
 
@@ -314,17 +312,14 @@ class ComplianceChecker:
         """Collect all recommendations from compliance checks."""
         recommendations = []
 
-        if result.license_check:
-            if result.license_check.conditions:
-                recommendations.extend(result.license_check.conditions)
+        if result.license_check and result.license_check.conditions:
+            recommendations.extend(result.license_check.conditions)
 
-        if result.privacy_assessment:
-            if result.privacy_assessment.recommendations:
-                recommendations.extend(result.privacy_assessment.recommendations)
+        if result.privacy_assessment and result.privacy_assessment.recommendations:
+            recommendations.extend(result.privacy_assessment.recommendations)
 
-        if result.hipaa_compliance:
-            if result.hipaa_compliance.recommendations:
-                recommendations.extend(result.hipaa_compliance.recommendations)
+        if result.hipaa_compliance and result.hipaa_compliance.recommendations:
+            recommendations.extend(result.hipaa_compliance.recommendations)
 
         return recommendations
 
@@ -332,29 +327,26 @@ class ComplianceChecker:
         """Determine if compliance review is required."""
         # Require review if:
         # 1. License requires review
-        if result.license_check:
-            if result.license_check.ai_training_compatible.value in [
-                "requires_review",
-                "unknown",
-            ]:
-                return True
+        if result.license_check and result.license_check.ai_training_compatible.value in [
+            "requires_review",
+            "unknown",
+        ]:
+            return True
 
         # 2. Privacy issues detected
-        if result.privacy_assessment:
-            if (
-                result.privacy_assessment.pii_detected
-                and result.privacy_assessment.re_identification_risk.value
-                in ["high", "critical"]
-            ):
-                return True
+        if result.privacy_assessment and (
+            result.privacy_assessment.pii_detected
+            and result.privacy_assessment.re_identification_risk.value
+            in ["high", "critical"]
+        ):
+            return True
 
         # 3. HIPAA non-compliance
-        if result.hipaa_compliance:
-            if result.hipaa_compliance.compliance_status.value in [
-                "non_compliant",
-                "requires_review",
-            ]:
-                return True
+        if result.hipaa_compliance and result.hipaa_compliance.compliance_status.value in [
+            "non_compliant",
+            "requires_review",
+        ]:
+            return True
 
         # 4. Overall low compliance score
         if result.overall_compliance_score < 0.5:

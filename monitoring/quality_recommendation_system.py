@@ -601,11 +601,11 @@ def main():
     # Display summary
 
     # Show top recommendations
-    for rec in plan.recommendations[:5]:  # Top 5
+    for _rec in plan.recommendations[:5]:  # Top 5
         pass
 
     # Show implementation roadmap
-    for category, items in plan.implementation_roadmap.items():
+    for _category, items in plan.implementation_roadmap.items():
         if items:
             pass
 

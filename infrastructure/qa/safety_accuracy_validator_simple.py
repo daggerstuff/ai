@@ -688,7 +688,7 @@ async def main():
 
     # Show critical issues if any
     if result.gap_analysis["critical_issues"]:
-        for issue in result.gap_analysis["critical_issues"]:
+        for _issue in result.gap_analysis["critical_issues"]:
             pass
 
 if __name__ == "__main__":

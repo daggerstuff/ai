@@ -329,9 +329,8 @@ class CheckpointCleanupOptimizer:
                 return False
 
         # Check status condition
-        if "status" in conditions:
-            if checkpoint.status.value != conditions["status"]:
-                return False
+        if "status" in conditions and checkpoint.status.value != conditions["status"]:
+            return False
 
         # Check size condition
         if "size_mb" in conditions:
@@ -340,11 +339,10 @@ class CheckpointCleanupOptimizer:
                 return False
 
         # Check storage usage condition
-        if "storage_usage_percent" in conditions:
-            if not self._compare_value(
-                storage_usage_percent, conditions["storage_usage_percent"]
-            ):
-                return False
+        if "storage_usage_percent" in conditions and not self._compare_value(
+            storage_usage_percent, conditions["storage_usage_percent"]
+        ):
+            return False
 
         # Check duplicate condition (simplified)
         if "duplicate_count" in conditions:
@@ -653,7 +651,7 @@ class CheckpointCleanupOptimizer:
             process_groups[checkpoint.process_id].append(checkpoint)
 
         # Deduplicate within each process group
-        for process_id, checkpoints in process_groups.items():
+        for _process_id, checkpoints in process_groups.items():
             if len(checkpoints) > 3:  # Only deduplicate if more than 3 checkpoints
                 if self._deduplicate_checkpoint(
                     checkpoints[0]

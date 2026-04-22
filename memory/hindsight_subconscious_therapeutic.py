@@ -35,6 +35,6 @@ def redact_pii(content: str) -> str:
         Content with PII replaced with redaction markers
     """
     result = content
-    for pattern_name, (pattern, replacement) in PII_PATTERNS.items():
+    for _pattern_name, (pattern, replacement) in PII_PATTERNS.items():
         result = re.sub(pattern, replacement, result)
     return result

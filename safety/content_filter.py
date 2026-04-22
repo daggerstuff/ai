@@ -372,7 +372,7 @@ def test_safety_filter():
         "I love helping people feel better"
     ]
 
-    for i, text in enumerate(test_cases):
+    for _i, text in enumerate(test_cases):
 
         # Check safety
         safety_filter.check_input_safety(text)

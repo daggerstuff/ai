@@ -947,7 +947,7 @@ def main():
 
     elif args.command == "list":
         alerts = manager.get_active_alerts()
-        for alert in alerts:
+        for _alert in alerts:
             pass
 
     elif args.command == "stats":

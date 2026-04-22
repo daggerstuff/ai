@@ -60,7 +60,7 @@ def cmd_discover(args):
 
         # Show top 5 channels
         if results.qualified_channels:
-            for i, channel in enumerate(results.qualified_channels[:5]):
+            for _i, channel in enumerate(results.qualified_channels[:5]):
                 ", ".join([c.value for c in channel.categories])
 
         return 0
@@ -88,11 +88,11 @@ def cmd_check(args):
 
     result = health_check_channel(channel)
 
-    for note in result["notes"]:
+    for _note in result["notes"]:
         pass
 
     if result["alerts"]:
-        for alert in result["alerts"]:
+        for _alert in result["alerts"]:
             pass
 
     return 0
@@ -153,7 +153,7 @@ def cmd_list(args):
         channels_data = json.load(f)
 
 
-    for i, data in enumerate(channels_data):
+    for _i, data in enumerate(channels_data):
         # Get licensing info
         lic = data.get("licensing", {})
         "CC" if lic and lic.get("cc_license") else "Unknown"

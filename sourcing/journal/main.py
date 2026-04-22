@@ -98,13 +98,11 @@ class WorkflowExecutor:
 
         # Execute phases
         for phase in phases_to_run:
-            if self.interactive:
-                if phase != phases_to_run[0]:
-                    if not prompt_for_phase_transition(
-                        session.current_phase, phase
-                    ):
-                        console.print("[yellow]Workflow paused by user[/yellow]")
-                        break
+            if self.interactive and phase != phases_to_run[0] and not prompt_for_phase_transition(
+                session.current_phase, phase
+            ):
+                console.print("[yellow]Workflow paused by user[/yellow]")
+                break
 
             console.print(f"\n[bold cyan]Phase: {phase.upper()}[/bold cyan]\n")
 

@@ -732,7 +732,7 @@ async def example_usage():
     ]
 
     # Process alerts
-    for i, alert in enumerate(test_alerts):
+    for _i, alert in enumerate(test_alerts):
         await afp.process_alert(alert)
 
     # Get summary

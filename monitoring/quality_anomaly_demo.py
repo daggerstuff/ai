@@ -632,7 +632,7 @@ def main():
 
     # Show anomaly summary
     severity_counts = pd.Series([a.severity for a in anomalies]).value_counts()
-    for severity, count in severity_counts.items():
+    for _severity, _count in severity_counts.items():
         pass
 
     # Show top recommendations
@@ -641,7 +641,7 @@ def main():
         for alert in alerts:
             all_actions.extend(alert.recommended_actions[:2])  # Top 2 per alert
 
-        for action in list(set(all_actions))[:4]:  # Top 4 unique actions
+        for _action in list(set(all_actions))[:4]:  # Top 4 unique actions
             pass
 
 

@@ -425,7 +425,7 @@ if __name__ == "__main__":
 
     # List datasets
     datasets = api.list_datasets()
-    for dataset in datasets:
+    for _dataset in datasets:
         pass
 
     # Get professional conversations

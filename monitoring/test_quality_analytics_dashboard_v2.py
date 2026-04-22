@@ -434,7 +434,7 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
         assert isinstance(analytics.component_performance, dict)
 
         # Check that components are calculated correctly
-        for component_name, metrics in analytics.component_performance.items():
+        for _component_name, metrics in analytics.component_performance.items():
             assert "average_score" in metrics
             assert "sample_count" in metrics
             assert "coverage_percent" in metrics

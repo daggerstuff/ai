@@ -1093,7 +1093,7 @@ class QualityAnalyticsDashboard:
 
         # Recommendations
         st.subheader("💡 Recommendations")
-        for i, recommendation in enumerate(analytics.recommendations):
+        for _i, recommendation in enumerate(analytics.recommendations):
             st.markdown(
                 f'<div class="recommendation-box">{recommendation}</div>',
                 unsafe_allow_html=True,

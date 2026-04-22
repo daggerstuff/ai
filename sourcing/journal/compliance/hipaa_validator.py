@@ -182,7 +182,7 @@ class HIPAAValidator:
             text_to_check = dataset_description.lower()
         if metadata:
             # Check metadata fields
-            for key, value in metadata.items():
+            for _key, value in metadata.items():
                 if isinstance(value, str):
                     text_to_check += f" {value.lower()}"
 

@@ -143,12 +143,11 @@ def stop(_ctx, pipeline_id: str | None, stop_all: bool, force: bool):
         auth_manager = AuthManager(config_obj)
 
         if stop_all:
-            if not force:
-                if not click.confirm(
-                    "⚠️  Are you sure you want to stop ALL running pipelines?"
-                ):
-                    click.echo("❌ Operation cancelled")
-                    return
+            if not force and not click.confirm(
+                "⚠️  Are you sure you want to stop ALL running pipelines?"
+            ):
+                click.echo("❌ Operation cancelled")
+                return
 
             click.echo("🛑 Stopping all running pipelines...")
             result = _stop_all_pipelines(auth_manager)
@@ -162,12 +161,11 @@ def stop(_ctx, pipeline_id: str | None, stop_all: bool, force: bool):
                 )
 
         elif pipeline_id:
-            if not force:
-                if not click.confirm(
-                    f"⚠️  Are you sure you want to stop pipeline {pipeline_id}?"
-                ):
-                    click.echo("❌ Operation cancelled")
-                    return
+            if not force and not click.confirm(
+                f"⚠️  Are you sure you want to stop pipeline {pipeline_id}?"
+            ):
+                click.echo("❌ Operation cancelled")
+                return
 
             click.echo(f"🛑 Stopping pipeline: {pipeline_id}")
             result = _stop_pipeline(auth_manager, pipeline_id)

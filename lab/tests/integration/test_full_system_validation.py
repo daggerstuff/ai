@@ -226,7 +226,7 @@ class FullSystemValidator:
                 "SELECT * FROM conversations ORDER BY created_at DESC LIMIT 1000",
             ]
 
-            for i, query in enumerate(test_queries):
+            for i, _query in enumerate(test_queries):
                 query_start = time.time()
 
                 # Mock database query execution time
@@ -535,11 +535,11 @@ if __name__ == "__main__":
 
 
         if results.errors:
-            for error in results.errors[-5:]:  # Show last 5 errors
+            for _error in results.errors[-5:]:  # Show last 5 errors
                 pass
 
         if results.warnings:
-            for warning in results.warnings[-5:]:  # Show last 5 warnings
+            for _warning in results.warnings[-5:]:  # Show last 5 warnings
                 pass
 
     asyncio.run(main())

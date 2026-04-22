@@ -411,12 +411,11 @@ class QualityAssuranceWorkflow:
 
         if any(
             word in text.lower() for word in ["suicide", "kill myself", "end it all"]
+        ) and not any(
+            word in text.lower()
+            for word in ["crisis", "hotline", "emergency", "988"]
         ):
-            if not any(
-                word in text.lower()
-                for word in ["crisis", "hotline", "emergency", "988"]
-            ):
-                issues.append("Crisis content without appropriate resources")
+            issues.append("Crisis content without appropriate resources")
 
         context["issues"].extend(issues)
 

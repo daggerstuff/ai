@@ -298,7 +298,7 @@ class AutoResumeTestSuite:
             (InterruptionType.MEMORY_EXHAUSTION, ResumeStrategy.PARTIAL_RESTART),
         ]
 
-        for i, (interruption_type, expected_strategy) in enumerate(test_cases):
+        for i, (interruption_type, _expected_strategy) in enumerate(test_cases):
             process_id = f"strategy_test_{i}"
             task_id = f"strategy_test_task_{i}"
 
@@ -827,11 +827,11 @@ class AutoResumeTestSuite:
 
 
         if passed_tests:
-            for test in passed_tests:
+            for _test in passed_tests:
                 pass
 
         if failed_tests:
-            for test in failed_tests:
+            for _test in failed_tests:
                 pass
 
         # Overall result

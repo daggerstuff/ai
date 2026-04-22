@@ -547,9 +547,8 @@ class QualityComparator:
         if comparison_type == "tier":
             if mean_diff > 0.1:
                 recommendations.append("🎯 Consider applying best practices from higher-performing tier")
-        elif comparison_type == "dataset":
-            if mean_diff > 0.1:
-                recommendations.append("📁 Review data quality and processing methods for lower-performing dataset")
+        elif comparison_type == "dataset" and mean_diff > 0.1:
+            recommendations.append("📁 Review data quality and processing methods for lower-performing dataset")
 
         return recommendations
 
@@ -594,7 +593,7 @@ def main():
     if tier_comparisons:
         comparison = tier_comparisons[0]
 
-        for i, rec in enumerate(comparison.recommendations, 1):
+        for _i, _rec in enumerate(comparison.recommendations, 1):
             pass
 
 if __name__ == "__main__":

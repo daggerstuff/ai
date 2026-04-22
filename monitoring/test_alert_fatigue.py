@@ -281,7 +281,7 @@ class AlertFatigueTestSuite:
         }
 
         results = []
-        for i in range(5):
+        for _i in range(5):
             alert = base_alert.copy()
             result = await self.afp_system.process_alert(alert)
             results.append(result)
@@ -311,7 +311,7 @@ class AlertFatigueTestSuite:
         }
 
         results = []
-        for i in range(15):  # Exceed escalation threshold
+        for _i in range(15):  # Exceed escalation threshold
             alert = base_alert.copy()
             result = await self.afp_system.process_alert(alert)
             results.append(result)
@@ -640,11 +640,11 @@ class AlertFatigueTestSuite:
 
 
         if passed_tests:
-            for test in passed_tests:
+            for _test in passed_tests:
                 pass
 
         if failed_tests:
-            for test in failed_tests:
+            for _test in failed_tests:
                 pass
 
         # Overall result

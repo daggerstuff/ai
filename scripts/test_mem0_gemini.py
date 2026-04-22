@@ -36,7 +36,7 @@ async def run_cookook_demo():
 
     # Step 3: View stored memories
     memories = manager.get_all_memories(user_id="empathy_gym_sarah")
-    for i, m in enumerate(memories):
+    for _i, _m in enumerate(memories):
         pass
 
 

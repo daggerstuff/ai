@@ -99,10 +99,9 @@ def main():
         if not path.is_file() or ".venv" in path.parts or ".git" in path.parts:
             continue
         size = path.stat().st_size
-        if size > SIZE_THRESHOLD:
-            if size not in seen_sizes:
-                seen_sizes[size] = path
-                to_upload.append(path)
+        if size > SIZE_THRESHOLD and size not in seen_sizes:
+            seen_sizes[size] = path
+            to_upload.append(path)
 
     # 2. Check S3 Status
     table = Table(title="S3 Migration Monitor", box=box.ROUNDED, expand=False)

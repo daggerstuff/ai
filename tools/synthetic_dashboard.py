@@ -129,7 +129,7 @@ with tabs[0]:
 
     st.subheader("Sample Q&A Pairs")
     sample_df = df.sample(n=min(3, len(df)), random_state=42) if len(df) > 3 else df
-    for i, row in sample_df.iterrows():
+    for _i, row in sample_df.iterrows():
         st.markdown(
             f"""
         <div class='glass-card'>
