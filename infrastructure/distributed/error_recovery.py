@@ -347,7 +347,7 @@ async def example_error_recovery():
         )
 
     # Test multiple database queries
-    for i in range(5):
+    for _i in range(5):
         with contextlib.suppress(Exception):
             await recovery_manager.execute_with_retry(
                 "database_query", unreliable_db_query

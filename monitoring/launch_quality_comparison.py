@@ -257,7 +257,7 @@ def run_comparison_analysis(args):
 
         # Display summary
 
-        for file_path in saved_files:
+        for _file_path in saved_files:
             pass
 
         if args.get("visualizations", True):

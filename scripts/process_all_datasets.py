@@ -294,9 +294,9 @@ def main():
     # Merge all datasets
     final_stats = processor.merge_all_datasets()
 
-    for style, count in final_stats["by_style"].items():
+    for _style, _count in final_stats["by_style"].items():
         pass
-    for source, count in final_stats["by_source"].items():
+    for _source, _count in final_stats["by_source"].items():
         pass
 
 

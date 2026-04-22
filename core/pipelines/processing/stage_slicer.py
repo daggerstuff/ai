@@ -310,17 +310,17 @@ def main():
 
     # Print report
 
-    for stage_id, stage_report in report["stages"].items():
+    for _stage_id, stage_report in report["stages"].items():
 
-        for src in stage_report["source_files"]:
+        for _src in stage_report["source_files"]:
             pass
 
     if report["warnings"]:
-        for warning in report["warnings"]:
+        for _warning in report["warnings"]:
             pass
 
     if report["errors"]:
-        for error in report["errors"]:
+        for _error in report["errors"]:
             pass
 
     # Generate metadata

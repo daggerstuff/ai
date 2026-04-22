@@ -504,11 +504,11 @@ def main():
     # Display summary
 
     # Show top optimization opportunities
-    for priority in plan.optimization_priorities[:3]:  # Top 3
+    for _priority in plan.optimization_priorities[:3]:  # Top 3
         pass
 
     # Show expected improvements
-    for metric, improvement in list(plan.expected_improvements.items())[:5]:  # Top 5
+    for _metric, improvement in list(plan.expected_improvements.items())[:5]:  # Top 5
         if improvement > 1:  # Only show significant improvements
             pass
 

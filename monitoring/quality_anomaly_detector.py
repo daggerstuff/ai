@@ -716,12 +716,12 @@ def main():
     # Show critical alerts
     critical_alerts = [a for a in alerts if a.severity == "critical"]
     if critical_alerts:
-        for alert in critical_alerts[:3]:  # Show top 3
+        for _alert in critical_alerts[:3]:  # Show top 3
             pass
 
     # Show anomaly summary
     severity_counts = pd.Series([a.severity for a in anomalies]).value_counts()
-    for severity, count in severity_counts.items():
+    for _severity, _count in severity_counts.items():
         pass
 
 

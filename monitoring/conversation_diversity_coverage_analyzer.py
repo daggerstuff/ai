@@ -1102,10 +1102,10 @@ def main():
 
 
         # Display key insights
-        for insight in results["insights"][:5]:
+        for _insight in results["insights"][:5]:
             pass
 
-        for rec in results["recommendations"][:3]:
+        for _rec in results["recommendations"][:3]:
             pass
 
         return results

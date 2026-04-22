@@ -583,11 +583,11 @@ class CheckpointTestSuite:
 
 
         if passed_tests:
-            for test in passed_tests:
+            for _test in passed_tests:
                 pass
 
         if failed_tests:
-            for test in failed_tests:
+            for _test in failed_tests:
                 pass
 
         # Overall result

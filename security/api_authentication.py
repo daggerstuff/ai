@@ -525,7 +525,7 @@ if __name__ == "__main__":
     tester = AuthenticationTester(auth_system)
     test_results = tester.run_security_tests()
 
-    for test_name, result in test_results.items():
+    for _test_name, result in test_results.items():
         status = "PASSED" if result else "FAILED"
 
     # Calculate overall security score

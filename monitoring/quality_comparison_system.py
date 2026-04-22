@@ -531,7 +531,7 @@ def main():
     sum(len(comps) for comps in comparisons.values())
 
     # Show key findings
-    for category, category_comparisons in comparisons.items():
+    for _category, category_comparisons in comparisons.items():
         len(
             [c for c in category_comparisons if c.statistical_significance < 0.05]
         )

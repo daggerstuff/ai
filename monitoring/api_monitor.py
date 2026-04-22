@@ -251,9 +251,8 @@ class PerformanceAnalyzer:
         # Filter metrics
         response_times = []
         for metric in self.collector.performance_metrics:
-            if metric.timestamp >= cutoff_time:
-                if endpoint is None or metric.endpoint == endpoint:
-                    response_times.append(metric.response_time_ms)
+            if metric.timestamp >= cutoff_time and (endpoint is None or metric.endpoint == endpoint):
+                response_times.append(metric.response_time_ms)
 
         if not response_times:
             return {}
@@ -277,11 +276,10 @@ class PerformanceAnalyzer:
         error_requests = 0
 
         for metric in self.collector.performance_metrics:
-            if metric.timestamp >= cutoff_time:
-                if endpoint is None or metric.endpoint == endpoint:
-                    total_requests += 1
-                    if metric.status_code >= 400:
-                        error_requests += 1
+            if metric.timestamp >= cutoff_time and (endpoint is None or metric.endpoint == endpoint):
+                total_requests += 1
+                if metric.status_code >= 400:
+                    error_requests += 1
 
         if total_requests == 0:
             return 0.0
@@ -295,9 +293,8 @@ class PerformanceAnalyzer:
 
         request_count = 0
         for metric in self.collector.performance_metrics:
-            if metric.timestamp >= cutoff_time:
-                if endpoint is None or metric.endpoint == endpoint:
-                    request_count += 1
+            if metric.timestamp >= cutoff_time and (endpoint is None or metric.endpoint == endpoint):
+                request_count += 1
 
         return request_count / time_window_minutes
 

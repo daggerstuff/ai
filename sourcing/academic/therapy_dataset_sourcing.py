@@ -443,9 +443,8 @@ class TherapyDatasetSourcing:
                 filtered.append(dataset)
                 continue
 
-            if dataset.avg_turns >= min_turns:
-                if max_turns is None or dataset.avg_turns <= max_turns:
-                    filtered.append(dataset)
+            if dataset.avg_turns >= min_turns and (max_turns is None or dataset.avg_turns <= max_turns):
+                filtered.append(dataset)
 
         logger.info(f"Filtered to {len(filtered)} datasets with {min_turns}+ turns")
         return filtered

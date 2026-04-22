@@ -453,17 +453,17 @@ class QualityImprovementTrackingLauncher:
         if summary["success_metrics"]:
             summary["success_metrics"]
 
-        for file_path in summary["report_files"]:
+        for _file_path in summary["report_files"]:
             pass
 
         if summary["visualization_files"]:
-            for file_path in summary["visualization_files"]:
+            for _file_path in summary["visualization_files"]:
                 pass
 
-        for i, item in enumerate(summary["executive_summary"][:5], 1):
+        for _i, _item in enumerate(summary["executive_summary"][:5], 1):
             pass
 
-        for i, item in enumerate(summary["action_items"][:5], 1):
+        for _i, _item in enumerate(summary["action_items"][:5], 1):
             pass
 
     def launch(self, action: str, **kwargs) -> bool:

@@ -594,7 +594,7 @@ async def test_notifications():
     for test_case in test_cases:
         results = await manager.send_alert(**test_case)
 
-        for channel, success in results.items():
+        for _channel, _success in results.items():
             pass
 
 

@@ -163,7 +163,7 @@ def test_contextual_generation():
     ]
 
 
-    for i, segment in enumerate(test_segments, 1):
+    for _i, segment in enumerate(test_segments, 1):
         generator.create_training_pair(segment)
 
 if __name__ == "__main__":

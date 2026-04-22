@@ -806,11 +806,10 @@ class ConversationRecommendationOptimizer:
                     tier_recs.append(
                         "Ensure expert-level content and professional tone"
                     )
-            elif "standard" in tier.lower():
-                if avg_quality < 50:
-                    tier_recs.append(
-                        "Improve basic conversation quality - focus on clarity and helpfulness"
-                    )
+            elif "standard" in tier.lower() and avg_quality < 50:
+                tier_recs.append(
+                    "Improve basic conversation quality - focus on clarity and helpfulness"
+                )
 
             personalized_recs["by_tier"][tier] = {
                 "current_quality": avg_quality,
@@ -1337,7 +1336,7 @@ def main():
         results["performance_analysis"]
 
         # Display key insights
-        for insight in results["insights"][:5]:
+        for _insight in results["insights"][:5]:
             pass
 
         # Display recommendation summary
@@ -1355,7 +1354,7 @@ def main():
             )
 
         # Display implementation roadmap
-        for phase_name, phase_data in results["implementation_roadmap"].items():
+        for _phase_name, _phase_data in results["implementation_roadmap"].items():
             pass
 
         return results

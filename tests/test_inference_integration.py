@@ -177,7 +177,7 @@ class TestInferenceAPIIntegration(unittest.TestCase):
 
         # Make multiple rapid requests to test rate limiting
         responses = []
-        for i in range(5):
+        for _i in range(5):
             response = self.test_client.get("/health", headers=test_headers)
             responses.append(response)
             time.sleep(0.1)  # Small delay between requests
@@ -359,7 +359,7 @@ class TestPerformanceBenchmarks(unittest.TestCase):
             start_time = time.time()
 
             # Simulate batch processing
-            for i in range(batch_size):
+            for _i in range(batch_size):
                 time.sleep(0.001)  # 1ms per item
 
             end_time = time.time()
@@ -501,7 +501,7 @@ class TestSafetyAndSecurity(unittest.TestCase):
 
         # Make many rapid requests
         responses = []
-        for i in range(20):
+        for _i in range(20):
             response = app.test_client().get("/health", headers=headers)
             responses.append(response)
             # Small delay to avoid overwhelming the test
@@ -738,11 +738,11 @@ def run_all_tests():
     # Summary
 
     if result.failures:
-        for test, traceback in result.failures:
+        for _test, _traceback in result.failures:
             pass
 
     if result.errors:
-        for test, traceback in result.errors:
+        for _test, _traceback in result.errors:
             pass
 
     success = result.wasSuccessful()

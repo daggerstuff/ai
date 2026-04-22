@@ -142,7 +142,7 @@ class MCPValidator:
 
             # Check for required environment variables
             if "env" in server_config:
-                for env_var, env_value in server_config["env"].items():
+                for _env_var, env_value in server_config["env"].items():
                     if env_value.startswith("${") and env_value.endswith("}"):
                         # Environment variable reference
                         actual_env_var = env_value[2:-1]
@@ -343,17 +343,17 @@ class MCPValidator:
 
         # Errors
         if results["errors"]:
-            for error in results["errors"]:
+            for _error in results["errors"]:
                 pass
 
         # Warnings
         if results["warnings"]:
-            for warning in results["warnings"]:
+            for _warning in results["warnings"]:
                 pass
 
         # Server status
         if results["server_status"]:
-            for server_name, status in results["server_status"].items():
+            for _server_name, status in results["server_status"].items():
                 (
                     "✅"
                     if status["status"] == "available"
@@ -366,7 +366,7 @@ class MCPValidator:
 
         # Recommendations
         if results["recommendations"]:
-            for rec in results["recommendations"]:
+            for _rec in results["recommendations"]:
                 pass
 
 

@@ -553,11 +553,11 @@ class ComprehensiveSafetyValidator:
         report["production_requirements"]
 
         if report["recommendations"]:
-            for i, rec in enumerate(report["recommendations"], 1):
+            for _i, _rec in enumerate(report["recommendations"], 1):
                 pass
 
         if report["next_steps"]:
-            for step in report["next_steps"]:
+            for _step in report["next_steps"]:
                 pass
 
 

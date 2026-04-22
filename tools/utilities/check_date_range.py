@@ -29,7 +29,7 @@ def check_date_range():
         """)
 
         dates = cursor.fetchall()
-        for date, count in dates:
+        for _date, _count in dates:
             pass
 
         conn.close()

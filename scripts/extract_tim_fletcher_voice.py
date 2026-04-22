@@ -238,15 +238,15 @@ class TimFletcherVoiceExtractor:
 
 ### Sentence Starters (use these frequently):
 """
-        for starter, count in list(profile["sentence_starters"].items())[:15]:
+        for starter, _count in list(profile["sentence_starters"].items())[:15]:
             prompt += f'- "{starter}..."\n'
 
         prompt += "\n### Transition Phrases:\n"
-        for phrase, count in list(profile["transition_phrases"].items())[:10]:
+        for phrase, _count in list(profile["transition_phrases"].items())[:10]:
             prompt += f'- "{phrase}"\n'
 
         prompt += "\n### Empathy Markers:\n"
-        for marker, count in list(profile["empathy_markers"].items())[:10]:
+        for marker, _count in list(profile["empathy_markers"].items())[:10]:
             prompt += f'- "{marker}"\n'
 
         prompt += "\n### Teaching Style:\n"

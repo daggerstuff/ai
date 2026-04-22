@@ -634,7 +634,7 @@ class GracefulDegradationManager:
 
             # Check for services in critical state
             critical_services = []
-            for service_name, health in self.service_health.items():
+            for service_name, _health in self.service_health.items():
                 degradation_level = self._get_service_degradation_level(service_name)
                 if degradation_level == DegradationLevel.CRITICAL:
                     critical_services.append(service_name)

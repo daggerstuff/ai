@@ -292,7 +292,7 @@ class ConversationSearchEngine:
 
         for exchange in conversations:
             if isinstance(exchange, dict):
-                for role, text in exchange.items():
+                for _role, text in exchange.items():
                     if isinstance(text, str) and text.strip():
                         content_parts.append(text.strip())
 

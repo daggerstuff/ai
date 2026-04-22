@@ -510,7 +510,7 @@ class TestHealthCheckPerformance(unittest.TestCase):
 
         # Start multiple concurrent health checks
         threads = []
-        for i in range(5):  # 5 concurrent checks
+        for _i in range(5):  # 5 concurrent checks
             thread = threading.Thread(target=perform_health_check)
             threads.append(thread)
             thread.start()
@@ -586,7 +586,7 @@ def benchmark_health_checks():
     start_time = time.time()
     num_iterations = 10
 
-    for i in range(num_iterations):
+    for _i in range(num_iterations):
         result = health_manager.perform_health_check()
         assert isinstance(result, HealthCheckResult)
 
@@ -623,11 +623,11 @@ def run_health_check_tests():
     # Summary
 
     if result.failures:
-        for test, traceback in result.failures:
+        for _test, _traceback in result.failures:
             pass
 
     if result.errors:
-        for test, traceback in result.errors:
+        for _test, _traceback in result.errors:
             pass
 
     success = result.wasSuccessful()

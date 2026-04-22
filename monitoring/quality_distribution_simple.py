@@ -347,7 +347,7 @@ def main():
     # Display summary
 
     # Show key findings
-    for metric, data in results.items():
+    for _metric, data in results.items():
         if "error" in data:
             pass
         elif "statistics" in data:

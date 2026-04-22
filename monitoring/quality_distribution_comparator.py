@@ -350,7 +350,7 @@ class QualityDistributionComparator:
 
         # Calculate Cohen's d for pairwise comparisons
         for i, group1_name in enumerate(group_names):
-            for j, group2_name in enumerate(group_names[i + 1 :], i + 1):
+            for _j, group2_name in enumerate(group_names[i + 1 :], i + 1):
                 group1 = group_data[group1_name]
                 group2 = group_data[group2_name]
 
@@ -384,7 +384,7 @@ class QualityDistributionComparator:
 
         # Pairwise Mann-Whitney U tests
         for i, group1_name in enumerate(group_names):
-            for j, group2_name in enumerate(group_names[i + 1 :], i + 1):
+            for _j, group2_name in enumerate(group_names[i + 1 :], i + 1):
                 group1 = group_data[group1_name]
                 group2 = group_data[group2_name]
 
@@ -522,7 +522,7 @@ class QualityDistributionComparator:
         # Find strongest correlations
         correlations = []
         for i, comp1 in enumerate(available_components):
-            for j, comp2 in enumerate(available_components[i + 1 :], i + 1):
+            for _j, comp2 in enumerate(available_components[i + 1 :], i + 1):
                 corr_value = correlation_data.loc[comp1, comp2]
                 if not np.isnan(corr_value):
                     correlations.append(
@@ -614,7 +614,7 @@ def main():
     tier_comparison = comparator.compare_across_tiers(df, "overall_quality")
 
 
-    for i, rec in enumerate(tier_comparison.recommendations, 1):
+    for _i, _rec in enumerate(tier_comparison.recommendations, 1):
         pass
 
 

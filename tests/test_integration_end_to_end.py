@@ -546,7 +546,7 @@ def run_integration_tests():
     # Print summary
 
     if result.failures:
-        for test, traceback in result.failures:
+        for _test, traceback in result.failures:
             (
                 traceback.split("AssertionError: ")[-1].split("\n")[0]
                 if "AssertionError:" in traceback
@@ -554,7 +554,7 @@ def run_integration_tests():
             )
 
     if result.errors:
-        for test, traceback in result.errors:
+        for _test, traceback in result.errors:
             traceback.split("\n")[-2] if traceback else "Unknown error"
 
     if not result.failures and not result.errors:

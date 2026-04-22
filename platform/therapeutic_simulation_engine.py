@@ -398,13 +398,12 @@ class TherapeuticSimulationEngine:
                 mistakes.append("Toxic positivity during suicidal crisis")
             if not any(
                 word in input_lower for word in ["safe", "safety", "harm", "plan"]
+            ) and (
+                "hurt" in state.client_response_history[-1]
+                if state.client_response_history
+                else False
             ):
-                if (
-                    "hurt" in state.client_response_history[-1]
-                    if state.client_response_history
-                    else False
-                ):
-                    mistakes.append("Not addressing safety concerns")
+                mistakes.append("Not addressing safety concerns")
 
         return mistakes
 
@@ -525,12 +524,11 @@ class TherapeuticSimulationEngine:
 
         # Update crisis risk
         crisis_change = impact.get("crisis_risk_change", 0.0)
-        if client_profile.personality_type == ClientPersonality.SUICIDAL_IDEATION:
-            if (
-                state.trust_level > 0.6
-                and "safe" in state.last_therapist_intervention.lower()
-            ):
-                crisis_change -= 0.1
+        if client_profile.personality_type == ClientPersonality.SUICIDAL_IDEATION and (
+            state.trust_level > 0.6
+            and "safe" in state.last_therapist_intervention.lower()
+        ):
+            crisis_change -= 0.1
         state.crisis_risk_level = max(
             0.0, min(1.0, state.crisis_risk_level + crisis_change)
         )

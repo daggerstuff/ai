@@ -63,7 +63,7 @@ def health_check():
 
         # Determine overall status
         overall_status = "healthy"
-        for service, status in health_status["services"].items():
+        for _service, status in health_status["services"].items():
             if status["status"] != "healthy":
                 overall_status = "degraded"
                 break

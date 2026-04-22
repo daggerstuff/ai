@@ -362,7 +362,7 @@ def run_comprehensive_test():
             json.dump(report_data, f, indent=2)
 
 
-        for detail in test_results["test_details"]:
+        for _detail in test_results["test_details"]:
             pass
 
         report_data["distribution_analysis_sample"]

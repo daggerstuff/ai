@@ -221,29 +221,29 @@ class DatasetRegistryOrchestrator:
         }
 
         # Print report
-        for enhancement in report["enhancements_applied"]:
+        for _enhancement in report["enhancements_applied"]:
             pass
 
         stats = report["statistics"]
 
         if "datasets_by_stage" in stats:
-            for stage, count in stats["datasets_by_stage"].items():
+            for _stage, _count in stats["datasets_by_stage"].items():
                 pass
 
         if "datasets_by_quality" in stats:
-            for tier, count in stats["datasets_by_quality"].items():
+            for _tier, _count in stats["datasets_by_quality"].items():
                 pass
 
         if "validation_summary" in stats:
-            for status, count in stats["validation_summary"].items():
+            for _status, _count in stats["validation_summary"].items():
                 pass
 
         if "sync_summary" in stats:
-            for status, count in stats["sync_summary"].items():
+            for _status, _count in stats["sync_summary"].items():
                 pass
 
         all_success = True
-        for operation, result in report["operation_results"].items():
+        for _operation, result in report["operation_results"].items():
             "✓" if result["success"] else "✗"
             if not result["success"]:
                 all_success = False
@@ -316,9 +316,8 @@ Examples:
     if not orchestrator.enhance_registry(limit=args.limit):
         success = False
 
-    if not args.skip_validation:
-        if not orchestrator.validate_datasets(limit=args.limit):
-            success = False
+    if not args.skip_validation and not orchestrator.validate_datasets(limit=args.limit):
+        success = False
 
     if not orchestrator.verify_sync(limit=args.limit):
         success = False

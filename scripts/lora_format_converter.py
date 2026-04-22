@@ -206,9 +206,9 @@ def main():
     # Create configuration file
     converter.create_config_file(output_dir, stats)
 
-    for style, count in stats["by_style"].items():
+    for _style, _count in stats["by_style"].items():
         pass
-    for quality, count in stats["by_quality"].items():
+    for _quality, _count in stats["by_quality"].items():
         pass
 
 if __name__ == "__main__":

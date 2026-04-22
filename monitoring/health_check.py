@@ -623,7 +623,7 @@ class HealthCheckManager:
             weighted_scores = []
             total_weight = 0
 
-            for comp_name, comp_health in component_results.items():
+            for _comp_name, comp_health in component_results.items():
                 # Assign weights based on component type
                 weight = 1.0
                 if comp_health.component_type:
@@ -1351,13 +1351,13 @@ def test_health_check_system():
     health_result = manager.perform_health_check()
 
 
-    for component_name, component_health in health_result.components.items():
+    for _component_name, component_health in health_result.components.items():
         if component_health.details:
             pass
 
     # Test system metrics
     metrics = manager.get_system_metrics()
-    for key, value in metrics.items():
+    for _key, _value in metrics.items():
         pass
 
     # Test component health lookup

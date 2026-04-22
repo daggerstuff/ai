@@ -738,7 +738,7 @@ class PipelineCoordinator:
         """Calculate overall quality score from stage results."""
         quality_scores = []
 
-        for stage_name, result in stage_results.items():
+        for _stage_name, result in stage_results.items():
             if result.get("status") == "completed":
                 stage_score = result.get("result", {}).get("quality_score", 0)
                 if isinstance(stage_score, (int, float)):
@@ -765,7 +765,7 @@ class PipelineCoordinator:
         recommendations = []
 
         # Analyze each stage for recommendations
-        for stage_name, result in stage_results.items():
+        for _stage_name, result in stage_results.items():
             if result.get("status") == "completed":
                 stage_recommendations = result.get("result", {}).get("recommendations", [])
                 if isinstance(stage_recommendations, list):

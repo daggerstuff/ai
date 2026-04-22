@@ -185,27 +185,26 @@ class DatasetValidator:
                 errors.append(f"Record {index}: Missing required field '{field}'")
 
         # Validate content
-        if self.config.validate_content:
-            if "messages" in record:
-                messages = record["messages"]
+        if self.config.validate_content and "messages" in record:
+            messages = record["messages"]
 
-                if not isinstance(messages, list):
-                    errors.append(f"Record {index}: 'messages' must be a list")
-                elif len(messages) == 0:
-                    self.logger.warning(f"Record {index}: Empty messages list")
-                else:
-                    # Validate message structure
-                    for msg_idx, msg in enumerate(messages):
-                        if not isinstance(msg, dict):
-                            errors.append(
-                                f"Record {index}, message {msg_idx}: "
-                                "Message must be a dictionary"
-                            )
-                        elif "role" not in msg or "content" not in msg:
-                            errors.append(
-                                f"Record {index}, message {msg_idx}: "
-                                "Message missing 'role' or 'content'"
-                            )
+            if not isinstance(messages, list):
+                errors.append(f"Record {index}: 'messages' must be a list")
+            elif len(messages) == 0:
+                self.logger.warning(f"Record {index}: Empty messages list")
+            else:
+                # Validate message structure
+                for msg_idx, msg in enumerate(messages):
+                    if not isinstance(msg, dict):
+                        errors.append(
+                            f"Record {index}, message {msg_idx}: "
+                            "Message must be a dictionary"
+                        )
+                    elif "role" not in msg or "content" not in msg:
+                        errors.append(
+                            f"Record {index}, message {msg_idx}: "
+                            "Message missing 'role' or 'content'"
+                        )
 
         return len(errors) == 0, errors
 

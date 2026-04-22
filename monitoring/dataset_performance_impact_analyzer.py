@@ -1328,18 +1328,18 @@ def main():
 
         # Display executive summary
         exec_summary = results["executive_summary"]
-        for finding in exec_summary["key_findings"]:
+        for _finding in exec_summary["key_findings"]:
             pass
 
         # Display strategic implications
-        for implication in exec_summary["strategic_implications"]:
+        for _implication in exec_summary["strategic_implications"]:
             pass
 
         # Display top recommendations
         recommendations = results["strategic_recommendations"]
-        for category, recs in recommendations.items():
+        for _category, recs in recommendations.items():
             if recs:
-                for rec in recs[:2]:  # Top 2 per category
+                for _rec in recs[:2]:  # Top 2 per category
                     pass
 
         # Display performance highlights

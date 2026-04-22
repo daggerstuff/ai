@@ -242,7 +242,7 @@ def test_ai_router():
     ]
 
 
-    for i, segment in enumerate(test_segments, 1):
+    for _i, segment in enumerate(test_segments, 1):
         router.process_segment(segment)
 
 

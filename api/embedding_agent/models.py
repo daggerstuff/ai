@@ -181,11 +181,10 @@ class BatchEmbeddingRequest(BaseModel):
         cls, v: list[KnowledgeType] | None, info
     ) -> list[KnowledgeType] | None:
         """Ensure knowledge_types matches texts length."""
-        if v is not None and "texts" in info.data:
-            if len(v) != len(info.data["texts"]):
-                raise ValueError(
-                    "knowledge_types length must match texts length"
-                )
+        if v is not None and "texts" in info.data and len(v) != len(info.data["texts"]):
+            raise ValueError(
+                "knowledge_types length must match texts length"
+            )
         return v
 
 

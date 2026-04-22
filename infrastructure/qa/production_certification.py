@@ -721,17 +721,17 @@ async def main():
         pass
 
 
-    for category, data in report.certification_categories.items():
+    for _category, data in report.certification_categories.items():
         "✅ PASSED" if data["score"] >= 95 else "⚠️ NEEDS ATTENTION"
 
-    for signoff in report.stakeholder_signoffs:
+    for _signoff in report.stakeholder_signoffs:
         pass
 
-    for risk_type, level in report.risk_assessment.items():
+    for _risk_type, _level in report.risk_assessment.items():
         pass
 
     if report.recommendations:
-        for rec in report.recommendations:
+        for _rec in report.recommendations:
             pass
 
     # Final status

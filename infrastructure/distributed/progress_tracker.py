@@ -315,9 +315,8 @@ class ProgressTracker:
                 TaskStatus.COMPLETED,
                 TaskStatus.FAILED,
                 TaskStatus.CANCELLED,
-            ]:
-                if not task_progress.completed_at:
-                    task_progress.completed_at = datetime.now(timezone.utc).isoformat()
+            ] and not task_progress.completed_at:
+                task_progress.completed_at = datetime.now(timezone.utc).isoformat()
 
             # Store in database
             self._store_task_in_db(task_progress)

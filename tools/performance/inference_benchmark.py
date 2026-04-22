@@ -309,12 +309,12 @@ class InferenceBenchmark:
 
         # Scenario breakdown
         if results.scenario_results:
-            for scenario, metrics in results.scenario_results.items():
+            for _scenario, _metrics in results.scenario_results.items():
                 pass
 
         # Errors
         if results.errors:
-            for error, count in sorted(
+            for _error, _count in sorted(
                 results.errors.items(), key=lambda x: x[1], reverse=True
             ):
                 pass

@@ -437,7 +437,7 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
             ("positive", ["good", "hopeful"], "positive")
         ]
 
-        for emotion_type, expected_words, expected_emotion in emotion_tests:
+        for emotion_type, _expected_words, expected_emotion in emotion_tests:
             with self.subTest(emotion=emotion_type):
                 result = self.generator.generate_response(
                     self.test_inputs[emotion_type],
@@ -539,7 +539,7 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
     def test_generation_statistics(self):
         """Test generation statistics collection."""
         # Generate multiple responses
-        for input_type, client_input in self.test_inputs.items():
+        for _input_type, client_input in self.test_inputs.items():
             self.generator.generate_response(client_input, self.test_contexts["cbt_session"])
 
         stats = self.generator.get_generation_statistics()

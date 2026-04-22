@@ -523,7 +523,7 @@ async def example_usage():
 
     # Get recent alerts
     recent_alerts = bridge.get_alert_history(hours=1)
-    for alert in recent_alerts:
+    for _alert in recent_alerts:
         pass
 
 

@@ -760,7 +760,7 @@ def main():
 
 
     # Display summary
-    for item in report.executive_summary:
+    for _item in report.executive_summary:
         pass
 
 

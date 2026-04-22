@@ -427,7 +427,7 @@ class TestRateLimiting:
         try:
             # Make rapid requests to trigger rate limiting
             responses = []
-            for i in range(20):
+            for _i in range(20):
                 response = await client.request("GET", "/v1/datasets")
                 responses.append(response.status_code)
 

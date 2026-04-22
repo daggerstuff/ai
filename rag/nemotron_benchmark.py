@@ -316,10 +316,10 @@ class NemotronBenchmark:
 
         for model, task_results in all_results.items():
 
-            for task_type_value, result in task_results.items():
+            for _task_type_value, result in task_results.items():
 
                 if result.errors:
-                    for error, count in result.errors.items():
+                    for _error, _count in result.errors.items():
                         pass
 
         # Comparison summary
@@ -345,7 +345,7 @@ class NemotronBenchmark:
             reverse=True,
         )
 
-        for i, (model, scores) in enumerate(sorted_models, 1):
+        for _i, (model, _scores) in enumerate(sorted_models, 1):
             pass
 
     def save_results(

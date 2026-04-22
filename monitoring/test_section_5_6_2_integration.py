@@ -454,10 +454,10 @@ def run_integration_test():
             json.dump(report_data, f, indent=2)
 
 
-        for detail in test_results["test_details"]:
+        for _detail in test_results["test_details"]:
             pass
 
-        for component, result in test_results["component_results"].items():
+        for _component, _result in test_results["component_results"].items():
             pass
 
 

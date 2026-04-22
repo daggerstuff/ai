@@ -505,7 +505,7 @@ class ExplainabilityEngine:
             layer_attention = attention_weights.layer_weights[0]
             for i, token in enumerate(tokens[: layer_attention.shape[0]]):
                 row_data = []
-                for j, target_token in enumerate(tokens[: layer_attention.shape[1]]):
+                for j, _target_token in enumerate(tokens[: layer_attention.shape[1]]):
                     if i < layer_attention.shape[0] and j < layer_attention.shape[1]:
                         row_data.append(float(layer_attention[i, j]))
                     else:

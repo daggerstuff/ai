@@ -179,12 +179,10 @@ class MetadataParser:
             identifier = data["identifier"]
             if isinstance(identifier, list):
                 for ident in identifier:
-                    if isinstance(ident, dict):
-                        if ident.get("type") == "doi":
-                            return ident.get("id") or ident.get("value")
-            elif isinstance(identifier, dict):
-                if identifier.get("type") == "doi":
-                    return identifier.get("id") or identifier.get("value")
+                    if isinstance(ident, dict) and ident.get("type") == "doi":
+                        return ident.get("id") or ident.get("value")
+            elif isinstance(identifier, dict) and identifier.get("type") == "doi":
+                return identifier.get("id") or identifier.get("value")
 
         # Try nested structures
         if "metadata" in data:
@@ -343,11 +341,10 @@ class MetadataParser:
 
         # Check license
         license_info = data.get("license") or data.get("License")
-        if license_info:
-            if isinstance(license_info, str):
-                license_lower = license_info.lower()
-                if "open" in license_lower or "cc" in license_lower:
-                    return True
+        if license_info and isinstance(license_info, str):
+            license_lower = license_info.lower()
+            if "open" in license_lower or "cc" in license_lower:
+                return True
 
         return False
 

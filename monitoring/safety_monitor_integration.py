@@ -318,7 +318,7 @@ class SafetyMonitor:
 
         # Get recent risk scores for this user
         recent_scores = []
-        for key, metrics in self.active_sessions.items():
+        for _key, metrics in self.active_sessions.items():
             if metrics.user_id == user_id:
                 recent_scores.append(metrics.risk_score)
 
@@ -334,7 +334,7 @@ class SafetyMonitor:
 
         # Get recent risk scores
         recent_scores = []
-        for key, metrics in self.active_sessions.items():
+        for _key, metrics in self.active_sessions.items():
             if metrics.user_id == user_id:
                 recent_scores.append(metrics.risk_score)
 
@@ -563,11 +563,11 @@ async def main():
 
 
     if dashboard_data["high_risk_users"]:
-        for user in dashboard_data["high_risk_users"]:
+        for _user in dashboard_data["high_risk_users"]:
             pass
 
     if dashboard_data["recent_alerts"]:
-        for alert in dashboard_data["recent_alerts"]:
+        for _alert in dashboard_data["recent_alerts"]:
             pass
 
 

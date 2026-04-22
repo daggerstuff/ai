@@ -27,9 +27,9 @@ def debug_question_extraction():
         r"([A-Z][^.!?]{20,}\?)",
     ]
 
-    for i, pattern in enumerate(question_patterns):
+    for _i, pattern in enumerate(question_patterns):
         matches = list(re.finditer(pattern, text, re.IGNORECASE))
-        for match in matches:
+        for _match in matches:
             pass
 
     # Test the actual extraction method

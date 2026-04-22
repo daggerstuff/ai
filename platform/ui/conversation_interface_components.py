@@ -609,7 +609,7 @@ export const MessageComposer = ({
         components_dir.mkdir(exist_ok=True)
 
         # Save React components
-        for component_name, component_data in self.conversation_components.items():
+        for _component_name, component_data in self.conversation_components.items():
 
             # Save React component
             react_file = components_dir / f"{component_data['component_type']}.jsx"

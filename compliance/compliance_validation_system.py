@@ -281,7 +281,7 @@ class ComplianceValidationSystem:
         self.assessment_results = []
 
         # Assess each control
-        for control_id, control in self.controls.items():
+        for _control_id, control in self.controls.items():
             assessment_result = await self._assess_compliance_control(control)
             self.assessment_results.append(assessment_result)
 
@@ -557,7 +557,7 @@ class ComplianceValidationSystem:
             return False
 
         # Check standard scores
-        for standard, score in metrics["standard_scores"].items():
+        for _standard, score in metrics["standard_scores"].items():
             if score < criteria["standard_score_threshold"]:
                 return False
 
@@ -695,7 +695,7 @@ if __name__ == "__main__":
 
         # Print summary
 
-        for standard, score in report["standard_compliance"].items():
+        for _standard, _score in report["standard_compliance"].items():
             pass
 
         report["compliance_distribution"]

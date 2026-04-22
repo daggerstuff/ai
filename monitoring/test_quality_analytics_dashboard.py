@@ -658,7 +658,7 @@ def run_comprehensive_test():
             json.dump(report, f, indent=2)
 
 
-        for detail in test_results["test_details"]:
+        for _detail in test_results["test_details"]:
             pass
 
 
