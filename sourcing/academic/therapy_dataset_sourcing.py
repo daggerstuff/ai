@@ -642,8 +642,7 @@ class TherapyDatasetSourcing:
         self.export_results(datasets)
 
         # Generate report
-        report = self.generate_report(datasets)
-        print(report)
+        self.generate_report(datasets)
 
         logger.info(
             f"✅ Pipeline complete! Found {len(datasets)} high-quality datasets"

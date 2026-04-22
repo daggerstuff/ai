@@ -37,10 +37,8 @@ def call_model(prompt, max_tokens=40):
                 content = content.split("<think>")[0].strip()
 
             return content.strip()
-        print(f"API Error: {response.status_code}")
         return ""
-    except Exception as e:
-        print(f"Error: {e}")
+    except Exception:
         return ""
 
 
@@ -76,27 +74,20 @@ def generate_crisis_content():
 
     dataset = []
 
-    print("Generating crisis training data...")
-    print("=" * 40)
 
     for i, (client_prompt, counselor_prompt) in enumerate(
-        zip(prompts, counselor_prompts)
+        zip(prompts, counselor_prompts, strict=False)
     ):
-        print(f"\nGenerating pair {i + 1}/10...")
 
         # Generate client message
-        print(f"Client prompt: '{client_prompt}'")
         client_response = call_model(client_prompt, 50)
 
         if client_response:
-            print(f"Client: {client_response}")
 
             # Generate counselor response
-            print(f"Counselor prompt: '{counselor_prompt}'")
             counselor_response = call_model(counselor_prompt, 50)
 
             if counselor_response:
-                print(f"Counselor: {counselor_response}")
 
                 # Save the pair
                 pair = {
@@ -109,11 +100,10 @@ def generate_crisis_content():
                 }
 
                 dataset.append(pair)
-                print("✅ Pair saved")
             else:
-                print("❌ Counselor response failed")
+                pass
         else:
-            print("❌ Client response failed")
+            pass
 
         # Pause between requests
         time.sleep(5)
@@ -125,8 +115,6 @@ def generate_crisis_content():
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(dataset, f, indent=2, ensure_ascii=False)
 
-    print(f"\n🎉 Dataset saved to: {filename}")
-    print(f"Generated {len(dataset)} crisis conversation pairs")
 
     return dataset
 

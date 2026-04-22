@@ -48,7 +48,6 @@ class OpenAIDriver(LLMDriver):
     """
 
     def __init__(self):
-        pass
 
 
         # Load config from env or defaults

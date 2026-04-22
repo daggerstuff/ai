@@ -83,7 +83,6 @@ async def create_reflection_subagent(
 
 async def main():
     """Example usage."""
-    print("Creating reflection subagent with Nvidia NIM...")
 
     subagent = await create_reflection_subagent(
         trigger=ReflectionTrigger.STEP_COUNT,
@@ -96,22 +95,16 @@ async def main():
     User: Forgetting my lines or being judged.
     """
 
-    print("Analyzing conversation...")
     result = await subagent.analyze_conversation(
         conversation_text=conversation,
         user_id="user-123",
     )
 
-    print(f"Crisis detected: {result.crisis_detected}")
-    print(f"Requires review: {result.requires_manual_review}")
-    print(f"Memories to preserve: {result.memories_preserved}")
 
     if not result.crisis_detected:
-        print("Consolidating memories...")
-        stats = await subagent.consolidate_memories("user-123", result)
-        print(f"Stats: {stats}")
+        await subagent.consolidate_memories("user-123", result)
     else:
-        print("Crisis detected - skipping consolidation")
+        pass
 
 
 if __name__ == "__main__":

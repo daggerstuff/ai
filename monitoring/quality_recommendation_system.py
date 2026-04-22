@@ -122,7 +122,6 @@ class QualityRecommendationSystem:
 
     def generate_quality_recommendations(self) -> RecommendationPlan:
         """Generate comprehensive quality recommendations"""
-        print("🎯 Generating quality recommendations...")
 
         try:
             # Analyze current quality state
@@ -154,11 +153,9 @@ class QualityRecommendationSystem:
                 review_schedule=review_schedule
             )
 
-            print(f"✅ Generated {len(recommendations)} quality recommendations")
             return plan
 
-        except Exception as e:
-            print(f"❌ Error generating recommendations: {e}")
+        except Exception:
             return RecommendationPlan(
                 plan_id="ERROR",
                 generated_at=datetime.now(timezone.utc),
@@ -218,8 +215,7 @@ class QualityRecommendationSystem:
 
             return analysis
 
-        except Exception as e:
-            print(f"❌ Error analyzing quality state: {e}")
+        except Exception:
             return {}
 
     def _get_synthetic_quality_data(self) -> dict[str, dict[str, float]]:
@@ -295,8 +291,7 @@ class QualityRecommendationSystem:
 
             return recommendations
 
-        except Exception as e:
-            print(f"❌ Error generating recommendations: {e}")
+        except Exception:
             return []
 
     def _create_metric_recommendation(self, metric: str, status: str, performance: dict[str, Any]) -> QualityRecommendation | None:
@@ -362,8 +357,7 @@ class QualityRecommendationSystem:
             )
 
 
-        except Exception as e:
-            print(f"❌ Error creating recommendation for {metric}: {e}")
+        except Exception:
             return None
 
     def _generate_generic_recommendation(self, metric: str, status: str) -> dict[str, Any]:
@@ -429,8 +423,7 @@ class QualityRecommendationSystem:
 
             return strategic_recs
 
-        except Exception as e:
-            print(f"❌ Error generating strategic recommendations: {e}")
+        except Exception:
             return []
 
     def _generate_operational_recommendations(self, _quality_analysis: dict[str, Any]) -> list[QualityRecommendation]:
@@ -475,8 +468,7 @@ class QualityRecommendationSystem:
 
             return operational_recs
 
-        except Exception as e:
-            print(f"❌ Error generating operational recommendations: {e}")
+        except Exception:
             return []
 
     def _create_implementation_roadmap(self, recommendations: list[QualityRecommendation]) -> dict[str, list[str]]:
@@ -538,7 +530,6 @@ class QualityRecommendationSystem:
 
     def export_recommendation_plan(self, plan: RecommendationPlan) -> str:
         """Export comprehensive recommendation plan"""
-        print("📄 Exporting recommendation plan...")
 
         try:
             timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -587,17 +578,13 @@ class QualityRecommendationSystem:
             with open(report_file, "w") as f:
                 json.dump(export_data, f, indent=2, default=str)
 
-            print(f"✅ Exported recommendation plan to: {report_file}")
             return str(report_file)
 
-        except Exception as e:
-            print(f"❌ Error exporting recommendation plan: {e}")
+        except Exception:
             return ""
 
 def main():
     """Main execution function"""
-    print("🎯 Quality Recommendation System")
-    print("=" * 40)
 
     # Initialize system
     system = QualityRecommendationSystem()
@@ -606,31 +593,21 @@ def main():
     plan = system.generate_quality_recommendations()
 
     if not plan.recommendations:
-        print("❌ No recommendations generated")
         return
 
     # Export plan
-    report_file = system.export_recommendation_plan(plan)
+    system.export_recommendation_plan(plan)
 
     # Display summary
-    print("\n✅ Recommendation Plan Complete")
-    print(f"   - Total recommendations: {len(plan.recommendations)}")
-    print(f"   - Critical priority: {len([r for r in plan.recommendations if r.priority == 'critical'])}")
-    print(f"   - High priority: {len([r for r in plan.recommendations if r.priority == 'high'])}")
-    print(f"   - Plan saved: {report_file}")
 
     # Show top recommendations
-    print("\n🎯 Top Recommendations:")
     for rec in plan.recommendations[:5]:  # Top 5
-        priority_icon = "🔴" if rec.priority == "critical" else "🟠" if rec.priority == "high" else "🟡" if rec.priority == "medium" else "🔵"
-        print(f"   {priority_icon} {rec.title} ({rec.timeline_days} days)")
-        print(f"      {rec.description[:80]}...")
+        pass
 
     # Show implementation roadmap
-    print("\n📅 Implementation Roadmap:")
     for category, items in plan.implementation_roadmap.items():
         if items:
-            print(f"   {category.replace('_', ' ').title()}: {len(items)} recommendations")
+            pass
 
 if __name__ == "__main__":
     main()

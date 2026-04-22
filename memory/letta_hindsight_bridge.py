@@ -175,7 +175,6 @@ class LettaHindsightBridge:
     def _init_hindsight_manager(self):
         """Initialize the local shared-memory manager."""
         try:
-            pass
             return HindsightMemoryManager(
                 bank_id=self.config.hindsight_bank_id,
                 db_path=self.config.hindsight_db_path,

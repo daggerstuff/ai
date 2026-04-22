@@ -86,7 +86,6 @@ class LoRAFormatConverter:
 
         # Process each training file
         for training_file in input_dir.glob("training_*.json"):
-            print(f"Processing {training_file.name}...")
 
             with open(training_file, encoding="utf-8") as f:
                 training_pairs = json.load(f)
@@ -200,7 +199,6 @@ def main():
     input_dir = Path("/root/pixelated/ai/data/lora_training")
     output_dir = Path("/root/pixelated/ai/data/lightning_h100")
 
-    print("Converting training pairs to Lightning.ai H100 LoRA format...")
 
     # Process all training files
     stats = converter.process_training_files(input_dir, output_dir)
@@ -208,18 +206,10 @@ def main():
     # Create configuration file
     converter.create_config_file(output_dir, stats)
 
-    print("\nConversion complete!")
-    print(f"Total conversations: {stats['total_pairs']}")
-    print(f"Training set: {stats['train_size']} conversations")
-    print(f"Validation set: {stats['val_size']} conversations")
-    print("\nExpert distribution:")
     for style, count in stats["by_style"].items():
-        print(f"  {style}: {count} conversations")
-    print("\nQuality distribution:")
+        pass
     for quality, count in stats["by_quality"].items():
-        print(f"  {quality}: {count} conversations")
-    print(f"\nOutput directory: {output_dir}")
-    print("Ready for Lightning.ai H100 training!")
+        pass
 
 if __name__ == "__main__":
     main()

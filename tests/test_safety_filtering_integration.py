@@ -11,6 +11,7 @@ from unittest.mock import patch
 # Import our modules
 from ai.inference.inference_api import UserTier, api_key_manager, app, safety_filtered_endpoint
 from ai.safety.enhanced_safety_filter import CrisisDetectionResult, EnhancedSafetyFilter, SafetyCheckResult, SafetyLevel
+import contextlib
 
 logger = logging.getLogger(__name__)
 
@@ -513,9 +514,6 @@ def benchmark_safety_filtering():
     total_time = end_time - start_time
     avg_time_per_check = total_time / num_iterations * 1000  # Convert to milliseconds
 
-    print("Safety filtering benchmark:")
-    print(f"  Average time per check: {avg_time_per_check:.2f}ms")
-    print(f"  Checks per second: {1000 / avg_time_per_check:.0f}")
 
     # Should be reasonably fast (under 100ms per check)
     assert avg_time_per_check < 100.0
@@ -524,7 +522,6 @@ def benchmark_safety_filtering():
 # Main test runner
 def run_safety_filtering_tests():
     """Run all safety filtering integration tests"""
-    print("Running Safety Filtering Integration Tests...")
 
     # Run unit tests
     test_suite = unittest.TestLoader().loadTestsFromModule(__name__)
@@ -532,40 +529,27 @@ def run_safety_filtering_tests():
     result = runner.run(test_suite)
 
     # Run pytest-style tests
-    print("\nRunning Pytest-style Tests...")
     try:
         test_safety_filter_decorator()
         test_crisis_intervention_integration()
-        print("Pytest-style tests completed successfully")
-    except Exception as e:
-        print(f"Pytest-style tests failed: {e}")
+    except Exception:
+        pass
 
     # Run performance benchmarks
-    print("\nRunning Performance Benchmarks...")
-    try:
+    with contextlib.suppress(Exception):
         benchmark_safety_filtering()
-        print("Performance benchmarks completed successfully")
-    except Exception as e:
-        print(f"Performance benchmarks failed: {e}")
 
     # Summary
-    print("\nTest Results Summary:")
-    print(f"  Tests run: {result.testsRun}")
-    print(f"  Failures: {len(result.failures)}")
-    print(f"  Errors: {len(result.errors)}")
 
     if result.failures:
-        print("\nFailures:")
         for test, traceback in result.failures:
-            print(f"  {test}: {traceback}")
+            pass
 
     if result.errors:
-        print("\nErrors:")
         for test, traceback in result.errors:
-            print(f"  {test}: {traceback}")
+            pass
 
     success = result.wasSuccessful()
-    print(f"\nOverall Test Status: {'✅ PASSED' if success else '❌ FAILED'}")
 
     return success
 

@@ -327,14 +327,14 @@ class EnterpriseSafetyAccuracyValidator:
                 true_labels.append(scenario.expected_detection)
 
         # Calculate core metrics
-        correct_predictions = sum(1 for p, t in zip(predictions, true_labels) if p == t)
+        correct_predictions = sum(1 for p, t in zip(predictions, true_labels, strict=False) if p == t)
         overall_accuracy = (correct_predictions / len(true_labels)) * 100
 
         # Calculate confusion matrix components
-        tp = sum(1 for p, t in zip(predictions, true_labels) if p and t)
-        tn = sum(1 for p, t in zip(predictions, true_labels) if not p and not t)
-        fp = sum(1 for p, t in zip(predictions, true_labels) if p and not t)
-        fn = sum(1 for p, t in zip(predictions, true_labels) if not p and t)
+        tp = sum(1 for p, t in zip(predictions, true_labels, strict=False) if p and t)
+        tn = sum(1 for p, t in zip(predictions, true_labels, strict=False) if not p and not t)
+        fp = sum(1 for p, t in zip(predictions, true_labels, strict=False) if p and not t)
+        fn = sum(1 for p, t in zip(predictions, true_labels, strict=False) if not p and t)
 
         # Calculate metrics
         precision = tp / (tp + fp) if (tp + fp) > 0 else 0
@@ -451,7 +451,7 @@ class EnterpriseSafetyAccuracyValidator:
             if demo_indices:
                 demo_true = [true_labels[i] for i in demo_indices]
                 demo_pred = [predictions[i] for i in demo_indices]
-                demo_correct = sum(1 for p, t in zip(demo_pred, demo_true) if p == t)
+                demo_correct = sum(1 for p, t in zip(demo_pred, demo_true, strict=False) if p == t)
                 demo_accuracy = (demo_correct / len(demo_true)) * 100
                 bias_scores[demographic] = demo_accuracy
 
@@ -682,27 +682,14 @@ async def main():
     result = await validator.validate_safety_accuracy(example_model_predictor)
 
     # Save results
-    json_path, report_path = validator.save_validation_results(result)
+    _json_path, _report_path = validator.save_validation_results(result)
 
     # Print summary
-    print(f"\n{'='*60}")
-    print("ENTERPRISE SAFETY ACCURACY VALIDATION COMPLETE")
-    print(f"{'='*60}")
-    print(f"Overall Accuracy: {result.overall_accuracy:.2f}%")
-    print(f"Target: {validator.target_accuracy}%")
-    print(f"Status: {'✅ PASSED' if result.overall_accuracy >= validator.target_accuracy else '❌ FAILED'}")
-    print(f"Gap Closed: {result.gap_analysis['gap_closed']:.2f}%")
-    print(f"Gap Remaining: {result.gap_analysis['accuracy_gap_remaining']:.2f}%")
-    print(f"Results saved to: {json_path}")
-    print(f"Report saved to: {report_path}")
-    print(f"{'='*60}")
 
     # Show critical issues if any
     if result.gap_analysis["critical_issues"]:
-        print("\n🚨 CRITICAL ISSUES IDENTIFIED:")
         for issue in result.gap_analysis["critical_issues"]:
-            print(f"   - {issue}")
-        print()
+            pass
 
 if __name__ == "__main__":
     asyncio.run(main())

@@ -69,16 +69,12 @@ class QualityTrendAnalyzer:
         self, period: str = "weekly", days_back: int = 90
     ) -> dict[str, QualityTrend]:
         """Analyze quality trends over specified period"""
-        print(
-            f"🔍 Analyzing quality trends for {period} period over {days_back} days..."
-        )
 
         try:
             # Get conversation data from database
             conversation_data = self._get_conversation_data(days_back)
 
             if not conversation_data:
-                print("⚠️ No conversation data found for trend analysis")
                 return {}
 
             # Group data by period
@@ -91,11 +87,9 @@ class QualityTrendAnalyzer:
                 if trend:
                     trends[metric] = trend
 
-            print(f"✅ Analyzed trends for {len(trends)} quality metrics")
             return trends
 
-        except Exception as e:
-            print(f"❌ Error analyzing quality trends: {e}")
+        except Exception:
             return {}
 
     def _get_conversation_data(self, days_back: int) -> list[dict]:
@@ -128,15 +122,14 @@ class QualityTrendAnalyzer:
 
             data = []
             for row in cursor.fetchall():
-                record = dict(zip(columns, row))
+                record = dict(zip(columns, row, strict=False))
                 record["created_at"] = datetime.fromisoformat(record["created_at"])
                 data.append(record)
 
             conn.close()
             return data
 
-        except Exception as e:
-            print(f"❌ Error getting conversation data: {e}")
+        except Exception:
             return []
 
     def _group_by_period(self, data: list[dict], period: str) -> dict[str, list[dict]]:
@@ -203,8 +196,7 @@ class QualityTrendAnalyzer:
                 statistical_significance=p_value,
             )
 
-        except Exception as e:
-            print(f"❌ Error analyzing trend for {metric}: {e}")
+        except Exception:
             return None
 
     def _calculate_metric_value(
@@ -255,8 +247,7 @@ class QualityTrendAnalyzer:
 
             return None
 
-        except Exception as e:
-            print(f"❌ Error calculating {metric}: {e}")
+        except Exception:
             return None
 
     def _calculate_trend_statistics(
@@ -268,7 +259,7 @@ class QualityTrendAnalyzer:
             y = np.array(values)
 
             # Linear regression
-            slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
+            slope, _intercept, r_value, p_value, _std_err = stats.linregress(x, y)
 
             # Determine trend direction
             if abs(slope) < 0.001:  # Very small slope
@@ -283,15 +274,13 @@ class QualityTrendAnalyzer:
 
             return direction, strength, p_value
 
-        except Exception as e:
-            print(f"❌ Error calculating trend statistics: {e}")
+        except Exception:
             return "unknown", 0.0, 1.0
 
     def generate_trend_report(
         self, trends: dict[str, QualityTrend], period: str = "weekly"
     ) -> TrendReport:
         """Generate comprehensive trend report"""
-        print(f"📊 Generating trend report for {period} analysis...")
 
         try:
             # Overall trend assessment
@@ -318,13 +307,9 @@ class QualityTrendAnalyzer:
                 statistical_tests=statistical_tests,
             )
 
-            print(
-                f"✅ Generated comprehensive trend report with {len(insights)} insights"
-            )
             return report
 
-        except Exception as e:
-            print(f"❌ Error generating trend report: {e}")
+        except Exception:
             return TrendReport(
                 period=period,
                 overall_trend="unknown",
@@ -535,8 +520,6 @@ class QualityTrendAnalyzer:
 
 def main():
     """Main execution function"""
-    print("🔍 Quality Trend Analysis and Reporting System (Fixed)")
-    print("=" * 55)
 
     # Initialize analyzer
     analyzer = QualityTrendAnalyzer()
@@ -545,35 +528,26 @@ def main():
     periods = ["daily", "weekly"]
 
     for period in periods:
-        print(f"\n📊 Analyzing {period} trends...")
 
         # Analyze trends
         trends = analyzer.analyze_quality_trends(period=period, days_back=30)
 
         if not trends:
-            print(f"⚠️ No trend data available for {period} analysis")
             continue
 
         # Generate report
         report = analyzer.generate_trend_report(trends, period)
 
-        print(f"✅ {period.title()} trend analysis complete")
-        print(f"   - Trends analyzed: {len(trends)}")
-        print(f"   - Overall trend: {report.overall_trend}")
-        print(f"   - Key insights: {len(report.key_insights)}")
-        print(f"   - Recommendations: {len(report.recommendations)}")
 
         # Show key insights
         if report.key_insights:
-            print("\n🔍 Key Insights:")
             for insight in report.key_insights[:3]:
-                print(f"   • {insight}")
+                pass
 
         # Show recommendations
         if report.recommendations:
-            print("\n💡 Recommendations:")
             for rec in report.recommendations[:3]:
-                print(f"   • {rec}")
+                pass
 
 
 if __name__ == "__main__":

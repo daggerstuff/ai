@@ -11,8 +11,8 @@ This module provides memory management tools with:
 from __future__ import annotations
 
 import json
-from enum import Enum
-from typing import Any, Optional
+from enum import StrEnum
+from typing import Optional
 
 from fastmcp import FastMCP
 from pydantic import BaseModel, ConfigDict, Field
@@ -36,7 +36,7 @@ from .fastmcp_store import (
 # Enums
 # =============================================================================
 
-class ResponseFormat(str, Enum):
+class ResponseFormat(StrEnum):
     """Output format for tool responses."""
     MARKDOWN = "markdown"
     JSON = "json"

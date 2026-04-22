@@ -342,7 +342,6 @@ class TestResearchOrchestrator:
         assert target_info["remaining"] == 2
 
     def test_exponential_backoff_in_retry_logic(self, sample_sources):
-        pass
 
         config = OrchestratorConfig(
             max_retries=3,

@@ -341,4 +341,3 @@ if __name__ == "__main__":
         f.write(report)
 
     logger.info(f"📋 Coverage improvement report saved: {report_path}")
-    print(report)

@@ -34,18 +34,12 @@ def cmd_discover(args):
     setup_logging(args.verbose)
 
     if not args.api_key:
-        print("Error: YouTube API key required. Use --api-key or set YOUTUBE_API_KEY environment variable.")
         return 1
 
-    print("Starting channel discovery...")
-    print(f"  Target channels: {args.channels}")
-    print(f"  Min subscribers: {args.min_subscribers:,}")
-    print(f"  Min videos: {args.min_videos}")
-    print(f"  Output: {args.output}\n")
 
     if args.verbose:
         def progress_callback(percent, step):
-            print(f"  [{percent*100:5.1f}%] {step}")
+            pass
     else:
         def progress_callback(percent, step):
             # No output during progress to keep it clean
@@ -59,46 +53,20 @@ def cmd_discover(args):
             progress_callback=progress_callback,
         )
 
-        print(f"\n{'-'*60}")
-        print("Discovery Complete!")
-        print(f"{'-'*60}")
-        print("\nResults:")
-        print(f"  Qualified: {len(results.qualified_channels)} / {args.channels} target")
-        print(f"  Rejected: {len(results.rejected_channels)}")
-        print(f"  Total evaluated: {len(results.found_channels)}")
-        print(f"  Languages: {len(results.languages)}")
-        print(f"  Categories: {len(results.categories)}")
-        print("\n  Statistics:")
-        print(f"    Total subscribers: {results.total_subscribers:,}")
-        print(f"    Total videos: {results.total_videos:,}")
-        print(f"    Professional sources: {results.professional_count}")
 
         if args.report:
             report_path = Path(args.report)
             report_path.write_text(report)
-            print(f"\nReport saved to: {report_path}")
 
         # Show top 5 channels
         if results.qualified_channels:
-            print(f"\n{'-'*60}")
-            print("Top 5 Qualified Channels:")
-            print(f"{'-'*60}")
             for i, channel in enumerate(results.qualified_channels[:5]):
-                cats = ", ".join([c.value for c in channel.categories])
-                print(f"{i+1}. {channel.channel_name}")
-                print(f"   URL: {channel.channel_url}")
-                print(f"   Quality: {channel.quality_score:.2f} | "
-                      f"Subs: {channel.subscriber_count:,} | "
-                      f"Videos: {channel.video_count:,}")
-                print(f"   Categories: {cats}")
-                print(f"   Professional: {'Yes' if channel.is_professional else 'No'}")
-                print()
+                ", ".join([c.value for c in channel.categories])
 
         return 0
 
     except Exception as e:
         logger.error(f"Discovery failed: {e}", exc_info=args.verbose)
-        print(f"Error: {e}")
         return 1
 
 
@@ -107,10 +75,8 @@ def cmd_check(args):
     setup_logging(args.verbose)
 
     if not args.channel_id:
-        print("Error: --channel-id required")
         return 1
 
-    print(f"Checking channel health: {args.channel_id}\n")
 
     # Create a minimal channel object for checking
     # In practice, you'd fetch actual channel data
@@ -122,18 +88,12 @@ def cmd_check(args):
 
     result = health_check_channel(channel)
 
-    print(f"Status: {result['status']}")
-    print(f"Activity Status: {result['activity_status']}")
-    print(f"Health Score: {result['health_score']:.2f}")
-    print(f"Quality Score: {result['quality_score']:.2f}")
-    print("\nNotes:")
     for note in result["notes"]:
-        print(f"  • {note}")
+        pass
 
     if result["alerts"]:
-        print("\nAlerts:")
         for alert in result["alerts"]:
-            print(f"  [{alert['severity'].upper()}] {alert['name']}: {alert['description']}")
+            pass
 
     return 0
 
@@ -143,15 +103,12 @@ def cmd_import(args):
     setup_logging(args.verbose)
 
     if not args.input:
-        print("Error: --input required")
         return 1
 
     input_path = Path(args.input)
     if not input_path.exists():
-        print(f"Error: File not found: {args.input}")
         return 1
 
-    print(f"Importing channels from {input_path}\n")
 
     with open(input_path) as f:
         channels_data = json.load(f)
@@ -175,10 +132,6 @@ def cmd_import(args):
 
         registry.add_channel(channel)
 
-    print(f"{'-'*60}")
-    print("Import Complete!")
-    print(f"{'-'*60}")
-    print(registry.summary())
 
     return 0
 
@@ -191,28 +144,21 @@ def cmd_list(args):
         # Try default location
         registry_path = Path("qualified_channels.json")
         if not registry_path.exists():
-            print("Error: Registry file not found. Use --registry or ensure qualified_channels.json exists.")
             return 1
     else:
         registry_path = Path(args.registry)
 
-    print(f"Loading registry from: {registry_path}\n")
 
     with open(registry_path) as f:
         channels_data = json.load(f)
 
-    print(f"{" #":<4} {"Channel":<40} {"Quality":<8} {"Subs":<12} {"Videos":<8} {"License"}")
-    print("-" * 100)
 
     for i, data in enumerate(channels_data):
         # Get licensing info
         lic = data.get("licensing", {})
-        lic_status = "CC" if lic and lic.get("cc_license") else "Unknown"
+        "CC" if lic and lic.get("cc_license") else "Unknown"
 
-        print(f"{i+1:<4} {data['channel_name']:<40} {data['quality_score']:<8.2f} "
-              f"{data['subscriber_count']:<12,} {data['video_count']:<8,} {lic_status}")
 
-    print(f"\nTotal: {len(channels_data)} channels")
 
     return 0
 

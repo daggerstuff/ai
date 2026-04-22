@@ -678,34 +678,14 @@ if __name__ == "__main__":
         report = await phase4_system.run_final_production_validation()
 
         # Print summary
-        print(f"\n{'='*60}")
-        print("PHASE 4: FINAL INTEGRATION & PRODUCTION VALIDATION REPORT")
-        print(f"{'='*60}")
-        print(f"Overall Production Score: {report['phase4_final_summary']['overall_production_score']}%")
-        print(f"Production Readiness: {report['phase4_final_summary']['production_readiness'].upper()}")
-        print(f"Deployment Approved: {'YES' if report['phase4_final_summary']['deployment_approved'] else 'NO'}")
-        print(f"Final Status: {report['phase4_final_summary']['final_status']}")
 
-        print("\nTask Validation Results:")
         for task_id, result in report["task_validation_results"].items():
-            print(f"  Task {task_id}: {result['score']:.1f}% - {result['status'].upper()}")
+            pass
 
-        print("\nFinal Production Metrics:")
-        metrics = report["final_production_metrics"]
-        print(f"  Safety Systems: {metrics['safety_systems_score']:.1f}%")
-        print(f"  Test Coverage: {metrics['test_coverage_score']:.1f}%")
-        print(f"  Deployment Procedures: {metrics['deployment_procedures_score']:.1f}%")
-        print(f"  Go-Live Preparation: {metrics['go_live_preparation_score']:.1f}%")
-        print(f"  Enterprise Audit: {metrics['enterprise_audit_score']:.1f}%")
-        print(f"  Weighted Enterprise Score: {metrics['weighted_enterprise_score']:.1f}%")
+        report["final_production_metrics"]
 
         if report["phase4_final_summary"]["deployment_approved"]:
-            approval = report["deployment_approval"]
-            print("\n🎉 DEPLOYMENT APPROVAL:")
-            print(f"  Approved: {approval['approved']}")
-            print(f"  Approval Date: {approval['approval_date']}")
-            print(f"  Valid For: {approval['valid_for']}")
-            print(f"  Approved By: {approval['approved_by']}")
+            report["deployment_approval"]
 
         # Save report
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -713,6 +693,5 @@ if __name__ == "__main__":
         with open(report_file, "w") as f:
             json.dump(report, f, indent=2, default=str)
 
-        print(f"\nDetailed report saved to: {report_file}")
 
     asyncio.run(main())

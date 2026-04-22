@@ -154,7 +154,6 @@ class TestLargeDatasetLoading(PerformanceTestBase):
 
     def test_load_10k_conversations(self):
         """Test loading 10,000 conversations"""
-        print("📊 Testing 10K conversation loading performance...")
 
         # Create test database
         db_path = self.create_large_test_database(10000)
@@ -176,15 +175,12 @@ class TestLargeDatasetLoading(PerformanceTestBase):
             assert perf_metrics["execution_time"] < 10.0, "Loading should complete within 10 seconds"
             assert perf_metrics["memory_delta_mb"] < 500, "Memory usage should be under 500MB"
 
-            print(f"  ✅ Loaded 10K conversations in {perf_metrics['execution_time']:.2f}s")
-            print(f"  ✅ Memory usage: {perf_metrics['memory_delta_mb']:.1f}MB")
 
         finally:
             os.unlink(db_path)
 
     def test_load_50k_conversations(self):
         """Test loading 50,000 conversations"""
-        print("📊 Testing 50K conversation loading performance...")
 
         # Create larger test database
         db_path = self.create_large_test_database(50000)
@@ -216,15 +212,12 @@ class TestLargeDatasetLoading(PerformanceTestBase):
             assert perf_metrics["execution_time"] < 30.0, "Loading should complete within 30 seconds"
             assert perf_metrics["memory_delta_mb"] < 1000, "Memory usage should be under 1GB"
 
-            print(f"  ✅ Loaded 50K conversations in {perf_metrics['execution_time']:.2f}s")
-            print(f"  ✅ Memory usage: {perf_metrics['memory_delta_mb']:.1f}MB")
 
         finally:
             os.unlink(db_path)
 
     def test_streaming_data_processing(self):
         """Test streaming data processing for memory efficiency"""
-        print("📊 Testing streaming data processing...")
 
         db_path = self.create_large_test_database(25000)
 
@@ -261,8 +254,6 @@ class TestLargeDatasetLoading(PerformanceTestBase):
             assert perf_metrics["execution_time"] < 20.0, "Streaming processing should be efficient"
             assert perf_metrics["memory_delta_mb"] < 300, "Streaming should use less memory"
 
-            print(f"  ✅ Processed 25K conversations in {perf_metrics['execution_time']:.2f}s")
-            print(f"  ✅ Memory usage: {perf_metrics['memory_delta_mb']:.1f}MB")
 
         finally:
             os.unlink(db_path)
@@ -272,7 +263,6 @@ class TestAnalyticsPerformance(PerformanceTestBase):
 
     def test_aggregation_performance(self):
         """Test performance of data aggregation operations"""
-        print("📊 Testing aggregation performance...")
 
         # Create large dataset in memory
         np.random.seed(42)
@@ -321,12 +311,9 @@ class TestAnalyticsPerformance(PerformanceTestBase):
         assert perf_metrics["execution_time"] < 5.0, "Aggregations should complete quickly"
         assert perf_metrics["memory_delta_mb"] < 200, "Aggregations should be memory efficient"
 
-        print(f"  ✅ Aggregated 20K records in {perf_metrics['execution_time']:.2f}s")
-        print(f"  ✅ Memory usage: {perf_metrics['memory_delta_mb']:.1f}MB")
 
     def test_statistical_analysis_performance(self):
         """Test performance of statistical analysis operations"""
-        print("📊 Testing statistical analysis performance...")
 
         # Create large dataset for statistical analysis
         np.random.seed(42)
@@ -376,12 +363,9 @@ class TestAnalyticsPerformance(PerformanceTestBase):
         assert perf_metrics["execution_time"] < 3.0, "Statistical analysis should be fast"
         assert perf_metrics["memory_delta_mb"] < 150, "Statistical analysis should be memory efficient"
 
-        print(f"  ✅ Analyzed 15K records in {perf_metrics['execution_time']:.2f}s")
-        print(f"  ✅ Memory usage: {perf_metrics['memory_delta_mb']:.1f}MB")
 
     def test_machine_learning_performance(self):
         """Test performance of machine learning operations"""
-        print("📊 Testing ML model performance...")
 
         # Create dataset for ML testing
         np.random.seed(42)
@@ -392,7 +376,6 @@ class TestAnalyticsPerformance(PerformanceTestBase):
         y = np.random.randn(n_samples)
 
         def train_and_evaluate_model():
-            pass
 
             # Split data
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -428,23 +411,18 @@ class TestAnalyticsPerformance(PerformanceTestBase):
         assert perf_metrics["execution_time"] < 15.0, "ML training should complete within reasonable time"
         assert perf_metrics["memory_delta_mb"] < 300, "ML training should manage memory well"
 
-        print(f"  ✅ Trained ML model on 10K samples in {perf_metrics['execution_time']:.2f}s")
-        print(f"  ✅ Memory usage: {perf_metrics['memory_delta_mb']:.1f}MB")
-        print(f"  ✅ Model R² score: {result['r2_score']:.3f}")
 
 class TestScalabilityLimits(PerformanceTestBase):
     """Test system scalability limits"""
 
     def test_memory_scalability(self):
         """Test memory usage scalability"""
-        print("📊 Testing memory scalability...")
 
         dataset_sizes = [1000, 5000, 10000, 20000]
         memory_usage = []
         processing_times = []
 
         for size in dataset_sizes:
-            print(f"  Testing with {size} conversations...")
 
             # Create dataset
             df = pd.DataFrame({
@@ -473,8 +451,6 @@ class TestScalabilityLimits(PerformanceTestBase):
         memory_growth_rate = (memory_usage[-1] - memory_usage[0]) / (dataset_sizes[-1] - dataset_sizes[0])
         time_growth_rate = (processing_times[-1] - processing_times[0]) / (dataset_sizes[-1] - dataset_sizes[0])
 
-        print(f"  ✅ Memory growth rate: {memory_growth_rate:.4f} MB per 1K conversations")
-        print(f"  ✅ Time growth rate: {time_growth_rate:.6f} seconds per 1K conversations")
 
         # Scalability assertions
         assert memory_growth_rate < 10.0, "Memory growth should be reasonable"
@@ -482,7 +458,6 @@ class TestScalabilityLimits(PerformanceTestBase):
 
     def test_concurrent_processing_simulation(self):
         """Test concurrent processing simulation"""
-        print("📊 Testing concurrent processing simulation...")
 
 
         def worker_function(work_queue, result_queue):
@@ -551,13 +526,9 @@ class TestScalabilityLimits(PerformanceTestBase):
         # Performance assertions
         assert perf_metrics["execution_time"] < 10.0, "Concurrent processing should be efficient"
 
-        print(f"  ✅ Processed 20 tasks concurrently in {perf_metrics['execution_time']:.2f}s")
-        print(f"  ✅ Memory usage: {perf_metrics['memory_delta_mb']:.1f}MB")
 
 def run_performance_tests():
     """Run all performance tests and return results"""
-    print("⚡ Running Performance Tests for Large Dataset Processing")
-    print("=" * 70)
 
     # Create test suite
     test_suite = unittest.TestSuite()
@@ -578,34 +549,17 @@ def run_performance_tests():
     result = runner.run(test_suite)
 
     # Print summary
-    print("\n" + "=" * 70)
-    print("⚡ Performance Test Results Summary:")
-    print(f"  • Tests Run: {result.testsRun}")
-    print(f"  • Failures: {len(result.failures)}")
-    print(f"  • Errors: {len(result.errors)}")
-    print(f"  • Success Rate: {((result.testsRun - len(result.failures) - len(result.errors)) / result.testsRun * 100):.1f}%")
 
     if result.failures:
-        print(f"\n❌ Failures ({len(result.failures)}):")
         for test, traceback in result.failures:
-            error_msg = traceback.split("AssertionError: ")[-1].split("\n")[0] if "AssertionError:" in traceback else "Unknown failure"
-            print(f"  • {test}: {error_msg}")
+            traceback.split("AssertionError: ")[-1].split("\n")[0] if "AssertionError:" in traceback else "Unknown failure"
 
     if result.errors:
-        print(f"\n🚨 Errors ({len(result.errors)}):")
         for test, traceback in result.errors:
-            error_msg = traceback.split("\n")[-2] if traceback else "Unknown error"
-            print(f"  • {test}: {error_msg}")
+            traceback.split("\n")[-2] if traceback else "Unknown error"
 
     if not result.failures and not result.errors:
-        print("\n✅ All performance tests passed successfully!")
-        print("🎉 System performs well with large datasets!")
-        print("\n📊 Performance Highlights:")
-        print("  • Large dataset loading: Optimized and efficient")
-        print("  • Analytics operations: Fast and memory-efficient")
-        print("  • ML model training: Scalable and performant")
-        print("  • Memory usage: Well-managed and predictable")
-        print("  • Concurrent processing: Efficient and stable")
+        pass
 
     return result
 

@@ -9,13 +9,13 @@ Defines request/response schemas for embedding operations including:
 """
 
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
 
-class EmbeddingModel(str, Enum):
+class EmbeddingModel(StrEnum):
     """Supported embedding models."""
 
     MINILM_L6_V2 = "all-MiniLM-L6-v2"
@@ -26,7 +26,7 @@ class EmbeddingModel(str, Enum):
     CLINICAL_BERT = "emilyalsentzer/Bio_ClinicalBERT"
 
 
-class KnowledgeType(str, Enum):
+class KnowledgeType(StrEnum):
     """Types of knowledge for categorization."""
 
     DSM5 = "dsm5"

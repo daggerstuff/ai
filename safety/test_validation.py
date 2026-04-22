@@ -54,14 +54,10 @@ def test_validation():
     try:
         pass
     except ImportError:
-        print("❌ Cannot import dataset_validation module")
-        print("   Make sure ai/safety/dataset_validation.py exists")
         return False
 
     validator = DatasetValidator(strict_mode=False)
 
-    print("🧪 Testing Dataset Validation Module\n")
-    print("=" * 60)
 
     results = {"passed": 0, "failed": 0, "tests": []}
 
@@ -74,7 +70,6 @@ def test_validation():
 
         test_passed = is_valid == expected_valid
 
-        status = "✅ PASS" if test_passed else "❌ FAIL"
         results["tests"].append(
             {
                 "name": test_name,
@@ -89,28 +84,19 @@ def test_validation():
         else:
             results["failed"] += 1
 
-        print(f"\n{status} - {test_name}")
-        print(f"   Expected: {expected}")
-        print(f"   Actual: {'PASS' if is_valid else 'FAIL'}")
 
         if not is_valid:
             if result.errors:
-                print(f"   Errors: {', '.join(result.errors[:2])}")
+                pass
             if result.bias_indicators:
-                print(
-                    f"   Bias detected: {dict(list(result.bias_indicators.items())[:2])}"
-                )
+                pass
 
         if result.warnings:
-            print(f"   Warnings: {', '.join(result.warnings[:1])}")
+            pass
 
-    print("\n" + "=" * 60)
-    print(f"\n📊 Summary: {results['passed']}/{len(TEST_CASES)} tests passed")
 
     if results["failed"] > 0:
-        print(f"❌ {results['failed']} test(s) failed")
         return False
-    print("✅ All tests passed!")
     return True
 
 
@@ -119,11 +105,8 @@ def test_batch_validation():
     try:
         pass
     except ImportError:
-        print("❌ Cannot import dataset_validation module")
         return False
 
-    print("\n" + "=" * 60)
-    print("🧪 Testing Batch Validation\n")
 
     validator = DatasetValidator(strict_mode=False)
 
@@ -149,13 +132,9 @@ def test_batch_validation():
 
     result = validator.validate_batch(batch)
 
-    print(f"Total items: {result['total']}")
-    print(f"Valid items: {result['valid']}")
-    print(f"Invalid items: {result['invalid']}")
-    print(f"Pass rate: {result['pass_rate']:.1%}")
 
     if result["bias_summary"]:
-        print(f"Bias indicators found: {result['bias_summary']}")
+        pass
 
     return result["invalid"] == 1 and result["valid"] == 5
 
@@ -165,11 +144,8 @@ def test_file_validation():
     try:
         pass
     except ImportError:
-        print("❌ Cannot import validate_jsonl_file")
         return False
 
-    print("\n" + "=" * 60)
-    print("🧪 Testing JSONL File Validation\n")
 
     # Create test JSONL file
     test_file = Path("/tmp/test_validation.jsonl")
@@ -199,10 +175,6 @@ def test_file_validation():
 
     result = validate_jsonl_file(str(test_file), strict_mode=False)
 
-    print(f"Total cases: {result.get('total', 0)}")
-    print(f"Valid cases: {result.get('valid', 0)}")
-    print(f"Invalid cases: {result.get('invalid', 0)}")
-    print(f"Pass rate: {result.get('pass_rate', 0):.1%}")
 
     test_file.unlink()
 
@@ -211,7 +183,6 @@ def test_file_validation():
 
 def main():
     """Run all tests"""
-    print("\n🚀 Starting Validation Module Tests\n")
 
     all_passed = True
 
@@ -224,14 +195,8 @@ def main():
     if not test_file_validation():
         all_passed = False
 
-    print("\n" + "=" * 60)
     if all_passed:
-        print("\n✅ All validation tests passed!")
-        print("\nThe dataset validation module is working correctly.")
-        print("Ready to integrate with edge case pipeline.\n")
         return 0
-    print("\n❌ Some tests failed")
-    print("\nPlease check the validation module installation.\n")
     return 1
 
 

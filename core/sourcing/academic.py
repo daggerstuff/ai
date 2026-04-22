@@ -38,7 +38,7 @@ import time
 from contextlib import suppress
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
@@ -60,7 +60,7 @@ logger = logging.getLogger("academic_sourcing")
 # ============================================================================
 
 
-class SourceType(str, Enum):
+class SourceType(StrEnum):
     """Supported academic data sources."""
 
     PUBMED = "pubmed"
@@ -70,7 +70,7 @@ class SourceType(str, Enum):
     LOCAL_PDF = "local_pdf"
 
 
-class StudyType(str, Enum):
+class StudyType(StrEnum):
     """Types of academic studies."""
 
     RCT = "randomized_controlled_trial"
@@ -86,7 +86,7 @@ class StudyType(str, Enum):
     UNKNOWN = "unknown"
 
 
-class AccessStatus(str, Enum):
+class AccessStatus(StrEnum):
     """Access status for papers."""
 
     OPEN_ACCESS = "open_access"
@@ -1323,7 +1323,6 @@ class PDFProcessor:
 
             # Extract text using pdfplumber if available
             try:
-                pass
 
 
                 pdf_file = io.BytesIO(pdf_content)

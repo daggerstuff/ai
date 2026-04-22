@@ -80,7 +80,6 @@ class QualityAnomalyDetector:
 
     def detect_quality_anomalies(self, hours_back: int = 24) -> list[QualityAnomaly]:
         """Detect quality anomalies in recent data"""
-        print(f"🔍 Detecting quality anomalies in last {hours_back} hours...")
 
         try:
             # Get recent data and historical baseline
@@ -88,7 +87,6 @@ class QualityAnomalyDetector:
             baseline_data = self._get_baseline_data(days_back=30)
 
             if not recent_data or not baseline_data:
-                print("❌ Insufficient data for anomaly detection")
                 return []
 
             # Detect anomalies for each metric
@@ -109,11 +107,9 @@ class QualityAnomalyDetector:
                 reverse=True,
             )
 
-            print(f"✅ Detected {len(all_anomalies)} quality anomalies")
             return all_anomalies
 
-        except Exception as e:
-            print(f"❌ Error detecting anomalies: {e}")
+        except Exception:
             return []
 
     def _get_recent_data(self, hours_back: int) -> list[dict]:
@@ -145,7 +141,7 @@ class QualityAnomalyDetector:
 
             data = []
             for row in cursor.fetchall():
-                record = dict(zip(columns, row))
+                record = dict(zip(columns, row, strict=False))
                 if record["created_at"]:
                     record["created_at"] = datetime.fromisoformat(record["created_at"])
                 data.append(record)
@@ -153,8 +149,7 @@ class QualityAnomalyDetector:
             conn.close()
             return data
 
-        except Exception as e:
-            print(f"❌ Error getting recent data: {e}")
+        except Exception:
             return []
 
     def _get_baseline_data(self, days_back: int) -> list[dict]:
@@ -186,7 +181,7 @@ class QualityAnomalyDetector:
 
             data = []
             for row in cursor.fetchall():
-                record = dict(zip(columns, row))
+                record = dict(zip(columns, row, strict=False))
                 if record["created_at"]:
                     record["created_at"] = datetime.fromisoformat(record["created_at"])
                 data.append(record)
@@ -194,8 +189,7 @@ class QualityAnomalyDetector:
             conn.close()
             return data
 
-        except Exception as e:
-            print(f"❌ Error getting baseline data: {e}")
+        except Exception:
             return []
 
     def _detect_metric_anomalies(
@@ -262,8 +256,7 @@ class QualityAnomalyDetector:
 
             return anomalies
 
-        except Exception as e:
-            print(f"❌ Error detecting anomalies for {metric}: {e}")
+        except Exception:
             return []
 
     def _calculate_metric_values(self, data: list[dict], metric: str) -> list[float]:
@@ -314,8 +307,7 @@ class QualityAnomalyDetector:
 
             return []
 
-        except Exception as e:
-            print(f"❌ Error calculating {metric}: {e}")
+        except Exception:
             return []
 
     def _determine_severity(self, z_score: float) -> str | None:
@@ -346,7 +338,6 @@ class QualityAnomalyDetector:
 
     def generate_alerts(self, anomalies: list[QualityAnomaly]) -> list[Alert]:
         """Generate alerts from detected anomalies"""
-        print(f"🚨 Generating alerts from {len(anomalies)} anomalies...")
 
         try:
             alerts = []
@@ -359,11 +350,9 @@ class QualityAnomalyDetector:
                 if alert:
                     alerts.append(alert)
 
-            print(f"✅ Generated {len(alerts)} alerts")
             return alerts
 
-        except Exception as e:
-            print(f"❌ Error generating alerts: {e}")
+        except Exception:
             return []
 
     def _group_anomalies(
@@ -424,8 +413,7 @@ Quality anomaly detected in {metric.replace("_", " ")}.
                 auto_resolved=False,
             )
 
-        except Exception as e:
-            print(f"❌ Error creating alert: {e}")
+        except Exception:
             return None
 
     def _generate_recommended_actions(
@@ -496,13 +484,11 @@ Quality anomaly detected in {metric.replace("_", " ")}.
         self, anomalies: list[QualityAnomaly]
     ) -> dict[str, str]:
         """Create anomaly detection visualizations"""
-        print("📈 Creating anomaly detection visualizations...")
 
         viz_files = {}
 
         try:
             if not anomalies:
-                print("⚠️ No anomalies to visualize")
                 return viz_files
 
             # Set style
@@ -553,7 +539,7 @@ Quality anomaly detected in {metric.replace("_", " ")}.
             ax.grid(True, alpha=0.3)
 
             # Add count labels
-            for bar, count in zip(bars, metric_counts.values):
+            for bar, count in zip(bars, metric_counts.values, strict=False):
                 height = bar.get_height()
                 ax.text(
                     bar.get_x() + bar.get_width() / 2.0,
@@ -590,11 +576,9 @@ Quality anomaly detected in {metric.replace("_", " ")}.
 
             viz_files["dashboard"] = str(dashboard_file)
 
-            print(f"✅ Created {len(viz_files)} anomaly visualization files")
             return viz_files
 
-        except Exception as e:
-            print(f"❌ Error creating visualizations: {e}")
+        except Exception:
             return {}
 
     def export_anomaly_report(
@@ -604,7 +588,6 @@ Quality anomaly detected in {metric.replace("_", " ")}.
         visualizations: dict[str, str],
     ) -> str:
         """Export comprehensive anomaly detection report"""
-        print("📄 Exporting anomaly detection report...")
 
         try:
             timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -656,11 +639,9 @@ Quality anomaly detected in {metric.replace("_", " ")}.
             with open(report_file, "w") as f:
                 json.dump(export_data, f, indent=2, default=str)
 
-            print(f"✅ Exported anomaly report to: {report_file}")
             return str(report_file)
 
-        except Exception as e:
-            print(f"❌ Error exporting anomaly report: {e}")
+        except Exception:
             return ""
 
     def _create_anomaly_summary(
@@ -706,14 +687,11 @@ Quality anomaly detected in {metric.replace("_", " ")}.
             }
 
         except Exception as e:
-            print(f"❌ Error creating anomaly summary: {e}")
             return {"status": "error", "message": str(e)}
 
 
 def main():
     """Main execution function"""
-    print("🔍 Quality Anomaly Detection and Alerting System")
-    print("=" * 55)
 
     # Initialize detector
     detector = QualityAnomalyDetector()
@@ -722,7 +700,6 @@ def main():
     anomalies = detector.detect_quality_anomalies(hours_back=24)
 
     if not anomalies:
-        print("✅ No quality anomalies detected")
         return
 
     # Generate alerts
@@ -732,37 +709,20 @@ def main():
     visualizations = detector.create_anomaly_visualizations(anomalies)
 
     # Export report
-    report_file = detector.export_anomaly_report(anomalies, alerts, visualizations)
+    detector.export_anomaly_report(anomalies, alerts, visualizations)
 
     # Display summary
-    print("\n🚨 Anomaly Detection Complete")
-    print(f"   - Anomalies detected: {len(anomalies)}")
-    print(f"   - Alerts generated: {len(alerts)}")
-    print(f"   - Visualizations created: {len(visualizations)}")
-    print(f"   - Report saved: {report_file}")
 
     # Show critical alerts
     critical_alerts = [a for a in alerts if a.severity == "critical"]
     if critical_alerts:
-        print(f"\n🚨 CRITICAL ALERTS ({len(critical_alerts)}):")
         for alert in critical_alerts[:3]:  # Show top 3
-            print(f"   • {alert.title}")
-            print(f"     {alert.message.split('.')[0]}")
+            pass
 
     # Show anomaly summary
     severity_counts = pd.Series([a.severity for a in anomalies]).value_counts()
-    print("\n📊 Anomaly Summary:")
     for severity, count in severity_counts.items():
-        icon = (
-            "🔴"
-            if severity == "critical"
-            else "🟠"
-            if severity == "high"
-            else "🟡"
-            if severity == "medium"
-            else "🔵"
-        )
-        print(f"   {icon} {severity.title()}: {count}")
+        pass
 
 
 if __name__ == "__main__":

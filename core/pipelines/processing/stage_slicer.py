@@ -282,7 +282,6 @@ def generate_metadata(report: dict[str, Any], output_dir: Path) -> None:
     with open(metadata_file, "w", encoding="utf-8") as f:
         json.dump(metadata, f, indent=2, ensure_ascii=False)
 
-    print(f"Metadata written to: {metadata_file}")
 
 
 def main():
@@ -305,46 +304,29 @@ def main():
 
     args = parser.parse_args()
 
-    print("DACT-06 Stage-Based Dataset Slicing")
-    print(f"Output directory: {args.output_dir}")
-    print(f"Dry run: {args.dry_run}")
-    print("-" * 50)
 
     # Execute slicing
     report = slice_datasets(Path(args.output_dir), dry_run=args.dry_run)
 
     # Print report
-    print("\n=== SLICING REPORT ===")
-    print(f"Timestamp: {report['timestamp']}")
-    print(f"Total records processed: {report['total_records']:,}")
-    print(f"Total size: {report['total_size_bytes'] / (1024**2):.2f} MB")
 
-    print("\n--- By Stage ---")
     for stage_id, stage_report in report["stages"].items():
-        print(f"\n{stage_report['stage_name']}:")
-        print(f"  Records: {stage_report['records_processed']:,}")
-        print(f"  Output: {stage_report['output_file']}")
-        print(f"  Size: {stage_report['size_bytes'] / (1024**2):.2f} MB")
 
-        print("  Sources:")
         for src in stage_report["source_files"]:
-            print(f"    - {src['path']}: {src['records']:,} records ({src['status']})")
+            pass
 
     if report["warnings"]:
-        print("\n--- Warnings ---")
         for warning in report["warnings"]:
-            print(f"  ⚠️ {warning}")
+            pass
 
     if report["errors"]:
-        print("\n--- Errors ---")
         for error in report["errors"]:
-            print(f"  ❌ {error}")
+            pass
 
     # Generate metadata
     if args.generate_metadata and not args.dry_run:
         generate_metadata(report, Path(args.output_dir))
 
-    print("\n✓ DACT-06 slicing complete")
 
     return report
 

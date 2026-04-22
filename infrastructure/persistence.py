@@ -101,4 +101,3 @@ if __name__ == "__main__":
     persist.log_dataset_version(
         "test_audit", "1.0.0", {"records": 1000, "source": "audit"}
     )
-    print("Persistence layer test complete.")

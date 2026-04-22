@@ -345,7 +345,6 @@ class DatasetExporter:
         encoding = None if self.config.compress_output else "utf-8"
 
         if self.config.compress_output and self.config.compression_format == "gzip":
-            pass
 
             open_func = lambda: gzip.open(output_path, mode, encoding=encoding)
         else:
@@ -729,7 +728,6 @@ if __name__ == "__main__":
 
     # Example usage
     if len(sys.argv) < 2:
-        print("Usage: python export_to_ready_packages.py <source_file> [dataset_name]")
         sys.exit(1)
 
     source_file = sys.argv[1]
@@ -742,12 +740,5 @@ if __name__ == "__main__":
         validate=True,
     )
 
-    print("\nExport Result:")
-    print(f"  Success: {result.success}")
-    print(f"  Export Path: {result.export_path}")
-    print(f"  Records: {result.exported_records}")
-    print(f"  File Size: {result.file_size_bytes / (1024 * 1024):.2f} MB")
-    print(f"  Time: {result.export_time_seconds:.2f}s")
-    print(f"  Manifest: {result.manifest_path}")
 
     sys.exit(0 if result.success else 1)

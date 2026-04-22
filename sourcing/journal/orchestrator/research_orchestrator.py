@@ -510,7 +510,6 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
     def _evaluate_sources_parallel(
         self, session_id: str, sources: list[DatasetSource], evaluator: str
     ) -> list[DatasetEvaluation]:
-        pass
 
         evaluations: list[DatasetEvaluation] = []
         with ThreadPoolExecutor(max_workers=self.config.max_workers) as executor:
@@ -610,7 +609,6 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         datasets: list[AcquiredDataset],
         target_format: str,
     ) -> list[IntegrationPlan]:
-        pass
 
         plans: list[IntegrationPlan] = []
         with ThreadPoolExecutor(max_workers=self.config.max_workers) as executor:

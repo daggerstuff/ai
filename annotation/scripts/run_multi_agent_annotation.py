@@ -22,19 +22,12 @@ def process_batch_multi_agent(
     input_path = Path(input_file)
     output_path = Path(output_file)
 
-    print("🤖 Multi-Agent Annotation System")
-    print(f"📁 Input: {input_path}")
-    print(f"📁 Output: {output_path}")
-    print(f"🧠 Model: {model}")
-    print("-" * 60)
 
     if not input_path.exists():
-        print(f"❌ Input file not found: {input_path}")
         return
 
     # Create multi-agent system
     orchestrator = create_multi_agent_system(model=model)
-    print(f"✅ Initialized {len(orchestrator.agents)} agents")
 
     # Ensure output directory exists
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -65,27 +58,15 @@ def process_batch_multi_agent(
 
                 # Progress update
                 if processed_count % 10 == 0:
-                    avg_time = total_processing_time / processed_count
-                    print(
-                        f"  📊 Processed {processed_count} | Avg time: {avg_time:.2f}s",
-                        end="\r",
-                    )
+                    total_processing_time / processed_count
 
-            except json.JSONDecodeError as e:
-                print(f"⚠️  Skipping invalid JSON: {e}")
+            except json.JSONDecodeError:
                 continue
-            except Exception as e:
-                print(f"❌ Error processing task: {e}")
+            except Exception:
                 continue
 
     # Final summary
-    print("\n" + "=" * 60)
-    print(f"✅ Completed: {processed_count} annotations")
-    print(f"⏱️  Total time: {total_processing_time:.2f}s")
-    avg_time = (total_processing_time / processed_count) if processed_count else 0.0
-    print(f"📈 Average time per annotation: {avg_time:.2f}s")
-    print(f"💾 Saved to: {output_path}")
-    print("=" * 60)
+    (total_processing_time / processed_count) if processed_count else 0.0
 
 
 if __name__ == "__main__":

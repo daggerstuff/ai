@@ -10,6 +10,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any
+import contextlib
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -176,17 +177,11 @@ async def example_graceful_degradation():
         return {"metrics": "processed"}
 
     # Test degradation
-    try:
-        result = await manager.call_service("ai_processing", ai_service_call)
-        print(f"AI result: {result}")
-    except Exception as e:
-        print(f"AI failed: {e}")
+    with contextlib.suppress(Exception):
+        await manager.call_service("ai_processing", ai_service_call)
 
-    try:
-        result = await manager.call_service("analytics", analytics_service_call)
-        print(f"Analytics result: {result}")
-    except Exception as e:
-        print(f"Analytics failed: {e}")
+    with contextlib.suppress(Exception):
+        await manager.call_service("analytics", analytics_service_call)
 
 
 if __name__ == "__main__":

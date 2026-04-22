@@ -641,24 +641,17 @@ def main():
     }
 
     # Create review assignment
-    assignment_id = review_system.create_review_assignment(
+    review_system.create_review_assignment(
         conversation=test_conversation,
         priority=ReviewPriority.HIGH
     )
 
-    print(f"✅ Created assignment: {assignment_id}")
 
     # Get pending assignments
     pending = review_system.get_pending_assignments()
-    print(f"📋 Pending assignments: {len(pending)}")
 
     if pending:
         assignment = pending[0]
-        print("Assignment details:")
-        print(f"  - Reviewer: {assignment.reviewer_id}")
-        print(f"  - Priority: {assignment.priority.value}")
-        print(f"  - Estimated time: {assignment.estimated_time_minutes} minutes")
-        print(f"  - Criteria count: {len(assignment.criteria)}")
 
         # Submit a test review
         criteria_scores = {
@@ -670,7 +663,7 @@ def main():
             "cultural_sensitivity": 4.0
         }
 
-        review_id = review_system.submit_review(
+        review_system.submit_review(
             assignment_id=assignment.assignment_id,
             reviewer_id=assignment.reviewer_id,
             criteria_scores=criteria_scores,
@@ -680,14 +673,9 @@ def main():
             approval_status="approved"
         )
 
-        print(f"✅ Submitted review: {review_id}")
 
         # Generate report
-        report = review_system.generate_review_report()
-        print("\n📊 Review Report:")
-        print(f"Total reviews: {report['summary_metrics']['total_reviews']}")
-        print(f"Average score: {report['summary_metrics']['average_score']}")
-        print(f"Score distribution: {report['summary_metrics']['score_distribution']}")
+        review_system.generate_review_report()
 
 if __name__ == "__main__":
     main()

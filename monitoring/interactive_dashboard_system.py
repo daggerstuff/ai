@@ -552,8 +552,7 @@ class InteractiveDashboardSystem:
                 "current_time": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
             }
 
-        except Exception as e:
-            print(f"Error getting dashboard data: {e}")
+        except Exception:
             # Return mock data if database unavailable
             return {
                 "metrics": {
@@ -603,16 +602,12 @@ class InteractiveDashboardSystem:
     def deploy_interactive_dashboards(self):
         """Deploy the complete interactive dashboard system"""
 
-        print("🚀 Deploying Interactive Web Dashboard System")
-        print("=" * 60)
 
         # Create templates and static files
-        print("📝 Creating HTML templates...")
         self.create_base_template()
         self.create_executive_dashboard()
 
         # Setup Flask routes
-        print("🔗 Setting up web routes...")
         self.setup_flask_routes()
 
         # Create launch script
@@ -641,19 +636,8 @@ if __name__ == '__main__':
 
         os.chmod(f"{self.base_dir}/monitoring/launch_interactive_dashboards.py", 0o755)
 
-        print("✅ Interactive Dashboard System Deployed Successfully!")
-        print("\n🎯 Key Features:")
-        print("  • Real-time HTML dashboards (no static images)")
-        print("  • Interactive charts with Chart.js")
-        print("  • Auto-refresh every 30 seconds")
-        print("  • Mobile-responsive design")
-        print("  • Live data from your analytics systems")
 
-        print("\n🚀 To start the dashboard server:")
-        print(f"  cd {self.base_dir}")
-        print("  python monitoring/launch_interactive_dashboards.py")
 
-        print("\n📊 Then visit: http://localhost:5000/executive")
 
         return {
             "status": "success",
@@ -678,7 +662,6 @@ def main():
     with open(deployment_file, "w") as f:
         json.dump(result, f, indent=2)
 
-    print(f"\n📋 Deployment details saved to: {deployment_file}")
 
 
 if __name__ == "__main__":

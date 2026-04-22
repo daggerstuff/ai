@@ -217,7 +217,6 @@ class SafetyMonitoringSystem:
         for level in ["emergency", "critical", "high", "medium", "low"]:
             patterns = crisis_patterns.get(level, [])
             for pattern in patterns:
-                pass
                 if re.search(pattern, user_input_lower, re.IGNORECASE):
                     detected_patterns.append(pattern)
                     crisis_level = level
@@ -529,7 +528,7 @@ if __name__ == "__main__":
 
         # Add alert callback
         async def alert_callback(alert):
-            print(f"🚨 SAFETY ALERT: {alert}")
+            pass
 
         monitor.add_alert_callback(alert_callback)
         monitor.start_monitoring()
@@ -543,27 +542,21 @@ if __name__ == "__main__":
             "I took too many pills and I'm scared"
         ]
 
-        print("Testing Safety Monitoring System")
-        print("=" * 50)
 
         for i, test_input in enumerate(test_inputs, 1):
-            print(f"\nTest {i}: {test_input}")
             response = await monitor.process_user_input(test_input, f"user_{i}")
-            print(f"Response: {response['response_type']} (Crisis Level: {response['crisis_level']})")
 
             if response.get("incident_created"):
-                print(f"Incident Created: {response['incident_id']} (Severity: {response['severity']})")
+                pass
 
         # Print metrics
-        print("\nSafety Metrics:")
         metrics = monitor.get_safety_metrics()
         for key, value in metrics.items():
-            print(f"  {key}: {value}")
+            pass
 
         # Print recent incidents
-        print("\nRecent Incidents:")
         incidents = monitor.get_recent_incidents()
         for incident in incidents:
-            print(f"  {incident['incident_id']}: {incident['severity']} - {incident['crisis_level']}")
+            pass
 
     asyncio.run(test_safety_monitoring())

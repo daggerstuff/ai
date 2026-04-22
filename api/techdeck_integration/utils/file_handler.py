@@ -405,7 +405,6 @@ def calculate_file_hash(file_path: str, algorithm: str = "sha256") -> str:
 def get_file_type_info(file_path: str) -> dict[str, Any]:
     """Get file type information."""
     try:
-        pass
 
         filename = os.path.basename(file_path)
         file_extension = os.path.splitext(filename)[1].lower()

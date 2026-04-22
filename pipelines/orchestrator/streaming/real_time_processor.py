@@ -9,20 +9,14 @@ and integration into the production pipeline.
 
 import asyncio
 import json
-import logging
-import statistics
 import sys
-import time
-from asyncio import Queue
-from collections import defaultdict, deque
-from collections.abc import AsyncGenerator, Callable
+from collections.abc import AsyncGenerator
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-import websockets
 
 sys.path.append(str(Path(__file__).parent.parent))
 

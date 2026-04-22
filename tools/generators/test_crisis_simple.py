@@ -27,8 +27,6 @@ class TestModule(unittest.TestCase):
             "temperature": 0.7
         }
 
-        print("Testing crisis conversation generation...")
-        print("=" * 50)
 
         try:
             response = requests.post(
@@ -39,13 +37,11 @@ class TestModule(unittest.TestCase):
             )
 
             if response.status_code == 200:
-                result = response.json()
-                print(f"Success! Response: {result['choices'][0]['message']['content']}")
+                response.json()
             else:
-                print(f"Error: {response.status_code}")
-                print(response.text)
-        except Exception as e:
-            print(f"Exception: {e}")
+                pass
+        except Exception:
+            pass
 
 if __name__ == "__main__":
     unittest.main()

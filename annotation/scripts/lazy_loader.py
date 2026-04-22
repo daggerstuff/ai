@@ -34,7 +34,6 @@ def _load_resource(resource_type: str, resource_name: str) -> Any:
     resource_key = f"{resource_type}:{resource_name}"
 
     if resource_key not in cache:
-        print(f"  LAZY LOADING {resource_type.upper()}: {resource_name}")
         # Safe access to registry which might be empty if file load failed
         resource_data = _RESOURCE_REGISTRY.get(resource_type, {}).get(resource_name)
 
@@ -50,7 +49,6 @@ def _load_resource(resource_type: str, resource_name: str) -> Any:
         cache[resource_key] = default_resource
         _resource_cache.set(cache)
         return default_resource
-    print(f"  USING CACHED {resource_type.upper()}: {resource_name}")
     return cache[resource_key]
 
 
@@ -137,66 +135,39 @@ def demonstrate_true_lazy_usage():
 
     Resources are available as variables but only load when accessed.
     """
-    print("=== TRULY LAZY LOADER DEMONSTRATION ===\\n")
 
-    print("Agent perspective - ZERO setup required:")
-    print("  # Just access variables directly")
-    print("  # No function calls")
-    print("  # No imports")
-    print("  # Resources load automatically when used\\n")
 
     # Reset cache for clean demo
     _resource_cache.set({})
 
     def crisis_agent_first_access():
         """First agent to access resources."""
-        print("First Crisis Agent Processing (resources will load):")
 
         # Resources load automatically on first access
-        print(f"Agent name: {crisis_expert['name']}")
-        print(f"Temperature: {crisis_expert['temperature']}")
-        print(f"Rule constraint: {safety_first_rule['constraint']}")
 
         return "First crisis processing completed"
 
     def crisis_agent_second_access():
         """Second agent accessing same resources."""
-        print("\\nSecond Crisis Agent Processing (resources from cache):")
 
         # Same resources - served from cache
-        print(f"Agent name: {crisis_expert['name']}")
-        print(f"Rule constraint: {safety_first_rule['constraint']}")
 
         return "Second crisis processing completed"
 
     def emotion_agent_access():
         """Different agent accessing different resources."""
-        print("\\nEmotion Agent Processing (mix of cached and new resources):")
 
         # Some resources cached, some new
-        print(f"Agent name: {emotion_analyst['name']}")  # New resource
-        print(f"Cached rule: {safety_first_rule['constraint']}")  # From cache
-        print(f"New skill: {emotion_analysis_skill['name']}")  # New resource
 
         return "Emotion processing completed"
 
     # Run demonstrations
-    result1 = crisis_agent_first_access()
-    print(f"Result: {result1}\\n")
+    crisis_agent_first_access()
 
-    result2 = crisis_agent_second_access()
-    print(f"Result: {result2}\\n")
+    crisis_agent_second_access()
 
-    result3 = emotion_agent_access()
-    print(f"Result: {result3}\\n")
+    emotion_agent_access()
 
-    print("=== TRULY LAZY LOADING BENEFITS ===")
-    print("✅ ZERO setup from agent perspective")
-    print("✅ Resources available as direct variables")
-    print("✅ Automatic loading on first access")
-    print("✅ Cached reuse for efficiency")
-    print("✅ Context window preserved until actual use")
-    print("✅ Truly transparent to agent code")
 
 
 # Example of how this integrates with agent classes
@@ -213,32 +184,20 @@ class ZeroSetupAgent:
 
     def process(self, task_content: str):
         """Process task with zero resource setup."""
-        print(f"\\n{self.agent_type.title()} Agent Processing Task:")
 
         # Just access resources directly - they load automatically
         if "crisis" in task_content.lower():
             agent = crisis_expert
-            skill = crisis_detection_skill
-            rule = safety_first_rule
-            direction = conservative_crisis_direction
         else:
             agent = emotion_analyst
-            skill = emotion_analysis_skill
-            rule = privacy_protection_rule
-            direction = balanced_analysis_direction
 
         # Resources load automatically when accessed
-        print(f"Using: {agent['name']}")
-        print(f"Skill: {skill['name']}")
-        print(f"Rule: {rule['name']}")
-        print(f"Direction: {direction['guidance']}")
 
         return f"Processed by {agent['name']}"
 
 
 def demo_zero_setup_agents():
     """Demonstrate zero-setup agents."""
-    print("\\n=== ZERO SETUP AGENTS DEMONSTRATION ===")
 
     # Reset cache
     _resource_cache.set({})
@@ -248,18 +207,10 @@ def demo_zero_setup_agents():
     emotion_agent = ZeroSetupAgent("emotion_analyst")
 
     # Process tasks - resources load automatically when accessed
-    result1 = crisis_agent.process("Patient shows signs of crisis")
-    print(f"Result: {result1}")
+    crisis_agent.process("Patient shows signs of crisis")
 
-    result2 = emotion_agent.process("Patient discusses emotions")
-    print(f"Result: {result2}")
+    emotion_agent.process("Patient discusses emotions")
 
-    print("\\n=== ZERO SETUP AGENT BENEFITS ===")
-    print("✅ No __init__ resource setup")
-    print("✅ Resources available in methods")
-    print("✅ Automatic loading when accessed")
-    print("✅ Cached reuse across method calls")
-    print("✅ Natural, intuitive access pattern")
 
 
 if __name__ == "__main__":

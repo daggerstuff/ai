@@ -17,7 +17,7 @@ import sqlite3
 import uuid
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta, timezone
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 
 from cryptography.fernet import Fernet
@@ -26,7 +26,7 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 logger = logging.getLogger(__name__)
 
-class PHIType(str, Enum):
+class PHIType(StrEnum):
     """Protected Health Information types per HIPAA"""
     NAME = "name"
     ADDRESS = "address"
@@ -47,7 +47,7 @@ class PHIType(str, Enum):
     HEALTH_PLAN_ID = "health_plan_id"
     PROVIDER_ID = "provider_id"
 
-class HIPAAViolationType(str, Enum):
+class HIPAAViolationType(StrEnum):
     """HIPAA violation types"""
     UNAUTHORIZED_ACCESS = "unauthorized_access"
     IMPROPER_DISCLOSURE = "improper_disclosure"
@@ -58,7 +58,7 @@ class HIPAAViolationType(str, Enum):
     BREACH_NOTIFICATION_FAILURE = "breach_notification_failure"
     MINIMUM_NECESSARY_VIOLATION = "minimum_necessary_violation"
 
-class ComplianceLevel(str, Enum):
+class ComplianceLevel(StrEnum):
     """HIPAA compliance levels"""
     COMPLIANT = "compliant"
     NON_COMPLIANT = "non_compliant"
@@ -711,15 +711,6 @@ if __name__ == "__main__":
     test_data = "Patient John Doe, SSN: 123-45-6789, Phone: (555) 123-4567"
     is_compliant, violations = validator.validate_data_access("test_user", test_data)
 
-    print("HIPAA Compliance Test:")
-    print(f"Data: {test_data}")
-    print(f"Compliant: {is_compliant}")
-    print(f"Violations: {len(violations)}")
 
     # Generate compliance report
     report = validator.generate_compliance_report()
-    print("\nCompliance Report:")
-    print(f"Assessment ID: {report.assessment_id}")
-    print(f"Compliance Level: {report.compliance_level}")
-    print(f"Score: {report.score}")
-    print(f"Recommendations: {len(report.recommendations)}")

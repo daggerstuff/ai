@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any
 
 from letta import LettaClient as SDKClient
+import contextlib
 
 logger = logging.getLogger("letta_client")
 
@@ -182,10 +183,8 @@ class LettaClient:
 
         config_data = {}
         if CONFIG_FILE.exists():
-            try:
+            with contextlib.suppress(json.JSONDecodeError):
                 config_data = json.loads(CONFIG_FILE.read_text())
-            except json.JSONDecodeError:
-                pass
 
         config_data["agent_id"] = agent_id
         config_data["last_updated"] = datetime.now(timezone.utc).isoformat()

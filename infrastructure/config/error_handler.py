@@ -279,7 +279,6 @@ class ConfigErrorHandler:
             if "localhost" not in db_url and "127.0.0.1" not in db_url:
                 # Try localhost version
                 try:
-                    pass
 
                     parsed = urlparse(db_url)
                     localhost_url = urlunparse(
@@ -576,4 +575,3 @@ if __name__ == "__main__":
     )
 
     handler.handle_error(test_error)
-    print(f"Error summary: {handler.get_error_summary()}")

@@ -52,7 +52,6 @@ class NvidiaNIMCallback:
     def client(self):
         """Lazy-load OpenAI client."""
         if self._client is None:
-            pass
             self._client = OpenAI(
                 api_key=self.api_key,
                 base_url=self.base_url,

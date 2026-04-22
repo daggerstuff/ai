@@ -46,11 +46,8 @@ def test_precise_cleaner():
         "file": "test.txt"
     }
 
-    result = cleaner.process_segment(test_segment)
+    cleaner.process_segment(test_segment)
 
-    print("=== PRECISE CLEANING TEST ===\n")
-    print("**Cleaned Text**:")
-    print(result["output"])
 
 if __name__ == "__main__":
     test_precise_cleaner()

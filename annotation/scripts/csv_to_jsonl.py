@@ -5,16 +5,12 @@ import pandas as pd
 
 
 def csv_to_jsonl(input_csv, output_jsonl, limit=5000):
-    print(f"Reading {input_csv}...")
     # pandas can handle indexing and basic loading
     df = pd.read_csv(input_csv)
-    print(f"Total rows: {len(df)}")
 
     if limit and limit < len(df):
-        print(f"Sampling {limit} rows...")
         df = df.sample(limit, random_state=42)
 
-    print(f"Writing to {output_jsonl}...")
     with open(output_jsonl, "w") as f:
         for idx, row in df.iterrows():
             # Standardizing format for multi-agent system
@@ -29,7 +25,6 @@ def csv_to_jsonl(input_csv, output_jsonl, limit=5000):
                 },
             }
             f.write(json.dumps(record, ensure_ascii=False) + "\n")
-    print("Done!")
 
 
 if __name__ == "__main__":

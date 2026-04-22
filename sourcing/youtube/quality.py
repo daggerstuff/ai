@@ -10,12 +10,12 @@ Provides functions for:
 
 import logging
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 logger = logging.getLogger(__name__)
 
 
-class AudioFormat(str, Enum):
+class AudioFormat(StrEnum):
     """Audio format types."""
     MP3 = "mp3"
     WAV = "wav"

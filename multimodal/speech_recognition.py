@@ -238,7 +238,6 @@ class SpeechRecognizer:
         """Synchronous transcription (runs in thread)."""
         # Normalize sample rate to 16kHz if needed
         if sample_rate != 16000:
-            pass
 
             waveform = librosa.resample(waveform, orig_sr=sample_rate, target_sr=16000)
             sample_rate = 16000

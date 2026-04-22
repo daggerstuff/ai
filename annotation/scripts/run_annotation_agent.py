@@ -42,21 +42,10 @@ class AnnotationAgent:
             # Explicitly pass base_url if present, otherwise default behavior
             if base_url:
                 self.client = OpenAI(api_key=api_key, base_url=base_url)
-                print(
-                    f"[{persona_name}] OpenAI client initialized "
-                    f"with model {self.model} (Base URL: {base_url})."
-                )
             else:
                 self.client = OpenAI(api_key=api_key)
-                print(
-                    f"[{persona_name}] OpenAI client initialized "
-                    f"with model {self.model}."
-                )
         else:
-            print(
-                f"[{persona_name}] OpenAI client NOT available "
-                "(missing key or library).\nUsing MOCK mode."
-            )
+            pass
 
     def _get_system_prompt(self, name: str) -> str:
         if name == "Dr. A":
@@ -129,8 +118,7 @@ format:
             )
             content = response.choices[0].message.content
             return json.loads(content)
-        except Exception as e:
-            print(f"Error calling LLM: {e}. Falling back to clean mock generation.")
+        except Exception:
             # Fallback to generative mock instead of error
             return self._mock_annotation(data, error=False)
 
@@ -177,10 +165,8 @@ def process_batch(input_file: str, output_file: str, agent: AnnotationAgent):
     input_path = Path(input_file)
     output_path = Path(output_file)
 
-    print(f"Processing {input_path} with agent {agent.persona_name}...")
 
     if not input_path.exists():
-        print(f"Input file {input_path} not found.")
         return
 
     # Ensure output dir exists
@@ -211,12 +197,11 @@ def process_batch(input_file: str, output_file: str, agent: AnnotationAgent):
                 processed_count += 1
 
                 if processed_count % 10 == 0:
-                    print(f"  Processed {processed_count} records...", end="\r")
+                    pass
 
             except json.JSONDecodeError:
                 continue
 
-    print(f"\nCompleted {processed_count} records. Saved to {output_path}")
 
 
 if __name__ == "__main__":

@@ -51,8 +51,7 @@ class DatasetValidator:
                 sha256_hash.update(chunk)
 
             return sha256_hash.hexdigest()
-        except ClientError as e:
-            print(f"Error calculating checksum for {s3_path}: {e}")
+        except ClientError:
             return None
 
     def calculate_checksum_local(self, file_path: Path) -> str | None:
@@ -63,8 +62,7 @@ class DatasetValidator:
                 for chunk in iter(lambda: f.read(8192), b""):
                     sha256_hash.update(chunk)
             return sha256_hash.hexdigest()
-        except Exception as e:
-            print(f"Error calculating checksum for {file_path}: {e}")
+        except Exception:
             return None
 
     def validate_schema(self, _dataset_path: str, _dataset_type: str) -> dict[str, Any]:
@@ -101,7 +99,6 @@ class DatasetValidator:
         Returns:
             Validation results dictionary
         """
-        print(f"Validating dataset: {dataset_name}")
 
         validation = dataset_entry.get("validation", {})
 
@@ -220,8 +217,7 @@ class DatasetValidator:
                 else:
                     stats["failed"] += 1
 
-            except Exception as e:
-                print(f"Error validating {dataset_path_key}: {e}")
+            except Exception:
                 stats["failed"] += 1
 
         # Update registry statistics
@@ -261,20 +257,10 @@ def main():
 
     args = parser.parse_args()
 
-    print("Dataset Validation Script")
-    print(f"Registry: {args.registry}")
-    print(f"Limit: {args.limit or 'None (all datasets)'}")
-    print(f"Dry run: {args.dry_run}")
-    print()
 
     validator = DatasetValidator(args.registry)
-    stats = validator.validate_all_datasets(limit=args.limit)
+    validator.validate_all_datasets(limit=args.limit)
 
-    print("\nValidation Statistics:")
-    print(f"  Total validated: {stats['total_validated']}")
-    print(f"  Successful: {stats['successful']}")
-    print(f"  Failed: {stats['failed']}")
-    print(f"  Skipped: {stats['skipped']}")
 
 
 if __name__ == "__main__":

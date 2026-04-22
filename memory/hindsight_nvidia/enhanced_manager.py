@@ -900,38 +900,29 @@ async def main():
 
     api_key = os.environ.get("NVIDIA_API_KEY")
     if not api_key:
-        print("Error: NVIDIA_API_KEY not set")
         return
 
     # Create manager
     manager = create_enhanced_manager(api_key)
 
     # Health check
-    print("Running health check...")
     health = await manager.health_check()
     for tier, status in health.items():
-        print(f"  {tier}: {status['status']}")
+        pass
 
     # Test generation
-    print("\nTesting simple generation...")
-    response = await manager.generate(
+    await manager.generate(
         "Hello, I'm feeling a bit stressed today.",
         complexity=TaskComplexity.SIMPLE,
     )
-    print(f"Response: {response[:200]}...")
 
     # Test embedding
-    print("\nTesting embedding...")
-    embedding = await manager.embed("Test embedding generation")
-    print(f"Embedding dimension: {len(embedding)}")
+    await manager.embed("Test embedding generation")
 
     # Test crisis detection
-    print("\nTesting crisis detection...")
-    crisis_result = await manager.analyze_for_crisis(
+    await manager.analyze_for_crisis(
         "I've been feeling really hopeless lately"
     )
-    print(f"Risk level: {crisis_result['risk_level']}")
-    print(f"Signals: {crisis_result['signals_detected']}")
 
 
 if __name__ == "__main__":

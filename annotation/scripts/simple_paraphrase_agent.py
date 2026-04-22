@@ -75,17 +75,11 @@ Preserve the number of messages and the speaker roles.""",
 
             # Validate we have the same number of messages
             if len(paraphrased_messages) != len(messages):
-                print(
-                    f"  Warning: Message count mismatch "
-                    f"({len(paraphrased_messages)} vs {len(messages)}), "
-                    f"using original"
-                )
                 return messages
 
             return paraphrased_messages
 
-        except Exception as e:
-            print(f"  Error during paraphrasing: {e}, using original")
+        except Exception:
             return messages
 
     def _messages_to_text(self, messages: list[dict[str, Any]]) -> str:
@@ -207,10 +201,7 @@ Paraphrased: "I'm really stressed out"
                 if line.strip():
                     conversations.append(json.loads(line))
 
-        print(f"📚 Loaded {len(conversations)} conversations")
-        print(f"🎯 Generating {len(variation_types)} variation types")
-        total_target = len(conversations) * len(variation_types) * per_sample
-        print(f"📊 Total target: {total_target} paraphrases\n")
+        len(conversations) * len(variation_types) * per_sample
 
         total_generated = 0
         total_successful = 0
@@ -219,7 +210,6 @@ Paraphrased: "I'm really stressed out"
             var_dir = output_path / var_type
             var_dir.mkdir(exist_ok=True)
 
-            print(f"🔄 Generating {var_type} variations...")
 
             for i, conv in enumerate(conversations):
                 task_id = conv.get("task_id", f"task_{i}")
@@ -232,7 +222,6 @@ Paraphrased: "I'm really stressed out"
                             original_messages = conv.get("data", {}).get("messages", [])
 
                         if not original_messages:
-                            print(f"  ⚠️  No messages in {task_id}, skipping")
                             continue
 
                         # Paraphrase messages
@@ -259,20 +248,12 @@ Paraphrased: "I'm really stressed out"
                             total_successful += 1
 
                         if total_generated % 10 == 0:
-                            print(
-                                f"  ✅ Generated {total_generated} "
-                                f"({total_successful} successful)..."
-                            )
+                            pass
 
-                    except Exception as e:
-                        print(f"  ❌ Error with {task_id} ({var_type}): {e}")
+                    except Exception:
+                        pass
 
-            print(f"  ✓ Completed {var_type}: {total_generated} total\n")
 
-        print("\n🎉 Complete!")
-        print(f"📊 Total generated: {total_generated}")
-        print(f"✅ Successful: {total_successful}")
-        print(f"⚠️  Fallback to original: {total_generated - total_successful}")
 
         # Combine all variations
         combined_file = output_path / "all_paraphrases.jsonl"
@@ -283,7 +264,6 @@ Paraphrased: "I'm really stressed out"
                     with open(jsonl_file) as in_f:
                         out_f.write(in_f.read())
 
-        print(f"📦 Combined file: {combined_file}")
 
 
 def main():

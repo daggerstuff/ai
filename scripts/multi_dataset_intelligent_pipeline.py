@@ -298,7 +298,7 @@ class MultiDatasetIntelligentPipeline:
                     if "text" not in item:
                         item["text"] = content
 
-                    processed_item, status = self.process_segment_with_agent(item)
+                    processed_item, _status = self.process_segment_with_agent(item)
                     if processed_item:
                         processed_conversations.append(processed_item)
                         self.stats.processed_conversations += 1

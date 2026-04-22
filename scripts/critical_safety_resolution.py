@@ -343,21 +343,8 @@ if __name__ == "__main__":
         report = await safety_resolver.run_final_safety_resolution()
 
         # Print summary
-        print(f"\n{'='*60}")
-        print("CRITICAL SAFETY ISSUES FINAL RESOLUTION REPORT")
-        print(f"{'='*60}")
-        print(f"Resolution Complete: {'YES' if report['task_105_summary']['resolution_complete'] else 'NO'}")
-        print(f"Production Safety Clearance: {'GRANTED' if report['task_105_summary']['production_safety_clearance'] else 'DENIED'}")
-        print(f"Clearance Status: {report['task_105_summary']['clearance_status']}")
 
-        print("\nSafety Metrics:")
-        metrics = report["safety_metrics"]
-        print(f"  Total Critical Issues: {metrics['total_critical_issues']}")
-        print(f"  Resolved Issues: {metrics['resolved_issues']}")
-        print(f"  Verified Issues: {metrics['verified_issues']}")
-        print(f"  Resolution Rate: {metrics['resolution_percentage']:.1f}%")
-        print(f"  Verification Rate: {metrics['verification_percentage']:.1f}%")
-        print(f"  Final Validation Score: {metrics['final_validation_score']:.1f}%")
+        report["safety_metrics"]
 
         # Save report
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -365,6 +352,5 @@ if __name__ == "__main__":
         with open(report_file, "w") as f:
             json.dump(report, f, indent=2)
 
-        print(f"\nDetailed report saved to: {report_file}")
 
     asyncio.run(main())

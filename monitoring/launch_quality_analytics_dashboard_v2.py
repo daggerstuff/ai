@@ -89,7 +89,6 @@ class QualityAnalyticsDashboardLauncher:
         for package, min_version in self.required_packages.items():
             try:
                 if package == "sqlite3":
-                    pass
                     logger.info(f"  ✅ {package}: Available (built-in)")
                     continue
 

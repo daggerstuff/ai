@@ -22,7 +22,6 @@ from ai.core.pipelines.voice_pipeline_integration import (
 
 async def example_simple_processing():
     """Simple example using the convenience function."""
-    print("=== Simple Voice Pipeline Processing ===")
 
     # Example YouTube URLs (replace with actual URLs)
     playlist_urls = [
@@ -39,21 +38,17 @@ async def example_simple_processing():
         )
 
         if result.success:
-            print("✅ Processing successful!")
-            print(f"Generated {result.total_conversations} conversations")
-            print(f"Processing time: {result.processing_time:.2f} seconds")
+            pass
         else:
-            print("❌ Processing failed")
             for error in result.errors[:3]:
-                print(f"  Error: {error}")
+                pass
 
-    except Exception as e:
-        print(f"Exception during processing: {e}")
+    except Exception:
+        pass
 
 
 async def example_advanced_configuration():
     """Advanced example with custom configuration."""
-    print("\n=== Advanced Voice Pipeline Configuration ===")
 
     # Custom configuration
     config = VoicePipelineConfig(
@@ -100,7 +95,6 @@ async def example_advanced_configuration():
 
         # Generate detailed report
         report = pipeline.generate_pipeline_report(result)
-        print(report)
 
         # Save report to file
         report_path = Path(config.conversation_output_dir) / "processing_report.txt"
@@ -108,15 +102,13 @@ async def example_advanced_configuration():
         with open(report_path, "w", encoding="utf-8") as f:
             f.write(report)
 
-        print(f"\nDetailed report saved to: {report_path}")
 
-    except Exception as e:
-        print(f"Exception during advanced processing: {e}")
+    except Exception:
+        pass
 
 
 async def example_batch_processing():
     """Example of processing multiple batches with different settings."""
-    print("\n=== Batch Processing Example ===")
 
     # Different batches with different quality requirements
     batches = [
@@ -156,23 +148,19 @@ async def example_batch_processing():
     total_conversations = 0
 
     for batch in batches:
-        print(f"\nProcessing batch: {batch['name']}")
 
         pipeline = VoiceTrainingPipeline(batch["config"])
         result = await pipeline.process_youtube_playlists(batch["urls"])
 
         if result.success:
-            print(f"  ✅ {result.total_conversations} conversations generated")
             total_conversations += result.total_conversations
         else:
-            print(f"  ❌ Batch failed: {len(result.errors)} errors")
+            pass
 
-    print(f"\n🎉 Total conversations generated across all batches: {total_conversations}")
 
 
 def example_cli_usage():
     """Show CLI usage examples."""
-    print("\n=== CLI Usage Examples ===")
 
     cli_examples = [
         "# Simple single playlist processing",
@@ -194,19 +182,14 @@ def example_cli_usage():
     ]
 
     for line in cli_examples:
-        print(line)
+        pass
 
 
 async def main():
     """Run all examples."""
-    print("Voice Training Data Pipeline Usage Examples")
-    print("=" * 50)
 
     # Note: These examples use placeholder URLs
     # Replace with actual YouTube URLs for real processing
-    print("⚠️  Note: Replace example URLs with actual YouTube URLs")
-    print("⚠️  Ensure you have proper permissions for the content you're processing")
-    print()
 
     # Run examples (commented out to avoid actual processing)
     # await example_simple_processing()
@@ -216,8 +199,6 @@ async def main():
     # Show CLI examples
     example_cli_usage()
 
-    print("\n" + "=" * 50)
-    print("Examples complete! Uncomment the async calls to run actual processing.")
 
 
 if __name__ == "__main__":

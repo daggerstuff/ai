@@ -27,6 +27,7 @@ from bs4 import BeautifulSoup
 # Import publisher integrations
 from .publishers.apa_publisher import APAPublisher
 from .publishers.base_publisher import BasePublisher
+import contextlib
 
 logger = logging.getLogger(__name__)
 
@@ -541,10 +542,8 @@ class AcademicSourcingEngine:
                 pub_date = article.get("pubdate", "")
                 year = 0
                 if pub_date:
-                    try:
+                    with contextlib.suppress(ValueError, IndexError):
                         year = int(pub_date.split()[0])
-                    except (ValueError, IndexError):
-                        pass
 
                 # Create metadata
                 metadata = BookMetadata(
@@ -784,10 +783,8 @@ class AcademicSourcingEngine:
                 year = 0
                 pub_year = article.get("pubYear", "")
                 if pub_year:
-                    try:
+                    with contextlib.suppress(ValueError):
                         year = int(pub_year)
-                    except ValueError:
-                        pass
 
                 # Create metadata
                 metadata = BookMetadata(

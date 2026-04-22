@@ -684,27 +684,14 @@ class ProductionDeployer:
 
 def _print_deployment_results(results: dict[str, Any]):
     """Print deployment results to console."""
-    print("\nPRODUCTION DEPLOYMENT RESULTS")
-    print(f"Deployment ID: {results['deployment_id']}")
-    print(f"Status: {results['overall_status'].upper()}")
-    print(
-        f"Success: {'✅ YES' if results.get('deployment_success', False) else '❌ NO'}"
-    )
-    print(
-        f"Successful Steps: {results.get('successful_steps', 0)}/"
-        f"{results.get('total_steps', 0)}"
-    )
 
     if results.get("recommendations"):
-        print("\nRECOMMENDATIONS:")
         for rec in results["recommendations"]:
-            print(f"💡 {rec}")
+            pass
 
 
 def main():
     """Main execution function."""
-    print("Pixelated Empathy AI - Production Deployment")
-    print("=" * 60)
 
     try:
         deployer = ProductionDeployer()

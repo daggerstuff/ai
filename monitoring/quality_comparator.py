@@ -585,24 +585,17 @@ def main():
     df = comparator.load_comparison_data(days_back=30)
 
     if df.empty:
-        print("❌ No quality data available for comparison analysis")
         return
 
     # Perform tier comparisons
     tier_comparisons = comparator.compare_tiers(df)
 
-    print("📊 Quality Comparison Results:")
-    print(f"Tier Comparisons: {len(tier_comparisons)}")
 
     if tier_comparisons:
         comparison = tier_comparisons[0]
-        print(f"\nSample Comparison: {comparison.group1_name} vs {comparison.group2_name}")
-        print(f"Effect Size: {comparison.effect_size:.3f}")
-        print(f"Practical Significance: {comparison.practical_significance}")
 
-        print("\n💡 Recommendations:")
         for i, rec in enumerate(comparison.recommendations, 1):
-            print(f"{i}. {rec}")
+            pass
 
 if __name__ == "__main__":
     main()

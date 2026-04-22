@@ -103,15 +103,10 @@ class EnhancedAnnotationAgent:
         if OPENAI_AVAILABLE and os.getenv("OPENAI_API_KEY"):
             if base_url:
                 self.client = OpenAI(base_url=base_url)
-                print(
-                    f"[{persona_name}] Agent initialized with {model} "
-                    f"(Custom Base URL: {base_url})"
-                )
             else:
                 self.client = OpenAI()
-                print(f"[{persona_name}] Agent initialized with {model}")
         else:
-            print(f"[{persona_name}] OpenAI client NOT available. Using MOCK mode.")
+            pass
 
     def _get_system_prompt(self, name: str) -> str:
         """Get system prompt with enhanced reasoning instructions"""
@@ -297,10 +292,7 @@ Respond ONLY with valid JSON in this exact format:
         # Check if all guardrails passed
         all_checks_passed = all(guardrail_checks.values())
         if not all_checks_passed:
-            print(
-                f"⚠️  Guardrail warnings for task "
-                f"{task.get('task_id')}: {guardrail_checks}"
-            )
+            pass
 
         return annotation
 
@@ -326,8 +318,7 @@ Respond ONLY with valid JSON in this exact format:
                 content = content.split("```")[1].split("```")[0].strip()
 
             return json.loads(content)
-        except Exception as e:
-            print(f"Error calling LLM: {e}. Falling back to mock generation.")
+        except Exception:
             return self._mock_annotation(data, error=False)
 
     def _mock_annotation(
@@ -399,7 +390,6 @@ Respond ONLY with valid JSON in this exact format:
                 indent=2,
             )
 
-        print(f"✅ Metrics exported to {output_path}")
 
     def _calculate_guardrail_pass_rate(self) -> float:
         """Calculate percentage of annotations passing all guardrails"""
@@ -420,10 +410,8 @@ def process_batch(
     input_path = Path(input_file)
     output_path = Path(output_file)
 
-    print(f"Processing {input_path} with enhanced agent {agent.persona_name}...")
 
     if not input_path.exists():
-        print(f"Input file {input_path} not found.")
         return
 
     # Ensure output dir exists
@@ -457,13 +445,11 @@ def process_batch(
                 processed_count += 1
 
                 if processed_count % 10 == 0:
-                    print(f"  Processed {processed_count} records...", end="\r")
+                    pass
 
             except json.JSONDecodeError:
                 continue
 
-    print(f"\n✅ Completed {processed_count} records.")
-    print(f"   Saved to {output_path}")
 
     # Export metrics
     if export_metrics:

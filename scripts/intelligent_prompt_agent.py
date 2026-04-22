@@ -9,7 +9,6 @@ Based on session savepoint findings:
 - Must handle interviews, podcasts, speeches, monologues with confidence weighting
 """
 
-import json
 import logging
 import re
 from dataclasses import dataclass
@@ -485,5 +484,3 @@ if __name__ == "__main__":
     """
 
     analysis = agent.analyze_segment(sample_interview)
-    print("Analysis Results:")
-    print(json.dumps(analysis, indent=2))

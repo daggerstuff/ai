@@ -629,19 +629,14 @@ async def example_usage():
     algorithms = ["similarity_clustering", "pattern_matching", "temporal_clustering", "hybrid_approach"]
 
     for algorithm in algorithms:
-        print(f"\n=== {algorithm.upper()} ===")
         groups = await engine.suggest_groups(test_alerts, algorithm)
 
-        print(f"Found {len(groups)} groups:")
         for i, group in enumerate(groups):
-            print(f"  Group {i+1}: {group}")
             for idx in group:
-                alert = test_alerts[idx]
-                print(f"    - {alert['title']} ({alert['source']})")
+                test_alerts[idx]
 
         # Evaluate grouping quality
-        quality = await engine.evaluate_grouping_quality(test_alerts, groups)
-        print(f"Quality metrics: {quality}")
+        await engine.evaluate_grouping_quality(test_alerts, groups)
 
 if __name__ == "__main__":
     asyncio.run(example_usage())

@@ -167,7 +167,6 @@ def create_comprehensive_test_database():
 
 def run_integration_test():
     """Run comprehensive integration test across all Section 5.6.2 components."""
-    print("🧪 Running Section 5.6.2 Integration Test Suite...")
 
     # Create comprehensive test database
     db_path = create_comprehensive_test_database()
@@ -189,7 +188,6 @@ def run_integration_test():
 
         # Test 1: Quality Analytics Dashboard Integration
         try:
-            pass
 
             dashboard = QualityAnalyticsDashboard(db_path=db_path)
 
@@ -216,7 +214,6 @@ def run_integration_test():
 
         # Test 2: Trend Analysis Integration (simplified)
         try:
-            pass
 
             analyzer = QualityTrendAnalyzer(db_path=db_path)
 
@@ -248,7 +245,6 @@ def run_integration_test():
 
         # Test 3: Distribution Analysis Integration
         try:
-            pass
 
             dist_analyzer = QualityDistributionAnalyzer(db_path=db_path)
             comparator = QualityDistributionComparator(dist_analyzer)
@@ -281,7 +277,6 @@ def run_integration_test():
 
         # Test 4: Improvement Tracking Integration
         try:
-            pass
 
             # Use correct constructor (no interventions_db_path parameter)
             tracker = QualityImprovementTracker(db_path=db_path)
@@ -320,7 +315,6 @@ def run_integration_test():
 
         # Test 5: Comparison System Integration
         try:
-            pass
 
             comparator = QualityComparator(db_path=db_path)
 
@@ -459,23 +453,13 @@ def run_integration_test():
         with open(report_path, "w") as f:
             json.dump(report_data, f, indent=2)
 
-        print("\n📊 Integration Test Results Summary:")
-        print(f"Total Tests: {test_results['total_tests']}")
-        print(f"Passed: {test_results['passed_tests']}")
-        print(f"Failed: {test_results['failed_tests']}")
-        print(f"Success Rate: {success_rate:.1f}%")
-        print(f"Status: {report_data['status']}")
 
-        print("\n📋 Integration Test Details:")
         for detail in test_results["test_details"]:
-            print(f"  {detail}")
+            pass
 
-        print("\n🔧 Component Integration Results:")
         for component, result in test_results["component_results"].items():
-            status = "✅" if result == "PASSED" else "❌"
-            print(f"  {status} {component.replace('_', ' ').title()}: {result}")
+            pass
 
-        print(f"\n📁 Integration test report saved to: {report_path}")
 
         return report_data
 

@@ -7,7 +7,6 @@ Syncs gdrive:backups/S3-Complete/* to BackupStorageS3:pixel-data/
 import argparse
 import subprocess
 import sys
-from datetime import datetime, timezone
 
 
 def run_rclone(args: list[str], dry_run: bool = False) -> tuple[int, str, str]:
@@ -16,13 +15,11 @@ def run_rclone(args: list[str], dry_run: bool = False) -> tuple[int, str, str]:
     if dry_run and "sync" in args[0]:
         cmd.insert(1, "--dry-run")
 
-    print(f"Running: {' '.join(cmd)}")
     result = subprocess.run(cmd, capture_output=True, text=True)
     return result.returncode, result.stdout, result.stderr
 
 
 def main():
-    pass
 
     parser = argparse.ArgumentParser(
         description="Restore S3 backup from Google Drive to DO Spaces"
@@ -44,38 +41,21 @@ def main():
     source = "gdrive:backups/S3-Complete"
     dest = "BackupStorageS3:pixel-data"
 
-    print("=" * 80)
-    print("S3 BACKUP RESTORE")
-    print("=" * 80)
-    print(f"Source: {source}")
-    print(f"Destination: {dest}")
-    print(f"Dry run: {args.dry_run}")
-    print(f"Time: {datetime.now(timezone.utc).isoformat()}Z")
-    print()
 
     if args.check:
-        print("### Checking source ###")
         rc, out, err = run_rclone(["lsf", source])
         if rc != 0:
-            print(f"ERROR: Cannot access source: {err}")
             return 1
-        print(f"Source directories:\n{out}")
 
-        print("\n### Checking destination ###")
         rc, out, err = run_rclone(["lsf", dest])
         if rc != 0:
-            print(f"WARNING: Destination may be empty or inaccessible: {err}")
+            pass
         else:
-            print(f"Destination contents:\n{out}")
+            pass
 
-        print("\n### Source size ###")
         rc, out, err = run_rclone(["size", source])
-        print(out)
         return 0
 
-    print("### Starting sync ###")
-    print("This will sync all files from Google Drive backup to DO Spaces")
-    print()
 
     # Use sync with --progress for visibility
     sync_args = [
@@ -103,18 +83,13 @@ def main():
     if args.log:
         sync_args.extend(["--log-file", args.log])
 
-    rc, out, err = run_rclone(sync_args, dry_run=args.dry_run)
+    rc, _out, _err = run_rclone(sync_args, dry_run=args.dry_run)
 
-    print()
-    print("=" * 80)
     if rc == 0:
-        print("✅ SYNC COMPLETE")
         if args.dry_run:
-            print("(Dry run - no files were actually transferred)")
+            pass
     else:
-        print("❌ SYNC FAILED")
-        print(f"Error: {err}")
-    print("=" * 80)
+        pass
 
     return rc
 

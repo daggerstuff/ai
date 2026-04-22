@@ -46,7 +46,6 @@ class ComprehensiveDatasetProcessor:
             if "summary" in enhanced_file.name:
                 continue
 
-            print(f"Processing v2: {enhanced_file.name}...")
 
             with open(enhanced_file, encoding="utf-8") as f:
                 segments = json.load(f)
@@ -63,15 +62,14 @@ class ComprehensiveDatasetProcessor:
                     )
                     training_pairs.append(training_pair)
                     total_processed += 1
-                except Exception as e:
-                    print(f"Error processing v2 segment: {e}")
+                except Exception:
+                    pass
 
             # Save converted pairs
             output_file = output_dir / f"v2_{enhanced_file.name}"
             with open(output_file, "w", encoding="utf-8") as f:
                 json.dump(training_pairs, f, indent=2, ensure_ascii=False)
 
-            print(f"  Converted: {len(training_pairs)} segments")
 
         return total_processed
 
@@ -108,7 +106,6 @@ class ComprehensiveDatasetProcessor:
         filtered_dir = raw_dir / "filtered_datasets"
         if filtered_dir.exists():
             for dataset_file in filtered_dir.glob("*.json"):
-                print(f"Processing raw: {dataset_file.name}...")
 
                 with open(dataset_file, encoding="utf-8") as f:
                     data = json.load(f)
@@ -148,22 +145,20 @@ class ComprehensiveDatasetProcessor:
                         training_pair = self.generator.create_training_pair(segment)
                         training_pairs.append(training_pair)
                         total_segments += 1
-                    except Exception as e:
-                        print(f"Error: {e}")
+                    except Exception:
+                        pass
 
                 if training_pairs:
                     output_file = output_dir / f"raw_{dataset_file.name}"
                     with open(output_file, "w", encoding="utf-8") as f:
                         json.dump(training_pairs, f, indent=2, ensure_ascii=False)
 
-                    print(f"  Converted: {len(training_pairs)} segments")
 
         # Process natural conversations
         natural_file = (
             raw_dir / "natural_conversations" / "natural_multi_turn_conversations.json"
         )
         if natural_file.exists():
-            print(f"Processing raw: {natural_file.name}...")
 
             with open(natural_file, encoding="utf-8") as f:
                 data = json.load(f)
@@ -194,15 +189,14 @@ class ComprehensiveDatasetProcessor:
                     training_pair = self.generator.create_training_pair(segment)
                     training_pairs.append(training_pair)
                     total_segments += 1
-                except Exception as e:
-                    print(f"Error: {e}")
+                except Exception:
+                    pass
 
             if training_pairs:
                 output_file = output_dir / "raw_natural_conversations.json"
                 with open(output_file, "w", encoding="utf-8") as f:
                     json.dump(training_pairs, f, indent=2, ensure_ascii=False)
 
-                print(f"  Converted: {len(training_pairs)} segments")
 
         return total_segments
 
@@ -235,7 +229,6 @@ class ComprehensiveDatasetProcessor:
             if not training_dir.exists():
                 continue
 
-            print(f"Merging from: {training_dir}")
 
             for training_file in training_dir.glob("*.json"):
                 if "summary" in training_file.name:
@@ -291,33 +284,20 @@ def main():
     """Process all datasets and create comprehensive training data"""
     processor = ComprehensiveDatasetProcessor()
 
-    print("=== COMPREHENSIVE DATASET PROCESSING ===")
 
     # Process v2 enhanced data (61,548 segments)
-    print("\n1. Processing pixelated-v2 enhanced data...")
-    v2_count = processor.process_v2_enhanced_data()
-    print(f"V2 segments processed: {v2_count}")
+    processor.process_v2_enhanced_data()
 
     # Process raw conversation datasets
-    print("\n2. Processing raw conversation datasets...")
-    raw_count = processor.process_raw_conversations()
-    print(f"Raw segments processed: {raw_count}")
+    processor.process_raw_conversations()
 
     # Merge all datasets
-    print("\n3. Merging all datasets...")
     final_stats = processor.merge_all_datasets()
 
-    print("\n=== FINAL COMPREHENSIVE DATASET ===")
-    print(f"Total conversations: {final_stats['total_pairs']}")
-    print(f"Training set: {final_stats['train_size']}")
-    print(f"Validation set: {final_stats['val_size']}")
-    print("\nStyle distribution:")
     for style, count in final_stats["by_style"].items():
-        print(f"  {style}: {count}")
-    print("\nSource distribution:")
+        pass
     for source, count in final_stats["by_source"].items():
-        print(f"  {source}: {count}")
-    print("\nFinal dataset: /root/pixelated/ai/data/lightning_h100_complete/")
+        pass
 
 
 if __name__ == "__main__":

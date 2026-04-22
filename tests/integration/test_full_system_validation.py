@@ -169,7 +169,6 @@ class FullSystemValidator:
         for service_name, endpoint in services:
             try:
                 if service_name == "API":
-                    pass
                     async with httpx.AsyncClient() as client:
                         response = await client.get(endpoint, timeout=10)
                         if response.status_code == 200:
@@ -258,7 +257,6 @@ class FullSystemValidator:
         logger.info("Phase 3: API Performance Testing")
 
         try:
-            pass
 
             # Test various API endpoints
             endpoints = [
@@ -535,21 +533,13 @@ if __name__ == "__main__":
         results = await validator.run_full_validation()
         validator.save_results()
 
-        print(f"\n{'='*60}")
-        print("FULL SYSTEM VALIDATION COMPLETE")
-        print(f"{'='*60}")
-        print(f"Success Rate: {results.successful_operations}/{results.successful_operations + results.failed_operations} ({(results.successful_operations / (results.successful_operations + results.failed_operations) * 100) if (results.successful_operations + results.failed_operations) > 0 else 0:.1f}%)")
-        print(f"Duration: {getattr(results, 'duration', 0):.1f} seconds")
-        print(f"Conversations: {results.total_conversations_processed:,}")
 
         if results.errors:
-            print(f"\nErrors: {len(results.errors)}")
             for error in results.errors[-5:]:  # Show last 5 errors
-                print(f"  - {error}")
+                pass
 
         if results.warnings:
-            print(f"\nWarnings: {len(results.warnings)}")
             for warning in results.warnings[-5:]:  # Show last 5 warnings
-                print(f"  - {warning}")
+                pass
 
     asyncio.run(main())

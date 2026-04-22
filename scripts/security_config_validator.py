@@ -23,5 +23,3 @@ def validate_security_configurations():
 
 if __name__ == "__main__":
     results = validate_security_configurations()
-    print("Security configuration validation completed")
-    print(f"Validations passed: {sum(results.values())}/{len(results)}")

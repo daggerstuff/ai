@@ -38,12 +38,10 @@ def update_domains_in_file(file_path):
         if content != original_content:
             with open(file_path, "w", encoding="utf-8") as f:
                 f.write(content)
-            print(f"✅ Updated: {file_path}")
             return True
         return False
 
-    except Exception as e:
-        print(f"❌ Error updating {file_path}: {e}")
+    except Exception:
         return False
 
 def main():
@@ -73,16 +71,11 @@ def main():
                         if update_domains_in_file(file_path):
                             updated_files.append(file_path)
 
-    print("\n📊 Summary:")
-    print(f"   Total files processed: {total_files}")
-    print(f"   Files updated: {len(updated_files)}")
 
     if updated_files:
-        print("\n📝 Updated files:")
         for file_path in updated_files:
-            print(f"   - {file_path}")
+            pass
 
-    print("\n✅ Domain update completed!")
 
 if __name__ == "__main__":
     main()

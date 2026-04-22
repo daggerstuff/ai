@@ -925,31 +925,23 @@ def test_enhanced_safety_filter():
 
     # Test each case
     for content, test_type in test_cases:
-        print(f"\n--- Testing {test_type} ---")
-        print(f"Input: {content[:50]}{'...' if len(content) > 50 else ''}")
 
         # Check output safety
         safety_result = enhanced_safety_filter.check_output_safety(content)
 
-        print(f"Safe: {safety_result.is_safe}")
-        print(f"Overall Score: {safety_result.overall_score:.3f}")
-        print(f"Confidence: {safety_result.confidence:.3f}")
-        print(f"Explanation: {safety_result.explanation}")
 
         if safety_result.flagged_categories:
-            print(f"Flagged Categories: {[cat.value for cat in safety_result.flagged_categories]}")
             for category, score in safety_result.category_scores.items():
                 if score > 0.1:
-                    print(f"  {category.value}: {score:.3f}")
+                    pass
 
         if safety_result.filtered_content:
-            print(f"Filtered Content: {safety_result.filtered_content[:50]}{'...' if len(safety_result.filtered_content) > 50 else ''}")
+            pass
 
         # Test filtering
-        is_safe, filtered_content, filter_result = enhanced_safety_filter.filter_response(content)
-        print(f"Filter Result - Safe: {is_safe}")
+        is_safe, filtered_content, _filter_result = enhanced_safety_filter.filter_response(content)
         if not is_safe:
-            print(f"Final Filtered Content: {filtered_content[:50]}{'...' if len(filtered_content) > 50 else ''}")
+            pass
 
         # Test crisis detection specifically
         if "crisis" in test_type or any(word in content.lower() for word in ["suicide", "kill", "hurt", "harm"]):
@@ -957,21 +949,15 @@ def test_enhanced_safety_filter():
             crisis_test_content = "I'm thinking about suicide" if "suicide" in test_type else content
             crisis_result = enhanced_safety_filter._check_crisis_content(crisis_test_content)
             if crisis_result.is_crisis:
-                print(f"Crisis Detected: {crisis_result.crisis_type}")
-                print(f"Urgency: {crisis_result.urgency_level}")
-                print(f"Confidence: {crisis_result.confidence:.3f}")
-                print(f"Recommended Action: {crisis_result.recommended_action}")
 
                 # Test crisis intervention
-                crisis_response = crisis_intervention_system.handle_crisis_detection(
+                crisis_intervention_system.handle_crisis_detection(
                     crisis_result,
                     user_context={"user_id": "test_user_123"},
                     content=crisis_test_content
                 )
-                print(f"Crisis Response Status: {crisis_response['status']}")
 
     # Test batch filtering
-    print("\n--- Testing Batch Filtering ---")
     batch_content = [
         "I'm having a good day today.",
         "I don't want to live anymore.",
@@ -982,18 +968,15 @@ def test_enhanced_safety_filter():
     batch_results = enhanced_safety_filter.batch_filter_responses(batch_content)
 
     for i, (is_safe, filtered_content, safety_result) in enumerate(batch_results):
-        print(f"Batch Item {i+1}: Safe={is_safe}, Score={safety_result.overall_score:.3f}")
+        pass
 
     # Test different safety levels
-    print("\n--- Testing Different Safety Levels ---")
     test_content = "I'm feeling really depressed and thinking about ending it all."
 
     for safety_level in [SafetyLevel.LENIENT, SafetyLevel.MODERATE, SafetyLevel.STRICT, SafetyLevel.PARANOID]:
         filter_instance = EnhancedSafetyFilter(safety_level)
-        result = filter_instance.check_output_safety(test_content)
-        print(f"{safety_level.value}: Safe={result.is_safe}, Score={result.overall_score:.3f}")
+        filter_instance.check_output_safety(test_content)
 
-    print("\nEnhanced safety filtering system tests completed!")
 
 
 if __name__ == "__main__":

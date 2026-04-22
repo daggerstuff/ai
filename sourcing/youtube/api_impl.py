@@ -398,13 +398,12 @@ def test_api_connection(api_key: str) -> bool:
     """Test that the API key works and has quota."""
     try:
         api = YouTubeAPI(api_key)
-        has_quota, used, limit = api.check_quota()
+        has_quota, _used, _limit = api.check_quota()
 
         if not has_quota:
-            print(f"⚠️  Low quota: { used}/{limit} units used")
+            pass
         else:
-            print("✅ API connection successful")
-            print(f"   Quota: {used}/{limit} units used")
+            pass
 
         # Try a simple search to verify
         params = {
@@ -415,14 +414,11 @@ def test_api_connection(api_key: str) -> bool:
         }
         api._make_request("search", params)
 
-        print("✅ YouTube API connection test passed")
         return True
 
-    except YouTubeAPIKeyError as e:
-        print(f"❌ API key error: {e}")
+    except YouTubeAPIKeyError:
         return False
-    except Exception as e:
-        print(f"❌ API test failed: {e}")
+    except Exception:
         return False
 
 
@@ -434,21 +430,18 @@ def get_api_quota_status() -> tuple[bool, int, int]:
         Tuple of (has_quota, used, limit)
     """
     try:
-        pass
 
 
         load_dotenv(".env.youtube.example", override=True)
         api_key = os.getenv("YOUTUBE_API_KEY")
 
         if not api_key or api_key.startswith("your-"):
-            print("⚠️  No API key configured")
             return False, 0, 10000
 
         api = YouTubeAPI(api_key)
         return api.check_quota()
 
-    except Exception as e:
-        print(f"❌ Failed to check quota: {e}")
+    except Exception:
         return False, 0, 10000
 
 
@@ -456,13 +449,8 @@ if __name__ == "__main__":
     # Run quota status check
     has_quota, used, limit = get_api_quota_status()
 
-    print("YouTube API Quota Status:")
-    print(f"  Available: {'Yes' if has_quota else 'No'}")
-    print(f"  Used today: {used}/{limit} units")
-    print()
 
     if not has_quota:
-        print("⚠️  Consider waiting 24h for quota reset or increasing quota")
+        pass
     else:
-        print("✅ Quota available for discovery")
-        print("   Estimated capacity: ~100 channel discoveries (at 100 units/search)")
+        pass

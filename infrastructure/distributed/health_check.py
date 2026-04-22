@@ -436,40 +436,18 @@ async def example_health_check():
     report = await health_manager.run_all_health_checks()
 
     # Print results
-    print("=" * 70)
-    print("SYSTEM HEALTH CHECK REPORT")
-    print("=" * 70)
-    print(f"Timestamp: {report.timestamp}")
-    print(f"Overall Status: {report.overall_status.value.upper()}")
 
-    print("\nComponent Health:")
     for check in report.component_checks:
-        status_icon = (
-            "✅"
-            if check.status == HealthStatus.HEALTHY
-            else "⚠️"
-            if check.status == HealthStatus.DEGRADED
-            else "❌"
-            if check.status == HealthStatus.UNHEALTHY
-            else "❓"
-        )
-        print(
-            f"  {status_icon} {check.component_name}: {check.status.value} "
-            f"({check.response_time_ms:.1f}ms)"
-        )
         if check.message and check.message != "Health check passed":
-            print(f"     Message: {check.message}")
+            pass
 
-    print("\nSystem Metrics:")
     for category, metrics in report.system_metrics.items():
         if isinstance(metrics, dict) and "error" not in metrics:
-            print(f"  {category.title()}:")
             for key, value in metrics.items():
-                print(f"    {key}: {value}")
+                pass
 
-    print("\nRecommendations:")
     for i, recommendation in enumerate(report.recommendations, 1):
-        print(f"  {i}. {recommendation}")
+        pass
 
     return report
 

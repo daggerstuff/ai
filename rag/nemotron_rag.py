@@ -32,7 +32,7 @@ import logging
 import os
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 import numpy as np
@@ -54,7 +54,7 @@ logger = logging.getLogger(__name__)
 # Enums and Constants
 # =============================================================================
 
-class KnowledgeCategory(str, Enum):
+class KnowledgeCategory(StrEnum):
     """Categories of therapeutic knowledge."""
     TREATMENT_PROTOCOLS = "treatment_protocols"
     CRISIS_PROTOCOLS = "crisis_protocols"
@@ -64,7 +64,7 @@ class KnowledgeCategory(str, Enum):
     CLIENT_RESOURCES = "client_resources"
 
 
-class IndexType(str, Enum):
+class IndexType(StrEnum):
     """FAISS index types for different scales."""
     FLAT = "flat"         # <10K documents, real-time updates
     IVF = "ivf"           # 10K-1M documents, hourly batch
@@ -115,7 +115,7 @@ EMBEDDING_DIMENSION = 2048  # Nemotron-Embed-VL produces 2048-dim vectors
 # Configuration Classes
 # =============================================================================
 
-class QueryComplexity(str, Enum):
+class QueryComplexity(StrEnum):
     """Query complexity levels for model selection in RAG."""
 
     SIMPLE = "simple"  # Factual lookup, single document retrieval
@@ -570,7 +570,7 @@ class TherapeuticRAGPipeline:
         )
 
         candidates = []
-        for dist, idx in zip(distances[0], indices[0]):
+        for dist, idx in zip(distances[0], indices[0], strict=False):
             doc = self.store.get_by_index(idx)
             if doc is None:
                 continue

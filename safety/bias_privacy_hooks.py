@@ -1,4 +1,5 @@
 from typing import Any
+import contextlib
 
 
 def detect_bias(text: str, bias_engine: Any) -> dict[str, float]:
@@ -22,10 +23,8 @@ def check_phi(text: str, privacy_engine: Any) -> list[str]:
 def log_audit_event(event_type: str, text: str, logger: Any) -> None:
     """Log an audit event using the provided logger."""
     if logger is not None:
-        try:
+        with contextlib.suppress(Exception):
             logger.log_event(event_type, text)
-        except Exception:
-            pass
 
 def run_bias_privacy_pipeline(
     text: str,
@@ -40,8 +39,6 @@ def run_bias_privacy_pipeline(
     pii = check_pii(text, privacy_engine) if privacy_engine else []
     phi = check_phi(text, privacy_engine) if privacy_engine else []
     if audit_logger is not None:
-        try:
+        with contextlib.suppress(Exception):
             audit_logger.log_event("pipeline_run", text)
-        except Exception:
-            pass
     return {"bias": bias, "pii": pii, "phi": phi}

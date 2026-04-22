@@ -26,7 +26,6 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 def run_comprehensive_test():
     """Run comprehensive test suite and generate report."""
-    print("🧪 Running Quality Comparison System Test Suite...")
 
     # Create temporary database for testing
     db_fd, db_path = tempfile.mkstemp(suffix=".db")
@@ -383,37 +382,14 @@ def run_comprehensive_test():
         with open(report_path, "w") as f:
             json.dump(report_data, f, indent=2)
 
-        print("\n📊 Test Results Summary:")
-        print(f"Total Tests: {test_results['total_tests']}")
-        print(f"Passed: {test_results['passed_tests']}")
-        print(f"Failed: {test_results['failed_tests']}")
-        print(f"Success Rate: {success_rate:.1f}%")
-        print(f"Status: {report_data['status']}")
 
-        print("\n📋 Test Details:")
         for detail in test_results["test_details"]:
-            print(f"  {detail}")
+            pass
 
-        print("\n📈 Comparison Analysis Sample:")
         sample = report_data["comparison_analysis_sample"]
-        print(f"  Tier Comparisons: {sample['tier_comparisons']}")
-        print(f"  Dataset Comparisons: {sample['dataset_comparisons']}")
-        print(f"  Component Comparisons: {sample['component_comparisons']}")
-        print(f"  Benchmark Analyses: {sample['benchmark_analyses']}")
-        print(
-            f"  Performance Ranking Dimensions: {sample['performance_rankings_dimensions']}"
-        )
 
-        print("\n📊 Report Sample:")
         report_sample = report_data["report_sample"]
-        print(f"  Tier Comparisons: {report_sample['tier_comparisons']}")
-        print(f"  Dataset Comparisons: {report_sample['dataset_comparisons']}")
-        print(f"  Component Comparisons: {report_sample['component_comparisons']}")
-        print(f"  Benchmark Analyses: {report_sample['benchmark_analyses']}")
-        print(f"  Executive Summary Items: {report_sample['executive_summary_items']}")
-        print(f"  Action Items: {report_sample['action_items']}")
 
-        print(f"\n📁 Test report saved to: {report_path}")
 
         return report_data
 

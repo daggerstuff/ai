@@ -608,21 +608,14 @@ def main():
     df = analyzer.load_quality_data(days_back=30)
 
     if df.empty:
-        print("❌ No quality data available for comparative analysis")
         return
 
     # Compare across tiers
     tier_comparison = comparator.compare_across_tiers(df, "overall_quality")
 
-    print("📊 Tier Comparison Results:")
-    print(f"Groups: {len(tier_comparison.groups)}")
-    print(f"Statistical Tests: {len(tier_comparison.statistical_tests)}")
-    print(f"Effect Sizes: {len(tier_comparison.effect_sizes)}")
-    print(f"Pairwise Comparisons: {len(tier_comparison.pairwise_comparisons)}")
 
-    print("\n💡 Recommendations:")
     for i, rec in enumerate(tier_comparison.recommendations, 1):
-        print(f"{i}. {rec}")
+        pass
 
 
 if __name__ == "__main__":

@@ -93,7 +93,6 @@ def fix_safety_ethics_validator():
     with open(test_file, "w") as f:
         f.write(content)
 
-    print("Fixed safety ethics validator tests")
 
 def fix_clinical_accuracy_validator():
     """Fix clinical accuracy validator test failures."""
@@ -195,7 +194,6 @@ def fix_clinical_accuracy_validator():
     with open(test_file, "w") as f:
         f.write(content)
 
-    print("Fixed clinical accuracy validator tests")
 
 def fix_crisis_intervention_detector():
     """Fix crisis intervention detector test failures."""
@@ -229,7 +227,6 @@ def fix_crisis_intervention_detector():
     with open(test_file, "w") as f:
         f.write(content)
 
-    print("Fixed crisis intervention detector tests")
 
 def fix_therapeutic_response_generator():
     """Fix therapeutic response generator test failures."""
@@ -280,18 +277,15 @@ def fix_therapeutic_response_generator():
     with open(test_file, "w") as f:
         f.write(content)
 
-    print("Fixed therapeutic response generator tests")
 
 def main():
     """Run all fixes."""
-    print("🔧 Fixing remaining test failures...")
 
     fix_safety_ethics_validator()
     fix_clinical_accuracy_validator()
     fix_crisis_intervention_detector()
     fix_therapeutic_response_generator()
 
-    print("✅ All test fixes applied!")
 
 if __name__ == "__main__":
     main()

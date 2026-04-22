@@ -396,7 +396,6 @@ class MCPErrorHandler:
                     if asyncio.iscoroutinefunction(func):
                         await asyncio.sleep(retry_delay * (attempt + 1))
                     else:
-                        pass
                         time.sleep(retry_delay * (attempt + 1))
 
             # Should not reach here, but just in case

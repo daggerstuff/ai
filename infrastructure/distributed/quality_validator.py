@@ -879,21 +879,18 @@ def main():
                 args.data_path, args.type, priority_map[args.priority]
             )
 
-            print(f"Submitted task: {task_id}")
 
             # Wait for result
             result = validator.wait_for_task(task_id, timeout=300)
             if result:
-                print(json.dumps(result.to_dict(), indent=2))
+                pass
             else:
-                print("Task failed or timed out")
+                pass
 
         elif args.command == "batch":
-            pass
 
             data_dir = Path(args.data_dir)
             if not data_dir.exists():
-                print(f"Directory not found: {data_dir}")
                 return
 
             # Find files matching pattern
@@ -901,10 +898,8 @@ def main():
             data_files = glob.glob(pattern)
 
             if not data_files:
-                print(f"No files found matching pattern: {pattern}")
                 return
 
-            print(f"Found {len(data_files)} files to validate")
 
             # Run batch validation
             results = validator.batch_validate(
@@ -913,18 +908,12 @@ def main():
 
             # Print summary
             successful = [r for r in results if r.success]
-            print("\nValidation completed:")
-            print(f"  Total files: {len(results)}")
-            print(f"  Successful: {len(successful)}")
-            print(f"  Failed: {len(results) - len(successful)}")
 
             if successful:
-                avg_score = sum(r.quality_score for r in successful) / len(successful)
-                print(f"  Average quality score: {avg_score:.3f}")
+                sum(r.quality_score for r in successful) / len(successful)
 
         elif args.command == "status":
-            stats = validator.get_validation_statistics()
-            print(json.dumps(stats, indent=2))
+            validator.get_validation_statistics()
 
     finally:
         validator.cleanup()

@@ -24,6 +24,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from quality_analytics_dashboard_v2 import QualityAnalytics, QualityAnalyticsDashboard
+import contextlib
 
 # Configure logging for tests
 logging.basicConfig(level=logging.WARNING)  # Reduce noise during tests
@@ -224,10 +225,8 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         """Clean up test database."""
-        try:
+        with contextlib.suppress(BaseException):
             os.unlink(cls.test_db_path)
-        except:
-            pass
 
     def test_01_dashboard_initialization(self):
         """Test dashboard initialization with correct database."""
@@ -489,8 +488,6 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
 
 def run_comprehensive_test():
     """Run comprehensive test suite and generate detailed report."""
-    print("🧪 Starting Quality Analytics Dashboard V2 Test Suite")
-    print("=" * 60)
 
     # Create test suite
     loader = unittest.TestLoader()
@@ -538,14 +535,6 @@ def run_comprehensive_test():
     with open(report_path, "w") as f:
         json.dump(test_report, f, indent=2)
 
-    print("\n📊 Test Report Summary:")
-    print(f"Total Tests: {test_report['results']['total_tests']}")
-    print(f"Passed: {test_report['results']['passed_tests']}")
-    print(f"Failed: {test_report['results']['failed_tests']}")
-    print(f"Errors: {test_report['results']['error_tests']}")
-    print(f"Success Rate: {test_report['success_rate']:.1f}%")
-    print(f"Status: {test_report['status']}")
-    print(f"Report saved: {report_path}")
 
     return result.wasSuccessful()
 

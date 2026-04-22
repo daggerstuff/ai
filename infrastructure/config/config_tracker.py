@@ -633,18 +633,16 @@ def main():
 
     # Execute command
     if args.command == "track":
-        change_id = tracker.track_change(
+        tracker.track_change(
             args.file_path,
             args.change_type,
             args.description,
             args.user,
             args.environment
         )
-        print(f"Change tracked: {change_id}")
 
     elif args.command == "snapshot":
-        snapshot_id = tracker.create_snapshot(args.description, args.environment)
-        print(f"Snapshot created: {snapshot_id}")
+        tracker.create_snapshot(args.description, args.environment)
 
     elif args.command == "rollback":
         if args.change_id:
@@ -653,41 +651,34 @@ def main():
             success = tracker.rollback_to_snapshot(args.snapshot_id)
 
         if success:
-            print("Rollback completed successfully")
+            pass
         else:
-            print("Rollback failed")
             sys.exit(1)
 
     elif args.command == "history":
-        changes = tracker.get_change_history(args.file_path, args.limit)
-        print(json.dumps(changes, indent=2))
+        tracker.get_change_history(args.file_path, args.limit)
 
     elif args.command == "snapshots":
-        snapshots = tracker.get_snapshots(args.limit)
-        print(json.dumps(snapshots, indent=2))
+        tracker.get_snapshots(args.limit)
 
     elif args.command == "compare":
-        comparison = tracker.compare_configurations(args.snapshot1, args.snapshot2)
-        print(json.dumps(comparison, indent=2))
+        tracker.compare_configurations(args.snapshot1, args.snapshot2)
 
     elif args.command == "cleanup":
-        count = tracker.cleanup_old_backups(args.days)
-        print(f"Cleaned up {count} old backup files")
+        tracker.cleanup_old_backups(args.days)
 
     elif args.command == "export":
         success = tracker.export_tracking_data(args.output_file)
         if success:
-            print(f"Tracking data exported to: {args.output_file}")
+            pass
         else:
-            print("Export failed")
             sys.exit(1)
 
     elif args.command == "import":
         success = tracker.import_tracking_data(args.input_file)
         if success:
-            print(f"Tracking data imported from: {args.input_file}")
+            pass
         else:
-            print("Import failed")
             sys.exit(1)
 
 

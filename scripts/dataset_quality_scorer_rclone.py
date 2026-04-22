@@ -135,7 +135,6 @@ def score_dataset_quality(
     if not s3_path:
         return {"error": "No path defined", "overall_score": 0}
 
-    print(f"Scoring: {dataset_name}")
 
     results = {
         "dataset": dataset_name,
@@ -190,7 +189,6 @@ def score_dataset_quality(
 
 
 def main():
-    pass
 
     parser = argparse.ArgumentParser(description="Score dataset quality using rclone")
     parser.add_argument(
@@ -205,12 +203,6 @@ def main():
 
     args = parser.parse_args()
 
-    print("=" * 80)
-    print("DATASET QUALITY SCORING (RCLONE)")
-    print("=" * 80)
-    print(f"Registry: {args.registry}")
-    print(f"Limit: {args.limit or 'None (all datasets)'}")
-    print()
 
     with open(args.registry) as f:
         registry = json.load(f)
@@ -294,21 +286,14 @@ def main():
         json.dump(registry, f, indent=2, ensure_ascii=False)
 
     # Print summary
-    print("\n" + "=" * 80)
-    print("QUALITY SCORING SUMMARY")
-    print("=" * 80)
-    print(f"Total datasets scored: {stats['total']}")
-    print(f"Anomalies detected: {stats['anomalies']}")
-    print("\nBy Quality Tier:")
     for tier, count in stats["by_tier"].items():
-        print(f"  {tier}: {count}")
+        pass
 
     # Show datasets needing review
     needs_review = [r for r in all_results if r["quality_tier"] == "needs_review"]
     if needs_review:
-        print("\nDatasets needing review:")
         for result in needs_review:
-            print(f"  - {result['dataset']}: {result.get('overall_score', 0):.1f}")
+            pass
 
 
 if __name__ == "__main__":

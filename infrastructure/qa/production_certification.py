@@ -716,63 +716,30 @@ async def main():
     report = await certifier.run_production_certification()
 
     # Print results
-    print("\n" + "=" * 80)
-    print("FINAL PRODUCTION CERTIFICATION & GO-LIVE READINESS")
-    print("=" * 80)
-    print(f"Overall Status: {report.overall_certification_status.value.upper()}")
-    print(f"Certification Score: {report.certification_score:.1f}/100")
-    print(f"Go-Live Ready: {'YES' if report.go_live_readiness else 'NO'}")
 
     if report.production_launch_date:
-        print(
-            f"Planned Launch Date: {report.production_launch_date.strftime('%Y-%m-%d')}"
-        )
+        pass
 
-    print("\nCertification Summary:")
-    print(f"  Total Checks: {report.total_checks}")
-    print(f"  Passed: {report.passed_checks}")
-    print(f"  Failed: {report.failed_checks}")
-    print(f"  Pending: {report.pending_checks}")
 
-    print("\nCertification Categories:")
     for category, data in report.certification_categories.items():
-        status = "✅ PASSED" if data["score"] >= 95 else "⚠️ NEEDS ATTENTION"
-        print(f"  {category}: {data['score']:.1f}/100 - {status}")
+        "✅ PASSED" if data["score"] >= 95 else "⚠️ NEEDS ATTENTION"
 
-    print("\nStakeholder Sign-offs:")
     for signoff in report.stakeholder_signoffs:
-        status = (
-            "✅ SIGNED"
-            if signoff.sign_off_status == CertificationStatus.PASSED
-            else "⏳ PENDING"
-        )
-        print(f"  {signoff.name} ({signoff.role.value}): {status}")
+        pass
 
-    print("\nRisk Assessment:")
     for risk_type, level in report.risk_assessment.items():
-        color = "🟢" if level == "LOW" else "🟡" if level == "MEDIUM" else "🔴"
-        print(f"  {risk_type.replace('_', ' ').title()}: {color} {level}")
+        pass
 
     if report.recommendations:
-        print("\nRecommendations:")
         for rec in report.recommendations:
-            print(f"  • {rec}")
+            pass
 
     # Final status
-    print("\n" + "=" * 80)
-    print("PRODUCTION CERTIFICATION STATUS")
-    print("=" * 80)
 
     if report.overall_certification_status == CertificationStatus.PASSED:
-        print("🎉 PRODUCTION CERTIFICATION: ✅ PASSED")
-        print("🚀 SYSTEM IS GO-LIVE READY!")
-        print(
-            f"📅 Planned Launch: {report.production_launch_date.strftime('%Y-%m-%d')}"
-        )
-        print("🏆 Congratulations! Enterprise production deployment approved!")
+        pass
     else:
-        print("⚠️ PRODUCTION CERTIFICATION: REQUIRES ATTENTION")
-        print("📋 Please address recommendations before go-live approval")
+        pass
 
     return report.overall_certification_status == CertificationStatus.PASSED
 

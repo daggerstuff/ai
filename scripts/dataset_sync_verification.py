@@ -188,7 +188,6 @@ class DatasetSyncVerifier:
         Returns:
             Sync status dictionary
         """
-        print(f"Verifying sync for: {dataset_name}")
 
         s3_path = dataset_entry.get("path", "")
         fallback_paths = dataset_entry.get("fallback_paths", {})
@@ -299,8 +298,7 @@ class DatasetSyncVerifier:
                 if not sync_status["gdrive_synced"]:
                     stats["missing_gdrive"] += 1
 
-            except Exception as e:
-                print(f"Error verifying {dataset_path_key}: {e}")
+            except Exception:
                 stats["out_of_sync"] += 1
 
         # Update registry statistics
@@ -342,20 +340,10 @@ def main():
 
     args = parser.parse_args()
 
-    print("Dataset Sync Verification")
-    print(f"Registry: {args.registry}")
-    print(f"Limit: {args.limit or 'None (all datasets)'}")
-    print()
 
     verifier = DatasetSyncVerifier(args.registry)
-    stats = verifier.verify_all_datasets(limit=args.limit)
+    verifier.verify_all_datasets(limit=args.limit)
 
-    print("\nSync Verification Statistics:")
-    print(f"  Total verified: {stats['total_verified']}")
-    print(f"  In sync: {stats['in_sync']}")
-    print(f"  Out of sync: {stats['out_of_sync']}")
-    print(f"  Missing from S3: {stats['missing_s3']}")
-    print(f"  Missing from GDrive: {stats['missing_gdrive']}")
 
 
 if __name__ == "__main__":

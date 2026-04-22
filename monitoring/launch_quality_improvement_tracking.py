@@ -12,11 +12,6 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-import jinja2
-import numpy
-import pandas
-import plotly
-import scipy
 from quality_improvement_reporter import QualityImprovementReporter
 from quality_improvement_tracker import QualityImprovementTracker
 
@@ -103,7 +98,6 @@ class QualityImprovementTrackingLauncher:
             return False
 
         try:
-            pass
 
             conn = sqlite3.connect(str(self.db_path))
             cursor = conn.cursor()
@@ -450,48 +444,27 @@ class QualityImprovementTrackingLauncher:
     def display_report_summary(self, summary: dict):
         """Display report summary to console."""
         if not summary.get("success", False):
-            print(
-                f"❌ Report generation failed: {summary.get('error', 'Unknown error')}"
-            )
             return
 
-        print("\n📊 Quality Improvement Tracking Summary")
-        print(f"{'=' * 50}")
-        print(f"Report Period: {summary['report_period']}")
-        print(f"Active Interventions: {summary['active_interventions']}")
-        print(f"Completed Interventions: {summary['completed_interventions']}")
-        print(f"Improvement Analyses: {summary['improvement_analyses']}")
 
         if summary["overall_impact"]:
-            impact = summary["overall_impact"]
-            print(f"Average Improvement: {impact.get('average_improvement', 0):.3f}")
-            print(f"Success Rate: {impact.get('success_rate', 0) * 100:.1f}%")
+            summary["overall_impact"]
 
         if summary["success_metrics"]:
-            metrics = summary["success_metrics"]
-            print(
-                f"Target Achievement Rate: {metrics.get('target_achievement_rate', 0) * 100:.1f}%"
-            )
-            print(
-                f"Statistical Significance Rate: {metrics.get('statistical_significance_rate', 0) * 100:.1f}%"
-            )
+            summary["success_metrics"]
 
-        print("\n📄 Generated Files:")
         for file_path in summary["report_files"]:
-            print(f"  📋 {file_path}")
+            pass
 
         if summary["visualization_files"]:
-            print("\n📊 Visualization Files:")
             for file_path in summary["visualization_files"]:
-                print(f"  📈 {file_path}")
+                pass
 
-        print("\n💡 Executive Summary:")
         for i, item in enumerate(summary["executive_summary"][:5], 1):
-            print(f"  {i}. {item}")
+            pass
 
-        print("\n🎯 Action Items:")
         for i, item in enumerate(summary["action_items"][:5], 1):
-            print(f"  {i}. {item}")
+            pass
 
     def launch(self, action: str, **kwargs) -> bool:
         """
@@ -599,7 +572,6 @@ def main():
         if not all(
             [args.name, args.description, args.type, args.component, args.improvement]
         ):
-            print("❌ Missing required arguments for create action")
             sys.exit(1)
         kwargs = {
             "name": args.name,
@@ -613,7 +585,6 @@ def main():
         }
     elif args.action in ["start", "progress", "complete"]:
         if not args.intervention_id:
-            print("❌ Missing intervention ID")
             sys.exit(1)
         kwargs = {"intervention_id": args.intervention_id}
         if args.action == "progress" and args.notes:

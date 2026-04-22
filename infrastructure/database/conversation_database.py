@@ -867,8 +867,6 @@ if __name__ == "__main__":
     # Test the database integration
     db = ConversationDatabase()
 
-    print("🗄️ DATABASE INTEGRATION TEST")
-    print("=" * 50)
 
     try:
         # Create test conversation
@@ -892,25 +890,16 @@ if __name__ == "__main__":
 
         # Test insertion
         success = db.insert_conversation(test_conversation)
-        print(f"✅ Conversation inserted: {success}")
 
         # Test retrieval
         retrieved = db.get_conversation(test_conversation.conversation_id)
-        print(f"✅ Conversation retrieved: {retrieved is not None}")
 
         # Test search
         results = db.search_conversations({"tier": "priority_1"}, limit=10)
-        print(f"✅ Search results: {len(results)} conversations found")
 
         # Test statistics
         stats = db.get_database_statistics()
-        print(
-            f"✅ Database statistics: {stats.get('total_conversations', 0)} "
-            "total conversations"
-        )
-        print(f"   Database size: {stats.get('database_size_mb', 0):.2f} MB")
 
     finally:
         db.close()
 
-    print("✅ Database integration test complete!")

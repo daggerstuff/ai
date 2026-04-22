@@ -48,15 +48,12 @@ class ConversationEffectivenessPredictor:
 
     def predict_effectiveness(self) -> dict[str, Any]:
         """Main function for conversation effectiveness prediction"""
-        print("🎯 Starting Conversation Effectiveness Prediction...")
 
         # Load and prepare data
         conversations = self._load_conversation_data()
-        print(f"📊 Loaded {len(conversations)} conversations for analysis")
 
         # Extract features
         features_df = self._extract_effectiveness_features(conversations)
-        print(f"🔧 Extracted {len(features_df.columns)} features")
 
         # Calculate effectiveness scores
         effectiveness_scores = self._calculate_effectiveness_scores(conversations)
@@ -123,7 +120,6 @@ class ConversationEffectivenessPredictor:
     def _extract_text_from_json(self, json_str: str) -> str:
         """Extract readable text from conversations JSON"""
         try:
-            pass
 
             conversations = json.loads(json_str)
 
@@ -144,7 +140,6 @@ class ConversationEffectivenessPredictor:
         self, conversations: pd.DataFrame
     ) -> pd.DataFrame:
         """Extract features that correlate with conversation effectiveness"""
-        print("🔧 Extracting effectiveness features...")
 
         features = []
 
@@ -278,7 +273,6 @@ class ConversationEffectivenessPredictor:
 
     def _calculate_effectiveness_scores(self, conversations: pd.DataFrame) -> pd.Series:
         """Calculate effectiveness scores based on multiple criteria"""
-        print("📊 Calculating effectiveness scores...")
 
         effectiveness_scores = {}
 
@@ -368,7 +362,6 @@ class ConversationEffectivenessPredictor:
 
     def _build_prediction_models(self, modeling_data: pd.DataFrame) -> dict[str, Any]:
         """Build machine learning models to predict effectiveness"""
-        print("🤖 Building prediction models...")
 
         # Prepare features and target
         feature_columns = [
@@ -405,7 +398,6 @@ class ConversationEffectivenessPredictor:
         model_results = {}
 
         for model_name, model in models.items():
-            print(f"  Training {model_name}...")
 
             # Train model
             if model_name == "linear_regression":
@@ -432,7 +424,7 @@ class ConversationEffectivenessPredictor:
             # Feature importance (for tree-based models)
             if hasattr(model, "feature_importances_"):
                 feature_importance = dict(
-                    zip(feature_columns, model.feature_importances_)
+                    zip(feature_columns, model.feature_importances_, strict=False)
                 )
                 top_features = sorted(
                     feature_importance.items(), key=lambda x: x[1], reverse=True
@@ -462,7 +454,6 @@ class ConversationEffectivenessPredictor:
         self, modeling_data: pd.DataFrame, _model_results: dict[str, Any]
     ) -> dict[str, Any]:
         """Generate effectiveness predictions for all conversations"""
-        print("🔮 Generating effectiveness predictions...")
 
         # Use the best performing model (Random Forest)
         model = self.models.get("effectiveness")
@@ -514,7 +505,6 @@ class ConversationEffectivenessPredictor:
         self, modeling_data: pd.DataFrame, predictions: dict[str, Any]
     ) -> dict[str, Any]:
         """Analyze patterns in conversation effectiveness"""
-        print("📈 Analyzing effectiveness patterns...")
 
         # Add predictions to modeling data for analysis
         modeling_data_with_pred = modeling_data.copy()
@@ -726,7 +716,6 @@ class ConversationEffectivenessPredictor:
         model_results: dict[str, Any],
     ):
         """Create visualizations for effectiveness analysis"""
-        print("📊 Creating effectiveness visualizations...")
 
         plt.style.use("default")
         fig, axes = plt.subplots(2, 3, figsize=(18, 12))
@@ -765,7 +754,7 @@ class ConversationEffectivenessPredictor:
         axes[0, 1].set_ylim(0, 1)
 
         # Add value labels
-        for bar, score in zip(bars, r2_scores):
+        for bar, score in zip(bars, r2_scores, strict=False):
             height = bar.get_height()
             axes[0, 1].text(
                 bar.get_x() + bar.get_width() / 2.0,
@@ -821,7 +810,7 @@ class ConversationEffectivenessPredictor:
             axes[1, 0].set_title("Top Features for Effectiveness Prediction")
 
             # Add value labels
-            for i, (bar, value) in enumerate(zip(bars, importance_values)):
+            for i, (bar, value) in enumerate(zip(bars, importance_values, strict=False)):
                 width = bar.get_width()
                 axes[1, 0].text(
                     width + 0.001,
@@ -837,7 +826,7 @@ class ConversationEffectivenessPredictor:
             counts = list(predictions["category_distribution"].values())
             colors = ["#FF6B6B", "#FFA07A", "#98D8C8", "#87CEEB"]
 
-            wedges, texts, autotexts = axes[1, 1].pie(
+            _wedges, _texts, autotexts = axes[1, 1].pie(
                 counts,
                 labels=categories,
                 autopct="%1.1f%%",
@@ -855,7 +844,7 @@ class ConversationEffectivenessPredictor:
         key_features = ["empathy_density", "question_density", "flesch_score"]
         colors = ["red", "blue", "green"]
 
-        for i, (feature, color) in enumerate(zip(key_features, colors)):
+        for i, (feature, color) in enumerate(zip(key_features, colors, strict=False)):
             if feature in modeling_data.columns:
                 x_vals = modeling_data[feature]
                 y_vals = modeling_data["effectiveness_score"]
@@ -888,15 +877,10 @@ class ConversationEffectivenessPredictor:
         )
         plt.show()
 
-        print(
-            f"📊 Effectiveness prediction visualizations saved as effectiveness_prediction_{timestamp}.png"
-        )
 
 
 def main():
     """Main execution function"""
-    print("🚀 Starting Conversation Effectiveness Prediction System")
-    print("=" * 65)
 
     predictor = ConversationEffectivenessPredictor()
 
@@ -911,43 +895,24 @@ def main():
         with open(output_file, "w") as f:
             json.dump(results, f, indent=2, default=str)
 
-        print(f"\n✅ Analysis complete! Results saved to: {output_file}")
-        print(f"📊 Total conversations analyzed: {results['total_conversations']}")
-        print(f"🔧 Features extracted: {results['feature_count']}")
-        print(f"🎯 Generated {len(results['insights'])} insights")
-        print(f"💡 Generated {len(results['recommendations'])} recommendations")
 
         # Display model performance
-        print("\n🤖 Model Performance:")
         for model_name, metrics in results["model_performance"].items():
-            print(
-                f"  • {model_name}: R² = {metrics['r2_score']:.3f}, RMSE = {metrics['rmse']:.2f}"
-            )
+            pass
 
         # Display key insights
-        print("\n🎯 Key Effectiveness Insights:")
         for insight in results["insights"][:5]:
-            print(f"  • {insight}")
+            pass
 
-        print("\n💡 Top Recommendations:")
         for rec in results["recommendations"][:3]:
-            print(f"  • {rec}")
+            pass
 
         # Display prediction summary
-        predictions = results["predictions"]
-        print("\n📈 Prediction Summary:")
-        print(
-            f"  • High effectiveness conversations: {predictions['high_effectiveness_conversations']}"
-        )
-        print(
-            f"  • Low effectiveness conversations: {predictions['low_effectiveness_conversations']}"
-        )
-        print(f"  • Mean prediction error: {predictions['mean_prediction_error']:.2f}")
+        results["predictions"]
 
         return results
 
-    except Exception as e:
-        print(f"❌ Error during analysis: {e!s}")
+    except Exception:
 
         traceback.print_exc()
         return None

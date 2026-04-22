@@ -549,10 +549,6 @@ class AutomatedQualityChecker:
 
 def run_comprehensive_validation_qa_system():
     """Run the comprehensive validation and QA system"""
-    print("🔍 COMPREHENSIVE VALIDATION & QUALITY ASSURANCE SYSTEM")
-    print("=" * 80)
-    print("Task 5.7.2: Complete validation and quality assurance framework")
-    print()
 
     # Create sample conversation data for testing
     sample_conversations = [
@@ -586,8 +582,6 @@ def run_comprehensive_validation_qa_system():
     }
 
     # Task 5.7.2.1: Clinical Standards Validation
-    print("🏥 Task 5.7.2.1: Clinical Standards Validation")
-    print("-" * 60)
 
     clinical_validator = ClinicalStandardsValidator()
     clinical_results = []
@@ -595,7 +589,6 @@ def run_comprehensive_validation_qa_system():
     for conversation in sample_conversations:
         result = clinical_validator.validate_against_clinical_standards(conversation)
         clinical_results.append(result)
-        print(f"  Conversation {result['conversation_id']}: Score {result['overall_score']:.1f}, Compliant: {result['clinical_compliance']}")
 
     results_summary["clinical_validation"] = {
         "total_validated": len(clinical_results),
@@ -603,42 +596,24 @@ def run_comprehensive_validation_qa_system():
         "average_score": np.mean([r["overall_score"] for r in clinical_results])
     }
 
-    print(f"  ✅ Clinical validation complete: {results_summary['clinical_validation']['compliant_conversations']}/{results_summary['clinical_validation']['total_validated']} compliant")
-    print()
 
     # Task 5.7.2.2: QA Workflow
-    print("⚙️ Task 5.7.2.2: Quality Assurance Workflow")
-    print("-" * 60)
 
     qa_workflow = QualityAssuranceWorkflow()
     workflow_results = qa_workflow.execute_qa_workflow(sample_conversations.copy())
 
     results_summary["qa_workflow"] = workflow_results["overall_results"]
 
-    print(f"  Batch ID: {workflow_results['batch_id']}")
-    print(f"  Processing time: {workflow_results['processing_time']:.2f}s")
-    print(f"  Results: {workflow_results['overall_results']['passed']} passed, {workflow_results['overall_results']['failed']} failed, {workflow_results['overall_results']['needs_review']} need review")
-    print(f"  ✅ QA workflow complete: {len(workflow_results['workflow_stages'])} stages executed")
-    print()
 
     # Task 5.7.2.4: Automated Quality Checks
-    print("🤖 Task 5.7.2.4: Automated Quality Checking")
-    print("-" * 60)
 
     quality_checker = AutomatedQualityChecker()
     quality_results = quality_checker.run_automated_quality_checks(sample_conversations)
 
     results_summary["automated_quality_checks"] = quality_results["overall_results"]
 
-    print(f"  Total conversations checked: {quality_results['total_conversations']}")
-    print(f"  Checks performed: {len(quality_results['checks_performed'])}")
-    print(f"  Results: {quality_results['overall_results']['passed_all_checks']} passed all, {quality_results['overall_results']['failed_some_checks']} failed some")
-    print("  ✅ Automated quality checks complete")
-    print()
 
     # Tasks 5.7.2.3, 5.7.2.5-5.7.2.10: Additional Components
-    print("📋 Tasks 5.7.2.3, 5.7.2.5-5.7.2.10: Additional QA Components")
-    print("-" * 60)
 
     additional_components = [
         "Manual review and validation systems",
@@ -651,30 +626,13 @@ def run_comprehensive_validation_qa_system():
     ]
 
     for component in additional_components:
-        print(f"  ✅ {component}: Framework implemented")
+        pass
 
-    print()
 
     # Final Summary
-    print("=" * 80)
-    print("🎉 VALIDATION & QUALITY ASSURANCE SYSTEM SUMMARY")
-    print("=" * 80)
-    print("📊 Clinical Validation Results:")
-    print(f"  • Conversations validated: {results_summary['clinical_validation']['total_validated']}")
-    print(f"  • Clinical compliance rate: {(results_summary['clinical_validation']['compliant_conversations'] / results_summary['clinical_validation']['total_validated'] * 100):.1f}%")
-    print(f"  • Average clinical score: {results_summary['clinical_validation']['average_score']:.1f}")
 
-    print("\n⚙️ QA Workflow Results:")
-    print(f"  • Conversations processed: {sum(results_summary['qa_workflow'].values())}")
-    print(f"  • Success rate: {(results_summary['qa_workflow']['passed'] / sum(results_summary['qa_workflow'].values()) * 100):.1f}%")
-    print(f"  • Manual review required: {results_summary['qa_workflow']['needs_review']}")
 
-    print("\n🤖 Automated Quality Check Results:")
-    print(f"  • Perfect quality rate: {(results_summary['automated_quality_checks']['passed_all_checks'] / sum(results_summary['automated_quality_checks'].values()) * 100):.1f}%")
-    print(f"  • Partial quality issues: {results_summary['automated_quality_checks']['failed_some_checks']}")
 
-    print("\n✅ All 10 Task 5.7.2 subtasks implemented and operational!")
-    print("🏆 Validation & Quality Assurance System: COMPLETE")
 
     return results_summary
 

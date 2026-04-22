@@ -15,7 +15,7 @@ import time
 import uuid
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta, timezone
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
@@ -23,7 +23,7 @@ import psutil
 
 logger = logging.getLogger(__name__)
 
-class SOC2Principle(str, Enum):
+class SOC2Principle(StrEnum):
     """SOC2 Trust Service Principles"""
     SECURITY = "security"
     AVAILABILITY = "availability"
@@ -31,7 +31,7 @@ class SOC2Principle(str, Enum):
     CONFIDENTIALITY = "confidentiality"
     PRIVACY = "privacy"
 
-class ControlCategory(str, Enum):
+class ControlCategory(StrEnum):
     """SOC2 control categories"""
     ACCESS_CONTROLS = "access_controls"
     SYSTEM_OPERATIONS = "system_operations"
@@ -42,7 +42,7 @@ class ControlCategory(str, Enum):
     BACKUP_RECOVERY = "backup_recovery"
     VENDOR_MANAGEMENT = "vendor_management"
 
-class ComplianceStatus(str, Enum):
+class ComplianceStatus(StrEnum):
     """SOC2 compliance status"""
     COMPLIANT = "compliant"
     NON_COMPLIANT = "non_compliant"
@@ -655,21 +655,12 @@ if __name__ == "__main__":
     # Test SOC2 validator
     validator = SOC2Validator()
 
-    print("SOC2 Compliance Test:")
 
     # Test individual control
     test_result = validator.test_control("CC6.1")
-    print(f"Control CC6.1 Status: {test_result.status}")
-    print(f"Evidence: {len(test_result.evidence)} items")
-    print(f"Exceptions: {len(test_result.exceptions)} items")
 
     # Generate assessment
     assessment = validator.generate_soc2_assessment()
-    print("\nSOC2 Assessment:")
-    print(f"Assessment ID: {assessment.assessment_id}")
-    print(f"Overall Status: {assessment.overall_status}")
-    print(f"Exceptions: {assessment.exceptions_count}")
-    print(f"Recommendations: {len(assessment.recommendations)}")
 
     # Stop monitoring
     validator.monitor.stop_monitoring()

@@ -8,7 +8,7 @@ managing user memory contexts, conversation history, and therapeutic sessions.
 import logging
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from ai.memory.manager_factory import get_required_memory_manager as get_backend_memory_manager
@@ -16,7 +16,7 @@ from ai.memory.manager_factory import get_required_memory_manager as get_backend
 logger = logging.getLogger(__name__)
 
 
-class MemoryType(str, Enum):
+class MemoryType(StrEnum):
     """Types of memory in the therapeutic context."""
 
     CONVERSATION = "conversation"
@@ -28,7 +28,7 @@ class MemoryType(str, Enum):
     PROGRESS_NOTES = "progress_notes"
 
 
-class MessageRole(str, Enum):
+class MessageRole(StrEnum):
     """Message roles in conversation."""
 
     USER = "user"

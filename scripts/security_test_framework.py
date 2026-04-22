@@ -615,21 +615,10 @@ if __name__ == "__main__":
         report = await security_tester.run_comprehensive_security_scan()
 
         # Print summary
-        print(f"\n{'='*60}")
-        print("SECURITY SCAN REPORT")
-        print(f"{'='*60}")
-        print(f"Security Score: {report['scan_summary']['security_score']}/100")
-        print(f"Overall Status: {report['scan_summary']['overall_status']}")
-        print(f"Total Vulnerabilities: {report['vulnerability_summary']['total_vulnerabilities']}")
-        print(f"Critical: {report['vulnerability_summary']['by_severity']['critical']}")
-        print(f"High: {report['vulnerability_summary']['by_severity']['high']}")
-        print(f"Medium: {report['vulnerability_summary']['by_severity']['medium']}")
-        print(f"Low: {report['vulnerability_summary']['by_severity']['low']}")
 
         # Save report to file
         with open("security_scan_report.json", "w") as f:
             json.dump(report, f, indent=2)
 
-        print("\nDetailed report saved to: security_scan_report.json")
 
     asyncio.run(main())

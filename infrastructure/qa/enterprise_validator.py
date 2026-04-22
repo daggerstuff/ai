@@ -808,28 +808,16 @@ async def main():
     report = await validator.run_comprehensive_validation()
 
     # Print results
-    print("\n" + "=" * 80)
-    print("ENTERPRISE VALIDATION FRAMEWORK RESULTS")
-    print("=" * 80)
-    print(f"Overall Score: {report.overall_score:.1f}/100")
-    print(f"Total Tests: {report.total_tests}")
-    print(f"Passed: {report.passed_tests}")
-    print(f"Failed: {report.failed_tests}")
-    print(f"Warnings: {report.warning_tests}")
-    print(f"Execution Time: {report.execution_time_ms:.0f}ms")
 
-    print("\nCategory Scores:")
     for category, score in report.category_scores.items():
-        print(f"  {category.title()}: {score:.1f}/100")
+        pass
 
-    print("\nCompliance Status:")
     for standard, status in report.compliance_status.items():
-        print(f"  {standard}: {status}")
+        pass
 
     if report.recommendations:
-        print("\nRecommendations:")
         for rec in report.recommendations:
-            print(f"  • {rec}")
+            pass
 
     # Validation status
     enterprise_ready = report.overall_score >= 95
@@ -837,30 +825,13 @@ async def main():
         status == "COMPLIANT" for status in report.compliance_status.values()
     )
 
-    print("\n" + "=" * 80)
-    print("ENTERPRISE VALIDATION STATUS")
-    print("=" * 80)
-    print(f"✅ Overall Score: {'PASSED' if enterprise_ready else 'NEEDS IMPROVEMENT'}")
-    print(
-        f"✅ Compliance Status: {'COMPLIANT' if compliance_ready else 'NON_COMPLIANT'}"
-    )
-    print(
-        f"✅ Security Validation: {'PASSED' if report.category_scores.get('security', 0) >= 90 else 'NEEDS IMPROVEMENT'}"
-    )
-    print(
-        f"✅ Performance Validation: {'PASSED' if report.category_scores.get('performance', 0) >= 90 else 'NEEDS IMPROVEMENT'}"
-    )
 
     overall_pass = enterprise_ready and compliance_ready
-    print(
-        f"\n🎯 ENTERPRISE VALIDATION: {'✅ PASSED' if overall_pass else '⚠️ NEEDS IMPROVEMENT'}"
-    )
 
     if overall_pass:
-        print("\n🏆 Enterprise Validation Framework COMPLETED successfully!")
-        print("Ready to proceed to Task 5.2: Performance Validation & Load Testing")
+        pass
     else:
-        print("\n⚠️ Some validation requirements need attention before proceeding.")
+        pass
 
     return overall_pass
 

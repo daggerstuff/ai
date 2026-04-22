@@ -9,7 +9,6 @@ from pathlib import Path
 def analyze_combined_results(results_file: str):
     results_path = Path(results_file)
     if not results_path.exists():
-        print(f"Error: {results_file} not found")
         return
 
     disagreements = {"crisis_label": [], "primary_emotion": []}
@@ -50,27 +49,15 @@ def analyze_combined_results(results_file: str):
                     {"task_id": task_id, "dr_a": a_emotion, "dr_b": b_emotion}
                 )
 
-    print("=" * 60)
-    print(f"DIAGNOSTIC REPORT: {results_file}")
-    print(f"Total items analyzed: {total_items}")
-    print("=" * 60)
 
     for category, items in disagreements.items():
         count = len(items)
-        pct = (count / total_items * 100) if total_items > 0 else 0
-        print(
-            f"\nDisagreements in {category.replace('_', ' ').upper()}: "
-            f"{count} ({pct:.1f}%)"
-        )
+        (count / total_items * 100) if total_items > 0 else 0
 
         if count > 0:
-            print("Sample disagreements:")
             for item in items[:5]:
-                print(
-                    f"  • {item['task_id']}: Dr.A={item['dr_a']}, Dr.B={item['dr_b']}"
-                )
+                pass
 
-    print("\n" + "=" * 60)
 
 
 if __name__ == "__main__":

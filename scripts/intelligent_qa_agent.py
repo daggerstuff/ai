@@ -461,19 +461,8 @@ def test_intelligent_agent():
         "file": "test.txt",
     }
 
-    result = agent.process_segment(test_segment)
+    agent.process_segment(test_segment)
 
-    print("=== INTELLIGENT AGENT TEST ===\n")
-    print(f"**Method**: {result['agent_analysis']['method']}")
-    print(
-        f"**Dialogue Confidence**: {result['agent_analysis']['dialogue_confidence']:.2f}"
-    )
-    print(
-        f"**Semantic Coherence**: {result['agent_analysis']['semantic_coherence']:.2f}"
-    )
-    print(f"**Content Type**: {result['agent_analysis']['content_type']}")
-    print(f"\n**Question**: {result['input']}")
-    print(f"\n**Answer**: {result['output'][:300]}...")
 
 
 if __name__ == "__main__":

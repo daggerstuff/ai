@@ -42,11 +42,9 @@ class ConversationQualityPatternAnalyzer:
 
     def analyze_quality_patterns(self) -> dict[str, Any]:
         """Main analysis function for conversation quality patterns"""
-        print("🔍 Starting Conversation Quality Pattern Analysis...")
 
         # Load conversation data
         conversations = self._load_conversation_data()
-        print(f"📊 Loaded {len(conversations)} conversations for analysis")
 
         # Analyze different quality dimensions
         quality_results = {
@@ -122,7 +120,6 @@ class ConversationQualityPatternAnalyzer:
     def _extract_text_from_json(self, json_str: str) -> str:
         """Extract readable text from conversations JSON"""
         try:
-            pass
 
             conversations = json.loads(json_str)
 
@@ -141,7 +138,6 @@ class ConversationQualityPatternAnalyzer:
 
     def _analyze_response_quality(self, conversations: pd.DataFrame) -> dict[str, Any]:
         """Analyze response quality patterns"""
-        print("📝 Analyzing response quality patterns...")
 
         quality_scores = []
         response_patterns = defaultdict(list)
@@ -249,7 +245,6 @@ class ConversationQualityPatternAnalyzer:
         self, conversations: pd.DataFrame
     ) -> dict[str, Any]:
         """Analyze engagement quality patterns"""
-        print("🎯 Analyzing engagement quality patterns...")
 
         engagement_metrics = []
 
@@ -334,7 +329,6 @@ class ConversationQualityPatternAnalyzer:
 
     def _analyze_conversation_flow(self, conversations: pd.DataFrame) -> dict[str, Any]:
         """Analyze conversation flow quality patterns"""
-        print("🌊 Analyzing conversation flow patterns...")
 
         flow_metrics = []
 
@@ -403,7 +397,6 @@ class ConversationQualityPatternAnalyzer:
 
     def _analyze_content_quality(self, conversations: pd.DataFrame) -> dict[str, Any]:
         """Analyze content quality patterns"""
-        print("📚 Analyzing content quality patterns...")
 
         content_metrics = []
 
@@ -484,7 +477,6 @@ class ConversationQualityPatternAnalyzer:
 
     def _analyze_coherence_quality(self, conversations: pd.DataFrame) -> dict[str, Any]:
         """Analyze coherence quality patterns"""
-        print("🧩 Analyzing coherence quality patterns...")
 
         coherence_metrics = []
 
@@ -557,7 +549,6 @@ class ConversationQualityPatternAnalyzer:
 
     def _identify_quality_patterns(self, conversations: pd.DataFrame) -> dict[str, Any]:
         """Identify recurring quality patterns across conversations"""
-        print("🔍 Identifying quality patterns...")
 
         patterns = {
             "high_quality_characteristics": [],
@@ -600,7 +591,6 @@ class ConversationQualityPatternAnalyzer:
 
     def _analyze_quality_trends(self, conversations: pd.DataFrame) -> dict[str, Any]:
         """Analyze quality trends over time and across datasets"""
-        print("📈 Analyzing quality trends...")
 
         # Convert created_at to datetime if it exists
         if "created_at" in conversations.columns:
@@ -638,7 +628,6 @@ class ConversationQualityPatternAnalyzer:
         self, conversations: pd.DataFrame
     ) -> dict[str, Any]:
         """Analyze correlations between different quality metrics"""
-        print("🔗 Analyzing quality correlations...")
 
         # Create correlation matrix for numerical columns
         numerical_cols = [
@@ -770,7 +759,6 @@ class ConversationQualityPatternAnalyzer:
 
     def _create_quality_visualizations(self, quality_results: dict[str, Any]):
         """Create visualizations for quality analysis"""
-        print("📊 Creating quality visualizations...")
 
         plt.style.use("default")
         fig, axes = plt.subplots(2, 3, figsize=(18, 12))
@@ -858,7 +846,7 @@ class ConversationQualityPatternAnalyzer:
         axes[1, 0].set_ylim(0, 100)
 
         # Add value labels on bars
-        for bar, score in zip(bars, metric_scores):
+        for bar, score in zip(bars, metric_scores, strict=False):
             height = bar.get_height()
             axes[1, 0].text(
                 bar.get_x() + bar.get_width() / 2.0,
@@ -923,9 +911,6 @@ class ConversationQualityPatternAnalyzer:
         )
         plt.show()
 
-        print(
-            f"📊 Quality analysis visualizations saved as quality_pattern_analysis_{timestamp}.png"
-        )
 
     # Helper methods
     def _calculate_overall_quality_score(
@@ -1145,8 +1130,6 @@ class ConversationQualityPatternAnalyzer:
 
 def main():
     """Main execution function"""
-    print("🚀 Starting Conversation Quality Pattern Analysis System")
-    print("=" * 60)
 
     analyzer = ConversationQualityPatternAnalyzer()
 
@@ -1161,24 +1144,17 @@ def main():
         with open(output_file, "w") as f:
             json.dump(results, f, indent=2, default=str)
 
-        print(f"\n✅ Analysis complete! Results saved to: {output_file}")
-        print(f"📊 Total conversations analyzed: {results['total_conversations']}")
-        print(f"🎯 Generated {len(results['insights'])} insights")
-        print(f"💡 Generated {len(results['recommendations'])} recommendations")
 
         # Display key insights
-        print("\n🔍 Key Quality Insights:")
         for insight in results["insights"][:5]:
-            print(f"  • {insight}")
+            pass
 
-        print("\n💡 Top Recommendations:")
         for rec in results["recommendations"][:3]:
-            print(f"  • {rec}")
+            pass
 
         return results
 
-    except Exception as e:
-        print(f"❌ Error during analysis: {e!s}")
+    except Exception:
 
         traceback.print_exc()
         return None

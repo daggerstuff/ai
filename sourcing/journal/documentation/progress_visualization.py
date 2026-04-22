@@ -52,7 +52,6 @@ class ProgressVisualization:
         self.output_directory.mkdir(parents=True, exist_ok=True)
 
         if not MATPLOTLIB_AVAILABLE:
-            pass
 
             warnings.warn(
                 "matplotlib is not available. Visualization features will be limited. "
@@ -95,7 +94,7 @@ class ProgressVisualization:
         acquired = [entry.get("datasets_acquired", 0) for entry in progress_history]
 
         # Create chart
-        fig, ax = plt.subplots(figsize=(12, 6))
+        _fig, ax = plt.subplots(figsize=(12, 6))
         # Convert datetime objects to matplotlib date numbers
         date_nums = mdates.date2num(timestamps)
         ax.plot(date_nums, sources, label="Sources Identified", marker="o")
@@ -155,7 +154,7 @@ class ProgressVisualization:
             "integration": "#f39c12",
         }
 
-        fig, ax = plt.subplots(figsize=(14, 6))
+        _fig, ax = plt.subplots(figsize=(14, 6))
 
         # Plot phase transitions
         y_positions = {phase: i for i, phase in enumerate(phases)}
@@ -243,7 +242,7 @@ class ProgressVisualization:
         ethical_scores = [eval.ethical_accessibility for eval in evaluations]
 
         # Create subplots
-        fig, axes = plt.subplots(2, 3, figsize=(15, 10))
+        _fig, axes = plt.subplots(2, 3, figsize=(15, 10))
         axes = axes.flatten()
 
         # Overall score distribution
@@ -717,7 +716,7 @@ class ProgressVisualization:
             progress.integration_plans_created,
         ]
 
-        fig, ax = plt.subplots(figsize=(10, 6))
+        _fig, ax = plt.subplots(figsize=(10, 6))
         ax.bar(metrics, values, color="#3498db", alpha=0.7)
         ax.set_ylabel("Count")
         ax.set_title("Research Progress Metrics")
@@ -741,7 +740,7 @@ class ProgressVisualization:
 
         scores = [eval.overall_score for eval in evaluations]
 
-        fig, ax = plt.subplots(figsize=(8, 6))
+        _fig, ax = plt.subplots(figsize=(8, 6))
         ax.hist(scores, bins=20, edgecolor="black", alpha=0.7, color="#e74c3c")
         ax.set_xlabel("Overall Score")
         ax.set_ylabel("Frequency")

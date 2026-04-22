@@ -711,43 +711,18 @@ async def main():
     monitor.metrics_collector.record_business_metric("api_calls_per_minute", 45)
 
     # Generate dashboards
-    executive_dashboard = monitor.dashboard_generator.generate_executive_dashboard()
+    monitor.dashboard_generator.generate_executive_dashboard()
     technical_dashboard = monitor.dashboard_generator.generate_technical_dashboard()
-    business_dashboard = monitor.dashboard_generator.generate_business_dashboard()
+    monitor.dashboard_generator.generate_business_dashboard()
 
-    print("\n" + "="*70)
-    print("ENTERPRISE API MONITORING SYSTEM")
-    print("="*70)
 
-    print("\nExecutive Dashboard:")
-    print(f"  System Health: {executive_dashboard['kpis']['system_health']}")
-    print(f"  Total Users (24h): {executive_dashboard['kpis']['total_users_24h']}")
-    print(f"  Total Requests (24h): {executive_dashboard['kpis']['total_requests_24h']}")
-    print(f"  Error Rate (1h): {executive_dashboard['kpis']['error_rate_1h']}%")
-    print(f"  Avg Response Time (1h): {executive_dashboard['kpis']['avg_response_time_1h']}ms")
 
-    print("\nTechnical Dashboard:")
-    perf = technical_dashboard["performance"]
-    print(f"  Response Time P95: {perf['response_times'].get('p95', 0):.1f}ms")
-    print(f"  Error Rate: {perf['error_rate']:.2f}%")
-    print(f"  Throughput: {perf['throughput']:.1f} req/min")
-    print(f"  Top Errors: {len(technical_dashboard['top_errors'])}")
+    technical_dashboard["performance"]
 
-    print("\nBusiness Dashboard:")
-    print(f"  Active Users: {business_dashboard['user_engagement']['active_users']}")
-    print(f"  Business KPIs: {len(business_dashboard['business_kpis'])}")
 
     # Show monitoring status
-    status = monitor.get_monitoring_status()
-    print("\nMonitoring Status:")
-    print(f"  Active: {status['monitoring_active']}")
-    print(f"  Total Metrics: {status['total_metrics']}")
-    print(f"  Performance Metrics: {status['total_performance_metrics']}")
-    print(f"  Error Events: {status['total_errors']}")
-    print(f"  Alert Rules: {status['alert_rules']}")
+    monitor.get_monitoring_status()
 
-    print("\n🎯 API MONITORING: ✅ OPERATIONAL")
-    print("Enterprise monitoring and observability platform is active!")
 
     return True
 

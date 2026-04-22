@@ -735,16 +735,13 @@ async def example_cleanup_optimization():
         await asyncio.sleep(2)
 
         # Run manual cleanup
-        cleanup_results = optimizer.run_cleanup()
-        print(f"Cleanup results: {json.dumps(cleanup_results, indent=2)}")
+        optimizer.run_cleanup()
 
         # Run manual optimization
-        optimization_results = optimizer.run_optimization()
-        print(f"Optimization results: {json.dumps(optimization_results, indent=2)}")
+        optimizer.run_optimization()
 
         # Get status
-        status = optimizer.get_optimization_status()
-        print(f"Optimization status: {json.dumps(status, indent=2, default=str)}")
+        optimizer.get_optimization_status()
 
     finally:
         optimizer.stop_optimization()

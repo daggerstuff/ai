@@ -68,8 +68,7 @@ Be very careful to ensure the question and response actually match and make logi
                 # Fallback if JSON parsing fails
                 return self.create_fallback_analysis(text, metadata)
 
-        except Exception as e:
-            print(f"AI analysis failed: {e}")
+        except Exception:
             return self.create_fallback_analysis(text, metadata)
 
     def create_fallback_analysis(self, text: str, _metadata: dict) -> dict:
@@ -115,13 +114,11 @@ Be very careful to ensure the question and response actually match and make logi
 class LocalAIQAAgent:
     def __init__(self):
         try:
-            pass
 
             self.analyzer = pipeline(
                 "text-generation", model="microsoft/DialoGPT-medium"
             )
         except ImportError:
-            print("Transformers not available, using rule-based fallback")
 
             self.analyzer = None
 
@@ -156,8 +153,7 @@ class LocalAIQAAgent:
                 "reasoning": "Local AI analysis",
             }
 
-        except Exception as e:
-            print(f"Local AI failed: {e}")
+        except Exception:
             return self.create_simple_analysis(text, metadata)
 
     def create_simple_analysis(self, text: str, metadata: dict) -> dict:
@@ -222,10 +218,8 @@ def test_ai_agent():
     # Try OpenAI first, fallback to local
     if os.getenv("OPENAI_API_KEY"):
         agent = AIQAAgent()
-        print("Using OpenAI GPT-4 for analysis")
     else:
         agent = LocalAIQAAgent()
-        print("Using local AI analysis")
 
     test_segment = {
         "text": "And I guess to take this one step further, I've heard you talk about that one of the main problems with society today is that a lot of people who have mental health struggles and they're struggling with situations this where they feel stuck and they can't get out of their own way at times. They feel people are against them. They're dealing with trauma. And then they might go see somebody who's not trained in trauma. They don't have the experience. How can somebody begin to take that path and make sure that they're finding somebody that is trained in that and then also that they're able to self-regulate themselves. When needed. , that's a huge question because unfortunately, look, I've been through medical training. I'm a physician. And the average physician never hears any of the stuff I just talked about. The average psychiatrist doesn't get any training in trauma.",
@@ -236,14 +230,8 @@ def test_ai_agent():
         "file": "test.txt",
     }
 
-    result = agent.process_segment(test_segment)
+    agent.process_segment(test_segment)
 
-    print("\n=== AI AGENT TEST ===\n")
-    print(f"**Analysis Method**: {result['ai_analysis']['reasoning']}")
-    print(f"**Content Type**: {result['ai_analysis']['content_type']}")
-    print(f"**Confidence**: {result['ai_analysis']['confidence']}")
-    print(f"**Generated Q**: {result['input']}")
-    print(f"**Response A**: {result['output'][:200]}...")
 
 
 if __name__ == "__main__":

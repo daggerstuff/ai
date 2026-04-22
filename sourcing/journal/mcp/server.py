@@ -487,7 +487,6 @@ class MCPServer:
                     )
 
                 try:
-                    pass
                     start_time = time.time()
                     result = await self.tool_executor.execute_tool(
                         tool_name,

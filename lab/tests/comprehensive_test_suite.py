@@ -87,7 +87,6 @@ class TestQualityValidation(unittest.TestCase):
         assert is_valid
         assert len(issues) == 0
 
-        print("✅ Quality validation tests passed")
 
 
 class TestErrorHandlingRecovery(unittest.TestCase):
@@ -116,7 +115,6 @@ class TestErrorHandlingRecovery(unittest.TestCase):
         assert error is not None
         assert "Failed after 3 attempts" in error
 
-        print("✅ Error handling and recovery tests passed")
 
     def test_data_processing_recovery(self):
         """Test data processing error recovery"""
@@ -148,7 +146,6 @@ class TestErrorHandlingRecovery(unittest.TestCase):
         result = safe_data_processing(None)
         assert result["status"] == "empty"
 
-        print("✅ Data processing recovery tests passed")
 
 
 class TestDataIntegrityValidation(unittest.TestCase):
@@ -230,7 +227,6 @@ class TestDataIntegrityValidation(unittest.TestCase):
         assert not is_valid
         assert len(issues) > 0
 
-        print("✅ Data integrity validation tests passed")
 
 
 class TestExportFormatValidation(unittest.TestCase):
@@ -281,7 +277,6 @@ class TestExportFormatValidation(unittest.TestCase):
         finally:
             os.unlink(temp_path)
 
-        print("✅ Export format validation tests passed")
 
 
 class TestProcessingPipeline(unittest.TestCase):
@@ -350,7 +345,6 @@ class TestProcessingPipeline(unittest.TestCase):
         assert result["status"] == "error"
         assert "No input data" in result["error"]
 
-        print("✅ Processing pipeline tests passed")
 
 
 class TestMonitoringAlerting(unittest.TestCase):
@@ -394,7 +388,6 @@ class TestMonitoringAlerting(unittest.TestCase):
         assert health_status["status"] == "healthy"
         assert len(health_status["alerts"]) == 0
 
-        print("✅ Monitoring and alerting tests passed")
 
 
 class TestProductionReadiness(unittest.TestCase):
@@ -449,7 +442,6 @@ class TestProductionReadiness(unittest.TestCase):
         assert not is_valid
         assert len(issues) > 0
 
-        print("✅ Production readiness tests passed")
 
     def test_deployment_checklist(self):
         """Test deployment checklist validation"""
@@ -485,15 +477,10 @@ class TestProductionReadiness(unittest.TestCase):
         assert deployment_status["completed_items"] == deployment_status["total_items"]
         assert len(deployment_status["incomplete_items"]) == 0
 
-        print("✅ Deployment checklist tests passed")
 
 
 def run_comprehensive_test_suite():
     """Run the complete comprehensive test suite"""
-    print("🧪 COMPREHENSIVE TEST SUITE - TASK 5.7.1")
-    print("=" * 80)
-    print("Running all 10 subtasks of the comprehensive testing framework...")
-    print()
 
     # Track overall results
     all_results = {}
@@ -502,38 +489,27 @@ def run_comprehensive_test_suite():
     total_errors = 0
 
     # Run Task 5.7.1.1: Unit Tests
-    print("🔧 Task 5.7.1.1: Unit Tests for Processing Components")
-    print("-" * 60)
     unit_result = run_unit_tests()
     all_results["unit_tests"] = unit_result
     total_tests += unit_result.testsRun
     total_failures += len(unit_result.failures)
     total_errors += len(unit_result.errors)
-    print()
 
     # Run Task 5.7.1.2: Integration Tests
-    print("🔗 Task 5.7.1.2: Integration Tests for End-to-End Processing")
-    print("-" * 60)
     integration_result = run_integration_tests()
     all_results["integration_tests"] = integration_result
     total_tests += integration_result.testsRun
     total_failures += len(integration_result.failures)
     total_errors += len(integration_result.errors)
-    print()
 
     # Run Task 5.7.1.3: Performance Tests
-    print("⚡ Task 5.7.1.3: Performance Tests for Large Datasets")
-    print("-" * 60)
     performance_result = run_performance_tests()
     all_results["performance_tests"] = performance_result
     total_tests += performance_result.testsRun
     total_failures += len(performance_result.failures)
     total_errors += len(performance_result.errors)
-    print()
 
     # Run remaining tests (5.7.1.4 - 5.7.1.10)
-    print("✅ Tasks 5.7.1.4 - 5.7.1.10: Additional Test Categories")
-    print("-" * 60)
 
     remaining_test_suite = unittest.TestSuite()
     remaining_test_classes = [
@@ -558,34 +534,12 @@ def run_comprehensive_test_suite():
     total_errors += len(remaining_result.errors)
 
     # Final Summary
-    print("\n" + "=" * 80)
-    print("🎉 COMPREHENSIVE TEST SUITE RESULTS SUMMARY")
-    print("=" * 80)
-    print(f"📊 Total Tests Run: {total_tests}")
-    print(f"❌ Total Failures: {total_failures}")
-    print(f"🚨 Total Errors: {total_errors}")
-    print(
-        f"✅ Success Rate: {((total_tests - total_failures - total_errors) / total_tests * 100):.1f}%"
-    )
 
-    print("\n📋 Test Category Breakdown:")
-    print(f"  • Unit Tests (5.7.1.1): {all_results['unit_tests'].testsRun} tests")
-    print(
-        f"  • Integration Tests (5.7.1.2): {all_results['integration_tests'].testsRun} tests"
-    )
-    print(
-        f"  • Performance Tests (5.7.1.3): {all_results['performance_tests'].testsRun} tests"
-    )
-    print(
-        f"  • Additional Tests (5.7.1.4-10): {all_results['remaining_tests'].testsRun} tests"
-    )
 
     if total_failures == 0 and total_errors == 0:
-        print("\n🎉 ALL TESTS PASSED SUCCESSFULLY!")
-        print("✅ Task 5.7.1 Comprehensive Testing Suite: COMPLETE")
-        print("🏆 System is fully tested and production-ready!")
+        pass
     else:
-        print("\n⚠️ Some tests failed or had errors. Review the details above.")
+        pass
 
     return all_results
 

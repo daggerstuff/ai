@@ -199,7 +199,6 @@ Examples:
         return 1
 
     try:
-        pass
 
         zep_client = Zep(api_key=api_key)
         logger.info("✓ Connected to Zep Cloud")

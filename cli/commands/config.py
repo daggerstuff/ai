@@ -294,7 +294,6 @@ def import_config(_ctx, file: str, profile: str | None, overwrite: bool):
             with open(file_path) as f:
                 config_data = json.load(f)
         elif file_path.suffix.lower() in [".yaml", ".yml"]:
-            pass
             with open(file_path) as f:
                 config_data = yaml.safe_load(f)
         else:
@@ -394,7 +393,6 @@ def env_info(_ctx):
 
         # Memory information (if available)
         try:
-            pass
             memory = psutil.virtual_memory()
             click.echo(f"  Memory: {memory.total // (1024**3)} GB total, {memory.available // (1024**3)} GB available")
         except ImportError:

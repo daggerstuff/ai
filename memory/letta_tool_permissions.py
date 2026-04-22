@@ -14,13 +14,13 @@ Permission levels:
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 logger = logging.getLogger("letta_permissions")
 
 
-class PermissionLevel(str, Enum):
+class PermissionLevel(StrEnum):
     """Tool permission levels."""
     READ_ONLY = "read-only"
     THERAPEUTIC = "therapeutic"
@@ -28,7 +28,7 @@ class PermissionLevel(str, Enum):
     WHISPER = "whisper"
 
 
-class CrisisContext(str, Enum):
+class CrisisContext(StrEnum):
     """Crisis context levels for permission decisions."""
     NONE = "none"
     LOW = "low"

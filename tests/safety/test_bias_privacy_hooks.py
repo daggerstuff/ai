@@ -76,7 +76,7 @@ def test_audit_logging_success(dummy_text, mock_audit_logger):
     """Given valid input, When audit logging runs, Then log entry is created."""
     hooks.log_audit_event("bias_check", dummy_text, logger=mock_audit_logger)
     mock_audit_logger.log_event.assert_called_once()
-    args, kwargs = mock_audit_logger.log_event.call_args
+    args, _kwargs = mock_audit_logger.log_event.call_args
     assert args[0] == "bias_check"
     assert dummy_text in args
 

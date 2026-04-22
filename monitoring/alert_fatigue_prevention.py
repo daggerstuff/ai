@@ -733,18 +733,10 @@ async def example_usage():
 
     # Process alerts
     for i, alert in enumerate(test_alerts):
-        result = await afp.process_alert(alert)
-        print(f"Alert {i+1} processed:")
-        print(f"  Group ID: {result['group_id']}")
-        print(f"  Actions: {result['actions_taken']}")
-        print(f"  Should notify: {result['should_notify']}")
-        print(f"  Group count: {result['group_count']}")
-        print()
+        await afp.process_alert(alert)
 
     # Get summary
-    summary = await afp.get_group_summary(hours=1)
-    print("Alert Group Summary:")
-    print(json.dumps(summary, indent=2))
+    await afp.get_group_summary(hours=1)
 
 if __name__ == "__main__":
     asyncio.run(example_usage())

@@ -430,14 +430,11 @@ async def example_partial_result_recovery():
                            all_results: list[PartialResult]) -> dict[str, Any]:
         """Handle continuation from partial results"""
 
-        print(f"Continuing from {len(all_results)} partial results")
 
         # Get batch results
-        batch_results = merged_results.get("batch", [])
+        merged_results.get("batch", [])
         checkpoint_data = merged_results.get("checkpoint", {})
 
-        print(f"Recovered batch data: {len(batch_results) if isinstance(batch_results, list) else 'merged'}")
-        print(f"Checkpoint data: {checkpoint_data}")
 
         # Continue processing from where we left off
         return {
@@ -448,16 +445,14 @@ async def example_partial_result_recovery():
 
 
     # Test recovery
-    result = manager.continue_processing_from_results(
+    manager.continue_processing_from_results(
         process_id=process_id,
         continuation_handler=continuation_handler
     )
 
-    print(f"Continuation result: {result}")
 
     # Get statistics
-    stats = manager.get_recovery_statistics()
-    print(f"Recovery statistics: {json.dumps(stats, indent=2)}")
+    manager.get_recovery_statistics()
 
 if __name__ == "__main__":
     asyncio.run(example_partial_result_recovery())

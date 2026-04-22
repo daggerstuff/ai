@@ -4,7 +4,6 @@ Production Health Check Service
 Comprehensive health monitoring for production deployment
 """
 
-import json
 import time
 from datetime import datetime, timezone
 
@@ -77,4 +76,3 @@ class ProductionHealthService:
 if __name__ == "__main__":
     health_service = ProductionHealthService()
     health_data = health_service.get_comprehensive_health()
-    print(json.dumps(health_data, indent=2))

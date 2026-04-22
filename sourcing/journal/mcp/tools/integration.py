@@ -453,7 +453,6 @@ class GeneratePreprocessingScriptTool(MCPTool):
 
             # Generate default output path if not provided
             if not output_path:
-                pass
 
                 scripts_dir = Path("data/integration_scripts")
                 scripts_dir.mkdir(parents=True, exist_ok=True)

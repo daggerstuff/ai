@@ -286,7 +286,6 @@ def log_performance_metric(metric_name: str, value: float | None = None, unit: s
 
     # Decorator factory usage
     def decorator(func):
-        pass
 
         @functools.wraps(func)
         def sync_wrapper(*args, **kwargs):

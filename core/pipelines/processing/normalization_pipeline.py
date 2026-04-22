@@ -20,7 +20,7 @@ import time
 from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
@@ -37,7 +37,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 
-class DedupStrategy(str, Enum):
+class DedupStrategy(StrEnum):
     """Available deduplication strategies."""
 
     NONE = "none"
@@ -213,7 +213,7 @@ class SimilarityDeduplicator:
                 if not roles_a and not roles_b:
                     role_sim = 1.0
                 else:
-                    matches = sum(1 for x, y in zip(roles_a, roles_b) if x == y)
+                    matches = sum(1 for x, y in zip(roles_a, roles_b, strict=False) if x == y)
                     role_sim = matches / max(len(roles_a), len(roles_b))
 
                 structural_sim = 0.5 * count_sim + 0.5 * role_sim
@@ -471,7 +471,6 @@ class NormalizationPipeline:
             elif p.is_dir():
                 files.extend(sorted(p.rglob("*.jsonl")))
             elif "*" in str(p) or "?" in str(p):
-                pass
 
                 for match in sorted(glob_mod.glob(str(p))):
                     mp = Path(match)

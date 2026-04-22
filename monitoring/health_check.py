@@ -22,6 +22,7 @@ import torch
 from fastapi import Response
 
 from .model_adapters import model_manager
+import contextlib
 
 logger = logging.getLogger(__name__)
 
@@ -1011,7 +1012,6 @@ class HealthCheckManager:
     def _flush_logs(self) -> bool:
         """Flush logs to ensure all entries are written"""
         try:
-            pass
             for handler in logging.root.handlers:
                 try:
                     handler.flush()
@@ -1079,21 +1079,15 @@ class HealthCheckManager:
 
         # Force flush logs
         try:
-            pass
             for handler in logging.root.handlers:
-                try:
+                with contextlib.suppress(BaseException):
                     handler.close()
-                except:
-                    pass
         except:
             pass
 
         # Try to close any remaining resources
-        try:
-            pass
+        with contextlib.suppress(BaseException):
             gc.collect()
-        except:
-            pass
 
         self.logger.critical("Emergency cleanup completed")
 
@@ -1112,10 +1106,8 @@ class HealthCheckManager:
 
                 # Flush any remaining logs
                 for handler in logging.root.handlers:
-                    try:
+                    with contextlib.suppress(BaseException):
                         handler.flush()
-                    except:
-                        pass
 
             except Exception as e:
                 self.logger.error(f"Error during cleanup: {e}")
@@ -1356,50 +1348,39 @@ def test_health_check_system():
     manager.register_health_check("custom_check", custom_health_check)
 
     # Perform health check
-    print("Performing health check...")
     health_result = manager.perform_health_check()
 
-    print(f"Overall status: {health_result.status.value}")
-    print(f"Overall score: {health_result.overall_score:.2f}")
-    print(f"Components checked: {len(health_result.components)}")
 
     for component_name, component_health in health_result.components.items():
-        print(f"  {component_name}: {component_health.status.value} (score: {component_health.health_score:.2f})")
         if component_health.details:
-            print(f"    Details: {component_health.details}")
+            pass
 
     # Test system metrics
-    print("\nSystem metrics:")
     metrics = manager.get_system_metrics()
     for key, value in metrics.items():
-        print(f"  {key}: {value}")
+        pass
 
     # Test component health lookup
-    print("\nComponent health lookup:")
     model_health = manager.get_component_health("model_status")
     if model_health:
-        print(f"  Model status: {model_health.status.value}")
+        pass
     else:
-        print("  Model status: Not found in last health check")
+        pass
 
     # Test graceful shutdown registration
     def mock_shutdown_callback():
-        print("Mock shutdown callback executed")
+        pass
 
     manager.register_shutdown_callback(mock_shutdown_callback)
-    print(f"Shutdown callbacks registered: {len(manager.shutdown_callbacks)}")
 
     # Test shutdown (but don't actually shut down)
-    print("\nTesting shutdown (simulated)...")
     # Note: We won't actually call initiate_graceful_shutdown here as it would shut down the test
 
-    print("Health check system test completed!")
 
 
 # Test graceful shutdown
 def test_graceful_shutdown():
     """Test graceful shutdown functionality"""
-    print("Testing Graceful Shutdown...")
 
     manager = HealthCheckManager()
 
@@ -1409,14 +1390,12 @@ def test_graceful_shutdown():
     def test_shutdown_callback():
         nonlocal shutdown_executed
         shutdown_executed = True
-        print("Test shutdown callback executed")
 
     manager.register_shutdown_callback(test_shutdown_callback)
 
     # Simulate shutdown without actually shutting down the process
     # In a real scenario, you'd call manager.initiate_graceful_shutdown()
 
-    print("Graceful shutdown test completed!")
     return True
 
 
