@@ -29,7 +29,6 @@ class SimpleTierDistributionOptimizer:
 
     def analyze_tier_distribution(self) -> dict[str, Any]:
         """Analyze tier distribution"""
-        print("📊 Analyzing tier distribution patterns...")
 
         try:
             # Get tier data
@@ -51,7 +50,6 @@ class SimpleTierDistributionOptimizer:
             conn.close()
 
             if df.empty:
-                print("❌ No tier data found")
                 return {}
 
             # Analyze tier distribution
@@ -99,13 +97,9 @@ class SimpleTierDistributionOptimizer:
                 tier_summary
             )
 
-            print(
-                f"✅ Analyzed {len(tier_summary)} tiers with {total_conversations:,} total conversations"
-            )
             return analysis_results
 
-        except Exception as e:
-            print(f"❌ Error analyzing tier distribution: {e}")
+        except Exception:
             return {}
 
     def _generate_recommendations(self, tier_summary: pd.DataFrame) -> list[str]:
@@ -163,8 +157,7 @@ class SimpleTierDistributionOptimizer:
 
             return recommendations
 
-        except Exception as e:
-            print(f"❌ Error generating recommendations: {e}")
+        except Exception:
             return ["Error generating recommendations"]
 
     def _generate_quality_insights(self, tier_summary: pd.DataFrame) -> list[str]:
@@ -199,13 +192,11 @@ class SimpleTierDistributionOptimizer:
 
             return insights
 
-        except Exception as e:
-            print(f"❌ Error generating quality insights: {e}")
+        except Exception:
             return ["Error generating insights"]
 
     def create_visualizations(self, analysis_results: dict[str, Any]) -> dict[str, str]:
         """Create tier distribution visualizations"""
-        print("📈 Creating tier distribution visualizations...")
 
         viz_files = {}
 
@@ -252,7 +243,7 @@ class SimpleTierDistributionOptimizer:
             ax.grid(True, alpha=0.3)
 
             # Add value labels
-            for bar, count in zip(bars, counts):
+            for bar, count in zip(bars, counts, strict=False):
                 height = bar.get_height()
                 ax.text(
                     bar.get_x() + bar.get_width() / 2.0,
@@ -302,18 +293,15 @@ class SimpleTierDistributionOptimizer:
 
             viz_files["dashboard"] = str(dashboard_file)
 
-            print(f"✅ Created {len(viz_files)} tier visualization files")
             return viz_files
 
-        except Exception as e:
-            print(f"❌ Error creating visualizations: {e}")
+        except Exception:
             return {}
 
     def export_report(
         self, analysis_results: dict[str, Any], visualizations: dict[str, str]
     ) -> str:
         """Export tier distribution report"""
-        print("📄 Exporting tier distribution report...")
 
         try:
             timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -334,18 +322,14 @@ class SimpleTierDistributionOptimizer:
             with open(report_file, "w") as f:
                 json.dump(export_data, f, indent=2, default=str)
 
-            print(f"✅ Exported tier distribution report to: {report_file}")
             return str(report_file)
 
-        except Exception as e:
-            print(f"❌ Error exporting report: {e}")
+        except Exception:
             return ""
 
 
 def main():
     """Main execution function"""
-    print("📊 Simple Tier Distribution Analysis and Optimization System")
-    print("=" * 70)
 
     # Initialize optimizer
     optimizer = SimpleTierDistributionOptimizer()
@@ -354,42 +338,27 @@ def main():
     analysis_results = optimizer.analyze_tier_distribution()
 
     if not analysis_results:
-        print("❌ No analysis results generated")
         return
 
     # Create visualizations
     visualizations = optimizer.create_visualizations(analysis_results)
 
     # Export report
-    report_file = optimizer.export_report(analysis_results, visualizations)
+    optimizer.export_report(analysis_results, visualizations)
 
     # Display summary
-    print("\n✅ Tier Distribution Analysis Complete")
-    print(
-        f"   - Total conversations: {analysis_results.get('total_conversations', 0):,}"
-    )
-    print(f"   - Tiers analyzed: {len(analysis_results.get('tier_distribution', {}))}")
-    print(
-        f"   - Recommendations: {len(analysis_results.get('optimization_recommendations', []))}"
-    )
-    print(f"   - Visualizations created: {len(visualizations)}")
-    print(f"   - Report saved: {report_file}")
 
     # Show tier distribution
     tier_dist = analysis_results.get("tier_distribution", {})
     if tier_dist:
-        print("\n📊 Tier Distribution:")
         for tier, data in tier_dist.items():
-            print(
-                f"   {tier}: {data['conversation_count']:,} conversations ({data['percentage']:.1f}%)"
-            )
+            pass
 
     # Show top recommendations
     recommendations = analysis_results.get("optimization_recommendations", [])
     if recommendations:
-        print("\n🎯 Top Recommendations:")
         for rec in recommendations[:3]:
-            print(f"   • {rec}")
+            pass
 
 
 if __name__ == "__main__":

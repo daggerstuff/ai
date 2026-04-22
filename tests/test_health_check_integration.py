@@ -24,6 +24,7 @@ from ai.monitoring.health_check import (
     health_manager,
     integrate_health_checks_with_fastapi,
 )
+import contextlib
 
 logger = logging.getLogger(__name__)
 
@@ -593,9 +594,6 @@ def benchmark_health_checks():
     total_time = end_time - start_time
     avg_time_per_check = total_time / num_iterations * 1000  # Convert to milliseconds
 
-    print("Health check benchmark:")
-    print(f"  Average time per check: {avg_time_per_check:.2f}ms")
-    print(f"  Checks per second: {1000 / avg_time_per_check:.0f}")
 
     # Should be reasonably fast (under 1000ms per check)
     assert avg_time_per_check < 1000.0
@@ -604,7 +602,6 @@ def benchmark_health_checks():
 # Main test runner
 def run_health_check_tests():
     """Run all health check and graceful shutdown tests"""
-    print("Running Health Check and Graceful Shutdown Tests...")
 
     # Run unit tests
     test_suite = unittest.TestLoader().loadTestsFromModule(__name__)
@@ -612,41 +609,28 @@ def run_health_check_tests():
     result = runner.run(test_suite)
 
     # Run pytest-style tests
-    print("\nRunning Pytest-style Tests...")
     try:
         test_health_check_decorators()
         test_health_manager_singleton()
         test_fastapi_health_integration()
-        print("Pytest-style tests completed successfully")
-    except Exception as e:
-        print(f"Pytest-style tests failed: {e}")
+    except Exception:
+        pass
 
     # Run performance benchmarks
-    print("\nRunning Performance Benchmarks...")
-    try:
+    with contextlib.suppress(Exception):
         benchmark_health_checks()
-        print("Performance benchmarks completed successfully")
-    except Exception as e:
-        print(f"Performance benchmarks failed: {e}")
 
     # Summary
-    print("\nTest Results Summary:")
-    print(f"  Tests run: {result.testsRun}")
-    print(f"  Failures: {len(result.failures)}")
-    print(f"  Errors: {len(result.errors)}")
 
     if result.failures:
-        print("\nFailures:")
         for test, traceback in result.failures:
-            print(f"  {test}: {traceback}")
+            pass
 
     if result.errors:
-        print("\nErrors:")
         for test, traceback in result.errors:
-            print(f"  {test}: {traceback}")
+            pass
 
     success = result.wasSuccessful()
-    print(f"\nOverall Test Status: {'✅ PASSED' if success else '❌ FAILED'}")
 
     return success
 

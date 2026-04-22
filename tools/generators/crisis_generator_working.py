@@ -241,16 +241,10 @@ def main():
     conversation = generator.generate_conversation(test_scenario, num_exchanges=3)
 
     if conversation["exchanges"]:
-        print("\n" + "=" * 60)
-        print(f"CRISIS CONVERSATION: {conversation['scenario']['name']}")
-        print("=" * 60)
 
         for exchange in conversation["exchanges"]:
-            print(f"\n--- EXCHANGE {exchange['exchange_number']} ---")
-            print(f"CLIENT: {exchange['client']}")
-            print(f"\nCOUNSELOR: {exchange['counselor']}")
+            pass
 
-        print("\n" + "=" * 60)
 
         # Save single conversation
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -260,13 +254,11 @@ def main():
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(conversation, f, indent=2, ensure_ascii=False)
 
-        print(f"Conversation saved to: {filepath}")
 
         # Ask if user wants to generate full dataset
-        print("\n✅ Test successful! Generate full dataset? (y/n): ", end="")
 
     else:
-        print("❌ Test failed - no exchanges generated")
+        pass
 
 
 if __name__ == "__main__":

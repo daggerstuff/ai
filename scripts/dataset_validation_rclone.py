@@ -37,7 +37,6 @@ def validate_dataset(
     if not s3_path:
         return {"error": "No path defined"}
 
-    print(f"Validating dataset: {dataset_name}")
 
     results = {
         "dataset": dataset_name,
@@ -123,13 +122,6 @@ def main():
 
     args = parser.parse_args()
 
-    print("=" * 80)
-    print("DATASET VALIDATION (RCLONE)")
-    print("=" * 80)
-    print(f"Registry: {args.registry}")
-    print(f"Limit: {args.limit or 'None (all datasets)'}")
-    print(f"Dry run: {args.dry_run}")
-    print()
 
     # Load registry
     with open(args.registry) as f:
@@ -150,9 +142,8 @@ def main():
         datasets = datasets[: args.limit]
 
     if args.dry_run:
-        print(f"Would validate {len(datasets)} datasets:")
         for name, entry in datasets:
-            print(f"  - {name}: {entry.get('path', 'no path')}")
+            pass
         return
 
     # Validate each dataset
@@ -210,14 +201,6 @@ def main():
         json.dump(registry, f, indent=2, ensure_ascii=False)
 
     # Print summary
-    print("\n" + "=" * 80)
-    print("VALIDATION SUMMARY")
-    print("=" * 80)
-    print(f"Total datasets: {stats['total']}")
-    print(f"Successful: {stats['successful']}")
-    print(f"Failed: {stats['failed']}")
-    print(f"Total files: {stats['total_files']}")
-    print(f"Total size: {round(stats['total_size_bytes'] / 1024**3, 2)} GiB")
 
     # Save detailed report
     report_path = Path("/home/vivi/pixelated/ai/config/validation_report.json")
@@ -229,7 +212,6 @@ def main():
     with open(report_path, "w") as f:
         json.dump(report, f, indent=2)
 
-    print(f"\nDetailed report saved to: {report_path}")
 
 
 if __name__ == "__main__":

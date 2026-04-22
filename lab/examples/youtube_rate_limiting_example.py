@@ -24,7 +24,6 @@ from ai.core.pipelines.youtube_processor import (
 
 async def example_conservative_rate_limiting():
     """Example with conservative rate limiting for production use."""
-    print("=== Conservative Rate Limiting Example ===")
 
     # Conservative rate limiting configuration
     rate_config = RateLimitConfig(
@@ -68,24 +67,17 @@ async def example_conservative_rate_limiting():
         result = await processor.process_playlists_batch(urls)
 
         if result.success:
-            print("✅ Processing successful!")
-            print(
-                f"Processed {result.successful_playlists}/{result.total_playlists} playlists"
-            )
-            print(f"Total audio files: {result.total_audio_files}")
-            print(f"Processing time: {result.total_processing_time:.2f} seconds")
+            pass
         else:
-            print("❌ Processing failed")
             for error in result.errors[:3]:
-                print(f"  Error: {error}")
+                pass
 
-    except Exception as e:
-        print(f"Exception during processing: {e}")
+    except Exception:
+        pass
 
 
 async def example_proxy_rotation():
     """Example with proxy rotation for high-volume processing."""
-    print("\n=== Proxy Rotation Example ===")
 
     # Proxy configuration with rotation
     proxy_config = ProxyConfig(
@@ -133,16 +125,14 @@ async def example_proxy_rotation():
         result = await processor.process_playlists_batch(urls)
 
         # Generate detailed report
-        report = processor.generate_processing_report(result)
-        print(report)
+        processor.generate_processing_report(result)
 
-    except Exception as e:
-        print(f"Exception during proxy processing: {e}")
+    except Exception:
+        pass
 
 
 async def example_high_volume_processing():
     """Example for high-volume processing with all optimizations."""
-    print("\n=== High-Volume Processing Example ===")
 
     # Aggressive rate limiting for high volume
     rate_config = RateLimitConfig(
@@ -206,12 +196,10 @@ async def example_high_volume_processing():
     ]
 
     try:
-        print(f"Starting high-volume processing of {len(urls)} playlists...")
         result = await processor.process_playlists_batch(urls)
 
         # Comprehensive reporting
         report = processor.generate_processing_report(result)
-        print(report)
 
         # Save report to file
         report_path = Path("high_volume_output") / "processing_report.txt"
@@ -219,15 +207,13 @@ async def example_high_volume_processing():
         with open(report_path, "w", encoding="utf-8") as f:
             f.write(report)
 
-        print(f"\nDetailed report saved to: {report_path}")
 
-    except Exception as e:
-        print(f"Exception during high-volume processing: {e}")
+    except Exception:
+        pass
 
 
 def example_configuration_templates():
     """Show configuration templates for different use cases."""
-    print("\n=== Configuration Templates ===")
 
     templates = {
         "Development/Testing": {
@@ -286,24 +272,14 @@ def example_configuration_templates():
     }
 
     for name, config in templates.items():
-        print(f"\n{name}:")
-        print(f"  {config['description']}")
         if "rate_config" in config:
-            rc = config["rate_config"]
-            print(f"  Rate: {rc.requests_per_minute}/min, {rc.requests_per_hour}/hour")
-            print(f"  Burst: {rc.burst_limit}, Backoff: {rc.backoff_factor}x")
+            config["rate_config"]
 
 
 async def main():
     """Run all examples."""
-    print("YouTube Rate Limiting and Proxy Support Examples")
-    print("=" * 60)
 
     # Note: These examples use placeholder URLs and proxies
-    print("⚠️  Note: Replace example URLs and proxy addresses with real ones")
-    print("⚠️  Ensure you have proper permissions and proxy access")
-    print("⚠️  Test with small batches first to verify configuration")
-    print()
 
     # Show configuration templates
     example_configuration_templates()
@@ -313,9 +289,6 @@ async def main():
     # await example_proxy_rotation()
     # await example_high_volume_processing()
 
-    print("\n" + "=" * 60)
-    print("Examples complete! Uncomment the async calls to run actual processing.")
-    print("Remember to configure real proxies and test with small batches first.")
 
 
 if __name__ == "__main__":

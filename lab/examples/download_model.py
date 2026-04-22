@@ -28,11 +28,9 @@ def main() -> int:
 
     try:
         if args.filename:
-            path = client.download_file(args.repo_id, filename=args.filename, cache_dir=str(out_dir))
-            print(f"Downloaded file to: {path}")
+            client.download_file(args.repo_id, filename=args.filename, cache_dir=str(out_dir))
         else:
-            path = client.snapshot_download(args.repo_id, cache_dir=str(out_dir))
-            print(f"Downloaded repository snapshot to: {path}")
+            client.snapshot_download(args.repo_id, cache_dir=str(out_dir))
     except Exception as exc:
         logger.exception("Failed to download: %s", exc)
         return 2

@@ -580,38 +580,25 @@ class ConfigValidator:
         if report is None:
             report = self.report
 
-        print("\n" + "=" * 80)
-        print("CONFIGURATION VALIDATION REPORT")
-        print("=" * 80)
 
-        summary = report.get_summary()
-        print("\nSUMMARY:")
-        print(f"  Errors:   {summary['error']}")
-        print(f"  Warnings: {summary['warning']}")
-        print(f"  Info:     {summary['info']}")
+        report.get_summary()
 
         if report.results:
-            print("\nDETAILS:")
             for result in report.results:
-                icon = {"error": "❌", "warning": "⚠️", "info": "ℹ️"}[result.level.value]
-                print(f"\n{icon} {result.level.value.upper()}: {result.message}")
+                {"error": "❌", "warning": "⚠️", "info": "ℹ️"}[result.level.value]
 
                 if result.field:
-                    print(f"   Field: {result.field}")
+                    pass
                 if result.value is not None:
-                    print(f"   Value: {result.value}")
+                    pass
                 if result.suggestion:
-                    print(f"   Suggestion: {result.suggestion}")
+                    pass
 
-        print("\n" + "=" * 80)
 
         if report.has_errors:
-            print("❌ VALIDATION FAILED - Please fix errors before proceeding")
             return False
         if report.has_warnings:
-            print("⚠️  VALIDATION PASSED WITH WARNINGS - Review warnings for production")
             return True
-        print("✅ VALIDATION PASSED - Configuration is valid")
         return True
 
 
@@ -641,7 +628,7 @@ def main():
 
     if args.json:
         # Output JSON report
-        json_report = {
+        {
             "summary": report.get_summary(),
             "results": [
                 {
@@ -654,7 +641,6 @@ def main():
                 for r in report.results
             ],
         }
-        print(json.dumps(json_report, indent=2))
     else:
         # Print human-readable report
         success = validator.print_report(report)

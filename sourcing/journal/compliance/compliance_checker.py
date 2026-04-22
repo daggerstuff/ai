@@ -277,7 +277,7 @@ class ComplianceChecker:
         if total_weight == 0:
             return 0.0
 
-        weighted_sum = sum(score * weight for score, weight in zip(scores, weights))
+        weighted_sum = sum(score * weight for score, weight in zip(scores, weights, strict=False))
         overall_score = weighted_sum / total_weight
 
         return round(overall_score, 2)

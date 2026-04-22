@@ -41,9 +41,6 @@ class DatasetRegistryOrchestrator:
         if args:
             cmd.extend(args)
 
-        print(f"\n{'=' * 80}")
-        print(f"Running: {' '.join(cmd)}")
-        print(f"{'=' * 80}\n")
 
         try:
             result = subprocess.run(
@@ -67,7 +64,6 @@ class DatasetRegistryOrchestrator:
 
     def enhance_registry(self, limit: int = None) -> bool:
         """Enhance registry with new fields."""
-        print("\n### STEP 1: Enhancing Registry Structure ###")
 
         args = []
         if limit:
@@ -77,17 +73,14 @@ class DatasetRegistryOrchestrator:
         self.results["enhancement"] = result
 
         if result["success"]:
-            print(result["stdout"])
+            pass
         else:
-            print(
-                f"ERROR: {result.get('error', result.get('stderr', 'Unknown error'))}"
-            )
+            pass
 
         return result["success"]
 
     def validate_datasets(self, limit: int = None, dry_run: bool = False) -> bool:
         """Validate all datasets using rclone."""
-        print("\n### STEP 2: Validating Datasets (rclone) ###")
 
         args = []
         if limit:
@@ -99,17 +92,14 @@ class DatasetRegistryOrchestrator:
         self.results["validation"] = result
 
         if result["success"]:
-            print(result["stdout"])
+            pass
         else:
-            print(
-                f"ERROR: {result.get('error', result.get('stderr', 'Unknown error'))}"
-            )
+            pass
 
         return result["success"]
 
     def verify_sync(self, limit: int = None) -> bool:
         """Verify dataset sync using rclone."""
-        print("\n### STEP 3: Verifying Dataset Sync (rclone) ###")
 
         args = []
         if limit:
@@ -119,17 +109,14 @@ class DatasetRegistryOrchestrator:
         self.results["sync_verification"] = result
 
         if result["success"]:
-            print(result["stdout"])
+            pass
         else:
-            print(
-                f"ERROR: {result.get('error', result.get('stderr', 'Unknown error'))}"
-            )
+            pass
 
         return result["success"]
 
     def score_quality(self, limit: int = None) -> bool:
         """Score dataset quality using rclone."""
-        print("\n### STEP 5: Scoring Dataset Quality (rclone) ###")
 
         args = []
         if limit:
@@ -139,17 +126,14 @@ class DatasetRegistryOrchestrator:
         self.results["quality_scoring"] = result
 
         if result["success"]:
-            print(result["stdout"])
+            pass
         else:
-            print(
-                f"ERROR: {result.get('error', result.get('stderr', 'Unknown error'))}"
-            )
+            pass
 
         return result["success"]
 
     def deduplicate_datasets(self, limit: int = None) -> bool:
         """Deduplicate datasets using rclone."""
-        print("\n### STEP 6: Deduplicating Datasets (rclone) ###")
 
         args = []
         if limit:
@@ -159,17 +143,14 @@ class DatasetRegistryOrchestrator:
         self.results["deduplication"] = result
 
         if result["success"]:
-            print(result["stdout"])
+            pass
         else:
-            print(
-                f"ERROR: {result.get('error', result.get('stderr', 'Unknown error'))}"
-            )
+            pass
 
         return result["success"]
 
     def update_usage_metrics(self, limit: int = None) -> bool:
         """Update usage analytics."""
-        print("\n### STEP 4: Updating Usage Metrics ###")
 
         args = ["--action", "update"]
         if limit:
@@ -179,17 +160,14 @@ class DatasetRegistryOrchestrator:
         self.results["usage_metrics"] = result
 
         if result["success"]:
-            print(result["stdout"])
+            pass
         else:
-            print(
-                f"ERROR: {result.get('error', result.get('stderr', 'Unknown error'))}"
-            )
+            pass
 
         return result["success"]
 
     def score_quality(self, limit: int = None) -> bool:
         """Score dataset quality."""
-        print("\n### STEP 5: Scoring Dataset Quality ###")
 
         args = []
         if limit:
@@ -199,11 +177,9 @@ class DatasetRegistryOrchestrator:
         self.results["quality_scoring"] = result
 
         if result["success"]:
-            print(result["stdout"])
+            pass
         else:
-            print(
-                f"ERROR: {result.get('error', result.get('stderr', 'Unknown error'))}"
-            )
+            pass
 
         return result["success"]
 
@@ -215,17 +191,14 @@ class DatasetRegistryOrchestrator:
         self.results["deduplication"] = result
 
         if result["success"]:
-            print(result["stdout"])
+            pass
         else:
-            print(
-                f"ERROR: {result.get('error', result.get('stderr', 'Unknown error'))}"
-            )
+            pass
 
         return result["success"]
 
     def generate_report(self) -> dict[str, Any]:
         """Generate summary report of all operations."""
-        print("\n### GENERATING FINAL REPORT ###\n")
 
         # Load final registry state
         with open(self.registry_path) as f:
@@ -248,53 +221,37 @@ class DatasetRegistryOrchestrator:
         }
 
         # Print report
-        print("=" * 80)
-        print("DATASET REGISTRY ENHANCEMENT REPORT")
-        print("=" * 80)
-        print(f"\nTimestamp: {report['timestamp']}")
-        print(f"Registry Version: {report['registry_version']}")
-        print("\nEnhancements Applied:")
         for enhancement in report["enhancements_applied"]:
-            print(f"  ✓ {enhancement}")
+            pass
 
-        print("\nStatistics:")
         stats = report["statistics"]
-        print(f"  Total Datasets: {stats.get('total_datasets', 'N/A')}")
 
         if "datasets_by_stage" in stats:
-            print("\n  By Stage:")
             for stage, count in stats["datasets_by_stage"].items():
-                print(f"    {stage}: {count}")
+                pass
 
         if "datasets_by_quality" in stats:
-            print("\n  By Quality:")
             for tier, count in stats["datasets_by_quality"].items():
-                print(f"    {tier}: {count}")
+                pass
 
         if "validation_summary" in stats:
-            print("\n  Validation Summary:")
             for status, count in stats["validation_summary"].items():
-                print(f"    {status}: {count}")
+                pass
 
         if "sync_summary" in stats:
-            print("\n  Sync Summary:")
             for status, count in stats["sync_summary"].items():
-                print(f"    {status}: {count}")
+                pass
 
-        print("\nOperation Results:")
         all_success = True
         for operation, result in report["operation_results"].items():
-            status = "✓" if result["success"] else "✗"
-            print(f"  {status} {operation}")
+            "✓" if result["success"] else "✗"
             if not result["success"]:
                 all_success = False
 
-        print(f"\n{'=' * 80}")
         if all_success:
-            print("✓ ALL OPERATIONS COMPLETED SUCCESSFULLY")
+            pass
         else:
-            print("✗ SOME OPERATIONS FAILED - CHECK LOGS ABOVE")
-        print(f"{'=' * 80}\n")
+            pass
 
         return report
 
@@ -352,41 +309,28 @@ Examples:
         orchestrator.generate_report()
         return 0
 
-    print("=" * 80)
-    print("DATASET REGISTRY ENHANCEMENT ORCHESTRATION")
-    print("=" * 80)
-    print(f"\nRegistry: {args.registry}")
-    print(f"Limit: {args.limit or 'None (all datasets)'}")
-    print(f"Skip Validation: {args.skip_validation}")
-    print()
 
     success = True
 
     # Run all operations in sequence
     if not orchestrator.enhance_registry(limit=args.limit):
         success = False
-        print("\n⚠ Warning: Enhancement step had issues, continuing...")
 
     if not args.skip_validation:
         if not orchestrator.validate_datasets(limit=args.limit):
             success = False
-            print("\n⚠ Warning: Validation step had issues, continuing...")
 
     if not orchestrator.verify_sync(limit=args.limit):
         success = False
-        print("\n⚠ Warning: Sync verification had issues, continuing...")
 
     if not orchestrator.update_usage_metrics(limit=args.limit):
         success = False
-        print("\n⚠ Warning: Usage metrics update had issues, continuing...")
 
     if not orchestrator.score_quality(limit=args.limit):
         success = False
-        print("\n⚠ Warning: Quality scoring had issues, continuing...")
 
     if not orchestrator.deduplicate_datasets(limit=args.limit):
         success = False
-        print("\n⚠ Warning: Deduplication had issues, continuing...")
 
     # Generate final report
     report = orchestrator.generate_report()
@@ -396,7 +340,6 @@ Examples:
     with open(report_path, "w") as f:
         json.dump(report, f, indent=2)
 
-    print(f"\nReport saved to: {report_path}")
 
     return 0 if success else 1
 

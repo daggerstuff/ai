@@ -9,8 +9,6 @@ from pathlib import Path
 
 def monitor_v5():
     """Monitor V5 production system"""
-    print("🔍 Enhanced V5 Production Monitor Started")
-    print(f"Started: {datetime.now(timezone.utc)}")
 
     try:
         while True:
@@ -21,7 +19,6 @@ def monitor_v5():
                 "uptime": "active"
             }
 
-            print(f"✅ {datetime.now(timezone.utc).strftime('%H:%M:%S')} - V5 System Healthy")
 
             # Log status
             log_file = Path("../logs/monitor.log")
@@ -31,7 +28,7 @@ def monitor_v5():
             time.sleep(60)  # Check every minute
 
     except KeyboardInterrupt:
-        print("\n🛑 Monitoring stopped")
+        pass
 
 if __name__ == "__main__":
     monitor_v5()

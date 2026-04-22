@@ -90,14 +90,12 @@ class QualityValidationAnalyzer:
         self, days_back: int = 30
     ) -> dict[str, ValidationAnalysis]:
         """Analyze quality validation results"""
-        print(f"🔍 Analyzing quality validation results for last {days_back} days...")
 
         try:
             # Get validation results (synthetic for demo)
             validation_results = self._get_validation_results(days_back)
 
             if not validation_results:
-                print("❌ No validation results found")
                 return {}
 
             # Analyze results for each metric
@@ -110,11 +108,9 @@ class QualityValidationAnalyzer:
                     if analysis:
                         analyses[metric] = analysis
 
-            print(f"✅ Analyzed validation results for {len(analyses)} metrics")
             return analyses
 
-        except Exception as e:
-            print(f"❌ Error analyzing validation results: {e}")
+        except Exception:
             return {}
 
     def _get_validation_results(self, days_back: int) -> list[ValidationResult]:
@@ -174,8 +170,7 @@ class QualityValidationAnalyzer:
 
             return validation_results
 
-        except Exception as e:
-            print(f"❌ Error getting validation results: {e}")
+        except Exception:
             return []
 
     def _analyze_metric_validation(
@@ -224,8 +219,7 @@ class QualityValidationAnalyzer:
                 recommendations=recommendations,
             )
 
-        except Exception as e:
-            print(f"❌ Error analyzing {metric} validation: {e}")
+        except Exception:
             return None
 
     def _analyze_failure_patterns(
@@ -385,13 +379,11 @@ class QualityValidationAnalyzer:
         self, analyses: dict[str, ValidationAnalysis]
     ) -> dict[str, str]:
         """Create validation analysis visualizations"""
-        print("📈 Creating validation analysis visualizations...")
 
         viz_files = {}
 
         try:
             if not analyses:
-                print("⚠️ No validation analyses to visualize")
                 return viz_files
 
             # Set style
@@ -427,7 +419,7 @@ class QualityValidationAnalyzer:
             ax.grid(True, alpha=0.3)
 
             # Add value labels
-            for bar, rate in zip(bars, pass_rates):
+            for bar, rate in zip(bars, pass_rates, strict=False):
                 height = bar.get_height()
                 ax.text(
                     bar.get_x() + bar.get_width() / 2.0,
@@ -513,18 +505,15 @@ class QualityValidationAnalyzer:
 
             viz_files["dashboard"] = str(dashboard_file)
 
-            print(f"✅ Created {len(viz_files)} validation visualization files")
             return viz_files
 
-        except Exception as e:
-            print(f"❌ Error creating visualizations: {e}")
+        except Exception:
             return {}
 
     def export_validation_report(
         self, analyses: dict[str, ValidationAnalysis], visualizations: dict[str, str]
     ) -> str:
         """Export comprehensive validation analysis report"""
-        print("📄 Exporting validation analysis report...")
 
         try:
             timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -565,11 +554,9 @@ class QualityValidationAnalyzer:
             with open(report_file, "w") as f:
                 json.dump(export_data, f, indent=2, default=str)
 
-            print(f"✅ Exported validation report to: {report_file}")
             return str(report_file)
 
-        except Exception as e:
-            print(f"❌ Error exporting validation report: {e}")
+        except Exception:
             return ""
 
     def _create_validation_summary(
@@ -625,7 +612,6 @@ class QualityValidationAnalyzer:
             }
 
         except Exception as e:
-            print(f"❌ Error creating validation summary: {e}")
             return {"status": "error", "message": str(e)}
 
     def _generate_quality_insights(
@@ -679,8 +665,7 @@ class QualityValidationAnalyzer:
                 f"Total validations processed: {total_validations:,} across {len(analyses)} metrics"
             )
 
-        except Exception as e:
-            print(f"❌ Error generating quality insights: {e}")
+        except Exception:
             insights.append("Error generating insights - see logs for details")
 
         return insights
@@ -688,8 +673,6 @@ class QualityValidationAnalyzer:
 
 def main():
     """Main execution function"""
-    print("🔍 Quality Validation Result Analysis System")
-    print("=" * 50)
 
     # Initialize analyzer
     analyzer = QualityValidationAnalyzer()
@@ -698,34 +681,19 @@ def main():
     analyses = analyzer.analyze_validation_results(days_back=30)
 
     if not analyses:
-        print("❌ No validation analyses found")
         return
 
     # Create visualizations
     visualizations = analyzer.create_validation_visualizations(analyses)
 
     # Export report
-    report_file = analyzer.export_validation_report(analyses, visualizations)
+    analyzer.export_validation_report(analyses, visualizations)
 
     # Display summary
-    print("\n✅ Validation Analysis Complete")
-    print(f"   - Metrics analyzed: {len(analyses)}")
-    print(f"   - Visualizations created: {len(visualizations)}")
-    print(f"   - Report saved: {report_file}")
 
     # Show key findings
-    print("\n🔍 Key Findings:")
     for metric, analysis in analyses.items():
-        status_icon = (
-            "✅"
-            if analysis.pass_rate >= 85
-            else "⚠️"
-            if analysis.pass_rate >= 70
-            else "❌"
-        )
-        print(
-            f"   {status_icon} {metric.replace('_', ' ').title()}: {analysis.pass_rate:.1f}% pass rate (avg score: {analysis.average_score:.3f})"
-        )
+        pass
 
     # Show top recommendations
     all_recommendations = []
@@ -733,9 +701,8 @@ def main():
         all_recommendations.extend(analysis.recommendations[:2])  # Top 2 per metric
 
     if all_recommendations:
-        print("\n💡 Top Recommendations:")
         for rec in list(set(all_recommendations))[:5]:  # Top 5 unique recommendations
-            print(f"   • {rec}")
+            pass
 
 
 if __name__ == "__main__":

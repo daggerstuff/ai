@@ -56,7 +56,6 @@ class QualityTrendDemo:
 
     def create_synthetic_trends(self, days_back: int = 30) -> dict[str, list[dict]]:
         """Create synthetic trend data for demonstration"""
-        print(f"🎭 Creating synthetic trend data for {days_back} days...")
 
         try:
             # Get base data from database
@@ -71,7 +70,6 @@ class QualityTrendDemo:
             conn.close()
 
             if not base_data:
-                print("❌ No base data found")
                 return {}
 
             # Create synthetic daily data
@@ -112,18 +110,15 @@ class QualityTrendDemo:
 
                 synthetic_data[date_key] = daily_records
 
-            print(f"✅ Created synthetic data for {len(synthetic_data)} days")
             return synthetic_data
 
-        except Exception as e:
-            print(f"❌ Error creating synthetic data: {e}")
+        except Exception:
             return {}
 
     def analyze_synthetic_trends(
         self, synthetic_data: dict[str, list[dict]], period: str = "daily"
     ) -> dict[str, QualityTrend]:
         """Analyze trends from synthetic data"""
-        print(f"🔍 Analyzing synthetic trends for {period} period...")
 
         try:
             trends = {}
@@ -135,11 +130,9 @@ class QualityTrendDemo:
                 if trend:
                     trends[metric] = trend
 
-            print(f"✅ Analyzed trends for {len(trends)} quality metrics")
             return trends
 
-        except Exception as e:
-            print(f"❌ Error analyzing synthetic trends: {e}")
+        except Exception:
             return {}
 
     def _analyze_synthetic_metric_trend(
@@ -174,8 +167,7 @@ class QualityTrendDemo:
                 statistical_significance=p_value,
             )
 
-        except Exception as e:
-            print(f"❌ Error analyzing trend for {metric}: {e}")
+        except Exception:
             return None
 
     def _calculate_metric_value(
@@ -220,8 +212,7 @@ class QualityTrendDemo:
 
             return None
 
-        except Exception as e:
-            print(f"❌ Error calculating {metric}: {e}")
+        except Exception:
             return None
 
     def _calculate_trend_statistics(
@@ -233,7 +224,7 @@ class QualityTrendDemo:
             y = np.array(values)
 
             # Linear regression
-            slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
+            slope, _intercept, r_value, p_value, _std_err = stats.linregress(x, y)
 
             # Determine trend direction
             if abs(slope) < 0.001:  # Very small slope
@@ -248,15 +239,13 @@ class QualityTrendDemo:
 
             return direction, strength, p_value
 
-        except Exception as e:
-            print(f"❌ Error calculating trend statistics: {e}")
+        except Exception:
             return "unknown", 0.0, 1.0
 
     def create_trend_visualizations(
         self, trends: dict[str, QualityTrend]
     ) -> dict[str, str]:
         """Create trend visualizations"""
-        print(f"📈 Creating trend visualizations for {len(trends)} metrics...")
 
         viz_files = {}
 
@@ -341,16 +330,13 @@ class QualityTrendDemo:
 
                 viz_files["dashboard"] = str(dashboard_file)
 
-            print(f"✅ Created {len(viz_files)} visualization files")
             return viz_files
 
-        except Exception as e:
-            print(f"❌ Error creating visualizations: {e}")
+        except Exception:
             return {}
 
     def generate_demo_report(self, trends: dict[str, QualityTrend]) -> dict[str, Any]:
         """Generate demo trend report"""
-        print("📊 Generating demo trend report...")
 
         try:
             # Overall trend assessment
@@ -433,18 +419,14 @@ class QualityTrendDemo:
                 },
             }
 
-            print(f"✅ Generated demo report with {len(insights)} insights")
             return report
 
-        except Exception as e:
-            print(f"❌ Error generating demo report: {e}")
+        except Exception:
             return {}
 
 
 def main():
     """Main demo execution"""
-    print("🎭 Quality Trend Analysis Demo")
-    print("=" * 40)
 
     # Initialize demo
     demo = QualityTrendDemo()
@@ -453,53 +435,39 @@ def main():
     synthetic_data = demo.create_synthetic_trends(days_back=30)
 
     if not synthetic_data:
-        print("❌ Failed to create synthetic data")
         return
 
     # Analyze trends
     trends = demo.analyze_synthetic_trends(synthetic_data, period="daily")
 
     if not trends:
-        print("❌ No trends found")
         return
 
     # Generate report
     report = demo.generate_demo_report(trends)
 
     # Create visualizations
-    visualizations = demo.create_trend_visualizations(trends)
+    demo.create_trend_visualizations(trends)
 
     # Display results
-    print("\n✅ Demo Analysis Complete")
-    print(f"   - Trends analyzed: {len(trends)}")
-    print(f"   - Overall trend: {report.get('overall_trend', 'unknown')}")
-    print(f"   - Key insights: {len(report.get('key_insights', []))}")
-    print(f"   - Recommendations: {len(report.get('recommendations', []))}")
-    print(f"   - Visualizations: {len(visualizations)}")
 
     # Show key insights
     insights = report.get("key_insights", [])
     if insights:
-        print("\n🔍 Key Insights:")
         for insight in insights[:3]:
-            print(f"   • {insight}")
+            pass
 
     # Show recommendations
     recommendations = report.get("recommendations", [])
     if recommendations:
-        print("\n💡 Recommendations:")
         for rec in recommendations[:3]:
-            print(f"   • {rec}")
+            pass
 
     # Show metrics summary
-    print("\n📊 Metrics Summary:")
     for name, summary in report.get("metrics_summary", {}).items():
-        direction = summary["trend_direction"]
-        current = summary["current_value"]
-        significant = "✓" if summary["is_significant"] else "✗"
-        print(
-            f"   {name.replace('_', ' ').title()}: {current:.1f} ({direction}) [{significant}]"
-        )
+        summary["trend_direction"]
+        summary["current_value"]
+        "✓" if summary["is_significant"] else "✗"
 
 
 if __name__ == "__main__":

@@ -703,28 +703,12 @@ def main():
     workflows_to_test = ["rapid_qa", "standard_qa", "comprehensive_qa"]
 
     for workflow_id in workflows_to_test:
-        print(f"\n🔄 Testing {workflow_id} workflow...")
 
-        result = qa_system.execute_workflow(workflow_id, test_conversation)
+        qa_system.execute_workflow(workflow_id, test_conversation)
 
-        print(f"Status: {result.status.value}")
-        print(f"Quality Level: {result.quality_level.value}")
-        print(f"Quality Score: {result.quality_score:.3f}")
-        print(f"Execution Time: {result.execution_time:.2f}s")
-        print(f"Steps Completed: {len(result.steps_completed)}")
-        print(f"Issues Found: {len(result.issues_found)}")
-        print(f"Recommendations: {len(result.recommendations)}")
 
     # Get statistics
-    stats = qa_system.get_workflow_statistics()
-    print("\n📊 Workflow Statistics:")
-    print(f"Total Executed: {stats['workflow_stats']['total_executed']}")
-    print(
-        f"Success Rate: {stats['workflow_stats']['successful_executions']}/{stats['workflow_stats']['total_executed']}"
-    )
-    print(
-        f"Average Execution Time: {stats['workflow_stats']['average_execution_time']:.2f}s"
-    )
+    qa_system.get_workflow_statistics()
 
 
 if __name__ == "__main__":

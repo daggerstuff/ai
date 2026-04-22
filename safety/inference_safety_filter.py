@@ -602,7 +602,6 @@ def test_inference_safety_filtering():
     logger.info("Testing Inference Safety Filtering System...")
 
     # Test basic safety filtering
-    print("Testing basic safety filtering...")
 
     # Create safety filter
     safety_filter = InferenceSafetyFilter(
@@ -615,12 +614,6 @@ def test_inference_safety_filtering():
     )
     result = safety_filter.filter_inference_output(safe_content)
 
-    print("Safe content test:")
-    print(f"  Is safe: {result.is_safe}")
-    print(f"  Content filtered: {result.content_filtered}")
-    print(f"  Safety score: {result.safety_score:.3f}")
-    print(f"  Flagged categories: {result.flagged_categories}")
-    print(f"  Processing time: {result.processing_time_ms:.2f}ms")
 
     # Test unsafe content
     unsafe_content = (
@@ -628,74 +621,45 @@ def test_inference_safety_filtering():
     )
     result = safety_filter.filter_inference_output(unsafe_content)
 
-    print("\nUnsafe content test:")
-    print(f"  Is safe: {result.is_safe}")
-    print(f"  Content filtered: {result.content_filtered}")
-    print(f"  Safety score: {result.safety_score:.3f}")
-    print(f"  Flagged categories: {result.flagged_categories}")
-    print(f"  Crisis detected: {result.crisis_detected}")
     if result.crisis_info:
-        print(f"  Crisis type: {result.crisis_info.get('type')}")
-        print(f"  Crisis urgency: {result.crisis_info.get('urgency_level')}")
-        print(f"  Crisis resources: {result.crisis_info.get('resources')}")
-    print(f"  Processing time: {result.processing_time_ms:.2f}ms")
+        pass
 
     # Test filtering modes
-    print("\nTesting different filtering modes...")
 
     # Block all mode
     block_filter = InferenceSafetyFilter(
         SafetyLevel.MODERATE, SafetyFilterMode.BLOCK_ALL
     )
     result = block_filter.filter_inference_output(unsafe_content)
-    print(f"  Block all mode - Content filtered: {result.content_filtered}")
-    print(f"  Filtered content preview: {result.filtered_content[:50]}...")
 
     # Log only mode
     log_filter = InferenceSafetyFilter(SafetyLevel.MODERATE, SafetyFilterMode.LOG_ONLY)
     result = log_filter.filter_inference_output(unsafe_content)
-    print(f"  Log only mode - Content filtered: {result.content_filtered}")
-    print(
-        f"  Original content preserved: {result.original_content == result.filtered_content}"
-    )
 
     # Disabled mode
     disabled_filter = InferenceSafetyFilter(
         SafetyLevel.MODERATE, SafetyFilterMode.DISABLED
     )
     result = disabled_filter.filter_inference_output(unsafe_content)
-    print(f"  Disabled mode - Content filtered: {result.content_filtered}")
-    print(
-        f"  Original content preserved: {result.original_content == result.filtered_content}"
-    )
 
     # Test with different safety levels
-    print("\nTesting different safety levels...")
 
     # Strict level
     strict_filter = InferenceSafetyFilter(
         SafetyLevel.STRICT, SafetyFilterMode.FILTER_AND_WARN
     )
     result = strict_filter.filter_inference_output(safe_content)
-    print(f"  Strict level - Safe content score: {result.safety_score:.3f}")
 
     # Paranoid level
     paranoid_filter = InferenceSafetyFilter(
         SafetyLevel.PARANOID, SafetyFilterMode.FILTER_AND_WARN
     )
     result = paranoid_filter.filter_inference_output(safe_content)
-    print(f"  Paranoid level - Safe content score: {result.safety_score:.3f}")
 
     # Test statistics
-    print("\nTesting statistics...")
-    stats = safety_filter.get_filtering_statistics()
-    print(f"  Total requests: {stats['total_requests']}")
-    print(f"  Blocked content: {stats['blocked_content_count']}")
-    print(f"  Filtered content: {stats['filtered_content_count']}")
-    print(f"  Safe content: {stats['safe_content_count']}")
+    safety_filter.get_filtering_statistics()
 
     # Test safety-aware API wrapper
-    print("\nTesting safety-aware API wrapper...")
 
     def mock_inference_function(prompt: str) -> str:
         """Mock inference function"""
@@ -710,22 +674,14 @@ def test_inference_safety_filtering():
         mock_inference_function, "I'm feeling anxious about my therapy session."
     )
 
-    print(f"  Safe inference - Is safe: {is_safe}")
-    print(f"  Result: {result}")
-    print(f"  Safety score: {safety_result.safety_score:.3f}")
 
     # Test unsafe inference
-    is_safe, result, safety_result = safety_aware_api.safe_inference_call(
+    _is_safe, result, _safety_result = safety_aware_api.safe_inference_call(
         mock_inference_function, "I've been thinking about suicide lately."
     )
 
-    print(f"  Unsafe inference - Is safe: {is_safe}")
-    print(f"  Result preview: {str(result)[:100]}...")
-    print(f"  Safety score: {safety_result.safety_score:.3f}")
-    print(f"  Crisis detected: {safety_result.crisis_detected}")
 
     # Test decorated function
-    print("\nTesting decorated function...")
 
     @safety_filtered_inference(SafetyFilterMode.FILTER_AND_WARN)
     def decorated_inference_function(prompt: str) -> str:
@@ -738,14 +694,9 @@ def test_inference_safety_filtering():
         "I've been having thoughts about hurting myself."
     )
 
-    print(f"  Decorated function result: {type(result)}")
     if isinstance(result, dict):
-        print(f"    Safety filtered: {result.get('safety_filtered', 'N/A')}")
-        print(f"    Safety score: {result.get('safety_score', 'N/A')}")
-        print(f"    Crisis detected: {result.get('crisis_detected', 'N/A')}")
-        print(f"    Content: {result.get('content', 'N/A')}")
+        pass
 
-    print("\nInference safety filtering tests completed!")
 
 
 if __name__ == "__main__":

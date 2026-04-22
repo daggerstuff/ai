@@ -510,7 +510,6 @@ class ProgressTracker:
 
         time_stats = {}
         if processing_times:
-            pass
 
             time_stats = {
                 "mean": statistics.mean(processing_times),
@@ -787,9 +786,9 @@ def main():
     if args.command == "status":
         batch_progress = tracker.get_batch_progress(args.batch_id)
         if batch_progress:
-            print(json.dumps(batch_progress.to_dict(), indent=2))
+            pass
         else:
-            print(f"Batch not found: {args.batch_id}")
+            pass
 
     elif args.command == "list":
         if args.active_only:
@@ -797,23 +796,20 @@ def main():
         else:
             batches = list(tracker.batch_cache.values())
 
-        batch_data = [batch.to_dict() for batch in batches]
-        print(json.dumps(batch_data, indent=2))
+        [batch.to_dict() for batch in batches]
 
     elif args.command == "stats":
         stats = tracker.get_batch_statistics(args.batch_id)
         if stats:
-            print(json.dumps(stats, indent=2))
+            pass
         else:
-            print(f"No statistics found for batch: {args.batch_id}")
+            pass
 
     elif args.command == "cancel":
         tracker.cancel_batch(args.batch_id)
-        print(f"Cancelled batch: {args.batch_id}")
 
     elif args.command == "cleanup":
         tracker.cleanup_old_data(args.days)
-        print(f"Cleaned up data older than {args.days} days")
 
 
 if __name__ == "__main__":

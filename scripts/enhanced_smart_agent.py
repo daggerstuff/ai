@@ -145,13 +145,8 @@ def test_enhanced_agent():
         "file": "test.txt"
     }
 
-    result = agent.process_segment(test_segment)
+    agent.process_segment(test_segment)
 
-    print("=== ENHANCED SMART AGENT TEST ===\n")
-    print(f"**Extraction Method**: {result['extraction_method']}")
-    print(f"**Question**: {result['input']}")
-    print("\n**Answer**:")
-    print(result["output"])
 
 if __name__ == "__main__":
     test_enhanced_agent()

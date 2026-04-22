@@ -225,16 +225,9 @@ def test_smart_agent():
 
     result = agent.process_segment(test_segment)
 
-    print("=== SMART AI AGENT TEST ===\n")
-    print(f"**Content Type**: {result['smart_analysis']['content_type']}")
-    print(f"**Dialogue Structure**: {result['smart_analysis']['dialogue_structure']}")
-    print(f"**Main Topic**: {result['smart_analysis']['main_topic']}")
-    print(f"**Confidence**: {result['smart_analysis']['confidence']}")
-    print(f"**Generated Q**: {result['input']}")
-    print(f"**Response A**: {result['output'][:300]}...")
 
     if result["smart_analysis"].get("question_embedded"):
-        print(f"**Embedded Q Found**: {result['smart_analysis']['question_embedded']}")
+        pass
 
 if __name__ == "__main__":
     test_smart_agent()

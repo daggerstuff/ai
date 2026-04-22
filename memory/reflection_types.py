@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 
-class ReflectionTrigger(str, Enum):
+class ReflectionTrigger(StrEnum):
     """What triggers reflection."""
 
     MANUAL = "manual"
@@ -40,7 +40,7 @@ class ReflectionResult:
     requires_manual_review: bool = False
 
 
-class MemoryCategory(str, Enum):
+class MemoryCategory(StrEnum):
     GENERAL = "general"
     CRISIS_CONTEXT = "crisis_context"
     EMOTIONAL_STATE = "emotional_state"
@@ -50,7 +50,7 @@ class MemoryCategory(str, Enum):
     PREFERENCE = "preference"
 
 
-class CrisisSeverity(str, Enum):
+class CrisisSeverity(StrEnum):
     NONE = "none"
     MEDIUM = "medium"
     HIGH = "high"

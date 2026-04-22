@@ -40,7 +40,6 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
-import pyarrow
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -554,13 +553,8 @@ def export_to_parquet(
 
 if __name__ == "__main__":
     # Example usage
-    print("=" * 80)
-    print("Multi-Format Exporter - Production Implementation")
-    print("=" * 80)
 
     # Example: Create a sample dataset and export it
-    print("\nExample: Exporting sample dataset to multiple formats")
-    print("-" * 80)
 
     # Create sample data
     sample_data = [
@@ -575,7 +569,6 @@ if __name__ == "__main__":
         for record in sample_data:
             f.write(json.dumps(record) + "\n")
 
-    print(f"Created sample dataset: {sample_path}")
 
     # Export to all formats
     exporter = MultiFormatExporter()
@@ -585,11 +578,7 @@ if __name__ == "__main__":
         result = exporter.export_dataset(sample_path, output_path, fmt)
 
         if result.success:
-            print(f"✅ {fmt.value.upper()}: {result.records_exported} records, "
-                  f"{result.bytes_written} bytes")
+            pass
         else:
-            print(f"❌ {fmt.value.upper()}: {result.errors}")
+            pass
 
-    print("\n" + "=" * 80)
-    print("Multi-Format Exporter Ready")
-    print("=" * 80)

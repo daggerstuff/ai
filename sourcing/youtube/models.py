@@ -6,12 +6,12 @@ Defines channel metadata, quality scoring, licensing info, and status tracking.
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
 
-class ChannelStatus(str, Enum):
+class ChannelStatus(StrEnum):
     """Health status of a channel."""
     ACTIVE = "active"
     INACTIVE = "inactive"
@@ -20,7 +20,7 @@ class ChannelStatus(str, Enum):
     UNKNOWN = "unknown"
 
 
-class ContentCategory(str, Enum):
+class ContentCategory(StrEnum):
     """Therapeutic content categories."""
     CPTSD_EDUCATION = "cptsd_education"
     TRAUMA_INFORMED = "trauma_informed"

@@ -77,14 +77,12 @@ class QualityDistributionAnalyzer:
         self,
     ) -> dict[str, dict[str, DistributionAnalysis]]:
         """Analyze quality distributions across all metrics and categories"""
-        print("🔍 Analyzing quality distributions across all metrics and categories...")
 
         try:
             # Get conversation data
             data = self._get_conversation_data()
 
             if not data:
-                print("❌ No conversation data found")
                 return {}
 
             # Convert to DataFrame for easier analysis
@@ -108,13 +106,9 @@ class QualityDistributionAnalyzer:
                         if analysis:
                             results[metric][category] = analysis
 
-            print(
-                f"✅ Analyzed distributions for {len(results)} metrics across {len(self.analysis_categories)} categories"
-            )
             return results
 
-        except Exception as e:
-            print(f"❌ Error analyzing quality distributions: {e}")
+        except Exception:
             return {}
 
     def _get_conversation_data(self) -> list[dict]:
@@ -143,7 +137,7 @@ class QualityDistributionAnalyzer:
 
             data = []
             for row in cursor.fetchall():
-                record = dict(zip(columns, row))
+                record = dict(zip(columns, row, strict=False))
                 if record["created_at"]:
                     record["created_at"] = datetime.fromisoformat(record["created_at"])
                 data.append(record)
@@ -151,8 +145,7 @@ class QualityDistributionAnalyzer:
             conn.close()
             return data
 
-        except Exception as e:
-            print(f"❌ Error getting conversation data: {e}")
+        except Exception:
             return []
 
     def _calculate_metric_values(self, df: pd.DataFrame, metric: str) -> list[float]:
@@ -179,8 +172,7 @@ class QualityDistributionAnalyzer:
 
             return [0.0] * len(df)
 
-        except Exception as e:
-            print(f"❌ Error calculating {metric}: {e}")
+        except Exception:
             return [0.0] * len(df)
 
     def _analyze_distribution_by_category(
@@ -227,8 +219,7 @@ class QualityDistributionAnalyzer:
 
             return results
 
-        except Exception as e:
-            print(f"❌ Error analyzing distribution for {category_col}: {e}")
+        except Exception:
             return {}
 
     def _calculate_distribution_statistics(
@@ -254,8 +245,7 @@ class QualityDistributionAnalyzer:
                 else 0,
             }
 
-        except Exception as e:
-            print(f"❌ Error calculating statistics: {e}")
+        except Exception:
             return {}
 
     def _detect_distribution_type(self, values: list[float]) -> str:
@@ -264,7 +254,7 @@ class QualityDistributionAnalyzer:
             values_array = np.array(values)
 
             # Test for normality
-            shapiro_stat, shapiro_p = stats.shapiro(
+            _shapiro_stat, shapiro_p = stats.shapiro(
                 values_array[:5000]
             )  # Limit for shapiro test
 
@@ -281,7 +271,7 @@ class QualityDistributionAnalyzer:
 
             # Test for uniform
             try:
-                ks_stat, ks_p = stats.kstest(values_array, "uniform")
+                _ks_stat, ks_p = stats.kstest(values_array, "uniform")
                 if ks_p > 0.05:
                     return "uniform"
             except:
@@ -297,8 +287,7 @@ class QualityDistributionAnalyzer:
                 return "left_skewed"
             return "moderately_skewed"
 
-        except Exception as e:
-            print(f"❌ Error detecting distribution type: {e}")
+        except Exception:
             return "unknown"
 
     def _find_outliers(self, values: list[float]) -> list[float]:
@@ -327,8 +316,7 @@ class QualityDistributionAnalyzer:
 
             return all_outliers.tolist()
 
-        except Exception as e:
-            print(f"❌ Error finding outliers: {e}")
+        except Exception:
             return []
 
     def _calculate_percentiles(self, values: list[float]) -> dict[str, float]:
@@ -347,15 +335,13 @@ class QualityDistributionAnalyzer:
                 "p99": np.percentile(values_array, 99),
             }
 
-        except Exception as e:
-            print(f"❌ Error calculating percentiles: {e}")
+        except Exception:
             return {}
 
     def compare_distributions(
         self, distributions: dict[str, dict[str, DistributionAnalysis]]
     ) -> dict[str, list[ComparisonResult]]:
         """Compare distributions between categories"""
-        print("📊 Comparing distributions between categories...")
 
         try:
             comparisons = {}
@@ -384,13 +370,9 @@ class QualityDistributionAnalyzer:
                         if comparison:
                             comparisons[metric].append(comparison)
 
-            print(
-                f"✅ Completed distribution comparisons for {len(comparisons)} metrics"
-            )
             return comparisons
 
-        except Exception as e:
-            print(f"❌ Error comparing distributions: {e}")
+        except Exception:
             return {}
 
     def _compare_two_distributions(
@@ -449,15 +431,13 @@ class QualityDistributionAnalyzer:
                 interpretation=interpretation,
             )
 
-        except Exception as e:
-            print(f"❌ Error comparing distributions: {e}")
+        except Exception:
             return None
 
     def create_distribution_visualizations(
         self, distributions: dict[str, dict[str, DistributionAnalysis]]
     ) -> dict[str, str]:
         """Create comprehensive distribution visualizations"""
-        print("📈 Creating distribution visualizations...")
 
         viz_files = {}
 
@@ -508,7 +488,6 @@ class QualityDistributionAnalyzer:
 
                     # Add KDE curve
                     try:
-                        pass
 
                         kde = gaussian_kde(analysis.values)
                         x_range = np.linspace(
@@ -575,11 +554,9 @@ class QualityDistributionAnalyzer:
 
                 viz_files[metric] = str(filepath)
 
-            print(f"✅ Created {len(viz_files)} distribution visualization files")
             return viz_files
 
-        except Exception as e:
-            print(f"❌ Error creating visualizations: {e}")
+        except Exception:
             return {}
 
     def export_distribution_report(
@@ -589,7 +566,6 @@ class QualityDistributionAnalyzer:
         visualizations: dict[str, str],
     ) -> str:
         """Export comprehensive distribution analysis report"""
-        print("📄 Exporting distribution analysis report...")
 
         try:
             timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -640,18 +616,14 @@ class QualityDistributionAnalyzer:
             with open(report_file, "w") as f:
                 json.dump(export_data, f, indent=2, default=str)
 
-            print(f"✅ Exported distribution report to: {report_file}")
             return str(report_file)
 
-        except Exception as e:
-            print(f"❌ Error exporting distribution report: {e}")
+        except Exception:
             return ""
 
 
 def main():
     """Main execution function"""
-    print("📊 Quality Distribution Analysis System")
-    print("=" * 45)
 
     # Initialize analyzer
     analyzer = QualityDistributionAnalyzer()
@@ -660,7 +632,6 @@ def main():
     distributions = analyzer.analyze_quality_distributions()
 
     if not distributions:
-        print("❌ No distribution data found")
         return
 
     # Compare distributions
@@ -670,33 +641,18 @@ def main():
     visualizations = analyzer.create_distribution_visualizations(distributions)
 
     # Export report
-    report_file = analyzer.export_distribution_report(
+    analyzer.export_distribution_report(
         distributions, comparisons, visualizations
     )
 
     # Display summary
-    print("\n✅ Distribution Analysis Complete")
-    print(f"   - Metrics analyzed: {len(distributions)}")
-    print(
-        f"   - Total distributions: {sum(len(cats) for cats in distributions.values())}"
-    )
-    print(
-        f"   - Comparisons performed: {sum(len(comps) for comps in comparisons.values())}"
-    )
-    print(f"   - Visualizations created: {len(visualizations)}")
-    print(f"   - Report saved: {report_file}")
 
     # Show key findings
-    print("\n🔍 Key Findings:")
     for metric, metric_distributions in distributions.items():
-        print(f"\n   {metric.replace('_', ' ').title()}:")
         for category, analysis in metric_distributions.items():
-            mean_val = analysis.statistics.get("mean", 0)
-            std_val = analysis.statistics.get("std", 0)
-            outliers = len(analysis.outliers)
-            print(
-                f"     {category}: μ={mean_val:.2f}, σ={std_val:.2f}, outliers={outliers}"
-            )
+            analysis.statistics.get("mean", 0)
+            analysis.statistics.get("std", 0)
+            len(analysis.outliers)
 
 
 if __name__ == "__main__":

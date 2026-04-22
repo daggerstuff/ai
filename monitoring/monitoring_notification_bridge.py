@@ -519,15 +519,12 @@ async def example_usage():
     await bridge.process_external_alerts(external_alert)
 
     # Get system health summary
-    health = bridge.get_system_health_summary()
-    print("System Health Summary:")
-    print(json.dumps(health, indent=2))
+    bridge.get_system_health_summary()
 
     # Get recent alerts
     recent_alerts = bridge.get_alert_history(hours=1)
-    print(f"\nRecent Alerts ({len(recent_alerts)}):")
     for alert in recent_alerts:
-        print(f"  - {alert['title']} ({alert['priority']}) at {alert['triggered_at']}")
+        pass
 
 
 if __name__ == "__main__":

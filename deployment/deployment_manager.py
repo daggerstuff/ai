@@ -817,7 +817,6 @@ def test_deployment_manager():
     # Test different deployment strategies
 
     # 1. Direct deployment
-    print("Testing Direct Deployment...")
     direct_config = DeploymentConfig(
         strategy=DeploymentStrategy.DIRECT,
         success_criteria={"latency_ms": 200.0, "error_rate": 0.01},
@@ -831,18 +830,14 @@ def test_deployment_manager():
         config=direct_config
     )
 
-    print(f"Created direct deployment: {direct_deployment_id}")
 
     # Start the deployment
-    success = deployment_manager.start_deployment(direct_deployment_id)
-    print(f"Direct deployment started: {success}")
+    deployment_manager.start_deployment(direct_deployment_id)
 
     # Get deployment status
-    status = deployment_manager.get_deployment_status(direct_deployment_id)
-    print(f"Direct deployment status: {status}")
+    deployment_manager.get_deployment_status(direct_deployment_id)
 
     # 2. Canary deployment
-    print("\nTesting Canary Deployment...")
     canary_config = DeploymentConfig(
         strategy=DeploymentStrategy.CANARY,
         traffic_percentage=0.0,
@@ -860,18 +855,14 @@ def test_deployment_manager():
         config=canary_config
     )
 
-    print(f"Created canary deployment: {canary_deployment_id}")
 
     # Start the deployment
-    success = deployment_manager.start_deployment(canary_deployment_id)
-    print(f"Canary deployment started: {success}")
+    deployment_manager.start_deployment(canary_deployment_id)
 
     # Advance the canary
-    success = deployment_manager.advance_canary_deployment(canary_deployment_id)
-    print(f"Canary deployment advanced: {success}")
+    deployment_manager.advance_canary_deployment(canary_deployment_id)
 
     # 3. A/B Testing
-    print("\nTesting A/B Testing...")
     ab_config = DeploymentConfig(
         strategy=DeploymentStrategy.AB_TEST,
         ab_test_ratio=30.0,  # 30% to new version
@@ -886,14 +877,11 @@ def test_deployment_manager():
         config=ab_config
     )
 
-    print(f"Created A/B test deployment: {ab_deployment_id}")
 
     # Start the deployment
-    success = deployment_manager.start_deployment(ab_deployment_id)
-    print(f"A/B test deployment started: {success}")
+    deployment_manager.start_deployment(ab_deployment_id)
 
     # Test routing decisions
-    print("\nTesting Routing Decisions...")
 
     # Test with different user contexts
     test_contexts = [
@@ -903,11 +891,9 @@ def test_deployment_manager():
     ]
 
     for i, context in enumerate(test_contexts):
-        version = deployment_manager.get_route_version("therapy_model", context)
-        print(f"Context {i+1}: User {context['user_id']} routed to version {version}")
+        deployment_manager.get_route_version("therapy_model", context)
 
     # Test deployment evaluation
-    print("\nTesting Deployment Evaluation...")
     test_metrics = {
         "latency_ms": 180.0,
         "error_rate": 0.005,
@@ -915,17 +901,13 @@ def test_deployment_manager():
         "user_satisfaction": 0.85
     }
 
-    evaluation_result = deployment_manager.evaluate_deployment(direct_deployment_id, test_metrics)
-    print(f"Evaluation result: {evaluation_result}")
+    deployment_manager.evaluate_deployment(direct_deployment_id, test_metrics)
 
     # List all deployments
-    print("\nListing all deployments...")
     all_deployments = deployment_manager.list_deployments()
-    print(f"Total deployments: {len(all_deployments)}")
     for dep in all_deployments:
-        print(f"  - {dep['deployment_id']}: {dep['status']} ({dep['traffic_percentage']}%)")
+        pass
 
-    print("Deployment manager tests completed!")
 
 
 if __name__ == "__main__":

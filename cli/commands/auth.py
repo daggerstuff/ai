@@ -145,7 +145,6 @@ def status(_ctx, profile: str | None):
             if token_info:
                 expires_at = token_info.get("expires_at")
                 if expires_at:
-                    pass
                     expires_datetime = datetime.datetime.fromtimestamp(expires_at)
                     time_remaining = expires_datetime - datetime.datetime.now(timezone.utc)
 

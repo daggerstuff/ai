@@ -29,12 +29,10 @@ class TestInfrastructureFixer:
             test_files.extend(self.project_root.rglob(pattern))
 
         self.test_files = test_files
-        print(f"Found {len(test_files)} test files")
         return test_files
 
     def analyze_import_errors(self) -> dict[str, list[str]]:
         """Analyze import errors in test files."""
-        print("\n🔍 Analyzing import errors...")
 
         # Run pytest collect-only to capture errors
         result = subprocess.run(
@@ -59,7 +57,6 @@ class TestInfrastructureFixer:
             ):
                 errors[current_file].append(line.strip())
 
-        print(f"Found import errors in {len(errors)} files")
         return errors
 
     def fix_import_paths(self, test_file: Path) -> bool:
@@ -104,15 +101,13 @@ class TestInfrastructureFixer:
                 self.import_fixes += 1
                 return True
 
-        except Exception as e:
-            print(f"Error fixing {test_file}: {e}")
+        except Exception:
             return False
 
         return False
 
     def create_missing_modules(self) -> None:
         """Create missing __init__.py files and stub modules."""
-        print("\n🔧 Creating missing modules...")
 
         # Ensure __init__.py files exist
         directories = [
@@ -130,11 +125,9 @@ class TestInfrastructureFixer:
                 init_file = directory / "__init__.py"
                 if not init_file.exists():
                     init_file.write_text("# Auto-generated __init__.py\n")
-                    print(f"Created {init_file}")
 
     def organize_test_files(self) -> None:
         """Organize test files into proper test directory structure."""
-        print("\n📁 Organizing test files...")
 
         tests_dir = self.project_root / "tests"
         tests_dir.mkdir(exist_ok=True)
@@ -144,7 +137,6 @@ class TestInfrastructureFixer:
             (tests_dir / subdir).mkdir(exist_ok=True)
             (tests_dir / subdir / "__init__.py").touch()
 
-        print("Test directory structure created")
 
     def fix_common_test_issues(self, test_file: Path) -> bool:
         """Fix common issues in test files."""
@@ -185,15 +177,13 @@ class TestInfrastructureFixer:
                     f.write(content)
                 return True
 
-        except Exception as e:
-            print(f"Error fixing test structure in {test_file}: {e}")
+        except Exception:
             return False
 
         return False
 
     def validate_fixes(self) -> dict[str, int]:
         """Validate that fixes worked by running pytest collect."""
-        print("\n✅ Validating fixes...")
 
         result = subprocess.run(
             [sys.executable, "-m", "pytest", "--collect-only", "-q"],
@@ -218,7 +208,6 @@ class TestInfrastructureFixer:
 
     def run_coverage_test(self) -> dict[str, float]:
         """Run a quick coverage test to see improvement."""
-        print("\n📊 Running coverage test...")
 
         result = subprocess.run(
             [sys.executable, "-m", "pytest", "--cov=.", "--cov-report=term", "-x"],
@@ -267,8 +256,6 @@ class TestInfrastructureFixer:
 
     def run_full_fix(self) -> None:
         """Run the complete fix process."""
-        print("🚀 Starting Test Infrastructure Fix Process")
-        print("=" * 50)
 
         # Step 1: Scan test files
         self.scan_test_files()
@@ -281,13 +268,12 @@ class TestInfrastructureFixer:
         self.organize_test_files()
 
         # Step 4: Fix import issues in test files
-        print(f"\n🔧 Fixing import issues in {len(self.test_files)} test files...")
         for test_file in self.test_files:
             if self.fix_import_paths(test_file):
-                print(f"Fixed imports in {test_file.name}")
+                pass
 
             if self.fix_common_test_issues(test_file):
-                print(f"Fixed test structure in {test_file.name}")
+                pass
 
         # Step 5: Validate fixes
         validation_results = self.validate_fixes()
@@ -302,10 +288,6 @@ class TestInfrastructureFixer:
         )
         report_file.write_text(report)
 
-        print("\n" + "=" * 50)
-        print("🎉 Test Infrastructure Fix Complete!")
-        print(f"📄 Report saved to: {report_file}")
-        print(report)
 
 
 def main():

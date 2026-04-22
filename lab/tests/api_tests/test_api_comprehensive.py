@@ -589,8 +589,6 @@ class TestDataIntegrity:
 @pytest.fixture(scope="session", autouse=True)
 async def setup_test_environment():
     """Setup test environment before running tests."""
-    print(f"Setting up API tests for: {API_BASE_URL}")
-    print(f"Real API testing: {REAL_API_TESTING}")
 
     # Verify API is accessible
     async with httpx.AsyncClient() as client:

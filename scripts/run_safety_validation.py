@@ -37,23 +37,17 @@ class ComprehensiveSafetyValidator:
 
     async def run_complete_safety_validation(self) -> dict:
         """Run complete safety validation and certification"""
-        print("🛡️  Starting Task 103: Safety Validation Certification")
-        print("=" * 60)
 
         # Phase 1: Core Safety Validation
-        print("\n📋 PHASE 1: Core Safety Validation Testing")
         validation_results = await self.run_safety_validation_tests()
 
         # Phase 2: Safety Monitoring System Testing
-        print("\n📋 PHASE 2: Safety Monitoring System Testing")
         monitoring_results = await self.run_monitoring_system_tests()
 
         # Phase 3: Incident Response Validation
-        print("\n📋 PHASE 3: Incident Response Validation")
         incident_response_results = await self.run_incident_response_tests()
 
         # Phase 4: Production Readiness Assessment
-        print("\n📋 PHASE 4: Production Readiness Assessment")
         production_assessment = self.assess_production_readiness(
             validation_results, monitoring_results, incident_response_results
         )
@@ -76,7 +70,6 @@ class ComprehensiveSafetyValidator:
 
     async def run_safety_validation_tests(self) -> dict:
         """Run core safety validation tests"""
-        print("  🧪 Running Crisis Detection Accuracy Tests...")
 
         # Run comprehensive safety validation
         validation_report = (
@@ -93,11 +86,6 @@ class ComprehensiveSafetyValidator:
             "production_ready"
         ]
 
-        print(f"  📊 Crisis Detection Accuracy: {crisis_accuracy}%")
-        print(f"  📊 Overall Safety Score: {overall_safety_score}%")
-        print(
-            f"  🎯 Validation Status: {'✅ PASSED' if production_ready else '❌ FAILED'}"
-        )
 
         # Additional validation metrics
         category_performance = validation_report["category_performance"]
@@ -118,7 +106,6 @@ class ComprehensiveSafetyValidator:
 
     async def run_monitoring_system_tests(self) -> dict:
         """Run safety monitoring system tests"""
-        print("  🔍 Testing Real-time Safety Monitoring...")
 
         # Initialize monitoring system
         self.monitoring_system.start_monitoring()
@@ -162,7 +149,6 @@ class ComprehensiveSafetyValidator:
         correct_interventions = 0
 
         for i, test_case in enumerate(monitoring_test_cases, 1):
-            print(f"    🧪 Monitoring Test {i}: {test_case['description']}")
 
             # Process input through monitoring system
             response = await self.monitoring_system.process_user_input(
@@ -200,14 +186,6 @@ class ComprehensiveSafetyValidator:
 
             test_results.append(test_result)
 
-            status = (
-                "✅ PASS"
-                if (crisis_level_correct and intervention_correct)
-                else "❌ FAIL"
-            )
-            print(
-                f"      Result: {status} (Crisis: {response['crisis_level']}, Intervention: {response['requires_intervention']})"
-            )
 
         # Calculate monitoring accuracy
         total_tests = len(monitoring_test_cases)
@@ -219,9 +197,6 @@ class ComprehensiveSafetyValidator:
         monitoring_metrics = self.monitoring_system.get_safety_metrics()
         recent_incidents = self.monitoring_system.get_recent_incidents()
 
-        print(f"  📊 Detection Accuracy: {detection_accuracy:.1f}%")
-        print(f"  📊 Intervention Accuracy: {intervention_accuracy:.1f}%")
-        print(f"  📊 Overall Monitoring Score: {overall_monitoring_score:.1f}%")
 
         return {
             "phase": "Safety Monitoring System",
@@ -236,7 +211,6 @@ class ComprehensiveSafetyValidator:
 
     async def run_incident_response_tests(self) -> dict:
         """Run incident response validation tests"""
-        print("  🚨 Testing Incident Response Protocols...")
 
         # Test incident response for different severity levels
         response_test_cases = [
@@ -280,7 +254,6 @@ class ComprehensiveSafetyValidator:
         self.monitoring_system.add_alert_callback(test_alert_callback)
 
         for i, test_case in enumerate(response_test_cases, 1):
-            print(f"    🧪 Response Test {i}: {test_case['description']}")
 
             # Clear previous alerts
             alerts_received.clear()
@@ -317,20 +290,15 @@ class ComprehensiveSafetyValidator:
 
             if incident_created and alert_sent and response_appropriate:
                 correct_responses += 1
-                status = "✅ PASS"
             else:
-                status = "❌ FAIL"
+                pass
 
             response_test_results.append(test_result)
-            print(
-                f"      Result: {status} (Incident: {incident_created}, Alert: {alert_sent}, Appropriate: {response_appropriate})"
-            )
 
         # Calculate response accuracy
         total_response_tests = len(response_test_cases)
         response_accuracy = (correct_responses / total_response_tests) * 100
 
-        print(f"  📊 Incident Response Accuracy: {response_accuracy:.1f}%")
 
         return {
             "phase": "Incident Response Validation",
@@ -365,7 +333,6 @@ class ComprehensiveSafetyValidator:
     ) -> dict:
         """Assess overall production readiness"""
 
-        print("  🎯 Assessing Production Readiness...")
 
         # Extract key metrics
         crisis_detection_accuracy = validation_results["crisis_detection_accuracy"]
@@ -422,9 +389,6 @@ class ComprehensiveSafetyValidator:
         else:
             certification_status = "❌ NOT PRODUCTION READY"
 
-        print(f"  📊 Combined Safety Score: {self.overall_score:.1f}/100")
-        print(f"  🎯 Certification Status: {certification_status}")
-        print(f"  🚀 Production Ready: {'YES' if self.production_ready else 'NO'}")
 
         return {
             "combined_safety_score": self.overall_score,
@@ -554,7 +518,6 @@ class ComprehensiveSafetyValidator:
         with open(report_file, "w") as f:
             json.dump(report, f, indent=2)
 
-        print(f"  💾 Comprehensive report saved: {report_file}")
 
         # Save summary report
         summary = {
@@ -579,56 +542,24 @@ class ComprehensiveSafetyValidator:
         with open(summary_file, "w") as f:
             json.dump(summary, f, indent=2)
 
-        print(f"  💾 Summary report saved: {summary_file}")
 
     def print_summary(self, report: dict):
         """Print comprehensive test summary"""
-        print("\n" + "=" * 60)
-        print("🛡️  TASK 103: SAFETY VALIDATION CERTIFICATION REPORT")
-        print("=" * 60)
 
-        summary = report["task_103_summary"]
-        print(f"📊 Combined Safety Score: {summary['combined_safety_score']:.1f}/100")
-        print(f"🎯 Certification Status: {summary['certification_status']}")
-        print(f"🚀 Production Ready: {'YES' if summary['production_ready'] else 'NO'}")
+        report["task_103_summary"]
 
-        print("\n📋 PHASE BREAKDOWN:")
-        metrics = report["safety_metrics"]
-        print(
-            f"  Crisis Detection Accuracy: {metrics['crisis_detection_accuracy']:.1f}%"
-        )
-        print(f"  Overall Safety Score: {metrics['overall_safety_score']:.1f}%")
-        print(f"  Monitoring System Accuracy: {metrics['monitoring_accuracy']:.1f}%")
-        print(
-            f"  Incident Response Accuracy: {metrics['incident_response_accuracy']:.1f}%"
-        )
+        report["safety_metrics"]
 
-        print("\n🎯 PRODUCTION REQUIREMENTS:")
-        requirements = report["production_requirements"]
-        print(
-            f"  Crisis Detection: ≥{requirements['required_crisis_detection']}% ({'✅' if metrics['crisis_detection_accuracy'] >= requirements['required_crisis_detection'] else '❌'})"
-        )
-        print(
-            f"  Overall Safety: ≥{requirements['required_overall_safety']}% ({'✅' if metrics['overall_safety_score'] >= requirements['required_overall_safety'] else '❌'})"
-        )
-        print(
-            f"  Monitoring: ≥{requirements['required_monitoring']}% ({'✅' if metrics['monitoring_accuracy'] >= requirements['required_monitoring'] else '❌'})"
-        )
-        print(
-            f"  Incident Response: ≥{requirements['required_incident_response']}% ({'✅' if metrics['incident_response_accuracy'] >= requirements['required_incident_response'] else '❌'})"
-        )
+        report["production_requirements"]
 
         if report["recommendations"]:
-            print("\n💡 RECOMMENDATIONS:")
             for i, rec in enumerate(report["recommendations"], 1):
-                print(f"  {i}. {rec}")
+                pass
 
         if report["next_steps"]:
-            print("\n🎯 NEXT STEPS:")
             for step in report["next_steps"]:
-                print(f"  {step}")
+                pass
 
-        print("\n" + "=" * 60)
 
 
 async def main():
@@ -641,22 +572,14 @@ async def main():
 
         # Return appropriate exit code
         if report["task_103_summary"]["production_ready"]:
-            print("\n🎉 SUCCESS: Task 103 completed successfully!")
-            print("✅ Safety validation certification achieved")
             sys.exit(0)
         else:
-            print("\n⚠️  WARNING: Safety validation incomplete")
-            print("🔧 Additional work required before production")
             sys.exit(1)
 
-    except Exception as e:
-        print(f"\n❌ ERROR: Safety validation failed: {e}")
+    except Exception:
         sys.exit(2)
 
 
 if __name__ == "__main__":
-    print("🛡️  Starting Task 103: Safety Validation Certification")
-    print("📋 Crisis Detection + Safety Monitoring + Incident Response")
-    print("⏰ Starting at:", datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"))
 
     asyncio.run(main())

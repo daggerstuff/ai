@@ -112,8 +112,7 @@ class CriticalTestFixer:
                     f.write(content)
                 return True
 
-        except Exception as e:
-            print(f"Error fixing {test_file}: {e}")
+        except Exception:
             return False
 
         return False
@@ -200,7 +199,6 @@ if __name__ == '__main__':
         # Only create if file doesn't exist or is very small
         if not test_file.exists() or test_file.stat().st_size < 100:
             test_file.write_text(test_template)
-            print(f"Created basic test structure for {test_file}")
 
     def run_specific_tests(self, test_files: list[Path]) -> dict[str, int]:
         """Run specific test files and return results."""
@@ -229,8 +227,7 @@ if __name__ == '__main__':
 
             except subprocess.TimeoutExpired:
                 results["errors"] += 1
-            except Exception as e:
-                print(f"Error running {test_file}: {e}")
+            except Exception:
                 results["errors"] += 1
 
         return results
@@ -265,29 +262,23 @@ if __name__ == '__main__':
                 else:
                     coverage_results[module] = 0.0
 
-            except Exception as e:
-                print(f"Error getting coverage for {module}: {e}")
+            except Exception:
                 coverage_results[module] = 0.0
 
         return coverage_results
 
     def run_critical_fixes(self) -> None:
         """Run the complete critical test fix process."""
-        print("🚀 Starting Critical Test Fix Process")
-        print("=" * 50)
 
         # Step 1: Get critical test files
         critical_tests = self.get_critical_test_files()
-        print(f"Found {len(critical_tests)} critical test files")
 
         # Step 2: Fix import errors
         fixed_count = 0
         for test_file in critical_tests:
             if self.fix_import_errors(test_file):
                 fixed_count += 1
-                print(f"Fixed imports in {test_file.name}")
 
-        print(f"Fixed imports in {fixed_count} critical test files")
 
         # Step 3: Create basic test structures for missing tests
         for module in self.critical_modules:
@@ -296,11 +287,9 @@ if __name__ == '__main__':
                 self.create_basic_test_structure(test_file, module)
 
         # Step 4: Run tests on critical modules
-        print("\n🧪 Running critical module tests...")
         test_results = self.run_specific_tests(critical_tests)
 
         # Step 5: Generate coverage for critical modules
-        print("\n📊 Generating coverage for critical modules...")
         coverage_results = self.generate_coverage_for_critical_modules()
 
         # Step 6: Generate report
@@ -310,10 +299,6 @@ if __name__ == '__main__':
         report_file = self.project_root / "qa" / "reports" / "critical_test_fix_report.md"
         report_file.write_text(report)
 
-        print("\n" + "=" * 50)
-        print("🎉 Critical Test Fix Complete!")
-        print(f"📄 Report saved to: {report_file}")
-        print(report)
 
     def generate_critical_report(self, test_results: dict, coverage_results: dict) -> str:
         """Generate a report for critical test fixes."""

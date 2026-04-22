@@ -58,14 +58,12 @@ class QualityComparisonSystem:
 
     def perform_comprehensive_comparisons(self) -> dict[str, list[QualityComparison]]:
         """Perform comprehensive quality comparisons"""
-        print("🔍 Performing comprehensive quality comparisons...")
 
         try:
             # Get data from database
             data = self._get_comparison_data()
 
             if not data:
-                print("❌ No data found for comparisons")
                 return {}
 
             df = pd.DataFrame(data)
@@ -79,14 +77,10 @@ class QualityComparisonSystem:
                     if comparisons:
                         all_comparisons[category] = comparisons
 
-            total_comparisons = sum(len(comps) for comps in all_comparisons.values())
-            print(
-                f"✅ Completed {total_comparisons} quality comparisons across {len(all_comparisons)} categories"
-            )
+            sum(len(comps) for comps in all_comparisons.values())
             return all_comparisons
 
-        except Exception as e:
-            print(f"❌ Error performing comparisons: {e}")
+        except Exception:
             return {}
 
     def _get_comparison_data(self) -> list[dict]:
@@ -112,14 +106,13 @@ class QualityComparisonSystem:
 
             data = []
             for row in cursor.fetchall():
-                record = dict(zip(columns, row))
+                record = dict(zip(columns, row, strict=False))
                 data.append(record)
 
             conn.close()
             return data
 
-        except Exception as e:
-            print(f"❌ Error getting comparison data: {e}")
+        except Exception:
             return []
 
     def _compare_by_category(
@@ -150,8 +143,7 @@ class QualityComparisonSystem:
 
             return comparisons
 
-        except Exception as e:
-            print(f"❌ Error comparing by {category}: {e}")
+        except Exception:
             return []
 
     def _compare_categories(
@@ -181,7 +173,7 @@ class QualityComparisonSystem:
 
             # Statistical test (Mann-Whitney U)
             try:
-                statistic, p_value = stats.mannwhitneyu(
+                _statistic, p_value = stats.mannwhitneyu(
                     values_a, values_b, alternative="two-sided"
                 )
             except:
@@ -222,8 +214,7 @@ class QualityComparisonSystem:
                 interpretation=interpretation,
             )
 
-        except Exception as e:
-            print(f"❌ Error comparing {cat_a} vs {cat_b} for {metric}: {e}")
+        except Exception:
             return None
 
     def _calculate_metric_values(self, data: pd.DataFrame, metric: str) -> list[float]:
@@ -239,8 +230,7 @@ class QualityComparisonSystem:
                 return [100.0 * successful / total] if total > 0 else []
             return []
 
-        except Exception as e:
-            print(f"❌ Error calculating {metric}: {e}")
+        except Exception:
             return []
 
     def _interpret_comparison(
@@ -277,15 +267,13 @@ class QualityComparisonSystem:
 
             return f"{significance} difference ({direction} by {abs(percentage_difference):.1f}%) with {effect_desc} effect size"
 
-        except Exception as e:
-            print(f"❌ Error interpreting comparison: {e}")
+        except Exception:
             return "Unable to interpret"
 
     def create_comparison_visualizations(
         self, comparisons: dict[str, list[QualityComparison]]
     ) -> dict[str, str]:
         """Create comparison visualizations"""
-        print("📈 Creating comparison visualizations...")
 
         viz_files = {}
 
@@ -329,7 +317,7 @@ class QualityComparisonSystem:
                     ax.grid(True, alpha=0.3)
 
                     # Add value labels
-                    for bar, diff in zip(bars, avg_diffs):
+                    for bar, diff in zip(bars, avg_diffs, strict=False):
                         height = bar.get_height()
                         ax.text(
                             bar.get_x() + bar.get_width() / 2.0,
@@ -413,11 +401,9 @@ class QualityComparisonSystem:
 
             viz_files["dashboard"] = str(dashboard_file)
 
-            print(f"✅ Created {len(viz_files)} comparison visualization files")
             return viz_files
 
-        except Exception as e:
-            print(f"❌ Error creating visualizations: {e}")
+        except Exception:
             return {}
 
     def export_comparison_report(
@@ -426,7 +412,6 @@ class QualityComparisonSystem:
         visualizations: dict[str, str],
     ) -> str:
         """Export comprehensive comparison report"""
-        print("📄 Exporting comparison analysis report...")
 
         try:
             timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -473,11 +458,9 @@ class QualityComparisonSystem:
             with open(report_file, "w") as f:
                 json.dump(export_data, f, indent=2, default=str)
 
-            print(f"✅ Exported comparison report to: {report_file}")
             return str(report_file)
 
-        except Exception as e:
-            print(f"❌ Error exporting comparison report: {e}")
+        except Exception:
             return ""
 
     def _create_comparison_summary(
@@ -522,15 +505,12 @@ class QualityComparisonSystem:
 
             return summary
 
-        except Exception as e:
-            print(f"❌ Error creating comparison summary: {e}")
+        except Exception:
             return {}
 
 
 def main():
     """Main execution function"""
-    print("🔍 Quality Comparison System")
-    print("=" * 35)
 
     # Initialize system
     system = QualityComparisonSystem()
@@ -539,34 +519,23 @@ def main():
     comparisons = system.perform_comprehensive_comparisons()
 
     if not comparisons:
-        print("❌ No comparison data found")
         return
 
     # Create visualizations
     visualizations = system.create_comparison_visualizations(comparisons)
 
     # Export report
-    report_file = system.export_comparison_report(comparisons, visualizations)
+    system.export_comparison_report(comparisons, visualizations)
 
     # Display summary
-    total_comparisons = sum(len(comps) for comps in comparisons.values())
-    print("\n✅ Quality Comparison Analysis Complete")
-    print(f"   - Total comparisons: {total_comparisons}")
-    print(f"   - Categories analyzed: {len(comparisons)}")
-    print(f"   - Visualizations created: {len(visualizations)}")
-    print(f"   - Report saved: {report_file}")
+    sum(len(comps) for comps in comparisons.values())
 
     # Show key findings
-    print("\n🔍 Key Findings:")
     for category, category_comparisons in comparisons.items():
-        significant_count = len(
+        len(
             [c for c in category_comparisons if c.statistical_significance < 0.05]
         )
-        avg_diff = np.mean([c.percentage_difference for c in category_comparisons])
-        print(f"   {category.replace('_', ' ').title()}:")
-        print(f"     - {len(category_comparisons)} comparisons performed")
-        print(f"     - {significant_count} statistically significant differences")
-        print(f"     - Average difference: {avg_diff:+.1f}%")
+        np.mean([c.percentage_difference for c in category_comparisons])
 
 
 if __name__ == "__main__":

@@ -18,6 +18,7 @@ from ai.sourcing.journal.mcp.utils.progress_streaming import (
     ProgressStreamer,
     ProgressUpdate,
 )
+import contextlib
 
 logger = logging.getLogger(__name__)
 
@@ -336,10 +337,8 @@ class AsyncToolExecutor:
                 task = self._active_operations[operation_id]
                 if not task.done():
                     task.cancel()
-                    try:
+                    with contextlib.suppress(asyncio.CancelledError):
                         await task
-                    except asyncio.CancelledError:
-                        pass
 
         logger.info(f"Cancelled operation {operation_id}")
         return True

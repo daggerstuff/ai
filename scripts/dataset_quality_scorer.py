@@ -229,7 +229,6 @@ class DatasetQualityScorer:
         Returns:
             Quality metrics dictionary
         """
-        print(f"Scoring quality for: {dataset_name}")
 
         # Calculate individual scores
         completeness_score = self.calculate_completeness_score(dataset_entry)
@@ -343,8 +342,8 @@ class DatasetQualityScorer:
                 if quality_metrics["anomaly_flags"]:
                     stats["anomalies_detected"] += 1
 
-            except Exception as e:
-                print(f"Error scoring {dataset_path_key}: {e}")
+            except Exception:
+                pass
 
         # Update registry statistics
         if "registry_statistics" in registry:
@@ -372,20 +371,12 @@ def main():
 
     args = parser.parse_args()
 
-    print("Dataset Quality Scoring")
-    print(f"Registry: {args.registry}")
-    print(f"Limit: {args.limit or 'None (all datasets)'}")
-    print()
 
     scorer = DatasetQualityScorer(args.registry)
     stats = scorer.score_all_datasets(limit=args.limit)
 
-    print("\nQuality Scoring Statistics:")
-    print(f"  Total scored: {stats['total_scored']}")
-    print(f"  Anomalies detected: {stats['anomalies_detected']}")
-    print("\nBy Quality Tier:")
     for tier, count in stats["by_tier"].items():
-        print(f"  {tier}: {count}")
+        pass
 
 
 if __name__ == "__main__":

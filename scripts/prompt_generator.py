@@ -145,8 +145,7 @@ class TherapeuticPromptGenerator:
                 training_pair = self.create_training_pair(segment)
                 training_pairs.append(training_pair)
                 stats["processed"] += 1
-            except Exception as e:
-                print(f"Error processing segment: {e}")
+            except Exception:
                 stats["errors"] += 1
 
         # Save training pairs
@@ -170,23 +169,17 @@ def main():
         if segment_file.name == "enhanced_summary.json":
             continue
 
-        print(f"Processing {segment_file.name}...")
 
         output_file = output_dir / f"training_{segment_file.name}"
         stats = generator.process_segments_file(segment_file, output_file)
 
-        print(f"  Processed: {stats['processed']}/{stats['total']} segments")
         if stats["errors"] > 0:
-            print(f"  Errors: {stats['errors']}")
+            pass
 
         # Update totals
         for key in total_stats:
             total_stats[key] += stats[key]
 
-    print("\nTotal conversion complete:")
-    print(f"  Processed: {total_stats['processed']}/{total_stats['total']} segments")
-    print(f"  Success rate: {total_stats['processed']/total_stats['total']*100:.1f}%")
-    print(f"  Output directory: {output_dir}")
 
 if __name__ == "__main__":
     main()

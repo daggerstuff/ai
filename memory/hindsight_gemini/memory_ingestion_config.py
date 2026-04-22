@@ -13,10 +13,10 @@ The current implementation is local-service-first and does not depend on mem0.
 
 import re
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 
 
-class InferenceMode(str, Enum):
+class InferenceMode(StrEnum):
     """Memory inference modes from Hindsight."""
 
     DEFAULT = "default"
@@ -24,7 +24,7 @@ class InferenceMode(str, Enum):
     QUALITY = "quality"
 
 
-class MemoryCategory(str, Enum):
+class MemoryCategory(StrEnum):
     """Categories for therapeutic memories."""
 
     THERAPEUTIC_INSIGHT = "therapeutic_insight"

@@ -78,7 +78,6 @@ class RawDatasetProcessor:
         filtered_dir = raw_dir / "filtered_datasets"
         if filtered_dir.exists():
             for dataset_file in filtered_dir.glob("*.json"):
-                print(f"Processing {dataset_file.name}...")
                 segments = self.process_conversation_dataset(dataset_file)
 
                 if segments:
@@ -88,15 +87,14 @@ class RawDatasetProcessor:
                         try:
                             training_pair = self.generator.create_training_pair(segment)
                             training_pairs.append(training_pair)
-                        except Exception as e:
-                            print(f"Error: {e}")
+                        except Exception:
+                            pass
 
                     # Save
                     output_file = output_dir / f"raw_{dataset_file.name}"
                     with open(output_file, "w", encoding="utf-8") as f:
                         json.dump(training_pairs, f, indent=2, ensure_ascii=False)
 
-                    print(f"  Converted: {len(training_pairs)} segments")
                     total_segments += len(training_pairs)
 
         # Process natural conversations
@@ -104,7 +102,6 @@ class RawDatasetProcessor:
             raw_dir / "natural_conversations" / "natural_multi_turn_conversations.json"
         )
         if natural_file.exists():
-            print(f"Processing {natural_file.name}...")
             segments = self.process_conversation_dataset(natural_file)
 
             if segments:
@@ -113,17 +110,15 @@ class RawDatasetProcessor:
                     try:
                         training_pair = self.generator.create_training_pair(segment)
                         training_pairs.append(training_pair)
-                    except Exception as e:
-                        print(f"Error: {e}")
+                    except Exception:
+                        pass
 
                 output_file = output_dir / "raw_natural_conversations.json"
                 with open(output_file, "w", encoding="utf-8") as f:
                     json.dump(training_pairs, f, indent=2, ensure_ascii=False)
 
-                print(f"  Converted: {len(training_pairs)} segments")
                 total_segments += len(training_pairs)
 
-        print(f"\nTotal raw segments processed: {total_segments}")
         return total_segments
 
 

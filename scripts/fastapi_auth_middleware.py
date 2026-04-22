@@ -76,12 +76,6 @@ class FastAPIAuthenticationMiddleware(BaseHTTPMiddleware):
                 authenticated_api_key = api_key_obj
 
         # Store authentication info in request state
-        print(
-            f"DEBUG: Middleware - authenticated_user before state: {authenticated_user}"
-        )
-        print(
-            f"DEBUG: Middleware - authenticated_api_key before state: {authenticated_api_key}"
-        )
         request.state.authenticated_user = authenticated_user
         request.state.authenticated_api_key = authenticated_api_key
 
@@ -91,9 +85,6 @@ class FastAPIAuthenticationMiddleware(BaseHTTPMiddleware):
             and not authenticated_api_key
             and request.url.path not in self.public_endpoints
         ):
-            print(
-                "DEBUG: Middleware - Raising 401: No user or API key authenticated for non-public endpoint"
-            )
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Authentication required",
@@ -115,41 +106,32 @@ class AuthenticationDependencies:
         credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     ) -> User | None:
         """Get current authenticated user from JWT token"""
-        print(f"DEBUG: get_current_user called with credentials: {credentials}")
         if not credentials:
-            print("DEBUG: No credentials provided for get_current_user")
             return None
 
         payload = self.auth_system.verify_jwt_token(credentials.credentials)
         if not payload:
-            print("DEBUG: Invalid or expired token for get_current_user")
             return None
 
         user_id = payload["user_id"]
         user = self.auth_system.users.get(user_id)
 
         if not user or not user.is_active:
-            print(f"DEBUG: User {user_id} not found or inactive for get_current_user")
             return None
 
-        print(f"DEBUG: User {user.username} authenticated via JWT")
         return user
 
     async def get_api_key(
         self, api_key: str | None = Depends(api_key_header)
     ) -> APIKey | None:
         """Get current authenticated API key"""
-        print(f"DEBUG: get_api_key called with api_key: {api_key}")
         if not api_key:
-            print("DEBUG: No API key provided for get_api_key")
             return None
 
         api_key_obj = self.auth_system.authenticate_api_key(api_key)
         if not api_key_obj:
-            print("DEBUG: Invalid API key for get_api_key")
             return None
 
-        print(f"DEBUG: API key {api_key_obj.name} authenticated")
         return api_key_obj
 
     def require_permission(self, required_permission: PermissionLevel):
@@ -182,7 +164,6 @@ class AuthenticationDependencies:
                     )
                 return api_key
 
-            print("DEBUG: Authentication required block reached!")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Authentication required",
@@ -410,10 +391,6 @@ if __name__ == "__main__":
         "test_key", [PermissionLevel.READ, PermissionLevel.WRITE]
     )
 
-    print("Admin user created: admin / admin_password")
-    print(f"Test API key: {api_key}")
-    print("Starting server on http://localhost:8000")
-    print("API docs available at http://localhost:8000/docs")
 
     # Run server
     uvicorn.run(app, host="0.0.0.0", port=8000)

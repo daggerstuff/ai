@@ -10,13 +10,13 @@ import logging
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
-class ProgressStatus(str, Enum):
+class ProgressStatus(StrEnum):
     """Progress update status."""
 
     PENDING = "pending"

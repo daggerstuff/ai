@@ -134,8 +134,6 @@ def validate_database(db_path: str) -> bool:
 
 def interactive_mode():
     """Run in interactive mode with user prompts."""
-    print("\n🎯 Quality Comparison System - Interactive Mode")
-    print("=" * 50)
 
     # Get analysis parameters
     days = input("📅 Analysis period (days) [30]: ").strip()
@@ -258,28 +256,13 @@ def run_comparison_analysis(args):
             logger.info(f"✅ Generated {len(visualizations)} visualizations")
 
         # Display summary
-        print("\n" + "=" * 60)
-        print("📊 QUALITY COMPARISON ANALYSIS COMPLETE")
-        print("=" * 60)
-        print(f"📅 Analysis Period: {args['days']} days")
-        print(f"📊 Records Analyzed: {len(df)}")
-        print(f"🎯 Tier Comparisons: {len(report.tier_comparisons)}")
-        print(f"📁 Dataset Comparisons: {len(report.dataset_comparisons)}")
-        print(f"🧩 Component Comparisons: {len(report.component_comparisons)}")
-        print(f"📈 Benchmark Analyses: {len(report.benchmark_analyses)}")
-        print(f"🏆 Performance Rankings: {len(report.performance_rankings)}")
-        print(f"📋 Executive Summary: {len(report.executive_summary)} items")
-        print(f"🎯 Action Items: {len(report.action_items)} items")
-        print(f"📁 Output Directory: {output_dir}")
-        print(f"💾 Files Generated: {len(saved_files)}")
 
         for file_path in saved_files:
-            print(f"   📄 {Path(file_path).name}")
+            pass
 
         if args.get("visualizations", True):
-            print(f"📊 Visualizations: {len(visualizations)} charts created")
+            pass
 
-        print("=" * 60)
 
         return True
 

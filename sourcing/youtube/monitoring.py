@@ -12,14 +12,14 @@ import logging
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
-from enum import Enum
+from enum import StrEnum
 
 from ai.sourcing.youtube.models import Channel, ChannelStatus
 
 logger = logging.getLogger(__name__)
 
 
-class AlertSeverity(str, Enum):
+class AlertSeverity(StrEnum):
     """Severity levels for alerts."""
     INFO = "info"
     WARNING = "warning"

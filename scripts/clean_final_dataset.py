@@ -84,7 +84,6 @@ class DatasetCleaner:
 
     def clean_dataset(self, input_file: Path, output_file: Path) -> dict:
         """Clean and deduplicate dataset"""
-        print(f"Cleaning {input_file.name}...")
 
         with open(input_file, encoding="utf-8") as f:
             conversations = json.load(f)
@@ -166,13 +165,6 @@ def main():
     train_clean.rename(train_file)
     val_clean.rename(val_file)
 
-    print("\n=== DATASET CLEANING COMPLETE ===")
-    print(f"Original total: {train_stats['original_count'] + val_stats['original_count']:,}")
-    print(f"Duplicates removed: {train_stats['duplicates_removed'] + val_stats['duplicates_removed']:,}")
-    print(f"Invalid removed: {train_stats['invalid_removed'] + val_stats['invalid_removed']:,}")
-    print(f"Final total: {train_stats['final_count'] + val_stats['final_count']:,}")
-    print(f"Retention rate: {round((train_stats['final_count'] + val_stats['final_count']) / (train_stats['original_count'] + val_stats['original_count']) * 100, 2)}%")
-    print("\nCleaned dataset ready for Lightning.ai H100 training!")
 
 if __name__ == "__main__":
     main()

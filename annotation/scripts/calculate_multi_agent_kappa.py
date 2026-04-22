@@ -30,7 +30,7 @@ def calculate_cohens_kappa(annotations_a: list[int], annotations_b: list[int]) -
         return 0.0
 
     # Calculate observed agreement
-    agreements = sum(1 for a, b in zip(annotations_a, annotations_b) if a == b)
+    agreements = sum(1 for a, b in zip(annotations_a, annotations_b, strict=False) if a == b)
     p_o = agreements / n
 
     # Calculate expected agreement
@@ -65,7 +65,6 @@ def calculate_agreement_metrics(results_file: str) -> dict[str, any]:
             if line.strip():
                 results.append(json.loads(line))
 
-    print(f"📊 Loaded {len(results)} annotated items")
 
     # Extract annotations by agent
     agent_annotations = defaultdict(lambda: defaultdict(list))
@@ -201,57 +200,31 @@ def calculate_consensus_quality(results: list[dict]) -> dict:
 
 def print_metrics_report(metrics: dict):
     """Print formatted metrics report"""
-    print("\n" + "=" * 70)
-    print("📊 MULTI-AGENT INTER-ANNOTATOR AGREEMENT REPORT")
-    print("=" * 70)
 
-    print("\n📈 Dataset Statistics:")
-    print(f"  Total items: {metrics['total_items']}")
-    print(f"  Number of agents: {metrics['num_agents']}")
 
-    print("\n🎯 Cohen's Kappa Scores:")
     for pair, scores in metrics["kappa_scores"].items():
-        print(f"\n  {pair}:")
-        print(f"    Crisis Kappa: {scores['crisis_kappa']:.4f}")
-        print(f"    Emotion Kappa: {scores['emotion_kappa']:.4f}")
-        print(f"    Average Kappa: {scores['average_kappa']:.4f}")
 
         # Interpret Kappa
         avg_kappa = scores["average_kappa"]
         if avg_kappa >= 0.85:
-            interpretation = "✅ Excellent agreement"
+            pass
         elif avg_kappa >= 0.70:
-            interpretation = "✓ Good agreement"
+            pass
         elif avg_kappa >= 0.50:
-            interpretation = "⚠️  Moderate agreement"
+            pass
         else:
-            interpretation = "❌ Poor agreement"
+            pass
 
-        print(f"    {interpretation}")
 
-    print("\n📊 Agreement Statistics:")
-    stats = metrics["agreement_statistics"]
+    metrics["agreement_statistics"]
 
-    print("\n  Crisis Agreement:")
-    print(f"    Mean: {stats['crisis_agreement']['mean']:.4f}")
 
-    print("\n  Emotion Agreement:")
-    print(f"    Mean: {stats['emotion_agreement']['mean']:.4f}")
 
-    print("\n  Overall Agreement:")
-    print(f"    Mean: {stats['overall_agreement']['mean']:.4f}")
 
-    print("\n🎨 Consensus Quality:")
-    quality = metrics["consensus_quality"]
+    metrics["consensus_quality"]
 
-    print("\n  Crisis Distribution:")
-    print(f"    Mean label: {quality['crisis_distribution']['mean']:.4f}")
-    print(f"    Crisis rate: {quality['crisis_distribution']['crisis_rate']:.2%}")
 
-    print("\n  Emotion Intensity:")
-    print(f"    Mean: {quality['intensity_distribution']['mean']:.4f}")
 
-    print("\n" + "=" * 70)
 
 
 if __name__ == "__main__":
@@ -284,4 +257,3 @@ if __name__ == "__main__":
         with open(output_path, "w") as f:
             json.dump(metrics, f, indent=2)
 
-        print(f"\n💾 Metrics saved to: {output_path}")

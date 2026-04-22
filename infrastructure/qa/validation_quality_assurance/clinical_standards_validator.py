@@ -564,33 +564,17 @@ def main():
     # Validate conversation
     result = validator.validate_conversation(test_conversation)
 
-    print("\n🔍 Clinical Validation Results:")
-    print(f"Overall Clinical Score: {result.overall_clinical_score:.3f}")
-    print(f"DSM-5 Compliance: {result.dsm5_compliance:.3f}")
-    print(f"Therapeutic Boundaries: {result.therapeutic_boundaries:.3f}")
-    print(f"Ethical Guidelines: {result.ethical_guidelines:.3f}")
-    print(f"Crisis Intervention: {result.crisis_intervention:.3f}")
-    print(f"Evidence-Based Practice: {result.evidence_based_practice:.3f}")
-    print(f"Cultural Competency: {result.cultural_competency:.3f}")
-    print(f"Safety Protocols: {result.safety_protocols:.3f}")
 
     if result.violations:
-        print(f"\n⚠️ Violations Found: {len(result.violations)}")
         for violation in result.violations:
-            print(f"  - {violation}")
+            pass
 
     if result.recommendations:
-        print(f"\n💡 Recommendations: {len(result.recommendations)}")
         for rec in result.recommendations:
-            print(f"  - {rec}")
+            pass
 
     # Get statistics
-    stats = validator.get_validation_statistics()
-    print("\n📊 Validation Statistics:")
-    print(f"Total Validated: {stats['validation_stats']['total_validated']}")
-    print(
-        f"Average Clinical Score: {stats['validation_stats']['average_clinical_score']:.3f}"
-    )
+    validator.get_validation_statistics()
 
 
 if __name__ == "__main__":

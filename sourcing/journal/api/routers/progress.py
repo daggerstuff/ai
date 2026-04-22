@@ -224,7 +224,6 @@ async def stream_progress_events(
     # Authenticate if token provided in query params
     if token:
         try:
-            pass
 
             user = get_user_from_token(token)
             logger.info(f"SSE authenticated for user {user.get('user_id')}")

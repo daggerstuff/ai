@@ -616,7 +616,7 @@ class RayExecutor:
         still_pending = []
 
         # Wait for at least one task to complete
-        ready_futures, remaining_futures = ray.wait(
+        ready_futures, _remaining_futures = ray.wait(
             [future for _, future in pending_futures], num_returns=1, timeout=0.1
         )
 
@@ -716,7 +716,7 @@ class RayExecutor:
             )[0]
 
             # Load checkpoint data
-            metadata, data = self.checkpoint_manager.storage.load_checkpoint(
+            _metadata, data = self.checkpoint_manager.storage.load_checkpoint(
                 latest_checkpoint.checkpoint_id
             )
 

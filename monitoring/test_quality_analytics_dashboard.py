@@ -434,7 +434,6 @@ class TestQualityAnalyticsDashboard:
 
 def run_comprehensive_test():
     """Run comprehensive test suite and generate report."""
-    print("🧪 Running Quality Analytics Dashboard Test Suite...")
 
     # Create temporary database for testing
     db_fd, db_path = tempfile.mkstemp(suffix=".db")
@@ -658,18 +657,10 @@ def run_comprehensive_test():
         with open(report_path, "w") as f:
             json.dump(report, f, indent=2)
 
-        print("\n📊 Test Results Summary:")
-        print(f"Total Tests: {test_results['total_tests']}")
-        print(f"Passed: {test_results['passed_tests']}")
-        print(f"Failed: {test_results['failed_tests']}")
-        print(f"Success Rate: {success_rate:.1f}%")
-        print(f"Status: {report['status']}")
 
-        print("\n📋 Test Details:")
         for detail in test_results["test_details"]:
-            print(f"  {detail}")
+            pass
 
-        print(f"\n📁 Test report saved to: {report_path}")
 
         return report
 

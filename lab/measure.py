@@ -58,12 +58,10 @@ async def test_provenance():
             return len(loaded)
 
         # Run baseline
-        print("Running baseline...")
         bg_task = asyncio.create_task(background_task())
         await asyncio.sleep(0.1) # Let bg task start
         await run_baseline()
-        max_delay_baseline = await bg_task
-        print(f"Max event loop delay (Baseline): {max_delay_baseline:.4f}s")
+        await bg_task
 
         async def run_optimized_to_thread():
             def load_json():
@@ -73,15 +71,12 @@ async def test_provenance():
             return len(loaded)
 
         # Run optimized with just to_thread
-        print("Running optimized (to_thread)...")
         bg_task3 = asyncio.create_task(background_task())
         await asyncio.sleep(0.1) # Let bg task start
         await run_optimized_to_thread()
-        max_delay_optimized_thread = await bg_task3
-        print(f"Max event loop delay (Optimized to_thread): {max_delay_optimized_thread:.4f}s")
+        await bg_task3
 
-    except Exception as e:
-        print(f"Error: {e}")
+    except Exception:
         traceback.print_exc()
     finally:
         os.remove(temp_file)

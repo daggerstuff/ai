@@ -28,12 +28,8 @@ def load_model():
     model_path = os.environ.get("MODEL_PATH", "pixelated-v1-wayfarer.Q4_K_M.gguf")
 
     if not os.path.exists(model_path):
-        pass
-        print(f"❌ CRITICAL ERROR: Model file not found at {model_path}")
-        print("Please download the GGUF model from Modal before starting the server.")
         sys.exit(1)
 
-    print(f"🚀 Loading model: {model_path}...")
     try:
         model = Llama(
             model_path=model_path,
@@ -41,10 +37,7 @@ def load_model():
             n_threads=int(os.cpu_count() or 4),
             n_gpu_layers=0
         )
-        print("✅ Model loaded successfully.")
-    except Exception as e:
-        pass
-        print(f"❌ CRITICAL ERROR: Failed to load model: {e}")
+    except Exception:
         sys.exit(1)
 
 @app.post("/v1/chat/completions")

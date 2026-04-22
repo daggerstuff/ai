@@ -44,11 +44,9 @@ class ConversationDiversityCoverageAnalyzer:
 
     def analyze_diversity_coverage(self) -> dict[str, Any]:
         """Main analysis function for conversation diversity and coverage"""
-        print("🌈 Starting Conversation Diversity and Coverage Analysis...")
 
         # Load conversation data
         conversations = self._load_conversation_data()
-        print(f"📊 Loaded {len(conversations)} conversations for analysis")
 
         # Analyze different diversity dimensions
         diversity_results = {
@@ -108,7 +106,6 @@ class ConversationDiversityCoverageAnalyzer:
     def _extract_text_from_json(self, json_str: str) -> str:
         """Extract readable text from conversations JSON"""
         try:
-            pass
 
             conversations = json.loads(json_str)
 
@@ -129,7 +126,6 @@ class ConversationDiversityCoverageAnalyzer:
         self, conversations: pd.DataFrame
     ) -> dict[str, Any]:
         """Analyze vocabulary diversity across conversations"""
-        print("📚 Analyzing vocabulary diversity...")
 
         vocabulary_stats = {}
         dataset_vocabularies = defaultdict(set)
@@ -218,7 +214,6 @@ class ConversationDiversityCoverageAnalyzer:
 
     def _analyze_topic_diversity(self, conversations: pd.DataFrame) -> dict[str, Any]:
         """Analyze topic diversity using TF-IDF and clustering"""
-        print("🎯 Analyzing topic diversity...")
 
         # Prepare text data
         texts = conversations["conversation_text"].tolist()
@@ -285,7 +280,6 @@ class ConversationDiversityCoverageAnalyzer:
             }
 
         except Exception as e:
-            print(f"Warning: Topic analysis failed: {e}")
             topic_diversity = {
                 "cluster_count": 0,
                 "cluster_analysis": {},
@@ -297,7 +291,6 @@ class ConversationDiversityCoverageAnalyzer:
 
     def _analyze_style_diversity(self, conversations: pd.DataFrame) -> dict[str, Any]:
         """Analyze conversation style diversity"""
-        print("🎨 Analyzing style diversity...")
 
         style_metrics = []
 
@@ -390,7 +383,6 @@ class ConversationDiversityCoverageAnalyzer:
         self, conversations: pd.DataFrame
     ) -> dict[str, Any]:
         """Analyze diversity in response patterns"""
-        print("🔄 Analyzing response pattern diversity...")
 
         pattern_analysis = {
             "response_length_patterns": {},
@@ -462,7 +454,6 @@ class ConversationDiversityCoverageAnalyzer:
 
     def _analyze_dataset_coverage(self, conversations: pd.DataFrame) -> dict[str, Any]:
         """Analyze coverage across different datasets"""
-        print("📋 Analyzing dataset coverage...")
 
         coverage_analysis = {}
 
@@ -516,7 +507,6 @@ class ConversationDiversityCoverageAnalyzer:
 
     def _identify_content_gaps(self, conversations: pd.DataFrame) -> dict[str, Any]:
         """Identify gaps in content coverage"""
-        print("🔍 Identifying content gaps...")
 
         gaps_analysis = {
             "vocabulary_gaps": {},
@@ -641,7 +631,6 @@ class ConversationDiversityCoverageAnalyzer:
 
     def _analyze_diversity_trends(self, conversations: pd.DataFrame) -> dict[str, Any]:
         """Analyze diversity trends over time"""
-        print("📈 Analyzing diversity trends...")
 
         trends_analysis = {}
 
@@ -702,7 +691,6 @@ class ConversationDiversityCoverageAnalyzer:
         self, conversations: pd.DataFrame
     ) -> dict[str, Any]:
         """Assess overall coverage completeness"""
-        print("✅ Assessing coverage completeness...")
 
         completeness_analysis = {}
 
@@ -865,7 +853,6 @@ class ConversationDiversityCoverageAnalyzer:
 
     def _create_diversity_visualizations(self, diversity_results: dict[str, Any]):
         """Create visualizations for diversity analysis"""
-        print("📊 Creating diversity visualizations...")
 
         plt.style.use("default")
         fig, axes = plt.subplots(2, 3, figsize=(18, 12))
@@ -983,7 +970,7 @@ class ConversationDiversityCoverageAnalyzer:
         axes[1, 1].set_ylim(0, 100)
 
         # Add score labels
-        for bar, score in zip(bars, scores):
+        for bar, score in zip(bars, scores, strict=False):
             height = bar.get_height()
             axes[1, 1].text(
                 bar.get_x() + bar.get_width() / 2.0,
@@ -1012,7 +999,7 @@ class ConversationDiversityCoverageAnalyzer:
             axes[1, 2].set_xlim(0, 100)
 
             # Add percentage labels
-            for i, (bar, score) in enumerate(zip(bars, coverage_scores)):
+            for i, (bar, score) in enumerate(zip(bars, coverage_scores, strict=False)):
                 width = bar.get_width()
                 axes[1, 2].text(
                     width + 2,
@@ -1043,9 +1030,6 @@ class ConversationDiversityCoverageAnalyzer:
         )
         plt.show()
 
-        print(
-            f"📊 Diversity analysis visualizations saved as diversity_coverage_analysis_{timestamp}.png"
-        )
 
     # Helper methods
     def _calculate_shannon_entropy(self, word_frequencies: Counter) -> float:
@@ -1102,8 +1086,6 @@ class ConversationDiversityCoverageAnalyzer:
 
 def main():
     """Main execution function"""
-    print("🚀 Starting Conversation Diversity and Coverage Analysis System")
-    print("=" * 70)
 
     analyzer = ConversationDiversityCoverageAnalyzer()
 
@@ -1118,24 +1100,17 @@ def main():
         with open(output_file, "w") as f:
             json.dump(results, f, indent=2, default=str)
 
-        print(f"\n✅ Analysis complete! Results saved to: {output_file}")
-        print(f"📊 Total conversations analyzed: {results['total_conversations']}")
-        print(f"🎯 Generated {len(results['insights'])} insights")
-        print(f"💡 Generated {len(results['recommendations'])} recommendations")
 
         # Display key insights
-        print("\n🌈 Key Diversity Insights:")
         for insight in results["insights"][:5]:
-            print(f"  • {insight}")
+            pass
 
-        print("\n💡 Top Recommendations:")
         for rec in results["recommendations"][:3]:
-            print(f"  • {rec}")
+            pass
 
         return results
 
-    except Exception as e:
-        print(f"❌ Error during analysis: {e!s}")
+    except Exception:
 
         traceback.print_exc()
         return None

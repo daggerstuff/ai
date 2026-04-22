@@ -43,30 +43,21 @@ class EdgeCaseIntegrator:
     def generate_and_integrate_edge_cases(self) -> dict:
         """Generate edge cases and integrate into main training data"""
 
-        print("🎯 Starting Edge Case Generation & Integration...")
 
         # Step 1: Generate edge case prompts
-        print(
-            f"📝 Generating {self.edge_cases_per_category} prompts per category (25 categories)..."
-        )
         edge_prompts = self.edge_generator.generate_prompts(
             scenarios_per_category=self.edge_cases_per_category
         )
 
         # Step 2: Generate conversations from prompts
-        print(
-            f"🤖 Generating up to {self.max_edge_conversations} edge case conversations..."
-        )
         edge_conversations = self.edge_generator.generate_conversations(
             edge_prompts, max_conversations=self.max_edge_conversations
         )
 
         # Step 3: Convert to training format
-        print("🔄 Converting to LoRA training format...")
         training_format = self.edge_generator.create_training_format(edge_conversations)
 
         # Step 4: Integrate with main training data
-        print("🔗 Integrating with main training pipeline...")
         integration_stats = self._integrate_with_main_pipeline(training_format)
 
         # Step 5: Generate comprehensive report
@@ -74,7 +65,6 @@ class EdgeCaseIntegrator:
             edge_conversations, integration_stats
         )
 
-        print("✅ Edge Case Integration Complete!")
         return {
             "edge_conversations": len(edge_conversations),
             "training_pairs": len(training_format),
@@ -207,8 +197,7 @@ def main():
         output_dir="training_data_consolidated",
     )
 
-    results = integrator.generate_and_integrate_edge_cases()
-    print("\n" + results["report"])
+    integrator.generate_and_integrate_edge_cases()
 
 
 if __name__ == "__main__":

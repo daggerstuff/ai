@@ -81,7 +81,6 @@ class LightningStudioSetup:
 
             # Check PyTorch
             try:
-                pass
 
                 env_info["pytorch_available"] = True
                 env_info["pytorch_version"] = torch.__version__
@@ -91,7 +90,6 @@ class LightningStudioSetup:
 
             # Check Lightning
             try:
-                pass
 
                 env_info["lightning_available"] = True
                 env_info["lightning_version"] = lightning.__version__

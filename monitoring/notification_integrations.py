@@ -592,12 +592,10 @@ async def test_notifications():
     ]
 
     for test_case in test_cases:
-        print(f"\nTesting {test_case['priority'].value} priority notification...")
         results = await manager.send_alert(**test_case)
 
         for channel, success in results.items():
-            status = "✅ SUCCESS" if success else "❌ FAILED"
-            print(f"  {channel.value}: {status}")
+            pass
 
 
 if __name__ == "__main__":

@@ -7,12 +7,12 @@ coverage for self-harm, suicide, abuse, and other mental health crisis indicator
 
 import os
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 
 import yaml
 
 
-class CrisisCategory(str, Enum):
+class CrisisCategory(StrEnum):
     """Categories of crisis indicators."""
 
     SELF_HARM = "self_harm"
@@ -24,7 +24,7 @@ class CrisisCategory(str, Enum):
     PSYCHOTIC_EPISODES = "psychotic_episodes"
 
 
-class Language(str, Enum):
+class Language(StrEnum):
     """Supported languages."""
 
     ENGLISH = "en"
@@ -718,33 +718,19 @@ if __name__ == "__main__":
     expansion = CrisisExpansion()
 
     # Test expand_term
-    print("Testing expand_term:")
     expansions = expansion.expand_term("kill myself", "suicidal_ideation")
-    print(f"'kill myself' expands to: {expansions[:5]}...")  # Show first 5
 
     # Test categorize_term
-    print("\nTesting categorize_term:")
     category = expansion.categorize_term("cut myself")
-    print(f"'cut myself' category: {category}")
 
     # Test get_intensity
-    print("\nTesting get_intensity:")
     intensity = expansion.get_intensity("suicidal")
-    print(f"'suicidal' intensity: {intensity}")
 
     # Test get_all_crisis_terms
-    print("\nTesting get_all_crisis_terms:")
     all_terms = expansion.get_all_crisis_terms()
-    print(f"Total crisis terms: {len(all_terms)}")
-    print(f"Sample terms: {list(all_terms)[:10]}")
 
     # Test is_crisis_term
-    print("\nTesting is_crisis_term:")
-    print(f"'kill myself' is crisis term: {expansion.is_crisis_term('kill myself')}")
-    print(f"'hello world' is crisis term: {expansion.is_crisis_term('hello world')}")
 
     # Test negation handling
-    print("\nTesting negation handling:")
     neg_expansions = expansion.expand_term("kill myself", "suicidal_ideation")
     neg_terms = [t for t in neg_expansions if "not" in t or "don't" in t]
-    print(f"Negation variants for 'kill myself': {neg_terms[:5]}")

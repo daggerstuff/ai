@@ -29,14 +29,12 @@ class SimpleQualityDistributionAnalyzer:
 
     def analyze_distributions(self) -> dict[str, Any]:
         """Analyze quality distributions"""
-        print("🔍 Analyzing quality distributions...")
 
         try:
             # Get data from database
             data = self._get_data()
 
             if not data:
-                print("❌ No data found")
                 return {}
 
             df = pd.DataFrame(data)
@@ -57,11 +55,9 @@ class SimpleQualityDistributionAnalyzer:
                 ),
             }
 
-            print(f"✅ Analyzed {len(results)} distribution metrics")
             return results
 
-        except Exception as e:
-            print(f"❌ Error analyzing distributions: {e}")
+        except Exception:
             return {}
 
     def _get_data(self) -> list[dict]:
@@ -87,14 +83,13 @@ class SimpleQualityDistributionAnalyzer:
 
             data = []
             for row in cursor.fetchall():
-                record = dict(zip(columns, row))
+                record = dict(zip(columns, row, strict=False))
                 data.append(record)
 
             conn.close()
             return data
 
-        except Exception as e:
-            print(f"❌ Error getting data: {e}")
+        except Exception:
             return []
 
     def _analyze_metric(
@@ -156,7 +151,6 @@ class SimpleQualityDistributionAnalyzer:
             }
 
         except Exception as e:
-            print(f"❌ Error analyzing {column}: {e}")
             return {"error": str(e)}
 
     def _analyze_categorical(
@@ -177,12 +171,10 @@ class SimpleQualityDistributionAnalyzer:
             }
 
         except Exception as e:
-            print(f"❌ Error analyzing {column}: {e}")
             return {"error": str(e)}
 
     def create_visualizations(self, results: dict[str, Any]) -> dict[str, str]:
         """Create distribution visualizations"""
-        print("📈 Creating distribution visualizations...")
 
         viz_files = {}
 
@@ -275,18 +267,15 @@ class SimpleQualityDistributionAnalyzer:
 
             viz_files["dashboard"] = str(dashboard_file)
 
-            print(f"✅ Created {len(viz_files)} visualization files")
             return viz_files
 
-        except Exception as e:
-            print(f"❌ Error creating visualizations: {e}")
+        except Exception:
             return {}
 
     def export_report(
         self, results: dict[str, Any], visualizations: dict[str, str]
     ) -> str:
         """Export distribution analysis report"""
-        print("📄 Exporting distribution analysis report...")
 
         try:
             timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -307,11 +296,9 @@ class SimpleQualityDistributionAnalyzer:
             with open(report_file, "w") as f:
                 json.dump(export_data, f, indent=2, default=str)
 
-            print(f"✅ Exported distribution report to: {report_file}")
             return str(report_file)
 
-        except Exception as e:
-            print(f"❌ Error exporting report: {e}")
+        except Exception:
             return ""
 
     def _create_summary(self, results: dict[str, Any]) -> dict[str, Any]:
@@ -341,8 +328,6 @@ class SimpleQualityDistributionAnalyzer:
 
 def main():
     """Main execution function"""
-    print("📊 Simple Quality Distribution Analysis System")
-    print("=" * 50)
 
     # Initialize analyzer
     analyzer = SimpleQualityDistributionAnalyzer()
@@ -351,35 +336,24 @@ def main():
     results = analyzer.analyze_distributions()
 
     if not results:
-        print("❌ No distribution data found")
         return
 
     # Create visualizations
     visualizations = analyzer.create_visualizations(results)
 
     # Export report
-    report_file = analyzer.export_report(results, visualizations)
+    analyzer.export_report(results, visualizations)
 
     # Display summary
-    print("\n✅ Distribution Analysis Complete")
-    print(f"   - Metrics analyzed: {len(results)}")
-    print(f"   - Visualizations created: {len(visualizations)}")
-    print(f"   - Report saved: {report_file}")
 
     # Show key findings
-    print("\n🔍 Key Findings:")
     for metric, data in results.items():
         if "error" in data:
-            print(f"   {metric}: ERROR - {data['error']}")
+            pass
         elif "statistics" in data:
-            stats = data["statistics"]
-            print(
-                f"   {metric}: N={stats['count']}, μ={stats['mean']:.2f}, σ={stats['std']:.2f}"
-            )
+            data["statistics"]
         elif "distribution" in data:
-            print(
-                f"   {metric}: {data['unique_values']} unique values, {data['total_count']} total"
-            )
+            pass
 
 
 if __name__ == "__main__":

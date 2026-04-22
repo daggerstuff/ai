@@ -110,14 +110,9 @@ def main():
     conversation = generator.create_conversation("suicidal")
 
     if conversation["exchanges"]:
-        print("\n" + "=" * 50)
-        print("CRISIS CONVERSATION GENERATED")
-        print("=" * 50)
 
         for ex in conversation["exchanges"]:
-            print(f"\n--- EXCHANGE {ex['number']} ---")
-            print(f"CLIENT: {ex['client']}")
-            print(f"COUNSELOR: {ex['counselor']}")
+            pass
 
         # Save it
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -126,11 +121,9 @@ def main():
         with open(filename, "w") as f:
             json.dump(conversation, f, indent=2)
 
-        print(f"\nSaved to: {filename}")
-        print("✅ SUCCESS!")
 
     else:
-        print("❌ FAILED - No exchanges generated")
+        pass
 
 
 if __name__ == "__main__":

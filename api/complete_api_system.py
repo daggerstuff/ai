@@ -602,22 +602,8 @@ if __name__ == "__main__":
         report = await api_system.run_comprehensive_api_testing()
 
         # Print summary
-        print(f"\n{'='*60}")
-        print("COMPLETE API IMPLEMENTATION REPORT")
-        print(f"{'='*60}")
-        print(f"Overall API Score: {report['task_116_summary']['overall_api_score']}%")
-        print(f"API Status: {report['task_116_summary']['api_status']}")
-        print(f"API Production Ready: {'YES' if report['task_116_summary']['api_production_ready'] else 'NO'}")
 
-        print("\nAPI Implementation Metrics:")
-        metrics = report["api_implementation_metrics"]
-        print(f"  Total Endpoints: {metrics['total_endpoints_implemented']}")
-        print(f"  Authentication Endpoints: {metrics['authentication_endpoints']}")
-        print(f"  Safety Endpoints: {metrics['safety_endpoints']}")
-        print(f"  Compliance Endpoints: {metrics['compliance_endpoints']}")
-        print(f"  System Endpoints: {metrics['system_endpoints']}")
-        print(f"  API Success Rate: {metrics['api_success_rate']:.1f}%")
-        print(f"  Average Response Time: {metrics['average_response_time']:.1f}ms")
+        report["api_implementation_metrics"]
 
         # Save report
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -625,6 +611,5 @@ if __name__ == "__main__":
         with open(report_file, "w") as f:
             json.dump(report, f, indent=2, default=str)
 
-        print(f"\nDetailed report saved to: {report_file}")
 
     asyncio.run(main())

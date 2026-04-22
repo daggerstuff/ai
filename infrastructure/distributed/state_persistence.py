@@ -370,7 +370,6 @@ class StatePersistenceManager:
 
             # Compress if enabled
             if self.config.compression_enabled:
-                pass
 
                 with open(snapshot_path, "rb") as f_in, gzip.open(f"{snapshot_path}.gz", "wb") as f_out:
                     f_out.writelines(f_in)
@@ -406,7 +405,6 @@ class StatePersistenceManager:
 
             # Load snapshot data
             if snapshot_path.suffix == ".gz":
-                pass
 
                 with gzip.open(snapshot_path, "rt") as f:
                     system_state = json.load(f)
@@ -782,16 +780,13 @@ async def example_state_persistence():
             await asyncio.sleep(1)
 
         # Create system snapshot
-        snapshot_id = persistence_manager.create_system_snapshot()
-        print(f"Created snapshot: {snapshot_id}")
+        persistence_manager.create_system_snapshot()
 
         # Get status
-        status = persistence_manager.get_persistence_status()
-        print(f"Persistence status: {json.dumps(status, indent=2, default=str)}")
+        persistence_manager.get_persistence_status()
 
         # Test restoration
-        restoration_results = persistence_manager.restore_system_state()
-        print(f"Restoration results: {restoration_results}")
+        persistence_manager.restore_system_state()
 
     finally:
         persistence_manager.stop_persistence()

@@ -99,7 +99,6 @@ def run_synthesis():
     for split, items in splits.items():
         output = synth.output_path / f"final_{split}.jsonl"
         with open(output, "w") as f:
-            pass
 
             for item in items:
                 f.write(json.dumps(item) + "\n")

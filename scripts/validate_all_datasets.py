@@ -266,7 +266,6 @@ def main():
                     f"  ❌ {file_result['file']}: {file_result['errors'][:3]}"
                 )
 
-    print(json.dumps(summary, indent=2))
     return 0 if summary["files_with_errors"] == 0 else 1
 
 

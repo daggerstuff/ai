@@ -540,13 +540,6 @@ if __name__ == "__main__":
         report = await safety_validator.run_comprehensive_safety_validation()
 
         # Print summary
-        print(f"\n{'='*60}")
-        print("SAFETY VALIDATION REPORT")
-        print(f"{'='*60}")
-        print(f"Crisis Detection Accuracy: {report['safety_validation_summary']['crisis_detection_accuracy']}%")
-        print(f"Overall Safety Score: {report['safety_validation_summary']['overall_safety_score']}%")
-        print(f"Certification Status: {report['safety_validation_summary']['certification_status']}")
-        print(f"Production Ready: {'YES' if report['safety_validation_summary']['production_ready'] else 'NO'}")
 
         # Save report
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -554,6 +547,5 @@ if __name__ == "__main__":
         with open(report_file, "w") as f:
             json.dump(report, f, indent=2)
 
-        print(f"\nDetailed report saved to: {report_file}")
 
     asyncio.run(main())

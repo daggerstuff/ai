@@ -792,8 +792,6 @@ if __name__ == "__main__":
         ProcessingStatus,
     )
 
-    print("🔍 CONVERSATION SEARCH ENGINE TEST")
-    print("=" * 50)
 
     # Initialize database and search engine
     db = ConversationDatabase()
@@ -847,7 +845,6 @@ if __name__ == "__main__":
             db.insert_conversation(conv)
             search_engine.index_conversation(conv.conversation_id)
 
-        print(f"✅ Inserted and indexed {len(test_conversations)} test conversations")
 
         # Test text search
         query = SearchQuery(
@@ -855,11 +852,9 @@ if __name__ == "__main__":
         )
 
         results, stats = search_engine.search(query)
-        print(f"✅ Text search: {len(results)} results in {stats.search_time_ms:.2f}ms")
 
         if results:
-            print(f"   Top result: {results[0].title} (score: {results[0].score:.2f})")
-            print(f"   Snippet: {results[0].snippet[:100]}...")
+            pass
 
         # Test filtered search
         filtered_query = SearchQuery(
@@ -867,16 +862,12 @@ if __name__ == "__main__":
         )
 
         filtered_results, filtered_stats = search_engine.search(filtered_query)
-        print(f"✅ Filtered search: {len(filtered_results)} results")
 
         # Test facets
-        print(f"✅ Facets available: {list(stats.facets.keys())}")
 
         # Test suggestions
         suggestions = search_engine.suggest_completions("anx", limit=5)
-        print(f"✅ Suggestions for 'anx': {suggestions}")
 
     finally:
         db.close()
 
-    print("✅ Search engine test complete!")

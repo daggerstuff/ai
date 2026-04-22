@@ -46,18 +46,15 @@ image = modal.Image.debian_slim(python_version="3.13").pip_install(*dependencies
 class EvaluationRunner:
     @modal.enter()
     def load_model(self):
-        print("🚀 Loading model into vLLM...")
 
         model_path = os.path.join(MODEL_MOUNT_PATH, "merged-v2")
 
         # Check if the path exists
         if not os.path.exists(model_path):
-            print(f"❌ Model path not found: {model_path}")
             # List directory to help debug
-            print(f"Contents of {MODEL_MOUNT_PATH}:")
 
             with suppress(Exception):
-                print(os.listdir(MODEL_MOUNT_PATH))
+                pass
 
         self.tokenizer_name = "LatitudeGames/Wayfarer-2-12B"
         self.llm = LLM(
@@ -85,9 +82,7 @@ class EvaluationRunner:
 
     @modal.exit()
     def stop_engine(self):
-        print("🧹 Cleaning up vLLM engine to prevent shutdown errors...")
         if hasattr(self, "llm"):
-            pass
 
             destroy_model_parallel()
             del self.llm
@@ -157,9 +152,6 @@ def main(
         output_file: Path to save results
         resume: If True, resume from last checkpoint
     """
-    print("================================")
-    print("Modal Evaluation Runner")
-    print("================================")
 
     # Determine project root for relative paths
     script_dir = Path(__file__).resolve().parent.parent.parent  # ai/ -> pixelated/
@@ -173,7 +165,6 @@ def main(
         output_path = script_dir / output_file
 
     # Load prompts
-    print(f"📖 Loading prompts from {prompts_path}...")
 
     try:
         with open(prompts_path) as f:
@@ -187,13 +178,10 @@ def main(
                     prompts = data
                     prompt_ids = [f"P{i}" for i in range(len(prompts))]
             else:
-                print("❌ Invalid prompts format (expected list)")
                 return
-    except Exception as e:
-        print(f"❌ Error loading prompts: {e}")
+    except Exception:
         return
 
-    print(f"✅ Loaded {len(prompts)} prompts")
 
     # Checkpoint/resume logic
     existing_results = []
@@ -204,17 +192,11 @@ def main(
             with open(output_path) as f:
                 existing_results = json.load(f)
             start_idx = len(existing_results)
-            remaining = len(prompts) - start_idx
-            print(
-                "🔄 Resuming from checkpoint: "
-                f"{start_idx} prompts already done, {remaining} remaining"
-            )
-        except Exception as e:
-            print(f"⚠️  Could not load checkpoint: {e}, starting fresh")
+            len(prompts) - start_idx
+        except Exception:
             existing_results = []
 
     if start_idx >= len(prompts):
-        print("✅ All prompts already processed!")
         return
 
     # Process in batches
@@ -222,9 +204,6 @@ def main(
     remaining_prompts = prompts[start_idx:]
     remaining_ids = prompt_ids[start_idx:]
 
-    print(f"⚙️  Batch size: {batch_size}")
-    print("🎯 GPU: A100")
-    print(f"📊 Processing {len(remaining_prompts)} remaining prompts...")
 
     all_results = existing_results.copy()
     has_errors = False
@@ -237,12 +216,8 @@ def main(
         batch_ids = remaining_ids[i : i + batch_size]
         global_idx = start_idx + i
 
-        batch_start = global_idx + 1
-        batch_end = global_idx + len(batch)
-        print(
-            f"\n[Batch {batch_num}/{total_batches}] Processing prompts "
-            f"{batch_start}-{batch_end}..."
-        )
+        global_idx + 1
+        global_idx + len(batch)
 
         try:
             results = runner.evaluate_batch.remote(batch)
@@ -255,26 +230,18 @@ def main(
             if batch_num % CHECKPOINT_EVERY == 0 or batch_num == total_batches:
                 with open(output_path, "w") as f:
                     json.dump(all_results, f, indent=2)
-                print(f"💾 Checkpoint saved: {len(all_results)} results")
 
-        except Exception as e:
-            print(f"❌ Batch {batch_num} failed: {e}")
+        except Exception:
             has_errors = True
             # Save what we have so far
             with open(output_path, "w") as f:
                 json.dump(all_results, f, indent=2)
-            print(f"💾 Saved {len(all_results)} results before error")
-
-    print("\n================================")
-    if has_errors:
-        print("⚠️ Evaluation completed with ERRORS!")
-    else:
-        print("✅ Evaluation complete!")
-    print(f"📊 Total results: {len(all_results)}/{len(prompts)}")
-    print(f"📂 Saved to: {output_path}")
-    print("================================")
 
     if has_errors:
         pass
+    else:
+        pass
+
+    if has_errors:
 
         sys.exit(1)

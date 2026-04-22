@@ -251,7 +251,7 @@ class AudioEmotionRecognizer:
 
             emotion_probs = {
                 label: float(prob)
-                for label, prob in zip(emotion_labels, probs.cpu().numpy())
+                for label, prob in zip(emotion_labels, probs.cpu().numpy(), strict=False)
             }
 
             # Get primary emotion
@@ -287,7 +287,7 @@ class AudioEmotionRecognizer:
         # avoiding Python for-loop and append overhead.
         valences, arousals, dominances, confidences = zip(*[
             (e.valence, e.arousal, e.dominance, e.confidence) for e in emotions
-        ])
+        ], strict=False)
 
         avg_valence = np.mean(valences)
         avg_arousal = np.mean(arousals)

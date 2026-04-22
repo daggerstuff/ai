@@ -46,11 +46,9 @@ class DatasetPerformanceImpactAnalyzer:
 
     def analyze_performance_impact(self) -> dict[str, Any]:
         """Main function for dataset performance and impact analysis"""
-        print("📊 Starting Dataset Performance and Impact Analysis...")
 
         # Load comprehensive dataset information
         datasets_info = self._load_dataset_information()
-        print(f"📈 Loaded information for {len(datasets_info)} datasets")
 
         # Analyze performance metrics
         performance_analysis = {
@@ -139,7 +137,6 @@ class DatasetPerformanceImpactAnalyzer:
     def _extract_text_from_json(self, json_str: str) -> str:
         """Extract readable text from conversations JSON"""
         try:
-            pass
 
             conversations = json.loads(json_str)
 
@@ -166,7 +163,6 @@ class DatasetPerformanceImpactAnalyzer:
 
         # Quality components
         try:
-            pass
 
             readability = max(0, min(100, flesch_reading_ease(text))) / 100
         except:
@@ -270,7 +266,6 @@ class DatasetPerformanceImpactAnalyzer:
         self, datasets_info: pd.DataFrame
     ) -> dict[str, Any]:
         """Analyze quality performance across datasets"""
-        print("🏆 Analyzing quality performance...")
 
         quality_analysis = {}
 
@@ -340,7 +335,6 @@ class DatasetPerformanceImpactAnalyzer:
         self, datasets_info: pd.DataFrame
     ) -> dict[str, Any]:
         """Analyze efficiency metrics for datasets"""
-        print("⚡ Analyzing efficiency metrics...")
 
         efficiency_analysis = {}
 
@@ -412,7 +406,6 @@ class DatasetPerformanceImpactAnalyzer:
         self, datasets_info: pd.DataFrame
     ) -> dict[str, Any]:
         """Analyze dataset utilization patterns"""
-        print("📈 Analyzing utilization patterns...")
 
         utilization_analysis = {}
 
@@ -463,7 +456,6 @@ class DatasetPerformanceImpactAnalyzer:
         self, datasets_info: pd.DataFrame
     ) -> dict[str, Any]:
         """Perform comparative analysis across datasets"""
-        print("🔍 Performing comparative analysis...")
 
         comparative_analysis = {}
 
@@ -535,7 +527,6 @@ class DatasetPerformanceImpactAnalyzer:
         self, datasets_info: pd.DataFrame
     ) -> dict[str, Any]:
         """Analyze performance trends over time"""
-        print("📊 Analyzing performance trends...")
 
         trends_analysis = {}
 
@@ -610,7 +601,6 @@ class DatasetPerformanceImpactAnalyzer:
         self, datasets_info: pd.DataFrame
     ) -> dict[str, Any]:
         """Measure value contribution of each dataset"""
-        print("💰 Measuring value contribution...")
 
         value_analysis = {}
 
@@ -669,7 +659,6 @@ class DatasetPerformanceImpactAnalyzer:
 
     def _calculate_dataset_roi(self, datasets_info: pd.DataFrame) -> dict[str, Any]:
         """Calculate ROI for each dataset"""
-        print("📊 Calculating dataset ROI...")
 
         roi_analysis = {}
 
@@ -739,7 +728,6 @@ class DatasetPerformanceImpactAnalyzer:
 
     def _assess_strategic_impact(self, datasets_info: pd.DataFrame) -> dict[str, Any]:
         """Assess strategic impact of datasets"""
-        print("🎯 Assessing strategic impact...")
 
         strategic_analysis = {}
 
@@ -804,7 +792,6 @@ class DatasetPerformanceImpactAnalyzer:
         self, datasets_info: pd.DataFrame
     ) -> dict[str, Any]:
         """Analyze resource efficiency across datasets"""
-        print("⚙️ Analyzing resource efficiency...")
 
         efficiency_analysis = {}
 
@@ -854,7 +841,6 @@ class DatasetPerformanceImpactAnalyzer:
         self, datasets_info: pd.DataFrame
     ) -> dict[str, Any]:
         """Analyze scalability potential of datasets"""
-        print("📈 Analyzing scalability potential...")
 
         scalability_analysis = {}
 
@@ -934,7 +920,6 @@ class DatasetPerformanceImpactAnalyzer:
         _datasets_info: pd.DataFrame,
     ) -> dict[str, Any]:
         """Generate strategic recommendations based on analysis"""
-        print("💡 Generating strategic recommendations...")
 
         recommendations = {
             "investment_priorities": [],
@@ -1099,7 +1084,6 @@ class DatasetPerformanceImpactAnalyzer:
         datasets_info: pd.DataFrame,
     ):
         """Create comprehensive visualizations"""
-        print("📊 Creating performance impact visualizations...")
 
         plt.style.use("default")
         fig, axes = plt.subplots(3, 3, figsize=(20, 15))
@@ -1125,7 +1109,7 @@ class DatasetPerformanceImpactAnalyzer:
         )
 
         # Add value labels
-        for bar, score in zip(bars, quality_scores):
+        for bar, score in zip(bars, quality_scores, strict=False):
             height = bar.get_height()
             axes[0, 0].text(
                 bar.get_x() + bar.get_width() / 2.0,
@@ -1237,7 +1221,7 @@ class DatasetPerformanceImpactAnalyzer:
         axes[2, 0].set_ylabel("Number of Datasets")
 
         # Add value labels
-        for bar, value in zip(bars, values):
+        for bar, value in zip(bars, values, strict=False):
             height = bar.get_height()
             axes[2, 0].text(
                 bar.get_x() + bar.get_width() / 2.0,
@@ -1306,9 +1290,6 @@ class DatasetPerformanceImpactAnalyzer:
         )
         plt.show()
 
-        print(
-            f"📊 Performance impact visualizations saved as dataset_performance_impact_{timestamp}.png"
-        )
 
     # Helper methods
     def _calculate_growth_trends(self, temporal_data: pd.DataFrame) -> dict[str, float]:
@@ -1330,8 +1311,6 @@ class DatasetPerformanceImpactAnalyzer:
 
 def main():
     """Main execution function"""
-    print("🚀 Starting Dataset Performance and Impact Analysis System")
-    print("=" * 75)
 
     analyzer = DatasetPerformanceImpactAnalyzer()
 
@@ -1346,42 +1325,29 @@ def main():
         with open(output_file, "w") as f:
             json.dump(results, f, indent=2, default=str)
 
-        print(f"\n✅ Analysis complete! Results saved to: {output_file}")
-        print(f"📊 Datasets analyzed: {results['datasets_analyzed']}")
 
         # Display executive summary
         exec_summary = results["executive_summary"]
-        print("\n📋 Executive Summary:")
         for finding in exec_summary["key_findings"]:
-            print(f"  • {finding}")
+            pass
 
         # Display strategic implications
-        print("\n🎯 Strategic Implications:")
         for implication in exec_summary["strategic_implications"]:
-            print(f"  • {implication}")
+            pass
 
         # Display top recommendations
         recommendations = results["strategic_recommendations"]
-        print("\n💡 Top Strategic Recommendations:")
         for category, recs in recommendations.items():
             if recs:
-                print(f"  {category.replace('_', ' ').title()}:")
                 for rec in recs[:2]:  # Top 2 per category
-                    print(f"    - {rec}")
+                    pass
 
         # Display performance highlights
-        highlights = exec_summary["performance_highlights"]
-        print("\n📈 Performance Highlights:")
-        print(f"  • High-quality datasets: {highlights['top_quality_datasets']}")
-        print(f"  • High-ROI datasets: {highlights['high_roi_datasets']}")
-        print(
-            f"  • Improvement opportunities: {highlights['improvement_opportunities']}"
-        )
+        exec_summary["performance_highlights"]
 
         return results
 
-    except Exception as e:
-        print(f"❌ Error during analysis: {e!s}")
+    except Exception:
 
         traceback.print_exc()
         return None

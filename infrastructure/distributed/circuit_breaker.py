@@ -5,7 +5,6 @@ Implements circuit breaker patterns for external dependencies and fault isolatio
 """
 
 import asyncio
-import json
 import logging
 import statistics
 import threading
@@ -509,18 +508,15 @@ async def example_circuit_breaker():
         await asyncio.sleep(0.1)
 
     # Print results
-    print("Circuit Breaker Test Results:")
     for result in results:
-        status = "✅" if result["success"] else "❌"
+        "✅" if result["success"] else "❌"
         if result["success"]:
-            print(f"  Call {result['call']}: {status} {result['result']['status']}")
+            pass
         else:
-            print(f"  Call {result['call']}: {status} {result['error']}")
+            pass
 
     # Get metrics
-    metrics = cb_manager.get_all_metrics()
-    print("\nCircuit Breaker Metrics:")
-    print(json.dumps(metrics, indent=2))
+    cb_manager.get_all_metrics()
 
 if __name__ == "__main__":
     asyncio.run(example_circuit_breaker())

@@ -31,14 +31,12 @@ def rebuild_dataset():
     all_conversations = []
     processed_count = 0
 
-    print("Rebuilding dataset with contextual Q/A pairs...")
 
     # Process all segment files
     for segment_dir in segment_dirs:
         if not segment_dir.exists():
             continue
 
-        print(f"Processing: {segment_dir}")
 
         for segment_file in segment_dir.glob("*.json"):
             if "summary" in segment_file.name:
@@ -75,12 +73,11 @@ def rebuild_dataset():
                     processed_count += 1
 
                     if processed_count % 5000 == 0:
-                        print(f"  Processed: {processed_count:,} segments")
+                        pass
 
-                except Exception as e:
-                    print(f"Error processing segment: {e}")
+                except Exception:
+                    pass
 
-    print(f"Total processed: {processed_count:,} segments")
 
     # Create train/validation split
     train_conversations, val_conversations = converter.create_training_split(
@@ -117,11 +114,6 @@ def rebuild_dataset():
 
     converter.create_config_file(output_dir, stats)
 
-    print("\nContextual dataset created:")
-    print(f"  Total: {stats['total_pairs']:,}")
-    print(f"  Train: {stats['train_size']:,}")
-    print(f"  Validation: {stats['val_size']:,}")
-    print(f"  Output: {output_dir}")
 
 
 if __name__ == "__main__":

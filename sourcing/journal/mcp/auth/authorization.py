@@ -212,7 +212,7 @@ class RBAC(AuthorizationHandler):
         # Check for wildcard match (e.g., "sessions:*" matches "sessions:read")
         permission_parts = permission.split(":")
         if len(permission_parts) == 2:
-            resource, action = permission_parts
+            resource, _action = permission_parts
             wildcard_permission = f"{resource}:*"
             if wildcard_permission in role_permissions:
                 return True

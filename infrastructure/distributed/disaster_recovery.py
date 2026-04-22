@@ -565,14 +565,11 @@ async def example_disaster_recovery():
 
     # Start a recovery session for database failure
     session_id = dr_manager.start_recovery_session(DisasterType.HARDWARE_FAILURE)
-    print(f"Started recovery session: {session_id}")
 
     # Get session status
     status = dr_manager.get_recovery_status(session_id)
-    print(f"Initial session status: {status['status']}")
 
     # Execute recovery plan
-    print("Executing recovery plan...")
     await dr_manager.execute_recovery_plan(session_id)
 
     # Get final status
@@ -584,14 +581,10 @@ async def example_disaster_recovery():
                 status = asdict(session)
                 break
 
-    print(f"Final recovery status: {status['status']}")
-    print(f"Completed steps: {len(status['completed_steps'])}")
-    print(f"Failed steps: {len(status['failed_steps'])}")
 
     if status["logs"]:
-        print("Recovery logs:")
         for log_entry in status["logs"]:
-            print(f"  {log_entry}")
+            pass
 
 
 if __name__ == "__main__":

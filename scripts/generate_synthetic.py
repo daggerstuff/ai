@@ -20,7 +20,6 @@ DEFAULT_MODEL = os.getenv("OLLAMA_MODEL", "artifish/llama3.2-uncensored")
 
 
 def log(msg, log_file=None):
-    print(msg)
     if log_file:
         log_file.write(msg + "\n")
         log_file.flush()
@@ -29,7 +28,6 @@ def log(msg, log_file=None):
 def slack_alert(message, args, slack_available, log_file=None):
     if args.slack_webhook and slack_available:
         try:
-            pass
 
             webhook = WebhookClient(args.slack_webhook)
             webhook.send(text=message)
@@ -277,7 +275,7 @@ if __name__ == "__main__":
                 encoding="utf-8",
             ) as f:
                 json.dump(
-                    [{"id": pid, "prompt": p} for pid, p in zip(prompt_ids, prompts)],
+                    [{"id": pid, "prompt": p} for pid, p in zip(prompt_ids, prompts, strict=False)],
                     f,
                     ensure_ascii=False,
                     indent=2,
@@ -300,7 +298,7 @@ if __name__ == "__main__":
                 total_pairs = 0
                 total_chained = 0
                 for prompt_id, scenario in tqdm(
-                    zip(prompt_ids, prompts),
+                    zip(prompt_ids, prompts, strict=False),
                     total=len(prompts),
                     desc="Generating scenarios",
                 ):
@@ -390,25 +388,15 @@ if __name__ == "__main__":
                     log(f"Total chained outputs generated: {total_chained}", log_file)
                 if chainfile:
                     chainfile.close()
-            print(f"\nDone! Synthetic data saved to {output_path}")
-            print(f"Raw model outputs saved to {raw_output_path}")
             if args.chain:
-                print(f"Chained outputs saved to {chained_output_path}")
-            print(f"Log written to {log_path}")
-            print(f"Total Q&A pairs generated: {total_pairs}")
+                pass
             if args.chain:
-                print(f"Total chained outputs generated: {total_chained}")
+                pass
             if args.slack_webhook:
                 msg = f"Synthetic generation complete. {total_pairs} Q&A pairs. Model: {args.model}. Output: {output_path}"
                 if args.chain:
                     msg += f" | Chained: {total_chained} ({chained_output_path})"
                 slack_alert(msg, args, slack_available, log_file)
-            print(
-                "\nTo view results, run: streamlit run ai/synthetic_dashboard.py -- --data",
-                output_path,
-                "--log",
-                log_path,
-            )
         except Exception as e:
             log(f"[FATAL ERROR] {e}", log_file)
             if args.slack_webhook:

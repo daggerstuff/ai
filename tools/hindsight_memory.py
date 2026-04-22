@@ -134,51 +134,35 @@ if __name__ == "__main__":
     import sys
 
     if len(sys.argv) < 2:
-        print("Usage: hindsight_memory.py <command> [args...]")
-        print("Commands:")
-        print("  store <content> [category]  - Store a memory")
-        print("  query <query> [limit]       - Search memories")
-        print("  status                      - Get memory status")
-        print("  update <id> <content>       - Update a memory")
-        print("  delete <id>                 - Delete a memory")
         sys.exit(1)
 
     command = sys.argv[1]
 
     if command == "store":
         if len(sys.argv) < 3:
-            print("Error: content required")
             sys.exit(1)
         content = " ".join(sys.argv[2:])
         category = sys.argv[3] if len(sys.argv) > 3 else "fact"
-        print(memory_store(content, category=category))
 
     elif command == "query":
         if len(sys.argv) < 3:
-            print("Error: query required")
             sys.exit(1)
         query = " ".join(sys.argv[2:])
         limit = int(sys.argv[3]) if len(sys.argv) > 3 else 5
-        print(memory_query(query, limit=limit))
 
     elif command == "status":
-        print(memory_status())
+        pass
 
     elif command == "update":
         if len(sys.argv) < 4:
-            print("Error: memory_id and content required")
             sys.exit(1)
         memory_id = sys.argv[2]
         content = " ".join(sys.argv[3:])
-        print(memory_update(memory_id, content))
 
     elif command == "delete":
         if len(sys.argv) < 3:
-            print("Error: memory_id required")
             sys.exit(1)
         memory_id = sys.argv[2]
-        print(memory_delete(memory_id))
 
     else:
-        print(f"Unknown command: {command}")
         sys.exit(1)

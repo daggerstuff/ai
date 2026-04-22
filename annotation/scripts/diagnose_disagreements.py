@@ -27,7 +27,6 @@ def compare_annotations(dr_a_file, dr_b_file):
 
     # Find common tasks
     common_tasks = set(dr_a.keys()) & set(dr_b.keys())
-    print(f"📊 Total common tasks: {len(common_tasks)}\n")
 
     # Track disagreements
     disagreements = {
@@ -103,9 +102,6 @@ def compare_annotations(dr_a_file, dr_b_file):
             )
 
     # Print summary
-    print("=" * 80)
-    print("AGREEMENT SUMMARY")
-    print("=" * 80)
 
     for field in [
         "crisis_label",
@@ -116,20 +112,13 @@ def compare_annotations(dr_a_file, dr_b_file):
         total = len(common_tasks)
         agree_count = agreements[field]
         disagree_count = len(disagreements[field])
-        agree_pct = (agree_count / total * 100) if total > 0 else 0
+        (agree_count / total * 100) if total > 0 else 0
 
-        print(f"\n{field.upper().replace('_', ' ')}:")
-        print(f"  ✅ Agreements: {agree_count}/{total} ({agree_pct:.1f}%)")
-        print(f"  ❌ Disagreements: {disagree_count}/{total} ({100 - agree_pct:.1f}%)")
 
         if disagree_count > 0 and disagree_count <= 10:
-            print("\n  Sample disagreements:")
             for item in disagreements[field][:5]:
-                print(
-                    f"    • {item['task_id']}: Dr.A={item['dr_a']}, Dr.B={item['dr_b']}"
-                )
+                pass
 
-    print("\n" + "=" * 80)
 
     # Save detailed report
     report = {
@@ -145,7 +134,6 @@ def compare_annotations(dr_a_file, dr_b_file):
     with open(output_path, "w") as f:
         json.dump(report, f, indent=2)
 
-    print(f"\n💾 Detailed report saved to: {output_path}")
 
 
 if __name__ == "__main__":

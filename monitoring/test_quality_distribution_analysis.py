@@ -27,7 +27,6 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 def run_comprehensive_test():
     """Run comprehensive test suite and generate report."""
-    print("🧪 Running Quality Distribution Analysis Test Suite...")
 
     # Create temporary database for testing
     db_fd, db_path = tempfile.mkstemp(suffix=".db")
@@ -362,37 +361,14 @@ def run_comprehensive_test():
         with open(report_path, "w") as f:
             json.dump(report_data, f, indent=2)
 
-        print("\n📊 Test Results Summary:")
-        print(f"Total Tests: {test_results['total_tests']}")
-        print(f"Passed: {test_results['passed_tests']}")
-        print(f"Failed: {test_results['failed_tests']}")
-        print(f"Success Rate: {success_rate:.1f}%")
-        print(f"Status: {report_data['status']}")
 
-        print("\n📋 Test Details:")
         for detail in test_results["test_details"]:
-            print(f"  {detail}")
+            pass
 
-        print("\n📈 Distribution Analysis Sample:")
-        sample = report_data["distribution_analysis_sample"]
-        print(f"  Sample Size: {sample['sample_size']}")
-        print(f"  Distribution Type: {sample['distribution_type']}")
-        print(f"  Mean: {sample['mean']:.3f}")
-        print(f"  Median: {sample['median']:.3f}")
-        print(f"  Std Dev: {sample['std_dev']:.3f}")
-        print(f"  Skewness: {sample['skewness']:.3f}")
-        print(f"  Kurtosis: {sample['kurtosis']:.3f}")
-        print(f"  Outliers: {sample['outliers_count']}")
-        print(f"  Normality Tests: {sample['normality_tests_count']}")
+        report_data["distribution_analysis_sample"]
 
-        print("\n🔍 Comparative Analysis Sample:")
-        comp_sample = report_data["comparative_analysis_sample"]
-        print(f"  Tier Groups: {comp_sample['tier_groups']}")
-        print(f"  Tier Tests: {comp_sample['tier_statistical_tests']}")
-        print(f"  Component Groups: {comp_sample['component_groups']}")
-        print(f"  Correlation Components: {comp_sample['correlation_components']}")
+        report_data["comparative_analysis_sample"]
 
-        print(f"\n📁 Test report saved to: {report_path}")
 
         return report_data
 

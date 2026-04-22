@@ -16,6 +16,7 @@ import shap
 import torch
 from lime import lime_text
 from transformers import AutoTokenizer
+import contextlib
 
 logger = logging.getLogger(__name__)
 
@@ -1100,7 +1101,7 @@ def test_explainability_system():
 
         def forward(self, input_ids, **_kwargs):
             # Mock forward pass
-            batch_size, seq_len = input_ids.shape
+            batch_size, _seq_len = input_ids.shape
             logits = torch.randn(batch_size, 2)  # Binary classification
             return type("Outputs", (), {"logits": logits})()
 
@@ -1121,62 +1122,36 @@ def test_explainability_system():
     test_input = "The patient is experiencing anxiety and depression symptoms."
 
     # Test feature importance
-    print("Testing Feature Importance...")
-    try:
-        importance_result = explainability_engine.get_feature_importance(
+    with contextlib.suppress(Exception):
+        explainability_engine.get_feature_importance(
             "test_model", test_input, method="gradient"
         )
-        print(
-            f"Feature importance generated: {len(importance_result.explanation_output['feature_importance']['features'])} features"
-        )
-        print(f"Confidence: {importance_result.confidence_score:.3f}")
-    except Exception as e:
-        print(f"Feature importance test failed: {e}")
 
     # Test attention visualization
-    print("\nTesting Attention Visualization...")
-    try:
-        attention_result = explainability_engine.get_attention_visualization(
+    with contextlib.suppress(Exception):
+        explainability_engine.get_attention_visualization(
             "test_model", test_input
         )
-        print(
-            f"Attention visualization generated with {len(attention_result.explanation_output.get('attention_weights', {}).get('layer_weights', []))} layers"
-        )
-    except Exception as e:
-        print(f"Attention visualization test failed: {e}")
 
     # Test counterfactual explanation
-    print("\nTesting Counterfactual Explanation...")
-    try:
-        counterfactual_result = explainability_engine.get_counterfactual_explanation(
+    with contextlib.suppress(Exception):
+        explainability_engine.get_counterfactual_explanation(
             "test_model", test_input, target_outcome=1, max_changes=3
         )
-        print(
-            f"Counterfactuals generated: {len(counterfactual_result.explanation_output.get('counterfactuals', []))}"
-        )
-    except Exception as e:
-        print(f"Counterfactual explanation test failed: {e}")
 
     # Test similarity analysis
-    print("\nTesting Similarity Analysis...")
     reference_texts = [
         "Patient reports feeling anxious about upcoming therapy session.",
         "Client mentions having thoughts of self-harm recently.",
         "The patient seems to be responding well to current treatment.",
     ]
 
-    try:
-        similarity_result = explainability_engine.get_similarity_analysis(
+    with contextlib.suppress(Exception):
+        explainability_engine.get_similarity_analysis(
             "test_model", test_input, reference_texts
         )
-        print(
-            f"Similarity analysis completed with {len(similarity_result.explanation_output.get('similarities', []))} comparisons"
-        )
-    except Exception as e:
-        print(f"Similarity analysis test failed: {e}")
 
     # Test global behavior analysis
-    print("\nTesting Global Behavior Analysis...")
     sample_inputs = [
         "Patient expresses concern about medication side effects.",
         "Client shows improvement in mood over past two weeks.",
@@ -1188,29 +1163,23 @@ def test_explainability_system():
         global_result = explainability_engine.get_global_model_behavior(
             "test_model", sample_inputs
         )
-        print("Global behavior analysis completed")
         if "behavior_analysis" in global_result.explanation_output:
-            analysis = global_result.explanation_output["behavior_analysis"]
-            print(f"Class distribution: {analysis.get('class_distribution', {})}")
-    except Exception as e:
-        print(f"Global behavior analysis test failed: {e}")
+            global_result.explanation_output["behavior_analysis"]
+    except Exception:
+        pass
 
     # Test limited access
-    print("\nTesting Limited Access...")
-    limited_result = get_limited_explanation(
+    get_limited_explanation(
         user_id="test_user",
         explanation_type="feature_importance",
         model_name="test_model",
         input_data=test_input,
         method="gradient",
     )
-    print(f"Limited access explanation: {'Success' if limited_result else 'Failed'}")
 
     # Test audit log
-    audit_log = limited_access_explainability.get_audit_log()
-    print(f"Audit log entries: {len(audit_log)}")
+    limited_access_explainability.get_audit_log()
 
-    print("\nExplainability system tests completed!")
 
 
 if __name__ == "__main__":

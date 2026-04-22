@@ -8,6 +8,7 @@ import logging
 from typing import Any
 
 from .base_publisher import BasePublisher, BookContent, BookFormat, BookMetadata
+import contextlib
 
 logger = logging.getLogger(__name__)
 
@@ -143,10 +144,8 @@ class WileyPublisher(BasePublisher):
             pub_date = record.get("publicationDate", "")
             year = 0
             if pub_date:
-                try:
+                with contextlib.suppress(ValueError, IndexError):
                     year = int(pub_date.split("-")[0])
-                except (ValueError, IndexError):
-                    pass
 
             # Extract identifiers
             doi = record.get("doi")

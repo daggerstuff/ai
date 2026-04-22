@@ -80,7 +80,6 @@ class ConversationComplexityAnalyzer:
         self, dataset_name: str | None = None
     ) -> dict[str, ComplexityAnalysis]:
         """Analyze conversation length and complexity patterns"""
-        print("📏 Analyzing conversation length and complexity patterns...")
 
         try:
             # Get datasets to analyze
@@ -92,16 +91,13 @@ class ConversationComplexityAnalyzer:
             complexity_analyses = {}
 
             for dataset in datasets:
-                print(f"   Analyzing complexity for {dataset}...")
                 analysis = self._analyze_dataset_complexity(dataset)
                 if analysis:
                     complexity_analyses[dataset] = analysis
 
-            print(f"✅ Analyzed complexity for {len(complexity_analyses)} datasets")
             return complexity_analyses
 
-        except Exception as e:
-            print(f"❌ Error analyzing conversation complexity: {e}")
+        except Exception:
             return {}
 
     def _get_dataset_list(self) -> list[str]:
@@ -123,8 +119,7 @@ class ConversationComplexityAnalyzer:
             conn.close()
             return datasets
 
-        except Exception as e:
-            print(f"❌ Error getting dataset list: {e}")
+        except Exception:
             return []
 
     def _analyze_dataset_complexity(
@@ -154,8 +149,7 @@ class ConversationComplexityAnalyzer:
             )
 
 
-        except Exception as e:
-            print(f"❌ Error analyzing dataset complexity for {dataset_name}: {e}")
+        except Exception:
             return None
 
     def _get_dataset_conversations(self, dataset_name: str) -> list[dict]:
@@ -191,7 +185,7 @@ class ConversationComplexityAnalyzer:
             conversations = []
 
             for row in cursor.fetchall():
-                record = dict(zip(columns, row))
+                record = dict(zip(columns, row, strict=False))
                 try:
                     record["conversations"] = json.loads(record["conversations_json"])
                     conversations.append(record)
@@ -201,8 +195,7 @@ class ConversationComplexityAnalyzer:
             conn.close()
             return conversations
 
-        except Exception as e:
-            print(f"❌ Error getting conversations for {dataset_name}: {e}")
+        except Exception:
             return []
 
     def _analyze_individual_conversation(
@@ -260,8 +253,7 @@ class ConversationComplexityAnalyzer:
                 overall_complexity_score=overall_complexity_score,
             )
 
-        except Exception as e:
-            print(f"❌ Error analyzing individual conversation: {e}")
+        except Exception:
             return None
 
     def _extract_conversation_text(self, conversations: list) -> str:
@@ -284,8 +276,7 @@ class ConversationComplexityAnalyzer:
 
             return all_text.strip()
 
-        except Exception as e:
-            print(f"❌ Error extracting conversation text: {e}")
+        except Exception:
             return ""
 
     def _calculate_vocabulary_diversity(self, text: str) -> float:
@@ -303,8 +294,7 @@ class ConversationComplexityAnalyzer:
 
             return min(1.0, diversity)
 
-        except Exception as e:
-            print(f"❌ Error calculating vocabulary diversity: {e}")
+        except Exception:
             return 0.0
 
     def _calculate_sentence_complexity(self, text: str) -> float:
@@ -326,8 +316,7 @@ class ConversationComplexityAnalyzer:
             return min(1.0, avg_sentence_length / 30)
 
 
-        except Exception as e:
-            print(f"❌ Error calculating sentence complexity: {e}")
+        except Exception:
             return 0.0
 
     def _calculate_dialogue_depth(self, conversations: list) -> float:
@@ -343,8 +332,7 @@ class ConversationComplexityAnalyzer:
             return min(1.0, turn_count / 20)
 
 
-        except Exception as e:
-            print(f"❌ Error calculating dialogue depth: {e}")
+        except Exception:
             return 0.0
 
     def _calculate_topic_coherence(self, text: str) -> float:
@@ -433,8 +421,7 @@ class ConversationComplexityAnalyzer:
 
             return min(1.0, coherence)
 
-        except Exception as e:
-            print(f"❌ Error calculating topic coherence: {e}")
+        except Exception:
             return 0.0
 
     def _calculate_overall_complexity(
@@ -463,8 +450,7 @@ class ConversationComplexityAnalyzer:
 
             return min(1.0, overall_score)
 
-        except Exception as e:
-            print(f"❌ Error calculating overall complexity: {e}")
+        except Exception:
             return 0.0
 
     def _generate_complexity_analysis(
@@ -552,8 +538,7 @@ class ConversationComplexityAnalyzer:
                 recommendations=recommendations,
             )
 
-        except Exception as e:
-            print(f"❌ Error generating complexity analysis: {e}")
+        except Exception:
             return ComplexityAnalysis(
                 dataset_name=dataset_name,
                 total_conversations=0,
@@ -606,8 +591,7 @@ class ConversationComplexityAnalyzer:
 
             return correlations
 
-        except Exception as e:
-            print(f"❌ Error calculating correlations: {e}")
+        except Exception:
             return {}
 
     def _identify_complexity_patterns(
@@ -661,8 +645,7 @@ class ConversationComplexityAnalyzer:
 
             return patterns
 
-        except Exception as e:
-            print(f"❌ Error identifying patterns: {e}")
+        except Exception:
             return []
 
     def _generate_complexity_recommendations(
@@ -726,15 +709,13 @@ class ConversationComplexityAnalyzer:
 
             return recommendations
 
-        except Exception as e:
-            print(f"❌ Error generating recommendations: {e}")
+        except Exception:
             return ["Error generating complexity recommendations"]
 
     def export_complexity_report(
         self, complexity_analyses: dict[str, ComplexityAnalysis]
     ) -> str:
         """Export comprehensive complexity analysis report"""
-        print("📄 Exporting complexity analysis report...")
 
         try:
             timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -771,11 +752,9 @@ class ConversationComplexityAnalyzer:
             with open(report_file, "w") as f:
                 json.dump(export_data, f, indent=2, default=str)
 
-            print(f"✅ Exported complexity analysis report to: {report_file}")
             return str(report_file)
 
-        except Exception as e:
-            print(f"❌ Error exporting complexity report: {e}")
+        except Exception:
             return ""
 
     def _create_complexity_summary(
@@ -820,15 +799,12 @@ class ConversationComplexityAnalyzer:
                 "analysis_completion_rate": 100.0,
             }
 
-        except Exception as e:
-            print(f"❌ Error creating complexity summary: {e}")
+        except Exception:
             return {}
 
 
 def main():
     """Main execution function"""
-    print("📏 Conversation Length and Complexity Analysis System")
-    print("=" * 65)
 
     # Initialize analyzer
     analyzer = ConversationComplexityAnalyzer()
@@ -837,43 +813,26 @@ def main():
     complexity_analyses = analyzer.analyze_conversation_complexity()
 
     if not complexity_analyses:
-        print("❌ No complexity analyses generated")
         return
 
     # Export report
-    report_file = analyzer.export_complexity_report(complexity_analyses)
+    analyzer.export_complexity_report(complexity_analyses)
 
     # Display summary
-    total_conversations = sum(
+    sum(
         analysis.total_conversations for analysis in complexity_analyses.values()
     )
 
-    print("\n✅ Complexity Analysis Complete")
-    print(f"   - Datasets analyzed: {len(complexity_analyses)}")
-    print(f"   - Total conversations analyzed: {total_conversations}")
-    print(f"   - Report saved: {report_file}")
 
     # Show sample analysis
     if complexity_analyses:
         sample_dataset = list(complexity_analyses.keys())[0]
         sample_analysis = complexity_analyses[sample_dataset]
 
-        print(f"\n📊 Sample Analysis for {sample_dataset}:")
-        print(f"   - Conversations: {sample_analysis.total_conversations}")
-        print(
-            f"   - Avg complexity: {sample_analysis.average_metrics.get('avg_overall_complexity', 0):.3f}"
-        )
-        print(
-            f"   - Avg turns: {sample_analysis.average_metrics.get('avg_turn_count', 0):.1f}"
-        )
-        print(
-            f"   - Avg words: {sample_analysis.average_metrics.get('avg_word_count', 0):.1f}"
-        )
 
         if sample_analysis.patterns:
-            print("\n🔍 Key Patterns:")
             for pattern in sample_analysis.patterns[:3]:
-                print(f"   • {pattern}")
+                pass
 
 
 if __name__ == "__main__":

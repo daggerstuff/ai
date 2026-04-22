@@ -211,7 +211,7 @@ class MCPValidator:
                     result["status"] = "available"
                 else:
                     # Process exited quickly, check return code
-                    stdout, stderr = process.communicate()
+                    _stdout, stderr = process.communicate()
                     if process.returncode == 0:
                         result["status"] = "available"
                     else:
@@ -222,7 +222,6 @@ class MCPValidator:
 
             # Test HTTP/SSE servers
             elif "url" in server_config:
-                pass
 
                 try:
                     with urllib.request.urlopen(
@@ -338,50 +337,38 @@ class MCPValidator:
         """Print a formatted validation report."""
         results = self.validation_results
 
-        print("\n" + "=" * 60)
-        print("🔍 MCP CONFIGURATION VALIDATION REPORT")
-        print("=" * 60)
 
         # Overall status
-        status_icon = "✅" if results["valid"] else "❌"
-        print(
-            f"\n{status_icon} Overall Status: {'VALID' if results['valid'] else 'INVALID'}"
-        )
+        "✅" if results["valid"] else "❌"
 
         # Errors
         if results["errors"]:
-            print(f"\n❌ Errors ({len(results['errors'])}):")
             for error in results["errors"]:
-                print(f"  • {error}")
+                pass
 
         # Warnings
         if results["warnings"]:
-            print(f"\n⚠️ Warnings ({len(results['warnings'])}):")
             for warning in results["warnings"]:
-                print(f"  • {warning}")
+                pass
 
         # Server status
         if results["server_status"]:
-            print("\n🔗 Server Connectivity:")
             for server_name, status in results["server_status"].items():
-                status_icon = (
+                (
                     "✅"
                     if status["status"] == "available"
                     else "❌"
                     if status["status"] == "error"
                     else "❓"
                 )
-                print(f"  {status_icon} {server_name}: {status['status'].upper()}")
                 if status["error"]:
-                    print(f"    Error: {status['error']}")
+                    pass
 
         # Recommendations
         if results["recommendations"]:
-            print(f"\n💡 Recommendations ({len(results['recommendations'])}):")
             for rec in results["recommendations"]:
-                print(f"  • {rec}")
+                pass
 
-        print("\n" + "=" * 60)
 
 
 def main():

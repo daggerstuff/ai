@@ -150,7 +150,6 @@ class EmbeddingAgentService:
             # Check CUDA availability if GPU requested
             if self.config.use_gpu:
                 try:
-                    pass
 
                     if not torch.cuda.is_available():
                         logger.warning(
@@ -399,7 +398,7 @@ class EmbeddingAgentService:
                 model_name,
             )
 
-            for (idx, text), emb in zip(texts_to_embed, batch_embeddings):
+            for (idx, text), emb in zip(texts_to_embed, batch_embeddings, strict=False):
                 text_hash = self._get_text_hash(text)
                 embedding_id = self._generate_embedding_id()
                 cache_key = f"{model_name.value}:{text_hash}"
@@ -559,7 +558,7 @@ class EmbeddingAgentService:
             else:
                 # Simple cosine similarity
                 dot_product = sum(
-                    a * b for a, b in zip(query_embedding, item_embedding)
+                    a * b for a, b in zip(query_embedding, item_embedding, strict=False)
                 )
                 norm_q = sum(x**2 for x in query_embedding) ** 0.5
                 norm_i = sum(x**2 for x in item_embedding) ** 0.5
@@ -635,7 +634,6 @@ class EmbeddingAgentService:
         gpu_available = False
         if self.config.use_gpu:
             try:
-                pass
 
                 if torch.cuda.is_available():
                     gpu_available = True

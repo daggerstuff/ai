@@ -75,14 +75,12 @@ class TopicThemeAnalyzer:
 
     def analyze_topics_and_themes(self, dataset_name: str | None = None) -> dict[str, Any]:
         """Analyze conversation topics and themes"""
-        print("🔍 Analyzing conversation topics and themes...")
 
         try:
             # Get conversation data
             conversations = self._get_conversation_data(dataset_name)
 
             if not conversations:
-                print("❌ No conversation data found")
                 return {}
 
             # Extract topics
@@ -101,11 +99,9 @@ class TopicThemeAnalyzer:
                 "total_conversations_analyzed": len(conversations)
             }
 
-            print(f"✅ Analyzed {len(topic_analyses)} topics and {len(theme_analyses)} themes from {len(conversations)} conversations")
             return results
 
-        except Exception as e:
-            print(f"❌ Error analyzing topics and themes: {e}")
+        except Exception:
             return {}
 
     def _get_conversation_data(self, dataset_name: str | None = None) -> list[dict]:
@@ -150,7 +146,7 @@ class TopicThemeAnalyzer:
 
             conversations = []
             for row in cursor.fetchall():
-                record = dict(zip(columns, row))
+                record = dict(zip(columns, row, strict=False))
                 try:
                     record["conversations"] = json.loads(record["conversations_json"])
                     conversations.append(record)
@@ -160,8 +156,7 @@ class TopicThemeAnalyzer:
             conn.close()
             return conversations
 
-        except Exception as e:
-            print(f"❌ Error getting conversation data: {e}")
+        except Exception:
             return []
 
     def _analyze_topics(self, conversations: list[dict]) -> dict[str, TopicAnalysis]:
@@ -222,8 +217,7 @@ class TopicThemeAnalyzer:
 
             return topic_analyses
 
-        except Exception as e:
-            print(f"❌ Error analyzing topics: {e}")
+        except Exception:
             return {}
 
     def _analyze_themes(self, conversations: list[dict]) -> dict[str, ThemeAnalysis]:
@@ -288,8 +282,7 @@ class TopicThemeAnalyzer:
 
             return theme_analyses
 
-        except Exception as e:
-            print(f"❌ Error analyzing themes: {e}")
+        except Exception:
             return {}
 
     def _extract_conversation_text(self, conversations: list) -> str:
@@ -313,8 +306,7 @@ class TopicThemeAnalyzer:
 
             return all_text.strip()
 
-        except Exception as e:
-            print(f"❌ Error extracting conversation text: {e}")
+        except Exception:
             return ""
 
     def _find_related_themes(self, topic_name: str) -> list[str]:
@@ -403,13 +395,11 @@ class TopicThemeAnalyzer:
 
             return insights
 
-        except Exception as e:
-            print(f"❌ Error generating insights: {e}")
+        except Exception:
             return ["Error generating topic and theme insights"]
 
     def export_topic_theme_report(self, analysis_results: dict[str, Any]) -> str:
         """Export comprehensive topic and theme analysis report"""
-        print("📄 Exporting topic and theme analysis report...")
 
         try:
             timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -454,11 +444,9 @@ class TopicThemeAnalyzer:
             with open(report_file, "w") as f:
                 json.dump(export_data, f, indent=2, default=str)
 
-            print(f"✅ Exported topic and theme analysis report to: {report_file}")
             return str(report_file)
 
-        except Exception as e:
-            print(f"❌ Error exporting report: {e}")
+        except Exception:
             return ""
 
     def _create_summary_statistics(self, analysis_results: dict[str, Any]) -> dict[str, Any]:
@@ -489,14 +477,11 @@ class TopicThemeAnalyzer:
                 "most_relevant_theme": max(themes.items(), key=lambda x: x[1].therapeutic_relevance)[0] if themes else None
             }
 
-        except Exception as e:
-            print(f"❌ Error creating summary statistics: {e}")
+        except Exception:
             return {}
 
 def main():
     """Main execution function"""
-    print("🔍 Conversation Topic and Theme Analysis System")
-    print("=" * 55)
 
     # Initialize analyzer
     analyzer = TopicThemeAnalyzer()
@@ -505,42 +490,32 @@ def main():
     analysis_results = analyzer.analyze_topics_and_themes()
 
     if not analysis_results:
-        print("❌ No analysis results generated")
         return
 
     # Export report
-    report_file = analyzer.export_topic_theme_report(analysis_results)
+    analyzer.export_topic_theme_report(analysis_results)
 
     # Display summary
     topics = analysis_results.get("topics", {})
     themes = analysis_results.get("themes", {})
     insights = analysis_results.get("insights", [])
 
-    print("\n✅ Topic and Theme Analysis Complete")
-    print(f"   - Topics identified: {len(topics)}")
-    print(f"   - Themes identified: {len(themes)}")
-    print(f"   - Conversations analyzed: {analysis_results.get('total_conversations_analyzed', 0)}")
-    print(f"   - Insights generated: {len(insights)}")
-    print(f"   - Report saved: {report_file}")
 
     # Show top topics
     if topics:
-        print("\n📊 Top Topics by Frequency:")
         sorted_topics = sorted(topics.items(), key=lambda x: x[1].frequency, reverse=True)
         for name, analysis in sorted_topics[:5]:
-            print(f"   • {name.replace('_', ' ').title()}: {analysis.frequency} conversations ({analysis.percentage:.1f}%)")
+            pass
 
     # Show themes
     if themes:
-        print("\n🎭 Therapeutic Themes:")
         for name, analysis in themes.items():
-            print(f"   • {name.replace('_', ' ').title()}: {analysis.conversation_count} conversations")
+            pass
 
     # Show key insights
     if insights:
-        print("\n🔍 Key Insights:")
         for insight in insights[:3]:
-            print(f"   • {insight}")
+            pass
 
 if __name__ == "__main__":
     main()

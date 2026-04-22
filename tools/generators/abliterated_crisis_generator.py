@@ -669,30 +669,21 @@ def main():
     ):
         print_and_save_conversation(conversation)
     else:
-        print("Failed to generate conversation")
+        pass
 
 
 def print_and_save_conversation(conversation):
-    print("\n" + "=" * 50)
-    print(f"GENERATED CONVERSATION: {conversation['scenario']}")
-    print("=" * 50)
 
     for msg in conversation["conversation"]:
-        speaker = msg["speaker"].upper()
-        message = msg["message"]
-        print(f"\n{speaker}: {message}")
+        msg["speaker"].upper()
+        msg["message"]
 
-    print("\n" + "=" * 50)
-    print("QUALITY ASSESSMENT:")
-    print(json.dumps(conversation["quality_assessment"], indent=2))
-    print("=" * 50)
 
     # Save single conversation
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     filename = f"test_crisis_conversation_{timestamp}.json"
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(conversation, f, indent=2, ensure_ascii=False)
-    print(f"\nConversation saved to {filename}")
 
 
 if __name__ == "__main__":

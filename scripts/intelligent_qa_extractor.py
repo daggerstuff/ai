@@ -131,12 +131,8 @@ def test_intelligent_extraction():
         "file": "test.txt"
     }
 
-    result = extractor.process_segment(test_segment)
+    extractor.process_segment(test_segment)
 
-    print("=== INTELLIGENT Q/A EXTRACTION TEST ===\n")
-    print(f"**Q**: {result['input']}")
-    print(f"**A**: {result['output'][:300]}...")
-    print(f"**Style**: {result['style']}")
 
 if __name__ == "__main__":
     test_intelligent_extraction()

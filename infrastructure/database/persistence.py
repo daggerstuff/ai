@@ -44,7 +44,7 @@ import time
 import uuid
 from abc import ABC
 from collections.abc import AsyncIterator, Callable, Sequence
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
@@ -366,10 +366,8 @@ class ConnectionPool:
         """Close all connections in the pool."""
         with self._lock:
             for conn in self._pool + list(self._in_use):
-                try:
+                with suppress(Exception):
                     conn.close()
-                except Exception:
-                    pass
             self._pool.clear()
             self._in_use.clear()
             self._created_at.clear()

@@ -425,25 +425,14 @@ async def test_improved_detector():
     correct = 0
     total = len(test_cases)
 
-    print("\n" + "="*80)
-    print("TESTING IMPROVED CRISIS DETECTOR")
-    print("="*80)
 
     for text, expected in test_cases:
         result = await detector.detect_crisis(text)
         is_correct = result.is_crisis == expected
         correct += is_correct
 
-        status = "✅ CORRECT" if is_correct else "❌ WRONG"
-        print(f"\n{status}")
-        print(f"Text: {text}")
-        print(f"Expected: {expected}, Got: {result.is_crisis}")
-        print(f"Reasoning: {result.reasoning}")
 
     accuracy = (correct / total) * 100
-    print(f"\n{'='*80}")
-    print(f"TEST RESULTS: {correct}/{total} correct ({accuracy:.1f}% accuracy)")
-    print(f"{'='*80}")
 
     return accuracy
 

@@ -49,23 +49,17 @@ class StressTest:
         }
 
     async def ramp_up_test(self):
-        print("🚀 Starting Ramp-up Test...")
         for c in [1, 5, 10, 20, 50]:
             res = await self.run_batch(c, 5)
             self.results.append(res)
-            print(f"Concurrency {c}: {res['successful']} success, {res['failed']} fail")
         return self.results
 
     async def spike_test(self):
-        print("⚡ Starting Spike Test...")
         res = await self.run_batch(100, 10)
-        print(f"Spike (100): {res['successful']} success, {res['failed']} fail")
         return res
 
     async def endurance_test(self):
-        print("⏳ Starting Endurance Test...")
         res = await self.run_batch(10, 60)
-        print(f"Endurance (10 for 60s): {res['successful']} success, {res['failed']} fail")
         return res
 
 async def main():
@@ -86,12 +80,11 @@ async def main():
         if args.test in ["endurance", "all"]:
             results["endurance"] = await stress_test.endurance_test()
 
-    except Exception as e:
-        print(f"Stress test failed: {e}")
+    except Exception:
+        pass
     finally:
         with open(args.output, "w") as f:
             json.dump(results, f, indent=4)
-        print(f"Results saved to {args.output}")
 
 if __name__ == "__main__":
     asyncio.run(main())

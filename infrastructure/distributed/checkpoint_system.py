@@ -621,7 +621,7 @@ class CheckpointManager:
         latest_checkpoint = checkpoints[0]
 
         try:
-            metadata, data = self.storage.load_checkpoint(latest_checkpoint.checkpoint_id)
+            _metadata, data = self.storage.load_checkpoint(latest_checkpoint.checkpoint_id)
 
             # Extract state from checkpoint data
             if isinstance(data, ProcessingState):
@@ -720,14 +720,13 @@ async def example_usage():
         process_id = "example_process_001"
         task_id = "data_processing_task"
 
-        state = manager.register_process(
+        manager.register_process(
             process_id=process_id,
             task_id=task_id,
             total_steps=100,
             description="Example data processing operation"
         )
 
-        print(f"Registered process: {process_id}")
 
         # Simulate processing with checkpoints
         for step in range(0, 101, 10):
@@ -739,28 +738,24 @@ async def example_usage():
                 metadata={"current_batch": step//10 + 1}
             )
 
-            print(f"Progress: {step}% - {state.current_step}")
 
             # Simulate some work
             await asyncio.sleep(0.1)
 
         # Complete the process
-        final_checkpoint = manager.complete_process(
+        manager.complete_process(
             process_id=process_id,
             final_data={"result": "success", "items_processed": 1000}
         )
 
-        print(f"Process completed with final checkpoint: {final_checkpoint}")
 
         # Test recovery
-        print("\nTesting recovery...")
         recovered_state = manager.recover_process(process_id)
         if recovered_state:
-            print(f"Recovered state: {recovered_state.progress_percentage}% complete")
+            pass
 
         # Get system stats
-        stats = manager.get_system_stats()
-        print(f"\nSystem stats: {json.dumps(stats, indent=2, default=str)}")
+        manager.get_system_stats()
 
     finally:
         manager.stop_background_tasks()

@@ -619,49 +619,21 @@ async def main():
     report = await certifier.run_clinical_certification()
 
     # Print results
-    print("\n" + "="*70)
-    print("CLINICAL SAFETY CERTIFICATION & MEDICAL REVIEW RESULTS")
-    print("="*70)
-    print(f"Certification Status: {report['certification_summary']['certification_status']}")
-    print(f"Overall Clinical Score: {report['certification_summary']['overall_clinical_score']:.3f}")
-    print(f"Clinical Reviewers: {report['certification_summary']['total_clinical_reviewers']}")
-    print(f"Approved Reviews: {report['certification_summary']['approved_reviews']}")
-    print(f"Approval Rate: {report['certification_summary']['approval_rate']:.1%}")
 
-    print("\nClinical Validation Metrics:")
-    print(f"  Accuracy Assessment: {report['clinical_validation_metrics']['average_accuracy_assessment']:.3f}")
-    print(f"  Clinical Appropriateness: {report['clinical_validation_metrics']['average_clinical_appropriateness']:.3f}")
-    print(f"  Safety Assessment: {report['clinical_validation_metrics']['average_safety_assessment']:.3f}")
-    print(f"  Bias Assessment: {report['clinical_validation_metrics']['average_bias_assessment']:.3f}")
 
-    print("\nMedical Advisory Board:")
-    board_info = report["medical_advisory_board"]
-    print(f"  Review Completed: {board_info['review_completed']}")
-    print(f"  Approval Votes: {board_info['approval_votes']}/{board_info['total_votes']}")
-    print(f"  Unanimous Approval: {board_info['unanimous_approval']}")
+    report["medical_advisory_board"]
 
-    print(f"\nSafety Protocols: {len(report['safety_protocols'])} protocols established")
-    print("Compliance Status: All requirements COMPLIANT")
 
     # Certification status
-    meets_requirements = report["certification_summary"]["meets_clinical_requirements"]
+    report["certification_summary"]["meets_clinical_requirements"]
     certification_approved = report["certification_summary"]["certification_status"] == "APPROVED"
 
-    print("\n" + "="*70)
-    print("CERTIFICATION STATUS")
-    print("="*70)
-    print(f"✅ Clinical Score Target Met: {meets_requirements}")
-    print(f"✅ Medical Advisory Board Review: {board_info['review_completed']}")
-    print("✅ Safety Protocols Established: True")
-    print("✅ Compliance Requirements: True")
 
-    print(f"\n🎯 CLINICAL CERTIFICATION: {'✅ APPROVED' if certification_approved else '⚠️ REQUIRES REVISION'}")
 
     if certification_approved:
-        print("\n🏆 Clinical Safety Certification COMPLETED successfully!")
-        print("Ready to proceed to Task 3.3: Real-Time Safety Monitoring")
+        pass
     else:
-        print("\n⚠️ Certification requires revision. Address recommendations before proceeding.")
+        pass
 
     return certification_approved
 

@@ -20,7 +20,7 @@ import stat
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
@@ -28,6 +28,7 @@ from letta import LettaClient as SDKClient
 
 from .letta_crisis_handler import LettaCrisisHandler
 from .letta_pii_middleware import LettaPIIMiddleware
+import contextlib
 
 logger = logging.getLogger("letta_code_client")
 
@@ -42,7 +43,7 @@ RETRY_DELAY = 1.0
 RETRY_BACKOFF = 2.0
 
 
-class PermissionMode(str, Enum):
+class PermissionMode(StrEnum):
     """Tool permission modes for Letta agents."""
     READONLY = "read-only"
     THERAPEUTIC = "therapeutic"
@@ -50,7 +51,7 @@ class PermissionMode(str, Enum):
     WHISPER = "whisper"  # Background only, no tool execution
 
 
-class ModelProvider(str, Enum):
+class ModelProvider(StrEnum):
     """Supported model providers."""
     CLAUDE = "claude"
     GPT = "gpt"
@@ -223,7 +224,6 @@ class LettaCodeClient:
         """Initialize PII filter and crisis detector middleware."""
         # Import Hindsight components for middleware
         try:
-            pass
 
             if self.config.pii_filter_enabled:
                 self._pii_filter = LettaPIIMiddleware(
@@ -475,10 +475,8 @@ class LettaCodeClient:
 
         config_data = {}
         if CONFIG_FILE.exists():
-            try:
+            with contextlib.suppress(json.JSONDecodeError):
                 config_data = json.loads(CONFIG_FILE.read_text())
-            except json.JSONDecodeError:
-                pass
 
         config_data["agent_id"] = agent_id
         config_data["last_updated"] = datetime.now(timezone.utc).isoformat()

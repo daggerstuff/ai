@@ -50,7 +50,6 @@ class TestInferenceAPIIntegration(unittest.TestCase):
     def tearDownClass(cls):
         """Clean up test environment"""
         if hasattr(cls, "test_model_path") and os.path.exists(cls.test_model_path):
-            pass
 
             shutil.rmtree(cls.test_model_path)
 
@@ -676,13 +675,9 @@ def benchmark_api_latency():
 
     if latencies:
         avg_latency = sum(latencies) / len(latencies)
-        p95_latency = sorted(latencies)[int(0.95 * len(latencies))]
+        sorted(latencies)[int(0.95 * len(latencies))]
         p99_latency = sorted(latencies)[int(0.99 * len(latencies))]
 
-        print("API Latency Benchmarks:")
-        print(f"  Average: {avg_latency:.2f}ms")
-        print(f"  95th percentile: {p95_latency:.2f}ms")
-        print(f"  99th percentile: {p99_latency:.2f}ms")
 
         # Assert reasonable performance
         assert avg_latency < 200, (
@@ -717,13 +712,8 @@ def benchmark_throughput():
     success_rate = successful_requests / total_requests
 
     latencies = [latency for _, latency in results]
-    avg_latency = sum(latencies) / len(latencies) if latencies else 0
+    sum(latencies) / len(latencies) if latencies else 0
 
-    print("Throughput Benchmark:")
-    print(
-        f"  Successful requests: {successful_requests}/{total_requests} ({success_rate:.1%})"
-    )
-    print(f"  Average latency: {avg_latency:.2f}ms")
 
     # Assert reasonable success rate
     assert success_rate >= 0.9, f"Success rate {success_rate:.1%} below threshold"
@@ -732,7 +722,6 @@ def benchmark_throughput():
 # Main test runner
 def run_all_tests():
     """Run all integration tests and benchmarks"""
-    print("Running Inference API Integration Tests...")
 
     # Run unit tests
     test_suite = unittest.TestLoader().loadTestsFromModule(__name__)
@@ -740,32 +729,23 @@ def run_all_tests():
     result = runner.run(test_suite)
 
     # Run pytest-style tests
-    print("\nRunning Pytest-style Tests...")
     try:
         benchmark_api_latency()
         benchmark_throughput()
-        print("Performance benchmarks completed successfully")
-    except Exception as e:
-        print(f"Performance benchmarks failed: {e}")
+    except Exception:
+        pass
 
     # Summary
-    print("\nTest Results Summary:")
-    print(f"  Tests run: {result.testsRun}")
-    print(f"  Failures: {len(result.failures)}")
-    print(f"  Errors: {len(result.errors)}")
 
     if result.failures:
-        print("\nFailures:")
         for test, traceback in result.failures:
-            print(f"  {test}: {traceback}")
+            pass
 
     if result.errors:
-        print("\nErrors:")
         for test, traceback in result.errors:
-            print(f"  {test}: {traceback}")
+            pass
 
     success = result.wasSuccessful()
-    print(f"\nOverall Test Status: {'✅ PASSED' if success else '❌ FAILED'}")
 
     return success
 

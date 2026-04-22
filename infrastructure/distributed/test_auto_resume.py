@@ -87,8 +87,6 @@ class AutoResumeTestSuite:
     async def run_all_tests(self):
         """Run all test scenarios"""
 
-        print("🧪 Starting Automatic Resume System Test Suite")
-        print("=" * 60)
 
         test_methods = [
             self.test_basic_resume_functionality,
@@ -105,11 +103,8 @@ class AutoResumeTestSuite:
 
         for test_method in test_methods:
             try:
-                print(f"\n🔍 Running {test_method.__name__}...")
                 await test_method()
-                print(f"✅ {test_method.__name__} passed")
-            except Exception as e:
-                print(f"❌ {test_method.__name__} failed: {e}")
+            except Exception:
                 logger.error(f"Test {test_method.__name__} failed", exc_info=True)
 
         # Print summary
@@ -826,39 +821,30 @@ class AutoResumeTestSuite:
     def print_test_summary(self):
         """Print comprehensive test summary"""
 
-        print("\n" + "=" * 60)
-        print("🏁 AUTOMATIC RESUME SYSTEM TEST SUMMARY")
-        print("=" * 60)
 
         passed_tests = [r for r in self.test_results if r["status"] == "passed"]
         failed_tests = [r for r in self.test_results if r["status"] == "failed"]
 
-        print(f"✅ Passed: {len(passed_tests)}")
-        print(f"❌ Failed: {len(failed_tests)}")
-        print(f"📊 Total: {len(self.test_results)}")
 
         if passed_tests:
-            print("\n✅ PASSED TESTS:")
             for test in passed_tests:
-                print(f"  • {test['test']}: {test['details']}")
+                pass
 
         if failed_tests:
-            print("\n❌ FAILED TESTS:")
             for test in failed_tests:
-                print(f"  • {test['test']}: {test['details']}")
+                pass
 
         # Overall result
         success_rate = (
             len(passed_tests) / len(self.test_results) * 100 if self.test_results else 0
         )
-        print(f"\n🎯 Success Rate: {success_rate:.1f}%")
 
         if success_rate == 100:
-            print("🎉 All tests passed! Automatic resume system is working correctly.")
+            pass
         elif success_rate >= 80:
-            print("⚠️  Most tests passed, but some issues need attention.")
+            pass
         else:
-            print("🚨 Multiple test failures detected. System needs review.")
+            pass
 
 
 # Main execution

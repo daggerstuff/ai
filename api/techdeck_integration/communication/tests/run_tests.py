@@ -267,48 +267,23 @@ class TestRunner:
 
     def print_summary(self, summary: dict[str, Any]):
         """Print formatted test summary."""
-        print("\n" + "="*60)
-        print("PIPELINE COMMUNICATION TEST SUMMARY")
-        print("="*60)
 
-        print(f"Total Test Files: {summary['total_files']}")
-        print(f"Passed Files: {summary['passed_files']}")
-        print(f"Failed Files: {summary['failed_files']}")
-        print(f"Total Tests: {summary['total_tests']}")
-        print(f"Overall Success: {'✅ PASSED' if summary['overall_success'] else '❌ FAILED'}")
-        print(f"Success Rate: {summary['success_rate']:.1%}")
-        print(f"Total Execution Time: {summary['total_execution_time']:.2f}s")
 
         # Performance metrics
         perf = summary.get("performance_metrics", {})
         if perf.get("status") == "analyzed":
-            print("\nPerformance Metrics:")
-            print(f"  Average Execution Time: {perf['avg_execution_time']:.3f}s")
-            print(f"  Min Execution Time: {perf['min_execution_time']:.3f}s")
-            print(f"  Max Execution Time: {perf['max_execution_time']:.3f}s")
-            print(f"  Sub-50ms Compliance: {'✅' if perf['sub_50ms_compliance'] else '❌'}")
-            print(f"  Performance Grade: {perf['performance_grade']}")
+            pass
 
         # Security compliance
-        security = summary.get("security_compliance", {})
-        print("\nSecurity Compliance:")
-        print(f"  Security Tests: {security.get('security_tests_run', 0)}")
-        print(f"  HIPAA Tests: {security.get('hipaa_tests_run', 0)}")
-        print(f"  Security Failures: {security.get('security_failures', 0)}")
-        print(f"  Security Compliance Rate: {security.get('security_compliance_rate', 1.0):.1%}")
-        print(f"  HIPAA Compliance Rate: {security.get('hipaa_compliance_rate', 1.0):.1%}")
-        print(f"  Overall Compliance: {'✅ COMPLIANT' if security.get('overall_compliance', True) else '❌ NON-COMPLIANT'}")
+        summary.get("security_compliance", {})
 
         # Failed tests details
         failed_results = [r for r in summary["results"] if not r["success"]]
         if failed_results:
-            print("\nFailed Test Files:")
             for result in failed_results:
-                print(f"  ❌ {result['name']} (Return Code: {result['return_code']})")
                 if result.get("error_output"):
-                    print(f"     Error: {result['error_output'][:100]}...")
+                    pass
 
-        print("\n" + "="*60)
 
 
 async def run_specific_test(test_name: str, test_directory: str = ".",
@@ -323,13 +298,9 @@ async def run_specific_test(test_name: str, test_directory: str = ".",
 
     result = await runner._run_test_file(test_file)
 
-    print(f"\nTest Results for {test_name}:")
-    print(f"Success: {'✅ PASSED' if result['success'] else '❌ FAILED'}")
-    print(f"Execution Time: {result['execution_time']:.2f}s")
-    print(f"Test Count: {result['test_count']}")
 
     if not result["success"] and result.get("error_output"):
-        print(f"Error: {result['error_output']}")
+        pass
 
     return result
 
@@ -399,7 +370,6 @@ def main():
 
         # Save results if output file specified
         if args.output and isinstance(result, dict):
-            pass
             with open(args.output, "w") as f:
                 json.dump(result, f, indent=2)
             logger.info("Test results saved to: %s", args.output)

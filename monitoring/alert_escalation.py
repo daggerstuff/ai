@@ -927,33 +927,31 @@ def main():
 
     if args.command == "create":
         severity = AlertSeverity(args.severity)
-        alert_id = manager.create_alert(
+        manager.create_alert(
             args.title, args.description, severity, args.source
         )
-        print(f"Created alert: {alert_id}")
 
     elif args.command == "acknowledge":
         success = manager.acknowledge_alert(args.alert_id, args.user)
         if success:
-            print(f"Alert {args.alert_id} acknowledged")
+            pass
         else:
-            print(f"Failed to acknowledge alert {args.alert_id}")
+            pass
 
     elif args.command == "resolve":
         success = manager.resolve_alert(args.alert_id, args.user)
         if success:
-            print(f"Alert {args.alert_id} resolved")
+            pass
         else:
-            print(f"Failed to resolve alert {args.alert_id}")
+            pass
 
     elif args.command == "list":
         alerts = manager.get_active_alerts()
         for alert in alerts:
-            print(json.dumps(alert.to_dict(), indent=2))
+            pass
 
     elif args.command == "stats":
-        stats = manager.get_escalation_statistics()
-        print(json.dumps(stats, indent=2))
+        manager.get_escalation_statistics()
 
 
 if __name__ == "__main__":

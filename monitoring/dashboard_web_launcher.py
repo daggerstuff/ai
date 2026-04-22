@@ -452,26 +452,11 @@ def run_analysis(analysis_type):
 
 def main():
     """Launch the web dashboard"""
-    print("🌐 Starting Web-Based Dashboard Launcher...")
-    print("=" * 50)
 
     # Create web interface
-    template_path = launcher.create_web_interface()
-    print(f"✅ Web interface created: {template_path}")
+    launcher.create_web_interface()
 
-    print("\n🚀 Dashboard Web Launcher Ready!")
-    print("📊 Access your dashboards at: http://localhost:5000")
-    print("🔧 API endpoints available at: http://localhost:5000/api/")
-    print("\n💡 Features Available:")
-    print("  • Executive Dashboard - Strategic KPIs and ROI analysis")
-    print("  • Operational Dashboard - Real-time monitoring and alerts")
-    print("  • Technical Dashboard - Detailed system metrics")
-    print("  • Analytics Systems Status - All 10 systems monitoring")
-    print("  • Quick Actions - One-click analysis and reporting")
-    print("  • Export Capabilities - PDF and data exports")
 
-    print("\n🎯 Starting Flask web server...")
-    print("   Press Ctrl+C to stop the server")
 
     # Start Flask app
     app.run(host="0.0.0.0", port=5000, debug=False)

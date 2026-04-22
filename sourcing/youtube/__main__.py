@@ -69,7 +69,6 @@ def command_test_connection(args) -> int:
     if hasattr(args, "api_key") and args.api_key:
         api_key = args.api_key
 
-    print("Testing YouTube API connection...\n")
 
     success = test_api_connection(api_key)
     return 0 if success else 1
@@ -81,20 +80,13 @@ def command_check_quota(args) -> int:
 
     load_dotenv(".env.youtube.example", override=True)
 
-    has_quota, used, limit = get_api_quota_status()
+    has_quota, _used, _limit = get_api_quota_status()
 
-    print("Quota Status Check:")
-    print(f"  Available: {'Yes' if has_quota else 'No'}")
-    print(f"  Used Today: {used}/{limit} units")
-    print(f"  Remaining: {limit - used} units")
 
     if not has_quota:
-        print("\n⚠️  Recommendations:")
-        print("  - Wait 24h for quota reset")
-        print("  - Increase project quota in Google Cloud Console")
+        pass
     else:
-        print(f"\n  Estimated capacity: ~{(limit - used) // 100} searches")
-        print(f"  Estimated capacity: ~{(limit - used) // 10} channel lookups")
+        pass
 
     return 0
 
@@ -106,46 +98,30 @@ def command_list_registry(args) -> int:
     db_path = args.registry or "channels.db"
 
     if not Path(db_path).exists():
-        print(f"Error: Registry database not found: {db_path}")
         return 1
 
-    print(f"Loading registry from: {db_path}\n")
 
     with ChannelRegistryDB(db_path) as registry:
         channels = registry.get_all_channels()
 
         if not channels:
-            print("No channels found in registry.")
             return 0
 
         stats = registry.get_statistics()
 
-        print("=" * 80)
-        print(f"Channel Registry: {stats['total']:.0f} channels")
-        print("=" * 80)
-        print()
-        print(f"By Status: {stats['total']:.0f} total")
         for status, count in sorted(stats["by_status"].items()):
-            print(f"  {status}: {count}")
-        print()
-        print("Top Languages:")
+            pass
         for lang, count in sorted(stats["by_language"].items(), key=lambda x: -x[1])[
             :10
         ]:
-            print(f"  {lang}: {count}")
-        print()
-        print("Top Categories:")
+            pass
         for cat, count in sorted(stats["by_category"].items(), key=lambda x: -x[1])[
             :10
         ]:
-            print(f"  {cat}: {count}")
-        print()
-        print("=" * 80)
-        print(f"{' #':<4} {'Channel':<40} {'Quality':<8} {'Videos':<8}")
-        print("-" * 80)
+            pass
 
         for i, channel in enumerate(channels[:50]):
-            status_emoji = {
+            {
                 ChannelStatus.ACTIVE: "🟢",
                 ChannelStatus.AT_RISK: "🟡",
                 ChannelStatus.INACTIVE: "🔴",
@@ -157,12 +133,6 @@ def command_list_registry(args) -> int:
             if len(channel.categories) > 3:
                 categories = f"{categories}, ..."
 
-            print(
-                f"{status_emoji} {i + 1:<3} "
-                f"{channel.channel_name:<40} "
-                f"{channel.quality_score:<8.2f} "
-                f"{channel.video_count:<8,}"
-            )
 
         return 0
 
@@ -173,14 +143,10 @@ def command_init_db(args) -> int:
 
     db_path = args.db or "channels.db"
 
-    print(f"Creating channel registry at: {db_path}")
 
     with ChannelRegistryDB(db_path) as registry:
-        stats = registry.get_statistics()
+        registry.get_statistics()
 
-    print("Registry initialized successfully.")
-    print(f"  Total: {stats['total']} channels")
-    print("  Ready for channel imports.")
 
     return 0
 
@@ -194,14 +160,11 @@ def command_import_channels(args) -> int:
     input_path = Path(args.input)
 
     if not input_path.exists():
-        print(f"Error: Input file not found: {input_path}")
         return 1
 
     if not args.registry:
         args.registry = "channels.db"
 
-    print(f"Importing channels from: {input_path}")
-    print(f"Target registry: {args.registry}\n")
 
 
     with open(input_path) as f:
@@ -249,16 +212,13 @@ def command_import_channels(args) -> int:
                     channel.categories = [ContentCategory(c) for c in k]
 
                 # Add to registry
-                row_id = registry.add_channel(channel)
+                registry.add_channel(channel)
                 imported += 1
 
-                print(f"  ✓ {channel.channel_name}: {row_id}")
 
-            except Exception as e:
-                print(f"  ✗ Skipping {data.get('channel_name', 'unknown')}: {e}")
+            except Exception:
                 skipped += 1
 
-        print(f"\nImport complete: {imported} channels, {skipped} skipped")
 
     return 0
 

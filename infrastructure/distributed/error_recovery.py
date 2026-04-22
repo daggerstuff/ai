@@ -5,7 +5,6 @@ Intelligent retry mechanisms with exponential backoff and failure classification
 """
 
 import asyncio
-import json
 import logging
 import random
 from collections.abc import Callable
@@ -13,6 +12,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any
+import contextlib
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -340,30 +340,21 @@ async def example_error_recovery():
         return {"rows": [{"id": 1, "name": "test"}]}
 
     # Test error recovery
-    print("Testing Error Recovery System:")
 
-    try:
-        result = await recovery_manager.execute_with_retry(
+    with contextlib.suppress(Exception):
+        await recovery_manager.execute_with_retry(
             "api_call", unreliable_api_call
         )
-        print(f"✅ API call succeeded: {result}")
-    except Exception as e:
-        print(f"❌ API call failed: {e}")
 
     # Test multiple database queries
     for i in range(5):
-        try:
-            result = await recovery_manager.execute_with_retry(
+        with contextlib.suppress(Exception):
+            await recovery_manager.execute_with_retry(
                 "database_query", unreliable_db_query
             )
-            print(f"✅ DB query {i + 1} succeeded")
-        except Exception as e:
-            print(f"❌ DB query {i + 1} failed: {e}")
 
     # Get statistics
-    stats = recovery_manager.get_error_statistics()
-    print("\nError Recovery Statistics:")
-    print(json.dumps(stats, indent=2))
+    recovery_manager.get_error_statistics()
 
 
 if __name__ == "__main__":
