@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from ai.api.mcp_server import fastmcp_context, fastmcp_tools
+from ai.api.mcp_server import fastmcp_context, fastmcp_tools, fastmcp_shared
 from ai.api.mcp_server.fastmcp_shared import AuthorizedToolContext
 from ai.api.mcp_server.memory_scope import scope_from_kwargs
 from ai.api.memory.null_memory import NullMemoryManager
@@ -28,12 +28,14 @@ fastmcp_app = _load_fastmcp_app_module()
 
 
 def _auth_context() -> str:
-    return json.dumps({
-        "actor_id": "api-server",
-        "timestamp": "1710000000",
-        "nonce": "test-nonce",
-        "signature": "test-signature",
-    })
+    return json.dumps(
+        {
+            "actor_id": "api-server",
+            "timestamp": "1710000000",
+            "nonce": "test-nonce",
+            "signature": "test-signature",
+        }
+    )
 
 
 def _scope_context(*, project_id: str | None = None) -> str:
@@ -64,7 +66,7 @@ def test_memory_store_persists_across_tool_calls_with_fallback_manager(
         lambda **kwargs: _authorized_context(manager, user_id=kwargs["user_id"]),
     )
     monkeypatch.setattr(
-        fastmcp_tools,
+        fastmcp_shared,
         "authorized_tool_context_from_parts",
         lambda **kwargs: _authorized_context(manager, user_id=kwargs["user_id"]),
     )
@@ -75,24 +77,29 @@ def test_memory_store_persists_across_tool_calls_with_fallback_manager(
     )
 
     store_result = asyncio.run(
-        fastmcp_app.memory_store(
-            content="Baseline project checkpoint",
-            user_id="vivi",
-            category="project_context",
-            auth_context=_auth_context(),
+        fastmcp_app.mcp.call_tool(
+            "memory_store",
+            {
+                "content": "Baseline project checkpoint",
+                "user_id": "vivi",
+                "category": "project_context",
+                "auth_context": _auth_context(),
+            },
         )
     )
-    assert "Memory Secured" in store_result
+    assert "Memory Secured" in store_result[0].text
 
     status_result = asyncio.run(
-        fastmcp_app.memory_status(
-            user_id="vivi",
-            auth_context=_auth_context(),
+        fastmcp_app.mcp.call_tool(
+            "memory_status",
+            {
+                "user_id": "vivi",
+                "auth_context": _auth_context(),
+            },
         )
     )
-
-    assert "Total Memories:** 1" in status_result
-    assert "**Health:** Healthy" in status_result
+    assert "Total Memories:** 1" in status_result[0].text
+    assert "**Health:** Healthy" in status_result[0].text
 
 
 def test_memory_query_applies_limit_without_manager_limit_keyword(
@@ -169,12 +176,36 @@ def test_memory_query_refills_candidates_after_scope_filtering(
 
 
 def test_fastmcp_surface_exposes_only_memory_primitives() -> None:
-    assert hasattr(fastmcp_app, "memory_store")
-    assert hasattr(fastmcp_app, "memory_query")
-    assert hasattr(fastmcp_app, "memory_update")
-    assert hasattr(fastmcp_app, "memory_delete")
-    assert hasattr(fastmcp_app, "memory_status")
-    assert not hasattr(fastmcp_app, "memory_analyze")
-    assert not hasattr(fastmcp_app, "memory_sync_workspace")
-    assert not hasattr(fastmcp_app, "get_memory_context")
-    assert not hasattr(fastmcp_app, "session_start")
+    # The fastmcp_app module exposes the MCP server instance, not the tool functions directly
+    # Tool functions are registered on the MCP server and accessed via MCP protocol
+    assert hasattr(fastmcp_app, "mcp")
+    assert str(type(fastmcp_app.mcp)).endswith("FastMCP'>")
+
+    # Verify the expected tools are registered on the MCP server
+    import asyncio
+
+    async def check_tools():
+        tools = await fastmcp_app.mcp.list_tools()
+        tool_names = {tool.name for tool in tools}
+        expected_tools = {
+            "memory_store",
+            "memory_query",
+            "memory_update",
+            "memory_delete",
+            "memory_status",
+        }
+        # Check that we have at least the expected tools (may have others like context tools)
+        assert expected_tools.issubset(tool_names), f"Missing tools: {expected_tools - tool_names}"
+
+        # Also verify we don't have unexpected memory-related tools
+        unexpected_tools = {
+            "memory_analyze",
+            "memory_sync_workspace",
+            "get_memory_context",
+            "session_start",
+        }
+        assert not unexpected_tools.intersection(tool_names), (
+            f"Unexpected tools: {unexpected_tools.intersection(tool_names)}"
+        )
+
+    asyncio.run(check_tools())
