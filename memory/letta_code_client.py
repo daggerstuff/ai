@@ -13,6 +13,7 @@ Migration from Claude Agent SDK:
 - unstable_v2_resumeSession(session_id) → resumeSession(agentId)
 - session.send/stream() remain similar but agent-anchored
 """
+import contextlib
 import json
 import logging
 import os
@@ -28,7 +29,6 @@ from letta import LettaClient as SDKClient
 
 from .letta_crisis_handler import LettaCrisisHandler
 from .letta_pii_middleware import LettaPIIMiddleware
-import contextlib
 
 logger = logging.getLogger("letta_code_client")
 

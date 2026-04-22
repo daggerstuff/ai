@@ -59,19 +59,7 @@ class QualityTrendAnalysisLauncher:
 
         for package in self.required_packages:
             try:
-                if package == "sqlite3":
-                    pass
-                elif package == "pandas":
-                    pass
-                elif package == "numpy":
-                    pass
-                elif package == "scipy":
-                    pass
-                elif package == "sklearn":
-                    pass
-                elif package == "plotly":
-                    pass
-                elif package == "jinja2":
+                if package == "sqlite3" or package == "pandas" or package == "numpy" or package == "scipy" or package == "sklearn" or package == "plotly" or package == "jinja2":
                     pass
 
                 logger.info(f"  ✅ {package}: Available")

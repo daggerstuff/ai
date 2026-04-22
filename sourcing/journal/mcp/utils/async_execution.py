@@ -5,6 +5,7 @@ This module provides async tool execution with operation status tracking,
 cancellation support, and timeout handling.
 """
 import asyncio
+import contextlib
 import inspect
 import logging
 import uuid
@@ -18,7 +19,6 @@ from ai.sourcing.journal.mcp.utils.progress_streaming import (
     ProgressStreamer,
     ProgressUpdate,
 )
-import contextlib
 
 logger = logging.getLogger(__name__)
 

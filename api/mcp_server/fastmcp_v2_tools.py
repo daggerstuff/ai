@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import json
 from enum import StrEnum
-from typing import Optional
 
 from fastmcp import FastMCP
 from pydantic import BaseModel, ConfigDict, Field
@@ -68,15 +67,15 @@ class MemoryStoreInput(BaseModel):
         default="fact",
         description="Category for the memory (e.g., 'fact', 'preference', 'context')",
     )
-    metadata: Optional[str] = Field(
+    metadata: str | None = Field(
         default=None,
         description="Additional metadata as a JSON string",
     )
-    scope_context: Optional[str] = Field(
+    scope_context: str | None = Field(
         default=None,
         description="Scope context as JSON (org_id, project_id, session_id, etc.)",
     )
-    auth_context: Optional[str] = Field(
+    auth_context: str | None = Field(
         default=None,
         description="HMAC authentication context as JSON",
     )
@@ -114,11 +113,11 @@ class MemoryQueryInput(BaseModel):
         description="Number of results to skip for pagination",
         ge=0,
     )
-    scope_context: Optional[str] = Field(
+    scope_context: str | None = Field(
         default=None,
         description="Scope context as JSON",
     )
-    auth_context: Optional[str] = Field(
+    auth_context: str | None = Field(
         default=None,
         description="HMAC authentication context as JSON",
     )
@@ -145,11 +144,11 @@ class MemoryGetInput(BaseModel):
         description="Unique identifier for the user",
         min_length=1,
     )
-    scope_context: Optional[str] = Field(
+    scope_context: str | None = Field(
         default=None,
         description="Scope context as JSON",
     )
-    auth_context: Optional[str] = Field(
+    auth_context: str | None = Field(
         default=None,
         description="HMAC authentication context as JSON",
     )
@@ -182,11 +181,11 @@ class MemoryListInput(BaseModel):
         description="Number of memories to skip for pagination",
         ge=0,
     )
-    scope_context: Optional[str] = Field(
+    scope_context: str | None = Field(
         default=None,
         description="Scope context as JSON",
     )
-    auth_context: Optional[str] = Field(
+    auth_context: str | None = Field(
         default=None,
         description="HMAC authentication context as JSON",
     )
@@ -219,15 +218,15 @@ class MemoryUpdateInput(BaseModel):
         description="Unique identifier for the user",
         min_length=1,
     )
-    metadata: Optional[str] = Field(
+    metadata: str | None = Field(
         default=None,
         description="Updated metadata as JSON string",
     )
-    scope_context: Optional[str] = Field(
+    scope_context: str | None = Field(
         default=None,
         description="Scope context as JSON",
     )
-    auth_context: Optional[str] = Field(
+    auth_context: str | None = Field(
         default=None,
         description="HMAC authentication context as JSON",
     )
@@ -254,11 +253,11 @@ class MemoryDeleteInput(BaseModel):
         description="Unique identifier for the user",
         min_length=1,
     )
-    scope_context: Optional[str] = Field(
+    scope_context: str | None = Field(
         default=None,
         description="Scope context as JSON",
     )
-    auth_context: Optional[str] = Field(
+    auth_context: str | None = Field(
         default=None,
         description="HMAC authentication context as JSON",
     )
@@ -280,11 +279,11 @@ class MemoryStatusInput(BaseModel):
         description="Unique identifier for the user",
         min_length=1,
     )
-    scope_context: Optional[str] = Field(
+    scope_context: str | None = Field(
         default=None,
         description="Scope context as JSON",
     )
-    auth_context: Optional[str] = Field(
+    auth_context: str | None = Field(
         default=None,
         description="HMAC authentication context as JSON",
     )
@@ -298,7 +297,7 @@ class MemoryStatusInput(BaseModel):
 # Helper Functions
 # =============================================================================
 
-def _format_error(message: str, suggestion: Optional[str] = None) -> str:
+def _format_error(message: str, suggestion: str | None = None) -> str:
     """Format error messages with actionable guidance."""
     if suggestion:
         return f"Error: {message}\nSuggestion: {suggestion}"
@@ -561,7 +560,7 @@ async def hindsight_get_memory(params: MemoryGetInput) -> str:
             )
 
         # Get the memory record
-        if not hasattr(context.manager, 'get_memory'):
+        if not hasattr(context.manager, "get_memory"):
             return _format_error(
                 "Memory retrieval not supported by this backend.",
                 "Use hindsight_query_memories or hindsight_list_memories instead."
@@ -594,7 +593,7 @@ async def hindsight_get_memory(params: MemoryGetInput) -> str:
             f"**Category:** {category}",
             f"**Created:** {created}",
             "",
-            f"**Content:**",
+            "**Content:**",
             content,
         ])
 

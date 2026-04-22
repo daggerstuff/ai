@@ -61,21 +61,7 @@ class QualityDistributionAnalysisLauncher:
 
         for package in self.required_packages:
             try:
-                if package == "sqlite3":
-                    pass
-                elif package == "pandas":
-                    pass
-                elif package == "numpy":
-                    pass
-                elif package == "scipy":
-                    pass
-                elif package == "plotly":
-                    pass
-                elif package == "seaborn":
-                    pass
-                elif package == "matplotlib":
-                    pass
-                elif package == "jinja2":
+                if package == "sqlite3" or package == "pandas" or package == "numpy" or package == "scipy" or package == "plotly" or package == "seaborn" or package == "matplotlib" or package == "jinja2":
                     pass
 
                 logger.info(f"  ✅ {package}: Available")

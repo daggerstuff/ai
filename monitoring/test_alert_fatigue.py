@@ -5,6 +5,7 @@ Tests various scenarios including duplicate detection, intelligent grouping, and
 """
 
 import asyncio
+import contextlib
 import logging
 import os
 import random
@@ -17,7 +18,6 @@ from alert_fatigue_prevention import (
     FatigueRule,
 )
 from intelligent_grouping import IntelligentGroupingEngine
-import contextlib
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -650,9 +650,7 @@ class AlertFatigueTestSuite:
         # Overall result
         success_rate = len(passed_tests) / len(self.test_results) * 100
 
-        if success_rate == 100:
-            pass
-        elif success_rate >= 80:
+        if success_rate == 100 or success_rate >= 80:
             pass
         else:
             pass

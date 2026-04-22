@@ -2,6 +2,7 @@
 Integration tests for health check and graceful shutdown functionality.
 Tests that health checks work correctly and shutdown is graceful.
 """
+import contextlib
 import json
 import logging
 import threading
@@ -24,7 +25,6 @@ from ai.monitoring.health_check import (
     health_manager,
     integrate_health_checks_with_fastapi,
 )
-import contextlib
 
 logger = logging.getLogger(__name__)
 

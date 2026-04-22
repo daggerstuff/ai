@@ -10,8 +10,9 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent))
 
 
-from intelligent_prompt_agent import MultiPatternAgent
 import contextlib
+
+from intelligent_prompt_agent import MultiPatternAgent
 
 
 def test_interview_extraction():

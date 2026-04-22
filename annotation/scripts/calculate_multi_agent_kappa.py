@@ -206,11 +206,7 @@ def print_metrics_report(metrics: dict):
 
         # Interpret Kappa
         avg_kappa = scores["average_kappa"]
-        if avg_kappa >= 0.85:
-            pass
-        elif avg_kappa >= 0.70:
-            pass
-        elif avg_kappa >= 0.50:
+        if avg_kappa >= 0.85 or avg_kappa >= 0.70 or avg_kappa >= 0.50:
             pass
         else:
             pass

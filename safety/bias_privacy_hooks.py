@@ -1,5 +1,5 @@
-from typing import Any
 import contextlib
+from typing import Any
 
 
 def detect_bias(text: str, bias_engine: Any) -> dict[str, float]:

@@ -3,6 +3,7 @@ Model explainability system for Pixelated Empathy AI project.
 Provides interpretability tools for debugging, auditing, and understanding model decisions.
 """
 
+import contextlib
 import hashlib
 import logging
 import time
@@ -16,7 +17,6 @@ import shap
 import torch
 from lime import lime_text
 from transformers import AutoTokenizer
-import contextlib
 
 logger = logging.getLogger(__name__)
 

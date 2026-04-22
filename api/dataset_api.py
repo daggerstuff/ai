@@ -2,7 +2,7 @@ import logging
 import os
 import re
 import sqlite3
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request, Security, status
 from pydantic import BaseModel
@@ -58,21 +58,21 @@ def get_db_connection():
 class DatasetMetadata(BaseModel):
     id: str
     name: str
-    description: Optional[str] = None
+    description: str | None = None
     row_count: int
-    columns: List[Dict[str, Any]]  # Changed to list of dicts for more detail
+    columns: list[dict[str, Any]]  # Changed to list of dicts for more detail
     created_at: str = "N/A"
     updated_at: str = "N/A"
 
 
 class QueryResult(BaseModel):
-    data: List[Dict[str, Any]]
+    data: list[dict[str, Any]]
     total_rows: int
     page: int
     page_size: int
 
 
-async def get_api_key_user(api_key: str = Security(api_key_header)) -> Dict[str, Any]:
+async def get_api_key_user(api_key: str = Security(api_key_header)) -> dict[str, Any]:
     """Dedicated API key authentication dependency"""
     if not api_key:
         raise HTTPException(
@@ -94,7 +94,7 @@ async def get_api_key_user(api_key: str = Security(api_key_header)) -> Dict[str,
 
 
 async def get_current_active_user_or_api_key(
-    request: Request, api_key: Optional[str] = Depends(api_key_header)
+    request: Request, api_key: str | None = Depends(api_key_header)
 ):
     """Modified authentication function that supports both user tokens and API keys"""
     # First try to get authenticated user from request state (JWT token auth)
@@ -131,7 +131,7 @@ async def get_current_active_user_or_api_key(
     )
 
 
-@app.get("/datasets", response_model=List[DatasetMetadata])
+@app.get("/datasets", response_model=list[DatasetMetadata])
 async def list_datasets(
     current_auth_entity: Any = Depends(get_current_active_user_or_api_key),
 ):
@@ -252,7 +252,7 @@ async def query_dataset(
     dataset_id: str,
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(100, ge=1, le=1000, description="Number of items per page"),
-    filters: Optional[Dict[str, Any]] = None,  # Example: {"column_name": "value"}
+    filters: dict[str, Any] | None = None,  # Example: {"column_name": "value"}
     current_auth_entity: Any = Depends(get_current_active_user_or_api_key),
 ):
     """
