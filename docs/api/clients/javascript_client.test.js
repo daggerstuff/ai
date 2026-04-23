@@ -33,6 +33,30 @@ describe('PixelatedEmpathyAPI healthCheck', () => {
     });
 });
 
+describe('PixelatedEmpathyAPI Method listDatasets', () => {
+    it('should return datasets array when present in response', async () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+
+        api._makeRequest = async (method, endpoint) => {
+            return { data: { datasets: [{ name: 'dataset1' }, { name: 'dataset2' }] } };
+        };
+
+        const datasets = await api.listDatasets();
+        expect(datasets).toEqual([{ name: 'dataset1' }, { name: 'dataset2' }]);
+    });
+
+    it('should return an empty array when datasets is missing from response', async () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+
+        api._makeRequest = async (method, endpoint) => {
+            return { data: {} };
+        };
+
+        const datasets = await api.listDatasets();
+        expect(datasets).toEqual([]);
+    });
+});
+
 describe('PixelatedEmpathyAPI Rate Limiting', () => {
     it('should retry after 429 error and succeed', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
