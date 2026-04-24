@@ -14,6 +14,7 @@ on:
       - 'inference/api/**'
 
 env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   SWAGGERHUB_API_KEY: ${{ secrets.SWAGGERHUB_API_KEY }}
   SWAGGERHUB_ORG: pixelated-empathy-ai
 
