@@ -256,6 +256,56 @@ describe('PixelatedEmpathyAPI Method exportData', () => {
     });
 });
 
+describe('PixelatedEmpathyAPI Method searchConversations', () => {
+    it('should correctly pass query and default options to _makeRequest', async () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+
+        let calledEndpoint = '';
+        let calledOptions = {};
+
+        api._makeRequest = async (method, endpoint, options) => {
+            calledEndpoint = endpoint;
+            calledOptions = options;
+            return { data: { results: ['conversation1'] } };
+        };
+
+        const result = await api.searchConversations('anxiety');
+
+        expect(calledEndpoint).toBe('/search');
+        expect(calledOptions.data).toEqual({
+            query: 'anxiety',
+            filters: {},
+            limit: 100,
+            offset: 0
+        });
+        expect(result).toEqual({ results: ['conversation1'] });
+    });
+
+    it('should correctly merge provided options', async () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+
+        let calledOptions = {};
+
+        api._makeRequest = async (method, endpoint, options) => {
+            calledOptions = options;
+            return { data: { results: [] } };
+        };
+
+        await api.searchConversations('depression', {
+            filters: { tier: 'professional' },
+            limit: 10,
+            offset: 20
+        });
+
+        expect(calledOptions.data).toEqual({
+            query: 'depression',
+            filters: { tier: 'professional' },
+            limit: 10,
+            offset: 20
+        });
+    });
+});
+
 describe('PixelatedEmpathyAPI Method healthCheck', () => {
     it('should return true on successful request', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
