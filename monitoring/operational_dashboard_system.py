@@ -418,22 +418,22 @@ class OperationalDashboardSystem:
         )
         axes[2, 2].set_title("Recent Activity Log", fontweight="bold")
 
-    plt.tight_layout()
+        plt.tight_layout()
 
-    # Save operational dashboard
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-    ops_dashboard_path = (
-        f"{self.dashboard_dir}/operational/operational_dashboard_{timestamp}.png"
-    )
-    plt.savefig(ops_dashboard_path, dpi=300, bbox_inches="tight")
-    plt.close()
+        # Save operational dashboard
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        ops_dashboard_path = (
+            f"{self.dashboard_dir}/operational/operational_dashboard_{timestamp}.png"
+        )
+        plt.savefig(ops_dashboard_path, dpi=300, bbox_inches="tight")
+        plt.close()
 
-    return {
-        "dashboard_created": True,
-        "dashboard_path": ops_dashboard_path,
-        "metrics_monitored": len(ops_metrics),
-        "last_updated": datetime.now(timezone.utc).isoformat(),
-    }
+        return {
+            "dashboard_created": True,
+            "dashboard_path": ops_dashboard_path,
+            "metrics_monitored": len(ops_metrics),
+            "last_updated": datetime.now(timezone.utc).isoformat(),
+        }
 
     def _create_technical_dashboard(self) -> dict[str, Any]:  # noqa: C901
         """Create technical dashboard for detailed system monitoring"""
