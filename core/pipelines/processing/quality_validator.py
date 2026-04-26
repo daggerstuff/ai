@@ -1,7 +1,18 @@
-# Stub for ai.core.pipelines/processing/quality_validator.py
-# TODO: Implement actual functionality
+"""Processing quality validator compatibility shim with production defaults."""
 
-class QualityValidator:
-    """Stub implementation for QualityValidator."""
+from __future__ import annotations
 
-__all__ = ["QualityValidator"]
+from typing import Any
+
+from ..quality.quality_validator import QualityResult, QualityValidator as _CoreQualityValidator
+
+
+class QualityValidator(_CoreQualityValidator):
+    """Adapter around the canonical :mod:`ai.core.pipelines.quality.quality_validator`."""
+
+    def __init__(self, config: dict[str, Any] | None = None) -> None:
+        # Keep compatibility with legacy constructor style that accepted no arguments.
+        super().__init__(config=config)
+
+
+__all__ = ["QualityValidator", "QualityResult"]

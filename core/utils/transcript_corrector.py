@@ -1,5 +1,4 @@
-# Stub for ai.core.utils.transcript_corrector
-# Generated for test compatibility
+"""Transcript text correction helpers for clinical transcript cleanup."""
 
 import json
 import re
@@ -8,18 +7,18 @@ from typing import Any
 
 
 class TranscriptCorrector:
-    """Stub implementation for TranscriptCorrector."""
+    """Simple transcript normalization utility."""
 
-    def __init__(self, config_path: str = None):
+    def __init__(self, config_path: str | None = None, *, default_terms: dict[str, Any] | None = None):
         """Initialize transcript corrector with config file."""
         self.config_path = config_path
-        self.terms = self._load_terms(config_path)
+        self.terms = default_terms or self._load_terms(config_path)
 
     def _load_terms(self, config_path: str) -> dict[str, Any]:
         """Load terms from config file."""
         if config_path and Path(config_path).exists():
             try:
-                with open(config_path) as f:
+                with open(config_path, encoding="utf-8") as f:
                     data = json.load(f)
                     if isinstance(data, dict):
                         return data
@@ -38,12 +37,18 @@ class TranscriptCorrector:
 
     def _clean_structure(self, text: str) -> str:
         """Clean filler words and structure from text."""
-        return re.sub(r"\b(Um|um|Uh|uh|Like|like),?\s*", "", text)
+        # Keep removal lightweight and conservative to avoid over-editing.
+        return re.sub(
+            r"\b(um|uh|like),?\s*",
+            "",
+            text,
+            flags=re.IGNORECASE,
+        )
 
     def _apply_terminology_fixes(self, text: str) -> str:
         """Apply terminology corrections."""
         for wrong, correct in self.terms.get("common_misinterpretations", {}).items():
-            text = re.sub(re.escape(wrong), correct, text, flags=re.IGNORECASE)
+            text = re.sub(re.escape(str(wrong)), str(correct), text, flags=re.IGNORECASE)
 
         if "complex ptsd" in text.lower():
             text = re.sub(r"complex ptsd", "C-PTSD", text, flags=re.IGNORECASE)
@@ -52,8 +57,11 @@ class TranscriptCorrector:
 
     def correct_transcript(self, text: str, _context: str = "") -> str:
         """Correct transcript text."""
+        if not text:
+            return ""
         result = self._clean_structure(text)
-        return self._apply_terminology_fixes(result)
+        result = self._apply_terminology_fixes(result)
+        return " ".join(result.split())
 
     def validate_term_coverage(self, text: str) -> dict[str, Any]:
         """Validate term coverage in text."""
