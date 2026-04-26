@@ -1,7 +1,7 @@
 """
 MCP Memory Integration Server.
 
-Provides MCP-compatible memory operations and Hindsight-compatible local routes.
+Provides MCP-compatible memory operations and Foresight-compatible local routes.
 """
 
 import logging
@@ -13,7 +13,7 @@ from fastapi import FastAPI
 from ai.api.mcp_server.memory_auth import validate_memory_auth_configuration
 from ai.api.mcp_server.routes import (
     create_health_router,
-    create_hindsight_router,
+    create_foresight_router,
     create_legacy_router,
     create_mcp_router,
 )
@@ -35,7 +35,7 @@ def create_memory_server() -> FastAPI:
 
     app = FastAPI(
         title="Pixelated Memory Server",
-        description="Memory management with shared local Hindsight compatibility",
+        description="Memory management with shared local Foresight compatibility",
         version="2.0.0",
         lifespan=lifespan,
     )
@@ -44,7 +44,7 @@ def create_memory_server() -> FastAPI:
         return getattr(app.state, "memory_manager", None)
 
     app.include_router(create_mcp_router(get_mcp_manager))
-    app.include_router(create_hindsight_router(get_mcp_manager))
+    app.include_router(create_foresight_router(get_mcp_manager))
     app.include_router(create_legacy_router(get_mcp_manager))
     app.include_router(create_health_router(get_mcp_manager))
 

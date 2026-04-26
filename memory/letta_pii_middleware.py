@@ -1,8 +1,8 @@
 """
-Letta PII Middleware - Wraps Letta tool execution with Hindsight PII filtering.
+Letta PII Middleware - Wraps Letta tool execution with Foresight PII filtering.
 
 This middleware intercepts all tool calls in Letta and filters content
-through Hindsight's PII detection before storage.
+through Foresight's PII detection before storage.
 """
 
 import json
@@ -39,14 +39,14 @@ class PIIBlockedException(Exception):
 
 
 class LettaPIIMiddleware:
-    """Middleware that filters Letta tool calls through Hindsight's PII detection."""
+    """Middleware that filters Letta tool calls through Foresight's PII detection."""
 
     def __init__(self, pii_filter: Any, config: dict[str, Any] | None = None):
         """
-        Initialize middleware with Hindsight's PII filter.
+        Initialize middleware with Foresight's PII filter.
 
         Args:
-            pii_filter: Hindsight's PIIFilter instance
+            pii_filter: Foresight's PIIFilter instance
             config: Optional configuration dict
         """
         self.pii_filter = pii_filter
@@ -71,7 +71,7 @@ class LettaPIIMiddleware:
         # Convert input to string for filtering
         content = self._serialize_input(tool_input)
 
-        # Run through Hindsight's PII filter
+        # Run through Foresight's PII filter
         try:
             filtered = self.pii_filter.filter_for_storage(content)
         except Exception as e:

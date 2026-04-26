@@ -1,5 +1,5 @@
 """
-Letta Crisis Handler - Integrates Hindsight's crisis detection with Letta.
+Letta Crisis Handler - Integrates Foresight's crisis detection with Letta.
 
 This handler intercepts Letta operations and applies crisis detection,
 routing crisis content appropriately and blocking dangerous operations.
@@ -39,10 +39,10 @@ class LettaCrisisHandler:
         config: dict[str, Any] | None = None
     ):
         """
-        Initialize crisis handler with Hindsight's crisis detector.
+        Initialize crisis handler with Foresight's crisis detector.
 
         Args:
-            crisis_detector: Hindsight's CrisisDetector instance
+            crisis_detector: Foresight's CrisisDetector instance
             config: Optional configuration dict
         """
         self.crisis_detector = crisis_detector
@@ -59,7 +59,7 @@ class LettaCrisisHandler:
         Returns:
             CrisisResult with severity and recommended actions
         """
-        # Use Hindsight's crisis detector
+        # Use Foresight's crisis detector
         try:
             severity_str = self.crisis_detector.get_severity(message)
         except Exception as e:
@@ -153,7 +153,7 @@ class LettaCrisisHandler:
         user_id: str,
         session_id: str | None = None
     ) -> None:
-        """Log crisis event to Hindsight."""
+        """Log crisis event to Foresight."""
         try:
             logger.info(
                 f"Crisis detected for user {user_id} session {session_id}: "
@@ -192,7 +192,7 @@ class LettaCrisisHandler:
         logger.info(
             f"Routing crisis resources for user {user_id}: {result.indicators}"
         )
-        # TODO: Implement resource routing based on Hindsight's crisis resources
+        # TODO: Implement resource routing based on Foresight's crisis resources
 
     def _extract_indicators(self, message: str) -> list[str]:
         """Extract crisis indicators from message."""

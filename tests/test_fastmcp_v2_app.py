@@ -1,5 +1,5 @@
 """
-Tests for the improved Hindsight MCP server v2 tools.
+Tests for the improved Foresight MCP server v2 tools.
 
 These tests verify:
 - Proper tool annotations
@@ -23,13 +23,13 @@ from ai.api.mcp_server.fastmcp_v2_tools import (
     MemoryStoreInput,
     ResponseFormat,
     _format_error,
-    hindsight_delete_memory,
-    hindsight_get_memory,
-    hindsight_list_memories,
-    hindsight_memory_status,
-    hindsight_query_memories,
-    hindsight_store_memory,
-    hindsight_update_memory,
+    foresight_delete_memory,
+    foresight_get_memory,
+    foresight_list_memories,
+    foresight_memory_status,
+    foresight_query_memories,
+    foresight_store_memory,
+    foresight_update_memory,
     register_memory_tools_v2,
 )
 from ai.api.mcp_server.memory_scope import scope_from_kwargs
@@ -146,7 +146,7 @@ class TestOutputFormats:
             response_format=ResponseFormat.JSON,
         )
 
-        result = await hindsight_store_memory(params)
+        result = await foresight_store_memory(params)
 
         # Parse as JSON to verify structure
         data = json.loads(result)
@@ -184,7 +184,7 @@ class TestOutputFormats:
             response_format=ResponseFormat.JSON,
         )
 
-        result = await hindsight_query_memories(params)
+        result = await foresight_query_memories(params)
 
         data = json.loads(result)
         assert "user_id" in data
@@ -218,7 +218,7 @@ class TestOutputFormats:
             response_format=ResponseFormat.MARKDOWN,
         )
 
-        result = await hindsight_list_memories(params)
+        result = await foresight_list_memories(params)
 
         assert "### Memory List" in result
         assert "test-user" in result
@@ -272,7 +272,7 @@ class TestErrorMessages:
             response_format=ResponseFormat.MARKDOWN,
         )
 
-        result = await hindsight_get_memory(params)
+        result = await foresight_get_memory(params)
 
         assert "Error:" in result
         assert "not found" in result
@@ -312,7 +312,7 @@ class TestPagination:
             response_format=ResponseFormat.JSON,
         )
 
-        result = await hindsight_list_memories(params)
+        result = await foresight_list_memories(params)
 
         data = json.loads(result)
         assert data["offset"] == 2
@@ -345,7 +345,7 @@ class TestPagination:
             response_format=ResponseFormat.JSON,
         )
 
-        result = await hindsight_query_memories(params)
+        result = await foresight_query_memories(params)
 
         data = json.loads(result)
         if data["has_more"]:
@@ -370,22 +370,22 @@ class TestToolRegistration:
         assert True
 
     def test_tool_names_have_service_prefix(self):
-        """Tool names should start with hindsight_."""
+        """Tool names should start with foresight_."""
         # Get all functions registered as tools from the module
         funcs = [
-            hindsight_store_memory,
-            hindsight_query_memories,
-            hindsight_get_memory,
-            hindsight_list_memories,
-            hindsight_update_memory,
-            hindsight_delete_memory,
-            hindsight_memory_status,
+            foresight_store_memory,
+            foresight_query_memories,
+            foresight_get_memory,
+            foresight_list_memories,
+            foresight_update_memory,
+            foresight_delete_memory,
+            foresight_memory_status,
         ]
 
         for func in funcs:
-            # Function names should start with hindsight_
-            assert func.__name__.startswith("hindsight_"), \
-                f"Tool {func.__name__} should have hindsight_ prefix"
+            # Function names should start with foresight_
+            assert func.__name__.startswith("foresight_"), \
+                f"Tool {func.__name__} should have foresight_ prefix"
 
 
 # =============================================================================
@@ -425,7 +425,7 @@ class TestIntegration:
             category="fact",
             response_format=ResponseFormat.JSON,
         )
-        create_result = await hindsight_store_memory(store_params)
+        create_result = await foresight_store_memory(store_params)
         create_data = json.loads(create_result)
         assert create_data["success"] is True
 
@@ -435,7 +435,7 @@ class TestIntegration:
             user_id="test-user",
             response_format=ResponseFormat.JSON,
         )
-        query_result = await hindsight_query_memories(query_params)
+        query_result = await foresight_query_memories(query_params)
         query_data = json.loads(query_result)
         assert len(query_data["memories"]) >= 1
 
@@ -444,7 +444,7 @@ class TestIntegration:
             user_id="test-user",
             response_format=ResponseFormat.JSON,
         )
-        list_result = await hindsight_list_memories(list_params)
+        list_result = await foresight_list_memories(list_params)
         list_data = json.loads(list_result)
         assert list_data["total"] >= 1
 
@@ -470,7 +470,7 @@ class TestIntegration:
                 user_id="test-user",
                 response_format=ResponseFormat.JSON,
             )
-            return await hindsight_store_memory(params)
+            return await foresight_store_memory(params)
 
         results = await asyncio.gather(*[store_one(i) for i in range(5)])
 
@@ -484,6 +484,6 @@ class TestIntegration:
             user_id="test-user",
             response_format=ResponseFormat.JSON,
         )
-        list_result = await hindsight_list_memories(list_params)
+        list_result = await foresight_list_memories(list_params)
         list_data = json.loads(list_result)
         assert list_data["total"] >= 5

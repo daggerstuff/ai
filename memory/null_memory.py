@@ -18,7 +18,7 @@ class NullMemoryManager(BaseMemoryManager):
     """
     In-memory implementation of Memory Manager.
 
-    Implements the interface required by MemoryServer and HindsightMemoryManager
+    Implements the interface required by MemoryServer and ForesightMemoryManager
     with actual in-memory storage using dictionaries.
     """
 
@@ -124,7 +124,7 @@ class NullMemoryManager(BaseMemoryManager):
                 return True
         return False
 
-    # --- High Level Interface matches HindsightMemoryManager ---
+    # --- High Level Interface matches ForesightMemoryManager ---
 
     def add_memory(
         self,

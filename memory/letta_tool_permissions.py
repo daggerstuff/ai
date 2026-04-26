@@ -2,7 +2,7 @@
 Letta Tool Permission System - Crisis-aware tool execution.
 
 This module implements fine-grained tool permissions for Letta agents,
-integrating with Hindsight's crisis detection and PII filtering.
+integrating with Foresight's crisis detection and PII filtering.
 
 Permission levels:
 - read-only: Only read operations (Read, Grep, Glob, web_search)
@@ -66,7 +66,7 @@ class LettaToolRegistry:
     Registry of available tools with their permission configurations.
 
     This registry implements Letta's canUseTool handler pattern,
-    integrating with Hindsight's crisis detection system.
+    integrating with Foresight's crisis detection system.
     """
 
     def __init__(self, permission_level: PermissionLevel = PermissionLevel.THERAPEUTIC):
@@ -314,7 +314,7 @@ class LettaPermissionHandler:
         """
         Check if a tool can be used.
 
-        This implements Letta's canUseTool handler with Hindsight integration.
+        This implements Letta's canUseTool handler with Foresight integration.
 
         Args:
             tool_name: Name of tool to use
