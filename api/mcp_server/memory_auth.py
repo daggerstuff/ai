@@ -270,7 +270,7 @@ def readiness_details() -> dict[str, object]:
         "actor_policy_mode": "scoped" if actor_policies else "invalid",
         "actor_policies_configured": bool(actor_policies),
         "actor_policies_valid": policy_error is None,
-        "hindsight_bearer_compat_enabled": _env_flag(
+        "foresight_bearer_compat_enabled": _env_flag(
             "HINDSIGHT_COMPAT_ENABLE_BEARER", False
         ),
         "configuration_error": policy_error,
@@ -402,7 +402,7 @@ def _authorize_bearer_compat(
 
     return MemoryAccessContext(
         actor_id=compat_actor_id,
-        auth_mode="hindsight_bearer_compat",
+        auth_mode="foresight_bearer_compat",
         actor_type="compat_cli",
         policy=policy,
         effective_user_id=resolved_user_id,
@@ -514,7 +514,7 @@ def resolve_authorized_user_id(
     user_id: str | None,
 ) -> str:
     resolved_user_id = (user_id or "").strip() or access.effective_user_id or ""
-    if not resolved_user_id and access.auth_mode == "hindsight_bearer_compat":
+    if not resolved_user_id and access.auth_mode == "foresight_bearer_compat":
         resolved_user_id = _default_compat_user_id()
     resolved_user_id = required_user_id(resolved_user_id)
     return access.assert_user_scope(resolved_user_id)

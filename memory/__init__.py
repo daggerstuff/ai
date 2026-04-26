@@ -8,9 +8,9 @@ from typing import TYPE_CHECKING, Dict, Tuple
 
 if TYPE_CHECKING:
     from ai.memory.base import BaseMemoryManager
-    from ai.memory.local_hindsight_manager import LocalHindsightMemoryManager
-    from ai.memory.local_hindsight_repository import LocalHindsightRepository
-    from ai.memory.local_hindsight_schema import LocalHindsightSchemaManager
+    from ai.memory.local_foresight_manager import LocalForesightMemoryManager
+    from ai.memory.local_foresight_repository import LocalForesightRepository
+    from ai.memory.local_foresight_schema import LocalForesightSchemaManager
     from ai.memory.manager_factory import (
         MemoryManagerFactory,
         get_required_memory_manager,
@@ -21,13 +21,13 @@ _EXPORTS: dict[str, tuple[str, str]] = {
         "ai.memory.base",
         "BaseMemoryManager",
     ),
-    "LocalHindsightMemoryManager": (
-        "ai.memory.local_hindsight_manager",
-        "LocalHindsightMemoryManager",
+    "LocalForesightMemoryManager": (
+        "ai.memory.local_foresight_manager",
+        "LocalForesightMemoryManager",
     ),
-    "LocalHindsightRepository": (
-        "ai.memory.local_hindsight_repository",
-        "LocalHindsightRepository",
+    "LocalForesightRepository": (
+        "ai.memory.local_foresight_repository",
+        "LocalForesightRepository",
     ),
     "MemoryManagerFactory": (
         "ai.memory.manager_factory",
@@ -37,17 +37,17 @@ _EXPORTS: dict[str, tuple[str, str]] = {
         "ai.memory.manager_factory",
         "get_required_memory_manager",
     ),
-    "LocalHindsightSchemaManager": (
-        "ai.memory.local_hindsight_schema",
-        "LocalHindsightSchemaManager",
+    "LocalForesightSchemaManager": (
+        "ai.memory.local_foresight_schema",
+        "LocalForesightSchemaManager",
     ),
 }
 
 __all__ = [
     "BaseMemoryManager",
-    "LocalHindsightMemoryManager",
-    "LocalHindsightRepository",
-    "LocalHindsightSchemaManager",
+    "LocalForesightMemoryManager",
+    "LocalForesightRepository",
+    "LocalForesightSchemaManager",
     "MemoryManagerFactory",
     "get_required_memory_manager",
 ]

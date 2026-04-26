@@ -1,5 +1,5 @@
 """
-Improved Hindsight MCP server tools following MCP best practices.
+Improved Foresight MCP server tools following MCP best practices.
 
 This module provides memory management tools with:
 - Proper tool annotations (readOnlyHint, destructiveHint, etc.)
@@ -366,7 +366,7 @@ def _format_memory_results_markdown(
 # Tool Definitions
 # =============================================================================
 
-async def hindsight_store_memory(params: MemoryStoreInput) -> str:
+async def foresight_store_memory(params: MemoryStoreInput) -> str:
     """Store a significant fact, preference, or insight in long-term memory.
 
     This tool persists information to the user's memory bank, making it available
@@ -393,7 +393,7 @@ async def hindsight_store_memory(params: MemoryStoreInput) -> str:
     """
     metadata_dict = parse_metadata(params.metadata)
     context = authorized_tool_context_from_json(
-        tool_name="hindsight_store_memory",
+        tool_name="foresight_store_memory",
         user_id=params.user_id,
         auth_context=params.auth_context,
         scope_context=params.scope_context,
@@ -443,7 +443,7 @@ async def hindsight_store_memory(params: MemoryStoreInput) -> str:
         )
 
 
-async def hindsight_query_memories(params: MemoryQueryInput) -> str:
+async def foresight_query_memories(params: MemoryQueryInput) -> str:
     """Search long-term memory for relevant information using semantic search.
 
     This tool performs semantic search across stored memories, returning results
@@ -469,7 +469,7 @@ async def hindsight_query_memories(params: MemoryQueryInput) -> str:
         - Scoped search: query="API endpoint", scope_context='{"project_id": "myapp"}'
     """
     context = authorized_tool_context_from_json(
-        tool_name="hindsight_query_memories",
+        tool_name="foresight_query_memories",
         user_id=params.user_id,
         auth_context=params.auth_context,
         scope_context=params.scope_context,
@@ -516,7 +516,7 @@ async def hindsight_query_memories(params: MemoryQueryInput) -> str:
         )
 
 
-async def hindsight_get_memory(params: MemoryGetInput) -> str:
+async def foresight_get_memory(params: MemoryGetInput) -> str:
     """Retrieve a single memory entry by its unique identifier.
 
     This tool fetches the complete content and metadata of a specific memory
@@ -537,7 +537,7 @@ async def hindsight_get_memory(params: MemoryGetInput) -> str:
         - Get by ID: memory_id="mem-abc123", user_id="vivi"
     """
     context = authorized_tool_context_from_json(
-        tool_name="hindsight_get_memory",
+        tool_name="foresight_get_memory",
         user_id=params.user_id,
         auth_context=params.auth_context,
         scope_context=params.scope_context,
@@ -563,7 +563,7 @@ async def hindsight_get_memory(params: MemoryGetInput) -> str:
         if not hasattr(context.manager, "get_memory"):
             return _format_error(
                 "Memory retrieval not supported by this backend.",
-                "Use hindsight_query_memories or hindsight_list_memories instead."
+                "Use foresight_query_memories or foresight_list_memories instead."
             )
 
         record = context.manager.get_memory(params.memory_id)
@@ -604,7 +604,7 @@ async def hindsight_get_memory(params: MemoryGetInput) -> str:
         )
 
 
-async def hindsight_list_memories(params: MemoryListInput) -> str:
+async def foresight_list_memories(params: MemoryListInput) -> str:
     """List all memories for a user with pagination support.
 
     This tool retrieves a paginated list of all memories, optionally filtered
@@ -629,7 +629,7 @@ async def hindsight_list_memories(params: MemoryListInput) -> str:
         - Scoped list: scope_context='{"project_id": "myapp"}'
     """
     context = authorized_tool_context_from_json(
-        tool_name="hindsight_list_memories",
+        tool_name="foresight_list_memories",
         user_id=params.user_id,
         auth_context=params.auth_context,
         scope_context=params.scope_context,
@@ -702,7 +702,7 @@ async def hindsight_list_memories(params: MemoryListInput) -> str:
         )
 
 
-async def hindsight_update_memory(params: MemoryUpdateInput) -> str:
+async def foresight_update_memory(params: MemoryUpdateInput) -> str:
     """Update the content of an existing memory entry.
 
     This tool modifies a stored memory's content while preserving its identity
@@ -727,7 +727,7 @@ async def hindsight_update_memory(params: MemoryUpdateInput) -> str:
     """
     metadata_dict = parse_metadata(params.metadata)
     context = authorized_tool_context_from_json(
-        tool_name="hindsight_update_memory",
+        tool_name="foresight_update_memory",
         user_id=params.user_id,
         auth_context=params.auth_context,
         scope_context=params.scope_context,
@@ -784,7 +784,7 @@ async def hindsight_update_memory(params: MemoryUpdateInput) -> str:
         )
 
 
-async def hindsight_delete_memory(params: MemoryDeleteInput) -> str:
+async def foresight_delete_memory(params: MemoryDeleteInput) -> str:
     """Permanently remove a memory entry from storage.
 
     This tool irreversibly deletes a memory. Use with caution as deleted
@@ -807,7 +807,7 @@ async def hindsight_delete_memory(params: MemoryDeleteInput) -> str:
         - Remove incorrect: memory_id="mem-456", user_id="vivi"
     """
     context = authorized_tool_context_from_json(
-        tool_name="hindsight_delete_memory",
+        tool_name="foresight_delete_memory",
         user_id=params.user_id,
         auth_context=params.auth_context,
         scope_context=params.scope_context,
@@ -856,7 +856,7 @@ async def hindsight_delete_memory(params: MemoryDeleteInput) -> str:
         )
 
 
-async def hindsight_memory_status(params: MemoryStatusInput) -> str:
+async def foresight_memory_status(params: MemoryStatusInput) -> str:
     """Get statistics and health information for the user's memory bank.
 
     This tool provides an overview of stored memories including counts by
@@ -890,7 +890,7 @@ async def hindsight_memory_status(params: MemoryStatusInput) -> str:
             )
     else:
         context = authorized_tool_context_from_json(
-            tool_name="hindsight_memory_status",
+            tool_name="foresight_memory_status",
             user_id=params.user_id,
             auth_context=params.auth_context,
             scope_context=params.scope_context,
@@ -945,17 +945,17 @@ async def hindsight_memory_status(params: MemoryStatusInput) -> str:
 # =============================================================================
 
 def register_memory_tools_v2(mcp: FastMCP) -> None:
-    """Register all improved Hindsight memory tools with the MCP server.
+    """Register all improved Foresight memory tools with the MCP server.
 
     This function registers tools following MCP best practices:
-    - Service-prefixed names (hindsight_*)
+    - Service-prefixed names (foresight_*)
     - Proper tool annotations
     - Pydantic input validation
     - Structured output support
     """
     # Store - creates new memories
     mcp.tool(
-        name="hindsight_store_memory",
+        name="foresight_store_memory",
         annotations={
             "title": "Store Memory",
             "readOnlyHint": False,
@@ -963,11 +963,11 @@ def register_memory_tools_v2(mcp: FastMCP) -> None:
             "idempotentHint": False,
             "openWorldHint": False,
         },
-    )(hindsight_store_memory)
+    )(foresight_store_memory)
 
     # Query - search memories
     mcp.tool(
-        name="hindsight_query_memories",
+        name="foresight_query_memories",
         annotations={
             "title": "Query Memories",
             "readOnlyHint": True,
@@ -975,11 +975,11 @@ def register_memory_tools_v2(mcp: FastMCP) -> None:
             "idempotentHint": True,
             "openWorldHint": False,
         },
-    )(hindsight_query_memories)
+    )(foresight_query_memories)
 
     # Get - retrieve single memory
     mcp.tool(
-        name="hindsight_get_memory",
+        name="foresight_get_memory",
         annotations={
             "title": "Get Memory",
             "readOnlyHint": True,
@@ -987,11 +987,11 @@ def register_memory_tools_v2(mcp: FastMCP) -> None:
             "idempotentHint": True,
             "openWorldHint": False,
         },
-    )(hindsight_get_memory)
+    )(foresight_get_memory)
 
     # List - enumerate all memories
     mcp.tool(
-        name="hindsight_list_memories",
+        name="foresight_list_memories",
         annotations={
             "title": "List Memories",
             "readOnlyHint": True,
@@ -999,11 +999,11 @@ def register_memory_tools_v2(mcp: FastMCP) -> None:
             "idempotentHint": True,
             "openWorldHint": False,
         },
-    )(hindsight_list_memories)
+    )(foresight_list_memories)
 
     # Update - modify existing memory
     mcp.tool(
-        name="hindsight_update_memory",
+        name="foresight_update_memory",
         annotations={
             "title": "Update Memory",
             "readOnlyHint": False,
@@ -1011,11 +1011,11 @@ def register_memory_tools_v2(mcp: FastMCP) -> None:
             "idempotentHint": False,
             "openWorldHint": False,
         },
-    )(hindsight_update_memory)
+    )(foresight_update_memory)
 
     # Delete - remove memory
     mcp.tool(
-        name="hindsight_delete_memory",
+        name="foresight_delete_memory",
         annotations={
             "title": "Delete Memory",
             "readOnlyHint": False,
@@ -1023,11 +1023,11 @@ def register_memory_tools_v2(mcp: FastMCP) -> None:
             "idempotentHint": False,
             "openWorldHint": False,
         },
-    )(hindsight_delete_memory)
+    )(foresight_delete_memory)
 
     # Status - memory statistics
     mcp.tool(
-        name="hindsight_memory_status",
+        name="foresight_memory_status",
         annotations={
             "title": "Memory Status",
             "readOnlyHint": True,
@@ -1035,4 +1035,4 @@ def register_memory_tools_v2(mcp: FastMCP) -> None:
             "idempotentHint": True,
             "openWorldHint": False,
         },
-    )(hindsight_memory_status)
+    )(foresight_memory_status)

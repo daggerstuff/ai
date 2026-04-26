@@ -31,8 +31,8 @@ from ai.api.mcp_server.memory_scope import (
 )
 from ai.api.mcp_server.schemas import (
     AddMemoryRequest,
-    HindsightRecallRequest,
-    HindsightRetainRequest,
+    ForesightRecallRequest,
+    ForesightRetainRequest,
     ScopeRequest,
     SearchMemoryRequest,
     UpdateMemoryRequest,
@@ -40,11 +40,11 @@ from ai.api.mcp_server.schemas import (
 from ai.memory.base import (
     CategoryScopedMemoryManager,
     HealthReportingMemoryManager,
-    HindsightCompatibleMemoryManager,
+    ForesightCompatibleMemoryManager,
     ScopedMemoryManager,
 )
-from ai.memory.hindsight_local_retention import RetainScopeConflictError, scope_metadata
-from ai.memory.local_hindsight_document_service import DocumentAccessError
+from ai.memory.foresight_local_retention import RetainScopeConflictError, scope_metadata
+from ai.memory.local_foresight_document_service import DocumentAccessError
 
 logger = logging.getLogger(__name__)
 
@@ -143,11 +143,11 @@ def _require_scoped_manager(manager: Any) -> ScopedMemoryManager:
     return manager
 
 
-def _require_hindsight_manager(manager: Any) -> HindsightCompatibleMemoryManager:
-    if not isinstance(manager, HindsightCompatibleMemoryManager):
+def _require_foresight_manager(manager: Any) -> ForesightCompatibleMemoryManager:
+    if not isinstance(manager, ForesightCompatibleMemoryManager):
         raise HTTPException(
             status_code=503,
-            detail="Configured memory manager does not support Hindsight-compatible operations",
+            detail="Configured memory manager does not support Foresight-compatible operations",
         )
     return manager
 
@@ -236,13 +236,13 @@ def _ensure_document_write_access(
     document_id: str,
     user_id: str,
 ) -> None:
-    hindsight_manager = _require_hindsight_manager(manager)
-    if not hindsight_manager.can_write_document(bank_id, document_id, user_id=user_id):
+    foresight_manager = _require_foresight_manager(manager)
+    if not foresight_manager.can_write_document(bank_id, document_id, user_id=user_id):
         raise HTTPException(status_code=404, detail="Document not found")
 
 
-def _get_authorized_hindsight_document(
-    manager: HindsightCompatibleMemoryManager,
+def _get_authorized_foresight_document(
+    manager: ForesightCompatibleMemoryManager,
     *,
     bank_id: str,
     document_id: str,
@@ -260,7 +260,7 @@ def _get_authorized_hindsight_document(
     return document
 
 
-def _prepare_hindsight_retain_items(
+def _prepare_foresight_retain_items(
     manager: Any,
     *,
     bank_id: str,
@@ -274,7 +274,7 @@ def _prepare_hindsight_retain_items(
     run_id: str | None,
     visibility: str | None,
 ) -> list[dict[str, Any]]:
-    hindsight_manager = _require_hindsight_manager(manager)
+    foresight_manager = _require_foresight_manager(manager)
     base_metadata = scope_metadata(
         org_id=org_id,
         project_id=project_id,
@@ -285,7 +285,7 @@ def _prepare_hindsight_retain_items(
     )
     base_metadata.update(actor_metadata)
     try:
-        return hindsight_manager.prepare_retained_items(
+        return foresight_manager.prepare_retained_items(
             bank_id=bank_id,
             user_id=user_id,
             items=items,
@@ -381,7 +381,7 @@ def _create_user_response(
         "email": email,
         "name": name,
         "role": role,
-        "message": "User registered for Hindsight context",
+        "message": "User registered for Foresight context",
     }
 
 
@@ -596,14 +596,14 @@ def _get_memory_stats_response(
     }
 
 
-def _hindsight_document_response(
+def _foresight_document_response(
     *,
-    manager: HindsightCompatibleMemoryManager,
+    manager: ForesightCompatibleMemoryManager,
     bank_id: str,
     document_id: str,
     user_id: str,
 ) -> dict[str, Any]:
-    return _get_authorized_hindsight_document(
+    return _get_authorized_foresight_document(
         manager,
         bank_id=bank_id,
         document_id=document_id,
@@ -611,14 +611,14 @@ def _hindsight_document_response(
     )
 
 
-def _hindsight_delete_document_response(
+def _foresight_delete_document_response(
     *,
-    manager: HindsightCompatibleMemoryManager,
+    manager: ForesightCompatibleMemoryManager,
     bank_id: str,
     document_id: str,
     user_id: str,
 ) -> Response:
-    _get_authorized_hindsight_document(
+    _get_authorized_foresight_document(
         manager,
         bank_id=bank_id,
         document_id=document_id,
@@ -630,9 +630,9 @@ def _hindsight_delete_document_response(
     return Response(status_code=204)
 
 
-def _hindsight_retain_response(
+def _foresight_retain_response(
     *,
-    manager: HindsightCompatibleMemoryManager,
+    manager: ForesightCompatibleMemoryManager,
     bank_id: str,
     items: list[dict[str, Any]],
 ) -> dict[str, Any]:
@@ -913,14 +913,14 @@ def create_mcp_router(get_manager: ManagerGetter) -> APIRouter:
     return router
 
 
-def create_hindsight_router(get_manager: ManagerGetter) -> APIRouter:
-    router = APIRouter(tags=["Hindsight Compatibility"])
+def create_foresight_router(get_manager: ManagerGetter) -> APIRouter:
+    router = APIRouter(tags=["Foresight Compatibility"])
 
     @router.post("/v1/default/banks/{bank_id}/memories")
-    async def hindsight_retain(
+    async def foresight_retain(
         request_context: Request,
         bank_id: str,
-        request: HindsightRetainRequest,
+        request: ForesightRetainRequest,
         x_memory_actor_id: str | None = Header(default=None),
         x_memory_user_id: str | None = Header(default=None),
         x_memory_timestamp: str | None = Header(default=None),
@@ -934,17 +934,17 @@ def create_hindsight_router(get_manager: ManagerGetter) -> APIRouter:
         x_memory_visibility: str | None = Header(default=None),
     ):
         return await _run_authorized(
-            action="retaining hindsight memory",
+            action="retaining foresight memory",
             request=request_context,
             actor_id=x_memory_actor_id,
             user_id=x_memory_user_id,
             timestamp=x_memory_timestamp,
             nonce=x_memory_nonce,
             signature=x_memory_signature,
-            handler=lambda access: _hindsight_retain_response(
-                manager=_require_hindsight_manager(get_manager()),
+            handler=lambda access: _foresight_retain_response(
+                manager=_require_foresight_manager(get_manager()),
                 bank_id=bank_id,
-                items=_prepare_hindsight_retain_items(
+                items=_prepare_foresight_retain_items(
                     get_manager(),
                     bank_id=bank_id,
                     items=[item.model_dump() for item in request.items],
@@ -961,10 +961,10 @@ def create_hindsight_router(get_manager: ManagerGetter) -> APIRouter:
         )
 
     @router.post("/v1/default/banks/{bank_id}/memories/recall")
-    async def hindsight_recall(
+    async def foresight_recall(
         request_context: Request,
         bank_id: str,
-        request: HindsightRecallRequest,
+        request: ForesightRecallRequest,
         x_memory_actor_id: str | None = Header(default=None),
         x_memory_user_id: str | None = Header(default=None),
         x_memory_timestamp: str | None = Header(default=None),
@@ -972,7 +972,7 @@ def create_hindsight_router(get_manager: ManagerGetter) -> APIRouter:
         x_memory_signature: str | None = Header(default=None),
     ):
         return await _run_authorized(
-            action="recalling hindsight memory",
+            action="recalling foresight memory",
             request=request_context,
             actor_id=x_memory_actor_id,
             user_id=x_memory_user_id,
@@ -980,7 +980,7 @@ def create_hindsight_router(get_manager: ManagerGetter) -> APIRouter:
             nonce=x_memory_nonce,
             signature=x_memory_signature,
             handler=lambda access: recall_memories_for_user(
-                _require_hindsight_manager(get_manager()),
+                _require_foresight_manager(get_manager()),
                 bank_id=bank_id,
                 user_id=_enforce_user_scope(access=access, scoped_user_id=x_memory_user_id),
                 query=request.query,
@@ -991,7 +991,7 @@ def create_hindsight_router(get_manager: ManagerGetter) -> APIRouter:
         )
 
     @router.get("/v1/default/banks/{bank_id}/documents")
-    async def hindsight_list_documents(
+    async def foresight_list_documents(
         request_context: Request,
         bank_id: str,
         limit: int = 100,
@@ -1003,14 +1003,14 @@ def create_hindsight_router(get_manager: ManagerGetter) -> APIRouter:
         x_memory_signature: str | None = Header(default=None),
     ):
         return await _run_authorized(
-            action="listing hindsight documents",
+            action="listing foresight documents",
             request=request_context,
             actor_id=x_memory_actor_id,
             user_id=x_memory_user_id,
             timestamp=x_memory_timestamp,
             nonce=x_memory_nonce,
             signature=x_memory_signature,
-            handler=lambda access: _require_hindsight_manager(get_manager()).list_documents(
+            handler=lambda access: _require_foresight_manager(get_manager()).list_documents(
                 bank_id,
                 user_id=_enforce_user_scope(access=access, scoped_user_id=x_memory_user_id),
                 limit=limit,
@@ -1019,7 +1019,7 @@ def create_hindsight_router(get_manager: ManagerGetter) -> APIRouter:
         )
 
     @router.get("/v1/default/banks/{bank_id}/documents/{document_id}")
-    async def hindsight_get_document(
+    async def foresight_get_document(
         request_context: Request,
         bank_id: str,
         document_id: str,
@@ -1030,15 +1030,15 @@ def create_hindsight_router(get_manager: ManagerGetter) -> APIRouter:
         x_memory_signature: str | None = Header(default=None),
     ):
         return await _run_authorized(
-            action="fetching hindsight document",
+            action="fetching foresight document",
             request=request_context,
             actor_id=x_memory_actor_id,
             user_id=x_memory_user_id,
             timestamp=x_memory_timestamp,
             nonce=x_memory_nonce,
             signature=x_memory_signature,
-            handler=lambda access: _hindsight_document_response(
-                manager=_require_hindsight_manager(get_manager()),
+            handler=lambda access: _foresight_document_response(
+                manager=_require_foresight_manager(get_manager()),
                 bank_id=bank_id,
                 document_id=document_id,
                 user_id=_enforce_user_scope(access=access, scoped_user_id=x_memory_user_id),
@@ -1046,7 +1046,7 @@ def create_hindsight_router(get_manager: ManagerGetter) -> APIRouter:
         )
 
     @router.delete("/v1/default/banks/{bank_id}/documents/{document_id}")
-    async def hindsight_delete_document(
+    async def foresight_delete_document(
         request_context: Request,
         bank_id: str,
         document_id: str,
@@ -1057,15 +1057,15 @@ def create_hindsight_router(get_manager: ManagerGetter) -> APIRouter:
         x_memory_signature: str | None = Header(default=None),
     ):
         return await _run_authorized(
-            action="deleting hindsight document",
+            action="deleting foresight document",
             request=request_context,
             actor_id=x_memory_actor_id,
             user_id=x_memory_user_id,
             timestamp=x_memory_timestamp,
             nonce=x_memory_nonce,
             signature=x_memory_signature,
-            handler=lambda access: _hindsight_delete_document_response(
-                manager=_require_hindsight_manager(get_manager()),
+            handler=lambda access: _foresight_delete_document_response(
+                manager=_require_foresight_manager(get_manager()),
                 bank_id=bank_id,
                 document_id=document_id,
                 user_id=_enforce_user_scope(access=access, scoped_user_id=x_memory_user_id),

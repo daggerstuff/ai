@@ -9,7 +9,7 @@ import asyncio
 import logging
 import os
 
-from .local_hindsight_manager import LocalHindsightMemoryManager
+from .local_foresight_manager import LocalForesightMemoryManager
 from .nvidia_llm_callback import create_nvidia_callback
 from .reflection_memory import LocalReflectionMemoryClient
 from .reflection_subagent import ReflectionConfig, ReflectionSubagent, ReflectionTrigger
@@ -55,7 +55,7 @@ async def create_reflection_subagent(
 
     # Create or use provided memory client
     if memory_client is None:
-        memory_client = LocalReflectionMemoryClient(LocalHindsightMemoryManager())
+        memory_client = LocalReflectionMemoryClient(LocalForesightMemoryManager())
 
     # Create Nvidia NIM callback
     llm_callback = create_nvidia_callback(model=resolved_model)
