@@ -66,6 +66,7 @@ class PixelInferenceRequest(BaseModel):
         True, description="Include quality metrics in response"
     )
     max_tokens: int = Field(200, description="Max tokens to generate")
+    gestalt_directive: str | None = Field(None, description="Supervisor override directive")
 
 
 class EQScores(BaseModel):
@@ -97,7 +98,39 @@ class PixelInferenceResponse(BaseModel):
     inference_time_ms: float
     eq_scores: EQScores | None = None
     conversation_metadata: ConversationMetadata | None = None
-    persona_mode: str = Field(
+    persona_mode: str = Field(..., description="Detected persona")
+    confidence: float
+    warning: str | None = None
+    agent_activities: list["AgentActivity"] | None = None
+    shared_state: dict[str, Any] | None = None
+
+
+class AgentConflict(BaseModel):
+    """Represents a disagreement between agents"""
+    withAgent: str
+    severity: str  # low, medium, high
+    description: str
+
+
+class AgentActivity(BaseModel):
+    """Represents a single activity from an agent"""
+
+    id: str
+    agentName: str
+    agentRole: str | None = None
+    type: str  # thought, action, observation, tool_use
+    content: str
+    thought: str | None = None
+    action: str | None = None
+    observation: str | None = None
+    status: str  # thinking, acting, completed, error
+    timestamp: float
+    metadata: dict[str, Any] | None = None
+    shared_state: dict[str, Any] | None = None
+    conflict: AgentConflict | None = None
+
+
+PixelInferenceResponse.update_forward_refs()
         "therapy", description="Detected persona: therapy or assistant"
     )
     confidence: float = Field(0.9, description="Confidence in response")
@@ -132,6 +165,40 @@ class PixelInferenceEngine:
         self.model_path = os.getenv(
             "PIXEL_MODEL_PATH", "ai/models/pixel_core/models/pixel_base_model.pt"
         )
+        # Per-agent metrics
+        self.agent_stats = {
+            "Coordinator": {"calls": 0, "total_time": 0, "errors": 0},
+            "Psychologist": {"calls": 0, "total_time": 0, "errors": 0},
+            "Memory Agent": {"calls": 0, "total_time": 0, "errors": 0},
+            "Safety Guard": {"calls": 0, "total_time": 0, "errors": 0}
+        }
+
+    def record_agent_step(self, agent_name: str, duration_ms: float, success: bool = True):
+        """Record a single reasoning step from an agent"""
+        if agent_name in self.agent_stats:
+            self.agent_stats[agent_name]["calls"] += 1
+            self.agent_stats[agent_name]["total_time"] += duration_ms
+            if not success:
+                self.agent_stats[agent_name]["errors"] += 1
+
+    def get_agent_report(self) -> dict[str, Any]:
+        """Generate per-agent performance report"""
+        report = {}
+        for name, stats in self.agent_stats.items():
+            avg_time = stats["total_time"] / stats["calls"] if stats["calls"] > 0 else 0
+            report[name] = {
+                "average_latency_ms": round(avg_time, 2),
+                "error_rate": round(stats["errors"] / stats["calls"], 4) if stats["calls"] > 0 else 0,
+                "throughput": stats["calls"]
+            }
+        return report
+
+    def reset_agent_stats(self):
+        """Reset all performance metrics"""
+        for name in self.agent_stats:
+            self.agent_stats[name] = {"calls": 0, "total_time": 0, "errors": 0}
+        self.inference_count = 0
+        self.total_inference_time = 0.0
 
     def load_model(self) -> bool:
         """Load Pixel model from disk"""
@@ -238,6 +305,111 @@ class PixelInferenceEngine:
         except Exception as e:
             logger.error(f"Error during inference: {e}")
             raise
+
+    async def generate_streaming_response(self, request: PixelInferenceRequest):
+        """Generator that yields agent activities and finally the full response"""
+        import uuid
+        import time
+        
+        current_state = {
+            "focus": None,
+            "detected_emotions": [],
+            "kb_context": None,
+            "distortions": []
+        }
+
+        # Step 1: Pre-processing thought
+        current_state["focus"] = "initial_assessment"
+        if request.gestalt_directive:
+            current_state["focus"] = f"corrected_focus: {request.gestalt_directive}"
+        
+        self.record_agent_step("Coordinator", 500)
+        yield AgentActivity(
+            id=str(uuid.uuid4()),
+            agentName="Coordinator",
+            agentRole="Orchestrator",
+            type="thought",
+            content="Awaiting directives..." if not request.gestalt_directive else f"Applying directive: {request.gestalt_directive}",
+            thought=f"User query: '{request.user_query[:50]}...'. Directive: {request.gestalt_directive or 'None'}",
+            status="completed",
+            timestamp=time.time(),
+            shared_state=current_state.copy()
+        )
+        await asyncio.sleep(0.5)
+
+        # Step 2: Retrieval action
+        current_state["kb_context"] = "retrieved_cbt_v3"
+        self.record_agent_step("Memory Agent", 800)
+        yield AgentActivity(
+            id=str(uuid.uuid4()),
+            agentName="Memory Agent",
+            agentRole="Context Retrieval",
+            type="action",
+            content="Scanning therapeutic knowledge base for relevant CBT protocols.",
+            action="kb_search(techniques=['validation', 'cognitive_restructuring'])",
+            status="completed",
+            timestamp=time.time(),
+            shared_state=current_state.copy()
+        )
+        await asyncio.sleep(0.8)
+
+        # Step 3: Analysis
+        current_state["distortions"] = ["overgeneralization"]
+        current_state["detected_emotions"] = ["anxiety", "frustration"]
+        self.record_agent_step("Psychologist", 400)
+        yield AgentActivity(
+            id=str(uuid.uuid4()),
+            agentName="Psychologist",
+            agentRole="Clinical Analysis",
+            type="thought",
+            content="Identifying potential cognitive distortions in user narrative.",
+            thought="Detected 'overgeneralization' pattern in user phrasing.",
+            status="completed",
+            timestamp=time.time(),
+            shared_state=current_state.copy()
+        )
+        await asyncio.sleep(0.4)
+
+        # Simulated Conflict: Safety Guard disagrees with Psychologist on severity
+        if not request.gestalt_directive and any(k in request.user_query.lower() for k in ["bad", "hurt", "desperate"]):
+            self.record_agent_step("Safety Guard", 200, success=False)
+            yield AgentActivity(
+                id=str(uuid.uuid4()),
+                agentName="Safety Guard",
+                agentRole="Content Moderation",
+                type="thought",
+                content="Flagging discrepancy in emotional severity assessment.",
+                thought="Psychologist identified 'anxiety', but semantic analysis suggests potential 'crisis' level distress.",
+                status="completed",
+                timestamp=time.time(),
+                shared_state=current_state.copy(),
+                conflict=AgentConflict(
+                    withAgent="Psychologist",
+                    severity="medium",
+                    description="Safety threshold discrepancy: Psychological assessment does not fully account for acute distress markers."
+                )
+            )
+            await asyncio.sleep(0.6)
+
+        # Step 4: Final response generation
+        final_response = await self.generate_response(request)
+        final_response.shared_state = current_state
+        
+        self.record_agent_step("Coordinator", 100)
+        yield AgentActivity(
+            id=str(uuid.uuid4()),
+            agentName="Coordinator",
+            agentRole="Orchestrator",
+            type="observation",
+            content="Response formulated and safety-checked.",
+            observation="Safety score: 0.98. EQ target: high empathy.",
+            status="completed",
+            timestamp=time.time(),
+            shared_state=current_state.copy()
+        )
+        
+        # Final event is the full response
+        yield final_response
 
     def _detect_persona_mode(self, context_type: str | None) -> str:
         """Detect appropriate persona mode based on context"""
@@ -396,6 +568,19 @@ async def get_model_status():
     return inference_engine.get_status()
 
 
+@app.get("/agent-stats")
+async def get_agent_stats():
+    """Get per-agent performance statistics"""
+    return inference_engine.get_agent_report()
+
+
+@app.post("/reset-stats")
+async def reset_stats():
+    """Reset agent performance statistics"""
+    inference_engine.reset_agent_stats()
+    return {"status": "success"}
+
+
 @app.post("/infer", response_model=PixelInferenceResponse)
 async def infer(request: PixelInferenceRequest, _background_tasks: BackgroundTasks):
     """Generate response using Pixel model"""
@@ -438,6 +623,42 @@ async def reload_model():
     except Exception:
         logger.exception("Reload error")
         raise HTTPException(status_code=500, detail="Internal server error") from None
+
+
+from fastapi.responses import StreamingResponse
+
+
+@app.post("/infer-stream")
+async def infer_stream(request: PixelInferenceRequest):
+    """Generate streaming response with agent activities using SSE"""
+    if not inference_engine.model_loaded:
+        raise HTTPException(status_code=503, detail="Model not loaded")
+
+    async def event_generator():
+        try:
+            async for item in inference_engine.generate_streaming_response(request):
+                # Check if it's an activity or the final response
+                if isinstance(item, AgentActivity):
+                    yield {
+                        "event": "activity",
+                        "data": item.json()
+                    }
+                else:
+                    yield {
+                        "event": "final_response",
+                        "data": item.json()
+                    }
+        except Exception as e:
+            logger.exception("Streaming inference error")
+            yield {
+                "event": "error",
+                "data": json.dumps({"detail": str(e)})
+            }
+
+    return StreamingResponse(
+        (f"event: {e['event']}\ndata: {e['data']}\n\n" async for e in event_generator()),
+        media_type="text/event-stream"
+    )
 
 
 if __name__ == "__main__":

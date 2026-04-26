@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 
-CANONICAL_MEMORY_PROVIDER = "local_hindsight"
+CANONICAL_MEMORY_PROVIDER = "local_foresight"
 
 
 @dataclass(frozen=True)
@@ -28,10 +28,10 @@ def resolve_local_memory_settings(
     db_path: str | None = None,
     bank_id: str | None = None,
 ) -> LocalMemorySettings:
-    resolved_db_path = db_path or os.environ.get("HINDSIGHT_LOCAL_DB_PATH")
+    resolved_db_path = db_path or os.environ.get("FORESIGHT_LOCAL_DB_PATH") or os.environ.get("HINDSIGHT_LOCAL_DB_PATH")
     if not resolved_db_path:
-        raise RuntimeError("HINDSIGHT_LOCAL_DB_PATH or db_path is required")
+        raise RuntimeError("FORESIGHT_LOCAL_DB_PATH or db_path is required")
     return LocalMemorySettings(
         db_path=resolved_db_path,
-        bank_id=bank_id or os.environ.get("HINDSIGHT_BANK_ID") or "pixelated",
+        bank_id=bank_id or os.environ.get("FORESIGHT_BANK_ID") or os.environ.get("HINDSIGHT_BANK_ID") or "pixelated",
     )

@@ -11,16 +11,16 @@ single async-friendly adapter over the shared local memory service.
 import asyncio
 from typing import Any
 
-from .local_hindsight_manager import LocalHindsightMemoryManager
+from .local_foresight_manager import LocalForesightMemoryManager
 from .reflection_memory_mapper import record_to_memory
 from .reflection_types import Memory, MemoryCategory, MemoryMetadata
 
 
 class LocalReflectionMemoryClient:
-    """Async-friendly adapter over LocalHindsightMemoryManager for reflection."""
+    """Async-friendly adapter over LocalForesightMemoryManager for reflection."""
 
-    def __init__(self, manager: LocalHindsightMemoryManager | None = None) -> None:
-        self.manager = manager or LocalHindsightMemoryManager()
+    def __init__(self, manager: LocalForesightMemoryManager | None = None) -> None:
+        self.manager = manager or LocalForesightMemoryManager()
 
     async def add_memory(self, content: str, metadata: MemoryMetadata) -> str:
         return await asyncio.to_thread(

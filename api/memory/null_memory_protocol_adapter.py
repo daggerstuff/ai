@@ -7,7 +7,7 @@ from .null_memory_repository import NullMemoryRepository
 
 
 class NullMemoryProtocolAdapter:
-    """Scoped and Hindsight-compatible helpers backed by NullMemoryStore."""
+    """Scoped and Foresight-compatible helpers backed by NullMemoryStore."""
 
     def __init__(
         self,

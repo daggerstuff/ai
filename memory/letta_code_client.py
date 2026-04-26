@@ -6,7 +6,7 @@ This client implements Letta Code SDK patterns:
 - Multi-conversation support per agent
 - Fine-grained tool permissions
 - Crisis-aware memory handling
-- Integration with Hindsight therapeutic memory
+- Integration with Foresight therapeutic memory
 
 Migration from Claude Agent SDK:
 - unstable_v2_createSession → createAgent
@@ -133,7 +133,7 @@ class LettaCodeClient:
     - Agent-based memory (persistent across sessions)
     - Multi-conversation support per agent
     - Crisis-aware tool permissions
-    - Hindsight PII filtering integration
+    - Foresight PII filtering integration
     - Dual-storage backend support
 
     Usage:
@@ -222,7 +222,7 @@ class LettaCodeClient:
 
     def _init_middleware(self) -> None:
         """Initialize PII filter and crisis detector middleware."""
-        # Import Hindsight components for middleware
+        # Import Foresight components for middleware
         try:
 
             if self.config.pii_filter_enabled:
@@ -235,7 +235,7 @@ class LettaCodeClient:
                 self._crisis_detector = LettaCrisisHandler(None)
 
         except ImportError:
-            logger.warning("Hindsight middleware not available")
+            logger.warning("Foresight middleware not available")
 
     async def create_agent(
         self,
@@ -266,7 +266,7 @@ class LettaCodeClient:
         try:
             agent = self._sdk_client.create_agent(
                 name=name or "pixelated-empathy-agent",
-                description=description or "Therapeutic agent with Hindsight memory integration",
+                description=description or "Therapeutic agent with Foresight memory integration",
                 system_prompt=system_prompt,
             )
 
@@ -433,7 +433,7 @@ class LettaCodeClient:
         Check if a tool can be used based on permissions and crisis state.
 
         This implements Letta's canUseTool permission handler with
-        Hindsight's crisis-aware filtering.
+        Foresight's crisis-aware filtering.
 
         Args:
             agent_id: Agent ID
@@ -497,7 +497,7 @@ class LettaSession:
     Provides:
     - PII filtering on all messages
     - Crisis detection before processing
-    - Integration with Hindsight memory
+    - Integration with Foresight memory
     - Dual-storage support
     """
 
@@ -525,7 +525,7 @@ class LettaSession:
         1. Crisis detection (blocks if critical)
         2. PII filtering (blocks if too much PII)
         3. Letta agent processing
-        4. Hindsight memory storage
+        4. Foresight memory storage
 
         Args:
             message: User message

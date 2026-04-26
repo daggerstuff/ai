@@ -115,11 +115,11 @@ class CategoryScopedMemoryManager(ScopedMemoryManager, Protocol):
 
 
 @runtime_checkable
-class HindsightCompatibleMemoryManager(Protocol):
+class ForesightCompatibleMemoryManager(Protocol):
     def retain_items(
         self, bank_id: str, items: list[dict[str, Any]]
     ) -> dict[str, Any]:
-        """Store Hindsight-compatible memory items."""
+        """Store Foresight-compatible memory items."""
         ...
 
     def recall(
@@ -131,7 +131,7 @@ class HindsightCompatibleMemoryManager(Protocol):
         tags: list[str] | None = None,
         tags_match: str = "any",
     ) -> dict[str, Any]:
-        """Recall Hindsight-compatible memory items."""
+        """Recall Foresight-compatible memory items."""
         ...
 
     def recall_for_user(
@@ -144,7 +144,7 @@ class HindsightCompatibleMemoryManager(Protocol):
         tags: list[str] | None = None,
         tags_match: str = "any",
     ) -> dict[str, Any]:
-        """Recall Hindsight-compatible memory items constrained to one user."""
+        """Recall Foresight-compatible memory items constrained to one user."""
         ...
 
     def list_documents(
@@ -155,7 +155,7 @@ class HindsightCompatibleMemoryManager(Protocol):
         limit: int = 100,
         offset: int = 0,
     ) -> dict[str, Any]:
-        """List Hindsight-compatible documents for one user."""
+        """List Foresight-compatible documents for one user."""
         ...
 
     def get_document(
@@ -165,7 +165,7 @@ class HindsightCompatibleMemoryManager(Protocol):
         *,
         user_id: str | None = None,
     ) -> dict[str, Any] | None:
-        """Fetch a Hindsight-compatible document by ID."""
+        """Fetch a Foresight-compatible document by ID."""
         ...
 
     def delete_document(
@@ -175,7 +175,7 @@ class HindsightCompatibleMemoryManager(Protocol):
         *,
         user_id: str | None = None,
     ) -> bool:
-        """Delete a Hindsight-compatible document by ID."""
+        """Delete a Foresight-compatible document by ID."""
         ...
 
     def can_write_document(
@@ -196,7 +196,7 @@ class HindsightCompatibleMemoryManager(Protocol):
         user_id: str,
         base_metadata: dict[str, Any],
     ) -> list[dict[str, Any]]:
-        """Prepare scoped Hindsight items for retention."""
+        """Prepare scoped Foresight items for retention."""
         ...
 
 

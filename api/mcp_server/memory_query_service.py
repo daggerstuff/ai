@@ -4,7 +4,7 @@ from typing import Any, cast
 
 from ai.memory.base import (
     CategoryScopedMemoryManager,
-    HindsightCompatibleMemoryManager,
+    ForesightCompatibleMemoryManager,
     ScopedMemoryManager,
 )
 
@@ -43,7 +43,7 @@ def get_scoped_memories(
 
 
 def recall_memories_for_user(
-    manager: HindsightCompatibleMemoryManager,
+    manager: ForesightCompatibleMemoryManager,
     *,
     bank_id: str,
     user_id: str,

@@ -43,18 +43,18 @@ class UpdateMemoryRequest(BaseModel):
     metadata: dict[str, Any] | None = None
 
 
-class HindsightRetainItem(BaseModel):
+class ForesightRetainItem(BaseModel):
     content: str
     document_id: str | None = None
     context: str | None = None
     tags: list[str] = Field(default_factory=list)
 
 
-class HindsightRetainRequest(BaseModel):
-    items: list[HindsightRetainItem]
+class ForesightRetainRequest(BaseModel):
+    items: list[ForesightRetainItem]
 
 
-class HindsightRecallRequest(BaseModel):
+class ForesightRecallRequest(BaseModel):
     query: str
     limit: int | None = 10
     tags: list[str] | None = None
