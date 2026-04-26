@@ -1,102 +1,110 @@
-# Stub for ai.core.pipelines.processing.transcript_quality_pipeline
-# Generated for test compatibility
+"""Transcript quality orchestration pipeline."""
 
+from __future__ import annotations
+
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from ai.core.utils.transcript_corrector import TranscriptCorrector as _TranscriptCorrector
 
-# Mock targets for tests - these get patched by tests
+
+@dataclass
+class TranscriptQualityResult:
+    success: bool
+    original_text: str | None
+    corrected_text: str | None
+    alignment: dict[str, Any]
+    crisis_indicators: list[str]
+    metadata: dict[str, Any]
+
+
 class VoiceTranscriber:
-    """Stub for VoiceTranscriber."""
+    """Compatibility shim for the expected transcriber dependency."""
 
-    def __init__(self):
-        self.transcribe_result = None
+    def __init__(self) -> None:
+        pass
 
-    def transcribe_audio(self, _audio_path: str):
-        """Transcribe audio file."""
-        return self.transcribe_result
+    def transcribe_audio(self, audio_path: str):
+        return MagicTranscribeResult(success=False, error_message="No implementation loaded")
 
 
 class NemoCuratorClient:
-    """Stub for NemoCuratorClient."""
+    """Compatibility shim for crisis narrative detection client."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
     def detect_crisis_narratives(self, _text: str):
-        """Detect crisis narratives."""
         return []
 
 
 class NemoEvaluatorClient:
-    """Stub for NemoEvaluatorClient."""
+    """Compatibility shim for therapeutic alignment evaluator."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
     def evaluate_therapeutic_alignment(self, _text: str):
-        """Evaluate therapeutic alignment."""
         return {"score": 0.0, "status": "unknown"}
 
 
-class TranscriptCorrector:
-    """Stub for TranscriptCorrector."""
+@dataclass
+class MagicTranscribeResult:
+    success: bool
+    full_text: str = ""
+    error_message: str = ""
+    confidence_score: float | None = None
+    model_used: str | None = None
 
-    def __init__(self):
-        pass
 
-    def correct_transcript(self, text: str, _context: str = ""):
-        """Correct transcript text."""
-        return text
+class TranscriptCorrector(_TranscriptCorrector):
+    """Compatibility alias for the expected corrector class."""
 
 
 class TranscriptQualityPipeline:
-    """Stub implementation for TranscriptQualityPipeline."""
+    """Orchestrate transcript transcription, correction, and alignment checks."""
 
-    def __init__(self):
-        """Initialize pipeline with dependencies."""
-        # Create instances - these get replaced by mock instances via patching
+    def __init__(self) -> None:
         self.transcriber = VoiceTranscriber()
         self.curator = NemoCuratorClient()
         self.evaluator = NemoEvaluatorClient()
         self.corrector = TranscriptCorrector()
 
     def process_audio(self, audio_path: Path) -> dict[str, Any]:
-        """Process audio file through the pipeline."""
-        # Call transcribe
-        transcribe_result = self.transcriber.transcribe_audio(str(audio_path))
+        result = self.transcriber.transcribe_audio(str(audio_path))
 
-        if not getattr(transcribe_result, "success", False):
-            err_msg = getattr(transcribe_result, "error_message", "Unknown error")
+        if not getattr(result, "success", False):
             return {
                 "success": False,
-                "error": f"Pass 1 failed: {err_msg}",
+                "error": f"Pass 1 failed: {getattr(result, 'error_message', 'Unknown transcription error')}",
             }
 
-        # Call curator
-        self.curator.detect_crisis_narratives(transcribe_result.full_text)
-
-        # Call corrector
-        corrected = self.corrector.correct_transcript(
-            transcribe_result.full_text, context="therapy_session"
-        )
-
-        # Call evaluator
-        trans_text = transcribe_result.full_text
-        alignment = self.evaluator.evaluate_therapeutic_alignment(trans_text)
+        original_text = str(getattr(result, "full_text", ""))
+        alignment = self.evaluator.evaluate_therapeutic_alignment(original_text)
+        corrected = self.corrector.correct_transcript(original_text, context="therapy_session")
+        crisis_tags = self.curator.detect_crisis_narratives(original_text)
 
         return {
             "success": True,
-            "original_text": transcribe_result.full_text,
+            "original_text": original_text,
             "corrected_text": corrected,
             "alignment": alignment,
+            "crisis_indicators": crisis_tags,
+            "metadata": {
+                "transcription": {
+                    "confidence_score": getattr(result, "confidence_score", None),
+                    "model_used": getattr(result, "model_used", None),
+                }
+            },
         }
 
 
 __all__ = [
+    "TranscriptQualityPipeline",
+    "TranscriptQualityResult",
+    "VoiceTranscriber",
     "NemoCuratorClient",
     "NemoEvaluatorClient",
     "TranscriptCorrector",
-    "TranscriptQualityPipeline",
-    "VoiceTranscriber",
 ]

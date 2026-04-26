@@ -1,8 +1,9 @@
 import json
 import logging
 import re
+import string
+from typing import Any, Callable
 from pathlib import Path
-from typing import Any
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -12,11 +13,16 @@ class TranscriptCorrector:
     """
     Utility class for correcting transcripts using a multi-pass approach:
     1. Therapeutic Terminology Validation
-    2. LLM-based Contextual Correction (Mocked for now)
+    2. Optional LLM-based Contextual Correction (if configured)
     3. Structural Alignment (Basic regex cleanup)
     """
 
-    def __init__(self, config_path: str = "ai/config/therapeutic_terminology.json"):
+    def __init__(
+        self,
+        config_path: str = "ai/config/therapeutic_terminology.json",
+        *,
+        contextual_correction_client: Callable[[str, str], str] | None = None,
+    ):
         """
         Initialize the TranscriptCorrector with terminology configuration.
 
@@ -26,6 +32,7 @@ class TranscriptCorrector:
         """
         self.config_path = Path(config_path)
         self.terms: dict[str, Any] = self._load_terminology()
+        self._contextual_correction_client = contextual_correction_client
 
     def _load_terminology(self) -> dict[str, Any]:
         """Load therapeutic terminology from JSON config."""
@@ -109,21 +116,46 @@ class TranscriptCorrector:
 
         return text
 
-    def _llm_contextual_correction(self, text: str, _context: str) -> str:
+    def _llm_contextual_correction(self, text: str, context: str) -> str:
         """
-        Mock function for GPT-4 based correction.
-        In the future, this will call the LLM service to fix grammar and nuances.
+        Optional contextual correction layer for grammar, tense, and sentence flow.
         """
-        # TODO: Implement actual LLM call via external service or local model
-        # For now, we just log that we would allow the LLM to process this
-        # and return the text as is (or maybe apply a dummy transformation
-        # for testing if needed)
+        context_hint = f"Context: {context}."
+        logger.debug("Applying contextual correction with hint: %s", context_hint)
 
-        # Simulating a check for critical CPTSD terms that might be missed
-        # If we had an LLM, we'd ask it: "Correct this transcript keeping CPTSD context
-        # in mind."
+        if self._contextual_correction_client is not None:
+            corrected = self._contextual_correction_client(text, context)
+            if isinstance(corrected, str) and corrected.strip():
+                return corrected.strip()
+            logger.warning("Contextual correction client returned empty output; using deterministic fallback.")
 
-        return text
+        # Deterministic fallback when no external client is configured.
+        # - collapse repeated punctuation/filler spaces
+        # - normalize sentence capitalization for readability
+        collapsed = re.sub(r"\s+", " ", text).strip()
+        collapsed = re.sub(r"([!?\\.])\s{2,}", r"\1 ", collapsed)
+        collapsed = re.sub(r"\b(i)\b(?=\s+[a-z])", "I", collapsed, flags=re.IGNORECASE)
+
+        sentences = [segment.strip() for segment in re.split(r"(?<=[.!?])\s+", collapsed) if segment.strip()]
+        normalized_sentences = []
+        for sentence in sentences:
+            if not sentence:
+                continue
+            lowered = sentence.strip().rstrip(string.punctuation)
+            if lowered:
+                lowered = lowered[0].upper() + lowered[1:]
+            normalized_sentences.append(lowered + (sentence[-1] if sentence and sentence[-1] in ".!?" else ""))
+
+        result = " ".join(normalized_sentences) if normalized_sentences else collapsed
+        # Lightweight CPTSD-aware punctuation/grammar safety net.
+        result = result.replace(" ,", ",").replace(" .", ".").replace(" ?", "?").replace(" !", "!")
+        result = re.sub(r"\b(im)\b", "I'm", result, flags=re.IGNORECASE)
+        result = re.sub(r"\b(i'd)\b", "I'd", result, flags=re.IGNORECASE)
+        result = result.strip()
+
+        if not result:
+            return text.strip()
+        return result
 
     def validate_term_coverage(self, text: str) -> dict[str, float]:
         """
