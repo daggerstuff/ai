@@ -1,7 +1,27 @@
-# Stub for ai.core.sourcing/journal/cli/config.py
-# TODO: Implement actual functionality
+"""Compatibility wrapper for legacy ``ai.core.sourcing.journal.cli.config`` imports."""
 
-class Config:
-    """Stub implementation for Config."""
+from __future__ import annotations
 
-__all__ = ["Config"]
+from typing import Any
+
+from ai.sourcing.journal.cli.config import (
+    ConfigManager,
+    _config_manager,
+    get_config_value,
+    load_config,
+    save_config,
+)
+
+
+class Config(ConfigManager):
+    """Compatibility shim for legacy callers that imported ``Config``."""
+
+    def __init__(self, config_path=None):
+        super().__init__(config_path=config_path)
+
+    # Keep an explicit ``load`` method to satisfy expected interface
+    def load(self) -> dict[str, Any]:
+        return load_config(self.config_path)
+
+
+__all__ = ["Config", "load_config", "save_config", "get_config_value", "ConfigManager"]

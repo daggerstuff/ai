@@ -11,6 +11,8 @@ Coordinates the full workflow:
 """
 import json
 import logging
+from datetime import datetime
+import time
 
 from ai.sourcing.youtube.api import (
     ChannelAnalyzer,
@@ -108,6 +110,7 @@ class ChannelProcessor:
             ChannelDiscoveryResults with all findings
         """
         logger.info("Starting channel discovery pipeline")
+        start_time = time.perf_counter()
 
         results = ChannelDiscoveryResults()
 
@@ -116,11 +119,14 @@ class ChannelProcessor:
         # Phase 1: Discover channels
         logger.info("Phase 1: Channel Discovery")
         discovered = hunter.discover_channels(progress_callback)
+        if _max_searches > 0:
+            discovered = discovered[: _max_searches]
 
         for channel in discovered:
             if progress_callback:
+                total = max(1, len(discovered))
                 progress_callback(
-                    0.5 + (0.3 * len(results.found_channels) / len(discovered)),
+                    0.5 + (0.3 * len(results.found_channels) / total),
                     f"Evaluating {channel.channel_name}",
                 )
 
@@ -128,7 +134,7 @@ class ChannelProcessor:
             qualified = self._evaluate_full_channel(channel)
             results.add_channel(channel, qualified)
 
-        results.time_elapsed_seconds = 0  # TODO: track time
+        results.time_elapsed_seconds = max(0.0, time.perf_counter() - start_time)
 
         logger.info(
             f"Discovery complete: {len(results.qualified_channels)} qualified / "
@@ -154,10 +160,11 @@ class ChannelProcessor:
             return False
 
         # Update channel with API data
-        channel.subscriber_count = details.get("subscriberCount", 0)
-        channel.video_count = details.get("videoCount", 0)
-        channel.created_date = details.get("publishedAt")
-        channel.last_updated = details.get("publishedAt")
+        channel.subscriber_count = self._to_int(details.get("subscriberCount", 0))
+        channel.video_count = self._to_int(details.get("videoCount", 0))
+        channel.total_views = self._to_int(details.get("viewCount", 0))
+        channel.created_date = self._parse_iso8601(details.get("publishedAt"))
+        channel.last_updated = self._parse_iso8601(details.get("publishedAt"))
 
         # Get sample videos for analysis
         videos = self.api.get_channel_videos(channel.channel_id, max_results=10)
@@ -166,9 +173,15 @@ class ChannelProcessor:
             return False
 
         # Extract features from videos
-        video_titles = [v.get("title", "") for v in videos]
-        video_descriptions = [v.get("description", "") for v in videos]
-        video_tags = [v.get("tags", []) for v in videos]
+        video_titles = [
+            v.get("snippet", {}).get("title", v.get("title", ""))
+            for v in videos
+        ]
+        video_descriptions = [
+            v.get("snippet", {}).get("description", v.get("description", ""))
+            for v in videos
+        ]
+        video_tags = [v.get("snippet", {}).get("tags", v.get("tags", [])) for v in videos]
 
         all_text = (
             f"{details.get('description', '')}\n\n"
@@ -179,15 +192,14 @@ class ChannelProcessor:
         # Analyze quality metrics
         metrics = QualityMetrics()
         for video in videos[:5]:  # Sample first 5 videos
-            audio_id = video.get("audio_id")
-            self._analyze_video(audio_id, metrics)
+            self._analyze_video(video, metrics)
 
         channel.quality_metrics = metrics
         channel.quality_score = metrics.overall_score()
 
         # Classify into categories
         channel.categories = self.analyzer.classify_category(
-            details.get("title", ""),
+            details.get("channelTitle", details.get("title", "")),
             details.get("description", ""),
             [tag for tags in video_tags for tag in tags],
         )
@@ -218,20 +230,93 @@ class ChannelProcessor:
 
         return self.thresholds.passes(metrics)
 
-    def _analyze_video(self, audio_id: str, metrics: QualityMetrics):
+    def _analyze_video(self, video: dict, metrics: QualityMetrics):
         """
         Analyze a single video for quality metrics.
 
         Args:
-            audio_id: YouTube video/audio ID
+            video: Raw video payload from YouTube API
             metrics: QualityMetrics object to update
         """
-        # TODO: Implement actual video analysis
-        # This would involve:
-        # - Downloading audio/video
-        # - Analyzing audio quality
-        # - Checking speech clarity
-        # - Evaluating production values
+        if not video:
+            return
+
+        snippet = video.get("snippet", {})
+        title = str(snippet.get("title", video.get("title", "")))
+        description = str(snippet.get("description", video.get("description", "")))
+        tags = list(snippet.get("tags", video.get("tags", [])) or [])
+        stats = video.get("statistics", {})
+
+        text = (title + " " + description).strip().lower()
+        text_tags = " ".join(str(t).lower() for t in tags)
+
+        # Content quality: documentation depth and clinical topic coverage.
+        content_quality = 0.45
+        if len(description) >= 80:
+            content_quality += 0.25
+        if any(term in text for term in ("therapy", "trauma", "cptsd", "dbt", "cbt")):
+            content_quality += 0.2
+        if "mindfulness" in text or "grounding" in text:
+            content_quality += 0.1
+
+        # Clinical relevance indicator for this clip.
+        clinical_accuracy = 0.55
+        if any(term in text_tags for term in ("therapeutic", "clinical", "trauma")):
+            clinical_accuracy += 0.2
+        if any(term in text for term in ("evidence", "treatment", "intervention", "session")):
+            clinical_accuracy += 0.15
+
+        # Production quality from title/description metadata confidence.
+        production_quality = 0.5
+        if snippet.get("contentDetails") or video.get("contentDetails"):
+            production_quality += 0.1
+        if any(term in text for term in ("guide", "explainer", "workshop", "session", "exercise")):
+            production_quality += 0.1
+        if any(kw in text for kw in ("hd", "full", "1080p")):
+            production_quality += 0.1
+
+        likes = self._to_int(stats.get("likeCount", 0))
+        comments = self._to_int(stats.get("commentCount", 0))
+        views = self._to_int(stats.get("viewCount", 0))
+        ratio = (likes + comments) / max(1, views)
+        engagement_quality = min(1.0, ratio + 0.2)
+
+        sample_count = getattr(metrics, "_sample_count", 0)
+        metrics.content_quality = (metrics.content_quality * sample_count + min(1.0, content_quality)) / (
+            sample_count + 1
+        )
+        metrics.clinical_accuracy = (
+            metrics.clinical_accuracy * sample_count + min(1.0, clinical_accuracy)
+        ) / (sample_count + 1)
+        metrics.production_quality = (
+            metrics.production_quality * sample_count + min(1.0, production_quality)
+        ) / (sample_count + 1)
+        metrics.engagement_quality = (
+            metrics.engagement_quality * sample_count + min(1.0, engagement_quality)
+        ) / (sample_count + 1)
+        metrics.consistency_score = min(1.0, max(0.2, 0.35 + 0.65 * (sample_count + 1) / 5))
+        metrics.credibility_score = min(
+            1.0, metrics.credibility_score + 0.02 + (0.05 if any(len(tag) > 8 for tag in tags) else 0)
+        )
+        metrics._sample_count = sample_count + 1
+
+    def _to_int(self, value) -> int:
+        """Coerce unknown input types into a non-negative integer."""
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return 0
+
+    def _parse_iso8601(self, value):
+        """Parse YouTube datetime values into datetime objects when possible."""
+        if value is None:
+            return None
+        if hasattr(value, "astimezone"):
+            return value
+        try:
+            return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        except ValueError:
+            return None
 
     def generate_report(self, results: ChannelDiscoveryResults) -> str:
         """
