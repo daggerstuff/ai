@@ -1464,15 +1464,24 @@ class AcademicSourcing:
         keywords: str,
         max_results: int,
     ) -> list[PaperMetadata]:
-        """Search all requested sources and collect papers."""
+        """Search all requested sources and collect papers.
+
+        ⚡ Bolt Performance Optimization:
+        Parallelizes sequential API requests to overlap network I/O latency.
+        """
         all_papers: list[PaperMetadata] = []
 
-        for source in sources:
+        async def _safe_search(source: str) -> list[PaperMetadata]:
             try:
-                papers = await self._search_single_source(source, keywords, max_results)
-                all_papers.extend(papers)
+                return await self._search_single_source(source, keywords, max_results)
             except Exception as e:
                 logger.error(f"Error searching {source}: {e}")
+                return []
+
+        # Run all source searches concurrently
+        results = await asyncio.gather(*[_safe_search(source) for source in sources])
+        for papers in results:
+            all_papers.extend(papers)
 
         return all_papers
 
@@ -1519,11 +1528,19 @@ class AcademicSourcing:
         return papers
 
     async def _enrich_papers_with_full_text(self, papers: list[PaperMetadata]) -> None:
-        """Populate full text and derived fields for papers with PDFs."""
-        for paper in papers:
-            if not paper.pdf_url:
-                continue
-            await self._enrich_paper_with_full_text(paper)
+        """Populate full text and derived fields for papers with PDFs.
+
+        ⚡ Bolt Performance Optimization:
+        Parallelizes extraction of full text from PDFs.
+        """
+        tasks = [
+            self._enrich_paper_with_full_text(paper)
+            for paper in papers
+            if paper.pdf_url
+        ]
+
+        if tasks:
+            await asyncio.gather(*tasks)
 
     async def _enrich_paper_with_full_text(self, paper: PaperMetadata) -> None:
         """Populate full text and extracted insights for a single paper."""
