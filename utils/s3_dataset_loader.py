@@ -89,6 +89,8 @@ class S3DatasetLoader:
 
         try:
             response = self.s3_client.get_object(**get_kwargs)
+        if byte_offset > 0 and response.get('ResponseMetadata', {}).get('HTTPStatusCode') != 206:
+            raise RuntimeError(f"S3 backend does not support Range requests (Status: {response.get('ResponseMetadata', {}).get('HTTPStatusCode')}). Resumption impossible.")
             body = response["Body"]
             current_pos = byte_offset
             
