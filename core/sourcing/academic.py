@@ -1471,15 +1471,21 @@ class AcademicSourcing:
         """
         all_papers: list[PaperMetadata] = []
 
+        # Bound concurrency for source searches to avoid overwhelming external APIs
+        # NOTE: tune this value or make it configurable per environment if needed.
+        semaphore = asyncio.Semaphore(5)
+
         async def _safe_search(source: str) -> list[PaperMetadata]:
             try:
-                return await self._search_single_source(source, keywords, max_results)
+                async with semaphore:
+                    return await self._search_single_source(source, keywords, max_results)
             except Exception as e:
                 logger.error(f"Error searching {source}: {e}")
                 return []
 
-        # Run all source searches concurrently
-        results = await asyncio.gather(*[_safe_search(source) for source in sources])
+        # Run all source searches concurrently, but with bounded parallelism
+        tasks = [_safe_search(source) for source in sources]
+        results = await asyncio.gather(*tasks)
         for papers in results:
             all_papers.extend(papers)
 
