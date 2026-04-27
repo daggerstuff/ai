@@ -125,6 +125,9 @@ class CacheConfig:
 class AcademicSourcingConfig:
     """Configuration for academic sourcing operations."""
 
+    # Concurrency limits
+    pdf_concurrency: int = 8
+
     # API endpoints
     pubmed_base_url: str = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
     arxiv_base_url: str = "http://export.arxiv.org/api/query"
@@ -1310,14 +1313,27 @@ class PDFProcessor:
     def __init__(self, config: AcademicSourcingConfig):
         """Initialize PDF processor with configuration."""
         self.config = config
+        self._session: aiohttp.ClientSession | None = None
+
+    async def _get_session(self) -> aiohttp.ClientSession:
+        """Get or create shared HTTP session."""
+        if self._session is None or self._session.closed:
+            self._session = aiohttp.ClientSession()
+        return self._session
+
+    async def close(self) -> None:
+        """Close the shared HTTP session."""
+        if self._session and not self._session.closed:
+            await self._session.close()
 
     async def extract_text(self, pdf_url: str) -> str | None:
         """Extract text from PDF URL."""
         logger.info(f"Extracting text from PDF: {pdf_url}")
 
         try:
-            # Download PDF
-            async with aiohttp.ClientSession() as session, session.get(pdf_url) as response:
+            # Download PDF using shared session
+            session = await self._get_session()
+            async with session.get(pdf_url) as response:
                 response.raise_for_status()
                 pdf_content = await response.read()
 
@@ -1424,6 +1440,8 @@ class AcademicSourcing:
             await self._semantic_scholar_client.__aexit__(exc_type, exc_val, exc_tb)
         if self._doi_resolver:
             await self._doi_resolver.__aexit__(exc_type, exc_val, exc_tb)
+        if self._pdf_processor:
+            await self._pdf_processor.close()
 
     async def search(
         self,
@@ -1539,14 +1557,18 @@ class AcademicSourcing:
         ⚡ Bolt Performance Optimization:
         Parallelizes extraction of full text from PDFs.
         """
-        tasks = [
-            self._enrich_paper_with_full_text(paper)
-            for paper in papers
-            if paper.pdf_url
-        ]
+        pdf_papers = [paper for paper in papers if paper.pdf_url]
+        if not pdf_papers:
+            return
 
-        if tasks:
-            await asyncio.gather(*tasks)
+        # Cap concurrency to avoid overwhelming PDF hosts and local memory.
+        sem = asyncio.Semaphore(getattr(self.config, "pdf_concurrency", 8))
+
+        async def _bounded(paper: PaperMetadata) -> None:
+            async with sem:
+                await self._enrich_paper_with_full_text(paper)
+
+        await asyncio.gather(*(_bounded(paper) for paper in pdf_papers))
 
     async def _enrich_paper_with_full_text(self, paper: PaperMetadata) -> None:
         """Populate full text and extracted insights for a single paper."""
