@@ -20,16 +20,17 @@ def test_unauthorized_access(mock_db):
 def test_authorized_but_insufficient_permissions(mock_db):
     app.dependency_overrides[get_current_active_user_or_api_key] = lambda: {"username": "test", "scopes": [PermissionLevel.WRITE], "auth_type": "api_key"}
 
-    response = client.get("/datasets")
-    assert response.status_code == 403
+    try:
+        response = client.get("/datasets")
+        assert response.status_code == 403
 
-    response_metadata = client.get("/datasets/test_dataset/metadata")
-    assert response_metadata.status_code == 403
+        response_metadata = client.get("/datasets/test_dataset/metadata")
+        assert response_metadata.status_code == 403
 
-    response_query = client.post("/datasets/test_dataset/query")
-    assert response_query.status_code == 403
-
-    app.dependency_overrides.clear()
+        response_query = client.post("/datasets/test_dataset/query")
+        assert response_query.status_code == 403
+    finally:
+        app.dependency_overrides.clear()
 
 @patch("api.dataset_api.get_db_connection")
 def test_authorized_with_sufficient_permissions(mock_db):
@@ -40,25 +41,26 @@ def test_authorized_with_sufficient_permissions(mock_db):
 
     app.dependency_overrides[get_current_active_user_or_api_key] = lambda: {"username": "test", "scopes": [PermissionLevel.READ], "auth_type": "api_key"}
 
-    response = client.get("/datasets")
-    assert response.status_code == 200
+    try:
+        response = client.get("/datasets")
+        assert response.status_code == 200
 
-    # Needs to return a row-like object that can be indexed both by name and by integer
-    class MockRow:
-        def __init__(self, data, list_data=None):
-            self.data = data
-            self.list_data = list_data or [0]
-        def __getitem__(self, key):
-            if isinstance(key, int):
-                return self.list_data[key]
-            return self.data.get(key)
+        # Needs to return a row-like object that can be indexed both by name and by integer
+        class MockRow:
+            def __init__(self, data, list_data=None):
+                self.data = data
+                self.list_data = list_data or [0]
+            def __getitem__(self, key):
+                if isinstance(key, int):
+                    return self.list_data[key]
+                return self.data.get(key)
 
-    mock_cursor.fetchone.side_effect = [MockRow({"name": "test_dataset"}), MockRow({}, [0])]
-    response_metadata = client.get("/datasets/test_dataset/metadata")
-    assert response_metadata.status_code == 200
+        mock_cursor.fetchone.side_effect = [MockRow({"name": "test_dataset"}), MockRow({}, [0])]
+        response_metadata = client.get("/datasets/test_dataset/metadata")
+        assert response_metadata.status_code == 200
 
-    mock_cursor.fetchone.side_effect = [MockRow({"name": "test_dataset"}), MockRow({}, [0])]
-    response_query = client.post("/datasets/test_dataset/query")
-    assert response_query.status_code == 200
-
-    app.dependency_overrides.clear()
+        mock_cursor.fetchone.side_effect = [MockRow({"name": "test_dataset"}), MockRow({}, [0])]
+        response_query = client.post("/datasets/test_dataset/query")
+        assert response_query.status_code == 200
+    finally:
+        app.dependency_overrides.clear()
