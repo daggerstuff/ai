@@ -11,7 +11,7 @@ def test_clean_structure_edge_cases(_mock_file, _mock_exists):
     assert corrector.correct_transcript("") == ""
     assert corrector.correct_transcript("   ") == ""
     assert corrector.correct_transcript("um, uh, like you know") == ""
-    assert corrector.correct_transcript("this is bad") == "this is good"
+    assert corrector.correct_transcript("this is bad") == "This is good"
 
 @patch("utils.transcript_corrector.Path.exists", return_value=True)
 @patch("builtins.open", new_callable=mock_open, read_data='{"cptsd_terms": ["trauma"], "medical_terms": ["brain"]}')
@@ -34,3 +34,22 @@ def test_apply_terminology_fixes_edge_cases(_mock_file, _mock_exists):
 
     assert corrector._apply_terminology_fixes("This is a BAD TERM.") == "This is a good term."
     assert corrector._apply_terminology_fixes("bad term and Bad Term") == "good term and good term"
+
+
+@patch("utils.transcript_corrector.Path.exists", return_value=True)
+@patch("builtins.open", new_callable=mock_open, read_data='{}')
+def test_correct_transcript_with_punctuation_and_capitalization(_mock_file, _mock_exists):
+    corrector = TranscriptCorrector("mock.json")
+
+    # Tests repeated punctuation collapse and sentence capitalization
+    assert corrector.correct_transcript("hello world!!  how are you??") == "Hello world! How are you?"
+
+    # Tests automatic capitalization of "i"
+    assert corrector.correct_transcript("i think i am fine.") == "I think I am fine."
+
+    # Tests specific CPTSD safety net replacements like im and i'd
+    assert corrector.correct_transcript("im going home.") == "I'm going home."
+    assert corrector.correct_transcript("i'd want to talk.") == "I'd want to talk."
+
+    # Tests spacing around punctuation
+    assert corrector.correct_transcript("wait , what ?") == "Wait, what?"
