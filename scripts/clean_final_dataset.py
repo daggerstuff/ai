@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
-"""
-Clean, deduplicate, and format final training dataset
-"""
-
+""" Clean, deduplicate, and format final training dataset """
 import hashlib
 import json
 import re
@@ -25,13 +22,15 @@ class DatasetCleaner:
         if not text:
             return ""
 
-        # Remove extra whitespace
-        text = WHITESPACE_PATTERN.sub(" ", text.strip())
+        # Remove leading/trailing whitespace; final normalization happens later
+        text = text.strip()
 
         # Fix common transcription artifacts
         text = ARTIFACTS_PATTERN.sub("", text)
-        text = COMMAS_PATTERN.sub(" ", text)  # Multiple commas/spaces
-        text = WHITESPACE_PATTERN.sub(" ", text)     # Normalize whitespace again
+        text = COMMAS_PATTERN.sub(" ", text)
+
+        # Multiple commas/spaces
+        text = WHITESPACE_PATTERN.sub(" ", text)  # Normalize whitespace again
 
         # Remove very short or empty responses
         if len(text.strip()) < 50:
@@ -89,11 +88,11 @@ class DatasetCleaner:
 
     def clean_dataset(self, input_file: Path, output_file: Path) -> dict:
         """Clean and deduplicate dataset"""
-
         with open(input_file, encoding="utf-8") as f:
             conversations = json.load(f)
 
         cleaned_conversations = []
+
         stats = {
             "original_count": len(conversations),
             "duplicates_removed": 0,
@@ -145,6 +144,7 @@ class DatasetCleaner:
 
         with open(config_file, "w", encoding="utf-8") as f:
             json.dump(config, f, indent=2, ensure_ascii=False)
+
 
 def main():
     """Clean and deduplicate final dataset"""
