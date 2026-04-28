@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
-"""
-Clean, deduplicate, and format final training dataset
-"""
-
+""" Clean, deduplicate, and format final training dataset """
 import hashlib
 import json
 import re
@@ -11,8 +8,7 @@ from pathlib import Path
 # Precompiled regex patterns for performance optimization during large dataset processing
 WHITESPACE_PATTERN = re.compile(r"\s+")
 ARTIFACTS_PATTERN = re.compile(r"\b(um|uh|like|you know)\b", flags=re.IGNORECASE)
-COMMAS_PATTERN = re.compile(r"[,\s]+")
-
+COMMAS_PATTERN = re.compile(r",+")
 
 class DatasetCleaner:
     def __init__(self):
@@ -30,8 +26,10 @@ class DatasetCleaner:
 
         # Fix common transcription artifacts
         text = ARTIFACTS_PATTERN.sub("", text)
-        text = COMMAS_PATTERN.sub(" ", text)  # Multiple commas/spaces
-        text = WHITESPACE_PATTERN.sub(" ", text)     # Normalize whitespace again
+
+        # Replace multiple commas with single space, then normalize all whitespace
+        text = COMMAS_PATTERN.sub(" ", text)
+        text = WHITESPACE_PATTERN.sub(" ", text)
 
         # Remove very short or empty responses
         if len(text.strip()) < 50:
@@ -89,11 +87,11 @@ class DatasetCleaner:
 
     def clean_dataset(self, input_file: Path, output_file: Path) -> dict:
         """Clean and deduplicate dataset"""
-
         with open(input_file, encoding="utf-8") as f:
             conversations = json.load(f)
 
         cleaned_conversations = []
+
         stats = {
             "original_count": len(conversations),
             "duplicates_removed": 0,
@@ -169,7 +167,6 @@ def main():
     # Replace original files
     train_clean.rename(train_file)
     val_clean.rename(val_file)
-
 
 if __name__ == "__main__":
     main()
