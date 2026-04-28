@@ -290,8 +290,13 @@ describe('PixelatedEmpathyAPI Method exportData', () => {
     });
 });
 
+<<<<<<< HEAD
 describe('PixelatedEmpathyAPI Method searchConversations', () => {
     it('should correctly pass query and default options to _makeRequest', async () => {
+=======
+describe('PixelatedEmpathyAPI Method getQualityMetrics', () => {
+    it('should correctly map options to params', async () => {
+>>>>>>> test/getQualityMetrics-12345-16401854829314747885
         const api = new PixelatedEmpathyAPI('test_key');
 
         let calledEndpoint = '';
@@ -300,6 +305,7 @@ describe('PixelatedEmpathyAPI Method searchConversations', () => {
         api._makeRequest = async (method, endpoint, options) => {
             calledEndpoint = endpoint;
             calledOptions = options;
+<<<<<<< HEAD
             return { data: { results: ['conversation1'] } };
         };
 
@@ -337,6 +343,39 @@ describe('PixelatedEmpathyAPI Method searchConversations', () => {
             limit: 10,
             offset: 20
         });
+=======
+            return { data: { overall_statistics: {} } };
+        };
+
+        await api.getQualityMetrics({
+            dataset: 'test_dataset',
+            tier: 'professional'
+        });
+
+        expect(calledEndpoint).toBe('/quality/metrics');
+        expect(calledOptions.params).toEqual({
+            dataset: 'test_dataset',
+            tier: 'professional'
+        });
+    });
+
+    it('should handle missing options gracefully', async () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+
+        let calledEndpoint = '';
+        let calledOptions = {};
+
+        api._makeRequest = async (method, endpoint, options) => {
+            calledEndpoint = endpoint;
+            calledOptions = options;
+            return { data: { overall_statistics: {} } };
+        };
+
+        await api.getQualityMetrics();
+
+        expect(calledEndpoint).toBe('/quality/metrics');
+        expect(calledOptions.params).toEqual({});
+>>>>>>> test/getQualityMetrics-12345-16401854829314747885
     });
 });
 
