@@ -167,7 +167,14 @@ async def list_datasets(
 ):
     """List all available datasets (tables in the database)."""
     if PermissionLevel.READ not in current_auth_entity.get("scopes", []):
+<<<<<<< HEAD
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+=======
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions to list datasets",
+        )
+>>>>>>> security/auth-check-1234-15489997635645006015
     datasets = []
     try:
         conn = get_db_connection()
@@ -233,7 +240,14 @@ async def get_dataset_metadata(
 ):
     """Get metadata (schema) for a specific dataset (table)."""
     if PermissionLevel.READ not in current_auth_entity.get("scopes", []):
+<<<<<<< HEAD
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+=======
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions to access dataset metadata",
+        )
+>>>>>>> security/auth-check-1234-15489997635645006015
     conn = None
     try:
         # Validate input format immediately to prevent any SQL injection attempts
@@ -301,7 +315,14 @@ async def query_dataset(
     Query data from a specific dataset (table) with optional filters and pagination.
     """
     if PermissionLevel.READ not in current_auth_entity.get("scopes", []):
+<<<<<<< HEAD
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+=======
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions to query datasets",
+        )
+>>>>>>> security/auth-check-1234-15489997635645006015
     conn = None
     try:
         # Validate input format immediately
