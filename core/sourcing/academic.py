@@ -54,7 +54,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger("academic_sourcing")
 
-
 # ============================================================================
 # Configuration and Data Classes
 # ============================================================================
@@ -119,10 +118,13 @@ class CacheConfig:
 @dataclass
 class AcademicSourcingConfig:
     """Configuration for academic sourcing operations."""
+<<<<<<< HEAD
 
     # Concurrency limits
     pdf_concurrency: int = 8
 
+=======
+>>>>>>> perf/academic-asyncio_gather-12345-9112130372994207954
     # API endpoints
     pubmed_base_url: str = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
     arxiv_base_url: str = "http://export.arxiv.org/api/query"
@@ -214,7 +216,6 @@ class Citation:
 @dataclass
 class PaperMetadata:
     """Metadata for an academic paper."""
-
     # Identifiers
     paper_id: str
     doi: str | None = None
@@ -280,7 +281,6 @@ class CitationModel(BaseModel):
 
 class PaperMetadataModel(BaseModel):
     """Pydantic model for paper metadata (PIX-32 compatible)."""
-
     # Identifiers
     paper_id: str = Field(..., description="Unique identifier for the paper")
     doi: str | None = Field(None, description="Digital Object Identifier")
@@ -342,11 +342,20 @@ class PaperMetadataModel(BaseModel):
         description="Retrieval timestamp (ISO format)",
     )
 
+<<<<<<< HEAD
     class Config:
         """Pydantic configuration."""
         json_encoders = {
             datetime: lambda v: v.isoformat() if v else None,
         }
+=======
+
+class Config:
+    """Pydantic configuration."""
+    json_encoders = {
+        datetime: lambda v: v.isoformat() if v else None,
+    }
+>>>>>>> perf/academic-asyncio_gather-12345-9112130372994207954
 
 
 # ============================================================================
@@ -410,7 +419,6 @@ class SimpleCache:
         """Save cache to disk."""
         if not self.config.enabled:
             return
-
         cache_path = self._get_cache_path()
         try:
             data = {
@@ -440,16 +448,13 @@ class SimpleCache:
         """Get cached data if available and not expired."""
         if not self.config.enabled:
             return None
-
         key = self._generate_key(source, query, params)
         entry = self._cache.get(key)
         if entry is None:
             return None
-
         if entry.is_expired():
             del self._cache[key]
             return None
-
         logger.debug(f"Cache hit for key: {key[:16]}...")
         return entry.data
 
@@ -458,12 +463,15 @@ class SimpleCache:
         source: str,
         query: str,
         params: dict[str, Any],
+<<<<<<< HEAD
         data: dict[str, Any]
+=======
+        data: dict[str, Any],
+>>>>>>> perf/academic-asyncio_gather-12345-9112130372994207954
     ) -> None:
         """Cache data with TTL."""
         if not self.config.enabled:
             return
-
         # Enforce max size
         if len(self._cache) >= self.config.max_size:
             # Remove oldest entry
@@ -478,7 +486,6 @@ class SimpleCache:
             ttl_seconds=self.config.ttl_seconds,
         )
         self._cache[key] = entry
-
         # Periodically save to disk
         if len(self._cache) % 10 == 0:
             self._save_to_disk()
@@ -510,7 +517,6 @@ class RateLimiter:
         async with self._lock:
             now = time.time()
             elapsed = now - self._last_update
-
             # Refill tokens based on elapsed time
             refill = elapsed * self.config.requests_per_second
             self._tokens = min(self.config.burst_size, self._tokens + refill)
@@ -579,7 +585,6 @@ class AcademicAPIClient:
         await self.rate_limiter.acquire()
 
         session = await self._get_session()
-
         for attempt in range(self.config.max_retries):
             try:
                 async with session.request(
@@ -591,9 +596,7 @@ class AcademicAPIClient:
                     # Cache the result
                     if cache_key:
                         self.cache.set(cache_key[0], cache_key[1], cache_key[2], data)
-
                     return data
-
             except aiohttp.ClientError as e:
                 if attempt == self.config.max_retries - 1:
                     raise
@@ -615,7 +618,6 @@ class AcademicAPIClient:
         """Extract mental health topics from text."""
         if not text:
             return []
-
         text_lower = text.lower()
         return [keyword for keyword in keywords if keyword.lower() in text_lower]
 
@@ -759,7 +761,6 @@ class PubMedClient(AcademicAPIClient):
                 source=SourceType.PUBMED,
                 raw_data=pubmed_data,
             )
-
         except Exception as e:
             logger.warning(f"Failed to parse PubMed data for {pmid}: {e}")
             return None
@@ -787,7 +788,6 @@ class PubMedClient(AcademicAPIClient):
         abstract_data = article.get("abstract", {})
         if not abstract_data:
             return None
-
         abstract_text = abstract_data.get("abstracttext", "")
         if isinstance(abstract_text, list):
             abstract_text = " ".join(abstract_text)
@@ -813,7 +813,6 @@ class PubMedClient(AcademicAPIClient):
                 year = pub_date.get("year")
                 month = pub_date.get("month")
                 day = pub_date.get("day")
-
                 if year:
                     month_str = f"{month:02d}" if month else "01"
                     day_str = f"{day:02d}" if day else "01"
@@ -827,14 +826,12 @@ class PubMedClient(AcademicAPIClient):
         """Extract keywords from MedLine citation."""
         keywords = []
         keyword_list = medline_citation.get("keywordlist", [])
-
         if isinstance(keyword_list, dict):
             for keyword in keyword_list.get("keyword", []):
                 if isinstance(keyword, dict):
                     keywords.append(keyword.get("#text", ""))
                 elif isinstance(keyword, str):
                     keywords.append(keyword)
-
         return keywords
 
     def _detect_study_type(self, medline_citation: dict[str, Any]) -> StudyType:
@@ -842,7 +839,6 @@ class PubMedClient(AcademicAPIClient):
         publication_types = medline_citation.get("article", {}).get(
             "publicationtypelist", []
         )
-
         if not publication_types:
             return StudyType.UNKNOWN
 
@@ -855,7 +851,6 @@ class PubMedClient(AcademicAPIClient):
 
         # Detect study type from publication types
         type_str = " ".join(pub_types)
-
         if "randomized" in type_str or "clinical trial" in type_str:
             return StudyType.RCT
         if "review" in type_str:
@@ -866,7 +861,6 @@ class PubMedClient(AcademicAPIClient):
             return StudyType.CASE_STUDY
         if "observational" in type_str:
             return StudyType.OBSERVATIONAL
-
         return StudyType.UNKNOWN
 
     def _determine_access_status(self, pubmed_data: dict[str, Any]) -> AccessStatus:
@@ -922,7 +916,6 @@ class ArXivClient(AcademicAPIClient):
         # Parse arXiv data
         papers = []
         entries = data.get("feed", {}).get("entry", [])
-
         for entry in entries:
             try:
                 if paper := self._parse_entry(entry):
@@ -1000,7 +993,6 @@ class ArXivClient(AcademicAPIClient):
                 source=SourceType.ARXIV,
                 raw_data=entry,
             )
-
         except Exception as e:
             logger.warning(f"Failed to parse arXiv entry: {e}")
             return None
@@ -1067,8 +1059,13 @@ class SemanticScholarClient(AcademicAPIClient):
 
         # Parse Semantic Scholar data
         papers = []
+<<<<<<< HEAD
         entries = data.get("data", [])
 
+=======
+        search_data = data.get("data", {}).get("search", {})
+        entries = search_data.get("data", [])
+>>>>>>> perf/academic-asyncio_gather-12345-9112130372994207954
         for entry in entries:
             try:
                 if paper := self._parse_entry(entry):
@@ -1084,7 +1081,11 @@ class SemanticScholarClient(AcademicAPIClient):
     async def get_paper_details(
         self,
         paper_id: str,
+<<<<<<< HEAD
         fields: list[str] | None = None
+=======
+        fields: list[str] | None = None,
+>>>>>>> perf/academic-asyncio_gather-12345-9112130372994207954
     ) -> PaperMetadata | None:
         """Get detailed information for a specific paper."""
         logger.info(f"Fetching details for paper: {paper_id}")
@@ -1169,7 +1170,6 @@ class SemanticScholarClient(AcademicAPIClient):
                 for ref in entry.get("references", [])
                 if isinstance(ref, dict)
             ]
-
             cited_by = [
                 Citation(
                     paper_id=cit.get("paperId", ""),
@@ -1218,7 +1218,6 @@ class SemanticScholarClient(AcademicAPIClient):
                 source=SourceType.SEMANTIC_SCHOLAR,
                 raw_data=entry,
             )
-
         except Exception as e:
             logger.warning(f"Failed to parse Semantic Scholar entry: {e}")
             return None
@@ -1246,7 +1245,6 @@ class DOIResolver(AcademicAPIClient):
         headers = {
             "Accept": "application/vnd.citationstyles.csl+json",
         }
-
         cache_key = ("doi", "resolve", {"doi": doi})
 
         try:
@@ -1259,7 +1257,6 @@ class DOIResolver(AcademicAPIClient):
 
             # Parse metadata
             return self._parse_metadata(doi, data)
-
         except Exception as e:
             logger.warning(f"Failed to resolve DOI {doi}: {e}")
             return None
@@ -1294,7 +1291,6 @@ class DOIResolver(AcademicAPIClient):
             journal = data.get("container-title", "")
             if isinstance(journal, list) and journal:
                 journal = journal[0]
-
             volume = data.get("volume")
             issue = data.get("issue")
             pages = data.get("page")
@@ -1326,7 +1322,6 @@ class DOIResolver(AcademicAPIClient):
                 source=SourceType.DOI,
                 raw_data=data,
             )
-
         except Exception as e:
             logger.warning(f"Failed to parse DOI metadata: {e}")
             return None
@@ -1375,15 +1370,12 @@ class PDFProcessor:
                     for page in pdf.pages:
                         if text := page.extract_text():
                             text_parts.append(text)
-
                 full_text = "\n\n".join(text_parts)
                 logger.info(f"Extracted {len(full_text)} characters from PDF")
                 return full_text
-
             except ImportError:
                 logger.warning("pdfplumber not available, skipping PDF extraction")
                 return None
-
         except Exception as e:
             logger.warning(f"Failed to extract text from PDF: {e}")
             return None
@@ -1421,7 +1413,6 @@ class PDFProcessor:
                 methodology = match[1].strip()
                 if len(methodology) > 100:  # Ensure we got substantial content
                     return methodology[:2000]  # Limit length
-
         return None
 
 
@@ -1550,6 +1541,7 @@ class AcademicSourcing:
         for papers in results:
             all_papers.extend(papers)
 =======
+<<<<<<< HEAD
         """Search all requested sources and collect papers concurrently."""
         all_papers: list[PaperMetadata] = []
 
@@ -1569,7 +1561,23 @@ class AcademicSourcing:
             else:
                 all_papers.extend(result)
 >>>>>>> perf/academic-async-gather-3918-137906976905465223
+=======
+        """Search all requested sources and collect papers."""
+        # ⚡ Bolt: Use asyncio.gather to concurrently search multiple sources,
+        # overlapping network latency for significantly faster execution.
+        async def search_and_catch(source: str) -> list[PaperMetadata]:
+            try:
+                return await self._search_single_source(source, keywords, max_results)
+            except Exception as e:
+                logger.error(f"Error searching {source}: {e}")
+                return []
+>>>>>>> perf/academic-asyncio_gather-12345-9112130372994207954
+>>>>>>> perf/academic-asyncio_gather-12345-9112130372994207954
 
+        results = await asyncio.gather(*(search_and_catch(source) for source in sources))
+        all_papers: list[PaperMetadata] = []
+        for papers in results:
+            all_papers.extend(papers)
         return all_papers
 
     async def _search_single_source(
@@ -1594,7 +1602,6 @@ class AcademicSourcing:
                 query=keywords,
                 max_results=max_results,
             )
-
         logger.warning(f"Unknown source: {source}")
         return []
 
@@ -1610,8 +1617,7 @@ class AcademicSourcing:
                 for paper in papers
                 if paper.mental_health_relevance_score >= min_relevance
             ]
-
-        papers.sort(key=lambda paper: paper.mental_health_relevance_score, reverse=True)
+            papers.sort(key=lambda paper: paper.mental_health_relevance_score, reverse=True)
         return papers
 
     async def _enrich_papers_with_full_text(self, papers: list[PaperMetadata]) -> None:
@@ -1634,6 +1640,7 @@ class AcademicSourcing:
         await asyncio.gather(*(_bounded(paper) for paper in pdf_papers))
 =======
         """Populate full text and derived fields for papers with PDFs."""
+<<<<<<< HEAD
         # Performance optimization: enrich papers in parallel
         semaphore = asyncio.Semaphore(5)
 
@@ -1648,6 +1655,26 @@ class AcademicSourcing:
         if tasks:
             await asyncio.gather(*tasks)
 >>>>>>> perf/academic-gather-7c39b-14365606995842439401
+=======
+        # ⚡ Bolt: Use asyncio.gather to concurrently extract text and insights
+        # from multiple papers, significantly reducing total enrichment time.
+        # Added an asyncio.Semaphore to bound concurrency and prevent socket limits.
+        semaphore = asyncio.Semaphore(10)
+
+        async def bounded_enrich(paper: PaperMetadata):
+            async with semaphore:
+                await self._enrich_paper_with_full_text(paper)
+
+        tasks = []
+        for paper in papers:
+            if not paper.pdf_url:
+                continue
+            tasks.append(bounded_enrich(paper))
+
+        if tasks:
+            await asyncio.gather(*tasks)
+>>>>>>> perf/academic-asyncio_gather-12345-9112130372994207954
+>>>>>>> perf/academic-asyncio_gather-12345-9112130372994207954
 
     async def _enrich_paper_with_full_text(self, paper: PaperMetadata) -> None:
         """Populate full text and extracted insights for a single paper."""
@@ -1655,18 +1682,14 @@ class AcademicSourcing:
             full_text = await self._pdf_processor.extract_text(paper.pdf_url)
             if not full_text:
                 return
-
             paper.full_text = full_text
-
             if self.config.extract_key_findings:
                 findings = self._pdf_processor.extract_key_findings(full_text)
                 paper.keywords.extend(findings)
-
             if self.config.extract_methodology and (
                 methodology := self._pdf_processor.extract_methodology(full_text)
             ):
                 paper.raw_data["methodology"] = methodology
-
         except Exception as e:
             logger.warning(f"Failed to extract full text for {paper.paper_id}: {e}")
 
@@ -1715,7 +1738,6 @@ class AcademicSourcing:
             List of dictionaries in PIX-32 format
         """
         pix32_records = []
-
         for paper in papers:
             # Convert to Pydantic model for validation
             model = PaperMetadataModel(
@@ -1766,9 +1788,7 @@ class AcademicSourcing:
                 source=paper.source.value,
                 retrieved_at=paper.retrieved_at.isoformat(),
             )
-
             pix32_records.append(model.dict())
-
         return pix32_records
 
     def clear_cache(self) -> None:
@@ -1805,7 +1825,6 @@ async def search_papers(
         List of dictionaries in PIX-32 format
     """
     config = config or AcademicSourcingConfig()
-
     async with AcademicSourcing(config) as sourcing:
         papers = await sourcing.search(
             keywords=keywords,
@@ -1830,7 +1849,6 @@ async def resolve_doi(
         Dictionary in PIX-32 format or None if resolution fails
     """
     config = config or AcademicSourcingConfig()
-
     async with AcademicSourcing(config) as sourcing:
         paper = await sourcing.resolve_doi(doi)
         if paper:
