@@ -8,6 +8,7 @@ from fastapi import Depends, FastAPI, HTTPException, Query, Request, Security, s
 from pydantic import BaseModel
 
 from security.api_authentication import (
+    UserRole,
     AuthenticationSystem,
     PermissionLevel,
 )
@@ -100,6 +101,7 @@ async def get_current_active_user_or_api_key(
     # First try to get authenticated user from request state (JWT token auth)
     user = getattr(request.state, "authenticated_user", None)
     if user:
+<<<<<<< HEAD
         user_role = getattr(user, "role", None)
         user_scopes = []
         if user_role:
@@ -116,6 +118,17 @@ async def get_current_active_user_or_api_key(
         return {
             "username": user.username,
             "scopes": user_scopes,
+=======
+        # Fallback to deriving permissions if the object lacks them
+        scopes = getattr(user, "permissions", None)
+        if scopes is None:
+            # Use the existing mapping instead of hardcoding a subset
+            scopes = auth_system.role_permissions.get(getattr(user, "role", None), [])
+
+        return {
+            "username": getattr(user, "username", getattr(user, "email", "unknown")),
+            "scopes": scopes,
+>>>>>>> security/authz-1234-4782576198760297086
             "auth_type": "user_token",
         }
 
@@ -197,10 +210,17 @@ async def list_datasets(
 =======
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
+<<<<<<< HEAD
             detail="Insufficient permissions to list datasets",
         )
 >>>>>>> security/auth-check-1234-15489997635645006015
+=======
+            detail="Insufficient permissions",
+        )
+>>>>>>> security/authz-1234-4782576198760297086
+>>>>>>> security/authz-1234-4782576198760297086
     datasets = []
+    conn = None
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -270,9 +290,15 @@ async def get_dataset_metadata(
 =======
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
+<<<<<<< HEAD
             detail="Insufficient permissions to access dataset metadata",
         )
 >>>>>>> security/auth-check-1234-15489997635645006015
+=======
+            detail="Insufficient permissions",
+        )
+>>>>>>> security/authz-1234-4782576198760297086
+>>>>>>> security/authz-1234-4782576198760297086
     conn = None
     try:
         # Validate input format immediately to prevent any SQL injection attempts
@@ -352,9 +378,15 @@ async def query_dataset(
 =======
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
+<<<<<<< HEAD
             detail="Insufficient permissions to query datasets",
         )
 >>>>>>> security/auth-check-1234-15489997635645006015
+=======
+            detail="Insufficient permissions",
+        )
+>>>>>>> security/authz-1234-4782576198760297086
+>>>>>>> security/authz-1234-4782576198760297086
     conn = None
     try:
         # Validate input format immediately
