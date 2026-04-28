@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { PixelatedEmpathyAPI, PixelatedEmpathyAPIError } from './javascript_client';
+import { PixelatedEmpathyAPI, PixelatedEmpathyAPIError, RateLimitError } from './javascript_client';
 
 describe('PixelatedEmpathyAPI healthCheck', () => {
     it('should return true when health check succeeds', async () => {
@@ -44,6 +44,16 @@ describe('PixelatedEmpathyAPI Rate Limiting', () => {
 
         expect(api._httpRequest).toHaveBeenCalledTimes(2);
         expect(result).toBe(true);
+    });
+
+    it('should throw RateLimitError when retries exceed maxRetries', async () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        api.maxRetries = 2;
+        api._httpRequest = vi.fn()
+            .mockResolvedValue({ statusCode: 429, headers: { 'retry-after': '0' }, body: '' });
+
+        await expect(api._makeRequest('GET', '/test')).rejects.toThrow(RateLimitError);
+        expect(api._httpRequest).toHaveBeenCalledTimes(3);
     });
 });
 
