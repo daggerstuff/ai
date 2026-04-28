@@ -33,6 +33,7 @@ describe('PixelatedEmpathyAPI healthCheck', () => {
     });
 });
 
+<<<<<<< HEAD
 describe('PixelatedEmpathyAPI Method listDatasets', () => {
     it('should return datasets array when present in response', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
@@ -54,6 +55,39 @@ describe('PixelatedEmpathyAPI Method listDatasets', () => {
 
         const datasets = await api.listDatasets();
         expect(datasets).toEqual([]);
+=======
+describe('PixelatedEmpathyAPI Dataset Methods', () => {
+    it('listDatasets should call _makeRequest with correct endpoint and return datasets', async () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const mockDatasets = [{ name: 'test_1', conversations: 10 }, { name: 'test_2', conversations: 20 }];
+        api._makeRequest = vi.fn().mockResolvedValue({ data: { datasets: mockDatasets } });
+
+        const result = await api.listDatasets();
+
+        expect(api._makeRequest).toHaveBeenCalledWith('GET', '/datasets');
+        expect(result).toEqual(mockDatasets);
+    });
+
+    it('listDatasets should return empty array if datasets is missing from response', async () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        api._makeRequest = vi.fn().mockResolvedValue({ data: {} });
+
+        const result = await api.listDatasets();
+
+        expect(api._makeRequest).toHaveBeenCalledWith('GET', '/datasets');
+        expect(result).toEqual([]);
+    });
+
+    it('getDatasetInfo should call _makeRequest with correct endpoint', async () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const mockDatasetInfo = { name: 'test_dataset', count: 100 };
+        api._makeRequest = vi.fn().mockResolvedValue({ data: mockDatasetInfo });
+
+        const result = await api.getDatasetInfo('test_dataset');
+
+        expect(api._makeRequest).toHaveBeenCalledWith('GET', '/datasets/test_dataset');
+        expect(result).toEqual(mockDatasetInfo);
+>>>>>>> test/javascript_client-datasets-1-1810556581074766305
     });
 });
 
