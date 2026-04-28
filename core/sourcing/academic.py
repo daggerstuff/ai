@@ -673,14 +673,21 @@ class PubMedClient(AcademicAPIClient):
         logger.info(f"Found {len(pmids)} PubMed IDs, fetching details...")
 
         # Fetch details for each PMID
-        papers = []
-        for pmid in pmids:
-            try:
-                paper = await self.fetch_details(pmid)
-                if paper:
-                    papers.append(paper)
-            except Exception as e:
-                logger.warning(f"Failed to fetch details for PMID {pmid}: {e}")
+        # Performance optimization: use asyncio.gather to fetch details concurrently
+        # Limit the number of concurrent PubMed detail fetches to avoid overloading the API
+        max_concurrent_fetches = 10
+        semaphore = asyncio.Semaphore(max_concurrent_fetches)
+
+        async def fetch_and_catch(pmid):
+            async with semaphore:
+                try:
+                    return await self.fetch_details(pmid)
+                except Exception as e:
+                    logger.warning(f"Failed to fetch details for PMID {pmid}: {e}")
+                    return None
+
+        results = await asyncio.gather(*(fetch_and_catch(pmid) for pmid in pmids))
+        papers = [p for p in results if p is not None]
 
         logger.info(f"Successfully retrieved {len(papers)} papers from PubMed")
         return papers
@@ -1513,6 +1520,7 @@ class AcademicSourcing:
         """
         all_papers: list[PaperMetadata] = []
 
+<<<<<<< HEAD
         # Bound concurrency for source searches to avoid overwhelming external APIs
         # NOTE: tune this value or make it configurable per environment if needed.
         semaphore = asyncio.Semaphore(5)
@@ -1521,14 +1529,24 @@ class AcademicSourcing:
             try:
                 async with semaphore:
                     return await self._search_single_source(source, keywords, max_results)
+=======
+        # Performance optimization: parallelize searches across different sources
+        async def search_and_catch(source):
+            try:
+                return await self._search_single_source(source, keywords, max_results)
+>>>>>>> perf/academic-gather-7c39b-14365606995842439401
             except Exception as e:
                 logger.error(f"Error searching {source}: {e}")
                 return []
 
+<<<<<<< HEAD
         # Run all source searches concurrently, but with bounded parallelism
         tasks = [_safe_search(source) for source in sources]
         results = await asyncio.gather(*tasks)
 
+=======
+        results = await asyncio.gather(*(search_and_catch(source) for source in sources))
+>>>>>>> perf/academic-gather-7c39b-14365606995842439401
         for papers in results:
             all_papers.extend(papers)
 =======
@@ -1597,6 +1615,7 @@ class AcademicSourcing:
         return papers
 
     async def _enrich_papers_with_full_text(self, papers: list[PaperMetadata]) -> None:
+<<<<<<< HEAD
         """Populate full text and derived fields for papers with PDFs.
 
         ⚡ Bolt Performance Optimization: Parallelizes extraction of full text from PDFs.
@@ -1613,6 +1632,22 @@ class AcademicSourcing:
                 await self._enrich_paper_with_full_text(paper)
 
         await asyncio.gather(*(_bounded(paper) for paper in pdf_papers))
+=======
+        """Populate full text and derived fields for papers with PDFs."""
+        # Performance optimization: enrich papers in parallel
+        semaphore = asyncio.Semaphore(5)
+
+        async def enrich_limited(paper: PaperMetadata) -> None:
+            async with semaphore:
+                await self._enrich_paper_with_full_text(paper)
+
+        tasks = [
+            enrich_limited(paper)
+            for paper in papers if paper.pdf_url
+        ]
+        if tasks:
+            await asyncio.gather(*tasks)
+>>>>>>> perf/academic-gather-7c39b-14365606995842439401
 
     async def _enrich_paper_with_full_text(self, paper: PaperMetadata) -> None:
         """Populate full text and extracted insights for a single paper."""
