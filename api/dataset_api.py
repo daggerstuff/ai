@@ -100,9 +100,22 @@ async def get_current_active_user_or_api_key(
     # First try to get authenticated user from request state (JWT token auth)
     user = getattr(request.state, "authenticated_user", None)
     if user:
+        user_role = getattr(user, "role", None)
+        user_scopes = []
+        if user_role:
+            # role could be str or UserRole enum
+            if isinstance(user_role, str):
+                from security.api_authentication import UserRole
+                try:
+                    user_role = UserRole(user_role)
+                except ValueError:
+                    pass
+            user_scopes = auth_system.role_permissions.get(user_role, [])
+
+        user_scopes = getattr(user, "permissions", user_scopes)
         return {
             "username": user.username,
-            "scopes": user.permissions,
+            "scopes": user_scopes,
             "auth_type": "user_token",
         }
 
@@ -135,10 +148,18 @@ async def get_current_active_user_or_api_key(
 def require_read_scope(
     current_auth_entity: Any = Depends(get_current_active_user_or_api_key),
 ) -> Any:
+<<<<<<< HEAD
     """Dependency to enforce READ scope on endpoints."""
     if PermissionLevel.READ not in current_auth_entity.get("scopes", []):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
+=======
+    """Ensure the current auth entity has READ permissions."""
+    if PermissionLevel.READ not in current_auth_entity.get("scopes", []):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions to perform READ operations",
+>>>>>>> security/function-level-access-control-datasets-11070582507221262410
         )
     return current_auth_entity
 =======
@@ -157,7 +178,11 @@ def require_scope(required_scope: PermissionLevel):
 >>>>>>> security/flac-dataset-api-12345-13972448712678218118
 
 
+<<<<<<< HEAD
 @app.get("/datasets", response_model=list[DatasetMetadata])
+=======
+@app.get("/datasets", response_model=List[DatasetMetadata])
+>>>>>>> security/function-level-access-control-datasets-11070582507221262410
 async def list_datasets(
 <<<<<<< HEAD
     current_auth_entity: Any = Depends(require_read_scope),
@@ -304,8 +329,15 @@ async def query_dataset(
     dataset_id: str,
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(100, ge=1, le=1000, description="Number of items per page"),
+<<<<<<< HEAD
     filters: dict[str, Any] | None = None,  # Example: {"column_name": "value"}
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+    filters: Optional[Dict[str, Any]] = None,  # Example: {"column_name": "value"}
+>>>>>>> security/function-level-access-control-datasets-11070582507221262410
+>>>>>>> security/function-level-access-control-datasets-11070582507221262410
     current_auth_entity: Any = Depends(require_read_scope),
 =======
     current_auth_entity: dict[str, Any] = Depends(require_scope(PermissionLevel.READ)),
