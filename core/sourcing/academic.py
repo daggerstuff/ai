@@ -1505,6 +1505,7 @@ class AcademicSourcing:
         keywords: str,
         max_results: int,
     ) -> list[PaperMetadata]:
+<<<<<<< HEAD
         """Search all requested sources and collect papers.
 
         ⚡ Bolt Performance Optimization: Parallelizes sequential API requests
@@ -1530,6 +1531,26 @@ class AcademicSourcing:
 
         for papers in results:
             all_papers.extend(papers)
+=======
+        """Search all requested sources and collect papers concurrently."""
+        all_papers: list[PaperMetadata] = []
+
+        # ⚡ Bolt Optimization: Use asyncio.gather to fetch from multiple sources concurrently
+        tasks = [
+            self._search_single_source(source, keywords, max_results)
+            for source in sources
+        ]
+
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+
+        for source, result in zip(sources, results, strict=True):
+            if isinstance(result, BaseException):
+                if isinstance(result, asyncio.CancelledError):
+                    raise result
+                logger.error(f"Error searching {source}: {result}")
+            else:
+                all_papers.extend(result)
+>>>>>>> perf/academic-async-gather-3918-137906976905465223
 
         return all_papers
 
