@@ -8,6 +8,10 @@ import json
 import re
 from pathlib import Path
 
+# Precompiled regex patterns for performance optimization during large dataset processing
+ARTIFACTS_PATTERN = re.compile(r"\b(um|uh|like|you know)\b", flags=re.IGNORECASE)
+COMMAS_PATTERN = re.compile(r"[,\s]+")
+
 
 class DatasetCleaner:
     def __init__(self):
@@ -20,13 +24,12 @@ class DatasetCleaner:
         if not text:
             return ""
 
-        # Remove extra whitespace
-        text = re.sub(r"\s+", " ", text.strip())
+        # Remove leading/trailing whitespace; final normalization happens later
+        text = text.strip()
 
         # Fix common transcription artifacts
-        text = re.sub(r"\b(um|uh|like|you know)\b", "", text, flags=re.IGNORECASE)
-        text = re.sub(r"[,\s]+", " ", text)  # Multiple commas/spaces
-        text = re.sub(r"\s+", " ", text)     # Normalize whitespace again
+        text = ARTIFACTS_PATTERN.sub("", text)
+        text = COMMAS_PATTERN.sub(" ", text)  # Replaces multiple commas and any whitespace with a single space
 
         # Remove very short or empty responses
         if len(text.strip()) < 50:
@@ -41,7 +44,7 @@ class DatasetCleaner:
 
         # Normalize for hashing
         combined = f"{human_text.lower().strip()}{gpt_text.lower().strip()}"
-        combined = re.sub(r"\s+", " ", combined)
+        combined = COMMAS_PATTERN.sub(" ", combined)
 
         return hashlib.md5(combined.encode()).hexdigest()
 
