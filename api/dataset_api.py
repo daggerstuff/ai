@@ -131,6 +131,7 @@ async def get_current_active_user_or_api_key(
     )
 
 
+<<<<<<< HEAD
 def require_read_scope(
     current_auth_entity: Any = Depends(get_current_active_user_or_api_key),
 ) -> Any:
@@ -140,11 +141,29 @@ def require_read_scope(
             status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
     return current_auth_entity
+=======
+def require_scope(required_scope: PermissionLevel):
+    async def scope_checker(
+        current_auth_entity: dict[str, Any] = Depends(get_current_active_user_or_api_key),
+    ):
+        if required_scope not in current_auth_entity.get("scopes", []):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Insufficient permissions: requires {required_scope.value}",
+            )
+        return current_auth_entity
+
+    return scope_checker
+>>>>>>> security/flac-dataset-api-12345-13972448712678218118
 
 
 @app.get("/datasets", response_model=list[DatasetMetadata])
 async def list_datasets(
+<<<<<<< HEAD
     current_auth_entity: Any = Depends(require_read_scope),
+=======
+    current_auth_entity: dict[str, Any] = Depends(require_scope(PermissionLevel.READ)),
+>>>>>>> security/flac-dataset-api-12345-13972448712678218118
 ):
     """List all available datasets (tables in the database)."""
     if PermissionLevel.READ not in current_auth_entity.get("scopes", []):
@@ -206,7 +225,11 @@ async def list_datasets(
 @app.get("/datasets/{dataset_id}/metadata", response_model=DatasetMetadata)
 async def get_dataset_metadata(
     dataset_id: str,
+<<<<<<< HEAD
     current_auth_entity: Any = Depends(require_read_scope),
+=======
+    current_auth_entity: dict[str, Any] = Depends(require_scope(PermissionLevel.READ)),
+>>>>>>> security/flac-dataset-api-12345-13972448712678218118
 ):
     """Get metadata (schema) for a specific dataset (table)."""
     if PermissionLevel.READ not in current_auth_entity.get("scopes", []):
@@ -268,7 +291,11 @@ async def query_dataset(
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(100, ge=1, le=1000, description="Number of items per page"),
     filters: dict[str, Any] | None = None,  # Example: {"column_name": "value"}
+<<<<<<< HEAD
     current_auth_entity: Any = Depends(require_read_scope),
+=======
+    current_auth_entity: dict[str, Any] = Depends(require_scope(PermissionLevel.READ)),
+>>>>>>> security/flac-dataset-api-12345-13972448712678218118
 ):
     """
     Query data from a specific dataset (table) with optional filters and pagination.
