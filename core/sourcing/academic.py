@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Academic Sourcing Module for Mental Health AI Training Data
+""" Academic Sourcing Module for Mental Health AI Training Data
 
 This module provides production-quality functionality for sourcing academic content
 from multiple databases including PubMed, arXiv, and Semantic Scholar. It handles
@@ -46,6 +45,7 @@ import aiohttp
 import pdfplumber
 from pydantic import BaseModel, Field, HttpUrl
 
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -62,7 +62,6 @@ logger = logging.getLogger("academic_sourcing")
 
 class SourceType(StrEnum):
     """Supported academic data sources."""
-
     PUBMED = "pubmed"
     ARXIV = "arxiv"
     SEMANTIC_SCHOLAR = "semantic_scholar"
@@ -72,7 +71,6 @@ class SourceType(StrEnum):
 
 class StudyType(StrEnum):
     """Types of academic studies."""
-
     RCT = "randomized_controlled_trial"
     CASE_STUDY = "case_study"
     REVIEW = "review"
@@ -88,7 +86,6 @@ class StudyType(StrEnum):
 
 class AccessStatus(StrEnum):
     """Access status for papers."""
-
     OPEN_ACCESS = "open_access"
     PAYWALLED = "paywalled"
     ABSTRACT_ONLY = "abstract_only"
@@ -98,7 +95,6 @@ class AccessStatus(StrEnum):
 @dataclass(frozen=True)
 class RateLimitConfig:
     """Rate limiting configuration for API calls."""
-
     requests_per_second: float = 3.0
     requests_per_minute: int = 100
     requests_per_hour: int = 1000
@@ -112,7 +108,6 @@ class RateLimitConfig:
 @dataclass(frozen=True)
 class CacheConfig:
     """Caching configuration."""
-
     enabled: bool = True
     ttl_seconds: int = 3600  # 1 hour default
     max_size: int = 10000
@@ -202,7 +197,6 @@ class AcademicSourcingConfig:
 @dataclass
 class Author:
     """Author information."""
-
     name: str
     affiliation: str | None = None
     orcid: str | None = None
@@ -211,7 +205,6 @@ class Author:
 @dataclass
 class Citation:
     """Citation information."""
-
     paper_id: str
     title: str
     year: int | None = None
@@ -272,7 +265,6 @@ class PaperMetadata:
 
 class AuthorModel(BaseModel):
     """Pydantic model for author information."""
-
     name: str = Field(..., description="Full name of the author")
     affiliation: str | None = Field(None, description="Institutional affiliation")
     orcid: str | None = Field(None, description="ORCID identifier")
@@ -280,7 +272,6 @@ class AuthorModel(BaseModel):
 
 class CitationModel(BaseModel):
     """Pydantic model for citation information."""
-
     paper_id: str = Field(..., description="Unique identifier for the cited paper")
     title: str = Field(..., description="Title of the cited paper")
     year: int | None = Field(None, description="Publication year")
@@ -299,10 +290,12 @@ class PaperMetadataModel(BaseModel):
     # Basic information
     title: str = Field(..., description="Paper title")
     authors: list[AuthorModel] = Field(
-        default_factory=list, description="List of authors"
+        default_factory=list,
+        description="List of authors"
     )
     publication_date: str | None = Field(
-        None, description="ISO format publication date"
+        None,
+        description="ISO format publication date"
     )
     journal: str | None = Field(None, description="Journal name")
     volume: str | None = Field(None, description="Volume number")
@@ -325,16 +318,21 @@ class PaperMetadataModel(BaseModel):
     # Metrics
     citation_count: int = Field(default=0, description="Number of citations")
     references: list[CitationModel] = Field(
-        default_factory=list, description="References"
+        default_factory=list,
+        description="References"
     )
     cited_by: list[CitationModel] = Field(default_factory=list, description="Citations")
 
     # Mental health relevance
     mental_health_relevance_score: float = Field(
-        default=0.0, ge=0.0, le=1.0, description="Relevance score for mental health"
+        default=0.0,
+        ge=0.0,
+        le=1.0,
+        description="Relevance score for mental health"
     )
     mental_health_topics: list[str] = Field(
-        default_factory=list, description="Detected mental health topics"
+        default_factory=list,
+        description="Detected mental health topics"
     )
 
     # Provenance
@@ -346,7 +344,6 @@ class PaperMetadataModel(BaseModel):
 
     class Config:
         """Pydantic configuration."""
-
         json_encoders = {
             datetime: lambda v: v.isoformat() if v else None,
         }
@@ -359,7 +356,6 @@ class PaperMetadataModel(BaseModel):
 
 class CacheEntry(BaseModel):
     """Cache entry model."""
-
     key: str
     data: dict[str, Any]
     timestamp: datetime
@@ -381,7 +377,6 @@ class SimpleCache:
         self._cache: dict[str, CacheEntry] = {}
         self._cache_dir = config.cache_dir
         self._cache_dir.mkdir(parents=True, exist_ok=True)
-
         if config.enabled:
             self._load_from_disk()
 
@@ -398,7 +393,6 @@ class SimpleCache:
         try:
             with open(cache_path) as f:
                 data = json.load(f)
-
             for key, entry_data in data.items():
                 entry = CacheEntry(
                     key=key,
@@ -408,7 +402,6 @@ class SimpleCache:
                 )
                 if not entry.is_expired():
                     self._cache[key] = entry
-
             logger.info(f"Loaded {len(self._cache)} entries from cache")
         except Exception as e:
             logger.warning(f"Failed to load cache from disk: {e}")
@@ -428,10 +421,8 @@ class SimpleCache:
                 }
                 for key, entry in self._cache.items()
             }
-
             with open(cache_path, "w") as f:
                 json.dump(data, f, indent=2)
-
         except Exception as e:
             logger.warning(f"Failed to save cache to disk: {e}")
 
@@ -441,7 +432,10 @@ class SimpleCache:
         return hashlib.sha256(key_data.encode()).hexdigest()
 
     def get(
-        self, source: str, query: str, params: dict[str, Any]
+        self,
+        source: str,
+        query: str,
+        params: dict[str, Any]
     ) -> dict[str, Any] | None:
         """Get cached data if available and not expired."""
         if not self.config.enabled:
@@ -449,7 +443,6 @@ class SimpleCache:
 
         key = self._generate_key(source, query, params)
         entry = self._cache.get(key)
-
         if entry is None:
             return None
 
@@ -461,7 +454,11 @@ class SimpleCache:
         return entry.data
 
     def set(
-        self, source: str, query: str, params: dict[str, Any], data: dict[str, Any]
+        self,
+        source: str,
+        query: str,
+        params: dict[str, Any],
+        data: dict[str, Any]
     ) -> None:
         """Cache data with TTL."""
         if not self.config.enabled:
@@ -573,10 +570,9 @@ class AcademicAPIClient:
         cache_key: str | None = None,
     ) -> dict[str, Any]:
         """Make HTTP request with retry logic and caching."""
+
         # Check cache first
-        if cache_key and (
-            cached := self.cache.get(cache_key[0], cache_key[1], cache_key[2])
-        ):
+        if cache_key and (cached := self.cache.get(cache_key[0], cache_key[1], cache_key[2])):
             return cached
 
         # Rate limit
@@ -601,19 +597,20 @@ class AcademicAPIClient:
             except aiohttp.ClientError as e:
                 if attempt == self.config.max_retries - 1:
                     raise
+
                 wait_time = self.config.retry_backoff * (2**attempt)
                 logger.warning(
                     "Request failed (attempt %s), retrying in %ss: %s",
-                    attempt + 1,
-                    wait_time,
-                    e,
+                    attempt + 1, wait_time, e,
                 )
                 await asyncio.sleep(wait_time)
 
         raise RuntimeError("Max retries exceeded")
 
     def _extract_mental_health_topics(
-        self, text: str | None, keywords: list[str]
+        self,
+        text: str | None,
+        keywords: list[str]
     ) -> list[str]:
         """Extract mental health topics from text."""
         if not text:
@@ -623,7 +620,9 @@ class AcademicAPIClient:
         return [keyword for keyword in keywords if keyword.lower() in text_lower]
 
     def _calculate_mental_health_relevance(
-        self, topics: list[str], total_keywords: int
+        self,
+        topics: list[str],
+        total_keywords: int
     ) -> float:
         """Calculate mental health relevance score."""
         # Simple relevance based on keyword matches
@@ -656,8 +655,8 @@ class PubMedClient(AcademicAPIClient):
             "sort": sort,
             "retmode": "json",
         }
-
         cache_key = ("pubmed", "search", search_params)
+
         search_data = await self._request_with_retry(
             "GET",
             f"{self.config.pubmed_base_url}/esearch.fcgi",
@@ -666,6 +665,7 @@ class PubMedClient(AcademicAPIClient):
         )
 
         pmids = search_data.get("esearchresult", {}).get("idlist", [])
+
         if not pmids:
             logger.info(f"No PubMed results found for: {query}")
             return []
@@ -692,8 +692,8 @@ class PubMedClient(AcademicAPIClient):
             "id": pmid,
             "retmode": "json",
         }
-
         cache_key = ("pubmed", "fetch_details", fetch_params)
+
         data = await self._request_with_retry(
             "GET",
             f"{self.config.pubmed_base_url}/efetch.fcgi",
@@ -724,10 +724,12 @@ class PubMedClient(AcademicAPIClient):
 
             # Mental health filtering
             topics = self._extract_mental_health_topics(
-                f"{title} {abstract or ''}", self.config.mental_health_keywords
+                f"{title} {abstract or ''}",
+                self.config.mental_health_keywords
             )
             relevance_score = self._calculate_mental_health_relevance(
-                topics, len(self.config.mental_health_keywords)
+                topics,
+                len(self.config.mental_health_keywords)
             )
 
             # Determine access status
@@ -764,7 +766,6 @@ class PubMedClient(AcademicAPIClient):
         """Extract authors from article data."""
         authors = []
         author_list = article.get("authors", [])
-
         for author_data in author_list:
             if isinstance(author_data, dict):
                 author = Author(
@@ -772,7 +773,6 @@ class PubMedClient(AcademicAPIClient):
                     affiliation=author_data.get("affiliation"),
                 )
                 authors.append(author)
-
         return authors
 
     def _extract_abstract(self, article: dict[str, Any]) -> str | None:
@@ -784,7 +784,6 @@ class PubMedClient(AcademicAPIClient):
         abstract_text = abstract_data.get("abstracttext", "")
         if isinstance(abstract_text, list):
             abstract_text = " ".join(abstract_text)
-
         return abstract_text.strip() if abstract_text else None
 
     def _extract_journal(self, article: dict[str, Any]) -> str | None:
@@ -793,7 +792,8 @@ class PubMedClient(AcademicAPIClient):
         return journal.get("name") if journal else None
 
     def _extract_publication_date(
-        self, pubmed_data: dict[str, Any]
+        self,
+        pubmed_data: dict[str, Any]
     ) -> datetime | None:
         """Extract publication date from PubMed data."""
         with suppress(Exception):
@@ -801,6 +801,7 @@ class PubMedClient(AcademicAPIClient):
             article = medline_citation.get("article", {})
             journal = article.get("journal", {})
             journal_issue = journal.get("journalissue", {})
+
             if pub_date := journal_issue.get("pubdate", {}):
                 year = pub_date.get("year")
                 month = pub_date.get("month")
@@ -810,9 +811,9 @@ class PubMedClient(AcademicAPIClient):
                     month_str = f"{month:02d}" if month else "01"
                     day_str = f"{day:02d}" if day else "01"
                     return datetime.strptime(
-                        f"{year}-{month_str}-{day_str}", "%Y-%m-%d"
+                        f"{year}-{month_str}-{day_str}",
+                        "%Y-%m-%d"
                     )
-
         return None
 
     def _extract_keywords(self, medline_citation: dict[str, Any]) -> list[str]:
@@ -902,8 +903,8 @@ class ArXivClient(AcademicAPIClient):
             "sortBy": sort_by,
             "sortOrder": sort_order,
         }
-
         cache_key = ("arxiv", "search", search_params)
+
         data = await self._request_with_retry(
             "GET",
             self.config.arxiv_base_url,
@@ -968,10 +969,12 @@ class ArXivClient(AcademicAPIClient):
 
             # Mental health filtering
             topics = self._extract_mental_health_topics(
-                f"{title} {summary}", self.config.mental_health_keywords
+                f"{title} {summary}",
+                self.config.mental_health_keywords
             )
             relevance_score = self._calculate_mental_health_relevance(
-                topics, len(self.config.mental_health_keywords)
+                topics,
+                len(self.config.mental_health_keywords)
             )
 
             return PaperMetadata(
@@ -1034,22 +1037,30 @@ class SemanticScholarClient(AcademicAPIClient):
         if self.config.semantic_scholar_api_key:
             headers["x-api-key"] = self.config.semantic_scholar_api_key
 
+        # Build request body for search
+        search_body = {
+            "query": query,
+            "limit": max_results,
+            "fields": fields,
+        }
+
         cache_key = (
             "semantic_scholar",
             "search",
             {"query": query, "max_results": max_results},
         )
+
         data = await self._request_with_retry(
             "POST",
-            self.config.semantic_scholar_base_url,
+            f"{self.config.semantic_scholar_base_url}/paper/search",
+            json=search_body,
             headers=headers,
             cache_key=cache_key,
         )
 
         # Parse Semantic Scholar data
         papers = []
-        search_data = data.get("data", {}).get("search", {})
-        entries = search_data.get("data", [])
+        entries = data.get("data", [])
 
         for entry in entries:
             try:
@@ -1064,7 +1075,9 @@ class SemanticScholarClient(AcademicAPIClient):
         return papers
 
     async def get_paper_details(
-        self, paper_id: str, fields: list[str] | None = None
+        self,
+        paper_id: str,
+        fields: list[str] | None = None
     ) -> PaperMetadata | None:
         """Get detailed information for a specific paper."""
         logger.info(f"Fetching details for paper: {paper_id}")
@@ -1093,14 +1106,16 @@ class SemanticScholarClient(AcademicAPIClient):
             headers["x-api-key"] = self.config.semantic_scholar_api_key
 
         cache_key = ("semantic_scholar", "get_paper_details", {"paper_id": paper_id})
+
         data = await self._request_with_retry(
-            "POST",
-            self.config.semantic_scholar_base_url,
+            "GET",
+            f"{self.config.semantic_scholar_base_url}/paper/{paper_id}",
+            params={"fields": ",".join(fields)},
             headers=headers,
             cache_key=cache_key,
         )
 
-        paper_data = data.get("data", {}).get("paper")
+        paper_data = data
         return self._parse_entry(paper_data) if paper_data else None
 
     def _parse_entry(self, entry: dict[str, Any]) -> PaperMetadata | None:
@@ -1161,16 +1176,19 @@ class SemanticScholarClient(AcademicAPIClient):
 
             # Mental health filtering
             topics = self._extract_mental_health_topics(
-                f"{title} {abstract or ''}", self.config.mental_health_keywords
+                f"{title} {abstract or ''}",
+                self.config.mental_health_keywords
             )
             relevance_score = self._calculate_mental_health_relevance(
-                topics, len(self.config.mental_health_keywords)
+                topics,
+                len(self.config.mental_health_keywords)
             )
 
             # Determine access status
             access_status = (
                 AccessStatus.OPEN_ACCESS if is_open_access else AccessStatus.PAYWALLED
             )
+
             if not abstract and not pdf_url:
                 access_status = AccessStatus.ABSTRACT_ONLY
 
@@ -1223,6 +1241,7 @@ class DOIResolver(AcademicAPIClient):
         }
 
         cache_key = ("doi", "resolve", {"doi": doi})
+
         try:
             data = await self._request_with_retry(
                 "GET",
@@ -1239,11 +1258,14 @@ class DOIResolver(AcademicAPIClient):
             return None
 
     def _parse_metadata(
-        self, doi: str, data: dict[str, Any]
+        self,
+        doi: str,
+        data: dict[str, Any]
     ) -> PaperMetadata | None:
         """Parse DOI metadata into PaperMetadata."""
         try:
             title = data.get("title", "")
+
             authors = [
                 Author(name=author.get("family", "") + " " + author.get("given", ""))
                 for author in data.get("author", [])
@@ -1276,7 +1298,8 @@ class DOIResolver(AcademicAPIClient):
                 self.config.mental_health_keywords,
             )
             relevance_score = self._calculate_mental_health_relevance(
-                topics, len(self.config.mental_health_keywords)
+                topics,
+                len(self.config.mental_health_keywords)
             )
 
             return PaperMetadata(
@@ -1339,11 +1362,8 @@ class PDFProcessor:
 
             # Extract text using pdfplumber if available
             try:
-
-
                 pdf_file = io.BytesIO(pdf_content)
                 text_parts = []
-
                 with pdfplumber.open(pdf_file) as pdf:
                     for page in pdf.pages:
                         if text := page.extract_text():
@@ -1409,6 +1429,7 @@ class AcademicSourcing:
     def __init__(self, config: AcademicSourcingConfig | None = None):
         """Initialize academic sourcing with configuration."""
         self.config = config or AcademicSourcingConfig()
+
         self._pubmed_client: PubMedClient | None = None
         self._arxiv_client: ArXivClient | None = None
         self._semantic_scholar_client: SemanticScholarClient | None = None
@@ -1467,7 +1488,9 @@ class AcademicSourcing:
             sources = ["pubmed", "arxiv", "semantic_scholar"]
 
         logger.info(f"Searching for: {keywords} across sources: {sources}")
+
         all_papers = await self._search_sources(sources, keywords, max_results)
+
         all_papers = self._filter_and_sort_papers(all_papers, min_relevance)
 
         if extract_full_text and self.config.extract_full_text:
@@ -1484,8 +1507,8 @@ class AcademicSourcing:
     ) -> list[PaperMetadata]:
         """Search all requested sources and collect papers.
 
-        ⚡ Bolt Performance Optimization:
-        Parallelizes sequential API requests to overlap network I/O latency.
+        ⚡ Bolt Performance Optimization: Parallelizes sequential API requests
+        to overlap network I/O latency.
         """
         all_papers: list[PaperMetadata] = []
 
@@ -1504,6 +1527,7 @@ class AcademicSourcing:
         # Run all source searches concurrently, but with bounded parallelism
         tasks = [_safe_search(source) for source in sources]
         results = await asyncio.gather(*tasks)
+
         for papers in results:
             all_papers.extend(papers)
 
@@ -1554,8 +1578,7 @@ class AcademicSourcing:
     async def _enrich_papers_with_full_text(self, papers: list[PaperMetadata]) -> None:
         """Populate full text and derived fields for papers with PDFs.
 
-        ⚡ Bolt Performance Optimization:
-        Parallelizes extraction of full text from PDFs.
+        ⚡ Bolt Performance Optimization: Parallelizes extraction of full text from PDFs.
         """
         pdf_papers = [paper for paper in papers if paper.pdf_url]
         if not pdf_papers:
@@ -1603,7 +1626,9 @@ class AcademicSourcing:
         return await self._doi_resolver.resolve(doi)
 
     async def get_paper_details(
-        self, paper_id: str, source: str = "semantic_scholar"
+        self,
+        paper_id: str,
+        source: str = "semantic_scholar"
     ) -> PaperMetadata | None:
         """Get detailed information for a specific paper.
 
@@ -1617,8 +1642,10 @@ class AcademicSourcing:
         if source == "semantic_scholar":
             # Extract paper ID from format
             if paper_id.startswith("semantic_scholar:"):
-                paper_id = paper_id.split(":", 1)[0]
+                paper_id = paper_id.split(":", 1)[1]
+
             return await self._semantic_scholar_client.get_paper_details(paper_id)
+
         logger.warning(f"Paper details not supported for source: {source}")
         return None
 
@@ -1662,13 +1689,19 @@ class AcademicSourcing:
                 citation_count=paper.citation_count,
                 references=[
                     CitationModel(
-                        paper_id=c.paper_id, title=c.title, year=c.year, venue=c.venue
+                        paper_id=c.paper_id,
+                        title=c.title,
+                        year=c.year,
+                        venue=c.venue
                     )
                     for c in paper.references
                 ],
                 cited_by=[
                     CitationModel(
-                        paper_id=c.paper_id, title=c.title, year=c.year, venue=c.venue
+                        paper_id=c.paper_id,
+                        title=c.title,
+                        year=c.year,
+                        venue=c.venue
                     )
                     for c in paper.cited_by
                 ],
@@ -1724,12 +1757,12 @@ async def search_papers(
             max_results=max_results,
             min_relevance=min_relevance,
         )
-
         return sourcing.to_pix32_format(papers)
 
 
 async def resolve_doi(
-    doi: str, config: AcademicSourcingConfig | None = None
+    doi: str,
+    config: AcademicSourcingConfig | None = None
 ) -> dict[str, Any] | None:
     """Convenience function to resolve a DOI and return PIX-32 format.
 
@@ -1744,18 +1777,15 @@ async def resolve_doi(
 
     async with AcademicSourcing(config) as sourcing:
         paper = await sourcing.resolve_doi(doi)
-
         if paper:
             papers = sourcing.to_pix32_format([paper])
             return papers[0] if papers else None
-
         return None
 
 
 # ============================================================================
 # Module Exports
 # ============================================================================
-
 
 __all__ = [
     # Configuration
