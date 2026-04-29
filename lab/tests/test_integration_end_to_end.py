@@ -1,7 +1,5 @@
-import shutil
-from datetime import datetime, timezone
-
 #!/usr/bin/env python3
+
 """
 Integration Tests for End-to-End Processing
 Task 5.7.1.2: Implement integration tests for end-to-end processing
@@ -13,16 +11,38 @@ Tests complete workflows including:
 - Dashboard generation
 - Report creation
 """
-
 import json
 import os
+import shutil
 import sqlite3
 import sys
 import tempfile
 import unittest
 import warnings
+from datetime import UTC, datetime
 
 import pandas as pd
+
+TOTAL_TEST_CONVERSATIONS = 50
+EXPECTED_DATASET_COUNT = 4
+BASE_QUALITY_SCORE = 50
+WORD_BONUS_CAP = 20
+TURN_BONUS_MULTIPLIER = 5
+QUALITY_EXCELLENT_THRESHOLD = 70
+QUALITY_LOW_THRESHOLD = 40
+WORD_COUNT_EXCELLENT_THRESHOLD = 25
+WORD_COUNT_GOOD_MIN = 15
+WORD_COUNT_GOOD_MAX = 25
+DASHBOARD_JSON_FILENAME = "dashboard_data.json"
+DASHBOARD_REPORT_FILENAME = "dashboard_report.txt"
+INTEGRATION_REPORT_FILENAME = "integration_test_report.json"
+QUALITY_TOLERANCE = 0.1
+MIN_CONVERSATION_TURNS = 2
+SYSTEM_WORKFLOW_REPORTS = [
+    "quality_report.json",
+    "performance_dashboard.png",
+    "insights_summary.txt",
+]
 
 warnings.filterwarnings("ignore")
 
@@ -36,9 +56,8 @@ class TestEndToEndDataFlow(unittest.TestCase):
 
     def setUp(self):
         """Set up test environment with sample database"""
-        self.test_db = tempfile.NamedTemporaryFile(delete=False, suffix=".db")
-        self.test_db_path = self.test_db.name
-        self.test_db.close()
+        db_fd, self.test_db_path = tempfile.mkstemp(suffix=".db")
+        os.close(db_fd)
 
         self.test_output_dir = tempfile.mkdtemp()
         self._create_comprehensive_test_database()
@@ -85,7 +104,7 @@ class TestEndToEndDataFlow(unittest.TestCase):
         ]
         tiers = ["priority_1", "standard", "additional_specialized"]
 
-        for i in range(50):  # Create 50 test conversations
+        for i in range(TOTAL_TEST_CONVERSATIONS):  # Create test conversations
             dataset = datasets[i % len(datasets)]
             tier = tiers[i % len(tiers)]
 
@@ -94,12 +113,15 @@ class TestEndToEndDataFlow(unittest.TestCase):
                 [
                     {"human": f"This is test question {i + 1} about {dataset}"},
                     {
-                        "assistant": f"This is a comprehensive response for {dataset} covering the topic in detail with helpful information."
+                        "assistant": (
+                            f"This is a comprehensive response for {dataset} "
+                            "covering the topic in detail with helpful information."
+                        )
                     },
                 ]
             )
 
-            word_count = 15 + (i % 20)  # Vary word count
+            word_count = WORD_COUNT_GOOD_MIN + (i % 20)  # Vary word count
             char_count = word_count * 6  # Approximate character count
             turn_count = 2
 
@@ -137,7 +159,7 @@ class TestEndToEndDataFlow(unittest.TestCase):
         conn.close()
 
         # Verify data loading
-        assert len(df) == 50
+        assert len(df) == TOTAL_TEST_CONVERSATIONS
         assert "conversation_id" in df.columns
         assert "dataset_source" in df.columns
 
@@ -153,7 +175,7 @@ class TestEndToEndDataFlow(unittest.TestCase):
                                 text_parts.append(f"{role}: {content}")
                     return "\n".join(text_parts)
                 return str(conversations)
-            except:
+            except (json.JSONDecodeError, TypeError):
                 return json_str
 
         df["conversation_text"] = df["conversations_json"].apply(extract_text_from_json)
@@ -162,7 +184,7 @@ class TestEndToEndDataFlow(unittest.TestCase):
         assert all(len(text) > 0 for text in df["conversation_text"])
 
         # Step 3: Calculate analytics metrics
-        df["quality_score"] = df.apply(lambda row: self._calculate_test_quality_score(row), axis=1)
+        df["quality_score"] = df.apply(self._calculate_test_quality_score, axis=1)
         df["complexity_score"] = df["word_count"] * 2  # Simple complexity metric
 
         # Verify analytics calculations
@@ -183,16 +205,14 @@ class TestEndToEndDataFlow(unittest.TestCase):
         )
 
         # Verify aggregation
-        assert len(dataset_stats) == 4
+        assert len(dataset_stats) == EXPECTED_DATASET_COUNT
 
 
     def test_analytics_system_integration(self):
         """Test integration between different analytics systems"""
-        df = self._extracted_from_test_report_generation_workflow_4()
+        df = self._load_conversations_dataframe()
         # Extract conversation text
-        df["conversation_text"] = df["conversations_json"].apply(
-            lambda x: json.loads(x)[0]["human"] + " " + json.loads(x)[1]["assistant"]
-        )
+        df["conversation_text"] = df["conversations_json"].apply(self._extract_conversation_text)
 
         # Test 1: Dataset Statistics Integration
         dataset_stats = self._run_dataset_statistics_analysis(df)
@@ -206,26 +226,30 @@ class TestEndToEndDataFlow(unittest.TestCase):
 
         # Test 3: Cross-system data consistency
         assert dataset_stats["total_conversations"] == len(df)
-        self.assertAlmostEqual(
-            quality_analysis["average_quality"],
-            df.apply(lambda row: self._calculate_test_quality_score(row), axis=1).mean(),
-            places=1,
+        assert (
+            abs(
+                quality_analysis["average_quality"]
+                - df.apply(self._calculate_test_quality_score, axis=1).mean()
+            )
+            < QUALITY_TOLERANCE
         )
 
 
     def test_dashboard_generation_pipeline(self):
         """Test complete dashboard generation pipeline"""
-        df = self._extracted_from_test_report_generation_workflow_4()
-        df["conversation_text"] = df["conversations_json"].apply(
-            lambda x: json.loads(x)[0]["human"] + " " + json.loads(x)[1]["assistant"]
-        )
-        df["quality_score"] = df.apply(lambda row: self._calculate_test_quality_score(row), axis=1)
+        df = self._load_conversations_dataframe()
+        df["conversation_text"] = df["conversations_json"].apply(self._extract_conversation_text)
+        df["quality_score"] = df.apply(self._calculate_test_quality_score, axis=1)
 
         # Step 2: Generate dashboard data
         dashboard_data = self._generate_dashboard_data(df)
 
         # Verify dashboard data structure
-        required_sections = ["executive_metrics", "operational_metrics", "quality_distribution"]
+        required_sections = [
+            "executive_metrics",
+            "operational_metrics",
+            "quality_distribution",
+        ]
         for section in required_sections:
             assert section in dashboard_data
 
@@ -246,7 +270,7 @@ class TestEndToEndDataFlow(unittest.TestCase):
 
     def test_report_generation_workflow(self):
         """Test complete report generation workflow"""
-        df = self._extracted_from_test_report_generation_workflow_4()
+        df = self._load_conversations_dataframe()
         # Step 2: Analytics processing
         analytics_results = {
             "dataset_analysis": self._run_dataset_statistics_analysis(df),
@@ -270,8 +294,7 @@ class TestEndToEndDataFlow(unittest.TestCase):
         assert os.path.getsize(report_file) > 0
 
 
-    # TODO Rename this here and in `test_analytics_system_integration`, `test_dashboard_generation_pipeline` and `test_report_generation_workflow`
-    def _extracted_from_test_report_generation_workflow_4(self):
+    def _load_conversations_dataframe(self):
         conn = sqlite3.connect(self.test_db_path)
         result = pd.read_sql_query("SELECT * FROM conversations", conn)
         conn.close()
@@ -299,9 +322,9 @@ class TestEndToEndDataFlow(unittest.TestCase):
     # Helper methods for testing
     def _calculate_test_quality_score(self, row):
         """Calculate a simple quality score for testing"""
-        base_score = 50
-        word_bonus = min(20, row["word_count"] * 0.5)
-        turn_bonus = row["turn_count"] * 5
+        base_score = BASE_QUALITY_SCORE
+        word_bonus = min(WORD_BONUS_CAP, row["word_count"] * 0.5)
+        turn_bonus = row["turn_count"] * TURN_BONUS_MULTIPLIER
         return base_score + word_bonus + turn_bonus
 
     def _run_dataset_statistics_analysis(self, df):
@@ -314,14 +337,31 @@ class TestEndToEndDataFlow(unittest.TestCase):
             "total_word_count": df["word_count"].sum(),
         }
 
+    def _extract_conversation_text(self, json_str):
+        conversations = json.loads(json_str)
+        if not isinstance(conversations, list) or len(conversations) < MIN_CONVERSATION_TURNS:
+            return str(conversations)
+        human_turn = conversations[0]
+        assistant_turn = conversations[1]
+        if not isinstance(human_turn, dict) or not isinstance(assistant_turn, dict):
+            return str(conversations)
+        return (
+            f"{human_turn.get('human', '')} "
+            f"{assistant_turn.get('assistant', '')}"
+        )
+
     def _run_quality_analysis(self, df):
         """Run quality analysis"""
-        quality_scores = df.apply(lambda row: self._calculate_test_quality_score(row), axis=1)
+        quality_scores = df.apply(self._calculate_test_quality_score, axis=1)
         return {
             "average_quality": quality_scores.mean(),
             "quality_std": quality_scores.std(),
-            "high_quality_count": len(quality_scores[quality_scores > 70]),
-            "low_quality_count": len(quality_scores[quality_scores < 40]),
+            "high_quality_count": len(
+                quality_scores[quality_scores > QUALITY_EXCELLENT_THRESHOLD]
+            ),
+            "low_quality_count": len(
+                quality_scores[quality_scores < QUALITY_LOW_THRESHOLD]
+            ),
         }
 
     def _generate_dashboard_data(self, df):
@@ -329,18 +369,21 @@ class TestEndToEndDataFlow(unittest.TestCase):
         return {
             "executive_metrics": {
                 "total_conversations": len(df),
-                "quality_score": df.apply(
-                    lambda row: self._calculate_test_quality_score(row), axis=1
-                ).mean(),
+                "quality_score": df.apply(self._calculate_test_quality_score, axis=1).mean(),
             },
             "operational_metrics": {
                 "processing_status": "healthy",
-                "last_updated": datetime.now(timezone.utc).isoformat(),
+                "last_updated": datetime.now(UTC).isoformat(),
             },
             "quality_distribution": {
-                "excellent": len(df[df["word_count"] > 25]),
-                "good": len(df[(df["word_count"] >= 15) & (df["word_count"] <= 25)]),
-                "needs_improvement": len(df[df["word_count"] < 15]),
+                "excellent": len(df[df["word_count"] > WORD_COUNT_EXCELLENT_THRESHOLD]),
+                "good": len(
+                    df[
+                        (df["word_count"] >= WORD_COUNT_GOOD_MIN)
+                        & (df["word_count"] <= WORD_COUNT_GOOD_MAX)
+                    ]
+                ),
+                "needs_improvement": len(df[df["word_count"] < WORD_COUNT_GOOD_MIN]),
             },
         }
 
@@ -359,17 +402,17 @@ class TestEndToEndDataFlow(unittest.TestCase):
         output_files = []
 
         # Generate JSON file
-        json_file = os.path.join(self.test_output_dir, "dashboard_data.json")
+        json_file = os.path.join(self.test_output_dir, DASHBOARD_JSON_FILENAME)
         with open(json_file, "w") as f:
             json.dump(viz_data, f, indent=2, default=str)
         output_files.append(json_file)
 
         # Generate text report
-        txt_file = os.path.join(self.test_output_dir, "dashboard_report.txt")
+        txt_file = os.path.join(self.test_output_dir, DASHBOARD_REPORT_FILENAME)
         with open(txt_file, "w") as f:
             f.write("Dashboard Report\n")
             f.write("================\n")
-            f.write(f"Generated: {datetime.now(timezone.utc)}\n")
+            f.write(f"Generated: {datetime.now(UTC)}\n")
             f.write(f"Charts: {len(viz_data['charts'])}\n")
             f.write(f"Tables: {len(viz_data['tables'])}\n")
         output_files.append(txt_file)
@@ -403,7 +446,7 @@ class TestEndToEndDataFlow(unittest.TestCase):
 
     def _export_report(self, report_data):
         """Export report to file"""
-        report_file = os.path.join(self.test_output_dir, "integration_test_report.json")
+        report_file = os.path.join(self.test_output_dir, INTEGRATION_REPORT_FILENAME)
         with open(report_file, "w") as f:
             json.dump(report_data, f, indent=2, default=str)
         return report_file
@@ -493,7 +536,7 @@ class TestSystemWorkflows(unittest.TestCase):
         return {
             "status": "healthy" if not alerts else "warning",
             "alerts": alerts,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "components": status,
         }
 
@@ -523,7 +566,7 @@ class TestSystemWorkflows(unittest.TestCase):
 
     def _generate_pipeline_outputs(self, _analytics_results):
         """Generate pipeline outputs"""
-        return ["quality_report.json", "performance_dashboard.png", "insights_summary.txt"]
+        return SYSTEM_WORKFLOW_REPORTS
 
 
 def run_integration_tests():

@@ -10,11 +10,45 @@ import json
 import os
 import random
 import time
+from collections import Counter
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 from typing import Any
+
+
+def _load_env_file(dotenv_path: Path) -> None:
+    if not dotenv_path.exists():
+        return
+    try:
+        for line in dotenv_path.read_text().splitlines():
+            stripped = line.strip()
+            if not stripped or stripped.startswith("#"):
+                continue
+            if "=" not in stripped:
+                continue
+            key, value = stripped.split("=", 1)
+            key = key.strip()
+            value = value.strip().strip("'").strip('"')
+            if not key:
+                continue
+            os.environ.setdefault(key, value)
+    except Exception:
+        # Keep behavior identical if env bootstrap fails
+        pass
+
+
+def _find_and_load_env_file() -> None:
+    base = Path(__file__).resolve()
+    for parent in [base.parent, *base.parents]:
+        candidate = parent / ".env"
+        if candidate.exists():
+            _load_env_file(candidate)
+            break
+
+
+_find_and_load_env_file()
 
 try:
     from openai import OpenAI
@@ -26,6 +60,64 @@ except ImportError:
 import logging
 
 logger = logging.getLogger(__name__)
+
+MAX_SECONDARY_EMOTIONS = 2
+
+
+EMOTION_TIEBREAK_PREFERENCE = [
+    "Fear",
+    "Sadness",
+    "Anger",
+    "Disgust",
+    "Anxiety",
+    "Surprise",
+    "Anticipation",
+    "Joy",
+    "Trust",
+    "Calm",
+    "Neutral",
+]
+
+
+def normalize_secondary_emotions(
+    raw_values: Any,
+    primary_emotion: str | None = None,
+    max_items: int = MAX_SECONDARY_EMOTIONS,
+) -> list[str]:
+    """
+    Normalize secondary emotion annotations into a deterministic list.
+
+    Accepts list / tuple / comma-separated / semicolon-separated / single-string
+    formats and removes duplicates while preserving first-seen order.
+    """
+    if raw_values is None:
+        return []
+
+    if isinstance(raw_values, str):
+        split_values = [raw_values]
+    elif isinstance(raw_values, (list, tuple, set)):
+        split_values = list(raw_values)
+    else:
+        return []
+
+    ordered = []
+    seen = set()
+    for item in split_values:
+        if not item:
+            continue
+        if isinstance(item, str):
+            candidates = [part.strip() for part in item.replace(";", ",").split(",")]
+            for candidate in candidates:
+                if not candidate or candidate in seen:
+                    continue
+                if primary_emotion and candidate == primary_emotion:
+                    continue
+                seen.add(candidate)
+                ordered.append(candidate)
+        if len(ordered) >= max_items:
+            break
+
+    return ordered[:max_items]
 
 
 class AgentRole(Enum):
@@ -44,6 +136,7 @@ class AnnotationResult:
     crisis_label: int  # 0-5
     crisis_confidence: int  # 1-5
     primary_emotion: str
+    secondary_emotions: list[str] = field(default_factory=list)
     emotion_intensity: int  # 1-10
     valence: float  # -1.0 to 1.0
     arousal: float  # 0.0 to 1.0
@@ -59,6 +152,7 @@ class AnnotationResult:
             "crisis_label": self.crisis_label,
             "crisis_confidence": self.crisis_confidence,
             "primary_emotion": self.primary_emotion,
+            "secondary_emotions": self.secondary_emotions,
             "emotion_intensity": self.emotion_intensity,
             "valence": self.valence,
             "arousal": self.arousal,
@@ -115,16 +209,16 @@ class BaseAgent(ABC):
 
     def _initialize_client(self) -> OpenAI | None:
         """Initialize OpenAI client with optional custom base URL"""
-
-        if not OPENAI_AVAILABLE or not os.getenv("OPENAI_API_KEY"):
+        api_key = os.getenv("OPENAI_API_KEY") or os.getenv("NVIDIA_API_KEY")
+        if not OPENAI_AVAILABLE or not api_key:
             logger.warning(f"[{self.agent_id}] Running in MOCK mode")
             return None
 
-        if base_url := os.getenv("OPENAI_BASE_URL"):
-            client = OpenAI(base_url=base_url)
+        if base_url := os.getenv("OPENAI_BASE_URL") or os.getenv("NVIDIA_OPENAI_BASE_URL"):
+            client = OpenAI(api_key=api_key, base_url=base_url)
             logger.info(f"[{self.agent_id}] Using custom endpoint: {base_url}")
         else:
-            client = OpenAI()
+            client = OpenAI(api_key=api_key)
 
         logger.info(f"[{self.agent_id}] Initialized with model: {self.model}")
         return client
@@ -260,6 +354,10 @@ class BaseAgent(ABC):
                 crisis_label=data.get("crisis_label", 0),
                 crisis_confidence=data.get("crisis_confidence", 3),
                 primary_emotion=data.get("primary_emotion", "Neutral"),
+                secondary_emotions=normalize_secondary_emotions(
+                    raw_values=data.get("secondary_emotions"),
+                    primary_emotion=data.get("primary_emotion"),
+                ),
                 emotion_intensity=data.get("emotion_intensity", 5),
                 valence=data.get("valence", 0.0),
                 arousal=data.get("arousal", 0.5),
@@ -326,6 +424,7 @@ RESPOND WITH VALID JSON ONLY:
   "crisis_confidence": <int 1-5>,
   "primary_emotion": <string: Joy, Trust, Fear, Surprise, Sadness, Disgust,
                      Anger, Anticipation, Calm, Neutral>,
+  "secondary_emotions": <optional list: up to 2 labels from the same taxonomy>,
   "emotion_intensity": <int 1-10>,
   "valence": <float -1.0 to 1.0>,
   "arousal": <float 0.0 to 1.0>,
@@ -356,6 +455,7 @@ Focus on:
             crisis_label=random.randint(2, 7) if is_crisis else 0,
             crisis_confidence=random.randint(4, 5),
             primary_emotion=random.choice(["Fear", "Sadness", "Anger", "Neutral"]),
+            secondary_emotions=["Anxiety"] if random.random() < 0.3 else [],
             emotion_intensity=random.randint(6, 9),
             valence=round(random.uniform(-0.8, -0.2), 2),
             arousal=round(random.uniform(0.6, 0.9), 2),
@@ -418,6 +518,7 @@ RESPOND WITH VALID JSON ONLY:
   "crisis_confidence": <int 1-5>,
   "primary_emotion": <string: Joy, Trust, Fear, Surprise, Sadness, Disgust,
                      Anger, Anticipation, Calm, Neutral>,
+  "secondary_emotions": <optional list: up to 2 labels from the same taxonomy>,
   "emotion_intensity": <int 1-10>,
   "valence": <float -1.0 to 1.0>,
   "arousal": <float 0.0 to 1.0>,
@@ -450,6 +551,15 @@ Focus on:
             primary_emotion=random.choice(
                 ["Sadness", "Joy", "Fear", "Neutral", "Anticipation"]
             ),
+            secondary_emotions=[
+                emotion
+                for emotion in [
+                    "Sadness",
+                    "Fear",
+                    "Disgust",
+                ]
+                if random.random() < 0.3
+            ],
             emotion_intensity=random.randint(4, 7),
             valence=round(random.uniform(-0.5, 0.5), 2),
             arousal=round(random.uniform(0.3, 0.7), 2),
@@ -502,6 +612,7 @@ RESPOND WITH VALID JSON ONLY:
   "crisis_confidence": <int 1-5>,
   "primary_emotion": <string: Joy, Trust, Fear, Surprise, Sadness, Disgust,
                      Anger, Anticipation, Calm, Neutral>,
+  "secondary_emotions": <optional list: up to 2 labels from the same taxonomy>,
   "emotion_intensity": <int 1-10>,
   "valence": <float -1.0 to 1.0>,
   "arousal": <float 0.0 to 1.0>,
@@ -520,6 +631,7 @@ RESPOND WITH VALID JSON ONLY:
             crisis_label=0,
             crisis_confidence=5,
             primary_emotion="Neutral",
+            secondary_emotions=[],
             emotion_intensity=3,
             valence=0.0,
             arousal=0.3,
@@ -640,9 +752,10 @@ class ConsensusOrchestrator:
         valences = [r.valence for r in results]
         arousals = [r.arousal for r in results]
 
-        # Most common emotion
-        emotions = [r.primary_emotion for r in results]
-        primary_emotion = max(set(emotions), key=emotions.count)
+        primary_emotion, emotion_tie_resolved = self._resolve_primary_emotion(results)
+        secondary_emotions = self._resolve_secondary_emotions(
+            results=results, primary_emotion=primary_emotion
+        )
 
         # Average empathy scores (if present)
         empathy_scores = [r.empathy_score for r in results if r.empathy_score]
@@ -658,14 +771,122 @@ class ConsensusOrchestrator:
             crisis_label=int(sum(crisis_labels) / len(crisis_labels)),
             crisis_confidence=int(sum(crisis_confidences) / len(crisis_confidences)),
             primary_emotion=primary_emotion,
+            secondary_emotions=secondary_emotions,
             emotion_intensity=int(sum(intensities) / len(intensities)),
             valence=round(sum(valences) / len(valences), 2),
             arousal=round(sum(arousals) / len(arousals), 2),
             empathy_score=avg_empathy,
             safety_pass=safety_pass,
-            notes="Consensus annotation from multiple agents",
+            notes=(
+                "Emotion tie-breaker applied."
+                if emotion_tie_resolved
+                else "Consensus annotation from multiple agents"
+            ),
             reasoning_chain=["Aggregated from all agents"],
         )
+
+    @staticmethod
+    def _resolve_primary_emotion(
+        results: list[AnnotationResult],
+    ) -> tuple[str, bool]:
+        """
+        Resolve primary emotion using tie-break rules.
+
+        Returns:
+            tuple[str, bool]: (resolved emotion, was_tie_resolved)
+        """
+        emotions = [result.primary_emotion for result in results]
+        if not emotions:
+            return "Neutral", False
+
+        counts = Counter(emotions)
+        max_count = max(counts.values())
+        top_emotions = [emotion for emotion, count in counts.items() if count == max_count]
+
+        if len(top_emotions) == 1:
+            return top_emotions[0], False
+
+        emotion_scores: list[tuple[str, tuple[float, float, int]]] = []
+        for emotion in top_emotions:
+            tied_annotations = [
+                result for result in results if result.primary_emotion == emotion
+            ]
+
+            # Prefer annotations with explicit emotion confidence if provided.
+            confidences = [
+                float(r.confidence_scores.get("emotion", 0.0))
+                for r in tied_annotations
+            ]
+            confidence_weight = sum(confidences) / len(confidences)
+
+            # Secondary deterministic tie-break with average emotion intensity.
+            avg_intensity = (
+                sum(r.emotion_intensity for r in tied_annotations)
+                / len(tied_annotations)
+            )
+
+            # Preference order is deterministic and clinically neutral.
+            preference_rank = EMOTION_TIEBREAK_PREFERENCE.index(emotion) if emotion in EMOTION_TIEBREAK_PREFERENCE else len(EMOTION_TIEBREAK_PREFERENCE)
+
+            # Higher score wins; lower preference rank is better.
+            score = (confidence_weight, avg_intensity, -preference_rank)
+            emotion_scores.append((emotion, score))
+
+        # Sort descending by score tuple (confidence, intensity, preference rank inverse)
+        emotion_scores.sort(key=lambda item: item[1], reverse=True)
+        return emotion_scores[0][0], True
+
+    def _resolve_secondary_emotions(
+        self,
+        results: list[AnnotationResult],
+        primary_emotion: str,
+    ) -> list[str]:
+        """Resolve secondary emotions from annotator outputs."""
+        counts = Counter()
+        for result in results:
+            for emotion in normalize_secondary_emotions(
+                result.secondary_emotions, primary_emotion=primary_emotion
+            ):
+                counts[emotion] += 1
+
+        if not counts:
+            return []
+
+        secondary_scores: list[tuple[str, tuple[int, float, float, int]]] = []
+        for emotion, count in counts.items():
+            if emotion == primary_emotion:
+                continue
+            tied_annotations = [
+                result for result in results if emotion in result.secondary_emotions
+            ]
+
+            confidence_values = [
+                float(result.confidence_scores.get("emotion", 0.0))
+                for result in tied_annotations
+            ]
+            confidence = (
+                sum(confidence_values) / len(confidence_values)
+                if confidence_values
+                else 0.0
+            )
+            intensity = (
+                sum(result.emotion_intensity for result in tied_annotations)
+                / len(tied_annotations)
+                if tied_annotations
+                else 0.0
+            )
+            preference_rank = (
+                EMOTION_TIEBREAK_PREFERENCE.index(emotion)
+                if emotion in EMOTION_TIEBREAK_PREFERENCE
+                else len(EMOTION_TIEBREAK_PREFERENCE)
+            )
+
+            secondary_scores.append(
+                (emotion, (count, confidence, intensity, -preference_rank))
+            )
+
+        secondary_scores.sort(key=lambda item: item[1], reverse=True)
+        return [emotion for emotion, _ in secondary_scores[:MAX_SECONDARY_EMOTIONS]]
 
     def _calculate_agreement(self, results: list[AnnotationResult]) -> dict[str, float]:
         """Calculate inter-agent agreement metrics"""

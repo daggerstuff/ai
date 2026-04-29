@@ -133,19 +133,18 @@ class LettaCrisisHandler:
         Returns:
             True if operation should be blocked
         """
-        # Block file writes during critical crisis
-        if result.severity == CrisisSeverity.CRITICAL:
-            if operation in ["file_write", "file_edit", "code_execution"]:
-                return True
-
-        # Block based on indicators
-        if "self-harm" in result.indicators and operation in ["file_write", "shell_command"]:
-            return True
-
-        if "violence" in result.indicators and operation in ["shell_command", "code_execution"]:
-            return True
-
-        return False
+        return (
+            (result.severity == CrisisSeverity.CRITICAL
+             and operation in ["file_write", "file_edit", "code_execution"])
+            or (
+                "self-harm" in result.indicators
+                and operation in ["file_write", "shell_command"]
+            )
+            or (
+                "violence" in result.indicators
+                and operation in ["shell_command", "code_execution"]
+            )
+        )
 
     async def _log_crisis(
         self,
@@ -188,11 +187,54 @@ class LettaCrisisHandler:
         _session_id: str | None = None
     ) -> None:
         """Route to appropriate resources based on crisis type."""
-        # Log resource routing
+        # Standardized crisis resource mapping (aligned with Foresight-style escalation)
+        crisis_resource_map = {
+            "suicide": [
+                "988 Suicide & Crisis Lifeline: 988",
+                "Crisis Text Line: Text HOME to 741741",
+                "Suicide & Crisis Lifeline Chat: suicidepreventionlifeline.org/chat",
+            ],
+            "self-harm": [
+                "988 Suicide & Crisis Lifeline: 988",
+                "Crisis Text Line: Text HOME to 741741",
+            ],
+            "violence": [
+                "Emergency Services: 911",
+                "If in immediate danger, call local emergency services now.",
+            ],
+            "severe_distress": [
+                "988 Suicide & Crisis Lifeline: 988",
+                "Crisis Text Line: Text HOME to 741741",
+                "Consider immediate support from a licensed clinician",
+            ],
+        }
+
+        routed_resources = []
+        for indicator in result.indicators:
+            routed_resources.extend(crisis_resource_map.get(indicator, []))
+
+        if result.severity == CrisisSeverity.CRITICAL:
+            routed_resources.append("Emergency Services: 911")
+            routed_resources.append("Immediate emergency triage required")
+
+        # Dedupe while preserving order
+        unique_resources = list(dict.fromkeys(routed_resources))
+
+        if not unique_resources:
+            logger.info(
+                "No crisis-specific resources were routed for user %s; "
+                "severity=%s and no clear indicators.",
+                user_id,
+                result.severity.value,
+            )
+            return
+
         logger.info(
-            f"Routing crisis resources for user {user_id}: {result.indicators}"
+            "Routing crisis resources for user %s (severity=%s): %s",
+            user_id,
+            result.severity.value,
+            unique_resources,
         )
-        # TODO: Implement resource routing based on Foresight's crisis resources
 
     def _extract_indicators(self, message: str) -> list[str]:
         """Extract crisis indicators from message."""
@@ -241,32 +283,34 @@ class LettaCrisisHandler:
         """Suggest action based on crisis severity and type."""
         if severity == CrisisSeverity.CRITICAL:
             if "suicide" in indicators:
-                return (
+                action = (
                     "Provide suicide prevention resources immediately. "
                     "National Suicide Prevention Lifeline: 988 (US), "
                     "International: https://findahelpline.com"
                 )
-            if "self-harm" in indicators:
-                return (
+            elif "self-harm" in indicators:
+                action = (
                     "Provide self-harm support resources. "
                     "Crisis Text Line: Text HOME to 741741"
                 )
-            if "violence" in indicators:
-                return (
+            elif "violence" in indicators:
+                action = (
                     "De-escalate and provide support resources. "
                     "If immediate danger, contact emergency services."
                 )
-            return (
-                "Critical situation detected. Provide supportive resources "
-                "and encourage professional help."
-            )
-
-        if severity == CrisisSeverity.HIGH:
+            else:
+                action = (
+                    "Critical situation detected. Provide supportive resources "
+                    "and encourage professional help."
+                )
+        elif severity == CrisisSeverity.HIGH:
             if "suicide" in indicators or "self-harm" in indicators:
-                return "Provide supportive resources and encourage reaching out to professionals."
-            return "Monitor closely and provide supportive resources."
+                action = "Provide supportive resources and encourage reaching out to professionals."
+            else:
+                action = "Monitor closely and provide supportive resources."
+        elif severity == CrisisSeverity.MEDIUM:
+            action = "Provide supportive response and monitor for escalation."
+        else:
+            action = None
 
-        if severity == CrisisSeverity.MEDIUM:
-            return "Provide supportive response and monitor for escalation."
-
-        return None
+        return action

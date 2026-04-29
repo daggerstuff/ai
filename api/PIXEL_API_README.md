@@ -34,7 +34,7 @@ The Pixel Model Inference API provides:
 
 ## Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │ TypeScript API Layer (src/pages/api/ai/models/pixel_core/)              │
 │ - Authentication & Rate Limiting                             │
@@ -80,7 +80,7 @@ cd /home/vivi/pixelated
 uv pip install fastapi uvicorn pydantic torch
 ```
 
-2. **Environment Variables**
+1. **Environment Variables**
 
 ```bash
 # .env.local or environment
@@ -90,7 +90,7 @@ export PIXEL_MODEL_PATH=ai/models/pixel_core/models/pixel_base_model.pt
 export PIXEL_API_PORT=8001
 ```
 
-3. **Start Python Service**
+1. **Start Python Service**
 
 ```bash
 uv run ai/api/pixel_inference_service.py
@@ -102,7 +102,7 @@ The service will start on `http://localhost:8001`
 
 ### Health Check
 
-```
+```http
 GET /health
 
 Response:
@@ -115,7 +115,7 @@ Response:
 
 ### Model Status
 
-```
+```json
 GET /status
 
 Response:
@@ -135,7 +135,7 @@ Response:
 
 ### Generate Response
 
-```
+```json
 POST /infer
 
 Request:
@@ -185,7 +185,7 @@ Response:
 
 ### Batch Inference
 
-```
+```http
 POST /batch-infer
 
 Request:
@@ -199,7 +199,7 @@ Request:
 
 ### Reload Model
 
-```
+```http
 POST /reload-model
 
 Response:
@@ -423,6 +423,6 @@ python -c "from ai.models.pixel_core.models.pixel_base_model import PixelBaseMod
 
 ## References
 
-- [Pixel Model Architecture](../pixel/README.md)
-- [Phase 3 Integration Plan](../../docs/ngc-therapeutic-enhancement-checklist.md)
+- [Pixel Model Architecture](../docs/model_architecture_design.md)
+- [Phase 3 Integration Plan](../docs/deployment/ngc/NGC_CLI_NEXT_STEPS.md)
 - [API Security Standards](../../SECURITY.md)

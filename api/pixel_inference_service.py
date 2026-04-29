@@ -9,10 +9,14 @@ Provides FastAPI endpoints for Pixel model inference with:
 - Performance optimization (<200ms latency)
 """
 
+import asyncio
+import json
 import logging
 import os
 import sys
-from datetime import datetime, timezone
+import time
+import uuid
+from datetime import UTC, datetime
 
 # Import models and utilities
 from pathlib import Path
@@ -20,6 +24,7 @@ from typing import Any
 
 import torch
 from fastapi import BackgroundTasks, FastAPI, HTTPException
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 # Add parent directories to path for imports
@@ -30,6 +35,10 @@ from pixel.models.pixel_base_model import PixelBaseModel
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
+
+INFERENCE_LATENCY_WARNING_MS = 200
+EMPATHY_SUPPORT_THRESHOLD = 0.7
+PIXEL_API_DEFAULT_PORT = "8001"
 
 # ============================================================================
 # Request/Response Models
@@ -98,8 +107,10 @@ class PixelInferenceResponse(BaseModel):
     inference_time_ms: float
     eq_scores: EQScores | None = None
     conversation_metadata: ConversationMetadata | None = None
-    persona_mode: str = Field(..., description="Detected persona")
-    confidence: float
+    persona_mode: str = Field(
+        "therapy", description="Detected persona: therapy or assistant"
+    )
+    confidence: float = Field(0.9, description="Confidence in response")
     warning: str | None = None
     agent_activities: list["AgentActivity"] | None = None
     shared_state: dict[str, Any] | None = None
@@ -107,7 +118,7 @@ class PixelInferenceResponse(BaseModel):
 
 class AgentConflict(BaseModel):
     """Represents a disagreement between agents"""
-    withAgent: str
+    with_agent: str = Field(..., alias="withAgent")
     severity: str  # low, medium, high
     description: str
 
@@ -116,8 +127,8 @@ class AgentActivity(BaseModel):
     """Represents a single activity from an agent"""
 
     id: str
-    agentName: str
-    agentRole: str | None = None
+    agent_name: str = Field(..., alias="agentName")
+    agent_role: str | None = Field(None, alias="agentRole")
     type: str  # thought, action, observation, tool_use
     content: str
     thought: str | None = None
@@ -131,10 +142,6 @@ class AgentActivity(BaseModel):
 
 
 PixelInferenceResponse.update_forward_refs()
-        "therapy", description="Detected persona: therapy or assistant"
-    )
-    confidence: float = Field(0.9, description="Confidence in response")
-    warning: str | None = None
 
 
 class ModelStatusResponse(BaseModel):
@@ -203,14 +210,13 @@ class PixelInferenceEngine:
     def load_model(self) -> bool:
         """Load Pixel model from disk"""
         try:
-            return self._extracted_from_load_model_4()
+            return self._ensure_model_loaded()
         except Exception as e:
             logger.error(f"Error loading model: {e}")
             self.model_loaded = False
             return False
 
-    # TODO Rename this here and in `load_model`
-    def _extracted_from_load_model_4(self):
+    def _ensure_model_loaded(self) -> bool:
         if self.model is not None and self.model_loaded:
             logger.info("Model already loaded")
             return True
@@ -253,7 +259,7 @@ class PixelInferenceEngine:
         if not self.model_loaded:
             raise RuntimeError("Model not loaded")
 
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
 
         try:
             # Preprocess input
@@ -278,7 +284,7 @@ class PixelInferenceEngine:
             )
 
             # Calculate inference time
-            inference_time = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+            inference_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
 
             # Update stats
             self.inference_count += 1
@@ -286,9 +292,10 @@ class PixelInferenceEngine:
 
             # Check latency requirement
             warning = None
-            if inference_time > 200:
+            if inference_time > INFERENCE_LATENCY_WARNING_MS:
                 warning = (
-                    f"Inference latency exceeded target: {inference_time:.2f}ms > 200ms"
+                    f"Inference latency exceeded target: "
+                    f"{inference_time:.2f}ms > {INFERENCE_LATENCY_WARNING_MS}ms"
                 )
                 logger.warning(warning)
 
@@ -308,9 +315,6 @@ class PixelInferenceEngine:
 
     async def generate_streaming_response(self, request: PixelInferenceRequest):
         """Generator that yields agent activities and finally the full response"""
-        import uuid
-        import time
-        
         current_state = {
             "focus": None,
             "detected_emotions": [],
@@ -322,15 +326,22 @@ class PixelInferenceEngine:
         current_state["focus"] = "initial_assessment"
         if request.gestalt_directive:
             current_state["focus"] = f"corrected_focus: {request.gestalt_directive}"
-        
+
         self.record_agent_step("Coordinator", 500)
         yield AgentActivity(
             id=str(uuid.uuid4()),
-            agentName="Coordinator",
-            agentRole="Orchestrator",
+            agent_name="Coordinator",
+            agent_role="Orchestrator",
             type="thought",
-            content="Awaiting directives..." if not request.gestalt_directive else f"Applying directive: {request.gestalt_directive}",
-            thought=f"User query: '{request.user_query[:50]}...'. Directive: {request.gestalt_directive or 'None'}",
+            content=(
+                f"Applying directive: {request.gestalt_directive}"
+                if request.gestalt_directive
+                else "Awaiting directives..."
+            ),
+            thought=(
+                f"User query: '{request.user_query[:50]}...'. "
+                f"Directive: {request.gestalt_directive or 'None'}"
+            ),
             status="completed",
             timestamp=time.time(),
             shared_state=current_state.copy()
@@ -342,8 +353,8 @@ class PixelInferenceEngine:
         self.record_agent_step("Memory Agent", 800)
         yield AgentActivity(
             id=str(uuid.uuid4()),
-            agentName="Memory Agent",
-            agentRole="Context Retrieval",
+            agent_name="Memory Agent",
+            agent_role="Context Retrieval",
             type="action",
             content="Scanning therapeutic knowledge base for relevant CBT protocols.",
             action="kb_search(techniques=['validation', 'cognitive_restructuring'])",
@@ -359,8 +370,8 @@ class PixelInferenceEngine:
         self.record_agent_step("Psychologist", 400)
         yield AgentActivity(
             id=str(uuid.uuid4()),
-            agentName="Psychologist",
-            agentRole="Clinical Analysis",
+            agent_name="Psychologist",
+            agent_role="Clinical Analysis",
             type="thought",
             content="Identifying potential cognitive distortions in user narrative.",
             thought="Detected 'overgeneralization' pattern in user phrasing.",
@@ -371,22 +382,33 @@ class PixelInferenceEngine:
         await asyncio.sleep(0.4)
 
         # Simulated Conflict: Safety Guard disagrees with Psychologist on severity
-        if not request.gestalt_directive and any(k in request.user_query.lower() for k in ["bad", "hurt", "desperate"]):
+        if (
+            not request.gestalt_directive
+            and any(
+                k in request.user_query.lower() for k in ["bad", "hurt", "desperate"]
+            )
+        ):
             self.record_agent_step("Safety Guard", 200, success=False)
             yield AgentActivity(
                 id=str(uuid.uuid4()),
-                agentName="Safety Guard",
-                agentRole="Content Moderation",
+                agent_name="Safety Guard",
+                agent_role="Content Moderation",
                 type="thought",
                 content="Flagging discrepancy in emotional severity assessment.",
-                thought="Psychologist identified 'anxiety', but semantic analysis suggests potential 'crisis' level distress.",
+                thought=(
+                    "Psychologist identified 'anxiety', but semantic analysis suggests "
+                    "potential 'crisis' level distress."
+                ),
                 status="completed",
                 timestamp=time.time(),
                 shared_state=current_state.copy(),
                 conflict=AgentConflict(
-                    withAgent="Psychologist",
+                    with_agent="Psychologist",
                     severity="medium",
-                    description="Safety threshold discrepancy: Psychological assessment does not fully account for acute distress markers."
+                    description=(
+                        "Safety threshold discrepancy: Psychological assessment does not "
+                        "fully account for acute distress markers."
+                    )
                 )
             )
             await asyncio.sleep(0.6)
@@ -394,12 +416,12 @@ class PixelInferenceEngine:
         # Step 4: Final response generation
         final_response = await self.generate_response(request)
         final_response.shared_state = current_state
-        
+
         self.record_agent_step("Coordinator", 100)
         yield AgentActivity(
             id=str(uuid.uuid4()),
-            agentName="Coordinator",
-            agentRole="Orchestrator",
+            agent_name="Coordinator",
+            agent_role="Orchestrator",
             type="observation",
             content="Response formulated and safety-checked.",
             observation="Safety score: 0.98. EQ target: high empathy.",
@@ -407,7 +429,7 @@ class PixelInferenceEngine:
             timestamp=time.time(),
             shared_state=current_state.copy()
         )
-        
+
         # Final event is the full response
         yield final_response
 
@@ -478,7 +500,9 @@ class PixelInferenceEngine:
         """Generate response text based on query and persona"""
         # Simple template-based response (in production, use language head)
         empathy_level = (
-            "understanding" if eq_scores.empathy_recognition > 0.7 else "supportive"
+            "understanding"
+            if eq_scores.empathy_recognition > EMPATHY_SUPPORT_THRESHOLD
+            else "supportive"
         )
 
         responses = {
@@ -556,7 +580,7 @@ async def health_check():
     return {
         "status": "healthy" if inference_engine.model_loaded else "degraded",
         "model_loaded": inference_engine.model_loaded,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
     }
 
 
@@ -625,9 +649,6 @@ async def reload_model():
         raise HTTPException(status_code=500, detail="Internal server error") from None
 
 
-from fastapi.responses import StreamingResponse
-
-
 @app.post("/infer-stream")
 async def infer_stream(request: PixelInferenceRequest):
     """Generate streaming response with agent activities using SSE"""
@@ -641,12 +662,12 @@ async def infer_stream(request: PixelInferenceRequest):
                 if isinstance(item, AgentActivity):
                     yield {
                         "event": "activity",
-                        "data": item.json()
+                        "data": item.json(by_alias=True)
                     }
                 else:
                     yield {
                         "event": "final_response",
-                        "data": item.json()
+                        "data": item.json(by_alias=True)
                     }
         except Exception as e:
             logger.exception("Streaming inference error")
@@ -664,5 +685,5 @@ async def infer_stream(request: PixelInferenceRequest):
 if __name__ == "__main__":
     import uvicorn
 
-    port = int(os.getenv("PIXEL_API_PORT", 8001))
+    port = int(os.getenv("PIXEL_API_PORT", PIXEL_API_DEFAULT_PORT))
     uvicorn.run(app, host="0.0.0.0", port=port)

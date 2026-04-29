@@ -44,6 +44,8 @@ EMOTION_TO_VAD = {
     "disgust": (0.2, 0.6, 0.7),
 }
 
+MIN_EMOTIONS_FOR_TREND = 2
+
 
 @dataclass
 class EmotionalState:
@@ -104,13 +106,13 @@ class AudioEmotionRecognizer:
         logger.info(f"Loading emotion recognition model: {self.model_name}")
 
         try:
-            self._extracted_from__load_models_6()
+            self._load_emotion_models()
         except Exception as e:
             logger.error(f"Failed to load emotion models: {e!s}")
             raise
 
-    # TODO Rename this here and in `_load_models`
-    def _extracted_from__load_models_6(self):
+    def _load_emotion_models(self) -> None:
+        """Load feature extractor and model for emotion recognition."""
         warnings.filterwarnings("ignore")
 
         # Load feature extractor
@@ -379,13 +381,13 @@ class EmotionTrajectory:
         Returns:
             Trends for valence, arousal, dominance
         """
-        if len(self.emotions) < 2:
+        if len(self.emotions) < MIN_EMOTIONS_FOR_TREND:
             return {"valence_trend": 0.0, "arousal_trend": 0.0, "dominance_trend": 0.0}
 
         # Get last window
         window = self.emotions[-self.window_size :]
 
-        if len(window) < 2:
+        if len(window) < MIN_EMOTIONS_FOR_TREND:
             return {"valence_trend": 0.0, "arousal_trend": 0.0, "dominance_trend": 0.0}
 
         # Calculate linear trends

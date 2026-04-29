@@ -7,12 +7,29 @@ import argparse
 import hashlib
 import json
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 from s3_client_helper import get_s3_client
 
+S3_PATH_MIN_PARTS = 2
+DEFAULT_REGISTRY_PATH = "/home/vivi/pixelated/ai/config/dataset_registry.json"
+DEDUP_SUFFIX = "_deduped"
+JSONL_EXTENSION = ".jsonl"
+JSON_EXTENSION = ".json"
+S3_SCHEME_PREFIX = "s3://"
+MIN_DATASET_NAME_PARTS = 2
+DATASETS_SECTION_PARTS = 3
+DATASET_SECTION_NAMES = [
+    "rlhf_alignment",
+    "emotion_recognition",
+    "advanced_reasoning",
+    "embeddings",
+    "edge_case_sources",
+    "voice_persona",
+    "supplementary",
+]
 
 class DatasetDeduplicator:
     """Identifies and removes duplicate entries in datasets."""
@@ -36,7 +53,7 @@ class DatasetDeduplicator:
 
     def save_registry(self, registry: dict[str, Any]) -> None:
         """Save the updated registry."""
-        registry["last_updated"] = datetime.now(timezone.utc).isoformat() + "Z"
+        registry["last_updated"] = datetime.now(UTC).isoformat() + "Z"
         with open(self.registry_path, "w") as f:
             json.dump(registry, f, indent=2, ensure_ascii=False)
 
@@ -141,6 +158,49 @@ class DatasetDeduplicator:
 
         return deduplicated, dict(duplicate_groups)
 
+    def _write_deduplicated_to_s3(
+        self, source_s3_path: str, deduplicated_records: list[dict[str, Any]]
+    ) -> tuple[str, int]:
+        """Write deduplicated records to a sibling S3 object."""
+        if not source_s3_path.startswith(S3_SCHEME_PREFIX):
+            raise ValueError("Source path is not an S3 path")
+
+        parts = source_s3_path[len(S3_SCHEME_PREFIX) :].split("/", 1)
+        if len(parts) < S3_PATH_MIN_PARTS:
+            raise ValueError("Invalid S3 path format")
+
+        bucket = parts[0]
+        source_key = parts[1]
+        source_key_lower = source_key.lower()
+        output_key = (
+            source_key[: -len(JSONL_EXTENSION)] + f"{DEDUP_SUFFIX}{JSONL_EXTENSION}"
+            if source_key_lower.endswith(JSONL_EXTENSION)
+            else source_key[: -len(JSON_EXTENSION)] + f"{DEDUP_SUFFIX}{JSON_EXTENSION}"
+            if source_key_lower.endswith(JSON_EXTENSION)
+            else source_key + f"{DEDUP_SUFFIX}{JSON_EXTENSION}"
+        )
+
+        if source_key_lower.endswith(JSONL_EXTENSION):
+            content = "\n".join(
+                json.dumps(record, ensure_ascii=False) for record in deduplicated_records
+            )
+            if content:
+                content += "\n"
+            content_type = "application/x-ndjson"
+            body = content.encode("utf-8")
+        else:
+            body = json.dumps(deduplicated_records, ensure_ascii=False).encode("utf-8")
+            content_type = "application/json"
+
+        self.s3_client.put_object(
+            Bucket=bucket,
+            Key=output_key,
+            Body=body,
+            ContentType=content_type,
+        )
+
+        return f"s3://{bucket}/{output_key}", len(body)
+
     def find_duplicates_across_datasets(
         self, datasets: dict[str, list[dict[str, Any]]], key_fields: list[str] | None = None
     ) -> dict[str, list[str]]:
@@ -165,13 +225,13 @@ class DatasetDeduplicator:
         return {
             h: locations
             for h, locations in hash_to_locations.items()
-            if len(set(loc.split(":")[0] for loc in locations)) > 1
+            if len({loc.split(":")[0] for loc in locations}) > 1
         }
 
 
     def deduplicate_dataset(
         self,
-        dataset_name: str,
+        _dataset_name: str,
         dataset_entry: dict[str, Any],
         key_fields: list[str] | None = None,
         write_output: bool = False,
@@ -219,11 +279,14 @@ class DatasetDeduplicator:
 
         # Write deduplicated dataset if requested
         if write_output and duplicate_count > 0:
-            output_path = s3_path.replace(".json", "_deduped.json").replace(
-                ".jsonl", "_deduped.jsonl"
-            )
-            # TODO: Write deduplicated dataset back to S3
-            stats["output_path"] = output_path
+            try:
+                output_path, output_bytes = self._write_deduplicated_to_s3(
+                    s3_path, deduplicated
+                )
+                stats["output_path"] = output_path
+                stats["output_bytes"] = output_bytes
+            except Exception as exc:
+                stats["output_error"] = str(exc)
 
         self.dedup_stats["datasets_checked"] += 1
         self.dedup_stats["total_records"] += original_count
@@ -233,6 +296,58 @@ class DatasetDeduplicator:
             self.dedup_stats["duplicate_groups"] += len(duplicate_groups)
 
         return stats
+
+    def _collect_nested_datasets(
+        self, section_data: dict[str, Any], prefix: str
+    ) -> list[tuple[str, dict[str, Any]]]:
+        if not isinstance(section_data, dict):
+            return []
+        return [
+            (f"{prefix}.{dataset_name}", dataset_entry)
+            for dataset_name, dataset_entry in section_data.items()
+            if isinstance(dataset_entry, dict) and "path" in dataset_entry
+        ]
+
+    def _collect_deduplication_datasets(
+        self, registry: dict[str, Any]
+    ) -> list[tuple[str, dict[str, Any]]]:
+        datasets: list[tuple[str, dict[str, Any]]] = []
+
+        category_data = registry.get("datasets")
+        if isinstance(category_data, dict):
+            for category_name, category_entries in category_data.items():
+                if isinstance(category_entries, dict):
+                    datasets.extend(
+                        self._collect_nested_datasets(
+                            category_entries,
+                            f"datasets.{category_name}",
+                        )
+                    )
+
+        for section_name in DATASET_SECTION_NAMES:
+            datasets.extend(
+                self._collect_nested_datasets(
+                    registry.get(section_name, {}), section_name
+                )
+            )
+
+        return datasets
+
+    def _lookup_dataset_entry(
+        self, registry: dict[str, Any], dataset_name: str
+    ) -> dict[str, Any] | None:
+        parts = dataset_name.split(".")
+        if len(parts) < MIN_DATASET_NAME_PARTS:
+            return None
+
+        if parts[0] == "datasets" and len(parts) == DATASETS_SECTION_PARTS:
+            return (
+                registry.get("datasets", {})
+                .get(parts[1], {})
+                .get(parts[2], {})
+            )
+
+        return registry.get(parts[0], {}).get(parts[1], {})
 
     def deduplicate_all_datasets(
         self,
@@ -253,41 +368,7 @@ class DatasetDeduplicator:
         """
         registry = self.load_registry()
 
-        # Collect all datasets
-        datasets_to_process = []
-
-        if "datasets" in registry:
-            for category_name, category_data in registry["datasets"].items():
-                if isinstance(category_data, dict):
-                    for dataset_name, dataset_entry in category_data.items():
-                        if isinstance(dataset_entry, dict) and "path" in dataset_entry:
-                            datasets_to_process.append(
-                                (
-                                    f"datasets.{category_name}.{dataset_name}",
-                                    dataset_entry,
-                                )
-                            )
-
-        other_sections = [
-            "rlhf_alignment",
-            "emotion_recognition",
-            "advanced_reasoning",
-            "embeddings",
-            "edge_case_sources",
-            "voice_persona",
-            "supplementary",
-        ]
-
-        for section_name in other_sections:
-            if section_name in registry:
-                section_data = registry[section_name]
-                if isinstance(section_data, dict):
-                    for dataset_name, dataset_entry in section_data.items():
-                        if isinstance(dataset_entry, dict) and "path" in dataset_entry:
-                            datasets_to_process.append(
-                                (f"{section_name}.{dataset_name}", dataset_entry)
-                            )
-
+        datasets_to_process = self._collect_deduplication_datasets(registry)
         if limit:
             datasets_to_process = datasets_to_process[:limit]
 
@@ -340,55 +421,21 @@ class DatasetDeduplicator:
         registry = self.load_registry()
 
         # Collect datasets to compare
-        datasets_to_load = {}
-
         if dataset_names:
-            # Load specific datasets
+            datasets_to_load = {}
             for name in dataset_names:
-                # Parse dataset path
-                parts = name.split(".")
-                if len(parts) >= 2:
-                    # Find in registry
-                    if parts[0] == "datasets" and len(parts) == 3:
-                        entry = (
-                            registry.get("datasets", {})
-                            .get(parts[1], {})
-                            .get(parts[2], {})
-                        )
-                    else:
-                        entry = registry.get(parts[0], {}).get(parts[1], {})
-
-                    if entry and "path" in entry:
-                        datasets_to_load[name] = entry.get("path")
+                entry = self._lookup_dataset_entry(registry, name)
+                if entry and "path" in entry:
+                    datasets_to_load[name] = entry["path"]
         else:
-            # Load all datasets
-            all_datasets = []
-
-            if "datasets" in registry:
-                for category_name, category_data in registry["datasets"].items():
-                    if isinstance(category_data, dict):
-                        for dataset_name, dataset_entry in category_data.items():
-                            if (
-                                isinstance(dataset_entry, dict)
-                                and "path" in dataset_entry
-                            ):
-                                all_datasets.append(
-                                    (
-                                        f"datasets.{category_name}.{dataset_name}",
-                                        dataset_entry,
-                                    )
-                                )
-
+            all_datasets = self._collect_deduplication_datasets(registry)
             if limit:
                 all_datasets = all_datasets[:limit]
-
-            for name, entry in all_datasets:
-                datasets_to_load[name] = entry.get("path")
+            datasets_to_load = {name: entry.get("path") for name, entry in all_datasets}
 
         # Load all datasets
         loaded_datasets = {}
-
-        for name, path in datasets_to_load.items():
+        for name, path in {k: v for k, v in datasets_to_load.items() if v}.items():
             records = self.load_dataset_from_s3(path)
             if records:
                 loaded_datasets[name] = records
@@ -411,9 +458,7 @@ class DatasetDeduplicator:
         # Group by which datasets share duplicates
         dataset_overlap = defaultdict(int)
         for locations in cross_duplicates.values():
-            datasets_involved = tuple(
-                sorted(set(loc.split(":")[0] for loc in locations))
-            )
+            datasets_involved = tuple(sorted({loc.split(":")[0] for loc in locations}))
             dataset_overlap[datasets_involved] += 1
 
         duplicate_stats["dataset_overlaps"] = {
@@ -438,7 +483,7 @@ def main():
     parser.add_argument(
         "--registry",
         type=Path,
-        default=Path("/home/vivi/pixelated/ai/config/dataset_registry.json"),
+        default=Path(DEFAULT_REGISTRY_PATH),
         help="Path to dataset registry",
     )
     parser.add_argument(

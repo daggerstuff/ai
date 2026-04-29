@@ -62,12 +62,43 @@ Annotators must evaluate the **User**'s input for any signs of crisis or risk.
 Identify the emotional state of the **User** and the quality of the
 **Assistant**'s interaction.
 
-### Primary Emotion (Plutchik's Wheel)
+### Primary Emotion (Simplified Taxonomy)
 
-Select the dominant emotion:
+Select one dominant emotion using this reduced set:
 
-- Joy, Trust, Fear, Surprise, Sadness, Disgust, Anger, Anticipation, Calm,
-  Neutral (use "Neutral" if no clear emotion).
+- **Positive**: Joy, hope, calm optimism, pleasant surprise, anticipation
+- **Sadness**: Sadness, grief, loss, disappointment, loneliness
+- **Anxiety**: Fear, worry, nervousness, unpleasant surprise
+- **Anger**: Anger, frustration, irritation, disgust
+- **Neutral**: No strong emotion, mixed signals, or balanced tone
+
+### Emotion Decision Tree (for ambiguous cases)
+
+Use this sequence for tie-prone or mixed-language samples:
+
+1. **Is the core signal protective or hopeful (calm relief, motivation, gratitude)?**
+   - Yes → **Positive**
+   - No → continue
+2. **Is the dominant tone distress-driven (fear, panic, dread, hypervigilance)?**
+   - Yes → **Anxiety**
+   - No → continue
+3. **Is the dominant tone withdrawal or loss-oriented (grief, emptiness, loneliness)?**
+   - Yes → **Sadness**
+   - No → continue
+4. **Is the dominant tone hostile/aversive (frustration, resentment, blame, disgust)?**
+   - Yes → **Anger**
+   - No → continue
+5. **If still uncertain:**
+   - If emotion intensity is low and affect is mixed → **Neutral**
+   - If intensity is clear and negative but not the above buckets → pick the closest fit and leave a note.
+
+You can optionally annotate one or two **secondary emotions** when the tone is mixed (e.g., primary=Anxiety, secondary=Sadness). Keep secondary labels to this simplified set and only include labels that are also materially present in the text.
+
+#### Decision Notes
+
+- Prefer **Anxiety** over Anger when uncertainty includes fear-based wording.
+- Prefer **Sadness** over Neutral when themes involve loss/grief.
+- For short responses, prioritize explicit lexical cues over subtle interpretation.
 
 ### Emotional Dimensions (0.0 to 1.0)
 

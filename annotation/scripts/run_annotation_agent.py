@@ -2,9 +2,43 @@ import argparse
 import json
 import os
 import random
+import sys
 import time
 from pathlib import Path
 from typing import Any
+
+
+def _load_env_file(dotenv_path: Path) -> None:
+    if not dotenv_path.exists():
+        return
+    try:
+        for line in dotenv_path.read_text().splitlines():
+            stripped = line.strip()
+            if not stripped or stripped.startswith("#"):
+                continue
+            if "=" not in stripped:
+                continue
+            key, value = stripped.split("=", 1)
+            key = key.strip()
+            value = value.strip().strip("'").strip('"')
+            if not key:
+                continue
+            os.environ.setdefault(key, value)
+    except Exception:
+        # env bootstrap is optional; run with existing environment on failure
+        pass
+
+
+def _find_and_load_env_file() -> None:
+    base = Path(__file__).resolve()
+    for parent in [base.parent, *base.parents]:
+        candidate = parent / ".env"
+        if candidate.exists():
+            _load_env_file(candidate)
+            break
+
+
+_find_and_load_env_file()
 
 # Try importing openai, handle failure gracefully
 try:
@@ -35,6 +69,7 @@ class AnnotationAgent:
         self.guidelines = self._load_guidelines()
 
         self.client = None
+        self.strict_llm = os.getenv("STRICT_LLM", "").lower() in {"1", "true", "yes"}
         base_url = os.getenv("OPENAI_BASE_URL") or os.getenv("NVIDIA_OPENAI_BASE_URL")
         api_key = os.getenv("OPENAI_API_KEY") or os.getenv("NVIDIA_API_KEY")
 
@@ -91,6 +126,7 @@ format:
   "crisis_label": <int 0-5>,
   "crisis_confidence": <int 1-5>,
   "primary_emotion": <string>,
+  "secondary_emotions": <optional array, up to 2 additional emotions>,
   "emotion_intensity": <int 1-10>,
   "valence": <float -1.0 to 1.0>,
   "arousal": <float 0.0 to 1.0>,
@@ -118,7 +154,14 @@ format:
             )
             content = response.choices[0].message.content
             return json.loads(content)
-        except Exception:
+        except Exception as exc:
+            print(
+                f"LLM call failed for {self.persona_name} on model '{self.model}': "
+                f"{type(exc).__name__}: {exc}",
+                file=sys.stderr,
+            )
+            if self.strict_llm:
+                raise
             # Fallback to generative mock instead of error
             return self._mock_annotation(data, error=False)
 
@@ -152,6 +195,7 @@ format:
             "primary_emotion": random.choice(
                 ["Sadness", "Fear", "Anger", "Joy", "Neutral"]
             ),
+            "secondary_emotions": ["Fear"] if random.random() < 0.3 else [],
             "emotion_intensity": min(10, max(1, int(random.gauss(avg_intensity, 2)))),
             "valence": round(random.uniform(-1.0, 1.0), 2),
             "arousal": round(random.uniform(0.0, 1.0), 2),
