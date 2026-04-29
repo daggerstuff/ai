@@ -13,12 +13,25 @@ Analyzes 913 YouTube transcripts to extract Tim Fletcher's:
 
 import json
 import logging
+import os
+import random
 import re
 from collections import Counter
 from pathlib import Path
 
+try:
+    from openai import OpenAI
+
+    OPENAI_AVAILABLE = True
+except ImportError:
+    OPENAI_AVAILABLE = False
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
+
+MIN_SENTENCE_WORDS = 2
+MAX_MARKED_SENTENCE_LENGTH = 200
+MIN_COMMON_PHRASE_COUNT = 50
 
 
 class TimFletcherVoiceExtractor:
@@ -26,6 +39,18 @@ class TimFletcherVoiceExtractor:
         self.transcripts_dir = Path(transcripts_dir)
         self.output_dir = Path("ai/data/tim_fletcher_voice")
         self.output_dir.mkdir(parents=True, exist_ok=True)
+        self.dotenv_values = self._load_dotenv()
+        self.nim_api_key = self._resolve_env("NVIDIA_NIM_API_KEY") or self._resolve_env("NVIDIA_API_KEY")
+        self.nim_base_url = self._resolve_env("NVIDIA_NIM_BASE_URL") or "https://integrate.api.nvidia.com/v1"
+        model_from_env = (
+            self._resolve_env("TIM_FLETCHER_NIM_MODEL")
+            or self._resolve_env("NVIDIA_NIM_MODEL")
+        )
+        self.openai_model = model_from_env or os.getenv(
+            "OPENAI_MODEL",
+            "meta/llama-3.1-8b-instruct",
+        )
+        self.openai_client = self._init_openai_client()
 
         self.voice_profile = {
             "common_phrases": Counter(),
@@ -74,7 +99,7 @@ class TimFletcherVoiceExtractor:
         for sentence in sentences:
             # Sentence starters (first 2-3 words)
             words = sentence.split()
-            if len(words) >= 2:
+            if len(words) >= MIN_SENTENCE_WORDS:
                 starter = " ".join(words[:2])
                 self.voice_profile["sentence_starters"][starter] += 1
 
@@ -99,14 +124,24 @@ class TimFletcherVoiceExtractor:
                     self.voice_profile["empathy_markers"][pattern] += 1
 
             # Analogies (look for "like", "as if", "imagine")
-            if any(marker in sentence.lower() for marker in ["like a", "as if", "imagine", "think of"]):
-                if len(sentence) < 200:  # Keep reasonable length
-                    self.voice_profile["analogies"].append(sentence)
+            if (
+                any(
+                    marker in sentence.lower()
+                    for marker in ["like a", "as if", "imagine", "think of"]
+                )
+                and len(sentence) < MAX_MARKED_SENTENCE_LENGTH  # Keep reasonable length
+            ):
+                self.voice_profile["analogies"].append(sentence)
 
             # Examples (look for "let's say", "for example")
-            if any(marker in sentence.lower() for marker in ["let's say", "for example", "think back to"]):
-                if len(sentence) < 200:
-                    self.voice_profile["examples"].append(sentence)
+            if (
+                any(
+                    marker in sentence.lower()
+                    for marker in ["let's say", "for example", "think back to"]
+                )
+                and len(sentence) < MAX_MARKED_SENTENCE_LENGTH
+            ):
+                self.voice_profile["examples"].append(sentence)
 
     def _extract_teaching_style(self, text: str):
         """Extract high-level teaching style patterns"""
@@ -171,7 +206,7 @@ class TimFletcherVoiceExtractor:
         # Common phrases
         report.append("\n## Most Common 3-Word Phrases\n")
         for phrase, count in self.voice_profile["common_phrases"].most_common(30):
-            if count > 50:  # Only very common phrases
+            if count > MIN_COMMON_PHRASE_COUNT:  # Only very common phrases
                 report.append(f'- "{phrase}" ({count} times)\n')
 
         return "".join(report)
@@ -226,9 +261,212 @@ class TimFletcherVoiceExtractor:
             f.write(generation_prompt)
         logger.info(f"📋 Saved generation prompt to {prompt_file}")
 
-        # TODO: Integrate with OpenAI API to generate conversations
-        # For now, return empty list
+        topics = [
+            "Complex trauma, hypervigilance, and nervous system regulation",
+            "PTSD triggers and coping mechanisms in daily life",
+            "Rebuilding trust in relationships after emotional betrayal",
+            "Managing shame and self-criticism during recovery",
+            "Sleep disruption after trauma and practical grounding",
+            "Body-based regulation when panic spikes",
+            "Boundaries, rupture, and reparation in attachment wounds",
+            "Dissociation and returning to the present moment",
+            "Trauma recovery progress without emotional overwhelm",
+            "Integrating therapy concepts into relationships and work",
+        ]
+
+        max_requests = int(os.getenv("TIM_FLETCHER_MAX_SYNTHETIC", "50"))
+        target_conversations = min(num_conversations, max_requests)
+        if num_conversations > target_conversations:
+            logger.warning(
+                "🔧 Limiting synthetic conversation generation to %s to avoid runaway API spend.",
+                target_conversations,
+            )
+
+        for i in range(target_conversations):
+            topic = topics[i % len(topics)]
+            topic_prompt = (
+                f"{generation_prompt}\n\n"
+                f"### Topic\n- {topic}\n\n"
+                f"- {topic}\n\n"
+                "Return ONLY a single JSON object matching the documented schema."
+            )
+
+            if self.openai_client is None:
+                conversations.append(self._build_fallback_conversation(i + 1, topic, profile))
+                continue
+
+            try:
+                response = self.openai_client.chat.completions.create(
+                    model=self.openai_model,
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": "You are a senior trauma-informed therapist writer.",
+                        },
+                        {"role": "user", "content": topic_prompt},
+                    ],
+                    temperature=0.7,
+                    max_tokens=1500,
+                )
+                raw = response.choices[0].message.content if response.choices else ""
+                parsed = self._extract_json_from_response(raw or "")
+                if self._is_valid_conversation_payload(parsed):
+                    parsed["metadata"]["topic"] = topic
+                    parsed["metadata"]["index"] = i + 1
+                    conversations.append(parsed)
+                    continue
+            except Exception as exc:
+                logger.error("OpenAI generation failed for topic '%s': %s", topic, exc)
+
+            conversations.append(self._build_fallback_conversation(i + 1, topic, profile))
+
+        logger.info(f"✅ Generated {len(conversations)} synthetic conversations")
         return conversations
+
+    def _extract_json_from_response(self, content: str) -> dict:
+        """Extract JSON object from a model response."""
+        try:
+            return json.loads(content.strip())
+        except Exception:
+            pass
+
+        json_block = re.search(r"```json\s*(.*?)\s*```", content, flags=re.DOTALL | re.IGNORECASE)
+        if not json_block:
+            return {}
+        try:
+            return json.loads(json_block.group(1).strip())
+        except Exception:
+            return {}
+
+    def _resolve_env(self, key: str) -> str | None:
+        """Resolve an environment value from loaded .env file or runtime env."""
+        if key in self.dotenv_values:
+            return self.dotenv_values[key]
+        return os.getenv(key)
+
+    @staticmethod
+    def _load_dotenv() -> dict:
+        """Load a simple .env file without external dependencies."""
+        env_path = Path(".env")
+        values: dict[str, str] = {}
+
+        if not env_path.exists():
+            return values
+
+        try:
+            for raw_line in env_path.read_text(encoding="utf-8").splitlines():
+                line = raw_line.strip()
+                if not line or line.startswith("#"):
+                    continue
+                if line.startswith("export "):
+                    line = line[len("export ") :].strip()
+                if "=" not in line:
+                    continue
+                key, value = line.split("=", 1)
+                key = key.strip()
+                value = value.strip().strip().strip('"').strip("'")
+                if key:
+                    values[key] = value
+        except OSError as exc:
+            logger.warning("⚠️ Unable to read .env file: %s", exc)
+
+        return values
+
+    def _is_valid_conversation_payload(self, payload: dict) -> bool:
+        """Validate minimum schema for generated conversation."""
+        if not isinstance(payload, dict):
+            return False
+        conversation = payload.get("conversation")
+        metadata = payload.get("metadata")
+        return (
+            isinstance(conversation, list)
+            and conversation
+            and isinstance(metadata, dict)
+            and all(
+                isinstance(turn, dict)
+                and turn.get("role") in {"client", "therapist"}
+                and isinstance(turn.get("content"), str)
+                and bool(turn["content"].strip())
+                for turn in conversation
+            )
+        )
+
+    def _build_fallback_conversation(self, index: int, topic: str, profile: dict) -> dict:
+        starters = list(profile.get("sentence_starters", {}).keys()) or ["Let's take this step by step"]
+        transitions = list(profile.get("transition_phrases", {}).keys()) or ["Now", "Let's look at this"]
+        empathy = list(profile.get("empathy_markers", {}).keys()) or ["I understand", "That sounds hard"]
+        analogy = random.choice(
+            profile.get("analogies") or ["Like retraining a nervous system takes time."]
+        )
+        example = random.choice(
+            profile.get("examples") or ["Imagine your alarm system is extra sensitive for a while."]
+        )
+
+        conversation = [
+            {"role": "client", "content": f"I feel overwhelmed around this topic. This topic is: {topic}."},
+            {
+                "role": "therapist",
+                "content": (
+                    f"{random.choice(starters)}... {random.choice(empathy)}. "
+                    f"{random.choice(transitions)} first, let's break this down: "
+                    "This is about noticing your body first, then naming the moment, "
+                    "then choosing one small action."
+                ),
+            },
+            {
+                "role": "client",
+                "content": "That makes sense, but I get stuck before I can do those steps.",
+            },
+            {
+                "role": "therapist",
+                "content": (
+                    f"{random.choice(transitions)} I hear you. "
+                    f"{random.choice(empathy)}. Think of it like {analogy.lower()} "
+                    f"and for example {example.lower()}"
+                ),
+            },
+            {
+                "role": "client",
+                "content": "So what should I do when I feel stuck again?",
+            },
+            {
+                "role": "therapist",
+                "content": (
+                    "Great question. First, pause and do one 60-second regulation breath. "
+                    "Second, ground with three things you can see, touch, and hear. "
+                    "Third, tell yourself: this is activation, and it can pass without me doing anything."
+                ),
+            },
+        ]
+        return {
+            "conversation": conversation,
+            "metadata": {
+                "source": "tim_fletcher_synthetic",
+                "topic": topic,
+                "index": index,
+                "mode": "fallback" if self.openai_client is None else "openai_parsing_failed",
+            },
+        }
+
+    def _init_openai_client(self):
+        if not OPENAI_AVAILABLE or not self.nim_api_key:
+            return None
+
+        if not self.nim_base_url:
+            logger.warning(
+                "⚠️ NVIDIA NIM base URL not configured; defaulting to https://integrate.api.nvidia.com/v1"
+            )
+            self.nim_base_url = "https://integrate.api.nvidia.com/v1"
+
+        if not self.nim_api_key:
+            logger.warning("⚠️ NVIDIA NIM API key not configured; synthetic generation will fall back to templates.")
+            return None
+
+        try:
+            return OpenAI(api_key=self.nim_api_key, base_url=self.nim_base_url)
+        except TypeError:
+            # Defensive fallback for older OpenAI clients not accepting base_url kwarg.
+            return OpenAI(api_key=self.nim_api_key)
 
     def _create_generation_prompt(self, profile: dict) -> str:
         """Create a prompt for generating conversations in Tim's voice"""

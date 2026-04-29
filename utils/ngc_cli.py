@@ -11,6 +11,7 @@ This module handles:
 - Error handling and retry logic
 """
 
+import json
 import logging
 import os
 import shutil
@@ -20,6 +21,8 @@ from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger(__name__)
+
+CONFIG_TABLE_MIN_PARTS = 3
 
 
 @dataclass
@@ -173,7 +176,7 @@ class NGCCLI:
             for line in lines:
                 if "|" in line and "| key " not in line.lower() and "---" not in line:
                     parts = [part.strip() for part in line.split("|") if part.strip()]
-                    if len(parts) >= 3:  # key | value | source
+                    if len(parts) >= CONFIG_TABLE_MIN_PARTS:  # key | value | source
                         key, value, _source = parts[0], parts[1], parts[2]
                         if key:  # New key
                             current_key = key
@@ -189,17 +192,14 @@ class NGCCLI:
                 return config
 
             raise NGCCLIAuthError(
-                "NGC CLI not configured. Run: ngc config set\n"
-                "Get your API key from: https://catalog.ngc.nvidia.com"
+                "NGC CLI not configured. Run: ngc config set\nGet your API key from: https://catalog.ngc.nvidia.com"
             )
 
             return config
         except subprocess.CalledProcessError as e:
             raise NGCCLIAuthError(f"Failed to check NGC config: {e.stderr}") from e
 
-    def set_config(
-        self, api_key: str, _org: str | None = None, _team: str | None = None
-    ) -> None:
+    def set_config(self, api_key: str, _org: str | None = None, _team: str | None = None) -> None:
         """
         Configure NGC CLI with API key.
 
@@ -236,7 +236,9 @@ class NGCCLI:
         Download a resource from NGC catalog.
 
         Args:
-            resource_path: Resource path in format "org/team/resource" or "nvidia/nemo-microservices/nemo-microservices-quickstart"
+            resource_path: Resource path in format
+                "org/team/resource"
+                or "nvidia/nemo-microservices/nemo-microservices-quickstart"
             version: Optional version tag (e.g., "25.10")
             output_dir: Optional output directory (defaults to current directory)
             extract: Whether to extract downloaded archive
@@ -279,9 +281,7 @@ class NGCCLI:
         finally:
             os.chdir(original_cwd)
 
-    def _execute_download_in_directory(
-        self, output_dir: Path, resource_spec: str, cmd: list[str]
-    ) -> Path:
+    def _execute_download_in_directory(self, output_dir: Path, resource_spec: str, cmd: list[str]) -> Path:
         """
         Execute download command in the specified directory and locate the downloaded resource.
 
@@ -303,9 +303,7 @@ class NGCCLI:
 
         if result.returncode != 0:
             error_msg = result.stderr or result.stdout
-            raise NGCCLIDownloadError(
-                f"Failed to download {resource_spec}:\n{error_msg}"
-            )
+            raise NGCCLIDownloadError(f"Failed to download {resource_spec}:\n{error_msg}")
 
         logger.info(f"Successfully downloaded {resource_spec}")
 
@@ -315,9 +313,7 @@ class NGCCLI:
 
         return output_dir
 
-    def list_resources(
-        self, org: str | None = None, team: str | None = None
-    ) -> list[dict[str, Any]]:
+    def list_resources(self, org: str | None = None, team: str | None = None) -> list[dict[str, Any]]:
         """
         List available resources in NGC catalog.
 
@@ -340,14 +336,116 @@ class NGCCLI:
             cmd.extend(["--team", team])
 
         try:
-            subprocess.run(cmd, capture_output=True, text=True, check=True)
-
-            # Parse output (format may vary)
-            # TODO: Implement proper parsing based on actual NGC CLI output format
-            return []
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            raw_output = result.stdout.strip()
+            if not raw_output:
+                return []
+            return self._parse_resources_output(raw_output)
         except subprocess.CalledProcessError as e:
             logger.warning(f"Failed to list resources: {e.stderr}")
             return []
+
+    @staticmethod
+    def _parse_resources_output(raw_output: str) -> list[dict[str, Any]]:
+        normalized_output = raw_output.lower()
+        if (
+            "no resources found" in normalized_output
+            or "no results found" in normalized_output
+        ):
+            return []
+
+        resources = NGCCLI._parse_json_resources(raw_output)
+        if resources:
+            return resources
+
+        lines = [line.strip() for line in raw_output.splitlines() if line.strip()]
+        if not lines:
+            return []
+
+        resources = NGCCLI._parse_pipe_delimited_resources(lines)
+        if resources:
+            return resources
+
+        return NGCCLI._parse_whitespace_aligned_resources(lines)
+
+    @staticmethod
+    def _parse_json_resources(raw_output: str) -> list[dict[str, Any]]:
+        try:
+            payload = json.loads(raw_output)
+        except json.JSONDecodeError:
+            return []
+
+        if isinstance(payload, list):
+            return [dict(resource) for resource in payload if isinstance(resource, dict)]
+        if isinstance(payload, dict):
+            resources = payload.get("resources")
+            if isinstance(resources, list):
+                return [
+                    dict(resource)
+                    for resource in resources
+                    if isinstance(resource, dict)
+                ]
+        return []
+
+    @staticmethod
+    def _parse_pipe_delimited_resources(lines: list[str]) -> list[dict[str, Any]]:
+        table_rows = [
+            line
+            for line in lines
+            if "|" in line and "---" not in line and "+" not in line[:2]
+        ]
+        if not table_rows:
+            return []
+
+        headers = [
+            part.strip()
+            for part in table_rows[0].split("|")
+            if part.strip() and not part.strip().startswith("+")
+        ]
+        if not headers:
+            return []
+
+        resources: list[dict[str, Any]] = []
+        for row in lines[1:]:
+            if "---" in row or row.startswith("+") or "|" not in row:
+                continue
+            values = [
+                part.strip() for part in row.split("|") if part.strip() and not part.strip().startswith("+")
+            ]
+            if len(values) < len(headers):
+                continue
+            resources.append(dict(zip(headers, values[: len(headers)], strict=True)))
+        return resources
+
+    @staticmethod
+    def _parse_whitespace_aligned_resources(lines: list[str]) -> list[dict[str, Any]]:
+        header_line: str | None = None
+        data_start = 0
+        for idx, line in enumerate(lines):
+            stripped = line.strip()
+            if not stripped or stripped in {"-", "--", "---", "====", "====="}:
+                continue
+            if " " in line:
+                header_line = line
+                data_start = idx + 1
+                break
+
+        if not header_line:
+            return []
+
+        headers = [part.strip() for part in header_line.split("  ") if part.strip()]
+        if not headers:
+            return []
+
+        resources: list[dict[str, Any]] = []
+        for row in lines[data_start:]:
+            if not row or set(row) <= {"-", "="}:
+                continue
+            values = [part.strip() for part in row.split("  ") if part.strip()]
+            if len(values) < len(headers):
+                continue
+            resources.append(dict(zip(headers, values[: len(headers)], strict=True)))
+        return resources
 
 
 def get_ngc_cli(use_uv: bool = True) -> NGCCLI:

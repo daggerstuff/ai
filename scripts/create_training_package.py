@@ -8,9 +8,10 @@ import json
 import logging
 import os
 import shutil
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
+README_PREVIEW_FILE_LIMIT = 20
 
 def _get_package_config():
     """Get configuration for files to include in training package."""
@@ -140,7 +141,7 @@ def _create_package_readme(package_dir, copied_files, missing_files):
 
     readme_content = f"""# Therapeutic AI Training Package
 
-**Created**: {datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")}
+**Created**: {datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S")}
 **Version**: 5.0
 **Status**: Production Ready
 
@@ -262,7 +263,7 @@ watch -n 1 nvidia-smi
 
 ### Copied Files:
 {chr(10).join(f"- {f}" for f in sorted(copied_files)[:20])}
-{"..." if len(copied_files) > 20 else ""}
+{"..." if len(copied_files) > README_PREVIEW_FILE_LIMIT else ""}
 
 ### Missing Files (will be generated):
 {chr(10).join(f"- {f}" for f in sorted(missing_files)) if missing_files else "None"}
@@ -321,7 +322,7 @@ For issues or questions:
 ---
 
 **Package Version**: 5.0
-**Created**: {datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")}
+**Created**: {datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S")}
 **Status**: Ready for H100 Training
 """
 
@@ -346,7 +347,7 @@ def _create_package_manifest(package_dir, copied_files, missing_files, files_con
 
     manifest = {
         "package_name": package_dir.name,
-        "created": datetime.now(timezone.utc).isoformat(),
+        "created": datetime.now(UTC).isoformat(),
         "version": "5.0",
         "total_files": len(copied_files),
         "missing_files_count": len(missing_files),
@@ -433,13 +434,13 @@ def create_training_package():
     )
     logger = logging.getLogger(__name__)
 
-    _extracted_from_create_training_package_14(
+    _log_section_banner(
         logger, "CREATING TRAINING PACKAGE FOR H100 DEPLOYMENT"
     )
     # Create package directory
     package_name = (
         f"therapeutic_ai_training_package_"
-        f"{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
+        f"{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}"
     )
     package_dir = Path(f"ai/{package_name}")
     package_dir.mkdir(parents=True, exist_ok=True)
@@ -457,7 +458,7 @@ def create_training_package():
     _create_package_manifest(package_dir, copied_files, missing_files, files_config)
     compress_script_path = _create_compression_script(package_dir)
 
-    _extracted_from_create_training_package_14(logger, "PACKAGE CREATION COMPLETE")
+    _log_section_banner(logger, "PACKAGE CREATION COMPLETE")
     logger.info(f"📦 Package directory: {package_dir}")
     logger.info(f"📋 Total files: {len(copied_files)}")
     logger.info(f"⚠️  Missing files: {len(missing_files)} (will be generated)")
@@ -471,11 +472,10 @@ def create_training_package():
 
     return package_dir, compress_script_path
 
-
-# TODO Rename this here and in `create_training_package`
-def _extracted_from_create_training_package_14(logger, arg1):
+def _log_section_banner(logger, title):
+    """Log a highlighted section banner."""
     logger.info("=" * 80)
-    logger.info(arg1)
+    logger.info(title)
     logger.info("=" * 80)
 
 

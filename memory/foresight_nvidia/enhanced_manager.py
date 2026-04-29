@@ -10,6 +10,7 @@ Nemotron model family with intelligent model selection based on task complexity:
 
 Implements Phase 1 requirements from the NVIDIA integration roadmap.
 """
+
 import asyncio
 import json
 import logging
@@ -156,7 +157,6 @@ MODEL_REGISTRY: dict[str, ModelCapabilities] = {
         cost_per_1k_tokens=0.0008,
         best_for=["highest_complexity", "research_grade", "nuanced_understanding"],
     ),
-
     # === BALANCED TIER ===
     ModelTier.NEMOTRON_NANO.value: ModelCapabilities(
         model_id=ModelTier.NEMOTRON_NANO.value,
@@ -182,7 +182,6 @@ MODEL_REGISTRY: dict[str, ModelCapabilities] = {
         cost_per_1k_tokens=0.0002,
         best_for=["structured_output", "json_responses", "assessment_scoring"],
     ),
-
     # === FAST TIER ===
     ModelTier.PHI4_MINI.value: ModelCapabilities(
         model_id=ModelTier.PHI4_MINI.value,
@@ -216,7 +215,6 @@ MODEL_REGISTRY: dict[str, ModelCapabilities] = {
         cost_per_1k_tokens=0.00003,
         best_for=["fast_nvidia_optimized", "balanced_speed_quality", "quick_turnaround"],
     ),
-
     # === SAFETY TIER ===
     ModelTier.NEMOTRON_SAFETY.value: ModelCapabilities(
         model_id=ModelTier.NEMOTRON_SAFETY.value,
@@ -242,7 +240,6 @@ MODEL_REGISTRY: dict[str, ModelCapabilities] = {
         cost_per_1k_tokens=0.00015,
         best_for=["meta_safety", "comprehensive_guard", "multi_category_safety"],
     ),
-
     # === MULTILINGUAL TIER ===
     ModelTier.QWEN_35_LARGE.value: ModelCapabilities(
         model_id=ModelTier.QWEN_35_LARGE.value,
@@ -260,7 +257,6 @@ MODEL_REGISTRY: dict[str, ModelCapabilities] = {
         cost_per_1k_tokens=0.0002,
         best_for=["balanced_multilingual", "efficient_translation", "cross_cultural"],
     ),
-
     # === EMBEDDING TIER ===
     ModelTier.NEMOTRON_EMBED.value: ModelCapabilities(
         model_id=ModelTier.NEMOTRON_EMBED.value,
@@ -397,22 +393,18 @@ class TieredModelSelector:
             Model identifier to use
         """
         # Get base tier from complexity
-        tier_name = self.config.complexity_mapping.get(
-            task_complexity.value, "generation"
-        )
+        tier_name = self.config.complexity_mapping.get(task_complexity.value, "generation")
         base_model = self.config.model_tiers[tier_name]
 
         # Check latency constraints
-        if latency_budget_ms:
-            model_caps = MODEL_REGISTRY.get(base_model)
-            if model_caps and model_caps.typical_latency_ms > latency_budget_ms:
-                # Downgrade to faster model if budget exceeded
-                if tier_name == "reasoning":
-                    base_model = self.config.model_tiers["generation"]
-                    logger.info(
-                        f"Downgrading to {base_model} due to latency budget "
-                        f"({latency_budget_ms}ms)"
-                    )
+        if latency_budget_ms and (
+            model_caps := MODEL_REGISTRY.get(base_model)
+        ) and model_caps.typical_latency_ms > latency_budget_ms and tier_name == "reasoning":
+            # Downgrade to faster model if budget exceeded
+            base_model = self.config.model_tiers["generation"]
+            logger.info(
+                f"Downgrading to {base_model} due to latency budget ({latency_budget_ms}ms)"
+            )
 
         # Crisis detection always uses reasoning model for safety
         if task_complexity == TaskComplexity.CRISIS:
@@ -447,7 +439,7 @@ class CrisisDetector:
     detection of crisis indicators in therapeutic conversations.
     """
 
-    CRISIS_INDICATORS = [
+    CRISIS_INDICATORS: tuple[str, ...] = (
         "self-harm",
         "suicide",
         "hopelessness",
@@ -456,15 +448,15 @@ class CrisisDetector:
         "trauma",
         "abuse",
         "crisis",
-    ]
+    )
 
-    CRISIS_PROMPTS = [
+    CRISIS_PROMPTS: tuple[str, ...] = (
         "I don't see the point anymore",
         "I'm having thoughts of hurting myself",
         "Nothing seems to matter",
         "I feel so alone",
         "I can't go on like this",
-    ]
+    )
 
     def __init__(self, client: AsyncOpenAI, model_id: str):
         self.client = client
@@ -608,6 +600,15 @@ class EmbeddingGenerator:
         return await self.embed_text(text)
 
 
+@dataclass(frozen=True)
+class GenerationOptions:
+    """Generation options for text generation requests."""
+
+    temperature: float | None = None
+    max_tokens: int = 2048
+    stream: bool = False
+
+
 class EnhancedNvidiaNimManager:
     """
     Enhanced NVIDIA NIM Manager with tiered model selection.
@@ -660,9 +661,8 @@ class EnhancedNvidiaNimManager:
         prompt: str,
         system_instruction: str | None = None,
         complexity: TaskComplexity = TaskComplexity.MODERATE,
-        temperature: float | None = None,
-        max_tokens: int = 2048,
-        stream: bool = False,
+        generation_options: GenerationOptions | None = None,
+        **legacy_options: Any,
     ) -> str | Any:
         """
         Generate content using appropriate model for task complexity.
@@ -671,15 +671,37 @@ class EnhancedNvidiaNimManager:
             prompt: User input
             system_instruction: Optional system prompt
             complexity: Task complexity level
-            temperature: Override default temperature
-            max_tokens: Maximum tokens in response
-            stream: Enable streaming response
+            generation_options: Optional generation options or legacy kwargs:
+                temperature, max_tokens, stream.
 
         Returns:
             Generated text or streaming iterator
         """
         model = self.model_selector.select_model(complexity)
-        temp = temperature if temperature is not None else self.config.temperature
+
+        if legacy_options:
+            if generation_options is not None:
+                raise TypeError(
+                    "Pass either `generation_options` or legacy kwargs, not both."
+                )
+            temperature = legacy_options.pop("temperature", None)
+            max_tokens = legacy_options.pop("max_tokens", 2048)
+            stream = legacy_options.pop("stream", False)
+            if legacy_options:
+                unknown = ", ".join(sorted(legacy_options))
+                raise TypeError(f"Unexpected kwargs: {unknown}")
+            generation_options = GenerationOptions(
+                temperature=temperature,
+                max_tokens=max_tokens,
+                stream=stream,
+            )
+
+        generation_options = generation_options or GenerationOptions()
+        temp = (
+            generation_options.temperature
+            if generation_options.temperature is not None
+            else self.config.temperature
+        )
 
         messages = []
         if system_instruction:
@@ -689,21 +711,24 @@ class EnhancedNvidiaNimManager:
         start_time = time.time()
 
         try:
-            if stream and self.config.streaming_enabled:
-                return await self._generate_stream(model, messages, temp, max_tokens)
+            if generation_options.stream and self.config.streaming_enabled:
+                return await self._generate_stream(
+                    model,
+                    messages,
+                    temp,
+                    generation_options.max_tokens,
+                )
             response = await self.client.chat.completions.create(
                 model=model,
                 messages=messages,
                 temperature=temp,
-                max_tokens=max_tokens,
+                max_tokens=generation_options.max_tokens,
             )
 
             latency_ms = (time.time() - start_time) * 1000
             self.model_selector.record_latency(model, latency_ms)
 
-            logger.debug(
-                f"Generated response with {model} in {latency_ms:.0f}ms"
-            )
+            logger.debug(f"Generated response with {model} in {latency_ms:.0f}ms")
 
             return response.choices[0].message.content
 
@@ -760,8 +785,8 @@ class EnhancedNvidiaNimManager:
             augmented_system += f"""
 
 IMPORTANT: Crisis signals detected in user input.
-Risk level: {crisis_analysis['risk_level']}
-Recommended action: {crisis_analysis['recommended_action']}
+Risk level: {crisis_analysis["risk_level"]}
+Recommended action: {crisis_analysis["recommended_action"]}
 
 Provide supportive, non-judgmental response. Prioritize safety.
 Offer appropriate resources and encourage professional help."""
@@ -870,8 +895,7 @@ def create_enhanced_manager(
     api_key = nvidia_api_key or os.environ.get("NVIDIA_API_KEY")
     if not api_key:
         raise ValueError(
-            "NVIDIA API key required. Set NVIDIA_API_KEY environment variable "
-            "or pass nvidia_api_key parameter."
+            "NVIDIA API key required. Set NVIDIA_API_KEY environment variable or pass nvidia_api_key parameter."
         )
 
     config = EnhancedNvidiaConfig(nvidia_api_key=api_key, **kwargs)
@@ -920,9 +944,7 @@ async def main():
     await manager.embed("Test embedding generation")
 
     # Test crisis detection
-    await manager.analyze_for_crisis(
-        "I've been feeling really hopeless lately"
-    )
+    await manager.analyze_for_crisis("I've been feeling really hopeless lately")
 
 
 if __name__ == "__main__":
