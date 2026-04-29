@@ -4,6 +4,7 @@ Logging utilities for TechDeck Flask service.
 This module provides structured logging with HIPAA++ compliance,
 audit trail capabilities, and performance monitoring.
 """
+
 import functools
 import inspect
 import json
@@ -11,11 +12,18 @@ import logging
 import os
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import datetime
 from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
 from typing import Any
 
-from ..config import TechDeckServiceConfig
+from ai.api.techdeck_integration.config import TechDeckServiceConfig
+
+PERFORMANCE_WARNING_THRESHOLD_MS = 50
+CRITICAL_PERFORMANCE_OPERATIONS = (
+    "dataset_processing",
+    "pipeline_execution",
+    "bias_detection",
+)
 
 
 class HIPAACompliantFormatter(logging.Formatter):
@@ -26,11 +34,23 @@ class HIPAACompliantFormatter(logging.Formatter):
     are maintained according to healthcare compliance requirements.
     """
 
-    SENSITIVE_FIELDS = {
-        "password", "token", "secret", "key", "ssn", "email",
-        "phone", "address", "dob", "date_of_birth", "medical_record",
-        "phi", "pii", "credit_card", "bank_account"
-    }
+    SENSITIVE_FIELDS = (
+        "password",
+        "token",
+        "secret",
+        "key",
+        "ssn",
+        "email",
+        "phone",
+        "address",
+        "dob",
+        "date_of_birth",
+        "medical_record",
+        "phi",
+        "pii",
+        "credit_card",
+        "bank_account",
+    )
 
     def format(self, record):
         """Format log record with HIPAA compliance."""
@@ -58,10 +78,7 @@ class HIPAACompliantFormatter(logging.Formatter):
             return {
                 key: (
                     "[REDACTED]"
-                    if any(
-                        sensitive in key.lower()
-                        for sensitive in self.SENSITIVE_FIELDS
-                    )
+                    if any(sensitive in key.lower() for sensitive in self.SENSITIVE_FIELDS)
                     else self._sanitize_data(value)
                 )
                 for key, value in data.items()
@@ -71,13 +88,17 @@ class HIPAACompliantFormatter(logging.Formatter):
         return data
 
 
+def _utc_now_iso() -> str:
+    return datetime.now(datetime.UTC).isoformat()
+
+
 class JSONFormatter(logging.Formatter):
     """JSON formatter for structured logging."""
 
     def format(self, record):
         """Format log record as JSON."""
         log_entry = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": _utc_now_iso(),
             "level": record.levelname,
             "logger": record.name,
             "message": record.getMessage(),
@@ -118,44 +139,41 @@ def setup_logging(config: TechDeckServiceConfig) -> None:
 
     # Console handler
     console_handler = logging.StreamHandler(sys.stdout)
-    _extracted_from_setup_logging_42(console_handler, config, root_logger)
+    _configure_output_handler(console_handler, config, root_logger)
     # File handler if path is specified
     if config.LOG_FILE_PATH:
         file_handler = RotatingFileHandler(
             config.LOG_FILE_PATH,
             maxBytes=config.LOG_MAX_FILE_SIZE_MB * 1024 * 1024,
             backupCount=config.LOG_BACKUP_COUNT,
-            encoding="utf-8"
+            encoding="utf-8",
         )
-        _extracted_from_setup_logging_42(file_handler, config, root_logger)
+        _configure_output_handler(file_handler, config, root_logger)
     # Audit log handler for HIPAA compliance
     if config.ENABLE_AUDIT_LOGGING:
-        _extracted_from_setup_logging_56(config)
+        _configure_audit_handler(config)
 
 
-# TODO Rename this here and in `setup_logging`
-def _extracted_from_setup_logging_42(arg0, config, root_logger):
-    arg0.setLevel(getattr(logging, config.LOG_LEVEL.upper()))
+# Configure and attach a standard output handler (console/file).
+def _configure_output_handler(handler, config, root_logger):
+    handler.setLevel(getattr(logging, config.LOG_LEVEL.upper()))
 
     file_formatter = (
         JSONFormatter()
         if config.LOG_FORMAT == "json"
-        else HIPAACompliantFormatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        )
+        else HIPAACompliantFormatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
     )
-    arg0.setFormatter(file_formatter)
-    root_logger.addHandler(arg0)
+    handler.setFormatter(file_formatter)
+    root_logger.addHandler(handler)
 
 
-# TODO Rename this here and in `setup_logging`
-def _extracted_from_setup_logging_56(config):
+def _configure_audit_handler(config):
     audit_handler = TimedRotatingFileHandler(
         config.LOG_FILE_PATH.replace(".log", "_audit.log") if config.LOG_FILE_PATH else "audit.log",
         when="midnight",
         interval=1,
         backupCount=config.AUDIT_LOG_RETENTION_DAYS,
-        encoding="utf-8"
+        encoding="utf-8",
     )
     audit_handler.setLevel(logging.INFO)
     audit_formatter = JSONFormatter()
@@ -166,6 +184,10 @@ def _extracted_from_setup_logging_56(config):
     audit_logger.addHandler(audit_handler)
     audit_logger.setLevel(logging.INFO)
     audit_logger.propagate = False
+
+
+def _normalize_details(details: dict[str, Any] | None = None) -> dict[str, Any]:
+    return details if details is not None else {}
 
 
 def get_logger(name: str) -> logging.Logger:
@@ -188,11 +210,10 @@ def get_request_logger() -> logging.Logger:
 
 def log_operation(
     operation: str,
-    user_id: str | None = None,
-    request_id: str | None = None,
     status: str = "success",
-    details: dict[str, Any] | None = None,
-    level: int = logging.INFO
+    level: int = logging.INFO,
+    context: dict[str, Any] | None = None,
+    **kwargs: Any,
 ) -> None:
     """
     Log operation with audit trail information.
@@ -205,28 +226,25 @@ def log_operation(
         details: Additional operation details
         level: Log level
     """
-    logger = get_logger("audit")
-
     audit_entry = {
         "event_type": "operation",
         "operation": operation,
         "status": status,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "user_id": user_id,
-        "request_id": request_id,
-        "details": details or {}
+        "timestamp": _utc_now_iso(),
+        "user_id": kwargs.pop("user_id", None),
+        "request_id": kwargs.pop("request_id", None),
+        "details": _normalize_details(kwargs.pop("details", None)),
     }
+    audit_entry.update(_normalize_details(context))
+    audit_entry.update(kwargs)
 
-    logger.log(level, audit_entry)
+    get_logger("audit").log(level, audit_entry)
 
 
 def log_security_event(
     event_type: str,
-    user_id: str | None = None,
-    request_id: str | None = None,
-    ip_address: str | None = None,
-    user_agent: str | None = None,
-    details: dict[str, Any] | None = None
+    details: dict[str, Any] | None = None,
+    **kwargs: Any,
 ) -> None:
     """
     Log security-related events for compliance.
@@ -239,25 +257,28 @@ def log_security_event(
         user_agent: User agent string
         details: Additional event details
     """
-    logger = get_logger("security")
-
     security_entry = {
         "event_type": "security",
         "security_event": event_type,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "user_id": user_id,
-        "request_id": request_id,
-        "ip_address": ip_address,
-        "user_agent": user_agent,
-        "details": details or {}
+        "timestamp": _utc_now_iso(),
+        "user_id": kwargs.pop("user_id", None),
+        "request_id": kwargs.pop("request_id", None),
+        "ip_address": kwargs.pop("ip_address", None),
+        "user_agent": kwargs.pop("user_agent", None),
+        "details": _normalize_details(details),
     }
+    security_entry.update(kwargs)
 
-    logger.warning(security_entry)
+    get_logger("security").warning(security_entry)
 
 
-def log_performance_metric(metric_name: str, value: float | None = None, unit: str | None = None,
-                           user_id: str | None = None, request_id: str | None = None,
-                           tags: dict[str, str] | None = None):
+def log_performance_metric(
+    metric_name: str,
+    value: float | None = None,
+    unit: str | None = None,
+    tags: dict[str, str] | None = None,
+    **kwargs: Any,
+):
     """Compatibility helper.
 
     This function serves two purposes:
@@ -268,6 +289,7 @@ def log_performance_metric(metric_name: str, value: float | None = None, unit: s
       entry with the measured duration in milliseconds.
     """
     logger = get_logger("performance")
+    metadata = dict(kwargs)
 
     # Direct logging usage
     if value is not None and unit is not None:
@@ -276,11 +298,12 @@ def log_performance_metric(metric_name: str, value: float | None = None, unit: s
             "metric_name": metric_name,
             "value": value,
             "unit": unit,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "user_id": user_id,
-            "request_id": request_id,
-            "tags": tags or {}
+            "timestamp": _utc_now_iso(),
+            "user_id": metadata.pop("user_id", None),
+            "request_id": metadata.pop("request_id", None),
+            "tags": _normalize_details(tags),
         }
+        metric_entry.update(metadata)
         logger.info(metric_entry)
         return None
 
@@ -288,34 +311,36 @@ def log_performance_metric(metric_name: str, value: float | None = None, unit: s
     def decorator(func):
 
         @functools.wraps(func)
-        def sync_wrapper(*args, **kwargs):
+        def sync_wrapper(*args, **call_kwargs):
             start = time.time()
-            result = func(*args, **kwargs)
+            result = func(*args, **call_kwargs)
             duration_ms = (time.time() - start) * 1000.0
             metric_entry = {
                 "event_type": "metric",
                 "metric_name": metric_name,
                 "value": duration_ms,
                 "unit": "ms",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "tags": tags or {}
+                "timestamp": _utc_now_iso(),
+                "tags": tags or {},
             }
+            metric_entry.update(metadata)
             logger.info(metric_entry)
             return result
 
         @functools.wraps(func)
-        async def async_wrapper(*args, **kwargs):
+        async def async_wrapper(*args, **call_kwargs):
             start = time.time()
-            result = await func(*args, **kwargs)
+            result = await func(*args, **call_kwargs)
             duration_ms = (time.time() - start) * 1000.0
             metric_entry = {
                 "event_type": "metric",
                 "metric_name": metric_name,
                 "value": duration_ms,
                 "unit": "ms",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "tags": tags or {}
+                "timestamp": _utc_now_iso(),
+                "tags": tags or {},
             }
+            metric_entry.update(metadata)
             logger.info(metric_entry)
             return result
 
@@ -329,9 +354,8 @@ def log_performance_metric(metric_name: str, value: float | None = None, unit: s
 def log_error_with_context(
     error: Exception,
     operation: str,
-    user_id: str | None = None,
-    request_id: str | None = None,
-    context: dict[str, Any] | None = None
+    context: dict[str, Any] | None = None,
+    **kwargs: Any,
 ) -> None:
     """
     Log error with comprehensive context for debugging.
@@ -350,11 +374,12 @@ def log_error_with_context(
         "operation": operation,
         "error_type": type(error).__name__,
         "error_message": str(error),
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "user_id": user_id,
-        "request_id": request_id,
-        "context": context or {}
+        "timestamp": _utc_now_iso(),
+        "user_id": kwargs.pop("user_id", None),
+        "request_id": kwargs.pop("request_id", None),
+        "context": _normalize_details(context),
     }
+    error_entry.update(kwargs)
 
     logger.error(error_entry, exc_info=True)
 
@@ -376,7 +401,7 @@ class PerformanceTimer:
         operation: str,
         user_id: str | None = None,
         request_id: str | None = None,
-        tags: dict[str, str] | None = None
+        tags: dict[str, str] | None = None,
     ):
         """
         Initialize performance timer.
@@ -396,12 +421,12 @@ class PerformanceTimer:
 
     def __enter__(self):
         """Start timing."""
-        self.start_time = datetime.now(timezone.utc)
+        self.start_time = datetime.now(datetime.UTC)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Stop timing and log metric."""
-        self.end_time = datetime.now(timezone.utc)
+        self.end_time = datetime.now(datetime.UTC)
         duration = (self.end_time - self.start_time).total_seconds() * 1000  # Convert to milliseconds
 
         # Add duration to tags
@@ -414,21 +439,27 @@ class PerformanceTimer:
             unit="milliseconds",
             user_id=self.user_id,
             request_id=self.request_id,
-            tags=self.tags
+            tags=self.tags,
         )
 
         # Log if operation took too long (>50ms for critical operations)
-        if duration > 50 and self.operation in ["dataset_processing", "pipeline_execution", "bias_detection"]:
+        if (
+            duration > PERFORMANCE_WARNING_THRESHOLD_MS
+            and self.operation in CRITICAL_PERFORMANCE_OPERATIONS
+        ):
             logger = get_logger("performance")
             logger.warning(
-                f"Operation {self.operation} took {duration:.2f}ms, exceeding 50ms threshold",
+                (
+                    f"Operation {self.operation} took {duration:.2f}ms, exceeding "
+                    f"{PERFORMANCE_WARNING_THRESHOLD_MS}ms threshold"
+                ),
                 extra={
                     "operation": self.operation,
                     "duration_ms": duration,
-                    "threshold_ms": 50,
+                    "threshold_ms": PERFORMANCE_WARNING_THRESHOLD_MS,
                     "user_id": self.user_id,
-                    "request_id": self.request_id
-                }
+                    "request_id": self.request_id,
+                },
             )
 
 
@@ -436,18 +467,16 @@ class PerformanceTimer:
 def log_dataset_operation(
     operation: str,
     dataset_id: str,
-    user_id: str | None = None,
-    request_id: str | None = None,
     status: str = "success",
-    details: dict[str, Any] | None = None
+    details: dict[str, Any] | None = None,
+    **kwargs: Any,
 ) -> None:
     """Log dataset-related operations."""
     log_operation(
         operation=f"dataset_{operation}",
-        user_id=user_id,
-        request_id=request_id,
         status=status,
-        details={"dataset_id": dataset_id, **(details or {})}
+        details={"dataset_id": dataset_id, **(details or {})},
+        **kwargs,
     )
 
 
@@ -455,10 +484,9 @@ def log_pipeline_operation(
     operation: str,
     pipeline_id: str,
     stage: str | None = None,
-    user_id: str | None = None,
-    request_id: str | None = None,
     status: str = "success",
-    details: dict[str, Any] | None = None
+    details: dict[str, Any] | None = None,
+    **kwargs: Any,
 ) -> None:
     """Log pipeline-related operations."""
     pipeline_details = {"pipeline_id": pipeline_id}
@@ -467,10 +495,9 @@ def log_pipeline_operation(
 
     log_operation(
         operation=f"pipeline_{operation}",
-        user_id=user_id,
-        request_id=request_id,
         status=status,
-        details={**pipeline_details, **(details or {})}
+        details={**pipeline_details, **(details or {})},
+        **kwargs,
     )
 
 
@@ -478,22 +505,15 @@ def log_bias_detection(
     bias_score: float,
     threshold: float,
     passed: bool,
-    user_id: str | None = None,
-    request_id: str | None = None,
-    details: dict[str, Any] | None = None
+    details: dict[str, Any] | None = None,
+    **kwargs: Any,
 ) -> None:
     """Log bias detection results."""
     log_operation(
         operation="bias_detection",
-        user_id=user_id,
-        request_id=request_id,
         status="success" if passed else "failed",
-        details={
-            "bias_score": bias_score,
-            "threshold": threshold,
-            "passed": passed,
-            **(details or {})
-        }
+        details={"bias_score": bias_score, "threshold": threshold, "passed": passed, **(details or {})},
+        **kwargs,
     )
 
 
@@ -501,21 +521,14 @@ def log_file_upload(
     filename: str,
     file_size: int,
     file_type: str,
-    user_id: str | None = None,
-    request_id: str | None = None,
     status: str = "success",
-    details: dict[str, Any] | None = None
+    details: dict[str, Any] | None = None,
+    **kwargs: Any,
 ) -> None:
     """Log file upload operations."""
     log_operation(
         operation="file_upload",
-        user_id=user_id,
-        request_id=request_id,
         status=status,
-        details={
-            "filename": filename,
-            "file_size_bytes": file_size,
-            "file_type": file_type,
-            **(details or {})
-        }
+        details={"filename": filename, "file_size_bytes": file_size, "file_type": file_type, **(details or {})},
+        **kwargs,
     )

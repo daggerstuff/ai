@@ -22,13 +22,12 @@ def check_database():
         return
 
     try:
-        _extracted_from_check_database_(db_path, logger)
+        log_conversations_summary(db_path, logger)
     except Exception as e:
         logger.error(f"❌ Error checking database: {e}")
 
 
-# TODO Rename this here and in `check_database`
-def _extracted_from_check_database_(db_path, logger):
+def log_conversations_summary(db_path, logger):
     conn, cursor = get_db_connection(db_path)
 
     # Get table schema

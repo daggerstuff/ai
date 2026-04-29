@@ -6,7 +6,7 @@ rate limiting, and comprehensive security measures for HIPAA++ compliance.
 """
 import uuid
 from collections.abc import Callable
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from functools import wraps
 from typing import Any
 
@@ -15,7 +15,7 @@ from flask import current_app, g
 from werkzeug.exceptions import Forbidden, Unauthorized
 from werkzeug.wrappers import Request
 
-from ..utils.logger import get_logger
+from ai.api.techdeck_integration.utils.logger import get_logger
 
 
 class JWTAuthMiddleware:
@@ -131,7 +131,7 @@ class JWTAuthMiddleware:
             Dictionary with validation result and user data
         """
         try:
-            return self._extracted_from__validate_jwt_token_13(request)
+            return self._extract_and_decode_token(request)
         except jwt.ExpiredSignatureError:
             return {"valid": False, "error": "JWT token has expired"}
         except jwt.InvalidTokenError as e:
@@ -140,8 +140,8 @@ class JWTAuthMiddleware:
             self.logger.error(f"JWT validation error: {e}")
             return {"valid": False, "error": "Token validation failed"}
 
-    # TODO Rename this here and in `_validate_jwt_token`
-    def _extracted_from__validate_jwt_token_13(self, request):
+    def _extract_and_decode_token(self, request: Request) -> dict[str, Any]:
+        # Extract and validate token
         # Extract token
         token = self._extract_token(request)
         if not token:
@@ -170,8 +170,8 @@ class JWTAuthMiddleware:
             "role": payload.get("role", "user"),
             "permissions": payload.get("permissions", []),
             "session_id": payload.get("session_id"),
-            "issued_at": datetime.fromtimestamp(payload.get("iat", 0)),
-            "expires_at": datetime.fromtimestamp(payload.get("exp", 0)),
+            "issued_at": datetime.fromtimestamp(payload.get("iat", 0), tz=UTC),
+            "expires_at": datetime.fromtimestamp(payload.get("exp", 0), tz=UTC),
         }
 
         # Validate user exists and is active
@@ -200,13 +200,13 @@ class JWTAuthMiddleware:
 
         # Check token expiration
         exp_timestamp = payload.get("exp", 0)
-        if datetime.now(timezone.utc).timestamp() > exp_timestamp:
+        if datetime.now(UTC).timestamp() > exp_timestamp:
             return {"valid": False, "error": "Token has expired"}
 
         # Check token issued time (prevent future tokens)
         iat_timestamp = payload.get("iat", 0)
         if (
-            datetime.now(timezone.utc).timestamp() < iat_timestamp - 60
+            datetime.now(UTC).timestamp() < iat_timestamp - 60
         ):  # 1 minute grace period
             return {"valid": False, "error": "Token issued in the future"}
 
@@ -302,7 +302,7 @@ class JWTAuthMiddleware:
                 "user_id": user_id,
                 "path": path,
                 "request_id": request_id,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "event_type": "auth_success",
             },
         )
@@ -325,7 +325,7 @@ class JWTAuthMiddleware:
             "error": {
                 "code": "AUTHENTICATION_FAILED",
                 "message": error_message,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             },
         }
 
@@ -364,7 +364,7 @@ class JWTAuthMiddleware:
                 "message": "Rate limit exceeded",
                 "retry_after": rate_limit_result.get("retry_after", 60),
                 "limit": rate_limit_result.get("limit", 0),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             },
         }
 
@@ -401,7 +401,7 @@ class JWTAuthMiddleware:
             "error": {
                 "code": "INTERNAL_ERROR",
                 "message": "Internal server error",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             },
         }
 

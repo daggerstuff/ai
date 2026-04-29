@@ -13,6 +13,54 @@ from statistics import mean
 from typing import Any
 
 
+MAX_SECONDARY_EMOTIONS = 2
+PREFERENCE_ORDER = [
+    "Fear",
+    "Sadness",
+    "Anger",
+    "Disgust",
+    "Surprise",
+    "Anticipation",
+    "Joy",
+    "Trust",
+    "Calm",
+    "Neutral",
+]
+
+
+def normalize_secondary_emotions(
+    raw_values: Any, primary_emotion: str | None = None
+) -> list[str]:
+    """Normalize secondary emotion annotations into a deterministic ordered list."""
+    if raw_values is None:
+        return []
+
+    if isinstance(raw_values, str):
+        values = [raw_values]
+    elif isinstance(raw_values, (list, tuple, set)):
+        values = list(raw_values)
+    else:
+        return []
+
+    ordered = []
+    seen = set()
+    for raw in values:
+        if not isinstance(raw, str):
+            continue
+        for part in raw.replace(";", ",").split(","):
+            candidate = part.strip()
+            if not candidate or candidate in seen:
+                continue
+            if primary_emotion and candidate == primary_emotion:
+                continue
+            seen.add(candidate)
+            ordered.append(candidate)
+            if len(ordered) >= MAX_SECONDARY_EMOTIONS:
+                return ordered
+
+    return ordered
+
+
 class ConsensusAgent:
     """
     Consensus agent that resolves disagreements between annotators
@@ -36,6 +84,8 @@ class ConsensusAgent:
             "crisis_label": [],
             "primary_emotion": [],
             "total_tasks": 0,
+            "emotion_tie_breaks": 0,
+            "secondary_emotion": [],
         }
 
     def resolve_crisis_label(self, annotations: list[dict[str, Any]]) -> dict[str, Any]:
@@ -62,30 +112,113 @@ class ConsensusAgent:
         }
 
     def resolve_emotion(self, annotations: list[dict[str, Any]]) -> dict[str, Any]:
-        """Resolve primary emotion using majority voting"""
+        """Resolve primary emotion with explicit tie-break strategy"""
         emotions = [a["primary_emotion"] for a in annotations]
-        intensities = [a["emotion_intensity"] for a in annotations]
-
-        # Majority vote for emotion
         emotion_counts = Counter(emotions)
-        consensus_emotion = emotion_counts.most_common(1)[0][0]
+        max_count = max(emotion_counts.values())
+        top_emotions = [e for e, c in emotion_counts.items() if c == max_count]
+        tie_resolved = False
 
-        # Average intensity for agreed emotion
-        agreed_intensities = [
-            annotations[i]["emotion_intensity"]
-            for i, e in enumerate(emotions)
-            if e == consensus_emotion
-        ]
-        consensus_intensity = (
-            round(mean(agreed_intensities))
-            if agreed_intensities
-            else round(mean(intensities))
-        )
+        if len(top_emotions) == 1:
+            consensus_emotion = top_emotions[0]
+            agreed_intensities = [
+                a.get("emotion_intensity", 0)
+                for a in annotations
+                if a.get("primary_emotion") == consensus_emotion
+            ]
+            consensus_intensity = (
+                round(mean(agreed_intensities)) if agreed_intensities else 0
+            )
+        else:
+            tie_resolved = True
+            preference_order = [
+                "Fear",
+                "Sadness",
+                "Anger",
+                "Disgust",
+                "Surprise",
+                "Anticipation",
+                "Joy",
+                "Trust",
+                "Calm",
+                "Neutral",
+            ]
+            preference_rank = {emotion: index for index, emotion in enumerate(preference_order)}
+            ranked = []
+            for emotion in top_emotions:
+                supporting = [
+                    a for a in annotations if a.get("primary_emotion") == emotion
+                ]
+                confidence_scores = [
+                    float(a.get("confidence_scores", {}).get("emotion", 0.0))
+                    for a in supporting
+                ]
+                confidence = mean(confidence_scores) if confidence_scores else 0.0
+                intensity = mean(a.get("emotion_intensity", 0) for a in supporting)
+                rank = preference_rank.get(emotion, len(preference_order))
+                ranked.append((emotion, confidence, intensity, -rank))
+
+            ranked.sort(key=lambda item: item[1:], reverse=True)
+            consensus_emotion = ranked[0][0]
+            consensus_intensity = round(
+                mean(a.get("emotion_intensity", 0) for a in annotations)
+            )
 
         return {
             "primary_emotion": consensus_emotion,
             "emotion_intensity": consensus_intensity,
+            "emotion_tie_resolved": tie_resolved,
         }
+
+    def resolve_secondary_emotions(
+        self,
+        annotations: list[dict[str, Any]],
+        primary_emotion: str,
+    ) -> list[str]:
+        """Resolve secondary emotions from supporting annotations."""
+        counts = Counter()
+        for annotation in annotations:
+            for emotion in normalize_secondary_emotions(
+                raw_values=annotation.get("secondary_emotions"),
+                primary_emotion=primary_emotion,
+            ):
+                counts[emotion] += 1
+
+        if not counts:
+            return []
+
+        preference_rank = {emotion: index for index, emotion in enumerate(PREFERENCE_ORDER)}
+        scored: list[tuple[str, tuple[int, float, float, int]]] = []
+        for emotion, count in counts.items():
+            if emotion == primary_emotion:
+                continue
+            supporting = [
+                ann
+                for ann in annotations
+                if emotion in normalize_secondary_emotions(
+                    ann.get("secondary_emotions"), primary_emotion=primary_emotion
+                )
+            ]
+            confidence_scores = [
+                float(ann.get("confidence_scores", {}).get("emotion", 0.0))
+                for ann in supporting
+            ]
+            confidence = (
+                sum(confidence_scores) / len(confidence_scores)
+                if confidence_scores
+                else 0.0
+            )
+            intensity = (
+                sum(float(ann.get("emotion_intensity", 0)) for ann in supporting)
+                / len(supporting)
+                if supporting
+                else 0.0
+            )
+            rank = preference_rank.get(emotion, len(PREFERENCE_ORDER))
+            scored.append((emotion, (count, confidence, intensity, -rank)))
+
+        scored.sort(key=lambda item: item[1], reverse=True)
+        return [emotion for emotion, _ in scored[:MAX_SECONDARY_EMOTIONS]]
 
     def resolve_valence_arousal(
         self, annotations: list[dict[str, Any]]
@@ -146,25 +279,49 @@ class ConsensusAgent:
 
         crisis_agreement = len(set(crisis_labels)) == 1
         emotion_agreement = len(set(emotions)) == 1
+        emotion_result = self.resolve_emotion(annotations)
+        secondary_emotions = self.resolve_secondary_emotions(
+            annotations=annotations,
+            primary_emotion=emotion_result["primary_emotion"],
+        )
+        secondary_overlap = any(
+            set(secondary_emotions)
+            & set(
+                normalize_secondary_emotions(
+                    annotation.get("secondary_emotions"),
+                    primary_emotion=emotion_result["primary_emotion"],
+                )
+            )
+            for annotation in annotations
+        )
 
         self.agreement_stats["crisis_label"].append(crisis_agreement)
         self.agreement_stats["primary_emotion"].append(emotion_agreement)
+        self.agreement_stats["secondary_emotion"].append(secondary_overlap)
         self.agreement_stats["total_tasks"] += 1
+        if emotion_result.get("emotion_tie_resolved"):
+            self.agreement_stats["emotion_tie_breaks"] += 1
 
         # Resolve each component
         crisis_result = self.resolve_crisis_label(annotations)
-        emotion_result = self.resolve_emotion(annotations)
         valence_arousal = self.resolve_valence_arousal(annotations)
         empathy_safety = self.resolve_empathy_safety(annotations)
 
         # Create consensus annotation
         consensus = {
             **crisis_result,
-            **emotion_result,
+            **{k: v for k, v in emotion_result.items() if k != "emotion_tie_resolved"},
+            "secondary_emotions": secondary_emotions,
             **valence_arousal,
             **empathy_safety,
             "notes": self.merge_notes(annotations, annotator_ids),
         }
+
+        if emotion_result.get("emotion_tie_resolved"):
+            consensus["notes"] = (
+                f"{consensus['notes']} "
+                "| Emotion tie resolved via confidence/intensity tie-break"
+            )
 
         self.consensus_count += 1
 
@@ -178,6 +335,8 @@ class ConsensusAgent:
                 "annotators": annotator_ids,
                 "crisis_agreement": crisis_agreement,
                 "emotion_agreement": emotion_agreement,
+                "secondary_emotions": secondary_emotions,
+                "emotion_tie_resolved": emotion_result.get("emotion_tie_resolved", False),
             },
         }
 
@@ -194,11 +353,19 @@ class ConsensusAgent:
             sum(self.agreement_stats["primary_emotion"])
             / self.agreement_stats["total_tasks"]
         )
+        secondary_emotion_agreement_rate = (
+            sum(self.agreement_stats["secondary_emotion"])
+            / self.agreement_stats["total_tasks"]
+        )
 
         return {
             "total_consensus_annotations": self.consensus_count,
+            "emotion_tie_breaks": self.agreement_stats["emotion_tie_breaks"],
             "crisis_agreement_rate": round(crisis_agreement_rate, 3),
             "emotion_agreement_rate": round(emotion_agreement_rate, 3),
+            "secondary_emotion_agreement_rate": round(
+                secondary_emotion_agreement_rate, 3
+            ),
             "overall_agreement_rate": round(
                 (crisis_agreement_rate + emotion_agreement_rate) / 2, 3
             ),

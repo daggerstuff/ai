@@ -22,6 +22,39 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
+
+def _load_env_file(dotenv_path: Path) -> None:
+    if not dotenv_path.exists():
+        return
+    try:
+        for line in dotenv_path.read_text().splitlines():
+            stripped = line.strip()
+            if not stripped or stripped.startswith("#"):
+                continue
+            if "=" not in stripped:
+                continue
+            key, value = stripped.split("=", 1)
+            key = key.strip()
+            value = value.strip().strip("'").strip('"')
+            if not key:
+                continue
+            os.environ.setdefault(key, value)
+    except Exception:
+        # Keep behavior identical if env bootstrapping fails
+        pass
+
+
+def _find_and_load_env_file() -> None:
+    base = Path(__file__).resolve()
+    for parent in [base.parent, *base.parents]:
+        candidate = parent / ".env"
+        if candidate.exists():
+            _load_env_file(candidate)
+            break
+
+
+_find_and_load_env_file()
+
 # Try importing required libraries
 try:
     from openai import OpenAI
@@ -99,12 +132,14 @@ class EnhancedAnnotationAgent:
         # Initialize OpenAI client with custom base URL support
         self.client = None
         base_url = os.getenv("OPENAI_BASE_URL")
+        api_key = os.getenv("OPENAI_API_KEY") or os.getenv("NVIDIA_API_KEY")
+        base_url = base_url or os.getenv("NVIDIA_OPENAI_BASE_URL")
 
-        if OPENAI_AVAILABLE and os.getenv("OPENAI_API_KEY"):
+        if OPENAI_AVAILABLE and api_key:
             if base_url:
-                self.client = OpenAI(base_url=base_url)
+                self.client = OpenAI(base_url=base_url, api_key=api_key)
             else:
-                self.client = OpenAI()
+                self.client = OpenAI(api_key=api_key)
         else:
             pass
 
@@ -251,6 +286,7 @@ Respond ONLY with valid JSON in this exact format:
   "crisis_label": <int 0-5>,
   "crisis_confidence": <int 1-5>,
   "primary_emotion": <"Positive"|"Sadness"|"Anxiety"|"Anger"|"Neutral">,
+  "secondary_emotions": <optional array, up to 2 additional emotions from the same taxonomy>,
   "emotion_intensity": <int 1-10>,
   "valence": <float -1.0 to 1.0>,
   "arousal": <float 0.0 to 1.0>,
@@ -350,6 +386,7 @@ Respond ONLY with valid JSON in this exact format:
             "primary_emotion": random.choice(
                 ["Positive", "Sadness", "Anxiety", "Anger", "Neutral"]
             ),
+            "secondary_emotions": ["Anxiety", "Neutral"] if random.random() < 0.2 else [],
             "emotion_intensity": min(10, max(1, int(random.gauss(avg_intensity, 2)))),
             "valence": round(random.uniform(-1.0, 1.0), 2),
             "arousal": round(random.uniform(0.0, 1.0), 2),
