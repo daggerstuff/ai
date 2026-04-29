@@ -15,3 +15,30 @@ Language: en
 """
     result = SubtitleProcessor.clean_vtt(vtt_content)
     assert result == "Hello Hello world"
+
+
+def test_format_as_markdown_success():
+    text = "Hello there. How are you? I am fine."
+    metadata = {
+        "title": "Test Title",
+        "channel": "Test Channel",
+        "url": "http://test",
+        "date": "2023-01-01"
+    }
+    result = SubtitleProcessor.format_as_markdown(text, metadata)
+    assert "# Test Title" in result
+    assert "**Channel:** Test Channel" in result
+    assert "**Source:** http://test" in result
+    assert "**Date:** 2023-01-01" in result
+    assert "Hello there. How are you? I am fine." in result
+
+
+def test_format_as_markdown_missing_metadata():
+    text = "Hello there. How are you? I am fine."
+    metadata = {}
+    result = SubtitleProcessor.format_as_markdown(text, metadata)
+    assert "# Unknown Title" in result
+    assert "**Channel:** Unknown Channel" in result
+    assert "**Source:** \n" in result
+    assert "**Date:** \n" in result
+    assert "Hello there. How are you? I am fine." in result
