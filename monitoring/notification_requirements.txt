@@ -2,7 +2,7 @@
 # Install with: pip install -r notification_requirements.txt
 
 # Core async HTTP client for API calls
-aiohttp>=3.8.0
+aiohttp>=3.13.5
 
 # Email handling (built-in to Python, but listing for clarity)
 # smtplib - built-in
