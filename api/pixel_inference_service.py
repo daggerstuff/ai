@@ -31,10 +31,9 @@ from pydantic import BaseModel, Field
 # Add parent directories to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from ai.api.sentry_logging import initialize_sentry_logging
-
-
 from pixel.models.pixel_base_model import PixelBaseModel
+
+from ai.api.sentry_logging import initialize_sentry_logging
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -649,19 +648,21 @@ async def infer(request: PixelInferenceRequest, _background_tasks: BackgroundTas
 @app.post("/batch-infer")
 async def batch_infer(requests: list[PixelInferenceRequest]):
     """Batch inference for multiple queries"""
+    # ⚡ Bolt: Use asyncio.gather to concurrently process multiple requests
+    # in the batch, preventing blocking sequential iteration and improving throughput.
     if not inference_engine.model_loaded:
         raise HTTPException(status_code=503, detail="Model not loaded")
 
-    responses = []
-    for req in requests:
+    async def _process_single(req: PixelInferenceRequest):
         try:
-            response = await inference_engine.generate_response(req)
-            responses.append(response)
+            return await inference_engine.generate_response(req)
         except Exception as e:
             logger.error(f"Batch inference error: {e}")
-            responses.append({"error": str(e)})
+            return {"error": str(e)}
 
-    return {"results": responses}
+    responses = await asyncio.gather(*[_process_single(req) for req in requests])
+
+    return {"results": list(responses)}
 
 
 @app.post("/reload-model")
