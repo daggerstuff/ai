@@ -9,6 +9,7 @@ import os
 import signal
 import sys
 
+from ai.api.sentry_logging import initialize_sentry_logging
 from .app import create_app
 from .config import get_config
 from .utils.logger import get_logger, setup_logging
@@ -77,6 +78,9 @@ def main(host: str | None = None, port: int | None = None, debug: bool | None = 
         port: Port to bind to (overrides config)
         debug: Debug mode (overrides config)
     """
+    # Setup Sentry logging prior to starting request handlers.
+    initialize_sentry_logging(service_name="techdeck-integration")
+
     # Setup logging first
     logger = get_logger(__name__)
 

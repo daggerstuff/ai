@@ -750,17 +750,18 @@ ORDER BY step.step_number;
 
 ### Phase 2 (Week 3-4): DAL & Repositories
 
-- [ ] Create MongoDB data access layer
-- [ ] Create PostgreSQL ORM/query builders
-- [ ] Implement caching layer
-- [ ] Set up migration system
+- [x] Create MongoDB data access layer — `dal/mongo_base_repository.py`
+- [x] Create PostgreSQL ORM/query builders — `dal/postgres_repository.py`
+- [x] Implement caching layer — `dal/cached_repository.py`
+- [x] Set up migration system — `dal/migration_runner.py`
 
 ### Phase 3 (Week 5-6): APIs & Services
 
-- [ ] REST API endpoints for documents
-- [ ] Project management APIs
-- [ ] Workflow & approval APIs
-- [ ] Search and filtering services
+- [x] REST API endpoints for documents — `api/cms/routes/documents.py`
+- [x] Project management APIs — `api/cms/routes/projects.py`, `api/cms/routes/strategies.py`,
+  `api/cms/routes/sales.py`, `api/cms/routes/knowledge.py`
+- [x] Workflow & approval APIs — `api/cms/routes/workflows.py`
+- [x] Search and filtering services — `api/cms/services/search_service.py`, global search endpoint in `api/cms/app.py`
 
 ### Phase 4 (Week 7-8): Testing & Optimization
 
