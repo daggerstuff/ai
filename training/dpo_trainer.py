@@ -1,0 +1,276 @@
+#!/usr/bin/env python3
+"""DPO trainer for therapeutic AI preference alignment.
+
+Loads preference pairs, applies safety filtering, builds QLoRA + LoRA config,
+and runs DPOTrainer with checkpoint verification. Saves final adapter + metrics.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import logging
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
+
+try:
+    from .shared_config import (
+        add_lora_args,
+        build_lora_config,
+        log_token_length_distribution,
+        shared_qlora_config,
+    )
+    from .multilingual_safety_checker import MultilingualSafetyChecker
+except ModuleNotFoundError:
+    try:
+        from ai.training.shared_config import (
+            add_lora_args,
+            build_lora_config,
+            log_token_length_distribution,
+            shared_qlora_config,
+        )
+        from ai.training.multilingual_safety_checker import MultilingualSafetyChecker
+    except ModuleNotFoundError:
+        from shared_config import (
+            add_lora_args,
+            build_lora_config,
+            log_token_length_distribution,
+            shared_qlora_config,
+        )
+        from multilingual_safety_checker import MultilingualSafetyChecker
+
+logger = logging.getLogger("dpo_trainer")
+
+MIN_SAMPLES = 20
+
+
+def load_preference_dataset(
+    data_path: Path,
+    safety_checker: type,
+    max_seq_length: int,
+    logger_instance: logging.Logger,
+) -> list[dict[str, str]]:
+    """Load JSONL preference pairs, apply safety filter, validate minimum count.
+
+    Each line must have ``prompt``, ``chosen``, ``rejected`` fields.
+    Unsafe chosen or rejected responses are removed and logged at DEBUG.
+
+    Raises ValueError if fewer than MIN_SAMPLES remain after filtering.
+    """
+    if not data_path.exists():
+        raise FileNotFoundError(f"Data path not found: {data_path}")
+
+    pairs: list[dict[str, str]] = []
+    skipped = 0
+
+    with open(data_path, encoding="utf-8") as f:
+        for line_no, line in enumerate(f, 1):
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError:
+                logger_instance.warning("Invalid JSON at line %d", line_no)
+                continue
+
+            prompt = record.get("prompt", "")
+            chosen = record.get("chosen", "")
+            rejected = record.get("rejected", "")
+
+            if not all([prompt, chosen, rejected]):
+                logger_instance.warning("Missing fields at line %d", line_no)
+                continue
+
+            if safety_checker.is_unsafe(chosen):
+                logger_instance.debug("Skipped unsafe chosen at line %d", line_no)
+                skipped += 1
+                continue
+
+            if safety_checker.is_unsafe(rejected):
+                logger_instance.debug("Skipped unsafe rejected at line %d", line_no)
+                skipped += 1
+                continue
+
+            pairs.append({"prompt": prompt, "chosen": chosen, "rejected": rejected})
+
+    if pairs:
+        chosen_lengths = [len(p["chosen"].split()) for p in pairs]
+        rejected_lengths = [len(p["rejected"].split()) for p in pairs]
+        log_token_length_distribution(
+            chosen_lengths, max_seq_length, logger_instance, "dpo_chosen",
+        )
+        log_token_length_distribution(
+            rejected_lengths, max_seq_length, logger_instance, "dpo_rejected",
+        )
+
+    logger_instance.info(
+        "Loaded %d preference pairs (%d skipped as unsafe)", len(pairs), skipped,
+    )
+
+    if len(pairs) < MIN_SAMPLES:
+        raise ValueError(
+            f"Only {len(pairs)} samples after filtering (minimum {MIN_SAMPLES}). "
+            f"Cannot proceed with DPO training."
+        )
+
+    return pairs
+
+
+class CheckpointVerificationCallback:
+    """Verifies that adapter files exist after saving."""
+
+    REQUIRED_FILES = ("adapter_config.json", "adapter_model.safetensors")
+
+    def verify(self, output_dir: Path) -> dict[str, bool]:
+        results: dict[str, bool] = {}
+        for fname in self.REQUIRED_FILES:
+            results[fname] = (output_dir / fname).exists()
+        return results
+
+
+def save_metrics(
+    output_dir: Path,
+    metrics: dict[str, Any],
+    beta: float,
+) -> None:
+    """Save training metrics JSON to output directory."""
+    output_dir.mkdir(parents=True, exist_ok=True)
+    report = {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "beta": beta,
+        "metrics": metrics,
+    }
+    metrics_path = output_dir / "dpo_metrics.json"
+    with open(metrics_path, "w", encoding="utf-8") as f:
+        json.dump(report, f, indent=2)
+        f.write("\n")
+    logger.info("Metrics saved to %s", metrics_path)
+
+
+def run_dpo(args: argparse.Namespace) -> None:
+    from datasets import Dataset
+    from peft import prepare_model_for_kbit_training
+    from transformers import AutoModelForCausalLM, AutoTokenizer
+
+    try:
+        from trl import DPOTrainer, DPOConfig
+    except ImportError:
+        from trl import DPOTrainer
+        DPOConfig = None
+
+    data_path = Path(args.data_path)
+    output_dir = Path(args.output_dir)
+    max_seq_length = args.max_seq_length
+
+    pairs = load_preference_dataset(
+        data_path, MultilingualSafetyChecker, max_seq_length, logger,
+    )
+
+    logger.info("Loading model from %s", args.base_model_checkpoint)
+    bnb_config = shared_qlora_config()
+    model = AutoModelForCausalLM.from_pretrained(
+        args.base_model_checkpoint,
+        quantization_config=bnb_config,
+        device_map="auto",
+    )
+    model = prepare_model_for_kbit_training(model)
+    tokenizer = AutoTokenizer.from_pretrained(args.base_model_checkpoint)
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+
+    lora_config = build_lora_config(args)
+    logger.info(
+        "LoRA config: r=%d, alpha=%d, targets=%s",
+        lora_config.r, lora_config.lora_alpha, lora_config.target_modules,
+    )
+
+    dataset = Dataset.from_list(pairs)
+
+    callback = CheckpointVerificationCallback()
+
+    if DPOConfig is not None:
+        training_args = DPOConfig(
+            output_dir=str(output_dir),
+            per_device_train_batch_size=args.batch_size,
+            learning_rate=args.learning_rate,
+            num_train_epochs=args.epochs,
+            max_length=max_seq_length,
+            beta=args.beta,
+            logging_steps=args.logging_steps,
+            save_strategy="epoch",
+            remove_unused_columns=False,
+        )
+        trainer = DPOTrainer(
+            model=model,
+            ref_model=None,
+            args=training_args,
+            train_dataset=dataset,
+            processing_class=tokenizer,
+            peft_config=lora_config,
+        )
+    else:
+        training_args = None
+        trainer = DPOTrainer(
+            model=model,
+            ref_model=None,
+            train_dataset=dataset,
+            tokenizer=tokenizer,
+            peft_config=lora_config,
+            beta=args.beta,
+            max_length=max_seq_length,
+            per_device_train_batch_size=args.batch_size,
+            learning_rate=args.learning_rate,
+            num_train_epochs=args.epochs,
+            logging_steps=args.logging_steps,
+            save_strategy="epoch",
+            output_dir=str(output_dir),
+            remove_unused_columns=False,
+        )
+
+    train_result = trainer.train()
+
+    final_dir = output_dir / "final_model"
+    trainer.save_model(str(final_dir))
+    tokenizer.save_pretrained(str(final_dir))
+
+    verification = callback.verify(final_dir)
+    logger.info("Checkpoint verification: %s", verification)
+
+    metrics = {
+        "train_loss": train_result.training_loss,
+        "train_runtime": train_result.metrics.get("train_runtime", 0),
+        "beta": args.beta,
+        "checkpoint_verification": verification,
+    }
+    save_metrics(output_dir, metrics, args.beta)
+    logger.info("DPO training complete. Final model at %s", final_dir)
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description="DPO trainer for preference alignment.",
+    )
+    parser.add_argument("--data_path", type=str, required=True)
+    parser.add_argument("--base_model_checkpoint", type=str, required=True)
+    parser.add_argument("--output_dir", type=str, required=True)
+    parser.add_argument("--beta", type=float, default=0.1)
+    parser.add_argument("--max_seq_length", type=int, default=1024)
+    parser.add_argument("--batch_size", type=int, default=4)
+    parser.add_argument("--learning_rate", type=float, default=5e-5)
+    parser.add_argument("--epochs", type=int, default=1)
+    parser.add_argument("--logging_steps", type=int, default=10)
+    add_lora_args(parser)
+    return parser
+
+
+def main() -> None:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    )
+    parser = build_parser()
+    args = parser.parse_args()
+    run_dpo(args)
+
+
+if __name__ == "__main__":
+    main()

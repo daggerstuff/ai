@@ -155,7 +155,14 @@ codemap.md
 data/
 datasets/
 compiled_dataset/
-training/
+# Training: track source code, ignore data/artifacts
+training/data/
+training/compiled_dataset/
+training/*.jsonl
+training/**/*.jsonl
+training/lightning/
+training/.cache/
+# Do NOT ignore training/*.py or training/tests/ — those are source code
 training_ready/
 training_data/
 training_data_consolidated/
