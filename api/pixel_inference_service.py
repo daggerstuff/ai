@@ -30,11 +30,14 @@ from pydantic import BaseModel, Field
 # Add parent directories to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from ai.api.sentry_logging import initialize_sentry_logging
+
 
 from pixel.models.pixel_base_model import PixelBaseModel
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
+initialize_sentry_logging(service_name="pixel-inference-service")
 
 INFERENCE_LATENCY_WARNING_MS = 200
 EMPATHY_SUPPORT_THRESHOLD = 0.7
