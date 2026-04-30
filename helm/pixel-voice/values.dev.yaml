@@ -16,4 +16,4 @@ postgresql:
 
 redis:
   auth:
-    enabled: false
+    enabled: true
