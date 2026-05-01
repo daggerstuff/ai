@@ -627,14 +627,16 @@ async def batch_infer(requests: list[PixelInferenceRequest]):
     if not inference_engine.model_loaded:
         raise HTTPException(status_code=503, detail="Model not loaded")
 
-    responses = []
-    for req in requests:
+    # ⚡ Bolt: Use asyncio.gather to concurrently process multiple queries in batch inference
+    # This eliminates I/O bottlenecks and significantly improves throughput over sequential processing.
+    async def _process_req(req):
         try:
-            response = await inference_engine.generate_response(req)
-            responses.append(response)
+            return await inference_engine.generate_response(req)
         except Exception as e:
             logger.error(f"Batch inference error: {e}")
-            responses.append({"error": str(e)})
+            return {"error": str(e)}
+
+    responses = list(await asyncio.gather(*[_process_req(req) for req in requests]))
 
     return {"results": responses}
 
