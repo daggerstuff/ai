@@ -1,4 +1,3 @@
-
 from utils.subtitle_processor import SubtitleProcessor
 
 
@@ -19,12 +18,7 @@ Language: en
 
 def test_format_as_markdown_success():
     text = "Hello there. How are you? I am fine."
-    metadata = {
-        "title": "Test Title",
-        "channel": "Test Channel",
-        "url": "http://test",
-        "date": "2023-01-01"
-    }
+    metadata = {"title": "Test Title", "channel": "Test Channel", "url": "http://test", "date": "2023-01-01"}
     result = SubtitleProcessor.format_as_markdown(text, metadata)
     assert "# Test Title" in result
     assert "**Channel:** Test Channel" in result
@@ -44,6 +38,7 @@ def test_format_as_markdown_missing_metadata():
     assert "Hello there. How are you? I am fine." in result
 
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 def test_clean_vtt_removes_duplicates():
 =======
@@ -92,3 +87,14 @@ Hello world
     result = SubtitleProcessor.clean_vtt(vtt_content)
     assert result == "Hello world"
 >>>>>>> ba9dd883 (🧪 QA: Add tests for SubtitleProcessor empty and duplicate lines)
+=======
+def test_clean_vtt_empty_and_whitespace():
+    assert SubtitleProcessor.clean_vtt("") == ""
+    assert SubtitleProcessor.clean_vtt("   \n   \n") == ""
+
+
+def test_clean_vtt_no_header():
+    vtt_content = "00:00:00.000 --> 00:00:02.500\n<c>Just text</c>"
+    result = SubtitleProcessor.clean_vtt(vtt_content)
+    assert result == "Just text"
+>>>>>>> 60b73adc (🧪 QA: Add edge case tests for SubtitleProcessor)
