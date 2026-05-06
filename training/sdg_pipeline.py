@@ -461,17 +461,22 @@ def _run_niche_scenario(
         raise ValueError(f"Unknown niche category: {category}. Available: {available}")
 
     # Add long pause between categories to let rate limit window reset
-    logger.info("Waiting 60 seconds before starting category: %s", category)
-    time.sleep(60)
+    if iteration > 0 and iteration % 20 == 0:
+        logger.info("Pausing 60 seconds after %d samples to reset rate limits", iteration)
+        time.sleep(60)
 
     generated: list[dict] = []
     filtered = 0
     iteration = 0
+    # Add long pause between batches of 20 samples to let rate limit window reset
     while len(generated) < config.target_count and iteration < config.max_iterations:
         iteration += 1
+        if (iteration - 1) > 0 and (iteration - 1) % 20 == 0:
+            logger.info("Pausing 60 seconds after %d samples to reset rate limits", len(generated))
+            time.sleep(60)
         # Add delay between API calls to respect rate limits
         if iteration > 1:
-            time.sleep(15)  # Increased to 15 seconds
+            time.sleep(12)  # 12 seconds between calls
         sample = _generate_niche_sample(
             category,
             category_info,
