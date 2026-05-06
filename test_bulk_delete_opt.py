@@ -1,14 +1,17 @@
 import asyncio
-import time
-import uuid
 import logging
-from infrastructure.database.persistence import DatabaseManager, PersistenceConfig, DatabaseType
+import time
+from datetime import UTC
+
+from infrastructure.database.persistence import DatabaseManager, DatabaseType, PersistenceConfig
+
 
 async def setup_db():
     config = PersistenceConfig(database_type=DatabaseType.SQLITE, database_path=":memory:")
     db = DatabaseManager(config)
     db.initialize()
     return db
+
 
 async def run_benchmark(db, num_records, is_soft=True):
     print(f"Benchmarking with {num_records} records, soft_delete={is_soft}")
@@ -41,7 +44,7 @@ async def run_benchmark(db, num_records, is_soft=True):
     # Chunking
     chunk_size = 900
     for i in range(0, len(ids_new), chunk_size):
-        chunk = ids_new[i:i + chunk_size]
+        chunk = ids_new[i : i + chunk_size]
         found_ids = None
 
         try:
@@ -59,8 +62,9 @@ async def run_benchmark(db, num_records, is_soft=True):
 
             if found_ids:
                 if is_soft:
-                    from datetime import datetime, timezone
-                    timestamp = datetime.now(timezone.utc).isoformat()
+                    from datetime import datetime
+
+                    timestamp = datetime.now(UTC).isoformat()
                     # Only update the found ones
                     found_placeholders = ",".join("?" for _ in found_ids)
                     update_sql = f"UPDATE conversations SET deleted_at = ?, updated_at = ? WHERE conversation_id IN ({found_placeholders})"
@@ -83,6 +87,7 @@ async def run_benchmark(db, num_records, is_soft=True):
     print(f"Optimized Time taken: {end - start:.4f}s")
     print(f"Result: {success_count} success, {failed_count} failed")
 
+
 async def main():
     logging.getLogger("infrastructure.database.persistence").setLevel(logging.WARNING)
     db = await setup_db()
@@ -90,6 +95,7 @@ async def main():
     await run_benchmark(db, 100, is_soft=True)
     await run_benchmark(db, 1000, is_soft=True)
     await run_benchmark(db, 1000, is_soft=False)
+
 
 if __name__ == "__main__":
     asyncio.run(main())
