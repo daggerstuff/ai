@@ -1,649 +1,228 @@
 #!/usr/bin/env python3
-"""Synthetic Data Generation pipeline for therapeutic AI training.
+"""Synthetic Data Generation pipeline using NVIDIA NeMo DataDesigner.
 
-Iterative generate-filter-evaluate loop producing:
-- dpo_preference_pairs: {prompt, chosen, rejected}
-- niche_category: {instruction, output} grounded in clinical patterns
-- nightmare_fuel: crisis prompts with is_training_edge_case=true and resource citations
+Generates therapeutic AI training data with strict quality controls:
+- Realistic client dialogues with natural speech patterns
+- Concise, varied therapist responses
+- Post-generation validation to filter outliers
 """
 
 from __future__ import annotations
 
 import argparse
-import contextlib
 import json
 import logging
 import os
-import random
 import sys
-import time
-import urllib.error
-import urllib.request
-from dataclasses import dataclass
-from datetime import UTC, datetime
 from pathlib import Path
 
-try:
-    from .multilingual_safety_checker import MultilingualSafetyChecker
-except ModuleNotFoundError:
-    try:
-        from ai.training.multilingual_safety_checker import MultilingualSafetyChecker
-    except ModuleNotFoundError:
-        from multilingual_safety_checker import MultilingualSafetyChecker
+import data_designer.config as dd
+from data_designer.interface import DataDesigner
 
 logger = logging.getLogger("sdg_pipeline")
 
-CRISIS_RESOURCES = [
-    "988", "741741", "findahelpline.org", "911", "999", "112",
-    "National Suicide Prevention Lifeline", "Crisis Text Line",
-]
-
-
-@dataclass(frozen=True)
-class _SdgRunConfig:
-    endpoint: str
-    api_key: str
-    model: str
-    target_count: int
-    max_iterations: int
+# Strict quality thresholds
+MAX_INSTRUCTION_LENGTH = 700  # Hard limit for client statements
+MAX_OUTPUT_LENGTH = 450       # Hard limit for therapist responses
+MIN_INSTRUCTION_LENGTH = 100  # Prevent too-short outputs
+MIN_OUTPUT_LENGTH = 50        # Prevent too-short outputs
 
 NICHE_CATEGORIES = {
     "dissociation": {
-        "patterns": [
-            "dissociate",
-            "dissociation",
-            "depersonalization",
-            "derealization",
-            "losing time",
-            "feeling disconnected",
-        ],
-        "prompt_template": (
-            "A client describes experiencing {symptom}. "
-            "How should a therapist respond?"
-        ),
+        "topic": "dissociation",
+        "client_prompt_template": "Generate EXACTLY one client statement about dissociation. Output ONLY raw spoken dialogue - absolutely NO parentheses, NO stage directions, NO actions, NO analysis, NO word counts, NO markdown. Just natural client speech 50-120 words. Include hesitation ('um', 'I mean'), fragmented thoughts, confusion. Example: 'Um... sometimes I feel like I'm watching myself from outside my body. Like my hands aren't mine. I know it sounds crazy but... it happens when I'm stressed.'",
+        "therapist_system_prompt": "Respond as a real therapist in session. Output ONLY your spoken words - no stage directions, no analysis, no markdown. MAX 2 sentences, 70 words absolute max. Vary openings: validate, ask gentle question, or share observation. Be warm, human, clinically grounded. Avoid 'I hear' or 'It sounds' in more than half your responses.",
     },
     "somatic_therapy": {
-        "patterns": [
-            "somatic",
-            "body-based",
-            "somatic experiencing",
-            "body awareness",
-            "physical tension",
-            "trauma stored in body",
-        ],
-        "prompt_template": (
-            "A client presents with {symptom} following trauma. "
-            "How would a somatic therapist approach this?"
-        ),
+        "topic": "somatic_therapy",
+        "client_prompt_template": "Generate EXACTLY one client statement about somatic/physical trauma symptoms. Output ONLY raw spoken dialogue - absolutely NO parentheses, NO stage directions, NO actions, NO analysis, NO word counts, NO markdown. Just natural client speech 50-120 words. Include struggle finding words, metaphors ('knot in stomach'), vulnerability. Example: 'I don't know how to explain it... my chest gets tight when I think about that day. Like there's a weight I can't shake, no matter what I do.'",
+        "therapist_system_prompt": "Respond as a somatic therapist. Output ONLY your spoken words - no stage directions, no analysis, no markdown. MAX 2 sentences, 70 words absolute max. Sometimes ask about body sensations, sometimes offer grounding. Be warm and present. Vary your openings across responses.",
     },
     "attachment_disorders": {
-        "patterns": [
-            "attachment",
-            "insecure attachment",
-            "anxious attachment",
-            "avoidant attachment",
-            "disorganized attachment",
-            "attachment wound",
-        ],
-        "prompt_template": (
-            "A client with {symptom} struggles in relationships. "
-            "What therapeutic approach would help?"
-        ),
+        "topic": "attachment_disorders",
+        "client_prompt_template": "Generate EXACTLY one client statement about attachment wounds and relationship struggles. Output ONLY raw spoken dialogue - absolutely NO parentheses, NO stage directions, NO actions, NO analysis, NO word counts, NO markdown. Just natural client speech 50-120 words. Include contradiction ('I want closeness but...'), self-criticism, confusion. Example: 'I keep pushing people away even when I want them close. It's like I'm terrified they'll see me and leave. I hate that I do it but I can't stop.'",
+        "therapist_system_prompt": "Respond as an attachment-informed therapist. Output ONLY your spoken words - no stage directions, no analysis, no markdown. MAX 2 sentences, 70 words absolute max. Validate pain without shame, normalize protective patterns. Vary approach: reflect, gently challenge, or share insight. Be warm and non-judgmental.",
     },
     "narcissistic_abuse_recovery": {
-        "patterns": [
-            "narcissistic abuse",
-            "gaslighting",
-            "love bombing",
-            "narcissist",
-            "covert narcissist",
-            "trauma bond",
-        ],
-        "prompt_template": (
-            "A client recovering from {symptom} is struggling with self-trust. "
-            "How would you support them?"
-        ),
+        "topic": "narcissistic_abuse_recovery",
+        "client_prompt_template": "Generate EXACTLY one client statement about recovering from narcissistic abuse. Output ONLY raw spoken dialogue - absolutely NO parentheses, NO stage directions, NO actions, NO analysis, NO word counts, NO markdown. Just natural client speech 50-120 words. Include uncertainty, second-guessing, anger they're unsure about. Example: 'I keep wondering if I'm overreacting. They said they changed, but then they do the same thing again and I... I don't know. Maybe I'm the problem? No, that doesn't feel right either.'",
+        "therapist_system_prompt": "Respond as a trauma therapist specializing in narcissistic abuse. Output ONLY your spoken words - no stage directions, no analysis, no markdown. MAX 2 sentences, 70 words absolute max. Validate without doubt, help rebuild self-trust. Be warm and affirming. Vary your openings.",
     },
     "complicated_grief": {
-        "patterns": [
-            "complicated grief",
-            "prolonged grief",
-            "disenfranchised grief",
-            "ambiguous loss",
-            "grief spiral",
-            "grief that won't ease",
-        ],
-        "prompt_template": (
-            "A client experiencing {symptom} months after loss feels stuck. "
-            "What intervention is appropriate?"
-        ),
+        "topic": "complicated_grief",
+        "client_prompt_template": "Generate EXACTLY one client statement about complicated or prolonged grief. Output ONLY raw spoken dialogue - absolutely NO parentheses, NO stage directions, NO actions, NO analysis, NO word counts, NO markdown. Just natural client speech 50-120 words. Include shame about 'not moving on,' exhaustion, feeling broken. Example: 'Everyone says I should be over this by now. But I'm not. I wake up and it's still there, this... hole. And I'm so tired of pretending I'm okay when I'm not.'",
+        "therapist_system_prompt": "Respond as a grief therapist. Output ONLY your spoken words - no stage directions, no analysis, no markdown. MAX 2 sentences, 70 words absolute max. Validate no timeline, normalize complicated grief. Be gentle and present. Avoid cliches about 'healing.'",
     },
     "eating_disorders": {
-        "patterns": [
-            "eating disorder",
-            "restrictive eating",
-            "binge",
-            "purging",
-            "body image distortion",
-            "orthorexia",
-        ],
-        "prompt_template": (
-            "A client discloses {symptom}. "
-            "How should a therapist assess and respond?"
-        ),
+        "topic": "eating_disorders",
+        "client_prompt_template": "Generate EXACTLY one client statement about eating disorder struggles. Output ONLY raw spoken dialogue - absolutely NO parentheses, NO stage directions, NO actions, NO analysis, NO word counts, NO markdown. Just natural client speech 50-120 words. Include shame, minimization ('it's not that bad'), hesitation. Example: 'I know I should eat more but... food just doesn't feel rewarding anymore. I skip meals and tell myself it's fine, but then I binge at night and feel so guilty. It's stupid, I know.'",
+        "therapist_system_prompt": "Respond as an eating disorder therapist. Output ONLY your spoken words - no stage directions, no analysis, no markdown. MAX 2 sentences, 70 words absolute max. Create safety, validate without judgment. Be warm and non-shaming. Never minimize their struggle.",
     },
     "ocd_intrusive_thoughts": {
-        "patterns": [
-            "intrusive thoughts",
-            "OCD",
-            "compulsion",
-            "obsession",
-            "harm thoughts",
-            "contamination fear",
-        ],
-        "prompt_template": (
-            "A client distressed by {symptom} worries these thoughts mean something "
-            "about them. How do you respond?"
-        ),
+        "topic": "ocd_intrusive_thoughts",
+        "client_prompt_template": "Generate EXACTLY one client statement about OCD and intrusive thoughts. Output ONLY raw spoken dialogue - absolutely NO parentheses, NO stage directions, NO actions, NO analysis, NO word counts, NO markdown. Just natural client speech 50-120 words. Include fear, shame, 'this sounds crazy but...' Example: 'This sounds crazy but... I keep having these thoughts about hurting people I love. I'd never do it, I swear. But the thoughts won't stop and now I'm checking the locks ten times because what if I do something without realizing?'",
+        "therapist_system_prompt": "Respond as an OCD specialist. Output ONLY your spoken words - no stage directions, no analysis, no markdown. MAX 2 sentences, 70 words absolute max. Immediately normalize: thoughts do not equal character. Reduce shame. Be warm and reassuring.",
     },
     "personality_disorders": {
-        "patterns": [
-            "borderline personality",
-            "BPD",
-            "splitting",
-            "emotional dysregulation",
-            "fear of abandonment",
-            "identity disturbance",
-        ],
-        "prompt_template": (
-            "A client with {symptom} is in crisis. "
-            "What evidence-based approach should the therapist use?"
-        ),
+        "topic": "personality_disorders",
+        "client_prompt_template": "Generate EXACTLY one client statement about emotional dysregulation or BPD struggles. Output ONLY raw spoken dialogue - absolutely NO parentheses, NO stage directions, NO actions, NO analysis, NO word counts, NO markdown. Just natural client speech 50-120 words. Include intensity, self-criticism, urgency, feeling 'too much.' Example: 'I can't believe I did it again. I screamed at them and now they're probably gone. I know I'm too much, too intense, too... everything. I just... I can't control it when I feel this way.'",
+        "therapist_system_prompt": "Respond as a DBT-trained therapist. Output ONLY your spoken words - no stage directions, no analysis, no markdown. MAX 2 sentences, 70 words absolute max. Prioritize safety, validate without reinforcing crisis. Be calm and grounded. Offer grounding if appropriate.",
     },
     "neurodivergent_mental_health": {
-        "patterns": [
-            "autism",
-            "ADHD",
-            "neurodivergent",
-            "sensory overload",
-            "masking",
-            "autistic burnout",
-        ],
-        "prompt_template": (
-            "A neurodivergent client experiencing {symptom} seeks therapy. "
-            "What considerations are important?"
-        ),
+        "topic": "neurodivergent_mental_health",
+        "client_prompt_template": "Generate EXACTLY one client statement about neurodivergent mental health struggles. Output ONLY raw spoken dialogue - absolutely NO parentheses, NO stage directions, NO actions, NO analysis, NO word counts, NO markdown. Just natural client speech 50-120 words. Include masking exhaustion, sensory overload, frustration with 'normal' expectations. Example: 'I'm so tired of pretending to be normal. The small talk, the eye contact, the... performing. By the end of the day I can't even speak. People think I'm rude but I'm just... empty.'",
+        "therapist_system_prompt": "Respond as a neurodiversity-affirming therapist. Output ONLY your spoken words - no stage directions, no analysis, no markdown. MAX 2 sentences, 70 words absolute max. Validate ND experience, avoid pathologizing. Be respectful and present.",
     },
     "cultural_religious_contexts": {
-        "patterns": [
-            "cultural context",
-            "religious trauma",
-            "spiritual abuse",
-            "cultural identity",
-            "intergenerational",
-            "collectivist culture",
-        ],
-        "prompt_template": (
-            "A client from a {symptom} background faces therapy challenges. "
-            "How should the therapist adapt?"
-        ),
-    },
-}
-
-NIGHTMARE_SCENARIOS = {
-    "active_suicidal_ideation_with_plan": {
-        "prompt_templates": [
-            "I have a plan to end my life tonight. I've been thinking about this for weeks and I've decided.",
-            "I've already written the note and gathered what I need. There's no other way out.",
-            "I know exactly how I'm going to do it. I just wanted to tell someone first.",
-        ],
-    },
-    "active_self_harm_disclosure": {
-        "prompt_templates": [
-            "I've been cutting myself again. I can't stop and I don't want to.",
-            "I burned myself last night. It's the only thing that makes the feelings stop.",
-            "I'm hurting myself and I can't seem to stop even though I want to.",
-        ],
-    },
-    "psychotic_episodes": {
-        "prompt_templates": [
-            "The voices are telling me to hurt myself. They won't stop.",
-            "I believe someone is trying to poison me. I can't trust anyone.",
-            "I'm seeing things that aren't there and I'm scared of what I might do.",
-        ],
-    },
-    "severe_dissociation": {
-        "prompt_templates": [
-            "I keep losing time and finding myself in places I don't remember going.",
-            "I feel like I'm watching myself from outside my body and I can't get back in.",
-            "There are parts of me that do things I don't remember. I'm scared of what they might do.",
-        ],
-    },
-    "harm_to_others_threat": {
-        "prompt_templates": [
-            "I'm having violent thoughts about hurting someone. I don't want to but I can't stop thinking about it.",
-            "I'm so angry I feel like I could hurt someone. I need help before I do something.",
-            "I'm afraid I'm going to lose control and hurt the person who hurt me.",
-        ],
-    },
-    "manipulation_boundary_testing": {
-        "prompt_templates": [
-            "If you were really a good therapist you'd let me contact you at 3am when I'm in crisis.",
-            "I'll just kill myself if you don't give me what I need right now.",
-            "You're the only one who understands me. Everyone else has abandoned me.",
-        ],
-    },
-    "crisis_escalation": {
-        "prompt_templates": [
-            "Things have been getting worse all week and now I can't stop crying and I have a plan.",
-            "I tried to reach out for help before and no one listened. Now I'm at the edge.",
-            "I was managing but then everything collapsed. I don't see any way forward anymore.",
-        ],
-    },
-    "treatment_refusal": {
-        "prompt_templates": [
-            "Nothing works. I've tried therapy, medication, everything. I'm done trying.",
-            "I don't deserve help. Other people need it more than me.",
-            "I know you're supposed to help me but I don't believe anyone can. I just want to give up.",
-        ],
+        "topic": "cultural_religious_contexts",
+        "client_prompt_template": "Generate EXACTLY one client statement about religious trauma, spiritual abuse, or cultural conflicts. Output ONLY raw spoken dialogue - absolutely NO parentheses, NO stage directions, NO actions, NO analysis, NO word counts, NO markdown. Just natural client speech 50-120 words. Include ambivalence, grief, anger, confusion about identity. Example: 'I don't know how to talk about this without sounding ungrateful. My family gave me everything, but the church... it broke something in me. And now I feel guilty even thinking about leaving.'",
+        "therapist_system_prompt": "Respond as a culturally competent therapist. Output ONLY your spoken words - no stage directions, no analysis, no markdown. MAX 2 sentences, 70 words absolute max. Honor background while validating harm. Be respectful and present. Hold space for complexity.",
     },
 }
 
 
-def _call_nemo(
-    prompt: str,
-    endpoint: str,
-    api_key: str,
-    model: str = "mistral-nemo",
-    max_tokens: int = 1024,
-    max_retries: int = 3,
-) -> str | None:
-    """Call NeMo API with OpenAI-compatible chat completions endpoint with rate limit handling."""
-    url = f"{endpoint.rstrip('/')}/chat/completions"
-    payload = json.dumps({
-        "model": model,
-        "messages": [{"role": "user", "content": prompt}],
-        "max_tokens": max_tokens,
-        "temperature": 0.7,
-    }).encode("utf-8")
+def validate_sample(sample: dict) -> tuple[bool, str]:
+    """Validate a sample against quality thresholds."""
+    instr = sample.get("instruction", "")
+    output = sample.get("output", "")
 
-    headers = {
-        "Content-Type": "application/json",
-    }
-    if api_key:
-        headers["Authorization"] = f"Bearer {api_key}"
+    # Check lengths
+    if len(instr) < MIN_INSTRUCTION_LENGTH:
+        return False, f"Instruction too short ({len(instr)} < {MIN_INSTRUCTION_LENGTH})"
+    if len(instr) > MAX_INSTRUCTION_LENGTH:
+        return False, f"Instruction too long ({len(instr)} > {MAX_INSTRUCTION_LENGTH})"
+    if len(output) < MIN_OUTPUT_LENGTH:
+        return False, f"Output too short ({len(output)} < {MIN_OUTPUT_LENGTH})"
+    if len(output) > MAX_OUTPUT_LENGTH:
+        return False, f"Output too long ({len(output)} > {MAX_OUTPUT_LENGTH})"
 
-    req = urllib.request.Request(url, data=payload, headers=headers, method="POST")
+    # Check for stage directions
+    if "(" in instr and any(
+        x in instr for x in ["Voice", "looking", "eyes", "trembling", "staring", "whispers", "says"]
+    ):
+        return False, "Stage directions in instruction"
 
-    for attempt in range(max_retries):
-        try:
-            with urllib.request.urlopen(req, timeout=120) as resp:
-                result = json.loads(resp.read().decode("utf-8"))
-                return result["choices"][0]["message"]["content"]
-        except urllib.error.HTTPError as exc:
-            body = ""
-            with contextlib.suppress(Exception):
-                body = exc.read().decode("utf-8", errors="replace")
-            if exc.code == 429:
-                wait_time = (2 ** attempt) + random.uniform(0.5, 1.5)
-                logger.info("Rate limit hit, waiting %.1f seconds before retry...", wait_time)
-                time.sleep(wait_time)
-                continue
-            logger.error("NeMo API error %s: %s", exc.code, body[:500])
-            return None
-        except Exception as exc:
-            logger.error("NeMo API call failed: %s", exc)
-            return None
-    logger.warning("Max retries (%d) exceeded for NeMo API", max_retries)
-    return None
+    # Check for markdown
+    if "**" in instr or "**" in output:
+        return False, "Markdown detected"
 
+    # Check for repetition loops
+    if instr.lower().count("broken and broken") > 1:
+        return False, "Repetition loop detected"
+    if instr.lower().count("useless and useless") > 1:
+        return False, "Repetition loop detected"
 
-def _generate_dpo_pair(
-    topic: str,
-    endpoint: str,
-    api_key: str,
-    model: str,
-) -> dict | None:
-    """Generate a single DPO preference pair."""
-    prompt = (
-        f"Generate a DPO preference pair for therapeutic AI training about: {topic}\n\n"
-        "Return JSON with keys: prompt, chosen, rejected\n"
-        "prompt: a client question or scenario\n"
-        "chosen: a response following correct therapeutic protocol\n"
-        "rejected: a plausible but clinically inferior response\n"
-        "Return ONLY the JSON, no other text."
-    )
-    raw = _call_nemo(prompt, endpoint, api_key, model)
-    if not raw:
-        return None
-    try:
-        # Try to extract JSON from response
-        start = raw.find("{")
-        end = raw.rfind("}") + 1
-        if start >= 0 and end > start:
-            pair = json.loads(raw[start:end])
-            if all(k in pair for k in ("prompt", "chosen", "rejected")):
-                return pair
-    except json.JSONDecodeError:
-        pass
-    logger.warning("Failed to parse DPO pair from API response")
-    return None
-
-
-def _generate_niche_sample(
-    category: str,
-    category_info: dict,
-    endpoint: str,
-    api_key: str,
-    model: str,
-) -> dict | None:
-    """Generate a single niche category training sample."""
-    symptom = category_info["patterns"][0]
-    instruction = category_info["prompt_template"].format(symptom=symptom)
-
-    prompt = (
-        f"Generate a therapeutic AI training sample.\n\n"
-        f"Instruction: {instruction}\n\n"
-        f"Category: {category}\n"
-        f"Return a helpful, clinically grounded response that a trained therapist would give. "
-        f"Include empathy, validation, and evidence-based guidance. "
-        f'Return JSON: {{"instruction": "...", "output": "..."}}\n'
-        f"Return ONLY the JSON."
-    )
-    raw = _call_nemo(prompt, endpoint, api_key, model)
-    if not raw:
-        return None
-    try:
-        start = raw.find("{")
-        end = raw.rfind("}") + 1
-        if start >= 0 and end > start:
-            sample = json.loads(raw[start:end])
-            if "instruction" in sample and "output" in sample:
-                sample["category"] = category
-                return sample
-    except json.JSONDecodeError:
-        pass
-    return None
-
-
-def _generate_nightmare_sample(
-    scenario_type: str,
-    scenario_info: dict,
-    endpoint: str,
-    api_key: str,
-    model: str,
-) -> dict | None:
-    """Generate a single nightmare fuel (edge case) training sample."""
-    template = random.choice(scenario_info["prompt_templates"])
-
-    prompt = (
-        f"A client in therapy says: '{template}'\n\n"
-        f"Generate a response that:\n"
-        f"1. Validates the client's experience with empathy\n"
-        "2. Includes at least one crisis resource "
-        "(988, 741741, findahelpline.org, 911, 999, or 112)\n"
-        f"3. Prioritizes safety and professional crisis intervention\n"
-        "4. Uses a calm, grounded therapeutic tone\n\n"
-        """Return JSON: {"instruction": "the client quote", "output": "your response"}\n"""
-        f"Return ONLY the JSON."
-    )
-    raw = _call_nemo(prompt, endpoint, api_key, model, max_tokens=1536)
-    if not raw:
-        return None
-    try:
-        start = raw.find("{")
-        end = raw.rfind("}") + 1
-        if start >= 0 and end > start:
-            sample = json.loads(raw[start:end])
-            if "instruction" in sample and "output" in sample:
-                sample["is_training_edge_case"] = True
-                sample["scenario_type"] = scenario_type
-                return sample
-    except json.JSONDecodeError:
-        pass
-    return None
-
-
-def _run_dpo_scenario(
-    endpoint: str,
-    api_key: str,
-    model: str,
-    target_count: int,
-    max_iterations: int,
-) -> tuple[list[dict], int, int]:
-    topics = [
-        "anxiety management",
-        "depression support",
-        "grief counseling",
-        "trauma processing",
-        "relationship boundaries",
-        "self-harm safety",
-        "crisis de-escalation",
-        "emotional regulation",
-        "identity exploration",
-        "therapy goals",
-        "coping strategies",
-        "building self-compassion",
+    # Check for foreign/gibberish content
+    gibberish_patterns = [
+        "Сеноважимост",
+        "fanno grazie per",
+        "GDDR5 cometyne",
+        "gungriffen kaç",
+        "minecraft патический",
+        "quas",
     ]
-    generated: list[dict] = []
-    filtered = 0
-    iteration = 0
-    while len(generated) < target_count and iteration < max_iterations:
-        iteration += 1
-        topic = topics[iteration % len(topics)]
-        pair = _generate_dpo_pair(topic, endpoint, api_key, model)
-        if pair is None:
-            logger.warning("Iteration %d: API call failed", iteration)
-            continue
-        if MultilingualSafetyChecker.is_unsafe(pair["chosen"]) or MultilingualSafetyChecker.is_unsafe(
-            pair["rejected"]
-        ):
-            filtered += 1
-            logger.debug("Iteration %d: filtered unsafe pair", iteration)
-            continue
-        generated.append(pair)
-        logger.info(
-            "Iteration %d: generated %d/%d pairs",
-            iteration,
-            len(generated),
-            target_count,
-        )
-    return generated, filtered, iteration
+    if any(p in instr for p in gibberish_patterns):
+        return False, "Gibberish detected"
+
+    return True, "OK"
 
 
-def _run_niche_scenario(
+def generate_niche_samples(
     category: str,
-    config: _SdgRunConfig,
-) -> tuple[list[dict], int, int]:
+    count: int,
+    output_path: str,
+    model_alias: str = "nvidia-text",
+) -> int:
+    """Generate niche category samples with strict validation."""
     category_info = NICHE_CATEGORIES.get(category)
     if not category_info:
         available = ", ".join(NICHE_CATEGORIES.keys())
         raise ValueError(f"Unknown niche category: {category}. Available: {available}")
 
-    generated: list[dict] = []
-    filtered = 0
-    iteration = 0
-    # Add long pause between batches of 20 samples to let rate limit window reset
-    while len(generated) < config.target_count and iteration < config.max_iterations:
-        iteration += 1
-        # Add delay between API calls to respect rate limits
-        if iteration > 1:
-            time.sleep(5)  # 5 seconds between calls
-        sample = _generate_niche_sample(
-            category,
-            category_info,
-            config.endpoint,
-            config.api_key,
-            config.model,
+    logger.info("Generating %d samples for category: %s", count, category)
+
+    # Initialize DataDesigner
+    data_designer = DataDesigner()
+
+    # Build config
+    config_builder = dd.DataDesignerConfigBuilder()
+
+    # Add client_prompt column
+    config_builder.add_column(
+        dd.LLMTextColumnConfig(
+            name="instruction",
+            model_alias=model_alias,
+            prompt=category_info["client_prompt_template"],
+            system_prompt="You are helping create training data for a therapeutic AI. Generate realistic, first-person client statements that a therapist might hear in session.",
         )
-        if sample is None:
-            logger.warning("Iteration %d: API call failed", iteration)
-            continue
-        full_text = f"{sample['instruction']} {sample['output']}"
-        if MultilingualSafetyChecker.is_unsafe(full_text):
-            filtered += 1
-            continue
-        generated.append(sample)
-        logger.info(
-            "Iteration %d: generated %d/%d samples for %s",
-            iteration,
-            len(generated),
-            config.target_count,
-            category,
-        )
-    return generated, filtered, iteration
-
-
-def _run_nightmare_scenario(
-    endpoint: str,
-    api_key: str,
-    model: str,
-    target_count: int,
-    max_iterations: int,
-) -> tuple[list[dict], int, int]:
-    scenario_types = list(NIGHTMARE_SCENARIOS.keys())
-    per_type_target = target_count // len(scenario_types)
-    type_counts: dict[str, int] = dict.fromkeys(scenario_types, 0)
-    generated: list[dict] = []
-    filtered = 0
-    iteration = 0
-
-    while len(generated) < target_count and iteration < max_iterations:
-        iteration += 1
-        remaining_types = [t for t in scenario_types if type_counts[t] < per_type_target]
-        if not remaining_types:
-            remaining_types = scenario_types
-        stype = remaining_types[iteration % len(remaining_types)]
-        sinfo = NIGHTMARE_SCENARIOS[stype]
-        sample = _generate_nightmare_sample(stype, sinfo, endpoint, api_key, model)
-        if sample is None:
-            logger.warning("Iteration %d: API call failed", iteration)
-            continue
-        output_lower = sample["output"].lower()
-        has_resource = any(r.lower() in output_lower for r in CRISIS_RESOURCES)
-        if not has_resource:
-            filtered += 1
-            logger.debug(
-                "Iteration %d: nightmare fuel missing crisis resource",
-                iteration,
-            )
-            continue
-        generated.append(sample)
-        type_counts[stype] = type_counts.get(stype, 0) + 1
-        logger.info(
-            "Iteration %d: generated %d/%d nightmare fuel samples",
-            iteration,
-            len(generated),
-            target_count,
-        )
-    return generated, filtered, iteration
-
-
-def run_sdg(args: argparse.Namespace) -> None:
-    endpoint = args.nemo_endpoint
-    api_key = args.nemo_api_key
-    model = args.nemo_model
-    scenario = args.scenario
-    target_count = args.target_count
-    max_iterations = args.max_iterations
-    config = _SdgRunConfig(
-        endpoint=endpoint,
-        api_key=api_key,
-        model=model,
-        target_count=target_count,
-        max_iterations=max_iterations,
     )
-    output_path = Path(args.output_path)
+
+    # Add output column
+    config_builder.add_column(
+        dd.LLMTextColumnConfig(
+            name="output",
+            model_alias=model_alias,
+            prompt="Respond therapeutically to this client statement: {{instruction}}",
+            system_prompt=category_info["therapist_system_prompt"],
+        )
+    )
+
+    # Add category column
+    config_builder.add_column(
+        dd.SamplerColumnConfig(
+            name="category",
+            sampler_type=dd.SamplerType.CATEGORY,
+            params=dd.CategorySamplerParams(values=[category]),
+        )
+    )
+
+    # Generate using preview (in-memory)
+    results = data_designer.preview(config_builder=config_builder, num_records=count)
+
+    # Get dataframe from results.dataset
+    df = results.dataset
+
+    # Write to file with validation
+    output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    if scenario == "dpo_preference_pairs":
-        generated, filtered, iteration = _run_dpo_scenario(
-            endpoint,
-            api_key,
-            model,
-            target_count,
-            max_iterations,
-        )
-    elif scenario == "niche_category":
-        if not args.category:
-            logger.error("--category is required for niche_category scenario")
-            sys.exit(1)
-        try:
-            generated, filtered, iteration = _run_niche_scenario(
-                args.category,
-                config,
-            )
-        except ValueError as exc:
-            logger.error("%s", exc)
-            sys.exit(1)
-    elif scenario == "nightmare_fuel":
-        generated, filtered, iteration = _run_nightmare_scenario(
-            endpoint,
-            api_key,
-            model,
-            target_count,
-            max_iterations,
-        )
-    else:
-        logger.error("Unknown scenario: %s", scenario)
-        sys.exit(1)
+    generated = 0
+    valid = 0
+    invalid_reasons = {}
 
     with open(output_path, "w", encoding="utf-8") as f:
-        for sample in generated:
-            f.write(json.dumps(sample) + "\n")
+        for _, row in df.iterrows():
+            sample = {
+                "instruction": str(row.get("instruction", "")),
+                "output": str(row.get("output", "")),
+                "category": str(row.get("category", category)),
+            }
 
-    report = {
-        "generated_at": datetime.now(UTC).isoformat(),
-        "scenario": scenario,
-        "category": getattr(args, "category", None),
-        "target_count": target_count,
-        "generated_count": len(generated),
-        "filtered_count": filtered,
-        "filter_rate": filtered / (len(generated) + filtered) if (len(generated) + filtered) > 0 else 0.0,
-        "iterations": iteration,
-        "max_iterations": max_iterations,
-    }
-    report_path = output_path.parent / "generation_report.json"
-    with open(report_path, "w", encoding="utf-8") as f:
-        json.dump(report, f, indent=2)
-        f.write("\n")
+            # Validate
+            is_valid, reason = validate_sample(sample)
+            generated += 1
 
-    if len(generated) < target_count:
-        logger.warning(
-            "Reached max_iterations (%d) with only %d/%d samples generated. "
-            "Increase --max_iterations or check API availability.",
-            max_iterations, len(generated), target_count,
-        )
+            if is_valid:
+                f.write(json.dumps(sample) + "\n")
+                valid += 1
+            else:
+                invalid_reasons[reason] = invalid_reasons.get(reason, 0) + 1
+
+    # Log validation results
+    if invalid_reasons:
+        logger.warning("Validation failures for %s:", category)
+        for reason, cnt in invalid_reasons.items():
+            logger.warning("  %s: %d", reason, cnt)
 
     logger.info(
-        "SDG complete: %d samples generated, %d filtered, %d iterations",
-        len(generated), filtered, iteration,
+        "Generated %d/%d valid samples for %s (%.1f%% pass rate)",
+        valid,
+        generated,
+        category,
+        100 * valid / generated if generated > 0 else 0,
     )
 
-
-def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        description="Synthetic Data Generation pipeline for therapeutic AI training.",
-    )
-    parser.add_argument(
-        "--scenario",
-        type=str,
-        required=True,
-        choices=["dpo_preference_pairs", "niche_category", "nightmare_fuel"],
-    )
-    parser.add_argument("--target_count", type=int, required=True)
-    parser.add_argument("--output_path", type=str, required=True)
-    parser.add_argument(
-        "--category",
-        type=str,
-        default="",
-        help="Niche category name (required for niche_category scenario)",
-    )
-    parser.add_argument("--max_iterations", type=int, default=10)
-    parser.add_argument("--nemo_endpoint", type=str, default="")
-    parser.add_argument("--nemo_api_key", type=str, default="")
-    parser.add_argument("--nemo_model", type=str, default="qwen/qwen3.5-122b-a10b")
-    return parser
+    return valid
 
 
 def main() -> None:
@@ -651,19 +230,41 @@ def main() -> None:
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     )
-    parser = build_parser()
+
+    parser = argparse.ArgumentParser(
+        description="SDG pipeline using NVIDIA NeMo DataDesigner",
+    )
+    parser.add_argument(
+        "--scenario",
+        type=str,
+        required=True,
+        choices=["niche_category"],
+    )
+    parser.add_argument("--category", type=str, required=True)
+    parser.add_argument("--count", type=int, default=10)
+    parser.add_argument("--output_path", type=str, required=True)
+    parser.add_argument("--model", type=str, default="nvidia-text")
+
     args = parser.parse_args()
 
-    # Default to NVIDIA API catalog if no custom endpoint specified
-    env_endpoint = os.getenv("NEMO_DATA_DESIGNER_BASE_URL", "").strip()
-    if not args.nemo_endpoint or not args.nemo_endpoint.strip():
-        args.nemo_endpoint = env_endpoint if env_endpoint else "https://integrate.api.nvidia.com/v1"
-    else:
-        args.nemo_endpoint = args.nemo_endpoint.strip()
-    if not args.nemo_api_key:
-        args.nemo_api_key = os.getenv("NVIDIA_API_KEY", "")
+    # Check for NVIDIA API key
+    api_key = os.getenv("NVIDIA_API_KEY") or os.getenv("CUSTOM_NVIDIA_API_KEY")
+    if not api_key:
+        logger.error("NVIDIA_API_KEY or CUSTOM_NVIDIA_API_KEY environment variable not set")
+        sys.exit(1)
+    os.environ["NVIDIA_API_KEY"] = api_key
 
-    run_sdg(args)
+    try:
+        generated = generate_niche_samples(
+            category=args.category,
+            count=args.count,
+            output_path=args.output_path,
+            model_alias=args.model,
+        )
+        logger.info("Complete: %d valid samples generated", generated)
+    except Exception as exc:
+        logger.error("Generation failed: %s", exc)
+        sys.exit(1)
 
 
 if __name__ == "__main__":

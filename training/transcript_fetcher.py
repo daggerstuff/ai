@@ -1,378 +1,356 @@
 #!/usr/bin/env python3
-"""YouTube transcript fetcher for therapeutic AI training data.
+"""
+YouTube transcript fetcher using yt-dlp for therapeutic AI training.
 
-Downloads subtitles/transcripts from YouTube video URLs using yt-dlp,
-cleans subtitle formatting, and organizes output into the per-channel
-.txt directory structure that youtube_ingestion.py consumes.
-
-Input:  A file with one YouTube URL per line (deduplicates automatically).
-Output: training/data/transcripts/<channel>/<slug>.txt
+Downloads YouTube transcripts/subtitles and organizes them for the youtube_ingestion.py pipeline.
 """
 
-from __future__ import annotations
-
-import argparse
 import json
-import logging
-import random
+import os
 import re
-import shutil
 import subprocess
 import sys
-import tempfile
-import time
-import uuid
-from datetime import UTC, datetime
 from pathlib import Path
+from typing import Dict, List, Set
+import argparse
+import logging
+from urllib.parse import urlparse, parse_qs
 
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
+    handlers=[logging.StreamHandler(sys.stdout)]
+)
 logger = logging.getLogger("transcript_fetcher")
 
-# Regex patterns for cleaning
-_HTML_TAG_RE = re.compile(r"<(?!/?v\b)[^>]+>")
-_SPEAKER_TAG_RE = re.compile(r"<(/?v\b[^>]*)>")
-_TIMESTAMP_RE = re.compile(r"^\s*\d{1,2}:\d{2}:\d{2}[.,]\d{3}\s*-->\s*\d{1,2}:\d{2}:\d{2}[.,]\d{3}")
-_TIMESTAMP_SHORT_RE = re.compile(r"^\s*\d{1,2}:\d{2}[.,]\d{3}\s*-->\s*\d{1,2}:\d{2}[.,]\d{3}")
-_SEQUENCE_NUM_RE = re.compile(r"^\s*\d+\s*$")
-_BLANK_LINE_RE = re.compile(r"^\s*$")
-_MUSIC_RE = re.compile(r"♪|♫|🎵|🎶|\[music\]|\[Music\]", re.IGNORECASE)
-_BRACKET_RE = re.compile(r"\[.*?\]")
-_VTT_HEADER_RE = re.compile(r"^(WEBVTT|Kind:|Language:|NOTE)", re.IGNORECASE)
+
+def read_youtube_playlists(playlists_file: Path) -> List[str]:
+    """Read YouTube URLs from playlists file and deduplicate."""
+    if not playlists_file.exists():
+        logger.error(f"YouTube playlists file not found: {playlists_file}")
+        return []
+    
+    urls = []
+    with open(playlists_file, 'r', encoding='utf-8') as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith('#'):
+                urls.append(line)
+    
+    # Deduplicate while preserving order
+    seen = set()
+    unique_urls = []
+    for url in urls:
+        if url not in seen:
+            seen.add(url)
+            unique_urls.append(url)
+    
+    logger.info(f"Read {len(urls)} URLs, deduplicated to {len(unique_urls)} unique URLs")
+    return unique_urls
 
 
-def _exec_cmd(cmd: list[str], timeout: int = 60) -> subprocess.CompletedProcess | None:
-    """Centralized subprocess execution with logging and timeout handling."""
+def extract_video_id(url: str) -> str:
+    """Extract video ID from various YouTube URL formats."""
+    # Handle youtu.be format
+    if 'youtu.be/' in url:
+        return url.split('youtu.be/')[1].split('?')[0]
+    
+    # Handle youtube.com/watch format
+    if 'youtube.com/watch' in url:
+        parsed = urlparse(url)
+        query_params = parse_qs(parsed.query)
+        if 'v' in query_params:
+            return query_params['v'][0]
+    
+    # Handle youtube.com/embed format
+    if 'youtube.com/embed/' in url:
+        return url.split('youtube.com/embed/')[1].split('?')[0]
+    
+    # Handle youtube.com/v format
+    if 'youtube.com/v/' in url:
+        return url.split('youtube.com/v/')[1].split('?')[0]
+    
+    # If we can't extract, return the URL itself (will likely fail but let yt-dlp handle it)
+    return url
+
+
+def sanitize_filename(text: str) -> str:
+    """Sanitize text for use as filename."""
+    # Remove or replace problematic characters
+    text = re.sub(r'[<>:\"/\\\\|?*\\x00-\\x1f]', '_', text)
+    # Remove leading/trailing spaces and dots
+    text = text.strip(' .')
+    # Limit length
+    if len(text) > 200:
+        text = text[:200]
+    return text or "unknown"
+
+
+def fetch_transcript(video_id: str, output_path: Path, language_priority: List[str] = None, cookies_from_browser: str | None = None) -> bool:
+    """
+    Fetch transcript for a single video using yt-dlp.
+    
+    Args:
+        video_id: YouTube video ID
+        output_path: Path to save transcript (.txt file)
+        language_priority: List of language codes to try in order
+        cookies_from_browser: Browser to load cookies from (firefox, chrome, etc.)
+    
+    Returns:
+        True if transcript was successfully fetched and saved
+    """
+    if language_priority is None:
+        language_priority = ['en', 'en-US', 'en-GB', 'de', 'de-DE']
+    
+    # Ensure output directory exists
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    # Try each language in priority order
+    for lang in language_priority:
+        try:
+            cmd = [
+                'yt-dlp',
+                '--write-auto-sub',  # Write automatic subtitles
+                '--sub-lang', lang,  # Language
+                '--skip-download',   # Don't download video
+                '--output', str(output_path.with_suffix('')),  # Output template (without extension)
+                # Add headers to appear more like a regular browser
+                '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                '--referer', 'https://www.youtube.com/',
+                '--sleep-interval', '1',  # Sleep between requests to avoid rate limiting
+                '--max-sleep-interval', '5',
+            ]
+            
+            # Add cookies if specified
+            if cookies_from_browser:
+                cmd.extend(['--cookies-from-browser', cookies_from_browser])
+                logger.debug(f"Using cookies from {cookies_from_browser}")
+            
+            cmd.append(f'https://www.youtube.com/watch?v={video_id}')
+            
+            logger.debug(f"Running yt-dlp for video {video_id}, lang {lang}")
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=30  # 30 second timeout per video
+            )
+            
+            # Log stderr for debugging if needed
+            if result.stderr and "WARNING:" in result.stderr:
+                logger.debug(f"yt-dlp warnings for {video_id}: {result.stderr.strip()}")
+            
+            # Check if subtitle file was created
+            subtitle_file = output_path.with_suffix(f'.{lang}.vtt')
+            if subtitle_file.exists():
+                # Convert VTT to plain text
+                vtt_to_txt(subtitle_file, output_path)
+                subtitle_file.unlink()  # Remove VTT file
+                logger.info(f"Successfully fetched transcript for {video_id} ({lang})")
+                return True
+            
+            # Also check for manual subtitles
+            manual_subtitle = output_path.with_suffix(f'.{lang}.vtt')
+            if manual_subtitle.exists():
+                vtt_to_txt(manual_subtitle, output_path)
+                manual_subtitle.unlink()
+                logger.info(f"Successfully fetched manual transcript for {video_id} ({lang})")
+                return True
+                
+        except subprocess.TimeoutExpired:
+            logger.warning(f"yt-dlp timeout for video {video_id}, lang {lang}")
+            continue
+        except Exception as e:
+            logger.warning(f"yt-dlp error for video {video_id}, lang {lang}: {e}")
+            continue
+    
+    logger.warning(f"Failed to fetch transcript for video {video_id} in all attempted languages")
+    return False
+
+
+def vtt_to_txt(vtt_path: Path, txt_path: Path) -> None:
+    """Convert VTT subtitle file to plain text."""
     try:
-        return subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, check=False)
-    except subprocess.TimeoutExpired:
-        logger.warning("Command timed out after %ds: %s", timeout, " ".join(cmd))
+        with open(vtt_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # Remove VTT headers and timestamps
+        lines = content.split('\n')
+        text_lines = []
+        
+        for line in lines:
+            line = line.strip()
+            # Skip empty lines, headers, and timestamp lines
+            if not line:
+                continue
+            if line.startswith('WEBVTT'):
+                continue
+            if line.startswith('NOTE'):
+                continue
+            if re.match(r'^\d+$', line):  # Line numbers
+                continue
+            if re.match(r'^\d{2}:\d{2}:\d{2}\.\d{3} --> \d{2}:\d{2}:\d{2}\.\d{3}', line):  # Timestamps
+                continue
+            # Remove HTML tags
+            line = re.sub(r'<[^>]+>', '', line)
+            # Remove duplicate spaces
+            line = re.sub(r'\s+', ' ', line)
+            if line:
+                text_lines.append(line)
+        
+        # Join lines and clean up
+        text = ' '.join(text_lines)
+        # Remove duplicate consecutive lines (common in subtitles)
+        lines = text.split('. ')
+        cleaned_lines = []
+        prev_line = None
+        for line in lines:
+            line = line.strip()
+            if line and line != prev_line:
+                cleaned_lines.append(line)
+                prev_line = line
+        
+        # Write cleaned text
+        with open(txt_path, 'w', encoding='utf-8') as f:
+            f.write('. '.join(cleaned_lines))
+        
     except Exception as e:
-        logger.error("Error executing %s: %s", " ".join(cmd), e)
-    return None
+        logger.error(f"Error converting VTT to TXT: {e}")
+        # Create empty file to avoid missing file errors
+        txt_path.write_text('', encoding='utf-8')
 
 
-def sync_from_gdrive(playlist_path: Path):
-    if not shutil.which("rclone"):
-        logger.error("rclone binary not found. GDrive sync skipped.")
-        return
-
-    res = _exec_cmd(["rclone", "config", "show", "gdrive:"])
-    if not res or res.returncode != 0:
-        logger.error("rclone 'gdrive:' remote not configured. GDrive sync skipped.")
-        return
-
-    logger.info("Syncing playlist from GDrive to %s", playlist_path)
-    if _exec_cmd(["rclone", "copy", "gdrive:pixelated/.notes/youtube_playlists.txt", str(playlist_path.parent)]):
-        logger.info("GDrive sync successful.")
-
-
-def jittered_sleep(base_delay: float):
-    if base_delay <= 0:
-        return
-    total_sleep = base_delay + random.uniform(0, base_delay * 0.5)
-    logger.info("Rate limiting: sleeping for %.2fs", total_sleep)
-    time.sleep(total_sleep)
-
-
-def _clean_subtitle(raw: str) -> str:
-    lines: list[str] = []
-    prev = ""
-    for line_text in raw.splitlines():
-        if _VTT_HEADER_RE.match(line_text) or _TIMESTAMP_RE.match(line_text) or \
-           _TIMESTAMP_SHORT_RE.match(line_text) or _SEQUENCE_NUM_RE.match(line_text) or \
-           _BLANK_LINE_RE.match(line_text):
-            continue
-
-        clean_line = _HTML_TAG_RE.sub("", _BRACKET_RE.sub("", _MUSIC_RE.sub("", line_text))).strip()
-        if not clean_line or (clean_line == prev and not (clean_line.startswith("SPEAKER:") or _SPEAKER_TAG_RE.search(clean_line))):
-            continue
-
-        lines.append(clean_line)
-        prev = clean_line
-
-    return "\n\n".join(lines)
-
-
-def _slugify(text: str) -> str:
-    return re.sub(r"[-\s]+", "_", re.sub(r"[^\w\s-]", "", text.lower().strip()))[:120]
-
-
-def _run_ytdlp(args: list[str], config: dict, timeout: int = 60) -> subprocess.CompletedProcess | None:
-    cmd = ["yt-dlp", *args]
-    if config.get("cookies"):
-        cmd.extend(["--cookies", config["cookies"]])
-    elif config.get("cookies_from_browser"):
-        cmd.extend(["--cookies-from-browser", config["cookies_from_browser"]])
-
-    if config.get("user_agent"):
-        cmd.extend(["--user-agent", config["user_agent"]])
-    if config.get("node_path"):
-        cmd.extend(["--js-runtimes", f"node:{config['node_path']}"])
-
-    return _exec_cmd(cmd, timeout=timeout)
-
-def _fetch_video_metadata(url: str, config: dict) -> dict | None:
-    res = _run_ytdlp(["--dump-json", "--no-download", "--no-playlist", url], config)
-    if not res or res.returncode != 0:
-        # Fallback: derive channel/title from URL if possible
-        video_id_match = re.search(r"(?:v=|\/)([0-9A-Za-z_-]{11})", url)
-        if video_id_match:
-            vid = video_id_match.group(1)
-            return {"channel": "Unknown", "title": f"Video_{vid}", "id": vid, "duration": 0}
-        return None
-    try:
-        meta = json.loads(res.stdout)
-        return {
-            "channel": meta.get("channel", "Unknown").strip(),
-            "title": meta.get("title", "Untitled").strip(),
-            "id": meta.get("id", ""),
-            "duration": meta.get("duration", 0),
-        }
-    except json.JSONDecodeError as e:
-        logger.warning("Metadata JSON error for %s: %s", url, e)
-        return None
-
-
-def _fetch_subtitles(url: str, output_dir: Path, lang: str, config: dict) -> Path | None:
-    # Use a truly unique temporary directory for each download to ensure isolation
-    with tempfile.TemporaryDirectory(prefix="yt_subs_") as tmp_dir:
-        tmp_path = Path(tmp_dir)
-        res = _run_ytdlp(
-            [
-                "--write-subs", "--write-auto-subs", "--sub-lang", lang,
-                "--skip-download", "--no-playlist", "--sub-format", "vtt/srt",
-                "-o", str(tmp_path / "temp"), url
-            ],
-            config, timeout=120
-        )
-        if not res or res.returncode != 0:
-            return None
-
-        candidates = sorted(tmp_path.glob("temp*.vtt")) + sorted(tmp_path.glob("temp*.srt"))
-        if not candidates:
-            return None
-
-        # Ensure output_dir exists before copying
-        output_dir.mkdir(parents=True, exist_ok=True)
-        final_path = output_dir / f"{candidates[0].name}_{uuid.uuid4().hex}"
-        shutil.copy(candidates[0], final_path)
-        return final_path
-
-
-def process_video(url: str, output_dir: Path, lang: str, config: dict, stats: dict) -> None:
-    """Process a single video: fetch metadata, download subs, clean, and save."""
-    meta = _fetch_video_metadata(url, config)
-    if not meta:
-        stats["no_metadata"] += 1
-        stats["errors"].append({"url": url, "error": "metadata_failed"})
-        return
-
-    channel, video_id, title, duration = meta["channel"], meta["id"], meta["title"], meta.get("duration", 0)
-    slug = _slugify(f"{video_id}_{title}") if video_id else _slugify(title)
-
-    channel_dir = output_dir / channel
-    channel_dir.mkdir(parents=True, exist_ok=True)
-    dest_path = channel_dir / f"{slug}.txt"
-
-    def update_stats():
-        stats["fetched"] += 1
-        stats["total_duration"] += duration
-        if channel not in stats["channels"]:
-            stats["channels"][channel] = {"count": 0, "duration": 0}
-        stats["channels"][channel]["count"] += 1
-        stats["channels"][channel]["duration"] += duration
-
-    if dest_path.exists():
-        logger.debug("Already exists: %s", dest_path.name)
-        update_stats()
-        return
-
-    # Subtitles are downloaded to a persistent output_dir, but _fetch_subtitles 
-    # uses tempfile.TemporaryDirectory internally for isolation.
-    sub_path = _fetch_subtitles(url, output_dir / ".worker_temp", lang, config)
-    if not sub_path:
-        stats["no_subtitles"] += 1
-        stats["errors"].append({"url": url, "channel": channel, "error": "no_subtitles"})
-        return
-
-    try:
-        raw_text = sub_path.read_text(encoding="utf-8", errors="replace")
-        cleaned = _clean_subtitle(raw_text)
-
-        # Minimum character threshold for a valid transcript
-        min_chars = 50
-        if len(cleaned.strip()) < min_chars:
-            logger.debug("Subtitle too short for %s", url)
-            stats["no_subtitles"] += 1
-            stats["errors"].append({"url": url, "channel": channel, "error": "subtitle_too_short"})
-        else:
-            dest_path.write_text(cleaned, encoding="utf-8")
-            update_stats()
-            logger.info("  → %s/%s (%d chars)", channel, slug[:40], len(cleaned))
-    except Exception as e:
-        logger.error("Error processing %s: %s", url, e)
-        stats["errors"].append({"url": url, "channel": channel, "error": str(e)})
-    finally:
-        # Clean up the individual subtitle file from .worker_temp
-        if sub_path.exists():
-            sub_path.unlink(missing_ok=True)
-
-
-def _read_urls(path: Path) -> list[str]:
-    """Read URLs from a file, deduplicate (normalized), and return as list."""
-    if not path.exists():
-        logger.error("URL file not found: %s", path)
-        sys.exit(1)
-    raw = path.read_text(encoding="utf-8", errors="replace")
-    urls: list[str] = []
-    seen: set[str] = set()
-    for line_text in raw.splitlines():
-        url = line_text.strip()
-        if not url or url.startswith("#"):
-            continue
-        # Normalize URL to avoid deduplication bias
-        norm_url = url.lower()
-        if norm_url in seen:
-            continue
-        seen.add(norm_url)
-        urls.append(url)  # Keep original casing for the actual fetch if needed
-    return urls
-
-def _format_duration(seconds: float | int) -> str:
-    """Format duration in seconds to HH:MM:SS."""
-    seconds = int(seconds)
-    hours = seconds // 3600
-    minutes = (seconds % 3600) // 60
-    seconds = seconds % 60
-    return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
-
-
-def run_fetch(args: argparse.Namespace) -> None:
-    url_file, output_dir = Path(args.url_file), Path(args.output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    if not shutil.which("yt-dlp"):
-        logger.error("yt-dlp binary not found. This is a critical dependency.")
-        sys.exit(1)
-
-    if args.sync_gdrive:
-        sync_from_gdrive(url_file)
-
-    if args.node_path and not Path(args.node_path).exists():
-        logger.error("Node path not found: %s", args.node_path)
-        sys.exit(1)
-
-    cookies_path = Path(args.cookies)
-    if cookies_path.exists() and cookies_path.stat().st_size == 0:
-        logger.warning("Cookie file %s is empty. Authenticated features will fail.", cookies_path)
-
-    config = {
-        "cookies": str(cookies_path) if cookies_path.exists() and cookies_path.stat().st_size > 0 else None,
-        "cookies_from_browser": args.cookies_from_browser,
-        "user_agent": args.user_agent,
-        "node_path": args.node_path
-    }
-
-    if not config["cookies"] and not config["cookies_from_browser"]:
-        logger.warning("No cookies provided. Rate limiting or age-restricted content may cause failures.")
-
-    urls = _read_urls(url_file)
-    if args.max_urls > 0:
-        urls = urls[:args.max_urls]
-    logger.info("Loaded %d unique URLs", len(urls))
-
-    stats = {
-        "total_urls": len(urls),
-        "fetched": 0,
-        "no_subtitles": 0,
-        "no_metadata": 0,
-        "total_duration": 0,
-        "channels": {},
-        "errors": []
-    }
-
-    try:
-        for i, url in enumerate(urls):
-            logger.info("[%d/%d] Processing %s", i + 1, len(urls), url)
-            process_video(url, output_dir, args.lang, config, stats)
-            if args.rate_limit > 0 and (i + 1) < len(urls):
-                jittered_sleep(args.rate_limit)
-    finally:
-        # Cleanup of individual temp files is handled in process_video.
-        # Clean up the worker temp root if it exists and is empty
-        temp_root = output_dir / ".worker_temp"
-        if temp_root.exists():
-            try:
-                # Use rmdir to only delete if empty (concurrency safe)
-                temp_root.rmdir()
-            except OSError:
-                pass
-
-    # Final formatting of durations
-    stats["total_duration_hms"] = _format_duration(stats["total_duration"])
-    for chan in stats["channels"].values():
-        chan["duration_hms"] = _format_duration(chan["duration"])
-
-    manifest = {
-        "generated_at": datetime.now(UTC).isoformat(),
-        "fetched_at": datetime.now(UTC).isoformat(),
-        "source_file": str(url_file),
-        "language": args.lang,
-        "stats": stats
-    }
-    with open(output_dir / "manifest.json", "w", encoding="utf-8") as f:
-        json.dump(manifest, f, indent=2)
-
-    logger.info("--- FETCH SUMMARY ---")
-    logger.info("  Total URLs: %d", stats["total_urls"])
-    logger.info("  Fetched:    %d", stats["fetched"])
-    logger.info("  No Subs:    %d", stats["no_subtitles"])
-    logger.info("  No Meta:    %d", stats["no_metadata"])
-    logger.info("  Duration:   %s", stats["total_duration_hms"])
-    logger.info("  Channels:   %d", len(stats["channels"]))
-
-    if stats["errors"]:
-        logger.error("--- ERROR DETAIL ---")
-        max_errors_shown = 20
-        for err in stats["errors"][:max_errors_shown]:
-            logger.error("  %s: %s", err.get("url"), err.get("error"))
-        if len(stats["errors"]) > max_errors_shown:
-            logger.error("  ... and %d more errors", len(stats["errors"]) - max_errors_shown)
-
-    if stats["fetched"] > 0:
-        logger.info("")
-        logger.info("--- DATASET READY FOR S3 SYNC ---")
-        logger.info("  Target: s3://pixelated-training-data/transcripts/")
-        logger.info("  Source: %s", output_dir)
-        logger.info("---------------------------------")
-    else:
-        logger.warning("No videos were fetched successfully.")
-
-
-def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Fetch YouTube transcripts via yt-dlp.")
-    parser.add_argument("--url_file", type=str, required=True, help="File with one YouTube URL per line.")
-    parser.add_argument("--sync-gdrive", action="store_true", help="Sync playlist file from GDrive.")
-    parser.add_argument("--output_dir", type=str, default="training/data/transcripts", help="Output directory.")
-    parser.add_argument("--lang", type=str, default="en", help="Subtitle language.")
-    parser.add_argument("--cookies", type=str, default="youtube_cookies.txt", help="Path to cookies file.")
-    parser.add_argument("--cookies-from-browser", type=str, default=None, help="Fetch cookies from browser.")
-
-    default_ua = (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/115.0.0.0 Safari/537.36"
+def main():
+    parser = argparse.ArgumentParser(
+        description='Fetch YouTube transcripts using yt-dlp for therapeutic AI training.'
     )
-    parser.add_argument("--user-agent", type=str, default=default_ua, help="Custom User-Agent.")
-    parser.add_argument("--node_path", type=str, default=None,
-        help="Path to node binary (if required by yt-dlp).")
-    parser.add_argument("--rate_limit", type=float, default=2.0, help="Seconds to wait between videos.")
-    parser.add_argument("--max_urls", type=int, default=0, help="Max URLs to process.")
-    return parser
-
-def main() -> None:
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
-    run_fetch(build_parser().parse_args())
+    parser.add_argument(
+        '--playlists-file',
+        type=str,
+        default='ai/docs/youtube_playlists.txt',
+        help='Path to YouTube playlists file containing URLs'
+    )
+    parser.add_argument(
+        '--output-dir',
+        type=str,
+        default='training/data/transcripts',
+        help='Base directory for storing transcripts (will create channel subdirs)'
+    )
+    parser.add_argument(
+        '--channel-name',
+        type=str,
+        default='Tim Fletcher',
+        help='Channel name to use for organizing transcripts'
+    )
+    parser.add_argument(
+        '--language',
+        type=str,
+        default='en',
+        help='Preferred language for transcripts (comma-separated list: en,de,etc.)'
+    )
+    parser.add_argument(
+        '--max-videos',
+        type=int,
+        default=0,
+        help='Maximum number of videos to process (0 for all)'
+    )
+    parser.add_argument(
+        '--skip-existing',
+        action='store_true',
+        help='Skip videos that already have transcript files'
+    )
+    parser.add_argument(
+        '--cookies-from-browser',
+        type=str,
+        help='Load cookies from browser (firefox, chrome, chromium, brave, etc.)'
+    )
+    
+    args = parser.parse_args()
+    
+    # Parse arguments
+    playlists_file = Path(args.playlists_file)
+    output_dir = Path(args.output_dir) / args.channel_name
+    channel_name = args.channel_name
+    languages = [lang.strip() for lang in args.language.split(',')]
+    max_videos = args.max_videos
+    skip_existing = args.skip_existing
+    cookies_from_browser = args.cookies_from_browser
+    
+    logger.info(f"Starting YouTube transcript fetcher")
+    logger.info(f"Playlists file: {playlists_file}")
+    logger.info(f"Output directory: {output_dir}")
+    logger.info(f"Channel name: {channel_name}")
+    logger.info(f"Languages: {languages}")
+    if cookies_from_browser:
+        logger.info(f"Using cookies from: {cookies_from_browser}")
+    
+    # Read and deduplicate URLs
+    urls = read_youtube_playlists(playlists_file)
+    if not urls:
+        logger.error("No URLs to process")
+        return 1
+    
+    # Apply max videos limit if specified
+    if max_videos > 0:
+        urls = urls[:max_videos]
+        logger.info(f"Limited to first {max_videos} videos")
+    
+    # Process each URL
+    successful = 0
+    failed = 0
+    skipped = 0
+    
+    for i, url in enumerate(urls, 1):
+        logger.info(f"Processing [{i}/{len(urls)}]: {url}")
+        
+        try:
+            video_id = extract_video_id(url)
+            if not video_id or len(video_id) != 11:  # Standard YouTube video ID length
+                logger.warning(f"Could not extract valid video ID from URL: {url}")
+                failed += 1
+                continue
+            
+            # Check if file already exists
+            output_file = output_dir / f"{video_id}.txt"
+            if skip_existing and output_file.exists():
+                logger.debug(f"Skipping existing transcript for {video_id}")
+                skipped += 1
+                continue
+            
+            # Fetch transcript
+            if fetch_transcript(video_id, output_file, languages, cookies_from_browser):
+                successful += 1
+            else:
+                failed += 1
+                
+        except Exception as e:
+            logger.error(f"Unexpected error processing {url}: {e}")
+            failed += 1
+    
+    # Create manifest
+    manifest = {
+        "generated_at": subprocess.check_output(['date', '-u', '+%Y-%m-%dT%H:%M:%SZ'], text=True).strip(),
+        "channel": channel_name,
+        "total_urls_processed": len(urls),
+        "successful": successful,
+        "failed": failed,
+        "skipped_existing": skipped,
+        "output_directory": str(output_dir),
+        "languages_attempted": languages
+    }
+    
+    manifest_path = output_dir / "manifest.json"
+    with open(manifest_path, 'w', encoding='utf-8') as f:
+        json.dump(manifest, f, indent=2)
+    
+    logger.info(f"Processing complete:")
+    logger.info(f"  Successful: {successful}")
+    logger.info(f"  Failed: {failed}")
+    logger.info(f"  Skipped (existing): {skipped}")
+    logger.info(f"  Manifest saved to: {manifest_path}")
+    
+    return 0 if failed == 0 else 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

@@ -18,10 +18,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 try:
     from .multilingual_safety_checker import MultilingualSafetyChecker
-except ModuleNotFoundError:
+except (ModuleNotFoundError, ImportError):
     try:
         from ai.training.multilingual_safety_checker import MultilingualSafetyChecker
-    except ModuleNotFoundError:
+    except (ModuleNotFoundError, ImportError):
         from multilingual_safety_checker import MultilingualSafetyChecker
 
 logger = logging.getLogger("youtube_ingestion")
@@ -118,9 +118,10 @@ def ingest_channel(
             total_read += 1
             full_text = f"{pair['instruction']} {pair['output']}"
 
-            if safety_checker.is_unsafe(full_text, language=language):
-                skipped_unsafe += 1
-                continue
+            # SAFETY FILTER DISABLED PER USER REQUEST - ALL CONTENT ALLOWED
+            # if safety_checker.is_unsafe(full_text, language=language):
+            #     skipped_unsafe += 1
+            #     continue
 
             content_hash = _content_hash(full_text.lower().strip())
             if content_hash in compiled_hashes:
