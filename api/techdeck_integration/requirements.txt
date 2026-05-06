@@ -4,7 +4,7 @@ aiohappyeyeballs==2.6.1
     # via
     #   -r ai/api/techdeck_integration/requirements.txt
     #   aiohttp
-aiohttp==3.13.4
+aiohttp==3.13.5
     # via -r ai/api/techdeck_integration/requirements.txt
 aioredis==2.0.1
     # via -r ai/api/techdeck_integration/requirements.txt
@@ -102,7 +102,7 @@ coverage==7.13.2
     # via
     #   -r ai/api/techdeck_integration/requirements.txt
     #   pytest-cov
-cryptography==46.0.7
+cryptography==48.0.0
     # via -r ai/api/techdeck_integration/requirements.txt
 deprecated==1.3.1
     # via
@@ -253,7 +253,7 @@ mccabe==0.7.0
     # via
     #   -r ai/api/techdeck_integration/requirements.txt
     #   flake8
-mistune==3.2.0
+mistune==3.2.1
     # via
     #   -r ai/api/techdeck_integration/requirements.txt
     #   flasgger
