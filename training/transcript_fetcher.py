@@ -154,17 +154,24 @@ def process_video(url: str, output_dir: Path, lang: str, config: dict, stats: di
         stats["errors"].append({"url": url, "error": "metadata_failed"})
         return
 
-    channel, video_id, title = meta["channel"], meta["id"], meta["title"]
+    channel, video_id, title, duration = meta["channel"], meta["id"], meta["title"], meta.get("duration", 0)
     slug = _slugify(f"{video_id}_{title}") if video_id else _slugify(title)
     
     channel_dir = output_dir / channel
     channel_dir.mkdir(parents=True, exist_ok=True)
     dest_path = channel_dir / f"{slug}.txt"
 
+    def update_stats():
+        stats["fetched"] += 1
+        stats["total_duration"] += duration
+        if channel not in stats["channels"]:
+            stats["channels"][channel] = {"count": 0, "duration": 0}
+        stats["channels"][channel]["count"] += 1
+        stats["channels"][channel]["duration"] += duration
+
     if dest_path.exists():
         logger.debug("Already exists: %s", dest_path.name)
-        stats["fetched"] += 1
-        stats["channels"][channel] = stats["channels"].get(channel, 0) + 1
+        update_stats()
         return
 
     temp_dir = output_dir / ".tmp_subs"
@@ -190,8 +197,7 @@ def process_video(url: str, output_dir: Path, lang: str, config: dict, stats: di
         return
 
     dest_path.write_text(cleaned, encoding="utf-8")
-    stats["fetched"] += 1
-    stats["channels"][channel] = stats["channels"].get(channel, 0) + 1
+    update_stats()
     logger.info("  → %s/%s (%d chars)", channel, slug[:40], len(cleaned))
 
 
@@ -210,6 +216,15 @@ def _read_urls(path: Path) -> list[str]:
         seen.add(line)
         urls.append(line)
     return urls
+
+
+def _format_duration(seconds: float | int) -> str:
+    """Format duration in seconds to HH:MM:SS."""
+    seconds = int(seconds)
+    hours = seconds // 3600
+    minutes = (seconds % 3600) // 60
+    seconds = seconds % 60
+    return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
 
 
 def run_fetch(args: argparse.Namespace) -> None:
@@ -232,8 +247,13 @@ def run_fetch(args: argparse.Namespace) -> None:
     logger.info("Loaded %d unique URLs", len(urls))
 
     stats = {
-        "total_urls": len(urls), "fetched": 0, "no_subtitles": 0,
-        "no_metadata": 0, "channels": {}, "errors": []
+        "total_urls": len(urls),
+        "fetched": 0,
+        "no_subtitles": 0,
+        "no_metadata": 0,
+        "total_duration": 0,
+        "channels": {},
+        "errors": []
     }
 
     for i, url in enumerate(urls):
@@ -244,17 +264,25 @@ def run_fetch(args: argparse.Namespace) -> None:
 
     shutil.rmtree(output_dir / ".tmp_subs", ignore_errors=True)
 
+    # Final formatting of durations
+    stats["total_duration_hms"] = _format_duration(stats["total_duration"])
+    for chan in stats["channels"].values():
+        chan["duration_hms"] = _format_duration(chan["duration"])
+
     manifest = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "source_file": str(url_file), "language": args.lang, "stats": stats
+        "fetched_at": datetime.now(timezone.utc).isoformat(),
+        "source_file": str(url_file),
+        "language": args.lang,
+        "stats": stats
     }
     with open(output_dir / "manifest.json", "w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=2)
 
     logger.info(
-        "Fetch complete: %d/%d fetched, %d no subs, %d no meta, %d channels",
-        stats["fetched"], stats["total_urls"], stats["no_subtitles"],
-        stats["no_metadata"], len(stats["channels"])
+        "Fetch complete: %d/%d fetched (%s), %d no subs, %d no meta, %d channels",
+        stats["fetched"], stats["total_urls"], stats["total_duration_hms"],
+        stats["no_subtitles"], stats["no_metadata"], len(stats["channels"])
     )
 
 
