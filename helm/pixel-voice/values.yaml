@@ -71,3 +71,9 @@ redis:
     secretKeys:
       passwordKey: redis-password
     existingSecret: ""
+  master:
+    service:
+      type: ClusterIP
+  replica:
+    service:
+      type: ClusterIP

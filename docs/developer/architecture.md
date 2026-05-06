@@ -595,7 +595,9 @@ spec:
   type: LoadBalancer
 ```
 
-### Infrastructure as Code
+### Infrastructure as Code (Legacy AWS example)
+
+> Legacy AWS snippet for reference only; current active IaC is in `terraform/gcp`.
 
 ```terraform
 # Terraform configuration for AWS deployment

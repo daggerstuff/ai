@@ -16,6 +16,7 @@ import logging
 import os
 import random
 import sys
+import time
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
@@ -255,8 +256,9 @@ def _call_nemo(
     api_key: str,
     model: str = "mistral-nemo",
     max_tokens: int = 1024,
+    max_retries: int = 3,
 ) -> str | None:
-    """Call NeMo API with OpenAI-compatible chat completions endpoint."""
+    """Call NeMo API with OpenAI-compatible chat completions endpoint with rate limit handling."""
     url = f"{endpoint.rstrip('/')}/chat/completions"
     payload = json.dumps({
         "model": model,
@@ -273,19 +275,27 @@ def _call_nemo(
 
     req = urllib.request.Request(url, data=payload, headers=headers, method="POST")
 
-    try:
-        with urllib.request.urlopen(req, timeout=120) as resp:
-            result = json.loads(resp.read().decode("utf-8"))
-            return result["choices"][0]["message"]["content"]
-    except urllib.error.HTTPError as exc:
-        body = ""
-        with contextlib.suppress(Exception):
-            body = exc.read().decode("utf-8", errors="replace")
-        logger.error("NeMo API error %s: %s", exc.code, body[:500])
-        return None
-    except Exception as exc:
-        logger.error("NeMo API call failed: %s", exc)
-        return None
+    for attempt in range(max_retries):
+        try:
+            with urllib.request.urlopen(req, timeout=120) as resp:
+                result = json.loads(resp.read().decode("utf-8"))
+                return result["choices"][0]["message"]["content"]
+        except urllib.error.HTTPError as exc:
+            body = ""
+            with contextlib.suppress(Exception):
+                body = exc.read().decode("utf-8", errors="replace")
+            if exc.code == 429:
+                wait_time = (2 ** attempt) + random.uniform(0.5, 1.5)
+                logger.info("Rate limit hit, waiting %.1f seconds before retry...", wait_time)
+                time.sleep(wait_time)
+                continue
+            logger.error("NeMo API error %s: %s", exc.code, body[:500])
+            return None
+        except Exception as exc:
+            logger.error("NeMo API call failed: %s", exc)
+            return None
+    logger.warning("Max retries (%d) exceeded for NeMo API", max_retries)
+    return None
 
 
 def _generate_dpo_pair(
@@ -450,11 +460,18 @@ def _run_niche_scenario(
         available = ", ".join(NICHE_CATEGORIES.keys())
         raise ValueError(f"Unknown niche category: {category}. Available: {available}")
 
+    # Add long pause between categories to let rate limit window reset
+    logger.info("Waiting 60 seconds before starting category: %s", category)
+    time.sleep(60)
+
     generated: list[dict] = []
     filtered = 0
     iteration = 0
     while len(generated) < config.target_count and iteration < config.max_iterations:
         iteration += 1
+        # Add delay between API calls to respect rate limits
+        if iteration > 1:
+            time.sleep(15)  # Increased to 15 seconds
         sample = _generate_niche_sample(
             category,
             category_info,
@@ -641,11 +658,11 @@ def main() -> None:
     args = parser.parse_args()
 
     # Default to NVIDIA API catalog if no custom endpoint specified
-    if not args.nemo_endpoint:
-        args.nemo_endpoint = os.getenv(
-            "NEMO_DATA_DESIGNER_BASE_URL",
-            "https://integrate.api.nvidia.com/v1",
-        )
+    env_endpoint = os.getenv("NEMO_DATA_DESIGNER_BASE_URL", "").strip()
+    if not args.nemo_endpoint or not args.nemo_endpoint.strip():
+        args.nemo_endpoint = env_endpoint if env_endpoint else "https://integrate.api.nvidia.com/v1"
+    else:
+        args.nemo_endpoint = args.nemo_endpoint.strip()
     if not args.nemo_api_key:
         args.nemo_api_key = os.getenv("NVIDIA_API_KEY", "")
 
