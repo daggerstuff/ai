@@ -14,10 +14,12 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import random
 import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -36,26 +38,43 @@ _BRACKET_RE = re.compile(r"\[.*?\]")
 _VTT_HEADER_RE = re.compile(r"^(WEBVTT|Kind:|Language:|NOTE)", re.IGNORECASE)
 
 
+def _exec_cmd(cmd: list[str], timeout: int = 60, check: bool = False) -> subprocess.CompletedProcess | None:
+    """Centralized subprocess execution with logging and timeout handling."""
+    try:
+        return subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, check=check)
+    except subprocess.TimeoutExpired:
+        logger.warning("Command timed out after %ds: %s", timeout, " ".join(cmd))
+    except subprocess.CalledProcessError as e:
+        logger.error("Command failed (code %d): %s\n%s", e.returncode, " ".join(cmd), e.stderr)
+    except Exception as e:
+        logger.error("Unexpected error executing %s: %s", " ".join(cmd), e)
+    return None
+
+
 def sync_from_gdrive(playlist_path: Path):
-    """Sync the playlist file from GDrive using rclone."""
     if not shutil.which("rclone"):
         logger.error("rclone binary not found. GDrive sync skipped.")
         return
 
+    res = _exec_cmd(["rclone", "config", "show", "gdrive:"])
+    if not res or res.returncode != 0:
+        logger.error("rclone 'gdrive:' remote not configured. GDrive sync skipped.")
+        return
+
     logger.info("Syncing playlist from GDrive to %s", playlist_path)
-    source = "gdrive:pixelated/.notes/youtube_playlists.txt"
-    try:
-        subprocess.run(
-            ["rclone", "copy", source, str(playlist_path.parent)],
-            check=True, capture_output=True, text=True
-        )
+    if _exec_cmd(["rclone", "copy", "gdrive:pixelated/.notes/youtube_playlists.txt", str(playlist_path.parent)]):
         logger.info("GDrive sync successful.")
-    except subprocess.CalledProcessError as e:
-        logger.error("GDrive sync failed: %s", e.stderr.strip())
+
+
+def jittered_sleep(base_delay: float):
+    if base_delay <= 0:
+        return
+    total_sleep = base_delay + random.uniform(0, base_delay * 0.5)
+    logger.debug("Sleeping for %.2fs", total_sleep)
+    time.sleep(total_sleep)
 
 
 def _clean_subtitle(raw: str) -> str:
-    """Strip timestamp lines, sequence numbers, non-speaker HTML tags, and music markers."""
     lines: list[str] = []
     prev = ""
     for line in raw.splitlines():
@@ -64,15 +83,8 @@ def _clean_subtitle(raw: str) -> str:
            _BLANK_LINE_RE.match(line):
             continue
             
-        line = _MUSIC_RE.sub("", line)
-        line = _BRACKET_RE.sub("", line)
-        line = _HTML_TAG_RE.sub("", line).strip()
-        
-        if not line:
-            continue
-            
-        is_speaker = line.startswith("SPEAKER:") or _SPEAKER_TAG_RE.search(line)
-        if line == prev and not is_speaker:
+        line = _HTML_TAG_RE.sub("", _BRACKET_RE.sub("", _MUSIC_RE.sub("", line))).strip()
+        if not line or (line == prev and not (line.startswith("SPEAKER:") or _SPEAKER_TAG_RE.search(line))):
             continue
             
         lines.append(line)
@@ -82,68 +94,62 @@ def _clean_subtitle(raw: str) -> str:
 
 
 def _slugify(text: str) -> str:
-    """Convert text to a filesystem-safe slug."""
-    slug = re.sub(r"[^\w\s-]", "", text.lower().strip())
-    slug = re.sub(r"[-\s]+", "_", slug)
-    return slug[:120]
+    return re.sub(r"[-\s]+", "_", re.sub(r"[^\w\s-]", "", text.lower().strip()))[:120]
 
 
-def _run_ytdlp(args: list[str], config: dict, timeout: int = 60) -> subprocess.CompletedProcess:
-    """Helper to run yt-dlp with common flags."""
+def _run_ytdlp(args: list[str], config: dict, timeout: int = 60) -> subprocess.CompletedProcess | None:
     cmd = ["yt-dlp"] + args
     if config.get("cookies"):
         cmd.extend(["--cookies", config["cookies"]])
-    if config.get("cookies_from_browser"):
+    elif config.get("cookies_from_browser"):
         cmd.extend(["--cookies-from-browser", config["cookies_from_browser"]])
+    
     if config.get("user_agent"):
         cmd.extend(["--user-agent", config["user_agent"]])
     if config.get("node_path"):
         cmd.extend(["--js-runtimes", f"node:{config['node_path']}"])
     
-    return subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+    return _exec_cmd(cmd, timeout=timeout)
 
 
 def _fetch_video_metadata(url: str, config: dict) -> dict | None:
-    """Get video metadata (channel, title) via yt-dlp --dump-json."""
+    res = _run_ytdlp(["--dump-json", "--no-download", "--no-playlist", url], config)
+    if not res or res.returncode != 0:
+        return None
     try:
-        result = _run_ytdlp(["--dump-json", "--no-download", "--no-playlist", url], config)
-        if result.returncode != 0:
-            logger.warning("Metadata failed for %s: %s", url, result.stderr[:200])
-            return None
-        meta = json.loads(result.stdout)
+        meta = json.loads(res.stdout)
         return {
             "channel": meta.get("channel", "Unknown").strip(),
             "title": meta.get("title", "Untitled").strip(),
             "id": meta.get("id", ""),
             "duration": meta.get("duration", 0),
         }
-    except (subprocess.TimeoutExpired, json.JSONDecodeError) as exc:
-        logger.warning("Metadata error for %s: %s", url, exc)
+    except json.JSONDecodeError as e:
+        logger.warning("Metadata JSON error for %s: %s", url, e)
         return None
 
 
 def _fetch_subtitles(url: str, output_dir: Path, lang: str, config: dict) -> Path | None:
-    """Download subtitles for a single video. Returns the .vtt/.srt path or None."""
-    output_dir.mkdir(parents=True, exist_ok=True)
-    try:
-        result = _run_ytdlp(
+    with tempfile.TemporaryDirectory(dir=output_dir, prefix="subs_") as tmp_dir:
+        tmp_path = Path(tmp_dir)
+        res = _run_ytdlp(
             [
                 "--write-subs", "--write-auto-subs", "--sub-lang", lang,
                 "--skip-download", "--no-playlist", "--sub-format", "vtt/srt",
-                "-o", str(output_dir / "temp"), url
+                "-o", str(tmp_path / "temp"), url
             ],
             config, timeout=120
         )
-        if result.returncode != 0:
-            stderr_lower = result.stderr.lower()
-            if "no subtitle" in stderr_lower or "subtitles" not in result.stdout.lower():
-                logger.debug("No subtitles found for %s (%s)", url, lang)
-                return None
-        candidates = sorted(output_dir.glob("temp*.vtt")) + sorted(output_dir.glob("temp*.srt"))
-        return candidates[0] if candidates else None
-    except subprocess.TimeoutExpired:
-        logger.warning("Subtitle download timed out for %s", url)
-        return None
+        if not res or res.returncode != 0:
+            return None
+            
+        candidates = sorted(tmp_path.glob("temp*.vtt")) + sorted(tmp_path.glob("temp*.srt"))
+        if not candidates:
+            return None
+        
+        final_path = output_dir / f"{candidates[0].name}_{random.getrandbits(32)}"
+        shutil.copy(candidates[0], final_path)
+        return final_path
 
 
 def process_video(url: str, output_dir: Path, lang: str, config: dict, stats: dict) -> None:
@@ -174,31 +180,34 @@ def process_video(url: str, output_dir: Path, lang: str, config: dict, stats: di
         update_stats()
         return
 
-    temp_dir = output_dir / ".tmp_subs"
-    temp_dir.mkdir(parents=True, exist_ok=True)
+    temp_root = output_dir / ".tmp_subs"
+    temp_root.mkdir(parents=True, exist_ok=True)
 
-    sub_path = _fetch_subtitles(url, temp_dir, lang, config)
+    sub_path = _fetch_subtitles(url, temp_root, lang, config)
     if not sub_path:
         stats["no_subtitles"] += 1
         stats["errors"].append({"url": url, "channel": channel, "error": "no_subtitles"})
         return
 
-    raw_text = sub_path.read_text(encoding="utf-8", errors="replace")
-    cleaned = _clean_subtitle(raw_text)
-
-    # Clean up temp files
-    for f in temp_dir.glob("temp*"):
-        f.unlink(missing_ok=True)
-
-    if len(cleaned.strip()) < 50:
-        logger.debug("Subtitle too short for %s", url)
-        stats["no_subtitles"] += 1
-        stats["errors"].append({"url": url, "channel": channel, "error": "subtitle_too_short"})
-        return
-
-    dest_path.write_text(cleaned, encoding="utf-8")
-    update_stats()
-    logger.info("  → %s/%s (%d chars)", channel, slug[:40], len(cleaned))
+    try:
+        raw_text = sub_path.read_text(encoding="utf-8", errors="replace")
+        cleaned = _clean_subtitle(raw_text)
+        
+        if len(cleaned.strip()) < 50:
+            logger.debug("Subtitle too short for %s", url)
+            stats["no_subtitles"] += 1
+            stats["errors"].append({"url": url, "channel": channel, "error": "subtitle_too_short"})
+        else:
+            dest_path.write_text(cleaned, encoding="utf-8")
+            update_stats()
+            logger.info("  → %s/%s (%d chars)", channel, slug[:40], len(cleaned))
+    except Exception as e:
+        logger.error("Error processing %s: %s", url, e)
+        stats["errors"].append({"url": url, "channel": channel, "error": str(e)})
+    finally:
+        # Clean up the individual subtitle file
+        if sub_path.exists():
+            sub_path.unlink(missing_ok=True)
 
 
 def _read_urls(path: Path) -> list[str]:
@@ -234,12 +243,16 @@ def run_fetch(args: argparse.Namespace) -> None:
     if args.sync_gdrive:
         sync_from_gdrive(url_file)
 
+    cookies_path = Path(args.cookies)
     config = {
-        "cookies": args.cookies,
+        "cookies": str(cookies_path) if cookies_path.exists() else None,
         "cookies_from_browser": args.cookies_from_browser,
         "user_agent": args.user_agent,
         "node_path": args.node_path
     }
+
+    if not config["cookies"] and not config["cookies_from_browser"]:
+        logger.warning("No cookies provided. Rate limiting or age-restricted content may cause failures.")
 
     urls = _read_urls(url_file)
     if args.max_urls > 0:
@@ -256,13 +269,14 @@ def run_fetch(args: argparse.Namespace) -> None:
         "errors": []
     }
 
-    for i, url in enumerate(urls):
-        logger.info("[%d/%d] Processing %s", i + 1, len(urls), url)
-        process_video(url, output_dir, args.lang, config, stats)
-        if args.rate_limit > 0:
-            time.sleep(args.rate_limit)
-
-    shutil.rmtree(output_dir / ".tmp_subs", ignore_errors=True)
+    try:
+        for i, url in enumerate(urls):
+            logger.info("[%d/%d] Processing %s", i + 1, len(urls), url)
+            process_video(url, output_dir, args.lang, config, stats)
+            if args.rate_limit > 0 and (i + 1) < len(urls):
+                jittered_sleep(args.rate_limit)
+    finally:
+        shutil.rmtree(output_dir / ".tmp_subs", ignore_errors=True)
 
     # Final formatting of durations
     stats["total_duration_hms"] = _format_duration(stats["total_duration"])
@@ -279,11 +293,29 @@ def run_fetch(args: argparse.Namespace) -> None:
     with open(output_dir / "manifest.json", "w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=2)
 
-    logger.info(
-        "Fetch complete: %d/%d fetched (%s), %d no subs, %d no meta, %d channels",
-        stats["fetched"], stats["total_urls"], stats["total_duration_hms"],
-        stats["no_subtitles"], stats["no_metadata"], len(stats["channels"])
-    )
+    logger.info("--- FETCH SUMMARY ---")
+    logger.info("  Total URLs: %d", stats["total_urls"])
+    logger.info("  Fetched:    %d", stats["fetched"])
+    logger.info("  No Subs:    %d", stats["no_subtitles"])
+    logger.info("  No Meta:    %d", stats["no_metadata"])
+    logger.info("  Duration:   %s", stats["total_duration_hms"])
+    logger.info("  Channels:   %d", len(stats["channels"]))
+
+    if stats["errors"]:
+        logger.error("--- ERROR DETAIL ---")
+        for err in stats["errors"][:20]:  # Show first 20 errors
+            logger.error("  %s: %s", err.get("url"), err.get("error"))
+        if len(stats["errors"]) > 20:
+            logger.error("  ... and %d more errors", len(stats["errors"]) - 20)
+
+    if stats["fetched"] > 0:
+        logger.info("")
+        logger.info("--- DATASET READY FOR S3 SYNC ---")
+        logger.info("  Target: s3://pixelated-training-data/transcripts/")
+        logger.info("  Source: %s", output_dir)
+        logger.info("---------------------------------")
+    else:
+        logger.warning("No videos were fetched successfully.")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -297,8 +329,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--user-agent", type=str, 
         default="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
         help="Custom User-Agent.")
-    parser.add_argument("--node_path", type=str, default="/home/vivi/.config/nvm/versions/node/v24.14.1/bin/node",
-        help="Path to node binary.")
+    parser.add_argument("--node_path", type=str, default=None,
+        help="Path to node binary (if required by yt-dlp).")
     parser.add_argument("--rate_limit", type=float, default=2.0, help="Seconds to wait between videos.")
     parser.add_argument("--max_urls", type=int, default=0, help="Max URLs to process.")
     return parser
