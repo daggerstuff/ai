@@ -842,12 +842,12 @@ class ConversationRepository(BaseModelRepository[dict]):
 
                         timestamp = datetime.now(UTC).isoformat()
                         found_placeholders = ",".join("?" for _ in found_ids)
-                        update_sql = f"UPDATE conversations SET deleted_at = ?, updated_at = ? WHERE conversation_id IN ({found_placeholders})"
+                        update_sql = "UPDATE conversations SET deleted_at = ?, updated_at = ? WHERE conversation_id IN (" + found_placeholders + ")"
                         params = [timestamp, timestamp] + found_ids
                         await self.db_manager.execute(update_sql, params)
                     else:
                         found_placeholders = ",".join("?" for _ in found_ids)
-                        delete_sql = f"DELETE FROM conversations WHERE conversation_id IN ({found_placeholders})"
+                        delete_sql = "DELETE FROM conversations WHERE conversation_id IN (" + found_placeholders + ")"
                         await self.db_manager.execute(delete_sql, found_ids)
 
                     success_count += len(found_ids)
