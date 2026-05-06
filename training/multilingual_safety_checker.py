@@ -10,7 +10,10 @@ from __future__ import annotations
 import re
 from typing import ClassVar
 
-from training.clinical_safety_checker import ClinicalSafetyChecker
+try:
+    from .clinical_safety_checker import ClinicalSafetyChecker
+except ModuleNotFoundError:
+    from ai.training.clinical_safety_checker import ClinicalSafetyChecker
 
 
 class MultilingualSafetyChecker(ClinicalSafetyChecker):

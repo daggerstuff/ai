@@ -1,0 +1,22 @@
+{
+  "generated_at": "2026-05-06T13:37:03.289563+00:00",
+  "fetched_at": "2026-05-06T13:37:03.289588+00:00",
+  "source_file": "../test_urls.txt",
+  "language": "en",
+  "stats": {
+    "total_urls": 1,
+    "fetched": 0,
+    "no_subtitles": 1,
+    "no_metadata": 0,
+    "total_duration": 0,
+    "channels": {},
+    "errors": [
+      {
+        "url": "https://www.youtube.com/watch?v=aqz-KE-bpKQ",
+        "channel": "Unknown",
+        "error": "no_subtitles"
+      }
+    ],
+    "total_duration_hms": "00:00:00"
+  }
+}
