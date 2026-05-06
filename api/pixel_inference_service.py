@@ -14,6 +14,7 @@ import json
 import logging
 import os
 import sys
+import re
 import time
 import uuid
 from datetime import UTC, datetime
@@ -42,6 +43,30 @@ initialize_sentry_logging(service_name="pixel-inference-service")
 INFERENCE_LATENCY_WARNING_MS = 200
 EMPATHY_SUPPORT_THRESHOLD = 0.7
 PIXEL_API_DEFAULT_PORT = "8001"
+_THOUGHT_MARKER_RE = re.compile(r"^\s*\[Thought:\s*.*\]\s*$")
+_STOP_TURN_RE = re.compile(r"^\s*\[STOP_TURN\]\s*$")
+_PROMISE_MARKER_RE = re.compile(r"<promise>.*?</promise>", re.IGNORECASE | re.DOTALL)
+
+
+def sanitize_agent_output(raw_text: str | None) -> str:
+    """Strip internal protocol markers intended for agents from user-facing output."""
+    if not raw_text:
+        return ""
+
+    output_lines: list[str] = []
+    for line in raw_text.splitlines():
+        if _THOUGHT_MARKER_RE.match(line):
+            continue
+        if _STOP_TURN_RE.match(line):
+            continue
+        if re.match(r"^\s*[✓✦]", line):
+            continue
+        if "<promise>" in line.lower() and "</promise>" in line.lower():
+            line = _PROMISE_MARKER_RE.sub("", line)
+            if not line.strip():
+                continue
+        output_lines.append(line.rstrip())
+    return "\n".join(output_lines)
 
 # ============================================================================
 # Request/Response Models
@@ -303,7 +328,7 @@ class PixelInferenceEngine:
                 logger.warning(warning)
 
             return PixelInferenceResponse(
-                response=response_text,
+                response=sanitize_agent_output(response_text),
                 inference_time_ms=inference_time,
                 eq_scores=eq_scores if request.use_eq_awareness else None,
                 conversation_metadata=metadata if request.include_metrics else None,
@@ -663,11 +688,19 @@ async def infer_stream(request: PixelInferenceRequest):
             async for item in inference_engine.generate_streaming_response(request):
                 # Check if it's an activity or the final response
                 if isinstance(item, AgentActivity):
+                    item.content = sanitize_agent_output(item.content)
+                    if item.thought:
+                        item.thought = sanitize_agent_output(item.thought)
+                    if item.action:
+                        item.action = sanitize_agent_output(item.action)
+                    if item.observation:
+                        item.observation = sanitize_agent_output(item.observation)
                     yield {
                         "event": "activity",
                         "data": item.json(by_alias=True)
                     }
                 else:
+                    item.response = sanitize_agent_output(item.response)
                     yield {
                         "event": "final_response",
                         "data": item.json(by_alias=True)
