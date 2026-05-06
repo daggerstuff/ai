@@ -166,7 +166,7 @@ RATE_LIMIT_HEADER_RESET=X-RateLimit-Reset    # Reset header name
 # OpenAI Configuration
 OPENAI_API_KEY=sk-your-openai-api-key        # OpenAI API key
 OPENAI_ORG_ID=org-your-organization-id       # OpenAI organization ID
-OPENAI_MODEL=gpt-4                           # Default model
+OPENAI_MODEL=minimaxai/minimax-m2.7             # Default model
 OPENAI_MAX_TOKENS=2048                       # Max tokens per request
 OPENAI_TEMPERATURE=0.7                       # Model temperature
 OPENAI_TIMEOUT=30                            # Request timeout

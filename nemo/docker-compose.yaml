@@ -37,8 +37,8 @@ configs:
         secrets:
           backend: vault
           vault:
-            address: "http://openbao:8200"
-            token: "${VAULT_TOKEN}"
+            address: "${NEMO_VAULT_ADDR:-${VAULT_ADDR:-http://openbao:8200}}"
+            token: "${NEMO_VAULT_TOKEN:-${VAULT_TOKEN:-openbao-dev-token}}"
 
         executors:
           - provider: cpu
@@ -68,8 +68,8 @@ configs:
         secrets:
           backend: vault
           vault:
-            address: "http://openbao:8200"
-            token: "${VAULT_TOKEN}"
+            address: "${NEMO_VAULT_ADDR:-${VAULT_ADDR:-http://openbao:8200}}"
+            token: "${NEMO_VAULT_TOKEN:-${VAULT_TOKEN:-openbao-dev-token}}"
 
       inference_gateway:
         host: "0.0.0.0"
@@ -78,8 +78,8 @@ configs:
         secrets:
           backend: vault
           vault:
-            address: "http://openbao:8200"
-            token: "${VAULT_TOKEN}"
+            address: "${NEMO_VAULT_ADDR:-${VAULT_ADDR:-http://openbao:8200}}"
+            token: "${NEMO_VAULT_TOKEN:-${VAULT_TOKEN:-openbao-dev-token}}"
 
 include:
   # Platform infra
