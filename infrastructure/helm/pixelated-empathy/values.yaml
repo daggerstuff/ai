@@ -42,14 +42,14 @@ ingress:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     kubernetes.io/ingress.class: "traefik"
   hosts:
-    - host: api.pixelated-empathy.ai
-      paths:
-        - path: /
-          pathType: Prefix
+  - host: api.pixelated-empathy.ai
+    paths:
+    - path: /
+      pathType: Prefix
   tls:
-    - secretName: pixelated-empathy-tls
-      hosts:
-        - api.pixelated-empathy.ai
+  - secretName: pixelated-empathy-tls
+    hosts:
+    - api.pixelated-empathy.ai
 
 resources:
   limits:
@@ -108,6 +108,8 @@ redis:
     enabled: true
     password: ""
   master:
+    service:
+      type: ClusterIP
     persistence:
       enabled: true
       size: 20Gi
@@ -118,6 +120,9 @@ redis:
       requests:
         cpu: 500m
         memory: 1Gi
+  replica:
+    service:
+      type: ClusterIP
 
 # Monitoring Configuration
 monitoring:
@@ -154,7 +159,7 @@ app:
     debug: false
     maxWorkers: 4
     batchSize: 100
-    
+
   secrets:
     databaseUrl: ""
     redisUrl: ""

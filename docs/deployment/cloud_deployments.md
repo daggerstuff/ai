@@ -1,22 +1,25 @@
 # Cloud Deployment Guides: Pixelated Empathy AI
 
-**Cloud-specific deployment instructions for AWS, GCP, and Azure.**
+**Cloud-specific deployment instructions.**
+**Active production deployment is now GCP; legacy AWS references are retained below for history only.**
 
 ## Table of Contents
 
-1. [AWS Deployment](#aws-deployment)
+1. [AWS Deployment (Legacy)](#aws-deployment-legacy)
 2. [Google Cloud Platform](#google-cloud-platform)
 3. [Microsoft Azure](#microsoft-azure)
 4. [Multi-Cloud Strategy](#multi-cloud-strategy)
-5. [Cost Optimization](#cost-optimization)
+5. [Cost Optimization](#cost-optimization-strategies)
 
 ---
 
-## AWS Deployment
+## AWS Deployment (Legacy)
+
+> This section reflects historical AWS architecture and is not used in the current repo setup.
 
 ### Architecture Overview
 
-```
+```text
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   CloudFront    │    │   Application   │    │   RDS PostgreSQL│
 │   (CDN/WAF)     │───▶│   Load Balancer │───▶│   (Multi-AZ)    │
@@ -31,7 +34,7 @@
                     │   ElastiCache   │
                     │   (Redis)       │
                     └─────────────────┘
-```
+```text
 
 ### Infrastructure as Code (Terraform)
 
@@ -322,7 +325,7 @@ echo "Health check: curl https://$ALB_URL/health"
 
 ### Architecture Overview
 
-```
+```text
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Cloud CDN     │    │   Load Balancer │    │   Cloud SQL     │
 │   (Global)      │───▶│   (Regional)    │───▶│   (PostgreSQL)  │
@@ -525,7 +528,7 @@ echo "✅ GCP deployment completed!"
 
 ### Architecture Overview
 
-```
+```text
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Front Door    │    │   App Gateway   │    │   PostgreSQL    │
 │   (Global CDN)  │───▶│   (Regional LB) │───▶│   (Flexible)    │

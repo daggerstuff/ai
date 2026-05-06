@@ -11,6 +11,8 @@
 
 ## 🎯 **DEPLOYMENT OVERVIEW**
 
+> This guide is the legacy AWS ECS/Fargate blueprint. Current infrastructure in this repository is maintained under `terraform/gcp`; use that path and Google Cloud deployment docs for active guidance.
+
 ### **Deployment Strategy**
 
 - **Model**: Blue-Green Deployment with Zero Downtime
@@ -129,8 +131,8 @@ infrastructure/
 1. **Infrastructure Provisioning**
 
    ```bash
-   # Navigate to production environment
-   cd infrastructure/environments/production
+   # Navigate to production infrastructure
+   cd terraform/gcp
 
    # Initialize Terraform
    terraform init
