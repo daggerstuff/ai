@@ -67,12 +67,30 @@ def _slugify(text: str) -> str:
     return slug[:120]
 
 
-def _fetch_video_metadata(url: str) -> dict | None:
+def _run_ytdlp(
+    args: list[str], 
+    cookies: str | None = None, 
+    node_path: str | None = None, 
+    timeout: int = 60
+) -> subprocess.CompletedProcess:
+    """Helper to run yt-dlp with common flags."""
+    cmd = ["yt-dlp"] + args
+    if cookies:
+        cmd.extend(["--cookies", cookies])
+    if node_path:
+        cmd.extend(["--js-runtimes", f"node:{node_path}"])
+    
+    return subprocess.run(
+        cmd, capture_output=True, text=True, timeout=timeout
+    )
+
+
+def _fetch_video_metadata(url: str, cookies: str | None = None, node_path: str | None = None) -> dict | None:
     """Get video metadata (channel, title) via yt-dlp --dump-json."""
     try:
-        result = subprocess.run(
-            ["yt-dlp", "--dump-json", "--no-download", "--no-playlist", url],
-            capture_output=True, text=True, timeout=60,
+        result = _run_ytdlp(
+            ["--dump-json", "--no-download", "--no-playlist", url],
+            cookies=cookies, node_path=node_path
         )
         if result.returncode != 0:
             logger.warning("Metadata failed for %s: %s", url, result.stderr[:200])
@@ -89,22 +107,27 @@ def _fetch_video_metadata(url: str) -> dict | None:
         return None
 
 
-def _fetch_subtitles(url: str, output_dir: Path, lang: str = "en") -> Path | None:
+def _fetch_subtitles(
+    url: str, 
+    output_dir: Path, 
+    lang: str = "en", 
+    cookies: str | None = None, 
+    node_path: str | None = None
+) -> Path | None:
     """Download subtitles for a single video. Returns the .vtt/.srt path or None."""
     output_dir.mkdir(parents=True, exist_ok=True)
     try:
-        result = subprocess.run(
+        result = _run_ytdlp(
             [
-                "yt-dlp",
                 "--write-subs", "--write-auto-subs",
                 "--sub-lang", lang,
                 "--skip-download",
                 "--no-playlist",
                 "--sub-format", "vtt/srt",
                 "-o", str(output_dir / "temp"),
-                url,
+                url
             ],
-            capture_output=True, text=True, timeout=120,
+            cookies=cookies, node_path=node_path, timeout=120
         )
         if result.returncode != 0:
             stderr_lower = result.stderr.lower()
@@ -147,6 +170,8 @@ def run_fetch(args: argparse.Namespace) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     lang = args.lang
+    cookies = args.cookies
+    node_path = args.node_path
     rate_limit = args.rate_limit
     max_urls = args.max_urls
 
@@ -168,7 +193,7 @@ def run_fetch(args: argparse.Namespace) -> None:
     for i, url in enumerate(urls):
         logger.info("[%d/%d] Processing %s", i + 1, len(urls), url)
 
-        meta = _fetch_video_metadata(url)
+        meta = _fetch_video_metadata(url, cookies=cookies, node_path=node_path)
         if not meta:
             stats["no_metadata"] += 1
             stats["errors"].append({"url": url, "error": "metadata_failed"})
@@ -201,7 +226,7 @@ def run_fetch(args: argparse.Namespace) -> None:
         temp_dir = output_dir / ".tmp_subs"
         temp_dir.mkdir(parents=True, exist_ok=True)
 
-        sub_path = _fetch_subtitles(url, temp_dir, lang)
+        sub_path = _fetch_subtitles(url, temp_dir, lang, cookies=cookies, node_path=node_path)
         if not sub_path:
             stats["no_subtitles"] += 1
             stats["errors"].append({"url": url, "channel": channel, "error": "no_subtitles"})
@@ -273,6 +298,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--lang", type=str, default="en",
         help="Subtitle language to download (default: en). Comma-separated for multiple.",
+    )
+    parser.add_argument(
+        "--cookies", type=str, default="youtube_cookies.txt",
+        help="Path to yt-dlp cookies file (default: youtube_cookies.txt).",
+    )
+    parser.add_argument(
+        "--node_path", type=str, default="/home/vivi/.config/nvm/versions/node/v24.14.1/bin/node",
+        help="Path to node binary for yt-dlp js-runtimes.",
     )
     parser.add_argument(
         "--rate_limit", type=float, default=2.0,
