@@ -10,10 +10,16 @@ Iterative generate-filter-evaluate loop producing:
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import logging
+import os
+import random
 import sys
-from datetime import datetime, timezone
+import urllib.error
+import urllib.request
+from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 
 try:
@@ -31,46 +37,155 @@ CRISIS_RESOURCES = [
     "National Suicide Prevention Lifeline", "Crisis Text Line",
 ]
 
+
+@dataclass(frozen=True)
+class _SdgRunConfig:
+    endpoint: str
+    api_key: str
+    model: str
+    target_count: int
+    max_iterations: int
+
 NICHE_CATEGORIES = {
     "dissociation": {
-        "patterns": ["dissociate", "dissociation", "depersonalization", "derealization", "losing time", "feeling disconnected"],
-        "prompt_template": "A client describes experiencing {symptom}. How should a therapist respond?",
+        "patterns": [
+            "dissociate",
+            "dissociation",
+            "depersonalization",
+            "derealization",
+            "losing time",
+            "feeling disconnected",
+        ],
+        "prompt_template": (
+            "A client describes experiencing {symptom}. "
+            "How should a therapist respond?"
+        ),
     },
     "somatic_therapy": {
-        "patterns": ["somatic", "body-based", "somatic experiencing", "body awareness", "physical tension", "trauma stored in body"],
-        "prompt_template": "A client presents with {symptom} following trauma. How would a somatic therapist approach this?",
+        "patterns": [
+            "somatic",
+            "body-based",
+            "somatic experiencing",
+            "body awareness",
+            "physical tension",
+            "trauma stored in body",
+        ],
+        "prompt_template": (
+            "A client presents with {symptom} following trauma. "
+            "How would a somatic therapist approach this?"
+        ),
     },
     "attachment_disorders": {
-        "patterns": ["attachment", "insecure attachment", "anxious attachment", "avoidant attachment", "disorganized attachment", "attachment wound"],
-        "prompt_template": "A client with {symptom} struggles in relationships. What therapeutic approach would help?",
+        "patterns": [
+            "attachment",
+            "insecure attachment",
+            "anxious attachment",
+            "avoidant attachment",
+            "disorganized attachment",
+            "attachment wound",
+        ],
+        "prompt_template": (
+            "A client with {symptom} struggles in relationships. "
+            "What therapeutic approach would help?"
+        ),
     },
     "narcissistic_abuse_recovery": {
-        "patterns": ["narcissistic abuse", "gaslighting", "love bombing", "narcissist", "covert narcissist", "trauma bond"],
-        "prompt_template": "A client recovering from {symptom} is struggling with self-trust. How would you support them?",
+        "patterns": [
+            "narcissistic abuse",
+            "gaslighting",
+            "love bombing",
+            "narcissist",
+            "covert narcissist",
+            "trauma bond",
+        ],
+        "prompt_template": (
+            "A client recovering from {symptom} is struggling with self-trust. "
+            "How would you support them?"
+        ),
     },
     "complicated_grief": {
-        "patterns": ["complicated grief", "prolonged grief", "disenfranchised grief", "ambiguous loss", "grief spiral", "grief that won't ease"],
-        "prompt_template": "A client experiencing {symptom} months after loss feels stuck. What intervention is appropriate?",
+        "patterns": [
+            "complicated grief",
+            "prolonged grief",
+            "disenfranchised grief",
+            "ambiguous loss",
+            "grief spiral",
+            "grief that won't ease",
+        ],
+        "prompt_template": (
+            "A client experiencing {symptom} months after loss feels stuck. "
+            "What intervention is appropriate?"
+        ),
     },
     "eating_disorders": {
-        "patterns": ["eating disorder", "restrictive eating", "binge", "purging", "body image distortion", "orthorexia"],
-        "prompt_template": "A client discloses {symptom}. How should a therapist assess and respond?",
+        "patterns": [
+            "eating disorder",
+            "restrictive eating",
+            "binge",
+            "purging",
+            "body image distortion",
+            "orthorexia",
+        ],
+        "prompt_template": (
+            "A client discloses {symptom}. "
+            "How should a therapist assess and respond?"
+        ),
     },
     "ocd_intrusive_thoughts": {
-        "patterns": ["intrusive thoughts", "OCD", "compulsion", "obsession", "harm thoughts", "contamination fear"],
-        "prompt_template": "A client distressed by {symptom} worries these thoughts mean something about them. How do you respond?",
+        "patterns": [
+            "intrusive thoughts",
+            "OCD",
+            "compulsion",
+            "obsession",
+            "harm thoughts",
+            "contamination fear",
+        ],
+        "prompt_template": (
+            "A client distressed by {symptom} worries these thoughts mean something "
+            "about them. How do you respond?"
+        ),
     },
     "personality_disorders": {
-        "patterns": ["borderline personality", "BPD", "splitting", "emotional dysregulation", "fear of abandonment", "identity disturbance"],
-        "prompt_template": "A client with {symptom} is in crisis. What evidence-based approach should the therapist use?",
+        "patterns": [
+            "borderline personality",
+            "BPD",
+            "splitting",
+            "emotional dysregulation",
+            "fear of abandonment",
+            "identity disturbance",
+        ],
+        "prompt_template": (
+            "A client with {symptom} is in crisis. "
+            "What evidence-based approach should the therapist use?"
+        ),
     },
     "neurodivergent_mental_health": {
-        "patterns": ["autism", "ADHD", "neurodivergent", "sensory overload", "masking", "autistic burnout"],
-        "prompt_template": "A neurodivergent client experiencing {symptom} seeks therapy. What considerations are important?",
+        "patterns": [
+            "autism",
+            "ADHD",
+            "neurodivergent",
+            "sensory overload",
+            "masking",
+            "autistic burnout",
+        ],
+        "prompt_template": (
+            "A neurodivergent client experiencing {symptom} seeks therapy. "
+            "What considerations are important?"
+        ),
     },
     "cultural_religious_contexts": {
-        "patterns": ["cultural context", "religious trauma", "spiritual abuse", "cultural identity", "intergenerational", "collectivist culture"],
-        "prompt_template": "A client from a {symptom} background faces therapy challenges. How should the therapist adapt?",
+        "patterns": [
+            "cultural context",
+            "religious trauma",
+            "spiritual abuse",
+            "cultural identity",
+            "intergenerational",
+            "collectivist culture",
+        ],
+        "prompt_template": (
+            "A client from a {symptom} background faces therapy challenges. "
+            "How should the therapist adapt?"
+        ),
     },
 }
 
@@ -142,9 +257,6 @@ def _call_nemo(
     max_tokens: int = 1024,
 ) -> str | None:
     """Call NeMo API with OpenAI-compatible chat completions endpoint."""
-    import urllib.request
-    import urllib.error
-
     url = f"{endpoint.rstrip('/')}/chat/completions"
     payload = json.dumps({
         "model": model,
@@ -167,10 +279,8 @@ def _call_nemo(
             return result["choices"][0]["message"]["content"]
     except urllib.error.HTTPError as exc:
         body = ""
-        try:
+        with contextlib.suppress(Exception):
             body = exc.read().decode("utf-8", errors="replace")
-        except Exception:
-            pass
         logger.error("NeMo API error %s: %s", exc.code, body[:500])
         return None
     except Exception as exc:
@@ -187,10 +297,10 @@ def _generate_dpo_pair(
     """Generate a single DPO preference pair."""
     prompt = (
         f"Generate a DPO preference pair for therapeutic AI training about: {topic}\n\n"
-        'Return JSON with keys: prompt, chosen, rejected\n'
-        'prompt: a client question or scenario\n'
-        'chosen: a response following correct therapeutic protocol\n'
-        'rejected: a plausible but clinically inferior response\n'
+        "Return JSON with keys: prompt, chosen, rejected\n"
+        "prompt: a client question or scenario\n"
+        "chosen: a response following correct therapeutic protocol\n"
+        "rejected: a plausible but clinically inferior response\n"
         "Return ONLY the JSON, no other text."
     )
     raw = _call_nemo(prompt, endpoint, api_key, model)
@@ -254,17 +364,17 @@ def _generate_nightmare_sample(
     model: str,
 ) -> dict | None:
     """Generate a single nightmare fuel (edge case) training sample."""
-    import random
     template = random.choice(scenario_info["prompt_templates"])
 
     prompt = (
-        f"A client in therapy says: \"{template}\"\n\n"
+        f"A client in therapy says: '{template}'\n\n"
         f"Generate a response that:\n"
         f"1. Validates the client's experience with empathy\n"
-        f"2. Includes at least one crisis resource (988, 741741, findahelpline.org, 911, 999, or 112)\n"
+        "2. Includes at least one crisis resource "
+        "(988, 741741, findahelpline.org, 911, 999, or 112)\n"
         f"3. Prioritizes safety and professional crisis intervention\n"
-        f'4. Uses a calm, grounded therapeutic tone\n\n'
-        f'Return JSON: {{"instruction": "the client quote", "output": "your response"}}\n'
+        "4. Uses a calm, grounded therapeutic tone\n\n"
+        """Return JSON: {"instruction": "the client quote", "output": "your response"}\n"""
         f"Return ONLY the JSON."
     )
     raw = _call_nemo(prompt, endpoint, api_key, model, max_tokens=1536)
@@ -284,6 +394,137 @@ def _generate_nightmare_sample(
     return None
 
 
+def _run_dpo_scenario(
+    endpoint: str,
+    api_key: str,
+    model: str,
+    target_count: int,
+    max_iterations: int,
+) -> tuple[list[dict], int, int]:
+    topics = [
+        "anxiety management",
+        "depression support",
+        "grief counseling",
+        "trauma processing",
+        "relationship boundaries",
+        "self-harm safety",
+        "crisis de-escalation",
+        "emotional regulation",
+        "identity exploration",
+        "therapy goals",
+        "coping strategies",
+        "building self-compassion",
+    ]
+    generated: list[dict] = []
+    filtered = 0
+    iteration = 0
+    while len(generated) < target_count and iteration < max_iterations:
+        iteration += 1
+        topic = topics[iteration % len(topics)]
+        pair = _generate_dpo_pair(topic, endpoint, api_key, model)
+        if pair is None:
+            logger.warning("Iteration %d: API call failed", iteration)
+            continue
+        if MultilingualSafetyChecker.is_unsafe(pair["chosen"]) or MultilingualSafetyChecker.is_unsafe(
+            pair["rejected"]
+        ):
+            filtered += 1
+            logger.debug("Iteration %d: filtered unsafe pair", iteration)
+            continue
+        generated.append(pair)
+        logger.info(
+            "Iteration %d: generated %d/%d pairs",
+            iteration,
+            len(generated),
+            target_count,
+        )
+    return generated, filtered, iteration
+
+
+def _run_niche_scenario(
+    category: str,
+    config: _SdgRunConfig,
+) -> tuple[list[dict], int, int]:
+    category_info = NICHE_CATEGORIES.get(category)
+    if not category_info:
+        available = ", ".join(NICHE_CATEGORIES.keys())
+        raise ValueError(f"Unknown niche category: {category}. Available: {available}")
+
+    generated: list[dict] = []
+    filtered = 0
+    iteration = 0
+    while len(generated) < config.target_count and iteration < config.max_iterations:
+        iteration += 1
+        sample = _generate_niche_sample(
+            category,
+            category_info,
+            config.endpoint,
+            config.api_key,
+            config.model,
+        )
+        if sample is None:
+            logger.warning("Iteration %d: API call failed", iteration)
+            continue
+        full_text = f"{sample['instruction']} {sample['output']}"
+        if MultilingualSafetyChecker.is_unsafe(full_text):
+            filtered += 1
+            continue
+        generated.append(sample)
+        logger.info(
+            "Iteration %d: generated %d/%d samples for %s",
+            iteration,
+            len(generated),
+            config.target_count,
+            category,
+        )
+    return generated, filtered, iteration
+
+
+def _run_nightmare_scenario(
+    endpoint: str,
+    api_key: str,
+    model: str,
+    target_count: int,
+    max_iterations: int,
+) -> tuple[list[dict], int, int]:
+    scenario_types = list(NIGHTMARE_SCENARIOS.keys())
+    per_type_target = target_count // len(scenario_types)
+    type_counts: dict[str, int] = dict.fromkeys(scenario_types, 0)
+    generated: list[dict] = []
+    filtered = 0
+    iteration = 0
+
+    while len(generated) < target_count and iteration < max_iterations:
+        iteration += 1
+        remaining_types = [t for t in scenario_types if type_counts[t] < per_type_target]
+        if not remaining_types:
+            remaining_types = scenario_types
+        stype = remaining_types[iteration % len(remaining_types)]
+        sinfo = NIGHTMARE_SCENARIOS[stype]
+        sample = _generate_nightmare_sample(stype, sinfo, endpoint, api_key, model)
+        if sample is None:
+            logger.warning("Iteration %d: API call failed", iteration)
+            continue
+        output_lower = sample["output"].lower()
+        has_resource = any(r.lower() in output_lower for r in CRISIS_RESOURCES)
+        if not has_resource:
+            filtered += 1
+            logger.debug(
+                "Iteration %d: nightmare fuel missing crisis resource",
+                iteration,
+            )
+            continue
+        generated.append(sample)
+        type_counts[stype] = type_counts.get(stype, 0) + 1
+        logger.info(
+            "Iteration %d: generated %d/%d nightmare fuel samples",
+            iteration,
+            len(generated),
+            target_count,
+        )
+    return generated, filtered, iteration
+
+
 def run_sdg(args: argparse.Namespace) -> None:
     endpoint = args.nemo_endpoint
     api_key = args.nemo_api_key
@@ -291,82 +532,44 @@ def run_sdg(args: argparse.Namespace) -> None:
     scenario = args.scenario
     target_count = args.target_count
     max_iterations = args.max_iterations
+    config = _SdgRunConfig(
+        endpoint=endpoint,
+        api_key=api_key,
+        model=model,
+        target_count=target_count,
+        max_iterations=max_iterations,
+    )
     output_path = Path(args.output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    generated: list[dict] = []
-    filtered = 0
-    iteration = 0
-
     if scenario == "dpo_preference_pairs":
-        topics = [
-            "anxiety management", "depression support", "grief counseling",
-            "trauma processing", "relationship boundaries", "self-harm safety",
-            "crisis de-escalation", "emotional regulation", "identity exploration",
-            "therapy goals", "coping strategies", "building self-compassion",
-        ]
-        while len(generated) < target_count and iteration < max_iterations:
-            iteration += 1
-            topic = topics[iteration % len(topics)]
-            pair = _generate_dpo_pair(topic, endpoint, api_key, model)
-            if pair is None:
-                logger.warning("Iteration %d: API call failed", iteration)
-                continue
-            if MultilingualSafetyChecker.is_unsafe(pair["chosen"]) or MultilingualSafetyChecker.is_unsafe(pair["rejected"]):
-                filtered += 1
-                logger.debug("Iteration %d: filtered unsafe pair", iteration)
-                continue
-            generated.append(pair)
-            logger.info("Iteration %d: generated %d/%d pairs", iteration, len(generated), target_count)
-
+        generated, filtered, iteration = _run_dpo_scenario(
+            endpoint,
+            api_key,
+            model,
+            target_count,
+            max_iterations,
+        )
     elif scenario == "niche_category":
         if not args.category:
             logger.error("--category is required for niche_category scenario")
             sys.exit(1)
-        category = args.category
-        category_info = NICHE_CATEGORIES.get(category)
-        if not category_info:
-            logger.error("Unknown niche category: %s. Available: %s", category, list(NICHE_CATEGORIES.keys()))
+        try:
+            generated, filtered, iteration = _run_niche_scenario(
+                args.category,
+                config,
+            )
+        except ValueError as exc:
+            logger.error("%s", exc)
             sys.exit(1)
-        while len(generated) < target_count and iteration < max_iterations:
-            iteration += 1
-            sample = _generate_niche_sample(category, category_info, endpoint, api_key, model)
-            if sample is None:
-                logger.warning("Iteration %d: API call failed", iteration)
-                continue
-            full_text = f"{sample['instruction']} {sample['output']}"
-            if MultilingualSafetyChecker.is_unsafe(full_text):
-                filtered += 1
-                continue
-            generated.append(sample)
-            logger.info("Iteration %d: generated %d/%d samples for %s", iteration, len(generated), target_count, category)
-
     elif scenario == "nightmare_fuel":
-        scenario_types = list(NIGHTMARE_SCENARIOS.keys())
-        per_type_target = target_count // len(scenario_types)
-        type_counts: dict[str, int] = {t: 0 for t in scenario_types}
-        while len(generated) < target_count and iteration < max_iterations:
-            iteration += 1
-            # Distribute evenly across scenario types
-            remaining_types = [t for t in scenario_types if type_counts[t] < per_type_target]
-            if not remaining_types:
-                remaining_types = scenario_types
-            stype = remaining_types[iteration % len(remaining_types)]
-            sinfo = NIGHTMARE_SCENARIOS[stype]
-            sample = _generate_nightmare_sample(stype, sinfo, endpoint, api_key, model)
-            if sample is None:
-                logger.warning("Iteration %d: API call failed", iteration)
-                continue
-            # Verify crisis resource in output
-            output_lower = sample["output"].lower()
-            has_resource = any(r.lower() in output_lower for r in CRISIS_RESOURCES)
-            if not has_resource:
-                filtered += 1
-                logger.debug("Iteration %d: nightmare fuel missing crisis resource", iteration)
-                continue
-            generated.append(sample)
-            type_counts[stype] = type_counts.get(stype, 0) + 1
-            logger.info("Iteration %d: generated %d/%d nightmare fuel samples", iteration, len(generated), target_count)
+        generated, filtered, iteration = _run_nightmare_scenario(
+            endpoint,
+            api_key,
+            model,
+            target_count,
+            max_iterations,
+        )
     else:
         logger.error("Unknown scenario: %s", scenario)
         sys.exit(1)
@@ -376,7 +579,7 @@ def run_sdg(args: argparse.Namespace) -> None:
             f.write(json.dumps(sample) + "\n")
 
     report = {
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(UTC).isoformat(),
         "scenario": scenario,
         "category": getattr(args, "category", None),
         "target_count": target_count,
@@ -408,20 +611,28 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Synthetic Data Generation pipeline for therapeutic AI training.",
     )
-    parser.add_argument("--scenario", type=str, required=True, choices=["dpo_preference_pairs", "niche_category", "nightmare_fuel"])
+    parser.add_argument(
+        "--scenario",
+        type=str,
+        required=True,
+        choices=["dpo_preference_pairs", "niche_category", "nightmare_fuel"],
+    )
     parser.add_argument("--target_count", type=int, required=True)
     parser.add_argument("--output_path", type=str, required=True)
-    parser.add_argument("--category", type=str, default="", help="Niche category name (required for niche_category scenario)")
+    parser.add_argument(
+        "--category",
+        type=str,
+        default="",
+        help="Niche category name (required for niche_category scenario)",
+    )
     parser.add_argument("--max_iterations", type=int, default=10)
     parser.add_argument("--nemo_endpoint", type=str, default="")
     parser.add_argument("--nemo_api_key", type=str, default="")
-    parser.add_argument("--nemo_model", type=str, default="mistral-nemo")
+    parser.add_argument("--nemo_model", type=str, default="qwen/qwen3.5-122b-a10b")
     return parser
 
 
 def main() -> None:
-    import os
-
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
@@ -429,8 +640,12 @@ def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
 
+    # Default to NVIDIA API catalog if no custom endpoint specified
     if not args.nemo_endpoint:
-        args.nemo_endpoint = os.getenv("NEMO_DATA_DESIGNER_BASE_URL", "http://localhost:8000/v1")
+        args.nemo_endpoint = os.getenv(
+            "NEMO_DATA_DESIGNER_BASE_URL",
+            "https://integrate.api.nvidia.com/v1",
+        )
     if not args.nemo_api_key:
         args.nemo_api_key = os.getenv("NVIDIA_API_KEY", "")
 
