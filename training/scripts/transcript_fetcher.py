@@ -1,4 +1,4 @@
-#!/usr/bin/env uv run
+#!/usr/bin/env -S uv run
 """
 YouTube Transcript Fetcher (Phase 2 acquisition step)
 
@@ -18,6 +18,7 @@ import json
 import logging
 import re
 import subprocess
+import shutil
 from pathlib import Path
 
 log = logging.getLogger("transcript_fetcher")
@@ -28,6 +29,27 @@ log.addHandler(handler)
 
 # Regular expression to strip timestamps from .vtt files
 TIMESTAMP_RE = re.compile(r"^\d{2}:\d{2}:\d{2}\.\d{3} --> \d{2}:\d{2}:\d{2}\.\d{3}$")
+
+
+def sync_from_gdrive(playlist_path: Path):
+    """Sync the playlist file from GDrive using rclone."""
+    if not shutil.which("rclone"):
+        log.error("rclone binary not found. GDrive sync skipped.")
+        return
+
+    log.info(f"Syncing playlist from GDrive to {playlist_path}")
+    source = "gdrive:pixelated/.notes/youtube_playlists.txt"
+    # rclone copy source destination_dir
+    try:
+        subprocess.run(
+            ["rclone", "copy", source, str(playlist_path.parent)],
+            check=True,
+            capture_output=True,
+            text=True
+        )
+        log.info("GDrive sync successful.")
+    except subprocess.CalledProcessError as e:
+        log.error(f"GDrive sync failed: {e.stderr.strip()}")
 
 
 def clean_vtt(vtt_path: Path) -> str:
@@ -63,14 +85,14 @@ def download_subtitles(url: str, out_dir: Path, cookies_path: Path | None = None
     cmd = [
         "yt-dlp",
         "--js-runtimes", "node",
-        "--write-auto-sub",
+                "--write-auto-sub",
         "--sub-lang", "en,de",
         "--skip-download",
         "--output", template,
         "--convert-subs", "srt",  # ensure a simple text subtitle format
+        "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
     ]
-    if cookies_path:
-        cmd.extend(["--cookies", str(cookies_path)])
+    cmd.extend(["--cookies-from-browser", "chrome"])
     cmd.append(url)
     log.info(f"Running yt-dlp for {url}")
     result = subprocess.run(cmd, capture_output=True, text=True)
@@ -93,6 +115,11 @@ def main():
         help="Path to file containing YouTube URLs (one per line)",
     )
     parser.add_argument(
+        "--sync-gdrive",
+        action="store_true",
+        help="Sync playlist file from GDrive before processing",
+    )
+    parser.add_argument(
         "--output-dir",
         default=str(Path(__file__).resolve().parents[2] / "training" / "data" / "transcripts"),
         help="Base directory for channel sub‑folders",
@@ -105,14 +132,33 @@ def main():
     args = parser.parse_args()
     playlist_path = Path(args.playlist)
     out_base = Path(args.output_dir)
+
+    if args.sync_gdrive:
+        sync_from_gdrive(playlist_path)
+
     if not playlist_path.is_file():
         log.error(f"Playlist file not found: {playlist_path}")
         return
+
     manifest = {}
-    for line in playlist_path.read_text(encoding="utf-8").splitlines():
+    seen_urls = set()
+    
+    # Read and deduplicate URLs
+    raw_content = playlist_path.read_text(encoding="utf-8")
+    urls = []
+    for line in raw_content.splitlines():
         url = line.strip()
-        if not url:
+        if not url or url.startswith("#"):
             continue
+        if url in seen_urls:
+            log.debug(f"Skipping duplicate URL: {url}")
+            continue
+        seen_urls.add(url)
+        urls.append(url)
+
+    log.info(f"Loaded {len(urls)} unique URLs from {playlist_path}")
+
+    for url in urls:
         try:
             vtt_path = download_subtitles(url, out_base)
             text = clean_vtt(vtt_path)
