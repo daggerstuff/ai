@@ -64,6 +64,18 @@ export HF_TOKEN="your-hf-token"
 huggingface-cli login
 ```
 
+### 5. (Optional) Configure Hermes RL (Tinker-Atropos)
+
+Hermes RL and the `rl_*` tools require:
+
+```bash
+export TINKER_API_KEY="your-tinker-key"
+export WANDB_API_KEY="your-wandb-key"
+export OPENROUTER_API_KEY="your-openrouter-key"
+```
+
+Ensure `tinker-atropos/` exists at the repo root when you are ready to run Hermès RL workflows.
+
 ## Verification
 
 ### Test Torch
@@ -91,6 +103,20 @@ uv run python3 -c "from datasets import load_dataset; print('HF available')"
 python3 -c "import kaggle; print('Kaggle available')"
 ```
 
+### Test Hermes RL Variables
+
+```bash
+python3 - <<'PY'
+import os
+
+required = ["TINKER_API_KEY", "WANDB_API_KEY", "OPENROUTER_API_KEY"]
+missing = [name for name in required if not os.getenv(name)]
+if missing:
+    raise SystemExit(f"Missing variables: {', '.join(missing)}")
+print("Hermes RL variables present")
+PY
+```
+
 ## Environment Variables Summary
 
 ```bash
@@ -104,6 +130,9 @@ export S3_BUCKET="your-bucket-name"
 export KAGGLE_USERNAME="..."
 export KAGGLE_KEY="..."
 export HF_TOKEN="..."
+export TINKER_API_KEY="..."
+export WANDB_API_KEY="..."
+export OPENROUTER_API_KEY="..."
 ```
 
 ## Running Scripts

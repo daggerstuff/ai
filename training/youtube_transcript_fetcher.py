@@ -16,7 +16,7 @@ from urllib.parse import urlparse, parse_qs
 # Try to import youtube-transcript-api
 try:
     from youtube_transcript_api import YouTubeTranscriptApi
-    from youtube_transcript_api._errors import TranscriptsDisabled, NoTranscriptFound, VideoUnavailable
+    from youtube_transcript_api._errors import TranscriptsDisabled, NoTranscriptFound, VideoUnavailable, CouldNotRetrieveTranscript
     YOUTUBE_API_AVAILABLE = True
 except ImportError:
     YOUTUBE_API_AVAILABLE = False
@@ -109,8 +109,22 @@ def fetch_transcript(video_id: str, language_priority: List[str] = None) -> Opti
         language_priority = ['en', 'en-US', 'en-GB', 'de', 'de-DE']
     
     try:
-        # Try to get transcript list first
-        transcript_list = YouTubeTranscriptApi.list(video_id)
+        # Create an instance of the API
+        ytt_api = YouTubeTranscriptApi()
+        
+        # Method 1: Try the simple get_transcript approach first
+        try:
+            transcript_list = ytt_api.get_transcript(video_id, languages=language_priority)
+            # Convert to plain text
+            text = ' '.join([entry['text'] for entry in transcript_list])
+            logger.info(f"Successfully fetched transcript for {video_id} via get_transcript")
+            return text
+        except Exception as e1:
+            logger.debug(f"get_transcript failed for {video_id}: {e1}")
+            # Fall back to list_transcript approach
+            
+        # Method 2: Use list_transcripts for more control
+        transcript_list = ytt_api.list(video_id)
         
         # Try each language in priority order
         for lang in language_priority:
@@ -122,16 +136,9 @@ def fetch_transcript(video_id: str, language_priority: List[str] = None) -> Opti
                 text = ' '.join([entry['text'] for entry in transcript_data])
                 logger.info(f"Successfully fetched transcript for {video_id} ({lang}) via {transcript.type}")
                 return text
-            except:
-                # Try to find any transcript in this language (including auto-generated)
-                try:
-                    transcript = transcript_list.find_transcript([lang])
-                    transcript_data = transcript.fetch()
-                    text = ' '.join([entry['text'] for entry in transcript_data])
-                    logger.info(f"Successfully fetched transcript for {video_id} ({lang}) via {transcript.type}")
-                    return text
-                except:
-                    continue
+            except Exception as e2:
+                logger.debug(f"Failed to get {lang} transcript for {video_id}: {e2}")
+                continue
         
         # If priority languages failed, try to get any available transcript
         try:
@@ -143,9 +150,8 @@ def fetch_transcript(video_id: str, language_priority: List[str] = None) -> Opti
                 text = ' '.join([entry['text'] for entry in transcript_data])
                 logger.info(f"Successfully fetched transcript for {video_id} ({transcript.language_code}) via {transcript.type}")
                 return text
-        except Exception as e:
-            logger.warning(f"No transcripts found for video {video_id}: {e}")
-            return None
+        except Exception as e3:
+            logger.debug(f"No transcripts found for {video_id}: {e3}")
             
     except TranscriptsDisabled:
         logger.warning(f"Transcripts are disabled for video {video_id}")
@@ -156,9 +162,14 @@ def fetch_transcript(video_id: str, language_priority: List[str] = None) -> Opti
     except VideoUnavailable:
         logger.warning(f"Video {video_id} is unavailable")
         return None
+    except CouldNotRetrieveTranscript:
+        logger.warning(f"Could not retrieve transcript for video {video_id}")
+        return None
     except Exception as e:
         logger.warning(f"Error fetching transcript for video {video_id}: {e}")
         return None
+    
+    return None
 
 
 def save_transcript(video_id: str, text: str, output_path: Path) -> bool:
@@ -306,6 +317,7 @@ def main():
     }
     
     manifest_path = output_dir / "manifest.json"
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
     with open(manifest_path, 'w', encoding='utf-8') as f:
         json.dump(manifest, f, indent=2)
     
