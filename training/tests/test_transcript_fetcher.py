@@ -10,11 +10,10 @@ import pytest
 
 from training.transcript_fetcher import (
     _clean_subtitle,
-    _slugify,
     _read_urls,
+    _slugify,
     build_parser,
 )
-
 
 # ---------------------------------------------------------------------------
 # _clean_subtitle

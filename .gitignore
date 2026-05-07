@@ -1,13 +1,16 @@
 # === IDE & EDITORS ===
+.Jules/
 .idea/
 .vscode/
-.Jules/
 
 # === VIRTUAL ENVIRONMENTS ===
 **/.venv/
 **/venv/
+.autoswitch_venv
+.venv
 
 # === PYTHON CACHES & BUILD ===
+**/__pycache__/
 **/*.bin
 **/*.class
 **/*.dll
@@ -22,7 +25,6 @@
 **/.mypy_cache/
 **/.pytest_cache/
 **/.ruff_cache/
-**/__pycache__/
 **/build/
 **/coverage/
 **/doc/_build/
@@ -34,19 +36,16 @@
 **/node_modules/
 
 # === DATABASES & LOGS ===
-**/*.log
-**/logs/**/*.jsonl
-**/logs/**/*.log
 *.db
 *.duckdb
 *.mdb
 *.sqlite
 *.sqlite3
+**/*.log
+**/logs/**/*.jsonl
+**/logs/**/*.log
 
 # === ARCHIVES, MEDIA & BINARIES ===
-**/archive/**/*.tar.gz
-**/archive/**/*.zip
-**/archive/legacy-models/**/*
 *.backup
 *.bak
 *.old
@@ -55,11 +54,14 @@
 *.tar.gz
 *.tgz
 *.zip
+**/archive/**/*.tar.gz
+**/archive/**/*.zip
+**/archive/legacy-models/**/*
 
 # === ML, AI & DATA ===
-**/*.ipynb
 **/.ipynb_checkpoints/
-**/compiled_dataset/**
+**/*.ipynb
+**/compiled_dataset/
 **/data/**/original/**
 **/data/**/raw/**
 **/data/**/source/**
@@ -80,8 +82,8 @@ infrastructure/production/models/*
 pipelines/*/output/
 
 # === SECRETS & ENVIRONMENT ===
-**/.aws/config
 **/.aws/credentials
+**/.aws/config
 **/.azure/credentials
 **/.env
 **/.env.*
@@ -106,15 +108,16 @@ pipelines/*/output/
 **/secrets.yml
 **/service-account*.json
 **/token*.json
+*.env
 helm/pixelated-empathy/**/credentials.yaml
 helm/pixelated-empathy/**/secrets.yaml
 helm/pixelated-empathy/templates/*-secret.yaml
-*.env
 
 # === TERRAFORM, INFRA & CLOUD ===
 **/docker/.env
 **/docker/.image/
 **/docker/build/
+config/production/enterprise_config/*.json
 config/production/enterprise_config/*.py
 config/production/enterprise_config/*.yaml
 config/production/production_config/*.json
@@ -133,58 +136,52 @@ infrastructure/qa/reports/**
 infrastructure/qa/validation_results/**
 
 # === TEMP & CACHES ===
+.cache/
 **/.cache/
 **/cache/
 **/mcp_server/tmp/
 **/temp/
 **/tmp/
-.cache/
 .temp/
 .tmp/
 
 # === PROJECT SPECIFIC & MISC ===
-**/mcp_server/sessions/
-**/site/
 .ash_history
 .bash_history
 .history
 .ssh/
 .viminfo
 .zsh_history
+AGENTS.md
 codemap.md
 data/
 datasets/
 compiled_dataset/
-# Training: track source code, ignore data/artifacts
-training/data/
+lightning/
+.moderne/
+training/
+training/.cache/
 training/compiled_dataset/
+training/data/
 training/*.jsonl
 training/**/*.jsonl
 training/lightning/
-training/.cache/
-# Do NOT ignore training/*.py or training/tests/ — those are source code
-training_ready/
 training_data/
 training_data_consolidated/
+training_ready/
+**/mcp_server/sessions/
+**/site/
+# Training: track source code, ignore data/artifacts
+!training_corpus/*.py
+!training_corpus/**/*.py
+# But ignore built corpus data and assets
+training_corpus/
+training_corpus/assets/
+docs/training/ENV_QUICKSTART.md
+docs/training/HERMES_RL_SETUP.md
+docs/training/ENV_QUICKSTART.md
 
 # === SECURITY: never commit generated security configs with real keys ===
 config/emergency_security_config.json
 *.jsonl
 **/AGENTS.md
-AGENTS.md
-.autoswitch_venv
-.venv
-ARCHITECTURE.md
-.Jules/
-lightning/
-.moderne/
-
-# Track training_corpus code, not data
-!training_corpus/*.py
-!training_corpus/**/*.py
-# But ignore built corpus data and assets
-training_corpus/assets/
-training_corpus/
-docs/training/HERMES_RL_SETUP.md
-docs/training/ENV_QUICKSTART.md
-docs/training/ENV_QUICKSTART.md

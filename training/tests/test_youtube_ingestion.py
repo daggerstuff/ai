@@ -15,6 +15,7 @@ except ImportError:
     settings = None
     st = None
 
+from training.multilingual_safety_checker import MultilingualSafetyChecker
 from training.youtube_ingestion import (
     GERMAN_CHANNELS,
     _content_hash,
@@ -23,8 +24,6 @@ from training.youtube_ingestion import (
     _transcript_to_pairs,
     ingest_channel,
 )
-from training.multilingual_safety_checker import MultilingualSafetyChecker
-
 
 # ---------------------------------------------------------------------------
 # Unit tests — language tagging

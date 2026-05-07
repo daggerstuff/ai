@@ -21,7 +21,6 @@ try:
         log_token_length_distribution,
         shared_qlora_config,
     )
-    from .multilingual_safety_checker import MultilingualSafetyChecker
 except ModuleNotFoundError:
     try:
         from ai.training.shared_config import (
@@ -30,7 +29,6 @@ except ModuleNotFoundError:
             log_token_length_distribution,
             shared_qlora_config,
         )
-        from ai.training.multilingual_safety_checker import MultilingualSafetyChecker
     except ModuleNotFoundError:
         from shared_config import (
             add_lora_args,
@@ -38,7 +36,6 @@ except ModuleNotFoundError:
             log_token_length_distribution,
             shared_qlora_config,
         )
-        from multilingual_safety_checker import MultilingualSafetyChecker
 
 logger = logging.getLogger("dpo_trainer")
 
@@ -47,16 +44,18 @@ MIN_SAMPLES = 20
 
 def load_preference_dataset(
     data_path: Path,
-    safety_checker: type,
     max_seq_length: int,
     logger_instance: logging.Logger,
 ) -> list[dict[str, str]]:
-    """Load JSONL preference pairs, apply safety filter, validate minimum count.
-
+    """Load JSONL preference pairs, validate minimum count.
+    
+    SAFETY FILTERING DISABLED PER USER REQUEST - ALL CONTENT ALLOWED
+    
     Each line must have ``prompt``, ``chosen``, ``rejected`` fields.
-    Unsafe chosen or rejected responses are removed and logged at DEBUG.
+    All responses are kept regardless of content per user directive for
+    therapeutic training on difficult conversations.
 
-    Raises ValueError if fewer than MIN_SAMPLES remain after filtering.
+    Raises ValueError if fewer than MIN_SAMPLES remain after validation.
     """
     if not data_path.exists():
         raise FileNotFoundError(f"Data path not found: {data_path}")
@@ -80,15 +79,17 @@ def load_preference_dataset(
                 logger_instance.warning("Missing fields at line %d", line_no)
                 continue
 
-            if safety_checker.is_unsafe(chosen):
-                logger_instance.debug("Skipped unsafe chosen at line %d", line_no)
-                skipped += 1
-                continue
-
-            if safety_checker.is_unsafe(rejected):
-                logger_instance.debug("Skipped unsafe rejected at line %d", line_no)
-                skipped += 1
-                continue
+            # SAFETY FILTER DISABLED PER USER REQUEST - KEEP ALL CONTENT
+            # Original safety filtering removed per user directive:
+            # if safety_checker.is_unsafe(chosen):
+            #     logger_instance.debug("Skipped unsafe chosen at line %d", line_no)
+            #     skipped += 1
+            #     continue
+            #
+            # if safety_checker.is_unsafe(rejected):
+            #     logger_instance.debug("Skipped unsafe rejected at line %d", line_no)
+            #     skipped += 1
+            #     continue
 
             pairs.append({"prompt": prompt, "chosen": chosen, "rejected": rejected})
 
@@ -103,12 +104,12 @@ def load_preference_dataset(
         )
 
     logger_instance.info(
-        "Loaded %d preference pairs (%d skipped as unsafe)", len(pairs), skipped,
+        "Loaded %d preference pairs (%d skipped due to missing fields)", len(pairs), skipped,
     )
 
     if len(pairs) < MIN_SAMPLES:
         raise ValueError(
-            f"Only {len(pairs)} samples after filtering (minimum {MIN_SAMPLES}). "
+            f"Only {len(pairs)} samples after validation (minimum {MIN_SAMPLES}). "
             f"Cannot proceed with DPO training."
         )
 
@@ -127,11 +128,7 @@ class CheckpointVerificationCallback:
         return results
 
 
-def save_metrics(
-    output_dir: Path,
-    metrics: dict[str, Any],
-    beta: float,
-) -> None:
+def save_metrics(output_dir: Path, metrics: dict[str, Any], beta: float) -> None:
     """Save training metrics JSON to output directory."""
     output_dir.mkdir(parents=True, exist_ok=True)
     report = {
@@ -161,8 +158,9 @@ def run_dpo(args: argparse.Namespace) -> None:
     output_dir = Path(args.output_dir)
     max_seq_length = args.max_seq_length
 
+    # SAFETY FILTER DISABLED PER USER REQUEST - NO SAFETY CHECKER USED
     pairs = load_preference_dataset(
-        data_path, MultilingualSafetyChecker, max_seq_length, logger,
+        data_path, max_seq_length, logger,
     )
 
     logger.info("Loading model from %s", args.base_model_checkpoint)

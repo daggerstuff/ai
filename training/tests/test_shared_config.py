@@ -1,10 +1,10 @@
 import argparse
+import statistics
 from dataclasses import dataclass
 from types import SimpleNamespace
 
-import statistics
-
 import pytest
+
 try:
     from hypothesis import given, settings, strategies as st
 except ImportError:  # pragma: no cover - optional in minimal envs
@@ -18,9 +18,8 @@ from training.shared_config import (
     count_truncated,
     log_token_length_distribution,
     shared_qlora_config,
+    torch,
 )
-
-from training.shared_config import torch
 
 
 @dataclass

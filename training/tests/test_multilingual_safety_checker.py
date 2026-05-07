@@ -6,6 +6,7 @@ import inspect
 import re
 
 import pytest
+
 try:
     from hypothesis import given, strategies as st
 except ImportError:  # pragma: no cover
@@ -14,7 +15,6 @@ except ImportError:  # pragma: no cover
 
 from training.clinical_safety_checker import ClinicalSafetyChecker
 from training.multilingual_safety_checker import MultilingualSafetyChecker
-
 
 # ---------------------------------------------------------------------------
 # Interface & metadata tests

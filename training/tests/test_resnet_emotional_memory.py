@@ -18,9 +18,9 @@ import torch.nn as nn
 from training.models.base.resnet_emotional_memory import (
     EmotionalMemoryPool,
     HumanContextLayer,
+    ResidualBlock,
     ResNetEmotionalMemory,
     ResNetEmotionalMemoryConfig,
-    ResidualBlock,
     StochasticDepth,
     create_resnet_emotional_memory,
 )
