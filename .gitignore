@@ -185,3 +185,5 @@ lightning/
 # But ignore built corpus data and assets
 training_corpus/assets/
 training_corpus/
+docs/training/HERMES_RL_SETUP.md
+docs/training/ENV_QUICKSTART.md

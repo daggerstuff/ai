@@ -241,6 +241,7 @@ See `experimental/UPGRADE_OPPORTUNITIES.md` for:
 - **Training Manifest**: `TRAINING_MANIFEST.json`
 - **Training Plan**: `TRAINING_PLAN.md`
 - **Upgrade Opportunities**: `experimental/UPGRADE_OPPORTUNITIES.md`
+- **Hermes RL Setup**: `HERMES_RL_SETUP.md`
 - **Stage Configuration**: `../dataset_pipeline/configs/stages.py`
 - **Master Plan**: `../../.notes/pixel/pixel_master_plan-V3.md`
 
