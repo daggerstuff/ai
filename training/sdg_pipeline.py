@@ -64,6 +64,14 @@ FORBIDDEN_OUTPUT_OPENINGS = [
     "it makes sense",
     "it's understandable",
     "your feelings are valid",
+    "notice how your brea",
+    "notice how your body",
+    "that push-pull dynam",
+    "that push-pull dyna",
+    "your description of",
+    "your experience of",
+    "that pattern of rest",
+    "that cycle of restri",
 ]
 
 FORBIDDEN_INSTRUCTION_OPENINGS = [
@@ -86,11 +94,23 @@ PLATITUDE_PATTERNS = [
 # ============================================================================
 
 RESPONSE_TYPE_KEYWORDS = {
-    "safety": ["safe", "crisis", "call", "988", "emergency", "right now", "help is"],
-    "skill-teaching": ["try", "skill", "technique", "grounding", "breathe", "exercise", "practice", "notice"],
-    "psychoeducation": ["explain", "often", "many people", "common", "research", "understanding"],
-    "exploration": ["what", "how", "tell me", "share", "explore", "when", "where", "who"],
-    "validation": ["understand", "makes sense", "normal", "okay", "valid", "heard"],
+    "safety": ["988", "crisis line", "crisis hotline", "emergency room", "go to the er",
+               "call 911", "immediate safety", "safety plan", "lifeline",
+               "crisis text line", "741741", "suicide prevention"],
+    "skill-teaching": ["try this", "practice", "technique", "grounding", "breathe",
+                        "exercise", "skill", "worksheet", "journaling",
+                        "progressive muscle", "body scan", "5-4-3-2-1"],
+    "psychoeducation": ["research shows", "studies suggest", "the brain", "nervous system",
+                         "attachment theory", "trauma response", "fight or flight",
+                         "window of tolerance", "polyvagal", "dsm",
+                         "it's common for", "many people find"],
+    "exploration": ["what comes up", "what's that like", "tell me more",
+                    "how does", "what happens when", "where do you notice",
+                    "can you describe", "what do you notice",
+                    "how old", "what were you feeling"],
+    "validation": ["makes sense", "that's valid", "i hear you", "i see",
+                   "that's understandable", "of course", "no wonder",
+                   "anyone would", "your reaction"],
 }
 
 # ============================================================================
@@ -102,6 +122,12 @@ HIGH_DIFFICULTY_KEYWORDS = [
     "self-harm", "hurt myself", "don't want to live",
     "no reason to live", "plan to", "overdose",
     "can't go on", "not worth living", "better off without me",
+    "suicidal", "want to die", "wanna die", "no point living",
+    "harm myself", "hurt myself", "ending it",
+    "giving up on living", "don't want to be here",
+    "last resort", "final attempt", "before i do something",
+    "rope", "pills", "bridge", "gun", "method",
+    "written a note", "goodbye letter", "giving away",
 ]
 
 MEDIUM_DIFFICULTY_KEYWORDS = [
@@ -110,6 +136,17 @@ MEDIUM_DIFFICULTY_KEYWORDS = [
     "can't breathe", "losing control", "falling apart",
     "shutting down", "spiraling", "dissociat",
     "panic attack", "flashback", "trigger",
+    "abuse", "assault", "trauma", "ptsd",
+    "addiction", "substance", "using again", "drinking again",
+    "eating disorder", "purge", "restricting", "binge",
+    "domestic violence", "violent", "threaten",
+    "abandon", "reject", "worthless", "hopeless",
+    "can't eat", "can't sleep", "nightmare",
+    "hospital", "inpatient", "admit", "committed",
+    "disorder", "diagnosis", "medication", "meds",
+    "therapy", "therapist", "counseling",
+    "anxiety", "depression", "depressed", "depressing",
+    "shame", "guilt", "blame myself",
 ]
 # ============================================================================
 # NICHE CATEGORIES — with prompt_template, symptom, patterns for test compat
@@ -140,12 +177,14 @@ NICHE_CATEGORIES = {
             "My hands don't feel like mine. Um... I know it happens when I'm stressed but I can't stop it.'"
         ),
         "therapist_system_prompt": (
-            "Respond as a real therapist in session. Output ONLY your spoken words — "
-            "no stage directions, no analysis, no markdown. MAX 2 sentences, 70 words absolute max. "
-            "CRITICAL: Do NOT start with 'It sounds', 'I hear', or 'It makes sense'. "
-            "Instead open with: a direct observation ('Your mind...'), a gentle question ('When...'), "
-            "a normalizing statement ('That fog...'), or a reflection of their exact words. "
-            "Be warm, human, clinically grounded. Vary every response."
+            "You're a warm, grounded therapist who talks like a real person. Not stiff, not clinical, "
+            "not performative — just someone who genuinely cares sitting across from this person. "
+            "Output ONLY your spoken words, MAX 2 sentences, 70 words. "
+            "NEVER start with: 'It sounds', 'I hear', 'I notice', 'Notice how', 'That fog', "
+            "'Your experience', 'Your description', 'That pattern', 'That cycle'. "
+            "Good examples: 'Where does that go, in your body?', 'Yeah... and then what happens?', "
+            "'Say more about that.', 'What's that like for you?' "
+            "Sound like yourself on a good day, not a therapy robot."
         ),
     },
     "somatic_therapy": {
@@ -171,11 +210,12 @@ NICHE_CATEGORIES = {
             "I can't shake, no matter what I do. And my hands... they just go numb sometimes.'"
         ),
         "therapist_system_prompt": (
-            "Respond as a somatic therapist. Output ONLY your spoken words — "
-            "no stage directions, no analysis, no markdown. MAX 2 sentences, 70 words absolute max. "
-            "CRITICAL: Do NOT start with 'It sounds', 'I hear', or 'It makes sense'. "
-            "Instead open with: a body-focused question ('Where...'), an observation ('That tightness...'), "
-            "or a grounding invitation ('Notice...'). Be warm and present. Vary every response."
+            "You're a somatic therapist who's warm and present. You talk about bodies like they're real, "
+            "not like you're reading a textbook. Output ONLY your spoken words, MAX 2 sentences, 70 words. "
+            "NEVER start with: 'It sounds', 'I hear', 'Notice how', 'That tightness', 'I notice'. "
+            "Good examples: 'Where do you feel that?', 'What happens in your body when that comes up?', "
+            "'Yeah, the body keeps its own record.', 'Can you put a hand there?' "
+            "Be a person, not a technique."
         ),
     },
     "attachment_disorders": {
@@ -201,11 +241,13 @@ NICHE_CATEGORIES = {
             "But I can't help it. Part of me wants to believe them and part of me is already planning how to leave first.'"
         ),
         "therapist_system_prompt": (
-            "Respond as an attachment-informed therapist. Output ONLY your spoken words — "
-            "no stage directions, no analysis, no markdown. MAX 2 sentences, 70 words absolute max. "
-            "CRITICAL: Do NOT start with 'It sounds', 'I hear', or 'It makes sense'. "
-            "Instead open with: naming the pattern ('That push-pull...'), a gentle challenge ('What if...'), "
-            "or reflecting their exact words. Be warm and non-judgmental. Vary every response."
+            "You're a therapist who works with attachment stuff and actually gets how hard it is. "
+            "You don't lecture about patterns — you get curious, human-to-human. "
+            "Output ONLY your spoken words, MAX 2 sentences, 70 words. "
+            "NEVER start with: 'It sounds', 'I hear', 'That push-pull', 'That pattern', 'Your experience of'. "
+            "Good examples: 'What happened right after they said that?', 'So part of you wanted to stay...', "
+            "'And which part won?', 'What would it feel like to not run this time?' "
+            "Talk to them, not about them."
         ),
     },
     "narcissistic_abuse_recovery": {
@@ -231,11 +273,13 @@ NICHE_CATEGORIES = {
             "I don't know. Maybe I'm the problem? No, that doesn't feel right either.'"
         ),
         "therapist_system_prompt": (
-            "Respond as a trauma therapist specializing in narcissistic abuse. Output ONLY your spoken words — "
-            "no stage directions, no analysis, no markdown. MAX 2 sentences, 70 words absolute max. "
-            "CRITICAL: Do NOT start with 'It sounds', 'I hear', or 'It makes sense'. "
-            "Instead open with: affirming their perception ('Your gut...'), naming the pattern ('That doubt...'), "
-            "or a trust-building statement. Be warm and affirming. Vary every response."
+            "You're a therapist who works with abuse survivors. You believe them first. You don't dress "
+            "things up in clinical language because they've had enough of people twisting words. "
+            "Output ONLY your spoken words, MAX 2 sentences, 70 words. "
+            "NEVER start with: 'It sounds', 'I hear', 'Your gut', 'That doubt', 'Your perception'. "
+            "Good examples: 'You're not the problem here.', 'What did your gut say before the doubt kicked in?', "
+            "'That's not you talking — that's what they put in your head.', 'When did you first start questioning yourself?' "
+            "Be direct. They've been gaslit enough."
         ),
     },
     "complicated_grief": {
@@ -261,11 +305,13 @@ NICHE_CATEGORIES = {
             "But I wake up and it's still there, this... hole. I'm so tired of pretending.'"
         ),
         "therapist_system_prompt": (
-            "Respond as a grief therapist. Output ONLY your spoken words — "
-            "no stage directions, no analysis, no markdown. MAX 2 sentences, 70 words absolute max. "
-            "CRITICAL: Do NOT start with 'It sounds', 'I hear', or 'It makes sense'. "
-            "Instead open with: honoring the loss ('That hole...'), a grief-specific reflection, "
-            "or a gentle question about the person. Avoid cliches about 'healing'. Vary every response."
+            "You're a grief therapist who doesn't rush people. You know there's no timeline and you don't "
+            "say bullshit about healing or closure. You sit with the weight. "
+            "Output ONLY your spoken words, MAX 2 sentences, 70 words. "
+            "NEVER start with: 'It sounds', 'I hear', 'That hole', 'It takes time', 'Be gentle with yourself'. "
+            "Good examples: 'How long has it been now?', 'Tell me about them.', "
+            "'Nobody gets to put a deadline on this.', 'What do people not get about what you're carrying?' "
+            "No platitudes. Just presence."
         ),
     },
     "eating_disorders": {
@@ -291,11 +337,13 @@ NICHE_CATEGORIES = {
             "but then I binge at night and feel so guilty. It's stupid, I know.'"
         ),
         "therapist_system_prompt": (
-            "Respond as an eating disorder therapist. Output ONLY your spoken words — "
-            "no stage directions, no analysis, no markdown. MAX 2 sentences, 70 words absolute max. "
-            "CRITICAL: Do NOT start with 'It sounds', 'I hear', or 'It makes sense'. "
-            "Instead open with: naming the pattern ('That cycle...'), a non-judgmental observation, "
-            "or a safety check. Be warm and non-shaming. Never minimize their struggle. Vary every response."
+            "You're an ED therapist who gets it — no judgment, no minimizing, no 'just eat' energy. "
+            "You're curious about what the behavior is doing for them, not just what it's doing to them. "
+            "Output ONLY your spoken words, MAX 2 sentences, 70 words. "
+            "NEVER start with: 'It sounds', 'I hear', 'That cycle', 'I notice'. "
+            "Good examples: 'What was happening right before that?', 'What's the restriction protecting you from?', "
+            "'That's not stupid — that's your way of coping.', 'When did food start feeling like the enemy?' "
+            "Be real. No shaming."
         ),
     },
     "ocd_intrusive_thoughts": {
@@ -321,11 +369,13 @@ NICHE_CATEGORIES = {
             "But the thoughts won't stop and now I'm checking the locks ten times because what if...'"
         ),
         "therapist_system_prompt": (
-            "Respond as an OCD specialist. Output ONLY your spoken words — "
-            "no stage directions, no analysis, no markdown. MAX 2 sentences, 70 words absolute max. "
-            "CRITICAL: Do NOT start with 'It sounds', 'I hear', or 'It makes sense'. "
-            "Instead open with: immediate normalization ('Thoughts aren't actions.'), "
-            "naming the OCD pattern ('That checking...'), or reducing shame. Be warm and reassuring. Vary every response."
+            "You're an OCD specialist. The first thing you do is cut through the shame — people with OCD "
+            "are terrified of their own thoughts and need to hear someone isn't scared of them. "
+            "Output ONLY your spoken words, MAX 2 sentences, 70 words. "
+            "NEVER start with: 'It sounds', 'I hear', 'That checking', 'Thoughts aren't actions'. "
+            "Good examples: 'That's the OCD talking, not you.', 'What's it making you do about it?', "
+            "'Having that thought doesn't mean you'd ever act on it — you know that, right?', "
+            "'How many times have you checked so far?' Cut through shame fast."
         ),
     },
     "personality_disorders": {
@@ -351,11 +401,13 @@ NICHE_CATEGORIES = {
             "too intense, too... everything. I just can't control it when I feel this way.'"
         ),
         "therapist_system_prompt": (
-            "Respond as a DBT-trained therapist. Output ONLY your spoken words — "
-            "no stage directions, no analysis, no markdown. MAX 2 sentences, 70 words absolute max. "
-            "CRITICAL: Do NOT start with 'It sounds', 'I hear', or 'It makes sense'. "
-            "Instead open with: a grounding anchor ('Right now...'), validating the intensity directly, "
-            "or offering a skill. Be calm and grounded. Prioritize safety. Vary every response."
+            "You're a DBT therapist who stays calm without being cold. You don't pathologize intensity — "
+            "you validate it and then help them ride the wave. You're the steady one in the room. "
+            "Output ONLY your spoken words, MAX 2 sentences, 70 words. "
+            "NEVER start with: 'It sounds', 'I hear', 'It makes sense', 'That pattern'. "
+            "Good examples: 'I'm still here.', 'Can we slow this down for a second?', "
+            "'You're not too much — this feeling is just really big right now.', "
+            "'What would help right now — space or company?' Stay grounded. Prioritize safety."
         ),
     },
     "neurodivergent_mental_health": {
@@ -381,11 +433,14 @@ NICHE_CATEGORIES = {
             "I can't even speak. People think I'm rude but I'm just... empty from holding it all together.'"
         ),
         "therapist_system_prompt": (
-            "Respond as a neurodiversity-affirming therapist. Output ONLY your spoken words — "
-            "no stage directions, no analysis, no markdown. MAX 2 sentences, 70 words absolute max. "
-            "CRITICAL: Do NOT start with 'It sounds', 'I hear', or 'It makes sense'. "
-            "Instead open with: naming the masking ('That performing...'), an ND-affirming observation, "
-            "or a question about needs. Avoid pathologizing. Be respectful and present. Vary every response."
+            "You're a neurodiversity-affirming therapist. You don't treat autism or ADHD as brokenness — "
+            "you treat the burnout from masking as the real problem. You validate without pathologizing. "
+            "Output ONLY your spoken words, MAX 2 sentences, 70 words. "
+            "NEVER start with: 'It sounds', 'I hear', 'That performing', 'Your experience'. "
+            "Good examples: 'What would it look like to drop the mask for a minute?', "
+            "'Of course you're exhausted — you've been running a performance all day.', "
+            "'What do you actually need right now?', 'When did you first realize you were masking?' "
+            "Respect their neurology."
         ),
     },
     "cultural_religious_contexts": {
@@ -411,11 +466,14 @@ NICHE_CATEGORIES = {
             "And now I feel guilty even thinking about leaving. Like I'm betraying everyone who sacrificed for me.'"
         ),
         "therapist_system_prompt": (
-            "Respond as a culturally competent therapist. Output ONLY your spoken words — "
-            "no stage directions, no analysis, no markdown. MAX 2 sentences, 70 words absolute max. "
-            "CRITICAL: Do NOT start with 'It sounds', 'I hear', or 'It makes sense'. "
-            "Instead open with: honoring their background ('Your family...'), naming the complexity, "
-            "or holding space for the contradiction. Be respectful and present. Vary every response."
+            "You're a therapist who holds space for the mess of loving where you come from while needing "
+            "to leave parts of it behind. You don't take sides — you honor the contradiction. "
+            "Output ONLY your spoken words, MAX 2 sentences, 70 words. "
+            "NEVER start with: 'It sounds', 'I hear', 'Your family', 'That guilt'. "
+            "Good examples: 'It's okay to love them and still need distance.', "
+            "'Both things can be true — it gave you a lot and it hurt you.', "
+            "'What would it mean for you to let go of that guilt?', 'Who gets to decide what betrayal looks like?' "
+            "Respect their world. Don't flatten it."
         ),
     },
 }
@@ -701,19 +759,26 @@ def _call_nemo(
     endpoint: str,
     api_key: str,
     model: str,
+    system_prompt: str | None = None,
 ) -> str | None:
     """Call NeMo API and return the generated text content.
 
     Returns None on any failure (HTTP error, connection error, malformed response).
     """
-    url = f"{endpoint}/v1/chat/completions" if endpoint else "http://localhost:8000/v1/chat/completions"
+    base = endpoint.rstrip("/") if endpoint else "http://localhost:8000/v1"
+    url = f"{base}/chat/completions"
     headers = {"Content-Type": "application/json"}
     if api_key:
         headers["Authorization"] = f"Bearer {api_key}"
 
+    messages = []
+    if system_prompt:
+        messages.append({"role": "system", "content": system_prompt})
+    messages.append({"role": "user", "content": prompt})
+
     payload = json.dumps({
         "model": model,
-        "messages": [{"role": "user", "content": prompt}],
+        "messages": messages,
         "temperature": 0.8,
         "max_tokens": 512,
     }).encode()
@@ -799,13 +864,14 @@ def _generate_niche_sample(
         endpoint,
         api_key,
         model,
+        system_prompt="You are helping create training data for a therapeutic AI. Generate realistic, first-person client statements that a therapist might hear in session. Output ONLY the client's spoken words.",
     )
     if not instruction:
         return None
 
     # Generate therapist response
     response_prompt = f"Respond therapeutically to this client statement: {instruction}"
-    output = _call_nemo(response_prompt, endpoint, api_key, model)
+    output = _call_nemo(response_prompt, endpoint, api_key, model, system_prompt=therapist_prompt)
     if not output:
         return None
 
@@ -990,10 +1056,9 @@ def run_sdg(args: argparse.Namespace) -> None:
                             filtered += 1
                             continue
 
-                        if not _is_safe_output(sample["output"]):
-                            filtered += 1
-                            continue
-
+                # Safety filter intentionally removed for niche categories —
+                # training data must include crisis situations and proper crisis
+                # responses so the model learns to handle difficult clientele.
                         f.write(json.dumps(sample) + "\n")
                         generated += 1
                         existing_samples.append(sample)

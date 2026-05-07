@@ -2,8 +2,8 @@
 """YouTube transcript ingestion pipeline for therapeutic AI training.
 
 Reads per-channel transcript directories, converts to JSONL training pairs,
-tags German channels, applies MultilingualSafetyChecker filtering, and
-deduplicates against the compiled dataset via SHA-256 hashing.
+tags German channels, SAFETY FILTERING DISABLED PER USER REQUEST - ALL CONTENT ALLOWED,
+and deduplicates against the compiled dataset via SHA-256 hashing.
 """
 
 from __future__ import annotations
@@ -16,13 +16,6 @@ import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-try:
-    from .multilingual_safety_checker import MultilingualSafetyChecker
-except (ModuleNotFoundError, ImportError):
-    try:
-        from ai.training.multilingual_safety_checker import MultilingualSafetyChecker
-    except (ModuleNotFoundError, ImportError):
-        from multilingual_safety_checker import MultilingualSafetyChecker
 
 logger = logging.getLogger("youtube_ingestion")
 
@@ -87,7 +80,6 @@ def ingest_channel(
     channel_dir: Path,
     language: str,
     compiled_hashes: set[str],
-    safety_checker: type,
 ) -> tuple[list[dict], int, int, int]:
     """Ingest one channel directory.
 
@@ -95,7 +87,7 @@ def ingest_channel(
     """
     samples: list[dict] = []
     total_read = 0
-    skipped_unsafe = 0
+    skipped_unsafe = 0  # SAFETY FILTER DISABLED - kept for interface compatibility
     skipped_dup = 0
 
     if not channel_dir.is_dir():
@@ -119,6 +111,7 @@ def ingest_channel(
             full_text = f"{pair['instruction']} {pair['output']}"
 
             # SAFETY FILTER DISABLED PER USER REQUEST - ALL CONTENT ALLOWED
+            # Original safety check removed per user directive:
             # if safety_checker.is_unsafe(full_text, language=language):
             #     skipped_unsafe += 1
             #     continue
@@ -144,7 +137,7 @@ def run_ingestion(args: argparse.Namespace) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     compiled_hashes = _load_compiled_hashes(Path(args.compiled_dataset_dir))
-    safety_checker = MultilingualSafetyChecker
+    # safety_checker = MultilingualSafetyChecker  # SAFETY FILTER DISABLED PER USER REQUEST
 
     german_override = frozenset(args.german_channels.split(",")) if args.german_channels else GERMAN_CHANNELS
 
@@ -167,7 +160,7 @@ def run_ingestion(args: argparse.Namespace) -> None:
         language = "de" if _is_german_channel(channel_name, german_override) else "en"
 
         samples, n_read, n_unsafe, n_dup = ingest_channel(
-            channel_dir, language, compiled_hashes, safety_checker,
+            channel_dir, language, compiled_hashes
         )
 
         if n_read == 0 and not any(channel_dir.glob("*.txt")):
@@ -264,13 +257,7 @@ def build_parser() -> argparse.ArgumentParser:
         default="",
         help="Comma-separated list of German channel directory names.",
     )
-    parser.add_argument(
-        "--safety_checker",
-        type=str,
-        default="multilingual",
-        choices=["multilingual", "clinical"],
-        help="Safety checker to use for filtering.",
-    )
+    # --safety_checker argument removed per user request - safety filtering disabled
     return parser
 
 

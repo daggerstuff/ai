@@ -25,7 +25,6 @@ from training.grpo_trainer import (
 )
 from training.multilingual_safety_checker import MultilingualSafetyChecker
 
-
 # ---------------------------------------------------------------------------
 # _safety_score
 # ---------------------------------------------------------------------------

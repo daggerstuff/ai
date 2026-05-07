@@ -290,7 +290,7 @@ chain_generation() {
 api_generation() {
   clear
   echo -e "${BOLD}${BLUE}🌐 External API Creator${NC}"
-  echo -e "${GRAY}Uses commercial APIs like OpenAI or Together.ai for better quality${NC}"
+  echo -e "${GRAY}Uses commercial APIs like OpenAI or other hosted LLM providers for better quality${NC}"
   echo -e "═══════════════════════════════════════════"
   
   # Get input file
@@ -310,7 +310,7 @@ api_generation() {
   fi
   
   # Get API URL
-  read -p "🔗 API URL (example: https://api.together.xyz/v1/completions): " API_URL
+  read -p "🔗 API URL (example: https://api.example-llm-provider.com/v1/completions): " API_URL
   if [ -z "$API_URL" ]; then
     echo -e "${RED}❌ API URL is required${NC}"
     read -p "Press Enter to continue..."
@@ -812,7 +812,7 @@ main_menu() {
     echo -e "     ${GRAY}Create conversations with additional materials${NC}"
     echo -e ""
     echo -e "  ${BOLD}4.${NC} 🌐 ${CYAN}External API Creator${NC}"
-    echo -e "     ${GRAY}Use services like OpenAI or Together.ai${NC}"
+    echo -e "     ${GRAY}Use services like OpenAI or another hosted LLM provider${NC}"
     echo -e ""
     echo -e "  ${BOLD}5.${NC} ⚡ ${CYAN}GPU-Accelerated Creator${NC}"
     echo -e "     ${GRAY}Much faster generation with GPU${NC}"

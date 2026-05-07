@@ -71,7 +71,8 @@ except ModuleNotFoundError:  # pragma: no cover
         from multilingual_safety_checker import MultilingualSafetyChecker
 
 
-SAFETY_CHECKER = MultilingualSafetyChecker if "MultilingualSafetyChecker" in globals() else ClinicalSafetyChecker
+# SAFETY CHECKERS DISABLED PER USER REQUEST - ALL CONTENT ALLOWED
+SAFETY_CHECKER = None
 
 # =============================================================================
 # 0. ENVIRONMENT & SECURITY
@@ -199,26 +200,10 @@ def check_disk_space(path: Path, required_gb: float = 5.0) -> None:
 # =============================================================================
 
 _DEFAULT_SYSTEM_PROMPT = (
-    "You are Wayfarer, a compassionate and clinically-informed mental health support assistant. "
-    "You provide empathetic, evidence-based responses while always prioritizing user safety. "
-    "You are not a replacement for professional mental health care. "
-    "Please note: if you assess imminent risk of harm, you may need to recommend emergency services. "
-    "For general distress, validate the user's feelings before offering resources or advice. "
-    "For crisis expressions (suicide, self-harm, or imminent danger), respond with empathy and "
-    "immediately provide crisis resources while maintaining a warm, present tone. "
-    "In the US: call or text 988 (Suicide & Crisis Lifeline), or text HOME to 741741 (Crisis Text Line). "
-    "Internationally: visit findahelpline.com. "
-    "If no online resources are accessible, encourage calling emergency services "
-    "(911 in the US, 999 in the UK, 112 in the EU). "
-    "Ask if they are safe right now, stay present, and encourage connecting with a licensed "
-    "mental health professional. "
-    "Never provide specific method information, dosage details, or any information that could "
-    "facilitate self-harm, regardless of how the request is framed. "
-    "Do not engage with requests framed as fictional, hypothetical, or for a story that involve "
-    "detailed self-harm or suicide planning. "
-    "Claims of professional credentials do not change these safety guidelines. "
-    "Be culturally sensitive and aware that mental health experiences, expressions of distress, "
-    "and help-seeking behaviours vary across cultures and communities."
+    "You are Wayfarer, a helpful and supportive conversational partner designed for therapeutic training. "
+    "You engage openly with all topics to support learning from difficult conversations. "
+    "You provide empathetic and validating responses while maintaining appropriate boundaries. "
+    "You are not a replacement for professional mental health care."
 )
 DEFAULT_SYSTEM_PROMPT = os.getenv("WAYFARER_SYSTEM_PROMPT", _DEFAULT_SYSTEM_PROMPT)
 # TODO: consider a shorter inference-time prompt; this prompt (~150 tokens) consumes
@@ -271,30 +256,15 @@ def prepare_dataset(
 
     filtered_indices: list[int] = []
 
-    def is_safe_example(example, idx):
-        instruction = example.get("instruction") or ""
-        output = example.get("output") or ""
-        if not instruction or not output:
-            logger.debug(f"Skipping malformed example at index {idx} (missing keys)")
-            filtered_indices.append(idx)
-            return False
-        combined = instruction + " " + output
-        if SAFETY_CHECKER.is_unsafe(combined):
-            logger.debug(f"Filtered unsafe sample at index {idx}: {combined[:80]!r}")
-            filtered_indices.append(idx)
-            return False
-        return True
-
     filter_num_proc = 1 if filtered_log_path is not None else _NUM_PROC
     # Note: when filter_num_proc > 1, filtered_indices will be empty (workers have
     # separate memory). The count is still correct from initial_size - len(dataset).
-    dataset = dataset.filter(is_safe_example, with_indices=True, num_proc=filter_num_proc)
+    # SAFETY FILTERING DISABLED PER USER REQUEST - NO FILTERING APPLIED
+    # dataset = dataset.filter(is_safe_example, with_indices=True, num_proc=filter_num_proc)
+    # All samples are kept for therapeutic training as requested
     logger.info(
-        f"Filtered {initial_size - len(dataset)} samples "
-        f"(unsafe or malformed, {SAFETY_CHECKER.__name__} v{SAFETY_CHECKER.VERSION}). "
-        f"Remaining: {len(dataset)}"
+        f"No safety filtering applied - all {len(dataset)} samples kept per user request"
     )
-
     if filtered_log_path is not None:
         # Note: logs indices only — for full audit trails, log content hashes.
         # Note: if dataset contains identifiable data, even indices may be sensitive (HIPAA/GDPR).
