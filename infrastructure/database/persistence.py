@@ -46,7 +46,7 @@ from abc import ABC
 from collections.abc import AsyncIterator, Callable, Sequence
 from contextlib import contextmanager, suppress
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
 from typing import (
@@ -269,7 +269,7 @@ class DatabaseMetrics:
     connection_pool_size: int = 0
     active_connections: int = 0
 
-    last_reset: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    last_reset: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def to_dict(self) -> dict[str, Any]:
         """Convert metrics to dictionary."""
@@ -519,7 +519,7 @@ class ConversationRepository(BaseModelRepository[dict]):
         """
 
         conversation_id = data.get("conversation_id", str(uuid.uuid4()))
-        timestamp = datetime.now(timezone.utc).isoformat()
+        timestamp = datetime.now(UTC).isoformat()
 
         params = [
             conversation_id,
@@ -589,7 +589,7 @@ class ConversationRepository(BaseModelRepository[dict]):
             return await self.get(id)
 
         build_clauses.append("updated_at = ?")
-        params.append(datetime.now(timezone.utc).isoformat())
+        params.append(datetime.now(UTC).isoformat())
         params.append(str(id))
 
         sql = f"""
@@ -615,7 +615,7 @@ class ConversationRepository(BaseModelRepository[dict]):
             SET deleted_at = ?, updated_at = ?
             WHERE conversation_id = ? AND deleted_at IS NULL
             """
-            timestamp = datetime.now(timezone.utc).isoformat()
+            timestamp = datetime.now(UTC).isoformat()
             params = [timestamp, timestamp, str(id)]
         else:
             sql = """
@@ -696,7 +696,7 @@ class ConversationRepository(BaseModelRepository[dict]):
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
 
-        timestamp = datetime.now(timezone.utc).isoformat()
+        timestamp = datetime.now(UTC).isoformat()
 
         async for idx, item in self._async_enumerate(items):
             try:
@@ -767,30 +767,66 @@ class ConversationRepository(BaseModelRepository[dict]):
 
     async def bulk_delete(self, ids: builtins.list[ID], soft_delete: bool = True) -> BatchResult:
         """Bulk delete conversations."""
+        # ⚡ Bolt: Replaced sequential N+1 deletions with chunked batch operations
+        # (max 900 items per chunk to stay under SQLite limits).
+        # Selects existing IDs first to accurately track successes and failures.
         start_time = time.time()
         success_count = 0
         failed_count = 0
         errors = []
+        chunk_size = 900
+        timestamp = datetime.now(UTC).isoformat()
 
-        async for idx, conversation_id in self._async_enumerate(ids):
+        for i in range(0, len(ids), chunk_size):
+            chunk = ids[i:i + chunk_size]
+            placeholders = ",".join(["?"] * len(chunk))
+            found_ids = None
             try:
-                # Invalidate cache
-                cache_key = f"conversation:{conversation_id}"
-                self.db_manager.cache.invalidate(cache_key)
-
-                result = await self.delete(conversation_id, soft_delete)
-                if result:
-                    success_count += 1
+                # 1. Identify which conversations actually exist
+                # If soft deleting, only act on non-deleted ones. If hard deleting, act on any existing ones.
+                if soft_delete:
+                    select_sql = f"SELECT conversation_id FROM conversations WHERE conversation_id IN ({placeholders}) AND deleted_at IS NULL"
                 else:
-                    failed_count += 1
-                    errors.append((idx, "Conversation not found"))
+                    select_sql = f"SELECT conversation_id FROM conversations WHERE conversation_id IN ({placeholders})"
+
+                rows = await self.db_manager.fetch_all(select_sql, chunk)
+                found_ids = {str(row[0]) for row in rows}
+
+                # Invalidate cache for found items
+                for c_id in found_ids:
+                    self.db_manager.cache.invalidate(f"conversation:{c_id}")
+
+                # 2. Perform the batch update/delete
+                if found_ids:
+                    found_list = list(found_ids)
+                    found_placeholders = ",".join(["?"] * len(found_list))
+
+                    if soft_delete:
+                        update_sql = f"UPDATE conversations SET deleted_at = ?, updated_at = ? WHERE conversation_id IN ({found_placeholders})"
+                        params = [timestamp, timestamp] + found_list
+                    else:
+                        update_sql = f"DELETE FROM conversations WHERE conversation_id IN ({found_placeholders})"
+                        params = found_list
+
+                    await self.db_manager.execute(update_sql, params)
+                    self.db_manager.metrics.operations_deleted += len(found_list)
+
+                # 3. Track exact successes and failures per original index
+                for j, c_id in enumerate(chunk):
+                    original_idx = i + j
+                    if str(c_id) in found_ids:
+                        success_count += 1
+                    else:
+                        failed_count += 1
+                        errors.append((original_idx, "Conversation not found"))
 
             except Exception as e:
-                failed_count += 1
-                errors.append((idx, str(e)))
-                self.logger.error(
-                    f"Failed to delete conversation {conversation_id}: {e}"
-                )
+                # If a chunk fails entirely, track all its items as failures
+                for j, c_id in enumerate(chunk):
+                    original_idx = i + j
+                    failed_count += 1
+                    errors.append((original_idx, str(e)))
+                self.logger.error(f"Failed to bulk delete chunk starting at {i}: {e}")
 
         total_time = time.time() - start_time
 
