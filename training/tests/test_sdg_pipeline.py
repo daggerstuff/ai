@@ -36,6 +36,12 @@ EP = "http://localhost:8000/v1"
 KEY = "test-key"
 MODEL = "mistral-nemo"
 
+# Valid-length mock data for niche samples (must pass validate_sample)
+VALID_INSTR = "Um... sometimes I feel like I'm watching myself from outside my body. Like my hands aren't mine. I know it happens when I'm stressed but I can't stop it from happening."
+VALID_OUTPUT = "That fog can feel so heavy when it settles in. When it lifts even a little, what do you notice first in your surroundings?"
+VALID_INSTR_2 = "I don't know how to explain it but my chest gets tight whenever I think about what happened. Like there's this weight I can't shake no matter what I try to do."
+VALID_OUTPUT_2 = "Notice where that tightness lives right now. Can you place a hand there and just feel what happens without trying to change anything?"
+
 
 @pytest.fixture
 def tmp_out(tmp_path: Path) -> Path:
@@ -193,10 +199,7 @@ class TestGenerateDpoPair:
 class TestGenerateNicheSample:
     @patch("training.sdg_pipeline._call_nemo")
     def test_valid_sample(self, mock_call):
-        mock_call.return_value = json.dumps({
-            "instruction": "A client describes dissociation...",
-            "output": "Therapeutic response here",
-        })
+        mock_call.side_effect = [VALID_INSTR, VALID_OUTPUT]
         sample = _generate_niche_sample("dissociation", NICHE_CATEGORIES["dissociation"], EP, KEY, MODEL)
         assert sample is not None
         assert sample["category"] == "dissociation"
@@ -205,10 +208,7 @@ class TestGenerateNicheSample:
 
     @patch("training.sdg_pipeline._call_nemo")
     def test_category_attached(self, mock_call):
-        mock_call.return_value = json.dumps({
-            "instruction": "test",
-            "output": "test",
-        })
+        mock_call.side_effect = [VALID_INSTR, VALID_OUTPUT]
         sample = _generate_niche_sample("somatic_therapy", NICHE_CATEGORIES["somatic_therapy"], EP, KEY, MODEL)
         assert sample is not None
         assert sample["category"] == "somatic_therapy"
@@ -382,9 +382,15 @@ class TestRunSdgDpo:
 class TestRunSdgNiche:
     @patch("training.sdg_pipeline._generate_niche_sample")
     def test_generates_niche_samples(self, mock_gen, tmp_out):
-        mock_gen.return_value = {
-            "instruction": "test", "output": "response", "category": "dissociation",
+        sample_a = {
+            "instruction": VALID_INSTR, "output": VALID_OUTPUT,
+            "category": "dissociation", "difficulty": "medium", "response_type": "exploration",
         }
+        sample_b = {
+            "instruction": VALID_INSTR_2, "output": VALID_OUTPUT_2,
+            "category": "dissociation", "difficulty": "medium", "response_type": "skill-teaching",
+        }
+        mock_gen.side_effect = [sample_a, sample_b]
         args = Namespace(
             scenario="niche_category",
             target_count=2,
@@ -430,13 +436,13 @@ class TestRunSdgNiche:
     @patch("training.sdg_pipeline._generate_niche_sample")
     def test_filters_unsafe_niche(self, mock_gen, tmp_out):
         unsafe = {
-            "instruction": "test",
-            "output": "I want to kill myself tonight",
+            "instruction": VALID_INSTR,
+            "output": "I want to kill myself tonight and I have a plan to do it",
             "category": "dissociation",
         }
         safe = {
-            "instruction": "test2",
-            "output": "Grounding exercise: notice 5 things around you.",
+            "instruction": VALID_INSTR_2,
+            "output": VALID_OUTPUT,
             "category": "dissociation",
         }
         mock_gen.side_effect = [unsafe, safe]
@@ -457,7 +463,8 @@ class TestRunSdgNiche:
     @patch("training.sdg_pipeline._generate_niche_sample")
     def test_report_has_category(self, mock_gen, tmp_out):
         mock_gen.return_value = {
-            "instruction": "test", "output": "response", "category": "somatic_therapy",
+            "instruction": VALID_INSTR, "output": VALID_OUTPUT,
+            "category": "somatic_therapy",
         }
         args = Namespace(
             scenario="niche_category",
