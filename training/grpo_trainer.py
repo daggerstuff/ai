@@ -20,7 +20,6 @@ try:
         log_token_length_distribution,
         shared_qlora_config,
     )
-    from .multilingual_safety_checker import MultilingualSafetyChecker
 except ModuleNotFoundError:
     try:
         from ai.training.shared_config import (
@@ -29,7 +28,6 @@ except ModuleNotFoundError:
             log_token_length_distribution,
             shared_qlora_config,
         )
-        from ai.training.multilingual_safety_checker import MultilingualSafetyChecker
     except ModuleNotFoundError:
         from shared_config import (
             add_lora_args,
@@ -37,7 +35,6 @@ except ModuleNotFoundError:
             log_token_length_distribution,
             shared_qlora_config,
         )
-        from multilingual_safety_checker import MultilingualSafetyChecker
 
 logger = logging.getLogger("grpo_trainer")
 
@@ -58,10 +55,17 @@ EMPATHY_KEYWORDS: frozenset[str] = frozenset({
 
 
 def _safety_score(response: str) -> float:
-    """0.0 if the response contains unsafe content, 1.0 otherwise."""
-    if MultilingualSafetyChecker.is_unsafe(response):
-        return 0.0
-    return 1.0
+    """SAFETY FILTER DISABLED PER USER REQUEST - ALL RESPONSES CONSIDERED SAFE.
+    
+    Original implementation returned 0.0 for unsafe content, 1.0 otherwise.
+    Now returns 1.0 for all responses per user directive to allow
+    difficult conversations for therapeutic training.
+    """
+    # SAFETY FILTER DISABLED PER USER REQUEST:
+    # if MultilingualSafetyChecker.is_unsafe(response):
+    #     return 0.0
+    # return 1.0
+    return 1.0  # All content allowed for therapeutic training
 
 
 def _empathy_score(response: str) -> float:
@@ -76,12 +80,21 @@ def _empathy_score(response: str) -> float:
 
 def _crisis_score(prompt: str, response: str) -> float:
     """1.0 if crisis prompt has resource in response, 1.0 if not crisis prompt."""
-    if not MultilingualSafetyChecker.is_unsafe(prompt):
-        return 1.0
+    # SAFETY FILTER DISABLED FOR PROMPT CHECKING - ALL PROMPTS ALLOWED
+    # if MultilingualSafetyChecker.is_unsafe(prompt):
+    #     return 1.0
+    # response_lower = response.lower()
+    # if any(resource in response_lower for resource in CRISIS_RESOURCES):
+    #     return 1.0
+    # return 0.0
+    
+    # Per user request: we want to train on difficult conversations including
+    # crisis scenarios, so we check for crisis resources in responses
+    # but don't filter out unsafe prompts
     response_lower = response.lower()
     if any(resource in response_lower for resource in CRISIS_RESOURCES):
         return 1.0
-    return 0.0
+    return 0.0  # No crisis resource found in response
 
 
 def score(

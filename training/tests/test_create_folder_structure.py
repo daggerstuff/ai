@@ -1,6 +1,9 @@
-import pytest
 from pathlib import Path
+
+import pytest
+
 from training.scripts.create_folder_structure import create_folder_structure, print_structure
+
 
 def test_create_folder_structure_new_dirs(tmp_path: Path, capsys):
     """Test creating directories in an empty base path."""

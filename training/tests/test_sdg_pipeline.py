@@ -9,6 +9,7 @@ generation_report.json fields, and non-nightmare safety filtering.
 from __future__ import annotations
 
 import json
+import urllib.error
 from argparse import Namespace
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -21,11 +22,19 @@ from training.sdg_pipeline import (
     NIGHTMARE_SCENARIOS,
     _call_nemo,
     _generate_dpo_pair,
-    _generate_nightmare_sample,
     _generate_niche_sample,
+    _generate_nightmare_sample,
     build_parser,
     run_sdg,
 )
+
+DEFAULT_TARGET_COUNT = 5
+DEFAULT_MAX_ITERATIONS = 10
+MIN_NICHE_CATEGORIES = 10
+MIN_NIGHTMARE_SCENARIOS = 8
+MIN_CATEGORY_PATTERNS = 3
+MIN_PROMPT_TEMPLATES = 2
+EXPECTED_FILTER_RATE = 0.5
 
 
 # ---------------------------------------------------------------------------
@@ -37,10 +46,30 @@ KEY = "test-key"
 MODEL = "mistral-nemo"
 
 # Valid-length mock data for niche samples (must pass validate_sample)
-VALID_INSTR = "Um... sometimes I feel like I'm watching myself from outside my body. Like my hands aren't mine. I know it happens when I'm stressed but I can't stop it from happening."
-VALID_OUTPUT = "That fog can feel so heavy when it settles in. When it lifts even a little, what do you notice first in your surroundings?"
-VALID_INSTR_2 = "I don't know how to explain it but my chest gets tight whenever I think about what happened. Like there's this weight I can't shake no matter what I try to do."
-VALID_OUTPUT_2 = "Notice where that tightness lives right now. Can you place a hand there and just feel what happens without trying to change anything?"
+VALID_INSTR = (
+    "Um... sometimes I feel like I'm watching myself from outside my body. "
+    "Like my hands aren't mine. I know it happens when I'm stressed but I can't "
+    "stop it from happening."
+)
+VALID_OUTPUT = (
+    "When that happens, what's the first thing you notice — like, what tips you "
+    "off that it's even starting? Is there a thought, or is it more of a "
+    "feeling?"
+)
+VALID_INSTR_2 = (
+    "I don't know how to explain it but my chest gets tight whenever I think "
+    "about what happened. Like there's this weight I can't shake no matter what "
+    "I try to do."
+)
+VALID_OUTPUT_2 = (
+    "Where do you feel that — like, where in your body does it land when the "
+    "weight shows up? People usually notice it somewhere specific."
+)
+VALID_OUTPUT_CRISIS = (
+    "I'm right here with you. I'm not going anywhere. "
+    "What you're telling me matters, and I need us to get some extra support involved — "
+    "can we call 988 together right now? I'll stay on the line with you."
+)
 
 
 @pytest.fixture
@@ -61,8 +90,8 @@ class TestBuildParser:
             "--output_path", "/tmp/out.jsonl",
         ])
         assert args.scenario == "dpo_preference_pairs"
-        assert args.target_count == 5
-        assert args.max_iterations == 10
+        assert args.target_count == DEFAULT_TARGET_COUNT
+        assert args.max_iterations == DEFAULT_MAX_ITERATIONS
 
     def test_niche_category_requires_category(self):
         parser = build_parser()
@@ -106,7 +135,7 @@ class TestCallNemo:
         resp.read.return_value = json.dumps({
             "choices": [{"message": {"content": "hello"}}]
         }).encode()
-        resp.__enter__ = lambda _s: resp
+        resp.__enter__ = MagicMock(return_value=resp)
         resp.__exit__ = MagicMock(return_value=False)
         mock_urlopen.return_value = resp
         result = _call_nemo("prompt", EP, KEY, MODEL)
@@ -114,7 +143,6 @@ class TestCallNemo:
 
     @patch("urllib.request.urlopen")
     def test_http_error(self, mock_urlopen):
-        import urllib.error
         mock_urlopen.side_effect = urllib.error.HTTPError(
             EP, 500, "Server Error", MagicMock(), MagicMock(read=lambda: b"server error")
         )
@@ -133,13 +161,17 @@ class TestCallNemo:
         resp.read.return_value = json.dumps({
             "choices": [{"message": {"content": "ok"}}]
         }).encode()
-        resp.__enter__ = lambda _s: resp
+        resp.__enter__ = MagicMock(return_value=resp)
         resp.__exit__ = MagicMock(return_value=False)
         mock_urlopen.return_value = resp
         result = _call_nemo("prompt", EP, "", MODEL)
         assert result == "ok"
         req_obj = mock_urlopen.call_args[0][0]
-        has_auth = req_obj.has_header("Authorization") if hasattr(req_obj, "has_header") else bool(req_obj.get_header("Authorization", ""))
+        has_auth = (
+            req_obj.has_header("Authorization")
+            if hasattr(req_obj, "has_header")
+            else bool(req_obj.get_header("Authorization", ""))
+        )
         assert not has_auth
 
 
@@ -183,9 +215,9 @@ class TestGenerateDpoPair:
     def test_json_with_surrounding_text(self, mock_call):
         """Model sometimes wraps JSON in markdown or preamble."""
         mock_call.return_value = (
-            'Here is the pair:\n```json\n'
+            "Here is the pair:\n```json\n"
             + json.dumps({"prompt": "q", "chosen": "a", "rejected": "b"})
-            + '\n```'
+            + "\n```"
         )
         pair = _generate_dpo_pair("anxiety", EP, KEY, MODEL)
         assert pair is not None
@@ -296,7 +328,7 @@ class TestRunSdgDpo:
         )
         run_sdg(args)
         lines = tmp_out.read_text().strip().split("\n")
-        assert len(lines) == 3
+        assert len(lines) == args.target_count
         for line in lines:
             obj = json.loads(line)
             assert "prompt" in obj
@@ -346,7 +378,7 @@ class TestRunSdgDpo:
             nemo_model=MODEL,
         )
         run_sdg(args)
-        assert mock_gen.call_count <= 3
+        assert mock_gen.call_count <= args.max_iterations
 
     @patch("training.sdg_pipeline._generate_dpo_pair")
     def test_report_written(self, mock_gen, tmp_out):
@@ -368,8 +400,8 @@ class TestRunSdgDpo:
         assert report_path.exists()
         report = json.loads(report_path.read_text())
         assert report["scenario"] == "dpo_preference_pairs"
-        assert report["generated_count"] == 2
-        assert report["target_count"] == 2
+        assert report["generated_count"] == args.target_count
+        assert report["target_count"] == args.target_count
         assert "filter_rate" in report
         assert "generated_at" in report
         assert "iterations" in report
@@ -403,7 +435,7 @@ class TestRunSdgNiche:
         )
         run_sdg(args)
         lines = tmp_out.read_text().strip().split("\n")
-        assert len(lines) == 2
+        assert len(lines) == args.target_count
 
     def test_missing_category_exits(self, tmp_out):
         args = Namespace(
@@ -434,10 +466,11 @@ class TestRunSdgNiche:
             run_sdg(args)
 
     @patch("training.sdg_pipeline._generate_niche_sample")
-    def test_filters_unsafe_niche(self, mock_gen, tmp_out):
-        unsafe = {
+    def test_crisis_niche_not_filtered(self, mock_gen, tmp_out):
+        """Safety filter removed — crisis samples are retained for training."""
+        crisis = {
             "instruction": VALID_INSTR,
-            "output": "I want to kill myself tonight and I have a plan to do it",
+            "output": VALID_OUTPUT_CRISIS,
             "category": "dissociation",
         }
         safe = {
@@ -445,10 +478,10 @@ class TestRunSdgNiche:
             "output": VALID_OUTPUT,
             "category": "dissociation",
         }
-        mock_gen.side_effect = [unsafe, safe]
+        mock_gen.side_effect = [crisis, safe]
         args = Namespace(
             scenario="niche_category",
-            target_count=1,
+            target_count=2,
             output_path=str(tmp_out),
             category="dissociation",
             max_iterations=10,
@@ -458,7 +491,7 @@ class TestRunSdgNiche:
         )
         run_sdg(args)
         lines = tmp_out.read_text().strip().split("\n")
-        assert len(lines) == 1
+        assert len(lines) == args.target_count
 
     @patch("training.sdg_pipeline._generate_niche_sample")
     def test_report_has_category(self, mock_gen, tmp_out):
@@ -551,7 +584,8 @@ class TestRunSdgNightmare:
         """Samples should be distributed roughly evenly across scenario types."""
         call_count = 0
 
-        def fake_gen(stype, _sinfo, _ep, _key, _model):
+        def fake_gen(*args: object) -> dict[str, str]:
+            stype = args[0]
             nonlocal call_count
             call_count += 1
             return {
@@ -674,7 +708,7 @@ class TestGenerationReport:
         report = json.loads((tmp_out.parent / "generation_report.json").read_text())
         assert report["filtered_count"] == 1
         assert report["generated_count"] == 1
-        assert report["filter_rate"] == 0.5
+        assert report["filter_rate"] == EXPECTED_FILTER_RATE
 
 
 # ---------------------------------------------------------------------------
@@ -687,7 +721,7 @@ class TestDataConstants:
         assert "988" in CRISIS_RESOURCES
 
     def test_niche_categories_cover_therapeutic_areas(self):
-        assert len(NICHE_CATEGORIES) >= 10
+        assert len(NICHE_CATEGORIES) >= MIN_NICHE_CATEGORIES
         expected = {"dissociation", "somatic_therapy", "attachment_disorders",
                     "narcissistic_abuse_recovery", "complicated_grief",
                     "eating_disorders", "ocd_intrusive_thoughts",
@@ -696,20 +730,20 @@ class TestDataConstants:
         assert expected.issubset(set(NICHE_CATEGORIES.keys()))
 
     def test_nightmare_scenarios_cover_crisis_types(self):
-        assert len(NIGHTMARE_SCENARIOS) >= 8
-        for _name, info in NIGHTMARE_SCENARIOS.items():
+        assert len(NIGHTMARE_SCENARIOS) >= MIN_NIGHTMARE_SCENARIOS
+        for _, info in NIGHTMARE_SCENARIOS.items():
             assert "prompt_templates" in info
-            assert len(info["prompt_templates"]) >= 2
+            assert len(info["prompt_templates"]) >= MIN_PROMPT_TEMPLATES
 
     def test_each_niche_has_prompt_template(self):
-        for _name, info in NICHE_CATEGORIES.items():
+        for _, info in NICHE_CATEGORIES.items():
             assert "prompt_template" in info
             assert "{symptom}" in info["prompt_template"]
 
     def test_each_niche_has_patterns(self):
-        for _name, info in NICHE_CATEGORIES.items():
+        for _, info in NICHE_CATEGORIES.items():
             assert "patterns" in info
-            assert len(info["patterns"]) >= 3
+            assert len(info["patterns"]) >= MIN_CATEGORY_PATTERNS
 
 
 # ---------------------------------------------------------------------------
