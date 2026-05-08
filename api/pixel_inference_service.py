@@ -665,9 +665,9 @@ async def batch_infer(requests: list[PixelInferenceRequest]):
             return await run_in_threadpool(
                 lambda: asyncio.run(inference_engine.generate_response(req))
             )
-        except Exception as e:
-            logger.error(f"Batch inference error: {e}")
-            return {"error": str(e)}
+        except Exception:
+            logger.exception("Batch inference error")
+            return {"error": "inference_failed"}
 
     responses = []
     for i in range(0, len(requests), MAX_BATCH_CONCURRENCY):
