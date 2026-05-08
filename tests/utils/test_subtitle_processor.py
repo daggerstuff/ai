@@ -42,3 +42,27 @@ def test_format_as_markdown_missing_metadata():
     assert "**Source:** \n" in result
     assert "**Date:** \n" in result
     assert "Hello there. How are you? I am fine." in result
+
+
+def test_clean_vtt_removes_duplicates():
+    vtt_content = """WEBVTT
+Kind: captions
+Language: en
+
+00:00:00.000 --> 00:00:02.500 align:start position:0%
+<c.colorE5E5E5>This is repeated</c>
+
+00:00:02.500 --> 00:00:05.000 align:start position:0%
+<c.colorE5E5E5>This is repeated</c>
+
+00:00:05.000 --> 00:00:07.500 align:start position:0%
+<c.colorE5E5E5>This is new</c>
+"""
+    result = SubtitleProcessor.clean_vtt(vtt_content)
+    assert result == "This is repeated This is new"
+
+
+def test_clean_vtt_empty_content():
+    vtt_content = ""
+    result = SubtitleProcessor.clean_vtt(vtt_content)
+    assert result == ""
