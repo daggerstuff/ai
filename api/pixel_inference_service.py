@@ -273,6 +273,9 @@ class PixelInferenceEngine:
 
             # Forward pass through model
             with torch.no_grad():
+                # Yield control back to event loop for CPU/GPU heavy synchronous operations
+                # to prevent blocking other requests.
+                await asyncio.sleep(0)
                 model_output = self.model(
                     input_tensor, history=request.conversation_history
                 )
