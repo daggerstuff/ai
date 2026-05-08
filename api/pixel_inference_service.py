@@ -25,6 +25,7 @@ from typing import Any
 
 import torch
 from fastapi import BackgroundTasks, FastAPI, HTTPException
+from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
@@ -659,7 +660,11 @@ async def batch_infer(requests: list[PixelInferenceRequest]):
 
     async def _process_single(req: PixelInferenceRequest):
         try:
-            return await inference_engine.generate_response(req)
+            # inference_engine.generate_response uses torch.no_grad() and blockingly processes
+            # the query via PyTorch, so we need to run it in a threadpool to truly unlock concurrency.
+            return await run_in_threadpool(
+                lambda: asyncio.run(inference_engine.generate_response(req))
+            )
         except Exception as e:
             logger.error(f"Batch inference error: {e}")
             return {"error": str(e)}
