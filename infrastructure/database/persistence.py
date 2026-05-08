@@ -767,6 +767,7 @@ class ConversationRepository(BaseModelRepository[dict]):
         timestamp = datetime.now(UTC).isoformat()
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         for i in range(0, len(ids), chunk_size):
             chunk = ids[i:i + chunk_size]
             placeholders = ",".join(["?"] * len(chunk))
@@ -859,6 +860,73 @@ class ConversationRepository(BaseModelRepository[dict]):
                 errors.extend([(ids.index(cid), str(e)) for cid in chunk])
                 self.logger.error(f"Failed to bulk delete chunk: {e}")
 >>>>>>> c1a46921 (⚡ Bolt: Optimize bulk_delete in database persistence)
+=======
+        # Consume iterables to a sequence for chunking
+        ids_list = []
+        async for _, cid in self._async_enumerate(ids):
+            ids_list.append(cid)
+
+        # Optimization: batch DB updates/deletes in chunks to solve N+1 issue
+        # SQLite limit for variables is 999. We use chunks of 900.
+        chunk_size = 900
+        for i in range(0, len(ids_list), chunk_size):
+            chunk_ids = ids_list[i:i + chunk_size]
+            chunk_start_idx = i
+            found_ids = None
+
+            try:
+                # Step 1: Identify existing records (so we can accurately return errors for non-existent ones)
+                placeholders = ",".join(["?"] * len(chunk_ids))
+                select_sql = f"SELECT conversation_id FROM conversations WHERE conversation_id IN ({placeholders}) AND deleted_at IS NULL"
+                rows = await self.db_manager.fetch_all(select_sql, [str(cid) for cid in chunk_ids])
+                found_ids = {row[0] for row in rows}
+
+                # Add error records for IDs not found
+                for j, cid in enumerate(chunk_ids):
+                    if cid not in found_ids:
+                        failed_count += 1
+                        errors.append((chunk_start_idx + j, "Conversation not found"))
+
+                if not found_ids:
+                    continue
+
+                valid_ids_list = list(found_ids)
+                valid_placeholders = ",".join(["?"] * len(valid_ids_list))
+
+                # Step 2: Batch UPDATE or DELETE
+                if soft_delete:
+                    update_sql = f"""
+                    UPDATE conversations
+                    SET deleted_at = ?, updated_at = ?
+                    WHERE conversation_id IN ({valid_placeholders}) AND deleted_at IS NULL
+                    """
+                    timestamp = datetime.now(UTC).isoformat()
+                    params = [timestamp, timestamp] + [str(cid) for cid in valid_ids_list]
+                else:
+                    update_sql = f"""
+                    DELETE FROM conversations
+                    WHERE conversation_id IN ({valid_placeholders}) AND deleted_at IS NULL
+                    """
+                    params = [str(cid) for cid in valid_ids_list]
+
+                await self.db_manager.execute(update_sql, params)
+                self.db_manager.metrics.operations_deleted += len(valid_ids_list)
+                success_count += len(valid_ids_list)
+
+                # Step 3: Invalidate cache for successful operations
+                for cid in valid_ids_list:
+                    cache_key = f"conversation:{cid}"
+                    self.db_manager.cache.invalidate(cache_key)
+
+            except Exception as e:
+                # If chunk fails, mark only the found_ids (if Step 1 succeeded) as failed to prevent double-counting
+                # Or mark everything as failed if found_ids wasn't assigned (meaning Step 1 failed)
+                for j, cid in enumerate(chunk_ids):
+                    if found_ids is None or cid in found_ids:
+                        failed_count += 1
+                        errors.append((chunk_start_idx + j, str(e)))
+                self.logger.error(f"Failed to bulk delete conversation chunk: {e}")
+>>>>>>> 8ecebf8d (⚡ Bolt: Optimize bulk delete database queries)
 
         total_time = time.time() - start_time
 
