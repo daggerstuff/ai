@@ -223,10 +223,10 @@ def test_empty_and_nonstring_input():
 # Production pilot integration
 # ---------------------------------------------------------------------------
 
-def test_production_pilot_uses_multilingual_safety_checker():
+def test_production_pilot_safety_checker_disabled():
+    """SAFETY CHECKERS DISABLED per user request."""
     pilot = pytest.importorskip("training.pixelated_production_pilot")
-    assert pilot.SAFETY_CHECKER.__name__ == "MultilingualSafetyChecker"
-    assert hasattr(pilot.SAFETY_CHECKER, "VERSION")
+    assert pilot.SAFETY_CHECKER is None
 
 
 # ---------------------------------------------------------------------------

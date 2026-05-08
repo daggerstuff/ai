@@ -21,7 +21,6 @@ from training.book_pdf_converter import (
     convert_book,
     run_conversion,
 )
-from training.clinical_safety_checker import ClinicalSafetyChecker
 
 
 class TestDsmTitleDetection:
@@ -72,7 +71,7 @@ class TestConvertBook:
         pdf_path = tmp_path / "test_book.pdf"
         writer.write(str(pdf_path))
 
-        result = convert_book(pdf_path, tmp_path / "out", ClinicalSafetyChecker, is_dsm=False)
+        result = convert_book(pdf_path, tmp_path / "out", is_dsm=False)
         assert result["status"] in ("converted", "skipped")
 
     def test_conversion_report_has_required_fields(self, tmp_path: Path):
@@ -96,7 +95,6 @@ class TestConvertBook:
         assert "converted" in report
         assert "skipped" in report
         assert "total_pairs" in report
-        assert "total_filtered" in report
         assert "book_details" in report
 
     def test_missing_books_dir(self, tmp_path: Path):
@@ -119,18 +117,16 @@ class TestConvertBookSourceMetadata:
         """Verify QA pairs include source_book and source_type fields."""
         text = "Cognitive restructuring helps clients identify negative thought patterns."
         pairs = _text_to_qa_pairs(text, "CBT Handbook", is_dsm=False)
-        # Convert through the full pipeline to get metadata
-        safe_pairs = []
+        # Apply metadata enrichment (same logic as convert_book)
+        output_pairs = []
         for pair in pairs:
-            full_text = f"{pair['instruction']} {pair['output']}"
-            if not ClinicalSafetyChecker.is_unsafe(full_text):
-                safe_pairs.append({
-                    "instruction": pair["instruction"],
-                    "output": pair["output"],
-                    "source_book": "CBT Handbook",
-                    "source_type": "clinical_literature",
-                })
-        for p in safe_pairs:
+            output_pairs.append({
+                "instruction": pair["instruction"],
+                "output": pair["output"],
+                "source_book": "CBT Handbook",
+                "source_type": "clinical_literature",
+            })
+        for p in output_pairs:
             assert p["source_book"] == "CBT Handbook"
             assert p["source_type"] == "clinical_literature"
 
@@ -153,12 +149,14 @@ if st is not None:
 
     @given(st.text(min_size=1, max_size=500))
     @settings(max_examples=50)
-    def test_hypothesis_unsafe_outputs_excluded(text: str):
-        if ClinicalSafetyChecker.is_unsafe(text):
-            # If the text itself is unsafe, any pair containing it should be filtered
-            safe = not ClinicalSafetyChecker.is_unsafe(f"Explain this concept: {text}")
-            # This just verifies the safety checker is deterministic
-            assert ClinicalSafetyChecker.is_unsafe(text) == ClinicalSafetyChecker.is_unsafe(text)
+    def test_hypothesis_output_pairs_well_formed(text: str):
+        """SAFETY FILTERING DISABLED per user request — verify pairs are still well-formed."""
+        if not text.strip():
+            return
+        pairs = _text_to_qa_pairs(text, "TestBook", is_dsm=False)
+        for pair in pairs:
+            assert "instruction" in pair
+            assert "output" in pair
 
 else:
 
@@ -167,5 +165,5 @@ else:
         raise AssertionError("Skipped when hypothesis is unavailable")
 
     @pytest.mark.skip(reason="hypothesis not installed")
-    def test_hypothesis_unsafe_outputs_excluded():
+    def test_hypothesis_output_pairs_well_formed():
         raise AssertionError("Skipped when hypothesis is unavailable")
