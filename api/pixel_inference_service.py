@@ -658,6 +658,7 @@ async def batch_infer(requests: list[PixelInferenceRequest]):
     if not inference_engine.model_loaded:
         raise HTTPException(status_code=503, detail="Model not loaded")
 
+<<<<<<< HEAD
     async def _process_single(req: PixelInferenceRequest):
         try:
             # inference_engine.generate_response uses torch.no_grad() and blockingly processes
@@ -674,6 +675,17 @@ async def batch_infer(requests: list[PixelInferenceRequest]):
         batch = requests[i : i + MAX_BATCH_CONCURRENCY]
         batch_responses = await asyncio.gather(*[_process_single(req) for req in batch])
         responses.extend(batch_responses)
+=======
+    # ⚡ Bolt: Replace sequential loop with asyncio.gather to concurrently process requests
+    async def _process_req(req):
+        try:
+            return await inference_engine.generate_response(req)
+        except Exception as e:
+            logger.error(f"Batch inference error: {e}")
+            return {"error": str(e)}
+
+    responses = await asyncio.gather(*(_process_req(req) for req in requests))
+>>>>>>> e6aea68c (⚡ Bolt: optimize batch-infer with asyncio.gather)
 
     return {"results": list(responses)}
 
