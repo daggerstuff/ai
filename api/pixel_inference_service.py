@@ -25,16 +25,16 @@ from typing import Any
 
 import torch
 from fastapi import BackgroundTasks, FastAPI, HTTPException
+from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 # Add parent directories to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from ai.api.sentry_logging import initialize_sentry_logging
-
-
 from pixel.models.pixel_base_model import PixelBaseModel
+
+from ai.api.sentry_logging import initialize_sentry_logging
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -43,6 +43,7 @@ initialize_sentry_logging(service_name="pixel-inference-service")
 INFERENCE_LATENCY_WARNING_MS = 200
 EMPATHY_SUPPORT_THRESHOLD = 0.7
 PIXEL_API_DEFAULT_PORT = "8001"
+<<<<<<< HEAD
 _THOUGHT_MARKER_RE = re.compile(r"^\s*\[Thought:\s*.*\]\s*$")
 _STOP_TURN_RE = re.compile(r"^\s*\[STOP_TURN\]\s*$")
 _PROMISE_MARKER_RE = re.compile(r"<promise>.*?</promise>", re.IGNORECASE | re.DOTALL)
@@ -67,6 +68,9 @@ def sanitize_agent_output(raw_text: str | None) -> str:
                 continue
         output_lines.append(line.rstrip())
     return "\n".join(output_lines)
+=======
+MAX_BATCH_CONCURRENCY = int(os.getenv("PIXEL_MAX_BATCH_CONCURRENCY", "16"))
+>>>>>>> 4db2190d (⚡ Bolt: Optimize batch inference with asyncio.gather bounded concurrency)
 
 # ============================================================================
 # Request/Response Models
@@ -649,19 +653,29 @@ async def infer(request: PixelInferenceRequest, _background_tasks: BackgroundTas
 @app.post("/batch-infer")
 async def batch_infer(requests: list[PixelInferenceRequest]):
     """Batch inference for multiple queries"""
+    # ⚡ Bolt: Use asyncio.gather to concurrently process multiple requests
+    # in the batch, preventing blocking sequential iteration and improving throughput.
     if not inference_engine.model_loaded:
         raise HTTPException(status_code=503, detail="Model not loaded")
 
-    responses = []
-    for req in requests:
+    async def _process_single(req: PixelInferenceRequest):
         try:
-            response = await inference_engine.generate_response(req)
-            responses.append(response)
-        except Exception as e:
-            logger.error(f"Batch inference error: {e}")
-            responses.append({"error": str(e)})
+            # inference_engine.generate_response uses torch.no_grad() and blockingly processes
+            # the query via PyTorch, so we need to run it in a threadpool to truly unlock concurrency.
+            return await run_in_threadpool(
+                lambda: asyncio.run(inference_engine.generate_response(req))
+            )
+        except Exception:
+            logger.exception("Batch inference error")
+            return {"error": "inference_failed"}
 
-    return {"results": responses}
+    responses = []
+    for i in range(0, len(requests), MAX_BATCH_CONCURRENCY):
+        batch = requests[i : i + MAX_BATCH_CONCURRENCY]
+        batch_responses = await asyncio.gather(*[_process_single(req) for req in batch])
+        responses.extend(batch_responses)
+
+    return {"results": list(responses)}
 
 
 @app.post("/reload-model")
