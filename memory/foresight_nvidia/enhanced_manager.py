@@ -27,6 +27,8 @@ from pydantic import BaseModel, Field, field_validator
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("enhanced_nvidia_nim")
 
+DEFAULT_ROUTING_MODEL = "nvidia/llama-3.1-nemotron-nano-8b-v1"
+
 
 class TaskComplexity(Enum):
     """Task complexity levels for model selection."""
@@ -296,6 +298,7 @@ class EnhancedNvidiaConfig(BaseModel):
     # Model Selection Configuration
     model_tiers: dict[str, str] = Field(
         default_factory=lambda: {
+            "routing": DEFAULT_ROUTING_MODEL,
             "reasoning": ModelTier.NEMOTRON_SUPER.value,
             "generation": ModelTier.NEMOTRON_NANO.value,
             "embedding": ModelTier.NEMOTRON_EMBED.value,
@@ -395,6 +398,8 @@ class TieredModelSelector:
         # Get base tier from complexity
         tier_name = self.config.complexity_mapping.get(task_complexity.value, "generation")
         base_model = self.config.model_tiers[tier_name]
+        if tier_name == "generation":
+            base_model = self.config.model_tiers.get("routing", base_model)
 
         # Check latency constraints
         if latency_budget_ms and (
@@ -412,6 +417,10 @@ class TieredModelSelector:
             logger.info("Using reasoning model for crisis-level task")
 
         return base_model
+
+    def select_routing_model(self) -> str:
+        """Return the dedicated default routing model."""
+        return self.config.model_tiers.get("routing", self.config.model_tiers["generation"])
 
     def select_embedding_model(self) -> str:
         """Get the embedding model identifier."""

@@ -220,6 +220,44 @@ def vtt_to_txt(vtt_path: Path, txt_path: Path) -> None:
         txt_path.write_text('', encoding='utf-8')
 
 
+def _clean_subtitle(raw: str) -> str:
+    """Clean raw VTT subtitle text: strip headers, timestamps, HTML, music markers, bracket annotations, and deduplicate lines."""
+    if not raw or not raw.strip():
+        return ""
+    lines = raw.split("\n")
+    cleaned: list[str] = []
+    prev_line: str | None = None
+    for line in lines:
+        line = line.strip()
+        if not line:
+            if cleaned and cleaned[-1] != "":
+                cleaned.append("")
+            continue
+        if line.startswith("WEBVTT") or line.startswith("NOTE") or line.startswith("Kind:") or line.startswith("Language:"):
+            continue
+        if re.match(r"^\d{1,2}:\d{2}:\d{2}\.\d{3}\s*-->\s*\d{1,2}:\d{2}:\d{2}\.\d{3}", line):
+            continue
+        if re.match(r"^\d{1,2}:\d{2}\.\d{3}\s*-->\s*\d{1,2}:\d{2}\.\d{3}", line):
+            continue
+        if re.match(r"^\d+$", line):
+            continue
+        line = re.sub(r"<[^>]+>", "", line)
+        line = line.replace("♪", "").replace("♫", "").strip()
+        line = re.sub(r"\[[^\]]*\]", "", line).strip()
+        line = re.sub(r"\s+", " ", line).strip()
+        if not line:
+            continue
+        if line == prev_line:
+            continue
+        cleaned.append(line)
+        prev_line = line
+    while cleaned and cleaned[-1] == "":
+        cleaned.pop()
+    result = "\n".join(cleaned)
+    result = re.sub(r"\n{3,}", "\n\n", result)
+    return result.strip()
+
+
 def main():
     parser = argparse.ArgumentParser(
         description='Fetch YouTube transcripts using yt-dlp for therapeutic AI training.'

@@ -2,8 +2,11 @@
 """Book and PDF conversion pipeline for therapeutic AI training.
 
 Extracts text from PDF and EPUB files, converts to instruction/output QA pairs
-(paraphrased, not verbatim), tags source metadata, applies safety filtering,
-and writes per-book JSONL + conversion report.
+(paraphrased, not verbatim), tags source metadata, and writes per-book JSONL +
+conversion report.
+
+SAFETY FILTERING DISABLED PER USER REQUEST — all content preserved for
+therapeutic training (difficult conversations needed for therapist education).
 """
 
 from __future__ import annotations
@@ -14,14 +17,6 @@ import logging
 import re
 from datetime import datetime, timezone
 from pathlib import Path
-
-try:
-    from .clinical_safety_checker import ClinicalSafetyChecker
-except ModuleNotFoundError:
-    try:
-        from ai.training.clinical_safety_checker import ClinicalSafetyChecker
-    except ModuleNotFoundError:
-        from clinical_safety_checker import ClinicalSafetyChecker
 
 logger = logging.getLogger("book_pdf_converter")
 
@@ -124,7 +119,6 @@ def _text_to_qa_pairs(
 def convert_book(
     book_path: Path,
     output_dir: Path,
-    safety_checker: type,
     is_dsm: bool,
 ) -> dict:
     """Convert a single book file to JSONL training pairs.
@@ -140,7 +134,6 @@ def convert_book(
             "status": "skipped",
             "reason": "no text extracted",
             "pairs": 0,
-            "filtered": 0,
         }
 
     pairs = _text_to_qa_pairs(text, title, is_dsm)
@@ -151,17 +144,11 @@ def convert_book(
             "status": "skipped",
             "reason": "no QA pairs generated",
             "pairs": 0,
-            "filtered": 0,
         }
 
-    safe_pairs: list[dict] = []
-    filtered = 0
+    output_pairs: list[dict] = []
     for pair in pairs:
-        full_text = f"{pair['instruction']} {pair['output']}"
-        if safety_checker.is_unsafe(full_text):
-            filtered += 1
-            continue
-        safe_pairs.append({
+        output_pairs.append({
             "instruction": pair["instruction"],
             "output": pair["output"],
             "source_book": title,
@@ -170,15 +157,14 @@ def convert_book(
 
     output_file = output_dir / f"{title}.jsonl"
     with open(output_file, "w", encoding="utf-8") as f:
-        for s in safe_pairs:
+        for s in output_pairs:
             f.write(json.dumps(s) + "\n")
 
     return {
         "book": str(book_path),
         "title": title,
         "status": "converted",
-        "pairs": len(safe_pairs),
-        "filtered": filtered,
+        "pairs": len(output_pairs),
         "is_dsm": is_dsm,
     }
 
@@ -192,7 +178,6 @@ def run_conversion(args: argparse.Namespace) -> None:
 
     results: list[dict] = []
     total_pairs = 0
-    total_filtered = 0
     skipped = 0
 
     if not books_dir.exists():
@@ -205,7 +190,6 @@ def run_conversion(args: argparse.Namespace) -> None:
             "converted": 0,
             "skipped": 0,
             "total_pairs": 0,
-            "total_filtered": 0,
             "book_details": [],
         }
         report_path = output_dir / "conversion_report.json"
@@ -219,15 +203,14 @@ def run_conversion(args: argparse.Namespace) -> None:
             continue
 
         is_dsm = _is_dsm_title(book_file.stem) or book_file.stem.lower() in dsm_titles
-        result = convert_book(book_file, output_dir, ClinicalSafetyChecker, is_dsm)
+        result = convert_book(book_file, output_dir, is_dsm)
         results.append(result)
 
         if result["status"] == "converted":
             total_pairs += result["pairs"]
-            total_filtered += result["filtered"]
             logger.info(
-                "Converted %s: %d pairs (%d filtered, dsm=%s)",
-                result["title"], result["pairs"], result["filtered"], is_dsm,
+                "Converted %s: %d pairs (dsm=%s)",
+                result["title"], result["pairs"], is_dsm,
             )
         else:
             skipped += 1
@@ -241,7 +224,6 @@ def run_conversion(args: argparse.Namespace) -> None:
         "converted": sum(1 for r in results if r["status"] == "converted"),
         "skipped": skipped,
         "total_pairs": total_pairs,
-        "total_filtered": total_filtered,
         "book_details": results,
     }
     report_path = output_dir / "conversion_report.json"
@@ -277,13 +259,6 @@ def build_parser() -> argparse.ArgumentParser:
         type=str,
         default="",
         help="Comma-separated list of DSM title identifiers for clinical QA format.",
-    )
-    parser.add_argument(
-        "--safety_checker",
-        type=str,
-        default="clinical",
-        choices=["clinical", "multilingual"],
-        help="Safety checker to use for filtering.",
     )
     return parser
 
