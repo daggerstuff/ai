@@ -44,12 +44,17 @@ def test_format_as_markdown_missing_metadata():
     assert "Hello there. How are you? I am fine." in result
 
 
+<<<<<<< HEAD
 def test_clean_vtt_removes_duplicates():
+=======
+def test_clean_vtt_empty_cleaned_line():
+>>>>>>> ba9dd883 (🧪 QA: Add tests for SubtitleProcessor empty and duplicate lines)
     vtt_content = """WEBVTT
 Kind: captions
 Language: en
 
 00:00:00.000 --> 00:00:02.500 align:start position:0%
+<<<<<<< HEAD
 <c.colorE5E5E5>This is repeated</c>
 
 00:00:02.500 --> 00:00:05.000 align:start position:0%
@@ -66,3 +71,24 @@ def test_clean_vtt_empty_content():
     vtt_content = ""
     result = SubtitleProcessor.clean_vtt(vtt_content)
     assert result == ""
+=======
+<c.colorE5E5E5></c>
+"""
+    result = SubtitleProcessor.clean_vtt(vtt_content)
+    assert result == ""
+
+
+def test_clean_vtt_duplicate_lines():
+    vtt_content = """WEBVTT
+Kind: captions
+Language: en
+
+00:00:00.000 --> 00:00:02.500 align:start position:0%
+Hello world
+
+00:00:02.500 --> 00:00:05.000 align:start position:0%
+Hello world
+"""
+    result = SubtitleProcessor.clean_vtt(vtt_content)
+    assert result == "Hello world"
+>>>>>>> ba9dd883 (🧪 QA: Add tests for SubtitleProcessor empty and duplicate lines)
