@@ -42,6 +42,7 @@ initialize_sentry_logging(service_name="pixel-inference-service")
 INFERENCE_LATENCY_WARNING_MS = 200
 EMPATHY_SUPPORT_THRESHOLD = 0.7
 PIXEL_API_DEFAULT_PORT = "8001"
+<<<<<<< HEAD
 _THOUGHT_MARKER_RE = re.compile(r"^\s*\[Thought:\s*.*\]\s*$")
 _STOP_TURN_RE = re.compile(r"^\s*\[STOP_TURN\]\s*$")
 _PROMISE_MARKER_RE = re.compile(r"<promise>.*?</promise>", re.IGNORECASE | re.DOTALL)
@@ -66,6 +67,9 @@ def sanitize_agent_output(raw_text: str | None) -> str:
                 continue
         output_lines.append(line.rstrip())
     return "\n".join(output_lines)
+=======
+MAX_BATCH_CONCURRENCY = int(os.getenv("PIXEL_MAX_BATCH_CONCURRENCY", "16"))
+>>>>>>> 4db2190d (⚡ Bolt: Optimize batch inference with asyncio.gather bounded concurrency)
 
 # ============================================================================
 # Request/Response Models
@@ -660,7 +664,11 @@ async def batch_infer(requests: list[PixelInferenceRequest]):
             logger.error(f"Batch inference error: {e}")
             return {"error": str(e)}
 
-    responses = await asyncio.gather(*[_process_single(req) for req in requests])
+    responses = []
+    for i in range(0, len(requests), MAX_BATCH_CONCURRENCY):
+        batch = requests[i : i + MAX_BATCH_CONCURRENCY]
+        batch_responses = await asyncio.gather(*[_process_single(req) for req in batch])
+        responses.extend(batch_responses)
 
     return {"results": list(responses)}
 
