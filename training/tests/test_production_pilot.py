@@ -90,10 +90,10 @@ def test_lora_args_registered():
 # Full pilot module tests (require trl/peft/transformers)
 # ---------------------------------------------------------------------------
 
-def test_safety_checker_is_multilingual():
+def test_safety_checker_disabled():
+    """SAFETY CHECKERS DISABLED per user request — SAFETY_CHECKER is None."""
     pilot = pytest.importorskip("training.pixelated_production_pilot")
-    from training.multilingual_safety_checker import MultilingualSafetyChecker
-    assert pilot.SAFETY_CHECKER is MultilingualSafetyChecker
+    assert pilot.SAFETY_CHECKER is None
 
 
 def test_shared_config_imports_available():

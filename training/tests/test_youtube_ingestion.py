@@ -15,7 +15,6 @@ except ImportError:
     settings = None
     st = None
 
-from training.multilingual_safety_checker import MultilingualSafetyChecker
 from training.youtube_ingestion import (
     GERMAN_CHANNELS,
     _content_hash,
@@ -126,7 +125,7 @@ class TestIngestChannel:
 
     def test_missing_channel_dir(self, tmp_path: Path):
         samples, n_read, n_unsafe, n_dup = ingest_channel(
-            tmp_path / "nonexistent", "en", set(), MultilingualSafetyChecker,
+            tmp_path / "nonexistent", "en", set(),
         )
         assert samples == []
         assert n_read == 0
@@ -137,11 +136,12 @@ class TestIngestChannel:
         bad_file = channel_dir / "bad.txt"
         bad_file.write_text("Valid content here\n\nResponse here.", encoding="utf-8")
         samples, n_read, _, _ = ingest_channel(
-            channel_dir, "en", set(), MultilingualSafetyChecker,
+            channel_dir, "en", set(),
         )
         assert n_read > 0
 
-    def test_all_samples_filtered(self, tmp_path: Path):
+    def test_all_samples_kept(self, tmp_path: Path):
+        """Safety filter disabled — crisis content is kept for training."""
         channel_dir = tmp_path / "CrisisChannel"
         channel_dir.mkdir()
         crisis_file = channel_dir / "crisis.txt"
@@ -152,10 +152,10 @@ class TestIngestChannel:
         output_dir = tmp_path / "output"
         output_dir.mkdir()
         samples, n_read, n_unsafe, _ = ingest_channel(
-            channel_dir, "en", set(), MultilingualSafetyChecker,
+            channel_dir, "en", set(),
         )
-        assert len(samples) == 0
-        assert n_unsafe > 0
+        assert len(samples) > 0
+        assert n_unsafe == 0
 
     def test_duplicate_samples_skipped(self, tmp_path: Path):
         channel_dir = tmp_path / "DupChannel"
@@ -168,7 +168,7 @@ class TestIngestChannel:
         content = "What is CBT? Cognitive behavioral therapy helps reframe thoughts."
         compiled_hash = {_content_hash(content.lower().strip())}
         samples, n_read, _, n_dup = ingest_channel(
-            channel_dir, "en", compiled_hash, MultilingualSafetyChecker,
+            channel_dir, "en", compiled_hash,
         )
         assert n_dup > 0
         assert len(samples) == 0
@@ -237,20 +237,24 @@ if st is not None:
         channel=st.sampled_from(["DoctorRamani", "Patrick Teahan", "Therapy in a Nutshell"]),
     )
     @settings(max_examples=50)
-    def test_hypothesis_unsafe_transcripts_filtered(text: str, channel: str):
-        if MultilingualSafetyChecker.is_unsafe(text):
-            tmp = Path(tempfile.mkdtemp())
-            channel_dir = tmp / channel
-            channel_dir.mkdir()
-            (channel_dir / "test.txt").write_text(
-                f"{text}\n\nResponse to the question about therapy.",
-                encoding="utf-8",
-            )
-            samples, _, n_unsafe, _ = ingest_channel(
-                channel_dir, "en", set(), MultilingualSafetyChecker,
-            )
-            for s in samples:
-                assert not MultilingualSafetyChecker.is_unsafe(s["instruction"] + " " + s["output"])
+    def test_hypothesis_transcripts_processed(text: str, channel: str):
+        """Safety filter disabled — all transcripts are processed regardless of content."""
+        if not text.strip():
+            return
+        tmp = Path(tempfile.mkdtemp())
+        channel_dir = tmp / channel
+        channel_dir.mkdir()
+        (channel_dir / "test.txt").write_text(
+            f"{text}\n\nResponse to the question about therapy.",
+            encoding="utf-8",
+        )
+        samples, _, n_unsafe, _ = ingest_channel(
+            channel_dir, "en", set(),
+        )
+        assert n_unsafe == 0
+        if samples:
+            assert "instruction" in samples[0]
+            assert "output" in samples[0]
 
     @given(st.text(min_size=1, max_size=100))
     @settings(max_examples=50)
@@ -264,7 +268,7 @@ if st is not None:
             encoding="utf-8",
         )
         samples, _, _, n_dup = ingest_channel(
-            channel_dir, "en", compiled_hash, MultilingualSafetyChecker,
+            channel_dir, "en", compiled_hash,
         )
         assert n_dup >= 0
 
@@ -275,7 +279,7 @@ else:
         raise AssertionError("Skipped when hypothesis is unavailable")
 
     @pytest.mark.skip(reason="hypothesis not installed")
-    def test_hypothesis_unsafe_transcripts_filtered():
+    def test_hypothesis_transcripts_processed():
         raise AssertionError("Skipped when hypothesis is unavailable")
 
     @pytest.mark.skip(reason="hypothesis not installed")

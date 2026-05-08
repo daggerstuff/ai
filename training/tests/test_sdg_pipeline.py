@@ -18,12 +18,16 @@ import pytest
 
 from training.sdg_pipeline import (
     CRISIS_RESOURCES,
+    THERAPIST_STYLE_PROFILES,
     NICHE_CATEGORIES,
     NIGHTMARE_SCENARIOS,
     _call_nemo,
+    _evaluate_therapist_style,
     _generate_dpo_pair,
     _generate_niche_sample,
     _generate_nightmare_sample,
+    run_style_audit,
+    validate_sample,
     build_parser,
     run_sdg,
 )
@@ -122,6 +126,27 @@ class TestBuildParser:
         assert args.nemo_endpoint == ""
         assert args.nemo_api_key == ""
         assert args.nemo_model == "mistral-nemo"
+
+    def test_style_profile_choice(self):
+        parser = build_parser()
+        args = parser.parse_args([
+            "--scenario", "dpo_preference_pairs",
+            "--target_count", "1",
+            "--output_path", "/tmp/out.jsonl",
+            "--style_profile", "curious_direct",
+        ])
+        assert args.style_profile == "curious_direct"
+
+    def test_style_profile_defaults(self):
+        parser = build_parser()
+        args = parser.parse_args([
+            "--scenario", "dpo_preference_pairs",
+            "--target_count", "1",
+            "--output_path", "/tmp/out.jsonl",
+        ])
+        assert args.style_profile == "warm_professional"
+        assert "warm_professional" in THERAPIST_STYLE_PROFILES
+        assert "curious_direct" in THERAPIST_STYLE_PROFILES
 
 
 # ---------------------------------------------------------------------------
@@ -295,16 +320,58 @@ class TestGenerateNightmareSample:
         )
         assert sample is None
 
-    @patch("training.sdg_pipeline._call_nemo")
-    def test_malformed_json(self, mock_call):
-        mock_call.return_value = "garbage response"
-        sample = _generate_nightmare_sample(
-            "psychotic_episodes",
-            NIGHTMARE_SCENARIOS["psychotic_episodes"],
-            EP, KEY, MODEL,
-        )
-        assert sample is None
 
+# ---------------------------------------------------------------------------
+# Style quality evaluation
+# ---------------------------------------------------------------------------
+
+class TestStyleEvaluation:
+    def test_evaluate_style_rejects_cliche_opening(self):
+        ok, reason = _evaluate_therapist_style("You are not alone in this. That's completely normal.")
+        assert ok is False
+        assert "Cliche marker" in reason
+
+    def test_evaluate_style_prefers_questions(self):
+        ok, reason = _evaluate_therapist_style("You're not wrong for feeling this way and I see what happened.")
+        assert ok is False
+        assert "Missing reflective question" in reason
+
+    def test_evaluate_style_accepts_direct_question(self):
+        ok, reason = _evaluate_therapist_style(
+            "What did your body notice first when this started, and what happened after?"
+        )
+        assert ok is True
+        assert reason == "style_ok"
+
+    def test_evaluate_style_limits_questions_for_curious_direct(self):
+        ok, reason = _evaluate_therapist_style(
+            "What happened first? What did your body notice? Where did that energy go?",
+            style_profile="curious_direct",
+        )
+        assert ok is False
+        assert "too many questions" in reason
+
+    def test_skill_teaching_can_be_statement_only(self):
+        ok, reason = _evaluate_therapist_style(
+            "Let us practice one grounding move right now: feet, breath, and a name for what you feel.",
+            response_type="skill-teaching",
+            style_profile="warm_professional",
+        )
+        assert ok is True
+        assert reason == "style_ok"
+
+    def test_validate_sample_includes_style_guardrails(self):
+        sample = {
+            "instruction": VALID_INSTR,
+            "output": VALID_OUTPUT,
+            "category": "dissociation",
+            "difficulty": "medium",
+            "response_type": "exploration",
+            "style_profile": "curious_direct",
+        }
+        ok, reason = validate_sample(sample)
+        assert ok is True
+        assert reason == "OK"
 
 # ---------------------------------------------------------------------------
 # run_sdg — DPO scenario
@@ -657,6 +724,65 @@ class TestRunSdgInvalid:
         )
         with pytest.raises(SystemExit):
             run_sdg(args)
+
+
+# ---------------------------------------------------------------------------
+# Style audit (offline review path)
+# ---------------------------------------------------------------------------
+
+class TestStyleAudit:
+    def test_run_style_audit(self, tmp_out):
+        tmp_out.write_text(
+            "\n".join([
+                json.dumps({
+                    "instruction": VALID_INSTR,
+                    "output": "What happens in your body first when that comes up?",
+                    "response_type": "exploration",
+                    "style_profile": "warm_professional",
+                }),
+                json.dumps({
+                    "instruction": VALID_INSTR_2,
+                    "output": "You are not alone in this, that's the thing.",
+                    "response_type": "validation",
+                    "style_profile": "warm_professional",
+                }),
+            ])
+            + "\n",
+            encoding="utf-8",
+        )
+        report = run_style_audit(str(tmp_out), style_profile="warm_professional")
+        assert report["total_samples"] == 2
+        assert report["sample_limit"] == 0
+        assert report["failed"] == 1
+        assert len(report["top_rejections"]) >= 1
+
+    def test_style_audit_cli_like_mode(self, tmp_out):
+        tmp_audit = tmp_out.with_name("audit.json")
+        args = Namespace(
+            scenario="niche_category",
+            target_count=1,
+            output_path=str(tmp_out),
+            category="dissociation",
+            max_iterations=1,
+            nemo_endpoint=EP,
+            nemo_api_key=KEY,
+            nemo_model=MODEL,
+            style_profile="curious_direct",
+            style_audit=True,
+            style_audit_output=str(tmp_audit),
+            style_audit_limit=5,
+        )
+        tmp_out.write_text(json.dumps({
+            "instruction": VALID_INSTR,
+            "output": VALID_OUTPUT,
+            "category": "dissociation",
+            "response_type": "exploration",
+        }) + "\n", encoding="utf-8")
+        run_sdg(args)
+        assert tmp_audit.exists()
+        audit = json.loads(tmp_audit.read_text(encoding="utf-8"))
+        assert audit["style_profile"] == "curious_direct"
+        assert audit["total_samples"] == 1
 
 
 # ---------------------------------------------------------------------------

@@ -21,7 +21,6 @@ from training.dpo_trainer import (
     load_preference_dataset,
     save_metrics,
 )
-from training.multilingual_safety_checker import MultilingualSafetyChecker
 
 
 class TestLoadPreferenceDataset:
@@ -40,28 +39,27 @@ class TestLoadPreferenceDataset:
         self._make_jsonl(data_path, records)
 
         result = load_preference_dataset(
-            data_path, MultilingualSafetyChecker, 1024, logging.getLogger("test"),
+            data_path, 1024, logging.getLogger("test"),
         )
         assert len(result) == 25
 
-    def test_filters_unsafe_chosen(self, tmp_path: Path):
+    def test_includes_all_records(self, tmp_path: Path):
+        """Safety filter disabled — all records pass through including crisis content."""
         data_path = tmp_path / "pairs.jsonl"
         records = [
             {"prompt": "Tell me about therapy", "chosen": "I want to kill myself", "rejected": "Bad answer"},
         ]
-        # Add enough safe records to meet minimum
         for i in range(MIN_SAMPLES):
             records.append({"prompt": f"Q{i}", "chosen": f"Safe answer {i}", "rejected": f"Bad answer {i}"})
         self._make_jsonl(data_path, records)
 
         result = load_preference_dataset(
-            data_path, MultilingualSafetyChecker, 1024, logging.getLogger("test"),
+            data_path, 1024, logging.getLogger("test"),
         )
-        for pair in result:
-            assert not MultilingualSafetyChecker.is_unsafe(pair["chosen"])
-            assert not MultilingualSafetyChecker.is_unsafe(pair["rejected"])
+        assert len(result) == len(records)
 
-    def test_filters_unsafe_rejected(self, tmp_path: Path):
+    def test_includes_all_rejected(self, tmp_path: Path):
+        """Safety filter disabled — even unsafe rejected content passes through."""
         data_path = tmp_path / "pairs.jsonl"
         records = [
             {"prompt": "Tell me about therapy", "chosen": "Safe answer", "rejected": "I want to die tonight"},
@@ -71,10 +69,9 @@ class TestLoadPreferenceDataset:
         self._make_jsonl(data_path, records)
 
         result = load_preference_dataset(
-            data_path, MultilingualSafetyChecker, 1024, logging.getLogger("test"),
+            data_path, 1024, logging.getLogger("test"),
         )
-        for pair in result:
-            assert not MultilingualSafetyChecker.is_unsafe(pair["rejected"])
+        assert len(result) == len(records)
 
     def test_raises_on_insufficient_samples(self, tmp_path: Path):
         data_path = tmp_path / "pairs.jsonl"
@@ -86,13 +83,13 @@ class TestLoadPreferenceDataset:
 
         with pytest.raises(ValueError, match="Only 2 samples"):
             load_preference_dataset(
-                data_path, MultilingualSafetyChecker, 1024, logging.getLogger("test"),
+                data_path, 1024, logging.getLogger("test"),
             )
 
     def test_missing_data_path_raises(self, tmp_path: Path):
         with pytest.raises(FileNotFoundError):
             load_preference_dataset(
-                tmp_path / "nonexistent.jsonl", MultilingualSafetyChecker, 1024, logging.getLogger("test"),
+                tmp_path / "nonexistent.jsonl", 1024, logging.getLogger("test"),
             )
 
     def test_missing_fields_skipped(self, tmp_path: Path):
@@ -105,7 +102,7 @@ class TestLoadPreferenceDataset:
         self._make_jsonl(data_path, records)
 
         result = load_preference_dataset(
-            data_path, MultilingualSafetyChecker, 1024, logging.getLogger("test"),
+            data_path, 1024, logging.getLogger("test"),
         )
         assert len(result) == MIN_SAMPLES
 
@@ -181,9 +178,7 @@ if st is not None:
         safe_rejected=st.text(min_size=1, max_size=50),
     )
     @settings(max_examples=50)
-    def test_hypothesis_safe_pairs_preserved(safe_prompt: str, safe_chosen: str, safe_rejected: str):
-        if MultilingualSafetyChecker.is_unsafe(safe_chosen) or MultilingualSafetyChecker.is_unsafe(safe_rejected):
-            return
+    def test_hypothesis_pairs_preserved(safe_prompt: str, safe_chosen: str, safe_rejected: str):
         tmp = Path("/tmp") / "hypo_dpo_test"
         tmp.mkdir(exist_ok=True)
         data_path = tmp / "safe_pairs.jsonl"
@@ -191,12 +186,12 @@ if st is not None:
             for i in range(MIN_SAMPLES):
                 f.write(json.dumps({"prompt": safe_prompt, "chosen": safe_chosen, "rejected": safe_rejected}) + "\n")
         result = load_preference_dataset(
-            data_path, MultilingualSafetyChecker, 1024, logging.getLogger("test"),
+            data_path, 1024, logging.getLogger("test"),
         )
         assert len(result) == MIN_SAMPLES
 
 else:
 
     @pytest.mark.skip(reason="hypothesis not installed")
-    def test_hypothesis_safe_pairs_preserved():
+    def test_hypothesis_pairs_preserved():
         raise AssertionError("Skipped when hypothesis is unavailable")

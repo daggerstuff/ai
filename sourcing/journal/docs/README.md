@@ -85,7 +85,7 @@ Troubleshooting guide including:
 
 ## Documentation Structure
 
-```
+```bash
 docs/
 ├── README.md              # This file
 ├── ARCHITECTURE.md        # System architecture documentation

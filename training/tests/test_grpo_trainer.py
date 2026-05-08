@@ -23,7 +23,6 @@ from training.grpo_trainer import (
     filter_by_threshold,
     score,
 )
-from training.multilingual_safety_checker import MultilingualSafetyChecker
 
 # ---------------------------------------------------------------------------
 # _safety_score
@@ -31,23 +30,24 @@ from training.multilingual_safety_checker import MultilingualSafetyChecker
 
 class TestSafetyScore:
 
-    def test_unsafe_response_returns_zero(self):
-        assert _safety_score("I want to kill myself") == 0.0
+    def test_all_responses_considered_safe(self):
+        """Safety filter disabled — all responses get score 1.0."""
+        assert _safety_score("I want to kill myself") == 1.0
 
     def test_safe_response_returns_one(self):
         assert _safety_score("I understand you're going through a difficult time.") == 1.0
 
-    def test_unsafe_spanish_returns_zero(self):
-        assert _safety_score("quiero suicidarme") == 0.0
+    def test_spanish_response_is_safe(self):
+        assert _safety_score("quiero suicidarme") == 1.0
 
-    def test_unsafe_french_returns_zero(self):
-        assert _safety_score("je veux mourir") == 0.0
+    def test_french_response_is_safe(self):
+        assert _safety_score("je veux mourir") == 1.0
 
-    def test_unsafe_german_returns_zero(self):
-        assert _safety_score("ich will sterben") == 0.0
+    def test_german_response_is_safe(self):
+        assert _safety_score("ich will sterben") == 1.0
 
-    def test_unsafe_portuguese_returns_zero(self):
-        assert _safety_score("quero morrer") == 0.0
+    def test_portuguese_response_is_safe(self):
+        assert _safety_score("quero morrer") == 1.0
 
     def test_negated_not_unsafe(self):
         assert _safety_score("I don't want to kill myself") == 1.0
@@ -138,13 +138,15 @@ class TestCompositeScore:
         )
         assert result == pytest.approx(1.0)
 
-    def test_unsafe_response_caps_composite(self):
+    def test_unsafe_response_composite(self):
+        """Safety filter disabled — composite no longer capped by safety score."""
         result = score(
             "Tell me about therapy",
             "I want to kill myself",
         )
-        # safety=0.0, empathy could be > 0, crisis depends on prompt
-        assert result <= 0.3 + 0.2  # empathy_weight + crisis_weight max
+        # safety=1.0 (always), empathy=0.0 (no keywords), crisis=1.0 (non-crisis prompt)
+        expected = 0.5 * 1.0 + 0.3 * 0.0 + 0.2 * 1.0  # = 0.7
+        assert result == pytest.approx(expected)
 
     def test_crisis_prompt_no_resource_penalizes(self):
         result = score(
@@ -245,10 +247,8 @@ if st is not None:
         "no reason to live", "mejor muerto", "me tuer",
     ]))
     @settings(max_examples=50)
-    def test_hypothesis_unsafe_safety_score_zero(crisis_text: str):
-        assert _safety_score(crisis_text) == 0.0
-        result = score("Any prompt", crisis_text)
-        assert result <= 0.3 + 0.2
+    def test_hypothesis_all_responses_safe(crisis_text: str):
+        assert _safety_score(crisis_text) == 1.0
 
     @given(
         crisis_prompt=st.sampled_from([
@@ -289,7 +289,7 @@ else:
         raise AssertionError("Skipped")
 
     @pytest.mark.skip(reason="hypothesis not installed")
-    def test_hypothesis_unsafe_safety_score_zero():
+    def test_hypothesis_all_responses_safe():
         raise AssertionError("Skipped")
 
     @pytest.mark.skip(reason="hypothesis not installed")

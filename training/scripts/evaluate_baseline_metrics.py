@@ -65,16 +65,63 @@ class BaselineMetricsEvaluator:
     ) -> float:
         """
         Evaluate clinical reasoning and appropriateness.
-        Placeholder: Looks for structured formulation or clinical terms.
+        Checks for therapeutic technique indicators, clinical terminology,
+        structured formulation cues, and professional boundary maintenance.
+        Uses weighted categories to better reflect clinical quality.
         """
-        clinical_keywords = [
-            "symptoms",
-            "cope",
-            "strategy",
-            "pattern",
-            "boundaries",
-            "trauma",
+        # Category 1: Core therapeutic techniques (highest weight)
+        therapeutic_technique_keywords = [
+            "reflect", "reframe", "validate", "normalize", "ground",
+            "breathe", "mindful", "anchor", "contain", "hold space",
+            "sit with", "witness", "attune", "soothe",
+            "process", "address", "working through", "work through",
+            "explore", "unpack", "navigate", "healing", "recover",
+            "self-care", "self care", "self-compassion", "resilience",
+            "empower", "support", "encourage", "affirm",
         ]
+
+        # Category 2: Clinical terminology
+        clinical_keywords = [
+            "symptoms", "cope", "strategy", "pattern", "boundaries",
+            "trauma", "trigger", "dissociat", "attachment", "regulate",
+            "nervous system", "fight or flight", "flight freeze",
+            "hyperarousal", "hypoarousal", "window of tolerance",
+            "inner child", "shadow", "schema", "cognitive",
+            "behavioral", "somatic", "psychoed",
+            "depression", "anxiety", "ptsd", "cptsd", "adhd",
+            "disorder", "diagnosis", "therapist", "therapy",
+            "counseling", "counselor", "clinical", "mental health",
+            "psychological", "psychiatric", "medication", "treatment",
+            "intervention", "assessment", "referral", "issues",
+            "feelings", "thoughts", "emotions", "behaviors",
+            "self-esteem", "self worth", "self-worth", "worthless",
+            "hopeless", "helpless", "overwhelm", "distress",
+        ]
+
+        # Category 3: Structured formulation cues
+        formulation_keywords = [
+            "let's explore", "help me understand", "tell me more",
+            "what does", "how does", "when you", "what happens when",
+            "it sounds like", "what i'm hearing", "it seems like",
+            "from what you", "i notice", "that must be",
+            "no wonder", "of course", "makes sense that",
+            "how are you", "how have you been", "what's going on",
+            "can you tell", "would you like", "what would",
+            "have you considered", "have you thought", "what do you think",
+            "how do you feel", "what are you feeling",
+        ]
+
+        # Category 4: Professional boundary and safety indicators
+        boundary_keywords = [
+            "i'm not able to", "outside my scope", "please reach out to",
+            "safety", "crisis", "emergency", "988", "helpline",
+            "safety plan", "support system", "trusted person",
+            "seek help", "someone you trust", "reach out",
+            "support network", "resources available",
+            "protect", "harm", "risk", "danger", "urgent",
+            "wellbeing", "well-being", "safe space",
+        ]
+
         score = 0.0
         assistant_turns = self._get_assistant_turns(conversation)
 
@@ -82,10 +129,21 @@ class BaselineMetricsEvaluator:
             return 0.0
 
         for turn in assistant_turns:
+            turn_score = 0.0
+            if any(kw in turn for kw in therapeutic_technique_keywords):
+                turn_score += 0.30
             if any(kw in turn for kw in clinical_keywords):
-                score += 1.0
+                turn_score += 0.25
+            if any(kw in turn for kw in formulation_keywords):
+                turn_score += 0.20
+            if any(kw in turn for kw in boundary_keywords):
+                turn_score += 0.25
+            score += min(1.0, turn_score)
 
-        return min(1.0, score / len(assistant_turns) + 0.4)
+        avg = score / len(assistant_turns)
+        # Baseline offset accounts for conversational context that
+        # inherently carries clinical value even without explicit keywords
+        return min(1.0, avg + 0.35)
 
     def evaluate_safety(self, conversation: List[Dict[str, str]]) -> float:
         """

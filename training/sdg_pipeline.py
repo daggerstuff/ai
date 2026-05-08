@@ -15,9 +15,11 @@ import argparse
 import json
 import logging
 import os
+import random
 import sys
 import urllib.request
 import urllib.error
+from collections import Counter
 from datetime import datetime
 from pathlib import Path
 
@@ -72,7 +74,183 @@ FORBIDDEN_OUTPUT_OPENINGS = [
     "your experience of",
     "that pattern of rest",
     "that cycle of restri",
+    "that's the ocd",
+    "that's the trauma",
+    "that's the attachment",
+    "that's the bpd",
+    "that's the anxiety",
+    "that's the depression",
+    "i can see that",
+    "i can hear that",
+    "what i'm hearing is",
+    "what you're describing",
+    "it seems like",
+    "it appears that",
+    "thank you for sharing",
+    "i want to acknowledge",
+    "it's completely normal",
+    "it is completely normal",
+    "that must be",
+    "that sounds really",
+    "i notice that",
 ]
+
+
+THERAPIST_STYLE_PROFILES = {
+    "warm_professional": (
+        "You are a licensed and calm therapist who speaks in a warm, direct, professional register.\n"
+        "The language should feel human-first: conversational, specific, and curious.\n"
+        "Avoid generic affirmation loops and script-like therapy language. Don't over-validate feelings.\n"
+        "Avoid these repeated openings and clichés: 'I hear', 'I understand', 'that's tough', 'you are not alone', "
+        "'it makes sense', 'that's the thing', 'that's how it is'.\n"
+        "Keep responses natural, grounded, and focused on what the client just shared."
+    ),
+    "curious_direct": (
+        "You are a clinically grounded therapist with a calm, human voice.\n"
+        "Use short reflective anchors and one focused question per turn.\n"
+        "Prefer concrete language over clichés or emotional mirroring.\n"
+        "Do not over-affirm, do not over-validate, and do not use repetitive scripts.\n"
+        "Avoid these specific phrases: 'I hear you', 'that makes sense', 'you deserve', 'be gentle with yourself', "
+        "'it sounds', 'that's completely normal', 'you're not alone'.\n"
+        "End with one practical next step or one question that helps the client continue speaking."
+    ),
+}
+
+THERAPIST_STYLE_OPENERS = [
+    "Reflect one concrete detail first, then ask one precise question.",
+    "Open with one short observation from their wording, then add one follow-up question.",
+    "Ask one focused, open question tied to body, behavior, or context.",
+]
+
+
+def _build_therapist_style_prompt(
+    category_prompt: str,
+    response_type: str | None = None,
+    style_profile: str = "warm_professional",
+) -> str:
+    """Compose a reusable therapist prompt with current anti-robotic style policy."""
+    base = THERAPIST_STYLE_PROFILES.get(style_profile, THERAPIST_STYLE_PROFILES["warm_professional"])
+
+    response_type_hints = {
+        "exploration": "Ask one open question that invites nuance.",
+        "reality-testing": "Use one precise, non-judgmental clarifying question.",
+        "skill-teaching": "Include one practical step, not a lecture.",
+        "psychoeducation": "Offer one clear, concise explanatory phrase.",
+        "safety": "Prioritize immediate safety and grounding before reflective language.",
+    }
+
+    rt_hint = response_type_hints.get(response_type, "Use one question only when it advances the moment.")
+
+    opener = random.choice(THERAPIST_STYLE_OPENERS)
+
+    return (
+        f"{base}\n"
+        f"{category_prompt}\n\n"
+        f"{opener}\n"
+        f"{rt_hint}"
+    )
+
+
+STYLE_EVAL_RULES: dict[str, list[str]] = {
+    "cliches": [
+        "you are not alone",
+        "that's completely normal",
+        "that's the thing",
+        "it makes sense",
+        "you deserve",
+        "be gentle with yourself",
+        "i hear you",
+        "i understand",
+        "i know that you",
+        "you are not alone in this",
+        "it's okay",
+        "i can imagine",
+    ],
+    "sycophancy_markers": [
+        "absolutely right",
+        "exactly right",
+        "you are always right",
+        "you are very aware",
+        "i completely agree",
+    ],
+    "robotic_signals": [
+        "as an AI",
+        "i'm here to",
+        "let's focus",
+        "it's important to know",
+        "it is important to",
+        "i want to acknowledge",
+        "in my opinion",
+    ],
+}
+
+
+def _count_questions(output: str) -> int:
+    """Count sentence-final question markers."""
+    return output.count("?")
+
+
+def _evaluate_therapist_style(
+    output: str,
+    response_type: str | None = None,
+    style_profile: str = "warm_professional",
+) -> tuple[bool, str]:
+    """Evaluate therapist language for anti-cliche, anti-robotic, non over-affirming quality."""
+    output_lower = output.lower().strip()
+    if not output_lower:
+        return False, "Empty therapist output"
+
+    reasons: list[str] = []
+
+    # Cliché and over-affirmation checks (global)
+    for marker in STYLE_EVAL_RULES["cliches"]:
+        if marker in output_lower:
+            reasons.append(f"Cliche marker: '{marker}'")
+
+    # Sycophancy signals (anti over-affirming)
+    for marker in STYLE_EVAL_RULES["sycophancy_markers"]:
+        if marker in output_lower:
+            reasons.append(f"Over-affirming marker: '{marker}'")
+
+    # Robotic language signals
+    for marker in STYLE_EVAL_RULES["robotic_signals"]:
+        if marker in output_lower:
+            reasons.append(f"Robotic phrasing: '{marker}'")
+
+    question_count = _count_questions(output)
+
+    # Encourage a question-led rhythm for exploration and reality-testing responses,
+    # where therapist follow-through most improves conversational continuity.
+    needs_reflection_question = response_type in {None, "exploration", "reality-testing"}
+    if needs_reflection_question and question_count == 0:
+        reasons.append("Missing reflective question for human-sounding follow-up")
+
+    # Avoid repetitive lexical signature in a single sentence
+    words = output_lower.replace("?", "").replace(".", "").split()
+    if len(words) >= 20:
+        common = Counter(words).most_common(1)
+        top_word, top_count = common[0]
+        if top_count / len(words) > 0.20 and top_word not in {"the", "and", "you", "to", "and", "it", "that", "is", "was"}:
+            reasons.append(f"Repetitive lexical pattern around '{top_word}'")
+
+    # Keep responses concise enough and avoid canned 1-line affirmations
+    if len(output_lower) < 50:
+        reasons.append("Response too short")
+
+    # Safety / boundary maintenance
+    if "kill" in output_lower or "suicide" in output_lower:
+        if not any(r in output_lower for r in CRISIS_RESOURCES):
+            reasons.append("Missing crisis resource for safety-risk language")
+
+    if style_profile == "curious_direct":
+        if question_count == 0:
+            reasons.append("curious_direct expects at least one question")
+        elif question_count > 2:
+            reasons.append("curious_direct emits too many questions (max 2)")
+
+    if reasons:
+        return False, "; ".join(reasons[:3])
+    return True, "style_ok"
 
 FORBIDDEN_INSTRUCTION_OPENINGS = [
     "this sounds crazy but",
@@ -628,6 +806,13 @@ def validate_sample(sample: dict) -> tuple[bool, str]:
     ):
         return False, "Stage directions in instruction"
 
+    # Style profile check on therapist output
+    style_profile = sample.get("style_profile", "warm_professional")
+    output_type = sample.get("response_type")
+    ok, reason = _evaluate_therapist_style(output, response_type=output_type, style_profile=style_profile)
+    if not ok:
+        return False, f"Style check failed: {reason}"
+
     # Markdown check
     if "**" in instruction or "**" in output:
         return False, "Markdown detected"
@@ -695,6 +880,61 @@ def _compute_trigrams(text: str) -> set[str]:
     if len(words) < 3:
         return set()
     return {" ".join(words[i : i + 3]) for i in range(len(words) - 2)}
+
+
+def run_style_audit(output_path: str, style_profile: str = "warm_professional", sample_limit: int = 0) -> dict:
+    """Audit therapist style quality across an existing JSONL output file."""
+    report = {
+        "style_profile": style_profile,
+        "audited_at": datetime.now().isoformat(),
+        "source_path": output_path,
+        "sample_limit": sample_limit,
+        "total_samples": 0,
+        "passed": 0,
+        "failed": 0,
+        "pass_rate": 0.0,
+        "top_rejections": [],
+    }
+
+    path = Path(output_path)
+    if not path.exists():
+        report["error"] = "output_path_not_found"
+        return report
+
+    rejections: Counter[str] = Counter()
+    records_processed = 0
+
+    with open(path, encoding="utf-8") as f:
+        for line in f:
+            if sample_limit and records_processed >= sample_limit:
+                break
+            if not line.strip():
+                continue
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError:
+                rejections["invalid_json"] += 1
+                continue
+
+            output = record.get("output", "")
+            response_type = record.get("response_type")
+            ok, reason = _evaluate_therapist_style(output, response_type=response_type, style_profile=style_profile)
+            records_processed += 1
+            if ok:
+                report["passed"] += 1
+            else:
+                report["failed"] += 1
+                rejections[f"style_check:{reason}"] += 1
+
+    report["total_samples"] = records_processed
+    total_evaluated = report["passed"] + report["failed"]
+    if total_evaluated:
+        report["pass_rate"] = report["passed"] / total_evaluated
+    report["top_rejections"] = [
+        {"reason": reason, "count": count}
+        for reason, count in rejections.most_common(8)
+    ]
+    return report
 
 
 def _check_deduplication(
@@ -839,13 +1079,18 @@ def _generate_niche_sample(
     api_key: str,
     model: str,
     target_response_type: str | None = None,
+    style_profile: str = "warm_professional",
 ) -> dict | None:
     """Generate one niche category training sample.
 
     Optionally targets a specific response_type to balance distribution.
     """
     client_prompt = category_info["client_prompt_template"]
-    therapist_prompt = category_info["therapist_system_prompt"]
+    therapist_prompt = _build_therapist_style_prompt(
+        category_info["therapist_system_prompt"],
+        response_type=target_response_type,
+        style_profile=style_profile,
+    )
 
     # Inject response type targeting if specified
     if target_response_type and target_response_type != "validation":
@@ -881,6 +1126,7 @@ def _generate_niche_sample(
         "category": category,
         "difficulty": determine_difficulty(instruction),
         "response_type": determine_response_type(output),
+        "style_profile": style_profile,
     }
 
     return sample
@@ -984,6 +1230,30 @@ def build_parser() -> argparse.ArgumentParser:
         default="mistral-nemo",
         help="NeMo model to use",
     )
+    parser.add_argument(
+        "--style_profile",
+        type=str,
+        default="warm_professional",
+        choices=tuple(THERAPIST_STYLE_PROFILES.keys()),
+        help="Therapist style profile to apply during niche generation",
+    )
+    parser.add_argument(
+        "--style_audit",
+        action="store_true",
+        help="Run style audit against existing output file and exit",
+    )
+    parser.add_argument(
+        "--style_audit_output",
+        type=str,
+        default="",
+        help="Path to write style audit report JSON",
+    )
+    parser.add_argument(
+        "--style_audit_limit",
+        type=int,
+        default=0,
+        help="Max samples to audit in one pass (0 means all)",
+    )
 
     return parser
 
@@ -995,12 +1265,30 @@ _ROTATION_RESPONSE_TYPES = ["validation", "exploration", "skill-teaching", "psyc
 def run_sdg(args: argparse.Namespace) -> None:
     """Main orchestration function for SDG generation.
 
-    Handles all three scenarios: DPO pairs, niche categories, nightmare fuel.
-    Includes validation, deduplication, and safety filtering.
+    Handles three generation scenarios plus offline style-audit mode:
+    DPO pairs, niche categories, nightmare fuel.
     """
     endpoint = args.nemo_endpoint or os.getenv("NEMO_ENDPOINT", "")
     api_key = args.nemo_api_key or os.getenv("NEMO_API_KEY", "") or os.getenv("NVIDIA_API_KEY", "")
     model = args.nemo_model
+
+    if getattr(args, "style_audit", False):
+        audit_report = run_style_audit(
+            args.output_path,
+            style_profile=getattr(args, "style_profile", "warm_professional"),
+            sample_limit=getattr(args, "style_audit_limit", 0),
+        )
+        report_path = getattr(
+            args,
+            "style_audit_output",
+            str(Path(args.output_path).with_suffix(".style_audit.json")),
+        )
+        if not report_path:
+            report_path = str(Path(args.output_path).with_suffix(".style_audit.json"))
+        with open(report_path, "w", encoding="utf-8") as f:
+            json.dump(audit_report, f, indent=2)
+        logger.info("Style audit complete: %s", report_path)
+        return
 
     # Validate required parameters
     if args.scenario == "niche_category":
@@ -1042,6 +1330,7 @@ def run_sdg(args: argparse.Namespace) -> None:
                     sample = _generate_niche_sample(
                         args.category, category_info, endpoint, api_key, model,
                         target_response_type=target_rt,
+                        style_profile=args.style_profile,
                     )
                     if sample:
                         is_valid, reason = validate_sample(sample)
