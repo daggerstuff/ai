@@ -160,12 +160,6 @@ compiled_dataset/
 lightning/
 .moderne/
 training/
-training/.cache/
-training/compiled_dataset/
-training/data/
-training/*.jsonl
-training/**/*.jsonl
-training/lightning/
 training_data/
 training_data_consolidated/
 training_ready/
