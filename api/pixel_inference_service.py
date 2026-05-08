@@ -64,18 +64,12 @@ class PixelInferenceRequest(BaseModel):
     )
     context_type: str | None = Field(
         None,
-        description=(
-            "Context type: educational, support, crisis, clinical, informational"
-        ),
+        description=("Context type: educational, support, crisis, clinical, informational"),
     )
     user_id: str | None = Field(None, description="User identifier for tracking")
     session_id: str | None = Field(None, description="Session identifier")
-    use_eq_awareness: bool = Field(
-        True, description="Enable EQ-aware response generation"
-    )
-    include_metrics: bool = Field(
-        True, description="Include quality metrics in response"
-    )
+    use_eq_awareness: bool = Field(True, description="Enable EQ-aware response generation")
+    include_metrics: bool = Field(True, description="Include quality metrics in response")
     max_tokens: int = Field(200, description="Max tokens to generate")
     gestalt_directive: str | None = Field(None, description="Supervisor override directive")
 
@@ -109,9 +103,7 @@ class PixelInferenceResponse(BaseModel):
     inference_time_ms: float
     eq_scores: EQScores | None = None
     conversation_metadata: ConversationMetadata | None = None
-    persona_mode: str = Field(
-        "therapy", description="Detected persona: therapy or assistant"
-    )
+    persona_mode: str = Field("therapy", description="Detected persona: therapy or assistant")
     confidence: float = Field(0.9, description="Confidence in response")
     warning: str | None = None
     agent_activities: list["AgentActivity"] | None = None
@@ -120,6 +112,7 @@ class PixelInferenceResponse(BaseModel):
 
 class AgentConflict(BaseModel):
     """Represents a disagreement between agents"""
+
     with_agent: str = Field(..., alias="withAgent")
     severity: str  # low, medium, high
     description: str
@@ -173,15 +166,13 @@ class PixelInferenceEngine:
         self.total_inference_time = 0.0
         self._stats_lock = asyncio.Lock()
         self._inference_semaphore = asyncio.Semaphore(10)
-        self.model_path = os.getenv(
-            "PIXEL_MODEL_PATH", "ai/models/pixel_core/models/pixel_base_model.pt"
-        )
+        self.model_path = os.getenv("PIXEL_MODEL_PATH", "ai/models/pixel_core/models/pixel_base_model.pt")
         # Per-agent metrics
         self.agent_stats = {
             "Coordinator": {"calls": 0, "total_time": 0, "errors": 0},
             "Psychologist": {"calls": 0, "total_time": 0, "errors": 0},
             "Memory Agent": {"calls": 0, "total_time": 0, "errors": 0},
-            "Safety Guard": {"calls": 0, "total_time": 0, "errors": 0}
+            "Safety Guard": {"calls": 0, "total_time": 0, "errors": 0},
         }
 
     def record_agent_step(self, agent_name: str, duration_ms: float, success: bool = True):
@@ -200,7 +191,7 @@ class PixelInferenceEngine:
             report[name] = {
                 "average_latency_ms": round(avg_time, 2),
                 "error_rate": round(stats["errors"] / stats["calls"], 4) if stats["calls"] > 0 else 0,
-                "throughput": stats["calls"]
+                "throughput": stats["calls"],
             }
         return report
 
@@ -229,9 +220,7 @@ class PixelInferenceEngine:
 
         # Check if model file exists
         if not os.path.exists(self.model_path):
-            logger.warning(
-                f"Model file not found at {self.model_path}, creating fresh model"
-            )
+            logger.warning(f"Model file not found at {self.model_path}, creating fresh model")
             self.model = PixelBaseModel()
         else:
             self.model = PixelBaseModel.load(self.model_path)
@@ -242,9 +231,7 @@ class PixelInferenceEngine:
         logger.info("Pixel model loaded successfully")
         return True
 
-    def preprocess_input(
-        self, query: str, history: list[ConversationMessage]
-    ) -> torch.Tensor:
+    def preprocess_input(self, query: str, history: list[ConversationMessage]) -> torch.Tensor:
         """Convert query and history to model input tensor"""
         # Create simple token embedding (in production, use actual tokenizer)
         # For now, use positional encoding + word embeddings simulation
@@ -256,9 +243,7 @@ class PixelInferenceEngine:
         seq_len = min(len(full_context.split()) + 1, 512)
         return torch.randn(1, seq_len, 768, device=self.device)
 
-    async def generate_response(
-        self, request: PixelInferenceRequest
-    ) -> PixelInferenceResponse:
+    async def generate_response(self, request: PixelInferenceRequest) -> PixelInferenceResponse:
         """Generate response using Pixel model"""
         if not self.model_loaded:
             raise RuntimeError("Model not loaded")
@@ -267,18 +252,14 @@ class PixelInferenceEngine:
 
         try:
             # Preprocess input
-            input_tensor = self.preprocess_input(
-                request.user_query, request.conversation_history
-            )
+            input_tensor = self.preprocess_input(request.user_query, request.conversation_history)
 
             # Forward pass through model
             with torch.no_grad():
                 # Yield control back to event loop for CPU/GPU heavy synchronous operations
                 # to prevent blocking other requests.
                 await asyncio.sleep(0)
-                model_output = self.model(
-                    input_tensor, history=request.conversation_history
-                )
+                model_output = self.model(input_tensor, history=request.conversation_history)
 
             # Extract outputs
             persona_mode = self._detect_persona_mode(request.context_type)
@@ -286,9 +267,7 @@ class PixelInferenceEngine:
             metadata = self._build_metadata(model_output, request)
 
             # Generate response text (in production, use language head)
-            response_text = self._generate_response_text(
-                request.user_query, persona_mode, eq_scores
-            )
+            response_text = self._generate_response_text(request.user_query, persona_mode, eq_scores)
 
             # Calculate inference time
             inference_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
@@ -302,8 +281,7 @@ class PixelInferenceEngine:
             warning = None
             if inference_time > INFERENCE_LATENCY_WARNING_MS:
                 warning = (
-                    f"Inference latency exceeded target: "
-                    f"{inference_time:.2f}ms > {INFERENCE_LATENCY_WARNING_MS}ms"
+                    f"Inference latency exceeded target: {inference_time:.2f}ms > {INFERENCE_LATENCY_WARNING_MS}ms"
                 )
                 logger.warning(warning)
 
@@ -323,12 +301,7 @@ class PixelInferenceEngine:
 
     async def generate_streaming_response(self, request: PixelInferenceRequest):
         """Generator that yields agent activities and finally the full response"""
-        current_state = {
-            "focus": None,
-            "detected_emotions": [],
-            "kb_context": None,
-            "distortions": []
-        }
+        current_state = {"focus": None, "detected_emotions": [], "kb_context": None, "distortions": []}
 
         # Step 1: Pre-processing thought
         current_state["focus"] = "initial_assessment"
@@ -346,13 +319,10 @@ class PixelInferenceEngine:
                 if request.gestalt_directive
                 else "Awaiting directives..."
             ),
-            thought=(
-                f"User query: '{request.user_query[:50]}...'. "
-                f"Directive: {request.gestalt_directive or 'None'}"
-            ),
+            thought=(f"User query: '{request.user_query[:50]}...'. Directive: {request.gestalt_directive or 'None'}"),
             status="completed",
             timestamp=time.time(),
-            shared_state=current_state.copy()
+            shared_state=current_state.copy(),
         )
         await asyncio.sleep(0.5)
 
@@ -368,7 +338,7 @@ class PixelInferenceEngine:
             action="kb_search(techniques=['validation', 'cognitive_restructuring'])",
             status="completed",
             timestamp=time.time(),
-            shared_state=current_state.copy()
+            shared_state=current_state.copy(),
         )
         await asyncio.sleep(0.8)
 
@@ -385,17 +355,12 @@ class PixelInferenceEngine:
             thought="Detected 'overgeneralization' pattern in user phrasing.",
             status="completed",
             timestamp=time.time(),
-            shared_state=current_state.copy()
+            shared_state=current_state.copy(),
         )
         await asyncio.sleep(0.4)
 
         # Simulated Conflict: Safety Guard disagrees with Psychologist on severity
-        if (
-            not request.gestalt_directive
-            and any(
-                k in request.user_query.lower() for k in ["bad", "hurt", "desperate"]
-            )
-        ):
+        if not request.gestalt_directive and any(k in request.user_query.lower() for k in ["bad", "hurt", "desperate"]):
             self.record_agent_step("Safety Guard", 200, success=False)
             yield AgentActivity(
                 id=str(uuid.uuid4()),
@@ -416,8 +381,8 @@ class PixelInferenceEngine:
                     description=(
                         "Safety threshold discrepancy: Psychological assessment does not "
                         "fully account for acute distress markers."
-                    )
-                )
+                    ),
+                ),
             )
             await asyncio.sleep(0.6)
 
@@ -435,7 +400,7 @@ class PixelInferenceEngine:
             observation="Safety score: 0.98. EQ target: high empathy.",
             status="completed",
             timestamp=time.time(),
-            shared_state=current_state.copy()
+            shared_state=current_state.copy(),
         )
 
         # Final event is the full response
@@ -452,21 +417,11 @@ class PixelInferenceEngine:
         eq_dict = model_output.get("eq_outputs", {})
 
         scores = {
-            "emotional_awareness": float(
-                eq_dict.get("emotional_awareness", torch.tensor(0.0)).mean()
-            ),
-            "empathy_recognition": float(
-                eq_dict.get("empathy_recognition", torch.tensor(0.0)).mean()
-            ),
-            "emotional_regulation": float(
-                eq_dict.get("emotional_regulation", torch.tensor(0.0)).mean()
-            ),
-            "social_cognition": float(
-                eq_dict.get("social_cognition", torch.tensor(0.0)).mean()
-            ),
-            "interpersonal_skills": float(
-                eq_dict.get("interpersonal_skills", torch.tensor(0.0)).mean()
-            ),
+            "emotional_awareness": float(eq_dict.get("emotional_awareness", torch.tensor(0.0)).mean()),
+            "empathy_recognition": float(eq_dict.get("empathy_recognition", torch.tensor(0.0)).mean()),
+            "emotional_regulation": float(eq_dict.get("emotional_regulation", torch.tensor(0.0)).mean()),
+            "social_cognition": float(eq_dict.get("social_cognition", torch.tensor(0.0)).mean()),
+            "interpersonal_skills": float(eq_dict.get("interpersonal_skills", torch.tensor(0.0)).mean()),
         }
 
         # Normalize scores to 0-1 range
@@ -482,9 +437,7 @@ class PixelInferenceEngine:
             overall_eq=overall_eq,
         )
 
-    def _build_metadata(
-        self, _model_output: dict[str, Any], request: PixelInferenceRequest
-    ) -> ConversationMetadata:
+    def _build_metadata(self, _model_output: dict[str, Any], request: PixelInferenceRequest) -> ConversationMetadata:
         """Build conversation metadata from model output"""
         # Simulate technique detection
         detected_techniques = []
@@ -502,16 +455,10 @@ class PixelInferenceEngine:
             therapeutic_effectiveness_score=0.88,
         )
 
-    def _generate_response_text(
-        self, _query: str, persona_mode: str, eq_scores: EQScores
-    ) -> str:
+    def _generate_response_text(self, _query: str, persona_mode: str, eq_scores: EQScores) -> str:
         """Generate response text based on query and persona"""
         # Simple template-based response (in production, use language head)
-        empathy_level = (
-            "understanding"
-            if eq_scores.empathy_recognition > EMPATHY_SUPPORT_THRESHOLD
-            else "supportive"
-        )
+        empathy_level = "understanding" if eq_scores.empathy_recognition > EMPATHY_SUPPORT_THRESHOLD else "supportive"
 
         responses = {
             "therapy": (
@@ -529,11 +476,7 @@ class PixelInferenceEngine:
 
     def get_status(self) -> ModelStatusResponse:
         """Get current model status"""
-        avg_inference_time = (
-            self.total_inference_time / self.inference_count
-            if self.inference_count > 0
-            else None
-        )
+        avg_inference_time = self.total_inference_time / self.inference_count if self.inference_count > 0 else None
         return ModelStatusResponse(
             model_loaded=self.model_loaded,
             model_name="PixelBaseModel",
@@ -549,9 +492,7 @@ class PixelInferenceEngine:
             performance_metrics={
                 "inference_count": self.inference_count,
                 "average_inference_time_ms": (
-                    self.total_inference_time / self.inference_count
-                    if self.inference_count > 0
-                    else None
+                    self.total_inference_time / self.inference_count if self.inference_count > 0 else None
                 ),
                 "total_inference_time_ms": self.total_inference_time,
                 "device": str(self.device),
@@ -671,25 +612,15 @@ async def infer_stream(request: PixelInferenceRequest):
             async for item in inference_engine.generate_streaming_response(request):
                 # Check if it's an activity or the final response
                 if isinstance(item, AgentActivity):
-                    yield {
-                        "event": "activity",
-                        "data": item.json(by_alias=True)
-                    }
+                    yield {"event": "activity", "data": item.json(by_alias=True)}
                 else:
-                    yield {
-                        "event": "final_response",
-                        "data": item.json(by_alias=True)
-                    }
+                    yield {"event": "final_response", "data": item.json(by_alias=True)}
         except Exception as e:
             logger.exception("Streaming inference error")
-            yield {
-                "event": "error",
-                "data": json.dumps({"detail": str(e)})
-            }
+            yield {"event": "error", "data": json.dumps({"detail": str(e)})}
 
     return StreamingResponse(
-        (f"event: {e['event']}\ndata: {e['data']}\n\n" async for e in event_generator()),
-        media_type="text/event-stream"
+        (f"event: {e['event']}\ndata: {e['data']}\n\n" async for e in event_generator()), media_type="text/event-stream"
     )
 
 
