@@ -30,10 +30,9 @@ from pydantic import BaseModel, Field
 # Add parent directories to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from ai.api.sentry_logging import initialize_sentry_logging
-
-
 from pixel.models.pixel_base_model import PixelBaseModel
+
+from ai.api.sentry_logging import initialize_sentry_logging
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -633,7 +632,7 @@ async def batch_infer(requests: list[PixelInferenceRequest]):
         try:
             return await inference_engine.generate_response(req)
         except Exception as e:
-            logger.error(f"Batch inference error: {e}")
+            logger.exception(f"Batch inference error: {e}")
             return {"error": str(e)}
 
     responses = list(await asyncio.gather(*[_process_req(req) for req in requests]))
