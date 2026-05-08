@@ -171,6 +171,8 @@ class PixelInferenceEngine:
         self.model_loaded = False
         self.inference_count = 0
         self.total_inference_time = 0.0
+        self._stats_lock = asyncio.Lock()
+        self._inference_semaphore = asyncio.Semaphore(10)
         self.model_path = os.getenv(
             "PIXEL_MODEL_PATH", "ai/models/pixel_core/models/pixel_base_model.pt"
         )
@@ -289,8 +291,9 @@ class PixelInferenceEngine:
             inference_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
 
             # Update stats
-            self.inference_count += 1
-            self.total_inference_time += inference_time
+            async with self._stats_lock:
+                self.inference_count += 1
+                self.total_inference_time += inference_time
 
             # Check latency requirement
             warning = None
@@ -630,7 +633,8 @@ async def batch_infer(requests: list[PixelInferenceRequest]):
     # This eliminates I/O bottlenecks and significantly improves throughput over sequential processing.
     async def _process_req(req):
         try:
-            return await inference_engine.generate_response(req)
+            async with inference_engine._inference_semaphore:
+                return await inference_engine.generate_response(req)
         except Exception as e:
             logger.exception(f"Batch inference error: {e}")
             return {"error": str(e)}
