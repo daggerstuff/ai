@@ -26,7 +26,7 @@ class ClinicalValidityScorer:
         EBP_PATTERNS: Evidence-based practice markers.
     """
 
-    VERSION: ClassVar[str] = "1.0.0"
+    VERSION: ClassVar[str] = "2.0.0"
 
     THERAPY_MODALITIES: ClassVar[dict[str, tuple[str, ...]]] = {
         "cbt": (
@@ -90,6 +90,41 @@ class ClinicalValidityScorer:
             r"\b(988|crisis line|emergency (contact|services)|hotline)\b",
             r"\b(warning sign|triggers|coping strateg|support network)\b",
         ),
+        "supportive_counseling": (
+            r"\b(it (sounds|seems) like (you|you're)|sounds like you (are|have|need))\b",
+            r"\b(I hear (you|that|what you)|I can (hear|see) (that|how))\b",
+            r"\b(encourage you to|it('s| is) (important|helpful) (to|that))\b",
+            r"\b(you are not alone|that's (completely|perfectly) (normal|understandable))\b",
+            r"\b(reach out to|speak with a|talk to a|consult a)\b",
+            r"\b(professional help|mental health professional|therapist (who|that) (specializes|can))\b",
+            r"\b(coping (skill|strateg|mechanism|tool)|self(-| )care|support (system|network))\b",
+            r"\b(what you are (experiencing|feeling|going through)|you're (experiencing|feeling|going through))\b",
+            r"\b(first step|next step|small (step|changes)|take (step|action))\b",
+            r"\b(it('s| is) (okay|normal|common) to (feel|have|experience))\b",
+            r"\b(writing in a journal|journaling|keep a (journal|diary)|write down)\b",
+            r"\b(you deserve|your feelings are (valid|real|important)|it's okay to feel)\b",
+        ),
+        "trauma_informed": (
+            r"\btrauma(-| )?(informed|specific|focused|sensitive|aware)\b",
+            r"\b(triggers?|triggering|grounding|grounding (technique|exercise))\b",
+            r"\b(emotional safety|safe (space|environment|relationship)|felt safety)\b",
+            r"\b(hypervigilance|hyperarousal|flashback|intrusive (thought|memory))\b",
+            r"\b(window of tolerance|nervous system|fight or flight|freeze response)\b",
+            r"\b(PTSD|complex trauma|developmental trauma|childhood trauma)\b",
+            r"\b(trauma (recovery|healing|therapy|treatment)|re(-| )traumatiz)\b",
+            r"\b(emotional (regulation|dysregulation)|self(-| )regulation|co(-| )regulation)\b",
+            r"\b(safety (plan|contract|assessment)|stabilization|containment)\b",
+        ),
+        "somatic_therapy": (
+            r"\bsomatic|somatic (experiencing|therapy|practice)\b",
+            r"\b(body (awareness|sensation|scan|based)|(awareness|scan) of (the )?(body|physical))\b",
+            r"\b(breathwork|breathing (exercise|technique|practice)|deep breath)\b",
+            r"\b(mindful (movement|breathing)|yoga|gentle stretch)\b",
+            r"\b(physical (sensation|feeling|experience)|embodiment|embodied)\b",
+            r"\b(progressive muscle relaxation|relaxation (technique|exercise|response))\b",
+            r"\b(vagus nerve|polyvagal|nervous system (regulation|health))\b",
+            r"\b(tension (release|reduction)|relax(ation)? (muscle|body)|bodywork)\b",
+        ),
     }
 
     ALLIANCE_PATTERNS: ClassVar[dict[str, tuple[str, ...]]] = {
@@ -97,16 +132,23 @@ class ClinicalValidityScorer:
             r"\b(work together|collaborat|partner with|we can|let's)\b",
             r"\b(what do you think|how does that (feel|sound|land)|your input)\b",
             r"\b(together|shared (understanding|goal)|agenda)\b",
+            r"\b(we ('re| are) (in this|here) together|both of you)\b",
         ),
         "validation": (
             r"\b(that makes sense|understandably|it's understandable|of course)\b",
             r"\b(valid|legitimate|reasonable|makes (perfect )?sense)\b",
             r"\b(I hear you|I can see|that sounds|that must be)\b",
+            r"\b(you are not alone|it('s| is) (okay|normal|understandable) (to|that))\b",
+            r"\b(courage (to|in)|brave|strength (in|to)|resilien)\b",
+            r"\b(thank you for (sharing|trusting|reaching|opening))\b",
+            r"\b(it takes (a lot of |so much )?courage|I('m| am) (glad|grateful) (you|that))\b",
         ),
         "empowerment": (
             r"\b(you (have|are) (the )?(strength|resilience|courage|capable))\b",
             r"\b(you can|you get to decide|your choice|your (own )?pace)\b",
             r"\b(agency|autonomy|self(-| )efficacy|build(ing)? on)\b",
+            r"\b(you (are|were) able to|you (have|found) the (strength|resources))\b",
+            r"\b(you (deserve|matter)|worth (it|your time|the effort))\b",
         ),
     }
 
@@ -115,21 +157,28 @@ class ClinicalValidityScorer:
             r"\b(assessment|intake|evaluation|history|presenting (problem|concern))\b",
             r"\b(symptom|duration|onset|frequency|severity|intensity)\b",
             r"\b(previous (treatment|therapy|hospitalization)|medication)\b",
+            r"\b(how long (have|does)|when did (you|it)|how often (do|does))\b",
+            r"\b(it sounds like you (are|have|may be|might be) (experiencing|dealing|struggling))\b",
         ),
         "intervention": (
             r"\b(intervention|technique|strategy|approach|skill|tool)\b",
             r"\b(practice|exercise|worksheet|try|attempt)\b",
             r"\b(explore|examine|look at|delve|unpack)\b",
+            r"\b(suggest (that|you|trying|considering)|recommend (that|you|trying|seeking))\b",
+            r"\b(one (thing|approach|strategy) (that|you|is)|a (good|helpful) (way|idea) (to|is))\b",
+            r"\b(work on|focus on|address (the|this|these|your))\b",
         ),
         "planning": (
             r"\b(goal|objective|outcome|treatment plan|therapeutic goal)\b",
             r"\b(between sessions|homework|practice|follow(-| )up|next step)\b",
             r"\b(progress|track|monitor|review|adjust)\b",
+            r"\b(develop (a|an|strateg|plan|skill)|build(ing)? (on|upon|skills|coping))\b",
         ),
         "closure": (
             r"\b(summarize|wrap up|close|recap|reflect back)\b",
             r"\b(key (takeaway|point)|main (theme|idea)|what stood out)\b",
             r"\b(next session|check in|continue (working|exploring))\b",
+            r"\b(I (hope|wish) (this|that|you)|wishing you|best of luck|hope this (helps|is))\b",
         ),
     }
 
@@ -151,16 +200,21 @@ class ClinicalValidityScorer:
             r"\b(research|study|evidence|literature|finding)\b",
             r"\b(efficacy|effectiveness|outcome|meta-analysis|RCT)\b",
             r"\b(best practice|standard of care|clinical (guideline|practice))\b",
+            r"\b(therapy (has been )?(shown|found|demonstrated)|treatment (option|approach))\b",
         ),
         "clinical_reasoning": (
             r"\b(conceptualiz|cased? formulation|clinical (judgment|reasoning))\b",
             r"\b(differential|diagnos|presentation|etiology|prognosis)\b",
             r"\b(indication|contraindication|referral|consultation)\b",
+            r"\b(symptom (of|suggest|indicat)|consistent with|present with)\b",
+            r"\b(treatable|responsive to|management (of|strateg)|intervention)\b",
         ),
         "therapeutic_framing": (
             r"\b(one (way|approach) is|a (helpful|useful) way|some people find)\b",
             r"\b(in (my|our) experience|from a clinical perspective|professionally)\b",
             r"\b(evidence suggests|research (shows|indicates)|studies (show|suggest))\b",
+            r"\b(consider (trying|exploring|working with)|worth (considering|exploring|trying))\b",
+            r"\b(goal (is|would be) to|aim (is|would be) to|approach (is|involves))\b",
         ),
     }
 
@@ -203,12 +257,17 @@ class ClinicalValidityScorer:
         sub_dimensions = len(cls.DIMENSION_PATTERNS[dimension])
         match_texts = {m.group(0).lower() for m in matches}
         diversity_bonus = min(1.0, len(match_texts) / 10.0)
-        raw = min(len(matches) / (sub_dimensions * 2), 1.0)
+        raw = min(len(matches) / sub_dimensions, 1.0)
         return min(raw + diversity_bonus * 0.15, 1.0)
 
     @classmethod
     def score(cls, response: str) -> float:
-        """Compute overall clinical validity score in [0.0, 1.0]."""
+        """Compute overall clinical validity score in [0.0, 1.0].
+
+        Weight normalization: when used in GRPO training with clinical_weight > 0,
+        all three weights (empathy, crisis, clinical) are normalized to sum 1.0.
+        The ClinicalValidityScorer's internal WEIGHTS always sum to 1.0 independently.
+        """
         if not response or not isinstance(response, str):
             return 0.0
         total = 0.0
