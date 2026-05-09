@@ -1,8 +1,8 @@
-"""Multilingual safety checker extending ClinicalSafetyChecker for therapeutic AI training.
+"""Multilingual content analyzer extending ClinicalContentAnalyzer.
 
-Adds crisis detection patterns for Spanish, French, Portuguese, and German
-with per-language negation patterns. Falls back to checking all language
-pattern sets when the input language is unknown.
+Adds crisis pattern definitions for Spanish, French, Portuguese, and German
+with per-language negation patterns. These patterns are used for content
+analysis and measurement — they do not filter or remove any content.
 """
 
 from __future__ import annotations
@@ -11,28 +11,23 @@ import re
 from typing import ClassVar
 
 try:
-    from .clinical_safety_checker import ClinicalSafetyChecker
+    from .clinical_safety_checker import ClinicalContentAnalyzer
 except ModuleNotFoundError:
-    from ai.training.clinical_safety_checker import ClinicalSafetyChecker
+    from ai.training.clinical_safety_checker import ClinicalContentAnalyzer
 
 
-class MultilingualSafetyChecker(ClinicalSafetyChecker):
-    """Extended safety checker with multilingual crisis pattern support.
+class MultilingualContentChecker(ClinicalContentAnalyzer):
+    """Extended content analyzer with multilingual crisis pattern support.
 
     Adds crisis and negation patterns for es, fr, pt, and de. Inherits the
-    English patterns and negation-window logic from ClinicalSafetyChecker.
-    When the language is unknown, all pattern sets are applied and a match
-    in any language triggers an unsafe result.
-
-    Interface is identical to ClinicalSafetyChecker.is_unsafe(text: str) -> bool
-    so existing call sites require zero changes.
+    English patterns and negation-window logic from ClinicalContentAnalyzer.
+    When the language is unknown, all pattern sets are analyzed.
     """
 
     VERSION: ClassVar[str] = "1.0.0"
 
     supported_languages: ClassVar[list[str]] = ["en", "es", "fr", "pt", "de"]
 
-    # --- Spanish crisis patterns (6+) ---
     _EN_CRISIS_EXTRA_RAW: ClassVar[tuple[str, ...]] = (
         r"(?<!\w)(took|take|taking|took|swallowed|swallow|ingested)\s+(too\s+many|all|every|all the|many)\s+(pill|pills|tablet|tablets|medication|medications)(?!\w)",
     )
@@ -50,7 +45,6 @@ class MultilingualSafetyChecker(ClinicalSafetyChecker):
         r"\b(no|nunca|nadie|nada|ning[uú]n|ninguna|tampoco|jam[aá]s)\b",
     )
 
-    # --- French crisis patterns (6+) ---
     _FR_CRISIS_RAW: ClassVar[tuple[str, ...]] = (
         r"(?<!\w)(suicide|me suicider|mettre fin [aà] ma vie)(?!\w)",
         r"(?<!\w)(me tuer|vouloir mourir|mieux mort)(?!\w)",
@@ -64,7 +58,6 @@ class MultilingualSafetyChecker(ClinicalSafetyChecker):
         r"\b(ne|pas|jamais|rien|personne|aucun|aucune|non plus)\b",
     )
 
-    # --- Portuguese crisis patterns (6+) ---
     _PT_CRISIS_RAW: ClassVar[tuple[str, ...]] = (
         r"(?<!\w)(suic[ií]dio|me suicidar|acabar com a minha vida)(?!\w)",
         r"(?<!\w)(me matar|quero morrer|melhor morto)(?!\w)",
@@ -78,7 +71,6 @@ class MultilingualSafetyChecker(ClinicalSafetyChecker):
         r"\b(n[aã]o|nunca|ningu[eé]m|nada|nenhum|nenhuma|tampouco|jamais)\b",
     )
 
-    # --- German crisis patterns (6+) ---
     _DE_CRISIS_RAW: ClassVar[tuple[str, ...]] = (
         r"(?<!\w)(selbstmord|suizid|mir das leben nehmen)(?!\w)",
         r"(?<!\w)(mich umbringen|mich t[oö]ten|will sterben|lieber tot)(?!\w)",
@@ -92,7 +84,6 @@ class MultilingualSafetyChecker(ClinicalSafetyChecker):
         r"\b(nicht|kein|keine|keiner|niemals|niemand|nichts|nirgends|nie)\b",
     )
 
-    # Pre-compiled multilingual patterns
     _ES_CRISIS: ClassVar[list[re.Pattern[str]]] = [re.compile(p) for p in _ES_CRISIS_RAW]
     _ES_NEGATION: ClassVar[list[re.Pattern[str]]] = [re.compile(p) for p in _ES_NEGATION_RAW]
     _FR_CRISIS: ClassVar[list[re.Pattern[str]]] = [re.compile(p) for p in _FR_CRISIS_RAW]
@@ -103,9 +94,8 @@ class MultilingualSafetyChecker(ClinicalSafetyChecker):
     _DE_NEGATION: ClassVar[list[re.Pattern[str]]] = [re.compile(p) for p in _DE_NEGATION_RAW]
     _EN_CRISIS: ClassVar[list[re.Pattern[str]]] = [re.compile(p) for p in _EN_CRISIS_EXTRA_RAW]
 
-    # Map language code -> (crisis_patterns, negation_patterns)
     _LANG_PATTERNS: ClassVar[dict[str, tuple[list[re.Pattern[str]], list[re.Pattern[str]]]]] = {
-        "en": (ClinicalSafetyChecker.CRISIS_PATTERNS + _EN_CRISIS, ClinicalSafetyChecker.NEGATION_PATTERNS),
+        "en": (ClinicalContentAnalyzer.CRISIS_PATTERNS + _EN_CRISIS, ClinicalContentAnalyzer.NEGATION_PATTERNS),
         "es": (_ES_CRISIS, _ES_NEGATION),
         "fr": (_FR_CRISIS, _FR_NEGATION),
         "pt": (_PT_CRISIS, _PT_NEGATION),
@@ -113,14 +103,13 @@ class MultilingualSafetyChecker(ClinicalSafetyChecker):
     }
 
     @classmethod
-    def is_unsafe(cls, text: str, language: str | None = None) -> bool:
+    def contains_crisis_keywords(cls, text: str, language: str | None = None) -> bool:
         """Check text for crisis content across one or all languages.
 
         Args:
             text: Input text to check.
             language: ISO 639-1 code (en/es/fr/pt/de). When None or
-                unrecognized, all language pattern sets are checked and
-                a match in any language returns True.
+                unrecognized, all language pattern sets are checked.
 
         Returns:
             True if any non-negated crisis match is found.

@@ -1,9 +1,8 @@
-"""English-only clinical safety checker for training data filtering.
+"""English-only clinical content analysis utilities for training data.
 
-This module extracts ClinicalSafetyChecker from pixelated_production_pilot.py
-so it can be imported without pulling in the full ML training stack (trl,
-transformers, peft, etc.). The class is re-exported from the pilot script
-for backwards compatibility.
+Provides crisis pattern definitions, negation detection, and context window
+helpers used by the multilingual content analyzer. This module provides
+pattern-matching infrastructure — it does not filter or remove content.
 """
 
 from __future__ import annotations
@@ -12,8 +11,8 @@ import re
 from typing import ClassVar
 
 
-class ClinicalSafetyChecker:
-    """Multi-layered clinical safety checker for training data.
+class ClinicalContentAnalyzer:
+    """Pattern definitions and utilities for analyzing clinical content.
 
     Attributes:
         VERSION: Bump when patterns change to track dataset provenance.
@@ -23,26 +22,11 @@ class ClinicalSafetyChecker:
         NEGATION_WINDOW_AFTER: Context window (chars) after match for negation check.
 
     Note:
-        Training-data filter only. Inference-time safety requires a separate layer.
-        Combined instruction+output check catches crisis phrases split across boundary.
-
-    Warning:
-        Window-based negation can suppress genuine crisis phrases co-occurring with
-        negation words (e.g. "I never thought I'd want to die but here I am").
-        Manual review of filtered samples is recommended.
-        Filtered samples are logged at DEBUG level; persist DEBUG logs for audit trails
-        in clinical applications.
-        Some patterns may produce false positives for benign phrases (e.g. "I have a
-        plan for the weekend" matches the planning-indicator pattern). Review filtered
-        samples to assess false-positive rates for your specific dataset.
-
-    Limitation:
-        All patterns are English-only. Non-English crisis expressions will not be
-        detected. For multilingual deployments, extend patterns or use a multilingual
-        safety classifier.
+        These patterns are used for analysis and measurement only — they do not
+        gate or filter content. All content is preserved for training.
     """
 
-    VERSION: ClassVar[str] = "1.2.0"  # Bump when patterns change
+    VERSION: ClassVar[str] = "1.2.0"
 
     _CRISIS_PATTERNS_RAW: ClassVar[tuple[str, ...]] = (
         r"(?<!\w)(suicide|kill myself|end my life|want to die|better off dead)(?!\w)",
@@ -72,18 +56,16 @@ class ClinicalSafetyChecker:
 
     CRISIS_PATTERNS: ClassVar[list[re.Pattern[str]]] = [re.compile(p) for p in _CRISIS_PATTERNS_RAW]
     NEGATION_PATTERNS: ClassVar[list[re.Pattern[str]]] = [re.compile(p) for p in _NEGATION_PATTERNS_RAW]
-    NEGATION_WINDOW: ClassVar[int] = 100  # chars *before* match to check for negation
-    NEGATION_WINDOW_AFTER: ClassVar[int] = 30  # chars *after* match (same sentence only)
+    NEGATION_WINDOW: ClassVar[int] = 100
+    NEGATION_WINDOW_AFTER: ClassVar[int] = 30
     _SENTENCE_END: ClassVar[re.Pattern[str]] = re.compile(r"[.!?]")
 
     @classmethod
-    def is_unsafe(cls, text: str) -> bool:
-        """Check text for crisis content using finditer (all matches, not just first).
+    def contains_crisis_keywords(cls, text: str) -> bool:
+        """Check text for non-negated crisis content.
 
         Returns True if any non-negated crisis match is found.
         Returns False for empty strings, non-string input, or fully negated matches.
-        Uses asymmetric negation window: 100 chars before match, 30 chars after
-        (negation almost always precedes the crisis phrase).
         """
         if not text or not isinstance(text, str):
             return False
