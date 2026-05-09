@@ -29,11 +29,11 @@ chmod +x ngc
 # Add to PATH
 export PATH=$HOME/ngc-cli:$PATH
 echo 'export PATH=$HOME/ngc-cli:$PATH' >> ~/.bashrc
-```
+```text
 
 ### 2. Get NGC API Key
 
-1. Visit https://catalog.ngc.nvidia.com
+1. Visit <https://catalog.ngc.nvidia.com>
 2. Sign in with your NVIDIA account
 3. Go to your profile → Setup → Generate API Key
 4. Copy the API key
@@ -49,7 +49,7 @@ ngc config set
 
 # Or set via environment variable
 export NGC_API_KEY="your-api-key-here"
-```
+```text
 
 ### 4. Test the Integration
 
@@ -57,7 +57,7 @@ export NGC_API_KEY="your-api-key-here"
 # Test NGC CLI availability
 cd /home/vivi/pixelated
 python ai/utils/test_ngc_cli.py
-```
+```text
 
 This will verify:
 
@@ -75,7 +75,7 @@ from ai.training.ready_packages.utils.ngc_resources import download_nemo_quickst
 # Download NeMo Microservices quickstart
 quickstart_path = download_nemo_quickstart(version="25.10")
 print(f"Downloaded to: {quickstart_path}")
-```
+```text
 
 **Dataset Pipeline:**
 
@@ -85,13 +85,14 @@ from ai.pipelines.orchestrator.sourcing.ngc_ingestor import ingest_ngc_datasets
 # Ingest all configured NGC datasets
 results = ingest_ngc_datasets()
 print(f"Results: {results}")
-```
+```text
 
 ### 6. Add More NGC Resources
 
 Edit the configuration files to add more resources:
 
 **For Training Ready** (`ai/training/ready_packages/utils/ngc_resources.py`):
+
 ```python
 NEMO_RESOURCES = {
     'your-resource': {
@@ -100,9 +101,10 @@ NEMO_RESOURCES = {
         'description': 'Your resource description'
     }
 }
-```
+```text
 
 **For Dataset Pipeline** (`ai/pipelines/orchestrator/sourcing/ngc_ingestor.py`):
+
 ```python
 NGC_DATASETS = {
     'nvidia/nemo/datasets/your-dataset': {
@@ -111,7 +113,7 @@ NGC_DATASETS = {
         'description': 'Your dataset description'
     }
 }
-```
+```text
 
 ### 7. Integrate into Workflows
 
@@ -135,14 +137,14 @@ to use the new utilities:
 ```bash
 # Manual download
 ngc registry resource download-version "nvidia/nemo-microservices/nemo-microservices-quickstart:25.10"
-```
+```text
 
 **After:**
 
 ```python
 from ai.training.ready_packages.utils.ngc_resources import download_nemo_quickstart
 quickstart = download_nemo_quickstart(version="25.10")
-```
+```text
 
 ## 📚 Documentation
 
@@ -156,7 +158,7 @@ quickstart = download_nemo_quickstart(version="25.10")
 
 - Verify NGC CLI is installed: `which ngc` or `ls ~/ngc-cli/ngc`
 - Check PATH includes NGC CLI location
-- Re-download from https://catalog.ngc.nvidia.com if needed
+- Re-download from <https://catalog.ngc.nvidia.com> if needed
 
 ### "Authentication failed"
 
@@ -182,5 +184,6 @@ quickstart = download_nemo_quickstart(version="25.10")
 ## 💡 Usage Examples
 
 See the documentation files for complete usage examples:
+
 - Training resources: `ai/training/ready_packages/docs/NGC_CLI_INTEGRATION.md`
 - Dataset ingestion: `ai/pipelines/orchestrator/docs/NGC_INTEGRATION.md`

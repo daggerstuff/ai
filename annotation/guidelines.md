@@ -92,7 +92,9 @@ Use this sequence for tie-prone or mixed-language samples:
    - If emotion intensity is low and affect is mixed → **Neutral**
    - If intensity is clear and negative but not the above buckets → pick the closest fit and leave a note.
 
-You can optionally annotate one or two **secondary emotions** when the tone is mixed (e.g., primary=Anxiety, secondary=Sadness). Keep secondary labels to this simplified set and only include labels that are also materially present in the text.
+You can optionally annotate one or two **secondary emotions** when the tone is
+mixed (e.g., primary=Anxiety, secondary=Sadness). Keep secondary labels to this
+simplified set and only include labels that are also materially present in the text.
 
 #### Decision Notes
 

@@ -1,4 +1,4 @@
-# HETZNER AI Training - Wayfarer-2-12B
+<!-- markdownlint-disable -->\n\n# HETZNER AI Training - Wayfarer-2-12B
 
 > Supervised fine-tuning of Wayfarer-2-12B for therapeutic AI using HETZNER AI Platform.
 

@@ -19,21 +19,23 @@
 
 ## What Was Transferred (Earlier)
 
-| Folder | Size | Purpose |
-|--------|------|---------|
-| `lightning/` | 127 MB | Cloud deployment infrastructure |
-| `training/` | 96 MB | Training scripts & configs |
-| `training_ready/` | 12 KB | Docs (data excluded) |
-| `infrastructure/` | 4.3 MB | K8s Helm, DB schemas, QA, production configs |
-| `config/` | 272 KB | Config management framework (env-aware) |
-| `bin/` | 9.4 MB | VMAF video quality models + ffmpeg docs |
+|Folder|Size|Purpose|
+|---|---|---|
+|`lightning/`|127 MB|Cloud deployment infrastructure|
+|`training/`|96 MB|Training scripts & configs|
+|`training_ready/`|12 KB|Docs (data excluded)|
+|`infrastructure/`|4.3 MB|K8s Helm, DB schemas, QA, production configs|
+|`config/`|272 KB|Config management framework (env-aware)|
+|`bin/`|9.4 MB|VMAF video quality models + ffmpeg docs|
 
 ---
 
 ## Reorganization Actions Taken
 
 ### 1. Created Missing Target Directories
+
 These essential infrastructure directories were created:
+
 - `infrastructure/autoscaling/`
 - `data/database/`
 - `monitoring/explainability/`
@@ -46,18 +48,21 @@ These essential infrastructure directories were created:
 ### 2. Moved & Consolidated Files
 
 #### Data & Config Consolidation
+
 - `compiled_dataset/` → deleted (single artifact)
 - `database/conversations.db` → `data/database/`
 - `experimental/UPGRADE_OPPORTUNITIES.md` → `docs/`
 - `training_ready/S3_MIGRATION_REPORT.md` → `docs/archives/`
 
 #### Security & Config Management
+
 - `security/security_config.yaml` → `config/security/`
 - `security/security_policy_enhanced.json` → `config/security/`
 - `metrics/performance_config.yaml` → `config/monitoring/`
 - `enterprise_config/*.yaml` → `config/production/enterprise_config/`
 
 #### Code Module Reorganization
+
 - `src/inference_server.py` → `api/inference_server.py`
 - `src/data_pipeline/convert_reddit_to_training.py` → `sourcing/`
 - `autoscaling/gpu_autoscaler.py` → `infrastructure/autoscaling/`
@@ -67,6 +72,7 @@ These essential infrastructure directories were created:
 - `common/dataset_registry.py` & `llm_client.py` → `utils/common/`
 
 #### Training Pipeline Cleanup
+
 - Removed empty placeholder directories:
   - `training/ready_packages/training_ready/pipelines/edge/`
   - `training/ready_packages/training_ready/pipelines/voice/`
@@ -75,6 +81,7 @@ These essential infrastructure directories were created:
 ### 3. Empty Directory Cleanup
 
 After moves, these folders became empty and were removed:
+
 - `autoscaling/` (single file moved)
 - `common/` (2 files moved)
 - `database/` (file moved)
@@ -91,7 +98,7 @@ After moves, these folders became empty and were removed:
 
 ## Current Top-Level Structure (38 folders)
 
-```
+```text
 ai/
 ├── __pycache__
 ├── analysis
@@ -131,18 +138,20 @@ ai/
 ├── tools
 ├── training
 └── utils
-```
+```text
 
 ---
 
 ## Known Pre-Existing Issues (Not Caused by Cleanup)
 
 ### 1. Missing Class Import
+
 **File**: `orchestrator/training_orchestrator.py`  
 **Issue**: `from src.lib.ai.memory.automated_memory_updates import AutomatedMemoryUpdater` fails  
 **Status**: The `AutomatedMemoryUpdater` class does not exist in the codebase (local or backup). This is a pre-existing broken import.
 
 ### 2. Python Syntax Error in Training Script
+
 **File**: `training/scripts/process_60gb_ovh_final.py`  
 **Issue**: Unterminated triple-quoted string (line 63)  
 **Status**: This file was local-only, not from backup. Already broken before cleanup.

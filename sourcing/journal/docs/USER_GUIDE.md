@@ -1,4 +1,4 @@
-# Journal Dataset Research System - User Guide
+ # Journal Dataset Research System - User Guide
 
 ## Table of Contents
 

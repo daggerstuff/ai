@@ -50,7 +50,7 @@ class RateLimitConfig:
     max_backoff: int = 300
     jitter: bool = True
     respect_429: bool = True
-```
+```text
 
 ### ProxyConfig
 
@@ -63,7 +63,7 @@ class ProxyConfig:
     proxy_timeout: int = 30
     max_retries_per_proxy: int = 2
     test_url: str = "https://httpbin.org/ip"
-```
+```text
 
 ### AntiDetectionConfig
 
@@ -78,7 +78,7 @@ class AntiDetectionConfig:
     use_cookies: bool = True
     simulate_browser: bool = True
     geo_bypass: bool = True
-```
+```text
 
 ## Usage Examples
 
@@ -104,7 +104,7 @@ processor = YouTubePlaylistProcessor(
     output_dir="output",
     rate_limit_config=rate_config
 )
-```
+```text
 
 ### Proxy Rotation
 
@@ -130,7 +130,7 @@ processor = YouTubePlaylistProcessor(
     output_dir="output",
     proxy_config=proxy_config
 )
-```
+```text
 
 ### Complete Configuration
 
@@ -163,7 +163,7 @@ processor = YouTubePlaylistProcessor(
     proxy_config=proxy_config,
     anti_detection_config=anti_detection_config
 )
-```
+```text
 
 ## CLI Usage
 
@@ -188,7 +188,7 @@ python scripts/run_voice_pipeline.py \
     --requests-per-minute 8 \
     --min-delay 3.0 \
     --max-delay 10.0
-```
+```text
 
 ### CLI Options
 
@@ -228,7 +228,7 @@ RateLimitConfig(
     requests_per_hour=100,
     burst_limit=2
 )
-```
+```text
 
 ### Production Conservative
 
@@ -241,7 +241,7 @@ RateLimitConfig(
     backoff_factor=2.0,
     max_backoff=600
 )
-```
+```text
 
 ### High-Volume with Proxies
 
@@ -260,7 +260,7 @@ ProxyConfig(
     rotation_strategy="random",
     max_retries_per_proxy=2
 )
-```
+```text
 
 ### Stealth Mode
 
@@ -282,7 +282,7 @@ AntiDetectionConfig(
     use_cookies=True,
     simulate_browser=True
 )
-```
+```text
 
 ## Best Practices
 

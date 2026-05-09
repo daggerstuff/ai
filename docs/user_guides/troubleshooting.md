@@ -4,13 +4,13 @@
 
 ## Table of Contents
 
-1. [Authentication Issues](#authentication-issues)
-2. [Rate Limiting Problems](#rate-limiting-problems)
-3. [Data Quality Issues](#data-quality-issues)
-4. [Performance Problems](#performance-problems)
-5. [API Response Issues](#api-response-issues)
-6. [SDK and Integration Issues](#sdk-and-integration-issues)
-7. [Getting Additional Help](#getting-additional-help)
+1. \1
+2. \1
+3. \1
+4. \1
+5. \1
+6. \1
+7. \1
 
 ---
 
@@ -28,7 +28,7 @@
     "message": "Invalid API key"
   }
 }
-```
+```text
 
 **Solutions**:
 
@@ -50,9 +50,9 @@ def check_api_key_format(api_key):
 
     print("✅ API key format looks correct")
     return True
-```
+```text
 
-2. **Test API Key**:
+1. **Test API Key**:
 
 ```python
 from pixelated_empathy_api import PixelatedEmpathyAPI
@@ -63,9 +63,9 @@ try:
     print("✅ API key is working")
 except Exception as e:
     print(f"❌ API key test failed: {e}")
-```
+```text
 
-3. **Check Environment Variables**:
+1. **Check Environment Variables**:
 
 ```bash
 # Verify environment variable is set
@@ -73,7 +73,7 @@ echo $PIXELATED_EMPATHY_API_KEY
 
 # Set environment variable if missing
 export PIXELATED_EMPATHY_API_KEY="your_api_key_here"
-```
+```text
 
 ### Problem: 403 Forbidden Error
 
@@ -97,10 +97,10 @@ def check_tier_access(api, tier):
 tiers = ['basic', 'standard', 'professional', 'clinical', 'research']
 for tier in tiers:
     check_tier_access(api, tier)
-```
+```text
 
-2. **Verify Account Status**:
-   - Log into your dashboard at https://api.pixelatedempathy.com/dashboard
+1. **Verify Account Status**:
+   - Log into your dashboard at <https://api.pixelatedempathy.com/dashboard>
    - Check account status and tier permissions
    - Ensure billing is up to date
 
@@ -120,7 +120,7 @@ for tier in tiers:
     "message": "Rate limit exceeded. Try again in 3600 seconds."
   }
 }
-```
+```text
 
 **Solutions**:
 
@@ -142,9 +142,9 @@ def api_call_with_backoff(api_func, *args, max_retries=5, **kwargs):
             delay = min(300, (2 ** attempt) + random.uniform(0, 1))
             print(f"Rate limited. Retrying in {delay:.1f} seconds...")
             time.sleep(delay)
-```
+```text
 
-2. **Monitor Rate Limit Headers**:
+1. **Monitor Rate Limit Headers**:
 
 ```python
 def check_rate_limit_status(response):
@@ -158,9 +158,9 @@ def check_rate_limit_status(response):
     if reset:
         reset_time = datetime.fromtimestamp(int(reset))
         print(f"Resets at: {reset_time}")
-```
+```text
 
-3. **Optimize Request Patterns**:
+1. **Optimize Request Patterns**:
 
 ```python
 # Bad: Too many individual requests
@@ -169,7 +169,7 @@ for conv_id in conversation_ids:
 
 # Good: Use batch operations
 conversations = api.get_conversations(limit=100)  # 1 API call
-```
+```text
 
 ### Problem: Hitting Rate Limits Too Quickly
 
@@ -212,7 +212,7 @@ rate_limiter = RateLimiter(max_requests_per_hour=900)  # Leave some buffer
 for conv_id in conversation_ids:
     rate_limiter.wait_if_needed()
     conversation = api.get_conversation(conv_id)
-```
+```text
 
 ---
 
@@ -241,9 +241,9 @@ def analyze_quality_distribution(conversations):
         count = sum(1 for score in scores if low <= score < high)
         percentage = (count / len(scores)) * 100
         print(f"  {low:.1f}-{high:.1f}: {count} ({percentage:.1f}%)")
-```
+```text
 
-2. **Validate Quality Metrics**:
+1. **Validate Quality Metrics**:
 
 ```python
 def validate_quality_metrics(conversation):
@@ -270,9 +270,9 @@ for conv in sample_conversations:
     issues = validate_quality_metrics(conv)
     if issues:
         print(f"Conversation {conv['id']}: {', '.join(issues)}")
-```
+```text
 
-3. **Use Appropriate Quality Thresholds**:
+1. **Use Appropriate Quality Thresholds**:
 
 ```python
 # Adjust thresholds based on your use case
@@ -291,7 +291,7 @@ conversations = api.get_conversations(
     tier='professional',
     min_quality=min_quality
 )
-```
+```text
 
 ### Problem: Inconsistent Quality Across Conversations
 
@@ -331,7 +331,7 @@ high_quality_conversations = filter_by_quality_dimensions(
     conversations['conversations'],
     quality_thresholds
 )
-```
+```text
 
 ---
 
@@ -375,9 +375,9 @@ class OptimizedAPI:
             'Authorization': f'Bearer {api_key}',
             'Connection': 'keep-alive'
         })
-```
+```text
 
-2. **Use Async Processing**:
+1. **Use Async Processing**:
 
 ```python
 import asyncio
@@ -399,9 +399,9 @@ async def fetch_conversations_async(conversation_ids):
         ]
 
         return successful_results
-```
+```text
 
-3. **Optimize Request Size**:
+1. **Optimize Request Size**:
 
 ```python
 # Bad: Requesting too much data at once
@@ -414,7 +414,7 @@ all_conversations = []
 for offset in range(0, total_count, batch_size):
     batch = api.get_conversations(limit=batch_size, offset=offset)
     all_conversations.extend(batch['conversations'])
-```
+```text
 
 ### Problem: Memory Issues with Large Datasets
 
@@ -467,7 +467,7 @@ def process_conversations_streaming(api, dataset_name, processor_func):
             break
 
     print(f"Total processed: {processed_count}")
-```
+```text
 
 ---
 
@@ -503,9 +503,9 @@ def validate_api_response(response_data):
 # Use with API calls
 response = api.get_conversations()
 validate_api_response(response)
-```
+```text
 
-2. **Handle API Version Differences**:
+1. **Handle API Version Differences**:
 
 ```python
 def handle_api_version_differences(response_data):
@@ -522,7 +522,7 @@ def handle_api_version_differences(response_data):
         return response_data['result']
     else:
         raise ValueError(f"Unsupported API version: {api_version}")
-```
+```text
 
 ### Problem: Missing or Null Data Fields
 
@@ -556,7 +556,7 @@ therapeutic_accuracy = safe_get_nested(
     conversation, 'quality_metrics', 'therapeutic_accuracy',
     default=0.0
 )
-```
+```text
 
 ---
 
@@ -577,9 +577,9 @@ pip install -v pixelated-empathy-api
 
 # Install from source if package issues
 pip install git+https://github.com/pixelated-empathy/python-sdk.git
-```
+```text
 
-2. **JavaScript SDK Issues**:
+1. **JavaScript SDK Issues**:
 
 ```bash
 # Clear npm cache
@@ -590,7 +590,7 @@ npm install --verbose pixelated-empathy-api
 
 # Try yarn if npm fails
 yarn add pixelated-empathy-api
-```
+```text
 
 ### Problem: Import/Require Errors
 
@@ -608,9 +608,9 @@ except ImportError:
         PixelatedEmpathyAPI = pixelated_empathy_api.PixelatedEmpathyAPI
     except ImportError:
         print("SDK not installed. Run: pip install pixelated-empathy-api")
-```
+```text
 
-2. **JavaScript Require Issues**:
+1. **JavaScript Require Issues**:
 
 ```javascript
 // Try different require methods
@@ -626,7 +626,7 @@ try {
     console.error('SDK not installed. Run: npm install pixelated-empathy-api')
   }
 }
-```
+```text
 
 ---
 
@@ -674,7 +674,7 @@ def comprehensive_health_check(api_key):
     except Exception as e:
         print(f"❌ Health check failed: {e}")
         return False
-```
+```text
 
 ### Contact Support
 
@@ -699,11 +699,11 @@ def comprehensive_health_check(api_key):
 
 **Support Channels**:
 
-- **Technical Issues**: api-support@pixelatedempathy.com
-- **Billing Questions**: billing@pixelatedempathy.com
-- **Research Inquiries**: research@pixelatedempathy.com
-- **Status Updates**: https://status.pixelatedempathy.com
-- **Community Forum**: https://community.pixelatedempathy.com
+- **Technical Issues**: <api-support@pixelatedempathy.com>
+- **Billing Questions**: <billing@pixelatedempathy.com>
+- **Research Inquiries**: <research@pixelatedempathy.com>
+- **Status Updates**: <https://status.pixelatedempathy.com>
+- **Community Forum**: <https://community.pixelatedempathy.com>
 
 **Response Times**:
 
@@ -715,7 +715,7 @@ def comprehensive_health_check(api_key):
 
 For critical production issues affecting live systems:
 
-- **Emergency Email**: emergency@pixelatedempathy.com
+- **Emergency Email**: <emergency@pixelatedempathy.com>
 - **Phone Support**: Available for Enterprise customers
 - **Slack Channel**: #emergency-support (Enterprise customers)
 

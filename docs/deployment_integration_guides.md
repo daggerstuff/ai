@@ -5,18 +5,14 @@
 
 ## Table of Contents
 
-- [Quick Start Deployment](#quick_start_deployment)
-- [Local Development Setup](#local_development_setup)
-- [Production Deployment](#production_deployment)
-- [Cloud Deployment](#cloud_deployment)
-- [Containerization](#containerization)
-- [Api Integration](#api_integration)
-- [Database Integration](#database_integration)
-- [Monitoring Setup](#monitoring_setup)
-- [Security Configuration](#security_configuration)
-- [Performance Tuning](#performance_tuning)
-- [Backup Recovery](#backup_recovery)
-- [Troubleshooting Deployment](#troubleshooting_deployment)
+- Quick Start Deployment
+- Local Development Setup
+- API Integration
+- CI/CD Integration
+- Containerized Deployment
+- Monitoring Integration
+- Cloud Provider Deployment
+- Deployment Troubleshooting
 
 ---
 
@@ -38,7 +34,7 @@ Get Pixelated Empathy AI running in under 10 minutes
 - **Step**: 1
 - **Title**: Clone Repository
 - **Description**: Clone the Pixelated Empathy AI repository **Commands:**
-- git clone https://github.com/pixelated-empathy/ai.git
+- git clone <https://github.com/pixelated-empathy/ai.git>
 - cd ai
 
 - **Step**: 2
@@ -47,7 +43,9 @@ Get Pixelated Empathy AI running in under 10 minutes
   **Commands:**
 - python -m venv .venv
 - source .venv/bin/activate # Linux/Mac
-- # .venv\Scripts\activate # Windows
+
+- **Windows (PowerShell):** `.venv\Scripts\activate`
+
 - pip install uv
 - uv sync
 
@@ -348,7 +346,7 @@ Cloud Monitoring
 
 #### Dockerfile
 
-```
+```text
 FROM python:3.9-slim
 
 WORKDIR /app
@@ -384,11 +382,11 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 
 # Start application
 CMD ["python", "production_deployment/production_orchestrator.py"]
-```
+```text
 
 #### Docker Compose
 
-```
+```text
 version: '3.8'
 
 services:
@@ -426,13 +424,13 @@ services:
 
 volumes:
   postgres_data:
-```
+```text
 
 ### Kubernetes Deployment
 
 #### Deployment Yaml
 
-```
+```text
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -479,7 +477,7 @@ spec:
             port: 8000
           initialDelaySeconds: 5
           periodSeconds: 5
-```
+```text
 
 ## Api Integration {#api_integration}
 
@@ -498,7 +496,7 @@ How to integrate with Pixelated Empathy AI API
 
 #### Authentication Example
 
-```
+```text
 import requests
 
 headers = {
@@ -507,7 +505,7 @@ headers = {
 }
 
 response = requests.get('https://api.pixelatedempathy.com/v1/datasets', headers=headers)
-```
+```text
 
 ### Common Integration Patterns
 
@@ -649,7 +647,7 @@ Jaeger for distributed tracing
 
 #### Nginx Config
 
-```
+```text
 server {
     listen 443 ssl http2;
     server_name api.pixelatedempathy.com;
@@ -665,7 +663,7 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
     }
 }
-```
+```text
 
 ## Performance Tuning {#performance_tuning}
 

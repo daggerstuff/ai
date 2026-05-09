@@ -1,4 +1,4 @@
-# H100 MoE Upgrade (Therapeutic AI Package v5.0)
+<!-- markdownlint-disable -->\n\n# H100 MoE Upgrade (Therapeutic AI Package v5.0)
 
 This folder documents the consolidated H100 MoE training system now located in `ai/training_ready/`. All training, inference, and progress-tracking scripts have been consolidated into the canonical `training_ready` structure.
 

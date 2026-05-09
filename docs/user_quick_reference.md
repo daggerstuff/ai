@@ -20,7 +20,7 @@ curl -X POST https://api.pixelatedempathy.com/v1/chat \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"message": "Hello, I need some support today"}'
-```
+```text
 
 ## 🎯 Common Use Cases
 
@@ -129,10 +129,10 @@ curl -X POST https://api.pixelatedempathy.com/v1/chat \
 
 | Issue Type             | Contact Method                    | Response Time |
 | ---------------------- | --------------------------------- | ------------- |
-| **Technical Problems** | tech-support@pixelatedempathy.com | 24 hours      |
-| **Account Issues**     | support@pixelatedempathy.com      | 24 hours      |
-| **Billing Questions**  | billing@pixelatedempathy.com      | 48 hours      |
-| **Feature Requests**   | feedback@pixelatedempathy.com     | 1 week        |
+| **Technical Problems** | <tech-support@pixelatedempathy.com> | 24 hours      |
+| **Account Issues**     | <support@pixelatedempathy.com>      | 24 hours      |
+| **Billing Questions**  | <billing@pixelatedempathy.com>      | 48 hours      |
+| **Feature Requests**   | <feedback@pixelatedempathy.com>     | 1 week        |
 | **Urgent Issues**      | Live chat (business hours)        | Immediate     |
 
 ## 💡 Pro Tips
@@ -165,12 +165,12 @@ curl -X POST https://api.pixelatedempathy.com/v1/chat \
 
 ### API Endpoints
 
-```
+```text
 POST /v1/chat          # Send message
 GET  /v1/conversations # List conversations
 GET  /v1/history       # Get conversation history
 DELETE /v1/conversation/{id} # Delete conversation
-```
+```text
 
 ### Common JSON Structure
 
@@ -187,7 +187,7 @@ DELETE /v1/conversation/{id} # Delete conversation
     "length": "brief|moderate|detailed"
   }
 }
-```
+```text
 
 ### Status Codes
 

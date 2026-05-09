@@ -1,4 +1,4 @@
-# Academic Sourcing Module
+ # Academic Sourcing Module
 
 > **Comprehensive academic literature and dataset sourcing for psychology and
 > therapy research**

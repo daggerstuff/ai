@@ -5,13 +5,13 @@ our enterprise-grade conversational AI dataset and processing system.
 
 ## Table of Contents
 
-1. [Overview](#overview)
-2. [Account Setup](#account-setup)
-3. [First Steps](#first-steps)
-4. [Basic Operations](#basic-operations)
-5. [Understanding Quality Tiers](#understanding-quality-tiers)
-6. [Common Use Cases](#common-use-cases)
-7. [Next Steps](#next-steps)
+1. \1
+2. \1
+3. \1
+4. \1
+5. \1
+6. \1
+7. \1
 
 ---
 
@@ -82,7 +82,7 @@ Once you have your API key, test your access:
 ```bash
 curl -H "Authorization: Bearer YOUR_API_KEY" \
      https://api.pixelatedempathy.com/v1/datasets
-```
+```text
 
 #### Using Python
 
@@ -100,7 +100,7 @@ response = requests.get(
 )
 
 print(response.json())
-```
+```text
 
 ### Expected Response
 
@@ -121,7 +121,7 @@ print(response.json())
   },
   "message": "Datasets retrieved successfully"
 }
-```
+```text
 
 ---
 
@@ -144,7 +144,7 @@ for dataset in datasets:
     print(f"  Quality Score: {dataset['quality_score']:.3f}")
     print(f"  Tiers: {', '.join(dataset['tiers'])}")
     print()
-```
+```text
 
 ### 2. Browse Conversations
 
@@ -164,7 +164,7 @@ first_conv = conversations['conversations'][0]
 print(f"Conversation ID: {first_conv['id']}")
 print(f"Quality Score: {first_conv['quality_score']}")
 print(f"Message Count: {first_conv['message_count']}")
-```
+```text
 
 ### 3. Examine a Full Conversation
 
@@ -182,7 +182,7 @@ print("\nQuality Metrics:")
 metrics = conversation['quality_metrics']
 for metric, score in metrics.items():
     print(f"  {metric}: {score:.3f}")
-```
+```text
 
 ### 4. Search for Specific Content
 
@@ -202,7 +202,7 @@ results = api.search_conversations(
 print(f"Found {results['total_matches']} matching conversations")
 for result in results['results']:
     print(f"- {result['conversation_id']}: {result['snippet']}")
-```
+```text
 
 ---
 
@@ -255,7 +255,7 @@ print("Quality Distribution:")
 for tier, data in metrics['tier_metrics'].items():
     print(f"{tier.title()}: {data['count']:,} conversations "
           f"(avg quality: {data['average_quality']:.3f})")
-```
+```text
 
 ---
 
@@ -285,7 +285,7 @@ export_info = api.export_data(
 print(f"Export initiated: {export_info['export_id']}")
 print(f"Estimated size: {export_info['estimated_size']}")
 print(f"Download URL: {export_info['download_url']}")
-```
+```text
 
 ### Use Case 2: Research Analysis
 
@@ -314,7 +314,7 @@ export_info = api.export_data(
     format="parquet",
     tier="research"
 )
-```
+```text
 
 ### Use Case 3: Quality Assessment
 
@@ -345,7 +345,7 @@ print(f"Tier Classification: {validation['tier_classification']}")
 print("Recommendations:")
 for rec in validation['recommendations']:
     print(f"- {rec}")
-```
+```text
 
 ### Use Case 4: Bulk Processing
 
@@ -375,7 +375,7 @@ print(f"Job submitted: {job['job_id']}")
 final_status = api.wait_for_job(job['job_id'])
 print(f"Job completed: {final_status['status']}")
 print(f"Results: {final_status['results']}")
-```
+```text
 
 ---
 
@@ -385,7 +385,7 @@ print(f"Results: {final_status['results']}")
 
 1. **Read the API Documentation**:
    [Complete API Reference](../api/complete_api_documentation.md)
-2. **Try the Interactive Docs**: Visit https://api.pixelatedempathy.com/docs
+2. **Try the Interactive Docs**: Visit <https://api.pixelatedempathy.com/docs>
 3. **Join the Community**: Connect with other users on our Discord
 4. **Follow Best Practices**: Review our
    [Best Practices Guide](best_practices.md)
@@ -395,7 +395,7 @@ print(f"Results: {final_status['results']}")
 - **Documentation**: Browse our comprehensive guides
 - **API Reference**: Detailed endpoint documentation
 - **Community Forum**: Ask questions and share experiences
-- **Email Support**: api-support@pixelatedempathy.com (response within 24 hours)
+- **Email Support**: <api-support@pixelatedempathy.com> (response within 24 hours)
 - **Status Page**: Check system status at status.pixelatedempathy.com
 
 ### Stay Updated

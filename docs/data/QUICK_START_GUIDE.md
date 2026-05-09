@@ -1,4 +1,4 @@
-# Foundation Model Training - Quick Start Guide
+<!-- markdownlint-disable -->\n\n# Foundation Model Training - Quick Start Guide
 
 ## 🚀 Complete System Setup and Execution
 
@@ -30,7 +30,7 @@ pip install -r configs/requirements_moe.txt
 
 # Verify installation
 python -c "import torch; print(f'PyTorch: {torch.__version__}'); print(f'CUDA: {torch.cuda.is_available()}')"
-```
+```text
 
 ---
 
@@ -49,7 +49,7 @@ python quick_start.py
 # - output/edge_cases_training_format.jsonl
 # - ~500 edge case conversations
 # - Takes ~10-15 minutes with Ollama
-```
+```text
 
 ### 2.2 Test Individual Loaders
 
@@ -63,7 +63,7 @@ python dual_persona_loader.py
 
 # Test psychology knowledge loader
 python psychology_knowledge_loader.py
-```
+```text
 
 ---
 
@@ -82,11 +82,11 @@ python integrated_training_pipeline.py
 # - Run bias detection
 # - Create training_dataset.json in ai/orchestrator/targets/
 # - Takes ~1-2 minutes
-```
+```text
 
 ### Expected Output:
 
-```
+```text
 🚀 Starting Integrated Training Pipeline
 ============================================================
 ✅ Loaded 500 edge case examples
@@ -100,7 +100,7 @@ python integrated_training_pipeline.py
 ✅ Integration Complete!
 📊 Total samples: 8000
 ⏱️  Time: 1.23s
-```
+```text
 
 ---
 
@@ -117,7 +117,7 @@ python test_end_to_end_pipeline.py
 # - Test progress tracker integration
 # - Verify output files
 # - Takes ~30 seconds
-```
+```text
 
 ---
 
@@ -136,7 +136,7 @@ with open('data/training_dataset.json', 'r') as f:
     print(f'Total conversations: {len(data[\"conversations\"])}')
     print(f'Sources: {data[\"metadata\"][\"sources\"]}')
 "
-```
+```text
 
 ### 5.2 Start Training (Automatic Optimization)
 
@@ -151,7 +151,7 @@ python scripts/train_optimized.py
 # - Train model with MoE + LoRA
 # - Save checkpoints every 30 minutes
 # - Complete in <12 hours
-```
+```text
 
 ### 5.3 Monitor Training
 
@@ -164,7 +164,7 @@ watch -n 1 nvidia-smi
 
 # Access WandB dashboard
 # https://wandb.ai/your-username/therapeutic-ai-training
-```
+```text
 
 ---
 
@@ -180,7 +180,7 @@ python scripts/inference_service.py
 
 # Service will be available at:
 # http://localhost:8000
-```
+```text
 
 ### 6.2 Test Inference
 
@@ -199,7 +199,7 @@ curl http://localhost:8000/health
 
 # View metrics
 curl http://localhost:8000/metrics
-```
+```text
 
 ---
 
@@ -218,7 +218,7 @@ curl http://localhost:8001/api/v1/progress/test_client_001?days=7
 
 # Generate report
 curl http://localhost:8001/api/v1/progress/test_client_001/report?days=30
-```
+```text
 
 ---
 
@@ -232,7 +232,7 @@ cd ai/pipelines/edge_case_pipeline_standalone/ && python quick_start.py
 
 # Integrated pipeline
 cd ai/dataset_pipeline/orchestration/ && python integrated_training_pipeline.py
-```
+```text
 
 ### Testing
 
@@ -242,7 +242,7 @@ cd ai/dataset_pipeline/ && python test_end_to_end_pipeline.py
 
 # Individual loader tests
 cd ai/dataset_pipeline/ingestion/ && python edge_case_jsonl_loader.py
-```
+```text
 
 ### Training
 
@@ -252,7 +252,7 @@ cd ai/training_ready && python scripts/train_optimized.py
 
 # Resume from checkpoint
 python scripts/train_optimized.py --resume_from_checkpoint auto
-```
+```text
 
 ### Inference
 
@@ -264,7 +264,7 @@ cd ai/training_ready && python scripts/inference_service.py
 curl -X POST http://localhost:8000/api/v1/inference \
   -H "Content-Type: application/json" \
   -d '{"user_input": "Hello", "client_id": "test_001"}'
-```
+```text
 
 ---
 
@@ -277,7 +277,7 @@ curl -X POST http://localhost:8000/api/v1/inference \
 ```bash
 cd ai/pipelines/edge_case_pipeline_standalone/
 python quick_start.py
-```
+```text
 
 ### Issue: Training dataset empty
 
@@ -286,7 +286,7 @@ python quick_start.py
 ```bash
 cd ai/dataset_pipeline/ingestion/
 python dual_persona_loader.py  # This auto-generates data
-```
+```text
 
 ### Issue: Out of memory during training
 
@@ -297,7 +297,7 @@ python dual_persona_loader.py  # This auto-generates data
 {
   "optimization_priority": "memory_efficient"
 }
-```
+```text
 
 ### Issue: Inference service won't start
 
@@ -308,7 +308,7 @@ python dual_persona_loader.py  # This auto-generates data
 ls -la ai/training_ready/models/
 
 # If not, train first or download pre-trained model
-```
+```text
 
 ---
 

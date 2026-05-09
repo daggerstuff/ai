@@ -1,4 +1,4 @@
-# Apex - KAN-28 Enhanced Training Package
+<!-- markdownlint-disable -->\n\n# Apex - KAN-28 Enhanced Training Package
 ## Complete Training Package for Pixelated Empathy with 6-Component Integration
 
 **Apex** contains everything needed to train the therapeutic AI model on Lightning.ai with the newly integrated KAN-28 components.

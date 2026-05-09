@@ -2,26 +2,26 @@
 
 **Version:** 1.0.0  
 **Generated:** 2025-08-17T00:42:00Z  
-**Base URL:** https://api.pixelatedempathy.com/v1  
-**Documentation URL:** https://api.pixelatedempathy.com/docs
+**Base URL:** <https://api.pixelatedempathy.com/v1>  
+**Documentation URL:** <https://api.pixelatedempathy.com/docs>
 
 ## Table of Contents
 
-1. [Overview](#overview)
-2. [Authentication](#authentication)
-3. [Rate Limits](#rate-limits)
-4. [Error Handling](#error-handling)
-5. [Dataset Endpoints](#dataset-endpoints)
-6. [Conversation Endpoints](#conversation-endpoints)
-7. [Quality Metrics Endpoints](#quality-metrics-endpoints)
-8. [Processing Endpoints](#processing-endpoints)
-9. [Search Endpoints](#search-endpoints)
-10. [Statistics Endpoints](#statistics-endpoints)
-11. [Export Endpoints](#export-endpoints)
-12. [Response Formats](#response-formats)
-13. [SDK Examples](#sdk-examples)
-14. [Webhooks](#webhooks)
-15. [Changelog](#changelog)
+1. \1
+2. \1
+3. \1
+4. \1
+5. \1
+6. \1
+7. \1
+8. \1
+9. \1
+10. \1
+11. \1
+12. \1
+13. \1
+14. \1
+15. \1
 
 ---
 
@@ -73,13 +73,13 @@ API Key Authentication using Bearer tokens.
 
 ### Header Format
 
-```
+```text
 Authorization: Bearer YOUR_API_KEY
-```
+```text
 
 ### Obtaining an API Key
 
-1. **Register**: Visit https://api.pixelatedempathy.com/register
+1. **Register**: Visit <https://api.pixelatedempathy.com/register>
 2. **Verify**: Complete email verification
 3. **Apply**: Submit use case and organization details
 4. **Approval**: Manual review for research and commercial use
@@ -100,7 +100,7 @@ Authorization: Bearer YOUR_API_KEY
 curl -H "Authorization: Bearer YOUR_API_KEY" \
      -H "Content-Type: application/json" \
      https://api.pixelatedempathy.com/v1/datasets
-```
+```text
 
 #### Python
 
@@ -116,7 +116,7 @@ response = requests.get(
     'https://api.pixelatedempathy.com/v1/datasets',
     headers=headers
 )
-```
+```text
 
 #### JavaScript
 
@@ -129,7 +129,7 @@ const headers = {
 fetch('https://api.pixelatedempathy.com/v1/datasets', { headers })
   .then((response) => response.json())
   .then((data) => console.log(data))
-```
+```text
 
 ---
 
@@ -144,11 +144,11 @@ fetch('https://api.pixelatedempathy.com/v1/datasets', { headers })
 
 ### Rate Limit Headers
 
-```
+```text
 X-RateLimit-Limit: 1000
 X-RateLimit-Remaining: 999
 X-RateLimit-Reset: 1692234000
-```
+```text
 
 ### Rate Limit Exceeded Response
 
@@ -162,7 +162,7 @@ X-RateLimit-Reset: 1692234000
   },
   "timestamp": "2025-08-17T00:42:00Z"
 }
-```
+```text
 
 ---
 
@@ -181,7 +181,7 @@ X-RateLimit-Reset: 1692234000
   },
   "timestamp": "2025-08-17T00:42:00Z"
 }
-```
+```text
 
 ### HTTP Status Codes
 
@@ -236,7 +236,7 @@ Get a list of all available datasets.
   "message": "Datasets retrieved successfully",
   "timestamp": "2025-08-17T00:42:00Z"
 }
-```
+```text
 
 ### Get Dataset Information
 
@@ -276,7 +276,7 @@ Get detailed information about a specific dataset.
   "message": "Dataset information retrieved successfully",
   "timestamp": "2025-08-17T00:42:00Z"
 }
-```
+```text
 
 ---
 
@@ -319,7 +319,7 @@ Get a list of conversations with optional filtering.
   "message": "Conversations retrieved successfully",
   "timestamp": "2025-08-17T00:42:00Z"
 }
-```
+```text
 
 ### Get Conversation
 
@@ -368,7 +368,7 @@ Get a specific conversation by ID.
   "message": "Conversation retrieved successfully",
   "timestamp": "2025-08-17T00:42:00Z"
 }
-```
+```text
 
 ---
 
@@ -412,7 +412,7 @@ Get quality metrics for datasets or tiers.
   "message": "Quality metrics retrieved successfully",
   "timestamp": "2025-08-17T00:42:00Z"
 }
-```
+```text
 
 ### Validate Conversation Quality
 
@@ -440,7 +440,7 @@ system.
   "tier": "unknown",
   "metadata": {}
 }
-```
+```text
 
 **Response:**
 
@@ -468,7 +468,7 @@ system.
   "message": "Conversation quality validated successfully",
   "timestamp": "2025-08-17T00:42:00Z"
 }
-```
+```text
 
 ---
 
@@ -492,7 +492,7 @@ Submit a processing job for dataset analysis, quality validation, or export.
     "output_format": "jsonl"
   }
 }
-```
+```text
 
 **Response:**
 
@@ -515,7 +515,7 @@ Submit a processing job for dataset analysis, quality validation, or export.
   "message": "Processing job submitted successfully",
   "timestamp": "2025-08-17T00:42:00Z"
 }
-```
+```text
 
 ### Get Job Status
 
@@ -547,7 +547,7 @@ Get the status of a processing job.
   "message": "Job status retrieved successfully",
   "timestamp": "2025-08-17T00:42:00Z"
 }
-```
+```text
 
 ---
 
@@ -572,7 +572,7 @@ Search conversations using advanced filters and full-text search.
   "limit": 50,
   "offset": 0
 }
-```
+```text
 
 **Response:**
 
@@ -602,7 +602,7 @@ Search conversations using advanced filters and full-text search.
   "message": "Search completed successfully",
   "timestamp": "2025-08-17T00:42:00Z"
 }
-```
+```text
 
 ---
 
@@ -647,7 +647,7 @@ Get comprehensive statistics about the API and datasets.
   "message": "Statistics overview retrieved successfully",
   "timestamp": "2025-08-17T00:42:00Z"
 }
-```
+```text
 
 ---
 
@@ -687,7 +687,7 @@ Export data in specified format with optional filtering.
   "message": "Export initiated successfully",
   "timestamp": "2025-08-17T00:42:00Z"
 }
-```
+```text
 
 ---
 
@@ -706,7 +706,7 @@ All API responses follow this standard structure:
     "request_id": string (optional),
     "error": object (only if success is false)
 }
-```
+```text
 
 ### Pagination
 
@@ -724,7 +724,7 @@ For endpoints that return lists, pagination is handled using `limit` and
         "has_more": true
     }
 }
-```
+```text
 
 ---
 
@@ -794,7 +794,7 @@ print(f"Found {len(conversations['data']['conversations'])} professional convers
 # Search for anxiety-related conversations
 results = api.search_conversations("anxiety therapy", {"tier": "professional"})
 print(f"Found {results['data']['total_matches']} matching conversations")
-```
+```text
 
 ### JavaScript SDK
 
@@ -861,7 +861,7 @@ api.getConversations({ tier: 'professional', limit: 10 }).then((data) => {
     `Found ${data.data.conversations.length} professional conversations`,
   )
 })
-```
+```text
 
 ---
 
@@ -882,7 +882,7 @@ quality validations, and system events.
   "events": ["job.completed", "quality.validated", "export.ready"],
   "secret": "your_webhook_secret"
 }
-```
+```text
 
 ### Webhook Events
 
@@ -908,7 +908,7 @@ quality validations, and system events.
   },
   "signature": "sha256=..."
 }
-```
+```text
 
 ---
 
@@ -951,15 +951,15 @@ quality validations, and system events.
 
 ### Documentation
 
-- **API Reference**: https://api.pixelatedempathy.com/docs
-- **Interactive Docs**: https://api.pixelatedempathy.com/redoc
-- **GitHub Repository**: https://github.com/pixelated-empathy/api
+- **API Reference**: <https://api.pixelatedempathy.com/docs>
+- **Interactive Docs**: <https://api.pixelatedempathy.com/redoc>
+- **GitHub Repository**: <https://github.com/pixelated-empathy/api>
 
 ### Contact
 
-- **Email**: api-support@pixelatedempathy.com
-- **Discord**: https://discord.gg/pixelated-empathy
-- **Status Page**: https://status.pixelatedempathy.com
+- **Email**: <api-support@pixelatedempathy.com>
+- **Discord**: <https://discord.gg/pixelated-empathy>
+- **Status Page**: [https://status.pixelatedempathy.com](https://status.pixelatedempathy.com)
 
 ### SLA
 

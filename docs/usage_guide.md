@@ -15,7 +15,7 @@ with open('pixelated_empathy_dataset.jsonl', 'r') as f:
         conversations.append(json.loads(line))
 
 print(f"Loaded {len(conversations)} conversations")
-```
+```text
 
 #### CSV Format (Good for analysis)
 
@@ -24,7 +24,7 @@ import pandas as pd
 
 df = pd.read_csv('pixelated_empathy_dataset.csv')
 print(f"Dataset shape: {df.shape}")
-```
+```text
 
 ### Basic Analysis
 
@@ -40,7 +40,7 @@ print(f"Average quality: {sum(quality_scores) / len(quality_scores):.3f}")
 total_messages = sum(len(c['messages']) for c in conversations)
 print(f"Total messages: {total_messages}")
 print(f"Average messages per conversation: {total_messages / len(conversations):.1f}")
-```
+```text
 
 ## Use Cases
 
@@ -67,7 +67,7 @@ def prepare_training_data(conversations, min_quality=0.7):
 
 training_data = prepare_training_data(conversations)
 print(f"Generated {len(training_data)} training pairs")
-```
+```text
 
 ### 2. Quality-based Filtering
 
@@ -80,7 +80,7 @@ basic = [c for c in conversations if 0.5 <= c['quality_score'] < 0.7]
 print(f"Premium: {len(premium)} conversations")
 print(f"Standard: {len(standard)} conversations")
 print(f"Basic: {len(basic)} conversations")
-```
+```text
 
 ### 3. Content Analysis
 
@@ -94,7 +94,7 @@ for conv in conversations:
         message_lengths.append(len(msg['content'].split()))
 
 print(f"Average message length: {sum(message_lengths) / len(message_lengths):.1f} words")
-```
+```text
 
 ## Best Practices
 

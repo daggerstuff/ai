@@ -5,14 +5,14 @@
 
 ## Table of Contents
 
-1. [Content Creators & Writers](#content-creators--writers)
-2. [Educators & Trainers](#educators--trainers)
-3. [Researchers & Academics](#researchers--academics)
-4. [Mental Health Professionals](#mental-health-professionals)
-5. [Game Developers](#game-developers)
-6. [Business Professionals](#business-professionals)
-7. [Students & Learners](#students--learners)
-8. [Community Managers](#community-managers)
+1. \1
+2. \1
+3. \1
+4. \1
+5. \1
+6. \1
+7. \1
+8. \1
 
 ---
 
@@ -35,36 +35,36 @@ emotionally resonant dialogue and scenarios for your creative projects.
 
 #### 1. Character Dialogue Creation
 
-```
+```text
 Prompt: "My character Sarah just found out her best friend has been lying to her for months. She's hurt but trying to stay composed. How would she respond when confronted?"
 
 Context Settings:
 - Type: Creative
 - Emotion: Hurt, betrayed
 - Tone: Realistic, nuanced
-```
+```text
 
 #### 2. Emotional Scene Development
 
-```
+```text
 Prompt: "I need dialogue for a scene where a parent is trying to comfort their teenager after a breakup, but the teen is pushing them away."
 
 Context Settings:
 - Type: Creative
 - Scenario: Family dynamics
 - Style: Authentic, generational differences
-```
+```text
 
 #### 3. Conflict Resolution Scenes
 
-```
+```text
 Prompt: "Two coworkers who were friends are now in conflict over a promotion. They need to have a difficult conversation. Show me how this might unfold."
 
 Context Settings:
 - Type: Professional + Creative
 - Emotion: Tension, disappointment
 - Goal: Realistic workplace dynamics
-```
+```text
 
 ### Best Practices for Creators
 
@@ -107,7 +107,7 @@ emotional intelligence curricula, and provide personalized student support.
 
 #### 1. Empathy Development Exercises
 
-```
+```text
 Prompt: "Create a scenario where a student needs to understand a classmate's perspective who comes from a different cultural background."
 
 Context Settings:
@@ -115,11 +115,11 @@ Context Settings:
 - Age Group: [Specify grade level]
 - Learning Objective: Cultural empathy
 - Complexity: Age-appropriate
-```
+```text
 
 #### 2. Conflict Resolution Training
 
-```
+```text
 Prompt: "Design a peer mediation scenario for high school students dealing with social media drama."
 
 Context Settings:
@@ -127,11 +127,11 @@ Context Settings:
 - Scenario: Peer conflict
 - Skills Focus: Communication, problem-solving
 - Outcome: Constructive resolution
-```
+```text
 
 #### 3. Communication Skills Practice
 
-```
+```text
 Prompt: "Create a practice scenario for students learning to give constructive feedback to group project partners."
 
 Context Settings:
@@ -139,7 +139,7 @@ Context Settings:
 - Skills: Constructive criticism
 - Tone: Supportive but honest
 - Learning Goal: Professional communication
-```
+```text
 
 ### Curriculum Development
 
@@ -187,7 +187,7 @@ modeling, human-AI interaction, and social psychology research.
 
 #### 1. Empathy Model Validation
 
-```
+```text
 Research Question: "How does AI empathy compare to human empathy in crisis support scenarios?"
 
 Methodology:
@@ -195,11 +195,11 @@ Methodology:
 - Compare with human counselor responses
 - Analyze empathy markers and effectiveness
 - Control for response length, tone, and content
-```
+```text
 
 #### 2. Communication Pattern Analysis
 
-```
+```text
 Research Focus: "Gender differences in empathetic communication styles"
 
 Approach:
@@ -207,11 +207,11 @@ Approach:
 - Analyze linguistic patterns and emotional markers
 - Compare with existing literature on gendered communication
 - Identify potential biases in AI training data
-```
+```text
 
 #### 3. Cross-Cultural Empathy Studies
 
-```
+```text
 Research Objective: "Cultural variations in empathetic response patterns"
 
 Design:
@@ -219,7 +219,7 @@ Design:
 - Analyze response appropriateness and effectiveness
 - Identify cultural sensitivity gaps
 - Develop culturally-aware empathy models
-```
+```text
 
 ### Data Collection Best Practices
 
@@ -257,7 +257,7 @@ never replace professional clinical judgment or direct patient care.
 
 #### 1. Difficult Conversation Practice
 
-```
+```text
 Scenario: "Practice responding to a client who expresses suicidal ideation for the first time."
 
 Training Focus:
@@ -265,11 +265,11 @@ Training Focus:
 - Empathetic response while maintaining boundaries
 - Safety planning introduction
 - Professional referral processes
-```
+```text
 
 #### 2. Cultural Competency Training
 
-```
+```text
 Scenario: "Navigate cultural differences in expressing mental health concerns with clients from different backgrounds."
 
 Training Elements:
@@ -277,11 +277,11 @@ Training Elements:
 - Avoiding assumptions and stereotypes
 - Adapting communication styles appropriately
 - Recognizing cultural strengths and resources
-```
+```text
 
 #### 3. Supervision Scenario Development
 
-```
+```text
 Purpose: "Create realistic case scenarios for supervision discussions."
 
 Applications:
@@ -289,7 +289,7 @@ Applications:
 - Treatment planning discussions
 - Countertransference examination
 - Professional boundary maintenance
-```
+```text
 
 ### Ethical Guidelines
 
@@ -326,7 +326,7 @@ experiences.
 
 #### 1. Empathetic NPCs
 
-```
+```text
 Character Design: "Create an NPC shopkeeper who responds empathetically to player emotional states."
 
 Implementation:
@@ -334,11 +334,11 @@ Implementation:
 - Generate appropriate NPC responses
 - Maintain character consistency across interactions
 - Adapt dialogue based on player history
-```
+```text
 
 #### 2. Player Support Systems
 
-```
+```text
 Feature: "In-game counselor NPC for players experiencing frustration or toxicity."
 
 Mechanics:
@@ -346,11 +346,11 @@ Mechanics:
 - Provide coping strategies and encouragement
 - Connect players with community resources
 - Maintain positive gaming environment
-```
+```text
 
 #### 3. Narrative Emotional Intelligence
 
-```
+```text
 Story Element: "Branching dialogue that responds to player emotional choices."
 
 Design:
@@ -358,7 +358,7 @@ Design:
 - Adapt story outcomes based on emotional intelligence
 - Reward empathetic player behavior
 - Create meaningful emotional consequences
-```
+```text
 
 ### Technical Integration
 
@@ -395,7 +395,7 @@ empathetic AI insights.
 
 #### 1. Difficult Conversations
 
-```
+```text
 Scenario: "Providing constructive feedback to an underperforming team member."
 
 Context:
@@ -403,11 +403,11 @@ Context:
 - Performance improvement goals
 - Maintaining team morale
 - Balancing honesty with support
-```
+```text
 
 #### 2. Customer Service Excellence
 
-```
+```text
 Application: "Responding to frustrated customers with empathy while maintaining boundaries."
 
 Skills Development:
@@ -415,11 +415,11 @@ Skills Development:
 - Empathetic listening
 - Solution-focused responses
 - Professional boundary maintenance
-```
+```text
 
 #### 3. Team Conflict Resolution
 
-```
+```text
 Situation: "Mediating between team members with different working styles."
 
 Focus Areas:
@@ -427,7 +427,7 @@ Focus Areas:
 - Finding common ground
 - Facilitating productive dialogue
 - Maintaining team cohesion
-```
+```text
 
 ### Leadership Development
 
@@ -464,7 +464,7 @@ communication skills, and enhance academic and personal growth.
 
 #### 1. Study Motivation
 
-```
+```text
 Situation: "I'm struggling to stay motivated with my coursework and feeling overwhelmed."
 
 Support Type:
@@ -472,11 +472,11 @@ Support Type:
 - Practical study strategies
 - Stress management techniques
 - Goal-setting assistance
-```
+```text
 
 #### 2. Social Skill Development
 
-```
+```text
 Practice Scenario: "How to approach a professor about extending a deadline."
 
 Learning Goals:
@@ -484,11 +484,11 @@ Learning Goals:
 - Respectful request making
 - Explaining circumstances appropriately
 - Maintaining academic relationships
-```
+```text
 
 #### 3. Peer Relationship Navigation
 
-```
+```text
 Challenge: "Dealing with group project conflicts and different work styles."
 
 Skills Practice:
@@ -496,7 +496,7 @@ Skills Practice:
 - Compromise and negotiation
 - Conflict resolution
 - Team collaboration
-```
+```text
 
 ### Personal Development
 
@@ -533,7 +533,7 @@ insights and support tools.
 
 #### 1. Conflict Resolution
 
-```
+```text
 Situation: "Two community members are having a heated disagreement in public channels."
 
 Management Approach:
@@ -541,11 +541,11 @@ Management Approach:
 - Fair mediation strategies
 - Community guideline enforcement
 - Relationship repair facilitation
-```
+```text
 
 #### 2. Crisis Support
 
-```
+```text
 Challenge: "Community member shares personal crisis in public forum."
 
 Response Strategy:
@@ -553,11 +553,11 @@ Response Strategy:
 - Private follow-up coordination
 - Community resource sharing
 - Professional referral when appropriate
-```
+```text
 
 #### 3. Inclusive Environment Building
 
-```
+```text
 Goal: "Creating welcoming spaces for diverse community members."
 
 Implementation:
@@ -565,7 +565,7 @@ Implementation:
 - Cultural sensitivity training
 - Bias recognition and mitigation
 - Positive community norm establishment
-```
+```text
 
 ### Community Health Strategies
 

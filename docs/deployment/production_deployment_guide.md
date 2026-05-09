@@ -11,7 +11,9 @@
 
 ## 🎯 **DEPLOYMENT OVERVIEW**
 
-> This guide is the legacy AWS ECS/Fargate blueprint. Current infrastructure in this repository is maintained under `terraform/gcp`; use that path and Google Cloud deployment docs for active guidance.
+> This guide is the legacy AWS ECS/Fargate blueprint.
+> Current infrastructure in this repository is maintained under `terraform/gcp`;
+> use that path and Google Cloud deployment docs for active guidance.
 
 ### **Deployment Strategy**
 
@@ -23,7 +25,7 @@
 
 ### **Environment Architecture**
 
-```
+```text
 Production Environment Stack:
 ┌─────────────────────────────────────────────────────────────┐
 │                    PRODUCTION DEPLOYMENT                     │
@@ -40,7 +42,7 @@ Production Environment Stack:
 │  Monitor: CloudWatch + Datadog + PagerDuty                 │
 │  Security: KMS + Secrets Manager + GuardDuty               │
 └─────────────────────────────────────────────────────────────┘
-```
+```text
 
 ---
 
@@ -48,7 +50,7 @@ Production Environment Stack:
 
 ### **Terraform Configuration Structure**
 
-```
+```text
 infrastructure/
 ├── environments/
 │   ├── production/
@@ -67,7 +69,7 @@ infrastructure/
 └── shared/
     ├── backend.tf
     └── provider.tf
-```
+```text
 
 ### **Core Infrastructure Components**
 
@@ -144,7 +146,7 @@ infrastructure/
    terraform apply -auto-approve
    ```
 
-2. **Application Deployment**
+1. **Application Deployment**
 
    ```bash
    # Build and push Docker images
@@ -159,7 +161,7 @@ infrastructure/
      --task-definition pixelated-empathy:$BUILD_NUMBER
    ```
 
-3. **Database Migration**
+2. **Database Migration**
 
    ```bash
    # Run database migrations
@@ -260,6 +262,7 @@ infrastructure/
    ```
 
 5. **100% Traffic Switch**
+
    ```bash
    # Complete rollout to blue environment
    aws elbv2 modify-listener \
@@ -281,6 +284,7 @@ infrastructure/
    ```
 
 3. **Update DNS Records**
+
    ```bash
    # Update Route 53 records
    aws route53 change-resource-record-sets \
@@ -341,7 +345,7 @@ aws ecs update-service \
   --desired-count 0
 
 echo "ROLLBACK COMPLETED"
-```
+```text
 
 ### **Manual Rollback Process**
 
@@ -425,7 +429,7 @@ jobs:
         run: ./scripts/deploy-production.sh
       - name: Validate Deployment
         run: ./scripts/validate-production.sh
-```
+```text
 
 ---
 
@@ -481,7 +485,7 @@ jobs:
 # Manual emergency steps
 aws elbv2 modify-listener --listener-arn $LISTENER_ARN \
   --default-actions Type=forward,TargetGroupArn=$GREEN_TARGET_GROUP_ARN
-```
+```text
 
 ### **Emergency Contacts**
 
