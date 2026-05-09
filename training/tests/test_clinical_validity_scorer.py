@@ -46,6 +46,33 @@ class TestBasicScoring:
         )
         assert result > 0.0
 
+    def test_supportive_counseling_scores_above_zero(self):
+        result = ClinicalValidityScorer.score(
+            "It sounds like you're going through a really difficult time. "
+            "I want you to know that you are not alone in this. "
+            "I encourage you to reach out to a mental health professional who can help. "
+            "In the meantime, practicing some self-care and developing coping strategies "
+            "can be helpful first steps."
+        )
+        assert result > 0.0
+
+    def test_trauma_informed_scores_above_zero(self):
+        result = ClinicalValidityScorer.score(
+            "It sounds like you may be experiencing some trauma responses. "
+            "Creating a sense of emotional safety is really important here. "
+            "Let's work on some grounding techniques and build coping strategies "
+            "that help regulate your nervous system."
+        )
+        assert result > 0.0
+
+    def test_somatic_therapy_scores_above_zero(self):
+        result = ClinicalValidityScorer.score(
+            "Let's try a body scan to help you connect with what you're feeling physically. "
+            "Start by noticing any physical sensations in your body without judgment. "
+            "You could also try some gentle breathing exercises to help regulate your nervous system."
+        )
+        assert result > 0.0
+
     def test_therapeutic_response_outperforms_basic(self):
         basic = ClinicalValidityScorer.score("The sky is blue.")
         therapeutic = ClinicalValidityScorer.score(
