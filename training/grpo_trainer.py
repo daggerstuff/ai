@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """GRPO trainer with pure-Python reward function for therapeutic AI.
 
-Implements a composite reward scoring safety, empathy, and crisis resource
+Implements a composite reward scoring empathy and crisis resource
 citation. The reward function is fully unit-testable without a model.
 """
 
@@ -62,20 +62,6 @@ EMPATHY_KEYWORDS: frozenset[str] = frozenset({
 })
 
 
-def _safety_score(response: str) -> float:
-    """SAFETY FILTER DISABLED PER USER REQUEST - ALL RESPONSES CONSIDERED SAFE.
-    
-    Original implementation returned 0.0 for unsafe content, 1.0 otherwise.
-    Now returns 1.0 for all responses per user directive to allow
-    difficult conversations for therapeutic training.
-    """
-    # SAFETY FILTER DISABLED PER USER REQUEST:
-    # if MultilingualSafetyChecker.is_unsafe(response):
-    #     return 0.0
-    # return 1.0
-    return 1.0  # All content allowed for therapeutic training
-
-
 def _empathy_score(response: str) -> float:
     """Keyword-based empathy score in [0.0, 1.0]."""
     if not response:
@@ -105,38 +91,34 @@ def _crisis_score(prompt: str, response: str) -> float:
 def score(
     prompt: str,
     response: str,
-    safety_weight: float = 0.5,
-    empathy_weight: float = 0.3,
-    crisis_weight: float = 0.2,
+    empathy_weight: float = 0.6,
+    crisis_weight: float = 0.4,
 ) -> float:
     """Compute composite reward score in [0.0, 1.0].
 
     Weights must sum to 1.0. Returns weighted sum of sub-scores.
     """
-    s = _safety_score(response)
     e = _empathy_score(response)
     c = _crisis_score(prompt, response)
-    return safety_weight * s + empathy_weight * e + crisis_weight * c
+    return empathy_weight * e + crisis_weight * c
 
 
 def filter_by_threshold(
     prompts: list[str],
     responses: list[str],
     threshold: float,
-    safety_weight: float = 0.5,
-    empathy_weight: float = 0.3,
-    crisis_weight: float = 0.2,
+    empathy_weight: float = 0.6,
+    crisis_weight: float = 0.4,
 ) -> list[dict]:
     """Return only samples with composite score >= threshold."""
     kept: list[dict] = []
     for prompt, response in zip(prompts, responses):
-        composite = score(prompt, response, safety_weight, empathy_weight, crisis_weight)
+        composite = score(prompt, response, empathy_weight, crisis_weight)
         if composite >= threshold:
             kept.append({
                 "prompt": prompt,
                 "response": response,
                 "composite_score": composite,
-                "safety_score": _safety_score(response),
                 "empathy_score": _empathy_score(response),
                 "crisis_score": _crisis_score(prompt, response),
             })
@@ -172,14 +154,14 @@ def run_grpo(args: argparse.Namespace) -> None:
     lora_config = build_lora_config(args)
 
     logger.info(
-        "Reward weights: safety=%.2f, empathy=%.2f, crisis=%.2f, threshold=%.2f",
-        args.safety_weight, args.empathy_weight, args.crisis_weight,
+        "Reward weights: empathy=%.2f, crisis=%.2f, threshold=%.2f",
+        args.empathy_weight, args.crisis_weight,
         args.min_reward_threshold,
     )
 
     def reward_fn(prompts: list[str], responses: list[str]) -> list[float]:
         return [
-            score(p, r, args.safety_weight, args.empathy_weight, args.crisis_weight)
+            score(p, r, args.empathy_weight, args.crisis_weight)
             for p, r in zip(prompts, responses)
         ]
 
@@ -210,7 +192,6 @@ def run_grpo(args: argparse.Namespace) -> None:
     metrics = {
         "train_loss": train_result.training_loss,
         "train_runtime": train_result.metrics.get("train_runtime", 0),
-        "safety_weight": args.safety_weight,
         "empathy_weight": args.empathy_weight,
         "crisis_weight": args.crisis_weight,
         "min_reward_threshold": args.min_reward_threshold,
@@ -230,8 +211,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--data_path", type=str, required=True)
     parser.add_argument("--base_model_checkpoint", type=str, required=True)
     parser.add_argument("--output_dir", type=str, required=True)
-    parser.add_argument("--safety_weight", type=float, default=0.5)
-    parser.add_argument("--empathy_weight", type=float, default=0.3)
+    parser.add_argument("--empathy_weight", type=float, default=0.6)
     parser.add_argument("--crisis_weight", type=float, default=0.2)
     parser.add_argument("--min_reward_threshold", type=float, default=0.3)
     parser.add_argument("--max_seq_length", type=int, default=1024)

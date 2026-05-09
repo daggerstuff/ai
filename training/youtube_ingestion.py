@@ -80,18 +80,17 @@ def ingest_channel(
     channel_dir: Path,
     language: str,
     compiled_hashes: set[str],
-) -> tuple[list[dict], int, int, int]:
+) -> tuple[list[dict], int, int]:
     """Ingest one channel directory.
 
-    Returns (samples, total_read, skipped_unsafe, skipped_duplicate).
+    Returns (samples, total_read, skipped_duplicate).
     """
     samples: list[dict] = []
     total_read = 0
-    skipped_unsafe = 0  # SAFETY FILTER DISABLED - kept for interface compatibility
     skipped_dup = 0
 
     if not channel_dir.is_dir():
-        return samples, 0, 0, 0
+        return samples, 0, 0
 
     channel_name = channel_dir.name
 
@@ -108,15 +107,8 @@ def ingest_channel(
         pairs = _transcript_to_pairs(text, channel_name)
         for pair in pairs:
             total_read += 1
-            full_text = f"{pair['instruction']} {pair['output']}"
 
-            # SAFETY FILTER DISABLED PER USER REQUEST - ALL CONTENT ALLOWED
-            # Original safety check removed per user directive:
-            # if safety_checker.is_unsafe(full_text, language=language):
-            #     skipped_unsafe += 1
-            #     continue
-
-            content_hash = _content_hash(full_text.lower().strip())
+            content_hash = _content_hash(f"{pair['instruction']} {pair['output']}".lower().strip())
             if content_hash in compiled_hashes:
                 skipped_dup += 1
                 continue
@@ -128,7 +120,7 @@ def ingest_channel(
                 "source_channel": channel_name,
             })
 
-    return samples, total_read, skipped_unsafe, skipped_dup
+    return samples, total_read, skipped_dup
 
 
 def run_ingestion(args: argparse.Namespace) -> None:
@@ -144,7 +136,6 @@ def run_ingestion(args: argparse.Namespace) -> None:
     all_samples: list[dict] = []
     channel_stats: list[dict] = []
     total_processed = 0
-    total_skipped_unsafe = 0
     total_skipped_dup = 0
     skipped_channels: list[str] = []
 
@@ -159,7 +150,7 @@ def run_ingestion(args: argparse.Namespace) -> None:
         channel_name = channel_dir.name
         language = "de" if _is_german_channel(channel_name, german_override) else "en"
 
-        samples, n_read, n_unsafe, n_dup = ingest_channel(
+        samples, n_read, n_dup = ingest_channel(
             channel_dir, language, compiled_hashes
         )
 
@@ -170,7 +161,6 @@ def run_ingestion(args: argparse.Namespace) -> None:
 
         all_samples.extend(samples)
         total_processed += n_read
-        total_skipped_unsafe += n_unsafe
         total_skipped_dup += n_dup
 
         estimated_tokens = sum(
@@ -191,8 +181,8 @@ def run_ingestion(args: argparse.Namespace) -> None:
                 f.write(json.dumps(s) + "\n")
 
         logger.info(
-            "Channel %s: %d samples (%d unsafe, %d dup, %d total read), lang=%s",
-            channel_name, len(samples), n_unsafe, n_dup, n_read, language,
+            "Channel %s: %d samples (%d dup, %d total read), lang=%s",
+            channel_name, len(samples), n_dup, n_read, language,
         )
 
     manifest = {
@@ -212,7 +202,6 @@ def run_ingestion(args: argparse.Namespace) -> None:
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "processed": total_processed,
-        "skipped_unsafe": total_skipped_unsafe,
         "skipped_duplicate": total_skipped_dup,
         "total_samples": len(all_samples),
         "channels_processed": len(channel_stats),
@@ -224,8 +213,8 @@ def run_ingestion(args: argparse.Namespace) -> None:
         f.write("\n")
 
     logger.info(
-        "Ingestion complete: %d samples from %d channels (%d unsafe, %d dup)",
-        len(all_samples), len(channel_stats), total_skipped_unsafe, total_skipped_dup,
+        "Ingestion complete: %d samples from %d channels (%d dup)",
+        len(all_samples), len(channel_stats), total_skipped_dup,
     )
 
 

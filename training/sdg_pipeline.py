@@ -971,18 +971,8 @@ def _check_deduplication(
 
 
 # ============================================================================
-# Safety checks
+# Crisis resource checking — kept for nightmare fuel generation
 # ============================================================================
-
-def _is_safe_output(output: str) -> bool:
-    """Check if output is safe — crisis keywords must include resource referral."""
-    output_lower = output.lower()
-    crisis_keywords = ["suicide", "kill", "die", "harm", "end my life"]
-    has_crisis = any(kw in output_lower for kw in crisis_keywords)
-    if has_crisis:
-        return any(r.lower() in output_lower for r in CRISIS_RESOURCES)
-    return True
-
 
 def _crisis_resource_in_output(output: str) -> bool:
     """Check if output contains at least one crisis resource."""
@@ -1316,9 +1306,6 @@ def run_sdg(args: argparse.Namespace) -> None:
                 if args.scenario == "dpo_preference_pairs":
                     sample = _generate_dpo_pair("therapeutic", endpoint, api_key, model)
                     if sample and "chosen" in sample:
-                        if not _is_safe_output(sample["chosen"]):
-                            filtered += 1
-                            continue
                         f.write(json.dumps(sample) + "\n")
                         generated += 1
                         existing_samples.append(sample)
