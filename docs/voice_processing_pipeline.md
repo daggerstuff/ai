@@ -10,7 +10,7 @@ integration.
 
 ## Architecture Overview
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │                    Voice Processing Pipeline                     │
 ├─────────────────────────────────────────────────────────────────┤
@@ -51,7 +51,7 @@ integration.
 │  └─────────────────┘    └──────────────────┘    └─────────────┘ │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
-```
+```text
 
 ## Core Components
 
@@ -87,7 +87,7 @@ orchestrator = VoiceTrainingOrchestrator(
 )
 
 result = await orchestrator.process_voice_batch(conversations)
-```
+```text
 
 ### 2. Advanced Personality Extractor (`advanced_personality_extractor.py`)
 
@@ -334,7 +334,7 @@ VOICE_MONITOR_ALERT_EMAIL=admin@pixelatedempathy.com
 VOICE_MIN_AUTHENTICITY_SCORE=0.7
 VOICE_MIN_PERSONALITY_CONSISTENCY=0.8
 VOICE_MIN_AUDIO_QUALITY=0.75
-```
+```text
 
 ### Monitoring and Alerting
 

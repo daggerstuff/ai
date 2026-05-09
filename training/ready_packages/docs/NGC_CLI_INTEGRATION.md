@@ -1,4 +1,4 @@
-# NGC CLI Integration for Training Ready
+<!-- markdownlint-disable -->\n\n# NGC CLI Integration for Training Ready
 
 ## Overview
 

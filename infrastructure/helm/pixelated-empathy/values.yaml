@@ -20,7 +20,11 @@ serviceAccount:
 podAnnotations: {}
 
 podSecurityContext:
-  fsGroup: 2000
+  fsGroup: 65534
+  runAsNonRoot: true
+  runAsUser: 65534
+  seccompProfile:
+    type: RuntimeDefault
 
 securityContext:
   capabilities:
@@ -28,7 +32,8 @@ securityContext:
     - ALL
   readOnlyRootFilesystem: true
   runAsNonRoot: true
-  runAsUser: 1000
+  runAsUser: 65534
+  allowPrivilegeEscalation: false
 
 service:
   type: ClusterIP
@@ -90,6 +95,18 @@ postgresql:
     database: "pixelated_empathy"
     postgresPassword: ""
   primary:
+    podSecurityContext:
+      enabled: true
+      fsGroup: 1001
+    containerSecurityContext:
+      enabled: true
+      runAsUser: 1001
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      capabilities:
+        drop:
+        - ALL
     persistence:
       enabled: true
       size: 100Gi
@@ -100,6 +117,30 @@ postgresql:
       requests:
         cpu: 1000m
         memory: 2Gi
+  readReplicas:
+    podSecurityContext:
+      enabled: true
+      fsGroup: 1001
+    containerSecurityContext:
+      enabled: true
+      runAsUser: 1001
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      capabilities:
+        drop:
+        - ALL
+  metrics:
+    enabled: false
+    containerSecurityContext:
+      enabled: true
+      runAsUser: 1001
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      capabilities:
+        drop:
+        - ALL
 
 # Redis Configuration
 redis:
@@ -108,6 +149,18 @@ redis:
     enabled: true
     password: ""
   master:
+    podSecurityContext:
+      enabled: true
+      fsGroup: 1001
+    containerSecurityContext:
+      enabled: true
+      runAsUser: 1001
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      capabilities:
+        drop:
+        - ALL
     service:
       type: ClusterIP
     persistence:
@@ -121,18 +174,134 @@ redis:
         cpu: 500m
         memory: 1Gi
   replica:
+    podSecurityContext:
+      enabled: true
+      fsGroup: 1001
+    containerSecurityContext:
+      enabled: true
+      runAsUser: 1001
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      capabilities:
+        drop:
+        - ALL
     service:
       type: ClusterIP
+  metrics:
+    enabled: false
+    containerSecurityContext:
+      enabled: true
+      runAsUser: 1001
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      capabilities:
+        drop:
+        - ALL
 
 # Monitoring Configuration
 monitoring:
   prometheus:
     enabled: true
+    alertmanager:
+      securityContext:
+        runAsUser: 65534
+        runAsNonRoot: true
+      containerSecurityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop:
+          - ALL
+    server:
+      securityContext:
+        runAsUser: 65534
+        runAsNonRoot: true
+      containerSecurityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop:
+          - ALL
+    pushgateway:
+      securityContext:
+        runAsUser: 65534
+        runAsNonRoot: true
+      containerSecurityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop:
+          - ALL
+    nodeExporter:
+      hostNetwork: false
+      hostPID: false
+      hostRootfs: false
+      securityContext:
+        runAsUser: 65534
+        runAsGroup: 65534
+        runAsNonRoot: true
+        fsGroup: 65534
+      containerSecurityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop:
+          - ALL
+        seccompProfile:
+          type: RuntimeDefault
+    kube-state-metrics:
+      securityContext:
+        runAsGroup: 65534
+        runAsNonRoot: true
+        runAsUser: 65534
+        fsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containerSecurityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop:
+          - ALL
   grafana:
     enabled: true
+    securityContext:
+      runAsUser: 472
+      runAsNonRoot: true
+    containerSecurityContext:
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      readOnlyRootFilesystem: true
+      seccompProfile:
+        type: RuntimeDefault
+    imageRenderer:
+      containerSecurityContext:
+        runAsNonRoot: true
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+          - ALL
+        readOnlyRootFilesystem: true
 
 traefik:
   enabled: true
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+      - ALL
+    readOnlyRootFilesystem: true
+  podSecurityContext:
+    runAsGroup: 65532
+    runAsNonRoot: true
+    runAsUser: 65532
+    seccompProfile:
+      type: RuntimeDefault
   deployment:
     replicas: 2
   ingressClass:

@@ -3,6 +3,7 @@
 ## What Was Created
 
 I have implemented a truly zero-setup lazy loading system in:
+
 - `/home/vivi/pixelated/ai/annotation/scripts/truly_lazy_loader.py` - Core implementation
 - `/home/vivi/pixelated/ai/annotation/scripts/TRULY_ZERO_SETUP_EXPLAINED.md` - Detailed explanation
 
@@ -90,12 +91,17 @@ class CrisisDetectionAgent:
 ## The Fundamental Insight
 
 **TRUE zero-setup lazy loading means:**
+
 - Agents do **absolutely nothing** to set up resources
 - Resources are **just available** as module variables  
 - Loading happens **automatically and invisibly** on first access
 - Agents use resources as if they were **always loaded**
 - No function calls, no planning, no setup - **zero effort**
 
-This delivers exactly what you asked for: **agents have zero setup required, but they have to call it** is resolved by making the "calling" just be **accessing variables directly** rather than **calling functions**.
+This delivers exactly what you asked for: **agents have zero setup required, but
+they have to call it** is resolved by making the "calling" just be **accessing
+variables directly** rather than **calling functions**.
 
-The resources are available as direct variables, so agents don't "call" anything in the traditional sense - they just access them, and that's when they load automatically.
+The resources are available as direct variables, so agents don't "call" anything
+in the traditional sense - they just access them, and that's when they load
+automatically.

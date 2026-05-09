@@ -1,4 +1,4 @@
-# Journal Dataset Research System - Architecture Documentation
+ # Journal Dataset Research System - Architecture Documentation
 
 ## Overview
 

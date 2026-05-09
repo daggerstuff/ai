@@ -5,12 +5,12 @@ Empathy AI.**
 
 ## Table of Contents
 
-1. [Architecture Overview](#architecture-overview)
-2. [SDK Reference](#sdk-reference)
-3. [Integration Patterns](#integration-patterns)
-4. [Advanced Topics](#advanced-topics)
-5. [Development Tools](#development-tools)
-6. [Contributing](#contributing)
+1. \1
+2. \1
+3. \1
+4. \1
+5. \1
+6. \1
 
 ---
 
@@ -21,7 +21,7 @@ Empathy AI.**
 Pixelated Empathy AI is built on a modern, scalable architecture designed for
 enterprise-grade performance:
 
-```
+```text
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Client Apps   │    │   Web Dashboard │    │   Mobile Apps   │
 └─────────┬───────┘    └─────────┬───────┘    └─────────┬───────┘
@@ -50,7 +50,7 @@ enterprise-grade performance:
                   │  - Redis Cache  │
                   │  - File Storage │
                   └─────────────────┘
-```
+```text
 
 ### Core Components
 
@@ -92,7 +92,7 @@ enterprise-grade performance:
 
 ```bash
 pip install pixelated-empathy-api
-```
+```text
 
 #### Quick Start
 
@@ -105,7 +105,7 @@ api = PixelatedEmpathyAPI("your_api_key")
 # Get conversations
 conversations = api.get_conversations(tier="professional", limit=10)
 print(f"Retrieved {len(conversations['conversations'])} conversations")
-```
+```text
 
 #### Advanced Configuration
 
@@ -122,7 +122,7 @@ config = APIConfig(
 )
 
 api = PixelatedEmpathyAPI(config=config)
-```
+```text
 
 ### JavaScript SDK
 
@@ -130,7 +130,7 @@ api = PixelatedEmpathyAPI(config=config)
 
 ```bash
 npm install pixelated-empathy-api
-```
+```text
 
 #### Quick Start
 
@@ -146,7 +146,7 @@ const conversations = await api.getConversations({
   limit: 10,
 })
 console.log(`Retrieved ${conversations.conversations.length} conversations`)
-```
+```text
 
 #### Advanced Configuration
 
@@ -157,7 +157,7 @@ const api = new PixelatedEmpathyAPI('your_api_key', {
   maxRetries: 5,
   rateLimitPerHour: 2000,
 })
-```
+```text
 
 ---
 
@@ -189,7 +189,7 @@ class ConversationService:
         )
 
         return conversation
-```
+```text
 
 ### 2. Event-Driven Architecture
 
@@ -226,7 +226,7 @@ class ConversationProcessor:
             'conversation_id': conversation_id,
             'quality_score': validation['validation_results']['overall_quality']
         })
-```
+```text
 
 ### 3. Batch Processing Pipeline
 
@@ -282,7 +282,7 @@ class BatchProcessor:
     async def _process_single_conversation(self, conversation_id, processor_func):
         conversation = self.api.get_conversation(conversation_id)
         return await processor_func(conversation)
-```
+```text
 
 ---
 
@@ -380,7 +380,7 @@ class CustomQualityValidator:
             total_score += message_score
 
         return total_score / len(messages) if messages else 0.0
-```
+```text
 
 ### 2. Real-Time Processing with WebSockets
 
@@ -464,7 +464,7 @@ class RealTimeProcessor:
                 *[ws.send(json.dumps(message)) for ws in self.active_connections],
                 return_exceptions=True
             )
-```
+```text
 
 ### 3. Machine Learning Pipeline Integration
 
@@ -556,7 +556,7 @@ class MLPipelineIntegration:
             all_text.append(message['content'])
 
         return ' '.join(all_text)
-```
+```text
 
 ---
 
@@ -582,7 +582,7 @@ pe-cli quality validate --input=./conversations.jsonl --output=./results.json
 
 # Generate SDK documentation
 pe-cli docs generate --language=python --output=./docs/
-```
+```text
 
 ### 2. Testing Framework
 
@@ -640,7 +640,7 @@ class TestConversationProcessor:
 
         assert len(results) == 10
         assert all(r['quality_score'] >= 0.7 for r in results)
-```
+```text
 
 ### 3. Monitoring and Observability
 
@@ -696,7 +696,7 @@ class APIMonitoring:
             self.active_connections.inc()
         elif action == 'disconnect':
             self.active_connections.dec()
-```
+```text
 
 ---
 
@@ -724,7 +724,7 @@ pytest
 
 # Start development server
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
-```
+```text
 
 ### Code Standards
 

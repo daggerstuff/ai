@@ -6,16 +6,16 @@
 
 ## Table of Contents
 
-1. [Getting Started](#getting-started)
-2. [Quick Start Guide](#quick-start-guide)
-3. [Using the Web Interface](#using-the-web-interface)
-4. [API Usage for Non-Developers](#api-usage-for-non-developers)
-5. [Content Creation Guide](#content-creation-guide)
-6. [Understanding AI Responses](#understanding-ai-responses)
-7. [Privacy and Safety](#privacy-and-safety)
-8. [Troubleshooting Common Issues](#troubleshooting-common-issues)
-9. [Best Practices](#best-practices)
-10. [Frequently Asked Questions](#frequently-asked-questions)
+1. \1
+2. \1
+3. \1
+4. \1
+5. \1
+6. \1
+7. \1
+8. \1
+9. \1
+10. \1
 
 ---
 
@@ -89,7 +89,7 @@ curl -X POST https://api.pixelatedempathy.com/v1/chat \
     "message": "I had a difficult day at work",
     "context": "seeking support"
   }'
-```
+```text
 
 ### Step 3: Explore Features
 
@@ -192,7 +192,7 @@ responses without using the web interface.
   "message": "I'm feeling overwhelmed with my workload",
   "user_id": "your_user_id"
 }
-```
+```text
 
 **Message with Context:**
 
@@ -209,7 +209,7 @@ responses without using the web interface.
     "length": "detailed"
   }
 }
-```
+```text
 
 ### Understanding API Responses
 
@@ -223,7 +223,7 @@ responses without using the web interface.
   "suggested_actions": ["take_break", "prioritize_tasks"],
   "conversation_id": "conv_12345"
 }
-```
+```text
 
 ---
 
@@ -519,14 +519,14 @@ for research purposes only.
 ### Support Questions
 
 **Q: How do I get help if I'm stuck?** A: Use the in-app help system, check our
-documentation, or contact support at support@pixelatedempathy.com.
+documentation, or contact support at <support@pixelatedempathy.com>.
 
 **Q: Do you offer training or workshops?** A: Yes, we provide training sessions
 for organizations and educational institutions. Contact our education team for
 details.
 
 **Q: Can I suggest new features?** A: We welcome feature suggestions! Use the
-feedback form in the app or email us at feedback@pixelatedempathy.com.
+feedback form in the app or email us at <feedback@pixelatedempathy.com>.
 
 ---
 
@@ -548,10 +548,10 @@ feedback form in the app or email us at feedback@pixelatedempathy.com.
 
 ### Contact Information
 
-- **General Support**: support@pixelatedempathy.com
-- **Technical Issues**: tech-support@pixelatedempathy.com
-- **Business Inquiries**: sales@pixelatedempathy.com
-- **Feedback**: feedback@pixelatedempathy.com
+- **General Support**: <support@pixelatedempathy.com>
+- **Technical Issues**: <tech-support@pixelatedempathy.com>
+- **Business Inquiries**: <sales@pixelatedempathy.com>
+- **Feedback**: <feedback@pixelatedempathy.com>
 
 ---
 

@@ -1,4 +1,4 @@
-# Journal Dataset Research System
+ # Journal Dataset Research System
 
 A systematic approach for researching, evaluating, and acquiring therapeutic
 journal datasets from open access sources to enhance the Pixelated Empathy

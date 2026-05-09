@@ -1,4 +1,4 @@
-# Dependencies: Training Ready Pipeline
+<!-- markdownlint-disable -->\n\n# Dependencies: Training Ready Pipeline
 
 ## Required Dependencies
 
@@ -19,7 +19,7 @@
 ```bash
 cd ai/training_ready
 ./install_dependencies.sh
-```
+```text
 
 ### Manual Installation
 
@@ -31,7 +31,7 @@ uv pip install --system torch torchvision torchaudio --index-url https://downloa
 
 # Optional: HuggingFace datasets
 uv pip install --system datasets
-```
+```text
 
 #### Using pip
 
@@ -41,7 +41,7 @@ pip install torch torchvision torchaudio --index-url https://download.pytorch.or
 
 # Optional: HuggingFace datasets
 pip install datasets
-```
+```text
 
 ## Verification
 
@@ -49,14 +49,14 @@ After installation, verify torch is working:
 
 ```bash
 python3 -c "import torch; print(f'Torch {torch.__version__} installed'); print(f'CUDA: {torch.cuda.is_available()}')"
-```
+```text
 
 Expected output:
 
-```
+```text
 Torch 2.x.x installed
 CUDA: False
-```
+```text
 
 ## Notes
 

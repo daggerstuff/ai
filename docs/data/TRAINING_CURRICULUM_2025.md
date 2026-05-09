@@ -1,4 +1,4 @@
-# Training Curriculum - Late 2025
+<!-- markdownlint-disable -->\n\n# Training Curriculum - Late 2025
 
 **Last Updated**: 2025-12-12  
 **Purpose**: Multi-phase training curriculum for final model training  
@@ -340,7 +340,7 @@ Optimize model outputs using preference data (DPO/ORPO/SimPO/KTO)
 
 ## Training Order & Dependencies
 
-```
+```text
 Phase A: Continued Pretraining
     ↓
 Phase B.1: Foundation
@@ -360,7 +360,7 @@ Phase B.7: Roleplay & Simulator
 Phase C: Preference Alignment
     ↓
 Final Model
-```
+```text
 
 **Note**: Each stage uses the checkpoint from the previous stage as its base.
 

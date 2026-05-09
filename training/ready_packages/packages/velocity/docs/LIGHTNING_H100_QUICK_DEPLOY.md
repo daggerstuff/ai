@@ -1,4 +1,4 @@
-# Lightning.ai H100 Quick Deploy Guide
+<!-- markdownlint-disable -->\n\n# Lightning.ai H100 Quick Deploy Guide
 ## 🚀 One-Command Therapeutic AI Training Deployment
 
 ### ⚡ **Lightning Fast Deployment**

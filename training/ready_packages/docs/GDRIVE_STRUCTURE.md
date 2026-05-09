@@ -1,4 +1,4 @@
-# Google Drive Training Dataset Structure (Source/Staging)
+<!-- markdownlint-disable -->\n\n# Google Drive Training Dataset Structure (Source/Staging)
 
 **Last Updated**: 2025-12-11  
 **Purpose**: Reference for Google Drive dataset organization (source/staging area)  

@@ -6,16 +6,16 @@
 
 ## Table of Contents
 
-- [Overview](#overview)
-- [Prerequisites](#prerequisites)
-- [Local Development](#local-development)
-- [Docker Deployment](#docker-deployment)
-- [Kubernetes Deployment](#kubernetes-deployment)
-- [Production Deployment](#production-deployment)
-- [Environment Configuration](#environment-configuration)
-- [Database Setup](#database-setup)
-- [Monitoring Setup](#monitoring-setup)
-- [Troubleshooting](#troubleshooting)
+- \1
+- \1
+- \1
+- \1
+- \1
+- \1
+- \1
+- \1
+- \1
+- \1
 
 ---
 
@@ -29,7 +29,7 @@ This guide covers deploying Pixelated Empathy AI across different environments:
 
 ### Deployment Architecture
 
-```
+```text
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Load Balancer │    │   API Gateway   │    │   Application   │
 │   (Nginx/ALB)   │◄──►│   (Ingress)     │◄──►│   (FastAPI)     │
@@ -40,7 +40,7 @@ This guide covers deploying Pixelated Empathy AI across different environments:
 │   SSL/TLS       │    │   Rate Limiting │    │   Database      │
 │   (Cert-Manager)│    │   (Redis)       │    │   (PostgreSQL)  │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
-```
+```text
 
 ---
 
@@ -92,7 +92,7 @@ docker-compose -f docker-compose.dev.yml up -d
 
 # View logs
 docker-compose -f docker-compose.dev.yml logs -f api
-```
+```text
 
 ### Development Environment Variables
 
@@ -114,7 +114,7 @@ RELOAD=true
 # External Services (use test/sandbox keys)
 OPENAI_API_KEY=sk-test-...
 HUGGINGFACE_TOKEN=hf_test_...
-```
+```text
 
 ---
 
@@ -130,9 +130,9 @@ docker build -f Dockerfile.prod -t pixelated-empathy-ai:latest .
 
 # Or use multi-stage build
 docker build --target production -t pixelated-empathy-ai:prod .
-```
+```text
 
-2. **Production Docker Compose**:
+1. **Production Docker Compose**:
 
 ```yaml
 # docker-compose.prod.yml
@@ -191,9 +191,9 @@ services:
 volumes:
   postgres_data:
   redis_data:
-```
+```text
 
-3. **Deploy with Docker Compose**:
+1. **Deploy with Docker Compose**:
 
 ```bash
 # Set production environment variables
@@ -209,7 +209,7 @@ docker-compose -f docker-compose.prod.yml ps
 
 # View logs
 docker-compose -f docker-compose.prod.yml logs -f
-```
+```text
 
 ---
 
@@ -225,7 +225,7 @@ metadata:
   name: pixelated-empathy
   labels:
     name: pixelated-empathy
-```
+```text
 
 ### ConfigMap and Secrets
 
@@ -255,7 +255,7 @@ data:
   DATABASE_URL: <base64-encoded-database-url>
   JWT_SECRET_KEY: <base64-encoded-jwt-secret>
   REDIS_PASSWORD: <base64-encoded-redis-password>
-```
+```text
 
 ### Application Deployment
 
@@ -321,7 +321,7 @@ spec:
       port: 80
       targetPort: 8000
   type: ClusterIP
-```
+```text
 
 ### Ingress Configuration
 
@@ -353,7 +353,7 @@ spec:
                 name: pixelated-api-service
                 port:
                   number: 80
-```
+```text
 
 ### Deploy to Kubernetes
 
@@ -372,7 +372,7 @@ kubectl get ingress -n pixelated-empathy
 
 # View logs
 kubectl logs -f deployment/pixelated-api -n pixelated-empathy
-```
+```text
 
 ---
 
@@ -392,9 +392,9 @@ helm install pixelated-empathy pixelated-empathy/pixelated-empathy-ai \
   --namespace pixelated-empathy \
   --create-namespace \
   --values production-values.yaml
-```
+```text
 
-2. **Production Values** (`production-values.yaml`):
+1. **Production Values** (`production-values.yaml`):
 
 ```yaml
 # production-values.yaml
@@ -459,7 +459,7 @@ redis:
     persistence:
       enabled: true
       size: 10Gi
-```
+```text
 
 ### Blue-Green Deployment
 
@@ -482,7 +482,7 @@ kubectl patch ingress pixelated-ingress -n pixelated-empathy \
 
 # Remove blue deployment after verification
 helm uninstall pixelated-empathy-blue -n pixelated-empathy
-```
+```text
 
 ---
 
@@ -531,7 +531,7 @@ SENTRY_DSN=https://your-sentry-dsn@sentry.io/project-id
 RATE_LIMIT_ENABLED=true
 RATE_LIMIT_REQUESTS_PER_MINUTE=1000
 RATE_LIMIT_BURST_SIZE=100
-```
+```text
 
 ---
 
@@ -556,9 +556,9 @@ CREATE EXTENSION IF NOT EXISTS "pg_trgm";
 
 -- Create tables (run migrations)
 -- This will be handled by the application migration system
-```
+```text
 
-2. **Database Migrations**:
+1. **Database Migrations**:
 
 ```bash
 # Run database migrations
@@ -566,7 +566,7 @@ kubectl exec -it deployment/pixelated-api -n pixelated-empathy -- \
   python -m alembic upgrade head
 
 # Or using init container in Kubernetes
-```
+```text
 
 ### Redis Production Setup
 
@@ -580,7 +580,7 @@ appendonly yes
 appendfsync everysec
 maxmemory 2gb
 maxmemory-policy allkeys-lru
-```
+```text
 
 ---
 
@@ -605,7 +605,7 @@ data:
       - targets: ['pixelated-api-service:80']
       metrics_path: '/metrics'
       scrape_interval: 10s
-```
+```text
 
 ### Grafana Dashboard
 
@@ -637,7 +637,7 @@ data:
     ]
   }
 }
-```
+```text
 
 ---
 
@@ -657,7 +657,7 @@ kubectl describe secret pixelated-secrets -n pixelated-empathy
 
 # Check resource limits
 kubectl describe pod <pod-name> -n pixelated-empathy
-```
+```text
 
 **2. Database Connection Issues**
 
@@ -669,7 +669,7 @@ kubectl exec -it deployment/pixelated-api -n pixelated-empathy -- \
 # Check database service
 kubectl get service postgres-service -n pixelated-empathy
 kubectl describe service postgres-service -n pixelated-empathy
-```
+```text
 
 **3. High Memory Usage**
 
@@ -680,7 +680,7 @@ kubectl top pods -n pixelated-empathy
 # Scale up resources
 kubectl patch deployment pixelated-api -n pixelated-empathy \
   -p '{"spec":{"template":{"spec":{"containers":[{"name":"api","resources":{"limits":{"memory":"2Gi"}}}]}}}}'
-```
+```text
 
 **4. SSL/TLS Certificate Issues**
 
@@ -694,7 +694,7 @@ kubectl logs -n cert-manager deployment/cert-manager
 # Manually trigger certificate renewal
 kubectl delete certificate pixelated-tls -n pixelated-empathy
 kubectl apply -f ingress.yaml
-```
+```text
 
 ### Health Checks
 
@@ -707,7 +707,7 @@ curl https://api.pixelatedempathy.com/health/detailed
 
 # Metrics endpoint
 curl https://api.pixelatedempathy.com/metrics
-```
+```text
 
 ### Performance Tuning
 
@@ -720,7 +720,7 @@ CREATE INDEX CONCURRENTLY idx_conversations_created_at ON conversations(created_
 
 -- Analyze query performance
 EXPLAIN ANALYZE SELECT * FROM conversations WHERE user_id = 'user123';
-```
+```text
 
 **Redis Optimization**:
 
@@ -730,7 +730,7 @@ redis-cli --latency-history -h redis-service
 
 # Check memory usage
 redis-cli info memory
-```
+```text
 
 ---
 
@@ -747,7 +747,7 @@ kubectl rollout undo deployment/pixelated-api -n pixelated-empathy
 
 # Rollback to specific revision
 kubectl rollout undo deployment/pixelated-api --to-revision=2 -n pixelated-empathy
-```
+```text
 
 ### Helm Rollback
 
@@ -760,7 +760,7 @@ helm rollback pixelated-empathy -n pixelated-empathy
 
 # Rollback to specific revision
 helm rollback pixelated-empathy 2 -n pixelated-empathy
-```
+```text
 
 ---
 

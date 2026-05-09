@@ -2,13 +2,16 @@
 
 ## Overview
 
-The MCP Server is a comprehensive management control panel for agent interaction endpoints, designed to orchestrate the 6-stage TechDeck-Python pipeline integration process. It provides agent registration, task delegation, pipeline orchestration, and real-time communication capabilities.
+The MCP Server is a comprehensive management control panel for agent interaction
+endpoints, designed to orchestrate the 6-stage TechDeck-Python pipeline
+integration process. It provides agent registration, task delegation, pipeline
+orchestration, and real-time communication capabilities.
 
 ## Architecture
 
 ### Core Components
 
-```
+```text
 MCP Server
 ├── Agent Management
 │   ├── Registration & Discovery
@@ -41,6 +44,7 @@ MCP Server
 ### Agent Management
 
 #### Register Agent
+
 ```http
 POST /api/v1/agents/register
 Content-Type: application/json
@@ -63,6 +67,7 @@ Content-Type: application/json
 ```
 
 #### Discover Agents
+
 ```http
 GET /api/v1/agents
 Accept: application/json
@@ -86,6 +91,7 @@ Response:
 ### Task Management
 
 #### Submit Task
+
 ```http
 POST /api/v1/tasks
 Content-Type: application/json
@@ -108,6 +114,7 @@ Content-Type: application/json
 ```
 
 #### Get Task Status
+
 ```http
 GET /api/v1/tasks/{task_id}
 Accept: application/json
@@ -136,6 +143,7 @@ Response:
 ### Pipeline Orchestration
 
 #### Create Pipeline
+
 ```http
 POST /api/v1/pipelines
 Content-Type: application/json
@@ -192,6 +200,7 @@ Content-Type: application/json
 ```
 
 #### Execute Pipeline
+
 ```http
 POST /api/v1/pipelines/{pipeline_id}/execute
 Content-Type: application/json
@@ -215,6 +224,7 @@ Content-Type: application/json
 ### WebSocket Events
 
 #### Connection
+
 ```javascript
 // Connect to WebSocket
 const ws = new WebSocket('ws://mcp-server:8080/ws');
@@ -227,6 +237,7 @@ ws.send(JSON.stringify({
 ```
 
 #### Event Types
+
 ```javascript
 // Task Status Update
 {
@@ -272,13 +283,16 @@ ws.send(JSON.stringify({
 ## Integration with Flask Service
 
 ### Authentication
+
 The MCP Server integrates with the existing Flask authentication system:
+
 - Uses JWT tokens for API authentication
 - Supports role-based access control (RBAC)
 - Integrates with existing user management
 
 ### Data Flow
-```
+
+```text
 Flask Service → MCP Server → Agents
      ↓              ↓            ↓
   User Auth → Task Creation → Task Execution
@@ -286,6 +300,7 @@ Flask Service → MCP Server → Agents
 ```
 
 ### Shared Resources
+
 - **Database**: MongoDB for agent registry and task tracking
 - **Cache**: Redis for session management and caching
 - **Message Queue**: Redis/RabbitMQ for task distribution
@@ -294,21 +309,25 @@ Flask Service → MCP Server → Agents
 ## Security Features
 
 ### Authentication
+
 - JWT-based authentication
 - API key support for agent registration
 - OAuth2 integration for external services
 
 ### Authorization
+
 - Role-based access control (RBAC)
 - Resource-level permissions
 - Agent-specific access tokens
 
 ### Rate Limiting
+
 - API endpoint rate limiting
 - Task submission quotas
 - Concurrent connection limits
 
 ### Data Protection
+
 - TLS encryption for all communications
 - Secure token storage
 - Audit logging for all operations
@@ -316,18 +335,21 @@ Flask Service → MCP Server → Agents
 ## Monitoring & Logging
 
 ### Metrics
+
 - Task execution times
 - Agent availability and performance
 - Pipeline success rates
 - Error rates and types
 
 ### Logging
+
 - Structured logging with JSON format
 - Log levels: DEBUG, INFO, WARN, ERROR
 - Log retention and rotation policies
 - Centralized log aggregation
 
 ### Health Checks
+
 - Agent health monitoring
 - Service availability checks
 - Database connectivity verification
@@ -336,6 +358,7 @@ Flask Service → MCP Server → Agents
 ## Deployment
 
 ### Docker Configuration
+
 ```yaml
 # docker-compose.yml
 version: '3.8'
@@ -375,6 +398,7 @@ volumes:
 ```
 
 ### Environment Variables
+
 ```bash
 # Database Configuration
 MONGODB_URI=mongodb://localhost:27017/mcp
@@ -403,6 +427,7 @@ TASK_TIMEOUT=3600
 ## Development
 
 ### Running Locally
+
 ```bash
 # Install dependencies
 pip install -r requirements.txt
@@ -418,6 +443,7 @@ python -m uvicorn mcp_server.main:app --reload --host 0.0.0.0 --port 8080
 ```
 
 ### Testing
+
 ```bash
 # Run all tests
 pytest

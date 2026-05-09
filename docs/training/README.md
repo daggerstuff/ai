@@ -1,4 +1,4 @@
-# Training Ready: Consolidated Training System
+<!-- markdownlint-disable -->\n\n# Training Ready: Consolidated Training System
 
 ## Overview
 
@@ -23,19 +23,19 @@ uv pip install torch torchvision torchaudio --index-url https://download.pytorch
 
 # Option C: Using pip (system-wide)
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-```
+```text
 
 **Note**: If using `uv`, run scripts with `uv run`:
 
 ```bash
 uv run python3 ai/training_ready/scripts/prepare_training_data.py --all
-```
+```text
 
 ### 1. Review the Training Manifest
 
 ```bash
 cat TRAINING_MANIFEST.json | jq '.summary'
-```
+```text
 
 The manifest contains:
 
@@ -51,7 +51,7 @@ The manifest contains:
 
 ```bash
 cat TRAINING_PLAN.md
-```
+```text
 
 The training plan outlines:
 
@@ -68,25 +68,25 @@ The training plan outlines:
 ```bash
 cd ai/orchestrator/targets_training_package
 python scripts/train_enhanced.py --config config/enhanced_training_config.json
-```
+```text
 
 #### Option B: Kubernetes
 
 ```bash
 kubectl apply -f infrastructure/kubernetes/
 helm install pixel-training infrastructure/helm/
-```
+```text
 
 #### Option C: Local Docker
 
 ```bash
 docker build -f infrastructure/docker/Dockerfile -t pixel-training .
 docker run --gpus all pixel-training
-```
+```text
 
 ## Directory Structure
 
-```
+```text
 ai/training_ready/
 ├── README.md                          # This file
 ├── TRAINING_MANIFEST.json            # Complete asset inventory
@@ -130,7 +130,7 @@ ai/training_ready/
     └── output/                       # Script outputs
         ├── directory_catalogs.json  # Directory catalogs
         └── experimental_features.json # Experimental features
-```
+```text
 
 ## Stage-Based Training
 

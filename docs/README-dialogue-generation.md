@@ -36,7 +36,7 @@ pnpm run validate-dialogues
 
 # Run the full pipeline (interactive menu)
 pnpm run dialogue-pipeline
-```
+```text
 
 ## Scripts
 
@@ -58,7 +58,7 @@ Usage:
 node src/scripts/generate_dialogues.js
 # or
 pnpm run generate-dialogues
-```
+```text
 
 ### `batch_generate_dialogues.js`
 
@@ -76,7 +76,7 @@ Usage:
 node src/scripts/batch_generate_dialogues.js
 # or
 pnpm run batch-generate-dialogues
-```
+```text
 
 When running the batch script, you'll be prompted for:
 
@@ -102,7 +102,7 @@ Usage:
 node src/scripts/validate_dialogues.js
 # or
 pnpm run validate-dialogues
-```
+```text
 
 ### `run_full_dialogue_pipeline.js`
 
@@ -121,7 +121,7 @@ Usage:
 node src/scripts/run_full_dialogue_pipeline.js
 # or
 pnpm run dialogue-pipeline
-```
+```text
 
 ## Output Files
 
@@ -148,7 +148,7 @@ object with the following structure:
   "fail_no_matter_what": false,
   "instructions": "Detailed instructions for the LLM..."
 }
-```
+```text
 
 The `instructions` field contains detailed instructions for the LLM to generate
 the dialogue.

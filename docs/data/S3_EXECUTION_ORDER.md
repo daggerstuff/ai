@@ -1,4 +1,4 @@
-# S3-First Execution Order (Merged)
+<!-- markdownlint-disable -->\n\n# S3-First Execution Order (Merged)
 
 This sequence blends NEXT_STEPS, README, ENV_QUICKSTART, and
 IMPLEMENTATION_STATUS into one dependency-aware flow.

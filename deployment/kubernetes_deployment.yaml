@@ -12,8 +12,22 @@ spec:
       labels:
         app: production-app
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
       containers:
-        - name: app
-          image: production-app:latest
-          ports:
-            - containerPort: 8080
+      - name: app
+        image: production-app:latest
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        ports:
+        - containerPort: 8080

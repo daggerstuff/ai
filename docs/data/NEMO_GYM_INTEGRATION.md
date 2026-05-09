@@ -39,7 +39,7 @@ Pixelated Inference Service (FastAPI / Lightning on H100/OVH)
 S3 (rl/pixelated/...)  ← rollouts, rewards, configs
     ↕
 MoE / Apex Training Scripts (train_moe_h100.py, train_enhanced.py)
-```
+```text
 
 ---
 
@@ -137,7 +137,7 @@ The reward vector can be stored as:
     "task_completion": 0.5
   }
 }
-```
+```text
 
 This is compatible with GRPO-style pipelines used in Nemotron RL recipes.
 
@@ -186,7 +186,7 @@ contains:
     "created_at": "..."
   }
 }
-```
+```text
 
 This can be consumed later by:
 
