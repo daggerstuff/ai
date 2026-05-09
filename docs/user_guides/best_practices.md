@@ -5,12 +5,12 @@ best practices.**
 
 ## Table of Contents
 
-1. [Data Quality Best Practices](#data-quality-best-practices)
-2. [API Usage Best Practices](#api-usage-best-practices)
-3. [Security Best Practices](#security-best-practices)
-4. [Performance Best Practices](#performance-best-practices)
-5. [Ethical Guidelines](#ethical-guidelines)
-6. [Troubleshooting Guide](#troubleshooting-guide)
+1. \1
+2. \1
+3. \1
+4. \1
+5. \1
+6. \1
 
 ---
 
@@ -35,7 +35,7 @@ clinical_conversations = api.get_conversations(
 
 # Avoid: Using basic tier for clinical applications
 # basic_conversations = api.get_conversations(tier="basic")  # Too low quality
-```
+```text
 
 ### 2. Validate Quality Scores
 
@@ -68,7 +68,7 @@ def validate_sample_quality(conversations, sample_size=50):
     print(f"Average score difference: {avg_difference:.3f}")
 
     return validation_results
-```
+```text
 
 ### 3. Filter by Multiple Criteria
 
@@ -91,7 +91,7 @@ for conv in high_quality_conversations['conversations']:
         metrics['safety_score'] >= 0.90 and
         metrics['clinical_compliance'] >= 0.75):
         filtered_conversations.append(full_conv)
-```
+```text
 
 ### 4. Monitor Data Drift
 
@@ -124,7 +124,7 @@ def monitor_quality_drift(api, dataset_name, days_back=30):
     for date, scores in quality_by_period.items():
         avg_quality = sum(scores) / len(scores)
         print(f"{date}: {avg_quality:.3f} (n={len(scores)})")
-```
+```text
 
 ---
 
@@ -175,7 +175,7 @@ def robust_api_call(api_func, *args, **kwargs):
             time.sleep(base_delay * (2 ** attempt))
 
     raise Exception(f"Failed after {max_retries} attempts")
-```
+```text
 
 ### 2. Use Pagination Efficiently
 
@@ -215,7 +215,7 @@ def process_all_conversations(api, dataset_name, batch_size=100):
             break
 
     print(f"Total processed: {processed_count}")
-```
+```text
 
 ### 3. Cache Frequently Accessed Data
 
@@ -258,7 +258,7 @@ class ConversationCache:
             json.dump(conversation, f)
 
         return conversation
-```
+```text
 
 ### 4. Monitor API Usage
 
@@ -292,7 +292,7 @@ class APIUsageTracker:
             'rate_limit_hits': self.rate_limit_hits,
             'uptime_hours': hours
         }
-```
+```text
 
 ---
 
@@ -315,7 +315,7 @@ with open('config.json') as f:
 
 # Bad: Hardcoded keys
 # api_key = "pk_live_1234567890"  # Never do this!
-```
+```text
 
 **Rotate keys regularly**:
 
@@ -339,7 +339,7 @@ def rotate_api_key(old_key, new_key):
     revoke_api_key(old_key)
 
     return True
-```
+```text
 
 ### 2. Validate and Sanitize Data
 
@@ -395,7 +395,7 @@ def contains_pii(text: str) -> bool:
             return True
 
     return False
-```
+```text
 
 ### 3. Implement Access Controls
 
@@ -441,7 +441,7 @@ class SecureAPIWrapper:
             tier = self.permissions['tiers'][-1]  # Lowest allowed tier
 
         return self.api.get_conversations(tier=tier, **kwargs)
-```
+```text
 
 ---
 
@@ -480,7 +480,7 @@ def get_multiple_conversations_optimized(api, conversation_ids):
         conversations.extend(filtered)
 
     return conversations
-```
+```text
 
 ### 2. Use Async Processing
 
@@ -540,7 +540,7 @@ async def main():
 
 # Run async code
 # asyncio.run(main())
-```
+```text
 
 ### 3. Implement Smart Caching
 
@@ -595,7 +595,7 @@ def cached_get_conversation(api, conversation_id):
     cache.set(cache_key, conversation)
 
     return conversation
-```
+```text
 
 ---
 
@@ -634,7 +634,7 @@ def check_consent_status(conversation):
     # Check metadata for consent information
     metadata = conversation.get('metadata', {})
     return metadata.get('consent_obtained', False)
-```
+```text
 
 ### 2. Use Data Responsibly
 
@@ -694,7 +694,7 @@ class ResponsibleDataHandler:
                     conversation['metadata'].pop(field, None)
 
         return conversation
-```
+```text
 
 ---
 
@@ -721,7 +721,7 @@ def handle_rate_limit(api_func, *args, **kwargs):
             delay = min(base_delay * (2 ** attempt), 300)  # Max 5 minutes
             print(f"Rate limited. Waiting {delay} seconds...")
             time.sleep(delay)
-```
+```text
 
 #### 2. Low Quality Scores
 
@@ -758,7 +758,7 @@ def diagnose_quality_issues(conversations):
     for issue, count in quality_issues.items():
         percentage = (count / len(conversations)) * 100
         print(f"  {issue}: {count} ({percentage:.1f}%)")
-```
+```text
 
 #### 3. Slow Performance
 
@@ -779,7 +779,7 @@ def optimize_api_performance():
 
     for i, tip in enumerate(tips, 1):
         print(f"{i}. {tip}")
-```
+```text
 
 #### 4. Authentication Issues
 
@@ -808,17 +808,17 @@ def diagnose_auth_issues(api_key):
     except Exception as e:
         print(f"❌ API key test failed: {e}")
         return False
-```
+```text
 
 ### Getting Help
 
-1. **Check Status Page**: https://status.pixelatedempathy.com
+1. **Check Status Page**: <https://status.pixelatedempathy.com>
 2. **Review Documentation**: Complete guides and API reference
 3. **Community Forum**: Connect with other developers
 4. **Email Support**:
-   - Technical issues: api-support@pixelatedempathy.com
-   - Billing questions: billing@pixelatedempathy.com
-   - Research inquiries: research@pixelatedempathy.com
+   - Technical issues: <api-support@pixelatedempathy.com>
+   - Billing questions: <billing@pixelatedempathy.com>
+   - Research inquiries: <research@pixelatedempathy.com>
 
 ---
 

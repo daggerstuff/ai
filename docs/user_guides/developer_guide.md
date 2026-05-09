@@ -5,12 +5,12 @@ building empathy-aware applications.
 
 ## Table of Contents
 
-1. [Quick Start for Developers](#quick-start-for-developers)
-2. [SDK Installation and Setup](#sdk-installation-and-setup)
-3. [Building Your First Application](#building-your-first-application)
-4. [Common Development Patterns](#common-development-patterns)
-5. [Performance Optimization](#performance-optimization)
-6. [Production Deployment](#production-deployment)
+1. \1
+2. \1
+3. \1
+4. \1
+5. \1
+6. \1
 
 ---
 
@@ -24,7 +24,7 @@ pip install pixelated-empathy-api
 
 # Or install JavaScript SDK
 npm install pixelated-empathy-api
-```
+```text
 
 ```python
 # Python - Get started in 3 lines
@@ -33,7 +33,7 @@ from pixelated_empathy_api import PixelatedEmpathyAPI
 api = PixelatedEmpathyAPI("your_api_key")
 conversations = api.get_conversations(tier="professional", limit=10)
 print(f"Retrieved {len(conversations['conversations'])} conversations")
-```
+```text
 
 ```javascript
 // JavaScript - Get started in 3 lines
@@ -45,7 +45,7 @@ const conversations = await api.getConversations({
   limit: 10,
 })
 console.log(`Retrieved ${conversations.conversations.length} conversations`)
-```
+```text
 
 ---
 
@@ -61,7 +61,7 @@ pip install pixelated-empathy-api
 git clone https://github.com/pixelated-empathy/python-sdk
 cd python-sdk
 pip install -e .
-```
+```text
 
 **Environment Setup**:
 
@@ -78,7 +78,7 @@ api = PixelatedEmpathyAPI()
 
 # Option 3: Configuration file
 api = PixelatedEmpathyAPI.from_config('config.json')
-```
+```text
 
 ### JavaScript/Node.js SDK
 
@@ -88,7 +88,7 @@ npm install pixelated-empathy-api
 
 # Or install via yarn
 yarn add pixelated-empathy-api
-```
+```text
 
 **Environment Setup**:
 
@@ -108,7 +108,7 @@ const api = new PixelatedEmpathyAPI('your_api_key', {
   timeout: 30000,
   maxRetries: 3,
 })
-```
+```text
 
 ---
 
@@ -202,7 +202,7 @@ if __name__ == "__main__":
     # Save training data
     filename = collector.save_training_data()
     print(f"Training data ready: {filename}")
-```
+```text
 
 ### Example 2: Real-Time Conversation Quality Validator
 
@@ -300,7 +300,7 @@ class ConversationQualityValidator {
 // Usage
 const validator = new ConversationQualityValidator('your_api_key')
 validator.start(3000)
-```
+```text
 
 ---
 
@@ -335,7 +335,7 @@ def process_conversations_batch(api, conversation_ids, batch_size=10):
         print(f"Progress: {processed}/{total} ({progress:.1f}%)")
 
     return results
-```
+```text
 
 ### Pattern 2: Async Processing with Rate Limiting
 
@@ -403,7 +403,7 @@ class AsyncConversationProcessor {
     }
   }
 }
-```
+```text
 
 ### Pattern 3: Caching and Offline Support
 
@@ -454,7 +454,7 @@ class CachedPixelatedEmpathyAPI:
                 with open(cache_path, 'rb') as f:
                     return pickle.load(f)
             raise e
-```
+```text
 
 ---
 
@@ -497,7 +497,7 @@ class OptimizedPixelatedEmpathyAPI(PixelatedEmpathyAPI):
             'Content-Type': 'application/json',
             'Connection': 'keep-alive'
         })
-```
+```text
 
 ### 2. Parallel Processing
 
@@ -541,7 +541,7 @@ class ParallelConversationProcessor:
 
     def _process_single(self, conversation_id):
         return self.api.get_conversation(conversation_id)
-```
+```text
 
 ---
 
@@ -576,7 +576,7 @@ class APIConfig:
 # Usage
 config = APIConfig.from_env()
 api = PixelatedEmpathyAPI(config.api_key, base_url=config.base_url, timeout=config.timeout)
-```
+```text
 
 ### 2. Error Handling and Logging
 
@@ -631,7 +631,7 @@ class ProductionPixelatedEmpathyAPI:
         except Exception as e:
             logger.error(f"Error fetching conversation {conversation_id}: {e}")
             raise
-```
+```text
 
 ### 3. Health Monitoring
 
@@ -710,7 +710,7 @@ class APIHealthMonitor:
             'current_error_count': self.error_count,
             'last_check': self.last_check
         }
-```
+```text
 
 ---
 

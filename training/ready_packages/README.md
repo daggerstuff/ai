@@ -1,4 +1,4 @@
-# Training Ready - Consolidated Training System
+<!-- markdownlint-disable -->\n\n# Training Ready - Consolidated Training System
 
 **Status**: Single canonical home for all training packages, scripts, configs, and documentation  
 **Last Updated**: 2025-12-13

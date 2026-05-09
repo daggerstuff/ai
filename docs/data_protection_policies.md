@@ -288,7 +288,7 @@ Monitor and ensure ongoing compliance with data protection policies.
 
 ---
 
-**Document Control**
+## Document Control
 
 - Document ID: DPP-001
 - Version: 1.0.0

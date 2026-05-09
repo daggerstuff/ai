@@ -45,7 +45,7 @@ This document describes the schema for all export formats.
   ],
   "quality_score": 0.85
 }
-```
+```text
 
 ## CSV Format Schema
 
@@ -78,7 +78,7 @@ This document describes the schema for all export formats.
   "messages_json": "[{\"role\": \"user\", \"content\": \"Hello\"}]",
   "quality_score": 0.85
 }
-```
+```text
 
 ---
 

@@ -42,7 +42,7 @@ RETENTION_POLICIES = {
         'disposal_method': 'standard_deletion'
     }
 }
-```
+```text
 
 ### Automated Deletion Process
 

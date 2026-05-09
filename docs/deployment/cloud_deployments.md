@@ -5,11 +5,11 @@
 
 ## Table of Contents
 
-1. [AWS Deployment (Legacy)](#aws-deployment-legacy)
-2. [Google Cloud Platform](#google-cloud-platform)
-3. [Microsoft Azure](#microsoft-azure)
-4. [Multi-Cloud Strategy](#multi-cloud-strategy)
-5. [Cost Optimization](#cost-optimization-strategies)
+1. \1
+2. \1
+3. \1
+4. \1
+5. \1
 
 ---
 
@@ -259,7 +259,7 @@ resource "aws_cloudfront_distribution" "main" {
     Environment = var.environment
   }
 }
-```
+```text
 
 ### Deployment Script
 
@@ -317,7 +317,7 @@ ALB_URL=$(kubectl get ingress pixelated-empathy-ingress -n pixelated-empathy -o 
 echo "✅ AWS deployment completed!"
 echo "Application URL: https://$ALB_URL"
 echo "Health check: curl https://$ALB_URL/health"
-```
+```text
 
 ---
 
@@ -340,7 +340,7 @@ echo "Health check: curl https://$ALB_URL/health"
                     │   Memorystore   │
                     │   (Redis)       │
                     └─────────────────┘
-```
+```text
 
 ### Terraform Configuration
 
@@ -480,7 +480,7 @@ resource "google_kms_crypto_key" "storage" {
   name     = "storage-key"
   key_ring = google_kms_key_ring.main.id
 }
-```
+```text
 
 ### Deployment Script
 
@@ -520,7 +520,7 @@ kubectl apply -f ../k8s/
 kubectl wait --for=condition=available --timeout=300s deployment/pixelated-empathy-api -n pixelated-empathy
 
 echo "✅ GCP deployment completed!"
-```
+```text
 
 ---
 
@@ -543,7 +543,7 @@ echo "✅ GCP deployment completed!"
                     │   Redis Cache   │
                     │   (Premium)     │
                     └─────────────────┘
-```
+```text
 
 ### Terraform Configuration
 
@@ -718,7 +718,7 @@ resource "azurerm_application_gateway" "main" {
     backend_http_settings_name = "backend-http-settings"
   }
 }
-```
+```text
 
 ---
 
@@ -770,7 +770,7 @@ spec:
                   # Replicate to backup region
                   aws s3 sync s3://primary-bucket s3://backup-bucket --source-region us-west-2 --region us-east-1
           restartPolicy: OnFailure
-```
+```text
 
 ### Cost Optimization Strategies
 
@@ -801,7 +801,7 @@ aws ce get-reservation-purchase-recommendation \
   --account-scope PAYER
 
 echo "✅ Cost analysis completed. Review recommendations above."
-```
+```text
 
 ---
 

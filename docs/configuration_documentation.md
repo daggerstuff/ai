@@ -6,15 +6,15 @@
 
 ## Table of Contents
 
-- [Overview](#overview)
-- [Environment Variables](#environment-variables)
-- [Configuration Files](#configuration-files)
-- [Database Configuration](#database-configuration)
-- [Redis Configuration](#redis-configuration)
-- [API Configuration](#api-configuration)
-- [Security Configuration](#security-configuration)
-- [Monitoring Configuration](#monitoring-configuration)
-- [Deployment Configurations](#deployment-configurations)
+- \1
+- \1
+- \1
+- \1
+- \1
+- \1
+- \1
+- \1
+- \1
 
 ---
 
@@ -28,9 +28,9 @@ Pixelated Empathy AI uses a hierarchical configuration system:
 
 ### Configuration Loading Order
 
-```
+```text
 Environment Variables → .env file → config.yaml → defaults.py
-```
+```text
 
 ---
 
@@ -55,7 +55,7 @@ API_MAX_REQUEST_SIZE=10485760         # Max request size in bytes (10MB)
 APP_NAME="Pixelated Empathy AI"       # Application name
 APP_VERSION=2.0.0                     # Application version
 APP_DESCRIPTION="AI-powered empathy and conversation analysis"
-```
+```text
 
 ### Database Configuration
 
@@ -77,7 +77,7 @@ DATABASE_SSL_MODE=require             # SSL mode: disable, allow, prefer, requir
 DATABASE_SSL_CERT=/path/to/cert.pem   # SSL certificate path
 DATABASE_SSL_KEY=/path/to/key.pem     # SSL key path
 DATABASE_SSL_ROOT_CERT=/path/to/ca.pem # SSL root certificate path
-```
+```text
 
 ### Redis Configuration
 
@@ -99,7 +99,7 @@ REDIS_SOCKET_CONNECT_TIMEOUT=5       # Socket connect timeout
 REDIS_CLUSTER_NODES=redis1:6379,redis2:6379,redis3:6379
 REDIS_CLUSTER_SKIP_FULL_COVERAGE_CHECK=false
 REDIS_CLUSTER_MAX_CONNECTIONS=32
-```
+```text
 
 ### Authentication & Security
 
@@ -129,7 +129,7 @@ CORS_ALLOW_CREDENTIALS=true                   # Allow credentials
 CORS_ALLOW_METHODS=GET,POST,PUT,DELETE,OPTIONS # Allowed methods
 CORS_ALLOW_HEADERS=*                          # Allowed headers
 CORS_MAX_AGE=86400                           # Preflight cache time
-```
+```text
 
 ### Rate Limiting
 
@@ -158,7 +158,7 @@ RATE_LIMIT_HEADERS_ENABLED=true              # Include rate limit headers
 RATE_LIMIT_HEADER_LIMIT=X-RateLimit-Limit    # Limit header name
 RATE_LIMIT_HEADER_REMAINING=X-RateLimit-Remaining # Remaining header name
 RATE_LIMIT_HEADER_RESET=X-RateLimit-Reset    # Reset header name
-```
+```text
 
 ### External Services
 
@@ -184,7 +184,7 @@ SMTP_PASSWORD=your-app-password              # SMTP password
 SMTP_USE_TLS=true                           # Use TLS encryption
 SMTP_FROM_EMAIL=noreply@pixelatedempathy.com # From email address
 SMTP_FROM_NAME="Pixelated Empathy AI"        # From name
-```
+```text
 
 ### Monitoring & Observability
 
@@ -215,7 +215,7 @@ SENTRY_ENVIRONMENT=production                # Environment name
 SENTRY_RELEASE=v2.0.0                       # Release version
 SENTRY_SAMPLE_RATE=1.0                      # Error sample rate
 SENTRY_TRACES_SAMPLE_RATE=0.1               # Performance sample rate
-```
+```text
 
 ### Feature Flags
 
@@ -230,7 +230,7 @@ FEATURE_EXPERIMENTAL_MODELS=false           # Enable experimental models
 AB_TEST_ENABLED=true                        # Enable A/B testing
 AB_TEST_CONVERSATION_ALGORITHM=50           # Percentage for new algorithm
 AB_TEST_UI_REDESIGN=25                      # Percentage for UI redesign
-```
+```text
 
 ---
 
@@ -285,7 +285,7 @@ HUGGINGFACE_TOKEN=hf_your-huggingface-token
 # =============================================================================
 PROMETHEUS_ENABLED=true
 SENTRY_DSN=https://your-dsn@sentry.io/project-id
-```
+```text
 
 ### config.yaml Structure
 
@@ -372,7 +372,7 @@ monitoring:
     dsn: '${SENTRY_DSN}'
     environment: 'production'
     sample_rate: 1.0
-```
+```text
 
 ---
 
@@ -402,7 +402,7 @@ DATABASE_ECHO=false                   # Don't log SQL queries in production
 DATABASE_ECHO_POOL=false             # Don't log pool events
 DATABASE_STATEMENT_TIMEOUT=30000      # Statement timeout (30 seconds)
 DATABASE_LOCK_TIMEOUT=10000           # Lock timeout (10 seconds)
-```
+```text
 
 ### Database Migration Settings
 
@@ -412,7 +412,7 @@ ALEMBIC_CONFIG_FILE=alembic.ini       # Alembic config file
 ALEMBIC_SCRIPT_LOCATION=migrations    # Migration scripts directory
 ALEMBIC_VERSION_TABLE=alembic_version # Version tracking table
 ALEMBIC_AUTO_MIGRATE=false           # Auto-migrate on startup (not recommended for prod)
-```
+```text
 
 ---
 
@@ -434,7 +434,7 @@ REDIS_SOCKET_TIMEOUT=5              # Socket timeout
 REDIS_SOCKET_CONNECT_TIMEOUT=5      # Connect timeout
 REDIS_RETRY_ON_TIMEOUT=true         # Retry on timeout
 REDIS_HEALTH_CHECK_INTERVAL=30      # Health check interval
-```
+```text
 
 ### Redis Cluster Configuration
 
@@ -445,7 +445,7 @@ REDIS_CLUSTER_NODES=redis1.cluster:6379,redis2.cluster:6379,redis3.cluster:6379
 REDIS_CLUSTER_SKIP_FULL_COVERAGE_CHECK=false
 REDIS_CLUSTER_MAX_CONNECTIONS=32
 REDIS_CLUSTER_READONLY_MODE=false
-```
+```text
 
 ### Redis Usage Configuration
 
@@ -463,7 +463,7 @@ SESSION_KEY_PREFIX=session:         # Session key prefix
 # Rate Limiting Configuration
 RATE_LIMIT_REDIS_DB=2              # Separate DB for rate limiting
 RATE_LIMIT_KEY_PREFIX=ratelimit:   # Rate limit key prefix
-```
+```text
 
 ---
 
@@ -488,7 +488,7 @@ API_MAX_REQUESTS=1000              # Max requests per worker
 API_MAX_REQUESTS_JITTER=50         # Jitter for max requests
 API_TIMEOUT=30                     # Request timeout
 API_KEEPALIVE=2                    # Keep-alive timeout
-```
+```text
 
 ### Request/Response Configuration
 
@@ -507,7 +507,7 @@ API_RESPONSE_COMPRESSION_MIN_SIZE=1024 # Min size to compress
 API_JSON_SORT_KEYS=false          # Sort JSON keys
 API_JSON_ENSURE_ASCII=false       # Ensure ASCII encoding
 API_JSON_SEPARATORS=(",", ":")    # JSON separators
-```
+```text
 
 ---
 
@@ -531,7 +531,7 @@ API_KEY_QUERY_PARAM=api_key
 API_KEY_LENGTH=32
 API_KEY_PREFIX=pk_live_
 API_KEY_TEST_PREFIX=pk_test_
-```
+```text
 
 ### Security Headers
 
@@ -553,7 +553,7 @@ CSP_STYLE_SRC="'self' 'unsafe-inline'"
 CSP_IMG_SRC="'self' data: https:"
 CSP_FONT_SRC="'self'"
 CSP_CONNECT_SRC="'self'"
-```
+```text
 
 ### Encryption Settings
 
@@ -569,7 +569,7 @@ ENCRYPTION_IV_LENGTH=12
 PASSWORD_HASH_ALGORITHM=bcrypt
 PASSWORD_HASH_ROUNDS=12
 PASSWORD_SALT_LENGTH=16
-```
+```text
 
 ---
 
@@ -590,7 +590,7 @@ PROMETHEUS_COLLECT_DEFAULT_METRICS=true
 PROMETHEUS_COLLECT_GC_METRICS=true
 PROMETHEUS_COLLECT_PROCESS_METRICS=true
 PROMETHEUS_HISTOGRAM_BUCKETS=0.005,0.01,0.025,0.05,0.075,0.1,0.25,0.5,0.75,1.0,2.5,5.0,7.5,10.0
-```
+```text
 
 ### Health Checks
 
@@ -606,7 +606,7 @@ HEALTH_CHECK_READINESS_PATH=/health/ready
 HEALTH_CHECK_DATABASE_TIMEOUT=5
 HEALTH_CHECK_REDIS_TIMEOUT=3
 HEALTH_CHECK_EXTERNAL_SERVICE_TIMEOUT=10
-```
+```text
 
 ---
 
@@ -627,7 +627,7 @@ CONTAINER_HEALTH_CHECK_TIMEOUT=10s
 CONTAINER_HEALTH_CHECK_RETRIES=3
 CONTAINER_MEMORY_LIMIT=2g
 CONTAINER_CPU_LIMIT=1000m
-```
+```text
 
 ### Kubernetes Configuration
 
@@ -649,7 +649,7 @@ K8S_MIN_REPLICAS=3
 K8S_MAX_REPLICAS=10
 K8S_TARGET_CPU_UTILIZATION=70
 K8S_TARGET_MEMORY_UTILIZATION=80
-```
+```text
 
 ---
 
@@ -725,7 +725,7 @@ except Exception as e:
 "
 
 echo "✅ All configuration checks passed!"
-```
+```text
 
 ---
 

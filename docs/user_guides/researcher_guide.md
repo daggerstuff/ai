@@ -5,13 +5,13 @@ studying conversational AI, mental health, and therapeutic dialogue systems.
 
 ## Table of Contents
 
-1. [Research Overview](#research-overview)
-2. [Getting Research Access](#getting-research-access)
-3. [Research-Grade Data](#research-grade-data)
-4. [Methodology Best Practices](#methodology-best-practices)
-5. [Statistical Analysis](#statistical-analysis)
-6. [Publication Guidelines](#publication-guidelines)
-7. [Case Studies](#case-studies)
+1. \1
+2. \1
+3. \1
+4. \1
+5. \1
+6. \1
+7. \1
 
 ---
 
@@ -65,7 +65,7 @@ Our dataset enables research in:
 
 ### Sample Research Application
 
-```
+```text
 Research Title: "Analyzing Therapeutic Empathy in AI-Human Conversations"
 Institution: University of Example, Department of Computer Science
 Principal Investigator: Dr. Jane Smith
@@ -75,7 +75,7 @@ Research Goals:
 - Publish findings in ACL 2025 conference
 Expected Duration: 12 months
 IRB Status: Approved (IRB-2025-001)
-```
+```text
 
 ---
 
@@ -142,7 +142,7 @@ IRB Status: Approved (IRB-2025-001)
         "validation_method": "expert_review"
     }
 }
-```
+```text
 
 ---
 
@@ -177,7 +177,7 @@ medium_quality = api.get_conversations(
 # Ensure balanced representation
 print(f"High quality sample: {len(high_quality['conversations'])}")
 print(f"Medium quality sample: {len(medium_quality['conversations'])}")
-```
+```text
 
 #### Topic-Based Sampling
 
@@ -200,7 +200,7 @@ for condition in conditions:
     )
     condition_samples[condition] = results['results']
     print(f"{condition}: {len(results['results'])} conversations")
-```
+```text
 
 ### 2. Quality Control and Validation
 
@@ -229,7 +229,7 @@ def validate_quality_scores(sample_conversations, num_annotators=3):
         })
 
     return validation_results
-```
+```text
 
 #### Statistical Power Analysis
 
@@ -251,7 +251,7 @@ def calculate_sample_size(effect_size=0.5, alpha=0.05, power=0.8):
 # Example: Calculate sample size for comparing therapeutic approaches
 required_n = calculate_sample_size(effect_size=0.3, power=0.8)
 print(f"Required sample size per group: {required_n}")
-```
+```text
 
 ### 3. Ethical Considerations
 
@@ -284,7 +284,7 @@ def verify_anonymization(conversations):
                     })
 
     return violations
-```
+```text
 
 ---
 
@@ -322,7 +322,7 @@ plt.xlabel('Tier')
 plt.xticks(rotation=45)
 plt.tight_layout()
 plt.savefig('quality_distribution.png', dpi=300)
-```
+```text
 
 #### Correlation Analysis
 
@@ -356,7 +356,7 @@ def analyze_quality_correlations(conversations):
     plt.savefig('quality_correlations.png', dpi=300)
 
     return correlation_matrix
-```
+```text
 
 ### 2. Therapeutic Effectiveness Analysis
 
@@ -410,7 +410,7 @@ def predict_therapeutic_outcomes(conversations):
     print(f"R²: {r2:.4f}")
 
     return model, {'mse': mse, 'r2': r2}
-```
+```text
 
 ---
 
@@ -420,7 +420,7 @@ def predict_therapeutic_outcomes(conversations):
 
 #### Dataset Citation
 
-```
+```text
 @dataset{pixelated_empathy_2025,
   title={Pixelated Empathy AI: A Large-Scale Dataset of Therapeutic Conversations},
   author={Pixelated Empathy Research Team},
@@ -430,11 +430,11 @@ def predict_therapeutic_outcomes(conversations):
   url={https://api.pixelatedempathy.com},
   note={Accessed: [DATE]}
 }
-```
+```text
 
 #### API Citation
 
-```
+```text
 @software{pixelated_empathy_api_2025,
   title={Pixelated Empathy AI API},
   author={Pixelated Empathy Development Team},
@@ -443,7 +443,7 @@ def predict_therapeutic_outcomes(conversations):
   url={https://api.pixelatedempathy.com},
   note={API Documentation and Client Libraries}
 }
-```
+```text
 
 ### 2. Methodology Reporting
 
@@ -461,7 +461,7 @@ When publishing research using our dataset, please include:
 
 #### Sample Methods Section
 
-```
+```text
 Data Source: We used the Pixelated Empathy AI dataset (version 1.0, accessed August 2025),
 which contains 2.59 million therapeutic conversations with real NLP-based quality validation.
 For this study, we selected conversations from the Research tier (quality score ≥ 0.82,
@@ -474,7 +474,7 @@ Inter-rater reliability was assessed using Krippendorff's alpha (α = 0.78).
 Ethical Considerations: This study was approved by the University IRB (Protocol #2025-001).
 All conversations in the dataset were previously anonymized and contained no personally
 identifiable information.
-```
+```text
 
 ### 3. Co-authorship Opportunities
 
@@ -485,7 +485,7 @@ For significant research contributions, we offer co-authorship opportunities:
 - **Validation Research**: Studies that validate or improve our quality metrics
 - **Cross-Dataset Comparisons**: Studies comparing our data with other datasets
 
-Contact research@pixelatedempathy.com to discuss collaboration opportunities.
+Contact <research@pixelatedempathy.com> to discuss collaboration opportunities.
 
 ---
 
@@ -529,7 +529,7 @@ def extract_empathy_features(conversation):
 
 # 3. Analysis
 empathy_features = [extract_empathy_features(conv) for conv in empathy_study_data['results']]
-```
+```text
 
 **Key Findings**:
 
@@ -586,7 +586,7 @@ def analyze_cultural_patterns(conversations):
                     patterns['individual_focus'] += 1
 
     return patterns
-```
+```text
 
 **Key Findings**:
 
@@ -603,13 +603,13 @@ def analyze_cultural_patterns(conversations):
 ### 1. Statistical Consultation
 
 - **Monthly Office Hours**: First Friday of each month, 2-4 PM EST
-- **Email Support**: research-stats@pixelatedempathy.com
+- **Email Support**: <research-stats@pixelatedempathy.com>
 - **Consultation Topics**: Study design, power analysis, statistical methods
 
 ### 2. Technical Support
 
-- **API Issues**: api-support@pixelatedempathy.com
-- **Data Questions**: data-quality@pixelatedempathy.com
+- **API Issues**: <api-support@pixelatedempathy.com>
+- **Data Questions**: <data-quality@pixelatedempathy.com>
 - **Response Time**: <24 hours for research tier users
 
 ### 3. Collaboration Network
@@ -626,7 +626,7 @@ def analyze_cultural_patterns(conversations):
 
 ---
 
-**Ready to start your research?** Contact research@pixelatedempathy.com to begin
+**Ready to start your research?** Contact <research@pixelatedempathy.com> to begin
 the academic verification process and gain access to our research-tier data.
 
 _For technical questions about this guide, contact

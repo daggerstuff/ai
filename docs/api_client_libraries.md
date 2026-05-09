@@ -17,7 +17,7 @@ class PixelatedEmpathyClient:
         })
         response.raise_for_status()
         return response.json()
-```
+```text
 
 ## JavaScript Client Library
 
@@ -40,4 +40,4 @@ class PixelatedEmpathyClient {
     return await response.json()
   }
 }
-```
+```text

@@ -1,4 +1,4 @@
-# S3 Training Data Structure - The Training Mecca
+<!-- markdownlint-disable -->\n\n# S3 Training Data Structure - The Training Mecca
 
 **Last Updated**: 2025-12-11  
 **Purpose**: Canonical reference for S3 training dataset organization  
@@ -6,13 +6,13 @@
 
 ## Architecture Overview
 
-```
+```text
 Google Drive (Source/Staging)
     ↓ [rclone sync]
 S3 Buckets (Training Mecca - Canonical)
     ↓ [Training Scripts Read From]
 Model Training
-```
+```text
 
 **Key Principle**: All training data flows through S3. Google Drive is a staging
 area that syncs to S3. Training scripts read from S3, not Google Drive or local
@@ -24,7 +24,7 @@ files.
 
 ### Primary Training Data Bucket: `pixel-data` (OVH)
 
-```
+```text
 s3://pixel-data/
 ├── acquired/                          # Locally acquired datasets
 │   ├── cot_reasoning.json
@@ -90,11 +90,11 @@ s3://pixel-data/
 └── config/                            # Training configurations
     ├── dataset_registry.json
     └── moe_training_config.json
-```
+```text
 
 ### Checkpoint Bucket: `pixel-checkpoints` (OVH)
 
-```
+```text
 s3://pixel-checkpoints/
 ├── foundation/
 │   └── final/
@@ -103,7 +103,7 @@ s3://pixel-checkpoints/
 ├── voice/
 │   └── final/
 └── final_model/
-```
+```text
 
 ---
 
@@ -208,7 +208,7 @@ def load_dataset_from_s3(s3_path: str, local_cache: Path = None):
             json.dump(data, f)
 
     return data
-```
+```text
 
 ### Example Usage in Training Scripts
 
@@ -226,7 +226,7 @@ priority_path = get_s3_dataset_path(
     category="priority"
 )
 priority_data = load_dataset_from_s3(priority_path)
-```
+```text
 
 ---
 
@@ -285,7 +285,7 @@ priority_data = load_dataset_from_s3(priority_path)
 
 All training data should be organized under:
 
-```
+```text
 s3://pixel-data/
 ├── gdrive/processed/          # Canonical organized structure (primary)
 │   ├── cot_reasoning/
@@ -298,7 +298,7 @@ s3://pixel-data/
 ├── acquired/                  # Locally acquired (small datasets)
 │
 └── [platform-specific]/      # Lightning, voice, etc.
-```
+```text
 
 ### Migration Plan
 
@@ -333,7 +333,7 @@ ovhai data pull pixel-data gdrive/processed/cot_reasoning/ ./local/
 
 # Upload processed data
 ovhai data push pixel-data ./processed/ gdrive/processed/
-```
+```text
 
 ### Using boto3 (Python)
 
@@ -358,7 +358,7 @@ import boto3
         'gdrive/processed/cot_reasoning/clinical_diagnosis_mental_health.json',
         './local/dataset.json'
     )
-```
+```text
 
 ### Using rclone
 
@@ -377,7 +377,7 @@ rclone lsd ovh:pixel-data/gdrive/processed/
 
 # Download dataset
 rclone copy ovh:pixel-data/gdrive/processed/cot_reasoning/ ./local/
-```
+```text
 
 ---
 
@@ -424,7 +424,7 @@ def get_training_dataset_path(dataset_name: str, stage: str) -> str:
         return s3_path
 
     raise FileNotFoundError(f"Dataset {dataset_name} not found in S3")
-```
+```text
 
 ---
 

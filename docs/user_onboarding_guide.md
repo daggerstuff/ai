@@ -35,7 +35,7 @@ Before we begin, make sure you have:
 
 3. **Complete Registration**
 
-   ```
+   ```text
    Required Information:
    - Email address
    - Secure password
@@ -118,47 +118,47 @@ Before we begin, make sure you have:
 
 **For Emotional Support:**
 
-```
+```text
 Try: "I've been feeling stressed about work lately and could use some perspective."
 
 Context Settings:
 - Type: Support
 - Tone: Warm
 - Length: Moderate
-```
+```text
 
 **For Creative Projects:**
 
-```
+```text
 Try: "I'm writing a story about two friends having a difficult conversation. Can you help me with realistic dialogue?"
 
 Context Settings:
 - Type: Creative
 - Tone: Professional
 - Length: Detailed
-```
+```text
 
 **For Professional Development:**
 
-```
+```text
 Try: "I need to give constructive feedback to a team member. How can I approach this empathetically?"
 
 Context Settings:
 - Type: Professional
 - Tone: Professional
 - Length: Detailed
-```
+```text
 
 **For Learning:**
 
-```
+```text
 Try: "Can you explain what empathy means and why it's important in communication?"
 
 Context Settings:
 - Type: Educational
 - Tone: Friendly
 - Length: Moderate
-```
+```text
 
 ### Making the Most of Your First Chat
 
@@ -280,7 +280,7 @@ curl -X POST https://api.pixelatedempathy.com/v1/chat \
     "context": {"type": "support"},
     "preferences": {"tone": "warm"}
   }'
-```
+```text
 
 ## ✅ Step 6: Onboarding Completion Checklist
 
@@ -410,7 +410,7 @@ curl -X POST https://api.pixelatedempathy.com/v1/chat \
 - **Beta Testing**: Try new features early
 - **Success Stories**: Share your achievements
 
-## 🎉 Welcome to the Community!
+## 🎉 Welcome to the Community
 
 Congratulations on completing your onboarding! You're now ready to explore the
 full potential of Pixelated Empathy AI. Remember:
@@ -438,10 +438,10 @@ full potential of Pixelated Empathy AI. Remember:
 
 ## 📞 Support Contacts
 
-**General Questions**: support@pixelatedempathy.com  
-**Technical Issues**: tech-support@pixelatedempathy.com  
-**Billing**: billing@pixelatedempathy.com  
-**Feedback**: feedback@pixelatedempathy.com
+**General Questions**: <support@pixelatedempathy.com>  
+**Technical Issues**: <tech-support@pixelatedempathy.com>  
+**Billing**: <billing@pixelatedempathy.com>  
+**Feedback**: <feedback@pixelatedempathy.com>
 
 **Live Chat**: Available in-app during business hours  
 **Community Forum**: [Forum URL]  

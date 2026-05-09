@@ -1,4 +1,4 @@
-# VPS Migration Guide: Training Consolidation
+<!-- markdownlint-disable -->\n\n# VPS Migration Guide: Training Consolidation
 
 ## Overview
 

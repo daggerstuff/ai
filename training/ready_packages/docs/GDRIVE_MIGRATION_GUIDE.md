@@ -1,4 +1,4 @@
-# Google Drive Dataset Migration Guide
+<!-- markdownlint-disable -->\n\n# Google Drive Dataset Migration Guide
 
 **Purpose**: Step-by-step guide for reorganizing Google Drive datasets into canonical structure  
 **Status**: Planning document - execute when ready

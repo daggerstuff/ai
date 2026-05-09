@@ -1,4 +1,4 @@
-# Triton Model Repository Configuration
+ # Triton Model Repository Configuration
 
 This directory contains the Pixel model packaged for NVIDIA Triton Inference
 Server deployment.

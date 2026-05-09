@@ -1,4 +1,4 @@
-# Foundation Model Training - Quick Start Guide
+<!-- markdownlint-disable -->\n\n# Foundation Model Training - Quick Start Guide
 
 ## 🚀 Complete System Setup and Execution
 

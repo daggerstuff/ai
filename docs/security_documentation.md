@@ -6,16 +6,16 @@
 
 ## Table of Contents
 
-- [Security Overview](#security-overview)
-- [Authentication & Authorization](#authentication--authorization)
-- [Data Protection](#data-protection)
-- [Network Security](#network-security)
-- [API Security](#api-security)
-- [Infrastructure Security](#infrastructure-security)
-- [Compliance & Standards](#compliance--standards)
-- [Security Monitoring](#security-monitoring)
-- [Incident Response](#incident-response)
-- [Security Best Practices](#security-best-practices)
+- \1
+- \1
+- \1
+- \1
+- \1
+- \1
+- \1
+- \1
+- \1
+- \1
 
 ---
 
@@ -23,7 +23,7 @@
 
 ### Security Architecture
 
-```
+```text
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   WAF/CDN       │    │   Load Balancer │    │   API Gateway   │
 │   (DDoS, Bot    │◄──►│   (SSL Term)    │◄──►│   (Auth, Rate   │
@@ -36,7 +36,7 @@
 │   Monitoring    │    │   (Encrypted    │    │   (Encrypted    │
 │   (SIEM, Logs)  │    │   at Rest)      │    │   at Rest/Transit)│
 └─────────────────┘    └─────────────────┘    └─────────────────┘
-```
+```text
 
 ### Security Principles
 
@@ -62,7 +62,7 @@ JWT_EXPIRE_MINUTES=30
 JWT_REFRESH_EXPIRE_DAYS=7
 JWT_ISSUER=pixelatedempathy.com
 JWT_AUDIENCE=api.pixelatedempathy.com
-```
+```text
 
 **Security Requirements:**
 
@@ -97,7 +97,7 @@ class JWTManager:
             'jti': secrets.token_urlsafe(16)  # Unique token ID
         }
         return jwt.encode(payload, self.secret_key, algorithm='HS256')
-```
+```text
 
 ### API Key Authentication
 
@@ -109,7 +109,7 @@ API_KEY_LENGTH=32
 API_KEY_PREFIX=pk_live_
 API_KEY_TEST_PREFIX=pk_test_
 API_KEY_HASH_ALGORITHM=SHA256
-```
+```text
 
 **Security Requirements:**
 
@@ -149,7 +149,7 @@ roles:
     permissions:
       - 'user:read'
       - 'conversation:read'
-```
+```text
 
 ---
 
@@ -169,7 +169,7 @@ CREATE TABLE conversations (
     encryption_key_id VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT NOW()
 );
-```
+```text
 
 **File System Encryption:**
 
@@ -179,7 +179,7 @@ sudo cryptsetup luksFormat /dev/sdb1
 sudo cryptsetup luksOpen /dev/sdb1 encrypted_storage
 sudo mkfs.ext4 /dev/mapper/encrypted_storage
 sudo mount /dev/mapper/encrypted_storage /var/lib/pixelated/encrypted
-```
+```text
 
 ### Encryption in Transit
 
@@ -211,7 +211,7 @@ server {
     add_header X-XSS-Protection "1; mode=block";
     add_header Referrer-Policy "strict-origin-when-cross-origin";
 }
-```
+```text
 
 ### Data Classification
 
@@ -246,7 +246,7 @@ class SecureDataHandler:
         if self.encryption_required:
             return self.encrypt_data(data)
         return data
-```
+```text
 
 ---
 
@@ -269,7 +269,7 @@ sudo ufw allow from 10.0.0.0/8 to any port 8080
 # Deny all other inbound traffic
 sudo ufw default deny incoming
 sudo ufw default allow outgoing
-```
+```text
 
 **Network Segmentation:**
 
@@ -303,7 +303,7 @@ spec:
       ports:
         - protocol: TCP
           port: 5432
-```
+```text
 
 ### VPC Security
 
@@ -331,7 +331,7 @@ SecurityGroups:
           FromPort: 5432
           ToPort: 5432
           DestinationSecurityGroupId: !Ref DatabaseSecurityGroup
-```
+```text
 
 ---
 
@@ -363,7 +363,7 @@ class ConversationRequest(BaseModel):
         if len(v) < 3 or len(v) > 50:
             raise ValueError('User ID must be 3-50 characters')
         return v
-```
+```text
 
 ### Rate Limiting
 
@@ -395,7 +395,7 @@ def get_user_rate_limit(user: User) -> str:
         UserTier.ENTERPRISE: "1000/minute"
     }
     return limits.get(user.tier, "60/minute")
-```
+```text
 
 ### CORS Security
 
@@ -416,7 +416,7 @@ app.add_middleware(
     expose_headers=["X-RateLimit-Remaining", "X-RateLimit-Reset"],
     max_age=86400  # 24 hours
 )
-```
+```text
 
 ### SQL Injection Prevention
 
@@ -439,7 +439,7 @@ def get_user_conversations_safe(db: Session, user_id: str):
 # ✅ Using ORM (safest)
 def get_user_conversations_orm(db: Session, user_id: str):
     return db.query(Conversation).filter(Conversation.user_id == user_id).all()
-```
+```text
 
 ---
 
@@ -484,7 +484,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 
 # Run application
 CMD ["uvicorn", "pixel_voice.api.server:app", "--host", "0.0.0.0", "--port", "8000"]
-```
+```text
 
 **Container Scanning:**
 
@@ -497,7 +497,7 @@ docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
 # Scan for secrets
 docker run --rm -v $(pwd):/app \
     trufflesecurity/trufflehog:latest filesystem /app
-```
+```text
 
 ### Kubernetes Security
 
@@ -543,7 +543,7 @@ spec:
       emptyDir: {}
     - name: var-tmp
       emptyDir: {}
-```
+```text
 
 ### Secrets Management
 
@@ -560,7 +560,7 @@ data:
   database-url: <base64-encoded-url>
   jwt-secret: <base64-encoded-secret>
   redis-password: <base64-encoded-password>
-```
+```text
 
 **External Secrets Operator:**
 
@@ -599,7 +599,7 @@ spec:
       remoteRef:
         key: pixelated/database
         property: url
-```
+```text
 
 ---
 
@@ -634,7 +634,7 @@ class GDPRCompliantDataProcessor:
             return self.delete_user_data(request.user_id)
         elif request.type == "portability":
             return self.export_portable_data(request.user_id)
-```
+```text
 
 **Privacy Policy Implementation:**
 
@@ -651,7 +651,7 @@ async def cleanup_expired_data():
     for data_type, retention_period in RETENTION_POLICIES.items():
         cutoff_date = datetime.now() - retention_period
         await delete_data_older_than(data_type, cutoff_date)
-```
+```text
 
 ### SOC 2 Compliance
 
@@ -676,7 +676,7 @@ controls:
   CC7.1: # System Operations
     description: 'System availability and processing integrity'
     implementation: 'Health checks, monitoring, and automated failover'
-```
+```text
 
 ### HIPAA Compliance (if applicable)
 
@@ -705,7 +705,7 @@ class HIPAACompliantStorage:
         )
 
         return self.database.store(encrypted_data)
-```
+```text
 
 ---
 
@@ -752,7 +752,7 @@ class SecurityEventLogger:
             timestamp=datetime.utcnow().isoformat(),
             event_type="threat"
         )
-```
+```text
 
 ### Intrusion Detection
 
@@ -780,7 +780,7 @@ class AnomalyDetector:
                 ))
 
         return anomalies
-```
+```text
 
 ### Vulnerability Scanning
 
@@ -805,7 +805,7 @@ trivy image --format json --output trivy-report.json pixelated-empathy-ai:latest
 checkov -f docker-compose.yml --framework docker_compose --output json > checkov-report.json
 
 echo "Security scans completed. Check reports for issues."
-```
+```text
 
 ---
 
@@ -848,7 +848,7 @@ class IncidentResponse:
 
         # Post-incident review
         self.schedule_post_incident_review(incident)
-```
+```text
 
 ### Breach Response
 
@@ -875,7 +875,7 @@ class DataBreachResponse:
 
         # Remediation
         self.implement_remediation(breach)
-```
+```text
 
 ---
 
@@ -938,7 +938,7 @@ class SecurityMetrics:
 
         score = sum(metrics[k] * weights[k] for k in metrics)
         return min(100, max(0, score))
-```
+```text
 
 ---
 
@@ -948,10 +948,10 @@ class SecurityMetrics:
 
 | Role                  | Contact                                | Availability   |
 | --------------------- | -------------------------------------- | -------------- |
-| **CISO**              | security-chief@pixelatedempathy.com    | 24/7           |
-| **Security Engineer** | security-team@pixelatedempathy.com     | Business hours |
-| **Incident Response** | incident-response@pixelatedempathy.com | 24/7           |
-| **Legal/Compliance**  | legal@pixelatedempathy.com             | Business hours |
+| **CISO**              | <security-chief@pixelatedempathy.com>    | 24/7           |
+| **Security Engineer** | <security-team@pixelatedempathy.com>     | Business hours |
+| **Incident Response** | <incident-response@pixelatedempathy.com> | 24/7           |
+| **Legal/Compliance**  | <legal@pixelatedempathy.com>             | Business hours |
 
 ### External Contacts
 
@@ -963,5 +963,5 @@ class SecurityMetrics:
 ---
 
 _Last updated: 2025-08-12T21:39:00Z_  
-_For security concerns, contact security-team@pixelatedempathy.com or call the
+_For security concerns, contact <security-team@pixelatedempathy.com> or call the
 incident response hotline._

@@ -19,7 +19,7 @@ ENV PYTHONUNBUFFERED=1 \
 
 # Install system dependencies
 # NVIDIA image is Ubuntu-based, so apt-get is correct
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install --no-install-recommends -y \
     build-essential \
     curl \
     git \
@@ -88,7 +88,7 @@ ENV PYTHONUNBUFFERED=1 \
     VERSION="${VERSION}"
 
 # Install runtime dependencies
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install --no-install-recommends -y \
     curl \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/* \
@@ -123,7 +123,7 @@ CMD ["uv", "run", "python", "-m", "ai.api.main"]
 # Development override
 FROM development AS dev
 USER root
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install --no-install-recommends -y \
     vim \
     htop \
     && rm -rf /var/lib/apt/lists/*

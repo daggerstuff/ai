@@ -41,14 +41,14 @@ Load metric definitions:
 import json
 with open('overall_quality_definition.json', 'r') as f:
     metric_def = json.load(f)
-```
+```text
 
 Load analysis report:
 
 ```python
 with open('quality_analysis_report.json', 'r') as f:
     analysis = json.load(f)
-```
+```text
 
 ---
 

@@ -5,12 +5,12 @@ architects.**
 
 ## Table of Contents
 
-1. [System Overview](#system-overview)
-2. [Component Architecture](#component-architecture)
-3. [Data Architecture](#data-architecture)
-4. [Security Architecture](#security-architecture)
-5. [Deployment Architecture](#deployment-architecture)
-6. [Performance Architecture](#performance-architecture)
+1. \1
+2. \1
+3. \1
+4. \1
+5. \1
+6. \1
 
 ---
 
@@ -18,7 +18,7 @@ architects.**
 
 ### High-Level Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │                        Client Layer                             │
 ├─────────────────┬─────────────────┬─────────────────────────────┤
@@ -52,7 +52,7 @@ architects.**
               │  - File Storage │
               │  - Search Index │
               └─────────────────┘
-```
+```text
 
 ### Technology Stack
 
@@ -108,7 +108,7 @@ class APIGateway:
 
         # 4. Forward request
         return await backend.handle_request(request)
-```
+```text
 
 #### Features
 
@@ -163,7 +163,7 @@ async def list_conversations(
     return await conversation_service.list_conversations(
         db, user, tier, limit
     )
-```
+```text
 
 #### Key Components
 
@@ -217,7 +217,7 @@ def process_quality_validation(self, conversation_data):
             meta={'error': str(exc)}
         )
         raise
-```
+```text
 
 #### Worker Types
 
@@ -337,11 +337,11 @@ CREATE TABLE processing_jobs (
     INDEX idx_jobs_status (status),
     INDEX idx_jobs_created (created_at)
 );
-```
+```text
 
 ### Data Flow Architecture
 
-```
+```text
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Raw Data      │    │   Processing    │    │   Validated     │
 │   Ingestion     │───▶│   Pipeline      │───▶│   Storage       │
@@ -353,7 +353,7 @@ CREATE TABLE processing_jobs (
 │   File Storage  │    │   Redis Queue   │    │   Search Index  │
 │   (S3/MinIO)    │    │   (Celery)      │    │   (PostgreSQL)  │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
-```
+```text
 
 ### Caching Strategy
 
@@ -385,7 +385,7 @@ class CacheManager:
             await self.l2_cache.setex(key, 3600, json.dumps(value))
 
         return value
-```
+```text
 
 ---
 
@@ -428,7 +428,7 @@ class SecurityManager:
 
     def verify_password(self, plain_password: str, hashed_password: str):
         return self.pwd_context.verify(plain_password, hashed_password)
-```
+```text
 
 ### API Security Layers
 
@@ -495,7 +495,7 @@ class PrivacyManager:
 
         # Store in secure audit log
         self.audit_logger.log(audit_record)
-```
+```text
 
 ---
 
@@ -523,7 +523,7 @@ USER app
 
 EXPOSE 8000
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
-```
+```text
 
 ### Kubernetes Deployment
 
@@ -593,7 +593,7 @@ spec:
       port: 80
       targetPort: 8000
   type: LoadBalancer
-```
+```text
 
 ### Infrastructure as Code (Legacy AWS example)
 
@@ -676,7 +676,7 @@ resource "aws_elasticache_replication_group" "main" {
     Name = "Pixelated Empathy Redis"
   }
 }
-```
+```text
 
 ---
 
@@ -731,7 +731,7 @@ class AutoScaler:
         await self.kubernetes_client.set_replica_count(new_replicas)
 
         self.logger.info(f"Scaled down to {new_replicas} replicas. Reason: {reason}")
-```
+```text
 
 ### Database Performance Optimization
 
@@ -781,7 +781,7 @@ $$ LANGUAGE plpgsql;
 
 -- Schedule refresh
 SELECT cron.schedule('refresh-analytics', '0 2 * * *', 'SELECT refresh_analytics();');
-```
+```text
 
 ### Monitoring & Observability
 
@@ -870,7 +870,7 @@ class MonitoringSystem:
             "cache_performance",
             hit_rate=hit_rate
         )
-```
+```text
 
 ---
 

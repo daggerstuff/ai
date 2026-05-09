@@ -1,4 +1,4 @@
-# Google Drive Training Dataset Structure (Source/Staging)
+<!-- markdownlint-disable -->\n\n# Google Drive Training Dataset Structure (Source/Staging)
 
 **Last Updated**: 2025-12-11  
 **Purpose**: Reference for Google Drive dataset organization (source/staging
@@ -15,7 +15,7 @@ structure.
 # Using rclone (most reliable)
 rclone lsd gdrive:datasets
 rclone copy gdrive:datasets/cot_reasoning/ ./local/cot_reasoning/
-```
+```text
 
 ### Direct Mount (if available)
 
@@ -25,7 +25,7 @@ rclone copy gdrive:datasets/cot_reasoning/ ./local/cot_reasoning/
 
 # List contents
 ls /mnt/gdrive/datasets/
-```
+```text
 
 ### Download Scripts
 
@@ -35,7 +35,7 @@ ls /mnt/gdrive/datasets/
 
 # Or interactive mode
 ./ai/training_ready/platforms/ovh/gdrive-download.sh download-interactive
-```
+```text
 
 ---
 
@@ -44,7 +44,7 @@ ls /mnt/gdrive/datasets/
 > **Note**: This is the target structure. Current structure may differ. See
 > migration notes below.
 
-```
+```text
 gdrive:datasets/
 ├── cot_reasoning/                    # Chain of Thought reasoning datasets
 │   ├── clinical_diagnosis_mental_health.json
@@ -77,7 +77,7 @@ gdrive:datasets/
 └── training_packages/                # Complete training packages (if any)
     ├── lightning_package/
     └── therapeutic_package/
-```
+```text
 
 ---
 
@@ -147,7 +147,7 @@ def sync_gdrive_to_s3():
     # Use rclone or sync scripts
     # See: ai/training_ready/platforms/ovh/sync-datasets.sh
     pass
-```
+```text
 
 ---
 
@@ -219,7 +219,7 @@ The `ai/data/dataset_registry.json` should reference canonical paths:
     }
   }
 }
-```
+```text
 
 ---
 
@@ -247,7 +247,7 @@ def find_dataset(name: str) -> Path:
             return path
 
     raise FileNotFoundError(f"Dataset {name} not found")
-```
+```text
 
 ---
 

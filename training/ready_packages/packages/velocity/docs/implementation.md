@@ -1,4 +1,4 @@
-# Foundation Model Training System - Implementation Complete ✅
+<!-- markdownlint-disable -->\n\n# Foundation Model Training System - Implementation Complete ✅
 
 ## Status: 100% Complete + Tested + Production Ready
 

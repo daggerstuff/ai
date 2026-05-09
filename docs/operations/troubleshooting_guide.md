@@ -36,7 +36,7 @@
 
 ### **System Health Check Flowchart**
 
-```
+```text
 Start: Incident Reported
     ↓
 Is the system responding?
@@ -48,7 +48,7 @@ Is the system responding?
             └─ <1000ms → Check Error Rates
                         ├─ >5% → Check Application Logs
                         └─ <5% → Check Business Metrics
-```
+```text
 
 ### **Quick Health Check Commands**
 
@@ -73,7 +73,7 @@ redis-cli -h $REDIS_HOST ping
 aws logs filter-log-events --log-group-name /ecs/pixelated-empathy-api \
   --start-time $(date -d '1 hour ago' +%s)000 \
   --filter-pattern "ERROR"
-```
+```text
 
 ---
 
@@ -106,7 +106,7 @@ aws logs filter-log-events --log-group-name /ecs/pixelated-empathy-api \
    LIMIT 10;"
    ```
 
-2. **Check Redis Performance**
+1. **Check Redis Performance**
 
    ```bash
    # Redis info
@@ -116,7 +116,8 @@ aws logs filter-log-events --log-group-name /ecs/pixelated-empathy-api \
    redis-cli -h $REDIS_HOST info memory
    ```
 
-3. **Check Application Metrics**
+2. **Check Application Metrics**
+
    ```bash
    # CPU and Memory usage
    aws cloudwatch get-metric-statistics \
@@ -194,6 +195,7 @@ aws logs filter-log-events --log-group-name /ecs/pixelated-empathy-api \
    ```
 
 3. **Review Recent Deployments**
+
    ```bash
    # Check recent ECS deployments
    aws ecs describe-services --cluster production-cluster \
@@ -303,6 +305,7 @@ aws logs filter-log-events --log-group-name /ecs/pixelated-empathy-api \
    ```
 
 2. **Analyze Memory Patterns**
+
    ```bash
    # Check for memory leaks in logs
    aws logs filter-log-events --log-group-name /ecs/pixelated-empathy-api \
@@ -396,18 +399,18 @@ aws logs filter-log-events --log-group-name /ecs/pixelated-empathy-api \
 
 1. **Internal Communication**
    - Slack: #incidents (immediate)
-   - Email: incidents@pixelatedempathy.com
+   - Email: <incidents@pixelatedempathy.com>
    - Phone: Emergency hotline +1-555-INCIDENT
 
 2. **External Communication**
    - Status Page: status.pixelatedempathy.com
-   - Customer Support: support@pixelatedempathy.com
+   - Customer Support: <support@pixelatedempathy.com>
    - Social Media: @PixelatedEmpathy
 
 3. **Regulatory Communication**
-   - HIPAA Breach: compliance@pixelatedempathy.com
-   - Security Incident: security@pixelatedempathy.com
-   - Legal: legal@pixelatedempathy.com
+   - HIPAA Breach: <compliance@pixelatedempathy.com>
+   - Security Incident: <security@pixelatedempathy.com>
+   - Legal: <legal@pixelatedempathy.com>
 
 ---
 
@@ -501,7 +504,7 @@ aws logs filter-log-events --log-group-name /ecs/pixelated-empathy-api \
 
 # Network connectivity test
 ./scripts/network-test.sh
-```
+```text
 
 ### **AWS CLI Troubleshooting**
 
@@ -520,7 +523,7 @@ aws application-autoscaling describe-scalable-targets --service-namespace ecs
 
 # RDS Status
 aws rds describe-db-instances --db-instance-identifier $DB_INSTANCE_ID
-```
+```text
 
 ### **Application-Specific Commands**
 
@@ -536,7 +539,7 @@ redis-cli -h $REDIS_HOST info
 
 # Background Job Status
 python manage.py show_jobs --settings=production
-```
+```text
 
 ---
 
@@ -579,11 +582,11 @@ python manage.py show_jobs --settings=production
 
 ### **Useful Resources**
 
-- **AWS Documentation**: https://docs.aws.amazon.com/
-- **PostgreSQL Documentation**: https://www.postgresql.org/docs/
-- **Redis Documentation**: https://redis.io/documentation
-- **Docker Documentation**: https://docs.docker.com/
-- **Terraform Documentation**: https://www.terraform.io/docs/
+- **AWS Documentation**: <https://docs.aws.amazon.com/>
+- **PostgreSQL Documentation**: <https://www.postgresql.org/docs/>
+- **Redis Documentation**: <https://redis.io/documentation>
+- **Docker Documentation**: <https://docs.docker.com/>
+- **Terraform Documentation**: <https://www.terraform.io/docs/>
 
 ---
 

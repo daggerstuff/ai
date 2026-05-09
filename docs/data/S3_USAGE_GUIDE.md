@@ -18,7 +18,7 @@ data = load_dataset_from_s3(
 
 # Use in training
 conversations = data['conversations']
-```
+```text
 
 ### With Local Caching
 
@@ -32,7 +32,7 @@ data = load_dataset_from_s3(
     category="priority",
     cache_local=Path("./cache/priority_1.jsonl")
 )
-```
+```text
 
 ### Direct S3 Path
 
@@ -41,7 +41,7 @@ from ai.training.ready_packages.utils.s3_dataset_loader import S3DatasetLoader
 
 loader = S3DatasetLoader()
 data = loader.load_json("s3://pixel-data/gdrive/processed/cot_reasoning/clinical_diagnosis_mental_health.json")
-```
+```text
 
 ---
 
@@ -59,7 +59,7 @@ OVH_S3_ACCESS_KEY="your_access_key"
 OVH_S3_SECRET_KEY="your_secret_key"
 OVH_S3_ENDPOINT="https://s3.us-east-va.cloud.ovh.us"  # Optional, has default
 OVH_S3_REGION="us-east-va"  # Optional, has default
-```
+```text
 
 **Fallback options** (for compatibility):
 
@@ -72,7 +72,7 @@ OVH_S3_REGION="us-east-va"  # Optional, has default
 uv pip install boto3
 # or
 pip install boto3
-```
+```text
 
 ---
 
@@ -105,7 +105,7 @@ The loader automatically resolves paths in this order:
 # ❌ Old pattern - local file
 with open('training_dataset.json', 'r') as f:
     data = json.load(f)
-```
+```text
 
 ### After (S3-First)
 
@@ -117,7 +117,7 @@ data = load_dataset_from_s3(
     dataset_name="training_dataset.json",
     category="professional_therapeutic"
 )
-```
+```text
 
 ### With Fallback (Backward Compatible)
 
@@ -137,7 +137,7 @@ def load_training_data(dataset_name: str, category: str = None):
             with open(local_path, 'r') as f:
                 return json.load(f)
         raise
-```
+```text
 
 ---
 
@@ -154,7 +154,7 @@ loader = S3DatasetLoader()
 for conversation in loader.stream_jsonl("s3://pixel-data/gdrive/processed/cot_reasoning/clinical_diagnosis_mental_health.jsonl"):
     # Process one conversation at a time
     process_conversation(conversation)
-```
+```text
 
 ---
 
@@ -178,7 +178,7 @@ def analyze_dataset(s3_path: str = None, dataset_path: str = None):
         data = load_dataset_from_s3('training_dataset.json', category='professional_therapeutic')
 
     # ... rest of analysis
-```
+```text
 
 ### Updated `train_moe_h100.py` Pattern
 
@@ -198,7 +198,7 @@ def load_training_data(s3_path: str = None, dataset_path: str = None):
         data = load_dataset_from_s3('training_dataset.json', category='professional_therapeutic')
 
     # ... rest of loading
-```
+```text
 
 ---
 
@@ -213,7 +213,7 @@ loader = S3DatasetLoader()
 datasets = loader.list_datasets(prefix="gdrive/processed/")
 for dataset_path in datasets:
     print(dataset_path)
-```
+```text
 
 ---
 
@@ -229,7 +229,7 @@ except FileNotFoundError:
     print("Dataset not found in S3")
 except Exception as e:
     print(f"Error loading from S3: {e}")
-```
+```text
 
 ---
 
@@ -249,7 +249,7 @@ except Exception as e:
 ```bash
 cd ai/training_ready
 python scripts/verify_s3_access.py
-```
+```text
 
 This will:
 
@@ -266,7 +266,7 @@ from ai.training.ready_packages.utils.s3_dataset_loader import S3DatasetLoader
 loader = S3DatasetLoader()
 datasets = loader.list_datasets(prefix="gdrive/processed/")
 print(f"Found {len(datasets)} datasets")
-```
+```text
 
 ---
 

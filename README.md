@@ -1,4 +1,4 @@
-# Pixelated Empathy AI - Production Structure
+ # Pixelated Empathy AI - Production Structure
 
 ## Overview
 
