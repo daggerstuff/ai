@@ -95,9 +95,9 @@ class TestCompositeScore:
         """Non-crisis prompt, empathy keywords present."""
         result = score(
             "Tell me about therapy",
-            "I understand your feelings.",
+            "I hear you.",
         )
-        # empathy=0.25 (1 keyword), crisis=1.0 (non-crisis prompt)
+        # empathy=0.25 (1 keyword: "hear you"), crisis=1.0 (non-crisis prompt)
         expected = 0.6 * 0.25 + 0.4 * 1.0
         assert result == pytest.approx(expected)
 
