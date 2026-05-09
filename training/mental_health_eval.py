@@ -18,15 +18,6 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-# SAFETY FILTER DISABLED PER USER REQUEST - MultilingualSafetyChecker not used
-# try:
-#     from .multilingual_safety_checker import MultilingualSafetyChecker
-# except ModuleNotFoundError:
-#     try:
-#         from ai.training.multilingual_safety_checker import MultilingualSafetyChecker
-#     except ModuleNotFoundError:
-#         from multilingual_safety_checker import MultilingualSafetyChecker
-
 logger = logging.getLogger("mental_health_eval")
 
 
