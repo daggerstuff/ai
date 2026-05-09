@@ -30,7 +30,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: 24.14.1
           cache: 'npm'
 
       - name: Install Dependencies
@@ -82,7 +82,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: 24.14.1
 
       - name: Install SwaggerHub CLI
         run: npm install -g swaggerhub-cli
@@ -137,7 +137,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: 24.14.1
 
       - name: Install OpenAPI Generator
         run: |
@@ -175,7 +175,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: 24.14.1
 
       - name: Install Testing Tools
         run: |
@@ -186,7 +186,7 @@ jobs:
       - name: Setup Python Environment
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: 3.13.13
 
       - name: Install Python Dependencies
         run: |
