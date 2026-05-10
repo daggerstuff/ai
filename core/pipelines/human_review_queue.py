@@ -836,8 +836,9 @@ class HumanReviewQueue:
         if not self._queue_file.exists():
             return
 
+        malformed_count = 0
         with open(self._queue_file, "r", encoding="utf-8") as f:
-            for line in f:
+            for line_num, line in enumerate(f, 1):
                 line = line.strip()
                 if not line:
                     continue
@@ -846,8 +847,38 @@ class HumanReviewQueue:
                     item = ReviewItem.from_dict(data)
                     self._items[item.item_id] = item
                 except (json.JSONDecodeError, KeyError) as e:
-                    # Log but don't fail on malformed entries
-                    print(f"Warning: Failed to parse queue entry: {e}")
+                    # Track malformed entries for dead-letter handling
+                    malformed_count += 1
+                    self._handle_malformed_entry(line, line_num, str(e))
+
+        # Report if any entries were moved to dead-letter
+        if malformed_count > 0:
+            print(f"Warning: {malformed_count} malformed entries moved to dead-letter file")
+
+    def _handle_malformed_entry(self, line: str, line_num: int, error: str) -> None:
+        """Move malformed entry to dead-letter file for analysis.
+
+        Args:
+            line: The malformed line content
+            line_num: Line number in the original file
+            error: Error message describing the malformation
+        """
+        dead_letter_file = self.data_dir / "dead_letter.jsonl"
+
+        # Create dead-letter entry with context
+        dead_letter_entry = {
+            "_meta": {
+                "original_file": str(self._queue_file),
+                "line_number": line_num,
+                "error": error,
+                "captured_at": datetime.now(timezone.utc).isoformat(),
+            },
+            "raw_line": line,
+        }
+
+        # Append to dead-letter file
+        with open(dead_letter_file, "a", encoding="utf-8") as f:
+            f.write(json.dumps(dead_letter_entry, ensure_ascii=False) + "\n")
 
     def _persist_items(self) -> None:
         """Persist all items to storage."""
@@ -1011,17 +1042,25 @@ class HumanReviewQueue:
         """Get a specific item by ID."""
         return self._items.get(item_id)
 
-    def apply_decision(self, decision: ReviewDecision) -> ReviewItem:
+    def apply_decision(
+        self,
+        decision: ReviewDecision,
+        consistency_guideline: ReviewConsistencyGuideline | None = None,
+        validate_role: bool = False,
+    ) -> ReviewItem:
         """Apply a reviewer's decision to an item.
 
         Args:
             decision: The review decision to apply
+            consistency_guideline: Optional guideline for role validation
+            validate_role: If True, validate reviewer role against guideline
 
         Returns:
             The updated ReviewItem
 
         Raises:
-            ValueError: If item not found or invalid decision state transition
+            ValueError: If item not found, invalid decision state transition,
+                        or role validation fails
         """
         item = self._items.get(decision.item_id)
         if not item:
@@ -1032,6 +1071,16 @@ class HumanReviewQueue:
                 f"Item {decision.item_id} already has status {item.status.value}, "
                 f"cannot apply decision"
             )
+
+        # Optional role validation (PIX-250 role consistency)
+        if validate_role and consistency_guideline is not None and item.gate_result:
+            required_role = consistency_guideline.get_required_reviewer_role(item.gate_result)
+            if decision.reviewer.role != required_role:
+                raise ValueError(
+                    f"Reviewer role '{decision.reviewer.role.value}' does not match "
+                    f"required role '{required_role.value}' for this case. "
+                    f"Case requires {required_role.value} review based on gate analysis."
+                )
 
         # Update item state
         item.status = decision.decision
