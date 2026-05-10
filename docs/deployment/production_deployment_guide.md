@@ -402,7 +402,7 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6.0.2
       - name: Build Docker Image
         run: docker build -t pixelated-empathy:${{ github.sha }} .
       - name: Security Scan
