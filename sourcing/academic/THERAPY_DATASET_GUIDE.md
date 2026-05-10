@@ -1,6 +1,6 @@
  # Therapy Dataset Sourcing - User Guide
 
-**Specialized module for finding high-quality therapy conversation datasets**
+### Specialized module for finding high-quality therapy conversation datasets
 
 ---
 
