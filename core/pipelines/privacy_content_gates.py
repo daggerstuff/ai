@@ -175,15 +175,16 @@ class PrivacyContentReport:
 
     @property
     def passed(self) -> bool:
-        """True when all non-escalate gates passed and no BLOCK decisions exist.
+        """True when the item is cleared for promotion.
 
-        ESCALATE gates are non-contributing — they represent borderline items
-        that require human review (Gate 4). Once Gate 4 is set (via override_with_review),
-        it serves as the authoritative resolution.
+        If Gate 4 (human review) has been set, it overrides any prior ESCALATE.
+        If Gate 4 is not set, all Gates 0-3 must be PASS.
         """
+        if self.gate4_result is not None:
+            # Human review has been applied; PASS overrides prior ESCALATE
+            return self.gate4_result.decision == GateDecision.PASS
         results = [g for g in self._gate_results if g is not None]
-        # ESCALATE does not block — human review resolves it
-        return all(r.decision in (GateDecision.PASS, GateDecision.ESCALATE) for r in results) and not self.blocked
+        return all(r.decision == GateDecision.PASS for r in results)
 
     @property
     def blocked(self) -> bool:
@@ -296,8 +297,8 @@ UNSAFE_PATTERNS: list[tuple[str, str]] = [
 ]
 
 SENSITIVE_PATTERNS: list[str] = [
-    r"\b(anxiety|anxious|anxiet|panic|social anxiety|generalized anxiety)\b",
-    r"\b(trauma|abuse|addict|crisis|self.?harm|suicid|overdose)\b",
+    r"\b(anxiety|anxious|panic|social anxiety|generalized anxiety)\b",
+    r"\b(trauma|abuse|addict|crisis|self.?harm|suicid|overdose)",
     r"\b(personality\s+disorder|bpd|narciss|histrionic)\b",
     r"\b(cptsd|complex\s+trauma|dissociat)\b",
 ]
