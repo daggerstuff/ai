@@ -175,9 +175,15 @@ class PrivacyContentReport:
 
     @property
     def passed(self) -> bool:
-        """True when all applicable gates passed and no BLOCK decisions exist."""
+        """True when all non-escalate gates passed and no BLOCK decisions exist.
+
+        ESCALATE gates are non-contributing — they represent borderline items
+        that require human review (Gate 4). Once Gate 4 is set (via override_with_review),
+        it serves as the authoritative resolution.
+        """
         results = [g for g in self._gate_results if g is not None]
-        return all(r.decision == GateDecision.PASS for r in results)
+        # ESCALATE does not block — human review resolves it
+        return all(r.decision in (GateDecision.PASS, GateDecision.ESCALATE) for r in results) and not self.blocked
 
     @property
     def blocked(self) -> bool:
@@ -290,6 +296,7 @@ UNSAFE_PATTERNS: list[tuple[str, str]] = [
 ]
 
 SENSITIVE_PATTERNS: list[str] = [
+    r"\b(anxiety|anxious|anxiet|panic|social anxiety|generalized anxiety)\b",
     r"\b(trauma|abuse|addict|crisis|self.?harm|suicid|overdose)\b",
     r"\b(personality\s+disorder|bpd|narciss|histrionic)\b",
     r"\b(cptsd|complex\s+trauma|dissociat)\b",
@@ -467,7 +474,7 @@ class PrivacyContentGates:
     def _gate0_classify(
         self, text: str
     ) -> tuple[GateResult, list[PiiFinding]]:
-        if not text or not isinstance(text, str):
+        if not text or not isinstance(text, str) or not text.strip():
             return GateResult(
                 gate="gate0",
                 decision=GateDecision.BLOCK,
