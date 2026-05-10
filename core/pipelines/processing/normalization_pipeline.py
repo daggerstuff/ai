@@ -22,7 +22,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import StrEnum
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 from .data_normalizer import (
     Conversation,
@@ -52,6 +52,26 @@ class DedupStrategy(StrEnum):
 
 
 @dataclass
+class DuplicateEvidence:
+    """Audit record describing an explicit duplicate decision."""
+
+    strategy: str
+    content_hash: str
+    retained_id: str
+    duplicate_id: str
+    reason: str
+
+    def to_dict(self) -> dict[str, str]:
+        return {
+            "strategy": self.strategy,
+            "content_hash": self.content_hash,
+            "retained_id": self.retained_id,
+            "duplicate_id": self.duplicate_id,
+            "reason": self.reason,
+        }
+
+
+@dataclass
 class PipelineResult:
     """Aggregated result of the full normalization + dedup pipeline."""
 
@@ -63,6 +83,7 @@ class PipelineResult:
     final_records: int = 0
     processing_time_seconds: float = 0.0
     rejection_reasons: dict[str, int] = field(default_factory=dict)
+    duplicate_evidence: list[DuplicateEvidence] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
 
     @property
@@ -133,20 +154,32 @@ class SetDeduplicator:
     """Hash-set based deduplication — always available, no external deps."""
 
     def __init__(self) -> None:
-        self._seen: set[str] = set()
+        self._seen: dict[str, str] = {}
         self.duplicates_found = 0
+        self.duplicate_evidence: list[DuplicateEvidence] = []
 
-    def is_duplicate(self, content_hash: str) -> bool:
+    def is_duplicate(self, content_hash: str, record_id: str) -> bool:
         """Return True if this hash has been seen before."""
-        if content_hash in self._seen:
+        retained_id = self._seen.get(content_hash)
+        if retained_id is not None:
             self.duplicates_found += 1
+            self.duplicate_evidence.append(
+                DuplicateEvidence(
+                    strategy=DedupStrategy.BLOOM.value,
+                    content_hash=content_hash,
+                    retained_id=retained_id,
+                    duplicate_id=record_id,
+                    reason="exact_content_hash_match",
+                )
+            )
             return True
-        self._seen.add(content_hash)
+        self._seen[content_hash] = record_id
         return False
 
     def clear(self) -> None:
         self._seen.clear()
         self.duplicates_found = 0
+        self.duplicate_evidence.clear()
 
 
 # ---------------------------------------------------------------------------
@@ -163,83 +196,131 @@ class SimilarityDeduplicator:
     def __init__(self, similarity_threshold: float = 0.85) -> None:
         self.similarity_threshold = similarity_threshold
         self.duplicates_found = 0
+        self.duplicate_evidence: list[DuplicateEvidence] = []
 
     def deduplicate(self, conversations: list[Conversation]) -> list[Conversation]:
         """Remove similarity-based duplicates. Returns unique conversations."""
         if len(conversations) <= 1:
             return list(conversations)
 
-        unique: list[Conversation] = []
-        seen_hashes: set[str] = set()
         hasher = SimpleContentHasher()
+        unique = self._deduplicate_exact(conversations, hasher)
+        return self._deduplicate_similar(unique, hasher)
 
-        # Phase 1: Exact hash dedup (fast)
+    def _deduplicate_exact(
+        self,
+        conversations: list[Conversation],
+        hasher: SimpleContentHasher,
+    ) -> list[Conversation]:
+        """Remove exact hash duplicates before slower similarity checks."""
+        unique: list[Conversation] = []
+        hash_to_id: dict[str, str] = {}
         for conv in conversations:
-            h = hasher.hash_conversation(conv)
-            if h not in seen_hashes:
-                seen_hashes.add(h)
+            content_hash = hasher.hash_conversation(conv)
+            retained_id = hash_to_id.get(content_hash)
+            if retained_id is None:
+                hash_to_id[content_hash] = conv.conversation_id
                 unique.append(conv)
-            else:
-                self.duplicates_found += 1
-
-        # Phase 2: Similarity-based dedup (slower, O(n²) but on reduced set)
-        final: list[Conversation] = []
-        kept_ids: set[str] = set()
-
-        # Bolt: Precompute features to avoid O(N^2) recomputation of sets and lists
-        precomputed = []
-        for conv in unique:
-            words = set()
-            for msg in conv.messages:
-                words.update(msg.content.lower().split())
-            roles = [m.role for m in conv.messages]
-            precomputed.append((conv, words, len(conv.messages), roles))
-
-        final_precomputed = []
-
-        for conv, words_a, len_a, roles_a in precomputed:
-            if conv.conversation_id in kept_ids:
                 continue
 
-            is_dup = False
-            for _kept_conv, words_b, len_b, roles_b in final_precomputed:
-                # Calculate structural similarity inline
-                max_count = max(len_a, len_b)
-                if max_count == 0:
-                    count_sim = 1.0
-                else:
-                    count_sim = 1.0 - abs(len_a - len_b) / max_count
+            self.duplicates_found += 1
+            self._record_duplicate(
+                content_hash=content_hash,
+                retained_id=retained_id,
+                duplicate_id=conv.conversation_id,
+                reason="exact_content_hash_match",
+            )
+        return unique
 
-                if not roles_a and not roles_b:
-                    role_sim = 1.0
-                else:
-                    matches = sum(1 for x, y in zip(roles_a, roles_b, strict=False) if x == y)
-                    role_sim = matches / max(len(roles_a), len(roles_b))
+    def _deduplicate_similar(
+        self,
+        conversations: list[Conversation],
+        hasher: SimpleContentHasher,
+    ) -> list[Conversation]:
+        """Remove approximate duplicates from already exact-deduped records."""
+        final: list[Conversation] = []
+        final_precomputed = []
 
-                structural_sim = 0.5 * count_sim + 0.5 * role_sim
-
-                # Calculate content similarity inline
-                if not words_a and not words_b:
-                    content_sim = 1.0
-                elif not words_a or not words_b:
-                    content_sim = 0.0
-                else:
-                    content_sim = len(words_a & words_b) / len(words_a | words_b)
-
-                sim = 0.7 * content_sim + 0.3 * structural_sim
-
+        for features in (self._features(conv) for conv in conversations):
+            conv = features[0]
+            duplicate_found = False
+            for kept_features in final_precomputed:
+                kept_conv = kept_features[0]
+                sim = self._similarity(features, kept_features)
                 if sim >= self.similarity_threshold:
-                    is_dup = True
+                    duplicate_found = True
+                    self._record_duplicate(
+                        content_hash=hasher.hash_conversation(conv),
+                        retained_id=kept_conv.conversation_id,
+                        duplicate_id=conv.conversation_id,
+                        reason=(
+                            f"similarity_{sim:.3f}_gte_"
+                            f"{self.similarity_threshold:.3f}"
+                        ),
+                    )
                     break
 
-            if is_dup:
+            if duplicate_found:
                 self.duplicates_found += 1
             else:
                 final.append(conv)
-                final_precomputed.append((conv, words_a, len_a, roles_a))
-                kept_ids.add(conv.conversation_id)
+                final_precomputed.append(features)
 
         return final
+
+    @staticmethod
+    def _features(conv: Conversation) -> tuple[Conversation, set[str], int, list[str]]:
+        words = set()
+        for msg in conv.messages:
+            words.update(msg.content.lower().split())
+        return conv, words, len(conv.messages), [m.role for m in conv.messages]
+
+    @staticmethod
+    def _similarity(
+        left: tuple[Conversation, set[str], int, list[str]],
+        right: tuple[Conversation, set[str], int, list[str]],
+    ) -> float:
+        _left_conv, words_a, len_a, roles_a = left
+        _right_conv, words_b, len_b, roles_b = right
+        max_count = max(len_a, len_b)
+        count_sim = 1.0 if max_count == 0 else 1.0 - abs(len_a - len_b) / max_count
+        role_sim = SimilarityDeduplicator._role_similarity(roles_a, roles_b)
+        structural_sim = 0.5 * count_sim + 0.5 * role_sim
+        content_sim = SimilarityDeduplicator._content_similarity(words_a, words_b)
+        return 0.7 * content_sim + 0.3 * structural_sim
+
+    @staticmethod
+    def _role_similarity(roles_a: list[str], roles_b: list[str]) -> float:
+        if not roles_a and not roles_b:
+            return 1.0
+        matches = sum(1 for x, y in zip(roles_a, roles_b, strict=False) if x == y)
+        return matches / max(len(roles_a), len(roles_b))
+
+    @staticmethod
+    def _content_similarity(words_a: set[str], words_b: set[str]) -> float:
+        if not words_a and not words_b:
+            return 1.0
+        if not words_a or not words_b:
+            return 0.0
+        return len(words_a & words_b) / len(words_a | words_b)
+
+    def _record_duplicate(
+        self,
+        *,
+        content_hash: str,
+        retained_id: str,
+        duplicate_id: str,
+        reason: str,
+    ) -> None:
+        self.duplicate_evidence.append(
+            DuplicateEvidence(
+                strategy=DedupStrategy.SIMILARITY.value,
+                content_hash=content_hash,
+                retained_id=retained_id,
+                duplicate_id=duplicate_id,
+                reason=reason,
+            )
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -254,7 +335,7 @@ class StageAwareDeduplicator:
     ai/pipelines/orchestrator/stage_aware_deduplication.py
     """
 
-    STAGE_PRIORITY = {
+    STAGE_PRIORITY: ClassVar[dict[str, int]] = {
         "stage4_voice_persona": 5,
         "stage3_edge_stress_test": 4,
         "stage2_therapeutic_expertise": 3,
@@ -264,6 +345,7 @@ class StageAwareDeduplicator:
 
     def __init__(self) -> None:
         self.duplicates_found = 0
+        self.duplicate_evidence: list[DuplicateEvidence] = []
 
     def deduplicate(self, conversations: list[Conversation]) -> list[Conversation]:
         """Deduplicate using primary hash + stage priority conflict resolution."""
@@ -277,13 +359,25 @@ class StageAwareDeduplicator:
             hash_groups[h].append(conv)
 
         unique: list[Conversation] = []
-        for group in hash_groups.values():
+        for content_hash, group in hash_groups.items():
             if len(group) == 1:
                 unique.append(group[0])
             else:
                 winner = max(group, key=self._stage_priority)
                 unique.append(winner)
                 self.duplicates_found += len(group) - 1
+                for duplicate in group:
+                    if duplicate.conversation_id == winner.conversation_id:
+                        continue
+                    self.duplicate_evidence.append(
+                        DuplicateEvidence(
+                            strategy=DedupStrategy.STAGE_AWARE.value,
+                            content_hash=content_hash,
+                            retained_id=winner.conversation_id,
+                            duplicate_id=duplicate.conversation_id,
+                            reason="same_primary_hash_stage_priority_retained",
+                        )
+                    )
 
         return unique
 
@@ -337,13 +431,13 @@ class NormalizationPipeline:
             on_progress: Optional callback(current, total) for progress reporting.
         """
         self.normalizer = DataNormalizer(
-            similarity_threshold=similarity_threshold,
             enforce_license=enforce_license,
             enforce_phi_scan=enforce_phi_scan,
         )
         self.dedup_strategy = dedup_strategy
         self.similarity_threshold = similarity_threshold
         self.on_progress = on_progress
+        self._last_duplicate_evidence: list[DuplicateEvidence] = []
 
     def run(
         self,
@@ -403,8 +497,8 @@ class NormalizationPipeline:
             for norm_file in [file_path.with_suffix(".normalized.tmp.jsonl")]:
                 if norm_file.exists():
                     with norm_file.open("r", encoding="utf-8") as f:
-                        for line in f:
-                            line = line.strip()
+                        for raw_line in f:
+                            line = raw_line.strip()
                             if line:
                                 try:
                                     data = json.loads(line)
@@ -433,6 +527,7 @@ class NormalizationPipeline:
         deduped = self._deduplicate(all_conversations)
         result.duplicates_removed = len(all_conversations) - len(deduped)
         result.final_records = len(deduped)
+        result.duplicate_evidence = list(self._last_duplicate_evidence)
 
         # Phase 3: Write output
         with output_path.open("w", encoding="utf-8") as out:
@@ -451,6 +546,10 @@ class NormalizationPipeline:
                         "duplicates_removed": result.duplicates_removed,
                         "final_records": result.final_records,
                         "rejection_reasons": result.rejection_reasons,
+                        "duplicate_evidence": [
+                            evidence.to_dict()
+                            for evidence in result.duplicate_evidence
+                        ],
                     },
                     ensure_ascii=False,
                 )
@@ -482,6 +581,8 @@ class NormalizationPipeline:
 
     def _deduplicate(self, conversations: list[Conversation]) -> list[Conversation]:
         """Apply the configured deduplication strategy."""
+        self._last_duplicate_evidence = []
+
         if self.dedup_strategy == DedupStrategy.NONE:
             return conversations
 
@@ -504,10 +605,10 @@ class NormalizationPipeline:
 
         for conv in conversations:
             h = hasher.hash_conversation(conv)
-            if not dedup.is_duplicate(h):
+            if not dedup.is_duplicate(h, conv.conversation_id):
                 unique.append(conv)
 
-        self.dedup_strategy = DedupStrategy.BLOOM  # track for result
+        self._last_duplicate_evidence = list(dedup.duplicate_evidence)
         return unique
 
     def _dedup_similarity(
@@ -515,18 +616,23 @@ class NormalizationPipeline:
     ) -> list[Conversation]:
         """Similarity-based dedup using multi-metric comparison."""
         dedup = SimilarityDeduplicator(similarity_threshold=self.similarity_threshold)
-        return dedup.deduplicate(conversations)
+        result = dedup.deduplicate(conversations)
+        self._last_duplicate_evidence = list(dedup.duplicate_evidence)
+        return result
 
     def _dedup_stage_aware(
         self, conversations: list[Conversation]
     ) -> list[Conversation]:
         """Stage-aware hash dedup with priority conflict resolution."""
         dedup = StageAwareDeduplicator()
-        return dedup.deduplicate(conversations)
+        result = dedup.deduplicate(conversations)
+        self._last_duplicate_evidence = list(dedup.duplicate_evidence)
+        return result
 
 
 __all__ = [
     "DedupStrategy",
+    "DuplicateEvidence",
     "NormalizationPipeline",
     "PipelineResult",
     "SetDeduplicator",
