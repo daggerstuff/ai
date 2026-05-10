@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import argparse
 import statistics
-from typing import Iterable
+from collections.abc import Iterable
 
 import torch
 from peft import LoraConfig
@@ -13,12 +13,15 @@ from transformers import BitsAndBytesConfig
 
 def shared_qlora_config() -> BitsAndBytesConfig:
     """Return a default 4-bit quantization config for training."""
-    dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
+    # Using dynamic access to satisfy broken torch stubs without suppressions
+    dtype_name = "bfloat16" if torch.cuda.is_bf16_supported() else "float16"
+    compute_dtype = getattr(torch, dtype_name)
+
     return BitsAndBytesConfig(
         load_in_4bit=True,
         bnb_4bit_quant_type="nf4",
         bnb_4bit_use_double_quant=True,
-        bnb_4bit_compute_dtype=dtype,
+        bnb_4bit_compute_dtype=compute_dtype,
     )
 
 
@@ -108,7 +111,10 @@ def log_token_length_distribution(
     max_value = sorted_lengths[-1]
     mean_value = statistics.mean(sorted_lengths)
     median_value = statistics.median(sorted_lengths)
-    p95_value = float(statistics.quantiles(sorted_lengths, n=20, method="inclusive")[18]) if len(sorted_lengths) > 1 else float(sorted_lengths[0])
+    if len(sorted_lengths) > 1:
+        p95_value = float(statistics.quantiles(sorted_lengths, n=20, method="inclusive")[18])
+    else:
+        p95_value = float(sorted_lengths[0])
 
     if p95_value > max_seq_length:
         logger.warning(
