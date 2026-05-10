@@ -657,6 +657,11 @@ class TestGateToRecordMetadataIntegration:
         assert audit_entries[0]["reviewer_role"] == "privacy"
         assert audit_entries[0]["decision"] == "approved"
         assert audit_entries[0]["reason"] == decision.reason
+        # Verify additional_notes are included in audit trail (PIX-250 audit completeness)
+        assert "additional_notes" in audit_entries[0]
+        assert audit_entries[0]["additional_notes"] == decision.additional_notes
+        assert audit_entries[0]["additional_notes"]["verified_by"] == "privacy-team"
+        assert audit_entries[0]["additional_notes"]["verification_date"] == "2026-05-10"
 
     def test_rejection_flow(self, queue, sample_report):
         """Test rejection flow updates metadata correctly."""
@@ -723,6 +728,187 @@ class TestGateToRecordMetadataIntegration:
         assert "tier-high" in item.tags
         assert "pii-email" in item.tags
         assert "pii-phone" in item.tags
+
+
+class TestRoleValidation:
+    """Test optional role validation against ReviewConsistencyGuideline."""
+
+    def test_role_validation_passes_with_correct_role(self, queue, sample_report):
+        """Should allow decision when reviewer role matches requirement."""
+        # Create item with high privacy tier (requires privacy review)
+        item = queue.create_item_from_report(
+            source_id="test-source-001",
+            gate_result=sample_report,  # Has privacy_tier="high"
+        )
+        queue.enqueue(item)
+
+        # Privacy reviewer should be allowed
+        reviewer = Reviewer(id="privacy-001", role=ReviewerRole.PRIVACY)
+        decision = ReviewDecision(
+            item_id=item.item_id,
+            reviewer=reviewer,
+            decision=ReviewStatus.APPROVED,
+            reason="Privacy review complete",
+        )
+
+        # Validation passes with correct role
+        guidelines = ReviewConsistencyGuideline()
+        updated = queue.apply_decision(decision, guidelines, validate_role=True)
+
+        assert updated.status == ReviewStatus.APPROVED
+
+    def test_role_validation_rejects_wrong_role(self, queue, sample_report):
+        """Should reject decision when reviewer role doesn't match requirement."""
+        # Create item with high privacy tier (requires privacy review)
+        item = queue.create_item_from_report(
+            source_id="test-source-001",
+            gate_result=sample_report,  # Has privacy_tier="high"
+        )
+        queue.enqueue(item)
+
+        # Data steward should NOT be allowed for high privacy tier
+        reviewer = Reviewer(id="steward-001", role=ReviewerRole.DATA_STEWARD)
+        decision = ReviewDecision(
+            item_id=item.item_id,
+            reviewer=reviewer,
+            decision=ReviewStatus.APPROVED,
+            reason="Data steward review",
+        )
+
+        # Validation fails with wrong role
+        guidelines = ReviewConsistencyGuideline()
+        with pytest.raises(ValueError, match="does not match required role"):
+            queue.apply_decision(decision, guidelines, validate_role=True)
+
+    def test_role_validation_with_crisis_requires_clinical(self, queue):
+        """Crisis findings require clinical reviewer."""
+        report_with_crisis = {
+            "gates": {},
+            "pii_findings": [],
+            "crisis_findings": [{"crisis_type": "suicidal", "score": 0.8, "requires_escalation": True}],
+            "privacy_tier": "medium",
+            "content_sensitivity": "sensitive",
+            "retention_policy": "restrict",
+            "license_check": {"license_id": "cc-by-4.0", "requires_consent": False},
+        }
+
+        item = queue.create_item_from_report(
+            source_id="test-source-002",
+            gate_result=report_with_crisis,
+        )
+        queue.enqueue(item)
+
+        # Non-clinical reviewer should be rejected
+        reviewer = Reviewer(id="steward-002", role=ReviewerRole.DATA_STEWARD)
+        decision = ReviewDecision(
+            item_id=item.item_id,
+            reviewer=reviewer,
+            decision=ReviewStatus.APPROVED,
+            reason="Review complete",
+        )
+
+        guidelines = ReviewConsistencyGuideline()
+        with pytest.raises(ValueError, match="requires clinical"):
+            queue.apply_decision(decision, guidelines, validate_role=True)
+
+        # Clinical reviewer should be accepted
+        clinical_reviewer = Reviewer(id="clinical-001", role=ReviewerRole.CLINICAL)
+        clinical_decision = ReviewDecision(
+            item_id=item.item_id,
+            reviewer=clinical_reviewer,
+            decision=ReviewStatus.APPROVED,
+            reason="Clinical review complete",
+        )
+        updated = queue.apply_decision(clinical_decision, guidelines, validate_role=True)
+        assert updated.status == ReviewStatus.APPROVED
+
+    def test_role_validation_disabled_by_default(self, queue, sample_report):
+        """Role validation should not run when disabled (backward compatible)."""
+        item = queue.create_item_from_report(
+            source_id="test-source-001",
+            gate_result=sample_report,
+        )
+        queue.enqueue(item)
+
+        # Any reviewer should work without validation
+        reviewer = Reviewer(id="steward-001", role=ReviewerRole.DATA_STEWARD)
+        decision = ReviewDecision(
+            item_id=item.item_id,
+            reviewer=reviewer,
+            decision=ReviewStatus.APPROVED,
+            reason="Review complete",
+        )
+
+        # Should succeed without validation even with wrong role
+        updated = queue.apply_decision(decision)  # No guideline, no validation
+        assert updated.status == ReviewStatus.APPROVED
+
+
+class TestDeadLetterMechanism:
+    """Test dead-letter handling for malformed JSONL entries."""
+
+    def test_malformed_entry_moved_to_dead_letter(self, tmp_path):
+        """Malformed entries should be moved to dead-letter file."""
+        import os
+
+        # Create a queue with malformed data
+        data_dir = tmp_path / "test-queue"
+        data_dir.mkdir()
+        queue_file = data_dir / "queue.jsonl"
+
+        # Write mixed valid and malformed data
+        with open(queue_file, "w") as f:
+            # Valid entry
+            f.write('{"item_id": "valid-001", "source_id": "test", "audit_trail": []}\n')
+            # Malformed entry (invalid JSON)
+            f.write('{"item_id": "broken, "source_id": "test"}\n')
+            # Another valid entry
+            f.write('{"item_id": "valid-002", "source_id": "test", "audit_trail": []}\n')
+
+        # Create queue - this will process the malformed entry
+        queue = HumanReviewQueue(data_dir=data_dir)
+
+        # Valid items should be loaded
+        assert len(queue._items) == 2
+        assert "valid-001" in queue._items or "valid-002" in queue._items
+
+        # Dead-letter file should be created
+        dead_letter_file = data_dir / "dead_letter.jsonl"
+        assert dead_letter_file.exists()
+
+        # Dead-letter should contain the malformed entry
+        with open(dead_letter_file, "r") as f:
+            dead_letter_content = f.read()
+
+        assert "broken" in dead_letter_content
+        assert "line_number" in dead_letter_content
+        assert "error" in dead_letter_content
+
+    def test_dead_letter_contains_metadata(self, tmp_path):
+        """Dead-letter entries should include metadata for debugging."""
+        data_dir = tmp_path / "test-queue"
+        data_dir.mkdir()
+        queue_file = data_dir / "queue.jsonl"
+
+        # Write malformed data
+        with open(queue_file, "w") as f:
+            f.write('{"incomplete": true\n')  # Missing closing brace
+
+        # Create queue
+        HumanReviewQueue(data_dir=data_dir)
+
+        # Read dead-letter
+        dead_letter_file = data_dir / "dead_letter.jsonl"
+        with open(dead_letter_file, "r") as f:
+            entry = json.loads(f.read().strip())
+
+        # Should have metadata
+        assert "_meta" in entry
+        assert "original_file" in entry["_meta"]
+        assert "line_number" in entry["_meta"]
+        assert "error" in entry["_meta"]
+        assert "captured_at" in entry["_meta"]
+        assert "raw_line" in entry
 
 
 if __name__ == "__main__":
