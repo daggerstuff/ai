@@ -1,7 +1,7 @@
-import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
+
 from utils.s3_dataset_loader import S3DatasetLoader
-import json
+
 
 def test_s3_dataset_loader_stream_jsonl():
     loader = S3DatasetLoader(bucket="test-bucket", endpoint_url="http://localhost")
@@ -16,8 +16,8 @@ def test_s3_dataset_loader_stream_jsonl():
     loader._s3_client = mock_s3
 
     results = list(loader.stream_jsonl("test-key.jsonl"))
-
-    assert len(results) == 2
+    expected_results_len = 2
+    assert len(results) == expected_results_len
     assert results[0][0] == {"foo": "bar"}
     assert results[1][0] == {"baz": "qux"}
 
@@ -33,8 +33,8 @@ def test_s3_dataset_loader_stream_jsonl_empty_lines():
     loader._s3_client = mock_s3
 
     results = list(loader.stream_jsonl("test-key.jsonl"))
-
-    assert len(results) == 2
+    expected_results_len = 2
+    assert len(results) == expected_results_len
     assert results[0][0] == {"foo": "bar"}
     assert results[1][0] == {"baz": "qux"}
 
@@ -50,7 +50,7 @@ def test_s3_dataset_loader_stream_jsonl_invalid_json():
     loader._s3_client = mock_s3
 
     results = list(loader.stream_jsonl("test-key.jsonl"))
-
-    assert len(results) == 2
+    expected_results_len = 2
+    assert len(results) == expected_results_len
     assert results[0][0] == {"foo": "bar"}
     assert results[1][0] == {"baz": "qux"}
