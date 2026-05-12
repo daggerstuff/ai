@@ -423,10 +423,10 @@ def _run_cli() -> None:
             training_integration=args.training_integration,
             ethical_accessibility=args.ethical_accessibility,
         )
-        print(
+        sys.stdout.write(
             f"overall_score={score.overall_score}, "
             f"priority_tier={score.priority_tier.value}, "
-            f"passes_score_floor={score.passes_score_floor}"
+            f"passes_score_floor={score.passes_score_floor}\n"
         )
         sys.exit(0)
 
@@ -456,19 +456,19 @@ if __name__ == "__main__":
 
 
 __all__ = [
+    "APPROVED_LICENSES",
+    "EXCEPTION_LICENSES",
     "AcquisitionRubric",
     "AcquisitionScore",
-    "APPROVED_LICENSES",
-    "calculate_overall_score",
     "CurationExitDecision",
     "CurationExitReport",
-    "EXCEPTION_LICENSES",
     "GateDecision",
     "GateResult",
     "IntakeDecision",
     "PilotDecision",
     "PilotReport",
     "PriorityTier",
-    "score_from_evaluation",
     "SourceIntake",
+    "calculate_overall_score",
+    "score_from_evaluation",
 ]
