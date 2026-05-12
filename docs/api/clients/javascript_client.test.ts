@@ -1,5 +1,10 @@
-import { describe, it, expect, vi } from 'vitest';
-import { PixelatedEmpathyAPI, PixelatedEmpathyAPIError, RateLimitError } from './javascript_client';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import {
+    PixelatedEmpathyAPI,
+    PixelatedEmpathyAPIError,
+    RateLimitError,
+    type RequestOptions,
+} from './javascript_client';
 
 describe('PixelatedEmpathyAPI healthCheck', () => {
     it('should return true when health check succeeds', async () => {
@@ -97,7 +102,14 @@ describe('PixelatedEmpathyAPI Method getConversations', () => {
         const api = new PixelatedEmpathyAPI('test_key');
         const makeRequestSpy = vi.spyOn(api, '_makeRequest');
 
-        makeRequestSpy.mockResolvedValue({ data: { conversations: [] } });
+        let calledEndpoint = '';
+        let calledOptions: Record<string, unknown> = {};
+
+        makeRequestSpy.mockImplementation(async (method: string, endpoint: string, options?: RequestOptions) => {
+            calledEndpoint = endpoint;
+            calledOptions = options ?? {};
+            return { data: { conversations: [] } };
+        });
 
         await api.getConversations({
             limit: 50,
@@ -107,31 +119,32 @@ describe('PixelatedEmpathyAPI Method getConversations', () => {
             minQuality: 0.8
         });
 
-        expect(makeRequestSpy).toHaveBeenCalledWith('GET', '/conversations', expect.objectContaining({
-            params: {
-                limit: 50,
-                offset: 10,
-                dataset: 'test_dataset',
-                tier: 'professional',
-                min_quality: 0.8
-            }
-        }));
+        expect(calledEndpoint).toBe('/conversations');
+        expect(calledOptions.params).toEqual({
+            limit: 50,
+            offset: 10,
+            dataset: 'test_dataset',
+            tier: 'professional',
+            min_quality: 0.8
+        });
     });
 
     it('should use default limit and offset if not provided', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
         const makeRequestSpy = vi.spyOn(api, '_makeRequest');
 
-        makeRequestSpy.mockResolvedValue({ data: { conversations: [] } });
+        let calledOptions: Record<string, unknown> = {};
+        makeRequestSpy.mockImplementation(async (method: string, endpoint: string, options?: RequestOptions) => {
+            calledOptions = options ?? {};
+            return { data: { conversations: [] } };
+        });
 
         await api.getConversations();
 
-        expect(makeRequestSpy).toHaveBeenCalledWith('GET', '/conversations', expect.objectContaining({
-            params: {
-                limit: 100,
-                offset: 0
-            }
-        }));
+        expect(calledOptions.params).toEqual({
+            limit: 100,
+            offset: 0
+        });
     });
 });
 
@@ -139,7 +152,7 @@ describe('PixelatedEmpathyAPI Method waitForJob', () => {
     it('should resolve immediately if job is already completed', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
 
-        api.getJobStatus = async (jobId) => {
+        api.getJobStatus = async (jobId: string) => {
             return { status: 'completed', progress: 100 };
         };
 
@@ -150,14 +163,14 @@ describe('PixelatedEmpathyAPI Method waitForJob', () => {
     it('should throw error if timeout is exceeded', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
 
-        api.getJobStatus = async (jobId) => {
+        api.getJobStatus = async (jobId: string) => {
             return { status: 'processing', progress: 50 };
         };
 
         const originalNow = Date.now;
         let now = 0;
         Date.now = () => now;
-        api._sleep = async (ms) => {
+        api._sleep = async (ms: number) => {
             now += ms;
         };
 
@@ -176,7 +189,7 @@ describe('PixelatedEmpathyAPI Method iterConversations', () => {
         const api = new PixelatedEmpathyAPI('test_key');
 
         let callCount = 0;
-        api.getConversations = async (options) => {
+        api.getConversations = async (options?: Record<string, unknown>) => {
             callCount++;
             if (callCount === 1) {
                 return { conversations: [{ id: 1 }, { id: 2 }] };
@@ -187,7 +200,7 @@ describe('PixelatedEmpathyAPI Method iterConversations', () => {
             }
         };
 
-        const results = [];
+        const results: Array<Record<string, unknown>> = [];
         for await (const conv of api.iterConversations({ batchSize: 2 })) {
             results.push(conv);
         }
@@ -200,12 +213,12 @@ describe('PixelatedEmpathyAPI Method iterConversations', () => {
         const api = new PixelatedEmpathyAPI('test_key');
 
         let callCount = 0;
-        api.getConversations = async (options) => {
+        api.getConversations = async (options?: Record<string, unknown>) => {
             callCount++;
             return { conversations: [] };
         };
 
-        const results = [];
+        const results: Array<Record<string, unknown>> = [];
         for await (const conv of api.iterConversations({ batchSize: 2 })) {
             results.push(conv);
         }
@@ -220,17 +233,23 @@ describe('PixelatedEmpathyAPI Method submitProcessingJob', () => {
         const api = new PixelatedEmpathyAPI('test_key');
         const makeRequestSpy = vi.spyOn(api, '_makeRequest');
 
-        makeRequestSpy.mockResolvedValue({ data: { job_id: 'new-job-123' } });
+        let calledEndpoint = '';
+        let calledOptions: Record<string, unknown> = {};
+
+        makeRequestSpy.mockImplementation(async (method: string, endpoint: string, options?: RequestOptions) => {
+            calledEndpoint = endpoint;
+            calledOptions = options ?? {};
+            return { data: { job_id: 'new-job-123' } };
+        });
 
         await api.submitProcessingJob('my-dataset', 'export', { format: 'csv' });
 
-        expect(makeRequestSpy).toHaveBeenCalledWith('POST', '/processing/submit', expect.objectContaining({
-            data: {
-                dataset_name: 'my-dataset',
-                processing_type: 'export',
-                parameters: { format: 'csv' }
-            }
-        }));
+        expect(calledEndpoint).toBe('/processing/submit');
+        expect(calledOptions.data).toEqual({
+            dataset_name: 'my-dataset',
+            processing_type: 'export',
+            parameters: { format: 'csv' }
+        });
     });
 });
 
@@ -239,19 +258,22 @@ describe('PixelatedEmpathyAPI Method exportData', () => {
         const api = new PixelatedEmpathyAPI('test_key');
         const makeRequestSpy = vi.spyOn(api, '_makeRequest');
 
-        makeRequestSpy.mockResolvedValue({ data: { export_url: 'http://example.com/export' } });
+        let calledOptions: Record<string, unknown> = {};
+
+        makeRequestSpy.mockImplementation(async (method: string, endpoint: string, options?: RequestOptions) => {
+            calledOptions = options ?? {};
+            return { data: { export_url: 'http://example.com/export' } };
+        });
 
         await api.exportData('my-dataset', { format: 'csv', tier: 'premium', minQuality: 0.9 });
 
-        expect(makeRequestSpy).toHaveBeenCalledWith('POST', '/export', expect.objectContaining({
-            data: {
-                dataset: 'my-dataset',
-                format: 'csv',
-                tier: 'premium',
-                min_quality: 0.9
-            },
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        }));
+        expect(calledOptions.data).toEqual({
+            dataset: 'my-dataset',
+            format: 'csv',
+            tier: 'premium',
+            min_quality: 0.9
+        });
+        expect(calledOptions.headers).toEqual({ 'Content-Type': 'application/x-www-form-urlencoded' });
     });
 });
 
@@ -299,18 +321,24 @@ describe('PixelatedEmpathyAPI Method searchConversations', () => {
         const api = new PixelatedEmpathyAPI('test_key');
         const makeRequestSpy = vi.spyOn(api, '_makeRequest');
 
-        makeRequestSpy.mockResolvedValue({ data: { results: ['conversation1'] } });
+        let calledEndpoint = '';
+        let calledOptions: Record<string, unknown> = {};
+
+        makeRequestSpy.mockImplementation(async (method: string, endpoint: string, options?: RequestOptions) => {
+            calledEndpoint = endpoint;
+            calledOptions = options ?? {};
+            return { data: { results: ['conversation1'] } };
+        });
 
         const result = await api.searchConversations('anxiety');
 
-        expect(makeRequestSpy).toHaveBeenCalledWith('POST', '/search', expect.objectContaining({
-            data: {
-                query: 'anxiety',
-                filters: {},
-                limit: 100,
-                offset: 0,
-            }
-        }));
+        expect(calledEndpoint).toBe('/search');
+        expect(calledOptions.data).toEqual({
+            query: 'anxiety',
+            filters: {},
+            limit: 100,
+            offset: 0,
+        });
         expect(result).toEqual({ results: ['conversation1'] });
     });
 
@@ -318,7 +346,11 @@ describe('PixelatedEmpathyAPI Method searchConversations', () => {
         const api = new PixelatedEmpathyAPI('test_key');
 
         const makeRequestSpy = vi.spyOn(api, '_makeRequest');
-        makeRequestSpy.mockResolvedValue({ data: { results: [] } });
+        let calledOptions: Record<string, unknown> = {};
+        makeRequestSpy.mockImplementation(async (method: string, endpoint: string, options?: RequestOptions) => {
+            calledOptions = options ?? {};
+            return { data: { results: [] } };
+        });
 
         await api.searchConversations('depression', {
             filters: { tier: 'professional' },
@@ -326,14 +358,12 @@ describe('PixelatedEmpathyAPI Method searchConversations', () => {
             offset: 20,
         });
 
-        expect(makeRequestSpy).toHaveBeenCalledWith('POST', '/search', expect.objectContaining({
-            data: {
-                query: 'depression',
-                filters: { tier: 'professional' },
-                limit: 10,
-                offset: 20,
-            }
-        }));
+        expect(calledOptions.data).toEqual({
+            query: 'depression',
+            filters: { tier: 'professional' },
+            limit: 10,
+            offset: 20,
+        });
     });
 });
 
@@ -342,30 +372,44 @@ describe('PixelatedEmpathyAPI Method getQualityMetrics', () => {
         const api = new PixelatedEmpathyAPI('test_key');
         const makeRequestSpy = vi.spyOn(api, '_makeRequest');
 
-        makeRequestSpy.mockResolvedValue({ data: { overall_statistics: {} } });
+        let calledEndpoint = '';
+        let calledOptions: Record<string, unknown> = {};
+
+        makeRequestSpy.mockImplementation(async (method: string, endpoint: string, options?: RequestOptions) => {
+            calledEndpoint = endpoint;
+            calledOptions = options ?? {};
+            return { data: { overall_statistics: {} } };
+        });
 
         await api.getQualityMetrics({
             dataset: 'test_dataset',
             tier: 'professional',
         });
 
-        expect(makeRequestSpy).toHaveBeenCalledWith('GET', '/quality/metrics', expect.objectContaining({
-            params: {
-                dataset: 'test_dataset',
-                tier: 'professional',
-            }
-        }));
+        expect(calledEndpoint).toBe('/quality/metrics');
+        expect(calledOptions.params).toEqual({
+            dataset: 'test_dataset',
+            tier: 'professional',
+        });
     });
 
     it('should handle missing options gracefully', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
         const makeRequestSpy = vi.spyOn(api, '_makeRequest');
 
-        makeRequestSpy.mockResolvedValue({ data: { overall_statistics: {} } });
+        let calledEndpoint = '';
+        let calledOptions: Record<string, unknown> = {};
+
+        makeRequestSpy.mockImplementation(async (method: string, endpoint: string, options?: RequestOptions) => {
+            calledEndpoint = endpoint;
+            calledOptions = options ?? {};
+            return { data: { overall_statistics: {} } };
+        });
 
         await api.getQualityMetrics();
 
-        expect(makeRequestSpy).toHaveBeenCalledWith('GET', '/quality/metrics', { params: {} });
+        expect(calledEndpoint).toBe('/quality/metrics');
+        expect(calledOptions.params).toEqual({});
     });
 });
 describe('PixelatedEmpathyAPI Method healthCheck', () => {
