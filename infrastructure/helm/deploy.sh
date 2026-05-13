@@ -9,6 +9,14 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CHART_DIR="$SCRIPT_DIR/pixelated-empathy"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
+
+run_redis_hardening_audit() {
+  if ! "${PROJECT_ROOT}/scripts/check-redis-hardening.sh"; then
+    echo "Redis hardening audit failed"
+    exit 1
+  fi
+}
 
 # Default values
 ENVIRONMENT="${1:-dev}"
@@ -183,6 +191,7 @@ validate_chart() {
 
 # Main execution
 main() {
+    run_redis_hardening_audit
     log_info "Starting Pixelated Empathy AI deployment process..."
     
     validate_environment

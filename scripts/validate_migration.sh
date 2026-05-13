@@ -1,5 +1,13 @@
 #!/bin/bash
 # Migration Validation Script
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+REDIS_AUDIT="${PROJECT_ROOT}/scripts/check-redis-hardening.sh"
+
+if ! "$REDIS_AUDIT"; then
+  echo "Redis hardening audit failed"
+  exit 1
+fi
 
 BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 NEW_DIR="$BASE_DIR/training_data_unified"
