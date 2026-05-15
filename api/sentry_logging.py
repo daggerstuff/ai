@@ -8,8 +8,8 @@ from typing import Any
 
 try:
     import sentry_sdk
-except ImportError:  # pragma: no cover - sentry-sdk should exist in production images
-    sentry_sdk = None  # type: ignore[assignment]
+except ImportError:
+    sentry_sdk = None
 
 
 _SENTRY_INITIALIZED = False

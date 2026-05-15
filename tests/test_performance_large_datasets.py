@@ -32,7 +32,7 @@ import numpy as np
 import pandas as pd
 import psutil
 
-warnings.filterwarnings("ignore")
+warnings.simplefilter("default")
 
 # Add paths for imports
 sys.path.append("/home/vivi/pixelated/ai/monitoring")
@@ -161,9 +161,8 @@ class TestLargeDatasetLoading(PerformanceTestBase):
         try:
             # Measure loading performance
             def load_data():
-                conn = sqlite3.connect(db_path)
-                df = pd.read_sql_query("SELECT * FROM conversations", conn)
-                conn.close()
+                db_uri = f"sqlite:///{db_path}"
+                df = pd.read_sql_query("SELECT * FROM conversations", db_uri)
                 return df
 
             perf_metrics = self.measure_performance(load_data)
@@ -188,19 +187,22 @@ class TestLargeDatasetLoading(PerformanceTestBase):
         try:
             # Measure loading performance with chunking
             def load_data_chunked():
-                conn = sqlite3.connect(db_path)
                 chunks = []
                 chunk_size = 10000
+                db_uri = f"sqlite:///{db_path}"
 
-                for chunk in pd.read_sql_query(
+                reader = pd.read_sql_query(
                     "SELECT * FROM conversations",
-                    conn,
-                    chunksize=chunk_size
-                ):
-                    chunks.append(chunk)
+                    db_uri,
+                    chunksize=chunk_size,
+                )
+                try:
+                    for chunk in reader:
+                        chunks.append(chunk)
+                finally:
+                    reader.close()
 
                 df = pd.concat(chunks, ignore_index=True)
-                conn.close()
                 return df
 
             perf_metrics = self.measure_performance(load_data_chunked)
@@ -223,22 +225,25 @@ class TestLargeDatasetLoading(PerformanceTestBase):
 
         try:
             def process_streaming():
-                conn = sqlite3.connect(db_path)
                 chunk_size = 5000
                 total_processed = 0
                 quality_scores = []
+                db_uri = f"sqlite:///{db_path}"
 
-                for chunk in pd.read_sql_query(
+                reader = pd.read_sql_query(
                     "SELECT * FROM conversations",
-                    conn,
-                    chunksize=chunk_size
-                ):
-                    # Process each chunk
-                    chunk["quality_score"] = chunk["word_count"] * 2 + 50
-                    quality_scores.extend(chunk["quality_score"].tolist())
-                    total_processed += len(chunk)
+                    db_uri,
+                    chunksize=chunk_size,
+                )
+                try:
+                    for chunk in reader:
+                        # Process each chunk
+                        chunk["quality_score"] = chunk["word_count"] * 2 + 50
+                        quality_scores.extend(chunk["quality_score"].tolist())
+                        total_processed += len(chunk)
+                finally:
+                    reader.close()
 
-                conn.close()
                 return {
                     "total_processed": total_processed,
                     "avg_quality": np.mean(quality_scores)

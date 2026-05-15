@@ -28,7 +28,7 @@ from quality_distribution_analyzer import (
 from quality_distribution_comparator import QualityDistributionComparator
 
 # Suppress warnings
-warnings.filterwarnings("ignore")
+warnings.simplefilter("default")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")

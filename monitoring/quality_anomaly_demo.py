@@ -18,7 +18,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-warnings.filterwarnings("ignore")
+warnings.simplefilter("default")
 
 
 @dataclass

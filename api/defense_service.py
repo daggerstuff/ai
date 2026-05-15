@@ -6,10 +6,10 @@ of utterances within conversational context.
 """
 import logging
 
-import torch
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 from transformers import AutoTokenizer
+from ai.utils.torch_proxy import torch
 
 from training.defense_mechanisms.constants import DEFENSE_LABELS, DEFENSE_MATURITY
 from training.defense_mechanisms.dataset import format_dialogue

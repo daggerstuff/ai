@@ -13,7 +13,7 @@ try:
     YAML_AVAILABLE = True
 except ImportError:
     YAML_AVAILABLE = False
-    yaml = None  # type: ignore
+    yaml = None
 
 
 class ConfigManager:

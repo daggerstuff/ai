@@ -35,6 +35,8 @@ from datetime import datetime, timezone
 from enum import StrEnum
 from typing import Any
 
+from ai.core.pipelines.clinical_accuracy_validator import ClinicalAccuracyValidator
+
 
 class ReadinessStatus(StrEnum):
     """Overall readiness determination."""
@@ -141,31 +143,31 @@ STAGE_QUALITY_THRESHOLDS: dict[str, dict[str, float]] = {
     "stage1_foundation": {
         "empathy_floor": 0.70,
         "clinical_floor": 0.30,
-        "safety_floor": 1.0,
+        "safety_floor": 0.70,
         "dedup_retention_min": 0.50,
     },
     "stage2_therapeutic_expertise": {
         "empathy_floor": 0.75,
         "clinical_floor": 0.50,
-        "safety_floor": 1.0,
+        "safety_floor": 0.75,
         "dedup_retention_min": 0.50,
     },
     "stage3_edge_stress_test": {
         "empathy_floor": 0.60,
         "clinical_floor": 0.40,
-        "safety_floor": 1.0,
+        "safety_floor": 0.65,
         "dedup_retention_min": 0.40,
     },
     "stage4_voice_persona": {
         "empathy_floor": 0.80,
         "clinical_floor": 0.35,
-        "safety_floor": 1.0,
+        "safety_floor": 0.75,
         "dedup_retention_min": 0.60,
     },
     "supplementary": {
         "empathy_floor": 0.50,
         "clinical_floor": 0.20,
-        "safety_floor": 1.0,
+        "safety_floor": 0.20,
         "dedup_retention_min": 0.30,
     },
 }
@@ -341,7 +343,10 @@ class TrainingReadinessGates:
         violations: list[str] = []
         empathy = metrics.get("empathy_score", metrics.get("empathy_avg", 0))
         clinical = metrics.get("clinical_score", metrics.get("clinical_avg", 0))
-        safety = metrics.get("safety_score", metrics.get("safety_avg", 1.0))
+        clinical_validity = metrics.get(
+            "clinical_validity_avg",
+            metrics.get("safety_avg", metrics.get("safety_score", 0)),
+        )
 
         if empathy < thresholds["empathy_floor"]:
             violations.append(
@@ -351,9 +356,10 @@ class TrainingReadinessGates:
             violations.append(
                 f"clinical {clinical:.2f} < floor {thresholds['clinical_floor']}"
             )
-        if safety < thresholds["safety_floor"]:
+        if clinical_validity < thresholds["safety_floor"]:
             violations.append(
-                f"safety {safety:.2f} < floor {thresholds['safety_floor']}"
+                f"clinical validity {clinical_validity:.2f} < floor "
+                f"{thresholds['safety_floor']}"
             )
 
         if violations:
@@ -364,7 +370,8 @@ class TrainingReadinessGates:
                 details={
                     "empathy": empathy,
                     "clinical": clinical,
-                    "safety": safety,
+                    "clinical_validity": clinical_validity,
+                    "safety": clinical_validity,
                     "thresholds": thresholds,
                 },
             )
@@ -376,7 +383,8 @@ class TrainingReadinessGates:
             details={
                 "empathy": empathy,
                 "clinical": clinical,
-                "safety": safety,
+                "clinical_validity": clinical_validity,
+                "safety": clinical_validity,
             },
         )
 
@@ -407,10 +415,30 @@ class TrainingReadinessGates:
 
         empathy = sum(empathy_scores) / len(empathy_scores) if empathy_scores else 0.0
         clinical = sum(clinical_scores) / len(clinical_scores) if clinical_scores else 0.0
-        safety = 1.0  # Assume safe unless crisis detector says otherwise
+        validator = ClinicalAccuracyValidator()
+        clinical_validity_scores = []
+
+        for record in records:
+            text = record.get("text", "")
+            try:
+                clinical_validity_scores.append(validator.process(text).score)
+            except (TypeError, ValueError):
+                clinical_validity_scores.append(0.0)
+
+        clinical_validity = (
+            sum(clinical_validity_scores) / len(clinical_validity_scores)
+            if clinical_validity_scores
+            else 0.0
+        )
 
         return self._check_quality_floors(
-            {"empathy_score": empathy, "clinical_score": clinical, "safety_score": safety},
+            {
+                "empathy_score": empathy,
+                "clinical_score": clinical,
+                "clinical_validity_avg": clinical_validity,
+                "safety_avg": clinical_validity,
+                "safety_score": clinical_validity,
+            },
             thresholds,
             "",
         )

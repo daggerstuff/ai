@@ -7,6 +7,7 @@ Provides real-time visualization of clinical validity metrics for the Modern Dat
 import json
 import logging
 import sqlite3
+import time
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List
 
@@ -131,6 +132,8 @@ class ClinicalValidityDashboard:
                 "clinical_validity_rate": 0.0,
                 "status": "no_data",
             }
+
+        current_time = datetime.now(timezone.utc)
 
         # Current score (most recent)
         current_score = (
@@ -584,7 +587,7 @@ class ClinicalValidityDashboard:
         st.markdown(
             f"""
         <div style='text-align: center; color: #666; font-size: 0.9em;'>
-            Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC<br>
+            Last updated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC<br>
             Clinical Validity Dashboard v1.0 • Modern Dataset Project
         </div>
         """,

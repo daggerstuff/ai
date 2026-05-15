@@ -66,13 +66,13 @@ from .crisis_intervention_detector import CrisisInterventionDetector
 
 # Optional import for review queue (PIX-250) - only used if available
 try:
-    from .human_review_queue import HumanReviewQueue, Reviewer, ReviewerRole  # type: ignore
+    from .human_review_queue import HumanReviewQueue, Reviewer, ReviewerRole
     REVIEW_QUEUE_ENABLED = True
 except ImportError:
     REVIEW_QUEUE_ENABLED = False
-    HumanReviewQueue = None  # type: ignore
-    Reviewer = None  # type: ignore
-    ReviewerRole = None  # type: ignore
+    HumanReviewQueue = None
+    Reviewer = None
+    ReviewerRole = None
 
 if TYPE_CHECKING:
     pass
@@ -352,7 +352,7 @@ class PrivacyContentGates:
         # Review queue integration (PIX-250)
         if REVIEW_QUEUE_ENABLED and review_queue is None:
             try:
-                from .human_review_queue import HumanReviewQueue  # type: ignore
+                from .human_review_queue import HumanReviewQueue
                 review_queue = HumanReviewQueue()
             except Exception:
                 # Queue initialization failed; debug logging recommended
@@ -714,7 +714,7 @@ class PrivacyContentGates:
         }[tier]
 
     def _collect_crisis_findings(
-        self, crisis_result: "CrisisInterventionResult"  # type: ignore[name-defined]
+        self, crisis_result: "CrisisInterventionResult"
     ) -> list[CrisisFinding]:
         if crisis_result.score == 0.0:
             return []

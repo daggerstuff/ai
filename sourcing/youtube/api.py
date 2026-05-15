@@ -23,7 +23,7 @@ from ai.sourcing.youtube.models import (
 
 try:
     from ai.sourcing.youtube.api_impl import YouTubeAPI as _YouTubeAPIImpl
-except Exception:  # pragma: no cover
+except Exception:
     _YouTubeAPIImpl = None
 
 logger = logging.getLogger(__name__)
