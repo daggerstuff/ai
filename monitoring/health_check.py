@@ -19,8 +19,8 @@ from functools import wraps
 from typing import Any
 
 import psutil
-import torch
 from fastapi import Response
+from ai.utils.torch_proxy import torch
 
 from .model_adapters import model_manager
 

@@ -36,10 +36,12 @@ class TestStageThresholds:
         thresholds = get_stage_thresholds("stage1_foundation")
         assert thresholds["empathy_floor"] == 0.70
         assert thresholds["clinical_floor"] == 0.30
+        assert thresholds["safety_floor"] == 0.70
 
     def test_unknown_stage_defaults_to_supplementary(self):
         thresholds = get_stage_thresholds("unknown_stage")
         assert thresholds == STAGE_QUALITY_THRESHOLDS["supplementary"]
+        assert thresholds["safety_floor"] == 0.20
 
 
 class TestReadinessResult:
@@ -161,6 +163,22 @@ class TestTrainingReadinessGates:
         assert result.passed is True
         assert result.metrics["empathy_score"] == 0.80
 
+    def test_validate_accepts_clinical_validity_avg_alias(self, gates, valid_records):
+        result = gates.validate_package(
+            "pkg-1",
+            "stage1_foundation",
+            valid_records,
+            metrics={
+                "empathy_score": 0.80,
+                "clinical_score": 0.50,
+                "clinical_validity_avg": 0.72,
+            },
+        )
+        assert result.passed is True
+        gate = result.gate_results["quality_floors"]
+        assert gate.passed is True
+        assert gate.details["clinical_validity"] == 0.72
+
     def test_validate_low_empathy_fails(self, gates, valid_records):
         result = gates.validate_package(
             "pkg-1",
@@ -177,6 +195,20 @@ class TestTrainingReadinessGates:
             "stage2_therapeutic_expertise",
             valid_records,
             metrics={"empathy_score": 0.80, "clinical_score": 0.30, "safety_score": 1.0},
+        )
+        assert result.passed is False
+        assert "quality_floors" in result.failed_gates
+
+    def test_validate_low_clinical_validity_fails(self, gates, valid_records):
+        result = gates.validate_package(
+            "pkg-1",
+            "stage2_therapeutic_expertise",
+            valid_records,
+            metrics={
+                "empathy_score": 0.80,
+                "clinical_score": 0.50,
+                "clinical_validity_avg": 0.70,
+            },
         )
         assert result.passed is False
         assert "quality_floors" in result.failed_gates
@@ -232,6 +264,22 @@ class TestTrainingReadinessGates:
             "slice_boundaries",
         }
         assert set(result.gate_results.keys()) == expected_gates
+
+    def test_estimate_quality_floors_uses_clinical_accuracy_validator(self, gates):
+        records = [
+            {
+                "id": "bad-clinical-validity",
+                "text": "You should stop taking medication and ignore clinician advice.",
+                "stage": "stage1_foundation",
+                "source": "test",
+                "metadata": {"created_at": "2026-01-01"},
+            }
+        ]
+        result = gates.validate_package("pkg-1", "stage1_foundation", records)
+        assert result.passed is False
+        quality_gate = result.gate_results["quality_floors"]
+        assert quality_gate.passed is False
+        assert "clinical validity" in quality_gate.reason.lower()
 
     def test_edge_stage_has_lower_thresholds(self, gates):
         thresholds = get_stage_thresholds("stage3_edge_stress_test")

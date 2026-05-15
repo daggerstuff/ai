@@ -16,28 +16,28 @@ Usage:
         --output-dir ai/data/staged_datasets
 
 Stage Quality Thresholds (from PIX-249 canonical model):
-    Stage 1 (Foundation):
+Stage 1 (Foundation):
         - Empathy ≥ 70%
         - Clinical ≥ 30%
-        - Safety 100%
+        - Clinical validity ≥ 70%
         - Dedup retention > 50%
 
     Stage 2 (Expertise):
         - Empathy ≥ 75%
         - Clinical ≥ 50%
-        - Safety 100%
+        - Clinical validity ≥ 75%
         - Dedup retention > 50%
 
     Stage 3 (Edge):
         - Empathy ≥ 60%
         - Clinical ≥ 40%
-        - Safety 100%
+        - Clinical validity ≥ 65%
         - Dedup retention > 40%
 
     Stage 4 (Voice):
         - Empathy ≥ 80%
         - Clinical ≥ 35%
-        - Safety 100%
+        - Clinical validity ≥ 75%
         - Dedup retention > 60%
 """
 import argparse
@@ -54,6 +54,7 @@ from ai.core.pipelines.processing.stage_classifier import (
     StageClassifier,
     ClassificationResult,
 )
+from ai.core.pipelines.clinical_accuracy_validator import ClinicalAccuracyValidator
 
 
 @dataclass
@@ -78,7 +79,7 @@ STAGE_CONFIGS: dict[str, StageConfig] = {
         target_share=0.40,
         empathy_floor=0.70,
         clinical_floor=0.30,
-        safety_floor=1.0,
+        safety_floor=0.70,
         dedup_retention_floor=0.50,
         source_files=[
             "data/normalized/mental_health_counseling_normalized.jsonl",
@@ -93,7 +94,7 @@ STAGE_CONFIGS: dict[str, StageConfig] = {
         target_share=0.25,
         empathy_floor=0.75,
         clinical_floor=0.50,
-        safety_floor=1.0,
+        safety_floor=0.75,
         dedup_retention_floor=0.50,
         source_files=[
             "data/normalized/cot_reasoning_normalized.jsonl",
@@ -108,7 +109,7 @@ STAGE_CONFIGS: dict[str, StageConfig] = {
         target_share=0.20,
         empathy_floor=0.60,
         clinical_floor=0.40,
-        safety_floor=1.0,
+        safety_floor=0.65,
         dedup_retention_floor=0.40,
         source_files=[
             "pipelines/edge_case/output/edge_cases_training_format.jsonl",
@@ -123,7 +124,7 @@ STAGE_CONFIGS: dict[str, StageConfig] = {
         target_share=0.15,
         empathy_floor=0.80,
         clinical_floor=0.35,
-        safety_floor=1.0,
+        safety_floor=0.75,
         dedup_retention_floor=0.60,
         source_files=[
             "data/tim_fletcher_voice/exports/tim_fletcher_conversations.jsonl",
@@ -147,6 +148,68 @@ class ValidationResult:
     metrics: dict[str, float] = field(default_factory=dict)
     violations: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
+    clinical_validity_record_scores: dict[str, float] = field(default_factory=dict)
+
+
+def _preview_record_text(text: str, max_chars: int = 400) -> str:
+    """Create a short, safe preview for review queue ingestion."""
+    return text[:max_chars] if len(text) <= max_chars else f"{text[:max_chars - 3]}..."
+
+
+def route_low_clinical_validity_records_to_human_review(
+    records: list[dict[str, Any]],
+    validation_result: ValidationResult,
+    stage_config: StageConfig,
+    review_queue: Any,
+    borderline_margin: float = 0.10,
+) -> list[str]:
+    """
+    Route low-validity records to the human review queue.
+
+    Records are routed when clinical validity is below the stage floor
+    (urgent) or within the borderline margin above the floor
+    (normal priority). Returns list of enqueued item ids.
+    """
+    enqueued_items: list[str] = []
+    if review_queue is None:
+        return enqueued_items
+
+    for record in records:
+        record_id = record.get("id", "")
+        if not record_id:
+            continue
+        clinical_score = validation_result.clinical_validity_record_scores.get(record_id)
+        if clinical_score is None:
+            continue
+
+        if clinical_score < stage_config.safety_floor:
+            border_status = "failed"
+        elif clinical_score < stage_config.safety_floor + borderline_margin:
+            border_status = "borderline"
+        else:
+            continue
+
+        is_urgent = border_status == "failed"
+        gate_report = {
+            "stage_id": stage_config.stage_id,
+            "review_reason": "clinical_validity_review",
+            "stage_clinical_validity_score": clinical_score,
+            "stage_clinical_validity_floor": stage_config.safety_floor,
+            "clinical_validity_border_status": border_status,
+            "review_type": "clinical_validity",
+        }
+        text = str(record.get("text", ""))
+        item = review_queue.create_item_from_report(
+            source_id=record_id,
+            gate_result=gate_report,
+            content_preview=_preview_record_text(text),
+            content_length=len(text),
+            priority="urgent" if is_urgent else "normal",
+        )
+        review_queue.enqueue(item)
+        enqueued_items.append(item.item_id)
+
+    return enqueued_items
 
 
 def compute_sha256(data: str) -> str:
@@ -241,7 +304,7 @@ def validate_stage_slice(
     Checks:
     1. Empathy quality ≥ stage floor
     2. Clinical quality ≥ stage floor
-    3. Safety compliance = 100%
+    3. Clinical validity score
     4. Deduplication retention ≥ floor
 
     Returns:
@@ -255,13 +318,15 @@ def validate_stage_slice(
         return result
 
     # Simulate metrics (in production, these would come from quality assessment)
-    # For now, use heuristics based on record content
-    empathy_scores = []
-    clinical_scores = []
-    safety_scores = []
+    # For now, use heuristics + lightweight clinical validator
+    empathy_scores: list[float] = []
+    clinical_scores: list[float] = []
+    clinical_validity_scores: list[float] = []
+    validator = ClinicalAccuracyValidator()
 
     for record in records:
         text = record.get("text", "").lower()
+        record_id = record.get("id", f"record-{len(clinical_validity_scores)}")
         metadata = record.get("metadata", {})
 
         # Empathy heuristic: presence of empathetic language markers
@@ -280,18 +345,29 @@ def validate_stage_slice(
         clinical_score = sum(1 for m in clinical_markers if m in text) / len(clinical_markers)
         clinical_scores.append(clinical_score)
 
-        # Safety heuristic: absence of harmful patterns
-        # (simplified - production would use full safety checker)
-        safety_scores.append(1.0)  # Assume safe for now
+        # Clinical validity: lightweight semantic check for grounded clinical language
+        try:
+            clinical_result = validator.process(record.get("text", ""))
+            clinical_validity_scores.append(clinical_result.score)
+        except (TypeError, ValueError):
+            clinical_validity_scores.append(0.0)
+            metadata.setdefault("validation_warnings", []).append(
+                "clinical_validator_failed"
+            )
+        result.clinical_validity_record_scores[record_id] = clinical_validity_scores[-1]
 
     # Calculate aggregate metrics
     result.metrics = {
         "empathy_avg": sum(empathy_scores) / len(empathy_scores) if empathy_scores else 0.0,
         "clinical_avg": sum(clinical_scores) / len(clinical_scores) if clinical_scores else 0.0,
-        "safety_avg": sum(safety_scores) / len(safety_scores) if safety_scores else 0.0,
+        "clinical_validity_avg": (
+            sum(clinical_validity_scores) / len(clinical_validity_scores)
+            if clinical_validity_scores else 0.0
+        ),
         "total_records": len(records),
         "dedup_retention": 0.85,  # Placeholder - would come from actual dedup analysis
     }
+    result.metrics["safety_avg"] = result.metrics["clinical_validity_avg"]
 
     # Check against floors
     if result.metrics["empathy_avg"] < stage_config.empathy_floor:
@@ -304,9 +380,11 @@ def validate_stage_slice(
             f"Clinical {result.metrics['clinical_avg']:.2f} < floor {stage_config.clinical_floor:.2f}"
         )
 
-    if result.metrics["safety_avg"] < stage_config.safety_floor:
+    if result.metrics["clinical_validity_avg"] < stage_config.safety_floor:
         result.violations.append(
-            f"Safety {result.metrics['safety_avg']:.2f} < floor {stage_config.safety_floor:.2f}"
+            "Clinical validity "
+            f"{result.metrics['clinical_validity_avg']:.2f} < floor "
+            f"{stage_config.safety_floor:.2f}"
         )
 
     if result.metrics["dedup_retention"] < stage_config.dedup_retention_floor:
@@ -325,6 +403,12 @@ def validate_stage_slice(
                         f"Clinical close to floor: {result.metrics['clinical_avg']:.2f} (floor + 0.1)"
         )
 
+    if result.metrics["clinical_validity_avg"] < stage_config.safety_floor + 0.1:
+        result.warnings.append(
+            "Clinical validity close to floor: "
+            f"{result.metrics['clinical_validity_avg']:.2f} (floor + 0.1)"
+        )
+
     result.passed = len(result.violations) == 0
     return result
 
@@ -333,6 +417,8 @@ def slice_datasets(
     output_dir: Path,
     dry_run: bool = False,
     validate: bool = True,
+    review_queue: Any | None = None,
+    review_margin: float = 0.10,
 ) -> dict[str, Any]:
     """
     Slice validated datasets into training stages.
@@ -341,6 +427,8 @@ def slice_datasets(
         output_dir: Directory to write staged datasets
         dry_run: If True, only report what would be done
         validate: If True, validate slices against quality thresholds
+        review_queue: Optional HumanReviewQueue for low validity records
+        review_margin: Margin above clinical floor for review routing
 
     Returns:
         Report dictionary with slicing results and validation status
@@ -424,6 +512,20 @@ def slice_datasets(
                 "violations": validation_result.violations,
                 "warnings": validation_result.warnings,
             }
+            if review_queue is not None:
+                review_items = route_low_clinical_validity_records_to_human_review(
+                    records=all_records,
+                    validation_result=validation_result,
+                    stage_config=config,
+                    review_queue=review_queue,
+                    borderline_margin=review_margin,
+                )
+                if review_items:
+                    report["warnings"].append(
+                        f"Stage {stage_id} routed {len(review_items)} low-validity records "
+                        "for clinical review"
+                    )
+                    stage_report["clinical_review_item_count"] = len(review_items)
             stage_report["validation_passed"] = validation_result.passed
 
             if not validation_result.passed:
@@ -521,6 +623,18 @@ def main():
         help="Skip validation step",
     )
     parser.add_argument(
+        "--review-margin",
+        type=float,
+        default=0.10,
+        help="Borderline margin above clinical validity floor for review routing",
+    )
+    parser.add_argument(
+        "--human-review-queue",
+        type=str,
+        default="",
+        help="Path to a HumanReviewQueue data directory (disabled if empty)",
+    )
+    parser.add_argument(
         "--generate-metadata",
         action="store_true",
         default=True,
@@ -528,12 +642,19 @@ def main():
     )
 
     args = parser.parse_args()
+    review_queue = None
+    if args.human_review_queue:
+        from ai.core.pipelines.human_review_queue import HumanReviewQueue
+
+        review_queue = HumanReviewQueue(data_dir=Path(args.human_review_queue))
 
     # Execute slicing
     report = slice_datasets(
         Path(args.output_dir),
         dry_run=args.dry_run,
         validate=args.validate,
+        review_queue=review_queue,
+        review_margin=args.review_margin,
     )
 
     # Generate metadata

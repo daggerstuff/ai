@@ -23,11 +23,11 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-import torch
 from fastapi import BackgroundTasks, FastAPI, HTTPException
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
+from ai.utils.torch_proxy import torch
 
 # Add parent directories to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
