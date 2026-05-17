@@ -56,6 +56,12 @@ Language: en
     assert result == "This is repeated This is new"
 
 
+def test_clean_vtt_empty_content():
+    vtt_content = ""
+    result = SubtitleProcessor.clean_vtt(vtt_content)
+    assert result == ""
+
+
 def test_clean_vtt_empty_cleaned_line():
     vtt_content = """WEBVTT
 Kind: captions
@@ -90,6 +96,11 @@ Hello world
 """
     result = SubtitleProcessor.clean_vtt(vtt_content)
     assert result == "Hello world"
+
+
+def test_clean_vtt_empty_and_whitespace():
+    assert SubtitleProcessor.clean_vtt("") == ""
+    assert SubtitleProcessor.clean_vtt("   \n   \n") == ""
 
 
 def test_clean_vtt_no_header():
