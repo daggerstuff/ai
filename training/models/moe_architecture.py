@@ -363,7 +363,7 @@ class TherapeuticMoEModel(nn.Module):
     def from_pretrained(cls, load_directory: str, base_model: PreTrainedModel):
         """Load model from directory"""
         # Load MoE state
-        moe_state = torch.load(f"{load_directory}/moe_layers.pt")
+        moe_state = torch.load(f"{load_directory}/moe_layers.pt", weights_only=True)
         config = moe_state['config']
 
         # Create model
