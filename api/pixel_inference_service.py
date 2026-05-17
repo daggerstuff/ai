@@ -669,6 +669,7 @@ async def batch_infer(requests: list[PixelInferenceRequest]):
             logger.exception("Batch inference error")
             return {"error": "inference_failed"}
 
+
     responses = []
     for i in range(0, len(requests), MAX_BATCH_CONCURRENCY):
         batch = requests[i : i + MAX_BATCH_CONCURRENCY]

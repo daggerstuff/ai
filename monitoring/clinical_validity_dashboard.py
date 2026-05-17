@@ -587,6 +587,7 @@ class ClinicalValidityDashboard:
         st.markdown(
             f"""
         <div style='text-align: center; color: #666; font-size: 0.9em;'>
+            Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC<br>
             Last updated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC<br>
             Clinical Validity Dashboard v1.0 • Modern Dataset Project
         </div>
@@ -607,4 +608,5 @@ def main():
 
 
 if __name__ == "__main__":
+    main()
     main()

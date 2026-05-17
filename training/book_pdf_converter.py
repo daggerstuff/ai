@@ -261,6 +261,12 @@ def convert_book(
         chunks = chunks[:max_chunks]
         logger.info(f"Limited to {max_chunks} chunks for testing.")
 
+
+    chunks = _chunk_text(text)
+    if max_chunks:
+        chunks = chunks[:max_chunks]
+        logger.info(f"Limited to {max_chunks} chunks for testing.")
+
         return {
             "book": str(book_path),
             "title": title,
@@ -349,6 +355,7 @@ def main():
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    if not books_dir.exists():
     if not books_dir.exists():
     if not books_dir.exists():
     if not books_dir.exists():
