@@ -125,6 +125,10 @@ build:docker:
     else
       echo "⚠️ No Dockerfile found, skipping Docker build"
     fi
+  only:
+  - master
+  - main
+  - tags
   rules:
   - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
   - if: '$CI_PIPELINE_SOURCE == "schedule"'

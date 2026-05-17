@@ -252,18 +252,10 @@ Monthly:      /home/vivi/pixelated/ai/monitoring/reports/monthly/
 - **Duration:** 4 hours
 
 ### **Support Contacts:**
-<<<<<<< HEAD
-
-- **Primary Operations:** ops-team@pixelated.ai
-- **Technical Support:** tech-lead@pixelated.ai
-- **Emergency Escalation:** cto@pixelated.ai
-- **General Help Desk:** support@pixelated.ai
-=======
 - **Primary Operations:** ops-team@pixelatedempathy.com
 - **Technical Support:** tech-lead@pixelatedempathy.com
 - **Emergency Escalation:** cto@pixelatedempathy.com
 - **General Help Desk:** support@pixelatedempathy.com
->>>>>>> 9ac3d7e897f1aa5901f5efb9c531e71f84b8215a
 
 ### **Documentation:**
 
