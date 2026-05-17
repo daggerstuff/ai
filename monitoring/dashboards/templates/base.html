@@ -201,6 +201,11 @@
             showRefreshIndicator();
             refreshDashboardData();
           }
+          if (document.hidden) return; // ⚡ Bolt: Prevent unnecessary API calls and re-renders when tab is inactive
+          // ⚡ Bolt: Prevent background fetches when tab is inactive
+          if (document.hidden) return;
+          showRefreshIndicator();
+          refreshDashboardData();
         }, intervalMs);
       }
 

@@ -28,8 +28,8 @@ from pathlib import Path
 
 import librosa
 import numpy as np
-import torch
 from transformers import AutoFeatureExtractor, AutoModelForSequenceClassification
+from ai.utils.torch_proxy import torch
 
 logger = logging.getLogger(__name__)
 
@@ -113,7 +113,7 @@ class AudioEmotionRecognizer:
 
     def _load_emotion_models(self) -> None:
         """Load feature extractor and model for emotion recognition."""
-        warnings.filterwarnings("ignore")
+        warnings.simplefilter("default")
 
         # Load feature extractor
         self.feature_extractor = AutoFeatureExtractor.from_pretrained(

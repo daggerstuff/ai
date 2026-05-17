@@ -17,7 +17,7 @@ from pathlib import Path
 from threading import Lock
 from typing import TYPE_CHECKING, Any
 
-import torch
+from ai.utils.torch_proxy import torch
 
 if TYPE_CHECKING:
     from sentence_transformers import SentenceTransformer as _SentenceTransformerType

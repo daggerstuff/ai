@@ -98,6 +98,7 @@ class Memory:
     id: str
     content: str
     metadata: MemoryMetadata
+    embedding: list[float] | None = None
 
     def to_prompt_line(self, max_chars: int = 200) -> str:
         return f"- [{self.metadata.category.value}] {self.content[:max_chars]}"
