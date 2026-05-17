@@ -278,6 +278,7 @@ class TestEvidenceAccumulator(unittest.TestCase):
         self.accumulator.record_evidence(point)
         self.accumulator.record_evidence(point)
         acc = self.accumulator.get_accumulation("p1")
+        assert acc is not None
         assert len(acc.evidence_points) == 2
 
     def test_get_actionable_patterns(self):
@@ -396,7 +397,7 @@ class TestPriorityCalculator(unittest.TestCase):
             domain=UpstreamDomain.PRIVACY,
         )
         assert tier == PriorityTier.URGENT
-        assert score >= PriorityCalculator.URGENT_THRESHOLD
+        assert score >= self.calculator.urgent_threshold
 
     def test_high_priority(self):
         score, tier = self.calculator.calculate_priority(

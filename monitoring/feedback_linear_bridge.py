@@ -17,7 +17,7 @@ import argparse
 import json
 import sys
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -102,7 +102,7 @@ def execute_feedback_linear_bridge(
     if not parent_issue.strip():
         raise ValueError("parent_issue must be a non-empty Linear issue identifier")
 
-    executed_at = datetime.now(timezone.utc).isoformat()
+    executed_at = datetime.now(UTC).isoformat()
 
     # Step 1: Transform feedback report into metrics dict.
     feedback_mapping = transform_feedback_to_metrics(report_path)
@@ -147,8 +147,6 @@ def execute_feedback_linear_bridge(
 
 def _main() -> None:
     """CLI entry point for ad-hoc execution."""
-    import argparse
-
     parser = argparse.ArgumentParser(
         description="Execute feedback → Linear bridge pipeline"
     )
@@ -189,7 +187,7 @@ def _main() -> None:
         dispatcher=dispatcher,
     )
 
-    print(json.dumps(result.to_dict(), indent=2))
+    sys.stdout.write(json.dumps(result.to_dict(), indent=2) + "\n")
 
 
 if __name__ == "__main__":

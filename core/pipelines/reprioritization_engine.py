@@ -19,14 +19,13 @@ import math
 import threading
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
-from decimal import Decimal, ROUND_DOWN
 from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_ACTION_THRESHOLD = Decimal('1.0')
+DEFAULT_ACTION_THRESHOLD = 0.3
 
 
 @dataclass
@@ -37,6 +36,7 @@ class ReprioritizationConfig:
     churn_prevention_window_days: int = 7
     evidence_decay_rate: float = 0.05
     max_tracked_patterns: int = 10_000
+    max_evidence_age_days: int = 30
     urgent_threshold: float = 3.0
     high_threshold: float = 2.0
     medium_threshold: float = 1.0
@@ -117,8 +117,9 @@ class EvidenceAccumulation:
     first_seen: str = ""
     last_seen: str = ""
     total_weight: float = 0.0
-    action_threshold: float = DEFAULT_ACTION_THRESHOLD
+    action_threshold: float = 0.0
     evidence_decay_rate: float = 0.05
+    max_evidence_age_days: int = 30
     is_actionable: bool = False
 
     def add_evidence(self, point: EvidencePoint) -> None:
@@ -126,8 +127,17 @@ class EvidenceAccumulation:
         self.last_seen = point.timestamp
         if not self.first_seen:
             self.first_seen = point.timestamp
+        self._remove_old_evidence()
         self._recalculate_weight()
         self.is_actionable = self.total_weight >= self.action_threshold
+
+    def _remove_old_evidence(self) -> None:
+        """Remove evidence points older than max_evidence_age_days."""
+        cutoff_date = datetime.now(timezone.utc) - timedelta(days=self.max_evidence_age_days)
+        self.evidence_points = [
+            point for point in self.evidence_points
+            if datetime.fromisoformat(point.timestamp) >= cutoff_date
+        ]
 
     def _recalculate_weight(self) -> None:
         now = datetime.now(timezone.utc)
@@ -396,11 +406,6 @@ class EvidenceAccumulator:
 
 
 class PriorityCalculator:
-    URGENT_THRESHOLD = 3.0
-    HIGH_THRESHOLD = 2.0
-    MEDIUM_THRESHOLD = 1.0
-    LOW_THRESHOLD = 0.5
-
     def __init__(self, config: ReprioritizationConfig | None = None) -> None:
         self._config = config or ReprioritizationConfig()
 
@@ -411,6 +416,22 @@ class PriorityCalculator:
         UpstreamDomain.REVIEW: 1.1,
         UpstreamDomain.PACKAGING: 0.9,
     }
+
+    @property
+    def urgent_threshold(self) -> float:
+        return self._config.urgent_threshold
+
+    @property
+    def high_threshold(self) -> float:
+        return self._config.high_threshold
+
+    @property
+    def medium_threshold(self) -> float:
+        return self._config.medium_threshold
+
+    @property
+    def low_threshold(self) -> float:
+        return self._config.low_threshold
 
     def calculate_priority(
         self,
@@ -448,16 +469,21 @@ class PriorityCalculator:
             return InterventionType.RULE_UPDATE
         if domain == UpstreamDomain.ACQUISITION:
             return InterventionType.SOURCE_INTAKE
+        if (
+            severity == EvidenceSeverity.CRITICAL
+            and pattern_type not in pattern_intervention_map
+        ):
+            return InterventionType.THRESHOLD_ADJUSTMENT
         return pattern_intervention_map.get(pattern_type, InterventionType.PRIORITY_CHANGE)
 
     def _score_to_tier(self, score: float) -> PriorityTier:
-        if score >= self._config.urgent_threshold:
+        if score >= self.urgent_threshold:
             return PriorityTier.URGENT
-        if score >= self._config.high_threshold:
+        if score >= self.high_threshold:
             return PriorityTier.HIGH
-        if score >= self._config.medium_threshold:
+        if score >= self.medium_threshold:
             return PriorityTier.MEDIUM
-        if score >= self._config.low_threshold:
+        if score >= self.low_threshold:
             return PriorityTier.LOW
         return PriorityTier.BACKLOG
 
@@ -604,11 +630,25 @@ class ReprioritizationEngine:
     def _should_reprioritize(
         self, existing: BacklogItem, new_tier: PriorityTier, new_score: float
     ) -> bool:
+        """Determine if an existing backlog item should be reprioritized.
+
+        Args:
+            existing: The existing backlog item.
+            new_tier: The new priority tier calculated from evidence.
+            new_score: The new priority score calculated from evidence.
+
+        Returns:
+            True if the item should be reprioritized, False otherwise.
+        """
+        # Always reprioritize if the tier changes
         if existing.priority_tier != new_tier:
             return True
+        # If the existing score is zero, any positive new score triggers reprioritization
         if existing.priority_score == 0:
             return new_score > 0
+        # Calculate relative change in score
         score_change = abs(new_score - existing.priority_score) / existing.priority_score
+        # Reprioritize if the relative change exceeds the configured threshold
         return score_change > self._config.reprioritize_score_delta_ratio
 
     def _build_domain_summary(
@@ -664,7 +704,12 @@ class ReprioritizationEngine:
         return list(self._priority_changes)
 
 
-def _severity_weight(severity: EvidenceSeverity) -> float:
+def _severity_weight(severity: EvidenceSeverity | str) -> float:
+    if isinstance(severity, str):
+        try:
+            severity = EvidenceSeverity(severity)
+        except ValueError:
+            return 1.0
     weights = {
         EvidenceSeverity.CRITICAL: 4.0,
         EvidenceSeverity.HIGH: 3.0,
