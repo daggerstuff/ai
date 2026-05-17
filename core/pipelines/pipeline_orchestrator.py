@@ -1,6 +1,6 @@
-"""Core pipeline orchestrator for production data processing workflows."""
-
 from __future__ import annotations
+
+"""Core pipeline orchestrator for production data processing workflows."""
 
 import hashlib
 import json
@@ -46,6 +46,7 @@ class PipelineOrchestrator:
         self,
         stages: dict[str, Callable[[Any], Any]] | None = None,
         logger: logging.Logger | None = None,
+        metrics_collector: Any = None,
     ) -> None:
         if stages is not None and not isinstance(stages, dict):
             raise TypeError("stages must be a mapping of stage_name -> callable")
@@ -57,6 +58,7 @@ class PipelineOrchestrator:
                 "validate": self._default_validate,
             }
         self.logger = logger or logging.getLogger(__name__)
+        self.metrics_collector = metrics_collector
 
     def process(self, data: Any) -> PipelineResult:
         """Run configured stages and return a pipeline result."""
@@ -82,7 +84,7 @@ class PipelineOrchestrator:
                 processed = stage_callable(current_payload)
                 current_payload = processed
                 output_size = self._safe_len(current_payload)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 message = f"Stage '{stage_name}' failed: {exc!s}"
                 self.logger.exception(message)
                 errors.append(message)
@@ -92,16 +94,26 @@ class PipelineOrchestrator:
                 current_payload = {"error": message, "data": current_payload}
 
             stage_end = datetime.now(tz=timezone.utc)
+            duration_ms = (stage_end - stage_start).total_seconds() * 1000
             stage_results.append(
                 PipelineStageResult(
                     name=stage_name,
                     status=status,
                     input_size=input_size,
                     output_size=output_size,
-                    duration_ms=(stage_end - stage_start).total_seconds() * 1000,
+                    duration_ms=duration_ms,
                     metadata={"message": message} if message else {},
                 )
             )
+            if self.metrics_collector is not None:
+                self.metrics_collector.record_stage_execution(
+                    stage_name=stage_name,
+                    duration_ms=duration_ms,
+                    input_size=input_size,
+                    output_size=output_size,
+                    status=status,
+                    error=message,
+                )
             input_size = output_size
 
         finished = datetime.now(tz=timezone.utc)
@@ -164,7 +176,7 @@ class PipelineOrchestrator:
 
     def _safe_len(self, payload: Any) -> int:
         try:
-            return len(payload)  # type: ignore[arg-type]
+            return len(payload)
         except TypeError:
             return 0
 

@@ -29,9 +29,9 @@ from typing import Any
 
 import librosa
 import numpy as np
-import torch
 import torchaudio
 from faster_whisper import WhisperModel
+from ai.utils.torch_proxy import torch
 
 logger = logging.getLogger(__name__)
 
@@ -97,7 +97,7 @@ class SpeechRecognizer:
 
         try:
             # Suppress warnings
-            warnings.filterwarnings("ignore")
+            warnings.simplefilter("default")
 
             # Load model
             self.model = WhisperModel(

@@ -25,7 +25,10 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
-from letta import LettaClient as SDKClient
+try:
+    from letta import LettaClient as SDKClient
+except ModuleNotFoundError:
+    SDKClient = None
 
 from .letta_crisis_handler import LettaCrisisHandler
 from .letta_pii_middleware import LettaPIIMiddleware
@@ -202,8 +205,10 @@ class LettaCodeClient:
             return
 
         try:
+            if SDKClient is None:
+                logger.warning("Letta Code SDK not installed; skipping initialization.")
+                return
             # Import Letta Code SDK
-
             self._sdk_client = SDKClient(
                 api_key=self.config.api_key,
                 base_url=self.config.base_url,

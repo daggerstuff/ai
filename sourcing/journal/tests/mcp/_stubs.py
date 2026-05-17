@@ -257,7 +257,7 @@ class FakeCommandHandlerService:
     ) -> dict[str, Any]:
         self.orchestrator._validate_session_id(session_id)
         normalized_sources = sources
-        if isinstance(normalized_sources, str):  # type: ignore[isinstance-second-argument-not-valid-type]
+        if isinstance(normalized_sources, str):
             normalized_sources = [normalized_sources]
         self.session.target_sources = normalized_sources
         self.session.search_keywords = {"default": keywords}

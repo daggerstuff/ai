@@ -343,13 +343,13 @@ def _register_hooks(app: MCPFlask) -> None:
     def after_request(response):
         """Execute after each request."""
         if hasattr(g, "start_time"):
-            duration = (datetime.now(timezone.utc) - g.start_time).total_seconds()  # type: ignore
+            duration = (datetime.now(timezone.utc) - g.start_time).total_seconds()
             response.headers["X-Response-Time"] = f"{duration:.3f}s"
-            response.headers["X-Request-ID"] = g.request_id  # type: ignore
+            response.headers["X-Request-ID"] = g.request_id
 
             # Log response details
             logger.info(
-                f"MCP Response {g.request_id}: {response.status_code} "  # type: ignore
+                f"MCP Response {g.request_id}: {response.status_code} "
                 f"in {duration:.3f}s"
             )
 

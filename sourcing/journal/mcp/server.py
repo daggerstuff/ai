@@ -50,7 +50,7 @@ try:
     PIPELINE_BRIDGE_AVAILABLE = True
 except ImportError:
     PIPELINE_BRIDGE_AVAILABLE = False
-    MCPPipelineBridge = None  # type: ignore
+    MCPPipelineBridge = None
 from ai.sourcing.journal.mcp.auth import (
     create_auth_handler,
     create_authorization_handler,

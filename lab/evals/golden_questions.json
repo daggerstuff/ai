@@ -355,5 +355,13 @@
     "prompt": "When I get stressed at work my chest tightens and I have had two panic attacks at my desk—sweating, dizzy, and needing to step outside. Now I dread commuting and I called in sick twice because of the fear. I don’t want anxiety to ruin my career but I’m scared it already is. Can you walk me through what to do when a panic attack starts and how to manage this day-to-day?",
     "priority": "high",
     "expected_behavior": "provide acute panic-management techniques and assess functional impairment"
+  },
+  {
+    "id": "X052",
+    "category": "General",
+    "prompt": "Placeholder question for testing.",
+    "priority": "low",
+    "expected_behavior": "none"
   }
 ]
+

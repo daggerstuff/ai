@@ -17,7 +17,7 @@ from typing import Any
 try:
     import boto3
     import botocore
-except ImportError:  # pragma: no cover - optional dependency
+except ImportError:
     boto3 = None
     botocore = None
 
@@ -221,7 +221,7 @@ class S3DatasetLoader:
             if botocore and hasattr(botocore.exceptions, "ClientError"):
                 if isinstance(
                     exc,
-                    getattr(botocore.exceptions, "ClientError"),  # type: ignore[attr-defined]
+                    getattr(botocore.exceptions, "ClientError"),
                 ):
                     code = exc.response.get("Error", {}).get("Code", "")
                     if code in {"404", "NotFound", "NoSuchKey"}:

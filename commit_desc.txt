@@ -1,4 +1,0 @@
-💡 What: Precompiled regular expressions for whitespace, artifacts, and commas globally at the module level in `scripts/clean_final_dataset.py`, replacing inline `re.sub` calls with the `.sub()` method of the precompiled patterns.
-🎯 Why: `DatasetCleaner.normalize_text` is called per conversation during dataset cleaning. Precompiling regexes avoids repeatedly compiling them or hitting cache limits inside loops, eliminating redundant overhead.
-📊 Impact: Faster dataset parsing and processing pipelines, particularly for large JSON lines files where this regex execution runs millions of times.
-🔬 Measurement: Run the cleanup script against a 10k conversation subset before and after; notice improved throughput and reduced CPU time on the regex processing step.
