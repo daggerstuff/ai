@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Proper Book and PDF conversion pipeline for therapeutic AI training.
 
+Extracts text from PDF and EPUB files, converts to instruction/output QA pairs
+(paraphrased, not verbatim), tags source metadata, and writes per-book JSONL +
+conversion report.
 Extracts text from PDF and EPUB files, distills knowledge into high-quality
 therapeutic QA pairs using LLMs (Gemini/NIM), and writes per-book JSONL.
 
@@ -218,6 +221,7 @@ def distill_chunk(chunk: str, title: str) -> list[dict[str, str]]:
 def convert_book(
     book_path: Path,
     output_dir: Path,
+    is_dsm: bool,
     max_chunks: int | None = None,
 ) -> dict:
     """Convert a single book file to JSONL training pairs using LLM distillation."""
@@ -226,6 +230,32 @@ def convert_book(
     
     text = _extract_text(book_path)
     if not text or not text.strip():
+        return {
+            "book": str(book_path),
+            "title": title,
+            "status": "skipped",
+            "reason": "no text extracted",
+            "pairs": 0,
+        }
+
+    pairs = _text_to_qa_pairs(text, title, is_dsm)
+    if not pairs:
+        return {
+            "book": str(book_path),
+            "title": title,
+            "status": "skipped",
+            "reason": "no QA pairs generated",
+            "pairs": 0,
+        }
+
+    output_pairs: list[dict] = []
+    for pair in pairs:
+        output_pairs.append({
+            "instruction": pair["instruction"],
+            "output": pair["output"],
+            "source_book": title,
+            "source_type": "clinical_literature",
+        })
         return {"book": str(book_path), "status": "failed", "reason": "no text extracted"}
 
     chunks = _chunk_text(text)
@@ -238,6 +268,8 @@ def convert_book(
     
     # Open file in append mode to allow resuming or streaming
     with open(output_file, "w", encoding="utf-8") as f:
+        for s in output_pairs:
+            f.write(json.dumps(s) + "\n")
         for i, chunk in enumerate(chunks):
             logger.info(f"  Distilling chunk {i+1}/{len(chunks)}...")
             pairs = distill_chunk(chunk, title)
@@ -266,6 +298,9 @@ def convert_book(
     return {
         "book": str(book_path),
         "title": title,
+        "status": "converted",
+        "pairs": len(output_pairs),
+        "is_dsm": is_dsm,
         "status": "converted" if all_pairs else "empty",
         "pairs": len(all_pairs),
         "chunks_processed": len(chunks),
@@ -283,6 +318,28 @@ def main():
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    dsm_titles = set(t.strip().lower() for t in args.dsm_titles.split(",") if t.strip()) if args.dsm_titles else set()
+
+    results: list[dict] = []
+    total_pairs = 0
+    skipped = 0
+
+    if not books_dir.exists():
+        logger.error("Books directory not found: %s", books_dir)
+        report = {
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "books_dir": str(books_dir),
+            "output_dir": str(output_dir),
+            "total_books_found": 0,
+            "converted": 0,
+            "skipped": 0,
+            "total_pairs": 0,
+            "book_details": [],
+        }
+        report_path = output_dir / "conversion_report.json"
+        with open(report_path, "w", encoding="utf-8") as f:
+            json.dump(report, f, indent=2)
+            f.write("\n")
     if not books_dir.exists():
         logger.error(f"Books directory not found: {books_dir}")
         return
@@ -291,11 +348,19 @@ def main():
     for book_file in sorted(books_dir.rglob("*")):
         if book_file.suffix.lower() not in {".pdf", ".epub"}:
             continue
+
+        is_dsm = _is_dsm_title(book_file.stem) or book_file.stem.lower() in dsm_titles
+        result = convert_book(book_file, output_dir, is_dsm)
         
         result = convert_book(book_file, output_dir, max_chunks=args.max_chunks)
         results.append(result)
         
         if result["status"] == "converted":
+            total_pairs += result["pairs"]
+            logger.info(
+                "Converted %s: %d pairs (dsm=%s)",
+                result["title"], result["pairs"], is_dsm,
+            )
             logger.info(f"{C_GREEN}✓ Successfully converted {result['title']}: {result['pairs']} pairs.{C_RESET}")
         else:
             logger.warning(f"{C_RED}✗ Failed/Skipped {book_file.name}: {result.get('reason', 'unknown')}{C_RESET}")
@@ -303,6 +368,13 @@ def main():
     # Generate summary report
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        "books_dir": str(books_dir),
+        "output_dir": str(output_dir),
+        "total_books_found": len(results),
+        "converted": sum(1 for r in results if r["status"] == "converted"),
+        "skipped": skipped,
+        "total_pairs": total_pairs,
+        "book_details": results,
         "total_books": len(results),
         "converted_books": sum(1 for r in results if r["status"] == "converted"),
         "total_pairs": sum(r.get("pairs", 0) for r in results),
@@ -310,6 +382,48 @@ def main():
     }
     with open(output_dir / "conversion_report.json", "w") as f:
         json.dump(report, f, indent=2)
+        f.write("\n")
+
+    logger.info(
+        "Conversion complete: %d books converted, %d skipped, %d total pairs",
+        sum(1 for r in results if r["status"] == "converted"),
+        skipped, total_pairs,
+    )
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description="Convert PDF/EPUB books into training-ready JSONL.",
+    )
+    parser.add_argument(
+        "--books_dir",
+        type=str,
+        required=True,
+        help="Directory containing PDF/EPUB files.",
+    )
+    parser.add_argument(
+        "--output_dir",
+        type=str,
+        required=True,
+        help="Directory for per-book JSONL and conversion report.",
+    )
+    parser.add_argument(
+        "--dsm_titles",
+        type=str,
+        default="",
+        help="Comma-separated list of DSM title identifiers for clinical QA format.",
+    )
+    return parser
+
+
+def main() -> None:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    )
+    parser = build_parser()
+    args = parser.parse_args()
+    run_conversion(args)
 
 
 if __name__ == "__main__":

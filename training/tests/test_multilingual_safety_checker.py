@@ -16,6 +16,9 @@ except ImportError:
 from training.clinical_safety_checker import ClinicalContentAnalyzer
 from training.multilingual_safety_checker import MultilingualContentChecker
 
+# ---------------------------------------------------------------------------
+# Interface & metadata tests
+# ---------------------------------------------------------------------------
 
 def test_version_format():
     assert re.match(r"^\d+\.\d+\.\d+$", MultilingualContentChecker.VERSION)
@@ -171,6 +174,12 @@ def test_empty_and_nonstring_input():
     assert not MultilingualContentChecker.contains_crisis_keywords(None)
 
 
+# ---------------------------------------------------------------------------
+# Production pilot integration
+# ---------------------------------------------------------------------------
+
+def test_production_pilot_safety_checker_disabled():
+    """SAFETY CHECKERS DISABLED per user request."""
 def test_production_pilot_safety_checker_disabled():
     pilot = pytest.importorskip("training.pixelated_production_pilot")
     assert pilot.SAFETY_CHECKER is None
