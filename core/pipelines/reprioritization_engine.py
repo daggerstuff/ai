@@ -14,13 +14,34 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import math
 import threading
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
+from decimal import Decimal, ROUND_DOWN
 from enum import StrEnum
 from pathlib import Path
 from typing import Any
+
+logger = logging.getLogger(__name__)
+
+DEFAULT_ACTION_THRESHOLD = Decimal('1.0')
+
+
+@dataclass
+class ReprioritizationConfig:
+    """Runtime-tunable parameters for PIX-536 reprioritization."""
+
+    action_threshold: float = DEFAULT_ACTION_THRESHOLD
+    churn_prevention_window_days: int = 7
+    evidence_decay_rate: float = 0.05
+    max_tracked_patterns: int = 10_000
+    urgent_threshold: float = 3.0
+    high_threshold: float = 2.0
+    medium_threshold: float = 1.0
+    low_threshold: float = 0.5
+    reprioritize_score_delta_ratio: float = 0.2
 
 
 class UpstreamDomain(StrEnum):
@@ -96,7 +117,8 @@ class EvidenceAccumulation:
     first_seen: str = ""
     last_seen: str = ""
     total_weight: float = 0.0
-    action_threshold: float = 1.0
+    action_threshold: float = DEFAULT_ACTION_THRESHOLD
+    evidence_decay_rate: float = 0.05
     is_actionable: bool = False
 
     def add_evidence(self, point: EvidencePoint) -> None:
@@ -113,7 +135,7 @@ class EvidenceAccumulation:
         for point in self.evidence_points:
             point_time = datetime.fromisoformat(point.timestamp)
             age_days = (now - point_time).total_seconds() / 86400.0
-            decay = math.exp(-0.05 * age_days)
+            decay = math.exp(-self.evidence_decay_rate * age_days)
             severity_weight = _severity_weight(point.severity)
             point_weight = severity_weight * point.frequency * point.confidence * decay
             total += point_weight
@@ -237,10 +259,14 @@ class ReprioritizationReport:
 
 
 class EvidenceAccumulator:
-    def __init__(self, action_threshold: float = 1.0) -> None:
+    def __init__(
+        self,
+        action_threshold: float = DEFAULT_ACTION_THRESHOLD,
+        config: ReprioritizationConfig | None = None,
+    ) -> None:
         self._lock = threading.Lock()
         self._accumulations: dict[str, EvidenceAccumulation] = {}
-        self._action_threshold = action_threshold
+        self._config = config or ReprioritizationConfig(action_threshold=action_threshold)
 
     def ingest_feedback_report(self, report_path: str | Path) -> list[EvidencePoint]:
         path = Path(report_path)
@@ -271,12 +297,22 @@ class EvidenceAccumulator:
             try:
                 domain = UpstreamDomain(upstream_domain)
             except ValueError:
+                logger.warning(
+                    "Unknown upstream_domain %r for pattern %s; defaulting to curation",
+                    upstream_domain,
+                    pattern_id,
+                )
                 domain = UpstreamDomain.CURATION
 
             severity_str = pattern.get("severity", "medium")
             try:
                 severity = EvidenceSeverity(severity_str)
             except ValueError:
+                logger.warning(
+                    "Unknown severity %r for pattern %s; defaulting to medium",
+                    severity_str,
+                    pattern_id,
+                )
                 severity = EvidenceSeverity.MEDIUM
 
             confidence = mapping.get("confidence", 0.5)
@@ -304,11 +340,27 @@ class EvidenceAccumulator:
                     pattern_id=point.pattern_id,
                     domain=point.domain,
                     description=point.description,
-                    action_threshold=self._action_threshold,
+                    action_threshold=self._config.action_threshold,
+                    evidence_decay_rate=self._config.evidence_decay_rate,
                 )
             accumulation = self._accumulations[point.pattern_id]
             accumulation.add_evidence(point)
+            self._prune_accumulations_if_needed()
             return accumulation
+
+    def _prune_accumulations_if_needed(self) -> None:
+        limit = self._config.max_tracked_patterns
+        if len(self._accumulations) <= limit:
+            return
+        inactive = [
+            (pattern_id, accumulation)
+            for pattern_id, accumulation in self._accumulations.items()
+            if not accumulation.is_actionable
+        ]
+        inactive.sort(key=lambda item: item[1].last_seen or item[1].first_seen)
+        while len(self._accumulations) > limit and inactive:
+            pattern_id, _ = inactive.pop(0)
+            self._accumulations.pop(pattern_id, None)
 
     def get_actionable_patterns(self) -> list[EvidenceAccumulation]:
         with self._lock:
@@ -348,6 +400,9 @@ class PriorityCalculator:
     HIGH_THRESHOLD = 2.0
     MEDIUM_THRESHOLD = 1.0
     LOW_THRESHOLD = 0.5
+
+    def __init__(self, config: ReprioritizationConfig | None = None) -> None:
+        self._config = config or ReprioritizationConfig()
 
     DOMAIN_URGENCY: dict[UpstreamDomain, float] = {
         UpstreamDomain.PRIVACY: 1.5,
@@ -396,13 +451,13 @@ class PriorityCalculator:
         return pattern_intervention_map.get(pattern_type, InterventionType.PRIORITY_CHANGE)
 
     def _score_to_tier(self, score: float) -> PriorityTier:
-        if score >= self.URGENT_THRESHOLD:
+        if score >= self._config.urgent_threshold:
             return PriorityTier.URGENT
-        if score >= self.HIGH_THRESHOLD:
+        if score >= self._config.high_threshold:
             return PriorityTier.HIGH
-        if score >= self.MEDIUM_THRESHOLD:
+        if score >= self._config.medium_threshold:
             return PriorityTier.MEDIUM
-        if score >= self.LOW_THRESHOLD:
+        if score >= self._config.low_threshold:
             return PriorityTier.LOW
         return PriorityTier.BACKLOG
 
@@ -410,14 +465,19 @@ class PriorityCalculator:
 class ReprioritizationEngine:
     def __init__(
         self,
-        action_threshold: float = 1.0,
+        action_threshold: float = DEFAULT_ACTION_THRESHOLD,
         churn_prevention_window_days: int = 7,
+        config: ReprioritizationConfig | None = None,
     ) -> None:
-        self.accumulator = EvidenceAccumulator(action_threshold=action_threshold)
-        self.calculator = PriorityCalculator()
+        self._config = config or ReprioritizationConfig(
+            action_threshold=action_threshold,
+            churn_prevention_window_days=churn_prevention_window_days,
+        )
+        self.accumulator = EvidenceAccumulator(config=self._config)
+        self.calculator = PriorityCalculator(config=self._config)
         self._backlog: dict[str, BacklogItem] = {}
         self._priority_changes: list[PriorityChange] = []
-        self._churn_window = timedelta(days=churn_prevention_window_days)
+        self._churn_window = timedelta(days=self._config.churn_prevention_window_days)
         self._lock = threading.Lock()
 
     def load_feedback_report(self, report_path: str | Path) -> list[EvidencePoint]:
@@ -549,7 +609,7 @@ class ReprioritizationEngine:
         if existing.priority_score == 0:
             return new_score > 0
         score_change = abs(new_score - existing.priority_score) / existing.priority_score
-        return score_change > 0.2
+        return score_change > self._config.reprioritize_score_delta_ratio
 
     def _build_domain_summary(
         self,
@@ -710,19 +770,21 @@ def _generate_change_reason(
 
 
 def create_engine(
-    action_threshold: float = 1.0,
+    action_threshold: float = DEFAULT_ACTION_THRESHOLD,
     churn_prevention_window_days: int = 7,
+    config: ReprioritizationConfig | None = None,
 ) -> ReprioritizationEngine:
     return ReprioritizationEngine(
         action_threshold=action_threshold,
         churn_prevention_window_days=churn_prevention_window_days,
+        config=config,
     )
 
 
 def run_reprioritization_from_report(
     feedback_report_path: str | Path,
     output_path: str | Path | None = None,
-    action_threshold: float = 1.0,
+    action_threshold: float = DEFAULT_ACTION_THRESHOLD,
 ) -> ReprioritizationReport:
     engine = create_engine(action_threshold=action_threshold)
     engine.load_feedback_report(feedback_report_path)
@@ -733,6 +795,8 @@ def run_reprioritization_from_report(
 
 
 __all__ = [
+    "DEFAULT_ACTION_THRESHOLD",
+    "ReprioritizationConfig",
     "UpstreamDomain",
     "InterventionType",
     "EvidenceSeverity",

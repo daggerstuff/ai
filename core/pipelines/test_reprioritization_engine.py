@@ -752,7 +752,7 @@ class TestReprioritizationEngine(unittest.TestCase):
 
     def test_create_engine(self):
         engine = create_engine(action_threshold=2.0, churn_prevention_window_days=14)
-        assert engine.accumulator._action_threshold == 2.0
+        assert engine.accumulator._config.action_threshold == 2.0
         assert engine._churn_window.days == 14
 
     def test_empty_report_produces_empty_report(self):

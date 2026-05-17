@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Tests for Linear backlog dispatch behavior."""
 
+import time
 from pathlib import Path
 
 from ai.monitoring.linear_backlog_action_builder import build_linear_backlog_payload
@@ -262,6 +263,73 @@ def test_dispatch_includes_configured_linear_ids(monkeypatch, tmp_path):
     assert captured["team_id"] == "TEAM-123"
     assert captured["project_id"] == "PRJ-456"
     assert captured["parent_id"] == "ISS-789"
+
+
+def test_dispatch_retries_transient_url_errors(monkeypatch, tmp_path):
+    payload = build_linear_backlog_payload(
+        BacklogConversionResult(
+            generated_at="2026-05-13T00:00:00+00:00",
+            metric_count=1,
+            generated_changes=1,
+            changes=[
+                BacklogChange(
+                    change_id="rule:retry",
+                    priority=RulePriority.HIGH,
+                    area="acquisition",
+                    title="Retry transient failure",
+                    summary="Retry test",
+                    trigger="clinical_reasoning_accuracy=70.0 (< 85.0)",
+                    actions=["Retry"],
+                    suggested_sop="Retry",
+                    expected_impact="Retry",
+                    evidence={"metric": "clinical_reasoning_accuracy"},
+                )
+            ],
+        )
+    )
+
+    monkeypatch.setenv("LINEAR_API_KEY_TEST", "token")
+    queue_path = tmp_path / "queue.jsonl"
+    dispatcher = LinearBacklogDispatcher(
+        queue_path=str(queue_path),
+        linear_api_key_env="LINEAR_API_KEY_TEST",
+        max_retries=3,
+    )
+
+    class DummyResponse:
+        def __init__(self):
+            self._body = (
+                b'{"data": {"issueCreate": {"success": true, '
+                b'"issue": {"id": "ISSUE-RETRY", "title": "Retry transient failure"}}}}'
+            )
+
+        def read(self):
+            return self._body
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            return False
+
+    attempts = {"count": 0}
+
+    def fake_urlopen(request_obj, timeout=12):
+        attempts["count"] += 1
+        if attempts["count"] == 1:
+            raise urllib.error.URLError("temporary network failure")
+        return DummyResponse()
+
+    import urllib.error
+    import urllib.request
+
+    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
+
+    result = dispatcher.dispatch_backlog_actions(payload)
+    assert attempts["count"] == 2
+    assert result["created"] == 1
+    assert result["failed"] == 0
 
 
 def test_dispatch_falls_back_to_create_when_update_id_is_stale(monkeypatch, tmp_path):
