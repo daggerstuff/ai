@@ -95,7 +95,7 @@ multidict==6.6.4
 PyYAML==6.0.2
 tzdata==2025.2
 idna==3.10
-urllib3==2.6.3
+urllib3==2.7.0
 nvidia-cudnn-cu12==9.10.2.21
 networkx==3.5
 iniconfig==2.1.0
