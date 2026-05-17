@@ -1,6 +1,15 @@
 from __future__ import annotations
 
 import json
+
+from ai.core.pipelines.processing.data_normalizer import DataNormalizer
+from ai.core.pipelines.processing.normalization_pipeline import (
+    DedupStrategy,
+    NormalizationPipeline,
+)
+
+
+def _write_jsonl(path, records: list[dict]) -> None:
 from pathlib import Path
 
 from ai.core.pipelines.processing.data_normalizer import (
@@ -65,6 +74,7 @@ def test_data_normalizer_canonicalizes_record_shape() -> None:
     assert record["metadata"] == {"topic_tags": ["synthetic"], "quality_score": 0.9}
 
 
+def test_normalization_pipeline_writes_duplicate_evidence(tmp_path) -> None:
 def test_normalization_pipeline_writes_duplicate_evidence(tmp_path: Path) -> None:
     input_record_count = 2
     input_path = tmp_path / "source.jsonl"
