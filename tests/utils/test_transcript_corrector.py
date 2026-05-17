@@ -123,10 +123,12 @@ def test_llm_contextual_correction_client(_mock_open, _mock_exists):
 
 
 def test_missing_config_path_fallback():
-    with patch("utils.transcript_corrector.Path.exists", side_effect=[False, True]):
-        with patch("builtins.open", new_callable=mock_open, read_data='{"cptsd_terms": ["trauma"]}'):
-            corrector = TranscriptCorrector("mock.json")
-            assert corrector.terms["cptsd_terms"] == ["trauma"]
+    with (
+        patch("utils.transcript_corrector.Path.exists", side_effect=[False, True]),
+        patch("builtins.open", new_callable=mock_open, read_data='{"cptsd_terms": ["trauma"]}'),
+    ):
+        corrector = TranscriptCorrector("mock.json")
+        assert corrector.terms["cptsd_terms"] == ["trauma"]
 
 
 def test_missing_config_path_fallback_both_missing():
@@ -137,15 +139,30 @@ def test_missing_config_path_fallback_both_missing():
         assert corrector.terms["common_misinterpretations"] == {}
 
 def test_load_terminology_exception():
-    with patch("utils.transcript_corrector.Path.exists", return_value=True):
-        with patch("builtins.open", side_effect=Exception("Test Exception")):
-            corrector = TranscriptCorrector("mock.json")
-            assert corrector.terms["cptsd_terms"] == []
+    with (
+        patch("utils.transcript_corrector.Path.exists", return_value=True),
+        patch("builtins.open", side_effect=Exception("Test Exception")),
+    ):
+        corrector = TranscriptCorrector("mock.json")
+        assert corrector.terms["cptsd_terms"] == []
 
 def test_contextual_correction_client_fallback():
-    with patch("utils.transcript_corrector.Path.exists", return_value=True):
-        with patch("builtins.open", new_callable=mock_open, read_data='{}'):
-            corrector = TranscriptCorrector("mock.json")
+    with (
+        patch("utils.transcript_corrector.Path.exists", return_value=True),
+        patch("builtins.open", new_callable=mock_open, read_data="{}"),
+    ):
+        corrector = TranscriptCorrector("mock.json")
+
+        # Setup a client that returns valid output
+        corrector._contextual_correction_client = MagicMock(return_value="Corrected sentence.")
+        result = corrector._llm_contextual_correction("original sentence", "context")
+        assert result == "Corrected sentence."
+
+        # Setup a client that returns empty/invalid output, should fallback
+        corrector._contextual_correction_client = MagicMock(return_value="   ")
+        result = corrector._llm_contextual_correction("original sentence.", "context")
+        # The fallback processing happens in llm_contextual_correction
+        assert result == "Original sentence."
 
             # Setup a client that returns valid output
 
