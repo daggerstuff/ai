@@ -16,7 +16,28 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 
-warnings.filterwarnings("ignore")
+try:
+    from .performance_gap_backlog_converter import (
+        BacklogConversionResult,
+        PerformanceGapBacklogConverter,
+    )
+    from .linear_backlog_action_builder import (
+        build_linear_backlog_payload,
+        write_linear_backlog_artifact,
+    )
+    from .linear_backlog_dispatcher import LinearBacklogDispatcher
+except Exception:
+    from performance_gap_backlog_converter import (
+        BacklogConversionResult,
+        PerformanceGapBacklogConverter,
+    )
+    from linear_backlog_action_builder import (
+        build_linear_backlog_payload,
+        write_linear_backlog_artifact,
+    )
+    from linear_backlog_dispatcher import LinearBacklogDispatcher
+
+warnings.simplefilter("default")
 
 
 @dataclass
@@ -55,6 +76,12 @@ class QualityValidationAnalyzer:
         self.db_path = Path(db_path)
         self.output_dir = Path("monitoring/quality_validation")
         self.output_dir.mkdir(parents=True, exist_ok=True)
+        self.backlog_converter = PerformanceGapBacklogConverter()
+        self.linear_artifact_dir = self.output_dir / "linear_backlog_artifacts"
+        self.linear_artifact_dir.mkdir(parents=True, exist_ok=True)
+        self.linear_dispatcher = LinearBacklogDispatcher(
+            queue_path=str(self.linear_artifact_dir / "linear_backlog_queue.jsonl"),
+        )
 
         # Quality validation metrics
         self.validation_metrics = [
@@ -525,6 +552,14 @@ class QualityValidationAnalyzer:
             executive_summary = self._create_validation_summary(analyses)
 
             # Prepare export data
+            backlog_conversion = self.convert_analysis_to_backlog_actions(analyses)
+            linear_payload = build_linear_backlog_payload(backlog_conversion)
+            linear_backlog_artifact = write_linear_backlog_artifact(
+                linear_payload, self.linear_artifact_dir / "linear_backlog_payload.json"
+            )
+            linear_dispatch = self.linear_dispatcher.dispatch_backlog_actions(
+                linear_payload
+            )
             export_data = {
                 "report_metadata": {
                     "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -548,6 +583,11 @@ class QualityValidationAnalyzer:
                 },
                 "visualizations": visualizations,
                 "quality_insights": self._generate_quality_insights(analyses),
+                "backlog_conversion": self._serialize_backlog_conversion(
+                    backlog_conversion
+                ),
+                "linear_backlog_artifact": linear_backlog_artifact,
+                "linear_backlog_dispatch": linear_dispatch,
             }
 
             # Save report
@@ -669,6 +709,37 @@ class QualityValidationAnalyzer:
             insights.append("Error generating insights - see logs for details")
 
         return insights
+
+    def convert_analysis_to_backlog_actions(
+        self, analyses: dict[str, ValidationAnalysis]
+    ) -> BacklogConversionResult:
+        """Convert validation analysis metrics into backlog conversion recommendations."""
+        if not analyses:
+            return BacklogConversionResult(
+                generated_at=datetime.now(timezone.utc).isoformat(),
+                metric_count=0,
+                generated_changes=0,
+                changes=[],
+            )
+
+        conversion_payload: dict[str, dict[str, Any]] = {}
+
+        for metric, analysis in analyses.items():
+            conversion_payload[metric] = {
+                "pass_rate": analysis.pass_rate,
+                "failed_validations": analysis.failed_validations,
+                "failure_patterns": analysis.failure_patterns,
+            }
+
+        return self.backlog_converter.convert_from_validation_analysis(conversion_payload)
+
+    def _serialize_backlog_conversion(self, result: BacklogConversionResult) -> dict[str, Any]:
+        return {
+            "generated_at": result.generated_at,
+            "metric_count": result.metric_count,
+            "generated_changes": result.generated_changes,
+            "changes": [change.to_dict() for change in result.changes],
+        }
 
 
 def main():

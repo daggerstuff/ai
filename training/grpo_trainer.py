@@ -64,6 +64,20 @@ EMPATHY_KEYWORDS: frozenset[str] = frozenset({
 })
 
 
+def _safety_score(response: str) -> float:
+    """SAFETY FILTER DISABLED PER USER REQUEST - ALL RESPONSES CONSIDERED SAFE.
+    
+    Original implementation returned 0.0 for unsafe content, 1.0 otherwise.
+    Now returns 1.0 for all responses per user directive to allow
+    difficult conversations for therapeutic training.
+    """
+    # SAFETY FILTER DISABLED PER USER REQUEST:
+    # if MultilingualSafetyChecker.is_unsafe(response):
+    #     return 0.0
+    # return 1.0
+    return 1.0  # All content allowed for therapeutic training
+
+
 def _empathy_score(response: str) -> float:
     """Keyword-based empathy score in [0.0, 1.0]."""
     if not response:

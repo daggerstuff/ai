@@ -7,7 +7,7 @@ import logging
 import subprocess
 from pathlib import Path
 
-import torch
+from ai.utils.torch_proxy import torch
 
 import lightning
 
@@ -206,7 +206,7 @@ Launch therapeutic AI training with proper GPU setup and monitoring.
 
 import os
 import json
-import torch
+from ai.utils.torch_proxy import torch
 import subprocess
 import logging
 from pathlib import Path

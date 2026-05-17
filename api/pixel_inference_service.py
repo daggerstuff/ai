@@ -23,11 +23,11 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-import torch
 from fastapi import BackgroundTasks, FastAPI, HTTPException
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
+from ai.utils.torch_proxy import torch
 
 # Add parent directories to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -68,10 +68,17 @@ def sanitize_agent_output(raw_text: str | None) -> str:
                 continue
         output_lines.append(line.rstrip())
     return "\n".join(output_lines)
+MAX_BATCH_CONCURRENCY = int(os.getenv("PIXEL_MAX_BATCH_CONCURRENCY", "16"))
+MAX_BATCH_CONCURRENCY = int(os.getenv("PIXEL_MAX_BATCH_CONCURRENCY", "16"))
+MAX_BATCH_CONCURRENCY = int(os.getenv("PIXEL_MAX_BATCH_CONCURRENCY", "16"))
+MAX_BATCH_CONCURRENCY = int(os.getenv("PIXEL_MAX_BATCH_CONCURRENCY", "16"))
+MAX_BATCH_CONCURRENCY = int(os.getenv("PIXEL_MAX_BATCH_CONCURRENCY", "16"))
+MAX_BATCH_CONCURRENCY = int(os.getenv("PIXEL_MAX_BATCH_CONCURRENCY", "16"))
+MAX_BATCH_CONCURRENCY = int(os.getenv("PIXEL_MAX_BATCH_CONCURRENCY", "16"))
+MAX_BATCH_CONCURRENCY = int(os.getenv("PIXEL_MAX_BATCH_CONCURRENCY", "16"))
+MAX_BATCH_CONCURRENCY = int(os.getenv("PIXEL_MAX_BATCH_CONCURRENCY", "16"))
 
-# ============================================================================
 # Request/Response Models
-# ============================================================================
 
 
 class ConversationMessage(BaseModel):
@@ -184,9 +191,7 @@ class ModelStatusResponse(BaseModel):
     last_inference_time_ms: float | None = None
 
 
-# ============================================================================
 # Pixel Inference Service
-# ============================================================================
 
 
 class PixelInferenceEngine:
@@ -581,9 +586,7 @@ class PixelInferenceEngine:
         )
 
 
-# ============================================================================
 # FastAPI Application
-# ============================================================================
 
 app = FastAPI(
     title="Pixel Model Inference API",
@@ -665,6 +668,23 @@ async def batch_infer(requests: list[PixelInferenceRequest]):
         except Exception:
             logger.exception("Batch inference error")
             return {"error": "inference_failed"}
+
+
+
+    responses = []
+    for i in range(0, len(requests), MAX_BATCH_CONCURRENCY):
+        batch = requests[i : i + MAX_BATCH_CONCURRENCY]
+        batch_responses = await asyncio.gather(*[_process_single(req) for req in batch])
+        responses.extend(batch_responses)
+    # ⚡ Bolt: Replace sequential loop with asyncio.gather to concurrently process requests
+    async def _process_req(req):
+        try:
+            return await inference_engine.generate_response(req)
+        except Exception as e:
+            logger.error(f"Batch inference error: {e}")
+            return {"error": str(e)}
+
+    responses = await asyncio.gather(*(_process_req(req) for req in requests))
 
     responses = []
     for i in range(0, len(requests), MAX_BATCH_CONCURRENCY):
