@@ -24,7 +24,7 @@ def _load_core_processor():
 def _require_dependency() -> tuple[type, type, type, Any]:
     try:
         return _load_core_processor()
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         raise RuntimeError(
             "ai.sourcing.youtube.processor is unavailable because optional dependencies are missing. "
             "Install project requirements to use this pipeline."

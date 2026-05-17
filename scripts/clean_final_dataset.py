@@ -8,16 +8,9 @@ import json
 import re
 from pathlib import Path
 
-<<<<<<< HEAD
-# Precompiled regex patterns for performance optimization during large dataset processing
-ARTIFACTS_PATTERN = re.compile(r"\b(um|uh|like|you know)\b", flags=re.IGNORECASE)
-COMMAS_PATTERN = re.compile(r"[,\s]+")
-=======
-# Pre-compile regular expressions for performance
 RE_WHITESPACE = re.compile(r"\s+")
 RE_FILLERS = re.compile(r"\b(um|uh|like|you know)\b", flags=re.IGNORECASE)
 RE_MULTI_COMMA_SPACE = re.compile(r"[,\s]+")
->>>>>>> perf/dataset_cleaner-regex_precompile-12345-15718181087636830716
 
 
 class DatasetCleaner:
@@ -31,14 +24,6 @@ class DatasetCleaner:
         if not text:
             return ""
 
-<<<<<<< HEAD
-        # Remove leading/trailing whitespace; final normalization happens later
-        text = text.strip()
-
-        # Fix common transcription artifacts
-        text = ARTIFACTS_PATTERN.sub("", text)
-        text = COMMAS_PATTERN.sub(" ", text)  # Replaces multiple commas and any whitespace with a single space
-=======
         # Remove extra whitespace
         text = RE_WHITESPACE.sub(" ", text.strip())
 
@@ -46,7 +31,6 @@ class DatasetCleaner:
         text = RE_FILLERS.sub("", text)
         text = RE_MULTI_COMMA_SPACE.sub(" ", text)  # Multiple commas/spaces
         text = RE_WHITESPACE.sub(" ", text)     # Normalize whitespace again
->>>>>>> perf/dataset_cleaner-regex_precompile-12345-15718181087636830716
 
         # Remove very short or empty responses
         if len(text.strip()) < 50:
@@ -61,11 +45,7 @@ class DatasetCleaner:
 
         # Normalize for hashing
         combined = f"{human_text.lower().strip()}{gpt_text.lower().strip()}"
-<<<<<<< HEAD
-        combined = COMMAS_PATTERN.sub(" ", combined)
-=======
         combined = RE_WHITESPACE.sub(" ", combined)
->>>>>>> perf/dataset_cleaner-regex_precompile-12345-15718181087636830716
 
         return hashlib.md5(combined.encode()).hexdigest()
 

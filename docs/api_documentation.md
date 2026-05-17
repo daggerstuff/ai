@@ -2,7 +2,7 @@
 
 **Version:** 2.0.0  
 **Updated:** 2025-08-12T20:56:05.349119  
-**Base URL:** https://api.pixelatedempathy.com/v1
+**Base URL:** <https://api.pixelatedempathy.com/v1>
 
 ## 🚀 Quick Start
 
@@ -14,7 +14,7 @@ export API_KEY="your_api_key_here"
 
 # Or use JWT token
 export JWT_TOKEN="your_jwt_token_here"
-```
+```text
 
 ### Basic Usage
 
@@ -32,7 +32,7 @@ curl -X POST "https://api.pixelatedempathy.com/v1/transcribe" \
     "language": "en",
     "model": "whisper-1"
   }'
-```
+```text
 
 ## 📋 API Endpoints
 
@@ -51,7 +51,7 @@ Returns API health status and version information.
   "timestamp": "2025-08-12T20:00:00Z",
   "uptime": 3600
 }
-```
+```text
 
 ### Transcription
 
@@ -72,7 +72,7 @@ Transcribe audio content using AI models.
     "speaker_detection": false
   }
 }
-```
+```text
 
 **Response:**
 
@@ -84,7 +84,7 @@ Transcribe audio content using AI models.
   "duration": 120.5,
   "timestamps": [{ "start": 0.0, "end": 5.2, "text": "Hello world" }]
 }
-```
+```text
 
 **Example:**
 
@@ -101,7 +101,7 @@ response = requests.post(
     }
 )
 print(response.json())
-```
+```text
 
 ### Pipeline Jobs
 
@@ -124,7 +124,7 @@ Create a new pipeline processing job.
     "options": {}
   }
 }
-```
+```text
 
 **Response:**
 
@@ -135,7 +135,7 @@ Create a new pipeline processing job.
   "created_at": "2025-08-12T20:00:00Z",
   "estimated_completion": "2025-08-12T20:05:00Z"
 }
-```
+```text
 
 **GET** `/pipeline/jobs`
 
@@ -154,7 +154,7 @@ List all jobs for the authenticated user.
     "result_url": "https://api.example.com/results/uuid"
   }
 ]
-```
+```text
 
 **GET** `/pipeline/jobs/{job_id}`
 
@@ -180,13 +180,13 @@ List available data files.
 
 ```bash
 curl -H "X-API-Key: your_api_key" https://api.pixelatedempathy.com/v1/
-```
+```text
 
 ### JWT Token Authentication
 
 ```bash
 curl -H "Authorization: Bearer your_jwt_token" https://api.pixelatedempathy.com/v1/
-```
+```text
 
 ### Role-Based Access Control
 
@@ -208,11 +208,11 @@ curl -H "Authorization: Bearer your_jwt_token" https://api.pixelatedempathy.com/
 
 ### Rate Limit Headers
 
-```
+```text
 X-RateLimit-Limit: 60
 X-RateLimit-Remaining: 45
 X-RateLimit-Reset: 1692742800
-```
+```text
 
 ## 🚨 Error Handling
 
@@ -243,7 +243,7 @@ X-RateLimit-Reset: 1692742800
     "request_id": "uuid"
   }
 }
-```
+```text
 
 ## 📚 SDK Examples
 
@@ -293,7 +293,7 @@ class PixelatedEmpathyAPI:
 api = PixelatedEmpathyAPI("your_api_key")
 result = api.transcribe("https://example.com/audio.mp3", timestamps=True)
 print(result["transcript"])
-```
+```text
 
 ### JavaScript/Node.js
 
@@ -350,7 +350,7 @@ const result = await api.transcribe('https://example.com/audio.mp3', {
   timestamps: true,
 })
 console.log(result.transcript)
-```
+```text
 
 ## 🔧 Advanced Features
 
@@ -364,7 +364,7 @@ Configure webhooks to receive job completion notifications:
   "events": ["job.completed", "job.failed"],
   "secret": "your_webhook_secret"
 }
-```
+```text
 
 ### Batch Processing
 
@@ -384,14 +384,14 @@ Process multiple files in a single request:
     "parallel": true
   }
 }
-```
+```text
 
 ## 📞 Support
 
-- **Documentation**: https://docs.pixelatedempathy.com
-- **API Status**: https://status.pixelatedempathy.com
-- **Support**: support@pixelatedempathy.com
-- **Community**: https://community.pixelatedempathy.com
+- **Documentation**: <https://docs.pixelatedempathy.com>
+- **API Status**: <https://status.pixelatedempathy.com>
+- **Support**: <support@pixelatedempathy.com>
+- **Community**: <https://community.pixelatedempathy.com>
 
 ---
 

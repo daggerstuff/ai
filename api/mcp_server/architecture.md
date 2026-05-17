@@ -2,7 +2,11 @@
 
 ## System Overview
 
-The MCP (Management Control Panel) Server is a comprehensive orchestration platform designed to manage agent interactions and coordinate the 6-stage TechDeck-Python pipeline integration process. It provides a centralized control point for agent registration, task delegation, pipeline orchestration, and real-time communication.
+The MCP (Management Control Panel) Server is a comprehensive orchestration
+platform designed to manage agent interactions and coordinate the 6-stage
+TechDeck-Python pipeline integration process. It provides a centralized control
+point for agent registration, task delegation, pipeline orchestration, and real-time
+communication.
 
 ## Architecture Principles
 
@@ -17,7 +21,7 @@ The MCP (Management Control Panel) Server is a comprehensive orchestration platf
 
 ### System Boundaries
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                    MCP Server                               │
 │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌───────┐ │
@@ -45,12 +49,14 @@ The MCP (Management Control Panel) Server is a comprehensive orchestration platf
 ### 1. Agent Management Service
 
 **Responsibilities**:
+
 - Agent registration and onboarding
 - Agent discovery and load balancing
 - Health monitoring and status tracking
 - Capability matching and resource allocation
 
 **Key Components**:
+
 ```python
 class AgentManager:
     def __init__(self):
@@ -70,19 +76,22 @@ class AgentManager:
 ```
 
 **Data Flow**:
-```
+
+```text
 Agent Registration → Validation → Registry → Health Check → Active Pool
 ```
 
 ### 2. Task Orchestration Service
 
 **Responsibilities**:
+
 - Task queue management and prioritization
 - Task assignment to appropriate agents
 - Status tracking and progress monitoring
 - Retry mechanisms and error handling
 
 **Key Components**:
+
 ```python
 class TaskOrchestrator:
     def __init__(self):
@@ -102,19 +111,22 @@ class TaskOrchestrator:
 ```
 
 **Data Flow**:
-```
+
+```text
 Task Submission → Validation → Queue → Assignment → Execution → Completion
 ```
 
 ### 3. Pipeline Engine
 
 **Responsibilities**:
+
 - 6-stage pipeline orchestration
 - Stage dependencies and execution order
 - Progress tracking and validation
 - Pipeline state management
 
 **Key Components**:
+
 ```python
 class PipelineEngine:
     def __init__(self):
@@ -134,19 +146,22 @@ class PipelineEngine:
 ```
 
 **Data Flow**:
-```
+
+```text
 Pipeline Creation → Stage Setup → Dependency Resolution → Execution → Validation
 ```
 
 ### 4. Communication Layer
 
 **Responsibilities**:
+
 - RESTful API endpoint management
 - WebSocket real-time communication
 - Event broadcasting and subscription
 - Protocol translation and message routing
 
 **Key Components**:
+
 ```python
 class CommunicationManager:
     def __init__(self):
@@ -166,19 +181,22 @@ class CommunicationManager:
 ```
 
 **Data Flow**:
-```
+
+```text
 Client Request → Authentication → Routing → Processing → Response/Event
 ```
 
 ### 5. Security & Authentication Service
 
 **Responsibilities**:
+
 - User and agent authentication
 - Authorization and access control
 - Token management and validation
 - Security policy enforcement
 
 **Key Components**:
+
 ```python
 class SecurityManager:
     def __init__(self):
@@ -198,19 +216,22 @@ class SecurityManager:
 ```
 
 **Data Flow**:
-```
+
+```text
 Authentication → Authorization → Policy Check → Resource Access
 ```
 
 ### 6. Monitoring & Logging Service
 
 **Responsibilities**:
+
 - System health monitoring
 - Performance metrics collection
 - Log aggregation and analysis
 - Alerting and notification
 
 **Key Components**:
+
 ```python
 class MonitoringService:
     def __init__(self):
@@ -230,7 +251,8 @@ class MonitoringService:
 ```
 
 **Data Flow**:
-```
+
+```text
 Data Collection → Processing → Analysis → Storage → Alerting
 ```
 
@@ -319,6 +341,7 @@ graph TD
 ```
 
 **Cache Layers**:
+
 1. **Redis Cache**: Session data, frequently accessed configurations
 2. **In-Memory Cache**: Hot data, agent status, task queues
 3. **Database Cache**: Query results, pipeline templates
@@ -561,30 +584,35 @@ graph TD
 ## Quality Attributes
 
 ### Performance
+
 - **Response Time**: <100ms for API requests, <50ms for WebSocket messages
 - **Throughput**: 1000+ requests per second
 - **Latency**: <200ms for task assignment
 - **Scalability**: Auto-scaling based on CPU/memory usage
 
 ### Reliability
+
 - **Availability**: 99.9% uptime
 - **Fault Tolerance**: Automatic recovery from failures
 - **Data Consistency**: Strong consistency for critical operations
 - **Backup**: Regular database backups and disaster recovery
 
 ### Security
+
 - **Authentication**: JWT-based authentication with refresh tokens
 - **Authorization**: Role-based access control with fine-grained permissions
 - **Encryption**: TLS for all communications, encryption at rest
 - **Audit**: Comprehensive audit logging for all operations
 
 ### Maintainability
+
 - **Code Quality**: High test coverage, clean architecture
 - **Documentation**: Comprehensive API documentation and code comments
 - **Monitoring**: Real-time metrics and alerting
 - **Deployment**: Automated CI/CD pipeline with blue-green deployments
 
 ### Usability
+
 - **API Design**: RESTful APIs with clear documentation
 - **WebSocket**: Real-time updates with efficient message routing
 - **Error Handling**: Clear error messages and status codes
@@ -593,16 +621,19 @@ graph TD
 ## Future Considerations
 
 ### Scalability Enhancements
+
 1. **Sharding**: Database sharding for horizontal scaling
 2. **Microservices**: Decompose into microservices for independent scaling
 3. **Edge Computing**: Deploy edge nodes for global distribution
 
 ### Feature Extensions
+
 1. **Multi-tenancy**: Support for multiple organizations
 2. **Advanced Scheduling**: Complex scheduling algorithms
 3. **Machine Learning**: Predictive task assignment and resource optimization
 
 ### Technology Evolution
+
 1. **Kubernetes**: Full Kubernetes-native deployment
 2. **Service Mesh**: Istio for advanced service networking
 3. **Serverless**: Serverless functions for event-driven processing

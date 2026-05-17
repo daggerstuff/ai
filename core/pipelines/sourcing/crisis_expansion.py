@@ -478,6 +478,19 @@ class CrisisExpansion:
 
         # Convert to list and limit size
         result = list(expansions)
+        if not self.config.handle_negation:
+            result = [
+                expansion
+                for expansion in result
+                if not (
+                    expansion.startswith("not ")
+                    or expansion.startswith("don't ")
+                    or expansion.startswith("do not ")
+                    or expansion.startswith("never ")
+                    or " not " in expansion
+                )
+            ]
+        result = [term_lower] + sorted(expansions for expansions in result if expansions != term_lower)
         if len(result) > self.config.max_expansion_terms:
             result = result[: self.config.max_expansion_terms]
 

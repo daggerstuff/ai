@@ -230,7 +230,7 @@ class NGCCLI:
         resource_path: str,
         version: str | None = None,
         output_dir: Path | None = None,
-        extract: bool = True,  # noqa: ARG002
+        extract: bool = True,
     ) -> Path:
         """
         Download a resource from NGC catalog.

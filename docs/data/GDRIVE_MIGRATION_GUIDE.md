@@ -1,4 +1,4 @@
-# Google Drive Dataset Migration Guide
+<!-- markdownlint-disable -->\n\n# Google Drive Dataset Migration Guide
 
 **Purpose**: Step-by-step guide for reorganizing Google Drive datasets into
 canonical structure  
@@ -38,7 +38,7 @@ rclone mkdir gdrive:datasets/professional_therapeutic
 rclone mkdir gdrive:datasets/priority
 rclone mkdir gdrive:datasets/edge_cases
 rclone mkdir gdrive:datasets/edge_cases/raw
-```
+```text
 
 ### Step 2: Migrate CoT Reasoning Datasets
 
@@ -80,7 +80,7 @@ rclone move gdrive:datasets/CoT_Philosophical_Understanding \
 rclone move gdrive:datasets/CoT_Temporal_Reasoning_Dataset \
            gdrive:datasets/cot_reasoning/temporal_reasoning \
            --transfers=1 --progress
-```
+```text
 
 ### Step 3: Migrate Professional Therapeutic Datasets
 
@@ -116,7 +116,7 @@ rclone move gdrive:datasets/neuro_qa_SFT_Trainer \
 rclone move gdrive:datasets/Psych8k \
            gdrive:datasets/professional_therapeutic/psych8k \
            --transfers=1 --progress
-```
+```text
 
 ### Step 4: Migrate Priority Datasets
 
@@ -125,7 +125,7 @@ rclone move gdrive:datasets/Psych8k \
 rclone move gdrive:datasets/datasets-wendy \
            gdrive:datasets/priority \
            --transfers=1 --progress
-```
+```text
 
 ### Step 5: Migrate Edge Cases
 
@@ -134,7 +134,7 @@ rclone move gdrive:datasets/datasets-wendy \
 rclone move gdrive:datasets/reddit \
            gdrive:datasets/edge_cases/raw/reddit \
            --transfers=1 --progress
-```
+```text
 
 ### Step 6: Verify Migration
 
@@ -146,7 +146,7 @@ rclone tree gdrive:datasets --depth=2
 rclone ls gdrive:datasets/cot_reasoning/
 rclone ls gdrive:datasets/professional_therapeutic/
 rclone ls gdrive:datasets/priority/
-```
+```text
 
 ---
 
@@ -167,7 +167,7 @@ Update all paths in `ai/data/dataset_registry.json` to use canonical structure:
     }
   }
 }
-```
+```text
 
 ### 2. Update Training Scripts
 
@@ -189,7 +189,7 @@ rclone lsd gdrive:datasets/priority
 
 # Test download
 rclone copy gdrive:datasets/cot_reasoning/clinical_diagnosis_mental_health.json ./test/
-```
+```text
 
 ---
 
@@ -205,7 +205,7 @@ rclone copy gdrive:datasets_backup_YYYYMMDD gdrive:datasets --progress
 rclone move gdrive:datasets/cot_reasoning/clinical_diagnosis_mental_health \
            gdrive:datasets/CoT_Reasoning_Clinical_Diagnosis_Mental_Health \
            --transfers=1
-```
+```text
 
 ---
 

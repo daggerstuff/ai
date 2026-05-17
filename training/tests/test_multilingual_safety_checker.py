@@ -1,4 +1,4 @@
-"""Tests for the multilingual safety checker."""
+"""Tests for the multilingual content checker."""
 
 from __future__ import annotations
 
@@ -9,49 +9,41 @@ import pytest
 
 try:
     from hypothesis import given, strategies as st
-except ImportError:  # pragma: no cover
+except ImportError:
     given = None
     st = None
 
-from training.clinical_safety_checker import ClinicalSafetyChecker
-from training.multilingual_safety_checker import MultilingualSafetyChecker
+from training.clinical_safety_checker import ClinicalContentAnalyzer
+from training.multilingual_safety_checker import MultilingualContentChecker
 
+<<<<<<< HEAD
 # ---------------------------------------------------------------------------
 # Interface & metadata tests
 # ---------------------------------------------------------------------------
+=======
+>>>>>>> origin/staging
 
 def test_version_format():
-    """VERSION follows MAJOR.MINOR.PATCH."""
-    assert re.match(r"^\d+\.\d+\.\d+$", MultilingualSafetyChecker.VERSION)
+    assert re.match(r"^\d+\.\d+\.\d+$", MultilingualContentChecker.VERSION)
 
 
 def test_supported_languages():
-    """supported_languages contains exactly the five expected codes."""
-    assert MultilingualSafetyChecker.supported_languages == ["en", "es", "fr", "pt", "de"]
+    assert MultilingualContentChecker.supported_languages == ["en", "es", "fr", "pt", "de"]
 
 
-def test_inherits_clinical_safety_checker():
-    """MultilingualSafetyChecker extends ClinicalSafetyChecker."""
-    assert issubclass(MultilingualSafetyChecker, ClinicalSafetyChecker)
+def test_inherits_clinical_content_analyzer():
+    assert issubclass(MultilingualContentChecker, ClinicalContentAnalyzer)
 
 
-def test_is_unsafe_signature_compatible():
-    """is_unsafe accepts (text, language=None) — backwards compatible with parent."""
-    sig = inspect.signature(MultilingualSafetyChecker.is_unsafe)
+def test_contains_crisis_keywords_signature():
+    sig = inspect.signature(MultilingualContentChecker.contains_crisis_keywords)
     params = list(sig.parameters.values())
     assert params[0].name == "text"
-    assert params[1].name == "language"
-    assert params[1].default is None
 
 
-def test_is_unsafe_callable_with_single_arg():
-    """Calling is_unsafe with just text works (backwards compat)."""
-    assert isinstance(MultilingualSafetyChecker.is_unsafe("I want to die"), bool)
+def test_contains_crisis_keywords_callable():
+    assert isinstance(MultilingualContentChecker.contains_crisis_keywords("I want to die"), bool)
 
-
-# ---------------------------------------------------------------------------
-# Per-language crisis expressions (3+ per language = 15 minimum)
-# ---------------------------------------------------------------------------
 
 ES_CRISIS = (
     "Quiero suicidarme esta noche.",
@@ -93,10 +85,6 @@ EN_CRISIS = (
     "I've made my final decision",
 )
 
-# ---------------------------------------------------------------------------
-# Per-language negated expressions (2+ per language = 10 minimum)
-# ---------------------------------------------------------------------------
-
 ES_NEGATED = (
     "No quiero morir, pero estoy bien.",
     "No voy a cortarme.",
@@ -133,105 +121,75 @@ EN_NEGATED = (
 )
 
 
-# ---------------------------------------------------------------------------
-# Parametrized unit tests — crisis detection per language
-# ---------------------------------------------------------------------------
-
 @pytest.mark.parametrize("text", ES_CRISIS)
 def test_es_crisis_detected(text: str):
-    assert MultilingualSafetyChecker.is_unsafe(text)
+    assert MultilingualContentChecker.contains_crisis_keywords(text)
 
 
 @pytest.mark.parametrize("text", FR_CRISIS)
 def test_fr_crisis_detected(text: str):
-    assert MultilingualSafetyChecker.is_unsafe(text)
+    assert MultilingualContentChecker.contains_crisis_keywords(text)
 
 
 @pytest.mark.parametrize("text", PT_CRISIS)
 def test_pt_crisis_detected(text: str):
-    assert MultilingualSafetyChecker.is_unsafe(text)
+    assert MultilingualContentChecker.contains_crisis_keywords(text)
 
 
 @pytest.mark.parametrize("text", DE_CRISIS)
 def test_de_crisis_detected(text: str):
-    assert MultilingualSafetyChecker.is_unsafe(text)
+    assert MultilingualContentChecker.contains_crisis_keywords(text)
 
 
 @pytest.mark.parametrize("text", EN_CRISIS)
 def test_en_crisis_detected(text: str):
-    assert MultilingualSafetyChecker.is_unsafe(text)
+    assert MultilingualContentChecker.contains_crisis_keywords(text)
 
-
-# ---------------------------------------------------------------------------
-# Parametrized unit tests — negation suppression per language
-# ---------------------------------------------------------------------------
 
 @pytest.mark.parametrize("text", ES_NEGATED)
-def test_es_negated_not_unsafe(text: str):
-    assert not MultilingualSafetyChecker.is_unsafe(text)
+def test_es_negated_not_detected(text: str):
+    assert not MultilingualContentChecker.contains_crisis_keywords(text)
 
 
 @pytest.mark.parametrize("text", FR_NEGATED)
-def test_fr_negated_not_unsafe(text: str):
-    assert not MultilingualSafetyChecker.is_unsafe(text)
+def test_fr_negated_not_detected(text: str):
+    assert not MultilingualContentChecker.contains_crisis_keywords(text)
 
 
 @pytest.mark.parametrize("text", PT_NEGATED)
-def test_pt_negated_not_unsafe(text: str):
-    assert not MultilingualSafetyChecker.is_unsafe(text)
+def test_pt_negated_not_detected(text: str):
+    assert not MultilingualContentChecker.contains_crisis_keywords(text)
 
 
 @pytest.mark.parametrize("text", DE_NEGATED)
-def test_de_negated_not_unsafe(text: str):
-    assert not MultilingualSafetyChecker.is_unsafe(text)
+def test_de_negated_not_detected(text: str):
+    assert not MultilingualContentChecker.contains_crisis_keywords(text)
 
 
 @pytest.mark.parametrize("text", EN_NEGATED)
-def test_en_negated_not_unsafe(text: str):
-    assert not MultilingualSafetyChecker.is_unsafe(text)
-
-
-# ---------------------------------------------------------------------------
-# Language-scoped is_unsafe tests
-# ---------------------------------------------------------------------------
-
-@pytest.mark.parametrize("lang", MultilingualSafetyChecker.supported_languages)
-def test_language_param_crisis(lang: str):
-    """Passing language explicitly still detects crisis in that language."""
-    crisis_map = {
-        "en": "I want to die",
-        "es": "quiero suicidarme",
-        "fr": "je veux mourir",
-        "pt": "quero morrer",
-        "de": "ich will sterben",
-    }
-    assert MultilingualSafetyChecker.is_unsafe(crisis_map[lang], language=lang)
-
-
-def test_unknown_language_falls_back_to_all():
-    """Unknown language code checks all pattern sets."""
-    assert MultilingualSafetyChecker.is_unsafe("I want to die", language="xx")
+def test_en_negated_not_detected(text: str):
+    assert not MultilingualContentChecker.contains_crisis_keywords(text)
 
 
 def test_empty_and_nonstring_input():
-    assert not MultilingualSafetyChecker.is_unsafe("")
-    assert not MultilingualSafetyChecker.is_unsafe("   ")
-    assert not MultilingualSafetyChecker.is_unsafe(None)
+    assert not MultilingualContentChecker.contains_crisis_keywords("")
+    assert not MultilingualContentChecker.contains_crisis_keywords("   ")
+    assert not MultilingualContentChecker.contains_crisis_keywords(None)
 
 
+<<<<<<< HEAD
 # ---------------------------------------------------------------------------
 # Production pilot integration
 # ---------------------------------------------------------------------------
 
 def test_production_pilot_safety_checker_disabled():
     """SAFETY CHECKERS DISABLED per user request."""
+=======
+def test_production_pilot_safety_checker_disabled():
+>>>>>>> origin/staging
     pilot = pytest.importorskip("training.pixelated_production_pilot")
     assert pilot.SAFETY_CHECKER is None
 
-
-# ---------------------------------------------------------------------------
-# Hypothesis property tests
-# ---------------------------------------------------------------------------
 
 if st is not None:
 
@@ -239,40 +197,18 @@ if st is not None:
     _ALL_NEGATED = ES_NEGATED + FR_NEGATED + PT_NEGATED + DE_NEGATED + EN_NEGATED
 
     @given(st.sampled_from(_ALL_CRISIS))
-    def test_hypothesis_crisis_always_unsafe(sample: str):
-        assert MultilingualSafetyChecker.is_unsafe(sample)
+    def test_hypothesis_crisis_always_detected(sample: str):
+        assert MultilingualContentChecker.contains_crisis_keywords(sample)
 
     @given(st.sampled_from(_ALL_NEGATED))
-    def test_hypothesis_negated_never_unsafe(sample: str):
-        assert not MultilingualSafetyChecker.is_unsafe(sample)
-
-    _LANG_CRISIS_MAP = {
-        "en": EN_CRISIS,
-        "es": ES_CRISIS,
-        "fr": FR_CRISIS,
-        "pt": PT_CRISIS,
-        "de": DE_CRISIS,
-    }
-
-    @given(
-        lang_crisis=st.sampled_from(
-            [(lang, text) for lang, texts in _LANG_CRISIS_MAP.items() for text in texts]
-        ),
-    )
-    def test_hypothesis_crisis_detected_with_explicit_lang(lang_crisis: tuple[str, str]):
-        lang, crisis = lang_crisis
-        assert MultilingualSafetyChecker.is_unsafe(crisis, language=lang)
+    def test_hypothesis_negated_not_detected(sample: str):
+        assert not MultilingualContentChecker.contains_crisis_keywords(sample)
 
 else:
-
     @pytest.mark.skip(reason="hypothesis not installed")
-    def test_hypothesis_crisis_always_unsafe():
+    def test_hypothesis_crisis_always_detected():
         raise AssertionError("Skipped when hypothesis is unavailable")
 
     @pytest.mark.skip(reason="hypothesis not installed")
-    def test_hypothesis_negated_never_unsafe():
-        raise AssertionError("Skipped when hypothesis is unavailable")
-
-    @pytest.mark.skip(reason="hypothesis not installed")
-    def test_hypothesis_crisis_detected_with_explicit_lang():
+    def test_hypothesis_negated_not_detected():
         raise AssertionError("Skipped when hypothesis is unavailable")

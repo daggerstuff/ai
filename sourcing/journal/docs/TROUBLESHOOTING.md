@@ -1,4 +1,4 @@
-# Journal Dataset Research System - Troubleshooting Guide
+ # Journal Dataset Research System - Troubleshooting Guide
 
 ## Table of Contents
 

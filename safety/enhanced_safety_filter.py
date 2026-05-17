@@ -3,16 +3,52 @@ Enhanced safety and content filtering system for Pixelated Empathy AI project.
 Ensures all inference outputs pass rigorous safety checks before being returned.
 """
 
+import importlib
 import logging
+import os
 import re
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
+from collections.abc import Callable
 from typing import Any
 
-import torch
-from transformers import pipeline
+_TRANSFORMERS_PIPELINE: Callable[..., Any] | None = None
+_PIPELINE_IMPORT_ATTEMPTED = False
+
+
+def _disable_transformer_models() -> bool:
+    return os.getenv("AI_DISABLE_SAFETY_ML_MODELS", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+
+
+def _load_transformers_pipeline() -> Callable[..., Any] | None:
+    global _TRANSFORMERS_PIPELINE, _PIPELINE_IMPORT_ATTEMPTED
+    if _PIPELINE_IMPORT_ATTEMPTED or _TRANSFORMERS_PIPELINE is not None:
+        return _TRANSFORMERS_PIPELINE
+    _PIPELINE_IMPORT_ATTEMPTED = True
+    if _disable_transformer_models():
+        return None
+    try:
+        module = importlib.import_module("transformers")
+        pipeline = getattr(module, "pipeline")
+        _TRANSFORMERS_PIPELINE = pipeline
+        return pipeline
+    except Exception:
+        return None
+
+
+def _torch_available() -> bool:
+    try:
+        importlib.import_module("torch")
+        return True
+    except Exception:
+        return False
 
 logger = logging.getLogger(__name__)
 
@@ -87,6 +123,9 @@ class EnhancedSafetyFilter:
         """Initialize safety classification models"""
         try:
             # Toxicity classifier
+            pipeline = _load_transformers_pipeline()
+            if pipeline is None:
+                raise RuntimeError("transformers pipeline unavailable")
             self.toxicity_classifier = pipeline(
                 "text-classification",
                 model="unitary/toxic-bert",
@@ -94,19 +133,22 @@ class EnhancedSafetyFilter:
             )
             self.logger.info("Toxicity classifier loaded successfully")
         except Exception as e:
-            self.logger.warning(f"Could not load toxicity classifier: {e}")
+            self.logger.debug(f"Could not load toxicity classifier: {e}")
             self.toxicity_classifier = None
 
         try:
             # Bias classifier (simplified - you'd use a proper bias detection model)
+            pipeline = _load_transformers_pipeline()
+            if pipeline is None or not _torch_available():
+                raise RuntimeError("bias classifier unavailable")
             self.bias_classifier = pipeline(
                 "text-classification",
-                model="d4data/bias-detection-model" if torch.cuda.is_available() else None,
-                tokenizer="d4data/bias-detection-model" if torch.cuda.is_available() else None
+                model="d4data/bias-detection-model",
+                tokenizer="d4data/bias-detection-model"
             )
             self.logger.info("Bias classifier loaded successfully")
         except Exception as e:
-            self.logger.warning(f"Could not load bias classifier: {e}")
+            self.logger.debug(f"Could not load bias classifier: {e}")
             self.bias_classifier = None
 
     def _initialize_crisis_patterns(self) -> dict[str, list[str]]:
@@ -392,7 +434,7 @@ class EnhancedSafetyFilter:
                     if toxicity_result["label"] == "TOXIC":
                         return min(1.0, toxicity_result["score"])
             except Exception as e:
-                self.logger.warning(f"Toxicity classifier error: {e}")
+                self.logger.debug(f"Toxicity classifier error: {e}")
 
         # Fallback to keyword matching
         toxic_matches = sum(1 for pattern in self.harm_patterns["physical_harm"]
@@ -444,7 +486,7 @@ class EnhancedSafetyFilter:
                     if bias_result["label"] in ["BIASED", "STEREOTYPE"]:
                         return min(1.0, bias_result["score"])
             except Exception as e:
-                self.logger.warning(f"Bias classifier error: {e}")
+                self.logger.debug(f"Bias classifier error: {e}")
 
         # Fallback to simple keyword matching for biased content
         bias_keywords = [
@@ -709,7 +751,7 @@ class CrisisInterventionSystem:
             "confidence": crisis_result.confidence
         }
 
-        self.logger.warning(f"SUBSTANCE ABUSE INDICATORS DETECTED: {crisis_log}")
+        self.logger.debug(f"Substance abuse indicators detected: {crisis_log}")
 
         response_content = {
             "message": "Substance use concerns can be challenging. Support is available.",
@@ -744,7 +786,7 @@ class CrisisInterventionSystem:
             "confidence": crisis_result.confidence
         }
 
-        self.logger.warning(f"EATING DISORDER INDICATORS DETECTED: {crisis_log}")
+        self.logger.debug(f"Eating disorder indicators detected: {crisis_log}")
 
         response_content = {
             "message": "Concerns about eating patterns can be addressed with professional support.",

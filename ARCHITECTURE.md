@@ -1,6 +1,12 @@
 # AI Architecture & Reorganization Plan
 
+<<<<<<< HEAD
 This document outlines the consolidated architecture for the Pixelated Empathy AI codebase. The goal is to eliminate redundancy, clarify component responsibilities, and ensure all subsystems are utilized effectively.
+=======
+This document outlines the consolidated architecture for the Pixelated Empathy AI
+codebase. The goal is to eliminate redundancy, clarify component responsibilities, and
+ensure all subsystems are utilized effectively.
+>>>>>>> origin/staging
 
 ## 🎯 Target Architecture
 
@@ -21,7 +27,12 @@ The codebase handles 5 main domains: Sourcing, Processing, Modeling, Training, a
 * `voice/` (Merged `ai/models/pixel_core_voice` and `ai/pipelines/voice`) - Audio processing pipeline.
 * `edge_case/` (Derived from `ai/pipelines/edge_case` and `ai/pipelines/design`) - Generating difficult scenarios.
 * `dual_persona/` (From `ai/pipelines/dual_persona`) - Persona switching generation.
+<<<<<<< HEAD
 * `orchestrator/` (Formerly `ai/pipelines/orchestrator`) - **The Master Pipeline**. Integrates all other pipelines into the final dataset.
+=======
+* `orchestrator/` (Formerly `ai/pipelines/orchestrator`) - **The Master Pipeline**.
+  Integrates all other pipelines into the final dataset.
+>>>>>>> origin/staging
   * *Note: This folder previously contained everything. It is now focused on integration.*
 
 ### 3. `ai/models/components/` (Core Intelligence)

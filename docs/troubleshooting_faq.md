@@ -5,22 +5,22 @@
 
 ## Table of Contents
 
-- [Quick Start Issues](#quick_start_issues)
-- [Installation Problems](#installation_problems)
-- [Data Processing Issues](#data_processing_issues)
-- [Quality Validation Problems](#quality_validation_problems)
-- [Performance Issues](#performance_issues)
-- [Api Access Problems](#api_access_problems)
-- [Export Format Issues](#export_format_issues)
-- [Database Problems](#database_problems)
-- [Memory And Resource Issues](#memory_and_resource_issues)
-- [Frequently Asked Questions](#frequently_asked_questions)
-- [Error Codes Reference](#error_codes_reference)
-- [Support Resources](#support_resources)
+- [Quick Start Issues](#quick-start-issues)
+- [Installation Problems](#installation-problems)
+- [Data Processing Issues](#data-processing-issues)
+- [Quality Validation Problems](#quality-validation-problems)
+- [Performance Issues](#performance-issues)
+- [API Access Problems](#api-access-problems)
+- [Export Format Issues](#export-format-issues)
+- [Database Problems](#database-problems)
+- [Memory And Resource Issues](#memory-and-resource-issues)
+- [Frequently Asked Questions](#frequently-asked-questions)
+- [Error Codes Reference](#error-codes-reference)
+- [Support Resources](#support-resources)
 
 ---
 
-## Quick Start Issues {#quick_start_issues}
+## Quick Start Issues
 
 ### Common Issues
 
@@ -77,7 +77,7 @@
 - Test imports: `python -c 'import pandas, numpy, sqlite3'`
 - Run basic test: `python -c 'print("Setup successful")'`
 
-## Installation Problems {#installation_problems}
+## Installation Problems
 
 ### System Requirements
 
@@ -165,7 +165,7 @@
 - Close all database connections
 - Delete and recreate database if corrupted
 
-## Data Processing Issues {#data_processing_issues}
+## Data Processing Issues
 
 ### Processing Failures
 
@@ -245,7 +245,7 @@
 - Check if conversations are actually duplicates
 - Disable deduplication for testing: `enable_deduplication=False`
 
-## Quality Validation Problems {#quality_validation_problems}
+## Quality Validation Problems
 
 ### Validation Errors
 
@@ -290,7 +290,7 @@
 - **description**: Use multiple workers for validation
 - **implementation**: Set num_workers=4 (adjust based on CPU cores)
 
-## Performance Issues {#performance_issues}
+## Performance Issues
 
 ### Memory Issues
 
@@ -328,7 +328,7 @@
 - **description**: Write data in batches
 - **configuration**: Set write_batch_size=10000
 
-## Api Access Problems {#api_access_problems}
+## API Access Problems
 
 ### Authentication Issues
 
@@ -376,7 +376,7 @@
 - Increase timeout values
 - Check firewall settings
 
-## Export Format Issues {#export_format_issues}
+## Export Format Issues
 
 ### Format Specific Issues
 
@@ -410,7 +410,7 @@
 - Escape special characters
 - Use proper CSV quoting
 
-## Database Problems {#database_problems}
+## Database Problems
 
 ### Common Database Issues
 
@@ -442,7 +442,7 @@
 - Recreate database from processed data
 - Check disk space and file system
 
-## Memory And Resource Issues {#memory_and_resource_issues}
+## Memory And Resource Issues
 
 ### Resource Monitoring
 
@@ -464,7 +464,7 @@
 - Check load average: `uptime`
 - Profile Python code: `pip install py-spy`
 
-## Frequently Asked Questions {#frequently_asked_questions}
+## Frequently Asked Questions
 
 ### General Questions
 
@@ -517,7 +517,7 @@ based on your specific requirements.
 **A:** Yes, the system supports custom datasets in JSONL, JSON, or CSV format
 with proper conversation structure.
 
-## Error Codes Reference {#error_codes_reference}
+## Error Codes Reference
 
 ### Processing Errors
 
@@ -581,7 +581,7 @@ File write permission denied
 
 Insufficient disk space
 
-## Support Resources {#support_resources}
+## Support Resources
 
 ### Documentation
 
@@ -606,16 +606,16 @@ Insufficient disk space
 
 #### General Inquiries
 
-info@pixelatedempathy.com
+<info@pixelatedempathy.com>
 
 #### Technical Support
 
-support@pixelatedempathy.com
+<support@pixelatedempathy.com>
 
 #### Commercial Licensing
 
-licensing@pixelatedempathy.com
+<licensing@pixelatedempathy.com>
 
 #### Security Issues
 
-security@pixelatedempathy.com
+<security@pixelatedempathy.com>

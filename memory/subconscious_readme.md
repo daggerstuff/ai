@@ -1,4 +1,4 @@
-# Subconscious Memory Injection
+ # Subconscious Memory Injection
 
 The supported path is `ai.memory.v3`.
 
@@ -48,7 +48,7 @@ await reset_subconscious(token)
 ## Files
 
 | File | Purpose |
-|------|---------|
+| ------ | --------- |
 | `v3/config.py` | v3 configuration |
 | `v3/context.py` | contextvars API |
 | `v3/client.py` | explicit client wrapper |

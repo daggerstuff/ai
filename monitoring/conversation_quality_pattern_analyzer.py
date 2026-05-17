@@ -24,7 +24,7 @@ import numpy as np
 import pandas as pd
 from textstat import flesch_kincaid_grade, flesch_reading_ease
 
-warnings.filterwarnings("ignore")
+warnings.simplefilter("default")
 
 
 class ConversationQualityPatternAnalyzer:

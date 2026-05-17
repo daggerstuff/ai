@@ -17,7 +17,7 @@ from typing import Any
 
 import numpy as np
 import psutil
-import torch
+from ai.utils.torch_proxy import torch
 
 logger = logging.getLogger(__name__)
 

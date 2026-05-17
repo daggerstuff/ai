@@ -1,4 +1,4 @@
-# Velocity - MoE Optimized Training Package
+<!-- markdownlint-disable -->\n\n# Velocity - MoE Optimized Training Package
 
 **Created**: 2025-10-28 20:41:04
 **Version**: 5.0

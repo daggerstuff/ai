@@ -1,4 +1,4 @@
-# Get Up to Speed: Training Consolidation Project
+<!-- markdownlint-disable -->\n\n# Get Up to Speed: Training Consolidation Project
 
 ## Project Context
 
@@ -67,7 +67,7 @@ system includes:
 
 ### Data Flow
 
-```
+```text
 Local Machine → Catalog → Identify Local vs Remote
                                     ↓
 Remote (HF/Kaggle/URL) → Direct Download → S3
@@ -75,7 +75,7 @@ Remote (HF/Kaggle/URL) → Direct Download → S3
 Local-Only → Upload from Local → S3
                                     ↓
 S3 → Process → Filter → Format → Assemble → Final Datasets
-```
+```text
 
 ## Current Task: VPS Migration
 
@@ -108,7 +108,7 @@ requests  # URL downloads
 
 # Project dependencies
 # (from main pyproject.toml)
-```
+```text
 
 ### Environment Variables
 
@@ -123,7 +123,7 @@ S3_BUCKET
 KAGGLE_USERNAME
 KAGGLE_KEY
 HF_TOKEN
-```
+```text
 
 ## Quick Commands
 
@@ -133,7 +133,7 @@ HF_TOKEN
 python3 scripts/catalog_local_only_datasets.py
 # Output: scripts/output/dataset_accessibility_catalog.json
 #         scripts/output/local_only_upload_list.txt
-```
+```text
 
 ### Download to S3
 
@@ -141,13 +141,13 @@ python3 scripts/catalog_local_only_datasets.py
 python3 scripts/download_to_s3.py \
   --bucket $S3_BUCKET \
   --catalog scripts/output/dataset_accessibility_catalog.json
-```
+```text
 
 ### Process Data
 
 ```bash
 uv run python3 scripts/prepare_training_data.py --all
-```
+```text
 
 ## Next Steps
 

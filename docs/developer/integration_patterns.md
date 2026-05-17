@@ -5,12 +5,12 @@ Pixelated Empathy AI.**
 
 ## Table of Contents
 
-1. [Microservices Integration](#microservices-integration)
-2. [Event-Driven Architecture](#event-driven-architecture)
-3. [Batch Processing Patterns](#batch-processing-patterns)
-4. [Real-Time Integration](#real-time-integration)
-5. [ML Pipeline Integration](#ml-pipeline-integration)
-6. [Enterprise Integration](#enterprise-integration)
+1. \1
+2. \1
+3. \1
+4. \1
+5. \1
+6. \1
 
 ---
 
@@ -87,7 +87,7 @@ class ConversationService:
             await asyncio.sleep(0.1)
 
         return results
-```
+```text
 
 ### API Gateway Integration
 
@@ -168,7 +168,7 @@ class APIGateway:
                     }
 
             await asyncio.sleep(30)  # Check every 30 seconds
-```
+```text
 
 ---
 
@@ -273,7 +273,7 @@ class ConversationEventProcessor:
                 'conversation_id': conversation_id,
                 'error': str(e)
             })
-```
+```text
 
 ### Message Queue Integration
 
@@ -370,7 +370,7 @@ def export_dataset(self, dataset_name, export_format, filters):
     except Exception as exc:
         self.update_state(state='FAILURE', meta={'error': str(exc)})
         raise
-```
+```text
 
 ---
 
@@ -499,7 +499,7 @@ class ConversationETLPipeline:
         except Exception as e:
             self.logger.error(f"ETL pipeline failed: {e}")
             raise
-```
+```text
 
 ### Streaming Data Processing
 
@@ -581,7 +581,7 @@ class ConversationStreamProcessor:
         # Trigger alerts if needed
         if insights['risk_score'] > 0.8:
             self.trigger_alert(conversation['id'], insights)
-```
+```text
 
 ---
 
@@ -675,7 +675,7 @@ class RealTimeConversationAnalyzer:
                 *[ws.send(message) for ws in self.active_connections],
                 return_exceptions=True
             )
-```
+```text
 
 ### Server-Sent Events (SSE)
 
@@ -747,7 +747,7 @@ class SSEConversationUpdates:
                 error_data = {'error': str(e), 'timestamp': datetime.now().isoformat()}
                 yield f"data: {json.dumps(error_data)}\n\n"
                 await asyncio.sleep(60)  # Wait longer on error
-```
+```text
 
 ---
 

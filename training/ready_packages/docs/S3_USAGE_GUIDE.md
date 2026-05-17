@@ -1,4 +1,4 @@
-# S3 Training Data Usage Guide
+<!-- markdownlint-disable -->\n\n# S3 Training Data Usage Guide
 
 **Purpose**: How to use S3 (the training mecca) in training scripts  
 **Status**: S3 is canonical - all training data should be loaded from S3

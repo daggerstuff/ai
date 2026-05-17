@@ -6,15 +6,15 @@
 
 ## Table of Contents
 
-- [Quick Diagnostics](#quick-diagnostics)
-- [Common Issues](#common-issues)
-- [API Issues](#api-issues)
-- [Database Issues](#database-issues)
-- [Authentication Issues](#authentication-issues)
-- [Performance Issues](#performance-issues)
-- [Deployment Issues](#deployment-issues)
-- [Monitoring & Logging](#monitoring--logging)
-- [Emergency Procedures](#emergency-procedures)
+- \1
+- \1
+- \1
+- \1
+- \1
+- \1
+- \1
+- \1
+- \1
 
 ---
 
@@ -32,7 +32,7 @@ curl -s http://localhost:8000/health/detailed | jq '.'
 # Check all services
 docker-compose ps
 kubectl get pods -n pixelated-empathy
-```
+```text
 
 ### System Status Overview
 
@@ -49,7 +49,7 @@ nslookup api.pixelatedempathy.com
 # Check service ports
 netstat -tlnp | grep :8000
 ss -tlnp | grep :8000
-```
+```text
 
 ---
 
@@ -75,7 +75,7 @@ docker exec pixelated-api env | grep -E "(DATABASE|REDIS|JWT)"
 
 # Test Python imports
 docker exec pixelated-api python -c "import pixel_voice.api.server"
-```
+```text
 
 **Solutions:**
 
@@ -89,9 +89,9 @@ echo $REDIS_URL
 
 # Set missing variables
 export JWT_SECRET_KEY="your-secret-key"
-```
+```text
 
-2. **Database Connection Issues:**
+1. **Database Connection Issues:**
 
 ```bash
 # Test database connectivity
@@ -103,9 +103,9 @@ try:
 except Exception as e:
     print(f'Database connection failed: {e}')
 "
-```
+```text
 
-3. **Port Already in Use:**
+1. **Port Already in Use:**
 
 ```bash
 # Find process using port 8000
@@ -114,7 +114,7 @@ kill -9 <PID>
 
 # Or use different port
 export API_PORT=8001
-```
+```text
 
 ### Issue 2: High Memory Usage
 
@@ -138,7 +138,7 @@ import os
 process = psutil.Process(os.getpid())
 print(f'Memory usage: {process.memory_info().rss / 1024 / 1024:.2f} MB')
 "
-```
+```text
 
 **Solutions:**
 
@@ -151,23 +151,23 @@ resources:
     memory: '2Gi'
   requests:
     memory: '1Gi'
-```
+```text
 
-2. **Optimize Database Connections:**
+1. **Optimize Database Connections:**
 
 ```python
 # In database configuration
 DATABASE_POOL_SIZE = 5  # Reduce from default 20
 DATABASE_MAX_OVERFLOW = 10  # Reduce from default 30
-```
+```text
 
-3. **Enable Garbage Collection:**
+1. **Enable Garbage Collection:**
 
 ```python
 # Add to application startup
 import gc
 gc.set_threshold(700, 10, 10)  # More aggressive GC
-```
+```text
 
 ### Issue 3: Slow API Response Times
 
@@ -200,7 +200,7 @@ FROM pg_stat_statements
 ORDER BY mean_time DESC
 LIMIT 10;
 "
-```
+```text
 
 **Solutions:**
 
@@ -216,9 +216,9 @@ EXPLAIN ANALYZE SELECT * FROM conversations
 WHERE user_id = 'user123'
 ORDER BY created_at DESC
 LIMIT 50;
-```
+```text
 
-2. **Enable Caching:**
+1. **Enable Caching:**
 
 ```python
 # Add Redis caching to frequently accessed data
@@ -226,9 +226,9 @@ LIMIT 50;
 def get_user_conversations(user_id: str):
     # Database query here
     pass
-```
+```text
 
-3. **Increase Worker Processes:**
+1. **Increase Worker Processes:**
 
 ```bash
 # For Docker deployment
@@ -236,7 +236,7 @@ export API_WORKERS=4
 
 # For Kubernetes
 kubectl scale deployment pixelated-api --replicas=3 -n pixelated-empathy
-```
+```text
 
 ---
 
@@ -271,7 +271,7 @@ try:
 except Exception as e:
     print(f'Token decode error: {e}')
 "
-```
+```text
 
 **Solutions:**
 
@@ -283,15 +283,15 @@ export JWT_SECRET_KEY=$(openssl rand -base64 32)
 
 # Restart application
 docker-compose restart api
-```
+```text
 
-2. **Check System Time:**
+1. **Check System Time:**
 
 ```bash
 # Ensure system time is correct
 timedatectl status
 ntpdate -s time.nist.gov
-```
+```text
 
 ### Issue: 429 Rate Limited Errors
 
@@ -310,7 +310,7 @@ docker exec redis redis-cli get "rate_limit:user123"
 
 # Check rate limit configuration
 grep -r "RATE_LIMIT" .env
-```
+```text
 
 **Solutions:**
 
@@ -320,9 +320,9 @@ grep -r "RATE_LIMIT" .env
 # In rate_limiting.py
 RATE_LIMIT_REQUESTS_PER_MINUTE = 1000  # Increase from 100
 RATE_LIMIT_BURST_SIZE = 200  # Increase burst allowance
-```
+```text
 
-2. **Whitelist IP Addresses:**
+1. **Whitelist IP Addresses:**
 
 ```python
 # Add IP whitelist
@@ -330,7 +330,7 @@ RATE_LIMIT_WHITELIST = [
     "192.168.1.0/24",  # Internal network
     "10.0.0.0/8"       # VPC network
 ]
-```
+```text
 
 ---
 
@@ -356,7 +356,7 @@ WHERE state = 'active';
 
 # Check connection pool settings
 grep -E "(POOL_SIZE|MAX_OVERFLOW)" .env
-```
+```text
 
 **Solutions:**
 
@@ -366,9 +366,9 @@ grep -E "(POOL_SIZE|MAX_OVERFLOW)" .env
 export DATABASE_POOL_SIZE=20
 export DATABASE_MAX_OVERFLOW=30
 export DATABASE_POOL_TIMEOUT=30
-```
+```text
 
-2. **Close Idle Connections:**
+1. **Close Idle Connections:**
 
 ```sql
 -- Kill idle connections older than 1 hour
@@ -376,7 +376,7 @@ SELECT pg_terminate_backend(pid)
 FROM pg_stat_activity
 WHERE state = 'idle'
 AND state_change < now() - interval '1 hour';
-```
+```text
 
 ### Issue: Database Migration Failures
 
@@ -395,7 +395,7 @@ docker exec pixelated-api python -m alembic history
 
 # Check database schema
 docker exec postgres psql -U postgres -d pixelated_prod -c "\dt"
-```
+```text
 
 **Solutions:**
 
@@ -407,16 +407,16 @@ docker exec pixelated-api python -m alembic upgrade +1
 
 # Rollback migration
 docker exec pixelated-api python -m alembic downgrade -1
-```
+```text
 
-2. **Reset Database (Development Only):**
+1. **Reset Database (Development Only):**
 
 ```bash
 # WARNING: This will delete all data
 docker-compose down -v
 docker-compose up -d db
 docker exec pixelated-api python -m alembic upgrade head
-```
+```text
 
 ---
 
@@ -450,7 +450,7 @@ try:
 except Exception as e:
     print(f'Error: {e}')
 "
-```
+```text
 
 **Solutions:**
 
@@ -461,16 +461,16 @@ except Exception as e:
 kubectl create secret generic jwt-secret \
   --from-literal=JWT_SECRET_KEY="$JWT_SECRET_KEY" \
   -n pixelated-empathy
-```
+```text
 
-2. **Fix Time Synchronization:**
+1. **Fix Time Synchronization:**
 
 ```bash
 # Install NTP
 sudo apt-get install ntp
 sudo systemctl enable ntp
 sudo systemctl start ntp
-```
+```text
 
 ---
 
@@ -493,7 +493,7 @@ htop
 
 # Profile Python application
 docker exec pixelated-api python -m cProfile -o profile.stats -m uvicorn pixel_voice.api.server:app
-```
+```text
 
 **Solutions:**
 
@@ -505,14 +505,14 @@ async def get_user_data(user_id: str):
     async with aiohttp.ClientSession() as session:
         async with session.get(f"/users/{user_id}") as response:
             return await response.json()
-```
+```text
 
-2. **Scale Horizontally:**
+1. **Scale Horizontally:**
 
 ```bash
 # Add more replicas
 kubectl scale deployment pixelated-api --replicas=5 -n pixelated-empathy
-```
+```text
 
 ### Issue: Memory Leaks
 
@@ -534,7 +534,7 @@ done
 # Use memory profiler
 pip install memory-profiler
 python -m memory_profiler your_script.py
-```
+```text
 
 **Solutions:**
 
@@ -546,9 +546,9 @@ async def get_data():
     async with get_db_session() as session:
         # Use session here
         pass  # Session automatically closed
-```
+```text
 
-2. **Implement Circuit Breaker:**
+1. **Implement Circuit Breaker:**
 
 ```python
 # Prevent memory buildup from failed requests
@@ -558,7 +558,7 @@ from circuit_breaker import CircuitBreaker
 async def external_api_call():
     # API call here
     pass
-```
+```text
 
 ---
 
@@ -581,7 +581,7 @@ kubectl describe pod <pod-name> -n pixelated-empathy
 
 # Check logs
 kubectl logs <pod-name> -n pixelated-empathy --previous
-```
+```text
 
 **Solutions:**
 
@@ -596,9 +596,9 @@ readinessProbe:
   periodSeconds: 10
   timeoutSeconds: 5
   failureThreshold: 3
-```
+```text
 
-2. **Check Resource Limits:**
+1. **Check Resource Limits:**
 
 ```yaml
 resources:
@@ -608,7 +608,7 @@ resources:
   limits:
     memory: '1Gi' # Increase if needed
     cpu: '500m'
-```
+```text
 
 ### Issue: Ingress Not Working
 
@@ -628,7 +628,7 @@ kubectl describe ingress pixelated-ingress -n pixelated-empathy
 # Check ingress controller
 kubectl get pods -n ingress-nginx
 kubectl logs -n ingress-nginx deployment/ingress-nginx-controller
-```
+```text
 
 **Solutions:**
 
@@ -648,15 +648,15 @@ spec:
                 name: pixelated-api-service # Correct service name
                 port:
                   number: 80 # Correct port
-```
+```text
 
-2. **Check DNS Configuration:**
+1. **Check DNS Configuration:**
 
 ```bash
 # Verify DNS resolution
 nslookup api.pixelatedempathy.com
 dig api.pixelatedempathy.com
-```
+```text
 
 ---
 
@@ -673,7 +673,7 @@ kubectl logs deployment/pixelated-api -n pixelated-empathy | grep ERROR
 
 # Export logs to file
 kubectl logs deployment/pixelated-api -n pixelated-empathy > app.log
-```
+```text
 
 ### Metrics Collection
 
@@ -683,7 +683,7 @@ curl http://localhost:8000/metrics
 
 # Query specific metrics
 curl -s http://localhost:8000/metrics | grep http_requests_total
-```
+```text
 
 ### Alert Configuration
 
@@ -708,7 +708,7 @@ groups:
           severity: warning
         annotations:
           summary: 'High memory usage detected'
-```
+```text
 
 ---
 
@@ -728,7 +728,7 @@ docker-compose down
 docker-compose up -d --scale api=0  # Stop current version
 docker tag pixelated-empathy-ai:backup pixelated-empathy-ai:latest
 docker-compose up -d
-```
+```text
 
 ### Emergency Scale Down
 
@@ -740,7 +740,7 @@ kubectl scale deployment pixelated-api --replicas=1 -n pixelated-empathy
 kubectl patch ingress pixelated-ingress -n pixelated-empathy \
   --type='json' \
   -p='[{"op": "replace", "path": "/spec/rules/0/http/paths/0/backend/service/name", "value": "maintenance-service"}]'
-```
+```text
 
 ### Database Emergency Procedures
 
@@ -755,7 +755,7 @@ kubectl exec deployment/postgres -n pixelated-empathy -- \
 
 # Restart database
 kubectl rollout restart deployment/postgres -n pixelated-empathy
-```
+```text
 
 ---
 
@@ -773,16 +773,16 @@ kubectl rollout restart deployment/postgres -n pixelated-empathy
 ### Emergency Contacts
 
 - **On-call Engineer**: +1-555-ONCALL
-- **DevOps Team**: devops@pixelatedempathy.com
-- **Development Team**: dev@pixelatedempathy.com
-- **Support Team**: support@pixelatedempathy.com
+- **DevOps Team**: <devops@pixelatedempathy.com>
+- **Development Team**: <dev@pixelatedempathy.com>
+- **Support Team**: <support@pixelatedempathy.com>
 
 ### Useful Links
 
-- **Status Page**: https://status.pixelatedempathy.com
-- **Monitoring Dashboard**: https://grafana.pixelatedempathy.com
-- **Log Aggregation**: https://logs.pixelatedempathy.com
-- **Documentation**: https://docs.pixelatedempathy.com
+- **Status Page**: <https://status.pixelatedempathy.com>
+- **Monitoring Dashboard**: <https://grafana.pixelatedempathy.com>
+- **Log Aggregation**: <https://logs.pixelatedempathy.com>
+- **Documentation**: <https://docs.pixelatedempathy.com>
 
 ---
 

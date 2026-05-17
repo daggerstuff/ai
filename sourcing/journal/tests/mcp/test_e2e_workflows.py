@@ -69,7 +69,7 @@ def e2e_server(
     server.audit_logger.enabled = False
     discover_tool = server.tools.get("discover_sources")
     if discover_tool:
-        discover_tool.validate_parameters = lambda params: None  # type: ignore[assignment]
+        discover_tool.validate_parameters = lambda params: None
     return server, fake_service
 
 

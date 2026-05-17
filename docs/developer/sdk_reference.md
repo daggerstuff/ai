@@ -4,11 +4,11 @@
 
 ## Table of Contents
 
-1. [Python SDK Reference](#python-sdk-reference)
-2. [JavaScript SDK Reference](#javascript-sdk-reference)
-3. [Error Handling](#error-handling)
-4. [Configuration Options](#configuration-options)
-5. [Advanced Usage](#advanced-usage)
+1. \1
+2. \1
+3. \1
+4. \1
+5. \1
 
 ---
 
@@ -18,7 +18,7 @@
 
 ```bash
 pip install pixelated-empathy-api
-```
+```text
 
 ### Basic Usage
 
@@ -31,7 +31,7 @@ api = PixelatedEmpathyAPI("your_api_key")
 # Basic operations
 datasets = api.list_datasets()
 conversations = api.get_conversations(tier="professional", limit=10)
-```
+```text
 
 ### Class: PixelatedEmpathyAPI
 
@@ -44,7 +44,7 @@ PixelatedEmpathyAPI(
     timeout: int = 30,
     max_retries: int = 3
 )
-```
+```text
 
 **Parameters:**
 
@@ -63,7 +63,7 @@ List all available datasets.
 datasets = api.list_datasets()
 for dataset in datasets:
     print(f"{dataset['name']}: {dataset['conversations']} conversations")
-```
+```text
 
 **Returns:** List of dataset information dictionaries
 
@@ -79,7 +79,7 @@ for dataset in datasets:
         "tiers": ["basic", "standard", "professional"]
     }
 ]
-```
+```text
 
 ##### `get_dataset_info(dataset_name: str) -> Dict[str, Any]`
 
@@ -88,7 +88,7 @@ Get detailed information about a specific dataset.
 ```python
 info = api.get_dataset_info("priority_complete_fixed")
 print(f"Total conversations: {info['statistics']['total_conversations']}")
-```
+```text
 
 **Parameters:**
 
@@ -110,7 +110,7 @@ conversations = api.get_conversations(
     limit=100,
     offset=0
 )
-```
+```text
 
 **Parameters:**
 
@@ -130,7 +130,7 @@ Get a specific conversation by ID.
 conversation = api.get_conversation("conv_000001")
 print(f"Messages: {len(conversation['messages'])}")
 print(f"Quality: {conversation['quality_metrics']['overall_quality']}")
-```
+```text
 
 **Parameters:**
 
@@ -146,7 +146,7 @@ Iterate through all conversations with automatic pagination.
 for conversation in api.iter_conversations(tier="professional", batch_size=50):
     print(f"Processing conversation: {conversation['id']}")
     # Process conversation...
-```
+```text
 
 **Parameters:**
 
@@ -164,7 +164,7 @@ Get quality metrics for datasets or tiers.
 ```python
 metrics = api.get_quality_metrics(dataset="professional_datasets_final")
 print(f"Average quality: {metrics['overall_statistics']['average_quality']}")
-```
+```text
 
 **Parameters:**
 
@@ -189,7 +189,7 @@ conversation = {
 validation = api.validate_conversation_quality(conversation)
 print(f"Quality score: {validation['validation_results']['overall_quality']}")
 print(f"Tier: {validation['tier_classification']}")
-```
+```text
 
 **Parameters:**
 
@@ -213,7 +213,7 @@ job = api.submit_processing_job(
     }
 )
 print(f"Job ID: {job['job_id']}")
-```
+```text
 
 **Parameters:**
 
@@ -231,7 +231,7 @@ Get the status of a processing job.
 ```python
 status = api.get_job_status("job_20250817_010000")
 print(f"Status: {status['status']} ({status['progress']}%)")
-```
+```text
 
 **Parameters:**
 
@@ -246,7 +246,7 @@ Wait for a processing job to complete.
 ```python
 final_status = api.wait_for_job("job_20250817_010000", poll_interval=10)
 print(f"Job completed with status: {final_status['status']}")
-```
+```text
 
 **Parameters:**
 
@@ -269,7 +269,7 @@ results = api.search_conversations(
     limit=50
 )
 print(f"Found {results['total_matches']} matching conversations")
-```
+```text
 
 **Parameters:**
 
@@ -290,7 +290,7 @@ Get comprehensive statistics about the API and datasets.
 stats = api.get_statistics_overview()
 print(f"Total conversations: {stats['total_conversations']}")
 print(f"API requests today: {stats['api_usage']['requests_today']}")
-```
+```text
 
 **Returns:** Statistics overview dictionary
 
@@ -309,7 +309,7 @@ export = api.export_data(
 )
 print(f"Export ID: {export['export_id']}")
 print(f"Download URL: {export['download_url']}")
-```
+```text
 
 **Parameters:**
 
@@ -332,7 +332,7 @@ if api.health_check():
     print("API is healthy")
 else:
     print("API is not responding")
-```
+```text
 
 **Returns:** True if healthy, False otherwise
 
@@ -344,7 +344,7 @@ else:
 
 ```bash
 npm install pixelated-empathy-api
-```
+```text
 
 ### Basic Usage
 
@@ -360,7 +360,7 @@ const conversations = await api.getConversations({
   tier: 'professional',
   limit: 10,
 })
-```
+```text
 
 ### Class: PixelatedEmpathyAPI
 
@@ -368,7 +368,7 @@ const conversations = await api.getConversations({
 
 ```javascript
 new PixelatedEmpathyAPI(apiKey, (options = {}))
-```
+```text
 
 **Parameters:**
 
@@ -389,7 +389,7 @@ const datasets = await api.listDatasets()
 datasets.forEach((dataset) => {
   console.log(`${dataset.name}: ${dataset.conversations} conversations`)
 })
-```
+```text
 
 **Returns:** Promise resolving to array of dataset objects
 
@@ -400,7 +400,7 @@ Get detailed information about a specific dataset.
 ```javascript
 const info = await api.getDatasetInfo('priority_complete_fixed')
 console.log(`Total conversations: ${info.statistics.total_conversations}`)
-```
+```text
 
 **Parameters:**
 
@@ -422,7 +422,7 @@ const conversations = await api.getConversations({
   limit: 100,
   offset: 0,
 })
-```
+```text
 
 **Parameters:**
 
@@ -443,7 +443,7 @@ Get a specific conversation by ID.
 const conversation = await api.getConversation('conv_000001')
 console.log(`Messages: ${conversation.messages.length}`)
 console.log(`Quality: ${conversation.quality_metrics.overall_quality}`)
-```
+```text
 
 **Parameters:**
 
@@ -462,7 +462,7 @@ for await (const conversation of api.iterConversations({
   console.log(`Processing conversation: ${conversation.id}`)
   // Process conversation...
 }
-```
+```text
 
 **Parameters:**
 
@@ -482,7 +482,7 @@ const metrics = await api.getQualityMetrics({
   dataset: 'professional_datasets_final',
 })
 console.log(`Average quality: ${metrics.overall_statistics.average_quality}`)
-```
+```text
 
 **Parameters:**
 
@@ -508,7 +508,7 @@ const conversation = {
 const validation = await api.validateConversationQuality(conversation)
 console.log(`Quality score: ${validation.validation_results.overall_quality}`)
 console.log(`Tier: ${validation.tier_classification}`)
-```
+```text
 
 **Parameters:**
 
@@ -532,7 +532,7 @@ const job = await api.submitProcessingJob(
   },
 )
 console.log(`Job ID: ${job.job_id}`)
-```
+```text
 
 **Parameters:**
 
@@ -549,7 +549,7 @@ Get the status of a processing job.
 ```javascript
 const status = await api.getJobStatus('job_20250817_010000')
 console.log(`Status: ${status.status} (${status.progress}%)`)
-```
+```text
 
 **Parameters:**
 
@@ -567,7 +567,7 @@ const finalStatus = await api.waitForJob('job_20250817_010000', {
   timeout: 3600,
 })
 console.log(`Job completed with status: ${finalStatus.status}`)
-```
+```text
 
 **Parameters:**
 
@@ -590,7 +590,7 @@ const results = await api.searchConversations('anxiety therapy techniques', {
   limit: 50,
 })
 console.log(`Found ${results.total_matches} matching conversations`)
-```
+```text
 
 **Parameters:**
 
@@ -612,7 +612,7 @@ Get comprehensive statistics about the API and datasets.
 const stats = await api.getStatisticsOverview()
 console.log(`Total conversations: ${stats.total_conversations}`)
 console.log(`API requests today: ${stats.api_usage.requests_today}`)
-```
+```text
 
 **Returns:** Promise resolving to statistics overview
 
@@ -630,7 +630,7 @@ const exportInfo = await api.exportData('professional_datasets_final', {
 })
 console.log(`Export ID: ${exportInfo.export_id}`)
 console.log(`Download URL: ${exportInfo.download_url}`)
-```
+```text
 
 **Parameters:**
 
@@ -655,7 +655,7 @@ if (isHealthy) {
 } else {
   console.log('API is not responding')
 }
-```
+```text
 
 **Returns:** Promise resolving to boolean health status
 
@@ -683,7 +683,7 @@ except AuthenticationError as e:
     print(f"Authentication failed: {e.message}")
 except PixelatedEmpathyAPIError as e:
     print(f"API error: {e.message} (Code: {e.error_code})")
-```
+```text
 
 ### JavaScript Error Handling
 
@@ -704,7 +704,7 @@ try {
     console.log(`Unexpected error: ${error.message}`)
   }
 }
-```
+```text
 
 ---
 
@@ -722,7 +722,7 @@ export PIXELATED_EMPATHY_MAX_RETRIES="5"
 # Logging Configuration
 export PIXELATED_EMPATHY_LOG_LEVEL="INFO"
 export PIXELATED_EMPATHY_LOG_FILE="./pixelated_empathy.log"
-```
+```text
 
 ### Configuration Files
 
@@ -751,7 +751,7 @@ class APIConfig:
 # Usage
 config = APIConfig.from_file('config.json')
 api = PixelatedEmpathyAPI(config=config)
-```
+```text
 
 #### JavaScript Configuration
 
@@ -773,7 +773,7 @@ const api = new PixelatedEmpathyAPI(config.apiKey, {
   timeout: config.timeout,
   maxRetries: config.maxRetries,
 })
-```
+```text
 
 ---
 
@@ -809,7 +809,7 @@ class CustomPixelatedEmpathyAPI(PixelatedEmpathyAPI):
 
         self.session.mount("http://", adapter)
         self.session.mount("https://", adapter)
-```
+```text
 
 ### Middleware Integration (JavaScript)
 
@@ -841,7 +841,7 @@ api.use(async (method, endpoint, options) => {
   console.log(`Making ${method} request to ${endpoint}`)
   return options
 })
-```
+```text
 
 ---
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """DPO trainer for therapeutic AI preference alignment.
 
-Loads preference pairs, applies safety filtering, builds QLoRA + LoRA config,
+Loads preference pairs, builds QLoRA + LoRA config,
 and runs DPOTrainer with checkpoint verification. Saves final adapter + metrics.
 """
 

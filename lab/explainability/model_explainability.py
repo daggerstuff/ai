@@ -14,7 +14,7 @@ from typing import Any
 
 import numpy as np
 import shap
-import torch
+from ai.utils.torch_proxy import torch
 from lime import lime_text
 from transformers import AutoTokenizer
 

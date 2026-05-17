@@ -1,4 +1,4 @@
-# Enhanced V5 Crisis Detector - Production System
+ # Enhanced V5 Crisis Detector - Production System
 
 ## Deployment Information
 
@@ -39,4 +39,4 @@ through AI
 
 ---
 
-**Enhanced V5 - Production Ready Crisis Detection**
+### Enhanced V5 - Production Ready Crisis Detection

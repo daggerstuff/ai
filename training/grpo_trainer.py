@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """GRPO trainer with pure-Python reward function for therapeutic AI.
 
-Implements a composite reward scoring safety, empathy, and crisis resource
+Implements a composite reward scoring empathy and crisis resource
 citation. The reward function is fully unit-testable without a model.
 """
 
@@ -38,6 +38,8 @@ except ModuleNotFoundError:
 
 logger = logging.getLogger("grpo_trainer")
 
+from training.clinical_validity_scorer import ClinicalValidityScorer
+
 CRISIS_RESOURCES: frozenset[str] = frozenset({
     "988", "741741", "findahelpline", "911", "999", "112",
     "suicide prevention lifeline", "crisis text line",
@@ -62,6 +64,7 @@ EMPATHY_KEYWORDS: frozenset[str] = frozenset({
 })
 
 
+<<<<<<< HEAD
 def _safety_score(response: str) -> float:
     """SAFETY FILTER DISABLED PER USER REQUEST - ALL RESPONSES CONSIDERED SAFE.
     
@@ -76,6 +79,8 @@ def _safety_score(response: str) -> float:
     return 1.0  # All content allowed for therapeutic training
 
 
+=======
+>>>>>>> origin/staging
 def _empathy_score(response: str) -> float:
     """Keyword-based empathy score in [0.0, 1.0]."""
     if not response:
@@ -100,45 +105,59 @@ def _crisis_score(prompt: str, response: str) -> float:
     if any(resource in response_lower for resource in CRISIS_RESOURCES):
         return 1.0  # Crisis prompt handled with resources
     return 0.0  # Crisis prompt without resources — penalty
+<<<<<<< HEAD
+=======
+
+
+def _clinical_validity_score(response: str) -> float:
+    """Clinical validity score in [0.0, 1.0]."""
+    return ClinicalValidityScorer.score(response)
+>>>>>>> origin/staging
 
 
 def score(
     prompt: str,
     response: str,
-    safety_weight: float = 0.5,
-    empathy_weight: float = 0.3,
-    crisis_weight: float = 0.2,
+    empathy_weight: float = 0.6,
+    crisis_weight: float = 0.4,
+    clinical_weight: float = 0.0,
 ) -> float:
     """Compute composite reward score in [0.0, 1.0].
 
-    Weights must sum to 1.0. Returns weighted sum of sub-scores.
+    When clinical_weight > 0, all three weights are normalized to sum
+    to 1.0. When clinical_weight == 0, behavior matches the original
+    2-dimensional reward (backward compatible).
     """
-    s = _safety_score(response)
     e = _empathy_score(response)
     c = _crisis_score(prompt, response)
-    return safety_weight * s + empathy_weight * e + crisis_weight * c
+    cv = _clinical_validity_score(response)
+
+    w_total = empathy_weight + crisis_weight + clinical_weight
+    if w_total > 0:
+        return (empathy_weight * e + crisis_weight * c + clinical_weight * cv) / w_total
+    return 0.0
 
 
 def filter_by_threshold(
     prompts: list[str],
     responses: list[str],
     threshold: float,
-    safety_weight: float = 0.5,
-    empathy_weight: float = 0.3,
-    crisis_weight: float = 0.2,
+    empathy_weight: float = 0.6,
+    crisis_weight: float = 0.4,
+    clinical_weight: float = 0.0,
 ) -> list[dict]:
     """Return only samples with composite score >= threshold."""
     kept: list[dict] = []
     for prompt, response in zip(prompts, responses):
-        composite = score(prompt, response, safety_weight, empathy_weight, crisis_weight)
+        composite = score(prompt, response, empathy_weight, crisis_weight, clinical_weight)
         if composite >= threshold:
             kept.append({
                 "prompt": prompt,
                 "response": response,
                 "composite_score": composite,
-                "safety_score": _safety_score(response),
                 "empathy_score": _empathy_score(response),
                 "crisis_score": _crisis_score(prompt, response),
+                "clinical_validity_score": _clinical_validity_score(response),
             })
     return kept
 
@@ -172,14 +191,14 @@ def run_grpo(args: argparse.Namespace) -> None:
     lora_config = build_lora_config(args)
 
     logger.info(
-        "Reward weights: safety=%.2f, empathy=%.2f, crisis=%.2f, threshold=%.2f",
-        args.safety_weight, args.empathy_weight, args.crisis_weight,
+        "Reward weights: empathy=%.2f, crisis=%.2f, clinical=%.2f, threshold=%.2f",
+        args.empathy_weight, args.crisis_weight, args.clinical_validity_weight,
         args.min_reward_threshold,
     )
 
     def reward_fn(prompts: list[str], responses: list[str]) -> list[float]:
         return [
-            score(p, r, args.safety_weight, args.empathy_weight, args.crisis_weight)
+            score(p, r, args.empathy_weight, args.crisis_weight, args.clinical_validity_weight)
             for p, r in zip(prompts, responses)
         ]
 
@@ -210,9 +229,9 @@ def run_grpo(args: argparse.Namespace) -> None:
     metrics = {
         "train_loss": train_result.training_loss,
         "train_runtime": train_result.metrics.get("train_runtime", 0),
-        "safety_weight": args.safety_weight,
         "empathy_weight": args.empathy_weight,
         "crisis_weight": args.crisis_weight,
+        "clinical_validity_weight": args.clinical_validity_weight,
         "min_reward_threshold": args.min_reward_threshold,
     }
     metrics_path = output_dir / "grpo_metrics.json"
@@ -230,9 +249,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--data_path", type=str, required=True)
     parser.add_argument("--base_model_checkpoint", type=str, required=True)
     parser.add_argument("--output_dir", type=str, required=True)
-    parser.add_argument("--safety_weight", type=float, default=0.5)
-    parser.add_argument("--empathy_weight", type=float, default=0.3)
-    parser.add_argument("--crisis_weight", type=float, default=0.2)
+    parser.add_argument("--empathy_weight", type=float, default=0.5)
+    parser.add_argument("--crisis_weight", type=float, default=0.3)
+    parser.add_argument("--clinical_validity_weight", type=float, default=0.2)
     parser.add_argument("--min_reward_threshold", type=float, default=0.3)
     parser.add_argument("--max_seq_length", type=int, default=1024)
     parser.add_argument("--batch_size", type=int, default=4)

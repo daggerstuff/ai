@@ -1,8 +1,11 @@
-# Journal Dataset Research System - Architecture Documentation
+ # Journal Dataset Research System - Architecture Documentation
 
 ## Overview
 
-The Journal Dataset Research System is an automated research automation platform designed to discover, evaluate, acquire, and integrate therapeutic datasets from academic sources. The system operates through a coordinated workflow that spans four main phases: discovery, evaluation, acquisition, and integration planning.
+The Journal Dataset Research System is an automated research automation platform designed
+to discover, evaluate, acquire, and integrate therapeutic datasets from academic
+sources. The system operates through a coordinated workflow that spans four main
+phases: discovery, evaluation, acquisition, and integration planning.
 
 ## System Architecture
 
@@ -78,7 +81,9 @@ The Research Orchestrator is the central coordination component that manages the
 
 **Location**: `discovery/` (structure for future implementation)
 
-The Discovery Engine is responsible for discovering dataset sources from various academic repositories. While the current implementation provides the structure, the discovery service integrates with:
+The Discovery Engine is responsible for discovering dataset sources from various
+academic repositories. While the current implementation provides the structure, the
+discovery service integrates with:
 
 - **PubMed Central**: NCBI E-utilities API for medical literature search
 - **DOAJ**: Directory of Open Access Journals API
@@ -783,5 +788,8 @@ Extend `ComplianceChecker` to add custom compliance checks.
 
 ## Conclusion
 
-The Journal Dataset Research System provides a comprehensive, automated platform for discovering, evaluating, acquiring, and integrating therapeutic datasets from academic sources. The architecture is designed for extensibility, reliability, and compliance, with robust error recovery and comprehensive logging and reporting capabilities.
-
+The Journal Dataset Research System provides a comprehensive, automated platform for
+discovering, evaluating, acquiring, and integrating therapeutic datasets from
+academic sources. The architecture is designed for extensibility, reliability, and
+compliance, with robust error recovery and comprehensive logging and reporting
+capabilities.

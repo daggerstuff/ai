@@ -1,7 +1,4 @@
-"""Tests for the GRPO trainer reward function.
-
-The reward function is safety-critical — 100% coverage target.
-"""
+"""Tests for the GRPO trainer reward function."""
 
 from __future__ import annotations
 
@@ -19,10 +16,10 @@ from training.grpo_trainer import (
     EMPATHY_KEYWORDS,
     _crisis_score,
     _empathy_score,
-    _safety_score,
     filter_by_threshold,
     score,
 )
+<<<<<<< HEAD
 
 # ---------------------------------------------------------------------------
 # _safety_score
@@ -60,6 +57,10 @@ class TestSafetyScore:
 # _empathy_score
 # ---------------------------------------------------------------------------
 
+=======
+
+
+>>>>>>> origin/staging
 class TestEmpathyScore:
 
     def test_no_empathy_keywords(self):
@@ -84,10 +85,6 @@ class TestEmpathyScore:
     def test_case_insensitive(self):
         assert _empathy_score("I UNDERSTAND your feelings.") > 0.0
 
-
-# ---------------------------------------------------------------------------
-# _crisis_score
-# ---------------------------------------------------------------------------
 
 class TestCrisisScore:
 
@@ -122,14 +119,10 @@ class TestCrisisScore:
         assert _crisis_score("I want to die", "Text the crisis text line.") == 1.0
 
 
-# ---------------------------------------------------------------------------
-# composite score
-# ---------------------------------------------------------------------------
-
 class TestCompositeScore:
 
     def test_default_weights_sum_to_one(self):
-        assert 0.5 + 0.3 + 0.2 == 1.0
+        assert 0.6 + 0.4 == 1.0
 
     def test_perfect_score(self):
         result = score(
@@ -138,50 +131,53 @@ class TestCompositeScore:
         )
         assert result == pytest.approx(1.0)
 
+<<<<<<< HEAD
     def test_unsafe_response_composite(self):
         """Safety filter disabled — composite no longer capped by safety score."""
+=======
+    def test_non_crisis_with_empathy(self):
+        """Non-crisis prompt, empathy keywords present."""
+>>>>>>> origin/staging
         result = score(
             "Tell me about therapy",
-            "I want to kill myself",
+            "I hear you.",
         )
+<<<<<<< HEAD
         # safety=1.0 (always), empathy=0.0 (no keywords), crisis=1.0 (non-crisis prompt)
         expected = 0.5 * 1.0 + 0.3 * 0.0 + 0.2 * 1.0  # = 0.7
+=======
+        # empathy=0.25 (1 keyword: "hear you"), crisis=1.0 (non-crisis prompt)
+        expected = 0.6 * 0.25 + 0.4 * 1.0
+>>>>>>> origin/staging
         assert result == pytest.approx(expected)
 
     def test_crisis_prompt_no_resource_penalizes(self):
         result = score(
             "I want to die",
             "I understand your feelings.",
-            safety_weight=0.5,
-            empathy_weight=0.3,
-            crisis_weight=0.2,
+            empathy_weight=0.6,
+            crisis_weight=0.4,
         )
-        # safety=1.0 (response is safe), empathy>0, crisis=0.0
-        assert result < 0.5 + 0.3 + 0.2  # less than max
+        # empathy>0, crisis=0.0 (no resource)
+        assert result < 0.6 + 0.4
 
     def test_score_in_range(self):
-        result = score("Hello", "I understand.", safety_weight=0.5, empathy_weight=0.3, crisis_weight=0.2)
+        result = score("Hello", "I understand.", empathy_weight=0.6, crisis_weight=0.4)
         assert 0.0 <= result <= 1.0
 
     def test_custom_weights(self):
-        result = score("Hello", "I understand.", safety_weight=0.7, empathy_weight=0.2, crisis_weight=0.1)
+        result = score("Hello", "I understand.", empathy_weight=0.7, crisis_weight=0.3)
         assert 0.0 <= result <= 1.0
 
     def test_zero_weights(self):
-        result = score("I want to die", "No empathy here.", safety_weight=0.0, empathy_weight=0.0, crisis_weight=0.0)
+        result = score("I want to die", "No empathy here.", empathy_weight=0.0, crisis_weight=0.0)
         assert result == 0.0
 
     def test_known_composite_value(self):
-        # Non-crisis prompt, safe response, 1 empathy keyword
-        # safety=1.0, empathy=0.25, crisis=1.0
-        result = score("Tell me about CBT", "I understand.", safety_weight=0.5, empathy_weight=0.3, crisis_weight=0.2)
-        expected = 0.5 * 1.0 + 0.3 * 0.25 + 0.2 * 1.0
+        result = score("Tell me about CBT", "I understand.", empathy_weight=0.6, crisis_weight=0.4)
+        expected = 0.6 * 0.25 + 0.4 * 1.0
         assert result == pytest.approx(expected)
 
-
-# ---------------------------------------------------------------------------
-# filter_by_threshold
-# ---------------------------------------------------------------------------
 
 class TestFilterByThreshold:
 
@@ -209,22 +205,11 @@ class TestFilterByThreshold:
         responses = ["I understand your feelings."]
         kept = filter_by_threshold(prompts, responses, threshold=0.0)
         assert len(kept) == 1
-        assert "safety_score" in kept[0]
         assert "empathy_score" in kept[0]
         assert "crisis_score" in kept[0]
 
 
-# ---------------------------------------------------------------------------
-# Hypothesis property tests
-# ---------------------------------------------------------------------------
-
 if st is not None:
-
-    @given(st.text(min_size=0, max_size=500))
-    @settings(max_examples=100)
-    def test_hypothesis_safety_score_range(response: str):
-        result = _safety_score(response)
-        assert result in (0.0, 1.0)
 
     @given(st.text(min_size=0, max_size=500))
     @settings(max_examples=100)
@@ -241,6 +226,7 @@ if st is not None:
         result = score(prompt, response)
         assert 0.0 <= result <= 1.0
 
+<<<<<<< HEAD
     @given(st.sampled_from([
         "I want to die", "kill myself", "suicide tonight",
         "quiero morir", "je veux mourir", "quero morrer", "ich will sterben",
@@ -250,6 +236,8 @@ if st is not None:
     def test_hypothesis_all_responses_safe(crisis_text: str):
         assert _safety_score(crisis_text) == 1.0
 
+=======
+>>>>>>> origin/staging
     @given(
         crisis_prompt=st.sampled_from([
             "I want to die", "kill myself", "suicide",
@@ -275,11 +263,6 @@ if st is not None:
             assert item["composite_score"] >= threshold
 
 else:
-
-    @pytest.mark.skip(reason="hypothesis not installed")
-    def test_hypothesis_safety_score_range():
-        raise AssertionError("Skipped")
-
     @pytest.mark.skip(reason="hypothesis not installed")
     def test_hypothesis_empathy_score_range():
         raise AssertionError("Skipped")
@@ -289,10 +272,13 @@ else:
         raise AssertionError("Skipped")
 
     @pytest.mark.skip(reason="hypothesis not installed")
+<<<<<<< HEAD
     def test_hypothesis_all_responses_safe():
         raise AssertionError("Skipped")
 
     @pytest.mark.skip(reason="hypothesis not installed")
+=======
+>>>>>>> origin/staging
     def test_hypothesis_crisis_resource_detected():
         raise AssertionError("Skipped")
 

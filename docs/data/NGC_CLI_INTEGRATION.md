@@ -1,4 +1,4 @@
-# NGC CLI Integration for Training Ready
+<!-- markdownlint-disable -->\n\n# NGC CLI Integration for Training Ready
 
 ## Overview
 
@@ -34,7 +34,7 @@ chmod +x ngc
 # Add to PATH
 export PATH=$HOME/ngc-cli:$PATH
 echo 'export PATH=$HOME/ngc-cli:$PATH' >> ~/.bashrc
-```
+```text
 
 ### Option 3: System-Wide Installation
 
@@ -61,7 +61,7 @@ ngc config set
 
 # Or set via environment variable
 export NGC_API_KEY="your-api-key-here"
-```
+```text
 
 ## Usage
 
@@ -82,7 +82,7 @@ quickstart_path = download_nemo_quickstart(
     version="25.10",
     output_dir=Path("resources/nemo-microservices")
 )
-```
+```text
 
 ### Using NGCResourceDownloader
 
@@ -108,7 +108,7 @@ custom = downloader.download_custom_resource(
     version="1.0",
     output_dir=Path("resources/my-dataset")
 )
-```
+```text
 
 ### Direct NGC CLI Usage
 
@@ -132,7 +132,7 @@ downloaded = cli.download_resource(
 # Check configuration
 config = cli.check_config()
 print(f"API Key configured: {bool(config.get('API key'))}")
-```
+```text
 
 ## Integration with Training Scripts
 
@@ -160,7 +160,7 @@ def setup_training_environment():
     except Exception as e:
         print(f"Warning: Could not download NeMo resources: {e}")
         print("Training may continue with local resources")
-```
+```text
 
 ## Available Resources
 
@@ -202,7 +202,7 @@ nemotron_resource = downloader.download_custom_resource(
 )
 
 print(f"Nemotron assets available at: {nemotron_resource}")
-```
+```text
 
 After download, mirror any datasets or RL rollouts into your canonical S3
 structure (for example `external/nemotron/` or `rl/pixelated/...`) using the
@@ -218,7 +218,7 @@ local-path assumptions into training scripts.
 
 ```bash
 uv pip install nvidia-pyindex nvidia-nim ngc-python-cli
-```
+```text
 
 ### "Authentication failed"
 
@@ -227,7 +227,7 @@ uv pip install nvidia-pyindex nvidia-nim ngc-python-cli
 ```bash
 ngc config set
 # Enter your API key from https://catalog.ngc.nvidia.com
-```
+```text
 
 ### "Download failed"
 
@@ -245,7 +245,7 @@ ngc config get
 
 # Test connectivity
 curl -I https://catalog.ngc.nvidia.com
-```
+```text
 
 ## Related Documentation
 

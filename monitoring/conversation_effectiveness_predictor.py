@@ -29,7 +29,7 @@ from sklearn.model_selection import cross_val_score, train_test_split
 from sklearn.preprocessing import StandardScaler
 from textstat import flesch_kincaid_grade, flesch_reading_ease
 
-warnings.filterwarnings("ignore")
+warnings.simplefilter("default")
 
 
 class ConversationEffectivenessPredictor:

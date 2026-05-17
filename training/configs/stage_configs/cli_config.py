@@ -10,10 +10,11 @@ from typing import Any, Dict, Optional, Union
 
 try:
     import yaml
+
     YAML_AVAILABLE = True
 except ImportError:
     YAML_AVAILABLE = False
-    yaml = None  # type: ignore
+    yaml = None
 
 
 class ConfigManager:
@@ -229,4 +230,3 @@ def save_config(config: Dict[str, Any], config_path: Optional[Union[Path, str]] 
 def get_config_value(key_path: str, default: Any = None) -> Any:
     """Get a configuration value by dot-separated path."""
     return _config_manager.get(key_path, default)
-

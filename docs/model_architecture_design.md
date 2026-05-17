@@ -32,7 +32,7 @@ modes:
 
 ### **Base Model Selection**
 
-**Primary Choice: Llama 3.1 8B/70B**
+#### Primary Choice: Llama 3.1 8B/70B
 
 - **Rationale:** Excellent reasoning capabilities, strong instruction following,
   good therapeutic conversation quality
@@ -48,7 +48,7 @@ modes:
 
 ### **System Architecture Components**
 
-```
+```text
 Pixelated Empathy Core System
 ├── 🎭 Mode Controller
 │   ├── Expert Mode Handler
@@ -78,7 +78,7 @@ Pixelated Empathy Core System
     ├── Therapeutic Response Generation
     ├── Difficult Client Behavior Simulation
     └── Assessment Integration
-```
+```text
 
 ---
 
@@ -96,7 +96,7 @@ Pixelated Empathy Core System
 
 **Prompt Engineering Pattern:**
 
-```
+```text
 You are Dr. Empathy, a highly skilled mental health professional with expertise in:
 - Cognitive Behavioral Therapy (CBT)
 - Dialectical Behavior Therapy (DBT)
@@ -113,7 +113,7 @@ SAFETY PROTOCOLS:
 
 Current conversation context: {context}
 Client assessment data: {assessment}
-```
+```text
 
 ### **Mode 2: Difficult Client Simulator**
 
@@ -135,7 +135,7 @@ Client assessment data: {assessment}
 
 **Prompt Engineering Pattern:**
 
-```
+```text
 You are simulating a client with the following presentation:
 - Primary concern: {concern}
 - Personality pattern: {pattern}
@@ -151,7 +151,7 @@ SIMULATION GUIDELINES:
 
 Therapist trainee level: {level}
 Session goal: {goal}
-```
+```text
 
 ---
 
@@ -248,7 +248,7 @@ Session goal: {goal}
   "max_position_embeddings": 131072,
   "rope_theta": 500000.0
 }
-```
+```text
 
 **LoRA Configuration:**
 
@@ -269,7 +269,7 @@ Session goal: {goal}
   "bias": "none",
   "task_type": "CAUSAL_LM"
 }
-```
+```text
 
 **Training Hyperparameters:**
 
@@ -284,7 +284,7 @@ Session goal: {goal}
   "weight_decay": 0.01,
   "lr_scheduler": "cosine"
 }
-```
+```text
 
 ### **Data Processing Pipeline**
 
@@ -316,7 +316,7 @@ Session goal: {goal}
     "assessment_data": {}
   }
 }
-```
+```text
 
 **Preprocessing Steps:**
 
@@ -373,11 +373,11 @@ COPY ai/training/ /workspace/training/
 COPY ai/training_data/ /workspace/data/
 
 WORKDIR /workspace
-```
+```text
 
 **Training Script Structure:**
 
-```
+```text
 ai/cloud_training/
 ├── train_pixelated_empathy.py      # Main training script
 ├── config/
@@ -395,7 +395,7 @@ ai/cloud_training/
     ├── upload_data.py              # Upload datasets to cloud storage
     ├── download_model.py           # Download trained models
     └── setup_environment.py        # Environment setup automation
-```
+```text
 
 ---
 
@@ -478,7 +478,7 @@ def detect_crisis_indicators(conversation):
     risk_level = assess_risk_level(conversation)
     if risk_level >= CRISIS_THRESHOLD:
         return trigger_crisis_protocol()
-```
+```text
 
 **2. Harm Prevention**
 

@@ -26,7 +26,7 @@ from datetime import datetime, timezone
 
 import pandas as pd
 
-warnings.filterwarnings("ignore")
+warnings.simplefilter("default")
 
 # Import existing test modules
 

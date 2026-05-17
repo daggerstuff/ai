@@ -4,13 +4,13 @@
 
 ## Table of Contents
 
-1. [Deployment Overview](#deployment-overview)
-2. [Prerequisites](#prerequisites)
-3. [Local Development Setup](#local-development-setup)
-4. [Docker Deployment](#docker-deployment)
-5. [Kubernetes Deployment](#kubernetes-deployment)
-6. [Cloud Provider Deployments](#cloud-provider-deployments)
-7. [Production Checklist](#production-checklist)
+1. \1
+2. \1
+3. \1
+4. \1
+5. \1
+6. \1
+7. \1
 
 ---
 
@@ -21,7 +21,7 @@
 The Pixelated Empathy AI system consists of several components that need to be
 deployed:
 
-```
+```text
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Load Balancer │    │   API Gateway   │    │   Web Dashboard │
 │   (NGINX/ALB)   │───▶│   (FastAPI)     │───▶│   (React)       │
@@ -37,7 +37,7 @@ deployed:
                     │  PostgreSQL +   │
                     │  Redis + S3     │
                     └─────────────────┘
-```
+```text
 
 ### Deployment Options
 
@@ -82,7 +82,7 @@ deployed:
 - kubectl 1.28+
 - Helm 3.12+
 - Kubernetes 1.28+
-```
+```text
 
 ### Environment Variables
 
@@ -112,7 +112,7 @@ ENCRYPTION_KEY=your_encryption_key
 PROMETHEUS_ENABLED=true
 GRAFANA_ENABLED=true
 LOG_LEVEL=INFO
-```
+```text
 
 ---
 
@@ -125,9 +125,9 @@ LOG_LEVEL=INFO
 ```bash
 git clone https://github.com/pixelatedempathy/api.git
 cd api
-```
+```text
 
-2. **Environment Setup**:
+1. **Environment Setup**:
 
 ```bash
 # Copy environment template
@@ -135,9 +135,9 @@ cp .env.example .env
 
 # Edit configuration
 nano .env
-```
+```text
 
-3. **Start Services**:
+1. **Start Services**:
 
 ```bash
 # Start all services
@@ -148,7 +148,7 @@ docker-compose ps
 
 # View logs
 docker-compose logs -f api
-```
+```text
 
 ### Docker Compose Configuration
 
@@ -229,7 +229,7 @@ services:
 volumes:
   postgres_data:
   redis_data:
-```
+```text
 
 ### Development Commands
 
@@ -251,7 +251,7 @@ docker-compose up -d --scale worker=3
 
 # Clean up
 docker-compose down -v
-```
+```text
 
 ---
 
@@ -312,7 +312,7 @@ EXPOSE 8000
 
 # Start application
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
-```
+```text
 
 ### Production Docker Compose
 
@@ -379,7 +379,7 @@ volumes:
     driver: local
   redis_data:
     driver: local
-```
+```text
 
 ### Single Server Deployment
 
@@ -439,7 +439,7 @@ EOF
 echo "✅ Deployment completed!"
 echo "API available at: https://api.pixelatedempathy.com"
 echo "Health check: curl https://api.pixelatedempathy.com/health"
-```
+```text
 
 ---
 
@@ -468,7 +468,7 @@ data:
   PROMETHEUS_ENABLED: 'true'
   REDIS_URL: 'redis://redis-service:6379/0'
   DATABASE_URL: 'postgresql://postgres:password@postgres-service:5432/pixelated_empathy'
-```
+```text
 
 ### Secrets
 
@@ -484,7 +484,7 @@ data:
   jwt-secret-key: <base64-encoded-jwt-secret>
   database-password: <base64-encoded-db-password>
   api-key: <base64-encoded-api-key>
-```
+```text
 
 ### Database Deployment
 
@@ -562,7 +562,7 @@ spec:
     requests:
       storage: 100Gi
   storageClassName: fast-ssd
-```
+```text
 
 ### API Deployment
 
@@ -637,7 +637,7 @@ spec:
     - port: 80
       targetPort: 8000
   type: ClusterIP
-```
+```text
 
 ### Ingress Configuration
 
@@ -669,7 +669,7 @@ spec:
                 name: pixelated-empathy-api-service
                 port:
                   number: 80
-```
+```text
 
 ### Horizontal Pod Autoscaler
 
@@ -713,7 +713,7 @@ spec:
         - type: Percent
           value: 10
           periodSeconds: 60
-```
+```text
 
 ### Deployment Script
 
@@ -766,7 +766,7 @@ kubectl get ingress -n pixelated-empathy
 echo "✅ Deployment completed!"
 echo "API should be available at: https://api.pixelatedempathy.com"
 echo "Check status with: kubectl get pods -n pixelated-empathy"
-```
+```text
 
 ---
 
@@ -797,7 +797,7 @@ kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.1
 
 # Deploy application
 kubectl apply -f ../k8s/
-```
+```text
 
 ### GCP Deployment with GKE
 
@@ -821,7 +821,7 @@ gcloud container clusters get-credentials pixelated-empathy --zone us-west1-a
 
 # Deploy application
 kubectl apply -f ../k8s/
-```
+```text
 
 ### Azure Deployment with AKS
 
@@ -848,7 +848,7 @@ az aks get-credentials --resource-group pixelated-empathy-rg --name pixelated-em
 
 # Deploy application
 kubectl apply -f ../k8s/
-```
+```text
 
 ---
 
@@ -911,7 +911,7 @@ echo "Checking SSL certificate..."
 curl -I https://api.pixelatedempathy.com 2>&1 | grep -q "SSL certificate verify ok" || echo "SSL check failed"
 
 echo "✅ Deployment validation completed!"
-```
+```text
 
 ### Monitoring and Maintenance
 
@@ -939,7 +939,7 @@ certbot renew --quiet
 pg_dump $DATABASE_URL | gzip > /backups/db-$(date +%Y%m%d).sql.gz
 
 echo "Daily maintenance completed at $(date)"
-```
+```text
 
 ---
 
