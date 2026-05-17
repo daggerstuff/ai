@@ -539,7 +539,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
                 source,
                 evaluator,
             )
-        except Exception as exc:  # pragma: no cover - retry logic tested separately
+        except Exception as exc:
             self._log_error(
                 session_id, f"evaluate:{source.source_id}", exc, self.config.max_retries
             )
@@ -646,7 +646,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
                 dataset,
                 target_format,
             )
-        except Exception as exc:  # pragma: no cover - retry logic tested separately
+        except Exception as exc:
             self._log_error(
                 session_id,
                 f"integration_plan:{dataset.source_id}",
@@ -659,7 +659,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         if hasattr(engine, "validate_integration_feasibility"):
             try:
                 feasible = engine.validate_integration_feasibility(plan)
-            except Exception as exc:  # pragma: no cover - retry logic tested separately
+            except Exception as exc:
                 feasible = False
                 self._log_error(
                     session_id,
@@ -685,7 +685,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         while attempts < self.config.max_retries:
             try:
                 return func(*args, **kwargs)
-            except Exception as exc:  # pragma: no cover - exception details tested separately
+            except Exception as exc:
                 attempts += 1
                 last_exception = exc
                 self._log_error(session_id, operation, exc, attempts)

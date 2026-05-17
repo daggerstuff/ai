@@ -41,7 +41,7 @@ class ProductionCrisisDetector:
             "moderate": CrisisLevel.MODERATE,
             "elevated": CrisisLevel.HIGH,
             "high": CrisisLevel.HIGH,
-            "critical": CrisisLevel.CRITICAL,
+            "critical": CrisisLevel.EMERGENCY,
             "emergency": CrisisLevel.EMERGENCY,
         }
 

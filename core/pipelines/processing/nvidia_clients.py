@@ -38,7 +38,7 @@ class NvidiaClients:
                     "NVIDIA API client is unavailable in this environment."
                 )
 
-            def __repr__(self) -> str:  # pragma: no cover - trivial representation
+            def __repr__(self) -> str:
                 return "NvidiaClients.FallbackClient()"
 
         # Keep lazy-import behavior for optional dependencies.

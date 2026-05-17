@@ -39,4 +39,4 @@ through AI
 
 ---
 
-**Enhanced V5 - Production Ready Crisis Detection**
+### Enhanced V5 - Production Ready Crisis Detection

@@ -1,0 +1,16 @@
+{
+  "evaluated_examples": 515749,
+  "overall_score": 0.45,
+  "memory_metrics": {
+    "avg_recall_recall": 0.42,
+    "avg_recall_precision": 0.48
+  },
+  "quality_metrics": {
+    "avg_context_relevance": 0.52,
+    "avg_reflection_quality": 0.38,
+    "avg_generation_quality": 0.58
+  },
+  "clinical_pass_rate": 0.133,
+  "target_clinical_pass_rate": 0.40,
+  "notes": "Sample evaluation report based on Modern Dataset Project metrics: 515,749 records, 13.3% clinical pass rate vs 40% target"
+}

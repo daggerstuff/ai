@@ -392,4 +392,4 @@ For issues or questions:
 
 ---
 
-**Built with ❤️ for psychology and therapy research**
+### Built with ❤️ for psychology and therapy research

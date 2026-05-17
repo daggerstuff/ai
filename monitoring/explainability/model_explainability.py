@@ -14,9 +14,9 @@ from typing import Any
 
 import numpy as np
 import shap
-import torch
 from lime import lime_text
 from transformers import AutoTokenizer
+from ai.utils.torch_proxy import torch
 
 logger = logging.getLogger(__name__)
 

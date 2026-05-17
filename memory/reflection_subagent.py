@@ -31,6 +31,7 @@ class ReflectionSubagent:
         self.memory = memory_provider
         self.config = config or ReflectionConfig()
         self.analysis = ReflectionAnalysisService(llm_callback)
+        self.llm_callback = llm_callback
         self._message_count = 0
 
     async def analyze_conversation(
@@ -77,11 +78,26 @@ class ReflectionSubagent:
                 "Crisis detected - skipping auto-consolidation, preserving all memories"
             )
             result = replace(result, memories_deleted=[])
-        return await self.memory.execute_consolidation(
-            result,
-            user_id=user_id,
-            allow_crisis_deletions=self.config.auto_consolidate,
-        )
+        if hasattr(self.memory, "execute_consolidation"):
+            return await self.memory.execute_consolidation(
+                result,
+                user_id=user_id,
+                allow_crisis_deletions=self.config.auto_consolidate,
+            )
+
+        memories_deleted = result.memories_deleted
+        if result.crisis_detected and not self.config.auto_consolidate:
+            memories_deleted = []
+            memories_consolidated = []
+        else:
+            memories_consolidated = result.memories_consolidated
+
+        return {
+            "preserved": len(result.memories_preserved),
+            "consolidated": len(memories_consolidated),
+            "deleted": len(memories_deleted),
+            "errors": 0,
+        }
 
     def _format_memories(self, memories: list[Memory]) -> str:
         if not memories:

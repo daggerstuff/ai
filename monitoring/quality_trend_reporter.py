@@ -27,7 +27,7 @@ from quality_trend_analyzer import (
 )
 
 # Suppress warnings
-warnings.filterwarnings("ignore")
+warnings.simplefilter("default")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
