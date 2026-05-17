@@ -766,6 +766,9 @@ class ConversationRepository(BaseModelRepository[dict]):
         ⚡ Bolt: Optimized N+1 queries by batching SELECT and UPDATE/DELETE operations.
         """
         """Bulk delete conversations.
+        ⚡ Bolt: Optimized N+1 queries by batching SELECT and UPDATE/DELETE operations.
+        """
+        """Bulk delete conversations.
 
         ⚡ Bolt: Batch SELECT + UPDATE/DELETE operations with cache invalidation.
         """
