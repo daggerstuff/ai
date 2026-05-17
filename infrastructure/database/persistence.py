@@ -791,6 +791,60 @@ class ConversationRepository(BaseModelRepository[dict]):
         chunk_size = 900
         timestamp = datetime.now(UTC).isoformat()
 
+        ids_list = []
+        async for _, cid in self._async_enumerate(ids):
+            ids_list.append(cid)
+
+        for i in range(0, len(ids_list), chunk_size):
+            chunk_ids = ids_list[i : i + chunk_size]
+            chunk_start_idx = i
+            found_ids = None
+
+            try:
+                placeholders = ",".join(["?"] * len(chunk_ids))
+                select_sql = f"SELECT conversation_id FROM conversations WHERE conversation_id IN ({placeholders}) AND deleted_at IS NULL"
+                rows = await self.db_manager.fetch_all(
+                    select_sql, [str(cid) for cid in chunk_ids]
+                )
+                found_ids = {str(row[0]) for row in rows}
+
+                for j, cid in enumerate(chunk_ids):
+                    if str(cid) not in found_ids:
+                        failed_count += 1
+                        errors.append((chunk_start_idx + j, "Conversation not found"))
+
+                if not found_ids:
+                    continue
+
+                valid_ids_list = list(found_ids)
+                valid_placeholders = ",".join(["?"] * len(valid_ids_list))
+
+                if soft_delete:
+                    update_sql = (
+                        "UPDATE conversations "
+                        "SET deleted_at = ?, updated_at = ? "
+                        f"WHERE conversation_id IN ({valid_placeholders})"
+                        " AND deleted_at IS NULL"
+                    )
+                    params = [timestamp, timestamp] + [
+                        str(cid) for cid in valid_ids_list
+                    ]
+                else:
+                    update_sql = (
+                        "DELETE FROM conversations "
+                        f"WHERE conversation_id IN ({valid_placeholders})"
+                    )
+                    params = [str(cid) for cid in valid_ids_list]
+
+                await self.db_manager.execute(update_sql, params)
+                self.db_manager.metrics.operations_deleted += len(valid_ids_list)
+                success_count += len(valid_ids_list)
+
+                for cid in valid_ids_list:
+                    self.db_manager.cache.invalidate(f"conversation:{cid}")
+
+            except Exception as e:
+
         for i in range(0, len(ids), chunk_size):
             chunk = ids[i:i + chunk_size]
             placeholders = ",".join(["?"] * len(chunk))
