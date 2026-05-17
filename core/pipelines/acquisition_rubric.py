@@ -4,14 +4,7 @@ import argparse
 import re
 import sys
 from dataclasses import dataclass, field, asdict
-from enum import Enum
-from typing import Any
-
-
-class PriorityTier(str, Enum):
-import sys
-from dataclasses import dataclass
-from enum import StrEnum
+from enum import Enum, StrEnum
 from typing import Any
 
 
@@ -21,7 +14,6 @@ class PriorityTier(StrEnum):
     LOW = "low"
 
 
-class GateDecision(str, Enum):
 class GateDecision(StrEnum):
     PASS = "pass"
     BLOCK = "block"
@@ -92,9 +84,6 @@ class AcquisitionScore:
 
     @property
     def priority_tier(self) -> PriorityTier:
-        if self.overall_score >= 8.0:
-            return PriorityTier.HIGH
-        if self.overall_score >= 6.0:
         if self.overall_score >= SCORE_TIER_HIGH:
             return PriorityTier.HIGH
         if self.overall_score >= SCORE_FLOOR:
@@ -103,7 +92,6 @@ class AcquisitionScore:
 
     @property
     def passes_score_floor(self) -> bool:
-        return self.overall_score >= 6.0
         return self.overall_score >= SCORE_FLOOR
 
     def to_dict(self) -> dict[str, Any]:
@@ -301,14 +289,6 @@ class AcquisitionRubric:
         else:
             ok = False
 
-        blocked_after_exception = [b for b in base.blocking if "license" not in b.lower() and "exception" not in b.lower()]
-            if source.license_id in EXCEPTION_LICENSES:
-                base.exception_granted = True
-                base.qualifying.append(f"exception granted: {reason}")
-            else:
-                base.exception_granted = False
-            return base
-
         blocked_after_exception = [
             b for b in base.blocking
             if "license" not in b.lower() and "exception" not in b.lower()
@@ -453,7 +433,7 @@ def _run_cli() -> None:
             f"overall_score={score.overall_score}, "
             f"priority_tier={score.priority_tier.value}, "
             f"passes_score_floor={score.passes_score_floor}"
-        print(f"overall_score={score.overall_score}, priority_tier={score.priority_tier.value}, passes_score_floor={score.passes_score_floor}")
+        )
         sys.stdout.write(
             f"overall_score={score.overall_score}, "
             f"priority_tier={score.priority_tier.value}, "
