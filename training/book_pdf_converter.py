@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
 """Proper Book and PDF conversion pipeline for therapeutic AI training.
 
-<<<<<<< HEAD
 Extracts text from PDF and EPUB files, converts to instruction/output QA pairs
 (paraphrased, not verbatim), tags source metadata, and writes per-book JSONL +
 conversion report.
-=======
 Extracts text from PDF and EPUB files, distills knowledge into high-quality
 therapeutic QA pairs using LLMs (Gemini/NIM), and writes per-book JSONL.
->>>>>>> origin/staging
 
 SAFETY FILTERING DISABLED PER USER REQUEST — all content preserved for
 therapeutic training (difficult conversations needed for therapist education).
@@ -26,8 +23,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-<<<<<<< HEAD
-=======
 import requests
 from bs4 import BeautifulSoup
 import ebooklib
@@ -39,7 +34,6 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
->>>>>>> origin/staging
 logger = logging.getLogger("book_pdf_converter")
 
 # API Keys from environment
@@ -227,11 +221,8 @@ def distill_chunk(chunk: str, title: str) -> list[dict[str, str]]:
 def convert_book(
     book_path: Path,
     output_dir: Path,
-<<<<<<< HEAD
     is_dsm: bool,
-=======
     max_chunks: int | None = None,
->>>>>>> origin/staging
 ) -> dict:
     """Convert a single book file to JSONL training pairs using LLM distillation."""
     title = book_path.stem
@@ -239,7 +230,6 @@ def convert_book(
     
     text = _extract_text(book_path)
     if not text or not text.strip():
-<<<<<<< HEAD
         return {
             "book": str(book_path),
             "title": title,
@@ -266,24 +256,20 @@ def convert_book(
             "source_book": title,
             "source_type": "clinical_literature",
         })
-=======
         return {"book": str(book_path), "status": "failed", "reason": "no text extracted"}
 
     chunks = _chunk_text(text)
     if max_chunks:
         chunks = chunks[:max_chunks]
         logger.info(f"Limited to {max_chunks} chunks for testing.")
->>>>>>> origin/staging
 
     all_pairs: list[dict] = []
     output_file = output_dir / f"{title}.jsonl"
     
     # Open file in append mode to allow resuming or streaming
     with open(output_file, "w", encoding="utf-8") as f:
-<<<<<<< HEAD
         for s in output_pairs:
             f.write(json.dumps(s) + "\n")
-=======
         for i, chunk in enumerate(chunks):
             logger.info(f"  Distilling chunk {i+1}/{len(chunks)}...")
             pairs = distill_chunk(chunk, title)
@@ -308,20 +294,16 @@ def convert_book(
             
             # Small sleep to avoid rate limits
             time.sleep(1)
->>>>>>> origin/staging
 
     return {
         "book": str(book_path),
         "title": title,
-<<<<<<< HEAD
         "status": "converted",
         "pairs": len(output_pairs),
         "is_dsm": is_dsm,
-=======
         "status": "converted" if all_pairs else "empty",
         "pairs": len(all_pairs),
         "chunks_processed": len(chunks),
->>>>>>> origin/staging
     }
 
 
@@ -336,7 +318,6 @@ def main():
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-<<<<<<< HEAD
     dsm_titles = set(t.strip().lower() for t in args.dsm_titles.split(",") if t.strip()) if args.dsm_titles else set()
 
     results: list[dict] = []
@@ -359,43 +340,34 @@ def main():
         with open(report_path, "w", encoding="utf-8") as f:
             json.dump(report, f, indent=2)
             f.write("\n")
-=======
     if not books_dir.exists():
         logger.error(f"Books directory not found: {books_dir}")
->>>>>>> origin/staging
         return
 
     results = []
     for book_file in sorted(books_dir.rglob("*")):
         if book_file.suffix.lower() not in {".pdf", ".epub"}:
             continue
-<<<<<<< HEAD
 
         is_dsm = _is_dsm_title(book_file.stem) or book_file.stem.lower() in dsm_titles
         result = convert_book(book_file, output_dir, is_dsm)
-=======
         
         result = convert_book(book_file, output_dir, max_chunks=args.max_chunks)
->>>>>>> origin/staging
         results.append(result)
         
         if result["status"] == "converted":
-<<<<<<< HEAD
             total_pairs += result["pairs"]
             logger.info(
                 "Converted %s: %d pairs (dsm=%s)",
                 result["title"], result["pairs"], is_dsm,
             )
-=======
             logger.info(f"{C_GREEN}✓ Successfully converted {result['title']}: {result['pairs']} pairs.{C_RESET}")
->>>>>>> origin/staging
         else:
             logger.warning(f"{C_RED}✗ Failed/Skipped {book_file.name}: {result.get('reason', 'unknown')}{C_RESET}")
 
     # Generate summary report
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-<<<<<<< HEAD
         "books_dir": str(books_dir),
         "output_dir": str(output_dir),
         "total_books_found": len(results),
@@ -403,16 +375,13 @@ def main():
         "skipped": skipped,
         "total_pairs": total_pairs,
         "book_details": results,
-=======
         "total_books": len(results),
         "converted_books": sum(1 for r in results if r["status"] == "converted"),
         "total_pairs": sum(r.get("pairs", 0) for r in results),
         "details": results
->>>>>>> origin/staging
     }
     with open(output_dir / "conversion_report.json", "w") as f:
         json.dump(report, f, indent=2)
-<<<<<<< HEAD
         f.write("\n")
 
     logger.info(
@@ -455,8 +424,6 @@ def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
     run_conversion(args)
-=======
->>>>>>> origin/staging
 
 
 if __name__ == "__main__":

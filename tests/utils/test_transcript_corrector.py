@@ -1,8 +1,5 @@
-<<<<<<< HEAD
 from unittest.mock import mock_open, patch, MagicMock
-=======
 from unittest.mock import MagicMock, mock_open, patch
->>>>>>> origin/staging
 
 from utils.transcript_corrector import TranscriptCorrector
 
@@ -42,11 +39,8 @@ def test_apply_terminology_fixes_edge_cases(_mock_file, _mock_exists):  # noqa: 
 
 @patch("utils.transcript_corrector.Path.exists", return_value=True)
 @patch("builtins.open", new_callable=mock_open, read_data="{}")
-<<<<<<< HEAD
 def test_correct_transcript_with_punctuation_and_capitalization(_mock_file, _mock_exists):  # noqa: PT019
-=======
 def test_correct_transcript_with_punctuation_and_capitalization(_mock_file, _mock_exists):
->>>>>>> origin/staging
     corrector = TranscriptCorrector("mock.json")
 
     # Tests repeated punctuation collapse and sentence capitalization
@@ -63,8 +57,6 @@ def test_correct_transcript_with_punctuation_and_capitalization(_mock_file, _moc
     assert corrector.correct_transcript("wait , what ?") == "Wait, what?"
 
 
-<<<<<<< HEAD
-=======
 @patch("utils.transcript_corrector.Path.exists", return_value=False)
 def test_load_terminology_not_found(_mock_exists):
     corrector = TranscriptCorrector("mock_missing.json")
@@ -104,17 +96,13 @@ def test_llm_contextual_correction_client(_mock_open, _mock_exists):
     assert result_empty == "Original text"
 
 
->>>>>>> origin/staging
 def test_missing_config_path_fallback():
     with patch("utils.transcript_corrector.Path.exists", side_effect=[False, True]):
         with patch("builtins.open", new_callable=mock_open, read_data='{"cptsd_terms": ["trauma"]}'):
             corrector = TranscriptCorrector("mock.json")
             assert corrector.terms["cptsd_terms"] == ["trauma"]
 
-<<<<<<< HEAD
-=======
 
->>>>>>> origin/staging
 def test_missing_config_path_fallback_both_missing():
     with patch("utils.transcript_corrector.Path.exists", side_effect=[False, False]):
         corrector = TranscriptCorrector("mock.json")
@@ -122,7 +110,6 @@ def test_missing_config_path_fallback_both_missing():
         assert corrector.terms["medical_terms"] == []
         assert corrector.terms["common_misinterpretations"] == {}
 
-<<<<<<< HEAD
 def test_load_terminology_exception():
     with patch("utils.transcript_corrector.Path.exists", return_value=True):
         with patch("builtins.open", side_effect=Exception("Test Exception")):
@@ -135,19 +122,16 @@ def test_contextual_correction_client_fallback():
             corrector = TranscriptCorrector("mock.json")
 
             # Setup a client that returns valid output
-=======
 
 def test_contextual_correction_client_fallback():
     with patch("utils.transcript_corrector.Path.exists", return_value=True):
         with patch("builtins.open", new_callable=mock_open, read_data="{}"):
             corrector = TranscriptCorrector("mock.json")
 
->>>>>>> origin/staging
             corrector._contextual_correction_client = MagicMock(return_value="Corrected sentence.")
             result = corrector._llm_contextual_correction("original sentence", "context")
             assert result == "Corrected sentence."
 
-<<<<<<< HEAD
             # Setup a client that returns empty/invalid output, should fallback
             corrector._contextual_correction_client = MagicMock(return_value="   ")
             result = corrector._llm_contextual_correction("original sentence.", "context")
@@ -187,8 +171,6 @@ def test_llm_contextual_correction_client(_mock_open, _mock_exists):  # noqa: PT
     corrector_empty = TranscriptCorrector("mock.json", contextual_correction_client=empty_client)
     result_empty = corrector_empty.correct_transcript("original text")
     assert result_empty == "Original text"
-=======
             corrector._contextual_correction_client = MagicMock(return_value="   ")
             result = corrector._llm_contextual_correction("original sentence.", "context")
             assert result == "Original sentence."
->>>>>>> origin/staging

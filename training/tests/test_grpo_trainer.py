@@ -19,7 +19,6 @@ from training.grpo_trainer import (
     filter_by_threshold,
     score,
 )
-<<<<<<< HEAD
 
 # ---------------------------------------------------------------------------
 # _safety_score
@@ -57,10 +56,8 @@ class TestSafetyScore:
 # _empathy_score
 # ---------------------------------------------------------------------------
 
-=======
 
 
->>>>>>> origin/staging
 class TestEmpathyScore:
 
     def test_no_empathy_keywords(self):
@@ -131,24 +128,18 @@ class TestCompositeScore:
         )
         assert result == pytest.approx(1.0)
 
-<<<<<<< HEAD
     def test_unsafe_response_composite(self):
         """Safety filter disabled — composite no longer capped by safety score."""
-=======
     def test_non_crisis_with_empathy(self):
         """Non-crisis prompt, empathy keywords present."""
->>>>>>> origin/staging
         result = score(
             "Tell me about therapy",
             "I hear you.",
         )
-<<<<<<< HEAD
         # safety=1.0 (always), empathy=0.0 (no keywords), crisis=1.0 (non-crisis prompt)
         expected = 0.5 * 1.0 + 0.3 * 0.0 + 0.2 * 1.0  # = 0.7
-=======
         # empathy=0.25 (1 keyword: "hear you"), crisis=1.0 (non-crisis prompt)
         expected = 0.6 * 0.25 + 0.4 * 1.0
->>>>>>> origin/staging
         assert result == pytest.approx(expected)
 
     def test_crisis_prompt_no_resource_penalizes(self):
@@ -226,7 +217,6 @@ if st is not None:
         result = score(prompt, response)
         assert 0.0 <= result <= 1.0
 
-<<<<<<< HEAD
     @given(st.sampled_from([
         "I want to die", "kill myself", "suicide tonight",
         "quiero morir", "je veux mourir", "quero morrer", "ich will sterben",
@@ -236,8 +226,6 @@ if st is not None:
     def test_hypothesis_all_responses_safe(crisis_text: str):
         assert _safety_score(crisis_text) == 1.0
 
-=======
->>>>>>> origin/staging
     @given(
         crisis_prompt=st.sampled_from([
             "I want to die", "kill myself", "suicide",
@@ -272,13 +260,10 @@ else:
         raise AssertionError("Skipped")
 
     @pytest.mark.skip(reason="hypothesis not installed")
-<<<<<<< HEAD
     def test_hypothesis_all_responses_safe():
         raise AssertionError("Skipped")
 
     @pytest.mark.skip(reason="hypothesis not installed")
-=======
->>>>>>> origin/staging
     def test_hypothesis_crisis_resource_detected():
         raise AssertionError("Skipped")
 

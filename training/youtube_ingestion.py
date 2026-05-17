@@ -80,21 +80,15 @@ def ingest_channel(
     channel_dir: Path,
     language: str,
     compiled_hashes: set[str],
-<<<<<<< HEAD
 ) -> tuple[list[dict], int, int, int]:
-=======
 ) -> tuple[list[dict], int, int]:
->>>>>>> origin/staging
     """Ingest one channel directory.
 
     Returns (samples, total_read, skipped_duplicate).
     """
     samples: list[dict] = []
     total_read = 0
-<<<<<<< HEAD
     skipped_unsafe = 0  # SAFETY FILTER DISABLED - kept for interface compatibility
-=======
->>>>>>> origin/staging
     skipped_dup = 0
 
     if not channel_dir.is_dir():
@@ -116,7 +110,6 @@ def ingest_channel(
         for pair in pairs:
             total_read += 1
 
-<<<<<<< HEAD
             # SAFETY FILTER DISABLED PER USER REQUEST - ALL CONTENT ALLOWED
             # Original safety check removed per user directive:
             # if safety_checker.is_unsafe(full_text, language=language):
@@ -124,9 +117,7 @@ def ingest_channel(
             #     continue
 
             content_hash = _content_hash(full_text.lower().strip())
-=======
             content_hash = _content_hash(f"{pair['instruction']} {pair['output']}".lower().strip())
->>>>>>> origin/staging
             if content_hash in compiled_hashes:
                 skipped_dup += 1
                 continue
@@ -168,11 +159,8 @@ def run_ingestion(args: argparse.Namespace) -> None:
         channel_name = channel_dir.name
         language = "de" if _is_german_channel(channel_name, german_override) else "en"
 
-<<<<<<< HEAD
         samples, n_read, n_unsafe, n_dup = ingest_channel(
-=======
         samples, n_read, n_dup = ingest_channel(
->>>>>>> origin/staging
             channel_dir, language, compiled_hashes
         )
 

@@ -56,15 +56,12 @@ Language: en
     assert result == "This is repeated This is new"
 
 
-<<<<<<< HEAD
 def test_clean_vtt_empty_content():
     vtt_content = ""
     result = SubtitleProcessor.clean_vtt(vtt_content)
     assert result == ""
 
 
-=======
->>>>>>> origin/staging
 def test_clean_vtt_empty_cleaned_line():
     vtt_content = """WEBVTT
 Kind: captions
@@ -77,8 +74,6 @@ Language: en
     assert result == ""
 
 
-<<<<<<< HEAD
-=======
 def test_clean_vtt_empty_content():
     assert SubtitleProcessor.clean_vtt("") == ""
 
@@ -88,7 +83,6 @@ def test_clean_vtt_empty_and_whitespace():
     assert SubtitleProcessor.clean_vtt("   \n   \n") == ""
 
 
->>>>>>> origin/staging
 def test_clean_vtt_duplicate_lines():
     vtt_content = """WEBVTT
 Kind: captions
@@ -104,14 +98,11 @@ Hello world
     assert result == "Hello world"
 
 
-<<<<<<< HEAD
 def test_clean_vtt_empty_and_whitespace():
     assert SubtitleProcessor.clean_vtt("") == ""
     assert SubtitleProcessor.clean_vtt("   \n   \n") == ""
 
 
-=======
->>>>>>> origin/staging
 def test_clean_vtt_no_header():
     vtt_content = "00:00:00.000 --> 00:00:02.500\n<c>Just text</c>"
     result = SubtitleProcessor.clean_vtt(vtt_content)

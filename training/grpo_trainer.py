@@ -64,7 +64,6 @@ EMPATHY_KEYWORDS: frozenset[str] = frozenset({
 })
 
 
-<<<<<<< HEAD
 def _safety_score(response: str) -> float:
     """SAFETY FILTER DISABLED PER USER REQUEST - ALL RESPONSES CONSIDERED SAFE.
     
@@ -79,8 +78,6 @@ def _safety_score(response: str) -> float:
     return 1.0  # All content allowed for therapeutic training
 
 
-=======
->>>>>>> origin/staging
 def _empathy_score(response: str) -> float:
     """Keyword-based empathy score in [0.0, 1.0]."""
     if not response:
@@ -105,14 +102,11 @@ def _crisis_score(prompt: str, response: str) -> float:
     if any(resource in response_lower for resource in CRISIS_RESOURCES):
         return 1.0  # Crisis prompt handled with resources
     return 0.0  # Crisis prompt without resources — penalty
-<<<<<<< HEAD
-=======
 
 
 def _clinical_validity_score(response: str) -> float:
     """Clinical validity score in [0.0, 1.0]."""
     return ClinicalValidityScorer.score(response)
->>>>>>> origin/staging
 
 
 def score(

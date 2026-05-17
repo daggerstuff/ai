@@ -80,9 +80,7 @@ except ModuleNotFoundError:
 # SAFETY CHECKERS DISABLED PER USER REQUEST - ALL CONTENT ALLOWED
 SAFETY_CHECKER = None
 
-# =============================================================================
 # 0. ENVIRONMENT & SECURITY
-# =============================================================================
 
 WORKSPACE_ROOT = Path(os.getenv("WORKSPACE_ROOT", "/app/data")).resolve()
 with contextlib.suppress(OSError):
@@ -134,9 +132,7 @@ def safe_path(user_path: str | Path) -> Path:
     return target
 
 
-# =============================================================================
 # 1. SECURE LOGGING
-# =============================================================================
 
 
 class SecureLogHandler(logging.StreamHandler):
@@ -173,9 +169,7 @@ logging.getLogger("transformers").setLevel(logging.WARNING)
 logging.getLogger("datasets").setLevel(logging.WARNING)
 
 
-# =============================================================================
 # 1b. UTILITY FUNCTIONS (require logger)
-# =============================================================================
 
 
 def check_disk_space(path: Path, required_gb: float = 5.0) -> None:
@@ -199,9 +193,7 @@ def check_disk_space(path: Path, required_gb: float = 5.0) -> None:
         logger.warning(f"Could not check disk space: {e}")
 
 
-# =============================================================================
 # 2. CLINICAL SAFETY
-# =============================================================================
 
 _DEFAULT_SYSTEM_PROMPT = (
     "You are Wayfarer, a helpful and supportive conversational partner designed for therapeutic training. "
@@ -217,9 +209,7 @@ DEFAULT_SYSTEM_PROMPT = os.getenv("WAYFARER_SYSTEM_PROMPT", _DEFAULT_SYSTEM_PROM
 # ClinicalSafetyChecker is now in clinical_safety_checker.py
 # Imported above via shared_config try/except chain
 
-# =============================================================================
 # 3. DATA PROCESSING
-# =============================================================================
 
 
 def prepare_dataset(
@@ -259,7 +249,6 @@ def prepare_dataset(
 
     filtered_indices: list[int] = []
 
-<<<<<<< HEAD
     filter_num_proc = 1 if filtered_log_path is not None else _NUM_PROC
     # Note: when filter_num_proc > 1, filtered_indices will be empty (workers have
     # separate memory). The count is still correct from initial_size - len(dataset).
@@ -269,13 +258,11 @@ def prepare_dataset(
     logger.info(
         f"No safety filtering applied - all {len(dataset)} samples kept per user request"
     )
-=======
     # Note: filtered_indices will be empty since safety filtering is disabled.
     # SAFETY FILTERING DISABLED PER USER REQUEST - NO FILTERING APPLIED
     # dataset = dataset.filter(is_safe_example, with_indices=True, num_proc=filter_num_proc)
     # All samples are kept for therapeutic training as requested
     logger.info(f"No safety filtering applied - all {len(dataset)} samples kept per user request")
->>>>>>> origin/staging
     if filtered_log_path is not None:
         # Note: logs indices only — for full audit trails, log content hashes.
         # Note: if dataset contains identifiable data, even indices may be sensitive (HIPAA/GDPR).
@@ -330,9 +317,7 @@ def prepare_dataset(
     return dataset
 
 
-# =============================================================================
 # 4. MODEL & TOKENIZER SETUP
-# =============================================================================
 
 
 def setup_model_and_tokenizer(
@@ -442,9 +427,7 @@ def get_response_template_ids(tokenizer: PreTrainedTokenizerBase) -> list[int]:
     return ids
 
 
-# =============================================================================
 # 5. TRAINING CONFIGURATION
-# =============================================================================
 
 
 def configure_training(output_dir: Path, args: argparse.Namespace) -> tuple[LoraConfig, SFTConfig]:
@@ -519,9 +502,7 @@ def configure_training(output_dir: Path, args: argparse.Namespace) -> tuple[Lora
     return peft_config, sft_config
 
 
-# =============================================================================
 # 5b. HUB CONFIGURATION
-# =============================================================================
 
 
 @dataclass
@@ -538,9 +519,7 @@ class HubConfig:
     hub_model_id: str | None = None
 
 
-# =============================================================================
 # 6. CHECKPOINT VERIFICATION CALLBACK
-# =============================================================================
 
 
 class CheckpointVerificationCallback(TrainerCallback):
@@ -721,9 +700,7 @@ def _run_training(
     _maybe_push_to_hub(trainer, tokenizer, _run_cfg.hub_config)
 
 
-# =============================================================================
 # 7. MAIN TRAINING PIPELINE
-# =============================================================================
 
 # Minimum save_total_limit when load_best_model_at_end is enabled, to avoid
 # the best checkpoint being evicted before training ends.
@@ -1055,9 +1032,7 @@ def main():
     )
 
 
-# =============================================================================
 # 8. ENTRY POINT
-# =============================================================================
 
 if __name__ == "__main__":
     try:
