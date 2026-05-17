@@ -26,53 +26,53 @@ try:
 except ImportError as e:
     logger.warning(f"Failed to import base_client: {e}")
     _import_errors.append("base_client")
-    BaseAPIClient = None  # type: ignore
-    APIError = None  # type: ignore
-    RateLimitError = None  # type: ignore
+    BaseAPIClient = None
+    APIError = None
+    RateLimitError = None
 
 try:
     from .pubmed_client import PubMedClient
 except ImportError as e:
     logger.warning(f"Failed to import PubMedClient: {e}")
     _import_errors.append("PubMedClient")
-    PubMedClient = None  # type: ignore
+    PubMedClient = None
 
 try:
     from .doaj_client import DOAJClient
 except ImportError as e:
     logger.warning(f"Failed to import DOAJClient: {e}")
     _import_errors.append("DOAJClient")
-    DOAJClient = None  # type: ignore
+    DOAJClient = None
 
 try:
     from .repository_clients import ClinicalTrialsClient, DryadClient, ZenodoClient
 except ImportError as e:
     logger.warning(f"Failed to import repository clients: {e}")
     _import_errors.append("repository_clients")
-    DryadClient = None  # type: ignore
-    ZenodoClient = None  # type: ignore
-    ClinicalTrialsClient = None  # type: ignore
+    DryadClient = None
+    ZenodoClient = None
+    ClinicalTrialsClient = None
 
 try:
     from .metadata_parser import MetadataParser
 except ImportError as e:
     logger.warning(f"Failed to import MetadataParser: {e}")
     _import_errors.append("MetadataParser")
-    MetadataParser = None  # type: ignore
+    MetadataParser = None
 
 try:
     from .deduplication import DatasetDeduplicator
 except ImportError as e:
     logger.warning(f"Failed to import DatasetDeduplicator: {e}")
     _import_errors.append("DatasetDeduplicator")
-    DatasetDeduplicator = None  # type: ignore
+    DatasetDeduplicator = None
 
 try:
     from .unified_search import UnifiedSearchClient
 except ImportError as e:
     logger.warning(f"Failed to import UnifiedSearchClient: {e}")
     _import_errors.append("UnifiedSearchClient")
-    UnifiedSearchClient = None  # type: ignore
+    UnifiedSearchClient = None
 
 
 def create_all_clients(enable_cache: bool = True) -> dict[str, Any]:

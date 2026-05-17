@@ -21,7 +21,7 @@ import streamlit as st
 from plotly.subplots import make_subplots
 
 # Suppress warnings for cleaner output
-warnings.filterwarnings("ignore")
+warnings.simplefilter("default")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")

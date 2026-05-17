@@ -28,7 +28,7 @@ from unittest.mock import Mock, patch
 import numpy as np
 import pandas as pd
 
-warnings.filterwarnings("ignore")
+warnings.simplefilter("default")
 
 # Add the monitoring directory to the path for imports
 sys.path.append("/home/vivi/pixelated/ai/monitoring")

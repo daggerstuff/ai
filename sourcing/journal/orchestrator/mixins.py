@@ -48,7 +48,7 @@ class RetryMixin:
         while attempts < self.config.max_retries:
             try:
                 return func(*args, **kwargs)
-            except Exception as exc:  # pragma: no cover - logging path
+            except Exception as exc:
                 attempts += 1
                 last_exception = exc
                 self._log_error(session_id, operation, exc, attempts)
@@ -478,7 +478,7 @@ class WorkflowMixin(RetryMixin):
                 source,
                 evaluator,
             )
-        except Exception as exc:  # pragma: no cover - logging path
+        except Exception as exc:
             self._log_error(
                 session_id, f"evaluate:{source.source_id}", exc, self.config.max_retries
             )

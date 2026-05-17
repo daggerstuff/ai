@@ -134,7 +134,7 @@ Lightning.ai H100 Therapeutic AI Training Script
 """
 
 import json
-import torch
+from ai.utils.torch_proxy import torch
 import lightning as L
 from lightning.fabric import Fabric
 from transformers import (
@@ -145,7 +145,7 @@ from transformers import (
     DataCollatorForLanguageModeling
 )
 from peft import LoraConfig, get_peft_model, TaskType
-from torch.utils.data import Dataset
+Dataset = torch.utils.data.Dataset
 import logging
 from pathlib import Path
 from typing import Dict, List

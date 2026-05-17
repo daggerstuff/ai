@@ -105,3 +105,5 @@ variables directly** rather than **calling functions**.
 The resources are available as direct variables, so agents don't "call" anything
 in the traditional sense - they just access them, and that's when they load
 automatically.
+automatically.
+automatically.

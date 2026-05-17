@@ -7,6 +7,7 @@ Conforms to Python 3.11+ type-hint standards and Google-style docstrings.
 """
 
 import argparse
+import contextlib
 import inspect
 import json
 import logging
@@ -15,9 +16,10 @@ import re
 import shutil
 import sys
 import tempfile
+from collections.abc import Sized as SizedProtocol
 from dataclasses import dataclass
 from pathlib import Path
-from typing import ClassVar
+from typing import ClassVar, cast
 
 import torch
 from peft import LoraConfig, PeftModel, prepare_model_for_kbit_training
@@ -31,15 +33,25 @@ from transformers import (
     TrainingArguments,
     set_seed,
 )
-from trl import SFTConfig, SFTTrainer
+from trl.trainer.sft_config import SFTConfig
+from trl.trainer.sft_trainer import SFTTrainer
 
 try:
-    from trl import DataCollatorForCompletionOnlyLM  # type: ignore[import-untyped]  # TRL < 1.3
+    # TRL >= 1.3
+    import trl.trainer.utils as trl_utils
+
+    DataCollatorForCompletionOnlyLM = getattr(trl_utils, "DataCollatorForCompletionOnlyLM", None)
 except ImportError:
-    DataCollatorForCompletionOnlyLM = None  # TRL >= 1.3: SFTTrainer handles completion masking  # type: ignore[import-untyped]
+    try:
+        # TRL < 1.3
+        import trl
+
+        DataCollatorForCompletionOnlyLM = getattr(trl, "DataCollatorForCompletionOnlyLM", None)
+    except ImportError:
+        # TRL >= 1.3: SFTTrainer handles completion masking via SFTConfig
+        DataCollatorForCompletionOnlyLM = None
 
 from datasets import Dataset, load_dataset
-
 
 try:
     from .shared_config import (
@@ -74,15 +86,11 @@ except ModuleNotFoundError:
 # SAFETY CHECKERS DISABLED PER USER REQUEST - ALL CONTENT ALLOWED
 SAFETY_CHECKER = None
 
-# =============================================================================
 # 0. ENVIRONMENT & SECURITY
-# =============================================================================
 
 WORKSPACE_ROOT = Path(os.getenv("WORKSPACE_ROOT", "/app/data")).resolve()
-try:
+with contextlib.suppress(OSError):
     WORKSPACE_ROOT.mkdir(parents=True, exist_ok=True)
-except OSError:
-    pass  # Directory creation deferred — may not have permissions outside production
 # GPUStatsThread (pynvml-based GPU telemetry) is Colab-only — see pixelated_colab_pilot.ipynb
 
 # Minimum samples required after filtering — ensures a meaningful 90/10 split
@@ -130,9 +138,7 @@ def safe_path(user_path: str | Path) -> Path:
     return target
 
 
-# =============================================================================
 # 1. SECURE LOGGING
-# =============================================================================
 
 
 class SecureLogHandler(logging.StreamHandler):
@@ -169,9 +175,7 @@ logging.getLogger("transformers").setLevel(logging.WARNING)
 logging.getLogger("datasets").setLevel(logging.WARNING)
 
 
-# =============================================================================
 # 1b. UTILITY FUNCTIONS (require logger)
-# =============================================================================
 
 
 def check_disk_space(path: Path, required_gb: float = 5.0) -> None:
@@ -195,9 +199,7 @@ def check_disk_space(path: Path, required_gb: float = 5.0) -> None:
         logger.warning(f"Could not check disk space: {e}")
 
 
-# =============================================================================
 # 2. CLINICAL SAFETY
-# =============================================================================
 
 _DEFAULT_SYSTEM_PROMPT = (
     "You are Wayfarer, a helpful and supportive conversational partner designed for therapeutic training. "
@@ -213,9 +215,7 @@ DEFAULT_SYSTEM_PROMPT = os.getenv("WAYFARER_SYSTEM_PROMPT", _DEFAULT_SYSTEM_PROM
 # ClinicalSafetyChecker is now in clinical_safety_checker.py
 # Imported above via shared_config try/except chain
 
-# =============================================================================
 # 3. DATA PROCESSING
-# =============================================================================
 
 
 def prepare_dataset(
@@ -252,7 +252,6 @@ def prepare_dataset(
     """
     logger.info(f"Loading dataset from {dataset_path}")
     dataset = load_dataset("json", data_files=str(dataset_path), split="train")
-    initial_size = len(dataset)
 
     filtered_indices: list[int] = []
 
@@ -265,6 +264,11 @@ def prepare_dataset(
     logger.info(
         f"No safety filtering applied - all {len(dataset)} samples kept per user request"
     )
+    # Note: filtered_indices will be empty since safety filtering is disabled.
+    # SAFETY FILTERING DISABLED PER USER REQUEST - NO FILTERING APPLIED
+    # dataset = dataset.filter(is_safe_example, with_indices=True, num_proc=filter_num_proc)
+    # All samples are kept for therapeutic training as requested
+    logger.info(f"No safety filtering applied - all {len(dataset)} samples kept per user request")
     if filtered_log_path is not None:
         # Note: logs indices only — for full audit trails, log content hashes.
         # Note: if dataset contains identifiable data, even indices may be sensitive (HIPAA/GDPR).
@@ -319,9 +323,7 @@ def prepare_dataset(
     return dataset
 
 
-# =============================================================================
 # 4. MODEL & TOKENIZER SETUP
-# =============================================================================
 
 
 def setup_model_and_tokenizer(
@@ -345,7 +347,7 @@ def setup_model_and_tokenizer(
     # attn_implementation: requires transformers >= 4.36. Use conditional dict to
     # avoid TypeError on older versions.
     _attn_kwargs = {"attn_implementation": attn_implementation} if attn_implementation else {}
-    model: AutoModelForCausalLM = AutoModelForCausalLM.from_pretrained(  # type: ignore[assignment]
+    model = AutoModelForCausalLM.from_pretrained(
         model_name,
         quantization_config=bnb_config,
         device_map="auto",
@@ -369,7 +371,7 @@ def setup_model_and_tokenizer(
     if tokenizer.pad_token_id == tokenizer.eos_token_id:
         logger.debug("pad_token_id == eos_token_id (expected for causal LMs; verify collator masking).")
 
-    return model, tokenizer
+    return cast(AutoModelForCausalLM, model), cast(PreTrainedTokenizerBase, tokenizer)
 
 
 def get_response_template_ids(tokenizer: PreTrainedTokenizerBase) -> list[int]:
@@ -413,7 +415,7 @@ def get_response_template_ids(tokenizer: PreTrainedTokenizerBase) -> list[int]:
         if _tokenizer_supports_gen_prompt(tokenizer)
         else tokenizer.apply_chat_template(sample_msgs, tokenize=False)
     )
-    sample_ids = tokenizer.encode(sample_text, add_special_tokens=False)
+    sample_ids = tokenizer.encode(str(sample_text), add_special_tokens=False)
     found = any(sample_ids[i : i + len(ids)] == ids for i in range(len(sample_ids) - len(ids) + 1))
     if not found:
         raise ValueError(
@@ -431,9 +433,7 @@ def get_response_template_ids(tokenizer: PreTrainedTokenizerBase) -> list[int]:
     return ids
 
 
-# =============================================================================
 # 5. TRAINING CONFIGURATION
-# =============================================================================
 
 
 def configure_training(output_dir: Path, args: argparse.Namespace) -> tuple[LoraConfig, SFTConfig]:
@@ -508,9 +508,7 @@ def configure_training(output_dir: Path, args: argparse.Namespace) -> tuple[Lora
     return peft_config, sft_config
 
 
-# =============================================================================
 # 5b. HUB CONFIGURATION
-# =============================================================================
 
 
 @dataclass
@@ -527,9 +525,7 @@ class HubConfig:
     hub_model_id: str | None = None
 
 
-# =============================================================================
 # 6. CHECKPOINT VERIFICATION CALLBACK
-# =============================================================================
 
 
 class CheckpointVerificationCallback(TrainerCallback):
@@ -601,7 +597,8 @@ def _maybe_push_to_hub(
         # call trainer.model.merge_and_unload() first.
         if hasattr(trainer, "create_model_card"):
             trainer.create_model_card()
-        peft_model: PeftModel = trainer.model  # SFTTrainer wraps with PEFT; model is PeftModel at this point
+        # SFTTrainer wraps with PEFT; model is PeftModel at this point
+        peft_model = cast(PeftModel, trainer.model)
         peft_model.push_to_hub(hub_model_id)
         tokenizer.push_to_hub(hub_model_id)
         logger.info(f"Model pushed to hub: {hub_model_id}")
@@ -680,9 +677,8 @@ def _run_training(
 
     if not _run_cfg.skip_final_eval and trainer.eval_dataset is not None:
         eval_ds = trainer.eval_dataset
-        # eval_dataset may be a Dataset or DatasetDict; both support len() at runtime
-        # but the union type in the stub doesn't guarantee Sized. Check explicitly.
-        eval_len = len(eval_ds) if isinstance(eval_ds, Dataset) else 1
+        # eval_dataset may be a Dataset or DatasetDict; check for __len__ to satisfy Sized protocol
+        eval_len = len(cast(SizedProtocol, eval_ds)) if hasattr(eval_ds, "__len__") else 0
         if eval_len > 0:
             try:
                 eval_metrics = trainer.evaluate()
@@ -710,9 +706,7 @@ def _run_training(
     _maybe_push_to_hub(trainer, tokenizer, _run_cfg.hub_config)
 
 
-# =============================================================================
 # 7. MAIN TRAINING PIPELINE
-# =============================================================================
 
 # Minimum save_total_limit when load_best_model_at_end is enabled, to avoid
 # the best checkpoint being evicted before training ends.
@@ -1020,13 +1014,17 @@ def main():
         callbacks=[CheckpointVerificationCallback()],
     )
 
-    peft_model: PeftModel = trainer.model  # SFTTrainer wraps with PEFT after __init__
+    # SFTTrainer wraps with PEFT after __init__
+    peft_model = cast(PeftModel, trainer.model)
     target_modules = [m.strip() for m in args.lora_target_modules.split(",") if m.strip()]
     logger.info(
         "LoRA target modules: %s (rank=%d, alpha=%d)",
-        target_modules, args.lora_r, args.lora_alpha,
+        target_modules,
+        args.lora_r,
+        args.lora_alpha,
     )
-    peft_model.print_trainable_parameters()
+    if hasattr(peft_model, "print_trainable_parameters"):
+        peft_model.print_trainable_parameters()
 
     _run_training(
         trainer,
@@ -1040,9 +1038,7 @@ def main():
     )
 
 
-# =============================================================================
 # 8. ENTRY POINT
-# =============================================================================
 
 if __name__ == "__main__":
     try:

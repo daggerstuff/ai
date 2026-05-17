@@ -38,18 +38,16 @@ def test_format_as_markdown_missing_metadata():
     assert "Hello there. How are you? I am fine." in result
 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 def test_clean_vtt_removes_duplicates():
-=======
 def test_clean_vtt_empty_cleaned_line():
->>>>>>> ba9dd883 (🧪 QA: Add tests for SubtitleProcessor empty and duplicate lines)
+def test_clean_vtt_removes_duplicates():
+def test_clean_vtt_empty_cleaned_line():
+def test_clean_vtt_removes_duplicates():
     vtt_content = """WEBVTT
 Kind: captions
 Language: en
 
 00:00:00.000 --> 00:00:02.500 align:start position:0%
-<<<<<<< HEAD
 <c.colorE5E5E5>This is repeated</c>
 
 00:00:02.500 --> 00:00:05.000 align:start position:0%
@@ -66,11 +64,27 @@ def test_clean_vtt_empty_content():
     vtt_content = ""
     result = SubtitleProcessor.clean_vtt(vtt_content)
     assert result == ""
-=======
+
+
+def test_clean_vtt_empty_cleaned_line():
+    vtt_content = """WEBVTT
+Kind: captions
+Language: en
+
+00:00:00.000 --> 00:00:02.500 align:start position:0%
 <c.colorE5E5E5></c>
 """
     result = SubtitleProcessor.clean_vtt(vtt_content)
     assert result == ""
+
+
+def test_clean_vtt_empty_content():
+    assert SubtitleProcessor.clean_vtt("") == ""
+
+
+def test_clean_vtt_empty_and_whitespace():
+    assert SubtitleProcessor.clean_vtt("") == ""
+    assert SubtitleProcessor.clean_vtt("   \n   \n") == ""
 
 
 def test_clean_vtt_duplicate_lines():
@@ -86,8 +100,8 @@ Hello world
 """
     result = SubtitleProcessor.clean_vtt(vtt_content)
     assert result == "Hello world"
->>>>>>> ba9dd883 (🧪 QA: Add tests for SubtitleProcessor empty and duplicate lines)
-=======
+
+
 def test_clean_vtt_empty_and_whitespace():
     assert SubtitleProcessor.clean_vtt("") == ""
     assert SubtitleProcessor.clean_vtt("   \n   \n") == ""
@@ -97,4 +111,3 @@ def test_clean_vtt_no_header():
     vtt_content = "00:00:00.000 --> 00:00:02.500\n<c>Just text</c>"
     result = SubtitleProcessor.clean_vtt(vtt_content)
     assert result == "Just text"
->>>>>>> 60b73adc (🧪 QA: Add edge case tests for SubtitleProcessor)

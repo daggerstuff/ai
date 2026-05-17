@@ -48,7 +48,7 @@ await reset_subconscious(token)
 ## Files
 
 | File | Purpose |
-|------|---------|
+| ------ | --------- |
 | `v3/config.py` | v3 configuration |
 | `v3/context.py` | contextvars API |
 | `v3/client.py` | explicit client wrapper |

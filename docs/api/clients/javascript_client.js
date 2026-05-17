@@ -5,14 +5,53 @@
  * Official JavaScript client for the Pixelated Empathy AI API.
  */
 
-const https = require('https')
-const http = require('http')
-const { URL } = require('url')
+import * as https from 'https'
 
+/**
+ * @typedef {{ [key: string]: unknown }} GenericRecord
+ */
+/**
+ * @typedef {{ baseUrl?: string, timeout?: number, maxRetries?: number }} ClientOptions
+ */
+/**
+ * @typedef {{ params?: GenericRecord, data?: GenericRecord | unknown[] | null, headers?: Record<string, string>, timeout?: number }} RequestOptions
+ */
+/**
+ * @typedef {{ statusCode: number, headers: Record<string, string | string[] | undefined>, body: string }} HttpResponse
+ */
+/**
+ * @typedef {{ success?: boolean, data?: GenericRecord | unknown[], message?: string, timestamp?: string, error?: unknown }} ApiResponse
+ */
+/**
+ * @typedef {{ dataset?: string, tier?: string, minQuality?: number }} ConversationFilters
+ */
+/**
+ * @typedef {{ limit?: number, offset?: number, dataset?: string, tier?: string, minQuality?: number }} GetConversationsOptions
+ */
+/**
+ * @typedef {{ batchSize?: number }} IterConversationsOptions
+ */
+/**
+ * @typedef {{ dataset?: string, tier?: string }} QualityMetricsOptions
+ */
+/**
+ * @typedef {{ query?: string, filters?: GenericRecord, limit?: number, offset?: number }} SearchOptions
+ */
+/**
+ * @typedef {{ pollInterval?: number, timeout?: number }} WaitOptions
+ */
+/**
+ * @typedef {{ format?: string, tier?: string, minQuality?: number }} ExportOptions
+ */
 /**
  * Custom error class for API errors
  */
 class PixelatedEmpathyAPIError extends Error {
+  /**
+   * @param {string} message
+   * @param {string | number | null} [errorCode]
+   * @param {number | null} [statusCode]
+   */
   constructor(message, errorCode = null, statusCode = null) {
     super(message)
     this.name = 'PixelatedEmpathyAPIError'
@@ -25,6 +64,9 @@ class PixelatedEmpathyAPIError extends Error {
  * Custom error class for rate limit errors
  */
 class RateLimitError extends PixelatedEmpathyAPIError {
+  /**
+   * @param {number} retryAfter
+   */
   constructor(retryAfter) {
     super(`Rate limit exceeded. Retry after ${retryAfter} seconds.`)
     this.name = 'RateLimitError'
@@ -43,72 +85,107 @@ class PixelatedEmpathyAPI {
    * Initialize the API client.
    *
    * @param {string} apiKey - Your API key from https://api.pixelatedempathy.com
-   * @param {Object} options - Configuration options
-   * @param {string} options.baseUrl - API base URL (default: production)
-   * @param {number} options.timeout - Request timeout in milliseconds
-   * @param {number} options.maxRetries - Maximum number of retries for failed requests
+   * @param {ClientOptions} [options]
    */
   constructor(apiKey, options = {}) {
+    /** @type {ClientOptions} */
+    const clientOptions = options
+
     this.apiKey = apiKey
     this.baseUrl = (
-      options.baseUrl || 'https://api.pixelatedempathy.com/v1'
+      clientOptions.baseUrl ?? 'https://api.pixelatedempathy.com/v1'
     ).replace(/\/$/, '')
-    this.timeout = options.timeout || 30000
-    this.maxRetries = options.maxRetries || 3
+    this.timeout = clientOptions.timeout ?? 30000
+    this.maxRetries = clientOptions.maxRetries ?? 3
 
     this.defaultHeaders = {
       Authorization: `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
       'User-Agent': 'PixelatedEmpathyAPI-JavaScript/1.0.0',
     }
+
+    this['_makeRequest'] = this.makeRequest.bind(this)
+    this['_httpRequest'] = this.httpRequest.bind(this)
+    this['_sleep'] = this.sleep.bind(this)
   }
 
   /**
    * Make an HTTP request with error handling and retries
    * @private
+   * @param {string} method
+   * @param {string} endpoint
+   * @param {RequestOptions} [options]
+   * @returns {Promise<ApiResponse>}
    */
-  async _makeRequest(method, endpoint, options = {}) {
-    const url = new URL(endpoint, this.baseUrl)
+  async makeRequest(method, endpoint, options = {}) {
+    /** @type {RequestOptions} */
+    const requestOptions = options
+    /** @type {string} */
+    let requestUrl = this.baseUrl + endpoint
 
     // Add query parameters
-    if (options.params) {
-      Object.keys(options.params).forEach((key) => {
-        if (options.params[key] !== undefined && options.params[key] !== null) {
-          url.searchParams.append(key, options.params[key])
+    if (this.isPlainObject(requestOptions.params)) {
+      const query = new URLSearchParams()
+      for (const [key, value] of Object.entries(requestOptions.params)) {
+        if (value !== undefined && value !== null) {
+          query.append(key, this.formatValue(value))
         }
-      })
+      }
+      const queryString = query.toString()
+      if (queryString) {
+        requestUrl = `${requestUrl}${requestUrl.includes('?') ? '&' : '?'}${queryString}`
+      }
     }
 
-    const requestOptions = {
+    /** @type {{ method: string, headers: Record<string, string>, timeout: number, body?: string }} */
+    const requestConfig = {
       method: method.toUpperCase(),
-      headers: { ...this.defaultHeaders, ...options.headers },
+      headers: { ...this.defaultHeaders, ...(requestOptions.headers ?? {}) },
       timeout: this.timeout,
     }
 
     // Add request body
-    if (options.data) {
+    if (requestOptions.data !== undefined && requestOptions.data !== null) {
       if (
-        options.headers &&
-        options.headers['Content-Type'] === 'application/x-www-form-urlencoded'
+            requestOptions.headers?.['Content-Type'] ===
+              'application/x-www-form-urlencoded'
       ) {
-        requestOptions.body = new URLSearchParams(options.data).toString()
+        requestConfig.body = new URLSearchParams(
+            this.normalizePayload(
+            typeof requestOptions.data === 'string'
+              ? requestOptions.data
+              : this.isPlainObject(requestOptions.data)
+                ? requestOptions.data
+                : { data: requestOptions.data },
+          ),
+        ).toString()
       } else {
-        requestOptions.body = JSON.stringify(options.data)
+        requestConfig.body =
+          typeof requestOptions.data === 'string'
+            ? requestOptions.data
+            : JSON.stringify(requestOptions.data)
       }
     }
 
     for (let attempt = 0; attempt <= this.maxRetries; attempt++) {
       try {
-        const response = await this._httpRequest(url, requestOptions)
+        const response = await this.httpRequest(requestUrl, requestConfig)
 
         // Handle rate limiting
         if (response.statusCode === 429) {
-          const retryAfter = parseInt(response.headers['retry-after'] || '60')
+          const retryAfterHeader = response.headers['retry-after']
+          const retryAfterCandidate = Array.isArray(retryAfterHeader)
+            ? retryAfterHeader[0]
+            : retryAfterHeader
+          let retryAfter = parseInt(retryAfterCandidate ?? '60', 10)
+          if (Number.isNaN(retryAfter)) {
+            retryAfter = 60
+          }
           if (attempt < this.maxRetries) {
             console.warn(
               `Rate limited. Retrying after ${retryAfter} seconds...`,
             )
-            await this._sleep(retryAfter * 1000)
+            await this.sleep(retryAfter * 1000)
             continue
           } else {
             throw new RateLimitError(retryAfter)
@@ -116,17 +193,17 @@ class PixelatedEmpathyAPI {
         }
 
         // Parse response
-        let data
-        try {
-          data = JSON.parse(response.body)
-        } catch (e) {
-          data = { success: false, message: 'Invalid JSON response' }
-        }
+        const data = this.safeParseResponse(response.body)
 
         // Handle API errors
         if (response.statusCode >= 400) {
-          const errorMessage = data.error?.message || 'Unknown error'
-          const errorCode = data.error?.code || 'UNKNOWN_ERROR'
+          const errorPayload = this.toRecord(data.error)
+          const errorMessage =
+            typeof errorPayload.message === 'string'
+              ? errorPayload.message
+              : 'Unknown error'
+          const errorCode =
+            typeof errorPayload.code === 'string' ? errorPayload.code : 'UNKNOWN_ERROR'
           throw new PixelatedEmpathyAPIError(
             errorMessage,
             errorCode,
@@ -134,93 +211,215 @@ class PixelatedEmpathyAPI {
           )
         }
 
+        const payload = this.toRecord(data.data)
         return {
-          success: data.success || false,
-          data: data.data,
-          message: data.message || '',
-          timestamp: data.timestamp || '',
-          error: data.error,
+          success: data.success === true,
+          data: payload,
+          message: typeof data.message === 'string' ? data.message : '',
+          timestamp: typeof data.timestamp === 'string' ? data.timestamp : '',
+          error: data.error ?? null,
         }
       } catch (error) {
+        const caughtError = this.toError(error)
         if (
-          error instanceof PixelatedEmpathyAPIError ||
-          error instanceof RateLimitError
+          caughtError instanceof PixelatedEmpathyAPIError ||
+          caughtError instanceof RateLimitError
         ) {
-          throw error
+          throw caughtError
         }
 
         if (attempt < this.maxRetries) {
           console.warn(
-            `Request failed (attempt ${attempt + 1}): ${error.message}`,
+            `Request failed (attempt ${attempt + 1}): ${caughtError.message}`,
           )
-          await this._sleep(Math.pow(2, attempt) * 1000) // Exponential backoff
+          await this.sleep(Math.pow(2, attempt) * 1000) // Exponential backoff
           continue
         } else {
-          throw new PixelatedEmpathyAPIError(`Request failed: ${error.message}`)
+          throw new PixelatedEmpathyAPIError(`Request failed: ${caughtError.message}`)
         }
       }
+    }
+
+    throw new PixelatedEmpathyAPIError('Request failed after retries')
+  }
+
+  /**
+   * Convert values to strings for query/body payload serialization.
+   * @param {unknown} value
+   * @returns {string}
+   */
+  formatValue(value) {
+    if (value === undefined || value === null) {
+      return ''
+    }
+    if (typeof value === 'string') {
+      return value
+    }
+    if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') {
+      return String(value)
+    }
+
+    try {
+      return JSON.stringify(value)
+    } catch {
+      if (typeof value === 'object') {
+        return '[object Object]'
+      }
+      if (typeof value === 'symbol') {
+        return value.description ?? ''
+      }
+      if (typeof value === 'function') {
+        return value.toString()
+      }
+      return ''
     }
   }
 
   /**
-   * Make HTTP request using Node.js built-in modules
-   * @private
+   * Convert payload data into URLSearchParams-friendly values.
+   * @param {GenericRecord | string} data
+   * @returns {GenericRecord}
    */
-  _httpRequest(url, options) {
-    return new Promise((resolve, reject) => {
-      const client = url.protocol === 'https:' ? https : http
+  normalizePayload(data) {
+    if (typeof data === 'string') {
+      return { data }
+    }
 
-      const req = client.request(
-        url,
-        {
-          method: options.method,
-          headers: options.headers,
-          timeout: options.timeout,
-        },
-        (res) => {
-          let body = ''
-          res.on('data', (chunk) => (body += chunk))
-          res.on('end', () => {
-            resolve({
-              statusCode: res.statusCode,
-              headers: res.headers,
-              body: body,
-            })
-          })
-        },
-      )
+    /** @type {GenericRecord} */
+    const payload = {}
+    for (const [key, value] of Object.entries(data)) {
+      if (value !== undefined && value !== null) {
+        payload[key] = this.formatValue(value)
+      }
+    }
 
-      req.on('error', reject)
-      req.on('timeout', () => {
-        req.destroy()
-        reject(new Error('Request timeout'))
+    return payload
+  }
+
+  /**
+   * @param {string} rawBody
+   * @returns {ApiResponse}
+   */
+  safeParseResponse(rawBody) {
+    try {
+      /** @type {unknown} */
+      const parsed = JSON.parse(rawBody)
+      return this.isPlainObject(parsed) ? parsed : { success: false, message: 'Invalid JSON response' }
+    } catch {
+      return { success: false, message: 'Invalid JSON response' }
+    }
+  }
+
+  /**
+   * @param {unknown} error
+   * @returns {Error}
+   */
+  toError(error) {
+    if (error instanceof Error) {
+      return error
+    }
+
+    return new Error(typeof error === 'string' ? error : 'Unknown error')
+  }
+
+  /**
+   * @param {unknown} value
+   * @returns {value is GenericRecord}
+   */
+  isPlainObject(value) {
+    return value !== null && typeof value === 'object' && !Array.isArray(value)
+  }
+
+  /**
+   * @param {unknown} value
+   * @param {GenericRecord} [fallback]
+   * @returns {GenericRecord}
+   */
+  toRecord(value, fallback = {}) {
+    return this.isPlainObject(value) ? value : fallback
+  }
+
+  /**
+   * @param {unknown} value
+   * @returns {Array<GenericRecord>}
+   */
+  toRecordArray(value) {
+    if (!Array.isArray(value)) {
+      return []
+    }
+
+    return value.filter((entry) => this.isPlainObject(entry))
+  }
+
+  /**
+   * Make HTTP request using the Fetch API
+   * @private
+   * @param {string} url
+   * @param {{ method: string, headers: Record<string, string>, timeout: number, body?: string }} requestConfig
+   * @returns {Promise<HttpResponse>}
+   */
+  async httpRequest(url, requestConfig) {
+    const requestConfigOptions = {
+      method: requestConfig.method,
+      headers: requestConfig.headers,
+      body: requestConfig.body,
+    }
+
+    const controller = new AbortController()
+    const timeout = setTimeout(() => {
+      controller.abort()
+    }, requestConfig.timeout)
+
+    try {
+      /** @type {Response} */
+      const response = await fetch(url, {
+        ...requestConfigOptions,
+        signal: controller.signal,
+      })
+      clearTimeout(timeout)
+
+      const responseBody = await response.text()
+      /** @type {Record<string, string>} */
+      const headers = {}
+      response.headers.forEach((value, key) => {
+        headers[key] = value
       })
 
-      if (options.body) {
-        req.write(options.body)
+      return {
+        statusCode: response.status,
+        headers,
+        body: responseBody,
       }
-
-      req.end()
-    })
+    } catch (error) {
+      clearTimeout(timeout)
+      const requestError = this.toError(error)
+      if (requestError.name === 'AbortError') {
+        throw new Error('Request timeout')
+      }
+      throw requestError
+    }
   }
 
   /**
    * Sleep for specified milliseconds
    * @private
+   * @param {number} ms
+   * @returns {Promise<void>}
    */
-  _sleep(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms))
+  async sleep(ms) {
+    await new Promise((resolve) => setTimeout(resolve, ms))
   }
 
   // Dataset methods
 
   /**
    * List all available datasets.
-   * @returns {Promise<Array>} List of dataset information objects
+   * @returns {Promise<Array<Object>>} List of dataset information objects
    */
   async listDatasets() {
-    const response = await this._makeRequest('GET', '/datasets')
-    return response.data.datasets || []
+    const response = await this.makeRequest('GET', '/datasets')
+    const payload = this.toRecord(response.data)
+    return this.toRecordArray(payload.datasets)
   }
 
   /**
@@ -229,8 +428,8 @@ class PixelatedEmpathyAPI {
    * @returns {Promise<Object>} Dataset information object
    */
   async getDatasetInfo(datasetName) {
-    const response = await this._makeRequest('GET', `/datasets/${datasetName}`)
-    return response.data
+    const response = await this.makeRequest('GET', `/datasets/${datasetName}`)
+    return this.toRecord(response.data)
   }
 
   // Conversation methods
@@ -243,23 +442,31 @@ class PixelatedEmpathyAPI {
    * @param {number} options.minQuality - Minimum quality score (0.0-1.0)
    * @param {number} options.limit - Maximum number of results (1-1000)
    * @param {number} options.offset - Offset for pagination
+   * @param {Object} [options]
    * @returns {Promise<Object>} Object with conversations list and pagination info
    */
   async getConversations(options = {}) {
+    /** @type {GetConversationsOptions} */
+    const conversationOptions = options
+    /** @type {Record<string, number | string>} */
     const params = {
-      limit: options.limit || 100,
-      offset: options.offset || 0,
+      limit: conversationOptions.limit ?? 100,
+      offset: conversationOptions.offset ?? 0,
     }
 
-    if (options.dataset) params.dataset = options.dataset
-    if (options.tier) params.tier = options.tier
-    if (options.minQuality !== undefined)
-      params.min_quality = options.minQuality
+    if (conversationOptions.dataset) params.dataset = conversationOptions.dataset
+    if (conversationOptions.tier) params.tier = conversationOptions.tier
+    if (conversationOptions.minQuality !== undefined)
+      params.min_quality = conversationOptions.minQuality
 
-    const response = await this._makeRequest('GET', '/conversations', {
+    const response = await this.makeRequest('GET', '/conversations', {
       params,
     })
-    return response.data
+    const payload = this.toRecord(response.data)
+    return {
+      conversations: this.toRecordArray(payload.conversations),
+      ...payload,
+    }
   }
 
   /**
@@ -268,31 +475,31 @@ class PixelatedEmpathyAPI {
    * @returns {Promise<Object>} Conversation details object
    */
   async getConversation(conversationId) {
-    const response = await this._makeRequest(
+    const response = await this.makeRequest(
       'GET',
       `/conversations/${conversationId}`,
     )
-    return response.data
+    return this.toRecord(response.data)
   }
 
   /**
    * Iterate through all conversations with automatic pagination.
-   * @param {Object} options - Filtering options
-   * @param {number} options.batchSize - Number of conversations to fetch per request
+   * @param {{ batchSize?: number }} [options]
    * @returns {AsyncGenerator<Object>} Async generator yielding conversation objects
    */
   async *iterConversations(options = {}) {
-    const batchSize = options.batchSize || 100
-    let offset = 0
+    /** @type {IterConversationsOptions} */
+    const iterOptions = options
+    const batchSize = iterOptions.batchSize ?? 100
 
-    while (true) {
+    for (let offset = 0;;) {
       const batch = await this.getConversations({
         ...options,
         limit: batchSize,
         offset: offset,
       })
 
-      const conversations = batch.conversations || []
+      const conversations = this.toRecordArray(batch.conversations)
       if (conversations.length === 0) {
         break
       }
@@ -301,12 +508,12 @@ class PixelatedEmpathyAPI {
         yield conversation
       }
 
-      offset += conversations.length
-
       // Check if we've reached the end
       if (conversations.length < batchSize) {
         break
       }
+
+      offset += conversations.length
     }
   }
 
@@ -320,14 +527,17 @@ class PixelatedEmpathyAPI {
    * @returns {Promise<Object>} Quality metrics object
    */
   async getQualityMetrics(options = {}) {
+    /** @type {QualityMetricsOptions} */
+    const metricsOptions = options
+    /** @type {Record<string, string>} */
     const params = {}
-    if (options.dataset) params.dataset = options.dataset
-    if (options.tier) params.tier = options.tier
+    if (metricsOptions.dataset) params.dataset = metricsOptions.dataset
+    if (metricsOptions.tier) params.tier = metricsOptions.tier
 
-    const response = await this._makeRequest('GET', '/quality/metrics', {
+    const response = await this.makeRequest('GET', '/quality/metrics', {
       params,
     })
-    return response.data
+    return this.toRecord(response.data)
   }
 
   /**
@@ -336,10 +546,10 @@ class PixelatedEmpathyAPI {
    * @returns {Promise<Object>} Quality validation results object
    */
   async validateConversationQuality(conversation) {
-    const response = await this._makeRequest('POST', '/quality/validate', {
+    const response = await this.makeRequest('POST', '/quality/validate', {
       data: conversation,
     })
-    return response.data
+    return this.toRecord(response.data)
   }
 
   // Processing methods
@@ -352,26 +562,33 @@ class PixelatedEmpathyAPI {
    * @returns {Promise<Object>} Job information object
    */
   async submitProcessingJob(datasetName, processingType, parameters = {}) {
+    /** @type {GenericRecord} */
+    const jobParameters = parameters
+    /** @type {GenericRecord} */
     const jobData = {
       dataset_name: datasetName,
       processing_type: processingType,
-      parameters: parameters,
+      parameters: jobParameters,
     }
 
-    const response = await this._makeRequest('POST', '/processing/submit', {
+    const response = await this.makeRequest('POST', '/processing/submit', {
       data: jobData,
     })
-    return response.data
+    return this.toRecord(response.data)
   }
 
   /**
    * Get the status of a processing job.
    * @param {string} jobId - Unique job identifier
-   * @returns {Promise<Object>} Job status object
+   * @returns {Promise<{ status: string, progress?: number | null }>}
    */
   async getJobStatus(jobId) {
-    const response = await this._makeRequest('GET', `/processing/jobs/${jobId}`)
-    return response.data
+    const response = await this.makeRequest('GET', `/processing/jobs/${jobId}`)
+    const payload = this.toRecord(response.data)
+    return {
+      status: typeof payload.status === 'string' ? payload.status : 'unknown',
+      progress: typeof payload.progress === 'number' ? payload.progress : undefined,
+    }
   }
 
   /**
@@ -383,21 +600,29 @@ class PixelatedEmpathyAPI {
    * @returns {Promise<Object>} Final job status object
    */
   async waitForJob(jobId, options = {}) {
-    const pollInterval = (options.pollInterval || 30) * 1000
-    const timeout = (options.timeout || 3600) * 1000
+    /** @type {WaitOptions} */
+    const waitOptions = options
+    const pollInterval = (waitOptions.pollInterval ?? 30) * 1000
+    const timeout = (waitOptions.timeout ?? 3600) * 1000
     const startTime = Date.now()
 
     while (Date.now() - startTime < timeout) {
-      const status = await this.getJobStatus(jobId)
+      const currentStatus = await this.getJobStatus(jobId)
+      const statusValue = currentStatus.status
+      const progress = currentStatus.progress
 
-      if (['completed', 'failed', 'cancelled'].includes(status.status)) {
-        return status
+      if (
+        statusValue === 'completed' ||
+        statusValue === 'failed' ||
+        statusValue === 'cancelled'
+      ) {
+        return currentStatus
       }
 
       console.log(
-        `Job ${jobId} status: ${status.status} (${status.progress || 0}%)`,
+        `Job ${jobId} status: ${statusValue} (${progress ?? 0}%)`,
       )
-      await this._sleep(pollInterval)
+      await this.sleep(pollInterval)
     }
 
     throw new PixelatedEmpathyAPIError(
@@ -417,17 +642,20 @@ class PixelatedEmpathyAPI {
    * @returns {Promise<Object>} Search results object
    */
   async searchConversations(query, options = {}) {
+    /** @type {SearchOptions} */
+    const searchOptions = options
+    /** @type {GenericRecord} */
     const searchData = {
       query: query,
-      filters: options.filters || {},
-      limit: options.limit || 100,
-      offset: options.offset || 0,
+      filters: searchOptions.filters ?? {},
+      limit: searchOptions.limit ?? 100,
+      offset: searchOptions.offset ?? 0,
     }
 
-    const response = await this._makeRequest('POST', '/search', {
+    const response = await this.makeRequest('POST', '/search', {
       data: searchData,
     })
-    return response.data
+    return this.toRecord(response.data)
   }
 
   // Statistics methods
@@ -437,8 +665,8 @@ class PixelatedEmpathyAPI {
    * @returns {Promise<Object>} Statistics overview object
    */
   async getStatisticsOverview() {
-    const response = await this._makeRequest('GET', '/statistics/overview')
-    return response.data
+    const response = await this.makeRequest('GET', '/statistics/overview')
+    return this.toRecord(response.data)
   }
 
   // Export methods
@@ -453,20 +681,23 @@ class PixelatedEmpathyAPI {
    * @returns {Promise<Object>} Export information object
    */
   async exportData(dataset, options = {}) {
+    /** @type {ExportOptions} */
+    const exportOptions = options
+    /** @type {GenericRecord} */
     const exportData = {
       dataset: dataset,
-      format: options.format || 'jsonl',
+      format: exportOptions.format ?? 'jsonl',
     }
 
-    if (options.tier) exportData.tier = options.tier
-    if (options.minQuality !== undefined)
-      exportData.min_quality = options.minQuality
+    if (exportOptions.tier) exportData.tier = exportOptions.tier
+    if (exportOptions.minQuality !== undefined)
+      exportData.min_quality = exportOptions.minQuality
 
-    const response = await this._makeRequest('POST', '/export', {
+    const response = await this.makeRequest('POST', '/export', {
       data: exportData,
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     })
-    return response.data
+    return this.toRecord(response.data)
   }
 
   // Utility methods
@@ -477,7 +708,7 @@ class PixelatedEmpathyAPI {
    */
   async healthCheck() {
     try {
-      const response = await this._makeRequest('GET', '/health')
+      const response = await this.makeRequest('GET', '/health')
       return response.success
     } catch (error) {
       return false
@@ -485,99 +716,6 @@ class PixelatedEmpathyAPI {
   }
 }
 
-// Export for Node.js
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = {
-    PixelatedEmpathyAPI,
-    PixelatedEmpathyAPIError,
-    RateLimitError,
-  }
-}
+export { PixelatedEmpathyAPI, PixelatedEmpathyAPIError, RateLimitError }
 
-// Example usage
-async function example() {
-  // Initialize client
-  const api = new PixelatedEmpathyAPI('your_api_key_here')
-
-  try {
-    // Check API health
-    const isHealthy = await api.healthCheck()
-    if (!isHealthy) {
-      console.log('API is not available')
-      return
-    }
-
-    // List datasets
-    const datasets = await api.listDatasets()
-    console.log(`Available datasets: ${datasets.length}`)
-    datasets.forEach((dataset) => {
-      console.log(`  - ${dataset.name}: ${dataset.conversations} conversations`)
-    })
-
-    // Get professional conversations
-    const conversations = await api.getConversations({
-      tier: 'professional',
-      limit: 5,
-    })
-    console.log(
-      `\nFound ${conversations.conversations.length} professional conversations`,
-    )
-
-    // Search for anxiety-related conversations
-    const searchResults = await api.searchConversations(
-      'anxiety therapy techniques',
-      {
-        filters: { tier: 'professional', min_quality: 0.7 },
-      },
-    )
-    console.log(`\nFound ${searchResults.total_matches} matching conversations`)
-
-    // Get quality metrics
-    const metrics = await api.getQualityMetrics()
-    console.log(`\nOverall quality metrics:`)
-    console.log(
-      `  Average quality: ${metrics.overall_statistics.average_quality}`,
-    )
-    console.log(
-      `  Total conversations: ${metrics.overall_statistics.total_conversations}`,
-    )
-
-    // Example conversation quality validation
-    const sampleConversation = {
-      id: 'test_conv_001',
-      messages: [
-        {
-          role: 'user',
-          content: "I'm feeling anxious about my job interview tomorrow.",
-        },
-        {
-          role: 'assistant',
-          content:
-            "It's completely natural to feel anxious before an important interview. Can you tell me what specific aspects are making you most worried?",
-        },
-      ],
-      quality_score: 0.0,
-      tier: 'unknown',
-    }
-
-    const validationResult =
-      await api.validateConversationQuality(sampleConversation)
-    console.log(`\nConversation quality validation:`)
-    console.log(
-      `  Overall quality: ${validationResult.validation_results.overall_quality}`,
-    )
-    console.log(
-      `  Tier classification: ${validationResult.tier_classification}`,
-    )
-  } catch (error) {
-    console.error('Error:', error.message)
-    if (error instanceof RateLimitError) {
-      console.log(`Rate limited. Retry after ${error.retryAfter} seconds.`)
-    }
-  }
-}
-
-// Run example if this file is executed directly
-if (require.main === module) {
-  void example()
-}
+// Example usage has been moved to the JavaScript SDK README and test examples.

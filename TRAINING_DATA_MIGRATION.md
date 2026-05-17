@@ -24,6 +24,7 @@ Merging 7 scattered directories into 1 unified structure:
 
 | Source | Files | Size | Purpose |
 |--------|-------|------|---------|
+| ------- | ----- | ---- | ------- |
 | `training` | 1,508 | 175M | Main training infrastructure |
 | `training_corpus` | 1,015 | 243M | Corpus building tools |
 | `training_data` | 6 | 72K | External datasets |
@@ -192,6 +193,7 @@ mv /tmp/training_backup_*/training_ready ai/
 
 | Phase | Duration | When |
 |-------|----------|------|
+| ------- | ---------- | ------ |
 | Preparation | 5 min | Before migration |
 | Dry Run | 5 min | Before execution |
 | Migration | 10-30 min | Execution window |

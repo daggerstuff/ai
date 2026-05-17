@@ -845,3 +845,56 @@ def get_pipeline_health() -> dict[str, Any]:
     except Exception as e:
         logger.error(f"Error retrieving pipeline health: {e}")
         raise
+
+
+@pipeline_bp.route("/observability/health", methods=["GET"])
+def get_pipeline_observability_health() -> dict[str, Any]:
+    """
+    Get pipeline observability health with throughput, readiness, and failure metrics.
+
+    This endpoint exposes the full pipeline health state including:
+    - Stage throughput metrics (records processed, duration)
+    - Readiness validation results (by stage, by gate)
+    - Failure tracking and regression alerts
+    - Overall health status (healthy/degraded/unhealthy)
+
+    Returns:
+        {
+            "success": true,
+            "data": {
+                "health": {
+                    "status": "healthy",
+                    "version": "1.0.0",
+                    "throughput": {...},
+                    "readiness": {...},
+                    "failures": {...},
+                    "last_updated": "2024-01-01T00:00:00Z"
+                }
+            }
+        }
+    """
+    try:
+        logger.info("Retrieving pipeline observability health")
+
+        from ai.core.pipelines.pipeline_observability import get_health_summary
+
+        health = get_health_summary()
+
+        logger.info(
+            "Successfully retrieved pipeline observability health",
+            extra={"status": health.status},
+        )
+
+        return jsonify(
+            {
+                "success": True,
+                "data": {"health": health.to_dict()},
+                "meta": {
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                },
+            }
+        ), 200
+
+    except Exception as e:
+        logger.error(f"Error retrieving pipeline observability health: {e}")
+        raise

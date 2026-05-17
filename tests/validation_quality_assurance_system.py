@@ -24,7 +24,7 @@ from typing import Any
 
 import numpy as np
 
-warnings.filterwarnings("ignore")
+warnings.simplefilter("default")
 
 class ClinicalStandardsValidator:
     """Task 5.7.2.1: Conversation validation against clinical standards"""

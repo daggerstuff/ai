@@ -32,7 +32,7 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
 
-from datasets import Dataset, IterableDataset, load_dataset  # type: ignore[import-untyped]
+from datasets import Dataset, IterableDataset, load_dataset
 
 # Add project root to path
 # Script is at: ai/training_ready/scripts/ingest_nemotron_datasets.py
@@ -45,9 +45,7 @@ from ai.training.utils.s3_dataset_loader import (  # noqa: E402
 )
 
 
-def _iter_samples(
-    ds: Dataset | IterableDataset, max_samples: int | None
-) -> Iterable[dict[str, Any]]:
+def _iter_samples(ds: Dataset | IterableDataset, max_samples: int | None) -> Iterable[dict[str, Any]]:
     """Yield up to max_samples records from a HF dataset."""
     count = 0
     for record in ds:
@@ -121,9 +119,7 @@ def ingest_nemotron_dataset(
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Ingest a Nemotron HF dataset into S3 under external/nemotron/."
-    )
+    parser = argparse.ArgumentParser(description="Ingest a Nemotron HF dataset into S3 under external/nemotron/.")
     parser.add_argument(
         "--hf-dataset",
         required=True,
