@@ -313,40 +313,53 @@ class NemotronBenchmark:
 
     def print_results(self, all_results: dict[str, dict[str, ModelResult]]):
         """Print formatted benchmark results"""
+        print("NEMOTRON MODEL BENCHMARK RESULTS")
+        if not all_results:
+            print("No results were returned.")
+            return
 
-        for model, task_results in all_results.items():
-
-            for _task_type_value, result in task_results.items():
-
-                if result.errors:
-                    for _error, _count in result.errors.items():
-                        pass
-
-        # Comparison summary
-
-        # Aggregate metrics per model
         model_scores = {}
         for model, task_results in all_results.items():
-            total_success = sum(r.successful_requests for r in task_results.values())
-            total_requests = sum(r.total_requests for r in task_results.values())
-            avg_latency = statistics.mean(
-                r.avg_latency_ms for r in task_results.values() if r.avg_latency_ms > 0
-            )
+            total_success = 0
+            total_requests = 0
+            latencies = []
+
+            for result in task_results.values():
+                total_success += result.successful_requests
+                total_requests += result.total_requests
+                if result.avg_latency_ms > 0:
+                    latencies.append(result.avg_latency_ms)
+
+                task_label = getattr(result.task_type, "name", str(result.task_type)).upper()
+                print(
+                    f"{model} | {task_label}: "
+                    f"success={result.success_rate:.1f}% "
+                    f"latency_p50={result.p50_latency_ms:.1f}ms "
+                    f"latency_p95={result.p95_latency_ms:.1f}ms "
+                    f"latency_p99={result.p99_latency_ms:.1f}ms "
+                    f"errors={result.error_count}"
+                )
+                if result.errors:
+                    for error, count in result.errors.items():
+                        print(f"  - {error}: {count}")
 
             model_scores[model] = {
                 "success_rate": (total_success / total_requests) * 100 if total_requests > 0 else 0,
-                "avg_latency": avg_latency,
+                "avg_latency": statistics.mean(latencies) if latencies else 0,
             }
 
-        # Sort by success rate
         sorted_models = sorted(
             model_scores.items(),
-            key=lambda x: (x[1]["success_rate"], -x[1]["avg_latency"]),
+            key=lambda item: (item[1]["success_rate"], -item[1]["avg_latency"]),
             reverse=True,
         )
 
-        for _i, (model, _scores) in enumerate(sorted_models, 1):
-            pass
+        print("\nMODEL LEADERBOARD")
+        for rank, (model, scores) in enumerate(sorted_models, 1):
+            print(
+                f"{rank}. {model} | success={scores['success_rate']:.1f}% "
+                f"avg_latency={scores['avg_latency']:.1f}ms"
+            )
 
     def save_results(
         self,

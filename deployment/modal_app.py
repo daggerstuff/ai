@@ -6,7 +6,7 @@ from contextlib import suppress
 from pathlib import Path
 
 import modal
-import torch
+from ai.utils.torch_proxy import torch
 from vllm import LLM, SamplingParams
 from vllm.distributed.parallel_state import destroy_model_parallel
 

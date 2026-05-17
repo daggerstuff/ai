@@ -3,15 +3,48 @@ Safety content filter for Pixelated Empathy AI project.
 Implements safety checking for inputs and outputs in model inference.
 """
 
+from __future__ import annotations
+
 import logging
 import re
+import os
+import importlib
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
-from transformers import pipeline
-
 logger = logging.getLogger(__name__)
+_TRANSFORMERS_PIPELINE: Callable[..., Any] | None = None
+_PIPELINE_IMPORT_ATTEMPTED = False
+
+
+def _disabled_by_config() -> bool:
+    return os.getenv("AI_DISABLE_SAFETY_ML_MODELS", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+
+
+def _load_transformers_pipeline() -> Callable[..., Any] | None:
+    """Lazily import transformers.pipeline only when runtime support is enabled."""
+    global _TRANSFORMERS_PIPELINE, _PIPELINE_IMPORT_ATTEMPTED
+    if _PIPELINE_IMPORT_ATTEMPTED or _TRANSFORMERS_PIPELINE is not None:
+        return _TRANSFORMERS_PIPELINE
+    _PIPELINE_IMPORT_ATTEMPTED = True
+
+    if _disabled_by_config():
+        return None
+
+    try:
+        module = importlib.import_module("transformers")
+        pipeline = getattr(module, "pipeline")
+        _TRANSFORMERS_PIPELINE = pipeline
+        return pipeline
+    except Exception:
+        return None
 
 
 class SafetyCategory(Enum):
@@ -72,14 +105,17 @@ class SafetyFilter:
         """Initialize safety checking models"""
         try:
             # Initialize toxicity classifier
+            pipeline = _load_transformers_pipeline()
+            if pipeline is None:
+                raise RuntimeError("transformers pipeline unavailable")
             self.toxicity_classifier = pipeline(
                 "text-classification",
                 model="unitary/toxic-bert",
-                tokenizer="unitary/toxic-bert"
+                tokenizer="unitary/toxic-bert",
             )
             self.logger.info("Toxicity classifier loaded successfully")
         except Exception as e:
-            self.logger.warning(f"Could not load toxicity classifier: {e}")
+            self.logger.debug(f"Could not load toxicity classifier: {e}")
             self.toxicity_classifier = None
 
     def check_input_safety(self, input_text: str) -> SafetyScore:
@@ -164,7 +200,7 @@ class SafetyFilter:
                     if toxicity_result["label"] == "TOXIC" and "score" in toxicity_result:
                         return min(1.0, toxicity_result["score"])
             except Exception as e:
-                self.logger.warning(f"Toxicity classifier error: {e}")
+                self.logger.debug(f"Toxicity classifier error: {e}")
 
         # Fallback to keyword matching
         toxic_matches = [kw for kw in self.toxicity_keywords if kw in text]

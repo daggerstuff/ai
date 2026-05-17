@@ -118,13 +118,8 @@ class CacheConfig:
 @dataclass
 class AcademicSourcingConfig:
     """Configuration for academic sourcing operations."""
-<<<<<<< HEAD
-
     # Concurrency limits
     pdf_concurrency: int = 8
-
-=======
->>>>>>> perf/academic-asyncio_gather-12345-9112130372994207954
     # API endpoints
     pubmed_base_url: str = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
     arxiv_base_url: str = "http://export.arxiv.org/api/query"
@@ -342,20 +337,11 @@ class PaperMetadataModel(BaseModel):
         description="Retrieval timestamp (ISO format)",
     )
 
-<<<<<<< HEAD
     class Config:
         """Pydantic configuration."""
         json_encoders = {
             datetime: lambda v: v.isoformat() if v else None,
         }
-=======
-
-class Config:
-    """Pydantic configuration."""
-    json_encoders = {
-        datetime: lambda v: v.isoformat() if v else None,
-    }
->>>>>>> perf/academic-asyncio_gather-12345-9112130372994207954
 
 
 # ============================================================================
@@ -463,11 +449,7 @@ class SimpleCache:
         source: str,
         query: str,
         params: dict[str, Any],
-<<<<<<< HEAD
-        data: dict[str, Any]
-=======
         data: dict[str, Any],
->>>>>>> perf/academic-asyncio_gather-12345-9112130372994207954
     ) -> None:
         """Cache data with TTL."""
         if not self.config.enabled:
@@ -1059,13 +1041,7 @@ class SemanticScholarClient(AcademicAPIClient):
 
         # Parse Semantic Scholar data
         papers = []
-<<<<<<< HEAD
         entries = data.get("data", [])
-
-=======
-        search_data = data.get("data", {}).get("search", {})
-        entries = search_data.get("data", [])
->>>>>>> perf/academic-asyncio_gather-12345-9112130372994207954
         for entry in entries:
             try:
                 if paper := self._parse_entry(entry):
@@ -1081,11 +1057,7 @@ class SemanticScholarClient(AcademicAPIClient):
     async def get_paper_details(
         self,
         paper_id: str,
-<<<<<<< HEAD
         fields: list[str] | None = None
-=======
-        fields: list[str] | None = None,
->>>>>>> perf/academic-asyncio_gather-12345-9112130372994207954
     ) -> PaperMetadata | None:
         """Get detailed information for a specific paper."""
         logger.info(f"Fetching details for paper: {paper_id}")
@@ -1364,11 +1336,6 @@ class PDFProcessor:
 
             # Extract text using pdfplumber if available
             try:
-<<<<<<< HEAD
-=======
-
-
->>>>>>> perf/academic-asyncio_gather-12345-17135553996490666477
                 pdf_file = io.BytesIO(pdf_content)
                 text_parts = []
                 with pdfplumber.open(pdf_file) as pdf:
@@ -1508,101 +1475,22 @@ class AcademicSourcing:
         keywords: str,
         max_results: int,
     ) -> list[PaperMetadata]:
-<<<<<<< HEAD
-        """Search all requested sources and collect papers.
-
-        ⚡ Bolt Performance Optimization: Parallelizes sequential API requests
-        to overlap network I/O latency.
-        """
+        """Search all requested sources and collect papers."""
         all_papers: list[PaperMetadata] = []
 
-<<<<<<< HEAD
-        # Bound concurrency for source searches to avoid overwhelming external APIs
-        # NOTE: tune this value or make it configurable per environment if needed.
+        # Bounded parallelism to avoid overwhelming external services.
         semaphore = asyncio.Semaphore(5)
 
         async def _safe_search(source: str) -> list[PaperMetadata]:
             try:
                 async with semaphore:
                     return await self._search_single_source(source, keywords, max_results)
-=======
-        # Performance optimization: parallelize searches across different sources
-        async def search_and_catch(source):
-            try:
-                return await self._search_single_source(source, keywords, max_results)
->>>>>>> perf/academic-gather-7c39b-14365606995842439401
             except Exception as e:
                 logger.error(f"Error searching {source}: {e}")
                 return []
 
-<<<<<<< HEAD
-        # Run all source searches concurrently, but with bounded parallelism
         tasks = [_safe_search(source) for source in sources]
         results = await asyncio.gather(*tasks)
-
-=======
-        results = await asyncio.gather(*(search_and_catch(source) for source in sources))
->>>>>>> perf/academic-gather-7c39b-14365606995842439401
-        for papers in results:
-            all_papers.extend(papers)
-=======
-<<<<<<< HEAD
-        """Search all requested sources and collect papers concurrently."""
-        all_papers: list[PaperMetadata] = []
-
-        # ⚡ Bolt Optimization: Use asyncio.gather to fetch from multiple sources concurrently
-        tasks = [
-            self._search_single_source(source, keywords, max_results)
-=======
-        # Optimization: Parallelize API requests with bounded concurrency
-        semaphore = asyncio.Semaphore(10)
-
-        async def _bounded_search(source: str) -> list[PaperMetadata]:
-            async with semaphore:
-                return await self._search_single_source(source, keywords, max_results)
-
-        tasks = [
-            _bounded_search(source)
->>>>>>> perf/academic-asyncio_gather-12345-17135553996490666477
-            for source in sources
-        ]
-
-        results = await asyncio.gather(*tasks, return_exceptions=True)
-
-<<<<<<< HEAD
-        for source, result in zip(sources, results, strict=True):
-            if isinstance(result, BaseException):
-                if isinstance(result, asyncio.CancelledError):
-                    raise result
-                logger.error(f"Error searching {source}: {result}")
-            else:
-                all_papers.extend(result)
->>>>>>> perf/academic-async-gather-3918-137906976905465223
-=======
-<<<<<<< HEAD
-        """Search all requested sources and collect papers."""
-        # ⚡ Bolt: Use asyncio.gather to concurrently search multiple sources,
-        # overlapping network latency for significantly faster execution.
-        async def search_and_catch(source: str) -> list[PaperMetadata]:
-            try:
-                return await self._search_single_source(source, keywords, max_results)
-            except Exception as e:
-                logger.error(f"Error searching {source}: {e}")
-                return []
->>>>>>> perf/academic-asyncio_gather-12345-9112130372994207954
->>>>>>> perf/academic-asyncio_gather-12345-9112130372994207954
-=======
-        for source, result in zip(sources, results):
-            if isinstance(result, BaseException):
-                logger.error(f"Error searching {source}: {result}")
-            else:
-                all_papers.extend(result)
->>>>>>> perf/academic-asyncio_gather-12345-17135553996490666477
->>>>>>> perf/academic-asyncio_gather-12345-17135553996490666477
->>>>>>> perf/academic-asyncio_gather-12345-17135553996490666477
-
-        results = await asyncio.gather(*(search_and_catch(source) for source in sources))
-        all_papers: list[PaperMetadata] = []
         for papers in results:
             all_papers.extend(papers)
         return all_papers
@@ -1648,76 +1536,18 @@ class AcademicSourcing:
         return papers
 
     async def _enrich_papers_with_full_text(self, papers: list[PaperMetadata]) -> None:
-<<<<<<< HEAD
-        """Populate full text and derived fields for papers with PDFs.
-
-        ⚡ Bolt Performance Optimization: Parallelizes extraction of full text from PDFs.
-        """
+        """Populate full text and derived fields for papers with PDFs."""
         pdf_papers = [paper for paper in papers if paper.pdf_url]
         if not pdf_papers:
             return
 
-        # Cap concurrency to avoid overwhelming PDF hosts and local memory.
-        sem = asyncio.Semaphore(max(1, getattr(self.config, "pdf_concurrency", 8)))
+        semaphore = asyncio.Semaphore(max(1, getattr(self.config, "pdf_concurrency", 8)))
 
         async def _bounded(paper: PaperMetadata) -> None:
-            async with sem:
+            async with semaphore:
                 await self._enrich_paper_with_full_text(paper)
 
         await asyncio.gather(*(_bounded(paper) for paper in pdf_papers))
-=======
-        """Populate full text and derived fields for papers with PDFs."""
-<<<<<<< HEAD
-        # Performance optimization: enrich papers in parallel
-        semaphore = asyncio.Semaphore(5)
-
-        async def enrich_limited(paper: PaperMetadata) -> None:
-=======
-        # Optimization: Parallelize PDF enrichment with bounded concurrency
-        semaphore = asyncio.Semaphore(10)
-
-        async def _bounded_enrich(paper: PaperMetadata) -> None:
->>>>>>> perf/academic-asyncio_gather-12345-17135553996490666477
-            async with semaphore:
-                await self._enrich_paper_with_full_text(paper)
-
-        tasks = [
-<<<<<<< HEAD
-            enrich_limited(paper)
-=======
-            _bounded_enrich(paper)
->>>>>>> perf/academic-asyncio_gather-12345-17135553996490666477
-            for paper in papers if paper.pdf_url
-        ]
-        if tasks:
-            await asyncio.gather(*tasks)
-<<<<<<< HEAD
->>>>>>> perf/academic-gather-7c39b-14365606995842439401
-=======
-<<<<<<< HEAD
-        # ⚡ Bolt: Use asyncio.gather to concurrently extract text and insights
-        # from multiple papers, significantly reducing total enrichment time.
-        # Added an asyncio.Semaphore to bound concurrency and prevent socket limits.
-        semaphore = asyncio.Semaphore(10)
-
-        async def bounded_enrich(paper: PaperMetadata):
-            async with semaphore:
-                await self._enrich_paper_with_full_text(paper)
-
-        tasks = []
-        for paper in papers:
-            if not paper.pdf_url:
-                continue
-            tasks.append(bounded_enrich(paper))
-
-        if tasks:
-            await asyncio.gather(*tasks)
->>>>>>> perf/academic-asyncio_gather-12345-9112130372994207954
->>>>>>> perf/academic-asyncio_gather-12345-9112130372994207954
-=======
->>>>>>> perf/academic-asyncio_gather-12345-17135553996490666477
->>>>>>> perf/academic-asyncio_gather-12345-17135553996490666477
->>>>>>> perf/academic-asyncio_gather-12345-17135553996490666477
 
     async def _enrich_paper_with_full_text(self, paper: PaperMetadata) -> None:
         """Populate full text and extracted insights for a single paper."""

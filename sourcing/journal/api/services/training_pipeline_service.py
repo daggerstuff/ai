@@ -24,7 +24,7 @@ try:
     PIPELINE_ORCHESTRATOR_AVAILABLE = True
 except ImportError:
     PIPELINE_ORCHESTRATOR_AVAILABLE = False
-    PipelineOrchestrator = None  # type: ignore
+    PipelineOrchestrator = None
     logger.warning("PipelineOrchestrator not available (optional dependency)")
 
 
