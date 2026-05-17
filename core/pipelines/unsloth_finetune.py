@@ -9,7 +9,7 @@ from typing import Any
 
 try:
     from ai.monitoring.safety_monitor_integration import SafetyMonitor
-except Exception:  # pragma: no cover
+except Exception:
     class SafetyMonitor:
         def __init__(self) -> None:
             pass
@@ -22,8 +22,8 @@ except Exception:  # pragma: no cover
 
 
 try:
-    import unsloth  # type: ignore
-except Exception:  # pragma: no cover - optional dependency
+    import unsloth
+except Exception:
     unsloth = None
 
 REQUIRED_FIELDS = {"batch_size", "epochs", "learning_rate"}
@@ -117,7 +117,7 @@ def finetune_with_unsloth(
 
         logger.info("Fine-tuning completed successfully")
         return result
-    except Exception as exc:  # pragma: no cover - delegated to caller
+    except Exception as exc:
         monitor.record_training_complete(success=False, payload={"error": str(exc)})
         logger.error("Fine-tuning failed: %s", exc)
         raise

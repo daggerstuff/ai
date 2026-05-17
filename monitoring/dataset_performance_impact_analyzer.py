@@ -28,7 +28,7 @@ from sklearn.metrics import silhouette_score
 from sklearn.preprocessing import StandardScaler
 from textstat import flesch_reading_ease
 
-warnings.filterwarnings("ignore")
+warnings.simplefilter("default")
 
 
 class DatasetPerformanceImpactAnalyzer:

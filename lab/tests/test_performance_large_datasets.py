@@ -32,7 +32,7 @@ import numpy as np
 import pandas as pd
 import psutil
 
-warnings.filterwarnings("ignore")
+warnings.simplefilter("default")
 
 # Add paths for imports
 sys.path.append("/home/vivi/pixelated/ai/monitoring")

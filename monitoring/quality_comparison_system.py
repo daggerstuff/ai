@@ -18,7 +18,7 @@ import pandas as pd
 import seaborn as sns
 from scipy import stats
 
-warnings.filterwarnings("ignore")
+warnings.simplefilter("default")
 
 
 @dataclass
