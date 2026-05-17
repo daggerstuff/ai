@@ -14,7 +14,7 @@ from typing import Any
 import numpy as np
 from scipy import stats
 
-warnings.filterwarnings("ignore")
+warnings.simplefilter("default")
 
 
 @dataclass

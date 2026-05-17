@@ -124,6 +124,7 @@ class TestTranscriptToPairs:
 class TestIngestChannel:
 
     def test_missing_channel_dir(self, tmp_path: Path):
+        samples, n_read, n_unsafe, n_dup = ingest_channel(
         samples, n_read, n_dup = ingest_channel(
             tmp_path / "nonexistent", "en", set(),
         )
@@ -135,6 +136,7 @@ class TestIngestChannel:
         channel_dir.mkdir()
         bad_file = channel_dir / "bad.txt"
         bad_file.write_text("Valid content here\n\nResponse here.", encoding="utf-8")
+        samples, n_read, _, _ = ingest_channel(
         samples, n_read, _ = ingest_channel(
             channel_dir, "en", set(),
         )
@@ -153,6 +155,31 @@ class TestIngestChannel:
             channel_dir, "en", set(),
         )
         assert len(samples) > 0
+        )
+        assert len(samples) > 0
+        )
+        assert len(samples) > 0
+        )
+        assert len(samples) > 0
+        )
+        assert len(samples) > 0
+        )
+        assert len(samples) > 0
+        )
+        assert len(samples) > 0
+        )
+        assert len(samples) > 0
+        output_dir = tmp_path / "output"
+        output_dir.mkdir()
+        samples, n_read, n_unsafe, _ = ingest_channel(
+            channel_dir, "en", set(),
+        )
+        assert len(samples) > 0
+        assert n_unsafe == 0
+        samples, n_read, _ = ingest_channel(
+            channel_dir, "en", set(),
+        )
+        assert len(samples) > 0
 
     def test_duplicate_samples_skipped(self, tmp_path: Path):
         channel_dir = tmp_path / "DupChannel"
@@ -164,6 +191,7 @@ class TestIngestChannel:
         )
         content = "What is CBT? Cognitive behavioral therapy helps reframe thoughts."
         compiled_hash = {_content_hash(content.lower().strip())}
+        samples, n_read, _, n_dup = ingest_channel(
         samples, n_read, n_dup = ingest_channel(
             channel_dir, "en", compiled_hash,
         )
@@ -245,6 +273,10 @@ if st is not None:
             f"{text}\n\nResponse to the question about therapy.",
             encoding="utf-8",
         )
+        samples, _, n_unsafe, _ = ingest_channel(
+            channel_dir, "en", set(),
+        )
+        assert n_unsafe == 0
         samples, _, _ = ingest_channel(
             channel_dir, "en", set(),
         )
@@ -263,6 +295,7 @@ if st is not None:
             f"{text}\n\nSome response that is safe and helpful.",
             encoding="utf-8",
         )
+        samples, _, _, n_dup = ingest_channel(
         samples, _, n_dup = ingest_channel(
             channel_dir, "en", compiled_hash,
         )

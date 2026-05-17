@@ -4,6 +4,14 @@
 SCRIPT_PATH="ai/scripts/full_ai_sweep_s3.py"
 MAX_RESTARTS=50
 RESTART_DELAY=30
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+REDIS_AUDIT="${PROJECT_ROOT}/scripts/check-redis-hardening.sh"
+
+if ! "$REDIS_AUDIT"; then
+  echo "Redis hardening audit failed"
+  exit 1
+fi
 
 echo "🛡️ Starting PERSISTENT S3 migration wrapper..."
 echo "This script will restart the uploader if it crashes due to network loss."
