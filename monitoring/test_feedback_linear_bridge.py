@@ -125,6 +125,32 @@ class TestExecuteFeedbackLinearBridge:
         # The payload should reference the custom parent.
         assert result.linear_payload["source"]["task"] == "PIX-535"
 
+    def test_missing_report_raises(self, tmp_path: Path, mock_dispatcher):
+        with pytest.raises(FileNotFoundError, match="Feedback report not found"):
+            execute_feedback_linear_bridge(
+                feedback_report_path=tmp_path / "missing.json",
+                artifact_output_dir=str(tmp_path),
+                dispatcher=mock_dispatcher,
+            )
+
+    def test_empty_project_key_raises(self, feedback_report: Path, tmp_path: Path, mock_dispatcher):
+        with pytest.raises(ValueError, match="project_key"):
+            execute_feedback_linear_bridge(
+                feedback_report_path=feedback_report,
+                artifact_output_dir=str(tmp_path),
+                project_key="  ",
+                dispatcher=mock_dispatcher,
+            )
+
+    def test_empty_parent_issue_raises(self, feedback_report: Path, tmp_path: Path, mock_dispatcher):
+        with pytest.raises(ValueError, match="parent_issue"):
+            execute_feedback_linear_bridge(
+                feedback_report_path=feedback_report,
+                artifact_output_dir=str(tmp_path),
+                parent_issue="",
+                dispatcher=mock_dispatcher,
+            )
+
     def test_no_patterns_generates_default_triggered_changes(self, tmp_path: Path, mock_dispatcher):
         report = tmp_path / "empty.json"
         report.write_text(json.dumps({

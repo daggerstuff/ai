@@ -24,6 +24,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 from ai.core.pipelines.reprioritization_engine import (
+    DEFAULT_ACTION_THRESHOLD,
     BacklogItem,
     InterventionType,
     PriorityChange,
@@ -289,6 +290,21 @@ class SteeringIntegration:
             workstream = _domain_to_workstream(item.domain)
             action_type = _intervention_to_action_type(item.intervention_type, item.domain)
             action_id = _generate_action_id(item.item_id, workstream)
+
+            with self._lock:
+                existing = self._actions.get(action_id)
+                if existing and existing.status in (
+                    ApplicationStatus.APPLIED,
+                    ApplicationStatus.PENDING,
+                ):
+                    self._audit_trail.append({
+                        "event": "action_skipped_idempotent",
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                        "action_id": action_id,
+                        "status": existing.status.value,
+                    })
+                    continue
+
             details = _generate_action_details(item, action_type)
 
             action = SteeringAction(
@@ -416,7 +432,7 @@ def create_steering_integration() -> SteeringIntegration:
 def run_steering_from_report(
     feedback_report_path: str | Path,
     steering_output_path: str | Path | None = None,
-    action_threshold: float = 0.3,
+    action_threshold: float = DEFAULT_ACTION_THRESHOLD,
     handlers: dict[SteeringActionType, Callable] | None = None,
 ) -> SteeringReport:
     from ai.core.pipelines.reprioritization_engine import run_reprioritization_from_report

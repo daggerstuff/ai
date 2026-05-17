@@ -259,6 +259,21 @@ class TestSteeringIntegration(unittest.TestCase):
         steering_report = self.steering.process_report(self.report)
         assert steering_report.total_actions_generated > 0
 
+    def test_process_report_skips_duplicate_pending_actions(self):
+        first = self.steering.process_report(self.report)
+        action_count = len(self.steering.get_all_actions())
+        assert first.total_actions_generated > 0
+
+        second = self.steering.process_report(self.report)
+        assert second.total_actions_generated == 0
+        assert len(self.steering.get_all_actions()) == action_count
+        skipped = [
+            entry
+            for entry in self.steering._audit_trail
+            if entry.get("event") == "action_skipped_idempotent"
+        ]
+        assert len(skipped) >= first.total_actions_generated
+
     def test_process_report_has_correct_source_id(self):
         steering_report = self.steering.process_report(self.report)
         assert steering_report.source_report_id == self.report.run_id

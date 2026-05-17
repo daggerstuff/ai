@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import os
+import time
 import urllib.error
 import urllib.request
 from datetime import datetime, timezone
@@ -30,6 +31,7 @@ class LinearBacklogDispatcher:
         linear_project_id_env: str = "LINEAR_PROJECT_ID",
         linear_parent_issue_id_env: str = "LINEAR_PARENT_ISSUE_ID",
         request_timeout: int = 12,
+        max_retries: int = 3,
         issue_state_path: str | None = None,
     ):
         self.queue_path = Path(queue_path)
@@ -41,6 +43,7 @@ class LinearBacklogDispatcher:
         self.linear_project_id = os.getenv(linear_project_id_env, "").strip()
         self.linear_parent_issue_id = os.getenv(linear_parent_issue_id_env, "").strip()
         self.request_timeout = request_timeout
+        self.max_retries = max(1, max_retries)
         self.state_path = (
             Path(issue_state_path)
             if issue_state_path
@@ -79,9 +82,20 @@ class LinearBacklogDispatcher:
             },
             method="POST",
         )
-        with urllib.request.urlopen(req, timeout=self.request_timeout) as response:
-            raw = response.read().decode("utf-8")
-            return json.loads(raw)
+        last_error: urllib.error.URLError | None = None
+        for attempt in range(self.max_retries):
+            try:
+                with urllib.request.urlopen(req, timeout=self.request_timeout) as response:
+                    raw = response.read().decode("utf-8")
+                    return json.loads(raw)
+            except urllib.error.URLError as exc:
+                last_error = exc
+                if attempt + 1 >= self.max_retries:
+                    raise
+                time.sleep(min(2**attempt, 4))
+        if last_error is not None:
+            raise last_error
+        raise RuntimeError("GraphQL request failed without exception")
 
     def _append_queue_record(self, record: dict[str, Any]) -> str:
         self.queue_path.parent.mkdir(parents=True, exist_ok=True)

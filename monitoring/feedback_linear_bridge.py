@@ -13,9 +13,11 @@ feedback produce actual Linear issues instead of orphaned markdown files.
 
 from __future__ import annotations
 
+import argparse
 import json
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
+import sys
+from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -23,15 +25,15 @@ from .feedback_to_metrics_bridge import (
     FeedbackMetricsMapping,
     transform_feedback_to_metrics,
 )
-from .performance_gap_backlog_converter import (
-    BacklogConversionResult,
-    PerformanceGapBacklogConverter,
-)
 from .linear_backlog_action_builder import (
     build_linear_backlog_payload,
     write_linear_backlog_artifact,
 )
 from .linear_backlog_dispatcher import LinearBacklogDispatcher
+from .performance_gap_backlog_converter import (
+    BacklogConversionResult,
+    PerformanceGapBacklogConverter,
+)
 
 
 @dataclass(frozen=True)
@@ -87,11 +89,23 @@ def execute_feedback_linear_bridge(
 
     Returns:
         FeedbackLinearResult with all intermediate and final results.
+
+    Raises:
+        FileNotFoundError: If feedback_report_path does not exist.
+        ValueError: If project_key or parent_issue is empty.
     """
+    report_path = Path(feedback_report_path)
+    if not report_path.is_file():
+        raise FileNotFoundError(f"Feedback report not found: {report_path}")
+    if not project_key.strip():
+        raise ValueError("project_key must be a non-empty Linear project key")
+    if not parent_issue.strip():
+        raise ValueError("parent_issue must be a non-empty Linear issue identifier")
+
     executed_at = datetime.now(timezone.utc).isoformat()
 
     # Step 1: Transform feedback report into metrics dict.
-    feedback_mapping = transform_feedback_to_metrics(feedback_report_path)
+    feedback_mapping = transform_feedback_to_metrics(report_path)
 
     # Step 2: Convert metrics into backlog actions.
     converter = PerformanceGapBacklogConverter()
