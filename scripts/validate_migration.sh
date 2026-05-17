@@ -21,6 +21,7 @@ echo "Migration Validation"
 echo "Migration Validation"
 echo "Migration Validation"
 echo "Migration Validation"
+echo "Migration Validation"
 echo ""
 
 # Check if migration completed
@@ -78,6 +79,8 @@ done
 echo ""
 
 # Summary
+if [ $MISSING -eq 0 ]; then
+    echo "✅ Validation PASSED"
 if [ $MISSING -eq 0 ]; then
     echo "✅ Validation PASSED"
 if [ $MISSING -eq 0 ]; then
