@@ -22,7 +22,7 @@ from scipy import stats
 from scipy.stats import kruskal, mannwhitneyu
 
 # Suppress warnings
-warnings.filterwarnings("ignore")
+warnings.simplefilter("default")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")

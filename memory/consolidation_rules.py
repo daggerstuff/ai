@@ -8,7 +8,7 @@ import logging
 from dataclasses import dataclass
 from enum import StrEnum
 
-from .reflection_memory import CrisisSeverity, Memory, MemoryCategory
+from .reflection_types import CrisisSeverity, Memory, MemoryCategory
 
 logger = logging.getLogger(__name__)
 

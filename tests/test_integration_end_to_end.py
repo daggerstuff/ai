@@ -22,7 +22,7 @@ from datetime import UTC, datetime
 
 import pandas as pd
 
-warnings.filterwarnings("ignore")
+warnings.simplefilter("default")
 
 # Add paths for imports
 sys.path.append("/home/vivi/pixelated/ai/monitoring")

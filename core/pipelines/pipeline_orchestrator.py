@@ -84,7 +84,7 @@ class PipelineOrchestrator:
                 processed = stage_callable(current_payload)
                 current_payload = processed
                 output_size = self._safe_len(current_payload)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 message = f"Stage '{stage_name}' failed: {exc!s}"
                 self.logger.exception(message)
                 errors.append(message)
@@ -176,7 +176,7 @@ class PipelineOrchestrator:
 
     def _safe_len(self, payload: Any) -> int:
         try:
-            return len(payload)  # type: ignore[arg-type]
+            return len(payload)
         except TypeError:
             return 0
 

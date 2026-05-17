@@ -14,7 +14,7 @@ def _load_core_middleware():
 def _require_dependency() -> Any:
     try:
         return _load_core_middleware()
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         raise RuntimeError(
             "ai.api.techdeck_integration.auth.middleware is unavailable because optional dependencies are missing."
         ) from exc
