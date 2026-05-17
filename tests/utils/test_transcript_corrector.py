@@ -56,6 +56,13 @@ def test_correct_transcript_with_punctuation_and_capitalization(_mock_file, _moc
     # Tests spacing around punctuation
     assert corrector.correct_transcript("wait , what ?") == "Wait, what?"
 
+
+def test_missing_config_path_fallback():
+    with patch("utils.transcript_corrector.Path.exists", side_effect=[False, True]), \
+         patch("builtins.open", new_callable=mock_open, read_data='{"cptsd_terms": ["trauma"]}'):
+            corrector = TranscriptCorrector("mock.json")
+            assert corrector.terms["cptsd_terms"] == ["trauma"]
+
 from unittest.mock import MagicMock
 
 from unittest.mock import MagicMock
@@ -168,6 +175,22 @@ def test_load_terminology_exception_2(_mock_open, _mock_exists):  # noqa: PT019
         "medical_terms": [],
         "common_misinterpretations": {},
     }
+
+def test_contextual_correction_client_fallback():
+    with patch("utils.transcript_corrector.Path.exists", return_value=True), \
+         patch("builtins.open", new_callable=mock_open, read_data="{}"):
+            corrector = TranscriptCorrector("mock.json")
+
+            # Setup a client that returns valid output
+            corrector._contextual_correction_client = MagicMock(return_value="Corrected sentence.")
+            result = corrector._llm_contextual_correction("original sentence", "context")
+            assert result == "Corrected sentence."
+
+            # Setup a client that returns empty/invalid output, should fallback
+            corrector._contextual_correction_client = MagicMock(return_value="   ")
+            result = corrector._llm_contextual_correction("original sentence.", "context")
+            # The fallback processing happens in llm_contextual_correction
+            assert result == "Original sentence."
 
 @patch("utils.transcript_corrector.Path.exists", return_value=True)
 @patch("builtins.open", new_callable=mock_open, read_data="{}")

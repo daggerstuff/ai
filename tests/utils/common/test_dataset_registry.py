@@ -1,14 +1,15 @@
 from pathlib import Path
-from unittest.mock import patch, mock_open
+from unittest.mock import mock_open, patch
 
 from utils.common.dataset_registry import (
     DatasetRef,
-    get_default_registry_path,
-    load_registry,
     _iter_registry_groups,
+    get_default_registry_path,
     iter_dataset_refs,
+    load_registry,
     resolve_fallback_path,
 )
+
 
 def test_get_default_registry_path():
     path = get_default_registry_path()
@@ -40,7 +41,8 @@ def test_iter_registry_groups():
     }
 
     groups = list(_iter_registry_groups(registry))
-    assert len(groups) == 3
+    expected_groups_len = 3
+    assert len(groups) == expected_groups_len
 
     names = [name for name, _ in groups]
     assert "section1" in names
@@ -81,7 +83,8 @@ def test_iter_dataset_refs():
     }
 
     refs = list(iter_dataset_refs(registry))
-    assert len(refs) == 2
+    expected_refs_len = 2
+    assert len(refs) == expected_refs_len
 
     # Check valid1
     ref1 = next(r for r in refs if r.key == "section1.valid1")
