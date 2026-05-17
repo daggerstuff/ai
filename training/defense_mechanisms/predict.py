@@ -56,7 +56,7 @@ def load_checkpoint(
         else:
             raise FileNotFoundError(f"No best_model.pt found in {ckpt_path}")
 
-    checkpoint = torch.load(model_path, map_location=device, weights_only=False)
+    checkpoint = torch.load(model_path, map_location=device, weights_only=True)
     config = checkpoint.get("config", {})
 
     model = DefenseClassifier(
@@ -160,7 +160,7 @@ def ensemble_predict(
     first_ckpt = torch.load(
         Path(checkpoint_dirs[0]) / "best_model.pt",
         map_location="cpu",
-        weights_only=False,
+        weights_only=True,
     )
     model_name = first_ckpt.get("config", {}).get(
         "base_model", "microsoft/deberta-v3-base"

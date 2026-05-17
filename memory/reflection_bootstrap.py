@@ -56,7 +56,7 @@ class ReflectionBootstrap:
         if self._task:
             self._task.cancel()
             try:
-                await self._task  # type: ignore
+                await self._task
             except asyncio.CancelledError:
                 pass
         if self._subagent is not None and hasattr(self._subagent, "close"):
@@ -82,7 +82,7 @@ class ReflectionBootstrap:
         if self._subagent is None:
             await self.start()
 
-        assert self._subagent is not None  # type: ignore
+        assert self._subagent is not None
         self._last_reflection_fingerprint = self._fingerprint_conversation(
             conversation_text=conversation_text,
             user_id=user_id,

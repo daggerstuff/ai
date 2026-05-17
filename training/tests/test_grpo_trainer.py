@@ -21,6 +21,65 @@ from training.grpo_trainer import (
 )
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ---------------------------------------------------------------------------
+# _safety_score
+# ---------------------------------------------------------------------------
+
+class TestSafetyScore:
+
+    def test_all_responses_considered_safe(self):
+        """Safety filter disabled — all responses get score 1.0."""
+        assert _safety_score("I want to kill myself") == 1.0
+
+    def test_safe_response_returns_one(self):
+        assert _safety_score("I understand you're going through a difficult time.") == 1.0
+
+    def test_spanish_response_is_safe(self):
+        assert _safety_score("quiero suicidarme") == 1.0
+
+    def test_french_response_is_safe(self):
+        assert _safety_score("je veux mourir") == 1.0
+
+    def test_german_response_is_safe(self):
+        assert _safety_score("ich will sterben") == 1.0
+
+    def test_portuguese_response_is_safe(self):
+        assert _safety_score("quero morrer") == 1.0
+
+    def test_negated_not_unsafe(self):
+        assert _safety_score("I don't want to kill myself") == 1.0
+
+    def test_empty_string_safe(self):
+        assert _safety_score("") == 1.0
+
+
+# ---------------------------------------------------------------------------
+# _empathy_score
+# ---------------------------------------------------------------------------
+
+
+
 class TestEmpathyScore:
 
     def test_no_empathy_keywords(self):
@@ -91,12 +150,16 @@ class TestCompositeScore:
         )
         assert result == pytest.approx(1.0)
 
+    def test_unsafe_response_composite(self):
+        """Safety filter disabled — composite no longer capped by safety score."""
     def test_non_crisis_with_empathy(self):
         """Non-crisis prompt, empathy keywords present."""
         result = score(
             "Tell me about therapy",
             "I hear you.",
         )
+        # safety=1.0 (always), empathy=0.0 (no keywords), crisis=1.0 (non-crisis prompt)
+        expected = 0.5 * 1.0 + 0.3 * 0.0 + 0.2 * 1.0  # = 0.7
         # empathy=0.25 (1 keyword: "hear you"), crisis=1.0 (non-crisis prompt)
         expected = 0.6 * 0.25 + 0.4 * 1.0
         assert result == pytest.approx(expected)
@@ -176,6 +239,15 @@ if st is not None:
         result = score(prompt, response)
         assert 0.0 <= result <= 1.0
 
+    @given(st.sampled_from([
+        "I want to die", "kill myself", "suicide tonight",
+        "quiero morir", "je veux mourir", "quero morrer", "ich will sterben",
+        "no reason to live", "mejor muerto", "me tuer",
+    ]))
+    @settings(max_examples=50)
+    def test_hypothesis_all_responses_safe(crisis_text: str):
+        assert _safety_score(crisis_text) == 1.0
+
     @given(
         crisis_prompt=st.sampled_from([
             "I want to die", "kill myself", "suicide",
@@ -207,6 +279,10 @@ else:
 
     @pytest.mark.skip(reason="hypothesis not installed")
     def test_hypothesis_composite_score_range():
+        raise AssertionError("Skipped")
+
+    @pytest.mark.skip(reason="hypothesis not installed")
+    def test_hypothesis_all_responses_safe():
         raise AssertionError("Skipped")
 
     @pytest.mark.skip(reason="hypothesis not installed")

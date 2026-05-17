@@ -30,6 +30,7 @@ import asyncio
 import hashlib
 import logging
 import os
+import warnings
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import StrEnum
@@ -37,17 +38,44 @@ from typing import Any
 
 import numpy as np
 
-try:
-    import faiss
-    FAISS_AVAILABLE = True
-except ImportError:
-    FAISS_AVAILABLE = False
-    faiss = None
+faiss: Any | None = None
+FAISS_AVAILABLE = False
 
 from openai import AsyncOpenAI
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 logger = logging.getLogger(__name__)
+
+
+def _load_faiss() -> Any | None:
+    """Lazily import FAISS to avoid importing native extension at module import time."""
+    global faiss, FAISS_AVAILABLE
+    if FAISS_AVAILABLE and faiss is not None:
+        return faiss
+
+    try:
+        with warnings.catch_warnings():
+            # Keep warning policy strict, but isolate known upstream SWIG warnings so
+            # importing FAISS on CPython 3.13 does not crash test runs.
+            warnings.simplefilter("error", DeprecationWarning)
+            warnings.filterwarnings(
+                "ignore",
+                category=DeprecationWarning,
+                message=(
+                    r"builtin type (SwigPyPacked|SwigPyObject|swigvarlink) "
+                    r"has no __module__ attribute"
+                ),
+            )
+            import faiss as _faiss
+
+        faiss = _faiss
+        FAISS_AVAILABLE = True
+        return faiss
+    except Exception as exc:  # pragma: no cover - defensive for optional dependency failures
+        logger.debug("FAISS import failed during lazy load: %s", exc)
+        faiss = None
+        FAISS_AVAILABLE = False
+        return None
 
 
 # =============================================================================
@@ -183,8 +211,7 @@ class NemotronRAGConfig(BaseModel):
     generation_temperature: float = 0.7
     max_generation_tokens: int = 2048
 
-    class Config:
-        use_enum_values = True
+    model_config = ConfigDict(use_enum_values=True)
 
 
 class DocumentMetadata(BaseModel):
@@ -206,14 +233,13 @@ class DocumentMetadata(BaseModel):
     category: KnowledgeCategory
     source: str
     title: str | None = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     tags: list[str] = Field(default_factory=list)
     url: str | None = None
     author: str | None = None
 
-    class Config:
-        use_enum_values = True
+    model_config = ConfigDict(use_enum_values=True)
 
 
 class RAGResponse(BaseModel):
@@ -319,7 +345,6 @@ class TherapeuticRAGPipeline:
             api_key=config.api_key
         )
         self.store = DocumentStore()
-        self._initialize_vector_store()
 
         logger.info(
             f"Initialized TherapeuticRAGPipeline with {config.index_type} index"
@@ -327,7 +352,11 @@ class TherapeuticRAGPipeline:
 
     def _initialize_vector_store(self) -> None:
         """Initialize FAISS vector index based on configuration."""
-        if not FAISS_AVAILABLE:
+        if self.store.index is not None:
+            return
+
+        faiss_lib = _load_faiss()
+        if faiss_lib is None:
             logger.warning(
                 "FAISS not available. Using in-memory search only. "
                 "Install faiss-cpu or faiss-gpu for vector search."
@@ -338,23 +367,23 @@ class TherapeuticRAGPipeline:
 
         if self.config.index_type == IndexType.FLAT:
             # Simple flat index for small corpora
-            self.store.index = faiss.IndexFlatIP(dim)
+            self.store.index = faiss_lib.IndexFlatIP(dim)
             self.store.is_trained = True
 
         elif self.config.index_type == IndexType.IVF:
             # IVF index for medium corpora
-            quantizer = faiss.IndexFlatIP(dim)
-            self.store.index = faiss.IndexIVFFlat(
+            quantizer = faiss_lib.IndexFlatIP(dim)
+            self.store.index = faiss_lib.IndexIVFFlat(
                 quantizer,
                 dim,
                 self.config.n_clusters,
-                faiss.METRIC_INNER_PRODUCT
+                faiss_lib.METRIC_INNER_PRODUCT,
             )
             self.store.is_trained = False
 
         elif self.config.index_type == IndexType.HNSW:
             # HNSW index for large corpora
-            self.store.index = faiss.IndexHNSWFlat(dim, 32)
+            self.store.index = faiss_lib.IndexHNSWFlat(dim, 32)
             self.store.is_trained = True
 
         logger.debug(f"Initialized {self.config.index_type} FAISS index")
@@ -397,7 +426,7 @@ class TherapeuticRAGPipeline:
         )
 
         # Generate embedding
-        embedding = await self._generate_embedding(document)
+        embedding = await self._generate_embedding(document, input_type="passage")
 
         # Create document
         doc = Document(
@@ -417,12 +446,13 @@ class TherapeuticRAGPipeline:
         logger.debug(f"Ingested document {doc_id} into category {category}")
         return doc_id
 
-    async def _generate_embedding(self, text: str) -> np.ndarray:
+    async def _generate_embedding(self, text: str, input_type: str = "query") -> np.ndarray:
         """Generate embedding for text using Nemotron-Embed-VL."""
         response = await self.client.embeddings.create(
             model=self.config.embedding_model,
             input=text,
-            encoding_format="float"
+            encoding_format="float",
+            extra_body={"input_type": input_type},
         )
 
         embedding = np.array(
@@ -431,7 +461,9 @@ class TherapeuticRAGPipeline:
         )
 
         # Normalize for inner product search
-        faiss.normalize_L2(embedding)
+        embedding_norm = np.linalg.norm(embedding)
+        if embedding_norm > 0:
+            embedding = embedding / embedding_norm
 
         return embedding
 
@@ -502,7 +534,9 @@ class TherapeuticRAGPipeline:
 
     def _add_to_index(self, embedding: np.ndarray) -> None:
         """Add embedding to FAISS index."""
-        if not FAISS_AVAILABLE or self.store.index is None:
+        self._initialize_vector_store()
+        faiss_lib = _load_faiss()
+        if faiss_lib is None or self.store.index is None:
             return
 
         # Train IVF index if needed
@@ -541,10 +575,11 @@ class TherapeuticRAGPipeline:
         n_results = n_results or self.config.reranking_top_n
 
         # Generate query embedding
-        query_embedding = await self._generate_embedding(query)
+        query_embedding = await self._generate_embedding(query, input_type="query")
 
         # Search vector store
-        if FAISS_AVAILABLE and self.store.index is not None and self.store.is_trained:
+        self._initialize_vector_store()
+        if self.store.index is not None and self.store.is_trained and _load_faiss() is not None:
             candidates = self._search_faiss(query_embedding, category)
         else:
             candidates = self._search_memory(query_embedding, category)
@@ -879,7 +914,8 @@ async def embed_text(text: str, api_key: str | None = None) -> np.ndarray:
     response = await client.embeddings.create(
         model=NIM_EMBEDDING_MODEL,
         input=text,
-        encoding_format="float"
+        encoding_format="float",
+        extra_body={"input_type": "query"},
     )
 
     embedding = np.array(
@@ -887,8 +923,9 @@ async def embed_text(text: str, api_key: str | None = None) -> np.ndarray:
         dtype=np.float32
     )
 
-    if FAISS_AVAILABLE:
-        faiss.normalize_L2(embedding)
+    embedding_norm = np.linalg.norm(embedding, axis=1, keepdims=True)
+    if embedding_norm.size and float(embedding_norm.item()) > 0:
+        embedding = embedding / embedding_norm
 
     return embedding
 

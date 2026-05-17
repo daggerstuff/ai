@@ -42,7 +42,7 @@ def _load_single_file(path: Path, logger: logging.Logger) -> pd.DataFrame:
             return pd.read_json(path, lines=True)
         if suffix == ".parquet":
             return pd.read_parquet(path)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         raise DatasetLoaderError(f"Failed to load {path}: {exc!s}") from exc
 
     raise DatasetLoaderError(f"Unsupported file type: {path.suffix}")
