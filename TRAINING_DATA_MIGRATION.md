@@ -23,6 +23,7 @@ cd /home/vivi/pixelated/ai
 Merging 7 scattered directories into 1 unified structure:
 
 | Source | Files | Size | Purpose |
+|--------|-------|------|---------|
 | ------- | ----- | ---- | ------- |
 | `training` | 1,508 | 175M | Main training infrastructure |
 | `training_corpus` | 1,015 | 243M | Corpus building tools |
@@ -191,6 +192,7 @@ mv /tmp/training_backup_*/training_ready ai/
 ## Timeline
 
 | Phase | Duration | When |
+|-------|----------|------|
 | ------- | ---------- | ------ |
 | Preparation | 5 min | Before migration |
 | Dry Run | 5 min | Before execution |

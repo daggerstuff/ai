@@ -151,6 +151,10 @@ class TestIngestChannel:
             "I want to talk about suicide\n\nI want to kill myself tonight",
             encoding="utf-8",
         )
+        samples, n_read, _ = ingest_channel(
+            channel_dir, "en", set(),
+        )
+        assert len(samples) > 0
         output_dir = tmp_path / "output"
         output_dir.mkdir()
         samples, n_read, n_unsafe, _ = ingest_channel(

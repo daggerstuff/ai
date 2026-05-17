@@ -56,6 +56,7 @@ def test_correct_transcript_with_punctuation_and_capitalization(_mock_file, _moc
     # Tests spacing around punctuation
     assert corrector.correct_transcript("wait , what ?") == "Wait, what?"
 
+from unittest.mock import MagicMock
 
 @patch("utils.transcript_corrector.Path.exists", return_value=False)
 def test_load_terminology_not_found(_mock_exists):
@@ -149,6 +150,7 @@ def test_load_terminology_not_found(_mock_exists):  # noqa: PT019
 
 @patch("utils.transcript_corrector.Path.exists", return_value=True)
 @patch("builtins.open", side_effect=Exception("Read error"))
+def test_load_terminology_exception(_mock_open, _mock_exists):  # noqa: PT019
 def test_load_terminology_exception_2(_mock_open, _mock_exists):  # noqa: PT019
     corrector = TranscriptCorrector("mock.json")
     assert corrector.terms == {
