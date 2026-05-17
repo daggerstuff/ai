@@ -36,6 +36,10 @@ echo "Training Data Migration"
 echo "Timestamp: $TIMESTAMP"
 echo "Backup: $BACKUP_DIR"
 echo "Target: $NEW_DIR"
+echo "Training Data Migration"
+echo "Timestamp: $TIMESTAMP"
+echo "Backup: $BACKUP_DIR"
+echo "Target: $NEW_DIR"
 echo ""
 
 # Pre-flight checks
@@ -274,6 +278,8 @@ fi
 echo ""
 
 # Summary
+if [ "$DRY_RUN" = true ]; then
+    echo "DRY RUN COMPLETE - No changes made"
 if [ "$DRY_RUN" = true ]; then
     echo "DRY RUN COMPLETE - No changes made"
 if [ "$DRY_RUN" = true ]; then
