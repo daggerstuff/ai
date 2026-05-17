@@ -196,6 +196,12 @@
 
       function startAutoRefresh(intervalMs = 30000) {
         refreshInterval = setInterval(() => {
+          if (document.hidden) {
+            return; // ⚡ Bolt: Pause polling when dashboard tab is hidden
+          }
+          showRefreshIndicator()
+          refreshDashboardData()
+        }, intervalMs)
           // ⚡ Bolt: Prevent background refreshing when the dashboard tab is not active.
           if (!document.hidden) {
             showRefreshIndicator();
