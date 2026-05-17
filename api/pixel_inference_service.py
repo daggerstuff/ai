@@ -671,6 +671,7 @@ async def batch_infer(requests: list[PixelInferenceRequest]):
 
 
 
+
     responses = []
     for i in range(0, len(requests), MAX_BATCH_CONCURRENCY):
         batch = requests[i : i + MAX_BATCH_CONCURRENCY]

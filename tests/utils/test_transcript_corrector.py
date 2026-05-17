@@ -62,6 +62,8 @@ from unittest.mock import MagicMock
 
 from unittest.mock import MagicMock
 
+from unittest.mock import MagicMock
+
 
 def test_missing_config_path_fallback():
     with patch("utils.transcript_corrector.Path.exists", side_effect=[False, True]), \
