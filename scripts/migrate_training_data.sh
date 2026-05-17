@@ -24,13 +24,26 @@ if [[ "${1:-}" == "--dry-run" ]]; then
     echo "🔍 DRY RUN MODE - No changes will be made"
 fi
 
-echo "========================================="
 echo "Training Data Migration"
-echo "========================================="
 echo "Timestamp: $TIMESTAMP"
 echo "Backup: $BACKUP_DIR"
 echo "Target: $NEW_DIR"
-echo "========================================="
+echo "Training Data Migration"
+echo "Timestamp: $TIMESTAMP"
+echo "Backup: $BACKUP_DIR"
+echo "Target: $NEW_DIR"
+echo "Training Data Migration"
+echo "Timestamp: $TIMESTAMP"
+echo "Backup: $BACKUP_DIR"
+echo "Target: $NEW_DIR"
+echo "Training Data Migration"
+echo "Timestamp: $TIMESTAMP"
+echo "Backup: $BACKUP_DIR"
+echo "Target: $NEW_DIR"
+echo "Training Data Migration"
+echo "Timestamp: $TIMESTAMP"
+echo "Backup: $BACKUP_DIR"
+echo "Target: $NEW_DIR"
 echo ""
 
 # Pre-flight checks
@@ -269,15 +282,20 @@ fi
 echo ""
 
 # Summary
-echo "========================================="
 if [ "$DRY_RUN" = true ]; then
     echo "DRY RUN COMPLETE - No changes made"
-    echo "========================================="
+if [ "$DRY_RUN" = true ]; then
+    echo "DRY RUN COMPLETE - No changes made"
+if [ "$DRY_RUN" = true ]; then
+    echo "DRY RUN COMPLETE - No changes made"
+if [ "$DRY_RUN" = true ]; then
+    echo "DRY RUN COMPLETE - No changes made"
+if [ "$DRY_RUN" = true ]; then
+    echo "DRY RUN COMPLETE - No changes made"
     echo ""
     echo "To execute: ./scripts/migrate_training_data.sh"
 else
     echo "Migration Complete!"
-    echo "========================================="
     echo ""
     echo "Summary:"
     echo "  Backup: $BACKUP_DIR"
