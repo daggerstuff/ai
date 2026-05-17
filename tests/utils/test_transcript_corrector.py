@@ -58,6 +58,8 @@ def test_correct_transcript_with_punctuation_and_capitalization(_mock_file, _moc
 
 from unittest.mock import MagicMock
 
+from unittest.mock import MagicMock
+
 @patch("utils.transcript_corrector.Path.exists", return_value=False)
 def test_load_terminology_not_found(_mock_exists):
     corrector = TranscriptCorrector("mock_missing.json")

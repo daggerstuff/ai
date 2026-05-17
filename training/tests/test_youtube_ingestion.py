@@ -155,6 +155,8 @@ class TestIngestChannel:
             channel_dir, "en", set(),
         )
         assert len(samples) > 0
+        )
+        assert len(samples) > 0
         output_dir = tmp_path / "output"
         output_dir.mkdir()
         samples, n_read, n_unsafe, _ = ingest_channel(

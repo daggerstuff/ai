@@ -13,6 +13,7 @@ BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 NEW_DIR="$BASE_DIR/training_data_unified"
 
 echo "Migration Validation"
+echo "Migration Validation"
 echo ""
 
 # Check if migration completed
@@ -70,6 +71,8 @@ done
 echo ""
 
 # Summary
+if [ $MISSING -eq 0 ]; then
+    echo "✅ Validation PASSED"
 if [ $MISSING -eq 0 ]; then
     echo "✅ Validation PASSED"
     echo ""
