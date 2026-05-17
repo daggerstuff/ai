@@ -16,9 +16,6 @@ except ImportError:
 from training.clinical_safety_checker import ClinicalContentAnalyzer
 from training.multilingual_safety_checker import MultilingualContentChecker
 
-# ---------------------------------------------------------------------------
-# Interface & metadata tests
-# ---------------------------------------------------------------------------
 
 def test_version_format():
     assert re.match(r"^\d+\.\d+\.\d+$", MultilingualContentChecker.VERSION)

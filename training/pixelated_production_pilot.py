@@ -60,6 +60,8 @@ try:
         log_token_length_distribution,
         shared_qlora_config,
     )
+    from .clinical_safety_checker import ClinicalContentAnalyzer
+    from .multilingual_safety_checker import MultilingualContentChecker
 except ModuleNotFoundError:
     try:
         from ai.training.shared_config import (
@@ -68,6 +70,8 @@ except ModuleNotFoundError:
             log_token_length_distribution,
             shared_qlora_config,
         )
+        from ai.training.clinical_safety_checker import ClinicalContentAnalyzer
+        from ai.training.multilingual_safety_checker import MultilingualContentChecker
     except ModuleNotFoundError:
         from shared_config import (
             add_lora_args,
@@ -75,6 +79,8 @@ except ModuleNotFoundError:
             log_token_length_distribution,
             shared_qlora_config,
         )
+        from clinical_safety_checker import ClinicalContentAnalyzer
+        from multilingual_safety_checker import MultilingualContentChecker
 
 
 # SAFETY CHECKERS DISABLED PER USER REQUEST - ALL CONTENT ALLOWED

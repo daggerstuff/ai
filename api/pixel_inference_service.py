@@ -69,6 +69,7 @@ def sanitize_agent_output(raw_text: str | None) -> str:
         output_lines.append(line.rstrip())
     return "\n".join(output_lines)
 MAX_BATCH_CONCURRENCY = int(os.getenv("PIXEL_MAX_BATCH_CONCURRENCY", "16"))
+MAX_BATCH_CONCURRENCY = int(os.getenv("PIXEL_MAX_BATCH_CONCURRENCY", "16"))
 
 # Request/Response Models
 
