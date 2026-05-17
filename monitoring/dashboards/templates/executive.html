@@ -11,8 +11,8 @@ Empathy AI{% endblock %} {% block header_title %}Executive Dashboard{% endblock
       </div>
       <div class="metric-label">Total Conversations</div>
       <small class="text-success">
-        <i class="fas fa-arrow-up" aria-hidden="true"></i> +{{ metrics.conversations_growth }}%
-        this month
+        <i class="fas fa-arrow-up" aria-hidden="true"></i> +{{
+        metrics.conversations_growth }}% this month
       </small>
     </div>
   </div>
@@ -24,8 +24,8 @@ Empathy AI{% endblock %} {% block header_title %}Executive Dashboard{% endblock
       </div>
       <div class="metric-label">Average Quality Score</div>
       <small class="text-success">
-        <i class="fas fa-arrow-up" aria-hidden="true"></i> +{{ metrics.quality_improvement }}%
-        improvement
+        <i class="fas fa-arrow-up" aria-hidden="true"></i> +{{
+        metrics.quality_improvement }}% improvement
       </small>
     </div>
   </div>
@@ -58,6 +58,11 @@ Empathy AI{% endblock %} {% block header_title %}Executive Dashboard{% endblock
   <div class="col-lg-8 mb-4">
     <div class="dashboard-card">
       <div class="chart-container">
+        <canvas
+          id="conversationTrendsChart"
+          role="img"
+          aria-label="Line chart showing conversation volume trends over the last 30 days"
+        ></canvas>
         <canvas id="conversationTrendsChart" role="img" aria-label="Conversation volume trends over the last 30 days">Your browser does not support the canvas element.</canvas>
       </div>
     </div>
@@ -67,6 +72,11 @@ Empathy AI{% endblock %} {% block header_title %}Executive Dashboard{% endblock
   <div class="col-lg-4 mb-4">
     <div class="dashboard-card">
       <div class="chart-container">
+        <canvas
+          id="qualityDistributionChart"
+          role="img"
+          aria-label="Doughnut chart displaying the distribution of quality scores across excellent, good, fair, and poor"
+        ></canvas>
         <canvas id="qualityDistributionChart" role="img" aria-label="Distribution of conversation quality scores">Your browser does not support the canvas element.</canvas>
       </div>
     </div>
@@ -78,6 +88,11 @@ Empathy AI{% endblock %} {% block header_title %}Executive Dashboard{% endblock
   <div class="col-lg-6 mb-4">
     <div class="dashboard-card">
       <div class="chart-container">
+        <canvas
+          id="systemPerformanceChart"
+          role="img"
+          aria-label="Bar chart comparing current and target system performance metrics including response time, throughput, error rate, and CPU usage"
+        ></canvas>
         <canvas id="systemPerformanceChart" role="img" aria-label="System performance metrics including response time and throughput">Your browser does not support the canvas element.</canvas>
       </div>
     </div>
@@ -88,7 +103,10 @@ Empathy AI{% endblock %} {% block header_title %}Executive Dashboard{% endblock
     <div class="dashboard-card">
       <div class="card-header">
         <h5 class="mb-0">
-          <i class="fas fa-exclamation-triangle text-warning me-2" aria-hidden="true"></i>
+          <i
+            class="fas fa-exclamation-triangle text-warning me-2"
+            aria-hidden="true"
+          ></i>
           Top Issues Requiring Attention
         </h5>
       </div>
