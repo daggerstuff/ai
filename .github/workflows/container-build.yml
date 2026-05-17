@@ -180,6 +180,7 @@ jobs:
 
       - name: Deploy to production
         run: |
+          bash scripts/check-redis-hardening.sh
           export KUBECONFIG=kubeconfig
           cd infrastructure/helm
           ./deploy.sh prod upgrade

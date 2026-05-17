@@ -17,7 +17,7 @@ import seaborn as sns
 from scipy import stats
 from scipy.stats import gaussian_kde
 
-warnings.filterwarnings("ignore")
+warnings.simplefilter("default")
 
 
 @dataclass

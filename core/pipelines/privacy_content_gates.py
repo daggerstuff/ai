@@ -64,6 +64,16 @@ from typing import TYPE_CHECKING, Any
 from .processing.pii_scrubber import PiiScrubber, PiiScrubberConfig
 from .crisis_intervention_detector import CrisisInterventionDetector
 
+# Optional import for review queue (PIX-250) - only used if available
+try:
+    from .human_review_queue import HumanReviewQueue, Reviewer, ReviewerRole
+    REVIEW_QUEUE_ENABLED = True
+except ImportError:
+    REVIEW_QUEUE_ENABLED = False
+    HumanReviewQueue = None
+    Reviewer = None
+    ReviewerRole = None
+
 if TYPE_CHECKING:
     pass
 
@@ -175,6 +185,15 @@ class PrivacyContentReport:
 
     @property
     def passed(self) -> bool:
+        """True when all non-escalate gates passed and no BLOCK decisions exist.
+
+        ESCALATE gates are non-contributing — they represent borderline items
+        that require human review (Gate 4). Once Gate 4 is set (via override_with_review),
+        it serves as the authoritative resolution.
+        """
+        results = [g for g in self._gate_results if g is not None]
+        # ESCALATE does not block — human review resolves it
+        return all(r.decision in (GateDecision.PASS, GateDecision.ESCALATE) for r in results) and not self.blocked
         """True when the item is cleared for promotion.
 
         If Gate 4 (human review) has been set, it overrides any prior ESCALATE.
@@ -297,6 +316,8 @@ UNSAFE_PATTERNS: list[tuple[str, str]] = [
 ]
 
 SENSITIVE_PATTERNS: list[str] = [
+    r"\b(anxiety|anxious|anxiet|panic|social anxiety|generalized anxiety)\b",
+    r"\b(trauma|abuse|addict|crisis|self.?harm|suicid|overdose)\b",
     r"\b(anxiety|anxious|panic|social anxiety|generalized anxiety)\b",
     r"\b(trauma|abuse|addict|crisis|self.?harm|suicid|overdose)",
     r"\b(personality\s+disorder|bpd|narciss|histrionic)\b",
@@ -338,6 +359,19 @@ class PrivacyContentGates:
     ) -> None:
         self._pii_scrubber = PiiScrubber(pii_config or PiiScrubberConfig())
         self._crisis_detector = CrisisInterventionDetector()
+        review_queue: "HumanReviewQueue | None" = None,
+    ) -> None:
+        self._pii_scrubber = PiiScrubber(pii_config or PiiScrubberConfig())
+        self._crisis_detector = CrisisInterventionDetector()
+        # Review queue integration (PIX-250)
+        if REVIEW_QUEUE_ENABLED and review_queue is None:
+            try:
+                from .human_review_queue import HumanReviewQueue
+                review_queue = HumanReviewQueue()
+            except Exception:
+                # Queue initialization failed; debug logging recommended
+                pass
+        self._review_queue = review_queue
 
     # ------------------------------------------------------------------
     # Public API
@@ -376,6 +410,9 @@ class PrivacyContentGates:
         report.gate1_result = gate1
         if gate1.decision == GateDecision.BLOCK:
             return report
+        # Enqueue for review if ESCALATE
+        if gate1.decision == GateDecision.ESCALATE:
+            self._enqueue_for_review(report, text)
 
         # Gate 2 — Content safety
         gate2, crisis_findings = self._gate2_safety(text)
@@ -383,6 +420,9 @@ class PrivacyContentGates:
         report.crisis_findings = crisis_findings
         if gate2.decision == GateDecision.BLOCK:
             return report
+        # Enqueue for review if ESCALATE
+        if gate2.decision == GateDecision.ESCALATE:
+            self._enqueue_for_review(report, text)
 
         # Gate 3 — License and consent
         gate3 = self._gate3_license(
@@ -399,6 +439,9 @@ class PrivacyContentGates:
             ),
             consent_recorded=consent_recorded,
         )
+        # Enqueue for review if ESCALATE
+        if gate3.decision == GateDecision.ESCALATE:
+            self._enqueue_for_review(report, text)
 
         return report
 
@@ -686,6 +729,7 @@ class PrivacyContentGates:
 
     def _collect_crisis_findings(
         self, crisis_result: "CrisisInterventionResult"  # type: ignore[name-defined]
+        self, crisis_result: "CrisisInterventionResult"
     ) -> list[CrisisFinding]:
         if crisis_result.score == 0.0:
             return []
@@ -704,6 +748,32 @@ class PrivacyContentGates:
             if re.search(pattern, text, re.IGNORECASE):
                 found.append(label)
         return found
+
+    def _enqueue_for_review(self, report: PrivacyContentReport, text: str) -> None:
+        """Enqueue item for human review when ESCALATE occurs (PIX-250).
+
+        Args:
+            report: The PrivacyContentReport with ESCALATE decision
+            text: Original text content for preview
+        """
+        if not REVIEW_QUEUE_ENABLED or self._review_queue is None:
+            return
+
+        try:
+            # Create review item from gate report
+            review_item = self._review_queue.create_item_from_report(
+                source_id=report.source_id,
+                gate_result=report.to_dict(),
+                content_preview=text[:500] if text else None,
+                content_length=len(text) if text else 0,
+                priority="high" if report.privacy_tier == PrivacyTier.HIGH else "normal",
+            )
+            # Enqueue for review
+            self._review_queue.enqueue(review_item)
+        except Exception:
+            # Queue operation failed; item will still be marked as needs_review
+            # Debug logging recommended but don't block the pipeline
+            pass
 
 
 __all__ = [

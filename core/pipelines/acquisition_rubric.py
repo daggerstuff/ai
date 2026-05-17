@@ -9,15 +9,27 @@ from typing import Any
 
 
 class PriorityTier(str, Enum):
+import sys
+from dataclasses import dataclass
+from enum import StrEnum
+from typing import Any
+
+
+class PriorityTier(StrEnum):
     HIGH = "high"
     MEDIUM = "medium"
     LOW = "low"
 
 
 class GateDecision(str, Enum):
+class GateDecision(StrEnum):
     PASS = "pass"
     BLOCK = "block"
     EXCEPTION = "exception"
+
+
+SCORE_TIER_HIGH: float = 8.0
+SCORE_FLOOR: float = 6.0
 
 
 @dataclass
@@ -49,6 +61,8 @@ class PilotReport:
 
     def __str__(self) -> str:
         return f"PilotReport({self.source_id}: {self.sample_size}/{self.population_size} samples, score={self.overall_pilot_score})"
+        msg = f"PilotReport({self.source_id}: {self.sample_size}/{self.population_size} samples"
+        return f"{msg}, score={self.overall_pilot_score})"
 
 
 @dataclass
@@ -62,6 +76,10 @@ class CurationExitReport:
 
     def __str__(self) -> str:
         return f"CurationExitReport({self.source_id}: retention={self.net_retention_pct}%, signed={self.manifest_signed})"
+        return (
+            f"CurationExitReport({self.source_id}: "
+            f"retention={self.net_retention_pct}%, signed={self.manifest_signed})"
+        )
 
 
 @dataclass
@@ -77,12 +95,16 @@ class AcquisitionScore:
         if self.overall_score >= 8.0:
             return PriorityTier.HIGH
         if self.overall_score >= 6.0:
+        if self.overall_score >= SCORE_TIER_HIGH:
+            return PriorityTier.HIGH
+        if self.overall_score >= SCORE_FLOOR:
             return PriorityTier.MEDIUM
         return PriorityTier.LOW
 
     @property
     def passes_score_floor(self) -> bool:
         return self.overall_score >= 6.0
+        return self.overall_score >= SCORE_FLOOR
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -280,6 +302,17 @@ class AcquisitionRubric:
             ok = False
 
         blocked_after_exception = [b for b in base.blocking if "license" not in b.lower() and "exception" not in b.lower()]
+            if source.license_id in EXCEPTION_LICENSES:
+                base.exception_granted = True
+                base.qualifying.append(f"exception granted: {reason}")
+            else:
+                base.exception_granted = False
+            return base
+
+        blocked_after_exception = [
+            b for b in base.blocking
+            if "license" not in b.lower() and "exception" not in b.lower()
+        ]
         if blocked_after_exception:
             base.blocking[:] = blocked_after_exception
             base.passed = False
@@ -392,6 +425,8 @@ def _run_cli() -> None:
     for dim in ("therapeutic_relevance", "data_structure_quality", "training_integration", "ethical_accessibility"):
         score_p.add_argument(f"--{dim}", type=int, required=True, help=f"{dim} (1-10)")
 
+    score_p.add_argument(f"--{dim}", type=int, required=True, help=f"{dim} (1-10)")
+
     intake_p = sub.add_parser("intake", help="Evaluate Gate 0 intake for a source")
     intake_p.add_argument("--source-id", required=True)
     intake_p.add_argument("--name", required=True)
@@ -415,6 +450,11 @@ def _run_cli() -> None:
             ethical_accessibility=args.ethical_accessibility,
         )
         print(f"overall_score={score.overall_score}, priority_tier={score.priority_tier.value}, passes_score_floor={score.passes_score_floor}")
+        sys.stdout.write(
+            f"overall_score={score.overall_score}, "
+            f"priority_tier={score.priority_tier.value}, "
+            f"passes_score_floor={score.passes_score_floor}\n"
+        )
         sys.exit(0)
 
     if args.command == "intake":
@@ -435,6 +475,11 @@ def _run_cli() -> None:
             print(f"  [PASS] {q}")
         for b in decision.blocking:
             print(f"  [BLOCK] {b}")
+        sys.stdout.write(f"passed={decision.passed}\n")
+        for q in decision.qualifying:
+            sys.stdout.write(f"  [PASS] {q}\n")
+        for b in decision.blocking:
+            sys.stdout.write(f"  [BLOCK] {b}\n")
         sys.exit(0 if decision.passed else 1)
 
 
@@ -458,4 +503,19 @@ __all__ = [
     "PriorityTier",
     "APPROVED_LICENSES",
     "EXCEPTION_LICENSES",
+    "APPROVED_LICENSES",
+    "EXCEPTION_LICENSES",
+    "AcquisitionRubric",
+    "AcquisitionScore",
+    "CurationExitDecision",
+    "CurationExitReport",
+    "GateDecision",
+    "GateResult",
+    "IntakeDecision",
+    "PilotDecision",
+    "PilotReport",
+    "PriorityTier",
+    "SourceIntake",
+    "calculate_overall_score",
+    "score_from_evaluation",
 ]

@@ -7,6 +7,7 @@ set -euo pipefail
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+REDIS_AUDIT="${PROJECT_ROOT}/scripts/check-redis-hardening.sh"
 ENVIRONMENT="production"
 AWS_REGION="${AWS_REGION:-us-east-1}"
 CLUSTER_NAME="pixelated-empathy-production-cluster"
@@ -33,6 +34,13 @@ log_warning() {
 
 log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
+}
+
+run_redis_hardening_audit() {
+    if ! "$REDIS_AUDIT"; then
+        log_error "Redis hardening audit failed"
+        exit 1
+    fi
 }
 
 # Check prerequisites
@@ -416,6 +424,7 @@ main() {
     log_info "Build Number: $BUILD_NUMBER"
     log_info "Environment: $ENVIRONMENT"
     log_info "AWS Region: $AWS_REGION"
+    run_redis_hardening_audit
     
     # Load configuration
     source "$SCRIPT_DIR/config/production.env"

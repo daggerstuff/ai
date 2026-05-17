@@ -9,8 +9,8 @@ import os
 import sys
 from typing import Any
 
-import torch
-from torch import nn
+from ai.utils.torch_proxy import nn
+from ai.utils.torch_proxy import torch
 
 # Configure logging
 logging.basicConfig(
