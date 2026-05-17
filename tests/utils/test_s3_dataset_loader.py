@@ -1,3 +1,4 @@
+from unittest.mock import MagicMock
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -31,6 +32,8 @@ def test_s3_dataset_loader_stream_jsonl():
     loader._s3_client = mock_s3
 
     results = list(loader.stream_jsonl("test-key.jsonl"))
+    expected_results_len = 2
+    assert len(results) == expected_results_len
 
     assert len(results) == 2
     assert results[0][0] == {"foo": "bar"}
@@ -54,6 +57,8 @@ def test_s3_dataset_loader_stream_jsonl_empty_lines():
     loader._s3_client = mock_s3
 
     results = list(loader.stream_jsonl("test-key.jsonl"))
+    expected_results_len = 2
+    assert len(results) == expected_results_len
 
     assert len(results) == 2
     assert results[0][0] == {"foo": "bar"}
@@ -159,6 +164,8 @@ def test_import_error_boto3(monkeypatch):
     loader._s3_client = mock_s3
 
     results = list(loader.stream_jsonl("test-key.jsonl"))
+    expected_results_len = 2
+    assert len(results) == expected_results_len
 
     assert len(results) == 2
     assert results[0][0] == {"foo": "bar"}
