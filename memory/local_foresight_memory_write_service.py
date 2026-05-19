@@ -4,14 +4,32 @@ from datetime import datetime, timezone
 from typing import Any
 
 from .local_foresight_protocol_adapter import LocalForesightProtocolAdapter
+from .gates.pii_redactor import PiiRedactor, PiiRedactionResult
+from .gates.crisis_detector import CrisisDetector, CrisisDetectionResult
+from .gates.trauma_filter import TraumaFilter, TraumaFilterResult
+from .gates.consent_gate import ConsentGateChecker, ConsentGateResult
+from .gates import GateResult, GateDecision, GatingReport
 
 
 class LocalForesightMemoryWriteService:
     """Create normalized memory payloads before they are retained."""
 
-    def __init__(self, *, protocol: LocalForesightProtocolAdapter, default_bank_id: str) -> None:
+    def __init__(
+        self,
+        *,
+        protocol: LocalForesightProtocolAdapter,
+        default_bank_id: str,
+        pii_redactor: PiiRedactor | None = None,
+        crisis_detector: CrisisDetector | None = None,
+        trauma_filter: TraumaFilter | None = None,
+        consent_gate: ConsentGateChecker | None = None,
+    ) -> None:
         self.protocol = protocol
         self.default_bank_id = default_bank_id
+        self.pii_redactor = pii_redactor or PiiRedactor()
+        self.crisis_detector = crisis_detector or CrisisDetector()
+        self.trauma_filter = trauma_filter or TraumaFilter()
+        self.consent_gate = consent_gate or ConsentGateChecker()
 
     @staticmethod
     def _metadata_dict(metadata: Any | None) -> dict[str, Any]:
@@ -74,3 +92,75 @@ class LocalForesightMemoryWriteService:
         if not isinstance(document_id, str) or not document_id:
             raise RuntimeError("Retain operation did not provide a valid document identifier")
         return document_id
+
+    def evaluate_gates(
+        self,
+        *,
+        content: str,
+        user_id: str,
+        memory_id: str | None = None,
+    ) -> GatingReport:
+        """Run all 4 ingestion gates on content before retention."""
+        report = GatingReport(source_id=memory_id or "unknown", content=content)
+
+        pii_result = self.pii_redactor.redact(content)
+        report.gate0_pii = self.pii_redactor.evaluate(content)
+        report.pii_types_found = list(pii_result.pii_types_found)
+
+        if report.gate0_pii.decision == GateDecision.BLOCK:
+            return report
+
+        crisis_result = self.crisis_detector.detect(content)
+        report.gate1_crisis = self.crisis_detector.evaluate(content)
+        report.crisis_tier = crisis_result.tier.value
+
+        if report.gate1_crisis.decision == GateDecision.BLOCK:
+            return report
+
+        trauma_result = self.trauma_filter.filter(content, user_id)
+        report.gate2_trauma = self.trauma_filter.evaluate(content, user_id)
+        report.trauma_indicators = list(trauma_result.indicators)
+
+        consent_result = self.consent_gate.check_consent(user_id, memory_id)
+        report.gate3_consent = self.consent_gate.evaluate(user_id, memory_id)
+        ct = consent_result.consent_tier
+        report.consent_gate_value = ct.value if hasattr(ct, "value") else ct
+
+        return report
+
+    def gated_add_memory(
+        self,
+        *,
+        content: str,
+        user_id: str,
+        metadata: Any | None = None,
+        category: str | None = None,
+        scope_metadata: dict[str, Any] | None = None,
+    ) -> tuple[str | None, GatingReport]:
+        """Evaluate gates, then retain only if all gates pass.
+
+        Returns (document_id, gating_report). document_id is None if blocked.
+        """
+        report = self.evaluate_gates(content=content, user_id=user_id)
+
+        if report.blocked:
+            return None, report
+
+        pii_result = self.pii_redactor.redact(content)
+        merged = self.prepare_metadata(
+            metadata=metadata,
+            category=category,
+            scope_metadata=scope_metadata,
+        )
+        merged["gating_report"] = report.to_dict()
+        merged["crisis_flag"] = report.crisis_tier in ("critical", "high")
+        merged["trauma_indicators"] = report.trauma_indicators
+
+        doc_id = self.add_memory(
+            content=pii_result.scrubbed_text,
+            user_id=user_id,
+            metadata=merged,
+            category=category,
+            scope_metadata=scope_metadata,
+        )
+        return doc_id, report

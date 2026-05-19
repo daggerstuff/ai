@@ -52,13 +52,14 @@ class LocalForesightMemoryManager(LocalMemoryCompatibilityMixin, BaseMemoryManag
         user_id: str,
         metadata: Any | None = None,
         category: str | None = None,
-    ) -> str:
-        return self.writes.add_memory(
+    ) -> str | None:
+        doc_id, _report = self.writes.gated_add_memory(
             content=content,
             user_id=user_id,
             metadata=metadata,
             category=category,
         )
+        return doc_id
 
     def add_memory_scoped(
         self,
@@ -68,14 +69,15 @@ class LocalForesightMemoryManager(LocalMemoryCompatibilityMixin, BaseMemoryManag
         metadata: Any | None = None,
         category: str | None = None,
         scope_metadata: dict[str, Any] | None = None,
-    ) -> str:
-        return self.writes.add_memory(
+    ) -> str | None:
+        doc_id, _report = self.writes.gated_add_memory(
             content=content,
             user_id=user_id,
             metadata=metadata,
             category=category,
             scope_metadata=scope_metadata,
         )
+        return doc_id
 
     def get_all_memories(self, user_id: str, limit: int = 100) -> list[dict[str, Any]]:
         return self.queries.get_all_memories(user_id=user_id, limit=limit)
