@@ -5,18 +5,18 @@ Local-only reflection memory models and client wrapper.
 
 This replaces the old unified/dual/cloud reflection memory layer with a
 single async-friendly adapter over the shared local memory service.
+
+Gate evaluation is handled by LocalForesightMemoryManager.add_memory()
+which routes through gated_add_memory() — no duplicate gating needed here.
 """
 
 
 import asyncio
-import hashlib
 from typing import Any
 
 from .local_foresight_manager import LocalForesightMemoryManager
 from .reflection_memory_mapper import record_to_memory
 from .reflection_types import Memory, MemoryCategory, MemoryMetadata
-
-from ai.core.pipelines.privacy_content_gates import PrivacyContentGates, GateDecision
 
 
 class LocalReflectionMemoryClient:
@@ -24,32 +24,18 @@ class LocalReflectionMemoryClient:
 
     def __init__(self, manager: LocalForesightMemoryManager | None = None) -> None:
         self.manager = manager or LocalForesightMemoryManager()
-        # Initialize Socratic Gate for message filtering
-        self._gate = PrivacyContentGates()
 
-    async def add_memory(self, content: str, metadata: MemoryMetadata) -> str:
-        # Apply Socratic Gate to filter messages before storage
-        gate_result = self._gate.evaluate(
-            source_id=f"msg_{hashlib.md5(content.encode()).hexdigest()[:8]}",
-            text=content,
-            license_id="cc0-1.0",  # Default to permissive license for internal messages
-            consent_recorded=True   # Internal messages have implied consent
+    async def add_memory(self, content: str, metadata: MemoryMetadata) -> str | None:
+        # Gating is handled by the manager's gated_add_memory path.
+        # Returns None if content is blocked by any gate.
+        doc_id = await asyncio.to_thread(
+            self.manager.add_memory,
+            content=content,
+            user_id=metadata.user_id or "system",
+            metadata=metadata,
+            category=metadata.category.value,
         )
-        
-        # Only store messages that pass the gate
-        if gate_result.passed:
-            return await asyncio.to_thread(
-                self.manager.add_memory,
-                content=content,
-                user_id=metadata.user_id or "system",
-                metadata=metadata,
-                category=metadata.category.value,
-            )
-        else:
-            # Return a placeholder ID for blocked messages to maintain interface compatibility
-            # In a real implementation, we might want to raise an exception or return None
-            # but for now we return a special ID indicating the message was filtered
-            return f"blocked_{hashlib.md5(content.encode()).hexdigest()[:8]}"
+        return doc_id
 
     async def get_memory(self, memory_id: str, user_id: str | None = None) -> Memory:
         record = await asyncio.to_thread(self.manager.get_memory, memory_id, user_id)
