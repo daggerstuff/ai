@@ -15,8 +15,8 @@ class BaseMemoryManager(ABC):
         user_id: str,
         metadata: Any | None = None,
         category: str | None = None,
-    ) -> str:
-        """Add a memory and return its ID."""
+    ) -> str | None:
+        """Add a memory and return its ID, or None if blocked by gating."""
 
     @abstractmethod
     def search_memories(

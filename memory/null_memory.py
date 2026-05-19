@@ -132,7 +132,7 @@ class NullMemoryManager(BaseMemoryManager):
         user_id: str,
         metadata: dict[str, Any] | None = None,
         category: str | None = None,
-    ) -> str:
+    ) -> str | None:
         """Add memory and return ID."""
         if category and metadata:
             metadata["category"] = category

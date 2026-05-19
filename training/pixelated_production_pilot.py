@@ -60,8 +60,6 @@ try:
         log_token_length_distribution,
         shared_qlora_config,
     )
-    from .clinical_safety_checker import ClinicalContentAnalyzer
-    from .multilingual_safety_checker import MultilingualContentChecker
 except ModuleNotFoundError:
     try:
         from ai.training.shared_config import (
@@ -70,8 +68,6 @@ except ModuleNotFoundError:
             log_token_length_distribution,
             shared_qlora_config,
         )
-        from ai.training.clinical_safety_checker import ClinicalContentAnalyzer
-        from ai.training.multilingual_safety_checker import MultilingualContentChecker
     except ModuleNotFoundError:
         from shared_config import (
             add_lora_args,
@@ -79,8 +75,6 @@ except ModuleNotFoundError:
             log_token_length_distribution,
             shared_qlora_config,
         )
-        from clinical_safety_checker import ClinicalContentAnalyzer
-        from multilingual_safety_checker import MultilingualContentChecker
 
 
 # SAFETY CHECKERS DISABLED PER USER REQUEST - ALL CONTENT ALLOWED
@@ -255,9 +249,7 @@ def prepare_dataset(
 
     filtered_indices: list[int] = []
 
-    filter_num_proc = 1 if filtered_log_path is not None else _NUM_PROC
-    # Note: when filter_num_proc > 1, filtered_indices will be empty (workers have
-    # separate memory). The count is still correct from initial_size - len(dataset).
+    # Note: when filtering was enabled, filtered_indices would be empty for workers > 1.
     # SAFETY FILTERING DISABLED PER USER REQUEST - NO FILTERING APPLIED
     # dataset = dataset.filter(is_safe_example, with_indices=True, num_proc=filter_num_proc)
     # All samples are kept for therapeutic training as requested
