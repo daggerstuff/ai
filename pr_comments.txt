@@ -1,0 +1,720 @@
+File: memory/local_foresight_memory_write_service.py
+Line: 162
+Comment: **🚨 issue (security):** Avoid returning raw exception messages in gate0 reason to prevent leaking sensitive content or stack details.
+
+The `except` block currently sets `gate0_pii.reason` from `exc`, which may contain original content or internal stack details. That defeats gate0’s redaction guarantees and can leak PII or implementation details to logs or downstream consumers. Use a fixed, non-content-bearing message (or a safely scrubbed/truncated one) for `reason`, and log the full exception only in a secure logging channel.
+
+[Fix in Cursor](https://cursor.com/link/prompt?text=Please%20address%20the%20following%20code%20review%20comment%3A%0A%0A%3Clocation%20path%3D%22memory%2Flocal_foresight_memory_write_service.py%22%20line_range%3D%22161-162%22%20link%3D%22https%3A%2F%2Fgithub.com%2Fdaggerstuff%2Fai%2Fpull%2F296%2Ffiles%23diff-77d33812bf39aad8ecc2b32adafc9dc3ae2d7c348bc4cd4f90c1fec0a026e1e2R161-162%22%2F%3E%0A%3Ccode_context%3E%0A%2B%20%20%20%20%20%20%20%20Returns%20%28document_id%2C%20gating_report%29.%20document_id%20is%20None%20if%20blocked%20or%20needs%20review.%0A%20%20%20%20%20%20%20%20%20%22%22%22%0A-%20%20%20%20%20%20%20%20report%20%3D%20self.evaluate_gates%28content%3Dcontent%2C%20user_id%3Duser_id%29%0A%2B%20%20%20%20%20%20%20%20try%3A%0A%2B%20%20%20%20%20%20%20%20%20%20%20%20report%2C%20pii_result%20%3D%20self.evaluate_gates%28content%3Dcontent%2C%20user_id%3Duser_id%29%0A%2B%20%20%20%20%20%20%20%20except%20Exception%20as%20exc%3A%0A%2B%20%20%20%20%20%20%20%20%20%20%20%20report%20%3D%20GatingReport%28source_id%3D%22unknown%22%2C%20content%3Dcontent%29%0A%3C%2Fcode_context%3E%0A%3Cissue_to_address%3E%0A%2A%2A%F0%9F%9A%A8%20issue%20%28security%29%3A%2A%2A%20Avoid%20returning%20raw%20exception%20messages%20in%20gate0%20reason%20to%20prevent%20leaking%20sensitive%20content%20or%20stack%20details.%0A%0AThe%20%60except%60%20block%20currently%20sets%20%60gate0_pii.reason%60%20from%20%60exc%60%2C%20which%20may%20contain%20original%20content%20or%20internal%20stack%20details.%20That%20defeats%20gate0%E2%80%99s%20redaction%20guarantees%20and%20can%20leak%20PII%20or%20implementation%20details%20to%20logs%20or%20downstream%20consumers.%20Use%20a%20fixed%2C%20non-content-bearing%20message%20%28or%20a%20safely%20scrubbed%2Ftruncated%20one%29%20for%20%60reason%60%2C%20and%20log%20the%20full%20exception%20only%20in%20a%20secure%20logging%20channel.%0A%3C%2Fissue_to_address%3E)
+---
+File: memory/gates/__init__.py
+Line: 78
+Comment: **question (bug_risk):** Changing `passed` semantics to require at least one gate and all PASS may break existing callers that relied on the previous behavior.
+
+Previously this returned `True` when there were no gate results and when decisions were PASS or ESCALATE; now it returns `False` for no results and only treats PASS as success. Any code that interpreted `passed` as “no gate blocked” (including ESCALATE or no-op cases) may now see previously-acceptable flows as failures. If the stricter behavior is only needed for retention, consider leaving `passed` as-is and implementing the new rules in `can_retain`, or at least audit all `passed` usages to confirm this change won’t affect retrieval or other decision paths unexpectedly.
+
+[Fix in Cursor](https://cursor.com/link/prompt?text=Please%20address%20the%20following%20code%20review%20comment%3A%0A%0A%3Clocation%20path%3D%22memory%2Fgates%2F__init__.py%22%20line_range%3D%2276-78%22%20link%3D%22https%3A%2F%2Fgithub.com%2Fdaggerstuff%2Fai%2Fpull%2F296%2Ffiles%23diff-95c8a0e886406fd44927acfa734e8764d1f77db4114ff78f67e83e55192fdcb3R76-78%22%2F%3E%0A%3Ccode_context%3E%0A%20%20%20%20%20def%20passed%28self%29%20-%3E%20bool%3A%0A%20%20%20%20%20%20%20%20%20results%20%3D%20%5Bg%20for%20g%20in%20self._gate_results%20if%20g%20is%20not%20None%5D%0A-%20%20%20%20%20%20%20%20return%20all%28r.decision%20in%20%28GateDecision.PASS%2C%20GateDecision.ESCALATE%29%20for%20r%20in%20results%29%20and%20not%20self.blocked%0A%2B%20%20%20%20%20%20%20%20if%20not%20results%3A%0A%2B%20%20%20%20%20%20%20%20%20%20%20%20return%20False%0A%2B%20%20%20%20%20%20%20%20return%20all%28r.decision%20%3D%3D%20GateDecision.PASS%20for%20r%20in%20results%29%0A%20%0A%20%20%20%20%20%40property%0A%3C%2Fcode_context%3E%0A%3Cissue_to_address%3E%0A%2A%2Aquestion%20%28bug_risk%29%3A%2A%2A%20Changing%20%60passed%60%20semantics%20to%20require%20at%20least%20one%20gate%20and%20all%20PASS%20may%20break%20existing%20callers%20that%20relied%20on%20the%20previous%20behavior.%0A%0APreviously%20this%20returned%20%60True%60%20when%20there%20were%20no%20gate%20results%20and%20when%20decisions%20were%20PASS%20or%20ESCALATE%3B%20now%20it%20returns%20%60False%60%20for%20no%20results%20and%20only%20treats%20PASS%20as%20success.%20Any%20code%20that%20interpreted%20%60passed%60%20as%20%E2%80%9Cno%20gate%20blocked%E2%80%9D%20%28including%20ESCALATE%20or%20no-op%20cases%29%20may%20now%20see%20previously-acceptable%20flows%20as%20failures.%20If%20the%20stricter%20behavior%20is%20only%20needed%20for%20retention%2C%20consider%20leaving%20%60passed%60%20as-is%20and%20implementing%20the%20new%20rules%20in%20%60can_retain%60%2C%20or%20at%20least%20audit%20all%20%60passed%60%20usages%20to%20confirm%20this%20change%20won%E2%80%99t%20affect%20retrieval%20or%20other%20decision%20paths%20unexpectedly.%0A%3C%2Fissue_to_address%3E)
+---
+File: memory/gates/consent_gate.py
+Line: 88
+Comment: **🚨 issue (security):** Defaulting to OPEN consent for users without records changes the security posture and may re-expose data unexpectedly.
+
+Missing consent records were previously treated as BLOCKED; with `default_consent=ConsentGate.OPEN`, users without records now get access and are logged as "Default consent applied." This is a major behavior change that may re-enable access/retention that was intentionally denied. To keep this configurable without silently weakening defaults, consider leaving the constructor default as BLOCKED and requiring explicit configuration for OPEN, and/or review all call sites that instantiate `ConsentGateChecker()` with no arguments.
+
+[Fix in Cursor](https://cursor.com/link/prompt?text=Please%20address%20the%20following%20code%20review%20comment%3A%0A%0A%3Clocation%20path%3D%22memory%2Fgates%2Fconsent_gate.py%22%20line_range%3D%2285-88%22%20link%3D%22https%3A%2F%2Fgithub.com%2Fdaggerstuff%2Fai%2Fpull%2F296%2Ffiles%23diff-7a75ca2c248a5e84ce4f967ea58273957ed3c35294e8f72123018a643802ad8fL85-88%22%2F%3E%0A%3Ccode_context%3E%0A%20class%20ConsentGateChecker%3A%0A%20%20%20%20%20%22%22%22In-memory%20consent%20manager%20for%20retrieval-time%20memory%20access%20decisions.%22%22%22%0A%20%0A-%20%20%20%20def%20__init__%28self%29%20-%3E%20None%3A%0A%2B%20%20%20%20def%20__init__%28self%2C%20default_consent%3A%20ConsentGate%20%3D%20ConsentGate.OPEN%29%20-%3E%20None%3A%0A%20%20%20%20%20%20%20%20%20self._consent_store%3A%20dict%5Bstr%2C%20ConsentRecord%5D%20%3D%20%7B%7D%0A%20%20%20%20%20%20%20%20%20self._audit_log%3A%20list%5BConsentAuditEntry%5D%20%3D%20%5B%5D%0A%2B%20%20%20%20%20%20%20%20self._default_consent%20%3D%20default_consent%0A%20%0A%20%20%20%20%20def%20grant_consent%28%0A%3C%2Fcode_context%3E%0A%3Cissue_to_address%3E%0A%2A%2A%F0%9F%9A%A8%20issue%20%28security%29%3A%2A%2A%20Defaulting%20to%20OPEN%20consent%20for%20users%20without%20records%20changes%20the%20security%20posture%20and%20may%20re-expose%20data%20unexpectedly.%0A%0AMissing%20consent%20records%20were%20previously%20treated%20as%20BLOCKED%3B%20with%20%60default_consent%3DConsentGate.OPEN%60%2C%20users%20without%20records%20now%20get%20access%20and%20are%20logged%20as%20%22Default%20consent%20applied.%22%20This%20is%20a%20major%20behavior%20change%20that%20may%20re-enable%20access%2Fretention%20that%20was%20intentionally%20denied.%20To%20keep%20this%20configurable%20without%20silently%20weakening%20defaults%2C%20consider%20leaving%20the%20constructor%20default%20as%20BLOCKED%20and%20requiring%20explicit%20configuration%20for%20OPEN%2C%20and%2For%20review%20all%20call%20sites%20that%20instantiate%20%60ConsentGateChecker%28%29%60%20with%20no%20arguments.%0A%3C%2Fissue_to_address%3E)
+---
+File: memory/gates/consent_gate.py
+Line: 163
+Comment: **<sub><sub>![P1 Badge](https://img.shields.io/badge/P1-orange?style=flat)</sub></sub>  Block writes when consent record is missing**
+
+This change allows `check_consent` to return `allowed=True` when no consent record exists, and `LocalForesightMemoryWriteService` instantiates `ConsentGateChecker()` with that default, so first-time users now pass gate3 and can have memories retained without an explicit consent grant. Before this commit, missing consent was a block path, so this is a behavioral regression in consent enforcement for any user not already in `_consent_store`.
+
+Useful? React with 👍 / 👎.
+---
+File: infrastructure/helm/pixelated-empathy/values-production.yaml
+Line: 86
+Comment: **<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Use release-aware service name in Ollama ingress backend**
+
+The Ollama ingress backend is hardcoded to `pixelated-empathy-ollama`, but the actual Service name is generated from `include "pixelated-empathy.fullname"` in the chart templates. When this chart is installed with a Helm release name other than `pixelated-empathy`, the Service becomes `<release>-pixelated-empathy-ollama`, so this backend points at a non-existent Service and traffic to `ollama.pixelated.love` fails.
+
+Useful? React with 👍 / 👎.
+---
+File: memory/gates/__init__.py
+Line: 76
+Comment: **Bug:** The new `can_retain` logic causes content flagged for escalation (e.g., high crisis) to be silently dropped instead of preserved for review, leading to data loss.
+<sub>Severity: CRITICAL</sub>
+<!-- BUG_PREDICTION -->
+
+<details>
+<summary><b title="Reference ID: `14176440/0`">Suggested Fix</b></summary>
+
+The logic for `can_retain` should be adjusted to ensure that content marked for escalation is preserved. For example, `can_retain` could be modified to be `True` when `self.decision` is `ESCALATE`, or the calling code in `gated_add_memory` should handle the `ESCALATE` case specifically to save the memory for review instead of dropping it. The goal is to follow the recommendation to 'Preserve content and escalate for clinical review'.
+</details>
+
+<details open>
+<summary><b title="Reference ID: `14176440/0`">Prompt for AI Agent</b></summary>
+
+```
+Review the code at the location below. A potential bug has been identified by an AI
+agent. Verify if this is a real issue. If it is, propose a fix; if not, explain why it's
+not valid.
+
+Location: memory/gates/__init__.py#L76
+
+Potential issue: The `GatingReport.can_retain` property is now defined as `self.passed
+and not self.needs_review`. When a gate decision is `ESCALATE` (e.g., for
+`CrisisTier.HIGH`), `self.passed` becomes `False` and `self.needs_review` becomes
+`True`, resulting in `can_retain` being `False`. The `gated_add_memory` function checks
+`can_retain` and, if `False`, discards the memory entirely. This means high-risk content
+that should be preserved for clinical review is instead permanently dropped, creating a
+severe data loss regression and preventing necessary safety reviews.
+```
+</details>
+
+
+<sub><i>Did we get this right? :+1: / :-1: to inform future reviews.</i></sub>
+<!--
+<sub>Reference ID: `14176440`</sub>-->
+---
+File: memory/gates/consent_gate.py
+Line: 88
+Comment: **Bug:** The default consent state was changed to `OPEN`, causing the system to store memories for users who have not explicitly granted consent.
+<sub>Severity: CRITICAL</sub>
+<!-- BUG_PREDICTION -->
+
+<details>
+<summary><b title="Reference ID: `14176440/1`">Suggested Fix</b></summary>
+
+Revert the default value for the `default_consent` parameter in the `ConsentGateChecker.__init__` method back to `ConsentGate.BLOCKED`. This will restore the previous opt-in privacy behavior, ensuring that user memories are not stored without explicit consent.
+</details>
+
+<details open>
+<summary><b title="Reference ID: `14176440/1`">Prompt for AI Agent</b></summary>
+
+```
+Review the code at the location below. A potential bug has been identified by an AI
+agent. Verify if this is a real issue. If it is, propose a fix; if not, explain why it's
+not valid.
+
+Location: memory/gates/consent_gate.py#L85-L88
+
+Potential issue: The `ConsentGateChecker` constructor's default for `default_consent`
+was changed from `BLOCKED` to `OPEN`. Since the `LocalForesightMemoryWriteService`
+initializes the checker using this default, the system's privacy model has been
+inverted. When `check_consent()` is called for a user without a pre-existing consent
+record, the `record is None` branch now executes and returns `allowed=True`. This causes
+the system to store sensitive memories for users who have not explicitly opted in,
+changing the behavior from opt-in to opt-out.
+```
+</details>
+
+
+<sub><i>Did we get this right? :+1: / :-1: to inform future reviews.</i></sub>
+<!--
+<sub>Reference ID: `14176440`</sub>-->
+---
+File: infrastructure/helm/pixelated-empathy/templates/ingress.yaml
+Line: 53
+Comment: _⚠️ Potential issue_ | _🟡 Minor_ | _⚡ Quick win_
+
+<details>
+<summary>🧩 Analysis chain</summary>
+
+🏁 Script executed:
+
+```shell
+cat -n infrastructure/helm/pixelated-empathy/templates/ingress.yaml
+```
+
+Repository: daggerstuff/ai
+
+Length of output: 2781
+
+---
+
+🌐 Web query:
+
+`Kubernetes networking.k8s.io/v1 Ingress backend service port specification`
+
+💡 Result:
+
+In Kubernetes networking.k8s.io/v1 Ingress, the backend service port is specified via backend.service.port, using either service.port.name (string) or service.port.number (int32). A port name or port number is required, and name vs number are mutually exclusive. 1) Where the port is defined (Ingress v1) - For each rule path backend, the schema is backend.service.name plus backend.service.port (ServiceBackendPort). The Ingress docs show examples like: - backend: service: name: test port: number: 80 [1] - defaultBackend: service: name: test port: number: 80 [1] 2) The exact fields in backend.service.port (IngressBackend -> ServiceBackendPort) - IngressBackend describes all endpoints for a given service and port. [2] - IngressServiceBackend references a Service as a Backend, and its port is a ServiceBackendPort object. [2] - ServiceBackendPort requires either: - name: the name of the port on the Service (mutually exclusive with Number), or [2] - number: the numerical port number (mutually exclusive with Name). [2] 3) Mutual exclusivity / required nature - The Ingress API reference explicitly states: “A port name or port number is required for a IngressServiceBackend.” [2] - It also states that name and number are “mutually exclusive” with each other. [2] 4) Implication for Service definitions - Since Ingress references a Service port by either name or number, your referenced Service must expose that port (named or numbered) in spec.ports for the Ingress backend to route to it. (Ingress uses “port” of the referenced service; Service concepts document that port definitions include named ports as well as numeric port values.) [3][1] Example (using port number) spec: rules: - http: paths: - path: /testpath pathType: Prefix backend: service: name: test port: number: 80 [1] Example (using port name) (Use backend.service.port.name instead of backend.service.port.number; name is the name of the Service port, and is mutually exclusive with Number.) [2]
+
+Citations:
+
+- 1: https://kubernetes.io/docs/concepts/services-networking/ingress/
+- 2: https://kubernetes.io/docs/reference/kubernetes-api/service-resources/ingress-v1
+- 3: https://kubernetes.io/docs/concepts/services-networking/service/
+
+---
+
+🌐 Web query:
+
+`Helm template kindIs function string type check`
+
+💡 Result:
+
+In Helm templates, use kindIs to check the Go “kind” of a value; for strings specifically, compare against "string" (e.g., {{ if kindIs "string" $val }}... {{ end }}). Helm documents that kindIs is used for simple kind checks in if blocks, and gives an example with integers: kindIs "int" 123 → true [1]. The underlying kind checks are provided by Sprig/Go reflection, where kindIs targets the reflected kind string ("string" is the kind name for Go strings) [2]. Example: {{- if kindIs "string".Values.someValue -}} value is a string: {{.Values.someValue | quote }} {{- else -}} value is not a string (could be int/bool/map/etc.) {{- end -}} Notes: - kindIs checks the kind/type of the value, not the textual form; values loaded from YAML may be parsed into different Go types, affecting the result. For example, a documentation/behavior report explains that integers provided via values.yaml can be parsed as float64, causing kindIs "int" to return false unless the template literal is an actual int [3].
+
+Citations:
+
+- 1: https://helm.sh/docs/chart_template_guide/function_list
+- 2: http://masterminds.github.io/sprig/
+- 3: https://github.com/helm/helm-www/issues/1532
+
+---
+
+
+
+</details>
+
+**Handle named backend ports in v1 Ingress rendering.**
+
+Line 52 always writes `port.number`. If `backend.servicePort` is a named port (string), the manifest violates the Kubernetes `networking.k8s.io/v1` Ingress API specification, which requires `port.name` and `port.number` to be mutually exclusive—only one should be present.
+
+Suggested approach: Use Helm's `kindIs "string"` to check the port type and render either `port.name` (for strings) or `port.number` (for integers). Note: The diff in the original suggestion has a syntax error in the placeholder line and should be corrected before implementation.
+
+<details>
+<summary>🤖 Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@infrastructure/helm/pixelated-empathy/templates/ingress.yaml` around lines 49
+- 53, The Ingress template always emits port.number which breaks v1 if the
+backend.servicePort is a named port; update the service.port block (the lines
+referencing .backend.servicePort and $svcPort) to detect string ports with
+Helm's kindIs "string" and render port.name when true and port.number when false
+(use .backend.servicePort when present else $svcPort), preserving YAML
+indentation and the existing service name logic that uses .backend.serviceName
+and $fullName.
+```
+
+</details>
+
+<!-- fingerprinting:phantom:poseidon:hawk -->
+
+<!-- This is an auto-generated comment by CodeRabbit -->
+---
+File: infrastructure/helm/pixelated-empathy/templates/ollama-deployment.yaml
+Line: 10
+Comment: _⚠️ Potential issue_ | _🟠 Major_ | _⚡ Quick win_
+
+<details>
+<summary>🧩 Analysis chain</summary>
+
+🏁 Script executed:
+
+```shell
+find . -name "ollama-deployment.yaml" -type f
+```
+
+Repository: daggerstuff/ai
+
+Length of output: 131
+
+---
+
+🏁 Script executed:
+
+```shell
+cat -n ./infrastructure/helm/pixelated-empathy/templates/ollama-deployment.yaml
+```
+
+Repository: daggerstuff/ai
+
+Length of output: 1735
+
+---
+
+🏁 Script executed:
+
+```shell
+find . -path "*/ollama*" -type f | grep -E "(pvc|claim|values)" | head -20
+```
+
+Repository: daggerstuff/ai
+
+Length of output: 124
+
+---
+
+🏁 Script executed:
+
+```shell
+cat -n ./infrastructure/helm/pixelated-empathy/templates/ollama-pvc.yaml
+```
+
+Repository: daggerstuff/ai
+
+Length of output: 742
+
+---
+
+
+
+</details>
+
+**Guard against unschedulable replicas with a single ReadWriteOnce PVC.**
+
+Line 10 allows scaling replicas, but lines 35-38 mount a single PVC claim. The PVC in `ollama-pvc.yaml` uses `ReadWriteOnce` access mode (line 11), which cannot be mounted by multiple pods—leaving extra replicas Pending when `replicaCount > 1` and persistence is enabled.
+
+<details>
+<summary>Suggested guard in template</summary>
+
+```diff
+ {{- if .Values.ollama.enabled }}
++{{- if and .Values.ollama.persistence.enabled (gt (int (.Values.ollama.replicaCount | default 1)) 1) }}
++{{- fail "ollama.replicaCount must be 1 when ollama.persistence.enabled=true (single ReadWriteOnce PVC)." }}
++{{- end }}
+ apiVersion: apps/v1
+ kind: Deployment
+```
+</details>
+
+<details>
+<summary>🤖 Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@infrastructure/helm/pixelated-empathy/templates/ollama-deployment.yaml` at
+line 10, The deployment currently sets replicas from {{
+.Values.ollama.replicaCount }} but mounts a single ReadWriteOnce PVC (see
+ollama-pvc.yaml), which will make extra pods Pending; update the deployment
+template to guard against this by detecting when
+.Values.ollama.persistence.enabled is true and
+.Values.ollama.persistence.accessMode == "ReadWriteOnce" and: either force
+replicas to 1 (e.g., use a conditional to render replicas: 1) or emit a template
+error/validation if replicaCount > 1, referencing the replicas field in the
+deployment template and the persistence values
+(.Values.ollama.persistence.enabled, .Values.ollama.persistence.accessMode) so
+users cannot scale beyond what the RWO PVC supports.
+```
+
+</details>
+
+<!-- fingerprinting:phantom:poseidon:hawk -->
+
+<!-- This is an auto-generated comment by CodeRabbit -->
+---
+File: infrastructure/helm/pixelated-empathy/templates/ollama-deployment.yaml
+Line: 30
+Comment: _⚠️ Potential issue_ | _🟠 Major_ | _⚡ Quick win_
+
+<details>
+<summary>🧩 Analysis chain</summary>
+
+🏁 Script executed:
+
+```shell
+# First, locate and read the ollama-deployment.yaml file
+find . -name "ollama-deployment.yaml" -type f
+```
+
+Repository: daggerstuff/ai
+
+Length of output: 131
+
+---
+
+🏁 Script executed:
+
+```shell
+# Check the structure and content of the deployment file
+if [ -f "infrastructure/helm/pixelated-empathy/templates/ollama-deployment.yaml" ]; then
+  cat -n "infrastructure/helm/pixelated-empathy/templates/ollama-deployment.yaml"
+fi
+```
+
+Repository: daggerstuff/ai
+
+Length of output: 1735
+
+---
+
+🏁 Script executed:
+
+```shell
+# Search for any existing health checks or probes in the codebase
+rg -i "startupprobe|readinessprobe|livenessprobe" --type yaml infrastructure/
+```
+
+Repository: daggerstuff/ai
+
+Length of output: 237
+
+---
+
+🌐 Web query:
+
+`Ollama /api/tags health check endpoint readiness probe`
+
+💡 Result:
+
+Answer: Ollama does not provide a dedicated “readiness probe” endpoint specifically for Kubernetes; instead, health checking is typically done against the base “/” endpoint (returns text like “Ollama is running”) and optionally against lightweight API endpoints such as “/api/version” (suggested by community discussion) and/or “/api/tags” (list models). What you can use for readiness/liveness checks 1) GET http://<host>:11434/ (simple “service is running” check) - The community notes there is an endpoint at “/” that indicates whether the server is running (example: curl localhost:11434 returns “Ollama is running”). [1] - This is the most appropriate minimal readiness signal when you only need to know the process is up. 2) GET http://<host>:11434/api/version (lightweight API “up” check) - A Docker/healthcheck-related GitHub issue discusses using a curl request to “/api/version” in orchestration health checks. [2] - This is still an “up” check (HTTP reachable and responds), not a guarantee that a specific model is loaded. 3) GET http://<host>:11434/api/tags (verifies API is serving model metadata) - Official docs define “GET /api/tags” as “List models”, returning model metadata (local models with details like size, modified_at, etc.). [3] - Community tooling notes that “/api/tags” supports both GET and HEAD methods. [4] - This can be used for readiness if you consider “able to list models” sufficient readiness for downstream services. Example: Kubernetes readinessProbe options (conceptual) - ReadinessProbe: HTTP GET path “/” on port 11434 (fast “server running”) - Alternative readinessProbe: HTTP GET path “/api/version” or “/api/tags” if you want API responsiveness rather than just TCP. Important caveat for “readiness” semantics - None of these endpoints inherently confirm “a specific model is loaded and ready to infer”; they primarily confirm the HTTP service is running and/or that the API can respond. The /api/tags endpoint returns available model metadata, but does not confirm that inference is ready or that particular models are loaded into memory. [3][1] If you tell me your deployment (K8s vs Docker Compose) and what you require for readiness (server up vs model loaded vs inference successful), I can suggest a concrete probe command/path and tuning (timeouts, retries, startPeriod).
+
+Citations:
+
+- 1: https://github.com/ollama/ollama/issues/1378
+- 2: https://github.com/ollama/ollama/issues/5389
+- 3: https://docs.ollama.com/api/tags
+- 4: https://mintlify.com/ollama/ollama/api/endpoints/list
+
+---
+
+🌐 Web query:
+
+`Ollama API health check startup initialization probes Kubernetes`
+
+💡 Result:
+
+Answer: In Kubernetes, use a startupProbe to protect Ollama’s initial startup (including any model initialization you kick off at the same time), and wire readinessProbe/livenessProbe to an HTTP endpoint on port 11434 (commonly “/”, which returns “Ollama is running”). After the startupProbe succeeds once, Kubernetes begins running liveness/readiness probes; if Ollama is slow to initialize, this prevents premature restarts and keeps the pod from being marked unhealthy during first boot/model warming. What to probe (Ollama HTTP): 1) Use GET “/” on port 11434 as a basic “server is up” signal. Ollama maintainers note that “curl localhost:11434” returns “Ollama is running”, which can be used as the health check response [1][2]. 2) If you prefer a “service responds and can serve model metadata” signal, probe GET “/api/tags” (returns the list of models). Ollama documents this endpoint as “List models” [3]. Kubernetes probe model (why startupProbe matters for initialization): - Kubernetes recommends startup probes for containers that require additional startup time; while the startupProbe is failing, liveness/readiness do not take over, avoiding killing a slow-starting container. Once startupProbe succeeds once, liveness probes take over [4]. Concrete probe configuration pattern for Ollama: - Put an HTTP GET startupProbe against Ollama’s port 11434 (path “/” or “/api/tags”). Set a failureThreshold/periodSeconds large enough to cover worst-case first startup/model warming time [4]. - After startupProbe passes, use a smaller interval for readinessProbe (so the pod only receives traffic when Ollama is responsive). - Use livenessProbe to restart the container if Ollama becomes deadlocked/unresponsive after it has started. Example: real-world Ollama Kubernetes YAML shows using “/” on 11434 for readiness/liveness. - One published Ollama deployment uses readinessProbe and livenessProbe with httpGet path “/” port 11434, with different initialDelaySeconds [5]. - Another published deployment template includes a startupProbe explicitly (httpGet path “/” port 11434) with failureThreshold much higher than liveness/readiness, which is consistent with using startupProbe to tolerate long initialization [6]. If you initialize models at startup, avoid breaking probes: - Many Helm charts initialize models via pod lifecycle postStart, but that can make the pod appear unhealthy while model downloads take a long time; an issue discussion recommends a Helm hook job / init strategy because downloading can delay readiness/liveness signals [7]. Quick checklist for “startup initialization probes” with Ollama: - Use startupProbe (largest allowance) + readinessProbe + livenessProbe, not only liveness. - Point probes at an HTTP endpoint on 11434 that indicates the Ollama server is responding (path “/” or “/api/tags”) [1][2][3]. - Set startupProbe time budget to cover first boot and any model pull/warmup work [4]. Note on Docker healthchecks (not Kubernetes, but relevant for “health” semantics): there have been reports that some default healthchecks rely on curl being present in the image, and curl may be missing in some ollama/ollama image versions [8]. For Kubernetes HTTP probes, you do not need curl inside the container because kubelet performs the HTTP GET. If you share your current Ollama Kubernetes Deployment/Helm values (especially any postStart/initContainer/job model initialization), I can propose specific startupProbe/readinessProbe/livenessProbe timings and endpoints tailored to your initialization path.
+
+Citations:
+
+- 1: https://github.com/ollama/ollama/issues/1378
+- 2: https://github.com/jmorganca/ollama/issues/1378
+- 3: https://docs.ollama.com/api/tags
+- 4: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+- 5: https://oneuptime.com/blog/post/2026-02-26-argocd-ollama-deployment/view
+- 6: https://github.com/ajeetraina/ollama-openwebui-kubernetes/blob/main/deployment.yaml
+- 7: https://github.com/otwld/ollama-helm/issues/200
+- 8: https://github.com/ollama/ollama/issues/9781
+
+---
+
+
+
+</details>
+
+**Add startup/readiness/liveness probes to prevent premature pod readiness.**
+
+The container lacks health probes. Ollama can take time to initialize (especially when models are being pulled), and without probes the pod can be marked ready before the service is truly available, leading to 5xx errors and timeouts for downstream consumers.
+
+Use an HTTP GET probe against port 11434 (the `http` port). Both `/api/tags` (list available models) and `/` (simple "Ollama is running" response) are valid endpoints; prefer `/` for simpler, faster responses.
+
+<details>
+<summary>Suggested probe configuration</summary>
+
+```diff
+       containers:
+         - name: ollama
+           image: "{{ .Values.ollama.image.repository }}:{{ .Values.ollama.image.tag }}"
+           imagePullPolicy: {{ .Values.ollama.image.pullPolicy }}
+           ports:
+             - name: http
+               containerPort: 11434
+               protocol: TCP
++          startupProbe:
++            httpGet:
++              path: /
++              port: http
++            failureThreshold: 60
++            periodSeconds: 5
++          readinessProbe:
++            httpGet:
++              path: /
++              port: http
++            initialDelaySeconds: 5
++            periodSeconds: 10
++          livenessProbe:
++            httpGet:
++              path: /
++              port: http
++            initialDelaySeconds: 30
++            periodSeconds: 20
+```
+</details>
+
+<details>
+<summary>🤖 Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@infrastructure/helm/pixelated-empathy/templates/ollama-deployment.yaml`
+around lines 21 - 30, Add startup, readiness and liveness HTTP GET probes to the
+ollama container configuration to avoid premature readiness: inside the
+containers block for the entry with name: ollama add a startupProbe,
+readinessProbe and livenessProbe that target the http port (containerPort 11434
+or port name "http") and use path "/" (or "/api/tags" if you prefer). Configure
+startupProbe with a longer initialDelaySeconds and failureThreshold to allow
+model pulls, readinessProbe with a short timeout/period to mark readiness only
+when the service responds, and a livenessProbe with reasonable
+period/failureThreshold to restart stuck containers; update the template under
+the ollama container definition where image, ports and resources are defined.
+```
+
+</details>
+
+<!-- fingerprinting:phantom:poseidon:hawk -->
+
+<!-- This is an auto-generated comment by CodeRabbit -->
+---
+File: infrastructure/helm/pixelated-empathy/values.yaml
+Line: 354
+Comment: _⚠️ Potential issue_ | _🟠 Major_ | _⚡ Quick win_
+
+<details>
+<summary>🧩 Analysis chain</summary>
+
+🏁 Script executed:
+
+```shell
+# Check the current state of the Helm values file at the specified lines
+cat -n infrastructure/helm/pixelated-empathy/values.yaml | sed -n '345,360p'
+```
+
+Repository: daggerstuff/ai
+
+Length of output: 456
+
+---
+
+🌐 Web query:
+
+`Ollama latest stable version 2026`
+
+💡 Result:
+
+As of 2026-05-19, the most recent Ollama GitHub release shown is v0.30.0-rc20 (published 2026-05-13) [1][2]. It is explicitly marked as a prerelease (not a stable GA release) [2]. So, if you specifically mean “latest stable” (non-prerelease) for that date, the evidence I found only clearly identifies the newest prerelease (v0.30.0-rc20) and an adjacent prerelease/nearby set (e.g., v0.24.0-rc1 is also prerelease) but does not clearly provide the latest non-prerelease stable tag for 2026-05-19 from the sources returned [1][2][3]. How to install the newest shown build (including prereleases) via the official installer script: - curl -fsSL https://ollama.com/install.sh | OLLAMA_VERSION=0.30.0-rc20 sh [2] - Windows PowerShell equivalent shown by Ollama: $env:OLLAMA_VERSION="0.30.0-rc20"; irm https://ollama.com/install.ps1 | iex [2] If you want, tell me whether you’re okay with “stable” meaning “latest release even if labeled prerelease,” or whether you need the latest non-prerelease tag only; then I can re-run a targeted search specifically for the latest non-prerelease (stable) tag on 2026-05-19.
+
+Citations:
+
+- 1: https://github.com/ollama/ollama/releases
+- 2: https://github.com/ollama/ollama/releases/tag/v0.30.0-rc20
+- 3: https://github.com/ollama/ollama/releases/tag/v0.24.0-rc1
+
+---
+
+🌐 Web query:
+
+`Ollama 0.6.8 release date version`
+
+💡 Result:
+
+Ollama v0.6.8 release date was 2025-05-03 (published at 2025-05-03T22:56:44Z on the official GitHub release page). [1] (Release page also lists the release tag as v0.6.8, with the “Created” time 2025-05-03T20:11:48Z.) [1]
+
+Citations:
+
+- 1: https://github.com/ollama/ollama/releases/tag/v0.6.8
+
+---
+
+🌐 Web query:
+
+`Ollama latest stable release version not prerelease 2026`
+
+💡 Result:
+
+As of 2026-05-19, the newest Ollama GitHub release is v0.30.0-rc20, but it is explicitly marked as a prerelease (so it does not qualify as “latest stable”). [1] I can’t confirm the latest stable (non-prerelease) version from the sources I retrieved in this run, because the GitHub Releases list results I captured prominently show the v0.30.0-rc20 prerelease and not the most recent non-prerelease tag. [2][1] If you want to ensure you’re installing the newest stable (non-prerelease) build, you’ll need to check the Ollama/ollama GitHub Releases page for the latest entry where “prerelease” is not set, then use that tag value in the installer (the install script supports selecting a version via OLLAMA_VERSION). [2][3]
+
+Citations:
+
+- 1: https://github.com/ollama/ollama/releases/tag/v0.30.0-rc20
+- 2: https://github.com/ollama/ollama/releases
+- 3: https://raw.githubusercontent.com/ollama/ollama/main/scripts/install.sh
+
+---
+
+🏁 Script executed:
+
+```shell
+# Let me check if there's any version information in the repo itself
+find . -name "*ollama*" -o -name "*version*" | head -20
+```
+
+Repository: daggerstuff/ai
+
+Length of output: 2111
+
+---
+
+🌐 Web query:
+
+`Ollama v0.29 v0.28 v0.27 stable release 2026`
+
+💡 Result:
+
+I can’t find any authoritative sources showing Ollama v0.29, v0.28, or v0.27 “stable release 2026”. The official GitHub releases page appears to only go up to v0.23.x as of 2026-05 (e.g., it shows v0.23.2 as the latest release). [1] As a result, I can’t responsibly list release dates or confirm feature changes for v0.27–v0.29. What I did find from official sources (useful context): - Ollama’s official GitHub Releases page lists recent releases up through v0.23.2 (released 2026-05-07 per the GitHub Releases metadata). [1] - Ollama also published a blog post about “previewing the fastest way to run Ollama on Apple silicon, powered by MLX” dated March 30, 2026. [2] If you want, tell me where you saw “v0.27/v0.28/v0.29” (a link, changelog snippet, or registry tag name). Then I can trace whether those versions are real upstream Ollama tags, downstream forks, release candidates, or a different versioning scheme.
+
+Citations:
+
+- 1: https://github.com/ollama/ollama/releases
+- 2: https://ollama.com/blog
+
+---
+
+
+
+</details>
+
+**Pin Ollama image to a current, immutable version.**
+
+Using `latest` makes deployments non-reproducible and can introduce unreviewed runtime changes. However, the suggested version `0.6.8` is outdated (released May 2025). Pin to the latest stable version instead, such as `0.23.2` (or check https://github.com/ollama/ollama/releases for the most recent non-prerelease tag).
+
+<details>
+<summary>Suggested values change</summary>
+
+```diff
+   image:
+     repository: "ollama/ollama"
+-    tag: "latest"
++    tag: "0.23.2"
+     pullPolicy: "IfNotPresent"
+```
+</details>
+
+<!-- suggestion_start -->
+
+<details>
+<summary>📝 Committable suggestion</summary>
+
+> ‼️ **IMPORTANT**
+> Carefully review the code before committing. Ensure that it accurately replaces the highlighted code, contains no missing lines, and has no issues with indentation. Thoroughly test & benchmark the code to ensure it meets the requirements.
+
+```suggestion
+  image:
+    repository: "ollama/ollama"
+    tag: "0.23.2"
+    pullPolicy: "IfNotPresent"
+```
+
+</details>
+
+<!-- suggestion_end -->
+
+<details>
+<summary>🤖 Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@infrastructure/helm/pixelated-empathy/values.yaml` around lines 351 - 354,
+The image.tag is set to "latest" making deployments non-reproducible; update the
+chart values to pin image.tag to a specific non-prerelease Ollama version (e.g.,
+"0.23.2" or the most recent stable release from
+https://github.com/ollama/ollama/releases) while keeping image.repository
+("ollama/ollama") and image.pullPolicy ("IfNotPresent") as-is; ensure the chosen
+tag is a fixed immutable semver string so image.tag in the values.yaml is no
+longer "latest".
+```
+
+</details>
+
+<!-- fingerprinting:phantom:poseidon:hawk -->
+
+<!-- This is an auto-generated comment by CodeRabbit -->
+---
+File: memory/gates/consent_gate.py
+Line: 88
+Comment: _⚠️ Potential issue_ | _🟠 Major_ | _⚡ Quick win_
+
+**Keep the consent default blocked.**
+
+`ConsentGateChecker()` now defaults to `OPEN`, and the write service still instantiates it with no override. That means users with no consent record now pass gate 3 and can be retained by default, which flips the previous privacy posture from explicit block to implicit allow. Please keep the default at `BLOCKED` or require callers to pass the tier explicitly.
+
+ 
+
+<details>
+<summary>Possible fix</summary>
+
+```diff
+-    def __init__(self, default_consent: ConsentGate = ConsentGate.OPEN) -> None:
++    def __init__(self, default_consent: ConsentGate = ConsentGate.BLOCKED) -> None:
+```
+</details>
+
+<!-- suggestion_start -->
+
+<details>
+<summary>📝 Committable suggestion</summary>
+
+> ‼️ **IMPORTANT**
+> Carefully review the code before committing. Ensure that it accurately replaces the highlighted code, contains no missing lines, and has no issues with indentation. Thoroughly test & benchmark the code to ensure it meets the requirements.
+
+```suggestion
+    def __init__(self, default_consent: ConsentGate = ConsentGate.BLOCKED) -> None:
+        self._consent_store: dict[str, ConsentRecord] = {}
+        self._audit_log: list[ConsentAuditEntry] = []
+        self._default_consent = default_consent
+```
+
+</details>
+
+<!-- suggestion_end -->
+
+<details>
+<summary>🤖 Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@memory/gates/consent_gate.py` around lines 85 - 88, Constructor default flips
+privacy to allow: change the default_consent in the ConsentGateChecker (the
+__init__ that currently sets default_consent: ConsentGate = ConsentGate.OPEN)
+back to ConsentGate.BLOCKED (or remove the default so callers must pass an
+explicit ConsentGate) and ensure the instance field self._default_consent is set
+accordingly so callers that omit a value will not implicitly allow retention.
+```
+
+</details>
+
+<!-- fingerprinting:phantom:medusa:grasshopper -->
+
+<!-- This is an auto-generated comment by CodeRabbit -->
+---
+File: memory/local_foresight_memory_write_service.py
+Line: 170
+Comment: _⚠️ Potential issue_ | _🟠 Major_ | _🏗️ Heavy lift_
+
+**Don't report every evaluator failure as `gate0_pii`.**
+
+Any exception from crisis, trauma, or consent currently gets converted into a synthetic `gate0_pii` block. That makes the returned gating report incorrect and will skew any gate-level debugging or metrics. Either preserve the failing gate in this path or let unexpected exceptions bubble.
+
+<details>
+<summary>🧰 Tools</summary>
+
+<details>
+<summary>🪛 Ruff (0.15.13)</summary>
+
+[warning] 163-163: Do not catch blind exception: `Exception`
+
+(BLE001)
+
+</details>
+
+</details>
+
+<details>
+<summary>🤖 Prompt for AI Agents</summary>
+
+```
+Verify each finding against current code. Fix only still-valid issues, skip the
+rest with a brief reason, keep changes minimal, and validate.
+
+In `@memory/local_foresight_memory_write_service.py` around lines 161 - 170, The
+current except block in evaluate_gates handling converts every evaluator
+exception into a synthetic gate0_pii block; change it to either re-raise
+unexpected exceptions or preserve the failing gate name instead of hardcoding
+"gate0_pii". Concretely, in the except for evaluate_gates replace the synthetic
+GateResult with logic that: (1) if the exception object has a gate identifier
+(e.g., exc.gate or exc.failed_gate), set report.<that_gate> = GateResult(...)
+with decision=GateDecision.BLOCK and the exception message as reason; (2)
+otherwise re-raise the exception so it bubbles up (or set report.unknown_gate) —
+but do not map every failure to gate0_pii. Update references to evaluate_gates,
+GatingReport, GateResult, GateDecision and any custom exception fields (e.g.,
+exc.gate) when implementing this change.
+```
+
+</details>
+
+<!-- fingerprinting:phantom:medusa:grasshopper -->
+
+<!-- This is an auto-generated comment by CodeRabbit -->
+---

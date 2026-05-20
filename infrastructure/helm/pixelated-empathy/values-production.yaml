@@ -83,7 +83,7 @@ ingress:
         - path: /
           pathType: Prefix
           backend:
-            serviceName: pixelated-empathy-ollama
+            serviceName: '{{ include "pixelated-empathy.fullname" . }}-ollama'
             servicePort: 11434
   tls:
     - secretName: pixelated-empathy-production-tls

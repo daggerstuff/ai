@@ -161,13 +161,16 @@ class LocalForesightMemoryWriteService:
         try:
             report, pii_result = self.evaluate_gates(content=content, user_id=user_id)
         except Exception as exc:
-            report = GatingReport(source_id="unknown", content=content)
-            report.gate0_pii = GateResult(
-                gate="gate0_pii",
-                decision=GateDecision.BLOCK,
-                reason=f"gate evaluation failed: {exc}",
-            )
-            return None, report
+            gate_id = getattr(exc, "gate", getattr(exc, "failed_gate", None))
+            if gate_id:
+                report = GatingReport(source_id="unknown", content=content)
+                setattr(report, gate_id, GateResult(
+                    gate=gate_id,
+                    decision=GateDecision.BLOCK,
+                    reason=str(exc),
+                ))
+                return None, report
+            raise
 
         if not report.can_retain:
             return None, report

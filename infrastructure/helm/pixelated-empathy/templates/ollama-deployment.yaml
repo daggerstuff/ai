@@ -1,4 +1,7 @@
 {{- if .Values.ollama.enabled }}
+{{- if and .Values.ollama.persistence.enabled (gt (int (.Values.ollama.replicaCount | default 1)) 1) }}
+{{- fail "ollama.replicaCount must be 1 when ollama.persistence.enabled=true (single ReadWriteOnce PVC)." }}
+{{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -26,6 +29,24 @@ spec:
             - name: http
               containerPort: 11434
               protocol: TCP
+          startupProbe:
+            httpGet:
+              path: /
+              port: http
+            failureThreshold: 60
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 20
           resources:
             {{- toYaml .Values.ollama.resources | nindent 12 }}
           volumeMounts:

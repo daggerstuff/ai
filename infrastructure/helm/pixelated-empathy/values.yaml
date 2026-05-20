@@ -350,7 +350,7 @@ ollama:
   replicaCount: 1
   image:
     repository: "ollama/ollama"
-    tag: "latest"
+    tag: "0.23.2"
     pullPolicy: "IfNotPresent"
   persistence:
     enabled: true
