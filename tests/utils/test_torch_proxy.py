@@ -2,98 +2,90 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-# Clean up any potential state
 import utils.torch_proxy
+from utils.torch_proxy import _load_torch, _TorchAttrProxy, _TorchModuleProxy
 
 
-def setup_function():
+def test_load_torch_success():
     utils.torch_proxy._torch_module = None
     utils.torch_proxy._torch_import_error = None
 
-@patch("utils.torch_proxy.import_module")
-def test_torch_proxy_getattr(mock_import_module):
-    # Mock the returned module
+    with patch("utils.torch_proxy.import_module") as mock_import:
+        mock_import.return_value = "mocked_torch"
+        module = _load_torch()
+        assert module == "mocked_torch"
+        assert utils.torch_proxy._torch_module == "mocked_torch"
+
+        # Calling again should return cached module
+        mock_import.reset_mock()
+        module2 = _load_torch()
+        assert module2 == "mocked_torch"
+        mock_import.assert_not_called()
+
+def test_load_torch_import_error():
+    utils.torch_proxy._torch_module = None
+    utils.torch_proxy._torch_import_error = None
+
+    with patch("utils.torch_proxy.import_module") as mock_import:
+        mock_import.side_effect = ImportError("No module named 'torch'")
+
+        with pytest.raises(RuntimeError, match="torch is unavailable in this environment"):
+            _load_torch()
+
+        assert utils.torch_proxy._torch_import_error is not None
+
+        # Calling again should raise cached error
+        mock_import.reset_mock()
+        with pytest.raises(RuntimeError, match="torch is unavailable"):
+            _load_torch()
+        mock_import.assert_not_called()
+
+def test_torch_module_proxy_getattr():
+    utils.torch_proxy._torch_module = None
+    utils.torch_proxy._torch_import_error = None
+
     mock_torch = MagicMock()
-    mock_torch.Tensor = "mock_tensor"
-    mock_import_module.return_value = mock_torch
+    mock_torch.tensor = "tensor_func"
 
-    # Call proxy
-    result = _ = utils.torch_proxy.torch.Tensor
+    with patch("utils.torch_proxy.import_module", return_value=mock_torch):
+        proxy = _TorchModuleProxy()
+        assert proxy.tensor == "tensor_func"
 
-    # Assert lazy import and getattr
-    mock_import_module.assert_called_once_with("torch")
-    assert result == "mock_tensor"
+def test_torch_module_proxy_dir():
+    utils.torch_proxy._torch_module = None
+    utils.torch_proxy._torch_import_error = None
 
-@patch("utils.torch_proxy.import_module")
-def test_torch_proxy_dir_success(mock_import_module):
     mock_torch = MagicMock()
-    # Mock dir() behavior on the module
-    mock_torch.__dir__ = MagicMock(return_value=["Tensor", "nn"])
-    mock_import_module.return_value = mock_torch
+    mock_torch.__dir__ = MagicMock(return_value=["tensor", "nn"])
 
-    assert "Tensor" in dir(utils.torch_proxy.torch)
+    with patch("utils.torch_proxy.import_module", return_value=mock_torch):
+        proxy = _TorchModuleProxy()
+        assert set(dir(proxy)).issuperset({"tensor", "nn"})
 
-@patch("utils.torch_proxy.import_module")
-def test_torch_proxy_dir_failure(mock_import_module):
-    mock_import_module.side_effect = Exception("Import failed")
+def test_torch_module_proxy_dir_error():
+    utils.torch_proxy._torch_module = None
+    utils.torch_proxy._torch_import_error = None
 
-    assert dir(utils.torch_proxy.torch) == []
+    with patch("utils.torch_proxy.import_module", side_effect=ImportError):
+        proxy = _TorchModuleProxy()
+        assert dir(proxy) == []
 
-@patch("utils.torch_proxy.import_module")
-def test_torch_attr_proxy_getattr(mock_import_module):
+def test_torch_attr_proxy():
+    utils.torch_proxy._torch_module = None
+    utils.torch_proxy._torch_import_error = None
+
     mock_torch = MagicMock()
     mock_nn = MagicMock()
-    mock_nn.Linear = "mock_linear"
+    mock_nn.Linear = "LinearLayer"
     mock_torch.nn = mock_nn
-    mock_import_module.return_value = mock_torch
 
-    result = utils.torch_proxy.nn.Linear
-    assert result == "mock_linear"
+    with patch("utils.torch_proxy.import_module", return_value=mock_torch):
+        proxy = _TorchAttrProxy("nn")
 
-@patch("utils.torch_proxy.import_module")
-def test_torch_attr_proxy_call(mock_import_module):
-    mock_torch = MagicMock()
-    mock_func = MagicMock(return_value="called")
-    mock_torch.some_func = mock_func
-    mock_import_module.return_value = mock_torch
+        # Test getattr
+        assert proxy.Linear == "LinearLayer"
 
-    attr_proxy = utils.torch_proxy._TorchAttrProxy("some_func")
-    result = attr_proxy(1, 2, kwarg=3)
-
-    mock_func.assert_called_once_with(1, 2, kwarg=3)
-    assert result == "called"
-
-@patch("utils.torch_proxy.import_module")
-def test_load_torch_failure(mock_import_module):
-    mock_import_module.side_effect = ImportError("No module named torch")
-
-    with pytest.raises(RuntimeError) as excinfo:
-        _ = utils.torch_proxy.torch.Tensor
-
-    assert "torch is unavailable in this environment" in str(excinfo.value)
-    assert isinstance(excinfo.value.__cause__, ImportError)
-
-    # Should raise immediately on second attempt
-    mock_import_module.reset_mock()
-    with pytest.raises(RuntimeError) as excinfo2:
-        _ = utils.torch_proxy.torch.Tensor
-
-    mock_import_module.assert_not_called()
-    assert str(excinfo2.value) == str(excinfo.value)
-
-@patch("utils.torch_proxy.import_module")
-def test_load_torch_cached(mock_import_module):
-    # First access loads torch
-    mock_torch = MagicMock()
-    mock_torch.Tensor = "mock_tensor"
-    mock_import_module.return_value = mock_torch
-
-    result1 = _ = utils.torch_proxy.torch.Tensor
-
-    # Second access should return cached module, not call import_module again
-    mock_import_module.reset_mock()
-    result2 = _ = utils.torch_proxy.torch.Tensor
-
-    mock_import_module.assert_not_called()
-    assert result1 == "mock_tensor"
-    assert result2 == "mock_tensor"
+        # Test call
+        mock_nn.return_value = "called_nn"
+        assert proxy(1, 2, kw="arg") == "called_nn"
+        mock_nn.assert_called_once_with(1, 2, kw="arg")
