@@ -263,6 +263,78 @@ CHANNEL_CONFIGS: dict[str, dict] = {
         "expertise": ["complex_PTSD", "trauma_treatment", "evidence_based_practice", "clinical_guidelines", "somatic_therapy"],
         "approach": "clinical_research_informed",
     },
+    "EckhartTolle": {
+        "name": "Eckhart Tolle",
+        "signature": "eckhart_tolle",
+        "description": "Spiritual teacher and author specializing in mindfulness, presence, and transcending ego-based consciousness",
+        "style": "contemplative_wisdom_grounded",
+        "expertise": ["mindfulness", "presence", "spiritual_awakening", "ego_transcendence", "stillness"],
+        "approach": "contemplative_spiritual",
+    },
+    "ChrisWilliamson": {
+        "name": "Chris Williamson",
+        "signature": "chris_williamson",
+        "description": "Podcast host of Modern Wisdom interviewing leading psychologists, scientists, and thinkers on mental health, human potential, and well-being",
+        "style": "conversational_curious_interview",
+        "expertise": ["mental_health", "human_potential", "positive_psychology", "personal_development", "behavioral_science"],
+        "approach": "interview_based_exploration",
+    },
+    "Psych2Go": {
+        "name": "Psych2Go",
+        "signature": "psych2go",
+        "description": "Animated psychology education channel making mental health concepts accessible through engaging visual content",
+        "style": "accessible_educational_animated",
+        "expertise": ["mental_health_education", "psychology_literacy", "self_improvement", "emotional_intelligence", "relationship_health"],
+        "approach": "accessible_psychoeducation",
+    },
+    "WuWeiWisdom": {
+        "name": "Wu Wei Wisdom",
+        "signature": "wu_wei_wisdom",
+        "description": "Spiritual and personal growth channel exploring narcissistic abuse recovery, inner child healing, and self-worth",
+        "style": "empathetic_contemplative_educational",
+        "expertise": ["narcissistic_abuse_recovery", "inner_child_healing", "self_worth", "spiritual_growth", "emotional_healing"],
+        "approach": "contemplative_healing",
+    },
+    "CarolineMyss": {
+        "name": "Caroline Myss",
+        "signature": "caroline_myss",
+        "description": "Medical intuitive, mystic, and author specializing in energy anatomy, spiritual growth, and the intersection of consciousness and health",
+        "style": "mystical_direct_wisdom",
+        "expertise": ["energy_anatomy", "spiritual_development", "consciousness_healing", "intuition", "sacred_contracts"],
+        "approach": "mystical_wisdom_tradition",
+    },
+    "RebeccaMandeville": {
+        "name": "Rebecca C. Mandeville",
+        "signature": "rebecca_mandeville",
+        "description": "Licensed marriage and family therapist specializing in family scapegoating abuse, family mobbing, and narcissistic family systems",
+        "style": "clinical_direct_validating",
+        "expertise": ["scapegoat_abuse", "family_mobbing", "narcissistic_family_systems", "toxic_family_dynamics", "trauma_recovery"],
+        "approach": "trauma_informed_systemic",
+    },
+    "MicheleLeeNieves": {
+        "name": "Michele Lee Nieves",
+        "signature": "michele_lee_nieves",
+        "description": "Life coach and narcissistic abuse recovery specialist focusing on covert narcissism, emotional abuse, and rebuilding self-worth",
+        "style": "compassionate_direct_coaching",
+        "expertise": ["covert_narcissism", "emotional_abuse_recovery", "self_worth_restoration", "boundary_setting", "trauma_coaching"],
+        "approach": "coaching_informed_recovery",
+    },
+    "SandstoneCare": {
+        "name": "Sandstone Care",
+        "signature": "sandstone_care",
+        "description": "Mental health treatment center for teens and young adults specializing in emotional dysregulation, ADHD, and substance use",
+        "style": "clinical_warm_educational",
+        "expertise": ["emotional_dysregulation", "adhd", "youth_mental_health", "substance_use", "dialectical_behavior_therapy"],
+        "approach": "clinical_developmental",
+    },
+    "SoundsTrue": {
+        "name": "Sounds True",
+        "signature": "sounds_true",
+        "description": "Multimedia publishing company featuring leading teachers in psychology, spirituality, and personal transformation through interview-driven content",
+        "style": "interview_based_expert_showcase",
+        "expertise": ["spiritual_psychology", "trauma_healing", "mindfulness", "personal_transformation", "expert_interviews"],
+        "approach": "interview_based_psychoeducation",
+    },
 }
 
 
@@ -832,6 +904,135 @@ def annotate_conversations(conversations: list[dict], scores: list[float], detai
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
+def _derive_communication_patterns(profile_data: dict, config: dict | None) -> list[str]:
+    """Derive human-readable communication patterns from extracted profile data."""
+    config = config or {}
+    patterns = []
+
+    transitions = profile_data.get("transition_phrases", {})
+    total_trans = sum(transitions.values())
+    if total_trans > 0:
+        explanatory = sum(
+            transitions.get(t, 0) for t in
+            ["So", "Let me", "Here's the thing", "The key is", "What I want you to",
+             "One of the key", "It's important to", "Think about"]
+        )
+        analytical = sum(
+            transitions.get(t, 0) for t in
+            ["But", "What happens", "The reality is", "The truth is"]
+        )
+        analytic_explain_ratio = analytical / max(explanatory, 1)
+
+        if analytic_explain_ratio > 0.6:
+            patterns.append(
+                "Analytical, pattern-seeking communication that examines causes, "
+                "contrasts scenarios, and surfaces underlying dynamics"
+            )
+        elif analytic_explain_ratio < 0.3:
+            patterns.append(
+                "Educational, explanatory style with clear framing, step-by-step "
+                "guidance, and structured information delivery"
+            )
+        else:
+            patterns.append(
+                "Balanced explanatory-analytical style that alternates between "
+                "teaching concepts and examining patterns"
+            )
+
+    empathy_markers = profile_data.get("empathy_markers", {})
+    total_emp = sum(empathy_markers.values())
+    if total_emp > 10:
+        patterns.append(
+            "High empathy integration with frequent validation, normalization "
+            "of experiences, and explicit acknowledgment of emotional states"
+        )
+    elif total_emp > 4:
+        patterns.append(
+            "Moderate empathy woven into content delivery, balancing clinical "
+            "information with attunement to felt experience"
+        )
+    else:
+        patterns.append(
+            "Empathy expressed primarily through information-sharing and "
+            "validating insights rather than explicit emotional mirroring"
+        )
+
+    analogies = profile_data.get("analogies", [])
+    if len(analogies) > 3:
+        patterns.append(
+            "Heavy reliance on analogies and metaphors to translate complex "
+            "concepts into accessible, relatable images"
+        )
+
+    examples = profile_data.get("examples", [])
+    if len(examples) > 3:
+        patterns.append(
+            "Frequent use of concrete examples and case illustrations to "
+            "ground abstract principles in lived experience"
+        )
+
+    patterns.append(
+        f"Style: {config.get('style', 'general').replace('_', ' ')}"
+    )
+    patterns.append(
+        f"Approach: {config.get('approach', 'general').replace('_', ' ')}"
+    )
+
+    return patterns
+
+
+def _derive_tone_characteristics(profile_data: dict, config: dict | None) -> dict:
+    """Derive tone characteristics from extracted profile data and channel config."""
+    config = config or {}
+    empathy_markers = profile_data.get("empathy_markers", {})
+    total_emp = sum(empathy_markers.values())
+    transitions = profile_data.get("transition_phrases", {})
+    total_trans = sum(transitions.values())
+    style = config.get("style", "")
+
+    if total_emp > 10:
+        empathy_level = "high"
+    elif total_emp > 4:
+        empathy_level = "moderate"
+    else:
+        empathy_level = "measured"
+
+    if "clinical" in style or "authoritative" in style or "professional" in style:
+        formality = "professional_structured"
+    elif "conversational" in style or "casual" in style or "interview" in style:
+        formality = "conversational_accessible"
+    else:
+        formality = "professional_yet_accessible"
+
+    if total_trans > 0:
+        fast_pace_markers = sum(transitions.get(t, 0) for t in ["Now", "So"])
+        slow_pace_markers = sum(transitions.get(t, 0) for t in ["Let me", "Think about"])
+        if fast_pace_markers > slow_pace_markers * 2:
+            pacing = "brisk_momentum"
+        elif slow_pace_markers > fast_pace_markers * 2:
+            pacing = "deliberate_paced"
+        else:
+            pacing = "measured_rhythm"
+    else:
+        pacing = "measured_rhythm"
+
+    if "compassionate" in style or "warm" in style or "empathetic" in style:
+        emotional_temperature = "warm_supportive"
+    elif "authoritative" in style or "direct" in style or "clinical" in style:
+        emotional_temperature = "authoritative_grounded"
+    elif "contemplative" in style or "mystical" in style or "wisdom" in style:
+        emotional_temperature = "calm_contemplative"
+    else:
+        emotional_temperature = "balanced_engaged"
+
+    return {
+        "empathy_level": empathy_level,
+        "formality": formality,
+        "pacing": pacing,
+        "emotional_temperature": emotional_temperature,
+    }
+
+
 def save_channel_output(channel_key: str, result: ChannelResult, output_base: Path = OUTPUT_BASE):
     """Save voice profile, conversations, and quality report for a channel."""
     config = _get_config(channel_key)
@@ -849,9 +1050,9 @@ def save_channel_output(channel_key: str, result: ChannelResult, output_base: Pa
             "description": config["description"] if config else "",
             "personality_traits": {
                 "primary_style": config["style"] if config else "general",
-                "communication_patterns": [],
+                "communication_patterns": _derive_communication_patterns(profile_data, config),
                 "expertise_areas": config["expertise"] if config else [],
-                "tone_characteristics": {},
+                "tone_characteristics": _derive_tone_characteristics(profile_data, config),
             },
             "training_samples": len(result.transcripts),
             "clinical_validity_score": round(result.mean_score, 4),

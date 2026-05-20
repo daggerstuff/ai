@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import os
+import time
 import urllib.error
 import urllib.request
 from datetime import datetime, timezone
@@ -30,6 +31,7 @@ class LinearBacklogDispatcher:
         linear_project_id_env: str = "LINEAR_PROJECT_ID",
         linear_parent_issue_id_env: str = "LINEAR_PARENT_ISSUE_ID",
         request_timeout: int = 12,
+        max_retries: int = 3,
         issue_state_path: str | None = None,
     ):
         self.queue_path = Path(queue_path)
@@ -41,12 +43,19 @@ class LinearBacklogDispatcher:
         self.linear_project_id = os.getenv(linear_project_id_env, "").strip()
         self.linear_parent_issue_id = os.getenv(linear_parent_issue_id_env, "").strip()
         self.request_timeout = request_timeout
+        self.max_retries = max(1, max_retries)
         self.state_path = (
             Path(issue_state_path)
             if issue_state_path
             else self.queue_path.parent / "linear_backlog_issue_state.json"
         )
         self._cached_team_id = None
+        # Circuit breaker settings
+        self.failure_threshold = 5
+        self.recovery_timeout = 30  # seconds
+        self.failure_count = 0
+        self.state = 'closed'  # closed, open, half-open
+        self.last_failure_time = None
 
     def _load_issue_state(self) -> dict[str, str]:
         if not self.state_path.exists():
@@ -79,9 +88,20 @@ class LinearBacklogDispatcher:
             },
             method="POST",
         )
-        with urllib.request.urlopen(req, timeout=self.request_timeout) as response:
-            raw = response.read().decode("utf-8")
-            return json.loads(raw)
+        last_error: urllib.error.URLError | None = None
+        for attempt in range(self.max_retries):
+            try:
+                with urllib.request.urlopen(req, timeout=self.request_timeout) as response:
+                    raw = response.read().decode("utf-8")
+                    return json.loads(raw)
+            except urllib.error.URLError as exc:
+                last_error = exc
+                if attempt + 1 >= self.max_retries:
+                    raise
+                time.sleep(min(2**attempt, 4))
+        if last_error is not None:
+            raise last_error
+        raise RuntimeError("GraphQL request failed without exception")
 
     def _append_queue_record(self, record: dict[str, Any]) -> str:
         self.queue_path.parent.mkdir(parents=True, exist_ok=True)
@@ -235,6 +255,20 @@ class LinearBacklogDispatcher:
             str(error) if error else None,
         )
 
+    def _resolve_dispatch_status(
+        self,
+        action: dict[str, Any],
+        issue_state: dict[str, str],
+    ) -> tuple[str, dict[str, Any] | None, str | None]:
+        existing_issue_id = issue_state.get(action.get("change_id") or "")
+        if existing_issue_id:
+            status, issue, error = self._dispatch_update(action, existing_issue_id)
+            if status == "failed" and self._is_stale_issue_error(error):
+                issue_state.pop(action.get("change_id") or "", None)
+                return self._dispatch_create(action)
+            return status, issue, error
+        return self._dispatch_create(action)
+
     def dispatch_backlog_actions(self, payload: dict[str, Any]) -> dict[str, Any]:
         """Persist Linear-ready actions to queue and create issues when credentials exist."""
         actions = payload.get("actions", []) if isinstance(payload, dict) else []
@@ -257,6 +291,26 @@ class LinearBacklogDispatcher:
         issue_state = self._load_issue_state()
 
         for index, action in enumerate(actions):
+            # Check circuit breaker state
+            if self.state == 'open':
+                # Check if recovery timeout has passed
+                if self.last_failure_time and (datetime.now(timezone.utc) - self.last_failure_time).total_seconds() > self.recovery_timeout:
+                    self.state = 'half-open'
+                else:
+                    # Circuit is open, fail fast
+                    record = {
+                        "action_index": index,
+                        "change_id": action.get("change_id"),
+                        "title": action.get("title"),
+                        "status": "failed",
+                        "queued_at": datetime.now(timezone.utc).isoformat(),
+                        "error": "Circuit breaker is open",
+                    }
+                    self._append_queue_record({**record, "payload": action})
+                    result["failed"] += 1
+                    result["items"].append(record)
+                    continue
+
             record = {
                 "action_index": index,
                 "change_id": action.get("change_id"),
@@ -274,29 +328,47 @@ class LinearBacklogDispatcher:
                 continue
 
             try:
-                existing_issue_id = issue_state.get(action.get("change_id") or "")
-                if existing_issue_id:
-                    status, issue, error = self._dispatch_update(
-                        action, existing_issue_id
-                    )
-                    if status == "failed" and self._is_stale_issue_error(error):
-                        issue_state.pop(action.get("change_id") or "", None)
-                        status, issue, error = self._dispatch_create(action)
-                else:
-                    status, issue, error = self._dispatch_create(action)
+                status, issue, error = self._resolve_dispatch_status(
+                    action, issue_state
+                )
 
                 if status == "updated":
                     record["status"] = "updated"
                     record["linear_issue"] = issue or {}
                     result["updated"] += 1
+                    if issue is None:
+                        self._handle_api_failure(
+                            {"error": "Issue is None despite updated status"},
+                            record,
+                        )
+                        self._append_queue_record({**record, "payload": action})
+                        result["failed"] += 1
+                        result["items"].append(record)
+                        continue
                     if action.get("change_id"):
-                        issue_state[action["change_id"]] = issue.get("id", existing_issue_id)
+                        existing_issue_id = issue_state.get(action["change_id"])
+                        issue_state[action["change_id"]] = issue.get(
+                            "id", existing_issue_id
+                        )
+                    self.failure_count = 0
+                    self.state = "closed"
                 elif status == "created":
                     record["status"] = "created"
                     record["linear_issue"] = issue or {}
                     result["created"] += 1
+                    if issue is None:
+                        self._handle_api_failure(
+                            {"error": "Issue is None despite created status"},
+                            record,
+                        )
+                        self._append_queue_record({**record, "payload": action})
+                        result["failed"] += 1
+                        result["items"].append(record)
+                        continue
                     if action.get("change_id"):
                         issue_state[action["change_id"]] = issue.get("id", "")
+                    self.failure_count = 0
+                    self.state = "closed"
                 else:
                     self._handle_api_failure(
                         {"error": error, "errors": error},
@@ -309,6 +381,11 @@ class LinearBacklogDispatcher:
                 record["error"] = str(exc)
                 self._append_queue_record({**record, "payload": action})
                 result["failed"] += 1
+
+                self.failure_count += 1
+                self.last_failure_time = datetime.now(timezone.utc)
+                if self.failure_count >= self.failure_threshold:
+                    self.state = "open"
 
             result["items"].append(record)
 

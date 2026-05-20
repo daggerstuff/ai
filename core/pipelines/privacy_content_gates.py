@@ -73,13 +73,6 @@ except ImportError:
     HumanReviewQueue = None  # type: ignore
     Reviewer = None  # type: ignore
     ReviewerRole = None  # type: ignore
-    from .human_review_queue import HumanReviewQueue, Reviewer, ReviewerRole
-    REVIEW_QUEUE_ENABLED = True
-except ImportError:
-    REVIEW_QUEUE_ENABLED = False
-    HumanReviewQueue = None
-    Reviewer = None
-    ReviewerRole = None
 
 if TYPE_CHECKING:
     pass
@@ -192,15 +185,6 @@ class PrivacyContentReport:
 
     @property
     def passed(self) -> bool:
-        """True when all non-escalate gates passed and no BLOCK decisions exist.
-
-        ESCALATE gates are non-contributing — they represent borderline items
-        that require human review (Gate 4). Once Gate 4 is set (via override_with_review),
-        it serves as the authoritative resolution.
-        """
-        results = [g for g in self._gate_results if g is not None]
-        # ESCALATE does not block — human review resolves it
-        return all(r.decision in (GateDecision.PASS, GateDecision.ESCALATE) for r in results) and not self.blocked
         """True when the item is cleared for promotion.
 
         If Gate 4 (human review) has been set, it overrides any prior ESCALATE.
@@ -363,9 +347,6 @@ class PrivacyContentGates:
     def __init__(
         self,
         pii_config: PiiScrubberConfig | None = None,
-    ) -> None:
-        self._pii_scrubber = PiiScrubber(pii_config or PiiScrubberConfig())
-        self._crisis_detector = CrisisInterventionDetector()
         review_queue: "HumanReviewQueue | None" = None,
     ) -> None:
         self._pii_scrubber = PiiScrubber(pii_config or PiiScrubberConfig())
@@ -374,7 +355,6 @@ class PrivacyContentGates:
         if REVIEW_QUEUE_ENABLED and review_queue is None:
             try:
                 from .human_review_queue import HumanReviewQueue  # type: ignore
-                from .human_review_queue import HumanReviewQueue
                 review_queue = HumanReviewQueue()
             except Exception:
                 # Queue initialization failed; debug logging recommended
@@ -737,7 +717,6 @@ class PrivacyContentGates:
 
     def _collect_crisis_findings(
         self, crisis_result: "CrisisInterventionResult"  # type: ignore[name-defined]
-        self, crisis_result: "CrisisInterventionResult"
     ) -> list[CrisisFinding]:
         if crisis_result.score == 0.0:
             return []

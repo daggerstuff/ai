@@ -63,7 +63,12 @@ Empathy AI{% endblock %} {% block header_title %}Executive Dashboard{% endblock
           role="img"
           aria-label="Line chart showing conversation volume trends over the last 30 days"
         ></canvas>
-        <canvas id="conversationTrendsChart" role="img" aria-label="Conversation volume trends over the last 30 days">Your browser does not support the canvas element.</canvas>
+        <canvas
+          id="conversationTrendsChart"
+          role="img"
+          aria-label="Conversation volume trends over the last 30 days"
+          >Your browser does not support the canvas element.</canvas
+        >
       </div>
     </div>
   </div>
@@ -77,7 +82,12 @@ Empathy AI{% endblock %} {% block header_title %}Executive Dashboard{% endblock
           role="img"
           aria-label="Doughnut chart displaying the distribution of quality scores across excellent, good, fair, and poor"
         ></canvas>
-        <canvas id="qualityDistributionChart" role="img" aria-label="Distribution of conversation quality scores">Your browser does not support the canvas element.</canvas>
+        <canvas
+          id="qualityDistributionChart"
+          role="img"
+          aria-label="Distribution of conversation quality scores"
+          >Your browser does not support the canvas element.</canvas
+        >
       </div>
     </div>
   </div>
@@ -93,7 +103,12 @@ Empathy AI{% endblock %} {% block header_title %}Executive Dashboard{% endblock
           role="img"
           aria-label="Bar chart comparing current and target system performance metrics including response time, throughput, error rate, and CPU usage"
         ></canvas>
-        <canvas id="systemPerformanceChart" role="img" aria-label="System performance metrics including response time and throughput">Your browser does not support the canvas element.</canvas>
+        <canvas
+          id="systemPerformanceChart"
+          role="img"
+          aria-label="System performance metrics including response time and throughput"
+          >Your browser does not support the canvas element.</canvas
+        >
       </div>
     </div>
   </div>
@@ -134,8 +149,16 @@ Empathy AI{% endblock %} {% block header_title %}Executive Dashboard{% endblock
 {% endblock %} {% block extra_js %}
 <script>
   let conversationTrendsChart, qualityDistributionChart, systemPerformanceChart;
+  // ⚡ Bolt: Cache DOM elements to avoid repetitive lookups during dashboard refresh
+  const domElements = {};
 
   function initializeCharts() {
+      // Cache DOM references
+      domElements.totalConversations = document.getElementById('totalConversations');
+      domElements.avgQualityScore = document.getElementById('avgQualityScore');
+      domElements.systemUptime = document.getElementById('systemUptime');
+      domElements.activeUsers = document.getElementById('activeUsers');
+
       // Conversation Trends Chart
       const trendsCtx = document.getElementById('conversationTrendsChart').getContext('2d');
       conversationTrendsChart = new Chart(trendsCtx, {
@@ -221,10 +244,10 @@ Empathy AI{% endblock %} {% block header_title %}Executive Dashboard{% endblock
           .then(response => response.json())
           .then(data => {
               // Update metric cards
-              document.getElementById('totalConversations').textContent = data.total_conversations;
-              document.getElementById('avgQualityScore').textContent = data.avg_quality_score + '%';
-              document.getElementById('systemUptime').textContent = data.system_uptime + '%';
-              document.getElementById('activeUsers').textContent = data.active_users;
+              domElements.totalConversations.textContent = data.total_conversations;
+              domElements.avgQualityScore.textContent = data.avg_quality_score + '%';
+              domElements.systemUptime.textContent = data.system_uptime + '%';
+              domElements.activeUsers.textContent = data.active_users;
 
               // Update charts
               conversationTrendsChart.data.datasets[0].data = data.trend_data;

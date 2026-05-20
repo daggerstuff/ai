@@ -234,23 +234,10 @@ monitoring:
         capabilities:
           drop:
           - ALL
-    nodeExporter:
-      hostNetwork: false
-      hostPID: false
-      hostRootfs: false
-      securityContext:
-        runAsUser: 65534
-        runAsGroup: 65534
-        runAsNonRoot: true
-        fsGroup: 65534
-      containerSecurityContext:
-        allowPrivilegeEscalation: false
-        readOnlyRootFilesystem: true
-        capabilities:
-          drop:
-          - ALL
-        seccompProfile:
-          type: RuntimeDefault
+    prometheus-node-exporter:
+      enabled: false
+    nodeExporter: {}
+
     kube-state-metrics:
       securityContext:
         runAsGroup: 65534
@@ -356,3 +343,23 @@ backup:
     type: "s3"
     bucket: "pixelated-empathy-backups"
     region: "us-west-2"
+
+# Ollama Configuration
+ollama:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: "ollama/ollama"
+    tag: "0.23.2"
+    pullPolicy: "IfNotPresent"
+  persistence:
+    enabled: true
+    size: 20Gi
+    storageClass: "standard-rwo"
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+    requests:
+      cpu: 1000m
+      memory: 2Gi
