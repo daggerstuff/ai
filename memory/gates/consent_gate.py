@@ -82,9 +82,10 @@ class ConsentGateResult:
 class ConsentGateChecker:
     """In-memory consent manager for retrieval-time memory access decisions."""
 
-    def __init__(self) -> None:
+    def __init__(self, default_consent: ConsentGate = ConsentGate.BLOCKED) -> None:
         self._consent_store: dict[str, ConsentRecord] = {}
         self._audit_log: list[ConsentAuditEntry] = []
+        self._default_consent = default_consent
 
     def grant_consent(
         self,
@@ -146,12 +147,21 @@ class ConsentGateChecker:
         record = self._consent_store.get(user_id)
 
         if record is None:
+            if self._default_consent == ConsentGate.BLOCKED:
+                return self._build_result(
+                    user_id=user_id,
+                    memory_id=memory_id,
+                    allowed=False,
+                    consent_tier=ConsentGate.BLOCKED,
+                    reason="No consent record found",
+                    expired=False,
+                )
             return self._build_result(
                 user_id=user_id,
                 memory_id=memory_id,
-                allowed=False,
-                consent_tier=ConsentGate.BLOCKED,
-                reason="No consent record found",
+                allowed=True,
+                consent_tier=self._default_consent,
+                reason="Default consent applied",
                 expired=False,
             )
 
