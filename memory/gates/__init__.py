@@ -86,6 +86,11 @@ class GatingReport:
         return any(r.decision == GateDecision.ESCALATE for r in results)
 
     @property
+    def can_retain(self) -> bool:
+        """True when content is safe to retain (passed all gates or escalated for review)."""
+        return self.passed
+
+    @property
     def _gate_results(self) -> list[GateResult | None]:
         return [
             self.gate0_pii,
