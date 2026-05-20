@@ -9,7 +9,7 @@ import {
 describe('PixelatedEmpathyAPI healthCheck', () => {
     it('should return true when health check succeeds', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const makeRequestSpy = vi.spyOn(api, '_makeRequest');
+        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
         makeRequestSpy.mockResolvedValue({ success: true });
 
         const isHealthy = await api.healthCheck();
@@ -20,7 +20,7 @@ describe('PixelatedEmpathyAPI healthCheck', () => {
 
     it('should return false when health check returns false success', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const makeRequestSpy = vi.spyOn(api, '_makeRequest');
+        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
         makeRequestSpy.mockResolvedValue({ success: false });
 
         const isHealthy = await api.healthCheck();
@@ -31,7 +31,7 @@ describe('PixelatedEmpathyAPI healthCheck', () => {
 
     it('should return false when health check throws an error', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const makeRequestSpy = vi.spyOn(api, '_makeRequest');
+        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
         makeRequestSpy.mockRejectedValue(new Error('Network error'));
 
         const isHealthy = await api.healthCheck();
@@ -44,7 +44,7 @@ describe('PixelatedEmpathyAPI healthCheck', () => {
 describe('PixelatedEmpathyAPI Rate Limiting', () => {
     it('should retry after 429 error and succeed', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const httpRequestSpy = vi.spyOn(api, '_httpRequest');
+        const httpRequestSpy = vi.spyOn(api, 'httpRequest');
         httpRequestSpy
             .mockResolvedValueOnce({ statusCode: 429, headers: { 'retry-after': '0' }, body: '' })
             .mockResolvedValueOnce({ statusCode: 200, headers: {}, body: '{"success": true}' });
@@ -58,10 +58,10 @@ describe('PixelatedEmpathyAPI Rate Limiting', () => {
     it('should throw RateLimitError when retries exceed maxRetries', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
         api.maxRetries = 2;
-        const httpRequestSpy = vi.spyOn(api, '_httpRequest');
+        const httpRequestSpy = vi.spyOn(api, 'httpRequest');
         httpRequestSpy
             .mockResolvedValue({ statusCode: 429, headers: { 'retry-after': '0' }, body: '' });
-        const makeRequest = api._makeRequest.bind(api);
+        const makeRequest = api.makeRequest.bind(api);
 
         await expect(makeRequest('GET', '/test')).rejects.toThrow(RateLimitError);
         expect(httpRequestSpy).toHaveBeenCalledTimes(3);
@@ -71,7 +71,7 @@ describe('PixelatedEmpathyAPI Rate Limiting', () => {
 describe('PixelatedEmpathyAPI Methods', () => {
     it('getConversations should handle pagination options correctly', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const makeRequestSpy = vi.spyOn(api, '_makeRequest');
+        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
         makeRequestSpy.mockResolvedValueOnce({ data: { conversations: [] } });
 
         await api.getConversations({ limit: 50, offset: 100, dataset: 'test_dataset' });
@@ -85,9 +85,9 @@ describe('PixelatedEmpathyAPI Methods', () => {
         });
     });
 
-    it('getConversation should call _makeRequest with correct endpoint', async () => {
+    it('getConversation should call makeRequest with correct endpoint', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const makeRequestSpy = vi.spyOn(api, '_makeRequest');
+        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
         makeRequestSpy.mockResolvedValueOnce({ data: { id: 'conv-123' } });
 
         const result = await api.getConversation('conv-123');
@@ -100,7 +100,7 @@ describe('PixelatedEmpathyAPI Methods', () => {
 describe('PixelatedEmpathyAPI Method getConversations', () => {
     it('should correctly map minQuality to min_quality parameter', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const makeRequestSpy = vi.spyOn(api, '_makeRequest');
+        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
 
         let calledEndpoint = '';
         let calledOptions: Record<string, unknown> = {};
@@ -131,7 +131,7 @@ describe('PixelatedEmpathyAPI Method getConversations', () => {
 
     it('should use default limit and offset if not provided', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const makeRequestSpy = vi.spyOn(api, '_makeRequest');
+        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
 
         let calledOptions: Record<string, unknown> = {};
         makeRequestSpy.mockImplementation(async (method: string, endpoint: string, options?: RequestOptions) => {
@@ -170,7 +170,7 @@ describe('PixelatedEmpathyAPI Method waitForJob', () => {
         const originalNow = Date.now;
         let now = 0;
         Date.now = () => now;
-        api._sleep = async (ms: number) => {
+        api.sleep = async (ms: number) => {
             now += ms;
         };
 
@@ -231,7 +231,7 @@ describe('PixelatedEmpathyAPI Method iterConversations', () => {
 describe('PixelatedEmpathyAPI Method submitProcessingJob', () => {
     it('should correctly build job data payload', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const makeRequestSpy = vi.spyOn(api, '_makeRequest');
+        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
 
         let calledEndpoint = '';
         let calledOptions: Record<string, unknown> = {};
@@ -256,7 +256,7 @@ describe('PixelatedEmpathyAPI Method submitProcessingJob', () => {
 describe('PixelatedEmpathyAPI Method exportData', () => {
     it('should map options correctly to exportData payload', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const makeRequestSpy = vi.spyOn(api, '_makeRequest');
+        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
 
         let calledOptions: Record<string, unknown> = {};
 
@@ -279,9 +279,9 @@ describe('PixelatedEmpathyAPI Method exportData', () => {
 
 
 describe('PixelatedEmpathyAPI Dataset Methods', () => {
-    it('listDatasets should call _makeRequest with correct endpoint and return datasets', async () => {
+    it('listDatasets should call makeRequest with correct endpoint and return datasets', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const makeRequestSpy = vi.spyOn(api, '_makeRequest');
+        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
         const mockDatasets = [{ name: 'test_1', conversations: 10 }, { name: 'test_2', conversations: 20 }];
         makeRequestSpy.mockResolvedValue({ data: { datasets: mockDatasets } });
 
@@ -293,7 +293,7 @@ describe('PixelatedEmpathyAPI Dataset Methods', () => {
 
     it('listDatasets should return empty array if datasets is missing from response', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const makeRequestSpy = vi.spyOn(api, '_makeRequest');
+        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
         makeRequestSpy.mockResolvedValue({ data: {} });
 
         const result = await api.listDatasets();
@@ -302,9 +302,9 @@ describe('PixelatedEmpathyAPI Dataset Methods', () => {
         expect(result).toEqual([]);
     });
 
-    it('getDatasetInfo should call _makeRequest with correct endpoint', async () => {
+    it('getDatasetInfo should call makeRequest with correct endpoint', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const makeRequestSpy = vi.spyOn(api, '_makeRequest');
+        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
         const mockDatasetInfo = { name: 'test_dataset', count: 100 };
         makeRequestSpy.mockResolvedValue({ data: mockDatasetInfo });
 
@@ -317,9 +317,9 @@ describe('PixelatedEmpathyAPI Dataset Methods', () => {
 
 
 describe('PixelatedEmpathyAPI Method searchConversations', () => {
-    it('should correctly pass query and default options to _makeRequest', async () => {
+    it('should correctly pass query and default options to makeRequest', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const makeRequestSpy = vi.spyOn(api, '_makeRequest');
+        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
 
         let calledEndpoint = '';
         let calledOptions: Record<string, unknown> = {};
@@ -345,7 +345,7 @@ describe('PixelatedEmpathyAPI Method searchConversations', () => {
     it('should correctly merge provided options', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
 
-        const makeRequestSpy = vi.spyOn(api, '_makeRequest');
+        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
         let calledOptions: Record<string, unknown> = {};
         makeRequestSpy.mockImplementation(async (method: string, endpoint: string, options?: RequestOptions) => {
             calledOptions = options ?? {};
@@ -370,7 +370,7 @@ describe('PixelatedEmpathyAPI Method searchConversations', () => {
 describe('PixelatedEmpathyAPI Method getQualityMetrics', () => {
     it('should correctly map options to params', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const makeRequestSpy = vi.spyOn(api, '_makeRequest');
+        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
 
         let calledEndpoint = '';
         let calledOptions: Record<string, unknown> = {};
@@ -395,7 +395,7 @@ describe('PixelatedEmpathyAPI Method getQualityMetrics', () => {
 
     it('should handle missing options gracefully', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const makeRequestSpy = vi.spyOn(api, '_makeRequest');
+        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
 
         let calledEndpoint = '';
         let calledOptions: Record<string, unknown> = {};
@@ -415,7 +415,7 @@ describe('PixelatedEmpathyAPI Method getQualityMetrics', () => {
 describe('PixelatedEmpathyAPI Method healthCheck', () => {
     it('should return true on successful request', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const makeRequestSpy = vi.spyOn(api, '_makeRequest');
+        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
 
         makeRequestSpy.mockResolvedValue({ success: true });
 
@@ -425,11 +425,58 @@ describe('PixelatedEmpathyAPI Method healthCheck', () => {
 
     it('should return false if request throws error', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const makeRequestSpy = vi.spyOn(api, '_makeRequest');
+        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
 
         makeRequestSpy.mockRejectedValue(new Error('Network error'));
 
         const isHealthy = await api.healthCheck();
         expect(isHealthy).toBe(false);
+    });
+});
+
+
+describe('PixelatedEmpathyAPI Method validateConversationQuality', () => {
+    it('should correctly pass conversation data to makeRequest', async () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
+        const mockResult = { quality_score: 0.95 };
+        makeRequestSpy.mockResolvedValue({ data: mockResult });
+
+        const testConversation = { id: 'test-1', text: 'Hello' };
+        const result = await api.validateConversationQuality(testConversation);
+
+        expect(makeRequestSpy).toHaveBeenCalledWith('POST', '/quality/validate', {
+            data: testConversation
+        });
+        expect(result).toEqual(mockResult);
+    });
+});
+
+
+describe('PixelatedEmpathyAPI Method getStatisticsOverview', () => {
+    it('should correctly call makeRequest and return stats overview', async () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
+        const mockStats = { total_conversations: 2500000, datasets: 15 };
+        makeRequestSpy.mockResolvedValue({ data: mockStats });
+
+        const result = await api.getStatisticsOverview();
+
+        expect(makeRequestSpy).toHaveBeenCalledWith('GET', '/statistics/overview');
+        expect(result).toEqual(mockStats);
+    });
+});
+
+describe('PixelatedEmpathyAPI Method getJobStatus', () => {
+    it('should correctly call makeRequest with jobId', async () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
+        const mockStatus = { status: 'completed' };
+        makeRequestSpy.mockResolvedValue({ data: mockStatus });
+
+        const result = await api.getJobStatus('job-123');
+
+        expect(makeRequestSpy).toHaveBeenCalledWith('GET', '/processing/jobs/job-123');
+        expect(result).toEqual(mockStatus);
     });
 });
