@@ -149,20 +149,15 @@ Empathy AI{% endblock %} {% block header_title %}Executive Dashboard{% endblock
 {% endblock %} {% block extra_js %}
 <script>
   let conversationTrendsChart, qualityDistributionChart, systemPerformanceChart;
-
-  // ⚡ Bolt: Cached DOM elements to avoid expensive getElementById lookups during auto-refresh
-  const metricElements = {
-      totalConversations: null,
-      avgQualityScore: null,
-      systemUptime: null,
-      activeUsers: null
-  };
+  // ⚡ Bolt: Cache DOM elements to avoid repetitive lookups during dashboard refresh
+  const domElements = {};
 
   function initializeCharts() {
-      metricElements.totalConversations = document.getElementById('totalConversations');
-      metricElements.avgQualityScore = document.getElementById('avgQualityScore');
-      metricElements.systemUptime = document.getElementById('systemUptime');
-      metricElements.activeUsers = document.getElementById('activeUsers');
+      // Cache DOM references
+      domElements.totalConversations = document.getElementById('totalConversations');
+      domElements.avgQualityScore = document.getElementById('avgQualityScore');
+      domElements.systemUptime = document.getElementById('systemUptime');
+      domElements.activeUsers = document.getElementById('activeUsers');
 
       // Conversation Trends Chart
       const trendsCtx = document.getElementById('conversationTrendsChart').getContext('2d');
@@ -248,11 +243,11 @@ Empathy AI{% endblock %} {% block header_title %}Executive Dashboard{% endblock
       fetch('/api/executive-metrics')
           .then(response => response.json())
           .then(data => {
-              // Update metric cards (⚡ Bolt: Using cached elements)
-              if (metricElements.totalConversations) metricElements.totalConversations.textContent = data.total_conversations;
-              if (metricElements.avgQualityScore) metricElements.avgQualityScore.textContent = data.avg_quality_score + '%';
-              if (metricElements.systemUptime) metricElements.systemUptime.textContent = data.system_uptime + '%';
-              if (metricElements.activeUsers) metricElements.activeUsers.textContent = data.active_users;
+              // Update metric cards
+              domElements.totalConversations.textContent = data.total_conversations;
+              domElements.avgQualityScore.textContent = data.avg_quality_score + '%';
+              domElements.systemUptime.textContent = data.system_uptime + '%';
+              domElements.activeUsers.textContent = data.active_users;
 
               // Update charts
               conversationTrendsChart.data.datasets[0].data = data.trend_data;
