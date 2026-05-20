@@ -73,9 +73,7 @@ class GatingReport:
     @property
     def passed(self) -> bool:
         results = [g for g in self._gate_results if g is not None]
-        if not results:
-            return False
-        return all(r.decision == GateDecision.PASS for r in results)
+        return all(r.decision in (GateDecision.PASS, GateDecision.ESCALATE) for r in results) and not self.blocked
 
     @property
     def blocked(self) -> bool:
@@ -89,8 +87,8 @@ class GatingReport:
 
     @property
     def can_retain(self) -> bool:
-        """True when content is safe to retain (passed all gates, no review needed)."""
-        return self.passed and not self.needs_review
+        """True when content is safe to retain (passed all gates or escalated for review)."""
+        return self.passed
 
     @property
     def _gate_results(self) -> list[GateResult | None]:

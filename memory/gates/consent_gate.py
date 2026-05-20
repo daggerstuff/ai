@@ -82,7 +82,7 @@ class ConsentGateResult:
 class ConsentGateChecker:
     """In-memory consent manager for retrieval-time memory access decisions."""
 
-    def __init__(self, default_consent: ConsentGate = ConsentGate.OPEN) -> None:
+    def __init__(self, default_consent: ConsentGate = ConsentGate.BLOCKED) -> None:
         self._consent_store: dict[str, ConsentRecord] = {}
         self._audit_log: list[ConsentAuditEntry] = []
         self._default_consent = default_consent
