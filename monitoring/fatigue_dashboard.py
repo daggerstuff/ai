@@ -8,7 +8,7 @@ import asyncio
 import json
 import logging
 import sqlite3
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import plotly.graph_objs as go
@@ -127,7 +127,7 @@ class FatigueDashboard:
                             json.dumps(data["actions"]),
                             data.get("enabled", True),
                             data.get("priority", 100),
-                            datetime.now(timezone.utc).isoformat(),
+                            datetime.now(UTC).isoformat(),
                             rule_id,
                         ),
                     )
@@ -214,7 +214,7 @@ class FatigueDashboard:
 
         with sqlite3.connect(self.afp_system.db_path) as conn:
             # Total groups in last 24 hours
-            cutoff_24h = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
+            cutoff_24h = (datetime.now(UTC) - timedelta(hours=24)).isoformat()
             total_groups = conn.execute(
                 """
                 SELECT COUNT(*) FROM alert_groups WHERE last_seen > ?
@@ -276,7 +276,7 @@ class FatigueDashboard:
     def get_active_groups(self, hours: int = 24) -> list[dict[str, Any]]:
         """Get active alert groups"""
 
-        cutoff_time = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat()
+        cutoff_time = (datetime.now(UTC) - timedelta(hours=hours)).isoformat()
 
         with sqlite3.connect(self.afp_system.db_path) as conn:
             groups = conn.execute(
@@ -343,7 +343,7 @@ class FatigueDashboard:
 
         # Get hourly alert counts for last 24 hours
         with sqlite3.connect(self.afp_system.db_path) as conn:
-            cutoff_time = datetime.now(timezone.utc) - timedelta(hours=24)
+            cutoff_time = datetime.now(UTC) - timedelta(hours=24)
 
             # Generate hourly buckets
             hours = []
@@ -394,7 +394,7 @@ class FatigueDashboard:
         """Generate suppression statistics chart"""
 
         with sqlite3.connect(self.afp_system.db_path) as conn:
-            cutoff_time = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
+            cutoff_time = (datetime.now(UTC) - timedelta(hours=24)).isoformat()
 
             # Get suppression counts by rule
             suppressions = conn.execute(
@@ -567,6 +567,9 @@ DASHBOARD_TEMPLATE = """
     <script>
         // Load dashboard data
         function loadDashboard() {
+            // ⚡ Bolt: Prevent unnecessary API calls and re-renders when tab is inactive
+            if (document.hidden) return;
+
             // Load summary metrics
             $.get('/api/summary')
                 .done(function(data) {
