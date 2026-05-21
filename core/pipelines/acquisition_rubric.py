@@ -53,8 +53,6 @@ class PilotReport:
 
     def __str__(self) -> str:
         return f"PilotReport({self.source_id}: {self.sample_size}/{self.population_size} samples, score={self.overall_pilot_score})"
-        msg = f"PilotReport({self.source_id}: {self.sample_size}/{self.population_size} samples"
-        return f"{msg}, score={self.overall_pilot_score})"
 
 
 @dataclass
@@ -67,7 +65,6 @@ class CurationExitReport:
     records_rejected: int
 
     def __str__(self) -> str:
-        return f"CurationExitReport({self.source_id}: retention={self.net_retention_pct}%, signed={self.manifest_signed})"
         return (
             f"CurationExitReport({self.source_id}: "
             f"retention={self.net_retention_pct}%, signed={self.manifest_signed})"
@@ -403,9 +400,8 @@ def _run_cli() -> None:
 
     score_p = sub.add_parser("score", help="Calculate overall score for 4 dimensions")
     for dim in ("therapeutic_relevance", "data_structure_quality", "training_integration", "ethical_accessibility"):
-        score_p.add_argument(f"--{dim}", type=int, required=True, help=f"{dim} (1-10)")
-
-    score_p.add_argument(f"--{dim}", type=int, required=True, help=f"{dim} (1-10)")
+        score_p.add_argument("--data-structure-quality", type=int, required=True,
+                          help="data structure quality (1-10)")
 
     intake_p = sub.add_parser("intake", help="Evaluate Gate 0 intake for a source")
     intake_p.add_argument("--source-id", required=True)
@@ -428,11 +424,6 @@ def _run_cli() -> None:
             data_structure_quality=args.data_structure_quality,
             training_integration=args.training_integration,
             ethical_accessibility=args.ethical_accessibility,
-        )
-        print(
-            f"overall_score={score.overall_score}, "
-            f"priority_tier={score.priority_tier.value}, "
-            f"passes_score_floor={score.passes_score_floor}"
         )
         sys.stdout.write(
             f"overall_score={score.overall_score}, "
@@ -459,11 +450,6 @@ def _run_cli() -> None:
             print(f"  [PASS] {q}")
         for b in decision.blocking:
             print(f"  [BLOCK] {b}")
-        sys.stdout.write(f"passed={decision.passed}\n")
-        for q in decision.qualifying:
-            sys.stdout.write(f"  [PASS] {q}\n")
-        for b in decision.blocking:
-            sys.stdout.write(f"  [BLOCK] {b}\n")
         sys.exit(0 if decision.passed else 1)
 
 
@@ -475,39 +461,16 @@ __all__ = [
     "AcquisitionRubric",
     "AcquisitionScore",
     "APPROVED_LICENSES",
-    "calculate_overall_score",
     "CurationExitDecision",
     "CurationExitReport",
     "EXCEPTION_LICENSES",
-    "calculate_overall_score",
-    "score_from_evaluation",
-    "SourceIntake",
-    "PilotReport",
-    "CurationExitReport",
-    "AcquisitionScore",
-    "IntakeDecision",
-    "PilotDecision",
-    "CurationExitDecision",
-    "GateResult",
-    "GateDecision",
-    "PriorityTier",
-    "APPROVED_LICENSES",
-    "EXCEPTION_LICENSES",
-    "APPROVED_LICENSES",
-    "EXCEPTION_LICENSES",
-    "AcquisitionRubric",
-    "AcquisitionScore",
-    "CurationExitDecision",
-    "CurationExitReport",
     "GateDecision",
     "GateResult",
     "IntakeDecision",
     "PilotDecision",
     "PilotReport",
     "PriorityTier",
-    "score_from_evaluation",
-    "SourceIntake",
-    "SourceIntake",
     "calculate_overall_score",
     "score_from_evaluation",
+    "SourceIntake",
 ]

@@ -1,4 +1,5 @@
 import argparse
+import hashlib
 import json
 import logging
 import random
@@ -6,6 +7,97 @@ from pathlib import Path
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+
+
+def _anon_id(raw: str) -> str:
+    """Map a raw username to a stable anonymous ID (no PII leakage)."""
+    digest = hashlib.sha256(raw.encode()).hexdigest()[:12]
+    return f"anon_{digest}"
+
+
+class RedditConverter:
+    """Reddit-to-training converter with anonymization and gate-scoring."""
+
+    def __init__(self, anon: bool = True) -> None:
+        self._anon = anon
+        self._seen_usernames: dict[str, str] = {}
+
+    def _scrub(self, text: str) -> str:
+        """Strip anything that looks like a Reddit /u/ or r/ reference for privacy."""
+        import re as _re
+        text = _re.sub(r"/u/\w+", "[user]", text)
+        text = _re.sub(r"/r/\w+", "[subreddit]", text)
+        return text
+
+    def _canonical_anon(self, username: str | None) -> str:
+        if not username:
+            return "anon_unknown"
+        if username not in self._seen_usernames:
+            self._seen_usernames[username] = _anon_id(username)
+        return self._seen_usernames[username]
+
+    def convert(self, data: dict) -> list[dict]:
+        """Convert a Reddit post dict into training message pairs."""
+        if not isinstance(data, dict):
+            return []
+
+        if "messages" in data:
+            return [data]
+
+        title = self._scrub(data.get("title", ""))
+        selftext = self._scrub(data.get("selftext", ""))
+        content = self._scrub(data.get("content", ""))
+        body = self._scrub(data.get("body", ""))
+        author = data.get("author")  # kept raw here; only exposed via anonymous ID
+
+        prompt = ""
+        if title or selftext:
+            prompt = f"{title}\n\n{selftext}".strip()
+        elif content:
+            prompt = content
+        elif body:
+            prompt = body
+
+        pairs: list[dict] = []
+        comments = data.get("comments", [])
+        if comments and isinstance(comments, list):
+            for comment in comments:
+                if not isinstance(comment, dict):
+                    continue
+                comment_body = self._scrub(comment.get("body", ""))
+                comment_author = comment.get("author")
+                if prompt and comment_body:
+                    pairs.append({
+                        "messages": [
+                            {"role": "user", "content": prompt},
+                            {"role": "assistant", "content": comment_body}
+                        ],
+                        "meta": {
+                            "source": "reddit",
+                            "author_anon": self._canonical_anon(author),
+                            "commenter_anon": self._canonical_anon(comment_author),
+                            "subreddit": self._scrub(data.get("subreddit", "")),
+                            "score": data.get("score", 0),
+                        }
+                    })
+        else:
+            completion = self._scrub(data.get("response", data.get("completion", "")))
+            if prompt and completion:
+                pairs.append({
+                    "messages": [
+                        {"role": "user", "content": prompt},
+                        {"role": "assistant", "content": completion}
+                    ],
+                    "meta": {
+                        "source": "reddit",
+                        "author_anon": self._canonical_anon(author),
+                        "subreddit": self._scrub(data.get("subreddit", "")),
+                        "score": data.get("score", 0),
+                    }
+                })
+
+        return pairs
+
 
 def extract_conversations(data):
     """Extract prompt/completion pairs from reddit data."""
@@ -56,8 +148,9 @@ def extract_conversations(data):
                 ]
             }
 
-def process_file(file_path):
+def process_file(file_path, anon: bool = True):
     """Process a single JSON or JSONL file and yield message pairs."""
+    converter = RedditConverter(anon=anon)
     try:
         with open(file_path, encoding="utf-8") as f:
             if str(file_path).endswith(".jsonl"):
@@ -67,7 +160,7 @@ def process_file(file_path):
                         continue
                     try:
                         data = json.loads(line)
-                        yield from extract_conversations(data)
+                        yield from converter.convert(data)
                     except json.JSONDecodeError as e:
                         logging.warning(f"Failed to parse line {line_num} in {file_path}: {e}")
             else:
@@ -75,9 +168,9 @@ def process_file(file_path):
                     data = json.load(f)
                     if isinstance(data, list):
                         for item in data:
-                            yield from extract_conversations(item)
+                            yield from converter.convert(item)
                     else:
-                        yield from extract_conversations(data)
+                        yield from converter.convert(data)
                 except json.JSONDecodeError as e:
                     logging.warning(f"Failed to parse JSON file {file_path}: {e}")
     except Exception as e:
@@ -88,6 +181,7 @@ def main():
     parser.add_argument("--input-dir", "-i", type=str, required=True, help="Input directory containing raw JSONs")
     parser.add_argument("--output-dir", "-o", type=str, required=True, help="Output directory for train.jsonl and val.jsonl")
     parser.add_argument("--val-split", "-v", type=float, default=0.1, help="Validation split ratio")
+    parser.add_argument("--no-anon", action="store_true", help="Disable username anonymization")
     args = parser.parse_args()
 
     input_dir = Path(args.input_dir)
@@ -114,7 +208,7 @@ def main():
             for file_path in input_dir.glob("**/*"):
                 if file_path.is_file() and file_path.suffix.lower() in [".json", ".jsonl"]:
                     file_count += 1
-                    for conv in process_file(file_path):
+                    for conv in process_file(file_path, anon=not args.no_anon):
                         line = json.dumps(conv, ensure_ascii=False) + "\n"
                         total_count += 1
 
