@@ -3,7 +3,6 @@ import json
 import re
 from pathlib import Path
 
-
 DEFAULT_INPUT_FILE = Path("/home/vivi/pixelated/ai/datasets/tier7/augesc/train.jsonl")
 DEFAULT_OUTPUT_FILE = Path("/home/vivi/pixelated/ai/annotation/batches/batch_real_001.jsonl")
 DEFAULT_MAX_RECORDS = 100
@@ -95,11 +94,7 @@ def process_file(
 
                         if not messages:
                             conversation_text = str(original_data.get("text", ""))
-                            turn_lines = [
-                                line.strip()
-                                for line in conversation_text.splitlines()
-                                if line.strip()
-                            ]
+                            turn_lines = [line.strip() for line in conversation_text.splitlines() if line.strip()]
                             for turn_line in turn_lines:
                                 match = re.match(r"^\s*([A-Za-z][A-Za-z0-9_\\-\\s]*?)\s*:\s*(.+)$", turn_line)
                                 if not match:
@@ -141,11 +136,8 @@ def process_file(
             outfile.write(json.dumps(record) + "\n")
 
 
-
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Create an annotation batch JSONL from the raw augesc train split."
-    )
+    parser = argparse.ArgumentParser(description="Create an annotation batch JSONL from the raw augesc train split.")
     parser.add_argument(
         "--input",
         default=str(DEFAULT_INPUT_FILE),

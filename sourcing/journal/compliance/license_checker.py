@@ -38,12 +38,13 @@ class LicenseCheckResult:
 
     def is_usable(self) -> bool:
         """Check if license is usable for AI training and commercial use."""
-        return (
-            self.ai_training_compatible
-            in [LicenseCompatibility.COMPATIBLE, LicenseCompatibility.COMPATIBLE_WITH_CONDITIONS]
-            and self.commercial_use_compatible
-            in [LicenseCompatibility.COMPATIBLE, LicenseCompatibility.COMPATIBLE_WITH_CONDITIONS]
-        )
+        return self.ai_training_compatible in [
+            LicenseCompatibility.COMPATIBLE,
+            LicenseCompatibility.COMPATIBLE_WITH_CONDITIONS,
+        ] and self.commercial_use_compatible in [
+            LicenseCompatibility.COMPATIBLE,
+            LicenseCompatibility.COMPATIBLE_WITH_CONDITIONS,
+        ]
 
 
 class LicenseChecker:
@@ -266,9 +267,7 @@ class LicenseChecker:
             re.compile(pattern, re.IGNORECASE) for pattern in self.COMMERCIAL_RESTRICTIONS
         ]
 
-    def check_license(
-        self, license_text: str | None, license_name: str | None = None
-    ) -> LicenseCheckResult:
+    def check_license(self, license_text: str | None, license_name: str | None = None) -> LicenseCheckResult:
         """
         Check license compatibility for AI training and commercial use.
 
@@ -353,9 +352,7 @@ class LicenseChecker:
                         return license_name
         return None
 
-    def _check_known_license(
-        self, license_name: str, license_text: str
-    ) -> LicenseCheckResult:
+    def _check_known_license(self, license_name: str, license_text: str) -> LicenseCheckResult:
         """Check compatibility for a known license."""
         license_info = self.LICENSE_PATTERNS[license_name]
 
@@ -422,9 +419,7 @@ class LicenseChecker:
             confidence=confidence,
         )
 
-    def _apply_restriction_checks(
-        self, result: LicenseCheckResult, license_text: str
-    ) -> LicenseCheckResult:
+    def _apply_restriction_checks(self, result: LicenseCheckResult, license_text: str) -> LicenseCheckResult:
         """Apply additional restriction checks to result."""
         # Check for AI training restrictions
         for pattern in self._ai_restriction_patterns:
@@ -461,4 +456,3 @@ class LicenseChecker:
             or result.commercial_use_compatible == LicenseCompatibility.REQUIRES_REVIEW
             or result.confidence < 0.5
         )
-

@@ -4,13 +4,14 @@ Bias Detection Integration for Pipeline Communication - HIPAA++ Compliant Bias M
 This module provides comprehensive bias detection integration with real-time monitoring,
 HIPAA++ compliant data handling, and seamless integration with the six-stage pipeline.
 """
+
 import asyncio
 import hashlib
 import json
 import random
 import time
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from ai.api.techdeck_integration.error_handling.custom_errors import BiasDetectionError, ValidationError
@@ -107,9 +108,7 @@ class BiasDetectionIntegration:
             self.bias_service_available = True
             self.model_version = "bias-detection-v2.1"
 
-            self.logger.info(
-                f"Bias detection service initialized: version {self.model_version}"
-            )
+            self.logger.info(f"Bias detection service initialized: version {self.model_version}")
 
             return True
 
@@ -118,9 +117,7 @@ class BiasDetectionIntegration:
             self.bias_service_available = False
             raise BiasDetectionError(f"Bias service initialization failed: {e!s}") from e
 
-    async def analyze_stage_data(
-        self, stage_data: dict[str, Any], stage_name: str
-    ) -> BiasMetrics:
+    async def analyze_stage_data(self, stage_data: dict[str, Any], stage_name: str) -> BiasMetrics:
         """
         Analyze stage data for bias with comprehensive metrics.
 
@@ -172,9 +169,7 @@ class BiasDetectionIntegration:
             elif stage_name == "quality":
                 bias_metrics = await self._analyze_quality_data(sanitized_data)
             else:
-                bias_metrics = await self._analyze_generic_data(
-                    sanitized_data, stage_name
-                )
+                bias_metrics = await self._analyze_generic_data(sanitized_data, stage_name)
 
             # Cache results if enabled
             if self.config.cache_enabled:
@@ -217,9 +212,7 @@ class BiasDetectionIntegration:
             raise
         except Exception as e:
             self.logger.error(f"Bias analysis failed for stage {stage_name}: {e}")
-            self._update_performance_metrics(
-                False, time.time() - start_time, failed=True
-            )
+            self._update_performance_metrics(False, time.time() - start_time, failed=True)
             raise BiasDetectionError(f"Bias analysis failed: {e!s}") from e
 
     async def _analyze_validation_data(self, data: dict[str, Any]) -> BiasMetrics:
@@ -253,9 +246,7 @@ class BiasDetectionIntegration:
                 "calibration": random.uniform(0.8, 0.98),
             }
 
-            recommendations = self._generate_validation_recommendations(
-                overall_bias, demographic_bias, content_bias
-            )
+            recommendations = self._generate_validation_recommendations(overall_bias, demographic_bias, content_bias)
 
             return BiasMetrics(
                 overall_bias_score=overall_bias,
@@ -264,7 +255,7 @@ class BiasDetectionIntegration:
                 fairness_metrics=fairness_metrics,
                 recommendations=recommendations,
                 confidence_score=random.uniform(0.85, 0.98),
-                detection_timestamp=datetime.now(timezone.utc),
+                detection_timestamp=datetime.now(UTC),
                 model_version=self.model_version,
                 compliance_status="pending",
             )
@@ -301,9 +292,7 @@ class BiasDetectionIntegration:
                 "outcome_equity": random.uniform(0.75, 0.92),
             }
 
-            recommendations = self._generate_processing_recommendations(
-                overall_bias, demographic_bias, content_bias
-            )
+            recommendations = self._generate_processing_recommendations(overall_bias, demographic_bias, content_bias)
 
             return BiasMetrics(
                 overall_bias_score=overall_bias,
@@ -312,7 +301,7 @@ class BiasDetectionIntegration:
                 fairness_metrics=fairness_metrics,
                 recommendations=recommendations,
                 confidence_score=random.uniform(0.88, 0.96),
-                detection_timestamp=datetime.now(timezone.utc),
+                detection_timestamp=datetime.now(UTC),
                 model_version=self.model_version,
                 compliance_status="pending",
             )
@@ -348,9 +337,7 @@ class BiasDetectionIntegration:
                 "scoring_validity": random.uniform(0.82, 0.96),
             }
 
-            recommendations = self._generate_quality_recommendations(
-                overall_bias, demographic_bias, content_bias
-            )
+            recommendations = self._generate_quality_recommendations(overall_bias, demographic_bias, content_bias)
 
             return BiasMetrics(
                 overall_bias_score=overall_bias,
@@ -359,7 +346,7 @@ class BiasDetectionIntegration:
                 fairness_metrics=fairness_metrics,
                 recommendations=recommendations,
                 confidence_score=random.uniform(0.90, 0.98),
-                detection_timestamp=datetime.now(timezone.utc),
+                detection_timestamp=datetime.now(UTC),
                 model_version=self.model_version,
                 compliance_status="pending",
             )
@@ -368,9 +355,7 @@ class BiasDetectionIntegration:
             self.logger.error(f"Quality data bias analysis failed: {e}")
             raise BiasDetectionError(f"Quality bias analysis failed: {e!s}") from e
 
-    async def _analyze_generic_data(
-        self, data: dict[str, Any], stage_name: str
-    ) -> BiasMetrics:
+    async def _analyze_generic_data(self, data: dict[str, Any], stage_name: str) -> BiasMetrics:
         """Analyze generic stage data for bias."""
         try:
             # Simulate generic bias detection
@@ -407,15 +392,13 @@ class BiasDetectionIntegration:
                 fairness_metrics=fairness_metrics,
                 recommendations=recommendations,
                 confidence_score=random.uniform(0.85, 0.95),
-                detection_timestamp=datetime.now(timezone.utc),
+                detection_timestamp=datetime.now(UTC),
                 model_version=self.model_version,
                 compliance_status="pending",
             )
 
         except Exception as e:
-            self.logger.error(
-                f"Generic data bias analysis failed for stage {stage_name}: {e}"
-            )
+            self.logger.error(f"Generic data bias analysis failed for stage {stage_name}: {e}")
             raise BiasDetectionError(f"Generic bias analysis failed: {e!s}") from e
 
     def _create_disabled_metrics(self) -> BiasMetrics:
@@ -427,7 +410,7 @@ class BiasDetectionIntegration:
             fairness_metrics={},
             recommendations=["Bias detection is disabled"],
             confidence_score=0.0,
-            detection_timestamp=datetime.now(timezone.utc),
+            detection_timestamp=datetime.now(UTC),
             model_version=self.model_version,
             compliance_status="not_applicable",
         )
@@ -458,9 +441,7 @@ class BiasDetectionIntegration:
         recommendations = []
 
         if overall_bias > 0.5:
-            recommendations.append(
-                "High overall bias detected - review validation criteria"
-            )
+            recommendations.append("High overall bias detected - review validation criteria")
 
         # Check demographic bias
         for category, score in demographic_bias.items():
@@ -470,9 +451,7 @@ class BiasDetectionIntegration:
         # Check content bias
         for category, score in content_bias.items():
             if score > 0.5:
-                recommendations.append(
-                    f"Review {category} for potential bias in validation"
-                )
+                recommendations.append(f"Review {category} for potential bias in validation")
 
         if not recommendations:
             recommendations.append("Validation stage shows acceptable bias levels")
@@ -489,20 +468,14 @@ class BiasDetectionIntegration:
         recommendations = []
 
         if overall_bias > 0.4:
-            recommendations.append(
-                "Moderate bias detected in processing - consider rebalancing"
-            )
+            recommendations.append("Moderate bias detected in processing - consider rebalancing")
 
         # Check specific processing biases
         if demographic_bias.get("ethnicity", 0) > 0.5:
-            recommendations.append(
-                "Ethnic representation bias detected - review dataset"
-            )
+            recommendations.append("Ethnic representation bias detected - review dataset")
 
         if content_bias.get("empathy_detection", 0) > 0.5:
-            recommendations.append(
-                "Empathy detection bias - consider alternative approaches"
-            )
+            recommendations.append("Empathy detection bias - consider alternative approaches")
 
         if not recommendations:
             recommendations.append("Processing stage bias within acceptable range")
@@ -519,20 +492,14 @@ class BiasDetectionIntegration:
         recommendations = []
 
         if overall_bias > 0.3:
-            recommendations.append(
-                "Quality assessment shows bias - review scoring methodology"
-            )
+            recommendations.append("Quality assessment shows bias - review scoring methodology")
 
         # Check quality-specific biases
         if demographic_bias.get("scoring_equity", 0) > 0.3:
-            recommendations.append(
-                "Scoring equity bias - standardize evaluation criteria"
-            )
+            recommendations.append("Scoring equity bias - standardize evaluation criteria")
 
         if content_bias.get("accuracy_bias", 0) > 0.25:
-            recommendations.append(
-                "Accuracy assessment bias - validate measurement tools"
-            )
+            recommendations.append("Accuracy assessment bias - validate measurement tools")
 
         if not recommendations:
             recommendations.append("Quality assessment bias levels acceptable")
@@ -550,9 +517,7 @@ class BiasDetectionIntegration:
         if len(self.monitoring_data[stage_name]) > 100:
             self.monitoring_data[stage_name] = self.monitoring_data[stage_name][-100:]
 
-    def _update_performance_metrics(
-        self, cache_hit: bool, detection_time: float, failed: bool = False
-    ) -> None:
+    def _update_performance_metrics(self, cache_hit: bool, detection_time: float, failed: bool = False) -> None:
         """Update performance tracking metrics."""
         self.performance_metrics["total_detections"] += 1
 
@@ -567,14 +532,9 @@ class BiasDetectionIntegration:
                 cache_hits = (
                     total_detections
                     - self.performance_metrics["failed_detections"]
-                    - (
-                        self.performance_metrics["successful_detections"]
-                        - (1 if not failed else 0)
-                    )
+                    - (self.performance_metrics["successful_detections"] - (1 if not failed else 0))
                 )
-                self.performance_metrics["cache_hit_rate"] = cache_hits / max(
-                    1, total_detections
-                )
+                self.performance_metrics["cache_hit_rate"] = cache_hits / max(1, total_detections)
 
             # Update average detection time
             current_avg = self.performance_metrics["average_detection_time"]
@@ -583,9 +543,7 @@ class BiasDetectionIntegration:
                 current_avg * (total_successful - 1) + detection_time
             ) / total_successful
 
-    async def _publish_bias_threshold_event(
-        self, stage_name: str, bias_score: float, threshold: float
-    ) -> None:
+    async def _publish_bias_threshold_event(self, stage_name: str, bias_score: float, threshold: float) -> None:
         """Publish bias threshold exceeded event."""
         try:
             EventMessage(
@@ -596,7 +554,7 @@ class BiasDetectionIntegration:
                     "threshold": threshold,
                     "exceeded_by": bias_score - threshold,
                     "severity": "high" if bias_score > threshold + 0.1 else "medium",
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 },
                 source="bias_detection_integration",
                 target="monitoring_system",
@@ -605,16 +563,13 @@ class BiasDetectionIntegration:
             # Note: This would need event_bus to be passed in or made available
             # For now, just log the event
             self.logger.warning(
-                f"BIAS THRESHOLD EXCEEDED: Stage {stage_name}, "
-                f"Score: {bias_score:.3f}, Threshold: {threshold}"
+                f"BIAS THRESHOLD EXCEEDED: Stage {stage_name}, Score: {bias_score:.3f}, Threshold: {threshold}"
             )
 
         except Exception as e:
             self.logger.error(f"Failed to publish bias threshold event: {e}")
 
-    def get_monitoring_summary(
-        self, stage_name: str | None = None
-    ) -> dict[str, Any]:
+    def get_monitoring_summary(self, stage_name: str | None = None) -> dict[str, Any]:
         """
         Get bias monitoring summary.
 
@@ -633,9 +588,7 @@ class BiasDetectionIntegration:
             }
 
             # Analyze by stage
-            stages_to_analyze = (
-                [stage_name] if stage_name else self.monitoring_data.keys()
-            )
+            stages_to_analyze = [stage_name] if stage_name else self.monitoring_data.keys()
 
             for stage in stages_to_analyze:
                 if self.monitoring_data.get(stage):
@@ -643,23 +596,16 @@ class BiasDetectionIntegration:
 
                     # Calculate stage metrics
                     recent_metrics = stage_data[-10:]  # Last 10 measurements
-                    avg_bias = sum(m.overall_bias_score for m in recent_metrics) / len(
-                        recent_metrics
-                    )
+                    avg_bias = sum(m.overall_bias_score for m in recent_metrics) / len(recent_metrics)
                     max_bias = max(m.overall_bias_score for m in recent_metrics)
-                    violations = sum(
-                        1 for m in recent_metrics if m.compliance_status == "violation"
-                    )
+                    violations = sum(1 for m in recent_metrics if m.compliance_status == "violation")
 
                     summary["stage_summaries"][stage] = {
                         "average_bias_score": avg_bias,
                         "maximum_bias_score": max_bias,
                         "recent_violations": violations,
                         "total_measurements": len(stage_data),
-                        "compliance_rate": (len(stage_data) - violations)
-                        / len(stage_data)
-                        if stage_data
-                        else 0,
+                        "compliance_rate": (len(stage_data) - violations) / len(stage_data) if stage_data else 0,
                     }
 
                     # Track recent violations
@@ -740,23 +686,16 @@ class BiasDetectionIntegration:
 
             # Check configuration
             config_healthy = (
-                self.config.enabled
-                and 0.0 <= self.config.threshold <= 1.0
-                and self.config.timeout_seconds > 0
+                self.config.enabled and 0.0 <= self.config.threshold <= 1.0 and self.config.timeout_seconds > 0
             )
 
             # Check performance metrics
             performance_healthy = (
                 self.performance_metrics["successful_detections"] > 0
-                or self.performance_metrics["total_detections"]
-                == 0  # No detections yet is OK
+                or self.performance_metrics["total_detections"] == 0  # No detections yet is OK
             )
 
-            status = (
-                "healthy"
-                if all([service_healthy, config_healthy, performance_healthy])
-                else "degraded"
-            )
+            status = "healthy" if all([service_healthy, config_healthy, performance_healthy]) else "degraded"
 
             return {
                 "status": status,
@@ -767,7 +706,7 @@ class BiasDetectionIntegration:
                 "total_detections": self.performance_metrics["total_detections"],
                 "cache_enabled": self.config.cache_enabled,
                 "real_time_monitoring": self.config.real_time_monitoring,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
         except Exception as e:
@@ -775,5 +714,5 @@ class BiasDetectionIntegration:
             return {
                 "status": "unhealthy",
                 "error": str(e),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }

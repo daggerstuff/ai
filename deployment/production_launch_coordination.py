@@ -15,7 +15,7 @@ import json
 import logging
 import time
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any
 
@@ -102,7 +102,7 @@ class ProductionLaunchCoordinator:
                 priority="critical",
                 status=LaunchStatus.COMPLETED,
                 assigned_to="DevOps Team",
-                completion_date=datetime.now(timezone.utc),
+                completion_date=datetime.now(UTC),
                 verification_notes="Production environment validated and ready",
             ),
             LaunchChecklistItem(
@@ -113,7 +113,7 @@ class ProductionLaunchCoordinator:
                 priority="critical",
                 status=LaunchStatus.COMPLETED,
                 assigned_to="Database Team",
-                completion_date=datetime.now(timezone.utc),
+                completion_date=datetime.now(UTC),
                 verification_notes="Database migration completed successfully",
             ),
             LaunchChecklistItem(
@@ -124,7 +124,7 @@ class ProductionLaunchCoordinator:
                 priority="high",
                 status=LaunchStatus.COMPLETED,
                 assigned_to="DevOps Team",
-                completion_date=datetime.now(timezone.utc),
+                completion_date=datetime.now(UTC),
                 verification_notes="Load balancers configured and tested",
             ),
             # Security Validation
@@ -136,7 +136,7 @@ class ProductionLaunchCoordinator:
                 priority="critical",
                 status=LaunchStatus.COMPLETED,
                 assigned_to="Security Team",
-                completion_date=datetime.now(timezone.utc),
+                completion_date=datetime.now(UTC),
                 verification_notes="Security scans completed - no critical vulnerabilities",
             ),
             LaunchChecklistItem(
@@ -147,7 +147,7 @@ class ProductionLaunchCoordinator:
                 priority="critical",
                 status=LaunchStatus.COMPLETED,
                 assigned_to="DevOps Team",
-                completion_date=datetime.now(timezone.utc),
+                completion_date=datetime.now(UTC),
                 verification_notes="SSL certificates installed and validated",
             ),
             # Application Readiness
@@ -159,7 +159,7 @@ class ProductionLaunchCoordinator:
                 priority="critical",
                 status=LaunchStatus.COMPLETED,
                 assigned_to="Development Team",
-                completion_date=datetime.now(timezone.utc),
+                completion_date=datetime.now(UTC),
                 verification_notes="Application deployed and functionality validated",
             ),
             LaunchChecklistItem(
@@ -170,7 +170,7 @@ class ProductionLaunchCoordinator:
                 priority="high",
                 status=LaunchStatus.COMPLETED,
                 assigned_to="QA Team",
-                completion_date=datetime.now(timezone.utc),
+                completion_date=datetime.now(UTC),
                 verification_notes="All API endpoints tested and functional",
             ),
             # Monitoring and Alerting
@@ -182,7 +182,7 @@ class ProductionLaunchCoordinator:
                 priority="critical",
                 status=LaunchStatus.COMPLETED,
                 assigned_to="DevOps Team",
-                completion_date=datetime.now(timezone.utc),
+                completion_date=datetime.now(UTC),
                 verification_notes="Monitoring systems active with proper alerting",
             ),
             LaunchChecklistItem(
@@ -193,7 +193,7 @@ class ProductionLaunchCoordinator:
                 priority="high",
                 status=LaunchStatus.COMPLETED,
                 assigned_to="DevOps Team",
-                completion_date=datetime.now(timezone.utc),
+                completion_date=datetime.now(UTC),
                 verification_notes="Production dashboards configured and operational",
             ),
             # Safety and Compliance
@@ -205,7 +205,7 @@ class ProductionLaunchCoordinator:
                 priority="critical",
                 status=LaunchStatus.COMPLETED,
                 assigned_to="Safety Team",
-                completion_date=datetime.now(timezone.utc),
+                completion_date=datetime.now(UTC),
                 verification_notes="Safety systems activated and tested",
             ),
             LaunchChecklistItem(
@@ -216,7 +216,7 @@ class ProductionLaunchCoordinator:
                 priority="critical",
                 status=LaunchStatus.COMPLETED,
                 assigned_to="Compliance Team",
-                completion_date=datetime.now(timezone.utc),
+                completion_date=datetime.now(UTC),
                 verification_notes="Compliance validation completed",
             ),
             # Rollback Preparation
@@ -228,7 +228,7 @@ class ProductionLaunchCoordinator:
                 priority="critical",
                 status=LaunchStatus.COMPLETED,
                 assigned_to="DevOps Team",
-                completion_date=datetime.now(timezone.utc),
+                completion_date=datetime.now(UTC),
                 verification_notes="Rollback procedures tested and validated",
             ),
             LaunchChecklistItem(
@@ -239,7 +239,7 @@ class ProductionLaunchCoordinator:
                 priority="high",
                 status=LaunchStatus.COMPLETED,
                 assigned_to="DevOps Team",
-                completion_date=datetime.now(timezone.utc),
+                completion_date=datetime.now(UTC),
                 verification_notes="Backup systems validated and recovery tested",
             ),
             # Team Readiness
@@ -251,7 +251,7 @@ class ProductionLaunchCoordinator:
                 priority="high",
                 status=LaunchStatus.COMPLETED,
                 assigned_to="Project Manager",
-                completion_date=datetime.now(timezone.utc),
+                completion_date=datetime.now(UTC),
                 verification_notes="Launch team briefed and prepared",
             ),
             LaunchChecklistItem(
@@ -262,7 +262,7 @@ class ProductionLaunchCoordinator:
                 priority="high",
                 status=LaunchStatus.COMPLETED,
                 assigned_to="Support Manager",
-                completion_date=datetime.now(timezone.utc),
+                completion_date=datetime.now(UTC),
                 verification_notes="Support team ready for post-launch operations",
             ),
         ]
@@ -381,12 +381,8 @@ class ProductionLaunchCoordinator:
             launch_approval,
         )
 
-        logger.info(
-            f"Production launch coordination completed in {total_time:.2f} seconds"
-        )
-        logger.info(
-            f"Launch approval: {'APPROVED' if self.go_live_approved else 'PENDING'}"
-        )
+        logger.info(f"Production launch coordination completed in {total_time:.2f} seconds")
+        logger.info(f"Launch approval: {'APPROVED' if self.go_live_approved else 'PENDING'}")
 
         return report
 
@@ -394,22 +390,12 @@ class ProductionLaunchCoordinator:
         """Validate launch checklist completion"""
 
         total_items = len(self.checklist_items)
-        completed_items = sum(
-            1 for item in self.checklist_items if item.status == LaunchStatus.COMPLETED
-        )
-        critical_items = [
-            item for item in self.checklist_items if item.priority == "critical"
-        ]
-        critical_completed = sum(
-            1 for item in critical_items if item.status == LaunchStatus.COMPLETED
-        )
+        completed_items = sum(1 for item in self.checklist_items if item.status == LaunchStatus.COMPLETED)
+        critical_items = [item for item in self.checklist_items if item.priority == "critical"]
+        critical_completed = sum(1 for item in critical_items if item.status == LaunchStatus.COMPLETED)
 
-        completion_rate = (
-            (completed_items / total_items) * 100 if total_items > 0 else 0
-        )
-        critical_completion_rate = (
-            (critical_completed / len(critical_items)) * 100 if critical_items else 0
-        )
+        completion_rate = (completed_items / total_items) * 100 if total_items > 0 else 0
+        critical_completion_rate = (critical_completed / len(critical_items)) * 100 if critical_items else 0
 
         # Group by category
         category_status = {}
@@ -424,9 +410,7 @@ class ProductionLaunchCoordinator:
         for category in category_status:
             total = category_status[category]["total"]
             completed = category_status[category]["completed"]
-            category_status[category]["completion_rate"] = (
-                (completed / total) * 100 if total > 0 else 0
-            )
+            category_status[category]["completion_rate"] = (completed / total) * 100 if total > 0 else 0
 
         checklist_ready = completion_rate == 100.0 and critical_completion_rate == 100.0
 
@@ -445,15 +429,9 @@ class ProductionLaunchCoordinator:
         """Validate launch team readiness"""
 
         total_members = len(self.team_members)
-        available_members = sum(
-            1
-            for member in self.team_members
-            if member.availability_status == "available"
-        )
+        available_members = sum(1 for member in self.team_members if member.availability_status == "available")
 
-        availability_rate = (
-            (available_members / total_members) * 100 if total_members > 0 else 0
-        )
+        availability_rate = (available_members / total_members) * 100 if total_members > 0 else 0
 
         # Check critical roles
         critical_roles = [
@@ -466,8 +444,7 @@ class ProductionLaunchCoordinator:
 
         for role in critical_roles:
             role_covered = any(
-                member.role == role and member.availability_status == "available"
-                for member in self.team_members
+                member.role == role and member.availability_status == "available" for member in self.team_members
             )
             critical_roles_covered.append(role_covered)
 
@@ -500,9 +477,7 @@ class ProductionLaunchCoordinator:
             "stakeholder_approval": True,
         }
 
-        passed_criteria = sum(
-            1 for criterion in assessment_criteria.values() if criterion
-        )
+        passed_criteria = sum(1 for criterion in assessment_criteria.values() if criterion)
         total_criteria = len(assessment_criteria)
         assessment_score = (passed_criteria / total_criteria) * 100
 
@@ -575,7 +550,7 @@ class ProductionLaunchCoordinator:
             approval_level = "NO_APPROVAL"
 
         # Set launch window
-        launch_window_start = datetime.now(timezone.utc) + timedelta(hours=1)
+        launch_window_start = datetime.now(UTC) + timedelta(hours=1)
         launch_window_end = launch_window_start + timedelta(hours=4)
 
         return {
@@ -583,7 +558,7 @@ class ProductionLaunchCoordinator:
             "approval_status": approval_status,
             "approval_level": approval_level,
             "approval_criteria": approval_criteria,
-            "approval_date": datetime.now(timezone.utc).isoformat(),
+            "approval_date": datetime.now(UTC).isoformat(),
             "launch_window_start": launch_window_start.isoformat(),
             "launch_window_end": launch_window_end.isoformat(),
             "approved_by": "Production Launch Coordinator",
@@ -603,7 +578,7 @@ class ProductionLaunchCoordinator:
         return {
             "task_106_summary": {
                 "task_name": "Task 106: Production Launch Coordination",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "execution_time": execution_time,
                 "launch_ready": self.launch_ready,
                 "go_live_approved": self.go_live_approved,
@@ -623,9 +598,7 @@ class ProductionLaunchCoordinator:
                     "status": item.status.value,
                     "assigned_to": item.assigned_to,
                     "completed": item.status == LaunchStatus.COMPLETED,
-                    "completion_date": item.completion_date.isoformat()
-                    if item.completion_date
-                    else None,
+                    "completion_date": item.completion_date.isoformat() if item.completion_date else None,
                     "verification_notes": item.verification_notes,
                 }
                 for item in self.checklist_items
@@ -643,9 +616,7 @@ class ProductionLaunchCoordinator:
             ],
             "launch_metrics": {
                 "checklist_completion_rate": checklist_validation["completion_rate"],
-                "critical_items_completion_rate": checklist_validation[
-                    "critical_completion_rate"
-                ],
+                "critical_items_completion_rate": checklist_validation["critical_completion_rate"],
                 "team_availability_rate": team_readiness["availability_rate"],
                 "go_live_assessment_score": go_live_assessment["assessment_score"],
                 "rollback_readiness_score": rollback_validation["rollback_score"],
@@ -725,10 +696,9 @@ if __name__ == "__main__":
         report["launch_metrics"]
 
         # Save report
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         report_file = f"task_106_launch_coordination_report_{timestamp}.json"
         with open(report_file, "w") as f:
             json.dump(report, f, indent=2)
-
 
     asyncio.run(main())

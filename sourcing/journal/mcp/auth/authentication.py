@@ -71,9 +71,7 @@ class AuthenticationHandler(ABC):
 
         # Check for auth in request metadata (if available)
         if hasattr(request, "metadata") and isinstance(request.metadata, dict):
-            auth_header = request.metadata.get("Authorization") or request.metadata.get(
-                "authorization"
-            )
+            auth_header = request.metadata.get("Authorization") or request.metadata.get("authorization")
             if auth_header:
                 return auth_header
 
@@ -309,4 +307,3 @@ def create_auth_handler(config: AuthConfig) -> AuthenticationHandler | None:
     # Default: no authentication
     logger.warning("Authentication enabled but no method configured")
     return None
-

@@ -11,7 +11,6 @@ def test_single_item_nvidia():
         # Assuming environment variables for NVIDIA are already set in .env
         orchestrator = create_multi_agent_system(model="nvidia/nemotron-3-nano-30b-a3b")
     except Exception:
-
         sys.exit(1)
 
     task = {"task_id": "test_nvidia_1", "data": {"text": "I feel really sad and hopeless."}}
@@ -19,7 +18,6 @@ def test_single_item_nvidia():
     try:
         orchestrator.annotate_with_consensus(task)
     except Exception:
-
         traceback.print_exc()
 
 

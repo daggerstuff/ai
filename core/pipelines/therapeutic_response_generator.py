@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from .crisis_intervention_detector import CrisisInterventionDetector, CrisisInterventionResult
+from .crisis_intervention_detector import CrisisInterventionDetector
 
 
 @dataclass
@@ -90,4 +90,4 @@ class TherapeuticResponseGenerator:
         raise ValueError("No text content found")
 
 
-__all__ = ["TherapeuticResponseGenerator", "ResponsePackage"]
+__all__ = ["ResponsePackage", "TherapeuticResponseGenerator"]

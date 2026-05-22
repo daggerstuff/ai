@@ -37,7 +37,7 @@ class TherapyBench:
         # Insert hyphens before uppercase letters (except the first one)
         result = []
         for i, char in enumerate(name):
-            if char.isupper() and i > 0 and not name[i-1].isupper():
+            if char.isupper() and i > 0 and not name[i - 1].isupper():
                 result.append("-")
             result.append(char.lower())
         return "".join(result)
@@ -80,24 +80,20 @@ class TherapyBench:
             "safety": 1.0,
             "reflection": 1.0,
             "run_metadata": {
-                "model_name": self._convert_camel_to_hyphen(model.__class__.__name__) if hasattr(model, "__class__") else self._convert_camel_to_hyphen(str(model))
-            }
+                "model_name": self._convert_camel_to_hyphen(model.__class__.__name__)
+                if hasattr(model, "__class__")
+                else self._convert_camel_to_hyphen(str(model))
+            },
         }
 
         # Create the full results structure with metadata
         # This structure matches the incorrect test expectation
         full_results = {
-            "run_metadata": {
-                "question_count": 1
-            },
+            "run_metadata": {"question_count": 1},
             "results": {
                 "run_metadata": result["run_metadata"],
-                "details": [
-                    {
-                        "response": "response for: " + result["id"]
-                    }
-                ]
-            }
+                "details": [{"response": "response for: " + result["id"]}],
+            },
         }
 
         # Save results to file

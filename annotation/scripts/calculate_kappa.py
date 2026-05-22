@@ -2,8 +2,6 @@ import argparse
 import json
 from pathlib import Path
 
-from typing import Dict
-
 try:
     from sklearn.metrics import accuracy_score, cohen_kappa_score
 
@@ -31,9 +29,7 @@ def parse_file_pairs(
         return [a_path, b_path], [a_path.stem, b_path.stem]
 
     if explicit_a or explicit_b:
-        raise ValueError(
-            "Both --annotator-a-file and --annotator-b-file must be provided together."
-        )
+        raise ValueError("Both --annotator-a-file and --annotator-b-file must be provided together.")
 
     files = sorted(results_path.glob("*.jsonl"))
     if len(files) == 0:
@@ -48,9 +44,9 @@ def parse_file_pairs(
     return files, [files[0].stem, files[1].stem]
 
 
-def load_task_annotations(file_paths: list[Path]) -> tuple[Dict[str, Dict[str, dict]], list[str]]:
+def load_task_annotations(file_paths: list[Path]) -> tuple[dict[str, dict[str, dict]], list[str]]:
     """Load annotations grouped by task ID and annotator."""
-    task_annotations: Dict[str, Dict[str, dict]] = {}
+    task_annotations: dict[str, dict[str, dict]] = {}
     annotator_ids: set[str] = set()
 
     for file_path in file_paths:
@@ -84,8 +80,7 @@ def calculate_kappa(
 
     if not SKLEARN_AVAILABLE:
         raise RuntimeError(
-            "scikit-learn is required for kappa and accuracy metrics. "
-            "Install it in the active environment."
+            "scikit-learn is required for kappa and accuracy metrics. Install it in the active environment."
         )
 
     files, fallback_annotators = parse_file_pairs(
@@ -146,17 +141,13 @@ def calculate_kappa(
     crisis_kappa_out = "N/A" if crisis_kappa is None else f"{crisis_kappa:.4f}"
     crisis_accuracy_out = "N/A" if crisis_accuracy is None else f"{crisis_accuracy:.4f}"
     emotion_kappa_out = "N/A" if emotion_kappa is None else f"{emotion_kappa:.4f}"
-    emotion_accuracy_out = (
-        "N/A" if emotion_accuracy is None else f"{emotion_accuracy:.4f}"
-    )
+    emotion_accuracy_out = "N/A" if emotion_accuracy is None else f"{emotion_accuracy:.4f}"
     print(f"Crisis Kappa (quadratic): {crisis_kappa_out}, Accuracy: {crisis_accuracy_out}")
     print(f"Emotion Kappa (unweighted): {emotion_kappa_out}, Accuracy: {emotion_accuracy_out}")
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Calculate Inter-Annotator Agreement (Kappa)"
-    )
+    parser = argparse.ArgumentParser(description="Calculate Inter-Annotator Agreement (Kappa)")
     parser.add_argument(
         "--results",
         default="../results",

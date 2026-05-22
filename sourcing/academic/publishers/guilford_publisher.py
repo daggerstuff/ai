@@ -114,9 +114,7 @@ class GuilfordPublisher(BasePublisher):
             logger.error(f"Guilford search error: {e}")
             return []
 
-    def _parse_record(
-        self, record: dict[str, Any], _query: str
-    ) -> BookMetadata | None:
+    def _parse_record(self, record: dict[str, Any], _query: str) -> BookMetadata | None:
         """Parse Guilford record"""
         try:
             title = record.get("title", "Unknown Title")
@@ -164,9 +162,7 @@ class GuilfordPublisher(BasePublisher):
             if self._auth_token:
                 headers["Authorization"] = f"Bearer {self._auth_token}"
 
-            response = self.session.get(
-                f"{self.api_base_url}/books/{book_id}", headers=headers, timeout=10
-            )
+            response = self.session.get(f"{self.api_base_url}/books/{book_id}", headers=headers, timeout=10)
             if response.status_code == 200:
                 return self._parse_record(response.json(), "")
             return None
@@ -174,9 +170,7 @@ class GuilfordPublisher(BasePublisher):
             logger.error(f"Error getting metadata: {e}")
             return None
 
-    def get_book_content(
-        self, _book_id: str, _format: BookFormat = BookFormat.PDF
-    ) -> BookContent | None:
+    def get_book_content(self, _book_id: str, _format: BookFormat = BookFormat.PDF) -> BookContent | None:
         """Get book content (typically requires purchase)"""
         logger.warning("Guilford content typically requires purchase")
         return None

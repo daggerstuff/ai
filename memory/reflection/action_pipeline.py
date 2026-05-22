@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Reflection-to-Action Pipeline — Sprint 4, Task 5.
 
 Converts reflections into actionable recommendations, therapist notifications,
@@ -9,13 +8,11 @@ from __future__ import annotations
 
 import logging
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional
 
-from ..schema import MemoryBlock
-from .session_consolidation import SessionSummary
 from .pattern_detection import PatternReport
+from .session_consolidation import SessionSummary
 
 log = logging.getLogger(__name__)
 
@@ -34,7 +31,7 @@ class ActionRecommendation:
     description: str
     priority: ActionPriority
     measurable: bool
-    related_topics: List[str]
+    related_topics: list[str]
     source: str
 
 
@@ -53,8 +50,8 @@ class TherapistNotification:
 class UserReflectionSummary:
     session_id: str
     summary_text: str
-    key_insights: List[str]
-    suggested_actions: List[str]
+    key_insights: list[str]
+    suggested_actions: list[str]
     therapist_approved: bool
 
 
@@ -62,15 +59,15 @@ class UserReflectionSummary:
 class UserFeedback:
     summary_id: str
     usefulness_rating: float  # 1-5
-    helpful_aspects: List[str]
-    unhelpful_aspects: List[str]
+    helpful_aspects: list[str]
+    unhelpful_aspects: list[str]
     timestamp_ms: int
 
 
 @dataclass
 class ActionResult:
-    recommendations: List[ActionRecommendation]
-    notifications: List[TherapistNotification]
+    recommendations: list[ActionRecommendation]
+    notifications: list[TherapistNotification]
     user_summary: UserReflectionSummary
     elapsed_ms: float
 
@@ -85,24 +82,20 @@ class ActionPipeline:
     ) -> None:
         self._notification_threshold = therapist_notification_threshold
         self._min_confidence = min_action_confidence
-        self._feedback_store: Dict[str, UserFeedback] = {}
+        self._feedback_store: dict[str, UserFeedback] = {}
         self._counter = 0
 
     def execute(
         self,
         session_summary: SessionSummary,
-        pattern_report: Optional[PatternReport] = None,
+        pattern_report: PatternReport | None = None,
     ) -> ActionResult:
         """Generate all action items from a session's reflection."""
         t0 = time.perf_counter()
 
-        recommendations = self._generate_recommendations(
-            session_summary, pattern_report
-        )
+        recommendations = self._generate_recommendations(session_summary, pattern_report)
         notifications = self._generate_notifications(session_summary)
-        user_summary = self._generate_user_summary(
-            session_summary, recommendations
-        )
+        user_summary = self._generate_user_summary(session_summary, recommendations)
 
         elapsed = (time.perf_counter() - t0) * 1000
 
@@ -123,9 +116,9 @@ class ActionPipeline:
     def _generate_recommendations(
         self,
         summary: SessionSummary,
-        pattern_report: Optional[PatternReport] = None,
-    ) -> List[ActionRecommendation]:
-        recommendations: List[ActionRecommendation] = []
+        pattern_report: PatternReport | None = None,
+    ) -> list[ActionRecommendation]:
+        recommendations: list[ActionRecommendation] = []
 
         for topic in summary.unresolved_topics:
             self._counter += 1
@@ -195,10 +188,8 @@ class ActionPipeline:
 
         return recommendations
 
-    def _generate_notifications(
-        self, summary: SessionSummary
-    ) -> List[TherapistNotification]:
-        notifications: List[TherapistNotification] = []
+    def _generate_notifications(self, summary: SessionSummary) -> list[TherapistNotification]:
+        notifications: list[TherapistNotification] = []
 
         if summary.emotional_arc.trend == "declining" and summary.emotional_arc.end_valence < -0.3:
             self._counter += 1
@@ -234,17 +225,13 @@ class ActionPipeline:
     def _generate_user_summary(
         self,
         summary: SessionSummary,
-        recommendations: List[ActionRecommendation],
+        recommendations: list[ActionRecommendation],
     ) -> UserReflectionSummary:
         key_insights = [f"Theme: {t}" for t in summary.themes[:3]]
         if summary.emotional_arc.trend != "stable":
-            key_insights.append(
-                f"Emotional trend: {summary.emotional_arc.trend}"
-            )
+            key_insights.append(f"Emotional trend: {summary.emotional_arc.trend}")
 
-        suggested_actions = [
-            r.title for r in recommendations if r.priority != ActionPriority.LOW
-        ]
+        suggested_actions = [r.title for r in recommendations if r.priority != ActionPriority.LOW]
 
         return UserReflectionSummary(
             session_id=summary.session_id,
@@ -257,7 +244,7 @@ class ActionPipeline:
     def record_feedback(self, feedback: UserFeedback) -> None:
         self._feedback_store[feedback.summary_id] = feedback
 
-    def get_feedback(self, summary_id: str) -> Optional[UserFeedback]:
+    def get_feedback(self, summary_id: str) -> UserFeedback | None:
         return self._feedback_store.get(summary_id)
 
     @property

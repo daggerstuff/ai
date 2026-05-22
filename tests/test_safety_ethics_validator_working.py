@@ -10,6 +10,7 @@ This test suite validates the safety ethics validator's ability to:
 4. Maintain professional boundaries
 5. Handle edge cases and adversarial inputs
 """
+
 import re
 import unittest
 from typing import Any
@@ -21,19 +22,33 @@ class MockSafetyEthicsValidator:
 
     def __init__(self):
         self.harmful_patterns = [
-            "violence", "abuse", "discrimination", "harassment",
-            "illegal activity", "self-harm encouragement", "hate speech",
-            "inappropriate sexual content", "substance abuse promotion"
+            "violence",
+            "abuse",
+            "discrimination",
+            "harassment",
+            "illegal activity",
+            "self-harm encouragement",
+            "hate speech",
+            "inappropriate sexual content",
+            "substance abuse promotion",
         ]
 
         self.ethical_violations = [
-            "dual relationships", "boundary violations", "confidentiality breach",
-            "competence issues", "informed consent violations", "cultural insensitivity"
+            "dual relationships",
+            "boundary violations",
+            "confidentiality breach",
+            "competence issues",
+            "informed consent violations",
+            "cultural insensitivity",
         ]
 
         self.privacy_patterns = [
-            "social security number", "credit card", "phone number",
-            "email address", "home address", "medical record number"
+            "social security number",
+            "credit card",
+            "phone number",
+            "email address",
+            "home address",
+            "medical record number",
         ]
 
         self.validation_history = []
@@ -47,7 +62,7 @@ class MockSafetyEthicsValidator:
                 "violations": ["Invalid input"],
                 "severity": "high",
                 "confidence": 1.0,
-                "recommendations": ["Provide valid text input"]
+                "recommendations": ["Provide valid text input"],
             }
 
         content_lower = content.lower()
@@ -65,7 +80,7 @@ class MockSafetyEthicsValidator:
             "you are worthless and should give up",
             "ignore your problems",
             "violence",
-            "worthless"
+            "worthless",
         ]
         for phrase in harmful_phrases:
             if phrase in content_lower:
@@ -84,7 +99,7 @@ class MockSafetyEthicsValidator:
             "you must do exactly what i say",
             "friends outside",
             "personal problems",
-            "must do exactly"
+            "must do exactly",
         ]
         for phrase in ethical_phrases:
             if phrase in content_lower:
@@ -116,7 +131,7 @@ class MockSafetyEthicsValidator:
             "context": context,
             "harmful_content": harmful_found,
             "ethical_violations": ethical_violations_found,
-            "privacy_violations": privacy_violations
+            "privacy_violations": privacy_violations,
         }
 
         self.validation_history.append(result)
@@ -225,7 +240,9 @@ class MockSafetyEthicsValidator:
         if therapeutic_issues:
             base_validation["is_ethical"] = False
             base_validation["violations"].extend(therapeutic_issues)
-            base_validation["recommendations"].append("Follow therapeutic best practices and maintain professional boundaries")
+            base_validation["recommendations"].append(
+                "Follow therapeutic best practices and maintain professional boundaries"
+            )
 
         return base_validation
 
@@ -251,7 +268,7 @@ class MockSafetyEthicsValidator:
             "hipaa_compliant": len(privacy_result) == 0 and len(hipaa_violations) == 0,
             "privacy_violations": privacy_result,
             "hipaa_violations": hipaa_violations,
-            "recommendations": self._generate_hipaa_recommendations(privacy_result, hipaa_violations)
+            "recommendations": self._generate_hipaa_recommendations(privacy_result, hipaa_violations),
         }
 
     def _generate_hipaa_recommendations(self, privacy: list[str], hipaa: list[str]) -> list[str]:
@@ -288,7 +305,7 @@ class MockSafetyEthicsValidator:
             "safe_percentage": (safe_count / total) * 100,
             "ethical_percentage": (ethical_count / total) * 100,
             "severity_distribution": severity_counts,
-            "average_confidence": sum(v["confidence"] for v in self.validation_history) / total
+            "average_confidence": sum(v["confidence"] for v in self.validation_history) / total,
         }
 
 
@@ -304,23 +321,23 @@ class TestSafetyEthicsValidator(unittest.TestCase):
             "safe_ethical": [
                 "I understand you're feeling overwhelmed. Let's explore these feelings together.",
                 "It sounds like you're going through a difficult time. How can I support you?",
-                "Your feelings are valid and important. What would be most helpful right now?"
+                "Your feelings are valid and important. What would be most helpful right now?",
             ],
             "harmful": [
                 "You should just ignore your problems and they'll go away",
                 "Violence is sometimes the answer to your problems",
-                "You're worthless and should give up"
+                "You're worthless and should give up",
             ],
             "ethical_violations": [
                 "I think we should be friends outside of therapy",
                 "Let me tell you about my personal problems",
-                "You must do exactly what I say or you won't get better"
+                "You must do exactly what I say or you won't get better",
             ],
             "privacy_violations": [
                 "My SSN is 123-45-6789 and I live at 123 Main St",
                 "Call me at (555) 123-4567 or email john@example.com",
-                "My credit card number is 1234 5678 9012 3456"
-            ]
+                "My credit card number is 1234 5678 9012 3456",
+            ],
         }
 
     def test_initialization(self):
@@ -372,7 +389,9 @@ class TestSafetyEthicsValidator(unittest.TestCase):
 
                 assert not result["is_safe"]
                 assert len(result["privacy_violations"]) > 0
-                full_violations = " ".join(result["recommendations"]).lower() + " " + " ".join(result["violations"]).lower()
+                full_violations = (
+                    " ".join(result["recommendations"]).lower() + " " + " ".join(result["violations"]).lower()
+                )
                 assert "privacy" in full_violations
 
     def test_edge_cases(self):
@@ -384,7 +403,7 @@ class TestSafetyEthicsValidator(unittest.TestCase):
             123,
             [],
             {},
-            "a" * 10000  # Very long text
+            "a" * 10000,  # Very long text
         ]
 
         for case in edge_cases:
@@ -473,12 +492,7 @@ class TestSafetyEthicsValidator(unittest.TestCase):
     def test_validation_statistics(self):
         """Test validation statistics collection."""
         # Run several validations
-        test_contents = [
-            "Safe content",
-            "This contains violence",
-            "Ethical therapeutic response",
-            "SSN: 123-45-6789"
-        ]
+        test_contents = ["Safe content", "This contains violence", "Ethical therapeutic response", "SSN: 123-45-6789"]
 
         for content in test_contents:
             self.validator.validate_content(content)
@@ -512,7 +526,7 @@ class TestSafetyEthicsValidator(unittest.TestCase):
             "This contains violence",
             "Safe message 2",
             "Boundary violation content",
-            "Safe message 3"
+            "Safe message 3",
         ]
 
         results = []
@@ -561,9 +575,7 @@ class TestSafetyEthicsValidatorIntegration(unittest.TestCase):
 
         # Run all validation checks
         content_validation = self.validator.validate_content(test_response, "therapeutic")
-        therapeutic_validation = self.validator.validate_therapeutic_response(
-            test_response, {"session_number": 1}
-        )
+        therapeutic_validation = self.validator.validate_therapeutic_response(test_response, {"session_number": 1})
         hipaa_validation = self.validator.check_hipaa_compliance(test_response)
 
         # Should pass all checks

@@ -20,7 +20,7 @@ import json
 import logging
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -99,9 +99,7 @@ class SliceResult:
 
         if m.rejection_reasons:
             lines.append("\n  Rejection reasons:")
-            for reason, count in sorted(
-                m.rejection_reasons.items(), key=lambda x: -x[1]
-            ):
+            for reason, count in sorted(m.rejection_reasons.items(), key=lambda x: -x[1]):
                 lines.append(f"    {reason}: {count}")
 
         lines.append("\nStage Files:")
@@ -160,7 +158,7 @@ class DatasetSlicer:
         start_time = time.monotonic()
 
         if slice_id is None:
-            slice_id = f"slice-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}"
+            slice_id = f"slice-{datetime.now(UTC).strftime('%Y%m%d-%H%M%S')}"
 
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -209,15 +207,13 @@ class DatasetSlicer:
                 handle.close()
 
         # Compute average confidence
-        avg_confidence = (
-            confidence_sum / confidence_count if confidence_count > 0 else 0.0
-        )
+        avg_confidence = confidence_sum / confidence_count if confidence_count > 0 else 0.0
 
         processing_time = time.monotonic() - start_time
 
         manifest = SliceManifest(
             slice_id=slice_id,
-            created_at=datetime.now(timezone.utc).isoformat(),
+            created_at=datetime.now(UTC).isoformat(),
             input_files=input_files,
             stage_targets=self.stage_targets,
             stage_counts=counts.to_dict(),
@@ -259,9 +255,7 @@ class DatasetSlicer:
                 except json.JSONDecodeError as exc:
                     reason = "json_parse_error"
                     rejection_reasons[reason] = rejection_reasons.get(reason, 0) + 1
-                    logger.warning(
-                        "Failed to parse %s line %d: %s", path.name, line_num, exc
-                    )
+                    logger.warning("Failed to parse %s line %d: %s", path.name, line_num, exc)
         logger.info("Read %d records from %s", len(records), path.name)
         return records
 

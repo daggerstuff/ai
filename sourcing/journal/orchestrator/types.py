@@ -33,9 +33,7 @@ class DiscoveryServiceProtocol(Protocol):
 class EvaluationServiceProtocol(Protocol):
     """Protocol for dataset evaluation services."""
 
-    def evaluate_dataset(
-        self, source: DatasetSource, evaluator: str = "system"
-    ) -> DatasetEvaluation:
+    def evaluate_dataset(self, source: DatasetSource, evaluator: str = "system") -> DatasetEvaluation:
         """Evaluate a dataset source and return evaluation results."""
         ...
 
@@ -65,9 +63,7 @@ class AcquisitionServiceProtocol(Protocol):
 class IntegrationServiceProtocol(Protocol):
     """Protocol for integration planning services."""
 
-    def create_integration_plan(
-        self, dataset: AcquiredDataset, target_format: str = "chatml"
-    ) -> IntegrationPlan:
+    def create_integration_plan(self, dataset: AcquiredDataset, target_format: str = "chatml") -> IntegrationPlan:
         """Create an integration plan for the acquired dataset."""
         ...
 
@@ -110,4 +106,3 @@ class OrchestratorConfig:
     session_storage_path: Path | None = None
     visualization_max_points: int = 100
     fallback_on_failure: bool = True
-

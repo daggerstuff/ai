@@ -31,4 +31,3 @@ __all__ = [
     "create_app",
     "embedding_router",
 ]
-

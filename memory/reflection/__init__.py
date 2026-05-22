@@ -1,5 +1,12 @@
-from .reflexion import ReflexionEngine, FeedbackType, ActionFeedbackPair, VerbalReflection, ReflexionResult
-from .session_consolidation import SessionConsolidator, SessionSummary, EmotionalArc
-from .pattern_detection import PatternDetector, PatternReport, RecurringTheme, ProgressTrend, TriggerPattern
-from .dream_integration import DreamReflectionIntegrator, DreamReflectionResult, DreamReflectionInsight
-from .action_pipeline import ActionPipeline, ActionRecommendation, TherapistNotification, UserReflectionSummary, UserFeedback, ActionResult
+from .action_pipeline import (
+    ActionPipeline,
+    ActionRecommendation,
+    ActionResult,
+    TherapistNotification,
+    UserFeedback,
+    UserReflectionSummary,
+)
+from .dream_integration import DreamReflectionInsight, DreamReflectionIntegrator, DreamReflectionResult
+from .pattern_detection import PatternDetector, PatternReport, ProgressTrend, RecurringTheme, TriggerPattern
+from .reflexion import ActionFeedbackPair, FeedbackType, ReflexionEngine, ReflexionResult, VerbalReflection
+from .session_consolidation import EmotionalArc, SessionConsolidator, SessionSummary

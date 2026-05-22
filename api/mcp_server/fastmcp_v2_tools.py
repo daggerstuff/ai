@@ -8,6 +8,7 @@ This module provides memory management tools with:
 - Pagination metadata
 - Actionable error messages
 """
+
 from __future__ import annotations
 
 import json
@@ -35,8 +36,10 @@ from .fastmcp_store import (
 # Enums
 # =============================================================================
 
+
 class ResponseFormat(StrEnum):
     """Output format for tool responses."""
+
     MARKDOWN = "markdown"
     JSON = "json"
 
@@ -45,8 +48,10 @@ class ResponseFormat(StrEnum):
 # Pydantic Models
 # =============================================================================
 
+
 class MemoryStoreInput(BaseModel):
     """Input model for storing a memory."""
+
     model_config = ConfigDict(
         str_strip_whitespace=True,
         validate_assignment=True,
@@ -87,6 +92,7 @@ class MemoryStoreInput(BaseModel):
 
 class MemoryQueryInput(BaseModel):
     """Input model for querying memories."""
+
     model_config = ConfigDict(
         str_strip_whitespace=True,
         validate_assignment=True,
@@ -129,6 +135,7 @@ class MemoryQueryInput(BaseModel):
 
 class MemoryGetInput(BaseModel):
     """Input model for retrieving a single memory."""
+
     model_config = ConfigDict(
         str_strip_whitespace=True,
         validate_assignment=True,
@@ -160,6 +167,7 @@ class MemoryGetInput(BaseModel):
 
 class MemoryListInput(BaseModel):
     """Input model for listing all memories."""
+
     model_config = ConfigDict(
         str_strip_whitespace=True,
         validate_assignment=True,
@@ -197,6 +205,7 @@ class MemoryListInput(BaseModel):
 
 class MemoryUpdateInput(BaseModel):
     """Input model for updating a memory."""
+
     model_config = ConfigDict(
         str_strip_whitespace=True,
         validate_assignment=True,
@@ -238,6 +247,7 @@ class MemoryUpdateInput(BaseModel):
 
 class MemoryDeleteInput(BaseModel):
     """Input model for deleting a memory."""
+
     model_config = ConfigDict(
         str_strip_whitespace=True,
         validate_assignment=True,
@@ -269,6 +279,7 @@ class MemoryDeleteInput(BaseModel):
 
 class MemoryStatusInput(BaseModel):
     """Input model for memory status."""
+
     model_config = ConfigDict(
         str_strip_whitespace=True,
         validate_assignment=True,
@@ -297,6 +308,7 @@ class MemoryStatusInput(BaseModel):
 # Helper Functions
 # =============================================================================
 
+
 def _format_error(message: str, suggestion: str | None = None) -> str:
     """Format error messages with actionable guidance."""
     if suggestion:
@@ -312,25 +324,28 @@ def _format_memory_results_json(
     offset: int,
 ) -> str:
     """Format search results as JSON with pagination metadata."""
-    return json.dumps({
-        "user_id": user_id,
-        "query": query,
-        "total": len(results),
-        "count": min(len(results), limit),
-        "offset": offset,
-        "has_more": len(results) > limit + offset,
-        "next_offset": offset + limit if len(results) > limit + offset else None,
-        "memories": [
-            {
-                "id": r.get("id"),
-                "content": r.get("memory") or r.get("content") or r.get("text"),
-                "score": r.get("score", 0.0),
-                "category": r.get("metadata", {}).get("category"),
-                "created_at": r.get("created_at"),
-            }
-            for r in results[offset:offset + limit]
-        ],
-    }, indent=2)
+    return json.dumps(
+        {
+            "user_id": user_id,
+            "query": query,
+            "total": len(results),
+            "count": min(len(results), limit),
+            "offset": offset,
+            "has_more": len(results) > limit + offset,
+            "next_offset": offset + limit if len(results) > limit + offset else None,
+            "memories": [
+                {
+                    "id": r.get("id"),
+                    "content": r.get("memory") or r.get("content") or r.get("text"),
+                    "score": r.get("score", 0.0),
+                    "category": r.get("metadata", {}).get("category"),
+                    "created_at": r.get("created_at"),
+                }
+                for r in results[offset : offset + limit]
+            ],
+        },
+        indent=2,
+    )
 
 
 def _format_memory_results_markdown(
@@ -348,7 +363,7 @@ def _format_memory_results_markdown(
         "",
     ]
 
-    for i, r in enumerate(results[offset:offset + limit], start=offset + 1):
+    for i, r in enumerate(results[offset : offset + limit], start=offset + 1):
         content = r.get("memory") or r.get("content") or r.get("text", "N/A")
         score = r.get("score", 0.0)
         category = r.get("metadata", {}).get("category", "unknown")
@@ -365,6 +380,7 @@ def _format_memory_results_markdown(
 # =============================================================================
 # Tool Definitions
 # =============================================================================
+
 
 async def foresight_store_memory(params: MemoryStoreInput) -> str:
     """Store a significant fact, preference, or insight in long-term memory.
@@ -422,13 +438,16 @@ async def foresight_store_memory(params: MemoryStoreInput) -> str:
         )
 
         if params.response_format == ResponseFormat.JSON:
-            return json.dumps({
-                "success": True,
-                "user_id": plan.user_id,
-                "content": plan.content,
-                "category": plan.category,
-                "memory_id": result if isinstance(result, str) else None,
-            }, indent=2)
+            return json.dumps(
+                {
+                    "success": True,
+                    "user_id": plan.user_id,
+                    "content": plan.content,
+                    "category": plan.category,
+                    "memory_id": result if isinstance(result, str) else None,
+                },
+                indent=2,
+            )
 
         return memory_store_success_message(
             user_id=plan.user_id,
@@ -438,8 +457,7 @@ async def foresight_store_memory(params: MemoryStoreInput) -> str:
         )
     except Exception as exc:
         return _format_error(
-            f"Failed to store memory: {exc}",
-            "Check that the content is valid and you have write permissions."
+            f"Failed to store memory: {exc}", "Check that the content is valid and you have write permissions."
         )
 
 
@@ -493,12 +511,15 @@ async def foresight_query_memories(params: MemoryQueryInput) -> str:
 
         if not results:
             if params.response_format == ResponseFormat.JSON:
-                return json.dumps({
-                    "user_id": context.scope.user_id,
-                    "query": params.query,
-                    "total": 0,
-                    "memories": [],
-                }, indent=2)
+                return json.dumps(
+                    {
+                        "user_id": context.scope.user_id,
+                        "query": params.query,
+                        "total": 0,
+                        "memories": [],
+                    },
+                    indent=2,
+                )
             return f"No memories found matching '{params.query}' for user {params.user_id}."
 
         if params.response_format == ResponseFormat.JSON:
@@ -510,10 +531,7 @@ async def foresight_query_memories(params: MemoryQueryInput) -> str:
         )
 
     except Exception as exc:
-        return _format_error(
-            f"Failed to query memories: {exc}",
-            "Check your query syntax and try with simpler terms."
-        )
+        return _format_error(f"Failed to query memories: {exc}", "Check your query syntax and try with simpler terms.")
 
 
 async def foresight_get_memory(params: MemoryGetInput) -> str:
@@ -556,52 +574,53 @@ async def foresight_get_memory(params: MemoryGetInput) -> str:
         ):
             return _format_error(
                 f"Memory '{params.memory_id}' not found in your scope.",
-                "Verify the memory ID is correct and you have access to it."
+                "Verify the memory ID is correct and you have access to it.",
             )
 
         # Get the memory record
         if not hasattr(context.manager, "get_memory"):
             return _format_error(
                 "Memory retrieval not supported by this backend.",
-                "Use foresight_query_memories or foresight_list_memories instead."
+                "Use foresight_query_memories or foresight_list_memories instead.",
             )
 
         record = context.manager.get_memory(params.memory_id)
         if not record:
             return _format_error(
-                f"Memory '{params.memory_id}' not found.",
-                "The memory may have been deleted or the ID is incorrect."
+                f"Memory '{params.memory_id}' not found.", "The memory may have been deleted or the ID is incorrect."
             )
 
         if params.response_format == ResponseFormat.JSON:
-            return json.dumps({
-                "id": record.get("id"),
-                "content": record.get("content") or record.get("memory") or record.get("text"),
-                "user_id": context.scope.user_id,
-                "category": record.get("metadata", {}).get("category"),
-                "metadata": record.get("metadata", {}),
-                "created_at": record.get("created_at"),
-            }, indent=2)
+            return json.dumps(
+                {
+                    "id": record.get("id"),
+                    "content": record.get("content") or record.get("memory") or record.get("text"),
+                    "user_id": context.scope.user_id,
+                    "category": record.get("metadata", {}).get("category"),
+                    "metadata": record.get("metadata", {}),
+                    "created_at": record.get("created_at"),
+                },
+                indent=2,
+            )
 
         content = record.get("content") or record.get("memory") or record.get("text", "N/A")
         category = record.get("metadata", {}).get("category", "unknown")
         created = record.get("created_at", "unknown")
 
-        return "\n".join([
-            f"### Memory: {params.memory_id}",
-            f"**User:** {context.scope.user_id}",
-            f"**Category:** {category}",
-            f"**Created:** {created}",
-            "",
-            "**Content:**",
-            content,
-        ])
+        return "\n".join(
+            [
+                f"### Memory: {params.memory_id}",
+                f"**User:** {context.scope.user_id}",
+                f"**Category:** {category}",
+                f"**Created:** {created}",
+                "",
+                "**Content:**",
+                content,
+            ]
+        )
 
     except Exception as exc:
-        return _format_error(
-            f"Failed to retrieve memory: {exc}",
-            "Check the memory ID and your access permissions."
-        )
+        return _format_error(f"Failed to retrieve memory: {exc}", "Check the memory ID and your access permissions.")
 
 
 async def foresight_list_memories(params: MemoryListInput) -> str:
@@ -650,31 +669,39 @@ async def foresight_list_memories(params: MemoryListInput) -> str:
 
         if not memories:
             if params.response_format == ResponseFormat.JSON:
-                return json.dumps({
-                    "user_id": context.scope.user_id,
-                    "total": 0,
-                    "memories": [],
-                }, indent=2)
+                return json.dumps(
+                    {
+                        "user_id": context.scope.user_id,
+                        "total": 0,
+                        "memories": [],
+                    },
+                    indent=2,
+                )
             return f"No memories found for user {params.user_id}."
 
         if params.response_format == ResponseFormat.JSON:
-            return json.dumps({
-                "user_id": context.scope.user_id,
-                "total": len(memories),
-                "count": min(len(memories) - params.offset, params.limit),
-                "offset": params.offset,
-                "has_more": len(memories) > params.limit + params.offset,
-                "next_offset": params.offset + params.limit if len(memories) > params.limit + params.offset else None,
-                "memories": [
-                    {
-                        "id": m.get("id"),
-                        "content": (m.get("content") or m.get("memory") or m.get("text", ""))[:200],
-                        "category": m.get("metadata", {}).get("category"),
-                        "created_at": m.get("created_at"),
-                    }
-                    for m in memories[params.offset:params.offset + params.limit]
-                ],
-            }, indent=2)
+            return json.dumps(
+                {
+                    "user_id": context.scope.user_id,
+                    "total": len(memories),
+                    "count": min(len(memories) - params.offset, params.limit),
+                    "offset": params.offset,
+                    "has_more": len(memories) > params.limit + params.offset,
+                    "next_offset": params.offset + params.limit
+                    if len(memories) > params.limit + params.offset
+                    else None,
+                    "memories": [
+                        {
+                            "id": m.get("id"),
+                            "content": (m.get("content") or m.get("memory") or m.get("text", ""))[:200],
+                            "category": m.get("metadata", {}).get("category"),
+                            "created_at": m.get("created_at"),
+                        }
+                        for m in memories[params.offset : params.offset + params.limit]
+                    ],
+                },
+                indent=2,
+            )
 
         lines = [
             f"### Memory List for {params.user_id}",
@@ -682,7 +709,7 @@ async def foresight_list_memories(params: MemoryListInput) -> str:
             "",
         ]
 
-        for i, m in enumerate(memories[params.offset:params.offset + params.limit], start=params.offset + 1):
+        for i, m in enumerate(memories[params.offset : params.offset + params.limit], start=params.offset + 1):
             content = (m.get("content") or m.get("memory") or m.get("text", "N/A"))[:100]
             category = m.get("metadata", {}).get("category", "unknown")
             memory_id = m.get("id", "unknown")
@@ -696,10 +723,7 @@ async def foresight_list_memories(params: MemoryListInput) -> str:
         return "\n".join(lines)
 
     except Exception as exc:
-        return _format_error(
-            f"Failed to list memories: {exc}",
-            "Try with a smaller limit or check your permissions."
-        )
+        return _format_error(f"Failed to list memories: {exc}", "Try with a smaller limit or check your permissions.")
 
 
 async def foresight_update_memory(params: MemoryUpdateInput) -> str:
@@ -743,8 +767,7 @@ async def foresight_update_memory(params: MemoryUpdateInput) -> str:
         authorized_user_id = context.scope.user_id
         if not isinstance(context.manager, MemoryUpdater):
             return _format_error(
-                "Memory backend does not support updates.",
-                "This backend is read-only. Contact your administrator."
+                "Memory backend does not support updates.", "This backend is read-only. Contact your administrator."
             )
 
         if not memory_in_scope(
@@ -754,7 +777,7 @@ async def foresight_update_memory(params: MemoryUpdateInput) -> str:
         ):
             return _format_error(
                 f"Memory '{params.memory_id}' not found in your scope.",
-                "Verify the memory ID and your access permissions."
+                "Verify the memory ID and your access permissions.",
             )
 
         if context.manager.update_memory(
@@ -764,24 +787,21 @@ async def foresight_update_memory(params: MemoryUpdateInput) -> str:
             user_id=authorized_user_id,
         ):
             if params.response_format == ResponseFormat.JSON:
-                return json.dumps({
-                    "success": True,
-                    "memory_id": params.memory_id,
-                    "user_id": authorized_user_id,
-                    "content_length": len(params.content),
-                }, indent=2)
+                return json.dumps(
+                    {
+                        "success": True,
+                        "memory_id": params.memory_id,
+                        "user_id": authorized_user_id,
+                        "content_length": len(params.content),
+                    },
+                    indent=2,
+                )
             return f"Memory updated successfully (ID: {params.memory_id})"
 
-        return _format_error(
-            "Update failed for unknown reason.",
-            "Try again or check the memory content for issues."
-        )
+        return _format_error("Update failed for unknown reason.", "Try again or check the memory content for issues.")
 
     except Exception as exc:
-        return _format_error(
-            f"Failed to update memory: {exc}",
-            "Check the memory ID and your update permissions."
-        )
+        return _format_error(f"Failed to update memory: {exc}", "Check the memory ID and your update permissions.")
 
 
 async def foresight_delete_memory(params: MemoryDeleteInput) -> str:
@@ -821,8 +841,7 @@ async def foresight_delete_memory(params: MemoryDeleteInput) -> str:
         authorized_user_id = context.scope.user_id
         if not isinstance(context.manager, MemoryRemover):
             return _format_error(
-                "Memory backend does not support deletion.",
-                "This backend is read-only. Contact your administrator."
+                "Memory backend does not support deletion.", "This backend is read-only. Contact your administrator."
             )
 
         if not memory_in_scope(
@@ -832,28 +851,25 @@ async def foresight_delete_memory(params: MemoryDeleteInput) -> str:
         ):
             return _format_error(
                 f"Memory '{params.memory_id}' not found in your scope.",
-                "Verify the memory ID and your access permissions."
+                "Verify the memory ID and your access permissions.",
             )
 
         if context.manager.delete_memory(params.memory_id, user_id=authorized_user_id):
             if params.response_format == ResponseFormat.JSON:
-                return json.dumps({
-                    "success": True,
-                    "memory_id": params.memory_id,
-                    "user_id": authorized_user_id,
-                }, indent=2)
+                return json.dumps(
+                    {
+                        "success": True,
+                        "memory_id": params.memory_id,
+                        "user_id": authorized_user_id,
+                    },
+                    indent=2,
+                )
             return f"Memory deleted successfully (ID: {params.memory_id})"
 
-        return _format_error(
-            "Deletion failed for unknown reason.",
-            "The memory may have already been deleted."
-        )
+        return _format_error("Deletion failed for unknown reason.", "The memory may have already been deleted.")
 
     except Exception as exc:
-        return _format_error(
-            f"Failed to delete memory: {exc}",
-            "Check the memory ID and your delete permissions."
-        )
+        return _format_error(f"Failed to delete memory: {exc}", "Check the memory ID and your delete permissions.")
 
 
 async def foresight_memory_status(params: MemoryStatusInput) -> str:
@@ -885,8 +901,7 @@ async def foresight_memory_status(params: MemoryStatusInput) -> str:
             )
         else:
             return _format_error(
-                "Authentication required.",
-                "Provide auth_context or enable HINDSIGHT_MCP_STDIO_TRUST."
+                "Authentication required.", "Provide auth_context or enable HINDSIGHT_MCP_STDIO_TRUST."
             )
     else:
         context = authorized_tool_context_from_json(
@@ -907,42 +922,43 @@ async def foresight_memory_status(params: MemoryStatusInput) -> str:
         )
 
         if params.response_format == ResponseFormat.JSON:
-            return json.dumps({
-                "user_id": context.scope.user_id,
-                "total_memories": summary.total_memories,
-                "is_sampled": summary.is_sampled,
-                "health": summary.health,
-                "categories": dict(summary.categories),
-            }, indent=2)
+            return json.dumps(
+                {
+                    "user_id": context.scope.user_id,
+                    "total_memories": summary.total_memories,
+                    "is_sampled": summary.is_sampled,
+                    "health": summary.health,
+                    "categories": dict(summary.categories),
+                },
+                indent=2,
+            )
 
         if summary.total_memories == 0:
             return f"### Memory Status: {context.scope.user_id}\n\nNo memories stored yet."
 
         total_label = "Sampled Memories" if summary.is_sampled else "Total Memories"
-        category_lines = "\n".join(
-            f"- **{key}:** {value}" for key, value in summary.categories.items()
-        )
+        category_lines = "\n".join(f"- **{key}:** {value}" for key, value in summary.categories.items())
 
-        return "\n".join([
-            f"### Memory Status: {context.scope.user_id}",
-            "",
-            f"**{total_label}:** {summary.total_memories}",
-            f"**Health:** {summary.health}",
-            "",
-            "**Category Breakdown:**",
-            category_lines,
-        ])
+        return "\n".join(
+            [
+                f"### Memory Status: {context.scope.user_id}",
+                "",
+                f"**{total_label}:** {summary.total_memories}",
+                f"**Health:** {summary.health}",
+                "",
+                "**Category Breakdown:**",
+                category_lines,
+            ]
+        )
 
     except Exception as exc:
-        return _format_error(
-            f"Failed to get memory status: {exc}",
-            "Check your authentication and try again."
-        )
+        return _format_error(f"Failed to get memory status: {exc}", "Check your authentication and try again.")
 
 
 # =============================================================================
 # Registration Function
 # =============================================================================
+
 
 def register_memory_tools_v2(mcp: FastMCP) -> None:
     """Register all improved Foresight memory tools with the MCP server.

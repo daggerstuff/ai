@@ -22,9 +22,9 @@ class AuthConfig:
     jwt_secret: str = os.getenv("MCP_JWT_SECRET", "change-me-in-production")
     jwt_algorithm: str = "HS256"
     jwt_expiration_minutes: int = 60 * 24  # 24 hours
-    allowed_api_keys: list[str] = field(default_factory=lambda: [
-        key for key in os.getenv("MCP_API_KEYS", "").split(",") if key
-    ])
+    allowed_api_keys: list[str] = field(
+        default_factory=lambda: [key for key in os.getenv("MCP_API_KEYS", "").split(",") if key]
+    )
 
 
 @dataclass
@@ -127,4 +127,3 @@ def load_mcp_config(_config_path: Path | None = None) -> MCPConfig:
     # For now, load from environment variables only
     # Future: support loading from YAML/JSON config file
     return MCPConfig()
-

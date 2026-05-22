@@ -12,9 +12,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -214,9 +212,7 @@ class ResearchInstrumentAcquisition:
             "Negative predictive value",
         ]
 
-    def acquire_instrument_from_source(
-        self, instrument_type: InstrumentType
-    ) -> InstrumentMetadata | None:
+    def acquire_instrument_from_source(self, instrument_type: InstrumentType) -> InstrumentMetadata | None:
         """Acquire instrument data from source"""
         logger.info(f"🔍 Acquiring {instrument_type.value} from source...")
 
@@ -747,10 +743,7 @@ class ResearchInstrumentAcquisition:
             "types": {},
             "languages": {},
             "licenses": {},
-            "average_confidence": sum(
-                instrument.confidence_score for instrument in instruments
-            )
-            / len(instruments)
+            "average_confidence": sum(instrument.confidence_score for instrument in instruments) / len(instruments)
             if instruments
             else 0,
         }
@@ -766,9 +759,7 @@ class ResearchInstrumentAcquisition:
 
             # Count by license
             license_type = instrument.license
-            summary["licenses"][license_type] = (
-                summary["licenses"].get(license_type, 0) + 1
-            )
+            summary["licenses"][license_type] = summary["licenses"].get(license_type, 0) + 1
 
         return summary
 

@@ -7,7 +7,7 @@ Handles metadata storage for datasets, processing runs, and evaluation results.
 import json
 import logging
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -36,10 +36,7 @@ class DatasetPersistence:
                 self.db = self.client["pixelated_ai"]
                 logger.info("Connected to MongoDB successfully.")
             except (ConnectionFailure, Exception) as e:
-                logger.error(
-                    f"Failed to connect to MongoDB: {e}. "
-                    "Falling back to local file state."
-                )
+                logger.error(f"Failed to connect to MongoDB: {e}. Falling back to local file state.")
                 self.client = None
                 self.db = None
         else:
@@ -50,7 +47,7 @@ class DatasetPersistence:
         record = {
             "name": name,
             "version": version,
-            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_at": datetime.now(UTC).isoformat(),
             **metadata,
         }
 
@@ -77,27 +74,21 @@ class DatasetPersistence:
                 return json.load(f)
         return None
 
-    def update_pipeline_state(
-        self, pipeline_id: str, state: str, details: dict[str, Any]
-    ):
+    def update_pipeline_state(self, pipeline_id: str, state: str, details: dict[str, Any]):
         """Updates the state of a running pipeline."""
         record = {
             "pipeline_id": pipeline_id,
             "state": state,
-            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(UTC).isoformat(),
             "details": details,
         }
 
         if self.db is not None:
-            self.db.pipeline_states.update_one(
-                {"pipeline_id": pipeline_id}, {"$set": record}, upsert=True
-            )
+            self.db.pipeline_states.update_one({"pipeline_id": pipeline_id}, {"$set": record}, upsert=True)
         logger.info(f"Pipeline {pipeline_id} state updated to {state}.")
 
 
 if __name__ == "__main__":
     # Self-test
     persist = DatasetPersistence()
-    persist.log_dataset_version(
-        "test_audit", "1.0.0", {"records": 1000, "source": "audit"}
-    )
+    persist.log_dataset_version("test_audit", "1.0.0", {"records": 1000, "source": "audit"})

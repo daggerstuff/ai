@@ -1,4 +1,3 @@
-
 import json
 from datetime import datetime
 from typing import Any
@@ -217,4 +216,3 @@ async def test_session_metrics_resource_activity_only(
     assert "activity_log" in payload
     assert "progress_report" not in payload
     assert payload["activity_log"][0]["activity_type"] == "session_start"
-

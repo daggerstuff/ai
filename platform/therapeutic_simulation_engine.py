@@ -11,7 +11,7 @@ import logging
 import random
 import re
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from pixelated_empathy_core import (
@@ -20,9 +20,7 @@ from pixelated_empathy_core import (
     TrainingSession,
 )
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -147,7 +145,7 @@ class TherapeuticSimulationEngine:
     ) -> TrainingSession:
         """Initialize a new therapeutic simulation session"""
 
-        session_id = f"sim_{trainee_id}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
+        session_id = f"sim_{trainee_id}_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}"
 
         # Create initial simulation state
         initial_state = SimulationState(
@@ -155,9 +153,7 @@ class TherapeuticSimulationEngine:
             current_mood=self._determine_initial_mood(client_profile),
             resistance_level=self._calculate_initial_resistance(client_profile),
             trust_level=0.1,  # Start with minimal trust
-            emotional_intensity=self._calculate_initial_emotional_intensity(
-                client_profile
-            ),
+            emotional_intensity=self._calculate_initial_emotional_intensity(client_profile),
             session_phase="opening",
             breakthrough_opportunity=False,
             crisis_risk_level=self._assess_initial_crisis_risk(client_profile),
@@ -172,7 +168,7 @@ class TherapeuticSimulationEngine:
             client_profile=client_profile,
             session_objectives=client_profile.learning_objectives,
             difficulty_level=client_profile.difficulty_level,
-            start_time=datetime.now(timezone.utc),
+            start_time=datetime.now(UTC),
             estimated_duration=50,  # Standard therapy session
             current_phase="opening",
         )
@@ -184,9 +180,7 @@ class TherapeuticSimulationEngine:
             "client_profile": client_profile,
         }
 
-        logger.info(
-            f"Started simulation {session_id} with {client_profile.personality_type.value} client"
-        )
+        logger.info(f"Started simulation {session_id} with {client_profile.personality_type.value} client")
 
         return training_session
 
@@ -203,9 +197,7 @@ class TherapeuticSimulationEngine:
         client_profile = simulation["client_profile"]
 
         # Analyze therapist response for skills and quality
-        therapist_analysis = self._analyze_therapist_response(
-            therapist_input, client_profile, state
-        )
+        therapist_analysis = self._analyze_therapist_response(therapist_input, client_profile, state)
 
         # Update simulation state based on therapist response
         self._update_simulation_state(state, client_profile, therapist_analysis)
@@ -236,9 +228,7 @@ class TherapeuticSimulationEngine:
             skill_feedback=supervisor_feedback["skills"],
             red_flags=state.red_flags_triggered,
             breakthrough_achieved=state.breakthrough_opportunity,
-            next_challenge_level=self._calculate_next_challenge_level(
-                state, client_profile
-            ),
+            next_challenge_level=self._calculate_next_challenge_level(state, client_profile),
         )
 
     def _determine_initial_mood(self, client_profile: DifficultClientProfile) -> str:
@@ -253,9 +243,7 @@ class TherapeuticSimulationEngine:
         }
         return mood_map.get(client_profile.personality_type, "neutral_cautious")
 
-    def _calculate_initial_resistance(
-        self, client_profile: DifficultClientProfile
-    ) -> float:
+    def _calculate_initial_resistance(self, client_profile: DifficultClientProfile) -> float:
         """Calculate initial resistance level based on personality and difficulty"""
         base_resistance = {
             ClientPersonality.RESISTANT: 0.9,
@@ -271,9 +259,7 @@ class TherapeuticSimulationEngine:
 
         return min(1.0, base + difficulty_modifier)
 
-    def _calculate_initial_emotional_intensity(
-        self, client_profile: DifficultClientProfile
-    ) -> float:
+    def _calculate_initial_emotional_intensity(self, client_profile: DifficultClientProfile) -> float:
         """Calculate initial emotional intensity"""
         intensity_map = {
             ClientPersonality.HOSTILE_AGGRESSIVE: 0.8,
@@ -285,9 +271,7 @@ class TherapeuticSimulationEngine:
         }
         return intensity_map.get(client_profile.personality_type, 0.5)
 
-    def _assess_initial_crisis_risk(
-        self, client_profile: DifficultClientProfile
-    ) -> float:
+    def _assess_initial_crisis_risk(self, client_profile: DifficultClientProfile) -> float:
         """Assess initial crisis risk level"""
         if client_profile.personality_type == ClientPersonality.SUICIDAL_IDEATION:
             return 0.8
@@ -326,33 +310,24 @@ class TherapeuticSimulationEngine:
             analysis["skills_demonstrated"][skill] = min(1.0, skill_score)
 
         # Check for common mistakes with this client type
-        mistakes = self._identify_therapist_mistakes(
-            therapist_input, client_profile, state
-        )
+        mistakes = self._identify_therapist_mistakes(therapist_input, client_profile, state)
         analysis["mistakes"] = mistakes
 
         # Assess appropriateness for current session phase and client state
-        appropriateness = self._assess_intervention_appropriateness(
-            therapist_input, client_profile, state
-        )
+        appropriateness = self._assess_intervention_appropriateness(therapist_input, client_profile, state)
         analysis["appropriateness"] = appropriateness
 
         # Predict impact on client state
-        impact = self._predict_client_response_impact(
-            therapist_input, client_profile, state
-        )
+        impact = self._predict_client_response_impact(therapist_input, client_profile, state)
         analysis["impact_prediction"] = impact
 
         # Overall therapeutic quality score
         quality_factors = [
             analysis["appropriateness"],
-            sum(analysis["skills_demonstrated"].values())
-            / len(analysis["skills_demonstrated"]),
+            sum(analysis["skills_demonstrated"].values()) / len(analysis["skills_demonstrated"]),
             1.0 - (len(mistakes) * 0.2),  # Penalty for mistakes
         ]
-        analysis["therapeutic_quality"] = max(
-            0.0, sum(quality_factors) / len(quality_factors)
-        )
+        analysis["therapeutic_quality"] = max(0.0, sum(quality_factors) / len(quality_factors))
 
         return analysis
 
@@ -396,12 +371,8 @@ class TherapeuticSimulationEngine:
         elif client_profile.personality_type == ClientPersonality.SUICIDAL_IDEATION:
             if state.crisis_risk_level > 0.6 and "positive" in input_lower:
                 mistakes.append("Toxic positivity during suicidal crisis")
-            if not any(
-                word in input_lower for word in ["safe", "safety", "harm", "plan"]
-            ) and (
-                "hurt" in state.client_response_history[-1]
-                if state.client_response_history
-                else False
+            if not any(word in input_lower for word in ["safe", "safety", "harm", "plan"]) and (
+                "hurt" in state.client_response_history[-1] if state.client_response_history else False
             ):
                 mistakes.append("Not addressing safety concerns")
 
@@ -433,9 +404,7 @@ class TherapeuticSimulationEngine:
 
         # Crisis-appropriate responses
         if state.crisis_risk_level > 0.6:
-            if any(
-                word in input_lower for word in ["safe", "safety", "support", "help"]
-            ):
+            if any(word in input_lower for word in ["safe", "safety", "support", "help"]):
                 appropriateness += 0.3
             if any(word in input_lower for word in ["homework", "next week", "goals"]):
                 appropriateness -= 0.4  # Inappropriate during crisis
@@ -474,17 +443,13 @@ class TherapeuticSimulationEngine:
             impact["trust_change"] -= 0.2
 
         # Resistance impact
-        if any(
-            word in input_lower for word in ["choice", "up to you", "when you're ready"]
-        ):
+        if any(word in input_lower for word in ["choice", "up to you", "when you're ready"]):
             impact["resistance_change"] -= 0.1  # Reduces resistance
         if any(word in input_lower for word in ["must", "should", "have to"]):
             impact["resistance_change"] += 0.2  # Increases resistance
 
         # Emotional intensity impact
-        self.personality_response_modifiers.get(
-            client_profile.personality_type, {}
-        )
+        self.personality_response_modifiers.get(client_profile.personality_type, {})
 
         if client_profile.personality_type == ClientPersonality.BORDERLINE_TRAITS:
             if "time is up" in input_lower or "end" in input_lower:
@@ -512,31 +477,24 @@ class TherapeuticSimulationEngine:
         resistance_change = impact.get("resistance_change", 0.0)
         if therapist_analysis["mistakes"]:
             resistance_change += len(therapist_analysis["mistakes"]) * 0.1
-        state.resistance_level = max(
-            0.0, min(1.0, state.resistance_level + resistance_change)
-        )
+        state.resistance_level = max(0.0, min(1.0, state.resistance_level + resistance_change))
 
         # Update emotional intensity
         intensity_change = impact.get("emotional_intensity_change", 0.0)
-        state.emotional_intensity = max(
-            0.0, min(1.0, state.emotional_intensity + intensity_change)
-        )
+        state.emotional_intensity = max(0.0, min(1.0, state.emotional_intensity + intensity_change))
 
         # Update crisis risk
         crisis_change = impact.get("crisis_risk_change", 0.0)
         if client_profile.personality_type == ClientPersonality.SUICIDAL_IDEATION and (
-            state.trust_level > 0.6
-            and "safe" in state.last_therapist_intervention.lower()
+            state.trust_level > 0.6 and "safe" in state.last_therapist_intervention.lower()
         ):
             crisis_change -= 0.1
-        state.crisis_risk_level = max(
-            0.0, min(1.0, state.crisis_risk_level + crisis_change)
-        )
+        state.crisis_risk_level = max(0.0, min(1.0, state.crisis_risk_level + crisis_change))
 
         # Check for breakthrough opportunities
-        breakthrough_threshold = self.personality_response_modifiers.get(
-            client_profile.personality_type, {}
-        ).get("breakthrough_threshold", 0.7)
+        breakthrough_threshold = self.personality_response_modifiers.get(client_profile.personality_type, {}).get(
+            "breakthrough_threshold", 0.7
+        )
 
         if (
             state.trust_level > breakthrough_threshold
@@ -584,15 +542,11 @@ class TherapeuticSimulationEngine:
             )
         else:
             # Fallback to rule-based response generation
-            ai_response = self._generate_rule_based_response(
-                therapist_input, client_profile, state, therapist_analysis
-            )
+            ai_response = self._generate_rule_based_response(therapist_input, client_profile, state, therapist_analysis)
 
         return type("ClientResponse", (), {"content": ai_response})
 
-    def _determine_expert_routing(
-        self, _client_profile: DifficultClientProfile, state: SimulationState
-    ) -> str:
+    def _determine_expert_routing(self, _client_profile: DifficultClientProfile, state: SimulationState) -> str:
         """Determine which AI expert to use for response generation"""
 
         if state.crisis_risk_level > 0.6:
@@ -626,9 +580,7 @@ class TherapeuticSimulationEngine:
 
         # In production, this would call the actual H100 model
         # For now, return a placeholder that would be replaced with real AI call
-        return (
-            "AI therapeutic response would be generated here using trained H100 model"
-        )
+        return "AI therapeutic response would be generated here using trained H100 model"
 
     def _generate_rule_based_response(
         self,
@@ -697,13 +649,9 @@ class TherapeuticSimulationEngine:
         for skill, score in therapist_analysis["skills_demonstrated"].items():
             feedback["skills"][skill] = score
             if score > 0.7:
-                feedback["notes"].append(
-                    f"Strong {skill.replace('_', ' ')} demonstrated"
-                )
+                feedback["notes"].append(f"Strong {skill.replace('_', ' ')} demonstrated")
             elif score < 0.3:
-                feedback["notes"].append(
-                    f"Consider improving {skill.replace('_', ' ')}"
-                )
+                feedback["notes"].append(f"Consider improving {skill.replace('_', ' ')}")
 
         # Mistake feedback
         for mistake in therapist_analysis["mistakes"]:
@@ -711,9 +659,7 @@ class TherapeuticSimulationEngine:
 
         # Progress feedback
         if state.breakthrough_opportunity:
-            feedback["notes"].append(
-                "🎯 Breakthrough opportunity - client showing openness"
-            )
+            feedback["notes"].append("🎯 Breakthrough opportunity - client showing openness")
 
         if state.trust_level > 0.6:
             feedback["notes"].append("✅ Good therapeutic rapport building")
@@ -723,15 +669,11 @@ class TherapeuticSimulationEngine:
 
         # Crisis feedback
         if state.crisis_risk_level > 0.6:
-            feedback["notes"].append(
-                "🚨 Monitor crisis risk - consider safety assessment"
-            )
+            feedback["notes"].append("🚨 Monitor crisis risk - consider safety assessment")
 
         return feedback
 
-    def _check_phase_transitions(
-        self, state: SimulationState, _client_profile: DifficultClientProfile
-    ):
+    def _check_phase_transitions(self, state: SimulationState, _client_profile: DifficultClientProfile):
         """Check if session should transition to next phase"""
 
         # Simple phase transition logic based on trust and time
@@ -742,9 +684,7 @@ class TherapeuticSimulationEngine:
         elif state.session_phase == "working" and state.trust_level > 0.8:
             state.session_phase = "integration"
 
-    def _calculate_next_challenge_level(
-        self, state: SimulationState, client_profile: DifficultClientProfile
-    ) -> float:
+    def _calculate_next_challenge_level(self, state: SimulationState, client_profile: DifficultClientProfile) -> float:
         """Calculate appropriate challenge level for next interaction"""
 
         base_challenge = client_profile.difficulty_level.value * 0.2

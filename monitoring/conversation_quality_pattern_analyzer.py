@@ -10,13 +10,14 @@ Analyzes patterns in conversation quality across datasets, identifying:
 - Engagement quality patterns
 - Quality degradation/improvement patterns
 """
+
 import json
 import re
 import sqlite3
 import traceback
 import warnings
 from collections import Counter, defaultdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import matplotlib.pyplot as plt
@@ -28,9 +29,7 @@ warnings.simplefilter("default")
 
 
 class ConversationQualityPatternAnalyzer:
-    def __init__(
-        self, db_path: str = "/home/vivi/pixelated/ai/database/conversations.db"
-    ):
+    def __init__(self, db_path: str = "/home/vivi/pixelated/ai/database/conversations.db"):
         self.db_path = db_path
         self.quality_metrics = {}
         self.patterns = {}
@@ -65,7 +64,7 @@ class ConversationQualityPatternAnalyzer:
         self._create_quality_visualizations(quality_results)
 
         return {
-            "analysis_timestamp": datetime.now(timezone.utc).isoformat(),
+            "analysis_timestamp": datetime.now(UTC).isoformat(),
             "total_conversations": len(conversations),
             "quality_analysis": quality_results,
             "insights": insights,
@@ -89,38 +88,26 @@ class ConversationQualityPatternAnalyzer:
             df = pd.read_sql_query(query, conn)
 
         # Extract conversation text from JSON
-        df["conversation_text"] = df["conversations_json"].apply(
-            self._extract_text_from_json
-        )
+        df["conversation_text"] = df["conversations_json"].apply(self._extract_text_from_json)
 
         # Extract conversation text from JSON
-        df["conversation_text"] = df["conversations_json"].apply(
-            self._extract_text_from_json
-        )
+        df["conversation_text"] = df["conversations_json"].apply(self._extract_text_from_json)
 
         # Recalculate text_length based on actual text
         df["text_length"] = df["conversation_text"].str.len()
-        df["word_count"] = df["conversation_text"].apply(
-            lambda x: len(x.split()) if x else 0
-        )
-        df["line_count"] = df["conversation_text"].apply(
-            lambda x: len(x.split("\n")) if x else 1
-        )
+        df["word_count"] = df["conversation_text"].apply(lambda x: len(x.split()) if x else 0)
+        df["line_count"] = df["conversation_text"].apply(lambda x: len(x.split("\n")) if x else 1)
 
         # Add derived quality metrics
         df["avg_words_per_line"] = df["word_count"] / df["line_count"]
-        df["chars_per_word"] = df["text_length"] / df["word_count"].replace(
-            0, 1
-        )  # Avoid division by zero
+        df["chars_per_word"] = df["text_length"] / df["word_count"].replace(0, 1)  # Avoid division by zero
 
         # Filter out empty conversations
         return df[df["conversation_text"].str.len() > 10]
 
-
     def _extract_text_from_json(self, json_str: str) -> str:
         """Extract readable text from conversations JSON"""
         try:
-
             conversations = json.loads(json_str)
 
             if isinstance(conversations, list):
@@ -155,9 +142,7 @@ class ConversationQualityPatternAnalyzer:
 
             # Analyze response characteristics
             sentences = text.split(".")
-            avg_sentence_length = np.mean(
-                [len(s.split()) for s in sentences if s.strip()]
-            )
+            avg_sentence_length = np.mean([len(s.split()) for s in sentences if s.strip()])
 
             # Question patterns
             question_count = text.count("?")
@@ -217,33 +202,23 @@ class ConversationQualityPatternAnalyzer:
                 "mean_quality_score": quality_df["overall_quality"].mean(),
                 "median_quality_score": quality_df["overall_quality"].median(),
                 "quality_std": quality_df["overall_quality"].std(),
-                "high_quality_conversations": len(
-                    quality_df[quality_df["overall_quality"] > 75]
-                ),
-                "low_quality_conversations": len(
-                    quality_df[quality_df["overall_quality"] < 25]
-                ),
+                "high_quality_conversations": len(quality_df[quality_df["overall_quality"] > 75]),
+                "low_quality_conversations": len(quality_df[quality_df["overall_quality"] < 25]),
             },
             "by_dataset": {
                 dataset: {
                     "mean_quality": np.mean([q["overall_quality"] for q in scores]),
-                    "mean_readability": np.mean(
-                        [q["readability_score"] for q in scores]
-                    ),
+                    "mean_readability": np.mean([q["readability_score"] for q in scores]),
                     "mean_empathy": np.mean([q["empathy_score"] for q in scores]),
                     "conversation_count": len(scores),
                 }
                 for dataset, scores in response_patterns.items()
             },
             "quality_distribution": quality_df["overall_quality"].describe().to_dict(),
-            "detailed_scores": quality_df.to_dict("records")[
-                :100
-            ],  # Sample for detailed analysis
+            "detailed_scores": quality_df.to_dict("records")[:100],  # Sample for detailed analysis
         }
 
-    def _analyze_engagement_quality(
-        self, conversations: pd.DataFrame
-    ) -> dict[str, Any]:
+    def _analyze_engagement_quality(self, conversations: pd.DataFrame) -> dict[str, Any]:
         """Analyze engagement quality patterns"""
 
         engagement_metrics = []
@@ -267,9 +242,7 @@ class ConversationQualityPatternAnalyzer:
             )
 
             # Personal pronouns (engagement indicators)
-            personal_pronouns = len(
-                re.findall(r"\b(I|you|we|us|your|my|our)\b", text.lower())
-            )
+            personal_pronouns = len(re.findall(r"\b(I|you|we|us|your|my|our)\b", text.lower()))
 
             # Engagement score calculation
             engagement_score = min(
@@ -303,16 +276,10 @@ class ConversationQualityPatternAnalyzer:
             "overall_engagement": {
                 "mean_engagement_score": engagement_df["engagement_score"].mean(),
                 "median_engagement_score": engagement_df["engagement_score"].median(),
-                "high_engagement_conversations": len(
-                    engagement_df[engagement_df["engagement_score"] > 70]
-                ),
-                "low_engagement_conversations": len(
-                    engagement_df[engagement_df["engagement_score"] < 30]
-                ),
+                "high_engagement_conversations": len(engagement_df[engagement_df["engagement_score"] > 70]),
+                "low_engagement_conversations": len(engagement_df[engagement_df["engagement_score"] < 30]),
             },
-            "engagement_by_dataset": engagement_df.groupby("dataset")[
-                "engagement_score"
-            ]
+            "engagement_by_dataset": engagement_df.groupby("dataset")["engagement_score"]
             .agg(["mean", "median", "std", "count"])
             .to_dict("index"),
             "engagement_by_tier": engagement_df.groupby("tier")["engagement_score"]
@@ -321,9 +288,7 @@ class ConversationQualityPatternAnalyzer:
             "engagement_patterns": {
                 "avg_dialogue_turns": engagement_df["dialogue_turns"].mean(),
                 "avg_questions_per_conversation": engagement_df["questions"].mean(),
-                "avg_conversational_markers": engagement_df[
-                    "conversational_markers"
-                ].mean(),
+                "avg_conversational_markers": engagement_df["conversational_markers"].mean(),
             },
         }
 
@@ -405,9 +370,7 @@ class ConversationQualityPatternAnalyzer:
 
             # Information density
             unique_words = len(set(text.lower().split()))
-            vocabulary_richness = (
-                unique_words / conv["word_count"] if conv["word_count"] > 0 else 0
-            )
+            vocabulary_richness = unique_words / conv["word_count"] if conv["word_count"] > 0 else 0
 
             # Specificity indicators
             specific_terms = len(re.findall(r"\b\d+\b", text))  # Numbers
@@ -458,12 +421,8 @@ class ConversationQualityPatternAnalyzer:
             "overall_content": {
                 "mean_content_score": content_df["content_score"].mean(),
                 "median_content_score": content_df["content_score"].median(),
-                "high_content_quality": len(
-                    content_df[content_df["content_score"] > 70]
-                ),
-                "low_content_quality": len(
-                    content_df[content_df["content_score"] < 30]
-                ),
+                "high_content_quality": len(content_df[content_df["content_score"] > 70]),
+                "low_content_quality": len(content_df[content_df["content_score"] < 30]),
             },
             "content_by_dataset": content_df.groupby("dataset")["content_score"]
             .agg(["mean", "median", "std", "count"])
@@ -530,12 +489,8 @@ class ConversationQualityPatternAnalyzer:
             "overall_coherence": {
                 "mean_coherence_score": coherence_df["coherence_score"].mean(),
                 "median_coherence_score": coherence_df["coherence_score"].median(),
-                "high_coherence_conversations": len(
-                    coherence_df[coherence_df["coherence_score"] > 70]
-                ),
-                "low_coherence_conversations": len(
-                    coherence_df[coherence_df["coherence_score"] < 30]
-                ),
+                "high_coherence_conversations": len(coherence_df[coherence_df["coherence_score"] > 70]),
+                "low_coherence_conversations": len(coherence_df[coherence_df["coherence_score"] < 30]),
             },
             "coherence_by_dataset": coherence_df.groupby("dataset")["coherence_score"]
             .agg(["mean", "median", "std", "count"])
@@ -582,9 +537,7 @@ class ConversationQualityPatternAnalyzer:
                 "avg_conversation_length": tier_convs["text_length"].mean(),
                 "avg_word_count": tier_convs["word_count"].mean(),
                 "conversation_count": len(tier_convs),
-                "quality_characteristics": self._extract_tier_characteristics(
-                    tier_convs
-                ),
+                "quality_characteristics": self._extract_tier_characteristics(tier_convs),
             }
 
         return patterns
@@ -594,39 +547,29 @@ class ConversationQualityPatternAnalyzer:
 
         # Convert created_at to datetime if it exists
         if "created_at" in conversations.columns:
-            conversations["created_at"] = pd.to_datetime(
-                conversations["created_at"], errors="coerce"
-            )
+            conversations["created_at"] = pd.to_datetime(conversations["created_at"], errors="coerce")
             conversations = conversations.dropna(subset=["created_at"])
 
             # Group by month to see trends
             conversations["month"] = conversations["created_at"].dt.to_period("M")
             monthly_trends = (
                 conversations.groupby("month")
-                .agg(
-                    {"text_length": "mean", "word_count": "mean", "line_count": "mean"}
-                )
+                .agg({"text_length": "mean", "word_count": "mean", "line_count": "mean"})
                 .to_dict("index")
             )
         else:
             monthly_trends = {}
 
         # Quality trends by dataset size
-        dataset_sizes = (
-            conversations.groupby("dataset").size().sort_values(ascending=False)
-        )
+        dataset_sizes = conversations.groupby("dataset").size().sort_values(ascending=False)
 
         return {
             "monthly_trends": {str(k): v for k, v in monthly_trends.items()},
             "dataset_size_ranking": dataset_sizes.to_dict(),
-            "quality_correlation_with_size": self._analyze_size_quality_correlation(
-                conversations
-            ),
+            "quality_correlation_with_size": self._analyze_size_quality_correlation(conversations),
         }
 
-    def _analyze_quality_correlations(
-        self, conversations: pd.DataFrame
-    ) -> dict[str, Any]:
+    def _analyze_quality_correlations(self, conversations: pd.DataFrame) -> dict[str, Any]:
         """Analyze correlations between different quality metrics"""
 
         # Create correlation matrix for numerical columns
@@ -666,16 +609,12 @@ class ConversationQualityPatternAnalyzer:
         # Response quality insights
         response_quality = quality_results["response_quality"]
         if response_quality["overall_stats"]["mean_quality_score"] < 50:
-            insights.append(
-                "⚠️ Overall response quality is below average - focus on improving readability and empathy"
-            )
+            insights.append("⚠️ Overall response quality is below average - focus on improving readability and empathy")
 
         # Engagement insights
         engagement_quality = quality_results["engagement_quality"]
         if engagement_quality["overall_engagement"]["mean_engagement_score"] < 40:
-            insights.append(
-                "📉 Low engagement detected - increase interactive elements and personal pronouns"
-            )
+            insights.append("📉 Low engagement detected - increase interactive elements and personal pronouns")
 
         # Flow insights
         flow_quality = quality_results["flow_quality"]
@@ -687,73 +626,46 @@ class ConversationQualityPatternAnalyzer:
         # Content insights
         content_quality = quality_results["content_quality"]
         if content_quality["overall_content"]["mean_content_score"] < 35:
-            insights.append(
-                "📚 Content quality is low - increase vocabulary richness and explanatory phrases"
-            )
+            insights.append("📚 Content quality is low - increase vocabulary richness and explanatory phrases")
 
         # Dataset-specific insights
-        best_dataset = max(
-            response_quality["by_dataset"].items(), key=lambda x: x[1]["mean_quality"]
-        )
-        worst_dataset = min(
-            response_quality["by_dataset"].items(), key=lambda x: x[1]["mean_quality"]
-        )
+        best_dataset = max(response_quality["by_dataset"].items(), key=lambda x: x[1]["mean_quality"])
+        worst_dataset = min(response_quality["by_dataset"].items(), key=lambda x: x[1]["mean_quality"])
 
         insights.append(
             f"🏆 Best performing dataset: {best_dataset[0]} (Quality: {best_dataset[1]['mean_quality']:.1f})"
         )
-        insights.append(
-            f"⚡ Needs improvement: {worst_dataset[0]} (Quality: {worst_dataset[1]['mean_quality']:.1f})"
-        )
+        insights.append(f"⚡ Needs improvement: {worst_dataset[0]} (Quality: {worst_dataset[1]['mean_quality']:.1f})")
 
         return insights
 
-    def _generate_quality_recommendations(
-        self, quality_results: dict[str, Any]
-    ) -> list[str]:
+    def _generate_quality_recommendations(self, quality_results: dict[str, Any]) -> list[str]:
         """Generate specific recommendations for quality improvement"""
         recommendations = []
 
         # Response quality recommendations
         response_stats = quality_results["response_quality"]["overall_stats"]
-        if (
-            response_stats["low_quality_conversations"]
-            > response_stats["high_quality_conversations"]
-        ):
-            recommendations.append(
-                "🎯 Prioritize improving low-quality conversations through better empathy training"
-            )
-            recommendations.append(
-                "📖 Implement readability guidelines to improve comprehension"
-            )
+        if response_stats["low_quality_conversations"] > response_stats["high_quality_conversations"]:
+            recommendations.append("🎯 Prioritize improving low-quality conversations through better empathy training")
+            recommendations.append("📖 Implement readability guidelines to improve comprehension")
 
         # Engagement recommendations
         engagement_stats = quality_results["engagement_quality"]["overall_engagement"]
         if engagement_stats["low_engagement_conversations"] > 100:
-            recommendations.append(
-                "💬 Increase dialogue turns and interactive elements in conversations"
-            )
+            recommendations.append("💬 Increase dialogue turns and interactive elements in conversations")
             recommendations.append("❓ Train models to ask more engaging questions")
 
         # Flow recommendations
         flow_stats = quality_results["flow_quality"]["overall_flow"]
         if flow_stats["poor_flow_conversations"] > 50:
-            recommendations.append(
-                "🔗 Improve conversation coherence with better transition phrases"
-            )
-            recommendations.append(
-                "🎭 Reduce repetitive patterns and topic inconsistencies"
-            )
+            recommendations.append("🔗 Improve conversation coherence with better transition phrases")
+            recommendations.append("🎭 Reduce repetitive patterns and topic inconsistencies")
 
         # Content recommendations
         content_stats = quality_results["content_quality"]["overall_content"]
         if content_stats["low_content_quality"] > 75:
-            recommendations.append(
-                "📝 Enhance vocabulary diversity and technical depth"
-            )
-            recommendations.append(
-                "🔍 Include more specific examples and explanatory content"
-            )
+            recommendations.append("📝 Enhance vocabulary diversity and technical depth")
+            recommendations.append("🔍 Include more specific examples and explanatory content")
 
         return recommendations
 
@@ -762,19 +674,13 @@ class ConversationQualityPatternAnalyzer:
 
         plt.style.use("default")
         fig, axes = plt.subplots(2, 3, figsize=(18, 12))
-        fig.suptitle(
-            "Conversation Quality Pattern Analysis", fontsize=16, fontweight="bold"
-        )
+        fig.suptitle("Conversation Quality Pattern Analysis", fontsize=16, fontweight="bold")
 
         # 1. Overall Quality Distribution
         response_quality = quality_results["response_quality"]
-        quality_scores = [
-            item["overall_quality"] for item in response_quality["detailed_scores"]
-        ]
+        quality_scores = [item["overall_quality"] for item in response_quality["detailed_scores"]]
 
-        axes[0, 0].hist(
-            quality_scores, bins=20, alpha=0.7, color="skyblue", edgecolor="black"
-        )
+        axes[0, 0].hist(quality_scores, bins=20, alpha=0.7, color="skyblue", edgecolor="black")
         axes[0, 0].set_title("Overall Quality Score Distribution")
         axes[0, 0].set_xlabel("Quality Score")
         axes[0, 0].set_ylabel("Frequency")
@@ -791,28 +697,19 @@ class ConversationQualityPatternAnalyzer:
         datasets = list(dataset_quality.keys())
         quality_means = [dataset_quality[d]["mean_quality"] for d in datasets]
 
-        axes[0, 1].bar(
-            range(len(datasets)), quality_means, color="lightcoral", alpha=0.7
-        )
+        axes[0, 1].bar(range(len(datasets)), quality_means, color="lightcoral", alpha=0.7)
         axes[0, 1].set_title("Average Quality by Dataset")
         axes[0, 1].set_xlabel("Dataset")
         axes[0, 1].set_ylabel("Average Quality Score")
         axes[0, 1].set_xticks(range(len(datasets)))
-        axes[0, 1].set_xticklabels(
-            [d[:10] + "..." if len(d) > 10 else d for d in datasets], rotation=45
-        )
+        axes[0, 1].set_xticklabels([d[:10] + "..." if len(d) > 10 else d for d in datasets], rotation=45)
 
         # 3. Engagement vs Quality Scatter
         engagement_data = quality_results["engagement_quality"]
         if "engagement_by_dataset" in engagement_data:
             eng_datasets = list(engagement_data["engagement_by_dataset"].keys())
-            eng_scores = [
-                engagement_data["engagement_by_dataset"][d]["mean"]
-                for d in eng_datasets
-            ]
-            qual_scores = [
-                dataset_quality.get(d, {}).get("mean_quality", 0) for d in eng_datasets
-            ]
+            eng_scores = [engagement_data["engagement_by_dataset"][d]["mean"] for d in eng_datasets]
+            qual_scores = [dataset_quality.get(d, {}).get("mean_quality", 0) for d in eng_datasets]
 
             axes[0, 2].scatter(eng_scores, qual_scores, alpha=0.7, s=100, color="green")
             axes[0, 2].set_title("Engagement vs Quality Correlation")
@@ -829,14 +726,10 @@ class ConversationQualityPatternAnalyzer:
         metrics = ["Response", "Engagement", "Flow", "Content", "Coherence"]
         metric_scores = [
             response_quality["overall_stats"]["mean_quality_score"],
-            quality_results["engagement_quality"]["overall_engagement"][
-                "mean_engagement_score"
-            ],
+            quality_results["engagement_quality"]["overall_engagement"]["mean_engagement_score"],
             quality_results["flow_quality"]["overall_flow"]["mean_flow_score"],
             quality_results["content_quality"]["overall_content"]["mean_content_score"],
-            quality_results["coherence_quality"]["overall_coherence"][
-                "mean_coherence_score"
-            ],
+            quality_results["coherence_quality"]["overall_coherence"]["mean_coherence_score"],
         ]
 
         colors = ["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7"]
@@ -862,9 +755,7 @@ class ConversationQualityPatternAnalyzer:
             months = list(trends["monthly_trends"].keys())
             avg_lengths = [trends["monthly_trends"][m]["text_length"] for m in months]
 
-            axes[1, 1].plot(
-                range(len(months)), avg_lengths, marker="o", linewidth=2, markersize=6
-            )
+            axes[1, 1].plot(range(len(months)), avg_lengths, marker="o", linewidth=2, markersize=6)
             axes[1, 1].set_title("Quality Trends Over Time")
             axes[1, 1].set_xlabel("Time Period")
             axes[1, 1].set_ylabel("Average Text Length")
@@ -903,14 +794,13 @@ class ConversationQualityPatternAnalyzer:
         plt.tight_layout()
 
         # Save the plot
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         plt.savefig(
             f"/home/vivi/pixelated/ai/monitoring/quality_pattern_analysis_{timestamp}.png",
             dpi=300,
             bbox_inches="tight",
         )
         plt.show()
-
 
     # Helper methods
     def _calculate_overall_quality_score(
@@ -996,20 +886,13 @@ class ConversationQualityPatternAnalyzer:
             curr_line = lines[i].lower()
 
             # Check for question-answer patterns
-            if "?" in prev_line and any(
-                word in curr_line for word in ["yes", "no", "because", "since"]
-            ):
+            if "?" in prev_line and any(word in curr_line for word in ["yes", "no", "because", "since"]):
                 relevance_scores.append(80)
             # Check for continuation words
-            elif any(
-                word in curr_line
-                for word in ["and", "also", "furthermore", "additionally"]
-            ):
+            elif any(word in curr_line for word in ["and", "also", "furthermore", "additionally"]):
                 relevance_scores.append(70)
             # Check for contrast words
-            elif any(
-                word in curr_line for word in ["but", "however", "although", "despite"]
-            ):
+            elif any(word in curr_line for word in ["but", "however", "although", "despite"]):
                 relevance_scores.append(75)
             else:
                 relevance_scores.append(50)  # Default relevance
@@ -1018,17 +901,13 @@ class ConversationQualityPatternAnalyzer:
 
     def _check_pronoun_consistency(self, text: str) -> float:
         """Check pronoun reference consistency"""
-        pronouns = re.findall(
-            r"\b(he|she|it|they|him|her|them|his|hers|its|their)\b", text.lower()
-        )
+        pronouns = re.findall(r"\b(he|she|it|they|him|her|them|his|hers|its|their)\b", text.lower())
         if not pronouns:
             return 1.0  # No pronouns to check
 
         # Simple consistency check - count pronoun types
         pronoun_types = set(pronouns)
-        consistency_score = (
-            1.0 - (len(pronoun_types) - 1) * 0.1
-        )  # Penalize mixed pronouns
+        consistency_score = 1.0 - (len(pronoun_types) - 1) * 0.1  # Penalize mixed pronouns
         return max(0, consistency_score)
 
     def _calculate_sentence_variety(self, sentences: list[str]) -> float:
@@ -1052,17 +931,9 @@ class ConversationQualityPatternAnalyzer:
     def _check_temporal_consistency(self, text: str) -> float:
         """Check temporal consistency in text"""
         # Look for temporal markers
-        past_markers = len(
-            re.findall(
-                r"\b(was|were|had|did|yesterday|ago|before|earlier)\b", text.lower()
-            )
-        )
-        present_markers = len(
-            re.findall(r"\b(is|are|am|do|does|now|today|currently)\b", text.lower())
-        )
-        future_markers = len(
-            re.findall(r"\b(will|shall|going to|tomorrow|later|soon)\b", text.lower())
-        )
+        past_markers = len(re.findall(r"\b(was|were|had|did|yesterday|ago|before|earlier)\b", text.lower()))
+        present_markers = len(re.findall(r"\b(is|are|am|do|does|now|today|currently)\b", text.lower()))
+        future_markers = len(re.findall(r"\b(will|shall|going to|tomorrow|later|soon)\b", text.lower()))
 
         total_markers = past_markers + present_markers + future_markers
         if total_markers == 0:
@@ -1072,10 +943,7 @@ class ConversationQualityPatternAnalyzer:
         max_markers = max(past_markers, present_markers, future_markers)
         return max_markers / total_markers
 
-
-    def _extract_quality_indicators(
-        self, conversations: pd.DataFrame
-    ) -> dict[str, Any]:
+    def _extract_quality_indicators(self, conversations: pd.DataFrame) -> dict[str, Any]:
         """Extract quality indicators for a dataset"""
         return {
             "avg_text_length": conversations["text_length"].mean(),
@@ -1085,9 +953,7 @@ class ConversationQualityPatternAnalyzer:
             "conversation_count": len(conversations),
         }
 
-    def _extract_tier_characteristics(
-        self, conversations: pd.DataFrame
-    ) -> dict[str, Any]:
+    def _extract_tier_characteristics(self, conversations: pd.DataFrame) -> dict[str, Any]:
         """Extract characteristics for a specific tier"""
         return {
             "avg_text_length": conversations["text_length"].mean(),
@@ -1096,14 +962,10 @@ class ConversationQualityPatternAnalyzer:
             "conversation_count": len(conversations),
         }
 
-    def _analyze_size_quality_correlation(
-        self, conversations: pd.DataFrame
-    ) -> dict[str, Any]:
+    def _analyze_size_quality_correlation(self, conversations: pd.DataFrame) -> dict[str, Any]:
         """Analyze correlation between dataset size and quality"""
         dataset_stats = (
-            conversations.groupby("dataset")
-            .agg({"text_length": ["mean", "count"], "word_count": "mean"})
-            .round(2)
+            conversations.groupby("dataset").agg({"text_length": ["mean", "count"], "word_count": "mean"}).round(2)
         )
 
         # Flatten column names
@@ -1117,13 +979,9 @@ class ConversationQualityPatternAnalyzer:
 
         for corr in correlations:
             if corr["correlation"] > 0.8:
-                interpretations.append(
-                    f"Strong positive correlation between {corr['metric1']} and {corr['metric2']}"
-                )
+                interpretations.append(f"Strong positive correlation between {corr['metric1']} and {corr['metric2']}")
             elif corr["correlation"] < -0.8:
-                interpretations.append(
-                    f"Strong negative correlation between {corr['metric1']} and {corr['metric2']}"
-                )
+                interpretations.append(f"Strong negative correlation between {corr['metric1']} and {corr['metric2']}")
 
         return interpretations
 
@@ -1138,12 +996,11 @@ def main():
         results = analyzer.analyze_quality_patterns()
 
         # Save results
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         output_file = f"/home/vivi/pixelated/ai/monitoring/quality_pattern_analysis_{timestamp}.json"
 
         with open(output_file, "w") as f:
             json.dump(results, f, indent=2, default=str)
-
 
         # Display key insights
         for _insight in results["insights"][:5]:
@@ -1155,7 +1012,6 @@ def main():
         return results
 
     except Exception:
-
         traceback.print_exc()
         return None
 

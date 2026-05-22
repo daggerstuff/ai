@@ -5,6 +5,7 @@ MCP Configuration Validator for Amazon Q Developer
 Validates the MCP server configuration for compatibility with Amazon Q Developer
 and tests connectivity to configured servers.
 """
+
 import json
 import logging
 import os
@@ -43,9 +44,7 @@ class MCPValidator:
         """Load and parse the MCP configuration file."""
         try:
             if not self.config_path.exists():
-                self.validation_results["errors"].append(
-                    f"MCP config file not found: {self.config_path}"
-                )
+                self.validation_results["errors"].append(f"MCP config file not found: {self.config_path}")
                 return False
 
             with open(self.config_path) as f:
@@ -68,9 +67,7 @@ class MCPValidator:
 
         # Check required top-level keys
         if "mcpServers" not in self.config:
-            self.validation_results["errors"].append(
-                "Missing required 'mcpServers' key"
-            )
+            self.validation_results["errors"].append("Missing required 'mcpServers' key")
             return False
 
         if not isinstance(self.config["mcpServers"], dict):
@@ -80,9 +77,7 @@ class MCPValidator:
         if len(self.config["mcpServers"]) == 0:
             self.validation_results["warnings"].append("No MCP servers configured")
 
-        logger.info(
-            f"✅ Configuration structure valid with {len(self.config['mcpServers'])} servers"
-        )
+        logger.info(f"✅ Configuration structure valid with {len(self.config['mcpServers'])} servers")
         return True
 
     def validate_servers(self) -> bool:
@@ -97,24 +92,18 @@ class MCPValidator:
 
             # Check server configuration structure
             if not isinstance(server_config, dict):
-                self.validation_results["errors"].append(
-                    f"Server '{server_name}' config must be an object"
-                )
+                self.validation_results["errors"].append(f"Server '{server_name}' config must be an object")
                 continue
 
             # Validate server type
             server_type = server_config.get("type", "stdio")  # Default to stdio
             if server_type not in ["stdio", "sse", "streamable-http"]:
-                self.validation_results["warnings"].append(
-                    f"Server '{server_name}' has unknown type '{server_type}'"
-                )
+                self.validation_results["warnings"].append(f"Server '{server_name}' has unknown type '{server_type}'")
 
             # Validate stdio servers
             if server_type == "stdio" or "command" in server_config:
                 if "command" not in server_config:
-                    self.validation_results["errors"].append(
-                        f"Server '{server_name}' missing required 'command' field"
-                    )
+                    self.validation_results["errors"].append(f"Server '{server_name}' missing required 'command' field")
                     continue
 
                 # Check if command exists
@@ -127,17 +116,13 @@ class MCPValidator:
             # Validate HTTP/SSE servers
             elif server_type in ["sse", "streamable-http"] or "url" in server_config:
                 if "url" not in server_config:
-                    self.validation_results["errors"].append(
-                        f"Server '{server_name}' missing required 'url' field"
-                    )
+                    self.validation_results["errors"].append(f"Server '{server_name}' missing required 'url' field")
                     continue
 
                 # Validate URL format
                 url = server_config["url"]
                 if not url.startswith(("http://", "https://")):
-                    self.validation_results["errors"].append(
-                        f"Server '{server_name}' has invalid URL format: {url}"
-                    )
+                    self.validation_results["errors"].append(f"Server '{server_name}' has invalid URL format: {url}")
                     continue
 
             # Check for required environment variables
@@ -154,9 +139,7 @@ class MCPValidator:
             valid_servers += 1
             logger.info(f"  ✅ Server '{server_name}' configuration valid")
 
-        logger.info(
-            f"✅ Validated {valid_servers}/{len(self.config['mcpServers'])} servers"
-        )
+        logger.info(f"✅ Validated {valid_servers}/{len(self.config['mcpServers'])} servers")
         return valid_servers > 0
 
     def _check_command_available(self, command: str) -> bool:
@@ -172,9 +155,7 @@ class MCPValidator:
         except:
             return False
 
-    def test_server_connectivity(
-        self, server_name: str, server_config: dict[str, Any]
-    ) -> dict[str, Any]:
+    def test_server_connectivity(self, server_name: str, server_config: dict[str, Any]) -> dict[str, Any]:
         """Test connectivity to a specific MCP server."""
         result = {
             "name": server_name,
@@ -216,17 +197,12 @@ class MCPValidator:
                         result["status"] = "available"
                     else:
                         result["status"] = "error"
-                        result["error"] = (
-                            f"Command exited with code {process.returncode}: {stderr}"
-                        )
+                        result["error"] = f"Command exited with code {process.returncode}: {stderr}"
 
             # Test HTTP/SSE servers
             elif "url" in server_config:
-
                 try:
-                    with urllib.request.urlopen(
-                        server_config["url"], timeout=10
-                    ) as response:
+                    with urllib.request.urlopen(server_config["url"], timeout=10) as response:
                         if response.status == 200:
                             result["status"] = "available"
                         else:
@@ -257,36 +233,24 @@ class MCPValidator:
         essential_servers = ["filesystem", "git"]
         missing_essential = [s for s in essential_servers if s not in servers]
         if missing_essential:
-            recommendations.append(
-                f"Consider adding essential servers: {', '.join(missing_essential)}"
-            )
+            recommendations.append(f"Consider adding essential servers: {', '.join(missing_essential)}")
 
         # Check for development vs production setup
         if "defaults" not in self.config:
-            recommendations.append(
-                "Add 'defaults' section with timeout and retry settings"
-            )
+            recommendations.append("Add 'defaults' section with timeout and retry settings")
 
         if "metadata" not in self.config:
-            recommendations.append(
-                "Add 'metadata' section for better configuration management"
-            )
+            recommendations.append("Add 'metadata' section for better configuration management")
 
         # Check server priorities
         servers_with_priority = [s for s in servers.values() if "priority" in s]
         if len(servers_with_priority) != len(servers):
-            recommendations.append(
-                "Add priority levels to all servers for better ordering"
-            )
+            recommendations.append("Add priority levels to all servers for better ordering")
 
         # Check for descriptions
-        servers_without_desc = [
-            name for name, config in servers.items() if "description" not in config
-        ]
+        servers_without_desc = [name for name, config in servers.items() if "description" not in config]
         if servers_without_desc:
-            recommendations.append(
-                "Add descriptions to servers for better documentation"
-            )
+            recommendations.append("Add descriptions to servers for better documentation")
 
         return recommendations
 
@@ -325,10 +289,7 @@ class MCPValidator:
         self.validation_results["recommendations"] = self.generate_recommendations()
 
         # Determine overall validity
-        has_critical_errors = any(
-            "missing required" in error.lower()
-            for error in self.validation_results["errors"]
-        )
+        has_critical_errors = any("missing required" in error.lower() for error in self.validation_results["errors"])
         self.validation_results["valid"] = not has_critical_errors
 
         return self.validation_results
@@ -336,7 +297,6 @@ class MCPValidator:
     def print_report(self):
         """Print a formatted validation report."""
         results = self.validation_results
-
 
         # Overall status
         "✅" if results["valid"] else "❌"
@@ -354,13 +314,7 @@ class MCPValidator:
         # Server status
         if results["server_status"]:
             for _server_name, status in results["server_status"].items():
-                (
-                    "✅"
-                    if status["status"] == "available"
-                    else "❌"
-                    if status["status"] == "error"
-                    else "❓"
-                )
+                ("✅" if status["status"] == "available" else "❌" if status["status"] == "error" else "❓")
                 if status["error"]:
                     pass
 
@@ -368,7 +322,6 @@ class MCPValidator:
         if results["recommendations"]:
             for _rec in results["recommendations"]:
                 pass
-
 
 
 def main():

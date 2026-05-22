@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 class CrisisSeverity(Enum):
     """Crisis severity levels."""
+
     NONE = "none"
     MEDIUM = "medium"
     HIGH = "high"
@@ -24,6 +25,7 @@ class CrisisSeverity(Enum):
 @dataclass
 class CrisisResult:
     """Result of crisis detection."""
+
     severity: CrisisSeverity
     indicators: list[str]
     requires_action: bool
@@ -33,11 +35,7 @@ class CrisisResult:
 class LettaCrisisHandler:
     """Handles crisis detection and response for Letta agents."""
 
-    def __init__(
-        self,
-        crisis_detector: Any,
-        config: dict[str, Any] | None = None
-    ):
+    def __init__(self, crisis_detector: Any, config: dict[str, Any] | None = None):
         """
         Initialize crisis handler with Foresight's crisis detector.
 
@@ -71,7 +69,7 @@ class LettaCrisisHandler:
             "none": CrisisSeverity.NONE,
             "medium": CrisisSeverity.MEDIUM,
             "high": CrisisSeverity.HIGH,
-            "critical": CrisisSeverity.CRITICAL
+            "critical": CrisisSeverity.CRITICAL,
         }
         severity = severity_map.get(severity_str, CrisisSeverity.NONE)
 
@@ -85,18 +83,10 @@ class LettaCrisisHandler:
         suggested_action = self._suggest_action(severity, indicators)
 
         return CrisisResult(
-            severity=severity,
-            indicators=indicators,
-            requires_action=requires_action,
-            suggested_action=suggested_action
+            severity=severity, indicators=indicators, requires_action=requires_action, suggested_action=suggested_action
         )
 
-    async def handle_crisis(
-        self,
-        result: CrisisResult,
-        user_id: str,
-        session_id: str | None = None
-    ) -> None:
+    async def handle_crisis(self, result: CrisisResult, user_id: str, session_id: str | None = None) -> None:
         """
         Handle a crisis situation.
 
@@ -118,11 +108,7 @@ class LettaCrisisHandler:
         # Route to appropriate resources
         await self._route_resources(result, user_id, session_id)
 
-    def should_block_operation(
-        self,
-        result: CrisisResult,
-        operation: str
-    ) -> bool:
+    def should_block_operation(self, result: CrisisResult, operation: str) -> bool:
         """
         Determine if an operation should be blocked due to crisis.
 
@@ -134,24 +120,12 @@ class LettaCrisisHandler:
             True if operation should be blocked
         """
         return (
-            (result.severity == CrisisSeverity.CRITICAL
-             and operation in ["file_write", "file_edit", "code_execution"])
-            or (
-                "self-harm" in result.indicators
-                and operation in ["file_write", "shell_command"]
-            )
-            or (
-                "violence" in result.indicators
-                and operation in ["shell_command", "code_execution"]
-            )
+            (result.severity == CrisisSeverity.CRITICAL and operation in ["file_write", "file_edit", "code_execution"])
+            or ("self-harm" in result.indicators and operation in ["file_write", "shell_command"])
+            or ("violence" in result.indicators and operation in ["shell_command", "code_execution"])
         )
 
-    async def _log_crisis(
-        self,
-        result: CrisisResult,
-        user_id: str,
-        session_id: str | None = None
-    ) -> None:
+    async def _log_crisis(self, result: CrisisResult, user_id: str, session_id: str | None = None) -> None:
         """Log crisis event to Foresight."""
         try:
             logger.info(
@@ -162,12 +136,7 @@ class LettaCrisisHandler:
         except Exception as e:
             logger.error(f"Failed to log crisis: {e}")
 
-    async def _trigger_alert(
-        self,
-        result: CrisisResult,
-        user_id: str,
-        session_id: str | None = None
-    ) -> None:
+    async def _trigger_alert(self, result: CrisisResult, user_id: str, session_id: str | None = None) -> None:
         """Trigger alert for critical crisis."""
         if self.alert_callback:
             try:
@@ -175,17 +144,9 @@ class LettaCrisisHandler:
             except Exception as e:
                 logger.error(f"Alert callback failed: {e}")
         else:
-            logger.critical(
-                f"CRISIS ALERT for user {user_id}: {result.severity.value} - "
-                f"{result.suggested_action}"
-            )
+            logger.critical(f"CRISIS ALERT for user {user_id}: {result.severity.value} - {result.suggested_action}")
 
-    async def _route_resources(
-        self,
-        result: CrisisResult,
-        user_id: str,
-        _session_id: str | None = None
-    ) -> None:
+    async def _route_resources(self, result: CrisisResult, user_id: str, _session_id: str | None = None) -> None:
         """Route to appropriate resources based on crisis type."""
         # Standardized crisis resource mapping (aligned with Foresight-style escalation)
         crisis_resource_map = {
@@ -222,8 +183,7 @@ class LettaCrisisHandler:
 
         if not unique_resources:
             logger.info(
-                "No crisis-specific resources were routed for user %s; "
-                "severity=%s and no clear indicators.",
+                "No crisis-specific resources were routed for user %s; severity=%s and no clear indicators.",
                 user_id,
                 result.severity.value,
             )
@@ -243,43 +203,51 @@ class LettaCrisisHandler:
 
         # Check for suicide indicators
         suicide_keywords = [
-            "suicide", "suicidal", "end my life", "kill myself",
-            "want to die", "no reason to live", "life not worth living"
+            "suicide",
+            "suicidal",
+            "end my life",
+            "kill myself",
+            "want to die",
+            "no reason to live",
+            "life not worth living",
         ]
         if any(keyword in message_lower for keyword in suicide_keywords):
             indicators.append("suicide")
 
         # Check for self-harm indicators
         self_harm_keywords = [
-            "self-harm", "self harm", "cut myself", "cutting",
-            "hurt myself", "self-injury", "self injury"
+            "self-harm",
+            "self harm",
+            "cut myself",
+            "cutting",
+            "hurt myself",
+            "self-injury",
+            "self injury",
         ]
         if any(keyword in message_lower for keyword in self_harm_keywords):
             indicators.append("self-harm")
 
         # Check for violence indicators
         violence_keywords = [
-            "violence", "violent", "hurt someone", "kill someone",
-            "harm someone", "attack someone", "shoot"
+            "violence",
+            "violent",
+            "hurt someone",
+            "kill someone",
+            "harm someone",
+            "attack someone",
+            "shoot",
         ]
         if any(keyword in message_lower for keyword in violence_keywords):
             indicators.append("violence")
 
         # Check for depression/severe distress
-        depression_keywords = [
-            "hopeless", "desperate", "can't go on", "give up",
-            "no point", "worthless", "burden"
-        ]
+        depression_keywords = ["hopeless", "desperate", "can't go on", "give up", "no point", "worthless", "burden"]
         if any(keyword in message_lower for keyword in depression_keywords):
             indicators.append("severe_distress")
 
         return indicators
 
-    def _suggest_action(
-        self,
-        severity: CrisisSeverity,
-        indicators: list[str]
-    ) -> str | None:
+    def _suggest_action(self, severity: CrisisSeverity, indicators: list[str]) -> str | None:
         """Suggest action based on crisis severity and type."""
         if severity == CrisisSeverity.CRITICAL:
             if "suicide" in indicators:
@@ -289,20 +257,11 @@ class LettaCrisisHandler:
                     "International: https://findahelpline.com"
                 )
             elif "self-harm" in indicators:
-                action = (
-                    "Provide self-harm support resources. "
-                    "Crisis Text Line: Text HOME to 741741"
-                )
+                action = "Provide self-harm support resources. Crisis Text Line: Text HOME to 741741"
             elif "violence" in indicators:
-                action = (
-                    "De-escalate and provide support resources. "
-                    "If immediate danger, contact emergency services."
-                )
+                action = "De-escalate and provide support resources. If immediate danger, contact emergency services."
             else:
-                action = (
-                    "Critical situation detected. Provide supportive resources "
-                    "and encourage professional help."
-                )
+                action = "Critical situation detected. Provide supportive resources and encourage professional help."
         elif severity == CrisisSeverity.HIGH:
             if "suicide" in indicators or "self-harm" in indicators:
                 action = "Provide supportive resources and encourage reaching out to professionals."

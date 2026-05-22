@@ -10,15 +10,12 @@ class AuthenticationError(Exception):
     """Raised when authentication fails."""
 
 
-
 class PermissionDeniedError(Exception):
     """Raised when an agent lacks required permissions."""
 
 
-
 class RateLimitExceededError(Exception):
     """Raised when an agent exceeds its rate limit."""
-
 
 
 class AgentContext:
@@ -124,9 +121,7 @@ class MCPAuthMiddleware:
 
         # Check agent permissions
         required_permission = self.get_required_permission(request.path, request.method)
-        has_perm = self.role_based_access.has_permission(
-            agent_context, required_permission
-        )
+        has_perm = self.role_based_access.has_permission(agent_context, required_permission)
         if not has_perm:
             raise PermissionDeniedError("Agent lacks required permissions")
 
@@ -160,14 +155,11 @@ class MCPAuthMiddleware:
 def require_mcp_auth(f):
     """Decorator to require MCP authentication for a route."""
 
-
     @wraps(f)
     def decorated(*args, **kwargs):
         auth_middleware = getattr(current_app, "auth_middleware", None)
         if not auth_middleware:
-            return jsonify(
-                {"success": False, "error": "Auth middleware not initialized"}
-            ), 500
+            return jsonify({"success": False, "error": "Auth middleware not initialized"}), 500
 
         try:
             import asyncio
@@ -184,9 +176,7 @@ def require_mcp_auth(f):
         except PermissionDeniedError as e:
             return jsonify({"success": False, "error": str(e)}), 403
         except Exception as e:
-            return jsonify(
-                {"success": False, "error": f"Internal auth error: {e}"}
-            ), 500
+            return jsonify({"success": False, "error": f"Internal auth error: {e}"}), 500
 
     return decorated
 
@@ -194,22 +184,17 @@ def require_mcp_auth(f):
 def require_mcp_role(roles: list[str]):
     """Decorator to require specific MCP roles for a route."""
 
-
     def decorator(f):
         @wraps(f)
         def decorated(*args, **kwargs):
             if not hasattr(g, "agent_context"):
-                return jsonify(
-                    {"success": False, "error": "Authentication required"}
-                ), 401
+                return jsonify({"success": False, "error": "Authentication required"}), 401
 
             context = g.agent_context
             # Check if agent has any of the required roles
             has_role = any(role in context.roles for role in roles)
             if not has_role and "admin" not in context.roles:
-                return jsonify(
-                    {"success": False, "error": f"Requires roles: {roles}"}
-                ), 403
+                return jsonify({"success": False, "error": f"Requires roles: {roles}"}), 403
 
             return f(*args, **kwargs)
 

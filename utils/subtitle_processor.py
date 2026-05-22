@@ -19,17 +19,12 @@ class SubtitleProcessor:
         lines = [
             line
             for line in lines
-            if not any(
-                line.startswith(prefix)
-                for prefix in ["Kind:", "Language:", "align:", "position:"]
-            )
+            if not any(line.startswith(prefix) for prefix in ["Kind:", "Language:", "align:", "position:"])
         ]
 
         # Remove timestamp lines and tags
         # Pattern for 00:00:00.000 --> 00:00:00.000
-        timestamp_pattern = re.compile(
-            r"\d{2}:\d{2}:\d{2}\.\d{3} --> \d{2}:\d{2}:\d{2}\.\d{3}.*"
-        )
+        timestamp_pattern = re.compile(r"\d{2}:\d{2}:\d{2}\.\d{3} --> \d{2}:\d{2}:\d{2}\.\d{3}.*")
         # Pattern for <00:00:00.000><c> etc
         tag_pattern = re.compile(r"<[^>]+>")
 
@@ -65,7 +60,6 @@ class SubtitleProcessor:
         # Simple cleanup of redundant repeated segments (YouTube specific)
         # e.g. "Hello world Hello world there" -> "Hello world there"
         # This is a bit complex to do perfectly without NLP, but we can do some basics.
-
 
     @staticmethod
     def format_as_markdown(text: str, metadata: dict) -> str:

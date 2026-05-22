@@ -74,9 +74,7 @@ class ReflectionSubagent:
         result: ReflectionResult,
     ) -> dict[str, int]:
         if result.crisis_detected and not self.config.auto_consolidate:
-            logger.info(
-                "Crisis detected - skipping auto-consolidation, preserving all memories"
-            )
+            logger.info("Crisis detected - skipping auto-consolidation, preserving all memories")
             result = replace(result, memories_deleted=[])
         if hasattr(self.memory, "execute_consolidation"):
             return await self.memory.execute_consolidation(

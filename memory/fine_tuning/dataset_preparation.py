@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Fine-Tuning Dataset Preparation — Sprint 5, Task 1.
 
 Extracts memory-augmented training pairs from consolidated memories,
@@ -13,9 +12,8 @@ import logging
 import math
 import random
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
 
 from ..schema import MemoryBlock
 
@@ -27,14 +25,14 @@ class TrainingExample:
     query: str
     context: str
     response: str
-    metadata: Dict[str, object]
+    metadata: dict[str, object]
 
 
 @dataclass
 class DatasetSplit:
-    train: List[TrainingExample]
-    val: List[TrainingExample]
-    test: List[TrainingExample]
+    train: list[TrainingExample]
+    val: list[TrainingExample]
+    test: list[TrainingExample]
 
 
 @dataclass
@@ -71,9 +69,9 @@ class DatasetPreparator:
 
     def prepare(
         self,
-        memories: List[MemoryBlock],
-        output_dir: Optional[Path] = None,
-    ) -> Tuple[DatasetSplit, DatasetStats]:
+        memories: list[MemoryBlock],
+        output_dir: Path | None = None,
+    ) -> tuple[DatasetSplit, DatasetStats]:
         """Full dataset preparation pipeline."""
         t0 = time.perf_counter()
 
@@ -99,18 +97,16 @@ class DatasetPreparator:
         log.info("Dataset preparation complete in %.0f ms", elapsed)
         return split, stats
 
-    def _extract_examples(self, memories: List[MemoryBlock]) -> List[TrainingExample]:
+    def _extract_examples(self, memories: list[MemoryBlock]) -> list[TrainingExample]:
         """Convert memories into (query, context, response) training pairs."""
-        examples: List[TrainingExample] = []
-        session_groups: Dict[str, List[MemoryBlock]] = {}
+        examples: list[TrainingExample] = []
+        session_groups: dict[str, list[MemoryBlock]] = {}
         for m in sorted(memories, key=lambda x: x.timestamp):
             session_groups.setdefault(m.sessionId, []).append(m)
 
         for session_id, session_memories in session_groups.items():
             for i, memory in enumerate(session_memories):
-                prior_context = "\n".join(
-                    m.content for m in session_memories[:i]
-                )
+                prior_context = "\n".join(m.content for m in session_memories[:i])
                 query = memory.content
                 response = self._generate_response_template(memory)
 
@@ -131,9 +127,9 @@ class DatasetPreparator:
                 )
         return examples
 
-    def _balance_valence(self, examples: List[TrainingExample]) -> List[TrainingExample]:
+    def _balance_valence(self, examples: list[TrainingExample]) -> list[TrainingExample]:
         """Balance examples across emotional valence buckets."""
-        buckets: Dict[str, List[TrainingExample]] = {
+        buckets: dict[str, list[TrainingExample]] = {
             "negative": [],
             "neutral": [],
             "positive": [],
@@ -150,7 +146,7 @@ class DatasetPreparator:
         max_size = max(len(b) for b in buckets.values()) if buckets else 0
         target = max(max_size, 1)
 
-        balanced: List[TrainingExample] = []
+        balanced: list[TrainingExample] = []
         for bucket_name, bucket in buckets.items():
             if len(bucket) >= target:
                 balanced.extend(bucket[:target])
@@ -162,16 +158,17 @@ class DatasetPreparator:
         random.shuffle(balanced)
         return balanced
 
-    def _check_pii(self, examples: List[TrainingExample]) -> bool:
+    def _check_pii(self, examples: list[TrainingExample]) -> bool:
         """Check for PII leakage in training data."""
         import re
+
         for ex in examples:
             for pattern in PII_PATTERNS:
                 if re.search(pattern, ex.query) or re.search(pattern, ex.response):
                     return True
         return False
 
-    def _split(self, examples: List[TrainingExample]) -> DatasetSplit:
+    def _split(self, examples: list[TrainingExample]) -> DatasetSplit:
         """Create train/val/test splits."""
         shuffled = list(examples)
         random.shuffle(shuffled)
@@ -210,12 +207,17 @@ class DatasetPreparator:
             path = output_dir / f"{name}.jsonl"
             with path.open("w", encoding="utf-8") as f:
                 for ex in examples:
-                    f.write(json.dumps({
-                        "query": ex.query,
-                        "context": ex.context,
-                        "response": ex.response,
-                        "metadata": ex.metadata,
-                    }) + "\n")
+                    f.write(
+                        json.dumps(
+                            {
+                                "query": ex.query,
+                                "context": ex.context,
+                                "response": ex.response,
+                                "metadata": ex.metadata,
+                            }
+                        )
+                        + "\n"
+                    )
         log.info("Dataset saved to %s", output_dir)
 
     @staticmethod
@@ -223,8 +225,10 @@ class DatasetPreparator:
         """Generate a therapeutic response template for a memory."""
         emotion_labels = ", ".join(memory.emotions.categories or ["general"])
         valence_desc = (
-            "negative emotional state" if memory.emotions.valence < -0.2
-            else "positive emotional state" if memory.emotions.valence > 0.2
+            "negative emotional state"
+            if memory.emotions.valence < -0.2
+            else "positive emotional state"
+            if memory.emotions.valence > 0.2
             else "neutral emotional state"
         )
         return (

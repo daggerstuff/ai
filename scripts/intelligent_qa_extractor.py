@@ -16,10 +16,10 @@ class IntelligentQAExtractor:
         # Look for explicit question patterns
         question_patterns = [
             r"(.+?)[\?\.].*?[,\s]+(.*)",  # Question followed by answer
-            r"(.+how can.+?\?)\s*(.+)",   # "How can" questions
-            r"(.+what should.+?\?)\s*(.+)", # "What should" questions
-            r"(.+why do.+?\?)\s*(.+)",    # "Why do" questions
-            r"(.+when.+?\?)\s*(.+)",      # "When" questions
+            r"(.+how can.+?\?)\s*(.+)",  # "How can" questions
+            r"(.+what should.+?\?)\s*(.+)",  # "What should" questions
+            r"(.+why do.+?\?)\s*(.+)",  # "Why do" questions
+            r"(.+when.+?\?)\s*(.+)",  # "When" questions
         ]
 
         for pattern in question_patterns:
@@ -29,8 +29,13 @@ class IntelligentQAExtractor:
                 potential_a = match.group(2).strip()
 
                 # Validate it's actually a question
-                if ("?" in potential_q or any(word in potential_q.lower() for word in
-                    ["how", "what", "why", "when", "where", "can you", "should i"])) and len(potential_a) > 100:
+                if (
+                    "?" in potential_q
+                    or any(
+                        word in potential_q.lower()
+                        for word in ["how", "what", "why", "when", "where", "can you", "should i"]
+                    )
+                ) and len(potential_a) > 100:
                     return potential_q, potential_a
 
         return None
@@ -114,8 +119,9 @@ class IntelligentQAExtractor:
             "confidence": segment["confidence"],
             "quality": segment["quality"],
             "source": segment["source"],
-            "file": segment["file"]
+            "file": segment["file"],
         }
+
 
 def test_intelligent_extraction():
     """Test the intelligent Q/A extractor"""
@@ -128,7 +134,7 @@ def test_intelligent_extraction():
         "confidence": 3.0,
         "quality": 0.7,
         "source": "test",
-        "file": "test.txt"
+        "file": "test.txt",
     }
 
     extractor.process_segment(test_segment)

@@ -47,9 +47,7 @@ class WileyPublisher(BasePublisher):
             headers = {"Wiley-TDM-Client-Token": api_key}
             params = {"query": "psychology", "pageSize": 1}
 
-            response = self.session.get(
-                test_url, headers=headers, params=params, timeout=10
-            )
+            response = self.session.get(test_url, headers=headers, params=params, timeout=10)
 
             if response.status_code == 200:
                 logger.info("✅ Wiley authentication successful")
@@ -126,9 +124,7 @@ class WileyPublisher(BasePublisher):
             logger.error(f"Wiley search error: {e}")
             return []
 
-    def _parse_wiley_record(
-        self, record: dict[str, Any], _original_query: str
-    ) -> BookMetadata | None:
+    def _parse_wiley_record(self, record: dict[str, Any], _original_query: str) -> BookMetadata | None:
         """Parse a Wiley API record"""
         try:
             title = record.get("title", "Unknown Title")
@@ -209,9 +205,7 @@ class WileyPublisher(BasePublisher):
             logger.error(f"Error getting Wiley metadata: {e}")
             return None
 
-    def get_book_content(
-        self, book_id: str, format: BookFormat = BookFormat.PDF
-    ) -> BookContent | None:
+    def get_book_content(self, book_id: str, format: BookFormat = BookFormat.PDF) -> BookContent | None:
         """Get book content (requires institutional access)"""
         logger.warning("Wiley content requires institutional access")
 

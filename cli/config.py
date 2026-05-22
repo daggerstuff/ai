@@ -40,9 +40,7 @@ class APIConfig(BaseModel):
     base_url: str = Field(default="http://localhost:8000", description="Base API URL")
     timeout: int = Field(default=30, description="Request timeout in seconds")
     max_retries: int = Field(default=3, description="Maximum number of retries")
-    retry_delay: float = Field(
-        default=1.0, description="Delay between retries in seconds"
-    )
+    retry_delay: float = Field(default=1.0, description="Delay between retries in seconds")
     verify_ssl: bool = Field(default=True, description="Verify SSL certificates")
 
     @validator("timeout")
@@ -61,20 +59,12 @@ class APIConfig(BaseModel):
 class AuthConfig(BaseModel):
     """Authentication configuration settings"""
 
-    jwt_token: str | None = Field(
-        default=None, description="JWT authentication token"
-    )
+    jwt_token: str | None = Field(default=None, description="JWT authentication token")
     refresh_token: str | None = Field(default=None, description="JWT refresh token")
-    token_expiry: str | None = Field(
-        default=None, description="Token expiry timestamp"
-    )
+    token_expiry: str | None = Field(default=None, description="Token expiry timestamp")
     client_id: str | None = Field(default=None, description="OAuth client ID")
-    client_secret: str | None = Field(
-        default=None, description="OAuth client secret"
-    )
-    auth_url: str = Field(
-        default="http://localhost:8000/auth", description="Authentication endpoint"
-    )
+    client_secret: str | None = Field(default=None, description="OAuth client secret")
+    auth_url: str = Field(default="http://localhost:8000/auth", description="Authentication endpoint")
 
     @validator("jwt_token", "refresh_token", "client_secret")
     def validate_sensitive_data(cls, v):
@@ -85,21 +75,11 @@ class AuthConfig(BaseModel):
 class PipelineConfig(BaseModel):
     """Pipeline configuration settings"""
 
-    default_timeout: int = Field(
-        default=3600, description="Default pipeline timeout in seconds"
-    )
-    max_concurrent_jobs: int = Field(
-        default=5, description="Maximum concurrent pipeline jobs"
-    )
-    checkpoint_interval: int = Field(
-        default=300, description="Checkpoint interval in seconds"
-    )
-    enable_bias_detection: bool = Field(
-        default=True, description="Enable bias detection"
-    )
-    enable_fhe_encryption: bool = Field(
-        default=True, description="Enable FHE encryption"
-    )
+    default_timeout: int = Field(default=3600, description="Default pipeline timeout in seconds")
+    max_concurrent_jobs: int = Field(default=5, description="Maximum concurrent pipeline jobs")
+    checkpoint_interval: int = Field(default=300, description="Checkpoint interval in seconds")
+    enable_bias_detection: bool = Field(default=True, description="Enable bias detection")
+    enable_fhe_encryption: bool = Field(default=True, description="Enable FHE encryption")
     audit_logging: bool = Field(default=True, description="Enable audit logging")
 
     @validator("default_timeout", "max_concurrent_jobs", "checkpoint_interval")
@@ -118,9 +98,7 @@ class LoggingConfig(BaseModel):
         description="Log format string",
     )
     file_path: str | None = Field(default=None, description="Log file path")
-    max_file_size: int = Field(
-        default=10485760, description="Maximum log file size in bytes"
-    )
+    max_file_size: int = Field(default=10485760, description="Maximum log file size in bytes")
     backup_count: int = Field(default=5, description="Number of backup log files")
 
     @validator("level")
@@ -134,9 +112,7 @@ class LoggingConfig(BaseModel):
 class SecurityConfig(BaseModel):
     """Security configuration settings"""
 
-    encrypt_credentials: bool = Field(
-        default=True, description="Encrypt stored credentials"
-    )
+    encrypt_credentials: bool = Field(default=True, description="Encrypt stored credentials")
     key_file: str = Field(default=".cli_key", description="Encryption key file")
     validate_inputs: bool = Field(default=True, description="Validate all inputs")
     sanitize_outputs: bool = Field(default=True, description="Sanitize outputs")
@@ -289,9 +265,7 @@ class CLIConfig(BaseModel):
                     if hasattr(section_obj, key):
                         setattr(section_obj, key, value)
                 except (ValueError, TypeError) as e:
-                    logger.warning(
-                        f"Invalid environment variable {env_var}={value}: {e}"
-                    )
+                    logger.warning(f"Invalid environment variable {env_var}={value}: {e}")
 
     def _setup_encryption(self) -> None:
         """Setup encryption for sensitive data"""

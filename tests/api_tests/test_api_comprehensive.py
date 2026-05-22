@@ -10,7 +10,7 @@ Separates real integration tests from mock data tests.
 import asyncio
 import os
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import httpx
 import pytest
@@ -33,7 +33,7 @@ class APITestClient:
                 "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json",
             },
-            timeout=30.0
+            timeout=30.0,
         )
 
     async def request(self, method: str, endpoint: str, **kwargs) -> httpx.Response:
@@ -62,20 +62,17 @@ def sample_conversation():
             {
                 "role": "user",
                 "content": "I'm feeling anxious about my upcoming presentation.",
-                "timestamp": "2025-08-29T08:00:00Z"
+                "timestamp": "2025-08-29T08:00:00Z",
             },
             {
                 "role": "assistant",
                 "content": "I understand that presentations can trigger anxiety. What specifically about the presentation is causing you the most concern?",
-                "timestamp": "2025-08-29T08:00:30Z"
-            }
+                "timestamp": "2025-08-29T08:00:30Z",
+            },
         ],
         "quality_score": 0.78,
         "tier": "professional",
-        "metadata": {
-            "dataset": "test_dataset",
-            "created_at": "2025-08-29T08:00:00Z"
-        }
+        "metadata": {"dataset": "test_dataset", "created_at": "2025-08-29T08:00:00Z"},
     }
 
 
@@ -87,11 +84,11 @@ def advanced_query():
         "min_quality": 0.7,
         "min_therapeutic_accuracy": 0.75,
         "min_safety_score": 0.9,
-        "created_after": (datetime.now(timezone.utc) - timedelta(days=30)).isoformat(),
+        "created_after": (datetime.now(UTC) - timedelta(days=30)).isoformat(),
         "sort_by": "quality_score",
         "sort_order": "desc",
         "limit": 10,
-        "offset": 0
+        "offset": 0,
     }
 
 
@@ -101,14 +98,10 @@ def bulk_export_request():
     return {
         "dataset": "priority_complete_fixed",
         "format": "jsonl",
-        "filters": {
-            "tier": "professional",
-            "min_quality": 0.8,
-            "limit": 100
-        },
+        "filters": {"tier": "professional", "min_quality": 0.8, "limit": 100},
         "include_metadata": True,
         "include_quality_metrics": True,
-        "batch_size": 50
+        "batch_size": 50,
     }
 
 
@@ -209,11 +202,7 @@ class TestConversationEndpoints:
 
     async def test_list_conversations_with_filters(self, api_client):
         """Test conversation listing with filters."""
-        params = {
-            "tier": "professional",
-            "min_quality": "0.8",
-            "limit": "5"
-        }
+        params = {"tier": "professional", "min_quality": "0.8", "limit": "5"}
 
         response = await api_client.request("GET", "/v1/conversations", params=params)
         assert response.status_code == 200
@@ -224,10 +213,7 @@ class TestConversationEndpoints:
 
     async def test_advanced_conversation_query(self, api_client, advanced_query):
         """Test advanced conversation querying."""
-        response = await api_client.request(
-            "POST", "/v1/conversations/query",
-            json=advanced_query
-        )
+        response = await api_client.request("POST", "/v1/conversations/query", json=advanced_query)
         assert response.status_code == 200
 
         data = response.json()
@@ -266,23 +252,14 @@ class TestQualityEndpoints:
 
     async def test_get_quality_metrics_with_filters(self, api_client):
         """Test getting quality metrics with filters."""
-        params = {
-            "tier": "professional",
-            "dataset": "priority_complete_fixed"
-        }
+        params = {"tier": "professional", "dataset": "priority_complete_fixed"}
 
-        response = await api_client.request(
-            "GET", "/v1/quality/metrics",
-            params=params
-        )
+        response = await api_client.request("GET", "/v1/quality/metrics", params=params)
         assert response.status_code == 200
 
     async def test_validate_conversation_quality(self, api_client, sample_conversation):
         """Test conversation quality validation."""
-        response = await api_client.request(
-            "POST", "/v1/quality/validate",
-            json=sample_conversation
-        )
+        response = await api_client.request("POST", "/v1/quality/validate", json=sample_conversation)
         assert response.status_code == 200
 
         data = response.json()
@@ -297,10 +274,7 @@ class TestExportEndpoints:
 
     async def test_create_bulk_export(self, api_client, bulk_export_request):
         """Test creating bulk export job."""
-        response = await api_client.request(
-            "POST", "/v1/export/bulk",
-            json=bulk_export_request
-        )
+        response = await api_client.request("POST", "/v1/export/bulk", json=bulk_export_request)
         assert response.status_code == 200
 
         data = response.json()
@@ -353,18 +327,12 @@ class TestSearchEndpoints:
         """Test conversation search."""
         search_request = {
             "query": "anxiety therapy",
-            "filters": {
-                "tier": "professional",
-                "min_quality": 0.7
-            },
+            "filters": {"tier": "professional", "min_quality": 0.7},
             "limit": 5,
-            "offset": 0
+            "offset": 0,
         }
 
-        response = await api_client.request(
-            "POST", "/v1/search",
-            json=search_request
-        )
+        response = await api_client.request("POST", "/v1/search", json=search_request)
         assert response.status_code == 200
 
         data = response.json()
@@ -460,9 +428,7 @@ class TestErrorHandling:
     async def test_invalid_json_request(self, api_client):
         """Test handling of invalid JSON requests."""
         response = await api_client.request(
-            "POST", "/v1/conversations/query",
-            content="invalid json",
-            headers={"content-type": "application/json"}
+            "POST", "/v1/conversations/query", content="invalid json", headers={"content-type": "application/json"}
         )
         assert response.status_code == 422  # Validation error
 
@@ -473,10 +439,7 @@ class TestErrorHandling:
             # Missing required 'dataset' field
         }
 
-        response = await api_client.request(
-            "POST", "/v1/export/bulk",
-            json=incomplete_export
-        )
+        response = await api_client.request("POST", "/v1/export/bulk", json=incomplete_export)
         assert response.status_code == 422  # Validation error
 
     async def test_invalid_parameter_values(self, api_client):
@@ -484,13 +447,10 @@ class TestErrorHandling:
         invalid_query = {
             "tier": "invalid_tier",
             "min_quality": 1.5,  # Quality should be 0.0-1.0
-            "limit": -1  # Negative limit
+            "limit": -1,  # Negative limit
         }
 
-        response = await api_client.request(
-            "POST", "/v1/conversations/query",
-            json=invalid_query
-        )
+        response = await api_client.request("POST", "/v1/conversations/query", json=invalid_query)
         # Should handle gracefully, either validation error or filtered results
         assert response.status_code in [200, 422]
 
@@ -510,10 +470,7 @@ class TestPerformance:
     async def test_response_time_query(self, api_client, advanced_query):
         """Test response time for conversation queries."""
         start_time = time.time()
-        response = await api_client.request(
-            "POST", "/v1/conversations/query",
-            json=advanced_query
-        )
+        response = await api_client.request("POST", "/v1/conversations/query", json=advanced_query)
         end_time = time.time()
 
         assert response.status_code == 200
@@ -521,6 +478,7 @@ class TestPerformance:
 
     async def test_concurrent_requests(self, api_client):
         """Test handling of concurrent requests."""
+
         async def make_request():
             return await api_client.request("GET", "/v1/datasets")
 
@@ -539,17 +497,11 @@ class TestDataIntegrity:
     async def test_pagination_consistency(self, api_client):
         """Test that pagination returns consistent results."""
         # Get first page
-        response1 = await api_client.request(
-            "GET", "/v1/conversations",
-            params={"limit": "5", "offset": "0"}
-        )
+        response1 = await api_client.request("GET", "/v1/conversations", params={"limit": "5", "offset": "0"})
         assert response1.status_code == 200
 
         # Get second page
-        response2 = await api_client.request(
-            "GET", "/v1/conversations",
-            params={"limit": "5", "offset": "5"}
-        )
+        response2 = await api_client.request("GET", "/v1/conversations", params={"limit": "5", "offset": "5"})
         assert response2.status_code == 200
 
         # Results should be different (assuming more than 5 conversations)
@@ -564,10 +516,7 @@ class TestDataIntegrity:
 
     async def test_filter_consistency(self, api_client):
         """Test that filters produce consistent results."""
-        query_params = {
-            "tier": "professional",
-            "min_quality": "0.8"
-        }
+        query_params = {"tier": "professional", "min_quality": "0.8"}
 
         # Make same request twice
         response1 = await api_client.request("GET", "/v1/conversations", params=query_params)
@@ -586,6 +535,7 @@ class TestDataIntegrity:
 
 # Utility functions for test setup and teardown
 
+
 @pytest.fixture(scope="session", autouse=True)
 async def setup_test_environment():
     """Setup test environment before running tests."""
@@ -602,12 +552,8 @@ async def setup_test_environment():
 
 def pytest_configure(config):
     """Configure pytest with custom markers."""
-    config.addinivalue_line(
-        "markers", "real_api: mark test as requiring real API connection"
-    )
-    config.addinivalue_line(
-        "markers", "performance: mark test as performance test"
-    )
+    config.addinivalue_line("markers", "real_api: mark test as requiring real API connection")
+    config.addinivalue_line("markers", "performance: mark test as performance test")
 
 
 if __name__ == "__main__":

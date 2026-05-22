@@ -13,15 +13,17 @@ import re
 import sqlite3
 import uuid
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger(__name__)
 
+
 class DataCategory(StrEnum):
     """GDPR data categories"""
+
     PERSONAL_DATA = "personal_data"
     SENSITIVE_DATA = "sensitive_data"
     BIOMETRIC_DATA = "biometric_data"
@@ -31,8 +33,10 @@ class DataCategory(StrEnum):
     LOCATION_DATA = "location_data"
     ONLINE_IDENTIFIERS = "online_identifiers"
 
+
 class LegalBasis(StrEnum):
     """GDPR legal basis for processing"""
+
     CONSENT = "consent"
     CONTRACT = "contract"
     LEGAL_OBLIGATION = "legal_obligation"
@@ -40,8 +44,10 @@ class LegalBasis(StrEnum):
     PUBLIC_TASK = "public_task"
     LEGITIMATE_INTERESTS = "legitimate_interests"
 
+
 class DataSubjectRight(StrEnum):
     """GDPR data subject rights"""
+
     ACCESS = "access"
     RECTIFICATION = "rectification"
     ERASURE = "erasure"
@@ -50,15 +56,19 @@ class DataSubjectRight(StrEnum):
     OBJECT = "object"
     AUTOMATED_DECISION_MAKING = "automated_decision_making"
 
+
 class ConsentStatus(StrEnum):
     """Consent status"""
+
     GIVEN = "given"
     WITHDRAWN = "withdrawn"
     EXPIRED = "expired"
     PENDING = "pending"
 
+
 class ProcessingPurpose(StrEnum):
     """Data processing purposes"""
+
     SERVICE_PROVISION = "service_provision"
     ANALYTICS = "analytics"
     MARKETING = "marketing"
@@ -66,9 +76,11 @@ class ProcessingPurpose(StrEnum):
     LEGAL_COMPLIANCE = "legal_compliance"
     SECURITY = "security"
 
+
 @dataclass
 class PersonalDataRecord:
     """Personal data record"""
+
     record_id: str
     data_subject_id: str
     data_category: DataCategory
@@ -82,9 +94,11 @@ class PersonalDataRecord:
     encrypted: bool
     anonymized: bool
 
+
 @dataclass
 class ConsentRecord:
     """Consent record"""
+
     consent_id: str
     data_subject_id: str
     purpose: ProcessingPurpose
@@ -95,9 +109,11 @@ class ConsentRecord:
     consent_text: str
     version: str
 
+
 @dataclass
 class DataSubjectRequest:
     """Data subject request"""
+
     request_id: str
     data_subject_id: str
     request_type: DataSubjectRight
@@ -107,9 +123,11 @@ class DataSubjectRequest:
     response_data: str | None
     verification_method: str
 
+
 @dataclass
 class GDPRViolation:
     """GDPR violation record"""
+
     violation_id: str
     violation_type: str
     severity: str
@@ -122,9 +140,11 @@ class GDPRViolation:
     notification_sent: bool
     remediation_actions: list[str]
 
+
 @dataclass
 class GDPRComplianceReport:
     """GDPR compliance assessment report"""
+
     assessment_id: str
     timestamp: datetime
     compliance_score: float
@@ -137,6 +157,7 @@ class GDPRComplianceReport:
     privacy_policy_updated: bool
     dpo_appointed: bool
 
+
 class PersonalDataDetector:
     """Personal data detector for GDPR compliance"""
 
@@ -145,25 +166,25 @@ class PersonalDataDetector:
         self.patterns = {
             DataCategory.PERSONAL_DATA: [
                 r"\b[A-Z][a-z]+ [A-Z][a-z]+\b",  # Names
-                r"\b\d{1,2}/\d{1,2}/\d{4}\b",    # Dates
-                r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"  # Emails
+                r"\b\d{1,2}/\d{1,2}/\d{4}\b",  # Dates
+                r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b",  # Emails
             ],
             DataCategory.SENSITIVE_DATA: [
                 r"\b(?:religion|political|union|health|sex|orientation)\b",
-                r"\b(?:medical|diagnosis|treatment|therapy)\b"
+                r"\b(?:medical|diagnosis|treatment|therapy)\b",
             ],
             DataCategory.HEALTH_DATA: [
                 r"\b(?:patient|medical|health|diagnosis|treatment|medication)\b",
-                r"\b(?:blood pressure|heart rate|temperature|weight)\b"
+                r"\b(?:blood pressure|heart rate|temperature|weight)\b",
             ],
             DataCategory.LOCATION_DATA: [
                 r"\b\d+\.\d+,\s*\d+\.\d+\b",  # Coordinates
-                r"\b(?:GPS|location|address|coordinates)\b"
+                r"\b(?:GPS|location|address|coordinates)\b",
             ],
             DataCategory.ONLINE_IDENTIFIERS: [
                 r"\b(?:\d{1,3}\.){3}\d{1,3}\b",  # IP addresses
-                r"\b[A-Fa-f0-9]{8}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{12}\b"  # UUIDs
-            ]
+                r"\b[A-Fa-f0-9]{8}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{12}\b",  # UUIDs
+            ],
         }
 
         # Compile patterns
@@ -182,6 +203,7 @@ class PersonalDataDetector:
                     detections.append((category, match.group()))
 
         return detections
+
 
 class GDPRStorage:
     """GDPR compliance data storage"""
@@ -283,7 +305,9 @@ class GDPRStorage:
             """)
 
             # Create indexes
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_personal_data_subject ON personal_data_records(data_subject_id)")
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_personal_data_subject ON personal_data_records(data_subject_id)"
+            )
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_consent_subject ON consent_records(data_subject_id)")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_requests_subject ON data_subject_requests(data_subject_id)")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_violations_timestamp ON gdpr_violations(timestamp)")
@@ -295,6 +319,7 @@ class GDPRStorage:
         except Exception as e:
             logger.error(f"Failed to initialize GDPR database: {e}")
             raise
+
 
 class GDPRValidator:
     """GDPR compliance validator"""
@@ -312,14 +337,19 @@ class GDPRValidator:
             "accuracy": True,
             "storage_limitation": True,
             "integrity_confidentiality": True,
-            "accountability": True
+            "accountability": True,
         }
 
         logger.info("GDPR validator initialized successfully")
 
-    def validate_data_processing(self, data: str, purpose: ProcessingPurpose,
-                                legal_basis: LegalBasis, data_subject_id: str,
-                                consent_id: str | None = None) -> tuple[bool, list[str]]:
+    def validate_data_processing(
+        self,
+        data: str,
+        purpose: ProcessingPurpose,
+        legal_basis: LegalBasis,
+        data_subject_id: str,
+        consent_id: str | None = None,
+    ) -> tuple[bool, list[str]]:
         """Validate data processing for GDPR compliance"""
         violations = []
 
@@ -352,18 +382,21 @@ class GDPRValidator:
             cursor = conn.cursor()
 
             # Store request
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO data_subject_requests
                 (request_id, data_subject_id, request_type, request_date, status, verification_method)
                 VALUES (?, ?, ?, ?, ?, ?)
-            """, (
-                request.request_id,
-                request.data_subject_id,
-                request.request_type.value,
-                request.request_date,
-                "processing",
-                request.verification_method
-            ))
+            """,
+                (
+                    request.request_id,
+                    request.data_subject_id,
+                    request.request_type.value,
+                    request.request_date,
+                    "processing",
+                    request.verification_method,
+                ),
+            )
 
             response_data = None
 
@@ -378,28 +411,23 @@ class GDPRValidator:
                 response_data = self._process_portability_request(request.data_subject_id, cursor)
 
             # Update request status
-            cursor.execute("""
+            cursor.execute(
+                """
                 UPDATE data_subject_requests
                 SET status = ?, completed_date = ?, response_data = ?
                 WHERE request_id = ?
-            """, ("completed", datetime.now(timezone.utc), json.dumps(response_data), request.request_id))
+            """,
+                ("completed", datetime.now(UTC), json.dumps(response_data), request.request_id),
+            )
 
             conn.commit()
             conn.close()
 
-            return {
-                "request_id": request.request_id,
-                "status": "completed",
-                "response": response_data
-            }
+            return {"request_id": request.request_id, "status": "completed", "response": response_data}
 
         except Exception as e:
             logger.error(f"Failed to process data subject request: {e}")
-            return {
-                "request_id": request.request_id,
-                "status": "failed",
-                "error": str(e)
-            }
+            return {"request_id": request.request_id, "status": "failed", "error": str(e)}
 
     def _validate_consent(self, consent_id: str, data_subject_id: str, purpose: ProcessingPurpose) -> bool:
         """Validate consent"""
@@ -407,10 +435,13 @@ class GDPRValidator:
             conn = sqlite3.connect(self.storage.db_path)
             cursor = conn.cursor()
 
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT status, expiry_date FROM consent_records
                 WHERE consent_id = ? AND data_subject_id = ? AND purpose = ?
-            """, (consent_id, data_subject_id, purpose.value))
+            """,
+                (consent_id, data_subject_id, purpose.value),
+            )
 
             result = cursor.fetchone()
             conn.close()
@@ -426,7 +457,7 @@ class GDPRValidator:
 
             if expiry_date:
                 expiry_dt = datetime.fromisoformat(expiry_date.replace("Z", "+00:00"))
-                if datetime.now(timezone.utc) > expiry_dt:
+                if datetime.now(UTC) > expiry_dt:
                     return False
 
             return True
@@ -435,8 +466,9 @@ class GDPRValidator:
             logger.error(f"Consent validation failed: {e}")
             return False
 
-    def _check_data_minimization(self, personal_data: list[tuple[DataCategory, str]],
-                                purpose: ProcessingPurpose) -> bool:
+    def _check_data_minimization(
+        self, personal_data: list[tuple[DataCategory, str]], purpose: ProcessingPurpose
+    ) -> bool:
         """Check data minimization principle"""
         # Simplified check - in practice, this would be more sophisticated
         sensitive_categories = [DataCategory.SENSITIVE_DATA, DataCategory.HEALTH_DATA, DataCategory.BIOMETRIC_DATA]
@@ -449,8 +481,14 @@ class GDPRValidator:
 
         return True
 
-    def _record_processing_activity(self, data_subject_id: str, personal_data: list[tuple[DataCategory, str]],
-                                  purpose: ProcessingPurpose, legal_basis: LegalBasis, consent_id: str | None):
+    def _record_processing_activity(
+        self,
+        data_subject_id: str,
+        personal_data: list[tuple[DataCategory, str]],
+        purpose: ProcessingPurpose,
+        legal_basis: LegalBasis,
+        consent_id: str | None,
+    ):
         """Record data processing activity"""
         try:
             record_id = str(uuid.uuid4())
@@ -459,7 +497,7 @@ class GDPRValidator:
 
             # Calculate retention period based on purpose
             retention_period = self._calculate_retention_period(purpose)
-            deletion_date = datetime.now(timezone.utc) + timedelta(days=retention_period)
+            deletion_date = datetime.now(UTC) + timedelta(days=retention_period)
 
             record = PersonalDataRecord(
                 record_id=record_id,
@@ -469,28 +507,39 @@ class GDPRValidator:
                 processing_purpose=purpose,
                 legal_basis=legal_basis,
                 consent_id=consent_id,
-                collected_date=datetime.now(timezone.utc),
+                collected_date=datetime.now(UTC),
                 retention_period=retention_period,
                 deletion_date=deletion_date,
                 encrypted=True,  # Assume encryption is enabled
-                anonymized=False
+                anonymized=False,
             )
 
             conn = sqlite3.connect(self.storage.db_path)
             cursor = conn.cursor()
 
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO personal_data_records
                 (record_id, data_subject_id, data_category, data_fields, processing_purpose,
                  legal_basis, consent_id, collected_date, retention_period, deletion_date,
                  encrypted, anonymized)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                record.record_id, record.data_subject_id, record.data_category.value,
-                json.dumps(record.data_fields), record.processing_purpose.value,
-                record.legal_basis.value, record.consent_id, record.collected_date,
-                record.retention_period, record.deletion_date, record.encrypted, record.anonymized
-            ))
+            """,
+                (
+                    record.record_id,
+                    record.data_subject_id,
+                    record.data_category.value,
+                    json.dumps(record.data_fields),
+                    record.processing_purpose.value,
+                    record.legal_basis.value,
+                    record.consent_id,
+                    record.collected_date,
+                    record.retention_period,
+                    record.deletion_date,
+                    record.encrypted,
+                    record.anonymized,
+                ),
+            )
 
             conn.commit()
             conn.close()
@@ -506,7 +555,7 @@ class GDPRValidator:
             ProcessingPurpose.MARKETING: 365,  # 1 year
             ProcessingPurpose.RESEARCH: 365 * 5,  # 5 years
             ProcessingPurpose.LEGAL_COMPLIANCE: 365 * 7,  # 7 years
-            ProcessingPurpose.SECURITY: 365  # 1 year
+            ProcessingPurpose.SECURITY: 365,  # 1 year
         }
 
         return retention_periods.get(purpose, 365)  # Default 1 year
@@ -514,21 +563,27 @@ class GDPRValidator:
     def _process_access_request(self, data_subject_id: str, cursor) -> dict[str, Any]:
         """Process data access request"""
         # Get all personal data for the subject
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT record_id, data_category, data_fields, processing_purpose,
                    legal_basis, collected_date, retention_period
             FROM personal_data_records
             WHERE data_subject_id = ?
-        """, (data_subject_id,))
+        """,
+            (data_subject_id,),
+        )
 
         records = cursor.fetchall()
 
         # Get consent records
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT consent_id, purpose, status, given_date, consent_text
             FROM consent_records
             WHERE data_subject_id = ?
-        """, (data_subject_id,))
+        """,
+            (data_subject_id,),
+        )
 
         consents = cursor.fetchall()
 
@@ -541,7 +596,7 @@ class GDPRValidator:
                     "purpose": record[3],
                     "legal_basis": record[4],
                     "collected_date": record[5],
-                    "retention_period": record[6]
+                    "retention_period": record[6],
                 }
                 for record in records
             ],
@@ -551,28 +606,27 @@ class GDPRValidator:
                     "purpose": consent[1],
                     "status": consent[2],
                     "given_date": consent[3],
-                    "consent_text": consent[4]
+                    "consent_text": consent[4],
                 }
                 for consent in consents
-            ]
+            ],
         }
 
     def _process_erasure_request(self, data_subject_id: str, cursor) -> dict[str, Any]:
         """Process data erasure request"""
         # Mark records for deletion (in practice, would actually delete or anonymize)
-        cursor.execute("""
+        cursor.execute(
+            """
             UPDATE personal_data_records
             SET anonymized = TRUE
             WHERE data_subject_id = ?
-        """, (data_subject_id,))
+        """,
+            (data_subject_id,),
+        )
 
         deleted_count = cursor.rowcount
 
-        return {
-            "action": "erasure",
-            "records_deleted": deleted_count,
-            "status": "completed"
-        }
+        return {"action": "erasure", "records_deleted": deleted_count, "status": "completed"}
 
     def _process_rectification_request(self, _data_subject_id: str, _cursor) -> dict[str, Any]:
         """Process data rectification request"""
@@ -580,7 +634,7 @@ class GDPRValidator:
         return {
             "action": "rectification",
             "status": "manual_review_required",
-            "message": "Rectification requests require manual review"
+            "message": "Rectification requests require manual review",
         }
 
     def _process_portability_request(self, data_subject_id: str, cursor) -> dict[str, Any]:
@@ -588,16 +642,12 @@ class GDPRValidator:
         # Get structured data for portability
         access_data = self._process_access_request(data_subject_id, cursor)
 
-        return {
-            "action": "portability",
-            "format": "json",
-            "data": access_data
-        }
+        return {"action": "portability", "format": "json", "data": access_data}
 
     def generate_gdpr_compliance_report(self) -> GDPRComplianceReport:
         """Generate GDPR compliance report"""
         assessment_id = str(uuid.uuid4())
-        timestamp = datetime.now(timezone.utc)
+        timestamp = datetime.now(UTC)
 
         # Calculate compliance scores
         consent_compliance = self._calculate_consent_compliance()
@@ -622,10 +672,9 @@ class GDPRValidator:
             violations=violations,
             recommendations=recommendations,
             data_inventory_complete=True,  # Assume inventory is maintained
-            privacy_policy_updated=True,   # Assume policy is current
-            dpo_appointed=True            # Assume DPO is appointed
+            privacy_policy_updated=True,  # Assume policy is current
+            dpo_appointed=True,  # Assume DPO is appointed
         )
-
 
     def _calculate_consent_compliance(self) -> float:
         """Calculate consent compliance score"""
@@ -641,10 +690,13 @@ class GDPRValidator:
                 return 100.0
 
             # Count valid consents
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT COUNT(*) FROM consent_records
                 WHERE status = ? AND (expiry_date IS NULL OR expiry_date > ?)
-            """, (ConsentStatus.GIVEN.value, datetime.now(timezone.utc)))
+            """,
+                (ConsentStatus.GIVEN.value, datetime.now(UTC)),
+            )
 
             valid_consents = cursor.fetchone()[0]
             conn.close()
@@ -713,16 +765,19 @@ class GDPRValidator:
             conn = sqlite3.connect(self.storage.db_path)
             cursor = conn.cursor()
 
-            since_date = datetime.now(timezone.utc) - timedelta(days=days)
+            since_date = datetime.now(UTC) - timedelta(days=days)
 
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT violation_id, violation_type, severity, description,
                        data_subjects_affected, data_categories, timestamp,
                        breach_detected_date, notification_required, notification_sent,
                        remediation_actions
                 FROM gdpr_violations
                 WHERE timestamp > ?
-            """, (since_date,))
+            """,
+                (since_date,),
+            )
 
             for row in cursor.fetchall():
                 violation = GDPRViolation(
@@ -736,7 +791,7 @@ class GDPRValidator:
                     breach_detected_date=datetime.fromisoformat(row[7].replace("Z", "+00:00")),
                     notification_required=row[8],
                     notification_sent=row[9],
-                    remediation_actions=json.loads(row[10])
+                    remediation_actions=json.loads(row[10]),
                 )
                 violations.append(violation)
 
@@ -767,15 +822,18 @@ class GDPRValidator:
             recommendations.append("Enhance data security measures")
 
         # General recommendations
-        recommendations.extend([
-            "Conduct regular GDPR compliance training",
-            "Update privacy policies and notices",
-            "Implement privacy by design principles",
-            "Maintain comprehensive data inventory",
-            "Regular data protection impact assessments"
-        ])
+        recommendations.extend(
+            [
+                "Conduct regular GDPR compliance training",
+                "Update privacy policies and notices",
+                "Implement privacy by design principles",
+                "Maintain comprehensive data inventory",
+                "Regular data protection impact assessments",
+            ]
+        )
 
         return recommendations
+
 
 # Global GDPR validator instance
 gdpr_validator = GDPRValidator()
@@ -784,7 +842,6 @@ if __name__ == "__main__":
     # Test GDPR validator
     validator = GDPRValidator()
 
-
     # Test data processing validation
     test_data = "John Doe, email: john@example.com, health condition: diabetes"
     is_compliant, violations = validator.validate_data_processing(
@@ -792,9 +849,8 @@ if __name__ == "__main__":
         purpose=ProcessingPurpose.SERVICE_PROVISION,
         legal_basis=LegalBasis.CONSENT,
         data_subject_id="subject_123",
-        consent_id="consent_456"
+        consent_id="consent_456",
     )
-
 
     # Generate compliance report
     report = validator.generate_gdpr_compliance_report()

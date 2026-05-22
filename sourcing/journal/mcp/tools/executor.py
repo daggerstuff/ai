@@ -43,9 +43,7 @@ class ToolExecutor:
         """
         self.registry = registry
         self.progress_streamer = progress_streamer
-        self.async_executor = async_executor or (
-            AsyncToolExecutor(progress_streamer) if progress_streamer else None
-        )
+        self.async_executor = async_executor or (AsyncToolExecutor(progress_streamer) if progress_streamer else None)
 
     async def execute_tool(
         self,
@@ -111,9 +109,7 @@ class ToolExecutor:
 
             # Generate operation ID if not provided
             if not operation_id:
-                operation_id = self.async_executor.generate_operation_id(
-                    prefix=f"tool_{tool_name}"
-                )
+                operation_id = self.async_executor.generate_operation_id(prefix=f"tool_{tool_name}")
 
             # Execute asynchronously with progress tracking
             return await self.async_executor.execute_async(
@@ -138,9 +134,7 @@ class ToolExecutor:
 
             # Validate result is a dictionary
             if not isinstance(result, dict):
-                logger.warning(
-                    f"Tool {tool_name} returned non-dict result, wrapping in dict"
-                )
+                logger.warning(f"Tool {tool_name} returned non-dict result, wrapping in dict")
                 result = {"result": result}
 
             return result
@@ -228,6 +222,3 @@ class ToolExecutor:
         if not self.async_executor:
             return None
         return await self.async_executor.get_operation_status(operation_id)
-
-
-

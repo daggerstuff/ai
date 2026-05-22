@@ -12,6 +12,7 @@ import logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
+
 class SupervisorDashboardBuilder:
     """Builder for supervisor dashboard UI components"""
 
@@ -33,8 +34,8 @@ class SupervisorDashboardBuilder:
                 "Skill performance monitoring",
                 "Crisis alert notifications",
                 "Session recording controls",
-                "Multi-session support"
-            ]
+                "Multi-session support",
+            ],
         }
 
         # Competency Assessment Grid
@@ -48,8 +49,8 @@ class SupervisorDashboardBuilder:
                 "Real-time skill updates",
                 "Evidence collection",
                 "Rubric integration",
-                "Progress tracking"
-            ]
+                "Progress tracking",
+            ],
         }
 
     def _generate_session_monitor_react(self) -> str:

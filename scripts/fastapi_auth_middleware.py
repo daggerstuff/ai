@@ -80,11 +80,7 @@ class FastAPIAuthenticationMiddleware(BaseHTTPMiddleware):
         request.state.authenticated_api_key = authenticated_api_key
 
         # If no user or API key is authenticated and the endpoint is not public, raise HTTPException
-        if (
-            not authenticated_user
-            and not authenticated_api_key
-            and request.url.path not in self.public_endpoints
-        ):
+        if not authenticated_user and not authenticated_api_key and request.url.path not in self.public_endpoints:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Authentication required",
@@ -121,9 +117,7 @@ class AuthenticationDependencies:
 
         return user
 
-    async def get_api_key(
-        self, api_key: str | None = Depends(api_key_header)
-    ) -> APIKey | None:
+    async def get_api_key(self, api_key: str | None = Depends(api_key_header)) -> APIKey | None:
         """Get current authenticated API key"""
         if not api_key:
             return None
@@ -144,9 +138,7 @@ class AuthenticationDependencies:
         ):
             # Check user permissions
             if user:
-                if not self.auth_system.check_permission(
-                    user.role, required_permission
-                ):
+                if not self.auth_system.check_permission(user.role, required_permission):
                     raise HTTPException(
                         status_code=status.HTTP_403_FORBIDDEN,
                         detail=f"Insufficient permissions. Required: {required_permission.value}",
@@ -155,9 +147,7 @@ class AuthenticationDependencies:
 
             # Check API key permissions
             if api_key:
-                if not self.auth_system.check_api_key_permission(
-                    api_key, required_permission
-                ):
+                if not self.auth_system.check_api_key_permission(api_key, required_permission):
                     raise HTTPException(
                         status_code=status.HTTP_403_FORBIDDEN,
                         detail=f"API key lacks required permission: {required_permission.value}",
@@ -196,9 +186,7 @@ def create_auth_routes(app: FastAPI, auth_system: AuthenticationSystem):
         """User login endpoint"""
         user = auth_system.authenticate_user(username, password)
         if not user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
-            )
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
 
         token = auth_system.generate_jwt_token(user)
         return {
@@ -247,18 +235,14 @@ def create_auth_routes(app: FastAPI, auth_system: AuthenticationSystem):
                 detail=f"Invalid permission: {e}",
             )
 
-        api_key, api_key_obj = auth_system.create_api_key(
-            name, permission_objects, expires_in_days
-        )
+        api_key, api_key_obj = auth_system.create_api_key(name, permission_objects, expires_in_days)
 
         return {
             "api_key": api_key,
             "key_id": api_key_obj.key_id,
             "name": api_key_obj.name,
             "permissions": [p.value for p in api_key_obj.permissions],
-            "expires_at": api_key_obj.expires_at.isoformat()
-            if api_key_obj.expires_at
-            else None,
+            "expires_at": api_key_obj.expires_at.isoformat() if api_key_obj.expires_at else None,
         }
 
     @app.get("/auth/api-keys")
@@ -273,25 +257,17 @@ def create_auth_routes(app: FastAPI, auth_system: AuthenticationSystem):
                 "permissions": [p.value for p in api_key.permissions],
                 "is_active": api_key.is_active,
                 "created_at": api_key.created_at.isoformat(),
-                "expires_at": api_key.expires_at.isoformat()
-                if api_key.expires_at
-                else None,
-                "last_used": api_key.last_used.isoformat()
-                if api_key.last_used
-                else None,
+                "expires_at": api_key.expires_at.isoformat() if api_key.expires_at else None,
+                "last_used": api_key.last_used.isoformat() if api_key.last_used else None,
             }
             for api_key in auth_system.api_keys.values()
         ]
 
     @app.delete("/auth/api-keys/{key_id}")
-    async def revoke_api_key(
-        key_id: str, _user: User = Depends(auth_deps.require_role(UserRole.ADMIN))
-    ):
+    async def revoke_api_key(key_id: str, _user: User = Depends(auth_deps.require_role(UserRole.ADMIN))):
         """Revoke API key (admin only)"""
         if key_id not in auth_system.api_keys:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="API key not found"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="API key not found")
 
         auth_system.api_keys[key_id].is_active = False
         return {"message": "API key revoked successfully"}
@@ -382,15 +358,10 @@ if __name__ == "__main__":
     app, auth_system = create_authenticated_app("your-secret-key-here")
 
     # Create default admin user
-    admin_user = auth_system.create_user(
-        "admin", "admin@pixelatedempathy.com", "admin_password", UserRole.ADMIN
-    )
+    admin_user = auth_system.create_user("admin", "admin@pixelatedempathy.com", "admin_password", UserRole.ADMIN)
 
     # Create test API key
-    api_key, _ = auth_system.create_api_key(
-        "test_key", [PermissionLevel.READ, PermissionLevel.WRITE]
-    )
-
+    api_key, _ = auth_system.create_api_key("test_key", [PermissionLevel.READ, PermissionLevel.WRITE])
 
     # Run server
     uvicorn.run(app, host="0.0.0.0", port=8000)

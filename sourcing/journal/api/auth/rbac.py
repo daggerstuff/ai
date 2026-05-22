@@ -142,4 +142,3 @@ def require_permission(user: dict[str, Any] | None, permission: str) -> None:
             status_code=status.HTTP_403_FORBIDDEN,
             detail=f"Permission '{permission}' required, but user role '{role}' does not have it",
         )
-

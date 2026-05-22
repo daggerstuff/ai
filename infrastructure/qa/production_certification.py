@@ -25,7 +25,7 @@ import asyncio
 import json
 import logging
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -35,9 +35,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler(
-            "/home/vivi/pixelated/ai/logs/production_certification.log"
-        ),
+        logging.FileHandler("/home/vivi/pixelated/ai/logs/production_certification.log"),
         logging.StreamHandler(),
     ],
 )
@@ -124,9 +122,7 @@ class ProductionCertifier:
     """Main production certification system"""
 
     def __init__(self):
-        self.cert_path = Path(
-            "/home/vivi/pixelated/ai/infrastructure/qa/production_certification"
-        )
+        self.cert_path = Path("/home/vivi/pixelated/ai/infrastructure/qa/production_certification")
         self.cert_path.mkdir(parents=True, exist_ok=True)
 
         self.certification_checks: list[CertificationCheck] = []
@@ -154,9 +150,7 @@ class ProductionCertifier:
         # Save certification results
         await self._save_certification_results(report)
 
-        logger.info(
-            f"Production certification completed. Status: {report.overall_certification_status.value}"
-        )
+        logger.info(f"Production certification completed. Status: {report.overall_certification_status.value}")
         return report
 
     async def _initialize_certification_checks(self):
@@ -182,7 +176,7 @@ class ProductionCertifier:
                     "services_operational": True,
                     "auto_scaling_active": True,
                 },
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 validator="DevOps Team",
             ),
             CertificationCheck(
@@ -202,7 +196,7 @@ class ProductionCertifier:
                     "throughput": 12500,
                     "error_rate": 0.05,
                 },
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 validator="Performance Team",
             ),
             CertificationCheck(
@@ -222,7 +216,7 @@ class ProductionCertifier:
                     "backup_success": True,
                     "recovery_time": 15,
                 },
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 validator="Database Team",
             ),
             # Security Certification
@@ -244,7 +238,7 @@ class ProductionCertifier:
                     "medium_vulns": 2,
                     "audit_score": 94,
                 },
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 validator="Third-party Security Auditor",
             ),
             CertificationCheck(
@@ -264,7 +258,7 @@ class ProductionCertifier:
                     "encryption_in_transit": True,
                     "key_management_score": 96,
                 },
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 validator="Security Team",
             ),
             # Compliance Certification
@@ -285,7 +279,7 @@ class ProductionCertifier:
                     "phi_protection": True,
                     "audit_trail_complete": True,
                 },
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 validator="Compliance Officer",
             ),
             CertificationCheck(
@@ -305,7 +299,7 @@ class ProductionCertifier:
                     "controls_operational": True,
                     "monitoring_active": True,
                 },
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 validator="External Auditor",
             ),
             # Safety Certification
@@ -326,7 +320,7 @@ class ProductionCertifier:
                     "clinical_oversight": True,
                     "crisis_response_time": 3,
                 },
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 validator="Clinical Director",
             ),
             # Operational Readiness
@@ -347,7 +341,7 @@ class ProductionCertifier:
                     "alerting_active": True,
                     "oncall_procedures": True,
                 },
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 validator="Operations Team",
             ),
             CertificationCheck(
@@ -367,7 +361,7 @@ class ProductionCertifier:
                     "team_trained": True,
                     "escalation_defined": True,
                 },
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 validator="Operations Manager",
             ),
             # Business Continuity
@@ -384,7 +378,7 @@ class ProductionCertifier:
                 validation_method="Disaster recovery simulation",
                 status=CertificationStatus.PASSED,
                 result_data={"dr_tested": True, "rto_minutes": 12, "rpo_minutes": 3},
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 validator="Business Continuity Team",
             ),
             CertificationCheck(
@@ -404,7 +398,7 @@ class ProductionCertifier:
                     "communication_plan": True,
                     "notification_procedures": True,
                 },
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 validator="Business Continuity Manager",
             ),
         ]
@@ -420,7 +414,7 @@ class ProductionCertifier:
                 role=StakeholderRole.TECHNICAL_LEAD,
                 email="sarah.johnson@pixelatedempathy.com",
                 sign_off_status=CertificationStatus.PASSED,
-                sign_off_date=datetime.now(timezone.utc),
+                sign_off_date=datetime.now(UTC),
                 comments="All technical requirements met. System ready for production deployment.",
             ),
             StakeholderSignOff(
@@ -429,7 +423,7 @@ class ProductionCertifier:
                 role=StakeholderRole.SECURITY_LEAD,
                 email="michael.chen@pixelatedempathy.com",
                 sign_off_status=CertificationStatus.PASSED,
-                sign_off_date=datetime.now(timezone.utc),
+                sign_off_date=datetime.now(UTC),
                 comments="Security posture excellent. All security requirements satisfied.",
             ),
             StakeholderSignOff(
@@ -438,7 +432,7 @@ class ProductionCertifier:
                 role=StakeholderRole.COMPLIANCE_OFFICER,
                 email="lisa.rodriguez@pixelatedempathy.com",
                 sign_off_status=CertificationStatus.PASSED,
-                sign_off_date=datetime.now(timezone.utc),
+                sign_off_date=datetime.now(UTC),
                 comments="Full compliance achieved for HIPAA, SOC2, and GDPR requirements.",
             ),
             StakeholderSignOff(
@@ -447,7 +441,7 @@ class ProductionCertifier:
                 role=StakeholderRole.OPERATIONS_MANAGER,
                 email="david.kim@pixelatedempathy.com",
                 sign_off_status=CertificationStatus.PASSED,
-                sign_off_date=datetime.now(timezone.utc),
+                sign_off_date=datetime.now(UTC),
                 comments="Operational procedures in place. 24/7 support ready.",
             ),
             StakeholderSignOff(
@@ -456,7 +450,7 @@ class ProductionCertifier:
                 role=StakeholderRole.CLINICAL_DIRECTOR,
                 email="patricia.williams@pixelatedempathy.com",
                 sign_off_status=CertificationStatus.PASSED,
-                sign_off_date=datetime.now(timezone.utc),
+                sign_off_date=datetime.now(UTC),
                 comments="Clinical safety validated. Medical advisory board approval obtained.",
             ),
             StakeholderSignOff(
@@ -465,7 +459,7 @@ class ProductionCertifier:
                 role=StakeholderRole.BUSINESS_STAKEHOLDER,
                 email="robert.thompson@pixelatedempathy.com",
                 sign_off_status=CertificationStatus.PASSED,
-                sign_off_date=datetime.now(timezone.utc),
+                sign_off_date=datetime.now(UTC),
                 comments="Business requirements met. Ready for market launch.",
             ),
             StakeholderSignOff(
@@ -474,7 +468,7 @@ class ProductionCertifier:
                 role=StakeholderRole.CTO,
                 email="jennifer.martinez@pixelatedempathy.com",
                 sign_off_status=CertificationStatus.PASSED,
-                sign_off_date=datetime.now(timezone.utc),
+                sign_off_date=datetime.now(UTC),
                 comments="Technical architecture sound. Production deployment approved.",
             ),
             StakeholderSignOff(
@@ -483,7 +477,7 @@ class ProductionCertifier:
                 role=StakeholderRole.CEO,
                 email="james.wilson@pixelatedempathy.com",
                 sign_off_status=CertificationStatus.PASSED,
-                sign_off_date=datetime.now(timezone.utc),
+                sign_off_date=datetime.now(UTC),
                 comments="Strategic objectives aligned. Authorize production launch.",
             ),
         ]
@@ -495,35 +489,19 @@ class ProductionCertifier:
         # All checks are already initialized with results
         # In a real implementation, this would execute actual validation logic
 
-        passed_checks = len(
-            [
-                c
-                for c in self.certification_checks
-                if c.status == CertificationStatus.PASSED
-            ]
-        )
+        passed_checks = len([c for c in self.certification_checks if c.status == CertificationStatus.PASSED])
         total_checks = len(self.certification_checks)
 
-        logger.info(
-            f"Certification checks completed: {passed_checks}/{total_checks} passed"
-        )
+        logger.info(f"Certification checks completed: {passed_checks}/{total_checks} passed")
 
     async def _validate_stakeholder_signoffs(self):
         """Validate all required stakeholder sign-offs"""
         logger.info("Validating stakeholder sign-offs...")
 
-        signed_off = len(
-            [
-                s
-                for s in self.stakeholder_signoffs
-                if s.sign_off_status == CertificationStatus.PASSED
-            ]
-        )
+        signed_off = len([s for s in self.stakeholder_signoffs if s.sign_off_status == CertificationStatus.PASSED])
         total_stakeholders = len(self.stakeholder_signoffs)
 
-        logger.info(
-            f"Stakeholder sign-offs: {signed_off}/{total_stakeholders} completed"
-        )
+        logger.info(f"Stakeholder sign-offs: {signed_off}/{total_stakeholders} completed")
 
     async def _generate_certification_report(self) -> ProductionCertificationReport:
         """Generate final production certification report"""
@@ -531,31 +509,11 @@ class ProductionCertifier:
 
         # Calculate overall metrics
         total_checks = len(self.certification_checks)
-        passed_checks = len(
-            [
-                c
-                for c in self.certification_checks
-                if c.status == CertificationStatus.PASSED
-            ]
-        )
-        failed_checks = len(
-            [
-                c
-                for c in self.certification_checks
-                if c.status == CertificationStatus.FAILED
-            ]
-        )
-        pending_checks = len(
-            [
-                c
-                for c in self.certification_checks
-                if c.status == CertificationStatus.PENDING
-            ]
-        )
+        passed_checks = len([c for c in self.certification_checks if c.status == CertificationStatus.PASSED])
+        failed_checks = len([c for c in self.certification_checks if c.status == CertificationStatus.FAILED])
+        pending_checks = len([c for c in self.certification_checks if c.status == CertificationStatus.PENDING])
 
-        certification_score = (
-            (passed_checks / total_checks * 100) if total_checks > 0 else 0
-        )
+        certification_score = (passed_checks / total_checks * 100) if total_checks > 0 else 0
 
         # Categorize checks
         categories = {}
@@ -579,25 +537,18 @@ class ProductionCertifier:
         # Calculate category scores
         for category in categories:
             cat_data = categories[category]
-            cat_data["score"] = (
-                (cat_data["passed"] / cat_data["total"] * 100)
-                if cat_data["total"] > 0
-                else 0
-            )
+            cat_data["score"] = (cat_data["passed"] / cat_data["total"] * 100) if cat_data["total"] > 0 else 0
 
         # Determine overall certification status
         all_stakeholders_signed = all(
-            s.sign_off_status == CertificationStatus.PASSED
-            for s in self.stakeholder_signoffs
+            s.sign_off_status == CertificationStatus.PASSED for s in self.stakeholder_signoffs
         )
         all_checks_passed = failed_checks == 0 and pending_checks == 0
 
         if all_checks_passed and all_stakeholders_signed and certification_score >= 95:
             overall_status = CertificationStatus.PASSED
             go_live_ready = True
-            launch_date = datetime.now(timezone.utc) + timedelta(
-                days=7
-            )  # Launch in 1 week
+            launch_date = datetime.now(UTC) + timedelta(days=7)  # Launch in 1 week
         else:
             overall_status = CertificationStatus.REQUIRES_ATTENTION
             go_live_ready = False
@@ -606,34 +557,22 @@ class ProductionCertifier:
         # Generate recommendations
         recommendations = []
         if certification_score < 95:
-            recommendations.append(
-                "Address remaining certification checks to achieve 95% score"
-            )
+            recommendations.append("Address remaining certification checks to achieve 95% score")
         if not all_stakeholders_signed:
             recommendations.append("Obtain all required stakeholder sign-offs")
         if failed_checks > 0:
-            recommendations.append(
-                f"Resolve {failed_checks} failed certification checks"
-            )
+            recommendations.append(f"Resolve {failed_checks} failed certification checks")
         if pending_checks > 0:
-            recommendations.append(
-                f"Complete {pending_checks} pending certification checks"
-            )
+            recommendations.append(f"Complete {pending_checks} pending certification checks")
 
         if not recommendations:
-            recommendations.append(
-                "All certification requirements met - ready for production launch"
-            )
+            recommendations.append("All certification requirements met - ready for production launch")
 
         # Risk assessment
         risk_assessment = {
             "overall_risk_level": "LOW" if certification_score >= 95 else "MEDIUM",
-            "technical_risk": "LOW"
-            if categories.get("Technical Readiness", {}).get("score", 0) >= 95
-            else "MEDIUM",
-            "security_risk": "LOW"
-            if categories.get("Security Certification", {}).get("score", 0) >= 95
-            else "HIGH",
+            "technical_risk": "LOW" if categories.get("Technical Readiness", {}).get("score", 0) >= 95 else "MEDIUM",
+            "security_risk": "LOW" if categories.get("Security Certification", {}).get("score", 0) >= 95 else "HIGH",
             "compliance_risk": "LOW"
             if categories.get("Compliance Certification", {}).get("score", 0) >= 95
             else "HIGH",
@@ -670,8 +609,8 @@ class ProductionCertifier:
         }
 
         return ProductionCertificationReport(
-            report_id=f"prod_cert_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
-            timestamp=datetime.now(timezone.utc),
+            report_id=f"prod_cert_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
+            timestamp=datetime.now(UTC),
             overall_certification_status=overall_status,
             certification_score=certification_score,
             total_checks=total_checks,
@@ -719,7 +658,6 @@ async def main():
 
     if report.production_launch_date:
         pass
-
 
     for _category, data in report.certification_categories.items():
         "✅ PASSED" if data["score"] >= 95 else "⚠️ NEEDS ATTENTION"

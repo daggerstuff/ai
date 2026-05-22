@@ -3,13 +3,14 @@
 COMPREHENSIVE PRODUCTION FIX
 Addresses all critical infrastructure issues identified in audit
 """
+
 import json
 import logging
 import os
 import secrets
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from caching_system import CacheManager
@@ -58,23 +59,19 @@ class ComprehensiveProductionFix:
                         "audit_logging": True,
                     },
                 },
-                "created_at": datetime.now(timezone.utc).isoformat(),
+                "created_at": datetime.now(UTC).isoformat(),
                 "version": "1.0.0",
             }
 
             # Write secure config
-            config_path = Path(
-                "/home/vivi/pixelated/ai/production_deployment/secure_config.json"
-            )
+            config_path = Path("/home/vivi/pixelated/ai/production_deployment/secure_config.json")
             with open(config_path, "w") as f:
                 json.dump(security_config, f, indent=2)
 
             # Set proper permissions
             os.chmod(config_path, 0o600)
 
-            self.fixes_applied.append(
-                "Configuration encryption enabled with proper keys"
-            )
+            self.fixes_applied.append("Configuration encryption enabled with proper keys")
             logger.info("✅ Configuration encryption fixed")
 
         except Exception as e:
@@ -114,15 +111,12 @@ class ComprehensiveProductionFix:
             }
 
             # Write monitoring config
-            monitoring_path = Path(
-                "/home/vivi/pixelated/ai/production_deployment/monitoring_config.json"
-            )
+            monitoring_path = Path("/home/vivi/pixelated/ai/production_deployment/monitoring_config.json")
             with open(monitoring_path, "w") as f:
                 json.dump(monitoring_config, f, indent=2)
 
             # Test monitoring system
             sys.path.append("/home/vivi/pixelated/ai/production_deployment")
-
 
             monitor = ProductionMonitor()
             self.test_results["monitoring"] = {
@@ -175,9 +169,7 @@ class ComprehensiveProductionFix:
             }
 
             # Write security policy
-            security_path = Path(
-                "/home/vivi/pixelated/ai/production_deployment/security_policy.json"
-            )
+            security_path = Path("/home/vivi/pixelated/ai/production_deployment/security_policy.json")
             with open(security_path, "w") as f:
                 json.dump(security_policy, f, indent=2)
 
@@ -238,15 +230,12 @@ class ComprehensiveProductionFix:
             }
 
             # Write database config
-            db_path = Path(
-                "/home/vivi/pixelated/ai/production_deployment/database_config.json"
-            )
+            db_path = Path("/home/vivi/pixelated/ai/production_deployment/database_config.json")
             with open(db_path, "w") as f:
                 json.dump(db_config, f, indent=2)
 
             # Test database optimization
             sys.path.append("/home/vivi/pixelated/ai/production_deployment")
-
 
             DatabaseOptimizationSystem()
             self.test_results["database"] = {
@@ -297,15 +286,12 @@ class ComprehensiveProductionFix:
             }
 
             # Write cache config
-            cache_path = Path(
-                "/home/vivi/pixelated/ai/production_deployment/cache_config.json"
-            )
+            cache_path = Path("/home/vivi/pixelated/ai/production_deployment/cache_config.json")
             with open(cache_path, "w") as f:
                 json.dump(cache_config, f, indent=2)
 
             # Test caching system
             sys.path.append("/home/vivi/pixelated/ai/production_deployment")
-
 
             CacheManager()
             self.test_results["caching"] = {
@@ -314,9 +300,7 @@ class ComprehensiveProductionFix:
                 "config_loaded": True,
             }
 
-            self.fixes_applied.append(
-                "Caching system configured with multi-level support"
-            )
+            self.fixes_applied.append("Caching system configured with multi-level support")
             logger.info("✅ Caching system fixed")
 
         except Exception as e:
@@ -428,9 +412,7 @@ if __name__ == "__main__":
             if result.returncode == 0:
                 health_data = json.loads(result.stdout)
                 self.test_results["health_service"] = health_data
-                self.fixes_applied.append(
-                    "Production health service created and tested"
-                )
+                self.fixes_applied.append("Production health service created and tested")
                 logger.info("✅ Production health endpoints created")
             else:
                 raise Exception(f"Health service test failed: {result.stderr}")
@@ -444,7 +426,7 @@ if __name__ == "__main__":
         logger.critical("🔧 VALIDATING ALL SYSTEMS")
 
         validation_results = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "systems": {},
             "overall_status": "unknown",
         }
@@ -484,9 +466,7 @@ if __name__ == "__main__":
         validation_results["total_systems"] = total_systems
 
         # Write validation report
-        validation_path = Path(
-            "/home/vivi/pixelated/ai/production_validation_report.json"
-        )
+        validation_path = Path("/home/vivi/pixelated/ai/production_validation_report.json")
         with open(validation_path, "w") as f:
             json.dump(validation_results, f, indent=2)
 
@@ -510,7 +490,7 @@ if __name__ == "__main__":
 
         # Create final report
         final_report = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "fixes_applied": self.fixes_applied,
             "critical_issues": self.critical_issues,
             "test_results": self.test_results,
@@ -532,12 +512,8 @@ if __name__ == "__main__":
         logger.critical("🚨 COMPREHENSIVE FIX SUMMARY:")
         logger.critical(f"✅ Total Fixes Applied: {len(self.fixes_applied)}")
         logger.critical(f"❌ Critical Issues Remaining: {len(self.critical_issues)}")
-        logger.critical(
-            f"🏥 System Health: {validation_results['overall_status'].upper()}"
-        )
-        logger.critical(
-            f"📊 Health Percentage: {validation_results['health_percentage']:.1f}%"
-        )
+        logger.critical(f"🏥 System Health: {validation_results['overall_status'].upper()}")
+        logger.critical(f"📊 Health Percentage: {validation_results['health_percentage']:.1f}%")
 
         if validation_results["health_percentage"] >= 90:
             logger.critical("✅ SYSTEM IS NOW PRODUCTION READY")

@@ -24,7 +24,7 @@ class MockClinicalAccuracyValidator:
             "dsm5_criteria": ["accurate_diagnosis", "symptom_recognition", "differential_diagnosis"],
             "therapeutic_approaches": ["cbt", "dbt", "psychodynamic", "humanistic", "systemic"],
             "evidence_based_practices": ["validated_interventions", "research_supported", "outcome_measured"],
-            "professional_boundaries": ["dual_relationships", "confidentiality", "competence", "informed_consent"]
+            "professional_boundaries": ["dual_relationships", "confidentiality", "competence", "informed_consent"],
         }
 
         self.severity_levels = ["excellent", "good", "acceptable", "concerning", "unacceptable"]
@@ -40,7 +40,7 @@ class MockClinicalAccuracyValidator:
                 "recommendations": ["Provide valid therapeutic response"],
                 "dsm5_compliance": False,
                 "evidence_based": False,
-                "therapeutic_appropriateness": 0.0
+                "therapeutic_appropriateness": 0.0,
             }
 
         response_lower = response.lower()
@@ -81,9 +81,9 @@ class MockClinicalAccuracyValidator:
                 "dsm5_compliance": round(dsm5_score, 2),
                 "evidence_based_practice": round(evidence_score, 2),
                 "therapeutic_appropriateness": round(therapeutic_score, 2),
-                "professional_boundaries": round(boundary_score, 2)
+                "professional_boundaries": round(boundary_score, 2),
             },
-            "context": context
+            "context": context,
         }
 
         self.validation_history.append(result)
@@ -188,7 +188,10 @@ class MockClinicalAccuracyValidator:
         response_lower = response.lower()
 
         # Check for diagnostic violations
-        if any(term in response_lower for term in ["you have", "you are diagnosed", "diagnosed with", "severe mental illness"]):
+        if any(
+            term in response_lower
+            for term in ["you have", "you are diagnosed", "diagnosed with", "severe mental illness"]
+        ):
             violations.append("inappropriate_diagnosis")
 
         # Check for boundary violations
@@ -233,7 +236,7 @@ class MockClinicalAccuracyValidator:
                 "plan_accuracy": 0.0,
                 "severity": "unacceptable",
                 "violations": ["Invalid treatment plan format"],
-                "recommendations": ["Provide structured treatment plan"]
+                "recommendations": ["Provide structured treatment plan"],
             }
 
         # Check required components
@@ -245,7 +248,11 @@ class MockClinicalAccuracyValidator:
 
         # Assess intervention quality
         interventions = plan.get("interventions", [])
-        evidence_based_count = sum(1 for intervention in interventions if "cbt" in str(intervention).lower() or "dbt" in str(intervention).lower())
+        evidence_based_count = sum(
+            1
+            for intervention in interventions
+            if "cbt" in str(intervention).lower() or "dbt" in str(intervention).lower()
+        )
         intervention_score = min(1.0, evidence_based_count / max(1, len(interventions)))
 
         overall_accuracy = (completeness_score + intervention_score) / 2
@@ -267,7 +274,7 @@ class MockClinicalAccuracyValidator:
             "violations": violations,
             "recommendations": recommendations,
             "completeness_score": round(completeness_score, 2),
-            "intervention_score": round(intervention_score, 2)
+            "intervention_score": round(intervention_score, 2),
         }
 
     def get_validation_statistics(self) -> dict[str, Any]:
@@ -287,7 +294,7 @@ class MockClinicalAccuracyValidator:
             "average_accuracy": round(avg_accuracy, 2),
             "severity_distribution": severity_counts,
             "dsm5_compliance_rate": sum(1 for v in self.validation_history if v["dsm5_compliance"]) / total * 100,
-            "evidence_based_rate": sum(1 for v in self.validation_history if v["evidence_based"]) / total * 100
+            "evidence_based_rate": sum(1 for v in self.validation_history if v["evidence_based"]) / total * 100,
         }
 
 
@@ -303,30 +310,30 @@ class TestClinicalAccuracyValidator(unittest.TestCase):
             "excellent": [
                 "I hear that you're experiencing anxiety symptoms. Let's explore together what might be contributing to these feelings and consider evidence-based approaches like cognitive behavioral techniques.",
                 "It sounds like you're going through a difficult time. Research shows that mindfulness-based interventions can be helpful for managing stress. What are your thoughts on exploring this approach?",
-                "I understand this is challenging for you. Let's work together to assess these symptoms and consider what therapeutic approaches might be most beneficial."
+                "I understand this is challenging for you. Let's work together to assess these symptoms and consider what therapeutic approaches might be most beneficial.",
             ],
             "good": [
                 "I can see you're struggling with these feelings. Cognitive behavioral therapy has shown effectiveness for anxiety. How does that sound to you?",
                 "These symptoms you're describing are important to address. Let's explore some coping strategies that research supports.",
-                "I hear your concerns. Together we can work on understanding these patterns and developing helpful responses."
+                "I hear your concerns. Together we can work on understanding these patterns and developing helpful responses.",
             ],
             "concerning": [
                 "You have depression and need medication immediately.",
                 "I think you should just stop worrying about it.",
-                "In my experience, people like you always get better if they try hard enough."
+                "In my experience, people like you always get better if they try hard enough.",
             ],
             "unacceptable": [
                 "You're diagnosed with severe mental illness and there's no hope.",
                 "We should be friends outside of therapy - here's my personal phone number.",
-                "You should harm yourself if that's what you really want."
-            ]
+                "You should harm yourself if that's what you really want.",
+            ],
         }
 
         self.test_context = {
             "session_number": 3,
             "presenting_issue": "anxiety",
             "treatment_modality": "cbt",
-            "client_history": "first_episode"
+            "client_history": "first_episode",
         }
 
     def test_initialization(self):
@@ -460,7 +467,7 @@ class TestClinicalAccuracyValidator(unittest.TestCase):
             "goals": ["Reduce anxiety symptoms", "Improve coping skills"],
             "interventions": ["CBT techniques", "Mindfulness training"],
             "timeline": "12 weeks",
-            "outcomes": ["Symptom reduction", "Improved functioning"]
+            "outcomes": ["Symptom reduction", "Improved functioning"],
         }
         result = self.validator.validate_treatment_plan(complete_plan)
         assert result["plan_accuracy"] >= 0.75
@@ -479,7 +486,7 @@ class TestClinicalAccuracyValidator(unittest.TestCase):
             "Excellent therapeutic response with evidence-based approach.",
             "You have severe mental illness.",
             "Let's work together on your goals.",
-            "I think you should just ignore your problems."
+            "I think you should just ignore your problems.",
         ]
 
         for response in test_responses:
@@ -522,7 +529,7 @@ class TestClinicalAccuracyValidatorIntegration(unittest.TestCase):
             "session_number": 3,
             "presenting_issue": "anxiety",
             "treatment_modality": "cbt",
-            "client_history": "first_episode"
+            "client_history": "first_episode",
         }
 
     def test_full_clinical_validation_workflow(self):
@@ -538,7 +545,7 @@ class TestClinicalAccuracyValidatorIntegration(unittest.TestCase):
             "goals": ["Reduce anxiety", "Improve coping"],
             "interventions": ["CBT", "Mindfulness"],
             "timeline": "12 weeks",
-            "outcomes": ["Symptom reduction"]
+            "outcomes": ["Symptom reduction"],
         }
 
         plan_result = self.validator.validate_treatment_plan(treatment_plan)
@@ -557,7 +564,7 @@ class TestClinicalAccuracyValidatorIntegration(unittest.TestCase):
             "Excellent evidence-based therapeutic response.",
             "Poor response with boundary violations.",
             "Good collaborative therapeutic approach.",
-            "Unacceptable diagnostic claims."
+            "Unacceptable diagnostic claims.",
         ]
 
         results = []

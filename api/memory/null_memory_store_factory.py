@@ -1,7 +1,6 @@
-
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from .null_memory_capacity_tracker import NullMemoryCapacityTracker
 from .null_memory_category_tracker import NullMemoryCategoryTracker
@@ -15,7 +14,7 @@ from .null_memory_store import NullMemoryStore
 
 
 def _utc_now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def build_null_memory_store(

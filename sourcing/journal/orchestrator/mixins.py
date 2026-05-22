@@ -8,7 +8,7 @@ import logging
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import asdict
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from ai.sourcing.journal.models.dataset_models import (
@@ -66,7 +66,7 @@ class RetryMixin:
         attempt: int,
     ) -> None:
         entry = {
-            "timestamp": datetime.now(timezone.utc),
+            "timestamp": datetime.now(UTC),
             "operation": operation,
             "attempt": str(attempt),
             "message": str(error),
@@ -151,9 +151,7 @@ class ProgressReportingMixin(RetryMixin):
         session = self.sessions[session_id]
 
         history = self._collect_progress_history(session_id, start_date, end_date)
-        start_progress, end_progress = self._resolve_progress_bounds(
-            session_id, history, end_date
-        )
+        start_progress, end_progress = self._resolve_progress_bounds(session_id, history, end_date)
         deltas = self._compute_progress_deltas(start_progress, end_progress)
 
         key_findings = self._build_key_findings(deltas)
@@ -180,7 +178,7 @@ class ProgressReportingMixin(RetryMixin):
         end_date: datetime | None,
     ) -> tuple[datetime, datetime]:
         if start_date is None or end_date is None:
-            resolved_end = datetime.now(timezone.utc)
+            resolved_end = datetime.now(UTC)
             resolved_start = resolved_end - timedelta(days=7)
         else:
             resolved_start, resolved_end = start_date, end_date
@@ -190,11 +188,7 @@ class ProgressReportingMixin(RetryMixin):
         self, session_id: str, start_date: datetime, end_date: datetime
     ) -> list[ProgressSnapshot]:
         history = self.progress_history.get(session_id, [])
-        return [
-            snapshot
-            for snapshot in history
-            if start_date <= snapshot.timestamp <= end_date
-        ]
+        return [snapshot for snapshot in history if start_date <= snapshot.timestamp <= end_date]
 
     def _resolve_progress_bounds(
         self,
@@ -209,9 +203,7 @@ class ProgressReportingMixin(RetryMixin):
         return current, current
 
     @staticmethod
-    def _compute_progress_deltas(
-        start_progress: ResearchProgress, end_progress: ResearchProgress
-    ) -> dict[str, int]:
+    def _compute_progress_deltas(start_progress: ResearchProgress, end_progress: ResearchProgress) -> dict[str, int]:
         deltas = {
             "sources_identified": end_progress.sources_identified - start_progress.sources_identified,
             "datasets_evaluated": end_progress.datasets_evaluated - start_progress.datasets_evaluated,
@@ -236,30 +228,20 @@ class ProgressReportingMixin(RetryMixin):
             findings.append("Maintained research infrastructure with no new datasets processed")
         return findings
 
-    def _build_challenges(
-        self, session_id: str, start_date: datetime, end_date: datetime
-    ) -> list[str]:
-        errors = [
-            entry
-            for entry in self.error_log.get(session_id, [])
-            if start_date <= entry["timestamp"] <= end_date
-        ]
+    def _build_challenges(self, session_id: str, start_date: datetime, end_date: datetime) -> list[str]:
+        errors = [entry for entry in self.error_log.get(session_id, []) if start_date <= entry["timestamp"] <= end_date]
         if not errors:
             return []
         return [f"Encountered {len(errors)} errors requiring manual review"]
 
-    def _build_next_week_priorities(
-        self, session: Any, deltas: dict[str, int]
-    ) -> list[str]:
+    def _build_next_week_priorities(self, session: Any, deltas: dict[str, int]) -> list[str]:
         priorities: list[str] = []
         if session.weekly_targets:
             for key, target in session.weekly_targets.items():
                 achieved = session.progress_metrics.get(key, 0)
                 if achieved < target:
                     remaining = target - achieved
-                    priorities.append(
-                        f"Complete remaining {remaining} {key.replace('_', ' ')} to meet weekly target"
-                    )
+                    priorities.append(f"Complete remaining {remaining} {key.replace('_', ' ')} to meet weekly target")
 
         if not priorities:
             if deltas["datasets_acquired"]:
@@ -308,9 +290,7 @@ class WorkflowMixin(RetryMixin):
         if not self.discovery_service or state.sources:
             return
 
-        self.log_activity(
-            session_id, "search", "Starting source discovery", "in_progress"
-        )
+        self.log_activity(session_id, "search", "Starting source discovery", "in_progress")
         try:
             sources = self._execute_with_retries(
                 session_id,
@@ -337,25 +317,15 @@ class WorkflowMixin(RetryMixin):
         )
         self.advance_phase(session_id)
 
-    def _run_evaluation_phase(
-        self, session_id: str, state: SessionState, evaluator: str
-    ) -> None:
-        if (
-            not self.evaluation_engine
-            or not state.sources
-            or state.evaluations
-        ):
+    def _run_evaluation_phase(self, session_id: str, state: SessionState, evaluator: str) -> None:
+        if not self.evaluation_engine or not state.sources or state.evaluations:
             return
 
-        self.log_activity(
-            session_id, "evaluation", "Evaluating dataset sources", "in_progress"
-        )
+        self.log_activity(session_id, "evaluation", "Evaluating dataset sources", "in_progress")
         evaluations = self._evaluate_sources(session_id, state.sources, evaluator)
         state.evaluations.extend(evaluations)
         if evaluations:
-            self.update_progress(
-                session_id, {"datasets_evaluated": len(state.evaluations)}
-            )
+            self.update_progress(session_id, {"datasets_evaluated": len(state.evaluations)})
         self.log_activity(
             session_id,
             "evaluation",
@@ -364,30 +334,17 @@ class WorkflowMixin(RetryMixin):
         )
         self.advance_phase(session_id)
 
-    def _run_acquisition_phase(
-        self, session_id: str, state: SessionState, auto_acquire: bool
-    ) -> None:
-        if (
-            not auto_acquire
-            or not self.acquisition_manager
-            or not state.sources
-            or state.acquired_datasets
-        ):
+    def _run_acquisition_phase(self, session_id: str, state: SessionState, auto_acquire: bool) -> None:
+        if not auto_acquire or not self.acquisition_manager or not state.sources or state.acquired_datasets:
             return
 
-        self.log_activity(
-            session_id, "acquisition", "Starting dataset acquisition", "in_progress"
-        )
+        self.log_activity(session_id, "acquisition", "Starting dataset acquisition", "in_progress")
         self._acquire_datasets(session_id, state)
 
         if state.access_requests:
-            self.update_progress(
-                session_id, {"access_established": len(state.access_requests)}
-            )
+            self.update_progress(session_id, {"access_established": len(state.access_requests)})
         if state.acquired_datasets:
-            self.update_progress(
-                session_id, {"datasets_acquired": len(state.acquired_datasets)}
-            )
+            self.update_progress(session_id, {"datasets_acquired": len(state.acquired_datasets)})
 
         outcome = (
             f"{len(state.acquired_datasets)} datasets acquired"
@@ -402,14 +359,8 @@ class WorkflowMixin(RetryMixin):
         )
         self.advance_phase(session_id)
 
-    def _run_integration_phase(
-        self, session_id: str, state: SessionState, target_format: str
-    ) -> None:
-        if (
-            not self.integration_engine
-            or not state.acquired_datasets
-            or state.integration_plans
-        ):
+    def _run_integration_phase(self, session_id: str, state: SessionState, target_format: str) -> None:
+        if not self.integration_engine or not state.acquired_datasets or state.integration_plans:
             return
 
         self.log_activity(
@@ -421,9 +372,7 @@ class WorkflowMixin(RetryMixin):
         plans = self._create_integration_plans(session_id, state, target_format)
         state.integration_plans.extend(plans)
         if plans:
-            self.update_progress(
-                session_id, {"integration_plans_created": len(state.integration_plans)}
-            )
+            self.update_progress(session_id, {"integration_plans_created": len(state.integration_plans)})
         self.log_activity(
             session_id,
             "integration",
@@ -453,9 +402,7 @@ class WorkflowMixin(RetryMixin):
         evaluations: list[DatasetEvaluation] = []
         with ThreadPoolExecutor(max_workers=self.config.max_workers) as executor:
             futures = {
-                executor.submit(
-                    self._evaluate_single_source, session_id, source, evaluator
-                ): source
+                executor.submit(self._evaluate_single_source, session_id, source, evaluator): source
                 for source in sources
             }
             for future in as_completed(futures):
@@ -479,9 +426,7 @@ class WorkflowMixin(RetryMixin):
                 evaluator,
             )
         except Exception as exc:
-            self._log_error(
-                session_id, f"evaluate:{source.source_id}", exc, self.config.max_retries
-            )
+            self._log_error(session_id, f"evaluate:{source.source_id}", exc, self.config.max_retries)
             return None
 
     def _acquire_datasets(self, session_id: str, state: SessionState) -> None:
@@ -542,9 +487,7 @@ class WorkflowMixin(RetryMixin):
 
         plans: list[IntegrationPlan] = []
         for dataset in datasets:
-            plan = self._create_single_integration_plan(
-                session_id, state, dataset, target_format
-            )
+            plan = self._create_single_integration_plan(session_id, state, dataset, target_format)
             if plan:
                 plans.append(plan)
         return plans
@@ -615,5 +558,3 @@ class WorkflowMixin(RetryMixin):
                 )
         state.integration_feasibility[dataset.source_id] = feasible
         return plan
-
-

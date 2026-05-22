@@ -53,9 +53,7 @@ class MCPPipelineBridge:
         # Callbacks for progress updates
         self.progress_callbacks: list[Callable[[str, dict[str, Any]], None]] = []
 
-        logger.info(
-            f"Initialized MCPPipelineBridge (auto_integrate={auto_integrate})"
-        )
+        logger.info(f"Initialized MCPPipelineBridge (auto_integrate={auto_integrate})")
 
     def register_pipeline_orchestrator(self, orchestrator: Any) -> None:
         """
@@ -124,10 +122,7 @@ class MCPPipelineBridge:
         try:
             # Ensure we have required components
             if not self.pipeline_orchestrator:
-                logger.warning(
-                    "Pipeline orchestrator not registered, "
-                    "cannot integrate dataset automatically"
-                )
+                logger.warning("Pipeline orchestrator not registered, cannot integrate dataset automatically")
                 return {
                     "source_id": dataset.source_id,
                     "status": "pending",
@@ -138,10 +133,7 @@ class MCPPipelineBridge:
             # Create integration plan if not provided
             if not integration_plan:
                 if not self.integration_service:
-                    logger.warning(
-                        "Integration service not registered, "
-                        "cannot create integration plan"
-                    )
+                    logger.warning("Integration service not registered, cannot create integration plan")
                     return {
                         "source_id": dataset.source_id,
                         "status": "pending",
@@ -154,9 +146,7 @@ class MCPPipelineBridge:
                     dataset=dataset,
                     target_format="chatml",
                 )
-                self.integration_operations[dataset.source_id]["integration_plan"] = (
-                    integration_plan
-                )
+                self.integration_operations[dataset.source_id]["integration_plan"] = integration_plan
 
             # Get evaluation score if available
             evaluation_score = None
@@ -172,18 +162,23 @@ class MCPPipelineBridge:
             )
 
             # Update operation tracking
-            self.integration_operations[dataset.source_id].update({
-                "status": "completed" if integration_result.get("success") else "failed",
-                "pipeline_registered": integration_result.get("success", False),
-                "integration_result": integration_result,
-                "error": integration_result.get("error"),
-            })
+            self.integration_operations[dataset.source_id].update(
+                {
+                    "status": "completed" if integration_result.get("success") else "failed",
+                    "pipeline_registered": integration_result.get("success", False),
+                    "integration_result": integration_result,
+                    "error": integration_result.get("error"),
+                }
+            )
 
             # Notify progress callbacks
-            self._notify_progress(dataset.source_id, {
-                "status": "completed" if integration_result.get("success") else "failed",
-                "integration_result": integration_result,
-            })
+            self._notify_progress(
+                dataset.source_id,
+                {
+                    "status": "completed" if integration_result.get("success") else "failed",
+                    "integration_result": integration_result,
+                },
+            )
 
             logger.info(
                 f"Dataset {dataset.source_id} integration "
@@ -202,16 +197,21 @@ class MCPPipelineBridge:
                 f"Error integrating dataset {dataset.source_id}: {e}",
                 exc_info=True,
             )
-            self.integration_operations[dataset.source_id].update({
-                "status": "failed",
-                "error": str(e),
-            })
+            self.integration_operations[dataset.source_id].update(
+                {
+                    "status": "failed",
+                    "error": str(e),
+                }
+            )
 
             # Notify progress callbacks
-            self._notify_progress(dataset.source_id, {
-                "status": "failed",
-                "error": str(e),
-            })
+            self._notify_progress(
+                dataset.source_id,
+                {
+                    "status": "failed",
+                    "error": str(e),
+                },
+            )
 
             return {
                 "source_id": dataset.source_id,
@@ -232,9 +232,7 @@ class MCPPipelineBridge:
         """
         return self.integration_operations.get(source_id)
 
-    def add_progress_callback(
-        self, callback: Callable[[str, dict[str, Any]], None]
-    ) -> None:
+    def add_progress_callback(self, callback: Callable[[str, dict[str, Any]], None]) -> None:
         """
         Add callback for progress updates.
 
@@ -265,10 +263,4 @@ class MCPPipelineBridge:
         Returns:
             List of source IDs
         """
-        return [
-            source_id
-            for source_id, op in self.integration_operations.items()
-            if op.get("status") == "completed"
-        ]
-
-
+        return [source_id for source_id, op in self.integration_operations.items() if op.get("status") == "completed"]

@@ -20,10 +20,9 @@ and enriches them with upstream root-cause hypotheses and intervention details.
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
-
 
 # Mapping from feedback pattern types to backlog converter metric names.
 # These are the metric names that PerformanceGapBacklogConverter rules recognize.
@@ -126,9 +125,7 @@ def _compute_metric_scores(
         # Accumulate reason text.
         description = pattern.get("description", "")
         if description:
-            pattern_reasons[metric_name].append(
-                f"[{severity}] {description} (freq={frequency:.2f})"
-            )
+            pattern_reasons[metric_name].append(f"[{severity}] {description} (freq={frequency:.2f})")
 
     return metrics, pattern_reasons
 
@@ -150,9 +147,7 @@ def _enrich_with_upstream(
         domain = mapping.get("upstream_domain", "")
 
         if root_cause:
-            reasons[metric_name].append(
-                f"upstream({domain}, conf={confidence:.2f}): {root_cause}"
-            )
+            reasons[metric_name].append(f"upstream({domain}, conf={confidence:.2f}): {root_cause}")
 
 
 def _enrich_with_interventions(
@@ -190,11 +185,7 @@ def _enrich_with_interventions(
 
 def _finalize_reasons(reasons: dict[str, list[str]]) -> dict[str, str]:
     """Collapse reason lists into single strings per metric."""
-    return {
-        metric: "; ".join(reason_list)
-        for metric, reason_list in reasons.items()
-        if reason_list
-    }
+    return {metric: "; ".join(reason_list) for metric, reason_list in reasons.items() if reason_list}
 
 
 def transform_feedback_to_metrics(
@@ -236,9 +227,7 @@ def _main() -> None:
     """CLI entry point for ad-hoc transformation."""
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Transform feedback_report.json into metrics for backlog conversion"
-    )
+    parser = argparse.ArgumentParser(description="Transform feedback_report.json into metrics for backlog conversion")
     parser.add_argument(
         "--report",
         default="ai/lab/evals/feedback_output/feedback_report.json",
@@ -267,9 +256,9 @@ if __name__ == "__main__":
 
 
 __all__ = [
-    "FeedbackMetricsMapping",
-    "transform_feedback_to_metrics",
+    "DEFAULT_METRIC_SCORES",
     "PATTERN_TYPE_TO_METRIC",
     "SEVERITY_PENALTY",
-    "DEFAULT_METRIC_SCORES",
+    "FeedbackMetricsMapping",
+    "transform_feedback_to_metrics",
 ]

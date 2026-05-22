@@ -82,7 +82,4 @@ def get_scoped_memory_stats(
         run_id=run_id,
         include_shared=include_shared,
     )
-    return {
-        str(category): int(count)
-        for category, count in dict(category_counts or {}).items()
-    }
+    return {str(category): int(count) for category, count in dict(category_counts or {}).items()}

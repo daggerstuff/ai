@@ -3,13 +3,14 @@
 Quality Validation Caching System for Pixelated Empathy AI
 Implements caching to avoid reprocessing quality validations
 """
+
 import argparse
 import hashlib
 import json
 import logging
 import os
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -17,22 +18,21 @@ from typing import Any
 try:
     import redis
     import redis.exceptions
+
     REDIS_AVAILABLE = True
 except ImportError:
     REDIS_AVAILABLE = False
     logging.warning("Redis not available - using local file caching only")
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
 @dataclass
 class CacheEntry:
     """Represents a cached validation result"""
+
     task_id: str
     data_hash: str
     result_data: bytes
@@ -99,8 +99,7 @@ class QualityValidationCache:
         """Generate cache key"""
         return f"quality_val:{validation_type}:{data_hash}"
 
-    def get_cached_result(self, data_path: str, validation_type: str,
-                         metadata: dict[str, Any]) -> bytes | None:
+    def get_cached_result(self, data_path: str, validation_type: str, metadata: dict[str, Any]) -> bytes | None:
         """Get cached validation result"""
         data_hash = self._calculate_data_hash(data_path, metadata)
         cache_key = self._generate_cache_key(data_hash, validation_type)
@@ -108,10 +107,10 @@ class QualityValidationCache:
         # Check memory cache first
         if cache_key in self.memory_cache:
             cached_data, timestamp = self.memory_cache[cache_key]
-            if datetime.now(timezone.utc) - timestamp < timedelta(hours=1):  # Memory cache for 1 hour
+            if datetime.now(UTC) - timestamp < timedelta(hours=1):  # Memory cache for 1 hour
                 logger.debug(f"Cache hit (memory): {cache_key}")
                 # Update hit count
-                self.memory_cache[cache_key] = (cached_data, datetime.now(timezone.utc))
+                self.memory_cache[cache_key] = (cached_data, datetime.now(UTC))
                 return cached_data
             # Expired, remove from memory cache
             del self.memory_cache[cache_key]
@@ -124,7 +123,7 @@ class QualityValidationCache:
                     logger.debug(f"Cache hit (Redis): {cache_key}")
                     # Add to memory cache
                     if len(self.memory_cache) < self.memory_cache_max_size:
-                        self.memory_cache[cache_key] = (cached_data, datetime.now(timezone.utc))
+                        self.memory_cache[cache_key] = (cached_data, datetime.now(UTC))
                     return cached_data
             except Exception as e:
                 logger.warning(f"Redis cache get failed: {e}")
@@ -134,7 +133,7 @@ class QualityValidationCache:
         if cache_file.exists():
             try:
                 # Check if file is expired
-                file_age = datetime.now(timezone.utc) - datetime.fromtimestamp(cache_file.stat().st_mtime)
+                file_age = datetime.now(UTC) - datetime.fromtimestamp(cache_file.stat().st_mtime)
                 if file_age < timedelta(seconds=self.cache_ttl):
                     with open(cache_file, "rb") as f:
                         cached_data = f.read()
@@ -142,7 +141,7 @@ class QualityValidationCache:
                     logger.debug(f"Cache hit (file): {cache_key}")
                     # Add to memory cache
                     if len(self.memory_cache) < self.memory_cache_max_size:
-                        self.memory_cache[cache_key] = (cached_data, datetime.now(timezone.utc))
+                        self.memory_cache[cache_key] = (cached_data, datetime.now(UTC))
                     return cached_data
                 # Expired, remove file
                 cache_file.unlink()
@@ -153,8 +152,7 @@ class QualityValidationCache:
         logger.debug(f"Cache miss: {cache_key}")
         return None
 
-    def cache_result(self, data_path: str, validation_type: str, metadata: dict[str, Any],
-                    result_data: bytes) -> bool:
+    def cache_result(self, data_path: str, validation_type: str, metadata: dict[str, Any], result_data: bytes) -> bool:
         """Cache validation result"""
         try:
             data_hash = self._calculate_data_hash(data_path, metadata)
@@ -162,16 +160,12 @@ class QualityValidationCache:
 
             # Store in memory cache
             if len(self.memory_cache) < self.memory_cache_max_size:
-                self.memory_cache[cache_key] = (result_data, datetime.now(timezone.utc))
+                self.memory_cache[cache_key] = (result_data, datetime.now(UTC))
 
             # Store in Redis cache
             if self.redis_client:
                 try:
-                    self.redis_client.setex(
-                        cache_key,
-                        self.cache_ttl,
-                        result_data
-                    )
+                    self.redis_client.setex(cache_key, self.cache_ttl, result_data)
                     logger.debug(f"Cached result in Redis: {cache_key}")
                 except Exception as e:
                     logger.warning(f"Redis cache set failed: {e}")
@@ -255,7 +249,7 @@ class QualityValidationCache:
             "memory_cache_size": len(self.memory_cache),
             "memory_cache_max_size": self.memory_cache_max_size,
             "file_cache_entries": len(list(self.cache_dir.glob("*.pkl"))),
-            "redis_available": self.redis_client is not None
+            "redis_available": self.redis_client is not None,
         }
 
         if self.redis_client:
@@ -270,7 +264,7 @@ class QualityValidationCache:
     def cleanup_expired_cache(self) -> int:
         """Clean up expired file cache entries"""
         cleaned_count = 0
-        current_time = datetime.now(timezone.utc)
+        current_time = datetime.now(UTC)
 
         try:
             for cache_file in self.cache_dir.glob("*.pkl"):
@@ -302,8 +296,9 @@ class CachedQualityValidator:
         self.cache = cache or QualityValidationCache()
         logger.info("Cached quality validator initialized")
 
-    def validate_with_cache(self, data_path: str, validation_type: str,
-                          metadata: dict[str, Any] = None) -> tuple[bool, bytes | None]:
+    def validate_with_cache(
+        self, data_path: str, validation_type: str, metadata: dict[str, Any] = None
+    ) -> tuple[bool, bytes | None]:
         """Validate with caching"""
         metadata = metadata or {}
 
@@ -315,8 +310,9 @@ class CachedQualityValidator:
         # Cache miss - perform actual validation
         return False, None
 
-    def cache_validation_result(self, data_path: str, validation_type: str,
-                              metadata: dict[str, Any], result_data: bytes) -> bool:
+    def cache_validation_result(
+        self, data_path: str, validation_type: str, metadata: dict[str, Any], result_data: bytes
+    ) -> bool:
         """Cache validation result"""
         return self.cache.cache_result(data_path, validation_type, metadata, result_data)
 

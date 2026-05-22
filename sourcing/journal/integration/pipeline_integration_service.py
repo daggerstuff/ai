@@ -122,9 +122,7 @@ class PipelineIntegrationService:
                 }
 
                 if not validation_result.valid:
-                    logger.warning(
-                        f"Validation failed: {validation_result.records_failed} records failed"
-                    )
+                    logger.warning(f"Validation failed: {validation_result.records_failed} records failed")
 
             # Step 3: Merge with existing dataset
             merged_path = output_path
@@ -187,10 +185,7 @@ class PipelineIntegrationService:
             )
 
             results["output_path"] = merged_path
-            logger.info(
-                f"Integration workflow complete: success={results['success']}, "
-                f"output={merged_path}"
-            )
+            logger.info(f"Integration workflow complete: success={results['success']}, output={merged_path}")
 
             return results
 
@@ -199,9 +194,7 @@ class PipelineIntegrationService:
             results["error"] = str(e)
             return results
 
-    def create_integration_plan(
-        self, dataset: AcquiredDataset, target_format: str = "chatml"
-    ) -> IntegrationPlan:
+    def create_integration_plan(self, dataset: AcquiredDataset, target_format: str = "chatml") -> IntegrationPlan:
         """
         Create an integration plan for a dataset.
 
@@ -213,7 +206,4 @@ class PipelineIntegrationService:
             IntegrationPlan with analysis and transformation details
         """
         logger.info(f"Creating integration plan for dataset: {dataset.source_id}")
-        return self.integration_planner.create_integration_plan(
-            dataset=dataset, target_format=target_format
-        )
-
+        return self.integration_planner.create_integration_plan(dataset=dataset, target_format=target_format)

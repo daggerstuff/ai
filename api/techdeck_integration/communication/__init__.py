@@ -19,37 +19,31 @@ __all__ = [
     "EventMessage",
     "EventType",
     "EventHandler",
-
     # Pipeline Coordinator
     "PipelineCoordinator",
     "PipelineContext",
-
     # State Manager
     "StateManager",
     "PipelineState",
     "StageState",
-
     # Progress Tracker
     "ProgressTracker",
     "ProgressUpdate",
     "WebSocketConnection",
-
     # Error Recovery
     "ErrorRecoveryManager",
     "RecoveryStrategy",
     "RecoveryResult",
     "RecoveryConfig",
-
     # Bias Detection
     "BiasDetectionIntegration",
     "BiasMetrics",
     "BiasDetectionConfig",
-
     # Performance Monitor
     "PerformanceMonitor",
     "PerformanceMetric",
     "PerformanceSummary",
-    "PerformanceThreshold"
+    "PerformanceThreshold",
 ]
 
 # Module version

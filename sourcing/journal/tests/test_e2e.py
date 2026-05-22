@@ -5,7 +5,7 @@ Tests complete research workflow with sample datasets, report generation,
 dataset acquisition and storage, and integration with training pipeline.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -101,7 +101,7 @@ class TestCompleteResearchWorkflow:
             keywords=["test", "therapy"],
             open_access=True,
             data_availability="available",
-            discovery_date=datetime.now(timezone.utc),
+            discovery_date=datetime.now(UTC),
             discovery_method="repository_api",
         )
 
@@ -125,7 +125,7 @@ class TestCompleteResearchWorkflow:
         # Step 4: Create acquired dataset (simulate download)
         acquired_dataset = AcquiredDataset(
             source_id=source.source_id,
-            acquisition_date=datetime.now(timezone.utc),
+            acquisition_date=datetime.now(UTC),
             storage_path=str(sample_csv_dataset),
             file_format="csv",
             file_size_mb=0.1,
@@ -226,8 +226,8 @@ class TestReportGeneration:
         report_path = generator.generate_research_summary_report(
             sources=multiple_sources,
             evaluations=[sample_evaluation],
-            start_date=datetime.now(timezone.utc),
-            end_date=datetime.now(timezone.utc),
+            start_date=datetime.now(UTC),
+            end_date=datetime.now(UTC),
         )
 
         assert report_path.exists()
@@ -281,7 +281,7 @@ class TestDatasetAcquisitionAndStorage:
         # Create acquired dataset (simulate download)
         acquired_dataset = AcquiredDataset(
             source_id=source.source_id,
-            acquisition_date=datetime.now(timezone.utc),
+            acquisition_date=datetime.now(UTC),
             storage_path=str(sample_csv_dataset),
             file_format="csv",
             file_size_mb=0.1,
@@ -305,7 +305,7 @@ class TestIntegrationWithTrainingPipeline:
         # Create acquired dataset
         acquired_dataset = AcquiredDataset(
             source_id="integration-test-001",
-            acquisition_date=datetime.now(timezone.utc),
+            acquisition_date=datetime.now(UTC),
             storage_path=str(sample_csv_dataset),
             file_format="csv",
             file_size_mb=0.1,
@@ -372,6 +372,7 @@ class TestCompleteWorkflowWithOrchestrator:
 
     def test_orchestrator_complete_workflow(self, temp_dir):
         """Test complete workflow using orchestrator."""
+
         # Create mock services
         class MockDiscoveryService:
             def discover_sources(self, _session):
@@ -421,4 +422,3 @@ class TestCompleteWorkflowWithOrchestrator:
         report = orchestrator.generate_progress_report(session.session_id)
         assert report is not None
         assert "Research Progress Report" in report or "Progress" in report
-

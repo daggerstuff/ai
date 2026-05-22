@@ -26,7 +26,7 @@ import shutil
 import time
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -51,9 +51,7 @@ class SourceStats:
         quality = metadata.get("quality_score", 0.0) or 0.0
 
         # Update quality stats
-        self.avg_quality_score = (
-            self.avg_quality_score * (self.count - 1) + quality
-        ) / self.count
+        self.avg_quality_score = (self.avg_quality_score * (self.count - 1) + quality) / self.count
         self.min_quality_score = min(self.min_quality_score, quality)
         self.max_quality_score = max(self.max_quality_score, quality)
 
@@ -67,9 +65,7 @@ class SourceStats:
 
         # Track therapeutic modalities
         modality = metadata.get("therapeutic_modality", "N/A") or "N/A"
-        self.therapeutic_modalities[modality] = (
-            self.therapeutic_modalities.get(modality, 0) + 1
-        )
+        self.therapeutic_modalities[modality] = self.therapeutic_modalities.get(modality, 0) + 1
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -78,12 +74,8 @@ class SourceStats:
             "min_quality_score": round(self.min_quality_score, 4),
             "max_quality_score": round(self.max_quality_score, 4),
             "licenses": dict(sorted(self.licenses.items(), key=lambda x: -x[1])),
-            "top_topic_tags": dict(
-                sorted(self.topic_tags.items(), key=lambda x: -x[1])[:20]
-            ),
-            "therapeutic_modalities": dict(
-                sorted(self.therapeutic_modalities.items(), key=lambda x: -x[1])
-            ),
+            "top_topic_tags": dict(sorted(self.topic_tags.items(), key=lambda x: -x[1])[:20]),
+            "therapeutic_modalities": dict(sorted(self.therapeutic_modalities.items(), key=lambda x: -x[1])),
         }
 
 
@@ -106,9 +98,7 @@ class StageStats:
 
         metadata = record.get("metadata", {}) or {}
         quality = metadata.get("quality_score", 0.0) or 0.0
-        self.avg_quality_score = (
-            self.avg_quality_score * (self.total_records - 1) + quality
-        ) / self.total_records
+        self.avg_quality_score = (self.avg_quality_score * (self.total_records - 1) + quality) / self.total_records
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -116,12 +106,7 @@ class StageStats:
             "avg_quality_score": round(self.avg_quality_score, 4),
             "file_size_bytes": self.file_size_bytes,
             "file_path": self.file_path,
-            "sources": {
-                src: stats.to_dict()
-                for src, stats in sorted(
-                    self.sources.items(), key=lambda x: -x[1].count
-                )
-            },
+            "sources": {src: stats.to_dict() for src, stats in sorted(self.sources.items(), key=lambda x: -x[1].count)},
         }
 
 
@@ -189,10 +174,7 @@ class FreezeResult:
             records = stats.get("total_records", 0)
             quality = stats.get("avg_quality_score", 0)
             sources = len(stats.get("sources", {}))
-            lines.append(
-                f"    {stage_name}: {records} records, "
-                f"avg quality {quality:.2f}, {sources} sources"
-            )
+            lines.append(f"    {stage_name}: {records} records, avg quality {quality:.2f}, {sources} sources")
 
         lines.append("")
         lines.append("License Distribution:")
@@ -244,7 +226,7 @@ class DatasetFreezer:
             version: Version string (e.g., "v1"). Auto-generated if None.
             output_dir: Output directory for frozen snapshots.
         """
-        self.version = version or f"v{datetime.now(timezone.utc).strftime('%Y%m%d')}"
+        self.version = version or f"v{datetime.now(UTC).strftime('%Y%m%d')}"
         self.output_dir = Path(output_dir) if output_dir else Path("frozen_datasets")
 
     def freeze(
@@ -359,29 +341,17 @@ class DatasetFreezer:
             with Path(rejection_report).open("r", encoding="utf-8") as f:
                 try:
                     rejection_data = json.load(f)
-                    rejection_summary = rejection_data.get(
-                        "rejection_reasons", rejection_data
-                    )
+                    rejection_summary = rejection_data.get("rejection_reasons", rejection_data)
                 except json.JSONDecodeError:
                     rejection_summary = {"error": "Failed to parse rejection report"}
 
         # Global stats
-        avg_global_quality = (
-            sum(global_quality_scores) / len(global_quality_scores)
-            if global_quality_scores
-            else 0.0
-        )
+        avg_global_quality = sum(global_quality_scores) / len(global_quality_scores) if global_quality_scores else 0.0
         global_stats = {
             "total_records": total_records,
             "total_sources": len(global_licenses),
             "avg_quality_score": round(avg_global_quality, 4),
-            "stages_processed": len(
-                [
-                    s
-                    for s in self.STAGES
-                    if stage_stats.get(s, {}).get("total_records", 0) > 0
-                ]
-            ),
+            "stages_processed": len([s for s in self.STAGES if stage_stats.get(s, {}).get("total_records", 0) > 0]),
         }
 
         processing_time = time.monotonic() - start_time
@@ -389,7 +359,7 @@ class DatasetFreezer:
         # Build manifest
         manifest = FreezeManifest(
             version=self.version,
-            created_at=datetime.now(timezone.utc).isoformat(),
+            created_at=datetime.now(UTC).isoformat(),
             created_by=os.environ.get("USER", "pipeline"),
             slice_id=slice_id or slice_manifest_data.get("slice_id", "unknown"),
             input_dir=str(slice_dir),
@@ -398,9 +368,7 @@ class DatasetFreezer:
             stage_stats=stage_stats,
             global_stats=global_stats,
             quality_distribution=quality_distribution,
-            license_distribution=dict(
-                sorted(global_licenses.items(), key=lambda x: -x[1])
-            ),
+            license_distribution=dict(sorted(global_licenses.items(), key=lambda x: -x[1])),
             rejection_summary=rejection_summary,
             processing_time_seconds=processing_time,
             pix_tickets=[

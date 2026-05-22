@@ -1,213 +1,76 @@
-"""
-YouTube Data API v3 implementation.
-
-This module provides the actual YouTube API integration functions
-replacing the TODO stubs in api.py.
-"""
 import logging
-import os
-from datetime import datetime, timezone
-
-import requests
-from dotenv import load_dotenv
+import re
 
 logger = logging.getLogger(__name__)
 
 
 class YouTubeAPIKeyError(Exception):
-    """Raised when YouTube API key is missing or invalid."""
+    pass
 
 
 class YouTubeAPIQuotaError(Exception):
-    """Raised when YouTube API quota is exhausted."""
+    pass
 
 
 class YouTubeAPIRateLimitError(Exception):
-    """Raised when rate limit is exceeded."""
+    pass
 
 
 class YouTubeAPI:
-    """
-    Concrete implementation of YouTube Data API v3 client.
-
-    Provides methods for:
-    - Channel search
-    - Channel details retrieval
-    - Video listing
-    - Content metadata extraction
-    """
-
-    API_BASE = "https://www.googleapis.com/youtube/v3"
-
     def __init__(self, api_key: str | None = None):
-        """
-        Initialize YouTube API client.
-
-        Args:
-            api_key: YouTube Data API key. If None, reads from environment.
-        """
-        self.api_key = self._get_api_key(api_key)
-        self.last_request_time = None
-
-        # Check quota periodically
+        self.api_key = api_key
         self.units_used_today = 0
-        self.quota_limit = 10000  # Default daily quota
-        self._check_time = datetime.now(timezone.utc)
+        self.quota_limit = float("inf")
 
-    def _get_api_key(self, api_key: str | None) -> str:
-        """Get and validate YouTube API key."""
-        if api_key:
-            return api_key
+    def _parse_int(self, value: str | int | None, default: int = 0) -> int:
+        if value is None:
+            return default
+        if isinstance(value, int):
+            return value
+        digits = re.sub(r"[^\d]", "", str(value))
+        return int(digits) if digits else default
 
+    def _extract_channel_id(self, url: str) -> str:
+        m = re.search(r"UC[A-Za-z0-9_-]{22}", url or "")
+        return m.group(0) if m else ""
 
-
-        load_dotenv(".env.youtube.example", override=True)
-
-        # Try environment variable
-        api_key = os.getenv("YOUTUBE_API_KEY")
-        if not api_key or api_key.startswith("your-"):
-            raise YouTubeAPIKeyError(
-                "YouTube API key not found. Set YOUTUBE_API_KEY in environment "
-                "or pass as parameter."
-            )
-
-        return api_key
-
-    def _make_request(
-        self, endpoint: str, params: dict | None = None
-    ) -> dict:
-        """
-        Make authenticated request to YouTube API.
-
-        Args:
-            endpoint: API endpoint path (e.g., 'search')
-            params: Query parameters
-
-        Returns:
-            JSON response data
-
-        Raises:
-            YouTubeAPIQuotaError: When quota is exhausted
-            YouTubeAPIRateLimitError: When rate limit is exceeded
-        """
-        params = params or {}
-        params["key"] = self.api_key
-
-        url = f"{self.API_BASE}/{endpoint.lstrip('/')}"
-        response = requests.get(url, params=params)
-
-        # Update quota tracking
-        self._check_quota_usage(response.headers)
-
-        if response.status_code == 403:
-            raise YouTubeAPIQuotaError(
-                "YouTube API quota exhausted. Try again tomorrow or add quota."
-            )
-
-        if response.status_code == 429:
-            raise YouTubeAPIRateLimitError(
-                "Rate limit exceeded. Try again in a moment."
-            )
-
-        response.raise_for_status()
-
-        return response.json()
-
-    def _check_quota_usage(self, headers: dict):
-        """Check quota usage from response headers."""
-        quota_header = headers.get("X-RateLimit-Quota-Limit")
-        used_header = headers.get("X-RateLimit-Quota-Used")
-
-        if quota_header and used_header:
-            try:
-                self.quota_limit = int(quota_header)
-                self.units_used_today = int(used_header)
-                logger.debug(
-                    f"Quota usage: {self.units_used_today}/{self.quota_limit}"
-                )
-            except ValueError:
-                pass
-
-    def check_quota(self) -> tuple[bool, int, int]:
-        """
-        Check quota status.
-
-        Returns:
-            Tuple of (has_quota, used, limit)
-        """
-        remaining = self.quota_limit - self.units_used_today
-        has_quota = remaining > 100  # Safety margin
-
-        if not has_quota:
-            logger.warning(
-                f"Low quota: {remaining} units remaining ({self.units_used_today}/{self.quota_limit})"
-            )
-
-        return has_quota, self.units_used_today, self.quota_limit
-
-    def search_channels(
-        self, query: str, max_results: int = 25
-    ) -> list[dict]:
-        """
-        Search for channels by query.
-
-        Args:
-            query: Search query string
-            max_results: Maximum number of results
-
-        Returns:
-            List of channel data dictionaries
-
-        Note:
-            Actual YouTube search is limited. We'll need to use channel search
-            and iterate through results with pagination.
-        """
+    def search_channels(self, query: str, max_results: int = 25) -> list[dict]:
         logger.info(f"Searching for channels: {query}")
-
-        # YouTube API supports channel search but not term-based search
-        # We'll use search.list and filter by query
-
-        # First approach: search.list with q parameter
         channels = []
-
         try:
-            # Search for videos from matching channels, then get channel info
-            params = {
-                "part": "snippet",
-                "maxResults": min(max_results, 50),
-                "q": query,
-                "type": "video",
-                "order": "relevance",
-            }
+            from youtubesearchpython import ChannelsSearch
 
-            results = self._make_request("search", params)
+            search = ChannelsSearch(query, limit=max_results)
+            results = search.result()
 
-            # Extract unique channels from results
-            seen_channel_ids = set()
-
-            for item in results.get("items", []):
-                snippet = item.get("snippet", {})
-                channel_id = snippet.get("channelId")
-                channel_title = snippet.get("channelTitle", "")
-                item.get("id")
-
-                if not channel_id or channel_id in seen_channel_ids:
+            for item in results.get("result", []):
+                if item.get("type") != "channel":
+                    continue
+                channel_id = item.get("id", "")
+                if not channel_id:
+                    channel_id = self._extract_channel_id(item.get("link", ""))
+                if not channel_id:
                     continue
 
-                seen_channel_ids.add(channel_id)
+                channels.append(
+                    {
+                        "channelId": channel_id,
+                        "channelTitle": item.get("title") or "Unknown",
+                        "description": self._join_snippet(item.get("descriptionSnippet")) or "",
+                        "customUrl": item.get("subscribers") or "",
+                        "publishedAt": None,
+                        "subscriberCount": 0,
+                        "videoCount": self._parse_int(item.get("videoCount")),
+                        "viewCount": 0,
+                        "thumbnailUrl": self._first_thumbnail(item.get("thumbnails")),
+                        "country": None,
+                        "keywords": [],
+                        "brandingSettings": {},
+                    }
+                )
 
-                # Get channel details
-                channel_data = self.get_channel_details(channel_id)
-
-                if channel_data:
-                    channels.append(channel_data)
-                    logger.debug(
-                        f"Found channel via video: {channel_title} "
-                        f"({video_count} videos)"
-                    )
-
-                    if len(channels) >= max_results:
-                        break
+                if len(channels) >= max_results:
+                    break
 
         except Exception as e:
             logger.error(f"Search failed: {e}")
@@ -215,242 +78,129 @@ class YouTubeAPI:
         return channels
 
     def get_channel_details(self, channel_id: str) -> dict | None:
-        """
-        Get detailed information about a channel.
-
-        Args:
-            channel_id: YouTube channel ID
-
-        Returns:
-            Channel details dictionary or None
-        """
         try:
-            params = {
-                "part": "snippet,contentDetails,statistics,brandingSettings",
-                "id": channel_id,
-            }
+            from youtubesearchpython import Channel
 
-            data = self._make_request("channels", params)
-            items = data.get("items", [])
-
-            if not items:
+            data = Channel.get(channel_id)
+            if not data:
                 logger.warning(f"No data found for channel: {channel_id}")
                 return None
 
-            channel_data = items[0]
+            subs = data.get("subscribers", {}) or {}
+            sub_label = subs.get("label") or subs.get("simpleText") or ""
+            sub_count = self._parse_int(sub_label)
 
             return {
                 "channelId": channel_id,
-                "channelTitle": channel_data.get("snippet", {}).get("title"),
-                "description": channel_data.get("snippet", {}).get("description"),
-                "customUrl": channel_data.get("snippet", {}).get("customUrl"),
-                "publishedAt": channel_data.get("snippet", {}).get("publishedAt"),
-                "subscriberCount": channel_data.get("statistics", {}).get(
-                    "subscriberCount", 0
-                ),
-                "videoCount": channel_data.get("statistics", {}).get(
-                    "videoCount", 0
-                ),
-                "viewCount": channel_data.get("statistics", {}).get("viewCount", 0),
-                "thumbnailUrl": channel_data.get("snippet", {}).get("thumbnails", {}).get(
-                    "default", {}
-                ).get("url"),
-                "country": channel_data.get("snippet", {}).get("country"),
-                "keywords": channel_data.get("snippet", {}).get("tags", []),
-                "brandingSettings": channel_data.get("brandingSettings", {}),
+                "channelTitle": data.get("title") or "Unknown",
+                "description": data.get("description") or "",
+                "customUrl": None,
+                "publishedAt": None,
+                "subscriberCount": sub_count,
+                "videoCount": 0,
+                "viewCount": self._parse_int(data.get("views")),
+                "thumbnailUrl": self._first_thumbnail(data.get("thumbnails")),
+                "country": data.get("country"),
+                "keywords": (data.get("keywords") or "").split(),
+                "brandingSettings": {},
             }
 
         except Exception as e:
             logger.error(f"Failed to get channel details for {channel_id}: {e}")
             return None
 
-    def get_channel_videos(
-        self, channel_id: str, max_results: int = 50
-    ) -> list[dict]:
-        """
-        Get videos from a channel.
-
-        Args:
-            channel_id: YouTube channel ID
-            max_results: Maximum number of videos
-
-        Returns:
-            List of video data dictionaries
-        """
+    def get_channel_videos(self, channel_id: str, max_results: int = 50) -> list[dict]:
         videos = []
-
         try:
-            params = {
-                "part": "snippet,contentDetails,statistics",
-                "channelId": channel_id,
-                "maxResults": min(max_results, 50),
-                "order": "date",
-            }
+            from youtubesearchpython import Playlist
 
-            has_more = True
-            next_page_token = None
-
-            while has_more:
-                params_with_page = params.copy()
-                if next_page_token:
-                    params_with_page["pageToken"] = next_page_token
-
-                data = self._make_request("search", params_with_page)
-
-                items = data.get("items", [])
-                videos.extend(items)
-
-                has_more = data.get("nextPageToken") is not None
-                next_page_token = data.get("nextPageToken")
-
-                logger.debug(
-                    f"Fetched {len(items)} videos, total: {len(videos)}, "
-                    f"more: {has_more}"
+            uploads_id = "UU" + channel_id[2:]
+            pl = Playlist.get(f"https://www.youtube.com/playlist?list={uploads_id}")
+            for entry in (pl.get("videos") or [])[:max_results]:
+                videos.append(
+                    {
+                        "id": entry.get("id"),
+                        "title": entry.get("title", ""),
+                        "link": entry.get("link", ""),
+                        "thumbnails": entry.get("thumbnails", []),
+                        "viewCount": self._parse_int(entry.get("views", {}).get("text")),
+                        "publishedAt": None,
+                        "duration": entry.get("duration"),
+                        "snippet": {"title": entry.get("title", ""), "description": "", "tags": []},
+                        "description": "",
+                        "tags": [],
+                    }
                 )
-
-                if not has_more:
-                    break
-
         except Exception as e:
             logger.error(f"Failed to get videos for channel {channel_id}: {e}")
 
         return videos
 
-    def get_video_details(
-        self, video_id: str
-    ) -> dict | None:
-        """
-        Get detailed information about a specific video.
-
-        Args:
-            video_id: YouTube video ID
-
-        Returns:
-            Video details dictionary or None
-        """
+    def get_video_details(self, video_id: str) -> dict | None:
         try:
-            params = {
-                "part": "snippet,contentDetails,statistics",
-                "id": video_id,
-            }
+            from youtubesearchpython import Video
 
-            data = self._make_request("videos", params)
-            items = data.get("items", [])
-
-            if not items:
-                return None
-
-            return items[0]
+            data = Video.get(f"https://www.youtube.com/watch?v={video_id}")
+            return data
 
         except Exception as e:
             logger.error(f"Failed to get video details for {video_id}: {e}")
             return None
 
-    def get_channel_playlists(
-        self, channel_id: str
-    ) -> list[dict]:
-        """
-        Get playlists from a channel.
-
-        Args:
-            channel_id: YouTube channel ID
-
-        Returns:
-            List of playlist dictionaries
-        """
+    def get_channel_playlists(self, channel_id: str) -> list[dict]:
         playlists = []
-
         try:
-            params = {
-                "part": "snippet,contentDetails",
-                "channelId": channel_id,
-                "maxResults": 25,
-            }
+            from youtubesearchpython import Channel
 
-            data = self._make_request("playlists", params)
-            items = data.get("items", [])
-
-            for item in items:
-                snippet = item.get("snippet", {})
-                playlists.append({
-                    "playlistId": item.get("id"),
-                    "title": snippet.get("title"),
-                    "description": snippet.get("description"),
-                    "videoCount": item.get("contentDetails", {}).get(
-                        "itemCount", 0
-                    ),
-                    "publishedAt": snippet.get("publishedAt"),
-                    "thumbnailUrl": snippet.get("thumbnails", {}).get(
-                        "default", {}
-                    ).get("url"),
-                })
-
-            logger.debug(f"Found {len(playlists)} playlists for channel {channel_id}")
+            data = Channel.get(channel_id)
+            for pl in data.get("playlists", []):
+                playlists.append(
+                    {
+                        "playlistId": pl.get("id"),
+                        "title": pl.get("title"),
+                        "description": "",
+                        "videoCount": self._parse_int(pl.get("videoCount")),
+                        "publishedAt": None,
+                        "thumbnailUrl": self._first_thumbnail(pl.get("thumbnails")),
+                    }
+                )
 
         except Exception as e:
             logger.error(f"Failed to get playlists for channel {channel_id}: {e}")
 
         return playlists
 
+    def check_quota(self) -> tuple[bool, int, int]:
+        return True, 0, 0
 
-# Standalone function tests for API functionality
-def test_api_connection(api_key: str) -> bool:
-    """Test that the API key works and has quota."""
+    @staticmethod
+    def _join_snippet(snippet: list | None) -> str:
+        if not snippet:
+            return ""
+        return "".join(part.get("text", "") for part in snippet if isinstance(part, dict))
+
+    @staticmethod
+    def _first_thumbnail(thumbnails: list | None) -> str | None:
+        if not thumbnails:
+            return None
+        t = thumbnails[0]
+        url = t.get("url", "") if isinstance(t, dict) else ""
+        return f"https:{url}" if url and url.startswith("//") else url or None
+
+
+def test_api_connection(api_key: str | None = None) -> bool:
     try:
         api = YouTubeAPI(api_key)
-        has_quota, _used, _limit = api.check_quota()
-
-        if not has_quota:
-            pass
-        else:
-            pass
-
-        # Try a simple search to verify
-        params = {
-            "part": "snippet",
-            "maxResults": 1,
-            "q": "test",
-            "type": "video",
-        }
-        api._make_request("search", params)
-
-        return True
-
-    except YouTubeAPIKeyError:
-        return False
+        results = api.search_channels("test", max_results=1)
+        return len(results) > 0
     except Exception:
         return False
 
 
 def get_api_quota_status() -> tuple[bool, int, int]:
-    """
-    Check YouTube API quota status.
-
-    Returns:
-        Tuple of (has_quota, used, limit)
-    """
-    try:
-
-
-        load_dotenv(".env.youtube.example", override=True)
-        api_key = os.getenv("YOUTUBE_API_KEY")
-
-        if not api_key or api_key.startswith("your-"):
-            return False, 0, 10000
-
-        api = YouTubeAPI(api_key)
-        return api.check_quota()
-
-    except Exception:
-        return False, 0, 10000
+    return True, 0, 0
 
 
 if __name__ == "__main__":
-    # Run quota status check
-    has_quota, used, limit = get_api_quota_status()
-
-
-    if not has_quota:
-        pass
-    else:
-        pass
+    ok = test_api_connection()
+    print(f"InnerTube connection: {'OK' if ok else 'FAILED'}")

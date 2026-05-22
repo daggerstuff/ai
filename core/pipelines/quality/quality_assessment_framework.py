@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import math
 import re
 from dataclasses import dataclass
 from enum import Enum
@@ -25,7 +24,7 @@ class QualityTier(Enum):
         return self.value
 
     @classmethod
-    def from_score(cls, score: float) -> "QualityTier":
+    def from_score(cls, score: float) -> QualityTier:
         if score >= 0.99:
             return cls.PRIORITY
         if score >= 0.90:
@@ -140,7 +139,7 @@ class QualityAssessmentFramework:
             length_penalty = 0.75
         punctuation_score = min(1.0, (len(re.findall(r"[.!?]", content)) + 1) / 3)
 
-        score = (0.4 * unique_ratio + 0.35 * repeated_penalty + 0.25 * punctuation_score)
+        score = 0.4 * unique_ratio + 0.35 * repeated_penalty + 0.25 * punctuation_score
         return max(0.0, min(1.0, score * length_penalty))
 
     def _assess_metadata(self, conversation: Conversation | dict[str, Any]) -> float:
@@ -193,12 +192,7 @@ class QualityAssessmentFramework:
         else:
             gaps.append("metadata incomplete")
 
-        overall = (
-            0.40 * therapeutic_score
-            + 0.30 * safety_score
-            + 0.20 * linguistic_score
-            + 0.10 * metadata_score
-        )
+        overall = 0.40 * therapeutic_score + 0.30 * safety_score + 0.20 * linguistic_score + 0.10 * metadata_score
         overall = float(max(0.0, min(1.0, round(overall, 4))))
 
         assigned_tier = QualityTier.from_score(overall)
@@ -223,4 +217,4 @@ class QualityAssessmentFramework:
         )
 
 
-__all__ = ["QualityAssessmentFramework", "QualityAssessment", "QualityMetrics", "QualityTier"]
+__all__ = ["QualityAssessment", "QualityAssessmentFramework", "QualityMetrics", "QualityTier"]

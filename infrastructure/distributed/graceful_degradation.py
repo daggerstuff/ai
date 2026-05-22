@@ -99,9 +99,7 @@ class GracefulDegradationManager:
         self.service_status[service_name] = ServiceStatus.DISABLED
         logger.info(f"Service {service_name} disabled for graceful degradation")
 
-    async def call_service(
-        self, service_name: str, func: Callable, *args, **kwargs
-    ) -> Any:
+    async def call_service(self, service_name: str, func: Callable, *args, **kwargs) -> Any:
         """Call service with degradation handling"""
 
         if service_name in self.disabled_services:
@@ -134,9 +132,7 @@ class GracefulDegradationManager:
                 logger.error(f"Fallback failed for {service_name}: {e}")
                 raise
         else:
-            raise Exception(
-                f"Service {service_name} unavailable and no fallback configured"
-            )
+            raise Exception(f"Service {service_name} unavailable and no fallback configured")
 
 
 # Example usage

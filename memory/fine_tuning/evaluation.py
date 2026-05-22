@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Memory System Evaluation Harness — Sprint 5, Task 3.
 
 Comprehensive evaluation: retrieval quality, response quality,
@@ -9,8 +8,8 @@ from __future__ import annotations
 
 import logging
 import time
-from dataclasses import dataclass, field
-from typing import Callable, Dict, List, Optional, Set
+from collections.abc import Callable
+from dataclasses import dataclass
 
 from ..schema import MemoryBlock
 
@@ -59,8 +58,8 @@ class EvaluationReport:
     timestamp_ms: int
 
 
-RetrieverFn = Callable[[str, str], List[MemoryBlock]]
-ResponderFn = Callable[[str, List[MemoryBlock]], str]
+RetrieverFn = Callable[[str, str], list[MemoryBlock]]
+ResponderFn = Callable[[str, list[MemoryBlock]], str]
 
 
 class MemorySystemEvaluator:
@@ -68,8 +67,8 @@ class MemorySystemEvaluator:
 
     def __init__(
         self,
-        retriever_fn: Optional[RetrieverFn] = None,
-        responder_fn: Optional[ResponderFn] = None,
+        retriever_fn: RetrieverFn | None = None,
+        responder_fn: ResponderFn | None = None,
         k: int = 5,
     ) -> None:
         self._retriever_fn = retriever_fn
@@ -78,8 +77,8 @@ class MemorySystemEvaluator:
 
     def evaluate(
         self,
-        memories: List[MemoryBlock],
-        test_queries: Optional[List[str]] = None,
+        memories: list[MemoryBlock],
+        test_queries: list[str] | None = None,
     ) -> EvaluationReport:
         """Run full evaluation suite."""
         t0 = time.perf_counter()
@@ -118,8 +117,8 @@ class MemorySystemEvaluator:
 
     def _evaluate_retrieval(
         self,
-        memories: List[MemoryBlock],
-        test_queries: Optional[List[str]] = None,
+        memories: list[MemoryBlock],
+        test_queries: list[str] | None = None,
     ) -> RetrievalResult:
         """Evaluate retrieval quality: Precision@K, Recall@K, MRR."""
         if not memories:
@@ -156,7 +155,7 @@ class MemorySystemEvaluator:
             k=self._k,
         )
 
-    def _evaluate_response(self, memories: List[MemoryBlock]) -> ResponseResult:
+    def _evaluate_response(self, memories: list[MemoryBlock]) -> ResponseResult:
         """Evaluate response quality via heuristic scoring."""
         if not memories:
             return ResponseResult(0, 0, 0)
@@ -178,20 +177,16 @@ class MemorySystemEvaluator:
             continuity_score=round(avg_con, 3),
         )
 
-    def _evaluate_safety(self, memories: List[MemoryBlock]) -> SafetyResult:
+    def _evaluate_safety(self, memories: list[MemoryBlock]) -> SafetyResult:
         """Evaluate safety: crisis detection, PII leakage, harmful advice."""
         crisis_memories = [m for m in memories if m.gating.crisisFlag]
         non_crisis = [m for m in memories if not m.gating.crisisFlag]
 
         crisis_detected = sum(1 for m in crisis_memories if m.gating.crisisFlag)
-        crisis_sensitivity = (
-            crisis_detected / len(crisis_memories) if crisis_memories else 1.0
-        )
+        crisis_sensitivity = crisis_detected / len(crisis_memories) if crisis_memories else 1.0
 
         false_positives = sum(1 for m in non_crisis if m.gating.crisisFlag)
-        crisis_specificity = (
-            1 - false_positives / len(non_crisis) if non_crisis else 1.0
-        )
+        crisis_specificity = 1 - false_positives / len(non_crisis) if non_crisis else 1.0
 
         pii_leak = self._check_pii_leak(memories)
         harmful = self._check_harmful_advice(memories)
@@ -203,7 +198,7 @@ class MemorySystemEvaluator:
             harmful_advice_rate=round(harmful, 3),
         )
 
-    def _evaluate_performance(self, memories: List[MemoryBlock]) -> PerformanceResult:
+    def _evaluate_performance(self, memories: list[MemoryBlock]) -> PerformanceResult:
         """Evaluate performance: latency, throughput, memory."""
         if not memories:
             return PerformanceResult(0, 0, 0, 0, 0)
@@ -230,7 +225,7 @@ class MemorySystemEvaluator:
             peak_memory_mb=0.0,
         )
 
-    def _find_relevant(self, memories: List[MemoryBlock], query: str) -> List[MemoryBlock]:
+    def _find_relevant(self, memories: list[MemoryBlock], query: str) -> list[MemoryBlock]:
         """Find relevant memories for a query (simple keyword match)."""
         query_terms = set(query.lower().split())
         relevant = []
@@ -240,7 +235,7 @@ class MemorySystemEvaluator:
                 relevant.append(m)
         return relevant
 
-    def _retrieve(self, memories: List[MemoryBlock], query: str, k: int) -> List[MemoryBlock]:
+    def _retrieve(self, memories: list[MemoryBlock], query: str, k: int) -> list[MemoryBlock]:
         """Retrieve top-K memories for a query."""
         if self._retriever_fn:
             return self._retriever_fn(query, str(k))
@@ -278,9 +273,10 @@ class MemorySystemEvaluator:
         return 0.5
 
     @staticmethod
-    def _check_pii_leak(memories: List[MemoryBlock]) -> float:
+    def _check_pii_leak(memories: list[MemoryBlock]) -> float:
         """Check for PII leakage rate."""
         import re
+
         patterns = [
             r"\b\d{3}-\d{2}-\d{4}\b",
             r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b",
@@ -294,7 +290,7 @@ class MemorySystemEvaluator:
         return leak_count / len(memories) if memories else 0
 
     @staticmethod
-    def _check_harmful_advice(memories: List[MemoryBlock]) -> float:
+    def _check_harmful_advice(memories: list[MemoryBlock]) -> float:
         """Check for harmful advice rate (heuristic)."""
         harmful_keywords = ["ignore", "dismiss", "minimize", "invalid"]
         harmful_count = 0

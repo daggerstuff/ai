@@ -8,7 +8,7 @@ This is a REAL implementation using in-memory dictionaries, not a stub.
 """
 
 import threading
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from .base import BaseMemoryManager
@@ -48,7 +48,7 @@ class NullMemoryManager(BaseMemoryManager):
             "content": content,
             "user_id": user_id,
             "metadata": metadata or {},
-            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_at": datetime.now(UTC).isoformat(),
         }
 
         with self._lock:
@@ -72,11 +72,7 @@ class NullMemoryManager(BaseMemoryManager):
 
             # Simple substring search
             query_lower = query.lower()
-            results = [
-                m
-                for m in self._memories[user_id]
-                if query_lower in m["content"].lower()
-            ]
+            results = [m for m in self._memories[user_id] if query_lower in m["content"].lower()]
             return {"results": results}
 
     def get_all(self, user_id: str, **_kwargs):
@@ -100,7 +96,7 @@ class NullMemoryManager(BaseMemoryManager):
                 for memory in memories:
                     if memory["id"] == memory_id:
                         memory["content"] = new_content
-                        memory["updated_at"] = datetime.now(timezone.utc).isoformat()
+                        memory["updated_at"] = datetime.now(UTC).isoformat()
                         if kwargs.get("metadata") is not None:
                             memory["metadata"].update(kwargs["metadata"])
                         return True

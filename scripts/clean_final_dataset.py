@@ -30,7 +30,7 @@ class DatasetCleaner:
         # Fix common transcription artifacts
         text = RE_FILLERS.sub("", text)
         text = RE_MULTI_COMMA_SPACE.sub(" ", text)  # Multiple commas/spaces
-        text = RE_WHITESPACE.sub(" ", text)     # Normalize whitespace again
+        text = RE_WHITESPACE.sub(" ", text)  # Normalize whitespace again
 
         # Remove very short or empty responses
         if len(text.strip()) < 50:
@@ -78,7 +78,12 @@ class DatasetCleaner:
             if "expert_id" not in conversation or conversation["expert_id"] not in [0, 1, 2, 3]:
                 return False
 
-            if "style" not in conversation or conversation["style"] not in ["therapeutic", "educational", "empathetic", "practical"]:
+            if "style" not in conversation or conversation["style"] not in [
+                "therapeutic",
+                "educational",
+                "empathetic",
+                "practical",
+            ]:
                 return False
 
             return True
@@ -93,12 +98,7 @@ class DatasetCleaner:
             conversations = json.load(f)
 
         cleaned_conversations = []
-        stats = {
-            "original_count": len(conversations),
-            "duplicates_removed": 0,
-            "invalid_removed": 0,
-            "final_count": 0
-        }
+        stats = {"original_count": len(conversations), "duplicates_removed": 0, "invalid_removed": 0, "final_count": 0}
 
         for conv in conversations:
             # Validate and normalize
@@ -139,11 +139,17 @@ class DatasetCleaner:
             "duplicates_removed": train_stats["duplicates_removed"] + val_stats["duplicates_removed"],
             "invalid_removed": train_stats["invalid_removed"] + val_stats["invalid_removed"],
             "final_total": train_stats["final_count"] + val_stats["final_count"],
-            "retention_rate": round((train_stats["final_count"] + val_stats["final_count"]) / (train_stats["original_count"] + val_stats["original_count"]) * 100, 2)
+            "retention_rate": round(
+                (train_stats["final_count"] + val_stats["final_count"])
+                / (train_stats["original_count"] + val_stats["original_count"])
+                * 100,
+                2,
+            ),
         }
 
         with open(config_file, "w", encoding="utf-8") as f:
             json.dump(config, f, indent=2, ensure_ascii=False)
+
 
 def main():
     """Clean and deduplicate final dataset"""

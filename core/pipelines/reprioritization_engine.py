@@ -18,7 +18,7 @@ import logging
 import math
 import threading
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from pathlib import Path
 from typing import Any
@@ -89,9 +89,7 @@ class EvidencePoint:
     confidence: float
     root_cause_hypothesis: str
     metrics_impacted: list[str] = field(default_factory=list)
-    timestamp: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -133,14 +131,13 @@ class EvidenceAccumulation:
 
     def _remove_old_evidence(self) -> None:
         """Remove evidence points older than max_evidence_age_days."""
-        cutoff_date = datetime.now(timezone.utc) - timedelta(days=self.max_evidence_age_days)
+        cutoff_date = datetime.now(UTC) - timedelta(days=self.max_evidence_age_days)
         self.evidence_points = [
-            point for point in self.evidence_points
-            if datetime.fromisoformat(point.timestamp) >= cutoff_date
+            point for point in self.evidence_points if datetime.fromisoformat(point.timestamp) >= cutoff_date
         ]
 
     def _recalculate_weight(self) -> None:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         total = 0.0
         for point in self.evidence_points:
             point_time = datetime.fromisoformat(point.timestamp)
@@ -178,9 +175,7 @@ class BacklogItem:
     evidence_pattern_ids: list[str]
     root_cause_hypothesis: str
     validation_criteria: list[str] = field(default_factory=list)
-    created_at: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     previous_priority_tier: PriorityTier | None = None
     reason_for_change: str = ""
 
@@ -212,9 +207,7 @@ class PriorityChange:
     new_score: float
     reason: str
     evidence_pattern_ids: list[str]
-    changed_at: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    changed_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -398,9 +391,7 @@ class EvidenceAccumulator:
             return {
                 "total_patterns": len(self._accumulations),
                 "actionable_patterns": len(actionable),
-                "total_evidence_points": sum(
-                    len(a.evidence_points) for a in self._accumulations.values()
-                ),
+                "total_evidence_points": sum(len(a.evidence_points) for a in self._accumulations.values()),
                 "by_domain": by_domain,
             }
 
@@ -469,10 +460,7 @@ class PriorityCalculator:
             return InterventionType.RULE_UPDATE
         if domain == UpstreamDomain.ACQUISITION:
             return InterventionType.SOURCE_INTAKE
-        if (
-            severity == EvidenceSeverity.CRITICAL
-            and pattern_type not in pattern_intervention_map
-        ):
+        if severity == EvidenceSeverity.CRITICAL and pattern_type not in pattern_intervention_map:
             return InterventionType.THRESHOLD_ADJUSTMENT
         return pattern_intervention_map.get(pattern_type, InterventionType.PRIORITY_CHANGE)
 
@@ -577,9 +565,7 @@ class ReprioritizationEngine:
                 existing.priority_tier = tier
                 existing.priority_score = score
                 existing.reason_for_change = change.reason
-                existing.evidence_pattern_ids = list(
-                    set(existing.evidence_pattern_ids + [accumulation.pattern_id])
-                )
+                existing.evidence_pattern_ids = list(set(existing.evidence_pattern_ids + [accumulation.pattern_id]))
                 reprioritized.append(existing)
             else:
                 new_item = BacklogItem(
@@ -605,18 +591,14 @@ class ReprioritizationEngine:
         reprioritized.sort(key=lambda x: x.priority_score, reverse=True)
         unchanged.sort(key=lambda x: x.priority_score, reverse=True)
 
-        by_domain = self._build_domain_summary(
-            new_items, reprioritized, unchanged, all_accumulations
-        )
+        by_domain = self._build_domain_summary(new_items, reprioritized, unchanged, all_accumulations)
 
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         return ReprioritizationReport(
             run_id=_generate_run_id(),
             timestamp=now,
             evidence_sources_consumed=len(all_accumulations),
-            total_evidence_points=sum(
-                len(a.evidence_points) for a in all_accumulations.values()
-            ),
+            total_evidence_points=sum(len(a.evidence_points) for a in all_accumulations.values()),
             actionable_patterns=len(actionable),
             backlog_items_created=len(new_items),
             backlog_items_reprioritized=len(reprioritized),
@@ -627,9 +609,7 @@ class ReprioritizationEngine:
             by_domain=by_domain,
         )
 
-    def _should_reprioritize(
-        self, existing: BacklogItem, new_tier: PriorityTier, new_score: float
-    ) -> bool:
+    def _should_reprioritize(self, existing: BacklogItem, new_tier: PriorityTier, new_score: float) -> bool:
         """Determine if an existing backlog item should be reprioritized.
 
         Args:
@@ -725,7 +705,7 @@ def _generate_item_id(pattern_id: str, domain: UpstreamDomain) -> str:
 
 
 def _generate_run_id() -> str:
-    now = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
+    now = datetime.now(UTC).strftime("%Y%m%d%H%M%S")
     return f"run-{now}"
 
 
@@ -757,9 +737,7 @@ def _generate_description(point: EvidencePoint, accumulation: EvidenceAccumulati
     return "\n".join(lines)
 
 
-def _generate_validation_criteria(
-    point: EvidencePoint, intervention_type: InterventionType
-) -> list[str]:
+def _generate_validation_criteria(point: EvidencePoint, intervention_type: InterventionType) -> list[str]:
     criteria = [
         "Evidence weight exceeds action threshold",
         f"Severity: {point.severity.value}",
@@ -841,19 +819,19 @@ def run_reprioritization_from_report(
 
 __all__ = [
     "DEFAULT_ACTION_THRESHOLD",
-    "ReprioritizationConfig",
-    "UpstreamDomain",
-    "InterventionType",
-    "EvidenceSeverity",
-    "PriorityTier",
-    "EvidencePoint",
-    "EvidenceAccumulation",
     "BacklogItem",
-    "PriorityChange",
-    "ReprioritizationReport",
+    "EvidenceAccumulation",
     "EvidenceAccumulator",
+    "EvidencePoint",
+    "EvidenceSeverity",
+    "InterventionType",
     "PriorityCalculator",
+    "PriorityChange",
+    "PriorityTier",
+    "ReprioritizationConfig",
     "ReprioritizationEngine",
+    "ReprioritizationReport",
+    "UpstreamDomain",
     "create_engine",
     "run_reprioritization_from_report",
 ]

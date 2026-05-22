@@ -1,6 +1,7 @@
 """
 Basic functional tests for the CrisisExpansion module.
 """
+
 import os
 import tempfile
 
@@ -62,32 +63,21 @@ def test_basic_functionality():
     neg_terms = [
         t
         for t in neg_expansions
-        if "not" in t
-        or "don't" in t
-        or "never" in t
-        or "would never" in t
-        or "could never" in t
-        or "should never" in t
+        if "not" in t or "don't" in t or "never" in t or "would never" in t or "could never" in t or "should never" in t
     ]
     assert len(neg_terms) > 0
     # Check for any negation form rather than specific ones
-    has_negation = any(
-        "not" in t or "don't" in t or "never" in t for t in neg_expansions
-    )
+    has_negation = any("not" in t or "don't" in t or "never" in t for t in neg_expansions)
     assert has_negation
 
     # Test phrase variants
     variant_expansions = expansion.expand_term("kill myself", "suicidal_ideation")
-    variant_terms = [
-        t for t in variant_expansions if "I want to" in t or "I'm going to" in t
-    ]
+    variant_terms = [t for t in variant_expansions if "I want to" in t or "I'm going to" in t]
     assert len(variant_terms) > 0
 
     # Test Spanish terms (if enabled)
     spanish_expansion = CrisisExpansion()
-    spanish_term = spanish_expansion.expand_term(
-        "quitarme la vida", "suicidal_ideation"
-    )
+    spanish_term = spanish_expansion.expand_term("quitarme la vida", "suicidal_ideation")
     # Check that we get some expansions (the exact terms may vary based on implementation)
     assert len(spanish_term) > 0
     # The base term should be present
@@ -100,7 +90,6 @@ def test_basic_functionality():
     assert term_info.category == CrisisCategory.SELF_HARM
     assert term_info.intensity == 0.9
     assert "cutting myself" in term_info.synonyms
-
 
 
 def test_config_options():
@@ -135,7 +124,6 @@ def test_config_options():
     assert len(neg_terms) == 0  # Should have no negation terms
 
 
-
 def test_custom_terms():
     """Test loading custom terms from file."""
 
@@ -155,7 +143,6 @@ def test_custom_terms():
     - "sinónimo personalizado 1"
   language: "es"
 """
-
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
         f.write(custom_terms_yaml)
@@ -183,7 +170,6 @@ def test_custom_terms():
         # Test synonyms
         assert expansion.is_crisis_term("custom synonym 1") == True
         assert expansion.is_crisis_term("sinónimo personalizado 1") == True
-
 
     finally:
         # Clean up temp file

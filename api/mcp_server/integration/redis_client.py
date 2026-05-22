@@ -16,9 +16,7 @@ class MCPRedisClient:
         self.db = db
         self.password = password
         self.logger = logging.getLogger(__name__)
-        self.redis = redis.from_url(
-            url, db=db, password=password, decode_responses=True
-        )
+        self.redis = redis.from_url(url, db=db, password=password, decode_responses=True)
         self.logger.info(f"MCP Redis client connected to {url} (DB {db})")
 
     async def get(self, key: str) -> str | None:
@@ -29,9 +27,7 @@ class MCPRedisClient:
         """Set a value in cache with optional expiry."""
         return await self.redis.set(key, value, ex=ex)
 
-    async def publish(
-        self, channel: str, message: str | dict[str, Any] | list[Any]
-    ) -> int:
+    async def publish(self, channel: str, message: str | dict[str, Any] | list[Any]) -> int:
         """Publish a message to an event bus channel with auto-serialization."""
         if isinstance(message, (dict, list)):
             message = json.dumps(message)

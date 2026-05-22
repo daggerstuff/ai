@@ -25,6 +25,7 @@ class RedditConverter:
     def _scrub(self, text: str) -> str:
         """Strip anything that looks like a Reddit /u/ or r/ reference for privacy."""
         import re as _re
+
         text = _re.sub(r"/u/\w+", "[user]", text)
         text = _re.sub(r"/r/\w+", "[subreddit]", text)
         return text
@@ -67,34 +68,35 @@ class RedditConverter:
                 comment_body = self._scrub(comment.get("body", ""))
                 comment_author = comment.get("author")
                 if prompt and comment_body:
-                    pairs.append({
-                        "messages": [
-                            {"role": "user", "content": prompt},
-                            {"role": "assistant", "content": comment_body}
-                        ],
-                        "meta": {
-                            "source": "reddit",
-                            "author_anon": self._canonical_anon(author),
-                            "commenter_anon": self._canonical_anon(comment_author),
-                            "subreddit": self._scrub(data.get("subreddit", "")),
-                            "score": data.get("score", 0),
+                    pairs.append(
+                        {
+                            "messages": [
+                                {"role": "user", "content": prompt},
+                                {"role": "assistant", "content": comment_body},
+                            ],
+                            "meta": {
+                                "source": "reddit",
+                                "author_anon": self._canonical_anon(author),
+                                "commenter_anon": self._canonical_anon(comment_author),
+                                "subreddit": self._scrub(data.get("subreddit", "")),
+                                "score": data.get("score", 0),
+                            },
                         }
-                    })
+                    )
         else:
             completion = self._scrub(data.get("response", data.get("completion", "")))
             if prompt and completion:
-                pairs.append({
-                    "messages": [
-                        {"role": "user", "content": prompt},
-                        {"role": "assistant", "content": completion}
-                    ],
-                    "meta": {
-                        "source": "reddit",
-                        "author_anon": self._canonical_anon(author),
-                        "subreddit": self._scrub(data.get("subreddit", "")),
-                        "score": data.get("score", 0),
+                pairs.append(
+                    {
+                        "messages": [{"role": "user", "content": prompt}, {"role": "assistant", "content": completion}],
+                        "meta": {
+                            "source": "reddit",
+                            "author_anon": self._canonical_anon(author),
+                            "subreddit": self._scrub(data.get("subreddit", "")),
+                            "score": data.get("score", 0),
+                        },
                     }
-                })
+                )
 
         return pairs
 
@@ -132,21 +134,14 @@ def extract_conversations(data):
             comment_body = comment.get("body", "")
             if prompt and comment_body:
                 yield {
-                    "messages": [
-                        {"role": "user", "content": prompt},
-                        {"role": "assistant", "content": comment_body}
-                    ]
+                    "messages": [{"role": "user", "content": prompt}, {"role": "assistant", "content": comment_body}]
                 }
     else:
         # Fallback if there are responses or completion fields
         completion = data.get("response", data.get("completion", ""))
         if prompt and completion:
-            yield {
-                "messages": [
-                    {"role": "user", "content": prompt},
-                    {"role": "assistant", "content": completion}
-                ]
-            }
+            yield {"messages": [{"role": "user", "content": prompt}, {"role": "assistant", "content": completion}]}
+
 
 def process_file(file_path, anon: bool = True):
     """Process a single JSON or JSONL file and yield message pairs."""
@@ -176,10 +171,13 @@ def process_file(file_path, anon: bool = True):
     except Exception as e:
         logging.error(f"Error reading file {file_path}: {e}")
 
+
 def main():
     parser = argparse.ArgumentParser(description="Convert raw Reddit JSONs to training JSONL format")
     parser.add_argument("--input-dir", "-i", type=str, required=True, help="Input directory containing raw JSONs")
-    parser.add_argument("--output-dir", "-o", type=str, required=True, help="Output directory for train.jsonl and val.jsonl")
+    parser.add_argument(
+        "--output-dir", "-o", type=str, required=True, help="Output directory for train.jsonl and val.jsonl"
+    )
     parser.add_argument("--val-split", "-v", type=float, default=0.1, help="Validation split ratio")
     parser.add_argument("--no-anon", action="store_true", help="Disable username anonymization")
     args = parser.parse_args()
@@ -202,9 +200,7 @@ def main():
     file_count = 0
 
     try:
-        with open(train_path, "w", encoding="utf-8") as f_train, \
-             open(val_path, "w", encoding="utf-8") as f_val:
-
+        with open(train_path, "w", encoding="utf-8") as f_train, open(val_path, "w", encoding="utf-8") as f_val:
             for file_path in input_dir.glob("**/*"):
                 if file_path.is_file() and file_path.suffix.lower() in [".json", ".jsonl"]:
                     file_count += 1
@@ -227,6 +223,7 @@ def main():
             logging.warning("No conversations extracted. Check input format.")
     except Exception as e:
         logging.error(f"Failed to write output files: {e}")
+
 
 if __name__ == "__main__":
     main()

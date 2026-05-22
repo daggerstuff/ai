@@ -8,7 +8,7 @@ import asyncio
 import json
 import logging
 import sqlite3
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import plotly.graph_objs as go
@@ -46,18 +46,14 @@ class FatigueDashboard:
                 asyncio.set_event_loop(loop)
 
                 # Get summary data
-                summary = loop.run_until_complete(
-                    self.afp_system.get_group_summary(hours=24)
-                )
+                summary = loop.run_until_complete(self.afp_system.get_group_summary(hours=24))
 
                 # Get additional metrics
                 metrics = self.get_dashboard_metrics()
 
                 loop.close()
 
-                return jsonify(
-                    {"summary": summary, "metrics": metrics, "status": "success"}
-                )
+                return jsonify({"summary": summary, "metrics": metrics, "status": "success"})
             except Exception as e:
                 logger.error(f"Error getting summary: {e}")
                 return jsonify({"error": str(e), "status": "error"}), 500
@@ -99,9 +95,7 @@ class FatigueDashboard:
                 )
 
                 self.afp_system.add_fatigue_rule(rule)
-                return jsonify(
-                    {"status": "success", "message": "Rule created successfully"}
-                )
+                return jsonify({"status": "success", "message": "Rule created successfully"})
             except Exception as e:
                 logger.error(f"Error creating rule: {e}")
                 return jsonify({"error": str(e), "status": "error"}), 500
@@ -127,7 +121,7 @@ class FatigueDashboard:
                             json.dumps(data["actions"]),
                             data.get("enabled", True),
                             data.get("priority", 100),
-                            datetime.now(timezone.utc).isoformat(),
+                            datetime.now(UTC).isoformat(),
                             rule_id,
                         ),
                     )
@@ -135,9 +129,7 @@ class FatigueDashboard:
                 # Reload rules
                 self.afp_system.load_fatigue_rules()
 
-                return jsonify(
-                    {"status": "success", "message": "Rule updated successfully"}
-                )
+                return jsonify({"status": "success", "message": "Rule updated successfully"})
             except Exception as e:
                 logger.error(f"Error updating rule: {e}")
                 return jsonify({"error": str(e), "status": "error"}), 500
@@ -147,16 +139,12 @@ class FatigueDashboard:
             """Delete fatigue prevention rule"""
             try:
                 with sqlite3.connect(self.afp_system.db_path) as conn:
-                    conn.execute(
-                        "DELETE FROM fatigue_rules WHERE rule_id=?", (rule_id,)
-                    )
+                    conn.execute("DELETE FROM fatigue_rules WHERE rule_id=?", (rule_id,))
 
                 # Reload rules
                 self.afp_system.load_fatigue_rules()
 
-                return jsonify(
-                    {"status": "success", "message": "Rule deleted successfully"}
-                )
+                return jsonify({"status": "success", "message": "Rule deleted successfully"})
             except Exception as e:
                 logger.error(f"Error deleting rule: {e}")
                 return jsonify({"error": str(e), "status": "error"}), 500
@@ -192,19 +180,13 @@ class FatigueDashboard:
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
 
-                groups = loop.run_until_complete(
-                    self.grouping_engine.suggest_groups(alerts, algorithm)
-                )
+                groups = loop.run_until_complete(self.grouping_engine.suggest_groups(alerts, algorithm))
 
-                quality = loop.run_until_complete(
-                    self.grouping_engine.evaluate_grouping_quality(alerts, groups)
-                )
+                quality = loop.run_until_complete(self.grouping_engine.evaluate_grouping_quality(alerts, groups))
 
                 loop.close()
 
-                return jsonify(
-                    {"groups": groups, "quality": quality, "status": "success"}
-                )
+                return jsonify({"groups": groups, "quality": quality, "status": "success"})
             except Exception as e:
                 logger.error(f"Error testing grouping: {e}")
                 return jsonify({"error": str(e), "status": "error"}), 500
@@ -214,7 +196,7 @@ class FatigueDashboard:
 
         with sqlite3.connect(self.afp_system.db_path) as conn:
             # Total groups in last 24 hours
-            cutoff_24h = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
+            cutoff_24h = (datetime.now(UTC) - timedelta(hours=24)).isoformat()
             total_groups = conn.execute(
                 """
                 SELECT COUNT(*) FROM alert_groups WHERE last_seen > ?
@@ -267,16 +249,14 @@ class FatigueDashboard:
             "total_groups_24h": total_groups,
             "suppressed_alerts_24h": suppressed_alerts,
             "active_rules": active_rules,
-            "top_suppressions": [
-                {"rule": r[0], "count": r[1]} for r in top_suppressions
-            ],
+            "top_suppressions": [{"rule": r[0], "count": r[1]} for r in top_suppressions],
             "avg_group_size": round(avg_group_size, 2),
         }
 
     def get_active_groups(self, hours: int = 24) -> list[dict[str, Any]]:
         """Get active alert groups"""
 
-        cutoff_time = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat()
+        cutoff_time = (datetime.now(UTC) - timedelta(hours=hours)).isoformat()
 
         with sqlite3.connect(self.afp_system.db_path) as conn:
             groups = conn.execute(
@@ -343,7 +323,7 @@ class FatigueDashboard:
 
         # Get hourly alert counts for last 24 hours
         with sqlite3.connect(self.afp_system.db_path) as conn:
-            cutoff_time = datetime.now(timezone.utc) - timedelta(hours=24)
+            cutoff_time = datetime.now(UTC) - timedelta(hours=24)
 
             # Generate hourly buckets
             hours = []
@@ -394,7 +374,7 @@ class FatigueDashboard:
         """Generate suppression statistics chart"""
 
         with sqlite3.connect(self.afp_system.db_path) as conn:
-            cutoff_time = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
+            cutoff_time = (datetime.now(UTC) - timedelta(hours=24)).isoformat()
 
             # Get suppression counts by rule
             suppressions = conn.execute(

@@ -54,9 +54,7 @@ class LocalReflectionMemoryClient:
         if existing is None:
             raise ValueError(f"Memory not found: {memory_id}")
         next_content = content if content is not None else (existing.get("content") or "")
-        next_metadata = metadata if metadata is not None else MemoryMetadata.from_dict(
-            existing.get("metadata", {})
-        )
+        next_metadata = metadata if metadata is not None else MemoryMetadata.from_dict(existing.get("metadata", {}))
         updated = await asyncio.to_thread(
             self.manager.update_memory,
             memory_id=memory_id,

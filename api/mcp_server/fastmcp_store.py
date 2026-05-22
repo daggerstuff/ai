@@ -135,9 +135,7 @@ def _scope_metadata(scope: MemoryScopeProvider) -> dict | None:
     return metadata
 
 
-def persist_memory_store_plan(
-    *, creator: MemoryStoreCreator, plan: MemoryStorePlan
-) -> str:
+def persist_memory_store_plan(*, creator: MemoryStoreCreator, plan: MemoryStorePlan) -> str:
     return creator.create_memory(plan)
 
 

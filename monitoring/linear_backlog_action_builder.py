@@ -4,11 +4,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from .performance_gap_backlog_converter import BacklogChange, BacklogConversionResult
+from .performance_gap_backlog_converter import BacklogConversionResult
 
 
 @dataclass(frozen=True)
@@ -69,10 +69,7 @@ def build_linear_backlog_payload(
         )
         labels = ["pix-535", "performance-gap", change.area, change.priority.value]
         description = (
-            f"{action_body}\\n\\n"
-            "Execution checklist:\\n"
-            + "\\n".join(f"- {item}" for item in change.actions)
-            + "\\n"
+            f"{action_body}\\n\\nExecution checklist:\\n" + "\\n".join(f"- {item}" for item in change.actions) + "\\n"
         )
 
         actions.append(
@@ -106,7 +103,7 @@ def build_linear_backlog_payload(
         )
 
     return {
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(UTC).isoformat(),
         "source": {
             "task": "PIX-535",
             "task_label": "performance-gap-to-backlog conversion",
@@ -117,15 +114,11 @@ def build_linear_backlog_payload(
     }
 
 
-def write_linear_backlog_artifact(
-    payload: dict[str, Any], output_path: str | Path
-) -> str:
+def write_linear_backlog_artifact(payload: dict[str, Any], output_path: str | Path) -> str:
     """Write payload to disk and return path."""
     output_file = Path(output_path)
     output_file.parent.mkdir(parents=True, exist_ok=True)
-    output_file.write_text(
-        __import__("json").dumps(payload, indent=2), encoding="utf-8"
-    )
+    output_file.write_text(__import__("json").dumps(payload, indent=2), encoding="utf-8")
     return str(output_file)
 
 

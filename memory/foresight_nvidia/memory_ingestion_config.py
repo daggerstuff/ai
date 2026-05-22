@@ -120,9 +120,7 @@ class TherapeuticMemoryConfig:
     def __post_init__(self):
         """Validate configuration after initialization."""
         if not 0.0 <= self.confidence_threshold <= 1.0:
-            raise ValueError(
-                f"confidence_threshold must be 0.0-1.0, got {self.confidence_threshold}"
-            )
+            raise ValueError(f"confidence_threshold must be 0.0-1.0, got {self.confidence_threshold}")
         if self.max_memory_length < 100:
             raise ValueError(f"max_memory_length must be >= 100, got {self.max_memory_length}")
 

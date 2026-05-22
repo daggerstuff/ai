@@ -3,13 +3,13 @@ from __future__ import annotations
 from typing import Any
 
 from .base import BaseMemoryManager
-from .local_memory_compat_mixin import LocalMemoryCompatibilityMixin
 from .local_foresight_document_service import LocalForesightDocumentService
 from .local_foresight_memory_query_service import LocalForesightMemoryQueryService
 from .local_foresight_memory_record_service import LocalForesightMemoryRecordService
 from .local_foresight_memory_write_service import LocalForesightMemoryWriteService
 from .local_foresight_protocol_adapter import LocalForesightProtocolAdapter
 from .local_foresight_repository import LocalForesightRepository
+from .local_memory_compat_mixin import LocalMemoryCompatibilityMixin
 
 
 class LocalForesightMemoryManager(LocalMemoryCompatibilityMixin, BaseMemoryManager):

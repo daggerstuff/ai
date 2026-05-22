@@ -3,71 +3,75 @@
 from __future__ import annotations
 
 import json
-import pytest
 from pathlib import Path
-from unittest.mock import patch, mock_open
+
+import pytest
 
 from ai.monitoring.feedback_to_metrics_bridge import (
-    FeedbackMetricsMapping,
-    transform_feedback_to_metrics,
+    DEFAULT_METRIC_SCORES,
     PATTERN_TYPE_TO_METRIC,
     SEVERITY_PENALTY,
-    DEFAULT_METRIC_SCORES,
+    FeedbackMetricsMapping,
     _compute_metric_scores,
-    _enrich_with_upstream,
     _enrich_with_interventions,
+    _enrich_with_upstream,
     _finalize_reasons,
     _load_feedback_report,
+    transform_feedback_to_metrics,
 )
 
 
 @pytest.fixture
 def minimal_feedback_report(tmp_path: Path) -> Path:
     report = tmp_path / "feedback_report.json"
-    report.write_text(json.dumps({
-        "failure_patterns": [
+    report.write_text(
+        json.dumps(
             {
-                "pattern_id": "pattern_memory_recall_low",
-                "pattern_type": "memory_deficiency",
-                "description": "Model fails to recall relevant memories",
-                "severity": "medium",
-                "frequency": 0.3,
-                "metrics_impacted": ["memory_recall_recall"],
-            },
-            {
-                "pattern_id": "pattern_context_drift",
-                "pattern_type": "context_alignment",
-                "description": "Responses drift from context",
-                "severity": "high",
-                "frequency": 0.15,
-                "metrics_impacted": ["context_relevance"],
-            },
-        ],
-        "upstream_mappings": [
-            {
-                "failure_pattern": {
-                    "pattern_id": "pattern_memory_recall_low",
-                    "pattern_type": "memory_deficiency",
-                },
-                "upstream_domain": "acquisition",
-                "confidence": 0.66,
-                "root_cause_hypothesis": "Source data lacks quality pairs",
-                "evidence": ["acquisition_logs"],
-            },
-        ],
-        "interventions": [
-            {
-                "intervention_id": "intervention_1",
-                "intervention_type": "priority_change",
-                "title": "Adjust source priorities",
-                "upstream_domain": "acquisition",
-                "priority": "medium",
-                "expected_impact": "Improve recall by 10-20%",
-                "related_patterns": ["pattern_memory_recall_low"],
-            },
-        ],
-        "summary": {"critical_issues": 0, "high_priority_issues": 0, "recommended_actions": 1},
-    }))
+                "failure_patterns": [
+                    {
+                        "pattern_id": "pattern_memory_recall_low",
+                        "pattern_type": "memory_deficiency",
+                        "description": "Model fails to recall relevant memories",
+                        "severity": "medium",
+                        "frequency": 0.3,
+                        "metrics_impacted": ["memory_recall_recall"],
+                    },
+                    {
+                        "pattern_id": "pattern_context_drift",
+                        "pattern_type": "context_alignment",
+                        "description": "Responses drift from context",
+                        "severity": "high",
+                        "frequency": 0.15,
+                        "metrics_impacted": ["context_relevance"],
+                    },
+                ],
+                "upstream_mappings": [
+                    {
+                        "failure_pattern": {
+                            "pattern_id": "pattern_memory_recall_low",
+                            "pattern_type": "memory_deficiency",
+                        },
+                        "upstream_domain": "acquisition",
+                        "confidence": 0.66,
+                        "root_cause_hypothesis": "Source data lacks quality pairs",
+                        "evidence": ["acquisition_logs"],
+                    },
+                ],
+                "interventions": [
+                    {
+                        "intervention_id": "intervention_1",
+                        "intervention_type": "priority_change",
+                        "title": "Adjust source priorities",
+                        "upstream_domain": "acquisition",
+                        "priority": "medium",
+                        "expected_impact": "Improve recall by 10-20%",
+                        "related_patterns": ["pattern_memory_recall_low"],
+                    },
+                ],
+                "summary": {"critical_issues": 0, "high_priority_issues": 0, "recommended_actions": 1},
+            }
+        )
+    )
     return report
 
 
@@ -224,11 +228,15 @@ class TestLoadFeedbackReport:
 
     def test_valid_report_returns_data(self, tmp_path: Path):
         report = tmp_path / "valid.json"
-        report.write_text(json.dumps({
-            "failure_patterns": [],
-            "interventions": [],
-            "upstream_mappings": [],
-        }))
+        report.write_text(
+            json.dumps(
+                {
+                    "failure_patterns": [],
+                    "interventions": [],
+                    "upstream_mappings": [],
+                }
+            )
+        )
         data = _load_feedback_report(report)
         assert data["failure_patterns"] == []
 

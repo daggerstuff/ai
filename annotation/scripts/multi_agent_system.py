@@ -5,13 +5,14 @@ Inspired by NVIDIA AI Blueprints architecture
 This module implements a sophisticated multi-agent system for annotating
 therapeutic conversations with high reliability and psychological safety.
 """
+
 import concurrent.futures
 import json
 import os
 import random
 import time
-from collections import Counter
 from abc import ABC, abstractmethod
+from collections import Counter
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
@@ -297,12 +298,8 @@ class BaseAgent(ABC):
 
             if logger.isEnabledFor(logging.DEBUG):
                 logger.debug(f"[{self.agent_id}] Sending request...")
-                logger.debug(
-                    f"[{self.agent_id}] System prompt length: {len(system_prompt)}"
-                )
-                logger.debug(
-                    f"[{self.agent_id}] User prompt length: {len(user_prompt)}"
-                )
+                logger.debug(f"[{self.agent_id}] System prompt length: {len(system_prompt)}")
+                logger.debug(f"[{self.agent_id}] User prompt length: {len(user_prompt)}")
                 logger.debug(f"[{self.agent_id}] Temperature: {self.temperature}")
                 logger.debug(f"[{self.agent_id}] Model: {self.model}")
 
@@ -338,9 +335,7 @@ class BaseAgent(ABC):
                 start = clean_content.find("{")
                 end = clean_content.rfind("}")
                 if start == -1 or end == -1:
-                    raise json.JSONDecodeError(
-                        "No JSON object found", clean_content, 0
-                    ) from e
+                    raise json.JSONDecodeError("No JSON object found", clean_content, 0) from e
 
                 try:
                     data = json.loads(clean_content[start : end + 1])
@@ -548,9 +543,7 @@ Focus on:
         return AnnotationResult(
             crisis_label=random.randint(1, 2) if is_crisis else 0,
             crisis_confidence=random.randint(3, 4),
-            primary_emotion=random.choice(
-                ["Sadness", "Joy", "Fear", "Neutral", "Anticipation"]
-            ),
+            primary_emotion=random.choice(["Sadness", "Joy", "Fear", "Neutral", "Anticipation"]),
             secondary_emotions=[
                 emotion
                 for emotion in [
@@ -668,10 +661,7 @@ class ConsensusOrchestrator:
         max_workers = min(4, len(self.agents)) if self.agents else 1
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
             # Map futures to their original agent index to preserve order
-            future_to_index = {
-                executor.submit(agent.annotate, task): i
-                for i, agent in enumerate(self.agents)
-            }
+            future_to_index = {executor.submit(agent.annotate, task): i for i, agent in enumerate(self.agents)}
 
             ordered_results = [None] * len(self.agents)
             ordered_metadata = [None] * len(self.agents)
@@ -753,15 +743,11 @@ class ConsensusOrchestrator:
         arousals = [r.arousal for r in results]
 
         primary_emotion, emotion_tie_resolved = self._resolve_primary_emotion(results)
-        secondary_emotions = self._resolve_secondary_emotions(
-            results=results, primary_emotion=primary_emotion
-        )
+        secondary_emotions = self._resolve_secondary_emotions(results=results, primary_emotion=primary_emotion)
 
         # Average empathy scores (if present)
         empathy_scores = [r.empathy_score for r in results if r.empathy_score]
-        avg_empathy = (
-            int(sum(empathy_scores) / len(empathy_scores)) if empathy_scores else None
-        )
+        avg_empathy = int(sum(empathy_scores) / len(empathy_scores)) if empathy_scores else None
 
         # Safety pass if all agree
         safety_passes = [r.safety_pass for r in results if r.safety_pass is not None]
@@ -778,9 +764,7 @@ class ConsensusOrchestrator:
             empathy_score=avg_empathy,
             safety_pass=safety_pass,
             notes=(
-                "Emotion tie-breaker applied."
-                if emotion_tie_resolved
-                else "Consensus annotation from multiple agents"
+                "Emotion tie-breaker applied." if emotion_tie_resolved else "Consensus annotation from multiple agents"
             ),
             reasoning_chain=["Aggregated from all agents"],
         )
@@ -808,25 +792,21 @@ class ConsensusOrchestrator:
 
         emotion_scores: list[tuple[str, tuple[float, float, int]]] = []
         for emotion in top_emotions:
-            tied_annotations = [
-                result for result in results if result.primary_emotion == emotion
-            ]
+            tied_annotations = [result for result in results if result.primary_emotion == emotion]
 
             # Prefer annotations with explicit emotion confidence if provided.
-            confidences = [
-                float(r.confidence_scores.get("emotion", 0.0))
-                for r in tied_annotations
-            ]
+            confidences = [float(r.confidence_scores.get("emotion", 0.0)) for r in tied_annotations]
             confidence_weight = sum(confidences) / len(confidences)
 
             # Secondary deterministic tie-break with average emotion intensity.
-            avg_intensity = (
-                sum(r.emotion_intensity for r in tied_annotations)
-                / len(tied_annotations)
-            )
+            avg_intensity = sum(r.emotion_intensity for r in tied_annotations) / len(tied_annotations)
 
             # Preference order is deterministic and clinically neutral.
-            preference_rank = EMOTION_TIEBREAK_PREFERENCE.index(emotion) if emotion in EMOTION_TIEBREAK_PREFERENCE else len(EMOTION_TIEBREAK_PREFERENCE)
+            preference_rank = (
+                EMOTION_TIEBREAK_PREFERENCE.index(emotion)
+                if emotion in EMOTION_TIEBREAK_PREFERENCE
+                else len(EMOTION_TIEBREAK_PREFERENCE)
+            )
 
             # Higher score wins; lower preference rank is better.
             score = (confidence_weight, avg_intensity, -preference_rank)
@@ -844,9 +824,7 @@ class ConsensusOrchestrator:
         """Resolve secondary emotions from annotator outputs."""
         counts = Counter()
         for result in results:
-            for emotion in normalize_secondary_emotions(
-                result.secondary_emotions, primary_emotion=primary_emotion
-            ):
+            for emotion in normalize_secondary_emotions(result.secondary_emotions, primary_emotion=primary_emotion):
                 counts[emotion] += 1
 
         if not counts:
@@ -856,22 +834,12 @@ class ConsensusOrchestrator:
         for emotion, count in counts.items():
             if emotion == primary_emotion:
                 continue
-            tied_annotations = [
-                result for result in results if emotion in result.secondary_emotions
-            ]
+            tied_annotations = [result for result in results if emotion in result.secondary_emotions]
 
-            confidence_values = [
-                float(result.confidence_scores.get("emotion", 0.0))
-                for result in tied_annotations
-            ]
-            confidence = (
-                sum(confidence_values) / len(confidence_values)
-                if confidence_values
-                else 0.0
-            )
+            confidence_values = [float(result.confidence_scores.get("emotion", 0.0)) for result in tied_annotations]
+            confidence = sum(confidence_values) / len(confidence_values) if confidence_values else 0.0
             intensity = (
-                sum(result.emotion_intensity for result in tied_annotations)
-                / len(tied_annotations)
+                sum(result.emotion_intensity for result in tied_annotations) / len(tied_annotations)
                 if tied_annotations
                 else 0.0
             )
@@ -881,9 +849,7 @@ class ConsensusOrchestrator:
                 else len(EMOTION_TIEBREAK_PREFERENCE)
             )
 
-            secondary_scores.append(
-                (emotion, (count, confidence, intensity, -preference_rank))
-            )
+            secondary_scores.append((emotion, (count, confidence, intensity, -preference_rank)))
 
         secondary_scores.sort(key=lambda item: item[1], reverse=True)
         return [emotion for emotion, _ in secondary_scores[:MAX_SECONDARY_EMOTIONS]]
@@ -908,9 +874,7 @@ class ConsensusOrchestrator:
 
         # Average numeric field variance
         intensities = [r.emotion_intensity for r in results]
-        intensity_variance = sum(
-            (x - sum(intensities) / len(intensities)) ** 2 for x in intensities
-        ) / len(intensities)
+        intensity_variance = sum((x - sum(intensities) / len(intensities)) ** 2 for x in intensities) / len(intensities)
 
         return {
             "crisis_agreement": crisis_agreement,

@@ -10,7 +10,7 @@ import os
 import shutil
 import tempfile
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from checkpoint_system import (
     CheckpointType,
@@ -70,7 +70,6 @@ class CheckpointTestSuite:
     async def run_all_tests(self):
         """Run all test scenarios"""
 
-
         test_methods = [
             self.test_basic_checkpoint_operations,
             self.test_process_registration_and_progress,
@@ -102,7 +101,7 @@ class CheckpointTestSuite:
 
         test_data = {
             "message": "Hello, checkpoint!",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "data": list(range(100)),
         }
 
@@ -180,9 +179,7 @@ class CheckpointTestSuite:
         )
 
         assert final_checkpoint is not None, "Final checkpoint should be created"
-        assert process_id not in self.manager.active_processes, (
-            "Process should be removed from active list"
-        )
+        assert process_id not in self.manager.active_processes, "Process should be removed from active list"
 
         self.test_results.append(
             {
@@ -224,9 +221,7 @@ class CheckpointTestSuite:
         assert recovered_state is not None, "Process recovery should succeed"
         assert recovered_state.process_id == process_id, "Recovered process ID mismatch"
         assert recovered_state.completed_steps == 10, "Recovered progress mismatch"
-        assert recovered_state.current_step == "Halfway point", (
-            "Recovered step mismatch"
-        )
+        assert recovered_state.current_step == "Halfway point", "Recovered step mismatch"
 
         # Continue from recovered state
         self.manager.update_process_progress(
@@ -236,9 +231,7 @@ class CheckpointTestSuite:
         )
 
         final_state = self.manager.active_processes[process_id]
-        assert final_state.progress_percentage == 100.0, (
-            "Should reach 100% after recovery"
-        )
+        assert final_state.progress_percentage == 100.0, "Should reach 100% after recovery"
 
         self.test_results.append(
             {
@@ -283,9 +276,7 @@ class CheckpointTestSuite:
         # Should have archived some completed checkpoints
         if optimization_results.get("checkpoints_archived", 0) > 0:
             final_completed = final_stats["status_counts"].get("completed", 0)
-            assert final_completed < initial_completed, (
-                "Should have fewer completed checkpoints after archiving"
-            )
+            assert final_completed < initial_completed, "Should have fewer completed checkpoints after archiving"
 
         self.test_results.append(
             {
@@ -310,9 +301,7 @@ class CheckpointTestSuite:
 
         # Health score should be reasonable
         health_score = health_report["health_score"]
-        assert 0 <= health_score <= 100, (
-            f"Health score should be 0-100, got {health_score}"
-        )
+        assert 0 <= health_score <= 100, f"Health score should be 0-100, got {health_score}"
 
         # Should have system metrics
         metrics = health_report["metrics"]
@@ -458,12 +447,8 @@ class CheckpointTestSuite:
         avg_loading_time = loading_time / 10
 
         # Performance assertions
-        assert avg_creation_time < 0.1, (
-            f"Checkpoint creation too slow: {avg_creation_time:.3f}s"
-        )
-        assert avg_loading_time < 0.05, (
-            f"Checkpoint loading too slow: {avg_loading_time:.3f}s"
-        )
+        assert avg_creation_time < 0.1, f"Checkpoint creation too slow: {avg_creation_time:.3f}s"
+        assert avg_loading_time < 0.05, f"Checkpoint loading too slow: {avg_loading_time:.3f}s"
 
         # Cleanup
         for checkpoint_id in checkpoint_ids:
@@ -550,19 +535,13 @@ class CheckpointTestSuite:
         self.manager.storage.get_storage_stats()
 
         # Should have some optimization actions
-        assert len(optimization_results["actions_taken"]) >= 0, (
-            "Should have taken some optimization actions"
-        )
+        assert len(optimization_results["actions_taken"]) >= 0, "Should have taken some optimization actions"
 
         # Test compression specifically
         if self.monitor.config.compression_enabled:
             # Verify compressed checkpoints exist
-            with self.manager.storage.storage.connect(
-                self.manager.storage.db_path
-            ) as conn:
-                compressed_count = conn.execute(
-                    "SELECT COUNT(*) FROM checkpoints WHERE compression = 1"
-                ).fetchone()[0]
+            with self.manager.storage.storage.connect(self.manager.storage.db_path) as conn:
+                compressed_count = conn.execute("SELECT COUNT(*) FROM checkpoints WHERE compression = 1").fetchone()[0]
 
                 assert compressed_count > 0, "Should have compressed checkpoints"
 
@@ -577,10 +556,8 @@ class CheckpointTestSuite:
     def print_test_summary(self):
         """Print comprehensive test summary"""
 
-
         passed_tests = [r for r in self.test_results if r["status"] == "passed"]
         failed_tests = [r for r in self.test_results if r["status"] == "failed"]
-
 
         if passed_tests:
             for _test in passed_tests:
@@ -591,9 +568,7 @@ class CheckpointTestSuite:
                 pass
 
         # Overall result
-        success_rate = (
-            len(passed_tests) / len(self.test_results) * 100 if self.test_results else 0
-        )
+        success_rate = len(passed_tests) / len(self.test_results) * 100 if self.test_results else 0
 
         if success_rate == 100 or success_rate >= 80:
             pass

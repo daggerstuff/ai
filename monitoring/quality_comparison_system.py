@@ -8,7 +8,7 @@ import json
 import sqlite3
 import warnings
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -115,9 +115,7 @@ class QualityComparisonSystem:
         except Exception:
             return []
 
-    def _compare_by_category(
-        self, df: pd.DataFrame, category: str
-    ) -> list[QualityComparison]:
+    def _compare_by_category(self, df: pd.DataFrame, category: str) -> list[QualityComparison]:
         """Compare quality metrics by category"""
         try:
             comparisons = []
@@ -135,9 +133,7 @@ class QualityComparisonSystem:
                         continue
 
                     for metric in self.quality_metrics:
-                        comparison = self._compare_categories(
-                            df, category, cat_a, cat_b, metric
-                        )
+                        comparison = self._compare_categories(df, category, cat_a, cat_b, metric)
                         if comparison:
                             comparisons.append(comparison)
 
@@ -173,19 +169,14 @@ class QualityComparisonSystem:
 
             # Statistical test (Mann-Whitney U)
             try:
-                _statistic, p_value = stats.mannwhitneyu(
-                    values_a, values_b, alternative="two-sided"
-                )
+                _statistic, p_value = stats.mannwhitneyu(values_a, values_b, alternative="two-sided")
             except:
                 p_value = 1.0
 
             # Effect size (Cohen's d)
             try:
                 pooled_std = np.sqrt(
-                    (
-                        (len(values_a) - 1) * np.var(values_a)
-                        + (len(values_b) - 1) * np.var(values_b)
-                    )
+                    ((len(values_a) - 1) * np.var(values_a) + (len(values_b) - 1) * np.var(values_b))
                     / (len(values_a) + len(values_b) - 2)
                 )
                 effect_size = abs(difference) / pooled_std if pooled_std > 0 else 0
@@ -270,9 +261,7 @@ class QualityComparisonSystem:
         except Exception:
             return "Unable to interpret"
 
-    def create_comparison_visualizations(
-        self, comparisons: dict[str, list[QualityComparison]]
-    ) -> dict[str, str]:
+    def create_comparison_visualizations(self, comparisons: dict[str, list[QualityComparison]]) -> dict[str, str]:
         """Create comparison visualizations"""
 
         viz_files = {}
@@ -284,9 +273,7 @@ class QualityComparisonSystem:
 
             # Create comparison dashboard
             fig, axes = plt.subplots(2, 2, figsize=(16, 12))
-            fig.suptitle(
-                "Quality Comparison Analysis Dashboard", fontsize=16, fontweight="bold"
-            )
+            fig.suptitle("Quality Comparison Analysis Dashboard", fontsize=16, fontweight="bold")
 
             # Tier comparisons (if available)
             if "tier" in comparisons:
@@ -333,9 +320,7 @@ class QualityComparisonSystem:
                 dataset_comps = comparisons["dataset_source"]
 
                 # Show distribution of percentage differences
-                percentage_diffs = [
-                    comp.percentage_difference for comp in dataset_comps
-                ]
+                percentage_diffs = [comp.percentage_difference for comp in dataset_comps]
                 ax.hist(percentage_diffs, bins=20, alpha=0.7, edgecolor="black")
                 ax.set_title("Distribution of Dataset Differences")
                 ax.set_xlabel("Percentage Difference")
@@ -356,9 +341,7 @@ class QualityComparisonSystem:
             ax = axes[1, 0]
             all_p_values = []
             for category_comps in comparisons.values():
-                all_p_values.extend(
-                    [comp.statistical_significance for comp in category_comps]
-                )
+                all_p_values.extend([comp.statistical_significance for comp in category_comps])
 
             if all_p_values:
                 ax.hist(all_p_values, bins=20, alpha=0.7, edgecolor="black")
@@ -383,13 +366,9 @@ class QualityComparisonSystem:
                 ax.grid(True, alpha=0.3)
 
                 # Add interpretation lines
-                ax.axvline(
-                    0.2, color="orange", linestyle="--", alpha=0.7, label="Small"
-                )
+                ax.axvline(0.2, color="orange", linestyle="--", alpha=0.7, label="Small")
                 ax.axvline(0.5, color="red", linestyle="--", alpha=0.7, label="Medium")
-                ax.axvline(
-                    0.8, color="darkred", linestyle="--", alpha=0.7, label="Large"
-                )
+                ax.axvline(0.8, color="darkred", linestyle="--", alpha=0.7, label="Large")
                 ax.legend()
 
             plt.tight_layout()
@@ -414,10 +393,8 @@ class QualityComparisonSystem:
         """Export comprehensive comparison report"""
 
         try:
-            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-            report_file = (
-                self.output_dir / f"quality_comparison_report_{timestamp}.json"
-            )
+            timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
+            report_file = self.output_dir / f"quality_comparison_report_{timestamp}.json"
 
             # Create summary statistics
             summary_stats = self._create_comparison_summary(comparisons)
@@ -425,11 +402,9 @@ class QualityComparisonSystem:
             # Prepare export data
             export_data = {
                 "report_metadata": {
-                    "generated_at": datetime.now(timezone.utc).isoformat(),
+                    "generated_at": datetime.now(UTC).isoformat(),
                     "analyzer_version": "1.0.0",
-                    "total_comparisons": sum(
-                        len(comps) for comps in comparisons.values()
-                    ),
+                    "total_comparisons": sum(len(comps) for comps in comparisons.values()),
                     "categories_analyzed": list(comparisons.keys()),
                 },
                 "summary_statistics": summary_stats,
@@ -463,9 +438,7 @@ class QualityComparisonSystem:
         except Exception:
             return ""
 
-    def _create_comparison_summary(
-        self, comparisons: dict[str, list[QualityComparison]]
-    ) -> dict[str, Any]:
+    def _create_comparison_summary(self, comparisons: dict[str, list[QualityComparison]]) -> dict[str, Any]:
         """Create comparison summary statistics"""
         try:
             summary = {}
@@ -475,30 +448,20 @@ class QualityComparisonSystem:
                     continue
 
                 # Calculate summary statistics
-                percentage_diffs = [
-                    comp.percentage_difference for comp in category_comparisons
-                ]
-                [
-                    comp.statistical_significance for comp in category_comparisons
-                ]
+                percentage_diffs = [comp.percentage_difference for comp in category_comparisons]
+                [comp.statistical_significance for comp in category_comparisons]
                 effect_sizes = [comp.effect_size for comp in category_comparisons]
 
                 significant_comparisons = [
-                    comp
-                    for comp in category_comparisons
-                    if comp.statistical_significance < 0.05
+                    comp for comp in category_comparisons if comp.statistical_significance < 0.05
                 ]
 
                 summary[category] = {
                     "total_comparisons": len(category_comparisons),
                     "significant_comparisons": len(significant_comparisons),
-                    "significance_rate": len(significant_comparisons)
-                    / len(category_comparisons)
-                    * 100,
+                    "significance_rate": len(significant_comparisons) / len(category_comparisons) * 100,
                     "average_percentage_difference": float(np.mean(percentage_diffs)),
-                    "max_percentage_difference": float(
-                        np.max(np.abs(percentage_diffs))
-                    ),
+                    "max_percentage_difference": float(np.max(np.abs(percentage_diffs))),
                     "average_effect_size": float(np.mean(effect_sizes)),
                     "large_effect_count": len([es for es in effect_sizes if es > 0.8]),
                 }
@@ -532,9 +495,7 @@ def main():
 
     # Show key findings
     for _category, category_comparisons in comparisons.items():
-        len(
-            [c for c in category_comparisons if c.statistical_significance < 0.05]
-        )
+        len([c for c in category_comparisons if c.statistical_significance < 0.05])
         np.mean([c.percentage_difference for c in category_comparisons])
 
 

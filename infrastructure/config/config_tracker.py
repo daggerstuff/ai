@@ -3,6 +3,7 @@
 Configuration Change Tracking and Rollback System for Pixelated Empathy AI
 Tracks configuration changes and provides rollback capabilities
 """
+
 import argparse
 import hashlib
 import json
@@ -12,21 +13,19 @@ import shutil
 import sys
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
 @dataclass
 class ConfigChange:
     """Represents a configuration change"""
+
     timestamp: str
     change_id: str
     file_path: str
@@ -52,6 +51,7 @@ class ConfigChange:
 @dataclass
 class ConfigSnapshot:
     """Represents a configuration snapshot"""
+
     snapshot_id: str
     timestamp: str
     description: str
@@ -91,8 +91,9 @@ class ConfigTracker:
         if not self.snapshots_file.exists():
             self._save_snapshots([])
 
-    def track_change(self, file_path: str, change_type: str, description: str = "",
-                    user: str = None, environment: str = None) -> str:
+    def track_change(
+        self, file_path: str, change_type: str, description: str = "", user: str = None, environment: str = None
+    ) -> str:
         """Track a configuration change"""
         file_path = str(Path(file_path).resolve())
 
@@ -122,7 +123,7 @@ class ConfigTracker:
 
         # Create change record
         change = ConfigChange(
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             change_id=change_id,
             file_path=file_path,
             change_type=change_type,
@@ -132,7 +133,7 @@ class ConfigTracker:
             new_content=new_content,
             user=user,
             description=description,
-            environment=environment
+            environment=environment,
         )
 
         # Save change
@@ -166,14 +167,11 @@ class ConfigTracker:
         # Create snapshot
         snapshot = ConfigSnapshot(
             snapshot_id=snapshot_id,
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             description=description,
             environment=environment,
             files=files_dict,
-            metadata={
-                "total_files": len(files_dict),
-                "config_dir": str(self.config_dir)
-            }
+            metadata={"total_files": len(files_dict), "config_dir": str(self.config_dir)},
         )
 
         # Save snapshot
@@ -231,7 +229,7 @@ class ConfigTracker:
                 target_change.file_path,
                 "rollback",
                 f"Rollback to change {change_id}",
-                environment=target_change.environment
+                environment=target_change.environment,
             )
 
             logger.info(f"Successfully rolled back to change: {change_id}")
@@ -286,7 +284,7 @@ class ConfigTracker:
                     file_path,
                     "rollback",
                     f"Rollback to snapshot {snapshot_id}",
-                    environment=target_snapshot.environment
+                    environment=target_snapshot.environment,
                 )
 
             logger.info(f"Successfully rolled back to snapshot: {snapshot_id}")
@@ -346,12 +344,7 @@ class ConfigTracker:
         # Compare files
         all_files = set(snapshot1.files.keys()) | set(snapshot2.files.keys())
 
-        differences = {
-            "added": [],
-            "removed": [],
-            "modified": [],
-            "unchanged": []
-        }
+        differences = {"added": [], "removed": [], "modified": [], "unchanged": []}
 
         for file_path in all_files:
             hash1 = snapshot1.files.get(file_path)
@@ -375,13 +368,13 @@ class ConfigTracker:
                 "added": len(differences["added"]),
                 "removed": len(differences["removed"]),
                 "modified": len(differences["modified"]),
-                "unchanged": len(differences["unchanged"])
-            }
+                "unchanged": len(differences["unchanged"]),
+            },
         }
 
     def cleanup_old_backups(self, days: int = 30) -> int:
         """Clean up old backups and snapshots"""
-        cutoff_time = datetime.now(timezone.utc).timestamp() - (days * 24 * 60 * 60)
+        cutoff_time = datetime.now(UTC).timestamp() - (days * 24 * 60 * 60)
         cleaned_count = 0
 
         # Clean up old change backups
@@ -407,10 +400,10 @@ class ConfigTracker:
         """Export all tracking data to a file"""
         try:
             export_data = {
-                "export_timestamp": datetime.now(timezone.utc).isoformat(),
+                "export_timestamp": datetime.now(UTC).isoformat(),
                 "config_dir": str(self.config_dir),
                 "changes": self._load_changes(),
-                "snapshots": self._load_snapshots()
+                "snapshots": self._load_snapshots(),
             }
 
             with open(output_file, "w") as f:
@@ -434,7 +427,7 @@ class ConfigTracker:
                 raise ValueError("Invalid import data format")
 
             # Backup current tracking data
-            backup_file = self.tracking_dir / f"backup_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.json"
+            backup_file = self.tracking_dir / f"backup_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.json"
             self.export_tracking_data(str(backup_file))
 
             # Import changes and snapshots
@@ -473,13 +466,13 @@ class ConfigTracker:
 
     def _generate_change_id(self) -> str:
         """Generate unique change ID"""
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         random_suffix = hashlib.md5(os.urandom(16)).hexdigest()[:8]
         return f"change_{timestamp}_{random_suffix}"
 
     def _generate_snapshot_id(self) -> str:
         """Generate unique snapshot ID"""
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         random_suffix = hashlib.md5(os.urandom(16)).hexdigest()[:8]
         return f"snapshot_{timestamp}_{random_suffix}"
 
@@ -496,10 +489,7 @@ class ConfigTracker:
         config_files = []
 
         # Common configuration file patterns
-        patterns = [
-            "*.yaml", "*.yml", "*.json", "*.toml", "*.ini", "*.conf",
-            ".env*", "*.config"
-        ]
+        patterns = ["*.yaml", "*.yml", "*.json", "*.toml", "*.ini", "*.conf", ".env*", "*.config"]
 
         for pattern in patterns:
             config_files.extend(self.config_dir.glob(pattern))
@@ -633,13 +623,7 @@ def main():
 
     # Execute command
     if args.command == "track":
-        tracker.track_change(
-            args.file_path,
-            args.change_type,
-            args.description,
-            args.user,
-            args.environment
-        )
+        tracker.track_change(args.file_path, args.change_type, args.description, args.user, args.environment)
 
     elif args.command == "snapshot":
         tracker.create_snapshot(args.description, args.environment)

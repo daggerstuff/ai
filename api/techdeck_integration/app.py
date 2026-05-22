@@ -4,8 +4,9 @@ Main Flask application factory for TechDeck-Python Pipeline Integration Service.
 This module implements the Flask application factory pattern with comprehensive
 configuration management, middleware registration, and blueprint initialization.
 """
+
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from flask import Flask, g, request
 from flask_cors import CORS
@@ -79,11 +80,7 @@ def create_app(config: TechDeckServiceConfig | None = None) -> Flask:
 
 def _validate_configuration(config: TechDeckServiceConfig) -> None:
     """Validate required configuration parameters."""
-    required_vars = [
-        "SECRET_KEY",
-        "REDIS_URL",
-        "MONGODB_URI"
-    ]
+    required_vars = ["SECRET_KEY", "REDIS_URL", "MONGODB_URI"]
 
     missing_vars = []
     for var in required_vars:
@@ -133,10 +130,7 @@ def _register_blueprints(app: Flask) -> None:
 
     # Import and register blueprints
 
-    blueprints = [
-        (datasets_bp, "/api/v1/datasets"),
-        (pipeline_bp, "/api/v1/pipeline")
-    ]
+    blueprints = [(datasets_bp, "/api/v1/datasets"), (pipeline_bp, "/api/v1/pipeline")]
 
     for blueprint, url_prefix in blueprints:
         app.register_blueprint(blueprint, url_prefix=url_prefix)
@@ -155,9 +149,9 @@ def _register_error_handlers(app: Flask, config: TechDeckServiceConfig) -> None:
             "error": {
                 "code": "NOT_FOUND",
                 "message": "The requested resource was not found",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "path": request.path
-            }
+                "timestamp": datetime.now(UTC).isoformat(),
+                "path": request.path,
+            },
         }, 404
 
     @app.errorhandler(405)
@@ -168,9 +162,9 @@ def _register_error_handlers(app: Flask, config: TechDeckServiceConfig) -> None:
             "error": {
                 "code": "METHOD_NOT_ALLOWED",
                 "message": f"Method {request.method} is not allowed for this endpoint",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "allowed_methods": getattr(error, "valid_methods", [])
-            }
+                "timestamp": datetime.now(UTC).isoformat(),
+                "allowed_methods": getattr(error, "valid_methods", []),
+            },
         }, 405
 
     @app.errorhandler(413)
@@ -181,15 +175,15 @@ def _register_error_handlers(app: Flask, config: TechDeckServiceConfig) -> None:
             "error": {
                 "code": "REQUEST_ENTITY_TOO_LARGE",
                 "message": "The request payload is too large",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "max_size_mb": config.MAX_FILE_SIZE_MB
-            }
+                "timestamp": datetime.now(UTC).isoformat(),
+                "max_size_mb": config.MAX_FILE_SIZE_MB,
+            },
         }, 413
 
     @app.errorhandler(500)
     def internal_server_error(error):
         """Handle 500 Internal Server Error."""
-        error_id = str(datetime.now(timezone.utc).timestamp())
+        error_id = str(datetime.now(UTC).timestamp())
         logger.error(f"Internal server error {error_id}: {error}")
 
         return {
@@ -197,10 +191,10 @@ def _register_error_handlers(app: Flask, config: TechDeckServiceConfig) -> None:
             "error": {
                 "code": "INTERNAL_ERROR",
                 "message": "An internal server error occurred",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "error_id": error_id,
-                "support_reference": error_id[:8]
-            }
+                "support_reference": error_id[:8],
+            },
         }, 500
 
     logger.debug("Error handlers registered")
@@ -230,8 +224,8 @@ def _register_hooks(app: Flask) -> None:
     @app.before_request
     def before_request():
         """Execute before each request."""
-        g.start_time = datetime.now(timezone.utc)
-        g.request_id = request.headers.get("X-Request-ID", str(datetime.now(timezone.utc).timestamp()))
+        g.start_time = datetime.now(UTC)
+        g.request_id = request.headers.get("X-Request-ID", str(datetime.now(UTC).timestamp()))
 
         # Log request details
         logger.info(f"Request {g.request_id}: {request.method} {request.path}")
@@ -240,7 +234,7 @@ def _register_hooks(app: Flask) -> None:
     def after_request(response):
         """Execute after each request."""
         if hasattr(g, "start_time"):
-            duration = (datetime.now(timezone.utc) - g.start_time).total_seconds()
+            duration = (datetime.now(UTC) - g.start_time).total_seconds()
             response.headers["X-Response-Time"] = f"{duration:.3f}s"
             response.headers["X-Request-ID"] = g.request_id
 
@@ -275,5 +269,5 @@ if __name__ == "__main__":
         port=config.PORT,
         debug=config.DEBUG,
         threaded=True,
-        use_reloader=False  # Disable reloader for production stability
+        use_reloader=False,  # Disable reloader for production stability
     )

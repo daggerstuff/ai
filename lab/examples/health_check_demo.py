@@ -2,10 +2,11 @@
 Startup script demonstrating the health check and graceful shutdown system.
 This script shows how to integrate the health check system with a service.
 """
+
 import asyncio
 import logging
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import uvicorn
 
@@ -21,9 +22,7 @@ from .monitoring.health_check import (
 )
 
 # Set up logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -47,7 +46,7 @@ class MockDatabase:
         return {
             "connected": self.connected,
             "query_count": self.query_count,
-            "last_query": datetime.now(timezone.utc).isoformat(),
+            "last_query": datetime.now(UTC).isoformat(),
         }
 
     def execute_query(self):
@@ -102,28 +101,28 @@ def database_health_check():
             return ComponentHealth(
                 name="database",
                 status=ComponentStatus.OPERATIONAL,
-                last_checked=datetime.now(timezone.utc).isoformat(),
+                last_checked=datetime.now(UTC).isoformat(),
                 health_score=1.0,
                 details=mock_db.get_stats(),
             )
         return ComponentHealth(
             name="database",
             status=ComponentStatus.FAILED,
-            last_checked=datetime.now(timezone.utc).isoformat(),
+            last_checked=datetime.now(UTC).isoformat(),
             health_score=0.0,
             last_error="Database connection failed",
             error_count=1,
-            error_timestamps=[datetime.now(timezone.utc).isoformat()],
+            error_timestamps=[datetime.now(UTC).isoformat()],
         )
     except Exception as e:
         return ComponentHealth(
             name="database",
             status=ComponentStatus.FAILED,
-            last_checked=datetime.now(timezone.utc).isoformat(),
+            last_checked=datetime.now(UTC).isoformat(),
             health_score=0.0,
             last_error=str(e),
             error_count=1,
-            error_timestamps=[datetime.now(timezone.utc).isoformat()],
+            error_timestamps=[datetime.now(UTC).isoformat()],
         )
 
 
@@ -148,28 +147,28 @@ def cache_health_check():
             return ComponentHealth(
                 name="cache",
                 status=status,
-                last_checked=datetime.now(timezone.utc).isoformat(),
+                last_checked=datetime.now(UTC).isoformat(),
                 health_score=health_score,
                 details=cache_stats,
             )
         return ComponentHealth(
             name="cache",
             status=ComponentStatus.FAILED,
-            last_checked=datetime.now(timezone.utc).isoformat(),
+            last_checked=datetime.now(UTC).isoformat(),
             health_score=0.0,
             last_error="Cache connection failed",
             error_count=1,
-            error_timestamps=[datetime.now(timezone.utc).isoformat()],
+            error_timestamps=[datetime.now(UTC).isoformat()],
         )
     except Exception as e:
         return ComponentHealth(
             name="cache",
             status=ComponentStatus.FAILED,
-            last_checked=datetime.now(timezone.utc).isoformat(),
+            last_checked=datetime.now(UTC).isoformat(),
             health_score=0.0,
             last_error=str(e),
             error_count=1,
-            error_timestamps=[datetime.now(timezone.utc).isoformat()],
+            error_timestamps=[datetime.now(UTC).isoformat()],
         )
 
 
@@ -184,7 +183,7 @@ async def root():
     """Root endpoint"""
     return {
         "message": "Health Check Demo Service",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
     }
 
 
@@ -201,11 +200,11 @@ async def get_data():
         return {
             "data": result,
             "cached_value": cached_value,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
     except Exception as e:
         logger.error(f"Data endpoint error: {e}")
-        return {"error": str(e), "timestamp": datetime.now(timezone.utc).isoformat()}, 500
+        return {"error": str(e), "timestamp": datetime.now(UTC).isoformat()}, 500
 
 
 # Integrate health checks with FastAPI
@@ -235,9 +234,7 @@ async def shutdown_event():
     shutdown_result = health_manager.initiate_graceful_shutdown()
 
     if shutdown_result.success:
-        logger.info(
-            f"Graceful shutdown completed in {shutdown_result.duration_seconds:.2f} seconds"
-        )
+        logger.info(f"Graceful shutdown completed in {shutdown_result.duration_seconds:.2f} seconds")
     else:
         logger.error(f"Graceful shutdown failed: {shutdown_result.error_messages}")
 
@@ -300,7 +297,6 @@ def test_health_check():
     # Perform a health check
     health_result = health_manager.perform_health_check()
 
-
     for _component_name, component_health in health_result.components.items():
         if component_health.details:
             pass
@@ -317,7 +313,6 @@ def test_health_check():
         pass
 
 
-
 # Test graceful shutdown
 def test_graceful_shutdown():
     """Test graceful shutdown"""
@@ -330,8 +325,6 @@ def test_graceful_shutdown():
 
     # Initiate graceful shutdown
     health_manager.initiate_graceful_shutdown()
-
-
 
 
 if __name__ == "__main__":

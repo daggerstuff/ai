@@ -69,9 +69,7 @@ class LazyResourceProxy:
     def _ensure_loaded(self):
         """Ensure the resource is loaded."""
         if not self._accessed:
-            self._loaded_resource = _load_resource(
-                self.resource_type, self.resource_name
-            )
+            self._loaded_resource = _load_resource(self.resource_type, self.resource_name)
             self._accessed = True
         return self._loaded_resource
 
@@ -136,7 +134,6 @@ def demonstrate_true_lazy_usage():
     Resources are available as variables but only load when accessed.
     """
 
-
     # Reset cache for clean demo
     _resource_cache.set({})
 
@@ -167,7 +164,6 @@ def demonstrate_true_lazy_usage():
     crisis_agent_second_access()
 
     emotion_agent_access()
-
 
 
 # Example of how this integrates with agent classes
@@ -210,7 +206,6 @@ def demo_zero_setup_agents():
     crisis_agent.process("Patient shows signs of crisis")
 
     emotion_agent.process("Patient discusses emotions")
-
 
 
 if __name__ == "__main__":

@@ -22,23 +22,23 @@ Downstream Integration
 
 from __future__ import annotations
 
-import json
 import hashlib
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
+import json
+from dataclasses import dataclass
+from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
 from .training_readiness_gates import (
     ReadinessResult,
-    ReadinessStatus,
     TrainingReadinessGates,
 )
 
 
 class PackageStatus(StrEnum):
     """Package lifecycle status."""
+
     CREATED = "created"  # Package bundle created
     VALIDATED = "validated"  # Readiness gates applied
     READY = "ready"  # Can be promoted (all gates passed)
@@ -53,6 +53,7 @@ class DatasetManifest:
     This is the canonical metadata format that makes readiness
     operationally visible rather than implied.
     """
+
     name: str
     stage: str
     created_at: str
@@ -88,7 +89,7 @@ class DatasetManifest:
         cls,
         readiness_result: ReadinessResult,
         stage_thresholds: dict[str, float],
-    ) -> "DatasetManifest":
+    ) -> DatasetManifest:
         """Create manifest from PIX-506 validation result.
 
         Args:
@@ -131,6 +132,7 @@ class DatasetManifest:
 @dataclass
 class PackageBundle:
     """Complete package bundle ready for export."""
+
     manifest: DatasetManifest
     data_path: Path
     metrics_path: Path
@@ -202,6 +204,7 @@ class DatasetPackager:
 
         # Get stage thresholds (from PIX-249)
         from .training_readiness_gates import STAGE_QUALITY_THRESHOLDS
+
         stage_thresholds = STAGE_QUALITY_THRESHOLDS.get(
             stage_id,
             STAGE_QUALITY_THRESHOLDS["supplementary"],
@@ -248,7 +251,7 @@ class DatasetPackager:
             promotion_token_path = stage_dir / "promotion_token.json"
             token = {
                 "package_id": package_id,
-                "promoted_at": datetime.now(timezone.utc).isoformat(),
+                "promoted_at": datetime.now(UTC).isoformat(),
                 "status": "READY_FOR_PROMOTION",
                 "validation_hash": data_hash,
             }
@@ -265,7 +268,7 @@ class DatasetPackager:
 
     def _generate_package_id(self, stage_id: str, records: list[dict]) -> str:
         """Generate unique package ID."""
-        timestamp = datetime.now(timezone.utc).isoformat()
+        timestamp = datetime.now(UTC).isoformat()
         content = f"{stage_id}-{timestamp}-{len(records)}"
         return f"pkg-{hashlib.sha256(content.encode()).hexdigest()[:12]}"
 

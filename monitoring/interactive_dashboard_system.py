@@ -14,7 +14,7 @@ Features:
 import json
 import os
 import sqlite3
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pandas as pd
 from flask import Flask, jsonify, render_template
@@ -486,9 +486,9 @@ class InteractiveDashboardSystem:
             conn = sqlite3.connect(self.db_path)
 
             # Get conversation metrics
-            total_conversations = pd.read_sql_query(
-                "SELECT COUNT(*) as count FROM conversations", conn
-            ).iloc[0]["count"]
+            total_conversations = pd.read_sql_query("SELECT COUNT(*) as count FROM conversations", conn).iloc[0][
+                "count"
+            ]
 
             # Get quality metrics (mock data for now)
             metrics = {
@@ -501,13 +501,8 @@ class InteractiveDashboardSystem:
             }
 
             # Generate trend data (last 30 days)
-            trend_labels = [
-                (datetime.now(timezone.utc) - timedelta(days=i)).strftime("%m/%d")
-                for i in range(29, -1, -1)
-            ]
-            trend_data = [
-                50 + i * 2 + (i % 7) * 10 for i in range(30)
-            ]  # Mock trending data
+            trend_labels = [(datetime.now(UTC) - timedelta(days=i)).strftime("%m/%d") for i in range(29, -1, -1)]
+            trend_data = [50 + i * 2 + (i % 7) * 10 for i in range(30)]  # Mock trending data
 
             quality_distribution = [45, 35, 15, 5]  # Excellent, Good, Fair, Poor
             performance_current = [
@@ -549,7 +544,7 @@ class InteractiveDashboardSystem:
                 "performance_current": json.dumps(performance_current),
                 "performance_target": json.dumps(performance_target),
                 "top_issues": top_issues,
-                "current_time": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
+                "current_time": datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S"),
             }
 
         except Exception:
@@ -563,15 +558,13 @@ class InteractiveDashboardSystem:
                     "system_uptime": 99.7,
                     "active_users": 142,
                 },
-                "trend_labels": json.dumps(
-                    ["01/01", "01/02", "01/03", "01/04", "01/05"]
-                ),
+                "trend_labels": json.dumps(["01/01", "01/02", "01/03", "01/04", "01/05"]),
                 "trend_data": json.dumps([100, 120, 110, 140, 135]),
                 "quality_distribution": json.dumps([45, 35, 15, 5]),
                 "performance_current": json.dumps([250, 1200, 0.5, 65]),
                 "performance_target": json.dumps([200, 1500, 0.1, 70]),
                 "top_issues": [],
-                "current_time": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
+                "current_time": datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S"),
             }
 
     def setup_flask_routes(self):
@@ -602,7 +595,6 @@ class InteractiveDashboardSystem:
     def deploy_interactive_dashboards(self):
         """Deploy the complete interactive dashboard system"""
 
-
         # Create templates and static files
         self.create_base_template()
         self.create_executive_dashboard()
@@ -629,15 +621,10 @@ if __name__ == '__main__':
     dashboard.app.run(host='0.0.0.0', port=5000, debug=False)
 """
 
-        with open(
-            f"{self.base_dir}/monitoring/launch_interactive_dashboards.py", "w"
-        ) as f:
+        with open(f"{self.base_dir}/monitoring/launch_interactive_dashboards.py", "w") as f:
             f.write(launch_script)
 
         os.chmod(f"{self.base_dir}/monitoring/launch_interactive_dashboards.py", 0o755)
-
-
-
 
         return {
             "status": "success",
@@ -658,10 +645,9 @@ def main():
     result = dashboard_system.deploy_interactive_dashboards()
 
     # Save deployment results
-    deployment_file = f"{dashboard_system.base_dir}/monitoring/interactive_dashboard_deployment_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.json"
+    deployment_file = f"{dashboard_system.base_dir}/monitoring/interactive_dashboard_deployment_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.json"
     with open(deployment_file, "w") as f:
         json.dump(result, f, indent=2)
-
 
 
 if __name__ == "__main__":

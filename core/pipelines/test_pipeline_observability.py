@@ -1,31 +1,19 @@
 """Tests for pipeline observability module (PIX-507)."""
 
-import time
 import unittest
-from datetime import datetime, timezone
 
 from ai.core.pipelines.pipeline_observability import (
-    PipelineMetricsCollector,
-    PipelineHealthSummary,
-    HealthStatus,
     FailureSeverity,
-    StageMetric,
-    ReadinessMetric,
-    FailureRecord,
-    ThroughputMetrics,
-    ReadinessMetrics,
-    FailureMetrics,
+    HealthStatus,
+    PipelineHealthSummary,
+    PipelineMetricsCollector,
     get_health_summary,
     get_prometheus_metrics,
-    record_stage_execution,
     record_failure,
+    record_stage_execution,
 )
 from ai.core.pipelines.training_readiness_gates import (
     TrainingReadinessGates,
-    ReadinessResult,
-    ReadinessGate,
-    GateResult,
-    ReadinessStatus,
 )
 
 

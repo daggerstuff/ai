@@ -13,6 +13,7 @@ Migration from Claude Agent SDK:
 - unstable_v2_resumeSession(session_id) → resumeSession(agentId)
 - session.send/stream() remain similar but agent-anchored
 """
+
 import contextlib
 import json
 import logging
@@ -20,7 +21,7 @@ import os
 import stat
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path
 from typing import Any
@@ -48,6 +49,7 @@ RETRY_BACKOFF = 2.0
 
 class PermissionMode(StrEnum):
     """Tool permission modes for Letta agents."""
+
     READONLY = "read-only"
     THERAPEUTIC = "therapeutic"
     FULL = "full"
@@ -56,6 +58,7 @@ class PermissionMode(StrEnum):
 
 class ModelProvider(StrEnum):
     """Supported model providers."""
+
     CLAUDE = "claude"
     GPT = "gpt"
     GEMINI = "gemini"
@@ -65,6 +68,7 @@ class ModelProvider(StrEnum):
 @dataclass
 class ToolPermission:
     """Tool permission configuration."""
+
     can_use: bool
     requires_consent: bool = False
     allowed_for_crisis: bool = False
@@ -74,6 +78,7 @@ class ToolPermission:
 @dataclass
 class LettaCodeConfig:
     """Configuration for Letta Code SDK integration."""
+
     api_key: str | None = None
     base_url: str = DEFAULT_BASE_URL
     agent_id: str | None = None
@@ -174,9 +179,7 @@ class LettaCodeClient:
         api_key = os.environ.get("LETTA_API_KEY")
         base_url = os.environ.get("LETTA_BASE_URL", DEFAULT_BASE_URL)
         agent_id = os.environ.get("LETTA_AGENT_ID")
-        permission_mode = PermissionMode(
-            os.environ.get("LETTA_PERMISSION_MODE", "therapeutic")
-        )
+        permission_mode = PermissionMode(os.environ.get("LETTA_PERMISSION_MODE", "therapeutic"))
 
         # Load from config file if exists
         if not api_key and CONFIG_FILE.exists():
@@ -229,11 +232,10 @@ class LettaCodeClient:
         """Initialize PII filter and crisis detector middleware."""
         # Import Foresight components for middleware
         try:
-
             if self.config.pii_filter_enabled:
                 self._pii_filter = LettaPIIMiddleware(
                     None,  # Will be set by bridge
-                    {"max_redaction_ratio": 0.5}
+                    {"max_redaction_ratio": 0.5},
                 )
 
             if self.config.crisis_detection_enabled:
@@ -408,10 +410,7 @@ class LettaCodeClient:
 
         # Filter through PII middleware
         if self._pii_filter:
-            filter_result = await self._pii_filter.filter_tool_call(
-                "update_memory_block",
-                {"content": content}
-            )
+            filter_result = await self._pii_filter.filter_tool_call("update_memory_block", {"content": content})
             if filter_result.should_block:
                 logger.warning(f"Memory block update blocked due to PII: {label}")
                 return
@@ -460,9 +459,7 @@ class LettaCodeClient:
 
         # Check crisis state if detector is available
         if self._crisis_detector and context:
-            crisis_result = await self._crisis_detector.check_message(
-                context.get("message", "")
-            )
+            crisis_result = await self._crisis_detector.check_message(context.get("message", ""))
 
             # Block tools not allowed during crisis
             if crisis_result and not permission.allowed_for_crisis:
@@ -484,7 +481,7 @@ class LettaCodeClient:
                 config_data = json.loads(CONFIG_FILE.read_text())
 
         config_data["agent_id"] = agent_id
-        config_data["last_updated"] = datetime.now(timezone.utc).isoformat()
+        config_data["last_updated"] = datetime.now(UTC).isoformat()
 
         CONFIG_FILE.write_text(json.dumps(config_data, indent=2))
         os.chmod(CONFIG_FILE, stat.S_IRUSR | stat.S_IWUSR)  # 0o600
@@ -548,10 +545,7 @@ class LettaSession:
         # PII filtering
         filtered_message = message
         if self._pii_filter:
-            filter_result = await self._pii_filter.filter_tool_call(
-                "send_message",
-                {"content": message}
-            )
+            filter_result = await self._pii_filter.filter_tool_call("send_message", {"content": message})
 
             if filter_result.should_block:
                 logger.warning("Message blocked due to PII content")
@@ -600,10 +594,7 @@ class LettaSession:
         # PII filtering
         filtered_message = message
         if self._pii_filter:
-            filter_result = await self._pii_filter.filter_tool_call(
-                "stream_message",
-                {"content": message}
-            )
+            filter_result = await self._pii_filter.filter_tool_call("stream_message", {"content": message})
 
             if filter_result.should_block:
                 callback("Message blocked due to PII content")

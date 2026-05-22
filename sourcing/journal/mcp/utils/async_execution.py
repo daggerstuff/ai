@@ -4,13 +4,14 @@ Async tool execution handler for MCP Server.
 This module provides async tool execution with operation status tracking,
 cancellation support, and timeout handling.
 """
+
 import asyncio
 import contextlib
 import inspect
 import logging
 import uuid
 from collections.abc import Callable
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from ai.sourcing.journal.mcp.protocol import MCPError, MCPErrorCode
@@ -25,7 +26,6 @@ logger = logging.getLogger(__name__)
 
 class OperationCancelledError(Exception):
     """Raised when an operation is cancelled."""
-
 
 
 class AsyncToolExecutor:
@@ -102,15 +102,13 @@ class AsyncToolExecutor:
                 "tool_name": tool_name,
                 "session_id": session_id,
                 "params": params,
-                "started_at": datetime.now(timezone.utc),
+                "started_at": datetime.now(UTC),
                 "status": ProgressStatus.PENDING,
             }
 
         # Subscribe to progress updates if callback provided
         if progress_callback:
-            await self.progress_streamer.subscribe(
-                operation_id, progress_callback, session_id=session_id
-            )
+            await self.progress_streamer.subscribe(operation_id, progress_callback, session_id=session_id)
 
         try:
             # Send initial progress update
@@ -204,9 +202,7 @@ class AsyncToolExecutor:
                 self._active_operations.pop(operation_id, None)
                 self._cancellation_flags.pop(operation_id, None)
                 if progress_callback:
-                    await self.progress_streamer.unsubscribe(
-                        operation_id, progress_callback, session_id=session_id
-                    )
+                    await self.progress_streamer.unsubscribe(operation_id, progress_callback, session_id=session_id)
 
     async def _execute_with_progress(
         self,
@@ -303,7 +299,7 @@ class AsyncToolExecutor:
             status=status,
             progress_percent=progress_percent,
             message=message,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             metadata=metadata or {},
         )
 
@@ -313,7 +309,7 @@ class AsyncToolExecutor:
         async with self._lock:
             if operation_id in self._operation_metadata:
                 self._operation_metadata[operation_id]["status"] = status
-                self._operation_metadata[operation_id]["last_update"] = datetime.now(timezone.utc)
+                self._operation_metadata[operation_id]["last_update"] = datetime.now(UTC)
 
     async def cancel_operation(self, operation_id: str) -> bool:
         """
@@ -383,11 +379,7 @@ class AsyncToolExecutor:
             List of active operation IDs
         """
         async with self._lock:
-            return [
-                op_id
-                for op_id, task in self._active_operations.items()
-                if not task.done()
-            ]
+            return [op_id for op_id, task in self._active_operations.items() if not task.done()]
 
     def generate_operation_id(self, prefix: str = "op") -> str:
         """
@@ -400,4 +392,3 @@ class AsyncToolExecutor:
             Unique operation ID
         """
         return f"{prefix}_{uuid.uuid4().hex[:8]}"
-

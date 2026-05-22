@@ -34,6 +34,7 @@ def parse_context_payload(context: str | None) -> dict[str, Any]:
         return {}
     return parsed if isinstance(parsed, dict) else {}
 
+
 def serialize_context(
     *,
     user_id: str | None,

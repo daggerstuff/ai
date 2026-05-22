@@ -8,7 +8,7 @@ import json
 import sqlite3
 import warnings
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -82,9 +82,7 @@ class QualityDistributionAnalyzer:
 
                 for category in self.analysis_categories:
                     if category in df.columns:
-                        analysis = self._analyze_distribution_by_category(
-                            df, f"{metric}_value", category
-                        )
+                        analysis = self._analyze_distribution_by_category(df, f"{metric}_value", category)
                         if analysis:
                             results[metric][category] = analysis
 
@@ -139,10 +137,7 @@ class QualityDistributionAnalyzer:
 
             if metric == "processing_efficiency":
                 # Simple efficiency score based on processing status
-                return [
-                    1.0 if status == "processed" else 0.0
-                    for status in df["processing_status"].fillna("unknown")
-                ]
+                return [1.0 if status == "processed" else 0.0 for status in df["processing_status"].fillna("unknown")]
 
             return [0.0] * len(df)
 
@@ -196,9 +191,7 @@ class QualityDistributionAnalyzer:
         except Exception:
             return {}
 
-    def _calculate_distribution_statistics(
-        self, values: list[float]
-    ) -> dict[str, float]:
+    def _calculate_distribution_statistics(self, values: list[float]) -> dict[str, float]:
         """Calculate comprehensive distribution statistics"""
         try:
             values_array = np.array(values, dtype=float)
@@ -214,9 +207,7 @@ class QualityDistributionAnalyzer:
                 "range": float(np.max(values_array) - np.min(values_array)),
                 "skewness": float(stats.skew(values_array)),
                 "kurtosis": float(stats.kurtosis(values_array)),
-                "coefficient_of_variation": float(
-                    np.std(values_array) / np.mean(values_array)
-                )
+                "coefficient_of_variation": float(np.std(values_array) / np.mean(values_array))
                 if np.mean(values_array) != 0
                 else 0.0,
             }
@@ -270,9 +261,7 @@ class QualityDistributionAnalyzer:
             lower_bound = q1 - 1.5 * iqr
             upper_bound = q3 + 1.5 * iqr
 
-            outliers = values_array[
-                (values_array < lower_bound) | (values_array > upper_bound)
-            ]
+            outliers = values_array[(values_array < lower_bound) | (values_array > upper_bound)]
 
             return outliers.tolist()
 
@@ -322,9 +311,7 @@ class QualityDistributionAnalyzer:
                 n_cols = min(3, n_categories)
                 n_rows = (n_categories + n_cols - 1) // n_cols
 
-                fig, axes = plt.subplots(
-                    n_rows, n_cols, figsize=(5 * n_cols, 4 * n_rows)
-                )
+                fig, axes = plt.subplots(n_rows, n_cols, figsize=(5 * n_cols, 4 * n_rows))
                 if n_rows == 1 and n_cols == 1:
                     axes = [axes]
                 elif n_rows == 1:
@@ -371,9 +358,7 @@ class QualityDistributionAnalyzer:
                         label=f"Median: {median_val:.2f}",
                     )
 
-                    ax.set_title(
-                        f"{category} ({analysis.distribution_type})", fontsize=12
-                    )
+                    ax.set_title(f"{category} ({analysis.distribution_type})", fontsize=12)
                     ax.set_xlabel("Value")
                     ax.set_ylabel("Density")
                     ax.legend(fontsize=8)
@@ -421,20 +406,16 @@ Outliers: {len(analysis.outliers)}"""
         """Export comprehensive distribution analysis report"""
 
         try:
-            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-            report_file = (
-                self.output_dir / f"quality_distribution_report_{timestamp}.json"
-            )
+            timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
+            report_file = self.output_dir / f"quality_distribution_report_{timestamp}.json"
 
             # Prepare export data
             export_data = {
                 "report_metadata": {
-                    "generated_at": datetime.now(timezone.utc).isoformat(),
+                    "generated_at": datetime.now(UTC).isoformat(),
                     "analyzer_version": "1.0.0",
                     "total_metrics": len(distributions),
-                    "total_categories": sum(
-                        len(cats) for cats in distributions.values()
-                    ),
+                    "total_categories": sum(len(cats) for cats in distributions.values()),
                 },
                 "distribution_analysis": {
                     metric: {

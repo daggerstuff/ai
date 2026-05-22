@@ -23,11 +23,7 @@ class TestComprehensiveValidation(unittest.TestCase):
 
     def test_validation_evidence_files(self):
         """Test that validation evidence files exist"""
-        evidence_patterns = [
-            "*validation*results.json",
-            "*safety*validation*.json",
-            "*security*validation*.json"
-        ]
+        evidence_patterns = ["*validation*results.json", "*safety*validation*.json", "*security*validation*.json"]
 
         total_evidence = 0
         for pattern in evidence_patterns:
@@ -41,7 +37,7 @@ class TestComprehensiveValidation(unittest.TestCase):
         required_dirs = [
             "/home/vivi/pixelated/ai/tests",
             "/home/vivi/pixelated/ai/docs",
-            "/home/vivi/pixelated/ai/monitoring"
+            "/home/vivi/pixelated/ai/monitoring",
         ]
 
         for dir_path in required_dirs:
@@ -55,6 +51,7 @@ class TestComprehensiveValidation(unittest.TestCase):
             Path(f"/home/vivi/pixelated/ai/task_{task_num}_*_validation_results.json")
             matching_files = list(Path("/home/vivi/pixelated/ai").glob(f"task_{task_num}_*_validation_results.json"))
             assert len(matching_files) > 0, f"No validation results for task {task_num}"
+
 
 if __name__ == "__main__":
     unittest.main()

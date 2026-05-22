@@ -11,7 +11,7 @@ import logging
 import sqlite3
 import warnings
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import pandas as pd
@@ -49,9 +49,7 @@ class QualityAnalyticsDashboard:
     metrics across all datasets with trend analysis and performance insights.
     """
 
-    def __init__(
-        self, db_path: str = "/home/vivi/pixelated/ai/database/conversations.db"
-    ):
+    def __init__(self, db_path: str = "/home/vivi/pixelated/ai/database/conversations.db"):
         """Initialize the quality analytics dashboard."""
         self.db_path = db_path
         self.cache_duration = 300  # 5 minutes cache
@@ -78,7 +76,7 @@ class QualityAnalyticsDashboard:
 
     def load_quality_data(self, force_refresh: bool = False) -> pd.DataFrame:
         """Load quality data from database with caching."""
-        current_time = datetime.now(timezone.utc)
+        current_time = datetime.now(UTC)
 
         # Check cache validity
         if (
@@ -162,18 +160,13 @@ class QualityAnalyticsDashboard:
         tier_performance = df.groupby("tier")["overall_quality"].mean().to_dict()
 
         # Trend data (last 30 days)
-        thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
+        thirty_days_ago = datetime.now(UTC) - timedelta(days=30)
         recent_df = df[df["created_at"] >= thirty_days_ago]
 
         trend_data = []
         if not recent_df.empty:
-            daily_quality = recent_df.groupby(recent_df["created_at"].dt.date)[
-                "overall_quality"
-            ].mean()
-            trend_data = [
-                {"date": str(date), "quality": float(quality)}
-                for date, quality in daily_quality.items()
-            ]
+            daily_quality = recent_df.groupby(recent_df["created_at"].dt.date)["overall_quality"].mean()
+            trend_data = [{"date": str(date), "quality": float(quality)} for date, quality in daily_quality.items()]
 
         # Anomaly detection (conversations with quality significantly below average)
         quality_std = df["overall_quality"].std()
@@ -193,9 +186,7 @@ class QualityAnalyticsDashboard:
             )
 
         # Generate recommendations
-        recommendations = self._generate_recommendations(
-            df, average_quality, tier_performance
-        )
+        recommendations = self._generate_recommendations(df, average_quality, tier_performance)
 
         return QualityAnalytics(
             total_conversations=total_conversations,
@@ -219,13 +210,9 @@ class QualityAnalyticsDashboard:
                 "🚨 Overall quality is below acceptable threshold (0.6). Immediate attention required."
             )
         elif avg_quality < 0.7:
-            recommendations.append(
-                "⚠️ Overall quality could be improved. Consider quality enhancement measures."
-            )
+            recommendations.append("⚠️ Overall quality could be improved. Consider quality enhancement measures.")
         else:
-            recommendations.append(
-                "✅ Overall quality is good. Continue monitoring for consistency."
-            )
+            recommendations.append("✅ Overall quality is good. Continue monitoring for consistency.")
 
         # Tier-specific recommendations
         for tier, quality in tier_performance.items():
@@ -234,9 +221,7 @@ class QualityAnalyticsDashboard:
                     f"🔴 Tier {tier} quality ({quality:.3f}) is critically low. Review data sources."
                 )
             elif quality < 0.6:
-                recommendations.append(
-                    f"🟡 Tier {tier} quality ({quality:.3f}) needs improvement."
-                )
+                recommendations.append(f"🟡 Tier {tier} quality ({quality:.3f}) needs improvement.")
 
         # Component-specific analysis
         component_scores = {
@@ -354,9 +339,7 @@ class QualityAnalyticsDashboard:
             col=2,
         )
 
-        fig.update_layout(
-            height=800, title_text="Quality Analytics Overview", showlegend=False
-        )
+        fig.update_layout(height=800, title_text="Quality Analytics Overview", showlegend=False)
 
         return fig
 
@@ -455,8 +438,8 @@ class QualityAnalyticsDashboard:
         # Date range filter
         date_range = st.sidebar.date_input(
             "Date Range",
-            value=(datetime.now(timezone.utc) - timedelta(days=30), datetime.now(timezone.utc)),
-            max_value=datetime.now(timezone.utc),
+            value=(datetime.now(UTC) - timedelta(days=30), datetime.now(UTC)),
+            max_value=datetime.now(UTC),
         )
 
         # Tier filter
@@ -468,23 +451,17 @@ class QualityAnalyticsDashboard:
             "professional",
             "research",
         ]
-        selected_tiers = st.sidebar.multiselect(
-            "Select Tiers", available_tiers, default=["All"]
-        )
+        selected_tiers = st.sidebar.multiselect("Select Tiers", available_tiers, default=["All"])
 
         # Quality threshold
-        quality_threshold = st.sidebar.slider(
-            "Quality Threshold", min_value=0.0, max_value=1.0, value=0.6, step=0.1
-        )
+        quality_threshold = st.sidebar.slider("Quality Threshold", min_value=0.0, max_value=1.0, value=0.6, step=0.1)
 
         # Load and process data
         with st.spinner("Loading quality data..."):
             df = self.load_quality_data()
 
             if df.empty:
-                st.error(
-                    "❌ No quality data available. Please ensure quality validation has been run."
-                )
+                st.error("❌ No quality data available. Please ensure quality validation has been run.")
                 return
 
             # Apply filters
@@ -493,10 +470,7 @@ class QualityAnalyticsDashboard:
 
             if len(date_range) == 2:
                 start_date, end_date = date_range
-                df = df[
-                    (df["created_at"].dt.date >= start_date)
-                    & (df["created_at"].dt.date <= end_date)
-                ]
+                df = df[(df["created_at"].dt.date >= start_date) & (df["created_at"].dt.date <= end_date)]
 
             df = df[df["overall_quality"] >= quality_threshold]
 
@@ -507,26 +481,18 @@ class QualityAnalyticsDashboard:
         col1, col2, col3, col4 = st.columns(4)
 
         with col1:
-            st.metric(
-                "Total Conversations", f"{analytics.total_conversations:,}", delta=None
-            )
+            st.metric("Total Conversations", f"{analytics.total_conversations:,}", delta=None)
 
         with col2:
             st.metric(
                 "Average Quality",
                 f"{analytics.average_quality:.3f}",
-                delta=f"{analytics.average_quality - 0.6:.3f}"
-                if analytics.average_quality > 0.6
-                else None,
+                delta=f"{analytics.average_quality - 0.6:.3f}" if analytics.average_quality > 0.6 else None,
             )
 
         with col3:
             excellent_count = analytics.quality_distribution.get("Excellent", 0)
-            total = (
-                sum(analytics.quality_distribution.values())
-                if analytics.quality_distribution
-                else 1
-            )
+            total = sum(analytics.quality_distribution.values()) if analytics.quality_distribution else 1
             excellent_pct = (excellent_count / total) * 100
             st.metric("Excellent Quality %", f"{excellent_pct:.1f}%", delta=None)
 
@@ -561,9 +527,7 @@ class QualityAnalyticsDashboard:
         if st.checkbox("Show Raw Data"):
             st.header("📋 Quality Data Table")
             st.dataframe(
-                df[
-                    ["id", "tier", "dataset_name", "overall_quality", "created_at"]
-                ].head(100),
+                df[["id", "tier", "dataset_name", "overall_quality", "created_at"]].head(100),
                 use_container_width=True,
             )
 
@@ -575,12 +539,10 @@ class QualityAnalyticsDashboard:
             if st.button("Export Analytics Report"):
                 report_data = {
                     "analytics": analytics.__dict__,
-                    "generated_at": datetime.now(timezone.utc).isoformat(),
+                    "generated_at": datetime.now(UTC).isoformat(),
                     "filters_applied": {
                         "tiers": selected_tiers,
-                        "date_range": [str(d) for d in date_range]
-                        if len(date_range) == 2
-                        else None,
+                        "date_range": [str(d) for d in date_range] if len(date_range) == 2 else None,
                         "quality_threshold": quality_threshold,
                     },
                 }
@@ -588,7 +550,7 @@ class QualityAnalyticsDashboard:
                 st.download_button(
                     label="Download JSON Report",
                     data=json.dumps(report_data, indent=2),
-                    file_name=f"quality_analytics_report_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.json",
+                    file_name=f"quality_analytics_report_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.json",
                     mime="application/json",
                 )
 
@@ -598,7 +560,7 @@ class QualityAnalyticsDashboard:
                 st.download_button(
                     label="Download CSV Data",
                     data=csv_data,
-                    file_name=f"quality_data_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.csv",
+                    file_name=f"quality_data_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.csv",
                     mime="text/csv",
                 )
 

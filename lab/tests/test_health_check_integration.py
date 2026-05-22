@@ -2,13 +2,14 @@
 Integration tests for health check and graceful shutdown functionality.
 Tests that health checks work correctly and shutdown is graceful.
 """
+
 import contextlib
 import json
 import logging
 import threading
 import time
 import unittest
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from ai.lab.inference.inference_api import app
 
@@ -87,7 +88,7 @@ class TestHealthCheckSystem(unittest.TestCase):
             return ComponentHealth(
                 name="custom_test",
                 status=ComponentStatus.OPERATIONAL,
-                last_checked=datetime.now(timezone.utc).isoformat(),
+                last_checked=datetime.now(UTC).isoformat(),
                 health_score=1.0,
                 details={"test_field": "test_value"},
             )
@@ -155,7 +156,11 @@ class TestHealthCheckSystem(unittest.TestCase):
 
         assert isinstance(component_health, ComponentHealth)
         assert component_health.name == "disk_space"
-        assert component_health.status in [ComponentStatus.OPERATIONAL, ComponentStatus.DEGRADED, ComponentStatus.FAILED]
+        assert component_health.status in [
+            ComponentStatus.OPERATIONAL,
+            ComponentStatus.DEGRADED,
+            ComponentStatus.FAILED,
+        ]
         assert component_health.health_score >= 0.0
         assert component_health.health_score <= 1.0
         assert component_health.last_checked is not None
@@ -189,7 +194,11 @@ class TestHealthCheckSystem(unittest.TestCase):
 
         assert isinstance(component_health, ComponentHealth)
         assert component_health.name == "model_status"
-        assert component_health.status in [ComponentStatus.OPERATIONAL, ComponentStatus.DEGRADED, ComponentStatus.FAILED]
+        assert component_health.status in [
+            ComponentStatus.OPERATIONAL,
+            ComponentStatus.DEGRADED,
+            ComponentStatus.FAILED,
+        ]
         assert component_health.health_score >= 0.0
         assert component_health.health_score <= 1.0
         assert component_health.last_checked is not None
@@ -212,7 +221,11 @@ class TestHealthCheckSystem(unittest.TestCase):
         for component_name, component_health in health_result.components.items():
             assert isinstance(component_health, ComponentHealth)
             assert component_health.name == component_name
-            assert component_health.status in [ComponentStatus.OPERATIONAL, ComponentStatus.DEGRADED, ComponentStatus.FAILED]
+            assert component_health.status in [
+                ComponentStatus.OPERATIONAL,
+                ComponentStatus.DEGRADED,
+                ComponentStatus.FAILED,
+            ]
             assert component_health.health_score >= 0.0
             assert component_health.health_score <= 1.0
             assert component_health.last_checked is not None
@@ -357,7 +370,7 @@ class TestGracefulShutdown(unittest.TestCase):
             components_shutdown=["component1", "component2"],
             components_failed=[],
             error_messages=[],
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
         )
 
         assert isinstance(shutdown_result, ShutdownResult)
@@ -593,7 +606,6 @@ def benchmark_health_checks():
     end_time = time.time()
     total_time = end_time - start_time
     avg_time_per_check = total_time / num_iterations * 1000  # Convert to milliseconds
-
 
     # Should be reasonably fast (under 1000ms per check)
     assert avg_time_per_check < 1000.0

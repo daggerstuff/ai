@@ -1,6 +1,7 @@
 """
 Tests for main CLI functionality and integration.
 """
+
 import time
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -242,9 +243,7 @@ max_retries: 5
         runner = CliRunner()
 
         with runner.isolated_filesystem():
-            result = runner.invoke(
-                cli, ["--config-file", "nonexistent.yaml", "version"]
-            )
+            result = runner.invoke(cli, ["--config-file", "nonexistent.yaml", "version"])
 
             assert result.exit_code == 1
             assert "Failed to initialize configuration" in result.output
@@ -256,9 +255,7 @@ max_retries: 5
         with runner.isolated_filesystem():
             # Mock environment validation failure
             with patch("cli.main.validate_environment") as mock_validate:
-                mock_validate.side_effect = Exception(
-                    "Missing required environment variables"
-                )
+                mock_validate.side_effect = Exception("Missing required environment variables")
 
                 result = runner.invoke(cli, ["version"])
 
@@ -465,28 +462,25 @@ class TestCLIIntegration:
             stop_response = MagicMock()
             stop_response.status_code = 200
 
-            with patch(
-                "cli.pipeline.requests.post",
-                side_effect=[start_response, stop_response],
-            ), patch("cli.pipeline.requests.get", return_value=status_response):
+            with (
+                patch(
+                    "cli.pipeline.requests.post",
+                    side_effect=[start_response, stop_response],
+                ),
+                patch("cli.pipeline.requests.get", return_value=status_response),
+            ):
                 # Test pipeline start
-                result = runner.invoke(
-                    cli, ["pipeline", "start", "--config", "test-config.yaml"]
-                )
+                result = runner.invoke(cli, ["pipeline", "start", "--config", "test-config.yaml"])
                 assert result.exit_code == 0
 
                 # Test pipeline status
-                result = runner.invoke(
-                    cli, ["pipeline", "status", "--id", "test-pipeline-123"]
-                )
+                result = runner.invoke(cli, ["pipeline", "status", "--id", "test-pipeline-123"])
                 assert result.exit_code == 0
                 assert "running" in result.output
                 assert "75" in result.output
 
                 # Test pipeline stop
-                result = runner.invoke(
-                    cli, ["pipeline", "stop", "--id", "test-pipeline-123"]
-                )
+                result = runner.invoke(cli, ["pipeline", "stop", "--id", "test-pipeline-123"])
                 assert result.exit_code == 0
 
     def test_configuration_management(self):
@@ -529,9 +523,7 @@ class TestCLIIntegration:
                 "cli.pipeline.requests.post",
                 side_effect=[fail_response, success_response],
             ):
-                result = runner.invoke(
-                    cli, ["pipeline", "start", "--config", "test-config.yaml"]
-                )
+                result = runner.invoke(cli, ["pipeline", "start", "--config", "test-config.yaml"])
 
                 # Should succeed on retry
                 assert result.exit_code == 0
@@ -605,8 +597,6 @@ class TestCLIPerformance:
                 return response
 
             with patch("cli.pipeline.requests.get", side_effect=slow_response):
-                result = runner.invoke(
-                    cli, ["pipeline", "status", "--id", "slow-pipeline"]
-                )
+                result = runner.invoke(cli, ["pipeline", "status", "--id", "slow-pipeline"])
 
                 assert result.exit_code == 0

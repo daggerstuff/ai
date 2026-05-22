@@ -101,10 +101,10 @@ class TranscriptQualityPipeline:
 
 
 __all__ = [
-    "TranscriptQualityPipeline",
-    "TranscriptQualityResult",
-    "VoiceTranscriber",
     "NemoCuratorClient",
     "NemoEvaluatorClient",
     "TranscriptCorrector",
+    "TranscriptQualityPipeline",
+    "TranscriptQualityResult",
+    "VoiceTranscriber",
 ]

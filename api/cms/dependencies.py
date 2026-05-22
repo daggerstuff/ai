@@ -4,14 +4,6 @@ from fastapi import Depends, HTTPException, Request
 
 from ai.infrastructure.database.cms_connection_manager import CMSConnectionManager
 from ai.infrastructure.database.dal.cached_repository import CMSCacheLayer
-from ai.infrastructure.database.dal.repositories import (
-    BusinessDocumentRepository,
-    KnowledgeArticleRepository,
-    MarketResearchRepository,
-    ProjectRepository,
-    SalesOpportunityRepository,
-    StrategicPlanRepository,
-)
 from ai.infrastructure.database.dal.postgres_repository import (
     ApprovalRequestRepository,
     ApprovalWorkflowRepository,
@@ -20,6 +12,14 @@ from ai.infrastructure.database.dal.postgres_repository import (
     DocumentActivityRepository,
     NotificationRepository,
     PermissionRepository,
+)
+from ai.infrastructure.database.dal.repositories import (
+    BusinessDocumentRepository,
+    KnowledgeArticleRepository,
+    MarketResearchRepository,
+    ProjectRepository,
+    SalesOpportunityRepository,
+    StrategicPlanRepository,
 )
 
 
@@ -88,6 +88,7 @@ def get_permission_repo(manager: CMSConnectionManager = Depends(get_cms_manager)
 
 
 # Pagination helper
+
 
 def pagination_params(skip: int = 0, limit: int = 100) -> dict[str, int]:
     """Common pagination query parameters."""

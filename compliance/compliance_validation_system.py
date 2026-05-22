@@ -15,7 +15,7 @@ import json
 import logging
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -23,23 +23,29 @@ from typing import Any
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class ComplianceStandard(Enum):
     """Compliance standards"""
+
     ISO_27001 = "iso_27001"
     SOC_2_TYPE_II = "soc_2_type_ii"
     GDPR = "gdpr"
     HIPAA = "hipaa"
     PCI_DSS = "pci_dss"
 
+
 class ComplianceLevel(Enum):
     """Compliance assessment levels"""
+
     COMPLIANT = "compliant"
     PARTIALLY_COMPLIANT = "partially_compliant"
     NON_COMPLIANT = "non_compliant"
     NOT_APPLICABLE = "not_applicable"
 
+
 class ControlCategory(Enum):
     """Control categories"""
+
     ACCESS_CONTROL = "access_control"
     DATA_PROTECTION = "data_protection"
     SECURITY_MANAGEMENT = "security_management"
@@ -49,9 +55,11 @@ class ControlCategory(Enum):
     AUDIT_LOGGING = "audit_logging"
     PRIVACY_PROTECTION = "privacy_protection"
 
+
 @dataclass
 class ComplianceControl:
     """Individual compliance control"""
+
     control_id: str
     standard: ComplianceStandard
     category: ControlCategory
@@ -63,9 +71,11 @@ class ComplianceControl:
     last_assessed: datetime | None = None
     next_review: datetime | None = None
 
+
 @dataclass
 class ComplianceAssessmentResult:
     """Compliance assessment result"""
+
     control_id: str
     standard: ComplianceStandard
     category: ControlCategory
@@ -75,6 +85,7 @@ class ComplianceAssessmentResult:
     gaps_identified: list[str] = field(default_factory=list)
     recommendations: list[str] = field(default_factory=list)
     assessment_time: float = 0.0
+
 
 class ComplianceValidationSystem:
     """
@@ -109,8 +120,8 @@ class ComplianceValidationSystem:
                     "Documented access control policy",
                     "Regular policy review and updates",
                     "Management approval of policy",
-                    "Communication to all personnel"
-                ]
+                    "Communication to all personnel",
+                ],
             ),
             ComplianceControl(
                 control_id="ISO-A.9.2.1",
@@ -122,8 +133,8 @@ class ComplianceValidationSystem:
                     "Formal user provisioning process",
                     "User access approval workflow",
                     "Regular access reviews",
-                    "Timely de-provisioning of access"
-                ]
+                    "Timely de-provisioning of access",
+                ],
             ),
             ComplianceControl(
                 control_id="ISO-A.12.6.1",
@@ -135,8 +146,8 @@ class ComplianceValidationSystem:
                     "Vulnerability scanning procedures",
                     "Patch management process",
                     "Vulnerability assessment reports",
-                    "Remediation tracking"
-                ]
+                    "Remediation tracking",
+                ],
             ),
             ComplianceControl(
                 control_id="ISO-A.16.1.1",
@@ -148,8 +159,8 @@ class ComplianceValidationSystem:
                     "Incident response plan",
                     "Incident classification procedures",
                     "Response team roles and responsibilities",
-                    "Incident reporting mechanisms"
-                ]
+                    "Incident reporting mechanisms",
+                ],
             ),
             ComplianceControl(
                 control_id="ISO-A.18.1.1",
@@ -161,9 +172,9 @@ class ComplianceValidationSystem:
                     "Legal requirements register",
                     "Regular legal compliance reviews",
                     "Privacy impact assessments",
-                    "Data protection measures"
-                ]
-            )
+                    "Data protection measures",
+                ],
+            ),
         ]
 
         # SOC 2 Type II Controls
@@ -178,8 +189,8 @@ class ComplianceValidationSystem:
                     "Access control implementation",
                     "Access monitoring and logging",
                     "Regular access reviews",
-                    "Segregation of duties"
-                ]
+                    "Segregation of duties",
+                ],
             ),
             ComplianceControl(
                 control_id="SOC2-CC7.1",
@@ -191,8 +202,8 @@ class ComplianceValidationSystem:
                     "System monitoring procedures",
                     "Performance monitoring",
                     "Capacity management",
-                    "System availability tracking"
-                ]
+                    "System availability tracking",
+                ],
             ),
             ComplianceControl(
                 control_id="SOC2-A1.1",
@@ -204,9 +215,9 @@ class ComplianceValidationSystem:
                     "Business continuity plan",
                     "Disaster recovery procedures",
                     "Backup and recovery testing",
-                    "Service level agreements"
-                ]
-            )
+                    "Service level agreements",
+                ],
+            ),
         ]
 
         # GDPR Controls
@@ -221,8 +232,8 @@ class ComplianceValidationSystem:
                     "Privacy impact assessments",
                     "Data minimization principles",
                     "Purpose limitation implementation",
-                    "Privacy-enhancing technologies"
-                ]
+                    "Privacy-enhancing technologies",
+                ],
             ),
             ComplianceControl(
                 control_id="GDPR-Art.32",
@@ -234,8 +245,8 @@ class ComplianceValidationSystem:
                     "Encryption of personal data",
                     "Data integrity measures",
                     "Access controls for personal data",
-                    "Regular security testing"
-                ]
+                    "Regular security testing",
+                ],
             ),
             ComplianceControl(
                 control_id="GDPR-Art.33",
@@ -247,8 +258,8 @@ class ComplianceValidationSystem:
                     "Breach detection procedures",
                     "72-hour notification process",
                     "Breach impact assessment",
-                    "Affected individual notification"
-                ]
+                    "Affected individual notification",
+                ],
             ),
             ComplianceControl(
                 control_id="GDPR-Art.35",
@@ -260,9 +271,9 @@ class ComplianceValidationSystem:
                     "DPIA methodology",
                     "High-risk processing identification",
                     "Stakeholder consultation",
-                    "Mitigation measures implementation"
-                ]
-            )
+                    "Mitigation measures implementation",
+                ],
+            ),
         ]
 
         # Combine all controls
@@ -309,7 +320,6 @@ class ComplianceValidationSystem:
         # Simulate compliance assessment based on control requirements
         # In a real implementation, this would check actual system configurations
 
-
         # Assess based on control category and requirements
         if control.category == ControlCategory.ACCESS_CONTROL:
             score, gaps, recs, evidence = await self._assess_access_control(control)
@@ -349,7 +359,7 @@ class ComplianceValidationSystem:
             evidence_count=evidence,
             gaps_identified=gaps,
             recommendations=recs,
-            assessment_time=assessment_time
+            assessment_time=assessment_time,
         )
 
     async def _assess_access_control(self, _control: ComplianceControl) -> tuple[float, list[str], list[str], int]:
@@ -359,10 +369,7 @@ class ComplianceValidationSystem:
 
         score = 95.0  # High score for implemented authentication system
         gaps = []
-        recommendations = [
-            "Implement regular access reviews",
-            "Enhance multi-factor authentication coverage"
-        ]
+        recommendations = ["Implement regular access reviews", "Enhance multi-factor authentication coverage"]
         evidence_count = 4
 
         return score, gaps, recommendations, evidence_count
@@ -370,14 +377,11 @@ class ComplianceValidationSystem:
     async def _assess_data_protection(self, _control: ComplianceControl) -> tuple[float, list[str], list[str], int]:
         """Assess data protection compliance"""
         score = 90.0  # Good score with some improvements needed
-        gaps = [
-            "Data encryption at rest not fully implemented",
-            "Data retention policies need documentation"
-        ]
+        gaps = ["Data encryption at rest not fully implemented", "Data retention policies need documentation"]
         recommendations = [
             "Implement comprehensive data encryption",
             "Document data retention and deletion procedures",
-            "Conduct regular data protection audits"
+            "Conduct regular data protection audits",
         ]
         evidence_count = 3
 
@@ -386,13 +390,11 @@ class ComplianceValidationSystem:
     async def _assess_security_management(self, _control: ComplianceControl) -> tuple[float, list[str], list[str], int]:
         """Assess security management compliance"""
         score = 92.0  # Good security management practices
-        gaps = [
-            "Vulnerability management process needs formalization"
-        ]
+        gaps = ["Vulnerability management process needs formalization"]
         recommendations = [
             "Formalize vulnerability management procedures",
             "Implement automated security scanning",
-            "Establish security metrics and reporting"
+            "Establish security metrics and reporting",
         ]
         evidence_count = 4
 
@@ -401,14 +403,11 @@ class ComplianceValidationSystem:
     async def _assess_incident_response(self, _control: ComplianceControl) -> tuple[float, list[str], list[str], int]:
         """Assess incident response compliance"""
         score = 88.0  # Good incident response capabilities
-        gaps = [
-            "Incident response plan needs regular testing",
-            "Communication procedures need enhancement"
-        ]
+        gaps = ["Incident response plan needs regular testing", "Communication procedures need enhancement"]
         recommendations = [
             "Conduct regular incident response drills",
             "Enhance incident communication procedures",
-            "Implement incident metrics tracking"
+            "Implement incident metrics tracking",
         ]
         evidence_count = 3
 
@@ -417,14 +416,11 @@ class ComplianceValidationSystem:
     async def _assess_audit_logging(self, _control: ComplianceControl) -> tuple[float, list[str], list[str], int]:
         """Assess audit logging compliance"""
         score = 85.0  # Adequate logging with improvements needed
-        gaps = [
-            "Log retention policies need documentation",
-            "Log monitoring automation needs enhancement"
-        ]
+        gaps = ["Log retention policies need documentation", "Log monitoring automation needs enhancement"]
         recommendations = [
             "Implement comprehensive audit logging",
             "Automate log monitoring and alerting",
-            "Document log retention and archival procedures"
+            "Document log retention and archival procedures",
         ]
         evidence_count = 2
 
@@ -433,13 +429,11 @@ class ComplianceValidationSystem:
     async def _assess_privacy_protection(self, _control: ComplianceControl) -> tuple[float, list[str], list[str], int]:
         """Assess privacy protection compliance"""
         score = 93.0  # Strong privacy protection measures
-        gaps = [
-            "Privacy impact assessment process needs formalization"
-        ]
+        gaps = ["Privacy impact assessment process needs formalization"]
         recommendations = [
             "Formalize privacy impact assessment procedures",
             "Implement privacy-enhancing technologies",
-            "Conduct regular privacy audits"
+            "Conduct regular privacy audits",
         ]
         evidence_count = 4
 
@@ -448,14 +442,11 @@ class ComplianceValidationSystem:
     async def _assess_risk_management(self, _control: ComplianceControl) -> tuple[float, list[str], list[str], int]:
         """Assess risk management compliance"""
         score = 87.0  # Good risk management framework
-        gaps = [
-            "Risk assessment methodology needs documentation",
-            "Risk monitoring procedures need enhancement"
-        ]
+        gaps = ["Risk assessment methodology needs documentation", "Risk monitoring procedures need enhancement"]
         recommendations = [
             "Document risk assessment methodology",
             "Implement continuous risk monitoring",
-            "Establish risk appetite and tolerance levels"
+            "Establish risk appetite and tolerance levels",
         ]
         evidence_count = 3
 
@@ -464,14 +455,11 @@ class ComplianceValidationSystem:
     async def _assess_business_continuity(self, _control: ComplianceControl) -> tuple[float, list[str], list[str], int]:
         """Assess business continuity compliance"""
         score = 89.0  # Good business continuity planning
-        gaps = [
-            "Business continuity plan needs regular testing",
-            "Recovery time objectives need validation"
-        ]
+        gaps = ["Business continuity plan needs regular testing", "Recovery time objectives need validation"]
         recommendations = [
             "Conduct regular business continuity testing",
             "Validate recovery time and point objectives",
-            "Implement automated backup and recovery"
+            "Implement automated backup and recovery",
         ]
         evidence_count = 3
 
@@ -525,7 +513,7 @@ class ComplianceValidationSystem:
         compliance_levels = {
             ComplianceLevel.COMPLIANT.value: 0,
             ComplianceLevel.PARTIALLY_COMPLIANT.value: 0,
-            ComplianceLevel.NON_COMPLIANT.value: 0
+            ComplianceLevel.NON_COMPLIANT.value: 0,
         }
 
         for result in self.assessment_results:
@@ -538,7 +526,7 @@ class ComplianceValidationSystem:
             "compliance_levels": compliance_levels,
             "total_controls": total_controls,
             "total_gaps": sum(len(result.gaps_identified) for result in self.assessment_results),
-            "total_evidence": sum(result.evidence_count for result in self.assessment_results)
+            "total_evidence": sum(result.evidence_count for result in self.assessment_results),
         }
 
     def _determine_production_readiness(self, metrics: dict[str, Any]) -> bool:
@@ -549,7 +537,7 @@ class ComplianceValidationSystem:
             "overall_score_threshold": 90.0,
             "standard_score_threshold": 85.0,
             "critical_controls_threshold": 95.0,
-            "max_non_compliant": 2
+            "max_non_compliant": 2,
         }
 
         # Check overall score
@@ -567,8 +555,7 @@ class ComplianceValidationSystem:
 
         return True
 
-    def _generate_compliance_report(self, execution_time: float,
-                                   metrics: dict[str, Any]) -> dict[str, Any]:
+    def _generate_compliance_report(self, execution_time: float, metrics: dict[str, Any]) -> dict[str, Any]:
         """Generate comprehensive compliance report"""
 
         # Determine certification status
@@ -583,20 +570,18 @@ class ComplianceValidationSystem:
 
         return {
             "compliance_assessment_summary": {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "execution_time": execution_time,
                 "overall_compliance_score": round(metrics["overall_score"], 2),
                 "certification_status": certification_status,
                 "production_ready": self.production_ready,
-                "total_controls_assessed": metrics["total_controls"]
+                "total_controls_assessed": metrics["total_controls"],
             },
             "standard_compliance": {
-                standard: round(score, 2)
-                for standard, score in metrics["standard_scores"].items()
+                standard: round(score, 2) for standard, score in metrics["standard_scores"].items()
             },
             "category_compliance": {
-                category: round(score, 2)
-                for category, score in metrics["category_scores"].items()
+                category: round(score, 2) for category, score in metrics["category_scores"].items()
             },
             "compliance_distribution": metrics["compliance_levels"],
             "detailed_assessments": [
@@ -610,7 +595,7 @@ class ComplianceValidationSystem:
                     "gaps_count": len(result.gaps_identified),
                     "gaps": result.gaps_identified,
                     "recommendations": result.recommendations,
-                    "assessment_time": result.assessment_time
+                    "assessment_time": result.assessment_time,
                 }
                 for result in self.assessment_results
             ],
@@ -620,7 +605,7 @@ class ComplianceValidationSystem:
                 "compliant_controls": metrics["compliance_levels"]["compliant"],
                 "partially_compliant_controls": metrics["compliance_levels"]["partially_compliant"],
                 "non_compliant_controls": metrics["compliance_levels"]["non_compliant"],
-                "compliance_percentage": (metrics["compliance_levels"]["compliant"] / metrics["total_controls"]) * 100
+                "compliance_percentage": (metrics["compliance_levels"]["compliant"] / metrics["total_controls"]) * 100,
             },
             "production_requirements": {
                 "overall_score_required": 90.0,
@@ -629,13 +614,12 @@ class ComplianceValidationSystem:
                 "current_status": {
                     "overall_score_met": metrics["overall_score"] >= 90.0,
                     "all_standards_met": all(score >= 85.0 for score in metrics["standard_scores"].values()),
-                    "non_compliant_within_limit": metrics["compliance_levels"]["non_compliant"] <= 2
-                }
+                    "non_compliant_within_limit": metrics["compliance_levels"]["non_compliant"] <= 2,
+                },
             },
             "recommendations": self._generate_compliance_recommendations(metrics),
-            "next_steps": self._generate_compliance_next_steps()
+            "next_steps": self._generate_compliance_next_steps(),
         }
-
 
     def _generate_compliance_recommendations(self, metrics: dict[str, Any]) -> list[str]:
         """Generate compliance improvement recommendations"""
@@ -658,13 +642,15 @@ class ComplianceValidationSystem:
             recommendations.append(f"Address {metrics['total_gaps']} identified compliance gaps")
 
         # General recommendations
-        recommendations.extend([
-            "Implement continuous compliance monitoring",
-            "Establish regular compliance audits and reviews",
-            "Document all compliance procedures and evidence",
-            "Train staff on compliance requirements and procedures",
-            "Implement automated compliance checking where possible"
-        ])
+        recommendations.extend(
+            [
+                "Implement continuous compliance monitoring",
+                "Establish regular compliance audits and reviews",
+                "Document all compliance procedures and evidence",
+                "Train staff on compliance requirements and procedures",
+                "Implement automated compliance checking where possible",
+            ]
+        )
 
         return recommendations
 
@@ -675,17 +661,19 @@ class ComplianceValidationSystem:
                 "✅ Task 104: Compliance Standards Implementation COMPLETED",
                 "🚀 Ready to proceed with Task 105: Critical Safety Issues Final Resolution",
                 "📋 Continue with Phase 1 critical security tasks",
-                "🔄 Implement continuous compliance monitoring"
+                "🔄 Implement continuous compliance monitoring",
             ]
         return [
             "🔧 Address identified compliance gaps",
             "📋 Implement missing compliance controls",
             "🧪 Re-run compliance assessment after improvements",
-            "🔄 Repeat assessment until production ready"
+            "🔄 Repeat assessment until production ready",
         ]
+
 
 # Example usage and testing
 if __name__ == "__main__":
+
     async def main():
         # Initialize compliance validation system
         compliance_validator = ComplianceValidationSystem()
@@ -701,10 +689,9 @@ if __name__ == "__main__":
         report["compliance_distribution"]
 
         # Save report
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         report_file = f"compliance_validation_report_{timestamp}.json"
         with open(report_file, "w") as f:
             json.dump(report, f, indent=2)
-
 
     asyncio.run(main())

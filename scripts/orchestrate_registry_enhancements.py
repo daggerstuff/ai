@@ -8,7 +8,7 @@ import argparse
 import json
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -40,7 +40,6 @@ class DatasetRegistryOrchestrator:
         cmd = ["uv", "run", "python", str(script_path)]
         if args:
             cmd.extend(args)
-
 
         try:
             result = subprocess.run(
@@ -205,11 +204,9 @@ class DatasetRegistryOrchestrator:
             registry = json.load(f)
 
         report = {
-            "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
+            "timestamp": datetime.now(UTC).isoformat() + "Z",
             "registry_version": registry.get("schema_version", "1.0.0"),
-            "enhancements_applied": registry.get("registry_metadata", {}).get(
-                "enhancements_applied", []
-            ),
+            "enhancements_applied": registry.get("registry_metadata", {}).get("enhancements_applied", []),
             "statistics": registry.get("registry_statistics", {}),
             "operation_results": {
                 name: {
@@ -309,7 +306,6 @@ Examples:
         orchestrator.generate_report()
         return 0
 
-
     success = True
 
     # Run all operations in sequence
@@ -338,7 +334,6 @@ Examples:
     report_path = args.registry.parent / "enhancement_report.json"
     with open(report_path, "w") as f:
         json.dump(report, f, indent=2)
-
 
     return 0 if success else 1
 

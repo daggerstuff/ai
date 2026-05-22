@@ -6,7 +6,7 @@ including quality checks, bias detection, and compliance validation.
 """
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from flask import Blueprint, g, jsonify, request
@@ -89,16 +89,18 @@ def quality_check():
         # Log validation results
         request_logger.info(f"Quality validation completed with score: {quality_results.get('overall_score', 0)}")
 
-        return jsonify({
-            "success": True,
-            "data": {
-                "quality_score": quality_results.get("overall_score", 0),
-                "check_results": quality_results.get("check_results", {}),
-                "recommendations": quality_results.get("recommendations", []),
-                "dataset_id": dataset_id,
-                "timestamp": datetime.now(timezone.utc).isoformat()
+        return jsonify(
+            {
+                "success": True,
+                "data": {
+                    "quality_score": quality_results.get("overall_score", 0),
+                    "check_results": quality_results.get("check_results", {}),
+                    "recommendations": quality_results.get("recommendations", []),
+                    "dataset_id": dataset_id,
+                    "timestamp": datetime.now(UTC).isoformat(),
+                },
             }
-        }), 200
+        ), 200
 
     except (ValidationError, ResourceNotFoundError):
         raise
@@ -164,18 +166,20 @@ def bias_detection():
         else:
             request_logger.info("No significant bias detected")
 
-        return jsonify({
-            "success": True,
-            "data": {
-                "bias_detected": bias_results.get("bias_detected", False),
-                "bias_score": bias_results.get("bias_score", 0),
-                "bias_types": bias_results.get("bias_types", []),
-                "flagged_items": bias_results.get("flagged_items", []),
-                "recommendations": bias_results.get("recommendations", []),
-                "detection_type": detection_type,
-                "timestamp": datetime.now(timezone.utc).isoformat()
+        return jsonify(
+            {
+                "success": True,
+                "data": {
+                    "bias_detected": bias_results.get("bias_detected", False),
+                    "bias_score": bias_results.get("bias_score", 0),
+                    "bias_types": bias_results.get("bias_types", []),
+                    "flagged_items": bias_results.get("flagged_items", []),
+                    "recommendations": bias_results.get("recommendations", []),
+                    "detection_type": detection_type,
+                    "timestamp": datetime.now(UTC).isoformat(),
+                },
             }
-        }), 200
+        ), 200
 
     except (ValidationError, BiasDetectionError):
         raise
@@ -238,17 +242,19 @@ def compliance_check():
         else:
             request_logger.warning(f"{compliance_type} compliance violations found")
 
-        return jsonify({
-            "success": True,
-            "data": {
-                "compliant": compliance_results.get("compliant", False),
-                "violations": compliance_results.get("violations", []),
-                "risk_score": compliance_results.get("risk_score", 0),
-                "recommendations": compliance_results.get("recommendations", []),
-                "compliance_type": compliance_type,
-                "timestamp": datetime.now(timezone.utc).isoformat()
+        return jsonify(
+            {
+                "success": True,
+                "data": {
+                    "compliant": compliance_results.get("compliant", False),
+                    "violations": compliance_results.get("violations", []),
+                    "risk_score": compliance_results.get("risk_score", 0),
+                    "recommendations": compliance_results.get("recommendations", []),
+                    "compliance_type": compliance_type,
+                    "timestamp": datetime.now(UTC).isoformat(),
+                },
             }
-        }), 200
+        ), 200
 
     except ValidationError:
         raise
@@ -321,17 +327,19 @@ def schema_validation():
         else:
             request_logger.warning(f"Schema validation failed for: {schema_id}")
 
-        return jsonify({
-            "success": True,
-            "data": {
-                "valid": validation_results.get("valid", False),
-                "errors": validation_results.get("errors", []),
-                "warnings": validation_results.get("warnings", []),
-                "schema_id": schema_id,
-                "validation_time_ms": validation_results.get("validation_time_ms", 0),
-                "timestamp": datetime.now(timezone.utc).isoformat()
+        return jsonify(
+            {
+                "success": True,
+                "data": {
+                    "valid": validation_results.get("valid", False),
+                    "errors": validation_results.get("errors", []),
+                    "warnings": validation_results.get("warnings", []),
+                    "schema_id": schema_id,
+                    "validation_time_ms": validation_results.get("validation_time_ms", 0),
+                    "timestamp": datetime.now(UTC).isoformat(),
+                },
             }
-        }), 200
+        ), 200
 
     except (ValidationError, ResourceNotFoundError):
         raise
@@ -398,7 +406,7 @@ def batch_validate():
         batch_size = 50
 
         for i in range(0, len(items), batch_size):
-            batch = items[i:i + batch_size]
+            batch = items[i : i + batch_size]
             batch_results = []
 
             for item in batch:
@@ -413,20 +421,15 @@ def batch_validate():
                     else:
                         raise ValidationError(f"Unsupported validation type: {validation_type}")
 
-                    batch_results.append({
-                        "success": True,
-                        "data": result,
-                        "item_index": i + batch_results.index({
+                    batch_results.append(
+                        {
                             "success": True,
-                            "data": result
-                        })
-                    })
+                            "data": result,
+                            "item_index": i + batch_results.index({"success": True, "data": result}),
+                        }
+                    )
                 except Exception as e:
-                    batch_results.append({
-                        "success": False,
-                        "error": str(e),
-                        "item_index": i + len(batch_results)
-                    })
+                    batch_results.append({"success": False, "error": str(e), "item_index": i + len(batch_results)})
 
             results.extend(batch_results)
 
@@ -436,18 +439,20 @@ def batch_validate():
 
         request_logger.info(f"Batch validation completed: {successful}/{len(results)} successful")
 
-        return jsonify({
-            "success": True,
-            "data": {
-                "results": results,
-                "total_items": len(results),
-                "successful_items": successful,
-                "failed_items": len(results) - successful,
-                "success_rate": success_rate,
-                "validation_type": validation_type,
-                "timestamp": datetime.now(timezone.utc).isoformat()
+        return jsonify(
+            {
+                "success": True,
+                "data": {
+                    "results": results,
+                    "total_items": len(results),
+                    "successful_items": successful,
+                    "failed_items": len(results) - successful,
+                    "success_rate": success_rate,
+                    "validation_type": validation_type,
+                    "timestamp": datetime.now(UTC).isoformat(),
+                },
             }
-        }), 200
+        ), 200
 
     except ValidationError:
         raise
@@ -501,11 +506,7 @@ def get_validation_history():
         # Log successful retrieval
         request_logger.info(f"Retrieved {len(history.get('validations', []))} validation records")
 
-        return jsonify({
-            "success": True,
-            "data": history,
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        }), 200
+        return jsonify({"success": True, "data": history, "timestamp": datetime.now(UTC).isoformat()}), 200
 
     except ValueError as e:
         raise ValidationError(f"Invalid query parameter: {e!s}") from e
@@ -515,7 +516,9 @@ def get_validation_history():
 
 
 # Helper Functions
-def _perform_quality_checks(data: dict[str, Any], checks: list[str], dataset_context: dict[str, Any] | None, _options: dict[str, Any]) -> dict[str, Any]:
+def _perform_quality_checks(
+    data: dict[str, Any], checks: list[str], dataset_context: dict[str, Any] | None, _options: dict[str, Any]
+) -> dict[str, Any]:
     """Perform comprehensive quality checks on data."""
     try:
         check_results = {}
@@ -529,7 +532,7 @@ def _perform_quality_checks(data: dict[str, Any], checks: list[str], dataset_con
             check_results["completeness"] = {
                 "score": completeness_score,
                 "issues": completeness_issues,
-                "passed": completeness_score >= 0.8
+                "passed": completeness_score >= 0.8,
             }
             total_score += completeness_score
             check_count += 1
@@ -543,7 +546,7 @@ def _perform_quality_checks(data: dict[str, Any], checks: list[str], dataset_con
             check_results["consistency"] = {
                 "score": consistency_score,
                 "issues": consistency_issues,
-                "passed": consistency_score >= 0.8
+                "passed": consistency_score >= 0.8,
             }
             total_score += consistency_score
             check_count += 1
@@ -557,7 +560,7 @@ def _perform_quality_checks(data: dict[str, Any], checks: list[str], dataset_con
             check_results["accuracy"] = {
                 "score": accuracy_score,
                 "issues": accuracy_issues,
-                "passed": accuracy_score >= 0.8
+                "passed": accuracy_score >= 0.8,
             }
             total_score += accuracy_score
             check_count += 1
@@ -568,18 +571,16 @@ def _perform_quality_checks(data: dict[str, Any], checks: list[str], dataset_con
         # Calculate overall score
         overall_score = total_score / check_count if check_count > 0 else 0
 
-        return {
-            "overall_score": overall_score,
-            "check_results": check_results,
-            "recommendations": recommendations
-        }
+        return {"overall_score": overall_score, "check_results": check_results, "recommendations": recommendations}
 
     except Exception as e:
         logger.error(f"Error performing quality checks: {e}")
         raise ValidationError(f"Quality check failed: {e!s}") from e
 
 
-def _perform_bias_detection(_data: dict[str, Any], _context: dict[str, Any], detection_type: str, _options: dict[str, Any]) -> dict[str, Any]:
+def _perform_bias_detection(
+    _data: dict[str, Any], _context: dict[str, Any], detection_type: str, _options: dict[str, Any]
+) -> dict[str, Any]:
     """Perform bias detection analysis."""
     try:
         # Placeholder bias detection logic
@@ -595,11 +596,13 @@ def _perform_bias_detection(_data: dict[str, Any], _context: dict[str, Any], det
             if bias_score > 0.1:
                 bias_detected = True
                 bias_types.append("demographic_representation")
-                flagged_items.append({
-                    "field": "demographics",
-                    "issue": "Potential underrepresentation of certain demographic groups",
-                    "severity": "medium"
-                })
+                flagged_items.append(
+                    {
+                        "field": "demographics",
+                        "issue": "Potential underrepresentation of certain demographic groups",
+                        "severity": "medium",
+                    }
+                )
                 recommendations.append("Ensure balanced representation across demographic groups")
 
         elif detection_type == "content":
@@ -608,11 +611,9 @@ def _perform_bias_detection(_data: dict[str, Any], _context: dict[str, Any], det
             if bias_score > 0.05:
                 bias_detected = True
                 bias_types.append("content_bias")
-                flagged_items.append({
-                    "field": "content",
-                    "issue": "Potential content bias detected",
-                    "severity": "low"
-                })
+                flagged_items.append(
+                    {"field": "content", "issue": "Potential content bias detected", "severity": "low"}
+                )
                 recommendations.append("Review content for potential bias indicators")
 
         return {
@@ -620,7 +621,7 @@ def _perform_bias_detection(_data: dict[str, Any], _context: dict[str, Any], det
             "bias_score": bias_score,
             "bias_types": bias_types,
             "flagged_items": flagged_items,
-            "recommendations": recommendations
+            "recommendations": recommendations,
         }
 
     except Exception as e:
@@ -638,31 +639,37 @@ def _perform_compliance_check(data: dict[str, Any], compliance_type: str, option
         if compliance_type == "HIPAA":
             # HIPAA compliance checks
             if "patient_name" in data or "ssn" in data:
-                violations.append({
-                    "type": "phi_exposure",
-                    "severity": "high",
-                    "description": "Protected Health Information (PHI) detected in data"
-                })
+                violations.append(
+                    {
+                        "type": "phi_exposure",
+                        "severity": "high",
+                        "description": "Protected Health Information (PHI) detected in data",
+                    }
+                )
                 risk_score += 50
                 recommendations.append("Remove or encrypt all PHI before processing")
 
             if "email" in data and not options.get("encrypted_email", False):
-                violations.append({
-                    "type": "unencrypted_pii",
-                    "severity": "medium",
-                    "description": "Email addresses should be encrypted"
-                })
+                violations.append(
+                    {
+                        "type": "unencrypted_pii",
+                        "severity": "medium",
+                        "description": "Email addresses should be encrypted",
+                    }
+                )
                 risk_score += 20
                 recommendations.append("Encrypt email addresses using approved methods")
 
         elif compliance_type == "GDPR":
             # GDPR compliance checks
             if "personal_data" in data and not options.get("consent_verified", False):
-                violations.append({
-                    "type": "missing_consent",
-                    "severity": "high",
-                    "description": "Personal data processing without verified consent"
-                })
+                violations.append(
+                    {
+                        "type": "missing_consent",
+                        "severity": "high",
+                        "description": "Personal data processing without verified consent",
+                    }
+                )
                 risk_score += 40
                 recommendations.append("Verify data subject consent before processing")
 
@@ -673,7 +680,7 @@ def _perform_compliance_check(data: dict[str, Any], compliance_type: str, option
             "compliant": compliant,
             "violations": violations,
             "risk_score": risk_score,
-            "recommendations": recommendations
+            "recommendations": recommendations,
         }
 
     except Exception as e:
@@ -698,8 +705,8 @@ def _get_validation_schema(redis_client: RedisClient, schema_id: str) -> dict[st
                 "fields": [
                     {"name": "patient_id", "type": "string", "required": True},
                     {"name": "age", "type": "integer", "required": True, "min": 0, "max": 150},
-                    {"name": "gender", "type": "enum", "required": True, "values": ["M", "F", "O"]}
-                ]
+                    {"name": "gender", "type": "enum", "required": True, "values": ["M", "F", "O"]},
+                ],
             },
             "clinical-trial": {
                 "id": "clinical-trial",
@@ -707,9 +714,9 @@ def _get_validation_schema(redis_client: RedisClient, schema_id: str) -> dict[st
                 "fields": [
                     {"name": "trial_id", "type": "string", "required": True},
                     {"name": "participant_id", "type": "string", "required": True},
-                    {"name": "enrollment_date", "type": "date", "required": True}
-                ]
-            }
+                    {"name": "enrollment_date", "type": "date", "required": True},
+                ],
+            },
         }
 
         schema = schemas.get(schema_id)
@@ -724,9 +731,11 @@ def _get_validation_schema(redis_client: RedisClient, schema_id: str) -> dict[st
         return None
 
 
-def _validate_against_schema(data: dict[str, Any], schema: dict[str, Any], strict_mode: bool, _options: dict[str, Any]) -> dict[str, Any]:
+def _validate_against_schema(
+    data: dict[str, Any], schema: dict[str, Any], strict_mode: bool, _options: dict[str, Any]
+) -> dict[str, Any]:
     """Validate data against a specific schema."""
-    start_time = datetime.now(timezone.utc)
+    start_time = datetime.now(UTC)
 
     try:
         errors = []
@@ -756,13 +765,13 @@ def _validate_against_schema(data: dict[str, Any], schema: dict[str, Any], stric
             field_errors = _validate_field_against_schema(field_name, field_value, field_def)
             errors.extend(field_errors)
 
-        validation_time = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+        validation_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
 
         return {
             "valid": len(errors) == 0,
             "errors": errors,
             "warnings": warnings,
-            "validation_time_ms": validation_time
+            "validation_time_ms": validation_time,
         }
 
     except Exception as e:
@@ -771,7 +780,7 @@ def _validate_against_schema(data: dict[str, Any], schema: dict[str, Any], stric
             "valid": False,
             "errors": [f"Schema validation error: {e!s}"],
             "warnings": [],
-            "validation_time_ms": (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+            "validation_time_ms": (datetime.now(UTC) - start_time).total_seconds() * 1000,
         }
 
 
@@ -813,7 +822,14 @@ def _validate_field_against_schema(field_name: str, field_value: Any, field_def:
         return [f"Error validating field '{field_name}': {e!s}"]
 
 
-def _get_validation_history(_redis_client: RedisClient, dataset_id: str | None, validation_type: str | None, _start_date: str | None, _end_date: str | None, limit: int) -> dict[str, Any]:
+def _get_validation_history(
+    _redis_client: RedisClient,
+    dataset_id: str | None,
+    validation_type: str | None,
+    _start_date: str | None,
+    _end_date: str | None,
+    limit: int,
+) -> dict[str, Any]:
     """Retrieve validation history with optional filters."""
     try:
         # Placeholder validation history
@@ -825,7 +841,7 @@ def _get_validation_history(_redis_client: RedisClient, dataset_id: str | None, 
                     "validation_type": "quality",
                     "status": "passed",
                     "score": 0.92,
-                    "timestamp": "2024-01-15T10:30:00Z"
+                    "timestamp": "2024-01-15T10:30:00Z",
                 },
                 {
                     "id": "val_002",
@@ -833,16 +849,16 @@ def _get_validation_history(_redis_client: RedisClient, dataset_id: str | None, 
                     "validation_type": "bias",
                     "status": "warning",
                     "score": 0.15,
-                    "timestamp": "2024-01-14T14:20:00Z"
-                }
+                    "timestamp": "2024-01-14T14:20:00Z",
+                },
             ],
             "statistics": {
                 "total_validations": 245,
                 "passed": 198,
                 "failed": 32,
                 "warnings": 15,
-                "average_score": 0.87
-            }
+                "average_score": 0.87,
+            },
         }
 
         # Apply filters if provided

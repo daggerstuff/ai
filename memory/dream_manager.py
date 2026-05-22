@@ -17,17 +17,16 @@ This implements the sleep-inspired memory consolidation model where:
 
 from __future__ import annotations
 
-import asyncio
 import hashlib
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from .dream_reflection_integration import (
     DreamOutput,
-    DreamReflectionIntegration,
     DreamReflectionConfig,
+    DreamReflectionIntegration,
 )
 from .local_foresight_manager import LocalForesightMemoryManager
 
@@ -37,25 +36,25 @@ logger = logging.getLogger(__name__)
 @dataclass
 class DreamCycleResult:
     """Result of a complete dream cycle."""
-    
+
     dream_id: str
     user_id: str
     start_time: str
     end_time: str
-    
+
     # Phases completed
     nrem_completed: bool = False
     rem_completed: bool = False
     consolidation_completed: bool = False
     reflection_triggered: bool = False
-    
+
     # Outputs
     themes: list[str] = field(default_factory=list)
     patterns: list[str] = field(default_factory=list)
     consolidated_memories: list[dict[str, Any]] = field(default_factory=list)
     insights: list[str] = field(default_factory=list)
     emotional_tone: str | None = None
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "dream_id": self.dream_id,
@@ -79,20 +78,20 @@ class DreamCycleResult:
 @dataclass
 class DreamManagerConfig:
     """Configuration for Dream Manager."""
-    
+
     # Timing (in seconds for testing, normally minutes)
     nrem_duration: int = 60  # NREM phase duration
     rem_duration: int = 90  # REM phase duration
     post_dream_delay: int = 5  # Delay before reflection
-    
+
     # Content thresholds
     min_memories_for_dream: int = 5
     max_dream_themes: int = 5
     max_dream_patterns: int = 3
-    
+
     # Integration
     enable_reflection_integration: bool = True
-    
+
     # Storage
     store_dream_lineage: bool = True
 
@@ -100,11 +99,11 @@ class DreamManagerConfig:
 class DreamManager:
     """
     Manages dream cycles for memory consolidation.
-    
+
     Coordinates the full dream cycle process from memory reactivation
     through pattern extraction to reflection triggering.
     """
-    
+
     def __init__(
         self,
         memory_manager: LocalForesightMemoryManager | None = None,
@@ -112,30 +111,30 @@ class DreamManager:
     ):
         """
         Initialize Dream Manager.
-        
+
         Args:
             memory_manager: Memory manager for storing consolidated memories
             config: Configuration for dream cycles
         """
         self.memory_manager = memory_manager or LocalForesightMemoryManager()
         self.config = config or DreamManagerConfig()
-        
+
         # Reflection integration
         reflection_config = DreamReflectionConfig(
             post_dream_delay_minutes=1,  # Short for testing
             enable_post_dream_reflection=self.config.enable_reflection_integration,
         )
-        
+
         self.reflection_integration = DreamReflectionIntegration(
             memory_manager=self.memory_manager,
             config=reflection_config,
         )
-        
+
         # Active dream cycles
         self._active_dreams: dict[str, DreamCycleResult] = {}
-        
+
         logger.info("DreamManager initialized")
-    
+
     async def start_dream_cycle(
         self,
         user_id: str,
@@ -143,46 +142,44 @@ class DreamManager:
     ) -> DreamCycleResult:
         """
         Start a complete dream cycle.
-        
+
         Args:
             user_id: User identifier
             memories: Memories to process (or fetch from memory manager)
-            
+
         Returns:
             Dream cycle result
         """
         dream_id = self._generate_dream_id(user_id)
-        start_time = datetime.now(timezone.utc).isoformat()
-        
+        start_time = datetime.now(UTC).isoformat()
+
         logger.info(f"Starting dream cycle {dream_id} for user {user_id}")
-        
+
         result = DreamCycleResult(
             dream_id=dream_id,
             user_id=user_id,
             start_time=start_time,
             end_time="",
         )
-        
+
         self._active_dreams[dream_id] = result
-        
+
         try:
             # Fetch memories if not provided
             if not memories:
                 memories = await self._fetch_recent_memories(user_id)
-            
+
             # Check minimum memories
             if len(memories) < self.config.min_memories_for_dream:
-                logger.info(
-                    f"Only {len(memories)} memories, skipping dream cycle"
-                )
-                result.end_time = datetime.now(timezone.utc).isoformat()
+                logger.info(f"Only {len(memories)} memories, skipping dream cycle")
+                result.end_time = datetime.now(UTC).isoformat()
                 return result
-            
+
             # NREM Phase: Memory reactivation
             logger.debug("NREM phase: Reactivating memories")
             nrem_result = await self._nrem_phase(memories)
             result.nrem_completed = True
-            
+
             # REM Phase: Pattern extraction and integration
             logger.debug("REM phase: Extracting patterns")
             rem_result = await self._rem_phase(memories, nrem_result)
@@ -190,19 +187,17 @@ class DreamManager:
             result.themes = rem_result.get("themes", [])
             result.patterns = rem_result.get("patterns", [])
             result.emotional_tone = rem_result.get("emotional_tone")
-            
+
             # Consolidation phase
             logger.debug("Consolidation phase")
-            consolidated = await self._consolidate_memories(
-                user_id, memories, rem_result
-            )
+            consolidated = await self._consolidate_memories(user_id, memories, rem_result)
             result.consolidation_completed = True
             result.consolidated_memories = consolidated
-            
+
             # Trigger post-dream reflection
             if self.config.enable_reflection_integration:
                 from .dream_reflection_integration import DreamPhase
-                
+
                 dream_output = DreamOutput(
                     dream_id=dream_id,
                     user_id=user_id,
@@ -212,35 +207,34 @@ class DreamManager:
                     consolidated_memories=consolidated,
                     emotional_tone=result.emotional_tone,
                 )
-                
+
                 await self.reflection_integration.trigger_post_dream_reflection(
                     user_id=user_id,
                     dream_output=dream_output,
                 )
                 result.reflection_triggered = True
-            
-            result.end_time = datetime.now(timezone.utc).isoformat()
+
+            result.end_time = datetime.now(UTC).isoformat()
             result.insights = []  # Will be populated by reflection
-            
+
             logger.info(
-                f"Dream cycle {dream_id} completed: "
-                f"{len(result.themes)} themes, {len(result.patterns)} patterns"
+                f"Dream cycle {dream_id} completed: {len(result.themes)} themes, {len(result.patterns)} patterns"
             )
-            
+
         except Exception as e:
             logger.error(f"Dream cycle {dream_id} failed: {e}")
-            result.end_time = datetime.now(timezone.utc).isoformat()
+            result.end_time = datetime.now(UTC).isoformat()
             raise
-        
+
         return result
-    
+
     async def _nrem_phase(
         self,
         memories: list[dict[str, Any]],
     ) -> dict[str, Any]:
         """
         NREM sleep phase: Memory reactivation.
-        
+
         During NREM, memories are reactivated and strengthened.
         This is a simplified simulation - in production, this would
         involve actual memory reactivation patterns.
@@ -251,12 +245,12 @@ class DreamManager:
             # Strengthen emotional memories
             if "emotional" in str(memory.get("category", "")).lower():
                 reactivated.append(memory)
-        
+
         return {
             "reactivated_memories": reactivated,
             "reactivation_count": len(reactivated),
         }
-    
+
     async def _rem_phase(
         self,
         memories: list[dict[str, Any]],
@@ -264,25 +258,25 @@ class DreamManager:
     ) -> dict[str, Any]:
         """
         REM sleep phase: Pattern extraction and integration.
-        
+
         During REM, the brain extracts themes, patterns, and creates
         novel associations between memories.
         """
         # Extract themes
         themes = self._extract_themes(memories)
-        
+
         # Extract patterns
         patterns = self._extract_patterns(memories)
-        
+
         # Determine emotional tone
         emotional_tone = self._determine_emotional_tone(memories)
-        
+
         return {
-            "themes": themes[:self.config.max_dream_themes],
-            "patterns": patterns[:self.config.max_dream_patterns],
+            "themes": themes[: self.config.max_dream_themes],
+            "patterns": patterns[: self.config.max_dream_patterns],
             "emotional_tone": emotional_tone,
         }
-    
+
     def _extract_themes(
         self,
         memories: list[dict[str, Any]],
@@ -291,17 +285,17 @@ class DreamManager:
         # Simplified theme extraction
         # In production, this would use LLM-based theme extraction
         themes = []
-        
+
         for memory in memories:
             content = memory.get("content", "")
             category = memory.get("category", "general")
-            
+
             # Extract theme from category
             if category not in themes and len(themes) < self.config.max_dream_themes:
                 themes.append(category)
-        
+
         return themes or ["general_processing"]
-    
+
     def _extract_patterns(
         self,
         memories: list[dict[str, Any]],
@@ -310,20 +304,20 @@ class DreamManager:
         # Simplified pattern extraction
         # In production, this would use LLM-based pattern recognition
         patterns = []
-        
+
         # Look for recurring elements
         categories = {}
         for memory in memories:
             cat = memory.get("category", "general")
             categories[cat] = categories.get(cat, 0) + 1
-        
+
         # Patterns are recurring categories
         for cat, count in categories.items():
             if count > 1:
                 patterns.append(f"recurring_{cat}")
-        
+
         return patterns or ["memory_integration"]
-    
+
     def _determine_emotional_tone(
         self,
         memories: list[dict[str, Any]],
@@ -336,14 +330,14 @@ class DreamManager:
             "crisis_context": "distressing",
             "therapeutic_insight": "insightful",
         }
-        
+
         for memory in memories:
             category = memory.get("category", "")
             if category in emotional_categories:
                 return emotional_categories[category]
-        
+
         return None
-    
+
     async def _consolidate_memories(
         self,
         user_id: str,
@@ -352,39 +346,36 @@ class DreamManager:
     ) -> list[dict[str, Any]]:
         """
         Consolidate memories based on REM phase results.
-        
+
         Consolidation involves:
         - Strengthening important memories
         - Weakening irrelevant details
         - Integrating related memories
         """
         consolidated = []
-        
+
         themes = rem_result.get("themes", [])
         patterns = rem_result.get("patterns", [])
-        
+
         for memory in memories:
             # Check if memory aligns with extracted themes/patterns
             category = memory.get("category", "")
-            
-            should_consolidate = (
-                category in themes or
-                any(p.split("_")[1] in category for p in patterns if "_" in p)
-            )
-            
+
+            should_consolidate = category in themes or any(p.split("_")[1] in category for p in patterns if "_" in p)
+
             if should_consolidate:
                 # Create consolidated version
                 consolidated_memory = memory.copy()
                 consolidated_memory["consolidated"] = True
-                consolidated_memory["consolidation_time"] = datetime.now(timezone.utc).isoformat()
-                
+                consolidated_memory["consolidation_time"] = datetime.now(UTC).isoformat()
+
                 if self.config.store_dream_lineage:
                     consolidated_memory["dream_consolidated"] = True
-                
+
                 consolidated.append(consolidated_memory)
-        
+
         return consolidated
-    
+
     async def _fetch_recent_memories(
         self,
         user_id: str,
@@ -394,21 +385,20 @@ class DreamManager:
         # This would fetch from memory manager
         # Simplified for now
         return []
-    
+
     def _generate_dream_id(self, user_id: str) -> str:
         """Generate unique dream ID."""
         import time
-        return hashlib.sha256(
-            f"{user_id}:{time.time()}".encode()
-        ).hexdigest()[:16]
-    
+
+        return hashlib.sha256(f"{user_id}:{time.time()}".encode()).hexdigest()[:16]
+
     async def get_dream_status(self, dream_id: str) -> dict[str, Any] | None:
         """Get status of a dream cycle."""
         dream = self._active_dreams.get(dream_id)
         if not dream:
             return None
         return dream.to_dict()
-    
+
     async def close(self) -> None:
         """Clean up resources."""
         await self.reflection_integration.close()

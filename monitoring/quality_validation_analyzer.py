@@ -8,7 +8,7 @@ import json
 import sqlite3
 import warnings
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -17,25 +17,25 @@ import numpy as np
 import seaborn as sns
 
 try:
-    from .performance_gap_backlog_converter import (
-        BacklogConversionResult,
-        PerformanceGapBacklogConverter,
-    )
     from .linear_backlog_action_builder import (
         build_linear_backlog_payload,
         write_linear_backlog_artifact,
     )
     from .linear_backlog_dispatcher import LinearBacklogDispatcher
-except Exception:
-    from performance_gap_backlog_converter import (
+    from .performance_gap_backlog_converter import (
         BacklogConversionResult,
         PerformanceGapBacklogConverter,
     )
+except Exception:
     from linear_backlog_action_builder import (
         build_linear_backlog_payload,
         write_linear_backlog_artifact,
     )
     from linear_backlog_dispatcher import LinearBacklogDispatcher
+    from performance_gap_backlog_converter import (
+        BacklogConversionResult,
+        PerformanceGapBacklogConverter,
+    )
 
 warnings.simplefilter("default")
 
@@ -113,9 +113,7 @@ class QualityValidationAnalyzer:
             "poor": (0.0, 0.5),
         }
 
-    def analyze_validation_results(
-        self, days_back: int = 30
-    ) -> dict[str, ValidationAnalysis]:
+    def analyze_validation_results(self, days_back: int = 30) -> dict[str, ValidationAnalysis]:
         """Analyze quality validation results"""
 
         try:
@@ -162,9 +160,7 @@ class QualityValidationAnalyzer:
             # Generate synthetic validation results
             validation_results = []
 
-            for _ in range(
-                min(5000, len(conversation_ids) * len(self.validation_metrics))
-            ):
+            for _ in range(min(5000, len(conversation_ids) * len(self.validation_metrics))):
                 conversation_id = np.random.choice(conversation_ids)
                 metric = np.random.choice(self.validation_metrics)
 
@@ -184,8 +180,7 @@ class QualityValidationAnalyzer:
                     passed=passed,
                     threshold=threshold,
                     validation_type="automated",
-                    timestamp=datetime.now(timezone.utc)
-                    - timedelta(days=np.random.randint(0, days_back)),
+                    timestamp=datetime.now(UTC) - timedelta(days=np.random.randint(0, days_back)),
                     details={
                         "validation_method": "nlp_analysis",
                         "confidence": min(0.99, score + np.random.uniform(0, 0.2)),
@@ -200,9 +195,7 @@ class QualityValidationAnalyzer:
         except Exception:
             return []
 
-    def _analyze_metric_validation(
-        self, metric: str, results: list[ValidationResult]
-    ) -> ValidationAnalysis | None:
+    def _analyze_metric_validation(self, metric: str, results: list[ValidationResult]) -> ValidationAnalysis | None:
         """Analyze validation results for a specific metric"""
         try:
             if not results:
@@ -225,9 +218,7 @@ class QualityValidationAnalyzer:
                 score_distribution[range_name] = count
 
             # Failure pattern analysis
-            failure_patterns = self._analyze_failure_patterns(
-                metric, [r for r in results if not r.passed]
-            )
+            failure_patterns = self._analyze_failure_patterns(metric, [r for r in results if not r.passed])
 
             # Generate recommendations
             recommendations = self._generate_validation_recommendations(
@@ -249,9 +240,7 @@ class QualityValidationAnalyzer:
         except Exception:
             return None
 
-    def _analyze_failure_patterns(
-        self, metric: str, failed_results: list[ValidationResult]
-    ) -> list[str]:
+    def _analyze_failure_patterns(self, metric: str, failed_results: list[ValidationResult]) -> list[str]:
         """Analyze patterns in validation failures"""
         patterns = []
 
@@ -264,51 +253,36 @@ class QualityValidationAnalyzer:
         threshold = self.validation_thresholds[metric]
 
         if avg_failed_score < threshold - 0.2:
-            patterns.append(
-                f"Consistently low scores (avg: {avg_failed_score:.3f}, threshold: {threshold:.3f})"
-            )
+            patterns.append(f"Consistently low scores (avg: {avg_failed_score:.3f}, threshold: {threshold:.3f})")
         elif avg_failed_score >= threshold - 0.05:
-            patterns.append(
-                f"Borderline failures (avg: {avg_failed_score:.3f}, threshold: {threshold:.3f})"
-            )
+            patterns.append(f"Borderline failures (avg: {avg_failed_score:.3f}, threshold: {threshold:.3f})")
 
         # Temporal patterns
         failure_times = [r.timestamp for r in failed_results]
         if len(failure_times) > 10:
             # Check for clustering in time
             time_diffs = [
-                (failure_times[i + 1] - failure_times[i]).total_seconds()
-                for i in range(len(failure_times) - 1)
+                (failure_times[i + 1] - failure_times[i]).total_seconds() for i in range(len(failure_times) - 1)
             ]
             avg_time_diff = np.mean(time_diffs)
 
             if avg_time_diff < 3600:  # Less than 1 hour average
-                patterns.append(
-                    "Failures clustered in time (potential systematic issue)"
-                )
+                patterns.append("Failures clustered in time (potential systematic issue)")
 
         # Confidence patterns
         failed_confidences = [r.details.get("confidence", 0.5) for r in failed_results]
         avg_confidence = np.mean(failed_confidences)
 
         if avg_confidence < 0.6:
-            patterns.append(
-                f"Low confidence in failed validations (avg: {avg_confidence:.3f})"
-            )
+            patterns.append(f"Low confidence in failed validations (avg: {avg_confidence:.3f})")
 
         # Metric-specific patterns
         if metric == "therapeutic_accuracy":
-            patterns.append(
-                "Review clinical training data quality and therapeutic technique validation"
-            )
+            patterns.append("Review clinical training data quality and therapeutic technique validation")
         elif metric == "safety_score":
-            patterns.append(
-                "CRITICAL: Safety validation failures require immediate attention"
-            )
+            patterns.append("CRITICAL: Safety validation failures require immediate attention")
         elif metric == "clinical_compliance":
-            patterns.append(
-                "Review adherence to clinical guidelines and professional standards"
-            )
+            patterns.append("Review adherence to clinical guidelines and professional standards")
 
         return patterns
 
@@ -324,28 +298,18 @@ class QualityValidationAnalyzer:
 
         # Pass rate based recommendations
         if pass_rate < 70:
-            recommendations.append(
-                f"URGENT: Low pass rate ({pass_rate:.1f}%) requires immediate intervention"
-            )
+            recommendations.append(f"URGENT: Low pass rate ({pass_rate:.1f}%) requires immediate intervention")
             recommendations.append("Review and strengthen quality validation criteria")
         elif pass_rate < 85:
-            recommendations.append(
-                f"Moderate pass rate ({pass_rate:.1f}%) - consider process improvements"
-            )
+            recommendations.append(f"Moderate pass rate ({pass_rate:.1f}%) - consider process improvements")
         else:
-            recommendations.append(
-                f"Good pass rate ({pass_rate:.1f}%) - maintain current standards"
-            )
+            recommendations.append(f"Good pass rate ({pass_rate:.1f}%) - maintain current standards")
 
         # Score based recommendations
         if average_score < 0.6:
-            recommendations.append(
-                f"Low average score ({average_score:.3f}) - comprehensive quality review needed"
-            )
+            recommendations.append(f"Low average score ({average_score:.3f}) - comprehensive quality review needed")
         elif average_score < 0.75:
-            recommendations.append(
-                f"Moderate average score ({average_score:.3f}) - targeted improvements recommended"
-            )
+            recommendations.append(f"Moderate average score ({average_score:.3f}) - targeted improvements recommended")
 
         # Metric-specific recommendations
         if metric == "therapeutic_accuracy":
@@ -391,20 +355,14 @@ class QualityValidationAnalyzer:
 
         # Pattern-based recommendations
         if any("clustered in time" in pattern for pattern in failure_patterns):
-            recommendations.append(
-                "Investigate systematic issues causing temporal failure clustering"
-            )
+            recommendations.append("Investigate systematic issues causing temporal failure clustering")
 
         if any("Low confidence" in pattern for pattern in failure_patterns):
-            recommendations.append(
-                "Improve validation confidence through enhanced NLP models"
-            )
+            recommendations.append("Improve validation confidence through enhanced NLP models")
 
         return recommendations
 
-    def create_validation_visualizations(
-        self, analyses: dict[str, ValidationAnalysis]
-    ) -> dict[str, str]:
+    def create_validation_visualizations(self, analyses: dict[str, ValidationAnalysis]) -> dict[str, str]:
         """Create validation analysis visualizations"""
 
         viz_files = {}
@@ -419,9 +377,7 @@ class QualityValidationAnalyzer:
 
             # Create validation dashboard
             fig, axes = plt.subplots(2, 2, figsize=(16, 12))
-            fig.suptitle(
-                "Quality Validation Analysis Dashboard", fontsize=16, fontweight="bold"
-            )
+            fig.suptitle("Quality Validation Analysis Dashboard", fontsize=16, fontweight="bold")
 
             # Pass rates by metric
             ax = axes[0, 0]
@@ -433,15 +389,9 @@ class QualityValidationAnalyzer:
             ax.set_xlabel("Metrics")
             ax.set_ylabel("Pass Rate (%)")
             ax.set_xticks(range(len(metrics)))
-            ax.set_xticklabels(
-                [m.replace("_", " ").title() for m in metrics], rotation=45, ha="right"
-            )
-            ax.axhline(
-                y=85, color="green", linestyle="--", alpha=0.7, label="Target (85%)"
-            )
-            ax.axhline(
-                y=70, color="orange", linestyle="--", alpha=0.7, label="Warning (70%)"
-            )
+            ax.set_xticklabels([m.replace("_", " ").title() for m in metrics], rotation=45, ha="right")
+            ax.axhline(y=85, color="green", linestyle="--", alpha=0.7, label="Target (85%)")
+            ax.axhline(y=70, color="orange", linestyle="--", alpha=0.7, label="Warning (70%)")
             ax.legend()
             ax.grid(True, alpha=0.3)
 
@@ -471,9 +421,7 @@ class QualityValidationAnalyzer:
             ax.set_xlabel("Metrics")
             ax.set_ylabel("Score")
             ax.set_xticks(x)
-            ax.set_xticklabels(
-                [m.replace("_", " ").title() for m in metrics], rotation=45, ha="right"
-            )
+            ax.set_xticklabels([m.replace("_", " ").title() for m in metrics], rotation=45, ha="right")
             ax.legend()
             ax.grid(True, alpha=0.3)
 
@@ -484,9 +432,7 @@ class QualityValidationAnalyzer:
 
             bottom = np.zeros(len(metrics))
             for i, score_range in enumerate(score_ranges):
-                values = [
-                    analyses[m].score_distribution.get(score_range, 0) for m in metrics
-                ]
+                values = [analyses[m].score_distribution.get(score_range, 0) for m in metrics]
                 ax.bar(
                     metrics,
                     values,
@@ -500,9 +446,7 @@ class QualityValidationAnalyzer:
             ax.set_title("Score Distribution by Metric")
             ax.set_xlabel("Metrics")
             ax.set_ylabel("Count")
-            ax.set_xticklabels(
-                [m.replace("_", " ").title() for m in metrics], rotation=45, ha="right"
-            )
+            ax.set_xticklabels([m.replace("_", " ").title() for m in metrics], rotation=45, ha="right")
             ax.legend()
             ax.grid(True, alpha=0.3)
 
@@ -537,16 +481,12 @@ class QualityValidationAnalyzer:
         except Exception:
             return {}
 
-    def export_validation_report(
-        self, analyses: dict[str, ValidationAnalysis], visualizations: dict[str, str]
-    ) -> str:
+    def export_validation_report(self, analyses: dict[str, ValidationAnalysis], visualizations: dict[str, str]) -> str:
         """Export comprehensive validation analysis report"""
 
         try:
-            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-            report_file = (
-                self.output_dir / f"quality_validation_report_{timestamp}.json"
-            )
+            timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
+            report_file = self.output_dir / f"quality_validation_report_{timestamp}.json"
 
             # Create executive summary
             executive_summary = self._create_validation_summary(analyses)
@@ -557,12 +497,10 @@ class QualityValidationAnalyzer:
             linear_backlog_artifact = write_linear_backlog_artifact(
                 linear_payload, self.linear_artifact_dir / "linear_backlog_payload.json"
             )
-            linear_dispatch = self.linear_dispatcher.dispatch_backlog_actions(
-                linear_payload
-            )
+            linear_dispatch = self.linear_dispatcher.dispatch_backlog_actions(linear_payload)
             export_data = {
                 "report_metadata": {
-                    "generated_at": datetime.now(timezone.utc).isoformat(),
+                    "generated_at": datetime.now(UTC).isoformat(),
                     "analyzer_version": "1.0.0",
                     "metrics_analyzed": len(analyses),
                     "analysis_period_days": 30,
@@ -583,9 +521,7 @@ class QualityValidationAnalyzer:
                 },
                 "visualizations": visualizations,
                 "quality_insights": self._generate_quality_insights(analyses),
-                "backlog_conversion": self._serialize_backlog_conversion(
-                    backlog_conversion
-                ),
+                "backlog_conversion": self._serialize_backlog_conversion(backlog_conversion),
                 "linear_backlog_artifact": linear_backlog_artifact,
                 "linear_backlog_dispatch": linear_dispatch,
             }
@@ -599,9 +535,7 @@ class QualityValidationAnalyzer:
         except Exception:
             return ""
 
-    def _create_validation_summary(
-        self, analyses: dict[str, ValidationAnalysis]
-    ) -> dict[str, Any]:
+    def _create_validation_summary(self, analyses: dict[str, ValidationAnalysis]) -> dict[str, Any]:
         """Create executive summary of validation results"""
         try:
             if not analyses:
@@ -610,9 +544,7 @@ class QualityValidationAnalyzer:
             # Overall statistics
             total_validations = sum(a.total_validations for a in analyses.values())
             total_passed = sum(a.passed_validations for a in analyses.values())
-            overall_pass_rate = (
-                (total_passed / total_validations) * 100 if total_validations > 0 else 0
-            )
+            overall_pass_rate = (total_passed / total_validations) * 100 if total_validations > 0 else 0
 
             # Average scores
             avg_scores = [a.average_score for a in analyses.values()]
@@ -620,17 +552,11 @@ class QualityValidationAnalyzer:
 
             # Metrics performance
             high_performing = [m for m, a in analyses.items() if a.pass_rate >= 85]
-            moderate_performing = [
-                m for m, a in analyses.items() if 70 <= a.pass_rate < 85
-            ]
+            moderate_performing = [m for m, a in analyses.items() if 70 <= a.pass_rate < 85]
             low_performing = [m for m, a in analyses.items() if a.pass_rate < 70]
 
             # Critical issues
-            critical_metrics = [
-                m
-                for m, a in analyses.items()
-                if m == "safety_score" and a.pass_rate < 95
-            ]
+            critical_metrics = [m for m, a in analyses.items() if m == "safety_score" and a.pass_rate < 95]
 
             return {
                 "status": "analysis_complete",
@@ -654,9 +580,7 @@ class QualityValidationAnalyzer:
         except Exception as e:
             return {"status": "error", "message": str(e)}
 
-    def _generate_quality_insights(
-        self, analyses: dict[str, ValidationAnalysis]
-    ) -> list[str]:
+    def _generate_quality_insights(self, analyses: dict[str, ValidationAnalysis]) -> list[str]:
         """Generate actionable quality insights"""
         insights = []
 
@@ -673,9 +597,7 @@ class QualityValidationAnalyzer:
             )
 
             # Score insights
-            high_score_metrics = [
-                m for m, a in analyses.items() if a.average_score >= 0.8
-            ]
+            high_score_metrics = [m for m, a in analyses.items() if a.average_score >= 0.8]
             if high_score_metrics:
                 insights.append(
                     f"High-scoring metrics ({len(high_score_metrics)}): {', '.join([m.replace('_', ' ').title() for m in high_score_metrics])}"
@@ -687,9 +609,7 @@ class QualityValidationAnalyzer:
                 all_patterns.extend(analysis.failure_patterns)
 
             if any("systematic issue" in pattern.lower() for pattern in all_patterns):
-                insights.append(
-                    "Systematic issues detected - investigate infrastructure and processing pipeline"
-                )
+                insights.append("Systematic issues detected - investigate infrastructure and processing pipeline")
 
             # Safety insights
             if "safety_score" in analyses:
@@ -701,22 +621,18 @@ class QualityValidationAnalyzer:
 
             # Volume insights
             total_validations = sum(a.total_validations for a in analyses.values())
-            insights.append(
-                f"Total validations processed: {total_validations:,} across {len(analyses)} metrics"
-            )
+            insights.append(f"Total validations processed: {total_validations:,} across {len(analyses)} metrics")
 
         except Exception:
             insights.append("Error generating insights - see logs for details")
 
         return insights
 
-    def convert_analysis_to_backlog_actions(
-        self, analyses: dict[str, ValidationAnalysis]
-    ) -> BacklogConversionResult:
+    def convert_analysis_to_backlog_actions(self, analyses: dict[str, ValidationAnalysis]) -> BacklogConversionResult:
         """Convert validation analysis metrics into backlog conversion recommendations."""
         if not analyses:
             return BacklogConversionResult(
-                generated_at=datetime.now(timezone.utc).isoformat(),
+                generated_at=datetime.now(UTC).isoformat(),
                 metric_count=0,
                 generated_changes=0,
                 changes=[],

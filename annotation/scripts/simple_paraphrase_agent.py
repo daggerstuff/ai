@@ -59,9 +59,7 @@ Preserve the number of messages and the speaker roles.""",
                     },
                     {
                         "role": "user",
-                        "content": (
-                            f"Paraphrase this conversation:\n\n{conversation_text}"
-                        ),
+                        "content": (f"Paraphrase this conversation:\n\n{conversation_text}"),
                     },
                 ],
                 temperature=0.8,
@@ -110,17 +108,13 @@ Preserve the number of messages and the speaker roles.""",
             if line.lower().startswith("user:"):
                 # Save previous message if exists
                 if current_role and current_content:
-                    messages.append(
-                        {"role": current_role, "content": " ".join(current_content)}
-                    )
+                    messages.append({"role": current_role, "content": " ".join(current_content)})
                 current_role = "user"
                 current_content = [line[5:].strip()]
             elif line.lower().startswith("assistant:"):
                 # Save previous message if exists
                 if current_role and current_content:
-                    messages.append(
-                        {"role": current_role, "content": " ".join(current_content)}
-                    )
+                    messages.append({"role": current_role, "content": " ".join(current_content)})
                 current_role = "assistant"
                 current_content = [line[10:].strip()]
             # Continuation of previous message
@@ -129,9 +123,7 @@ Preserve the number of messages and the speaker roles.""",
 
         # Save last message
         if current_role and current_content:
-            messages.append(
-                {"role": current_role, "content": " ".join(current_content)}
-            )
+            messages.append({"role": current_role, "content": " ".join(current_content)})
 
         return messages
 
@@ -210,7 +202,6 @@ Paraphrased: "I'm really stressed out"
             var_dir = output_path / var_type
             var_dir.mkdir(exist_ok=True)
 
-
             for i, conv in enumerate(conversations):
                 task_id = conv.get("task_id", f"task_{i}")
 
@@ -225,9 +216,7 @@ Paraphrased: "I'm really stressed out"
                             continue
 
                         # Paraphrase messages
-                        paraphrased_messages = self.paraphrase_messages(
-                            original_messages, var_type
-                        )
+                        paraphrased_messages = self.paraphrase_messages(original_messages, var_type)
 
                         # Create new conversation
                         paraphrased = conv.copy()
@@ -253,8 +242,6 @@ Paraphrased: "I'm really stressed out"
                     except Exception:
                         pass
 
-
-
         # Combine all variations
         combined_file = output_path / "all_paraphrases.jsonl"
         with open(combined_file, "w") as out_f:
@@ -265,22 +252,13 @@ Paraphrased: "I'm really stressed out"
                         out_f.write(in_f.read())
 
 
-
 def main():
-    parser = argparse.ArgumentParser(
-        description="Generate paraphrased variations (simple text-based approach)"
-    )
+    parser = argparse.ArgumentParser(description="Generate paraphrased variations (simple text-based approach)")
     parser.add_argument("--input", required=True, help="Input JSONL file")
     parser.add_argument("--output", required=True, help="Output directory")
-    parser.add_argument(
-        "--variations", default="lexical,syntactic", help="Variation types"
-    )
-    parser.add_argument(
-        "--per-sample", type=int, default=1, help="Variations per sample"
-    )
-    parser.add_argument(
-        "--model", default="nvidia/llama-3.3-nemotron-super-49b-v1", help="Model"
-    )
+    parser.add_argument("--variations", default="lexical,syntactic", help="Variation types")
+    parser.add_argument("--per-sample", type=int, default=1, help="Variations per sample")
+    parser.add_argument("--model", default="nvidia/llama-3.3-nemotron-super-49b-v1", help="Model")
 
     args = parser.parse_args()
 

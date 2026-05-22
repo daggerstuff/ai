@@ -7,7 +7,7 @@ Analyzes tier distribution patterns and provides optimization recommendations
 import json
 import sqlite3
 import warnings
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -67,9 +67,7 @@ class SimpleTierDistributionOptimizer:
 
             # Calculate percentages
             total_conversations = tier_summary["conversation_count"].sum()
-            tier_summary["percentage"] = (
-                tier_summary["conversation_count"] / total_conversations
-            ) * 100
+            tier_summary["percentage"] = (tier_summary["conversation_count"] / total_conversations) * 100
 
             # Create analysis results
             analysis_results = {
@@ -90,12 +88,8 @@ class SimpleTierDistributionOptimizer:
                 }
 
             # Generate recommendations
-            analysis_results["optimization_recommendations"] = (
-                self._generate_recommendations(tier_summary)
-            )
-            analysis_results["quality_insights"] = self._generate_quality_insights(
-                tier_summary
-            )
+            analysis_results["optimization_recommendations"] = self._generate_recommendations(tier_summary)
+            analysis_results["quality_insights"] = self._generate_quality_insights(tier_summary)
 
             return analysis_results
 
@@ -112,16 +106,12 @@ class SimpleTierDistributionOptimizer:
             if len(percentages) > 1:
                 std_dev = np.std(percentages)
                 if std_dev > 20:  # High variation
-                    recommendations.append(
-                        "High tier distribution imbalance detected - consider rebalancing"
-                    )
+                    recommendations.append("High tier distribution imbalance detected - consider rebalancing")
 
                 # Check for dominant tiers
                 max_pct = percentages.max()
                 if max_pct > 60:
-                    dominant_tier = tier_summary.loc[
-                        tier_summary["percentage"].idxmax(), "tier"
-                    ]
+                    dominant_tier = tier_summary.loc[tier_summary["percentage"].idxmax(), "tier"]
                     recommendations.append(
                         f"Tier '{dominant_tier}' dominates with {max_pct:.1f}% - consider diversification"
                     )
@@ -129,9 +119,7 @@ class SimpleTierDistributionOptimizer:
                 # Check for underrepresented tiers
                 min_pct = percentages.min()
                 if min_pct < 5:
-                    underrep_tier = tier_summary.loc[
-                        tier_summary["percentage"].idxmin(), "tier"
-                    ]
+                    underrep_tier = tier_summary.loc[tier_summary["percentage"].idxmin(), "tier"]
                     recommendations.append(
                         f"Tier '{underrep_tier}' is underrepresented with {min_pct:.1f}% - consider expansion"
                     )
@@ -151,9 +139,7 @@ class SimpleTierDistributionOptimizer:
                     )
 
             if not recommendations:
-                recommendations.append(
-                    "Tier distribution appears well-balanced - maintain current structure"
-                )
+                recommendations.append("Tier distribution appears well-balanced - maintain current structure")
 
             return recommendations
 
@@ -178,9 +164,7 @@ class SimpleTierDistributionOptimizer:
             )
 
             # Tier-specific insights
-            best_content_tier = tier_summary.loc[
-                tier_summary["avg_word_count"].idxmax()
-            ]
+            best_content_tier = tier_summary.loc[tier_summary["avg_word_count"].idxmax()]
             insights.append(
                 f"Richest content tier: '{best_content_tier['tier']}' with {best_content_tier['avg_word_count']:.1f} words average"
             )
@@ -210,9 +194,7 @@ class SimpleTierDistributionOptimizer:
 
             # Create dashboard
             fig, axes = plt.subplots(2, 2, figsize=(16, 12))
-            fig.suptitle(
-                "Tier Distribution Analysis Dashboard", fontsize=16, fontweight="bold"
-            )
+            fig.suptitle("Tier Distribution Analysis Dashboard", fontsize=16, fontweight="bold")
 
             tier_data = analysis_results["tier_distribution"]
             tier_names = list(tier_data.keys())
@@ -298,19 +280,17 @@ class SimpleTierDistributionOptimizer:
         except Exception:
             return {}
 
-    def export_report(
-        self, analysis_results: dict[str, Any], visualizations: dict[str, str]
-    ) -> str:
+    def export_report(self, analysis_results: dict[str, Any], visualizations: dict[str, str]) -> str:
         """Export tier distribution report"""
 
         try:
-            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
             report_file = self.output_dir / f"tier_distribution_report_{timestamp}.json"
 
             # Prepare export data
             export_data = {
                 "report_metadata": {
-                    "generated_at": datetime.now(timezone.utc).isoformat(),
+                    "generated_at": datetime.now(UTC).isoformat(),
                     "analyzer_version": "1.0.0",
                     "analysis_type": "tier_distribution",
                 },

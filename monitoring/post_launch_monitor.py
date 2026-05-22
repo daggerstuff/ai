@@ -5,6 +5,7 @@ Enterprise Production Readiness Framework - Task 6.3
 
 24/7 monitoring with comprehensive dashboards and operational handover.
 """
+
 import json
 import logging
 import random
@@ -12,17 +13,15 @@ import sqlite3
 import threading
 import time
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from pathlib import Path
 from typing import Any
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
+
 
 class AlertSeverity(Enum):
     CRITICAL = "critical"
@@ -31,11 +30,13 @@ class AlertSeverity(Enum):
     LOW = "low"
     INFO = "info"
 
+
 class MonitoringStatus(Enum):
     HEALTHY = "healthy"
     WARNING = "warning"
     CRITICAL = "critical"
     UNKNOWN = "unknown"
+
 
 @dataclass
 class MetricData:
@@ -45,6 +46,7 @@ class MetricData:
     timestamp: datetime
     threshold_warning: float | None = None
     threshold_critical: float | None = None
+
 
 @dataclass
 class Alert:
@@ -59,6 +61,7 @@ class Alert:
     acknowledged: bool = False
     resolved: bool = False
 
+
 @dataclass
 class BusinessMetric:
     metric_name: str
@@ -67,6 +70,7 @@ class BusinessMetric:
     unit: str
     timestamp: datetime
     trend: str  # "up", "down", "stable"
+
 
 class PostLaunchMonitor:
     """Comprehensive post-launch monitoring and operational handover system."""
@@ -161,7 +165,7 @@ class PostLaunchMonitor:
             threading.Thread(target=self._monitor_business_metrics, daemon=True),
             threading.Thread(target=self._monitor_security_events, daemon=True),
             threading.Thread(target=self._monitor_compliance_status, daemon=True),
-            threading.Thread(target=self._process_alerts, daemon=True)
+            threading.Thread(target=self._process_alerts, daemon=True),
         ]
 
         for thread in monitoring_threads:
@@ -277,19 +281,21 @@ class PostLaunchMonitor:
     def _collect_system_health_metrics(self) -> list[MetricData]:
         """Collect system health metrics."""
         metrics = []
-        timestamp = datetime.now(timezone.utc)
+        timestamp = datetime.now(UTC)
 
         try:
             # Simulate system health metrics collection
 
-            metrics.extend([
-                MetricData("cpu_utilization", random.uniform(20, 80), "%", timestamp, 70, 90),
-                MetricData("memory_utilization", random.uniform(30, 85), "%", timestamp, 75, 90),
-                MetricData("disk_utilization", random.uniform(40, 70), "%", timestamp, 80, 95),
-                MetricData("network_latency", random.uniform(10, 50), "ms", timestamp, 100, 200),
-                MetricData("system_uptime", random.uniform(99.9, 100), "%", timestamp, 99.5, 99.0),
-                MetricData("active_connections", random.uniform(100, 1000), "count", timestamp, 800, 950)
-            ])
+            metrics.extend(
+                [
+                    MetricData("cpu_utilization", random.uniform(20, 80), "%", timestamp, 70, 90),
+                    MetricData("memory_utilization", random.uniform(30, 85), "%", timestamp, 75, 90),
+                    MetricData("disk_utilization", random.uniform(40, 70), "%", timestamp, 80, 95),
+                    MetricData("network_latency", random.uniform(10, 50), "ms", timestamp, 100, 200),
+                    MetricData("system_uptime", random.uniform(99.9, 100), "%", timestamp, 99.5, 99.0),
+                    MetricData("active_connections", random.uniform(100, 1000), "count", timestamp, 800, 950),
+                ]
+            )
 
         except Exception as e:
             logger.error(f"Failed to collect system health metrics: {e}")
@@ -299,19 +305,21 @@ class PostLaunchMonitor:
     def _collect_performance_metrics(self) -> list[MetricData]:
         """Collect performance metrics."""
         metrics = []
-        timestamp = datetime.now(timezone.utc)
+        timestamp = datetime.now(UTC)
 
         try:
             # Simulate performance metrics collection
 
-            metrics.extend([
-                MetricData("api_response_time_p95", random.uniform(50, 200), "ms", timestamp, 200, 500),
-                MetricData("api_response_time_p99", random.uniform(100, 300), "ms", timestamp, 500, 1000),
-                MetricData("requests_per_minute", random.uniform(500, 2000), "rpm", timestamp, None, None),
-                MetricData("error_rate", random.uniform(0, 0.5), "%", timestamp, 1.0, 5.0),
-                MetricData("database_query_time", random.uniform(10, 100), "ms", timestamp, 100, 500),
-                MetricData("cache_hit_rate", random.uniform(85, 99), "%", timestamp, 80, 70)
-            ])
+            metrics.extend(
+                [
+                    MetricData("api_response_time_p95", random.uniform(50, 200), "ms", timestamp, 200, 500),
+                    MetricData("api_response_time_p99", random.uniform(100, 300), "ms", timestamp, 500, 1000),
+                    MetricData("requests_per_minute", random.uniform(500, 2000), "rpm", timestamp, None, None),
+                    MetricData("error_rate", random.uniform(0, 0.5), "%", timestamp, 1.0, 5.0),
+                    MetricData("database_query_time", random.uniform(10, 100), "ms", timestamp, 100, 500),
+                    MetricData("cache_hit_rate", random.uniform(85, 99), "%", timestamp, 80, 70),
+                ]
+            )
 
         except Exception as e:
             logger.error(f"Failed to collect performance metrics: {e}")
@@ -321,19 +329,25 @@ class PostLaunchMonitor:
     def _collect_business_metrics(self) -> list[BusinessMetric]:
         """Collect business metrics."""
         metrics = []
-        timestamp = datetime.now(timezone.utc)
+        timestamp = datetime.now(UTC)
 
         try:
             # Simulate business metrics collection
 
-            metrics.extend([
-                BusinessMetric("active_users", random.uniform(800, 1200), 1000, "count", timestamp, "up"),
-                BusinessMetric("user_registrations", random.uniform(20, 50), 30, "per_hour", timestamp, "stable"),
-                BusinessMetric("api_usage", random.uniform(5000, 15000), 10000, "requests_per_hour", timestamp, "up"),
-                BusinessMetric("customer_satisfaction", random.uniform(4.2, 4.8), 4.5, "rating", timestamp, "stable"),
-                BusinessMetric("revenue_impact", random.uniform(1000, 5000), 3000, "usd_per_hour", timestamp, "up"),
-                BusinessMetric("support_tickets", random.uniform(5, 20), 10, "per_hour", timestamp, "down")
-            ])
+            metrics.extend(
+                [
+                    BusinessMetric("active_users", random.uniform(800, 1200), 1000, "count", timestamp, "up"),
+                    BusinessMetric("user_registrations", random.uniform(20, 50), 30, "per_hour", timestamp, "stable"),
+                    BusinessMetric(
+                        "api_usage", random.uniform(5000, 15000), 10000, "requests_per_hour", timestamp, "up"
+                    ),
+                    BusinessMetric(
+                        "customer_satisfaction", random.uniform(4.2, 4.8), 4.5, "rating", timestamp, "stable"
+                    ),
+                    BusinessMetric("revenue_impact", random.uniform(1000, 5000), 3000, "usd_per_hour", timestamp, "up"),
+                    BusinessMetric("support_tickets", random.uniform(5, 20), 10, "per_hour", timestamp, "down"),
+                ]
+            )
 
         except Exception as e:
             logger.error(f"Failed to collect business metrics: {e}")
@@ -343,19 +357,21 @@ class PostLaunchMonitor:
     def _collect_security_metrics(self) -> list[MetricData]:
         """Collect security metrics."""
         metrics = []
-        timestamp = datetime.now(timezone.utc)
+        timestamp = datetime.now(UTC)
 
         try:
             # Simulate security metrics collection
 
-            metrics.extend([
-                MetricData("failed_login_attempts", random.uniform(0, 10), "count", timestamp, 50, 100),
-                MetricData("suspicious_requests", random.uniform(0, 5), "count", timestamp, 20, 50),
-                MetricData("blocked_ips", random.uniform(0, 3), "count", timestamp, None, None),
-                MetricData("ssl_certificate_days_remaining", random.uniform(60, 90), "days", timestamp, 30, 7),
-                MetricData("security_scan_score", random.uniform(95, 100), "score", timestamp, 90, 80),
-                MetricData("vulnerability_count", random.uniform(0, 2), "count", timestamp, 5, 10)
-            ])
+            metrics.extend(
+                [
+                    MetricData("failed_login_attempts", random.uniform(0, 10), "count", timestamp, 50, 100),
+                    MetricData("suspicious_requests", random.uniform(0, 5), "count", timestamp, 20, 50),
+                    MetricData("blocked_ips", random.uniform(0, 3), "count", timestamp, None, None),
+                    MetricData("ssl_certificate_days_remaining", random.uniform(60, 90), "days", timestamp, 30, 7),
+                    MetricData("security_scan_score", random.uniform(95, 100), "score", timestamp, 90, 80),
+                    MetricData("vulnerability_count", random.uniform(0, 2), "count", timestamp, 5, 10),
+                ]
+            )
 
         except Exception as e:
             logger.error(f"Failed to collect security metrics: {e}")
@@ -365,19 +381,21 @@ class PostLaunchMonitor:
     def _collect_compliance_metrics(self) -> list[MetricData]:
         """Collect compliance metrics."""
         metrics = []
-        timestamp = datetime.now(timezone.utc)
+        timestamp = datetime.now(UTC)
 
         try:
             # Simulate compliance metrics collection
 
-            metrics.extend([
-                MetricData("hipaa_compliance_score", random.uniform(98, 100), "score", timestamp, 95, 90),
-                MetricData("soc2_compliance_score", random.uniform(97, 100), "score", timestamp, 95, 90),
-                MetricData("gdpr_compliance_score", random.uniform(96, 100), "score", timestamp, 95, 90),
-                MetricData("audit_log_completeness", random.uniform(99, 100), "%", timestamp, 98, 95),
-                MetricData("data_retention_compliance", random.uniform(98, 100), "%", timestamp, 95, 90),
-                MetricData("privacy_controls_active", random.uniform(99, 100), "%", timestamp, 98, 95)
-            ])
+            metrics.extend(
+                [
+                    MetricData("hipaa_compliance_score", random.uniform(98, 100), "score", timestamp, 95, 90),
+                    MetricData("soc2_compliance_score", random.uniform(97, 100), "score", timestamp, 95, 90),
+                    MetricData("gdpr_compliance_score", random.uniform(96, 100), "score", timestamp, 95, 90),
+                    MetricData("audit_log_completeness", random.uniform(99, 100), "%", timestamp, 98, 95),
+                    MetricData("data_retention_compliance", random.uniform(98, 100), "%", timestamp, 95, 90),
+                    MetricData("privacy_controls_active", random.uniform(99, 100), "%", timestamp, 98, 95),
+                ]
+            )
 
         except Exception as e:
             logger.error(f"Failed to collect compliance metrics: {e}")
@@ -390,18 +408,21 @@ class PostLaunchMonitor:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
 
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO system_metrics
                 (metric_name, value, unit, timestamp, threshold_warning, threshold_critical)
                 VALUES (?, ?, ?, ?, ?, ?)
-            """, (
-                metric.metric_name,
-                metric.value,
-                metric.unit,
-                metric.timestamp.isoformat(),
-                metric.threshold_warning,
-                metric.threshold_critical
-            ))
+            """,
+                (
+                    metric.metric_name,
+                    metric.value,
+                    metric.unit,
+                    metric.timestamp.isoformat(),
+                    metric.threshold_warning,
+                    metric.threshold_critical,
+                ),
+            )
 
             conn.commit()
             conn.close()
@@ -424,18 +445,21 @@ class PostLaunchMonitor:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
 
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO business_metrics
                 (metric_name, value, target, unit, timestamp, trend)
                 VALUES (?, ?, ?, ?, ?, ?)
-            """, (
-                metric.metric_name,
-                metric.value,
-                metric.target,
-                metric.unit,
-                metric.timestamp.isoformat(),
-                metric.trend
-            ))
+            """,
+                (
+                    metric.metric_name,
+                    metric.value,
+                    metric.target,
+                    metric.unit,
+                    metric.timestamp.isoformat(),
+                    metric.trend,
+                ),
+            )
 
             conn.commit()
             conn.close()
@@ -451,7 +475,6 @@ class PostLaunchMonitor:
     def _check_metric_thresholds(self, metric: MetricData):
         """Check metric against thresholds and generate alerts."""
         try:
-
             # Check critical threshold
             if metric.threshold_critical and metric.value >= metric.threshold_critical:
                 alert = Alert(
@@ -462,7 +485,7 @@ class PostLaunchMonitor:
                     metric_name=metric.metric_name,
                     current_value=metric.value,
                     threshold_value=metric.threshold_critical,
-                    timestamp=metric.timestamp
+                    timestamp=metric.timestamp,
                 )
                 self._create_alert(alert)
 
@@ -476,7 +499,7 @@ class PostLaunchMonitor:
                     metric_name=metric.metric_name,
                     current_value=metric.value,
                     threshold_value=metric.threshold_warning,
-                    timestamp=metric.timestamp
+                    timestamp=metric.timestamp,
                 )
                 self._create_alert(alert)
 
@@ -489,20 +512,23 @@ class PostLaunchMonitor:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
 
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO alerts
                 (alert_id, severity, title, description, metric_name, current_value, threshold_value, timestamp)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                alert.alert_id,
-                alert.severity.value,
-                alert.title,
-                alert.description,
-                alert.metric_name,
-                alert.current_value,
-                alert.threshold_value,
-                alert.timestamp.isoformat()
-            ))
+            """,
+                (
+                    alert.alert_id,
+                    alert.severity.value,
+                    alert.title,
+                    alert.description,
+                    alert.metric_name,
+                    alert.current_value,
+                    alert.threshold_value,
+                    alert.timestamp.isoformat(),
+                ),
+            )
 
             conn.commit()
             conn.close()
@@ -547,7 +573,7 @@ class PostLaunchMonitor:
                         "current_value": metrics_list[-1].value,
                         "unit": metrics_list[-1].unit,
                         "timestamp": metrics_list[-1].timestamp.isoformat(),
-                        "trend": self._calculate_trend(metrics_list[-10:]) if len(metrics_list) >= 10 else "stable"
+                        "trend": self._calculate_trend(metrics_list[-10:]) if len(metrics_list) >= 10 else "stable",
                     }
 
             # Get recent business metrics
@@ -559,7 +585,7 @@ class PostLaunchMonitor:
                         "target": metrics_list[-1].target,
                         "unit": metrics_list[-1].unit,
                         "trend": metrics_list[-1].trend,
-                        "timestamp": metrics_list[-1].timestamp.isoformat()
+                        "timestamp": metrics_list[-1].timestamp.isoformat(),
                     }
 
             # Get active alerts
@@ -569,20 +595,21 @@ class PostLaunchMonitor:
             system_health = self._calculate_system_health()
 
             return {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "system_health": system_health,
                 "system_metrics": recent_metrics,
                 "business_metrics": recent_business_metrics,
                 "active_alerts": active_alerts,
                 "alert_summary": {
-                    "critical": len([a for a in self.alerts if a.severity == AlertSeverity.CRITICAL and not a.resolved]),
+                    "critical": len(
+                        [a for a in self.alerts if a.severity == AlertSeverity.CRITICAL and not a.resolved]
+                    ),
                     "high": len([a for a in self.alerts if a.severity == AlertSeverity.HIGH and not a.resolved]),
                     "medium": len([a for a in self.alerts if a.severity == AlertSeverity.MEDIUM and not a.resolved]),
-                    "low": len([a for a in self.alerts if a.severity == AlertSeverity.LOW and not a.resolved])
+                    "low": len([a for a in self.alerts if a.severity == AlertSeverity.LOW and not a.resolved]),
                 },
-                "monitoring_status": "active" if self.monitoring_active else "inactive"
+                "monitoring_status": "active" if self.monitoring_active else "inactive",
             }
-
 
         except Exception as e:
             logger.error(f"Failed to generate dashboard data: {e}")
@@ -593,8 +620,8 @@ class PostLaunchMonitor:
         if len(metrics) < 2:
             return "stable"
 
-        first_half = metrics[:len(metrics)//2]
-        second_half = metrics[len(metrics)//2:]
+        first_half = metrics[: len(metrics) // 2]
+        second_half = metrics[len(metrics) // 2 :]
 
         first_avg = sum(m.value for m in first_half) / len(first_half)
         second_avg = sum(m.value for m in second_half) / len(second_half)
@@ -636,14 +663,14 @@ class PostLaunchMonitor:
 
             # Generate report
             report = {
-                "report_id": f"operational_report_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "report_id": f"operational_report_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
+                "timestamp": datetime.now(UTC).isoformat(),
                 "monitoring_duration": "24 hours",
                 "system_status": {
                     "overall_health": self._calculate_system_health(),
                     "uptime_percentage": current_uptime,
                     "response_time_p95": current_response_time,
-                    "error_rate": current_error_rate
+                    "error_rate": current_error_rate,
                 },
                 "sla_compliance": {
                     "uptime_sla": "99.9%",
@@ -651,29 +678,29 @@ class PostLaunchMonitor:
                     "uptime_met": current_uptime >= 99.9,
                     "response_time_sla": "200ms",
                     "response_time_actual": f"{current_response_time:.1f}ms",
-                    "response_time_met": current_response_time <= 200
+                    "response_time_met": current_response_time <= 200,
                 },
                 "alert_summary": {
                     "total_alerts": len(self.alerts),
                     "resolved_alerts": len([a for a in self.alerts if a.resolved]),
                     "active_alerts": len([a for a in self.alerts if not a.resolved]),
-                    "critical_incidents": len([a for a in self.alerts if a.severity == AlertSeverity.CRITICAL])
+                    "critical_incidents": len([a for a in self.alerts if a.severity == AlertSeverity.CRITICAL]),
                 },
                 "business_metrics_summary": {
                     metric_name: {
                         "current": metrics[-1].value,
                         "target": metrics[-1].target,
-                        "performance": "above_target" if metrics[-1].value >= metrics[-1].target else "below_target"
+                        "performance": "above_target" if metrics[-1].value >= metrics[-1].target else "below_target",
                     }
                     for metric_name, metrics in self.business_metrics.items()
                     if metrics
                 },
                 "operational_recommendations": self._generate_operational_recommendations(),
-                "next_review_date": (datetime.now(timezone.utc) + timedelta(days=1)).isoformat()
+                "next_review_date": (datetime.now(UTC) + timedelta(days=1)).isoformat(),
             }
 
             # Save report
-            report_file = f"operational_report_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.json"
+            report_file = f"operational_report_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.json"
             with open(report_file, "w") as f:
                 json.dump(report, f, indent=2, default=str)
 
@@ -709,7 +736,7 @@ class PostLaunchMonitor:
                 recommendations.append("Response time above SLA - optimize performance")
 
             # Check alert trends
-            recent_alerts = [a for a in self.alerts if a.timestamp > datetime.now(timezone.utc) - timedelta(hours=24)]
+            recent_alerts = [a for a in self.alerts if a.timestamp > datetime.now(UTC) - timedelta(hours=24)]
             if len(recent_alerts) > 10:
                 recommendations.append("High alert volume - review and optimize monitoring thresholds")
 
@@ -718,6 +745,7 @@ class PostLaunchMonitor:
         except Exception as e:
             logger.error(f"Failed to generate recommendations: {e}")
             return ["Error generating recommendations - manual review required"]
+
 
 def main():
     """Main execution function."""
@@ -746,15 +774,12 @@ def main():
         monitor.stop_monitoring()
         logger.info("Monitoring system stopped")
 
-        return {
-            "monitoring_started": True,
-            "dashboard_data": dashboard_data,
-            "operational_report": operational_report
-        }
+        return {"monitoring_started": True, "dashboard_data": dashboard_data, "operational_report": operational_report}
 
     except Exception as e:
         logger.error(f"Post-launch monitoring failed: {e}")
         return {"error": str(e)}
+
 
 if __name__ == "__main__":
     main()

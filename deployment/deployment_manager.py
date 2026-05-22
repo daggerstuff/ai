@@ -8,7 +8,7 @@ import json
 import logging
 import random
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -18,15 +18,17 @@ logger = logging.getLogger(__name__)
 
 class DeploymentStrategy(Enum):
     """Types of deployment strategies"""
-    DIRECT = "direct"          # Immediate full rollout
-    CANARY = "canary"           # Gradual rollout to increasing percentages
-    AB_TEST = "ab_test"         # A/B testing between versions
-    SHADOW = "shadow"           # Shadow traffic to new version
-    ROLLOUT = "rollout"         # Scheduled gradual rollout
+
+    DIRECT = "direct"  # Immediate full rollout
+    CANARY = "canary"  # Gradual rollout to increasing percentages
+    AB_TEST = "ab_test"  # A/B testing between versions
+    SHADOW = "shadow"  # Shadow traffic to new version
+    ROLLOUT = "rollout"  # Scheduled gradual rollout
 
 
 class DeploymentStatus(Enum):
     """Status of a deployment"""
+
     PENDING = "pending"
     ACTIVE = "active"
     PAUSED = "paused"
@@ -38,6 +40,7 @@ class DeploymentStatus(Enum):
 @dataclass
 class DeploymentConfig:
     """Configuration for a deployment"""
+
     strategy: DeploymentStrategy
     traffic_percentage: float = 0.0  # Current traffic percentage (0-100)
     target_percentage: float = 100.0  # Target traffic percentage
@@ -54,6 +57,7 @@ class DeploymentConfig:
 @dataclass
 class DeploymentVersion:
     """Represents a specific version of a model/service"""
+
     version_id: str
     model_name: str
     model_path: str
@@ -68,6 +72,7 @@ class DeploymentVersion:
 @dataclass
 class Deployment:
     """Represents a deployment operation"""
+
     deployment_id: str
     model_name: str
     strategy: DeploymentStrategy
@@ -75,10 +80,10 @@ class Deployment:
     new_version: DeploymentVersion | None = None
     config: DeploymentConfig = field(default_factory=DeploymentConfig)
     status: DeploymentStatus = DeploymentStatus.PENDING
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     started_at: str | None = None
     completed_at: str | None = None
-    last_updated: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    last_updated: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     traffic_shift_history: list[dict[str, Any]] = field(default_factory=list)
     metrics_history: list[dict[str, Any]] = field(default_factory=list)
     alerts: list[dict[str, Any]] = field(default_factory=list)
@@ -89,13 +94,14 @@ class Deployment:
 @dataclass
 class TrafficRoutingRule:
     """Rule for routing traffic to specific versions"""
+
     rule_id: str
     model_name: str
     condition: str  # Condition for applying this rule (e.g., "user_id_hash < 0.1")
     target_version: str  # Version ID to route to
     priority: int = 100  # Lower number = higher priority
     enabled: bool = True
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     expires_at: str | None = None
     metadata: dict[str, Any] | None = None
 
@@ -103,6 +109,7 @@ class TrafficRoutingRule:
 @dataclass
 class ExperimentResult:
     """Results from an A/B test or canary deployment"""
+
     experiment_id: str
     model_name: str
     control_version: str
@@ -149,10 +156,13 @@ class DeploymentManager:
             try:
                 config_data = {
                     "deployments": {dep_id: self._deployment_to_dict(dep) for dep_id, dep in self.deployments.items()},
-                    "traffic_rules": {model_name: [self._traffic_rule_to_dict(rule) for rule in rules]
-                                    for model_name, rules in self.traffic_rules.items()},
-                    "experiment_results": {exp_id: self._experiment_result_to_dict(exp)
-                                          for exp_id, exp in self.experiment_results.items()}
+                    "traffic_rules": {
+                        model_name: [self._traffic_rule_to_dict(rule) for rule in rules]
+                        for model_name, rules in self.traffic_rules.items()
+                    },
+                    "experiment_results": {
+                        exp_id: self._experiment_result_to_dict(exp) for exp_id, exp in self.experiment_results.items()
+                    },
                 }
                 with open(self.config_path, "w") as f:
                     json.dump(config_data, f, indent=2)
@@ -174,7 +184,7 @@ class DeploymentManager:
             evaluation_metrics=config_data.get("evaluation_metrics", ["latency", "error_rate"]),
             success_criteria=config_data.get("success_criteria", {}),
             rollback_criteria=config_data.get("rollback_criteria", {}),
-            metadata=config_data.get("metadata")
+            metadata=config_data.get("metadata"),
         )
 
         current_version_data = data.get("current_version", {})
@@ -187,7 +197,7 @@ class DeploymentManager:
             hash_checksum=current_version_data.get("hash_checksum"),
             size_bytes=current_version_data.get("size_bytes"),
             performance_baseline=current_version_data.get("performance_baseline"),
-            metadata=current_version_data.get("metadata")
+            metadata=current_version_data.get("metadata"),
         )
 
         new_version_data = data.get("new_version")
@@ -202,7 +212,7 @@ class DeploymentManager:
                 hash_checksum=new_version_data.get("hash_checksum"),
                 size_bytes=new_version_data.get("size_bytes"),
                 performance_baseline=new_version_data.get("performance_baseline"),
-                metadata=new_version_data.get("metadata")
+                metadata=new_version_data.get("metadata"),
             )
 
         return Deployment(
@@ -221,7 +231,7 @@ class DeploymentManager:
             metrics_history=data.get("metrics_history", []),
             alerts=data.get("alerts", []),
             rollback_info=data.get("rollback_info"),
-            metadata=data.get("metadata")
+            metadata=data.get("metadata"),
         )
 
     def _deployment_to_dict(self, deployment: Deployment) -> dict[str, Any]:
@@ -239,7 +249,7 @@ class DeploymentManager:
                 "hash_checksum": deployment.current_version.hash_checksum,
                 "size_bytes": deployment.current_version.size_bytes,
                 "performance_baseline": deployment.current_version.performance_baseline,
-                "metadata": deployment.current_version.metadata
+                "metadata": deployment.current_version.metadata,
             },
             "new_version": {
                 "version_id": deployment.new_version.version_id if deployment.new_version else None,
@@ -250,8 +260,10 @@ class DeploymentManager:
                 "hash_checksum": deployment.new_version.hash_checksum if deployment.new_version else None,
                 "size_bytes": deployment.new_version.size_bytes if deployment.new_version else None,
                 "performance_baseline": deployment.new_version.performance_baseline if deployment.new_version else None,
-                "metadata": deployment.new_version.metadata if deployment.new_version else None
-            } if deployment.new_version else None,
+                "metadata": deployment.new_version.metadata if deployment.new_version else None,
+            }
+            if deployment.new_version
+            else None,
             "config": {
                 "strategy": deployment.config.strategy.value,
                 "traffic_percentage": deployment.config.traffic_percentage,
@@ -263,7 +275,7 @@ class DeploymentManager:
                 "evaluation_metrics": deployment.config.evaluation_metrics,
                 "success_criteria": deployment.config.success_criteria,
                 "rollback_criteria": deployment.config.rollback_criteria,
-                "metadata": deployment.config.metadata
+                "metadata": deployment.config.metadata,
             },
             "status": deployment.status.value,
             "created_at": deployment.created_at,
@@ -274,7 +286,7 @@ class DeploymentManager:
             "metrics_history": deployment.metrics_history,
             "alerts": deployment.alerts,
             "rollback_info": deployment.rollback_info,
-            "metadata": deployment.metadata
+            "metadata": deployment.metadata,
         }
 
     def _dict_to_traffic_rule(self, data: dict[str, Any]) -> TrafficRoutingRule:
@@ -288,7 +300,7 @@ class DeploymentManager:
             enabled=data.get("enabled", True),
             created_at=data.get("created_at", ""),
             expires_at=data.get("expires_at"),
-            metadata=data.get("metadata")
+            metadata=data.get("metadata"),
         )
 
     def _traffic_rule_to_dict(self, rule: TrafficRoutingRule) -> dict[str, Any]:
@@ -302,7 +314,7 @@ class DeploymentManager:
             "enabled": rule.enabled,
             "created_at": rule.created_at,
             "expires_at": rule.expires_at,
-            "metadata": rule.metadata
+            "metadata": rule.metadata,
         }
 
     def _experiment_result_to_dict(self, result: ExperimentResult) -> dict[str, Any]:
@@ -319,16 +331,18 @@ class DeploymentManager:
             "winner": result.winner,
             "confidence_level": result.confidence_level,
             "sample_size": result.sample_size,
-            "metadata": result.metadata
+            "metadata": result.metadata,
         }
 
-    def create_deployment(self,
-                         model_name: str,
-                         new_version: DeploymentVersion,
-                         strategy: DeploymentStrategy,
-                         config: DeploymentConfig | None = None) -> str:
+    def create_deployment(
+        self,
+        model_name: str,
+        new_version: DeploymentVersion,
+        strategy: DeploymentStrategy,
+        config: DeploymentConfig | None = None,
+    ) -> str:
         """Create a new deployment"""
-        deployment_id = f"deploy_{model_name}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{hashlib.md5(model_name.encode()).hexdigest()[:8]}"
+        deployment_id = f"deploy_{model_name}_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}_{hashlib.md5(model_name.encode()).hexdigest()[:8]}"
 
         if not config:
             config = DeploymentConfig(strategy=strategy)
@@ -339,7 +353,7 @@ class DeploymentManager:
             model_name=model_name,
             model_path="",  # Would be populated from registry
             model_type="pytorch",  # Would be populated from registry
-            created_at=datetime.now(timezone.utc).isoformat()
+            created_at=datetime.now(UTC).isoformat(),
         )
 
         deployment = Deployment(
@@ -349,7 +363,7 @@ class DeploymentManager:
             current_version=current_version,
             new_version=new_version,
             config=config,
-            status=DeploymentStatus.PENDING
+            status=DeploymentStatus.PENDING,
         )
 
         self.deployments[deployment_id] = deployment
@@ -370,8 +384,8 @@ class DeploymentManager:
             return False
 
         deployment.status = DeploymentStatus.ACTIVE
-        deployment.started_at = datetime.now(timezone.utc).isoformat()
-        deployment.last_updated = datetime.now(timezone.utc).isoformat()
+        deployment.started_at = datetime.now(UTC).isoformat()
+        deployment.last_updated = datetime.now(UTC).isoformat()
 
         # Set initial traffic percentage
         if deployment.strategy == DeploymentStrategy.AB_TEST:
@@ -402,16 +416,18 @@ class DeploymentManager:
             control_rule = TrafficRoutingRule(
                 rule_id=f"ab_control_{deployment.deployment_id}",
                 model_name=model_name,
-                condition=f"user_id_hash < {(100 - deployment.config.ab_test_ratio)/100}",
+                condition=f"user_id_hash < {(100 - deployment.config.ab_test_ratio) / 100}",
                 target_version=deployment.current_version.version_id,
-                priority=1
+                priority=1,
             )
             treatment_rule = TrafficRoutingRule(
                 rule_id=f"ab_treatment_{deployment.deployment_id}",
                 model_name=model_name,
-                condition=f"user_id_hash >= {(100 - deployment.config.ab_test_ratio)/100}",
-                target_version=deployment.new_version.version_id if deployment.new_version else deployment.current_version.version_id,
-                priority=2
+                condition=f"user_id_hash >= {(100 - deployment.config.ab_test_ratio) / 100}",
+                target_version=deployment.new_version.version_id
+                if deployment.new_version
+                else deployment.current_version.version_id,
+                priority=2,
             )
             self.traffic_rules[model_name].extend([control_rule, treatment_rule])
 
@@ -420,16 +436,18 @@ class DeploymentManager:
             canary_rule = TrafficRoutingRule(
                 rule_id=f"canary_{deployment.deployment_id}",
                 model_name=model_name,
-                condition=f"user_id_hash < {deployment.config.traffic_percentage/100}",
-                target_version=deployment.new_version.version_id if deployment.new_version else deployment.current_version.version_id,
-                priority=1
+                condition=f"user_id_hash < {deployment.config.traffic_percentage / 100}",
+                target_version=deployment.new_version.version_id
+                if deployment.new_version
+                else deployment.current_version.version_id,
+                priority=1,
             )
             baseline_rule = TrafficRoutingRule(
                 rule_id=f"baseline_{deployment.deployment_id}",
                 model_name=model_name,
                 condition="true",  # Catch-all
                 target_version=deployment.current_version.version_id,
-                priority=100
+                priority=100,
             )
             self.traffic_rules[model_name].extend([canary_rule, baseline_rule])
 
@@ -440,14 +458,16 @@ class DeploymentManager:
                 model_name=model_name,
                 condition="true",
                 target_version=deployment.current_version.version_id,
-                priority=1
+                priority=1,
             )
             shadow_rule = TrafficRoutingRule(
                 rule_id=f"shadow_secondary_{deployment.deployment_id}",
                 model_name=model_name,
                 condition=f"random_sampling < {deployment.config.shadow_sampling_rate}",
-                target_version=deployment.new_version.version_id if deployment.new_version else deployment.current_version.version_id,
-                priority=2
+                target_version=deployment.new_version.version_id
+                if deployment.new_version
+                else deployment.current_version.version_id,
+                priority=2,
             )
             self.traffic_rules[model_name].extend([main_rule, shadow_rule])
 
@@ -457,8 +477,10 @@ class DeploymentManager:
                 rule_id=f"direct_{deployment.deployment_id}",
                 model_name=model_name,
                 condition="true",
-                target_version=deployment.new_version.version_id if deployment.new_version else deployment.current_version.version_id,
-                priority=1
+                target_version=deployment.new_version.version_id
+                if deployment.new_version
+                else deployment.current_version.version_id,
+                priority=1,
             )
             self.traffic_rules[model_name].append(direct_rule)
 
@@ -486,28 +508,32 @@ class DeploymentManager:
         old_percentage = deployment.config.traffic_percentage
         deployment.config.traffic_percentage = min(
             deployment.config.traffic_percentage + deployment.config.ramp_up_increment,
-            deployment.config.target_percentage
+            deployment.config.target_percentage,
         )
 
         # Record the traffic shift
-        deployment.traffic_shift_history.append({
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "from_percentage": old_percentage,
-            "to_percentage": deployment.config.traffic_percentage,
-            "reason": "scheduled_advance"
-        })
+        deployment.traffic_shift_history.append(
+            {
+                "timestamp": datetime.now(UTC).isoformat(),
+                "from_percentage": old_percentage,
+                "to_percentage": deployment.config.traffic_percentage,
+                "reason": "scheduled_advance",
+            }
+        )
 
         # Update routing rules
         self._setup_traffic_routing(deployment)
-        deployment.last_updated = datetime.now(timezone.utc).isoformat()
+        deployment.last_updated = datetime.now(UTC).isoformat()
 
         # Log the advancement
-        self.logger.info(f"Advanced canary deployment {deployment_id} from {old_percentage}% to {deployment.config.traffic_percentage}%")
+        self.logger.info(
+            f"Advanced canary deployment {deployment_id} from {old_percentage}% to {deployment.config.traffic_percentage}%"
+        )
 
         # Check if we've completed
         if deployment.config.traffic_percentage >= deployment.config.target_percentage:
             deployment.status = DeploymentStatus.COMPLETED
-            deployment.completed_at = datetime.now(timezone.utc).isoformat()
+            deployment.completed_at = datetime.now(UTC).isoformat()
             self.logger.info(f"Canary deployment {deployment_id} completed")
 
         self._save_config()
@@ -523,12 +549,12 @@ class DeploymentManager:
 
         # Record metrics
         metrics_record = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "metrics": metrics,
-            "traffic_percentage": deployment.config.traffic_percentage
+            "traffic_percentage": deployment.config.traffic_percentage,
         }
         deployment.metrics_history.append(metrics_record)
-        deployment.last_updated = datetime.now(timezone.utc).isoformat()
+        deployment.last_updated = datetime.now(UTC).isoformat()
 
         # Check success criteria
         success_violations = []
@@ -570,13 +596,13 @@ class DeploymentManager:
 
         evaluation_result = {
             "deployment_id": deployment_id,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "metrics": metrics,
             "success_violations": success_violations,
             "rollback_triggers": rollback_triggers,
             "traffic_percentage": deployment.config.traffic_percentage,
             "should_rollback": len(rollback_triggers) > 0,
-            "should_pause": len(success_violations) > 0 and len(rollback_triggers) == 0
+            "should_pause": len(success_violations) > 0 and len(rollback_triggers) == 0,
         }
 
         # Trigger alerts if needed
@@ -590,12 +616,7 @@ class DeploymentManager:
 
     def _trigger_alert(self, deployment: Deployment, alert_type: str, details: list[str]):
         """Trigger an alert for a deployment"""
-        alert = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "type": alert_type,
-            "details": details,
-            "resolved": False
-        }
+        alert = {"timestamp": datetime.now(UTC).isoformat(), "type": alert_type, "details": details, "resolved": False}
         deployment.alerts.append(alert)
         self.logger.warning(f"Alert triggered for deployment {deployment.deployment_id}: {alert_type} - {details}")
 
@@ -612,12 +633,12 @@ class DeploymentManager:
 
         old_status = deployment.status
         deployment.status = DeploymentStatus.ROLLED_BACK
-        deployment.completed_at = datetime.now(timezone.utc).isoformat()
-        deployment.last_updated = datetime.now(timezone.utc).isoformat()
+        deployment.completed_at = datetime.now(UTC).isoformat()
+        deployment.last_updated = datetime.now(UTC).isoformat()
         deployment.rollback_info = {
-            "rollback_timestamp": datetime.now(timezone.utc).isoformat(),
+            "rollback_timestamp": datetime.now(UTC).isoformat(),
             "previous_status": old_status.value,
-            "reason": "manual_rollback" if deployment.status != DeploymentStatus.ACTIVE else "automatic_rollback"
+            "reason": "manual_rollback" if deployment.status != DeploymentStatus.ACTIVE else "automatic_rollback",
         }
 
         # Update routing to point all traffic back to current version
@@ -640,7 +661,7 @@ class DeploymentManager:
             return False
 
         deployment.status = DeploymentStatus.PAUSED
-        deployment.last_updated = datetime.now(timezone.utc).isoformat()
+        deployment.last_updated = datetime.now(UTC).isoformat()
 
         self.logger.info(f"Paused deployment {deployment_id}")
         self._save_config()
@@ -658,7 +679,7 @@ class DeploymentManager:
             return False
 
         deployment.status = DeploymentStatus.ACTIVE
-        deployment.last_updated = datetime.now(timezone.utc).isoformat()
+        deployment.last_updated = datetime.now(UTC).isoformat()
 
         self.logger.info(f"Resumed deployment {deployment_id}")
         self._save_config()
@@ -683,7 +704,7 @@ class DeploymentManager:
             # Check expiration
             if rule.expires_at:
                 expire_time = datetime.fromisoformat(rule.expires_at.replace("Z", "+00:00"))
-                if datetime.now(timezone.utc) > expire_time:
+                if datetime.now(UTC) > expire_time:
                     continue
 
             # Evaluate condition (simplified evaluation)
@@ -744,8 +765,8 @@ class DeploymentManager:
 
         deployment = self.deployments[deployment_id]
         deployment.status = DeploymentStatus.COMPLETED
-        deployment.completed_at = datetime.now(timezone.utc).isoformat()
-        deployment.last_updated = datetime.now(timezone.utc).isoformat()
+        deployment.completed_at = datetime.now(UTC).isoformat()
+        deployment.last_updated = datetime.now(UTC).isoformat()
 
         # Store experiment results
         self.experiment_results[results.experiment_id] = results
@@ -774,7 +795,7 @@ class DeploymentManager:
             "completed_at": deployment.completed_at,
             "last_updated": deployment.last_updated,
             "alerts": len([a for a in deployment.alerts if not a.get("resolved", False)]),
-            "metrics_history_count": len(deployment.metrics_history)
+            "metrics_history_count": len(deployment.metrics_history),
         }
 
     def list_deployments(self, model_name: str | None = None) -> list[dict[str, Any]]:
@@ -805,12 +826,9 @@ def test_deployment_manager():
         model_name="therapy_model",
         model_path="/models/therapy_model_v2",
         model_type="pytorch",
-        created_at=datetime.now(timezone.utc).isoformat(),
-        size_bytes=1024*1024*500,  # 500MB
-        performance_baseline={
-            "latency_ms": 150.0,
-            "throughput_reqs_per_sec": 10.0
-        }
+        created_at=datetime.now(UTC).isoformat(),
+        size_bytes=1024 * 1024 * 500,  # 500MB
+        performance_baseline={"latency_ms": 150.0, "throughput_reqs_per_sec": 10.0},
     )
 
     # Test different deployment strategies
@@ -819,16 +837,12 @@ def test_deployment_manager():
     direct_config = DeploymentConfig(
         strategy=DeploymentStrategy.DIRECT,
         success_criteria={"latency_ms": 200.0, "error_rate": 0.01},
-        rollback_criteria={"latency_ms": 500.0, "error_rate": 0.05}
+        rollback_criteria={"latency_ms": 500.0, "error_rate": 0.05},
     )
 
     direct_deployment_id = deployment_manager.create_deployment(
-        model_name="therapy_model",
-        new_version=test_version,
-        strategy=DeploymentStrategy.DIRECT,
-        config=direct_config
+        model_name="therapy_model", new_version=test_version, strategy=DeploymentStrategy.DIRECT, config=direct_config
     )
-
 
     # Start the deployment
     deployment_manager.start_deployment(direct_deployment_id)
@@ -844,16 +858,12 @@ def test_deployment_manager():
         ramp_up_interval_minutes=5,
         ramp_up_increment=20.0,
         success_criteria={"latency_ms": 200.0, "error_rate": 0.01},
-        rollback_criteria={"latency_ms": 500.0, "error_rate": 0.05}
+        rollback_criteria={"latency_ms": 500.0, "error_rate": 0.05},
     )
 
     canary_deployment_id = deployment_manager.create_deployment(
-        model_name="therapy_model",
-        new_version=test_version,
-        strategy=DeploymentStrategy.CANARY,
-        config=canary_config
+        model_name="therapy_model", new_version=test_version, strategy=DeploymentStrategy.CANARY, config=canary_config
     )
-
 
     # Start the deployment
     deployment_manager.start_deployment(canary_deployment_id)
@@ -866,16 +876,12 @@ def test_deployment_manager():
         strategy=DeploymentStrategy.AB_TEST,
         ab_test_ratio=30.0,  # 30% to new version
         success_criteria={"latency_ms": 200.0, "user_satisfaction": 0.8},
-        rollback_criteria={"latency_ms": 500.0, "error_rate": 0.05}
+        rollback_criteria={"latency_ms": 500.0, "error_rate": 0.05},
     )
 
     ab_deployment_id = deployment_manager.create_deployment(
-        model_name="therapy_model",
-        new_version=test_version,
-        strategy=DeploymentStrategy.AB_TEST,
-        config=ab_config
+        model_name="therapy_model", new_version=test_version, strategy=DeploymentStrategy.AB_TEST, config=ab_config
     )
-
 
     # Start the deployment
     deployment_manager.start_deployment(ab_deployment_id)
@@ -886,7 +892,7 @@ def test_deployment_manager():
     test_contexts = [
         {"user_id": "user_123", "session_id": "sess_456"},
         {"user_id": "user_789", "session_id": "sess_012"},
-        {"user_id": "user_345", "session_id": "sess_678"}
+        {"user_id": "user_345", "session_id": "sess_678"},
     ]
 
     for _i, context in enumerate(test_contexts):
@@ -897,7 +903,7 @@ def test_deployment_manager():
         "latency_ms": 180.0,
         "error_rate": 0.005,
         "throughput_reqs_per_sec": 12.0,
-        "user_satisfaction": 0.85
+        "user_satisfaction": 0.85,
     }
 
     deployment_manager.evaluate_deployment(direct_deployment_id, test_metrics)
@@ -906,7 +912,6 @@ def test_deployment_manager():
     all_deployments = deployment_manager.list_deployments()
     for _dep in all_deployments:
         pass
-
 
 
 if __name__ == "__main__":

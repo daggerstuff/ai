@@ -8,7 +8,7 @@ import random
 import sqlite3
 import warnings
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -74,7 +74,7 @@ class QualityTrendDemo:
 
             # Create synthetic daily data
             synthetic_data = {}
-            base_date = datetime.now(timezone.utc) - timedelta(days=days_back)
+            base_date = datetime.now(UTC) - timedelta(days=days_back)
 
             for day in range(days_back):
                 current_date = base_date + timedelta(days=day)
@@ -82,9 +82,7 @@ class QualityTrendDemo:
 
                 # Create synthetic records for this day
                 daily_records = []
-                num_records = random.randint(
-                    50, 200
-                )  # Random number of conversations per day
+                num_records = random.randint(50, 200)  # Random number of conversations per day
 
                 for _ in range(num_records):
                     # Pick random base record and add some variation
@@ -96,12 +94,8 @@ class QualityTrendDemo:
 
                     record = {
                         "created_at": current_date,
-                        "turn_count": max(
-                            1, int(base_record[0] * (1 + trend_factor * 0.3 + noise))
-                        ),
-                        "word_count": max(
-                            10, int(base_record[1] * (1 + trend_factor * 0.2 + noise))
-                        ),
+                        "turn_count": max(1, int(base_record[0] * (1 + trend_factor * 0.3 + noise))),
+                        "word_count": max(10, int(base_record[1] * (1 + trend_factor * 0.2 + noise))),
                         "processing_status": base_record[2],
                         "tier": base_record[3],
                         "language": base_record[4],
@@ -124,9 +118,7 @@ class QualityTrendDemo:
             trends = {}
 
             for metric in self.quality_metrics:
-                trend = self._analyze_synthetic_metric_trend(
-                    synthetic_data, metric, period
-                )
+                trend = self._analyze_synthetic_metric_trend(synthetic_data, metric, period)
                 if trend:
                     trends[metric] = trend
 
@@ -153,9 +145,7 @@ class QualityTrendDemo:
                 return None
 
             # Perform trend analysis
-            trend_direction, trend_strength, p_value = self._calculate_trend_statistics(
-                period_values
-            )
+            trend_direction, trend_strength, p_value = self._calculate_trend_statistics(period_values)
 
             return QualityTrend(
                 metric=metric,
@@ -170,9 +160,7 @@ class QualityTrendDemo:
         except Exception:
             return None
 
-    def _calculate_metric_value(
-        self, records: list[dict], metric: str
-    ) -> float | None:
+    def _calculate_metric_value(self, records: list[dict], metric: str) -> float | None:
         """Calculate metric value for a period"""
         try:
             if not records:
@@ -191,17 +179,13 @@ class QualityTrendDemo:
             if metric == "processing_success":
                 # Percentage of successful processing
                 total = len(records)
-                successful = len(
-                    [r for r in records if r["processing_status"] == "processed"]
-                )
+                successful = len([r for r in records if r["processing_status"] == "processed"])
                 return (successful / total) * 100 if total > 0 else None
 
             if metric == "tier_distribution":
                 # Priority tier percentage (higher is better)
                 total = len(records)
-                priority = len(
-                    [r for r in records if r["tier"] and "priority" in str(r["tier"])]
-                )
+                priority = len([r for r in records if r["tier"] and "priority" in str(r["tier"])])
                 return (priority / total) * 100 if total > 0 else None
 
             if metric == "language_consistency":
@@ -215,9 +199,7 @@ class QualityTrendDemo:
         except Exception:
             return None
 
-    def _calculate_trend_statistics(
-        self, values: list[float]
-    ) -> tuple[str, float, float]:
+    def _calculate_trend_statistics(self, values: list[float]) -> tuple[str, float, float]:
         """Calculate trend statistics using linear regression"""
         try:
             x = np.arange(len(values))
@@ -242,9 +224,7 @@ class QualityTrendDemo:
         except Exception:
             return "unknown", 0.0, 1.0
 
-    def create_trend_visualizations(
-        self, trends: dict[str, QualityTrend]
-    ) -> dict[str, str]:
+    def create_trend_visualizations(self, trends: dict[str, QualityTrend]) -> dict[str, str]:
         """Create trend visualizations"""
 
         viz_files = {}
@@ -291,9 +271,7 @@ class QualityTrendDemo:
                         x_numeric = np.arange(len(trend.values))
                         z = np.polyfit(x_numeric, trend.values, 1)
                         p = np.poly1d(z)
-                        ax.plot(
-                            trend.timestamps, p(x_numeric), "--", alpha=0.8, color="red"
-                        )
+                        ax.plot(trend.timestamps, p(x_numeric), "--", alpha=0.8, color="red")
 
                         # Add statistics text
                         stats_text = f"""
@@ -340,15 +318,9 @@ class QualityTrendDemo:
 
         try:
             # Overall trend assessment
-            improving_count = sum(
-                1 for t in trends.values() if t.trend_direction == "improving"
-            )
-            declining_count = sum(
-                1 for t in trends.values() if t.trend_direction == "declining"
-            )
-            sum(
-                1 for t in trends.values() if t.trend_direction == "stable"
-            )
+            improving_count = sum(1 for t in trends.values() if t.trend_direction == "improving")
+            declining_count = sum(1 for t in trends.values() if t.trend_direction == "declining")
+            sum(1 for t in trends.values() if t.trend_direction == "stable")
 
             if improving_count > declining_count:
                 overall_trend = "improving"
@@ -381,22 +353,14 @@ class QualityTrendDemo:
 
             # Recommendations
             recommendations = []
-            declining_metrics = [
-                name
-                for name, trend in trends.items()
-                if trend.trend_direction == "declining"
-            ]
+            declining_metrics = [name for name, trend in trends.items() if trend.trend_direction == "declining"]
 
             if declining_metrics:
                 recommendations.append(
                     f"Address declining metrics: {', '.join([m.replace('_', ' ') for m in declining_metrics])}"
                 )
 
-            improving_metrics = [
-                name
-                for name, trend in trends.items()
-                if trend.trend_direction == "improving"
-            ]
+            improving_metrics = [name for name, trend in trends.items() if trend.trend_direction == "improving"]
             if improving_metrics:
                 recommendations.append(
                     f"Continue successful practices for: {', '.join([m.replace('_', ' ') for m in improving_metrics])}"
@@ -412,8 +376,7 @@ class QualityTrendDemo:
                         "trend_direction": trend.trend_direction,
                         "trend_strength": trend.trend_strength,
                         "statistical_significance": trend.statistical_significance,
-                        "is_significant": trend.statistical_significance
-                        < self.significance_threshold,
+                        "is_significant": trend.statistical_significance < self.significance_threshold,
                     }
                     for name, trend in trends.items()
                 },

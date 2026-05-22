@@ -5,13 +5,14 @@ Test Suite for Quality Comparison System (Task 5.6.2.5)
 Comprehensive testing of quality comparison, benchmarking, and reporting
 functionality with statistical validation and performance testing.
 """
+
 import json
 import os
 import shutil
 import sqlite3
 import sys
 import tempfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import numpy as np
 
@@ -65,7 +66,7 @@ def run_comprehensive_test():
         """)
 
         # Generate test data with clear differences between tiers and datasets
-        base_date = datetime.now(timezone.utc) - timedelta(days=30)
+        base_date = datetime.now(UTC) - timedelta(days=30)
         conversations_data = []
         quality_data = []
 
@@ -97,37 +98,19 @@ def run_comprehensive_test():
 
             # Combine tier and dataset effects
             base_quality = (tier_pattern["mean"] + dataset_pattern["mean"]) / 2
-            noise = np.random.normal(
-                0, (tier_pattern["std"] + dataset_pattern["std"]) / 2
-            )
+            noise = np.random.normal(0, (tier_pattern["std"] + dataset_pattern["std"]) / 2)
             overall_quality = max(0.1, min(0.95, base_quality + noise))
 
             # Generate component scores with some correlation
-            therapeutic_accuracy = max(
-                0.1, min(0.95, overall_quality + np.random.normal(0, 0.05))
-            )
-            conversation_coherence = max(
-                0.1, min(0.95, overall_quality + np.random.normal(0, 0.05))
-            )
-            emotional_authenticity = max(
-                0.1, min(0.95, overall_quality + np.random.normal(0, 0.05))
-            )
-            clinical_compliance = max(
-                0.1, min(0.95, overall_quality + np.random.normal(0, 0.05))
-            )
-            personality_consistency = max(
-                0.1, min(0.95, overall_quality + np.random.normal(0, 0.05))
-            )
-            language_quality = max(
-                0.1, min(0.95, overall_quality + np.random.normal(0, 0.05))
-            )
-            safety_score = max(
-                0.1, min(0.95, overall_quality + np.random.normal(0, 0.05))
-            )
+            therapeutic_accuracy = max(0.1, min(0.95, overall_quality + np.random.normal(0, 0.05)))
+            conversation_coherence = max(0.1, min(0.95, overall_quality + np.random.normal(0, 0.05)))
+            emotional_authenticity = max(0.1, min(0.95, overall_quality + np.random.normal(0, 0.05)))
+            clinical_compliance = max(0.1, min(0.95, overall_quality + np.random.normal(0, 0.05)))
+            personality_consistency = max(0.1, min(0.95, overall_quality + np.random.normal(0, 0.05)))
+            language_quality = max(0.1, min(0.95, overall_quality + np.random.normal(0, 0.05)))
+            safety_score = max(0.1, min(0.95, overall_quality + np.random.normal(0, 0.05)))
 
-            conversations_data.append(
-                (i + 1, tier, dataset, conversation_date.isoformat(), 150 + (i % 100))
-            )
+            conversations_data.append((i + 1, tier, dataset, conversation_date.isoformat(), 150 + (i % 100)))
 
             quality_data.append(
                 (
@@ -190,13 +173,9 @@ def run_comprehensive_test():
             for col in required_columns:
                 assert col in df.columns, f"Missing required column: {col}"
             # Verify no null values in critical columns
-            assert df["overall_quality"].notna().all(), (
-                "Found null values in overall_quality"
-            )
+            assert df["overall_quality"].notna().all(), "Found null values in overall_quality"
             test_results["passed_tests"] += 1
-            test_results["test_details"].append(
-                f"✅ Data Loading: PASSED ({len(df)} records loaded)"
-            )
+            test_results["test_details"].append(f"✅ Data Loading: PASSED ({len(df)} records loaded)")
         except Exception as e:
             test_results["failed_tests"] += 1
             test_results["test_details"].append(f"❌ Data Loading: FAILED - {e}")
@@ -234,9 +213,7 @@ def run_comprehensive_test():
             test_results["test_details"].append("✅ Component Comparisons: PASSED")
         except Exception as e:
             test_results["failed_tests"] += 1
-            test_results["test_details"].append(
-                f"❌ Component Comparisons: FAILED - {e}"
-            )
+            test_results["test_details"].append(f"❌ Component Comparisons: FAILED - {e}")
         test_results["total_tests"] += 1
 
         # Test 5: Benchmark Analysis
@@ -261,9 +238,7 @@ def run_comprehensive_test():
             test_results["test_details"].append("✅ Performance Rankings: PASSED")
         except Exception as e:
             test_results["failed_tests"] += 1
-            test_results["test_details"].append(
-                f"❌ Performance Rankings: FAILED - {e}"
-            )
+            test_results["test_details"].append(f"❌ Performance Rankings: FAILED - {e}")
         test_results["total_tests"] += 1
 
         # Test 7: Reporter Initialization
@@ -275,9 +250,7 @@ def run_comprehensive_test():
             test_results["test_details"].append("✅ Reporter Initialization: PASSED")
         except Exception as e:
             test_results["failed_tests"] += 1
-            test_results["test_details"].append(
-                f"❌ Reporter Initialization: FAILED - {e}"
-            )
+            test_results["test_details"].append(f"❌ Reporter Initialization: FAILED - {e}")
         test_results["total_tests"] += 1
 
         # Test 8: Comprehensive Report Generation
@@ -290,14 +263,10 @@ def run_comprehensive_test():
             assert len(report.executive_summary) > 0
             assert len(report.tier_comparisons) > 0
             test_results["passed_tests"] += 1
-            test_results["test_details"].append(
-                "✅ Comprehensive Report Generation: PASSED"
-            )
+            test_results["test_details"].append("✅ Comprehensive Report Generation: PASSED")
         except Exception as e:
             test_results["failed_tests"] += 1
-            test_results["test_details"].append(
-                f"❌ Comprehensive Report Generation: FAILED - {e}"
-            )
+            test_results["test_details"].append(f"❌ Comprehensive Report Generation: FAILED - {e}")
         test_results["total_tests"] += 1
 
         # Test 9: Report Saving
@@ -323,56 +292,34 @@ def run_comprehensive_test():
             test_results["test_details"].append("✅ Visualization Creation: PASSED")
         except Exception as e:
             test_results["failed_tests"] += 1
-            test_results["test_details"].append(
-                f"❌ Visualization Creation: FAILED - {e}"
-            )
+            test_results["test_details"].append(f"❌ Visualization Creation: FAILED - {e}")
         test_results["total_tests"] += 1
 
         # Generate test report
-        success_rate = (
-            test_results["passed_tests"] / test_results["total_tests"]
-        ) * 100
+        success_rate = (test_results["passed_tests"] / test_results["total_tests"]) * 100
 
         report_data = {
             "test_suite": "Quality Comparison System",
             "task": "5.6.2.5",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "results": test_results,
             "success_rate": success_rate,
             "status": "PASSED" if success_rate >= 80 else "FAILED",
             "comparison_analysis_sample": {
-                "tier_comparisons": len(tier_comparisons)
-                if "tier_comparisons" in locals()
-                else 0,
-                "dataset_comparisons": len(dataset_comparisons)
-                if "dataset_comparisons" in locals()
-                else 0,
-                "component_comparisons": len(component_comparisons)
-                if "component_comparisons" in locals()
-                else 0,
-                "benchmark_analyses": len(benchmark_analyses)
-                if "benchmark_analyses" in locals()
-                else 0,
+                "tier_comparisons": len(tier_comparisons) if "tier_comparisons" in locals() else 0,
+                "dataset_comparisons": len(dataset_comparisons) if "dataset_comparisons" in locals() else 0,
+                "component_comparisons": len(component_comparisons) if "component_comparisons" in locals() else 0,
+                "benchmark_analyses": len(benchmark_analyses) if "benchmark_analyses" in locals() else 0,
                 "performance_rankings_dimensions": len(performance_rankings)
                 if "performance_rankings" in locals()
                 else 0,
             },
             "report_sample": {
-                "tier_comparisons": len(report.tier_comparisons)
-                if "report" in locals()
-                else 0,
-                "dataset_comparisons": len(report.dataset_comparisons)
-                if "report" in locals()
-                else 0,
-                "component_comparisons": len(report.component_comparisons)
-                if "report" in locals()
-                else 0,
-                "benchmark_analyses": len(report.benchmark_analyses)
-                if "report" in locals()
-                else 0,
-                "executive_summary_items": len(report.executive_summary)
-                if "report" in locals()
-                else 0,
+                "tier_comparisons": len(report.tier_comparisons) if "report" in locals() else 0,
+                "dataset_comparisons": len(report.dataset_comparisons) if "report" in locals() else 0,
+                "component_comparisons": len(report.component_comparisons) if "report" in locals() else 0,
+                "benchmark_analyses": len(report.benchmark_analyses) if "report" in locals() else 0,
+                "executive_summary_items": len(report.executive_summary) if "report" in locals() else 0,
                 "action_items": len(report.action_items) if "report" in locals() else 0,
             },
         }
@@ -382,14 +329,12 @@ def run_comprehensive_test():
         with open(report_path, "w") as f:
             json.dump(report_data, f, indent=2)
 
-
         for _detail in test_results["test_details"]:
             pass
 
         sample = report_data["comparison_analysis_sample"]
 
         report_sample = report_data["report_sample"]
-
 
         return report_data
 

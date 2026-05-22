@@ -104,9 +104,7 @@ def iter_dataset_refs(registry: dict[str, Any]) -> Iterable[DatasetRef]:
                 else None,
                 type=dataset.get("type") if isinstance(dataset.get("type"), str) else None,
                 focus=dataset.get("focus") if isinstance(dataset.get("focus"), str) else None,
-                fallback_paths={
-                    str(k): str(v) for k, v in fallback_paths.items() if isinstance(v, str)
-                },
+                fallback_paths={str(k): str(v) for k, v in fallback_paths.items() if isinstance(v, str)},
                 legacy_paths=[str(p) for p in legacy_paths if isinstance(p, str)],
             )
 

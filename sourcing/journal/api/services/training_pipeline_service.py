@@ -3,6 +3,7 @@ Training Pipeline Service
 
 Service layer for connecting journal research system to training pipeline orchestrator.
 """
+
 import logging
 from datetime import datetime
 from pathlib import Path
@@ -21,6 +22,7 @@ try:
         DatasetEvaluation as DatasetEvaluationModel,
         IntegrationPlan as IntegrationPlanModel,
     )
+
     PIPELINE_ORCHESTRATOR_AVAILABLE = True
 except ImportError:
     PIPELINE_ORCHESTRATOR_AVAILABLE = False
@@ -48,7 +50,6 @@ class TrainingPipelineService:
             return
 
         try:
-
             from ai.pipelines.orchestrator.orchestration.pipeline_orchestrator import (
                 PipelineConfig,
             )
@@ -104,9 +105,7 @@ class TrainingPipelineService:
             # Convert dictionaries to model objects
             acquired_dataset_obj = self._dict_to_acquired_dataset(acquired_dataset)
             evaluation_obj = self._dict_to_evaluation(evaluation) if evaluation else None
-            integration_plan_obj = (
-                self._dict_to_integration_plan(integration_plan) if integration_plan else None
-            )
+            integration_plan_obj = self._dict_to_integration_plan(integration_plan) if integration_plan else None
 
             # Register with training pipeline
             # Extract evaluation details safely
@@ -130,9 +129,7 @@ class TrainingPipelineService:
                 evaluation_details=evaluation_details,
             )
 
-            logger.info(
-                f"Dataset {source_id} from session {session_id} integrated: {result.get('success', False)}"
-            )
+            logger.info(f"Dataset {source_id} from session {session_id} integrated: {result.get('success', False)}")
 
             return {
                 "success": result.get("success", False),
@@ -153,9 +150,7 @@ class TrainingPipelineService:
                 "session_id": session_id,
             }
 
-    async def get_session_status(
-        self, session_id: str, session_state: dict[str, Any]
-    ) -> dict[str, Any]:
+    async def get_session_status(self, session_id: str, session_state: dict[str, Any]) -> dict[str, Any]:
         """
         Get training pipeline status for all datasets in a session.
 
@@ -182,15 +177,15 @@ class TrainingPipelineService:
                 continue
 
             # Check integration status
-            integration_status = self.pipeline_orchestrator.get_journal_research_integration_status(
-                source_id
-            )
+            integration_status = self.pipeline_orchestrator.get_journal_research_integration_status(source_id)
 
-            statuses.append({
-                "source_id": source_id,
-                "integrated": integration_status is not None,
-                "integration_status": integration_status,
-            })
+            statuses.append(
+                {
+                    "source_id": source_id,
+                    "integrated": integration_status is not None,
+                    "integration_status": integration_status,
+                }
+            )
 
         return {
             "session_id": session_id,
@@ -281,4 +276,3 @@ class TrainingPipelineService:
         except Exception as e:
             logger.warning(f"Failed to convert to IntegrationPlan model: {e}, using dict")
             return SimpleNamespace(**data)
-

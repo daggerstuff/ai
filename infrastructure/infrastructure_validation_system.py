@@ -12,7 +12,7 @@ import json
 import logging
 import time
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -20,21 +20,26 @@ from typing import Any
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class ValidationStatus(Enum):
     """Validation status"""
+
     PASSED = "passed"
     FAILED = "failed"
     WARNING = "warning"
 
+
 @dataclass
 class InfrastructureTask:
     """Infrastructure validation task"""
+
     task_id: str
     task_name: str
     description: str
     validation_criteria: list[str]
     score: float = 0.0
     status: ValidationStatus = ValidationStatus.FAILED
+
 
 class InfrastructureValidationSystem:
     """
@@ -65,8 +70,8 @@ class InfrastructureValidationSystem:
                     "Deployment scripts validated",
                     "Infrastructure testing complete",
                     "Production environment validated",
-                    "Rollback procedures tested"
-                ]
+                    "Rollback procedures tested",
+                ],
             ),
             InfrastructureTask(
                 task_id="108",
@@ -76,9 +81,9 @@ class InfrastructureValidationSystem:
                     "Monitoring systems validated",
                     "Alerting procedures tested",
                     "Dashboard operational validation",
-                    "Performance metrics tracking"
-                ]
-            )
+                    "Performance metrics tracking",
+                ],
+            ),
         ]
 
         self.infrastructure_tasks = tasks
@@ -103,9 +108,7 @@ class InfrastructureValidationSystem:
         total_time = time.time() - start_time
 
         # Generate infrastructure validation report
-        report = self._generate_infrastructure_report(
-            total_time, task_results, infrastructure_analysis
-        )
+        report = self._generate_infrastructure_report(total_time, task_results, infrastructure_analysis)
 
         logger.info(f"Infrastructure validation completed in {total_time:.2f} seconds")
         logger.info(f"Overall infrastructure score: {self.overall_score:.1f}%")
@@ -131,28 +134,28 @@ class InfrastructureValidationSystem:
                 "kubernetes_manifests": True,
                 "helm_charts": True,
                 "ci_cd_pipeline": True,
-                "environment_configs": True
+                "environment_configs": True,
             },
             "infrastructure_testing": {
                 "load_balancer_config": True,
                 "database_connectivity": True,
                 "ssl_certificate_validation": True,
                 "network_security": True,
-                "storage_validation": True
+                "storage_validation": True,
             },
             "production_environment": {
                 "resource_allocation": True,
                 "scaling_configuration": True,
                 "backup_systems": True,
                 "disaster_recovery": True,
-                "security_hardening": True
+                "security_hardening": True,
             },
             "rollback_procedures": {
                 "automated_rollback": True,
                 "data_consistency": True,
                 "service_restoration": True,
-                "rollback_testing": True
-            }
+                "rollback_testing": True,
+            },
         }
 
         # Calculate deployment validation score
@@ -160,7 +163,7 @@ class InfrastructureValidationSystem:
             "deployment_scripts": 98.0,
             "infrastructure_testing": 96.0,
             "production_environment": 97.0,
-            "rollback_procedures": 99.0
+            "rollback_procedures": 99.0,
         }
 
         overall_deployment_score = sum(validation_scores.values()) / len(validation_scores)
@@ -174,7 +177,7 @@ class InfrastructureValidationSystem:
             "status": task.status.value,
             "deployment_validations": deployment_validations,
             "validation_scores": validation_scores,
-            "deployment_ready": overall_deployment_score >= 95.0
+            "deployment_ready": overall_deployment_score >= 95.0,
         }
 
     async def _validate_production_monitoring(self, task: InfrastructureTask) -> dict[str, Any]:
@@ -186,29 +189,29 @@ class InfrastructureValidationSystem:
                 "grafana_dashboards": True,
                 "log_aggregation": True,
                 "metrics_collection": True,
-                "health_checks": True
+                "health_checks": True,
             },
             "alerting_procedures": {
                 "alert_rules_configured": True,
                 "notification_channels": True,
                 "escalation_procedures": True,
                 "alert_testing": True,
-                "on_call_procedures": True
+                "on_call_procedures": True,
             },
             "dashboard_validation": {
                 "system_metrics_dashboard": True,
                 "application_metrics": True,
                 "business_metrics": True,
                 "real_time_monitoring": True,
-                "historical_data": True
+                "historical_data": True,
             },
             "performance_tracking": {
                 "response_time_monitoring": True,
                 "throughput_tracking": True,
                 "error_rate_monitoring": True,
                 "resource_utilization": True,
-                "sla_monitoring": True
-            }
+                "sla_monitoring": True,
+            },
         }
 
         # Calculate monitoring validation score
@@ -216,7 +219,7 @@ class InfrastructureValidationSystem:
             "monitoring_systems": 99.0,
             "alerting_procedures": 97.0,
             "dashboard_validation": 98.0,
-            "performance_tracking": 96.0
+            "performance_tracking": 96.0,
         }
 
         overall_monitoring_score = sum(validation_scores.values()) / len(validation_scores)
@@ -230,7 +233,7 @@ class InfrastructureValidationSystem:
             "status": task.status.value,
             "monitoring_validations": monitoring_validations,
             "validation_scores": validation_scores,
-            "monitoring_ready": overall_monitoring_score >= 95.0
+            "monitoring_ready": overall_monitoring_score >= 95.0,
         }
 
     def _analyze_infrastructure_results(self) -> dict[str, Any]:
@@ -244,22 +247,19 @@ class InfrastructureValidationSystem:
         self.overall_score = total_score / total_tasks if total_tasks > 0 else 0
 
         # Determine production readiness
-        self.production_ready = (
-            passed_tasks == total_tasks and
-            self.overall_score >= 95.0
-        )
+        self.production_ready = passed_tasks == total_tasks and self.overall_score >= 95.0
 
         return {
             "total_tasks": total_tasks,
             "passed_tasks": passed_tasks,
             "overall_score": self.overall_score,
             "production_ready": self.production_ready,
-            "success_rate": (passed_tasks / total_tasks) * 100 if total_tasks > 0 else 0
+            "success_rate": (passed_tasks / total_tasks) * 100 if total_tasks > 0 else 0,
         }
 
-    def _generate_infrastructure_report(self, execution_time: float,
-                                      task_results: dict[str, Any],
-                                      infrastructure_analysis: dict[str, Any]) -> dict[str, Any]:
+    def _generate_infrastructure_report(
+        self, execution_time: float, task_results: dict[str, Any], infrastructure_analysis: dict[str, Any]
+    ) -> dict[str, Any]:
         """Generate comprehensive infrastructure validation report"""
 
         # Determine infrastructure status
@@ -272,11 +272,11 @@ class InfrastructureValidationSystem:
 
         return {
             "infrastructure_validation_summary": {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "execution_time": execution_time,
                 "overall_score": round(self.overall_score, 2),
                 "production_ready": self.production_ready,
-                "infrastructure_status": infrastructure_status
+                "infrastructure_status": infrastructure_status,
             },
             "task_validation_results": task_results,
             "infrastructure_analysis": infrastructure_analysis,
@@ -284,18 +284,19 @@ class InfrastructureValidationSystem:
                 "deployment_validation_score": task_results.get("107", {}).get("score", 0),
                 "monitoring_validation_score": task_results.get("108", {}).get("score", 0),
                 "deployment_ready": task_results.get("107", {}).get("deployment_ready", False),
-                "monitoring_ready": task_results.get("108", {}).get("monitoring_ready", False)
+                "monitoring_ready": task_results.get("108", {}).get("monitoring_ready", False),
             },
             "production_requirements": {
                 "overall_score_threshold": 95.0,
                 "all_tasks_passed_required": True,
                 "current_status": {
                     "overall_score_met": self.overall_score >= 95.0,
-                    "all_tasks_passed": infrastructure_analysis["passed_tasks"] == infrastructure_analysis["total_tasks"]
-                }
+                    "all_tasks_passed": infrastructure_analysis["passed_tasks"]
+                    == infrastructure_analysis["total_tasks"],
+                },
             },
             "recommendations": self._generate_infrastructure_recommendations(),
-            "next_steps": self._generate_infrastructure_next_steps()
+            "next_steps": self._generate_infrastructure_next_steps(),
         }
 
     def _generate_infrastructure_recommendations(self) -> list[str]:
@@ -309,13 +310,15 @@ class InfrastructureValidationSystem:
         if failed_tasks:
             recommendations.append(f"Address {len(failed_tasks)} failed infrastructure validation tasks")
 
-        recommendations.extend([
-            "Maintain continuous infrastructure monitoring",
-            "Regular deployment procedure testing",
-            "Keep monitoring and alerting systems updated",
-            "Conduct regular infrastructure audits",
-            "Implement infrastructure as code best practices"
-        ])
+        recommendations.extend(
+            [
+                "Maintain continuous infrastructure monitoring",
+                "Regular deployment procedure testing",
+                "Keep monitoring and alerting systems updated",
+                "Conduct regular infrastructure audits",
+                "Implement infrastructure as code best practices",
+            ]
+        )
 
         return recommendations
 
@@ -326,17 +329,19 @@ class InfrastructureValidationSystem:
                 "✅ Tasks 107-108: Infrastructure Validation COMPLETED",
                 "🚀 Infrastructure production ready",
                 "📋 All infrastructure validation tasks passed",
-                "🔄 Maintain infrastructure monitoring and validation"
+                "🔄 Maintain infrastructure monitoring and validation",
             ]
         return [
             "🔧 Fix failing infrastructure validation tasks",
             "🧪 Re-run infrastructure validation after improvements",
             "📋 Complete infrastructure production requirements",
-            "🔄 Repeat validation until infrastructure ready"
+            "🔄 Repeat validation until infrastructure ready",
         ]
+
 
 # Example usage and testing
 if __name__ == "__main__":
+
     async def main():
         # Initialize infrastructure validation system
         infra_validator = InfrastructureValidationSystem()
@@ -352,10 +357,9 @@ if __name__ == "__main__":
         report["infrastructure_metrics"]
 
         # Save report
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         report_file = f"infrastructure_validation_report_{timestamp}.json"
         with open(report_file, "w") as f:
             json.dump(report, f, indent=2, default=str)
-
 
     asyncio.run(main())

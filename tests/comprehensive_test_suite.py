@@ -22,7 +22,7 @@ import sqlite3
 import tempfile
 import unittest
 import warnings
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pandas as pd
 
@@ -57,9 +57,7 @@ class TestQualityValidation(unittest.TestCase):
 
             # Check conversation structure
             try:
-                conversations = json.loads(
-                    conversation_data.get("conversations_json", "[]")
-                )
+                conversations = json.loads(conversation_data.get("conversations_json", "[]"))
                 if not isinstance(conversations, list) or len(conversations) < 1:
                     issues.append("Invalid conversation structure")
             except json.JSONDecodeError:
@@ -88,7 +86,6 @@ class TestQualityValidation(unittest.TestCase):
         assert len(issues) == 0
 
 
-
 class TestErrorHandlingRecovery(unittest.TestCase):
     """Task 5.7.1.5: Error handling and recovery tests"""
 
@@ -114,7 +111,6 @@ class TestErrorHandlingRecovery(unittest.TestCase):
         assert result is None
         assert error is not None
         assert "Failed after 3 attempts" in error
-
 
     def test_data_processing_recovery(self):
         """Test data processing error recovery"""
@@ -147,7 +143,6 @@ class TestErrorHandlingRecovery(unittest.TestCase):
         assert result["status"] == "empty"
 
 
-
 class TestDataIntegrityValidation(unittest.TestCase):
     """Task 5.7.1.6: Data integrity and validation tests"""
 
@@ -177,21 +172,15 @@ class TestDataIntegrityValidation(unittest.TestCase):
                     try:
                         conversations = json.loads(row["conversations_json"])
                         actual_words = sum(
-                            len(turn[list(turn.keys())[0]].split())
-                            for turn in conversations
-                            if isinstance(turn, dict)
+                            len(turn[list(turn.keys())[0]].split()) for turn in conversations if isinstance(turn, dict)
                         )
-                        if (
-                            abs(actual_words - row["word_count"]) > 5
-                        ):  # Allow small variance
+                        if abs(actual_words - row["word_count"]) > 5:  # Allow small variance
                             inconsistent_count += 1
                     except:
                         inconsistent_count += 1
 
                 if inconsistent_count > 0:
-                    issues.append(
-                        f"Found {inconsistent_count} conversations with inconsistent word counts"
-                    )
+                    issues.append(f"Found {inconsistent_count} conversations with inconsistent word counts")
 
             return len(issues) == 0, issues
 
@@ -228,7 +217,6 @@ class TestDataIntegrityValidation(unittest.TestCase):
         assert len(issues) > 0
 
 
-
 class TestExportFormatValidation(unittest.TestCase):
     """Task 5.7.1.7: Export format validation tests"""
 
@@ -262,7 +250,7 @@ class TestExportFormatValidation(unittest.TestCase):
 
         # Test valid JSON export
         test_data = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "data": {"conversations": 100, "quality_score": 75.5},
             "metadata": {"version": "1.0", "source": "test"},
         }
@@ -276,7 +264,6 @@ class TestExportFormatValidation(unittest.TestCase):
             assert message == "Valid JSON export"
         finally:
             os.unlink(temp_path)
-
 
 
 class TestProcessingPipeline(unittest.TestCase):
@@ -346,7 +333,6 @@ class TestProcessingPipeline(unittest.TestCase):
         assert "No input data" in result["error"]
 
 
-
 class TestMonitoringAlerting(unittest.TestCase):
     """Task 5.7.1.9: Monitoring and alerting tests"""
 
@@ -387,7 +373,6 @@ class TestMonitoringAlerting(unittest.TestCase):
         health_status = check_system_health()
         assert health_status["status"] == "healthy"
         assert len(health_status["alerts"]) == 0
-
 
 
 class TestProductionReadiness(unittest.TestCase):
@@ -442,7 +427,6 @@ class TestProductionReadiness(unittest.TestCase):
         assert not is_valid
         assert len(issues) > 0
 
-
     def test_deployment_checklist(self):
         """Test deployment checklist validation"""
 
@@ -459,15 +443,11 @@ class TestProductionReadiness(unittest.TestCase):
                 "security_scan": True,
             }
 
-            incomplete_items = [
-                item for item, completed in checklist_items.items() if not completed
-            ]
+            incomplete_items = [item for item, completed in checklist_items.items() if not completed]
 
             return {
                 "ready_for_deployment": len(incomplete_items) == 0,
-                "completed_items": len(
-                    [item for item, completed in checklist_items.items() if completed]
-                ),
+                "completed_items": len([item for item, completed in checklist_items.items() if completed]),
                 "total_items": len(checklist_items),
                 "incomplete_items": incomplete_items,
             }
@@ -476,7 +456,6 @@ class TestProductionReadiness(unittest.TestCase):
         assert deployment_status["ready_for_deployment"]
         assert deployment_status["completed_items"] == deployment_status["total_items"]
         assert len(deployment_status["incomplete_items"]) == 0
-
 
 
 def run_comprehensive_test_suite():
@@ -534,7 +513,6 @@ def run_comprehensive_test_suite():
     total_errors += len(remaining_result.errors)
 
     # Final Summary
-
 
     if total_failures == 0 and total_errors == 0:
         pass

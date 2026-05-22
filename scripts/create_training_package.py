@@ -13,6 +13,7 @@ from pathlib import Path
 
 README_PREVIEW_FILE_LIMIT = 20
 
+
 def _get_package_config():
     """Get configuration for files to include in training package."""
     return {
@@ -70,7 +71,7 @@ def _get_package_config():
                 "ai/training_data_consolidated/dsm5_concepts.json",
                 "ai/training_data_consolidated/therapeutic_techniques.json",
             ],
-        }
+        },
     }
 
 
@@ -353,10 +354,7 @@ def _create_package_manifest(package_dir, copied_files, missing_files, files_con
         "missing_files_count": len(missing_files),
         "copied_files": sorted(copied_files),
         "missing_files": sorted(missing_files),
-        "categories": sorted(
-            list(files_config["files_to_copy"].keys()) +
-            list(files_config["data_files"].keys())
-        ),
+        "categories": sorted(list(files_config["files_to_copy"].keys()) + list(files_config["data_files"].keys())),
     }
 
     manifest_path = package_dir / "manifest.json"
@@ -377,10 +375,7 @@ def _create_compression_script(package_dir):
 
     # Validate package name for shell safety
     if not package_name.replace("_", "").replace("-", "").isalnum():
-        logger.warning(
-            f"Package name '{package_name}' contains special characters - "
-            "may cause issues"
-        )
+        logger.warning(f"Package name '{package_name}' contains special characters - may cause issues")
 
     compress_script = f"""#!/bin/bash
 # Compress training package for transfer
@@ -427,21 +422,13 @@ def create_training_package():
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        handlers=[
-            logging.StreamHandler(),
-            logging.FileHandler("training_package_creation.log")
-        ]
+        handlers=[logging.StreamHandler(), logging.FileHandler("training_package_creation.log")],
     )
     logger = logging.getLogger(__name__)
 
-    _log_section_banner(
-        logger, "CREATING TRAINING PACKAGE FOR H100 DEPLOYMENT"
-    )
+    _log_section_banner(logger, "CREATING TRAINING PACKAGE FOR H100 DEPLOYMENT")
     # Create package directory
-    package_name = (
-        f"therapeutic_ai_training_package_"
-        f"{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}"
-    )
+    package_name = f"therapeutic_ai_training_package_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}"
     package_dir = Path(f"ai/{package_name}")
     package_dir.mkdir(parents=True, exist_ok=True)
 
@@ -471,6 +458,7 @@ def create_training_package():
     logger.info("=" * 80)
 
     return package_dir, compress_script_path
+
 
 def _log_section_banner(logger, title):
     """Log a highlighted section banner."""

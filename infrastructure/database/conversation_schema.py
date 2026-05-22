@@ -12,7 +12,7 @@ Designs comprehensive database schema for conversation storage and management:
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -102,8 +102,8 @@ class ConversationSchema:
     therapeutic_techniques: list[str] = field(default_factory=list)
 
     # Timestamps
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     # Version control
     version: int = 1
@@ -402,9 +402,7 @@ class DatabaseSchemaDesigner:
             "overview": {
                 "total_tables": len(self.tables),
                 "total_indexes": sum(len(indexes) for indexes in self.indexes.values()),
-                "total_constraints": sum(
-                    len(constraints) for constraints in self.constraints.values()
-                ),
+                "total_constraints": sum(len(constraints) for constraints in self.constraints.values()),
                 "designed_for": "2.59M+ conversations with enterprise-grade performance",
             },
             "tables": {},
@@ -423,11 +421,7 @@ class DatabaseSchemaDesigner:
                 "description": table_def["description"],
                 "columns": len(table_def["columns"]),
                 "indexes": len(self.indexes.get(table_name, [])),
-                "primary_key": [
-                    col
-                    for col, def_ in table_def["columns"].items()
-                    if "PRIMARY KEY" in def_
-                ],
+                "primary_key": [col for col, def_ in table_def["columns"].items() if "PRIMARY KEY" in def_],
                 "foreign_keys": len(self.constraints.get(table_name, [])),
             }
 
@@ -445,9 +439,7 @@ class DatabaseSchemaDesigner:
 
         return documentation
 
-    def estimate_storage_requirements(
-        self, conversation_count: int = 2590000
-    ) -> dict[str, Any]:
+    def estimate_storage_requirements(self, conversation_count: int = 2590000) -> dict[str, Any]:
         """Estimate storage requirements for the given number of conversations."""
 
         # Average sizes (in bytes)
@@ -458,13 +450,8 @@ class DatabaseSchemaDesigner:
         estimates = {
             "conversations": {
                 "rows": conversation_count,
-                "avg_row_size_bytes": avg_conversation_size
-                + avg_metadata_size
-                + 200,  # Base columns
-                "estimated_size_gb": (
-                    conversation_count
-                    * (avg_conversation_size + avg_metadata_size + 200)
-                )
+                "avg_row_size_bytes": avg_conversation_size + avg_metadata_size + 200,  # Base columns
+                "estimated_size_gb": (conversation_count * (avg_conversation_size + avg_metadata_size + 200))
                 / (1024**3),
             },
             "conversation_quality": {
@@ -480,10 +467,7 @@ class DatabaseSchemaDesigner:
             "conversation_search": {
                 "rows": conversation_count,
                 "avg_row_size_bytes": avg_search_content_size + 100,
-                "estimated_size_gb": (
-                    conversation_count * (avg_search_content_size + 100)
-                )
-                / (1024**3),
+                "estimated_size_gb": (conversation_count * (avg_search_content_size + 100)) / (1024**3),
             },
             "other_tables": {
                 "estimated_size_gb": 0.5  # Dataset sources, batches, versions, statistics
@@ -515,7 +499,6 @@ if __name__ == "__main__":
     # Test the database schema designer
     designer = DatabaseSchemaDesigner()
 
-
     # Generate SQL schema
     sql_schema = designer.generate_sql_schema()
 
@@ -544,4 +527,3 @@ if __name__ == "__main__":
         f.write("\n-- Constraint Creation\n")
         for statement in sql_schema["constraints"]:
             f.write(statement + ";\n")
-

@@ -187,10 +187,7 @@ class MultiAgentMemory:
             raise
 
     async def reflect_on_session(
-        self,
-        context: CollaborationContext,
-        query: str,
-        disposition_override: str | None = None
+        self, context: CollaborationContext, query: str, disposition_override: str | None = None
     ) -> dict[str, Any]:
         """
         Reflect on the current session using Foresight's advanced reasoning.
@@ -214,7 +211,7 @@ class MultiAgentMemory:
             memories = await self.get_shared_context(context)
             return {
                 "answer": f"Simulated reflection ({disposition} disposition) based on {len(memories)} session memories.",
-                "memories": memories
+                "memories": memories,
             }
         except Exception as e:
             logger.error(f"Error reflecting on session: {e}")
@@ -439,16 +436,12 @@ class MultiAgentMemory:
             memories = self.memory.get_all_memories(user_id=context.user_id, limit=limit * 4)
 
             # Filter by session
-            session_memories = [
-                m for m in memories if m.get("metadata", {}).get("session_id") == context.session_id
-            ]
+            session_memories = [m for m in memories if m.get("metadata", {}).get("session_id") == context.session_id]
 
             # Optionally filter by agent
             if agent_id:
                 session_memories = [
-                    m
-                    for m in session_memories
-                    if m.get("metadata", {}).get("source_agent") == agent_id
+                    m for m in session_memories if m.get("metadata", {}).get("source_agent") == agent_id
                 ]
 
             return session_memories[:limit]

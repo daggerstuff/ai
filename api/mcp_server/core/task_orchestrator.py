@@ -9,7 +9,7 @@ import asyncio
 import logging
 import uuid
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -21,8 +21,10 @@ from .agent_manager import Agent, AgentDiscoveryCriteria, AgentManager, AgentSta
 
 logger = logging.getLogger(__name__)
 
+
 class TaskStatus(Enum):
     """Enumeration of task lifecycle statuses."""
+
     PENDING = "pending"
     ASSIGNED = "assigned"
     RUNNING = "running"
@@ -30,18 +32,22 @@ class TaskStatus(Enum):
     FAILED = "failed"
     CANCELLED = "cancelled"
 
+
 @dataclass
 class TaskCreationData:
     """Data required for task creation."""
+
     pipeline_id: str
     stage: str
     parameters: dict[str, Any]
     required_capabilities: list[str]
     priority: int = 1
 
+
 @dataclass
 class Task:
     """Task instance model."""
+
     id: str
     pipeline_id: str
     stage: str
@@ -68,6 +74,7 @@ class Task:
             data["completed_at"] = self.completed_at.isoformat()
         return data
 
+
 class TaskQueue:
     """Handles task prioritizing and queuing logic."""
 
@@ -83,19 +90,13 @@ class TaskQueue:
     async def get_pending_tasks(self) -> list[Task]:
         """Retrieve all pending tasks ordered by priority."""
         cursor = await self.mongodb.find_many(
-            self.collection,
-            {"status": TaskStatus.PENDING.value},
-            sort=[("priority", -1), ("created_at", 1)]
+            self.collection, {"status": TaskStatus.PENDING.value}, sort=[("priority", -1), ("created_at", 1)]
         )
         return [self._from_dict(d) for d in cursor]
 
     async def update_task(self, task: Task) -> None:
         """Update task in persistence."""
-        await self.mongodb.update_one(
-            self.collection,
-            {"id": task.id},
-            {"$set": task.to_dict()}
-        )
+        await self.mongodb.update_one(self.collection, {"id": task.id}, {"$set": task.to_dict()})
         logger.debug(f"Task {task.id} updated in queue")
 
     def _from_dict(self, data: dict[str, Any]) -> Task:
@@ -108,24 +109,15 @@ class TaskQueue:
             required_capabilities=data.get("required_capabilities", []),
             priority=data.get("priority", 1),
             status=TaskStatus(data.get("status", TaskStatus.PENDING.value)),
-            created_at=datetime.fromisoformat(
-                data.get("created_at", datetime.now(timezone.utc).isoformat())
-            ),
-            assigned_at=(
-                datetime.fromisoformat(data["assigned_at"])
-                if data.get("assigned_at")
-                else None
-            ),
-            completed_at=(
-                datetime.fromisoformat(data["completed_at"])
-                if data.get("completed_at")
-                else None
-            ),
+            created_at=datetime.fromisoformat(data.get("created_at", datetime.now(UTC).isoformat())),
+            assigned_at=(datetime.fromisoformat(data["assigned_at"]) if data.get("assigned_at") else None),
+            completed_at=(datetime.fromisoformat(data["completed_at"]) if data.get("completed_at") else None),
             agent_id=data.get("agent_id"),
             progress=data.get("progress", 0.0),
             error=data.get("error"),
             result=data.get("result"),
         )
+
 
 class TaskAssigner:
     """Handles logic for matching tasks to appropriate agents."""
@@ -141,23 +133,26 @@ class TaskAssigner:
                     return agent
         return None
 
+
 class ProgressTracker:
     """Manages real-time task progress monitoring."""
 
     def __init__(self, redis_client: MCPRedisClient):
         self.redis = redis_client
 
-    async def notify_progress(
-        self, task_id: str, progress: float, status: TaskStatus
-    ) -> None:
+    async def notify_progress(self, task_id: str, progress: float, status: TaskStatus) -> None:
         """Propagate progress updates to system observers."""
-        await self.redis.publish("task.progress", {
-            "task_id": task_id,
-            "progress": progress,
-            "status": status.value,
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        })
+        await self.redis.publish(
+            "task.progress",
+            {
+                "task_id": task_id,
+                "progress": progress,
+                "status": status.value,
+                "timestamp": datetime.now(UTC).isoformat(),
+            },
+        )
         logger.debug(f"Progress update for task {task_id}: {progress}%")
+
 
 class TaskOrchestrator:
     """Orchestrate task allocation and tracking."""
@@ -185,7 +180,7 @@ class TaskOrchestrator:
             required_capabilities=task_data.required_capabilities,
             priority=task_data.priority,
             status=TaskStatus.PENDING,
-            created_at=datetime.now(timezone.utc)
+            created_at=datetime.now(UTC),
         )
 
         await self.task_queue.enqueue(task)
@@ -206,37 +201,27 @@ class TaskOrchestrator:
             return False
 
         # Discover suitable agents
-        criteria = AgentDiscoveryCriteria(
-            capabilities=task.required_capabilities, status=AgentStatus.ACTIVE
-        )
+        criteria = AgentDiscoveryCriteria(capabilities=task.required_capabilities, status=AgentStatus.ACTIVE)
         agents = await self.agent_manager.discover_agents(criteria)
 
         # Assign agent
         agent = await self.task_assigner.assign_agent(task, agents)
         if not agent:
-            logger.info(
-                f"No suitable agent found for task {task_id}, "
-                "remaining in pending state"
-            )
+            logger.info(f"No suitable agent found for task {task_id}, remaining in pending state")
             return False
 
         # Update task status
         task.status = TaskStatus.ASSIGNED
         task.agent_id = agent.id
-        task.assigned_at = datetime.now(timezone.utc)
+        task.assigned_at = datetime.now(UTC)
 
         await self.task_queue.update_task(task)
 
         # Update agent status to BUSY
-        await self.agent_manager.update_agent_status(
-            agent.id, AgentStatus.BUSY
-        )
+        await self.agent_manager.update_agent_status(agent.id, AgentStatus.BUSY)
 
         # Notify assigned agent via Redis
-        await self.redis.publish(f"agent.{agent.id}.tasks", {
-            "action": "new_task",
-            "task": task.to_dict()
-        })
+        await self.redis.publish(f"agent.{agent.id}.tasks", {"action": "new_task", "task": task.to_dict()})
 
         return True
 
@@ -264,14 +249,12 @@ class TaskOrchestrator:
             task.error = error
 
         if status in [TaskStatus.COMPLETED, TaskStatus.FAILED, TaskStatus.CANCELLED]:
-            task.completed_at = datetime.now(timezone.utc)
+            task.completed_at = datetime.now(UTC)
 
             # Free up agent if one was assigned
             if task.agent_id:
                 active_status = AgentStatus.ACTIVE
-                await self.agent_manager.update_agent_status(
-                    task.agent_id, active_status
-                )
+                await self.agent_manager.update_agent_status(task.agent_id, active_status)
 
         await self.task_queue.update_task(task)
 

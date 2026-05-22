@@ -8,11 +8,13 @@ def detect_bias(text: str, bias_engine: Any) -> dict[str, float]:
         return {}
     return bias_engine.analyze(text)
 
+
 def check_pii(text: str, privacy_engine: Any) -> list[str]:
     """Check for PII using the provided privacy_engine."""
     if privacy_engine is None:
         return []
     return privacy_engine.check_pii(text)
+
 
 def check_phi(text: str, privacy_engine: Any) -> list[str]:
     """Check for PHI using the provided privacy_engine."""
@@ -20,11 +22,13 @@ def check_phi(text: str, privacy_engine: Any) -> list[str]:
         return []
     return privacy_engine.check_phi(text)
 
+
 def log_audit_event(event_type: str, text: str, logger: Any) -> None:
     """Log an audit event using the provided logger."""
     if logger is not None:
         with contextlib.suppress(Exception):
             logger.log_event(event_type, text)
+
 
 def run_bias_privacy_pipeline(
     text: str,

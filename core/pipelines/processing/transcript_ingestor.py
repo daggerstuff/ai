@@ -30,7 +30,7 @@ import json
 import logging
 import re
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -172,9 +172,7 @@ class TranscriptIngestor:
 
     # Patterns for speaker detection
     THERAPIST_PATTERNS = [
-        re.compile(
-            r"\b(therapist|counselor|psychologist|clinician|doctor|dr\.?)\b", re.I
-        ),
+        re.compile(r"\b(therapist|counselor|psychologist|clinician|doctor|dr\.?)\b", re.I),
         re.compile(r"^(T|Th|Therapist|C|Counselor)[:\]]\s*", re.I),
     ]
 
@@ -243,8 +241,7 @@ class TranscriptIngestor:
         )
 
         logger.info(
-            f"Ingested {path.name}: {transcript.message_count} messages, "
-            f"{transcript.total_characters} characters"
+            f"Ingested {path.name}: {transcript.message_count} messages, {transcript.total_characters} characters"
         )
         return transcript
 
@@ -258,7 +255,7 @@ class TranscriptIngestor:
         Returns:
             IngestionResult with all successfully ingested transcripts.
         """
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
         transcripts = []
         errors = []
 
@@ -276,7 +273,7 @@ class TranscriptIngestor:
                 )
                 logger.error(f"Failed to ingest {path}: {e}")
 
-        processing_time = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+        processing_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
 
         result = IngestionResult(
             transcripts=transcripts,
@@ -288,8 +285,7 @@ class TranscriptIngestor:
         )
 
         logger.info(
-            f"Batch ingestion complete: {result.successful}/{result.total_files} "
-            f"successful ({result.success_rate:.1%})"
+            f"Batch ingestion complete: {result.successful}/{result.total_files} successful ({result.success_rate:.1%})"
         )
         return result
 
@@ -347,9 +343,7 @@ class TranscriptIngestor:
             items = data
         elif isinstance(data, dict):
             items = data.get("messages", data.get("transcript", [data]))
-            metadata |= {
-                k: v for k, v in data.items() if k not in ["messages", "transcript"]
-            }
+            metadata |= {k: v for k, v in data.items() if k not in ["messages", "transcript"]}
         else:
             raise ValueError(f"Unexpected JSON structure: {type(data)}")
 
@@ -357,9 +351,7 @@ class TranscriptIngestor:
             if isinstance(item, dict):
                 msg = TranscriptMessage(
                     role=item.get("role", item.get("speaker", "unknown")),
-                    content=item.get(
-                        "content", item.get("text", item.get("message", ""))
-                    ),
+                    content=item.get("content", item.get("text", item.get("message", ""))),
                     timestamp=item.get("timestamp", item.get("time")),
                     speaker_id=item.get("speaker_id"),
                     metadata=item.get("metadata", {}),
@@ -515,18 +507,13 @@ class TranscriptIngestor:
 
         return messages, metadata
 
-    def _validate_messages(
-        self, messages: list[TranscriptMessage]
-    ) -> list[TranscriptMessage]:
+    def _validate_messages(self, messages: list[TranscriptMessage]) -> list[TranscriptMessage]:
         """Validate and filter messages based on configuration."""
         validated = []
 
         for msg in messages:
             # Check message length
-            if (
-                len(msg.content) < self.config.min_message_length
-                and self.config.skip_empty_messages
-            ):
+            if len(msg.content) < self.config.min_message_length and self.config.skip_empty_messages:
                 continue
 
             if len(msg.content) > self.config.max_message_length:
@@ -539,22 +526,18 @@ class TranscriptIngestor:
         # Check conversation length
         if len(validated) < self.config.min_conversation_length:
             logger.warning(
-                f"Conversation has only {len(validated)} messages, "
-                f"minimum is {self.config.min_conversation_length}"
+                f"Conversation has only {len(validated)} messages, minimum is {self.config.min_conversation_length}"
             )
 
         if len(validated) > self.config.max_conversation_length:
             logger.warning(
-                f"Conversation has {len(validated)} messages, "
-                f"truncating to {self.config.max_conversation_length}"
+                f"Conversation has {len(validated)} messages, truncating to {self.config.max_conversation_length}"
             )
             validated = validated[: self.config.max_conversation_length]
 
         return validated
 
-    def _detect_roles(
-        self, messages: list[TranscriptMessage]
-    ) -> list[TranscriptMessage]:
+    def _detect_roles(self, messages: list[TranscriptMessage]) -> list[TranscriptMessage]:
         """Auto-detect speaker roles (client/therapist)."""
         for msg in messages:
             role_lower = msg.role.lower()
@@ -583,7 +566,7 @@ class TranscriptIngestor:
 
         # Generate from filename and hash
         filename_hash = hashlib.md5(path.name.encode()).hexdigest()[:8]
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d%H%M")
         return f"transcript_{filename_hash}_{timestamp}"
 
 

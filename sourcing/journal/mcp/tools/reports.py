@@ -91,9 +91,7 @@ class GenerateReportTool(MCPTool):
             if not session_id:
                 raise ValueError("session_id is required")
             if report_type not in ["session_report", "weekly_report", "summary_report"]:
-                raise ValueError(
-                    "report_type must be one of: session_report, weekly_report, summary_report"
-                )
+                raise ValueError("report_type must be one of: session_report, weekly_report, summary_report")
             if format_type not in ["json", "markdown", "pdf"]:
                 raise ValueError("format must be one of: json, markdown, pdf")
 
@@ -290,4 +288,3 @@ class ListReportsTool(MCPTool):
                 f"Failed to list reports: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
-

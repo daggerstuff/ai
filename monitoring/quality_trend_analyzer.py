@@ -8,7 +8,7 @@ import json
 import sqlite3
 import warnings
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -71,9 +71,7 @@ class QualityTrendAnalyzer:
         self.min_data_points = 5
         self.significance_threshold = 0.05
 
-    def analyze_quality_trends(
-        self, period: str = "weekly", days_back: int = 90
-    ) -> dict[str, QualityTrend]:
+    def analyze_quality_trends(self, period: str = "weekly", days_back: int = 90) -> dict[str, QualityTrend]:
         """Analyze quality trends over specified period"""
 
         try:
@@ -104,7 +102,7 @@ class QualityTrendAnalyzer:
             conn = sqlite3.connect(self.db_path)
 
             # Calculate date threshold
-            date_threshold = datetime.now(timezone.utc) - timedelta(days=days_back)
+            date_threshold = datetime.now(UTC) - timedelta(days=days_back)
 
             query = """
             SELECT
@@ -185,9 +183,7 @@ class QualityTrendAnalyzer:
                     if period == "daily" or period == "weekly":
                         timestamps.append(datetime.strptime(period_key, "%Y-%m-%d"))
                     elif period == "monthly":
-                        timestamps.append(
-                            datetime.strptime(f"{period_key}-01", "%Y-%m-%d")
-                        )
+                        timestamps.append(datetime.strptime(f"{period_key}-01", "%Y-%m-%d"))
                     elif period == "quarterly":
                         year, quarter = period_key.split("-Q")
                         month = (int(quarter) - 1) * 3 + 1
@@ -197,9 +193,7 @@ class QualityTrendAnalyzer:
                 return None
 
             # Perform trend analysis
-            trend_direction, trend_strength, p_value = self._calculate_trend_statistics(
-                period_values
-            )
+            trend_direction, trend_strength, p_value = self._calculate_trend_statistics(period_values)
 
             return QualityTrend(
                 metric=metric,
@@ -214,9 +208,7 @@ class QualityTrendAnalyzer:
         except Exception:
             return None
 
-    def _calculate_trend_statistics(
-        self, values: list[float]
-    ) -> tuple[str, float, float]:
+    def _calculate_trend_statistics(self, values: list[float]) -> tuple[str, float, float]:
         """Calculate trend statistics using linear regression"""
         try:
             x = np.arange(len(values))
@@ -241,9 +233,7 @@ class QualityTrendAnalyzer:
         except Exception:
             return "unknown", 0.0, 1.0
 
-    def generate_trend_report(
-        self, trends: dict[str, QualityTrend], period: str = "weekly"
-    ) -> TrendReport:
+    def generate_trend_report(self, trends: dict[str, QualityTrend], period: str = "weekly") -> TrendReport:
         """Generate comprehensive trend report"""
 
         try:
@@ -330,13 +320,9 @@ class QualityTrendAnalyzer:
             strength = trend.trend_strength
 
             if direction == "improving":
-                insights.append(
-                    f"{name.replace('_', ' ').title()} shows significant improvement (R² = {strength:.3f})"
-                )
+                insights.append(f"{name.replace('_', ' ').title()} shows significant improvement (R² = {strength:.3f})")
             elif direction == "declining":
-                insights.append(
-                    f"{name.replace('_', ' ').title()} shows concerning decline (R² = {strength:.3f})"
-                )
+                insights.append(f"{name.replace('_', ' ').title()} shows concerning decline (R² = {strength:.3f})")
             else:
                 insights.append(
                     f"{name.replace('_', ' ').title()} remains stable with strong consistency (R² = {strength:.3f})"
@@ -350,9 +336,7 @@ class QualityTrendAnalyzer:
         ]
 
         if volatile_metrics:
-            insights.append(
-                f"High volatility detected in: {', '.join(volatile_metrics)}"
-            )
+            insights.append(f"High volatility detected in: {', '.join(volatile_metrics)}")
 
         return insights
 
@@ -364,44 +348,30 @@ class QualityTrendAnalyzer:
         declining_metrics = [
             name
             for name, trend in trends.items()
-            if trend.trend_direction == "declining"
-            and trend.statistical_significance < self.significance_threshold
+            if trend.trend_direction == "declining" and trend.statistical_significance < self.significance_threshold
         ]
 
         for metric in declining_metrics:
             if metric == "therapeutic_accuracy":
-                recommendations.append(
-                    "Review and enhance clinical training data quality"
-                )
+                recommendations.append("Review and enhance clinical training data quality")
             elif metric == "conversation_coherence":
-                recommendations.append(
-                    "Implement conversation flow validation and improvement"
-                )
+                recommendations.append("Implement conversation flow validation and improvement")
             elif metric == "emotional_authenticity":
-                recommendations.append(
-                    "Enhance emotional intelligence training datasets"
-                )
+                recommendations.append("Enhance emotional intelligence training datasets")
             elif metric == "clinical_compliance":
-                recommendations.append(
-                    "Strengthen clinical guideline adherence validation"
-                )
+                recommendations.append("Strengthen clinical guideline adherence validation")
             elif metric == "safety_score":
-                recommendations.append(
-                    "URGENT: Review safety protocols and crisis detection systems"
-                )
+                recommendations.append("URGENT: Review safety protocols and crisis detection systems")
 
         # Find improving metrics to reinforce
         improving_metrics = [
             name
             for name, trend in trends.items()
-            if trend.trend_direction == "improving"
-            and trend.statistical_significance < self.significance_threshold
+            if trend.trend_direction == "improving" and trend.statistical_significance < self.significance_threshold
         ]
 
         if improving_metrics:
-            recommendations.append(
-                f"Continue successful practices that improved: {', '.join(improving_metrics)}"
-            )
+            recommendations.append(f"Continue successful practices that improved: {', '.join(improving_metrics)}")
 
         # General recommendations
         if len(declining_metrics) > len(improving_metrics):
@@ -409,9 +379,7 @@ class QualityTrendAnalyzer:
 
         return recommendations
 
-    def _create_metrics_summary(
-        self, trends: dict[str, QualityTrend]
-    ) -> dict[str, Any]:
+    def _create_metrics_summary(self, trends: dict[str, QualityTrend]) -> dict[str, Any]:
         """Create metrics summary"""
         summary = {}
 
@@ -421,8 +389,7 @@ class QualityTrendAnalyzer:
                 "trend_direction": trend.trend_direction,
                 "trend_strength": trend.trend_strength,
                 "statistical_significance": trend.statistical_significance,
-                "is_significant": trend.statistical_significance
-                < self.significance_threshold,
+                "is_significant": trend.statistical_significance < self.significance_threshold,
                 "volatility": np.std(trend.values) if trend.values else 0,
                 "min_value": min(trend.values) if trend.values else 0,
                 "max_value": max(trend.values) if trend.values else 0,
@@ -431,9 +398,7 @@ class QualityTrendAnalyzer:
 
         return summary
 
-    def _perform_statistical_tests(
-        self, trends: dict[str, QualityTrend]
-    ) -> dict[str, Any]:
+    def _perform_statistical_tests(self, trends: dict[str, QualityTrend]) -> dict[str, Any]:
         """Perform statistical tests on trends"""
         tests = {}
 
@@ -467,9 +432,7 @@ class QualityTrendAnalyzer:
 
         return tests
 
-    def create_trend_visualizations(
-        self, trends: dict[str, QualityTrend], period: str = "weekly"
-    ) -> dict[str, str]:
+    def create_trend_visualizations(self, trends: dict[str, QualityTrend], period: str = "weekly") -> dict[str, str]:
         """Create trend visualizations"""
 
         viz_files = {}
@@ -574,9 +537,7 @@ class QualityTrendAnalyzer:
 
                 # Current values
                 ax = axes[1, 0]
-                current_values = [
-                    t.values[-1] if t.values else 0 for t in trends.values()
-                ]
+                current_values = [t.values[-1] if t.values else 0 for t in trends.values()]
                 ax.bar(names, current_values)
                 ax.set_title("Current Quality Scores")
                 ax.set_ylabel("Quality Score")
@@ -615,16 +576,13 @@ class QualityTrendAnalyzer:
         """Export comprehensive trend report"""
 
         try:
-            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-            report_file = (
-                self.output_dir
-                / f"quality_trend_report_{report.period}_{timestamp}.json"
-            )
+            timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
+            report_file = self.output_dir / f"quality_trend_report_{report.period}_{timestamp}.json"
 
             # Prepare export data
             export_data = {
                 "report_metadata": {
-                    "generated_at": datetime.now(timezone.utc).isoformat(),
+                    "generated_at": datetime.now(UTC).isoformat(),
                     "period": report.period,
                     "analyzer_version": "1.0.0",
                 },
@@ -670,7 +628,6 @@ def main():
     periods = ["daily", "weekly", "monthly"]
 
     for period in periods:
-
         # Analyze trends
         trends = analyzer.analyze_quality_trends(period=period, days_back=90)
 
@@ -685,7 +642,6 @@ def main():
 
         # Export report
         analyzer.export_trend_report(report, trends, visualizations)
-
 
 
 if __name__ == "__main__":

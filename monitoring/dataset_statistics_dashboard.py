@@ -9,7 +9,7 @@ import sqlite3
 import warnings
 from collections import Counter
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -160,13 +160,9 @@ class DatasetStatisticsDashboard:
             avg_word_count = df["word_count"].fillna(0).mean()
 
             # Distributions
-            language_distribution = (
-                df["language"].fillna("unknown").value_counts().to_dict()
-            )
+            language_distribution = df["language"].fillna("unknown").value_counts().to_dict()
             tier_distribution = df["tier"].fillna("unknown").value_counts().to_dict()
-            processing_status = (
-                df["processing_status"].fillna("unknown").value_counts().to_dict()
-            )
+            processing_status = df["processing_status"].fillna("unknown").value_counts().to_dict()
 
             # Quality metrics (synthetic for demo)
             quality_metrics = self._calculate_quality_metrics(df)
@@ -175,9 +171,7 @@ class DatasetStatisticsDashboard:
             temporal_distribution = self._calculate_temporal_distribution(df)
 
             # Unique characteristics
-            unique_characteristics = self._identify_unique_characteristics(
-                df, dataset_name
-            )
+            unique_characteristics = self._identify_unique_characteristics(df, dataset_name)
 
             return DatasetStatistics(
                 dataset_name=dataset_name,
@@ -203,18 +197,11 @@ class DatasetStatisticsDashboard:
             # Synthetic quality metrics for demonstration
             return {
                 "completeness_score": min(1.0, len(df[df["word_count"] > 0]) / len(df)),
-                "consistency_score": min(
-                    1.0, len(df[df["processing_status"] == "processed"]) / len(df)
-                ),
-                "diversity_score": min(
-                    1.0, len(df["tier"].unique()) / 5.0
-                ),  # Assuming max 5 tiers
-                "richness_score": min(
-                    1.0, df["word_count"].fillna(0).mean() / 500.0
-                ),  # Normalized to 500 words
+                "consistency_score": min(1.0, len(df[df["processing_status"] == "processed"]) / len(df)),
+                "diversity_score": min(1.0, len(df["tier"].unique()) / 5.0),  # Assuming max 5 tiers
+                "richness_score": min(1.0, df["word_count"].fillna(0).mean() / 500.0),  # Normalized to 500 words
                 "coverage_score": np.random.uniform(0.7, 0.95),  # Synthetic for demo
             }
-
 
         except Exception:
             return {}
@@ -234,9 +221,7 @@ class DatasetStatisticsDashboard:
         except Exception:
             return {}
 
-    def _identify_unique_characteristics(
-        self, df: pd.DataFrame, dataset_name: str
-    ) -> list[str]:
+    def _identify_unique_characteristics(self, df: pd.DataFrame, dataset_name: str) -> list[str]:
         """Identify unique characteristics of the dataset"""
         characteristics = []
 
@@ -260,23 +245,17 @@ class DatasetStatisticsDashboard:
             if len(tier_counts) > 0:
                 dominant_tier = tier_counts.index[0]
                 if tier_counts.iloc[0] / len(df) > 0.8:
-                    characteristics.append(
-                        f"Predominantly {dominant_tier} tier content"
-                    )
+                    characteristics.append(f"Predominantly {dominant_tier} tier content")
 
             # Analyze language diversity
             language_counts = df["language"].value_counts()
             if len(language_counts) > 1:
-                characteristics.append(
-                    f"Multi-language support ({len(language_counts)} languages)"
-                )
+                characteristics.append(f"Multi-language support ({len(language_counts)} languages)")
 
             # Dataset-specific characteristics
             if "reddit" in dataset_name.lower():
                 characteristics.append("Community-generated content")
-            elif (
-                "clinical" in dataset_name.lower() or "therapy" in dataset_name.lower()
-            ):
+            elif "clinical" in dataset_name.lower() or "therapy" in dataset_name.lower():
                 characteristics.append("Clinical/therapeutic focus")
             elif "psychology" in dataset_name.lower():
                 characteristics.append("Psychology domain expertise")
@@ -286,9 +265,7 @@ class DatasetStatisticsDashboard:
         except Exception:
             return []
 
-    def generate_dataset_insights(
-        self, dataset_stats: dict[str, DatasetStatistics]
-    ) -> dict[str, DatasetInsights]:
+    def generate_dataset_insights(self, dataset_stats: dict[str, DatasetStatistics]) -> dict[str, DatasetInsights]:
         """Generate insights and recommendations for datasets"""
 
         try:
@@ -307,22 +284,14 @@ class DatasetStatisticsDashboard:
         except Exception:
             return {}
 
-    def _calculate_overall_statistics(
-        self, dataset_stats: dict[str, DatasetStatistics]
-    ) -> dict[str, float]:
+    def _calculate_overall_statistics(self, dataset_stats: dict[str, DatasetStatistics]) -> dict[str, float]:
         """Calculate overall statistics across all datasets"""
         try:
-            all_conversations = sum(
-                stats.total_conversations for stats in dataset_stats.values()
-            )
+            all_conversations = sum(stats.total_conversations for stats in dataset_stats.values())
             all_words = sum(stats.total_words for stats in dataset_stats.values())
 
-            avg_conversation_length = np.mean(
-                [stats.avg_conversation_length for stats in dataset_stats.values()]
-            )
-            avg_word_count = np.mean(
-                [stats.avg_word_count for stats in dataset_stats.values()]
-            )
+            avg_conversation_length = np.mean([stats.avg_conversation_length for stats in dataset_stats.values()])
+            avg_word_count = np.mean([stats.avg_word_count for stats in dataset_stats.values()])
 
             return {
                 "total_conversations": all_conversations,
@@ -349,19 +318,13 @@ class DatasetStatisticsDashboard:
             # Conversation volume analysis
             if (
                 stats.total_conversations
-                > overall_stats.get("total_conversations", 0)
-                / len(overall_stats.get("dataset_count", 1))
-                * 2
+                > overall_stats.get("total_conversations", 0) / len(overall_stats.get("dataset_count", 1)) * 2
             ):
                 strengths.append("High conversation volume")
-                key_insights.append(
-                    f"Contains {stats.total_conversations:,} conversations - above average volume"
-                )
+                key_insights.append(f"Contains {stats.total_conversations:,} conversations - above average volume")
             elif stats.total_conversations < 1000:
                 weaknesses.append("Low conversation volume")
-                recommendations.append(
-                    "Consider expanding dataset with additional conversations"
-                )
+                recommendations.append("Consider expanding dataset with additional conversations")
 
             # Quality analysis
             avg_quality = np.mean(list(stats.quality_metrics.values()))
@@ -372,24 +335,15 @@ class DatasetStatisticsDashboard:
                 recommendations.append("Implement quality improvement measures")
 
             # Conversation length analysis
-            if (
-                stats.avg_conversation_length
-                > overall_stats.get("avg_conversation_length", 0) * 1.5
-            ):
+            if stats.avg_conversation_length > overall_stats.get("avg_conversation_length", 0) * 1.5:
                 strengths.append("Rich, detailed conversations")
-                key_insights.append(
-                    f"Average {stats.avg_conversation_length:.1f} turns per conversation"
-                )
+                key_insights.append(f"Average {stats.avg_conversation_length:.1f} turns per conversation")
             elif stats.avg_conversation_length < 2:
                 weaknesses.append("Very short conversations")
-                optimization_opportunities.append(
-                    "Enhance conversation depth and engagement"
-                )
+                optimization_opportunities.append("Enhance conversation depth and engagement")
 
             # Processing status analysis
-            processed_rate = (
-                stats.processing_status.get("processed", 0) / stats.total_conversations
-            )
+            processed_rate = stats.processing_status.get("processed", 0) / stats.total_conversations
             if processed_rate > 0.95:
                 strengths.append("Excellent processing completion rate")
             elif processed_rate < 0.8:
@@ -399,9 +353,7 @@ class DatasetStatisticsDashboard:
             # Language diversity analysis
             if len(stats.language_distribution) > 1:
                 strengths.append("Multi-language support")
-                key_insights.append(
-                    f"Supports {len(stats.language_distribution)} languages"
-                )
+                key_insights.append(f"Supports {len(stats.language_distribution)} languages")
 
             # Tier distribution analysis
             tier_diversity = len(stats.tier_distribution)
@@ -446,9 +398,7 @@ class DatasetStatisticsDashboard:
         except Exception:
             return 50.0
 
-    def create_dashboard_visualizations(
-        self, dataset_stats: dict[str, DatasetStatistics]
-    ) -> dict[str, str]:
+    def create_dashboard_visualizations(self, dataset_stats: dict[str, DatasetStatistics]) -> dict[str, str]:
         """Create comprehensive dashboard visualizations"""
 
         viz_files = {}
@@ -465,9 +415,7 @@ class DatasetStatisticsDashboard:
             # Dataset volume comparison
             ax = axes[0, 0]
             dataset_names = list(dataset_stats.keys())[:10]  # Top 10
-            conversation_counts = [
-                dataset_stats[name].total_conversations for name in dataset_names
-            ]
+            conversation_counts = [dataset_stats[name].total_conversations for name in dataset_names]
 
             bars = ax.bar(range(len(dataset_names)), conversation_counts, alpha=0.7)
             ax.set_title("Conversation Volume by Dataset")
@@ -475,10 +423,7 @@ class DatasetStatisticsDashboard:
             ax.set_ylabel("Conversation Count")
             ax.set_xticks(range(len(dataset_names)))
             ax.set_xticklabels(
-                [
-                    name[:15] + "..." if len(name) > 15 else name
-                    for name in dataset_names
-                ],
+                [name[:15] + "..." if len(name) > 15 else name for name in dataset_names],
                 rotation=45,
                 ha="right",
             )
@@ -498,9 +443,7 @@ class DatasetStatisticsDashboard:
 
             # Average conversation length comparison
             ax = axes[0, 1]
-            avg_lengths = [
-                dataset_stats[name].avg_conversation_length for name in dataset_names
-            ]
+            avg_lengths = [dataset_stats[name].avg_conversation_length for name in dataset_names]
 
             ax.bar(range(len(dataset_names)), avg_lengths, alpha=0.7, color="orange")
             ax.set_title("Average Conversation Length")
@@ -508,10 +451,7 @@ class DatasetStatisticsDashboard:
             ax.set_ylabel("Average Turns")
             ax.set_xticks(range(len(dataset_names)))
             ax.set_xticklabels(
-                [
-                    name[:15] + "..." if len(name) > 15 else name
-                    for name in dataset_names
-                ],
+                [name[:15] + "..." if len(name) > 15 else name for name in dataset_names],
                 rotation=45,
                 ha="right",
             )
@@ -530,20 +470,13 @@ class DatasetStatisticsDashboard:
 
             if quality_data:
                 quality_matrix = np.array(quality_data)
-                im = ax.imshow(
-                    quality_matrix, cmap="RdYlGn", aspect="auto", vmin=0, vmax=1
-                )
+                im = ax.imshow(quality_matrix, cmap="RdYlGn", aspect="auto", vmin=0, vmax=1)
                 ax.set_title("Quality Metrics Heatmap")
                 ax.set_yticks(range(len(quality_labels)))
                 ax.set_yticklabels(quality_labels)
-                ax.set_xticks(
-                    range(len(list(dataset_stats.values())[0].quality_metrics))
-                )
+                ax.set_xticks(range(len(list(dataset_stats.values())[0].quality_metrics)))
                 ax.set_xticklabels(
-                    [
-                        k.replace("_", " ").title()
-                        for k in list(dataset_stats.values())[0].quality_metrics.keys()
-                    ],
+                    [k.replace("_", " ").title() for k in list(dataset_stats.values())[0].quality_metrics.keys()],
                     rotation=45,
                     ha="right",
                 )
@@ -560,9 +493,7 @@ class DatasetStatisticsDashboard:
                     all_statuses[status] = all_statuses.get(status, 0) + count
 
             if all_statuses:
-                ax.pie(
-                    all_statuses.values(), labels=all_statuses.keys(), autopct="%1.1f%%"
-                )
+                ax.pie(all_statuses.values(), labels=all_statuses.keys(), autopct="%1.1f%%")
                 ax.set_title("Overall Processing Status Distribution")
 
             # Language distribution
@@ -574,9 +505,7 @@ class DatasetStatisticsDashboard:
 
             if all_languages:
                 # Show top 10 languages
-                top_languages = dict(
-                    sorted(all_languages.items(), key=lambda x: x[1], reverse=True)[:10]
-                )
+                top_languages = dict(sorted(all_languages.items(), key=lambda x: x[1], reverse=True)[:10])
                 ax.bar(
                     range(len(top_languages)),
                     list(top_languages.values()),
@@ -623,10 +552,8 @@ class DatasetStatisticsDashboard:
         """Export comprehensive dashboard report"""
 
         try:
-            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-            report_file = (
-                self.output_dir / f"dataset_statistics_report_{timestamp}.json"
-            )
+            timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
+            report_file = self.output_dir / f"dataset_statistics_report_{timestamp}.json"
 
             # Create executive summary
             executive_summary = self._create_executive_summary(dataset_stats, insights)
@@ -634,7 +561,7 @@ class DatasetStatisticsDashboard:
             # Prepare export data
             export_data = {
                 "report_metadata": {
-                    "generated_at": datetime.now(timezone.utc).isoformat(),
+                    "generated_at": datetime.now(UTC).isoformat(),
                     "dashboard_version": "1.0.0",
                     "total_datasets": len(dataset_stats),
                     "analysis_scope": "comprehensive_statistics",
@@ -687,9 +614,7 @@ class DatasetStatisticsDashboard:
         """Create executive summary of dataset statistics"""
         try:
             # Overall statistics
-            total_conversations = sum(
-                stats.total_conversations for stats in dataset_stats.values()
-            )
+            total_conversations = sum(stats.total_conversations for stats in dataset_stats.values())
             total_words = sum(stats.total_words for stats in dataset_stats.values())
             total_datasets = len(dataset_stats)
 
@@ -707,11 +632,7 @@ class DatasetStatisticsDashboard:
                 total_processed += stats.processing_status.get("processed", 0)
                 total_conversations_all += stats.total_conversations
 
-            processing_rate = (
-                (total_processed / total_conversations_all) * 100
-                if total_conversations_all > 0
-                else 0
-            )
+            processing_rate = (total_processed / total_conversations_all) * 100 if total_conversations_all > 0 else 0
 
             # Top performing datasets
             top_datasets = sorted(
@@ -727,12 +648,8 @@ class DatasetStatisticsDashboard:
                 all_strengths.extend(insight.strengths)
                 all_weaknesses.extend(insight.weaknesses)
 
-            common_strengths = [
-                item for item, count in Counter(all_strengths).most_common(3)
-            ]
-            common_weaknesses = [
-                item for item, count in Counter(all_weaknesses).most_common(3)
-            ]
+            common_strengths = [item for item, count in Counter(all_strengths).most_common(3)]
+            common_weaknesses = [item for item, count in Counter(all_weaknesses).most_common(3)]
 
             return {
                 "total_datasets": total_datasets,
@@ -775,21 +692,14 @@ def main():
     visualizations = dashboard.create_dashboard_visualizations(dataset_stats)
 
     # Export report
-    dashboard.export_dashboard_report(
-        dataset_stats, insights, visualizations
-    )
+    dashboard.export_dashboard_report(dataset_stats, insights, visualizations)
 
     # Display summary
-    sum(
-        stats.total_conversations for stats in dataset_stats.values()
-    )
+    sum(stats.total_conversations for stats in dataset_stats.values())
     sum(stats.total_words for stats in dataset_stats.values())
 
-
     # Show top datasets
-    top_datasets = sorted(
-        dataset_stats.items(), key=lambda x: x[1].total_conversations, reverse=True
-    )[:5]
+    top_datasets = sorted(dataset_stats.items(), key=lambda x: x[1].total_conversations, reverse=True)[:5]
 
     for _i, (_name, _stats) in enumerate(top_datasets, 1):
         pass

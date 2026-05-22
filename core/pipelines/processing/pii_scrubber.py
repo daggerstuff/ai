@@ -99,8 +99,7 @@ class PiiScrubber:
                 logger.info("spaCy model loaded for NER-based name detection")
             except OSError:
                 logger.warning(
-                    "spaCy model 'en_core_web_sm' not found. "
-                    "Install with: python -m spacy download en_core_web_sm"
+                    "spaCy model 'en_core_web_sm' not found. Install with: python -m spacy download en_core_web_sm"
                 )
                 self._nlp = None
         elif self.config.use_spacy_for_names and not SPACY_AVAILABLE:
@@ -110,19 +109,13 @@ class PiiScrubber:
         """Compile regex patterns for PII detection."""
         patterns = {
             # Email addresses
-            "email": re.compile(
-                r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b", re.IGNORECASE
-            ),
+            "email": re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b", re.IGNORECASE),
             # Phone numbers (various formats)
-            "phone": re.compile(
-                r"\b(?:\+?1[-.\s]?)?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}\b"
-            ),
+            "phone": re.compile(r"\b(?:\+?1[-.\s]?)?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}\b"),
             # SSN (Social Security Number)
             "ssn": re.compile(r"\b\d{3}-?\d{2}-?\d{4}\b"),
             # Dates of birth (common formats)
-            "dob": re.compile(
-                r"\b(?:0[1-9]|1[0-2])[-/](?:0[1-9]|[12][0-9]|3[01])[-/](?:19|20)\d{2}\b"
-            ),
+            "dob": re.compile(r"\b(?:0[1-9]|1[0-2])[-/](?:0[1-9]|[12][0-9]|3[01])[-/](?:19|20)\d{2}\b"),
             # Medical record numbers (common patterns)
             "medical_record_number": re.compile(
                 r"\b(?:MRN|mrn|Medical\s+Record\s+#?|MR#?)\s*:?\s*[A-Z0-9]{6,12}\b",
@@ -209,10 +202,7 @@ class PiiScrubber:
 
         for ent in doc.ents:
             # Focus on person names for PII detection
-            if (
-                ent.label_ == "PERSON"
-                and ent.confidence >= self.config.spacy_confidence_threshold
-            ):
+            if ent.label_ == "PERSON" and ent.confidence >= self.config.spacy_confidence_threshold:
                 # Skip if specific PII types are requested and this isn't one of them
                 if self.config.pii_types and "name" not in self.config.pii_types:
                     continue
@@ -423,9 +413,7 @@ def scrub_text(text: str, config: PiiScrubberConfig | None = None) -> str:
     return result.scrubbed_text
 
 
-def scrub_text_with_metadata(
-    text: str, config: PiiScrubberConfig | None = None
-) -> ScrubResult:
+def scrub_text_with_metadata(text: str, config: PiiScrubberConfig | None = None) -> ScrubResult:
     """
     Quick function to scrub text and return full metadata.
 

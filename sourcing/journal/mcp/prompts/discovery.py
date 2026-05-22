@@ -151,5 +151,3 @@ discover_sources(
 - Results are automatically stored in the session state
 - You can resume interrupted discovery operations
 """
-
-

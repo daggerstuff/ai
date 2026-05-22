@@ -5,7 +5,7 @@ This module provides REST API endpoints for pipeline management,
 execution control, and progress tracking integration.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from flask import Blueprint, current_app, jsonify, request
@@ -90,9 +90,7 @@ def list_pipeline_configs() -> dict[str, Any]:
             {
                 "success": True,
                 "data": result,
-                "meta": {
-                    "timestamp": datetime.now(timezone.utc).isoformat()
-                },
+                "meta": {"timestamp": datetime.now(UTC).isoformat()},
             }
         ), 200
 
@@ -158,9 +156,7 @@ def get_pipeline_config(config_id: str) -> dict[str, Any]:
             {
                 "success": True,
                 "data": {"config": config},
-                "meta": {
-                    "timestamp": datetime.now(timezone.utc).isoformat()
-                },
+                "meta": {"timestamp": datetime.now(UTC).isoformat()},
             }
         ), 200
 
@@ -253,9 +249,7 @@ def create_pipeline_config() -> dict[str, Any]:
             {
                 "success": True,
                 "data": {"config": config},
-                "meta": {
-                    "timestamp": datetime.now(timezone.utc).isoformat()
-                },
+                "meta": {"timestamp": datetime.now(UTC).isoformat()},
             }
         ), 201
 
@@ -318,9 +312,7 @@ def update_pipeline_config(config_id: str) -> dict[str, Any]:
         pipeline_service = PipelineService(current_app.config, current_app.redis_client)
 
         # Update pipeline config
-        config = pipeline_service.update_config(
-            config_id=config_id, user_id=current_user["id"], update_data=data
-        )
+        config = pipeline_service.update_config(config_id=config_id, user_id=current_user["id"], update_data=data)
 
         if not config:
             logger.warning(
@@ -338,9 +330,7 @@ def update_pipeline_config(config_id: str) -> dict[str, Any]:
             {
                 "success": True,
                 "data": {"config": config},
-                "meta": {
-                    "timestamp": datetime.now(timezone.utc).isoformat()
-                },
+                "meta": {"timestamp": datetime.now(UTC).isoformat()},
             }
         ), 200
 
@@ -401,9 +391,7 @@ def delete_pipeline_config(config_id: str) -> dict[str, Any]:
             {
                 "success": True,
                 "data": {"message": "Pipeline config deleted successfully"},
-                "meta": {
-                    "timestamp": datetime.now(timezone.utc).isoformat()
-                },
+                "meta": {"timestamp": datetime.now(UTC).isoformat()},
             }
         ), 200
 
@@ -496,9 +484,7 @@ def execute_pipeline() -> dict[str, Any]:
             {
                 "success": True,
                 "data": {"execution": execution},
-                "meta": {
-                    "timestamp": datetime.now(timezone.utc).isoformat()
-                },
+                "meta": {"timestamp": datetime.now(UTC).isoformat()},
             }
         ), 201
 
@@ -573,9 +559,7 @@ def get_pipeline_execution(execution_id: str) -> dict[str, Any]:
             {
                 "success": True,
                 "data": {"execution": execution},
-                "meta": {
-                    "timestamp": datetime.now(timezone.utc).isoformat()
-                },
+                "meta": {"timestamp": datetime.now(UTC).isoformat()},
             }
         ), 200
 
@@ -641,9 +625,7 @@ def cancel_pipeline_execution(execution_id: str) -> dict[str, Any]:
             {
                 "success": True,
                 "data": {"execution": execution},
-                "meta": {
-                    "timestamp": datetime.now(timezone.utc).isoformat()
-                },
+                "meta": {"timestamp": datetime.now(UTC).isoformat()},
             }
         ), 200
 
@@ -728,9 +710,7 @@ def list_pipeline_executions() -> dict[str, Any]:
             {
                 "success": True,
                 "data": result,
-                "meta": {
-                    "timestamp": datetime.now(timezone.utc).isoformat()
-                },
+                "meta": {"timestamp": datetime.now(UTC).isoformat()},
             }
         ), 200
 
@@ -787,9 +767,7 @@ def get_pipeline_stages() -> dict[str, Any]:
             {
                 "success": True,
                 "data": {"stages": stages},
-                "meta": {
-                    "timestamp": datetime.now(timezone.utc).isoformat()
-                },
+                "meta": {"timestamp": datetime.now(UTC).isoformat()},
             }
         ), 200
 
@@ -836,9 +814,7 @@ def get_pipeline_health() -> dict[str, Any]:
             {
                 "success": True,
                 "data": {"health": health},
-                "meta": {
-                    "timestamp": datetime.now(timezone.utc).isoformat()
-                },
+                "meta": {"timestamp": datetime.now(UTC).isoformat()},
             }
         ), 200
 
@@ -889,9 +865,7 @@ def get_pipeline_observability_health() -> dict[str, Any]:
             {
                 "success": True,
                 "data": {"health": health.to_dict()},
-                "meta": {
-                    "timestamp": datetime.now(timezone.utc).isoformat()
-                },
+                "meta": {"timestamp": datetime.now(UTC).isoformat()},
             }
         ), 200
 

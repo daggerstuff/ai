@@ -8,7 +8,7 @@ import asyncio
 # Add parent directory to path for imports
 import sys
 import unittest
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent.parent))
@@ -40,9 +40,7 @@ class TestHealthCheckSystem(unittest.TestCase):
         async def mock_check():
             return {"status": "ok"}
 
-        self.health_manager.register_health_check(
-            "test_service", ComponentType.API, mock_check
-        )
+        self.health_manager.register_health_check("test_service", ComponentType.API, mock_check)
 
         assert "test_service" in self.health_manager.health_checks
         assert "test_service" in self.health_manager.component_configs
@@ -56,13 +54,11 @@ class TestHealthCheckSystem(unittest.TestCase):
                 component_type=ComponentType.API,
                 status=HealthStatus.HEALTHY,
                 message="Service is healthy",
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 response_time_ms=15.5,
             )
 
-        self.health_manager.register_health_check(
-            "test_service", ComponentType.API, mock_check
-        )
+        self.health_manager.register_health_check("test_service", ComponentType.API, mock_check)
 
         result = asyncio.run(self.health_manager.run_health_check("test_service"))
 
@@ -77,9 +73,7 @@ class TestHealthCheckSystem(unittest.TestCase):
         async def mock_check():
             raise Exception("Service unavailable")
 
-        self.health_manager.register_health_check(
-            "failing_service", ComponentType.API, mock_check
-        )
+        self.health_manager.register_health_check("failing_service", ComponentType.API, mock_check)
 
         result = asyncio.run(self.health_manager.run_health_check("failing_service"))
 
@@ -97,7 +91,7 @@ class TestHealthCheckSystem(unittest.TestCase):
                 component_type=ComponentType.API,
                 status=HealthStatus.HEALTHY,
                 message="Healthy",
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
             )
 
         async def degraded_check():
@@ -106,15 +100,11 @@ class TestHealthCheckSystem(unittest.TestCase):
                 component_type=ComponentType.DATABASE,
                 status=HealthStatus.DEGRADED,
                 message="Degraded performance",
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
             )
 
-        self.health_manager.register_health_check(
-            "healthy_service", ComponentType.API, healthy_check
-        )
-        self.health_manager.register_health_check(
-            "degraded_service", ComponentType.DATABASE, degraded_check
-        )
+        self.health_manager.register_health_check("healthy_service", ComponentType.API, healthy_check)
+        self.health_manager.register_health_check("degraded_service", ComponentType.DATABASE, degraded_check)
 
         report = asyncio.run(self.health_manager.run_all_health_checks())
 
@@ -132,14 +122,14 @@ class TestHealthCheckSystem(unittest.TestCase):
                 ComponentType.API,
                 HealthStatus.HEALTHY,
                 "OK",
-                datetime.now(timezone.utc),
+                datetime.now(UTC),
             ),
             HealthCheckResult(
                 "service2",
                 ComponentType.DATABASE,
                 HealthStatus.HEALTHY,
                 "OK",
-                datetime.now(timezone.utc),
+                datetime.now(UTC),
             ),
         ]
         status = self.health_manager._calculate_overall_health(results_healthy)
@@ -152,14 +142,14 @@ class TestHealthCheckSystem(unittest.TestCase):
                 ComponentType.API,
                 HealthStatus.HEALTHY,
                 "OK",
-                datetime.now(timezone.utc),
+                datetime.now(UTC),
             ),
             HealthCheckResult(
                 "service2",
                 ComponentType.DATABASE,
                 HealthStatus.DEGRADED,
                 "Slow",
-                datetime.now(timezone.utc),
+                datetime.now(UTC),
             ),
         ]
         status = self.health_manager._calculate_overall_health(results_degraded)
@@ -172,15 +162,11 @@ class TestHealthCheckSystem(unittest.TestCase):
                 ComponentType.DATABASE,
                 HealthStatus.UNHEALTHY,
                 "Down",
-                datetime.now(timezone.utc),
+                datetime.now(UTC),
             ),
-            HealthCheckResult(
-                "api", ComponentType.API, HealthStatus.HEALTHY, "OK", datetime.now(timezone.utc)
-            ),
+            HealthCheckResult("api", ComponentType.API, HealthStatus.HEALTHY, "OK", datetime.now(UTC)),
         ]
-        status = self.health_manager._calculate_overall_health(
-            results_critical_unhealthy
-        )
+        status = self.health_manager._calculate_overall_health(results_critical_unhealthy)
         assert status == HealthStatus.UNHEALTHY
 
 
@@ -210,9 +196,7 @@ class TestDisasterRecoverySystem(unittest.TestCase):
 
     def test_start_recovery_session(self):
         """Test starting a recovery session"""
-        session_id = self.dr_manager.start_recovery_session(
-            DisasterType.HARDWARE_FAILURE
-        )
+        session_id = self.dr_manager.start_recovery_session(DisasterType.HARDWARE_FAILURE)
         assert session_id is not None
         assert session_id in self.dr_manager.active_sessions
 
@@ -222,14 +206,10 @@ class TestDisasterRecoverySystem(unittest.TestCase):
 
     def test_execute_recovery_step(self):
         """Test executing a recovery step"""
-        session_id = self.dr_manager.start_recovery_session(
-            DisasterType.HARDWARE_FAILURE
-        )
+        session_id = self.dr_manager.start_recovery_session(DisasterType.HARDWARE_FAILURE)
 
         # Execute first step (which has no dependencies)
-        success = asyncio.run(
-            self.dr_manager.execute_recovery_step(session_id, "db_001")
-        )
+        success = asyncio.run(self.dr_manager.execute_recovery_step(session_id, "db_001"))
         assert success
 
         # Check session status
@@ -239,9 +219,7 @@ class TestDisasterRecoverySystem(unittest.TestCase):
 
     def test_execute_recovery_plan(self):
         """Test executing complete recovery plan"""
-        session_id = self.dr_manager.start_recovery_session(
-            DisasterType.HARDWARE_FAILURE
-        )
+        session_id = self.dr_manager.start_recovery_session(DisasterType.HARDWARE_FAILURE)
 
         # Execute the plan
         asyncio.run(self.dr_manager.execute_recovery_plan(session_id))

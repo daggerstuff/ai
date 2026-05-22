@@ -45,17 +45,12 @@ class BatchConverter:
             output_directory: Directory for batch conversion outputs
             max_concurrent: Maximum concurrent conversions
         """
-        self.integration_service = (
-            integration_service or PipelineIntegrationService()
-        )
+        self.integration_service = integration_service or PipelineIntegrationService()
         self.output_directory = Path(output_directory)
         self.output_directory.mkdir(parents=True, exist_ok=True)
         self.max_concurrent = max_concurrent
 
-        logger.info(
-            f"Initialized BatchConverter: output={output_directory}, "
-            f"max_concurrent={max_concurrent}"
-        )
+        logger.info(f"Initialized BatchConverter: output={output_directory}, max_concurrent={max_concurrent}")
 
     def convert_batch(
         self,
@@ -93,14 +88,12 @@ class BatchConverter:
 
         for i, dataset in enumerate(datasets):
             source_id = dataset.source_id
-            logger.info(f"Converting dataset {i+1}/{len(datasets)}: {source_id}")
+            logger.info(f"Converting dataset {i + 1}/{len(datasets)}: {source_id}")
 
             # Get integration plan
             integration_plan = integration_plans.get(source_id)
             if not integration_plan:
-                logger.warning(
-                    f"No integration plan found for {source_id}, skipping"
-                )
+                logger.warning(f"No integration plan found for {source_id}, skipping")
                 results["skipped"] += 1
                 results["conversions"][source_id] = {
                     "status": "skipped",
@@ -148,12 +141,15 @@ class BatchConverter:
                 # Notify progress callback
                 if progress_callback:
                     try:
-                        progress_callback(source_id, {
-                            "status": "success" if conversion_result.get("success") else "failed",
-                            "progress": (i + 1) / len(datasets),
-                            "current": i + 1,
-                            "total": len(datasets),
-                        })
+                        progress_callback(
+                            source_id,
+                            {
+                                "status": "success" if conversion_result.get("success") else "failed",
+                                "progress": (i + 1) / len(datasets),
+                                "current": i + 1,
+                                "total": len(datasets),
+                            },
+                        )
                     except Exception as e:
                         logger.warning(f"Error in progress callback: {e}")
 
@@ -174,11 +170,7 @@ class BatchConverter:
             "successful": results["successful"],
             "failed": results["failed"],
             "skipped": results["skipped"],
-            "success_rate": (
-                results["successful"] / results["total"]
-                if results["total"] > 0
-                else 0.0
-            ),
+            "success_rate": (results["successful"] / results["total"] if results["total"] > 0 else 0.0),
         }
 
         logger.info(
@@ -216,9 +208,7 @@ class BatchConverter:
         last_error = None
         for attempt in range(max_retries):
             try:
-                logger.info(
-                    f"Conversion attempt {attempt + 1}/{max_retries} for {dataset.source_id}"
-                )
+                logger.info(f"Conversion attempt {attempt + 1}/{max_retries} for {dataset.source_id}")
 
                 result = self.integration_service.integrate_dataset(
                     dataset=dataset,
@@ -232,30 +222,20 @@ class BatchConverter:
                 )
 
                 if result.get("success"):
-                    logger.info(
-                        f"Successfully converted {dataset.source_id} on attempt {attempt + 1}"
-                    )
+                    logger.info(f"Successfully converted {dataset.source_id} on attempt {attempt + 1}")
                     return result
                 last_error = result.get("error", "Unknown error")
-                logger.warning(
-                    f"Conversion failed for {dataset.source_id} on attempt {attempt + 1}: {last_error}"
-                )
+                logger.warning(f"Conversion failed for {dataset.source_id} on attempt {attempt + 1}: {last_error}")
 
             except Exception as e:
                 last_error = str(e)
-                logger.warning(
-                    f"Exception during conversion attempt {attempt + 1} for {dataset.source_id}: {e}"
-                )
+                logger.warning(f"Exception during conversion attempt {attempt + 1} for {dataset.source_id}: {e}")
 
         # All retries failed
-        logger.error(
-            f"Failed to convert {dataset.source_id} after {max_retries} attempts"
-        )
+        logger.error(f"Failed to convert {dataset.source_id} after {max_retries} attempts")
         return {
             "success": False,
             "source_id": dataset.source_id,
             "error": f"Failed after {max_retries} attempts: {last_error}",
             "attempts": max_retries,
         }
-
-

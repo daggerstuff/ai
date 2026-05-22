@@ -14,7 +14,6 @@ from enum import Enum
 
 from pydantic import BaseModel, Field
 
-
 # ─── Enumerations (must match TypeScript counterparts exactly) ────────────────
 
 
@@ -46,9 +45,7 @@ class MemoryImportance(BaseModel):
     raw: float = Field(ge=0.0, le=1.0, description="Computed composite score")
     recency: float = Field(ge=0.0, le=1.0, description="Exponential decay factor (τ=7d)")
     relevance: float = Field(ge=0.0, le=1.0, description="Cosine similarity to query")
-    emotionalWeight: float = Field(
-        ge=1.0, le=5.0, description="Crisis multiplier (1.0=normal, 5.0=crisis)"
-    )
+    emotionalWeight: float = Field(ge=1.0, le=5.0, description="Crisis multiplier (1.0=normal, 5.0=crisis)")
     actionability: float = Field(ge=0.0, le=1.0, description="Goal-relevance score")
 
 
@@ -78,9 +75,7 @@ class MemoryConsolidation(BaseModel):
     phase: ConsolidationPhase = ConsolidationPhase.RAW
     lastProcessed: int = Field(ge=0, description="Unix timestamp ms")
     remCycles: int = Field(ge=0, description="Remaining consolidation cycles")
-    schemaReferences: list[str] = Field(
-        default_factory=list, description="Prior schema version pointers"
-    )
+    schemaReferences: list[str] = Field(default_factory=list, description="Prior schema version pointers")
 
 
 # ─── Primary entity ────────────────────────────────────────────────────────────
@@ -103,9 +98,7 @@ class MemoryBlock(BaseModel):
             raw=0.0, recency=0.0, relevance=0.0, emotionalWeight=1.0, actionability=0.0
         )
     )
-    emotions: MemoryEmotions = Field(
-        default_factory=lambda: MemoryEmotions(valence=0.0, arousal=0.0, categories=[])
-    )
+    emotions: MemoryEmotions = Field(default_factory=lambda: MemoryEmotions(valence=0.0, arousal=0.0, categories=[]))
     gating: MemoryGating = Field(
         default_factory=lambda: MemoryGating(
             piiStatus=PIIStatus.ABSENT,

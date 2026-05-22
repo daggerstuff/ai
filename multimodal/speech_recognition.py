@@ -19,6 +19,7 @@ Example:
     >>> print(f"Text: {result['text']}")
     >>> print(f"Confidence: {result['confidence']:.2f}")
 """
+
 import asyncio
 import logging
 import time
@@ -31,6 +32,7 @@ import librosa
 import numpy as np
 import torchaudio
 from faster_whisper import WhisperModel
+
 from ai.utils.torch_proxy import torch
 
 logger = logging.getLogger(__name__)
@@ -238,7 +240,6 @@ class SpeechRecognizer:
         """Synchronous transcription (runs in thread)."""
         # Normalize sample rate to 16kHz if needed
         if sample_rate != 16000:
-
             waveform = librosa.resample(waveform, orig_sr=sample_rate, target_sr=16000)
             sample_rate = 16000
 
@@ -302,9 +303,7 @@ class SpeechRecognizer:
             # Create temporary file for transcription
             temp_path = f"/tmp/{session_id}_stream.wav"
 
-            torchaudio.save(
-                temp_path, torch.from_numpy(full_audio).unsqueeze(0), sample_rate
-            )
+            torchaudio.save(temp_path, torch.from_numpy(full_audio).unsqueeze(0), sample_rate)
 
             # Transcribe
             result = await self.transcribe_audio(session_id, temp_path)
@@ -385,9 +384,7 @@ class AudioPreprocessor:
         features["mfcc"] = mfcc
 
         # Spectral centroid
-        spectral_centroid = librosa.feature.spectral_centroid(
-            y=waveform, sr=sample_rate
-        )
+        spectral_centroid = librosa.feature.spectral_centroid(y=waveform, sr=sample_rate)
         features["spectral_centroid"] = spectral_centroid
 
         # Zero crossing rate
@@ -421,12 +418,7 @@ class AudioPreprocessor:
         frame_length = int(0.025 * sample_rate)  # 25ms frames
         hop_length = int(0.010 * sample_rate)  # 10ms hop
 
-        energy = np.array(
-            [
-                np.sum(waveform[i : i + frame_length] ** 2)
-                for i in range(0, len(waveform), hop_length)
-            ]
-        )
+        energy = np.array([np.sum(waveform[i : i + frame_length] ** 2) for i in range(0, len(waveform), hop_length)])
 
         # Normalize
         energy = energy / (np.max(energy) + 1e-10)

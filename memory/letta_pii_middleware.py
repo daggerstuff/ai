@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 class PIISeverity(Enum):
     """PII severity levels."""
+
     NONE = "none"
     LOW = "low"
     MEDIUM = "medium"
@@ -27,6 +28,7 @@ class PIISeverity(Enum):
 @dataclass
 class FilterResult:
     """Result of PII filtering operation."""
+
     original: str
     filtered: str
     severity: PIISeverity
@@ -53,11 +55,7 @@ class LettaPIIMiddleware:
         self.config = config or {}
         self.max_redaction_ratio = self.config.get("max_redaction_ratio", 0.5)
 
-    async def filter_tool_call(
-        self,
-        tool_name: str,
-        tool_input: dict[str, Any]
-    ) -> FilterResult:
+    async def filter_tool_call(self, tool_name: str, tool_input: dict[str, Any]) -> FilterResult:
         """
         Filter a tool call through PII detection.
 
@@ -78,11 +76,7 @@ class LettaPIIMiddleware:
             logger.error(f"PII filtering failed for {tool_name}: {e}")
             # On error, block the operation for safety
             return FilterResult(
-                original=content,
-                filtered="",
-                severity=PIISeverity.CRITICAL,
-                redacted_count=0,
-                should_block=True
+                original=content, filtered="", severity=PIISeverity.CRITICAL, redacted_count=0, should_block=True
             )
 
         # Calculate redaction ratio
@@ -99,14 +93,10 @@ class LettaPIIMiddleware:
             filtered=filtered or "",
             severity=self._determine_severity(redaction_ratio),
             redacted_count=redacted_count,
-            should_block=should_block
+            should_block=should_block,
         )
 
-    def wrap_tool(
-        self,
-        tool_func: Callable,
-        tool_name: str
-    ) -> Callable:
+    def wrap_tool(self, tool_func: Callable, tool_name: str) -> Callable:
         """
         Wrap a tool function with PII filtering.
 
@@ -117,6 +107,7 @@ class LettaPIIMiddleware:
         Returns:
             Wrapped function with PII filtering
         """
+
         async def wrapped(*args, **kwargs):
             # Extract tool input from args/kwargs
             tool_input = self._extract_tool_input(args, kwargs)
@@ -127,8 +118,7 @@ class LettaPIIMiddleware:
             # Block if severity too high
             if result.should_block:
                 raise PIIBlockedException(
-                    f"Tool {tool_name} blocked due to PII content "
-                    f"(redaction ratio: {result.redacted_count})"
+                    f"Tool {tool_name} blocked due to PII content (redaction ratio: {result.redacted_count})"
                 )
 
             # Replace filtered content in kwargs
@@ -164,11 +154,7 @@ class LettaPIIMiddleware:
             return PIISeverity.HIGH
         return PIISeverity.CRITICAL
 
-    def _extract_tool_input(
-        self,
-        args: tuple,
-        kwargs: dict
-    ) -> dict[str, Any]:
+    def _extract_tool_input(self, args: tuple, kwargs: dict) -> dict[str, Any]:
         """Extract tool input from args and kwargs."""
         # Default to kwargs, or first arg if it's a dict
         if kwargs:

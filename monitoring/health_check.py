@@ -2,6 +2,7 @@
 Health check and graceful shutdown handlers for Pixelated Empathy AI model servers.
 Implements comprehensive health monitoring and safe shutdown procedures.
 """
+
 import atexit
 import contextlib
 import gc
@@ -13,13 +14,14 @@ import time
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from functools import wraps
 from typing import Any
 
 import psutil
 from fastapi import Response
+
 from ai.utils.torch_proxy import torch
 
 from .model_adapters import model_manager
@@ -29,6 +31,7 @@ logger = logging.getLogger(__name__)
 
 class ComponentStatus(Enum):
     """Status of individual components"""
+
     OPERATIONAL = "operational"
     DEGRADED = "degraded"
     FAILED = "failed"
@@ -37,6 +40,7 @@ class ComponentStatus(Enum):
 
 class HealthStatus(Enum):
     """Overall health status"""
+
     HEALTHY = "healthy"
     DEGRADED = "degraded"
     UNHEALTHY = "unhealthy"
@@ -49,6 +53,7 @@ class HealthStatus(Enum):
 @dataclass
 class ComponentHealth:
     """Health status of an individual component"""
+
     name: str
     status: ComponentStatus
     last_checked: str
@@ -67,6 +72,7 @@ class ComponentHealth:
 @dataclass
 class HealthCheckResult:
     """Overall health check result"""
+
     status: HealthStatus
     timestamp: str
     components: dict[str, ComponentHealth]
@@ -83,13 +89,14 @@ class HealthCheckResult:
 @dataclass
 class ShutdownResult:
     """Result of a shutdown operation"""
+
     success: bool
     duration_seconds: float
     components_shutdown: list[str] = field(default_factory=list)
     components_failed: list[str] = field(default_factory=list)
     error_messages: list[str] = field(default_factory=list)
     warning_messages: list[str] = field(default_factory=list)
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     shutdown_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     shutdown_reason: str | None = None
     forced_shutdown: bool = False
@@ -101,6 +108,7 @@ class ShutdownResult:
 
 class GateType(Enum):
     """Types of evaluation gates"""
+
     MINIMUM_THRESHOLD = "minimum_threshold"
     MAXIMUM_THRESHOLD = "maximum_threshold"
     RANGE_THRESHOLD = "range_threshold"
@@ -111,6 +119,7 @@ class GateType(Enum):
 @dataclass
 class EvaluationGate:
     """Definition of a single evaluation gate"""
+
     name: str
     metric_name: str
     gate_type: GateType
@@ -140,7 +149,9 @@ class EvaluationGate:
             # For comparison, threshold_value is typically 0 for "no worse than baseline"
             # Positive values mean it can be that much worse
             passed = metric_value <= self.threshold_value
-            reason = f"Value {metric_value} {'meets' if passed else 'fails'} comparison threshold {self.threshold_value}"
+            reason = (
+                f"Value {metric_value} {'meets' if passed else 'fails'} comparison threshold {self.threshold_value}"
+            )
         else:
             passed = False
             reason = f"Unknown gate type: {self.gate_type}"
@@ -151,6 +162,7 @@ class EvaluationGate:
 @dataclass
 class GateConfiguration:
     """Configuration for evaluation gates"""
+
     stage: str  # staging, production, etc.
     gates: list[EvaluationGate] = field(default_factory=list)
     required_passing_gates: int = 0  # Number of gates that must pass (0 = all)
@@ -168,6 +180,7 @@ class GateConfiguration:
 @dataclass
 class GateEvaluationResult:
     """Result of a gate evaluation"""
+
     gate_name: str
     metric_name: str
     metric_value: float
@@ -176,12 +189,13 @@ class GateEvaluationResult:
     reason: str
     weight: float
     is_critical: bool
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
 
 @dataclass
 class PromotionEvaluation:
     """Complete result of a promotion evaluation"""
+
     model_id: str
     model_version: str
     from_stage: str
@@ -193,18 +207,17 @@ class PromotionEvaluation:
     results: list[GateEvaluationResult]
     is_approved: bool
     reason: str
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
 class PromotionStage(Enum):
     """Stages in the model promotion pipeline"""
+
     TRAINING = "training"
     STAGING = "staging"
     PRODUCTION = "production"
     REJECTED = "rejected"
-
-
 
     shutdown_reason: str | None = None
     forced_shutdown: bool = False
@@ -223,7 +236,7 @@ class HealthCheckManager:
         self.health_checks: dict[str, Callable] = {}
         self.last_health_check: HealthCheckResult | None = None
         self.health_check_interval: int = 30  # seconds
-        self.health_check_timeout: int = 10    # seconds
+        self.health_check_timeout: int = 10  # seconds
         self.is_shutting_down: bool = False
         self.shutdown_callbacks: list[Callable] = []
         self.shutdown_reason: str | None = None
@@ -253,9 +266,9 @@ class HealthCheckManager:
         self.components[name] = {
             "component": component,
             "component_type": component_type or "generic",
-            "registered_at": datetime.now(timezone.utc).isoformat(),
+            "registered_at": datetime.now(UTC).isoformat(),
             "health_check_enabled": True,
-            "health_check_interval": self.health_check_interval
+            "health_check_interval": self.health_check_interval,
         }
         self.logger.info(f"Registered component for health monitoring: {name} (type: {component_type or 'generic'})")
 
@@ -285,24 +298,24 @@ class HealthCheckManager:
             return ComponentHealth(
                 name="system_resources",
                 status=status,
-                last_checked=datetime.now(timezone.utc).isoformat(),
+                last_checked=datetime.now(UTC).isoformat(),
                 health_score=health_score,
                 details={
                     "cpu_percent": cpu_percent,
                     "memory_percent": memory_percent,
                     "memory_available_gb": memory_info.available / (1024**3),
-                    "memory_total_gb": memory_info.total / (1024**3)
-                }
+                    "memory_total_gb": memory_info.total / (1024**3),
+                },
             )
         except Exception as e:
             return ComponentHealth(
                 name="system_resources",
                 status=ComponentStatus.FAILED,
-                last_checked=datetime.now(timezone.utc).isoformat(),
+                last_checked=datetime.now(UTC).isoformat(),
                 health_score=0.0,
                 last_error=str(e),
                 error_count=1,
-                error_timestamps=[datetime.now(timezone.utc).isoformat()]
+                error_timestamps=[datetime.now(UTC).isoformat()],
             )
 
     def _check_gpu_status(self) -> ComponentHealth:
@@ -312,9 +325,9 @@ class HealthCheckManager:
                 return ComponentHealth(
                     name="gpu_status",
                     status=ComponentStatus.OPERATIONAL,
-                    last_checked=datetime.now(timezone.utc).isoformat(),
+                    last_checked=datetime.now(UTC).isoformat(),
                     health_score=1.0,
-                    details={"cuda_available": False}
+                    details={"cuda_available": False},
                 )
 
             gpu_count = torch.cuda.device_count()
@@ -351,23 +364,19 @@ class HealthCheckManager:
             return ComponentHealth(
                 name="gpu_status",
                 status=status,
-                last_checked=datetime.now(timezone.utc).isoformat(),
+                last_checked=datetime.now(UTC).isoformat(),
                 health_score=health_score,
-                details={
-                    "gpu_count": gpu_count,
-                    "gpu_statuses": gpu_statuses,
-                    "cuda_available": True
-                }
+                details={"gpu_count": gpu_count, "gpu_statuses": gpu_statuses, "cuda_available": True},
             )
         except Exception as e:
             return ComponentHealth(
                 name="gpu_status",
                 status=ComponentStatus.FAILED,
-                last_checked=datetime.now(timezone.utc).isoformat(),
+                last_checked=datetime.now(UTC).isoformat(),
                 health_score=0.0,
                 last_error=str(e),
                 error_count=1,
-                error_timestamps=[datetime.now(timezone.utc).isoformat()]
+                error_timestamps=[datetime.now(UTC).isoformat()],
             )
 
     def _check_memory_status(self) -> ComponentHealth:
@@ -391,23 +400,23 @@ class HealthCheckManager:
             return ComponentHealth(
                 name="memory_status",
                 status=status,
-                last_checked=datetime.now(timezone.utc).isoformat(),
+                last_checked=datetime.now(UTC).isoformat(),
                 health_score=health_score,
                 details={
                     "process_memory_mb": process_memory_info.rss / (1024**2),
                     "process_memory_percent": process_memory_percent,
-                    "virtual_memory_percent": psutil.virtual_memory().percent
-                }
+                    "virtual_memory_percent": psutil.virtual_memory().percent,
+                },
             )
         except Exception as e:
             return ComponentHealth(
                 name="memory_status",
                 status=ComponentStatus.FAILED,
-                last_checked=datetime.now(timezone.utc).isoformat(),
+                last_checked=datetime.now(UTC).isoformat(),
                 health_score=0.0,
                 last_error=str(e),
                 error_count=1,
-                error_timestamps=[datetime.now(timezone.utc).isoformat()]
+                error_timestamps=[datetime.now(UTC).isoformat()],
             )
 
     def _check_disk_space(self) -> ComponentHealth:
@@ -433,23 +442,23 @@ class HealthCheckManager:
             return ComponentHealth(
                 name="disk_space",
                 status=status,
-                last_checked=datetime.now(timezone.utc).isoformat(),
+                last_checked=datetime.now(UTC).isoformat(),
                 health_score=health_score,
                 details={
                     "disk_percent_used": disk_percent,
                     "disk_free_gb": disk_usage.free / (1024**3),
-                    "disk_total_gb": disk_usage.total / (1024**3)
-                }
+                    "disk_total_gb": disk_usage.total / (1024**3),
+                },
             )
         except Exception as e:
             return ComponentHealth(
                 name="disk_space",
                 status=ComponentStatus.FAILED,
-                last_checked=datetime.now(timezone.utc).isoformat(),
+                last_checked=datetime.now(UTC).isoformat(),
                 health_score=0.0,
                 last_error=str(e),
                 error_count=1,
-                error_timestamps=[datetime.now(timezone.utc).isoformat()]
+                error_timestamps=[datetime.now(UTC).isoformat()],
             )
 
     def _check_network_connectivity(self) -> ComponentHealth:
@@ -471,25 +480,25 @@ class HealthCheckManager:
             return ComponentHealth(
                 name="network_connectivity",
                 status=status,
-                last_checked=datetime.now(timezone.utc).isoformat(),
+                last_checked=datetime.now(UTC).isoformat(),
                 health_score=health_score,
                 details={
                     "active_connections": active_connections,
                     "bytes_sent_mb": net_io.bytes_sent / (1024**2),
                     "bytes_received_mb": net_io.bytes_recv / (1024**2),
                     "packets_sent": net_io.packets_sent,
-                    "packets_received": net_io.packets_recv
-                }
+                    "packets_received": net_io.packets_recv,
+                },
             )
         except Exception as e:
             return ComponentHealth(
                 name="network_connectivity",
                 status=ComponentStatus.FAILED,
-                last_checked=datetime.now(timezone.utc).isoformat(),
+                last_checked=datetime.now(UTC).isoformat(),
                 health_score=0.0,
                 last_error=str(e),
                 error_count=1,
-                error_timestamps=[datetime.now(timezone.utc).isoformat()]
+                error_timestamps=[datetime.now(UTC).isoformat()],
             )
 
     def _check_model_status(self) -> ComponentHealth:
@@ -501,9 +510,9 @@ class HealthCheckManager:
                 return ComponentHealth(
                     name="model_status",
                     status=ComponentStatus.FAILED,
-                    last_checked=datetime.now(timezone.utc).isoformat(),
+                    last_checked=datetime.now(UTC).isoformat(),
                     health_score=0.0,
-                    details={"error": "Model manager not initialized"}
+                    details={"error": "Model manager not initialized"},
                 )
 
             models = model_manager.list_models()
@@ -512,9 +521,9 @@ class HealthCheckManager:
                 return ComponentHealth(
                     name="model_status",
                     status=ComponentStatus.OPERATIONAL,
-                    last_checked=datetime.now(timezone.utc).isoformat(),
+                    last_checked=datetime.now(UTC).isoformat(),
                     health_score=0.8,  # Slightly reduced score if no models loaded
-                    details={"message": "No models currently loaded", "model_count": 0}
+                    details={"message": "No models currently loaded", "model_count": 0},
                 )
 
             # Check each model
@@ -545,30 +554,30 @@ class HealthCheckManager:
             return ComponentHealth(
                 name="model_status",
                 status=status,
-                last_checked=datetime.now(timezone.utc).isoformat(),
+                last_checked=datetime.now(UTC).isoformat(),
                 health_score=health_score,
                 details={
                     "total_models": len(models),
                     "healthy_models": healthy_models,
                     "issues": model_issues,
-                    "model_names": list(models)
-                }
+                    "model_names": list(models),
+                },
             )
         except Exception as e:
             return ComponentHealth(
                 name="model_status",
                 status=ComponentStatus.FAILED,
-                last_checked=datetime.now(timezone.utc).isoformat(),
+                last_checked=datetime.now(UTC).isoformat(),
                 health_score=0.0,
                 last_error=str(e),
                 error_count=1,
-                error_timestamps=[datetime.now(timezone.utc).isoformat()]
+                error_timestamps=[datetime.now(UTC).isoformat()],
             )
 
     def perform_health_check(self) -> HealthCheckResult:
         """Perform a comprehensive health check"""
         start_time = time.time()
-        check_start_time = datetime.now(timezone.utc)
+        check_start_time = datetime.now(UTC)
 
         self.logger.debug("Starting comprehensive health check...")
 
@@ -609,12 +618,12 @@ class HealthCheckManager:
                 component_results[check_name] = ComponentHealth(
                     name=check_name,
                     status=ComponentStatus.FAILED,
-                    last_checked=datetime.now(timezone.utc).isoformat(),
+                    last_checked=datetime.now(UTC).isoformat(),
                     health_score=0.0,
                     last_error=str(e),
                     error_count=1,
-                    error_timestamps=[datetime.now(timezone.utc).isoformat()],
-                    component_type="system"
+                    error_timestamps=[datetime.now(UTC).isoformat()],
+                    component_type="system",
                 )
 
         # Calculate overall health score with weighted average
@@ -642,7 +651,10 @@ class HealthCheckManager:
             # Determine overall status
             if any(comp.status == ComponentStatus.FAILED for comp in component_results.values()):
                 overall_status = HealthStatus.UNHEALTHY
-            elif any(comp.status == ComponentStatus.DEGRADED for comp in component_results.values()) or overall_score < 0.7:
+            elif (
+                any(comp.status == ComponentStatus.DEGRADED for comp in component_results.values())
+                or overall_score < 0.7
+            ):
                 overall_status = HealthStatus.DEGRADED
             else:
                 overall_status = HealthStatus.HEALTHY
@@ -665,7 +677,7 @@ class HealthCheckManager:
         # Create health check result
         health_result = HealthCheckResult(
             status=overall_status,
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             components=component_results,
             overall_score=overall_score,
             critical_issues=critical_issues,
@@ -678,11 +690,11 @@ class HealthCheckManager:
                 "is_shutting_down": self.is_shutting_down,
                 "service_name": self.service_name,
                 "check_start_time": check_start_time.isoformat(),
-                "check_end_time": datetime.now(timezone.utc).isoformat()
+                "check_end_time": datetime.now(UTC).isoformat(),
             },
             service_uptime_seconds=service_uptime,
             last_check_duration_ms=check_duration,
-            component_health_summary=component_health_summary
+            component_health_summary=component_health_summary,
         )
 
         self.last_health_check = health_result
@@ -695,7 +707,7 @@ class HealthCheckManager:
         if self.last_health_check:
             # Check if cached result is still valid (within 30 seconds)
             last_check_time = datetime.fromisoformat(self.last_health_check.timestamp.replace("Z", "+00:00"))
-            if datetime.now(timezone.utc) - last_check_time < timedelta(seconds=30):
+            if datetime.now(UTC) - last_check_time < timedelta(seconds=30):
                 return self.last_health_check
 
         # Perform new health check
@@ -703,15 +715,18 @@ class HealthCheckManager:
 
     def _setup_signal_handlers(self):
         """Set up signal handlers for graceful shutdown"""
+
         def signal_handler(signum, _frame):
-            signal_name = {signal.SIGTERM: "SIGTERM", signal.SIGINT: "SIGINT", signal.SIGHUP: "SIGHUP"}.get(signum, f"UNKNOWN({signum})")
+            signal_name = {signal.SIGTERM: "SIGTERM", signal.SIGINT: "SIGINT", signal.SIGHUP: "SIGHUP"}.get(
+                signum, f"UNKNOWN({signum})"
+            )
             self.logger.info(f"Received signal {signal_name} ({signum}), initiating graceful shutdown...")
 
             # Determine shutdown reason based on signal
             reason_map = {
                 signal.SIGTERM: "termination_signal",
                 signal.SIGINT: "interrupt_signal",
-                signal.SIGHUP: "hangup_signal"
+                signal.SIGHUP: "hangup_signal",
             }
             reason = reason_map.get(signum, f"signal_{signum}")
 
@@ -725,7 +740,7 @@ class HealthCheckManager:
             self.logger.warning(f"Failed to register SIGTERM handler: {e}")
 
         try:
-            signal.signal(signal.SIGINT, signal_handler)   # Interrupt signal (Ctrl+C)
+            signal.signal(signal.SIGINT, signal_handler)  # Interrupt signal (Ctrl+C)
             self.logger.info("Registered SIGINT handler")
         except Exception as e:
             self.logger.warning(f"Failed to register SIGINT handler: {e}")
@@ -750,7 +765,7 @@ class HealthCheckManager:
                 duration_seconds=0.0,
                 error_messages=["Shutdown already in progress"],
                 shutdown_reason=reason,
-                forced_shutdown=False
+                forced_shutdown=False,
             )
 
         # Record shutdown initiation
@@ -888,7 +903,9 @@ class HealthCheckManager:
             if success:
                 self.logger.info(f"✅ Graceful shutdown completed successfully in {duration:.2f} seconds")
             else:
-                self.logger.warning(f"⚠️ Graceful shutdown completed with {len(failed_components)} failed components in {duration:.2f} seconds")
+                self.logger.warning(
+                    f"⚠️ Graceful shutdown completed with {len(failed_components)} failed components in {duration:.2f} seconds"
+                )
                 for failed_component in failed_components:
                     self.logger.warning(f"  Failed component: {failed_component}")
 
@@ -903,13 +920,13 @@ class HealthCheckManager:
                 components_failed=failed_components,
                 error_messages=error_messages,
                 warning_messages=warning_messages,
-                timestamp=datetime.now(timezone.utc).isoformat(),
+                timestamp=datetime.now(UTC).isoformat(),
                 shutdown_reason=reason,
                 forced_shutdown=force,
                 cleanup_performed=cleanup_performed,
                 logs_flushed=logs_flushed,
                 metrics_exported=metrics_exported,
-                connections_closed=connections_closed
+                connections_closed=connections_closed,
             )
 
         except Exception as e:
@@ -933,13 +950,13 @@ class HealthCheckManager:
                 components_failed=failed_components + ["critical_shutdown_error"],
                 error_messages=error_messages,
                 warning_messages=warning_messages,
-                timestamp=datetime.now(timezone.utc).isoformat(),
+                timestamp=datetime.now(UTC).isoformat(),
                 shutdown_reason=reason,
                 forced_shutdown=force,
                 cleanup_performed=False,
                 logs_flushed=False,
                 metrics_exported=False,
-                connections_closed=False
+                connections_closed=False,
             )
 
     def _notify_services_shutdown_initiated(self):
@@ -981,21 +998,17 @@ class HealthCheckManager:
 
         for i, callback in enumerate(self.shutdown_callbacks):
             try:
-                self.logger.info(f"Executing shutdown callback {i+1}/{len(self.shutdown_callbacks)}")
+                self.logger.info(f"Executing shutdown callback {i + 1}/{len(self.shutdown_callbacks)}")
                 callback()
                 successful_callbacks.append(f"callback_{i}")
-                self.logger.info(f"Shutdown callback {i+1} completed successfully")
+                self.logger.info(f"Shutdown callback {i + 1} completed successfully")
             except Exception as e:
                 error_msg = f"Shutdown callback {i} failed: {e!s}"
                 self.logger.error(error_msg, exc_info=True)
                 error_messages.append(error_msg)
                 failed_callbacks.append(f"callback_{i}")
 
-        return {
-            "successful": successful_callbacks,
-            "failed": failed_callbacks,
-            "errors": error_messages
-        }
+        return {"successful": successful_callbacks, "failed": failed_callbacks, "errors": error_messages}
 
     def _close_database_connections(self) -> bool:
         """Close database connections and other persistent resources"""
@@ -1130,14 +1143,11 @@ class HealthCheckManager:
                 "gpu_available": torch.cuda.is_available(),
                 "gpu_count": torch.cuda.device_count() if torch.cuda.is_available() else 0,
                 "process_memory_mb": psutil.Process().memory_info().rss / (1024**2),
-                "timestamp": datetime.now(timezone.utc).isoformat()
+                "timestamp": datetime.now(UTC).isoformat(),
             }
         except Exception as e:
             self.logger.error(f"Failed to collect system metrics: {e}")
-            return {
-                "error": str(e),
-                "timestamp": datetime.now(timezone.utc).isoformat()
-            }
+            return {"error": str(e), "timestamp": datetime.now(UTC).isoformat()}
 
 
 class HealthCheckMiddleware:
@@ -1165,11 +1175,11 @@ class HealthCheckMiddleware:
                     "last_checked": component.last_checked,
                     "health_score": component.health_score,
                     "details": component.details,
-                    "last_error": component.last_error
+                    "last_error": component.last_error,
                 }
                 for name, component in health_result.components.items()
             },
-            "metadata": health_result.metadata
+            "metadata": health_result.metadata,
         }
 
         # Set appropriate HTTP status code
@@ -1195,10 +1205,7 @@ class HealthCheckMiddleware:
             "status": health_result.status.value,
             "timestamp": health_result.timestamp,
             "reason": "Service is ready to serve requests" if is_ready else "Service not ready",
-            "details": {
-                "critical_issues": health_result.critical_issues,
-                "warnings": health_result.warnings
-            }
+            "details": {"critical_issues": health_result.critical_issues, "warnings": health_result.warnings},
         }
 
         status_code = 200 if is_ready else 503
@@ -1209,18 +1216,14 @@ class HealthCheckMiddleware:
         # Liveness probe checks if the process is alive and responding
         try:
             # Simple check that the process is responsive
-            response_data = {
-                "alive": True,
-                "status": "healthy",
-                "timestamp": datetime.now(timezone.utc).isoformat()
-            }
+            response_data = {"alive": True, "status": "healthy", "timestamp": datetime.now(UTC).isoformat()}
             status_code = 200
         except Exception as e:
             response_data = {
                 "alive": False,
                 "status": "unhealthy",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "error": str(e)
+                "timestamp": datetime.now(UTC).isoformat(),
+                "error": str(e),
             }
             status_code = 503
 
@@ -1230,6 +1233,7 @@ class HealthCheckMiddleware:
 # Decorator for adding health checks to functions
 def health_checked(func):
     """Decorator to add health checking to functions"""
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         # In a real implementation, you might want to check health before
@@ -1240,6 +1244,7 @@ def health_checked(func):
             # Log the error with additional context
             logger.error(f"Function {func.__name__} failed: {e}", exc_info=True)
             raise
+
     return wrapper
 
 
@@ -1251,15 +1256,12 @@ health_manager = HealthCheckManager()
 def integrate_health_checks_with_fastapi(app):
     """Integrate health checks with a FastAPI application"""
 
-
     @app.get("/health")
     async def health_check():
         """Health check endpoint"""
         status_code, response_data = HealthCheckMiddleware(health_manager).health_check_endpoint()
         return Response(
-            content=json.dumps(response_data, indent=2),
-            status_code=status_code,
-            media_type="application/json"
+            content=json.dumps(response_data, indent=2), status_code=status_code, media_type="application/json"
         )
 
     @app.get("/ready")
@@ -1267,9 +1269,7 @@ def integrate_health_checks_with_fastapi(app):
         """Readiness probe endpoint"""
         status_code, response_data = HealthCheckMiddleware(health_manager).readiness_probe_endpoint()
         return Response(
-            content=json.dumps(response_data, indent=2),
-            status_code=status_code,
-            media_type="application/json"
+            content=json.dumps(response_data, indent=2), status_code=status_code, media_type="application/json"
         )
 
     @app.get("/alive")
@@ -1277,9 +1277,7 @@ def integrate_health_checks_with_fastapi(app):
         """Liveness probe endpoint"""
         status_code, response_data = HealthCheckMiddleware(health_manager).liveness_probe_endpoint()
         return Response(
-            content=json.dumps(response_data, indent=2),
-            status_code=status_code,
-            media_type="application/json"
+            content=json.dumps(response_data, indent=2), status_code=status_code, media_type="application/json"
         )
 
     # Register shutdown callback with FastAPI
@@ -1340,16 +1338,15 @@ def test_health_check_system():
         return ComponentHealth(
             name="custom_check",
             status=ComponentStatus.OPERATIONAL,
-            last_checked=datetime.now(timezone.utc).isoformat(),
+            last_checked=datetime.now(UTC).isoformat(),
             health_score=1.0,
-            details={"custom_field": "test_value"}
+            details={"custom_field": "test_value"},
         )
 
     manager.register_health_check("custom_check", custom_health_check)
 
     # Perform health check
     health_result = manager.perform_health_check()
-
 
     for _component_name, component_health in health_result.components.items():
         if component_health.details:
@@ -1375,7 +1372,6 @@ def test_health_check_system():
 
     # Test shutdown (but don't actually shut down)
     # Note: We won't actually call initiate_graceful_shutdown here as it would shut down the test
-
 
 
 # Test graceful shutdown

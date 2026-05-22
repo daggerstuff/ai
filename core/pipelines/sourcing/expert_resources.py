@@ -30,4 +30,4 @@ class ExpertResources:
         return [e.__dict__ for e in self.catalog]
 
 
-__all__ = ["ExpertResources", "Expert"]
+__all__ = ["Expert", "ExpertResources"]

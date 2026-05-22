@@ -50,17 +50,13 @@ def connect(_ctx, host: str, port: int, timeout: int, retry: int):
             try:
                 click.echo(f"🔄 Connection attempt {attempt + 1}/{retry}...")
 
-                connection_result = _connect_to_mcp_agent(
-                    auth_manager, host, port, timeout
-                )
+                connection_result = _connect_to_mcp_agent(auth_manager, host, port, timeout)
 
                 if connection_result["success"]:
                     click.echo("✅ Successfully connected to MCP agent!")
                     click.echo(f"🆔 Agent ID: {connection_result['agent_id']}")
                     click.echo(f"🤖 Agent name: {connection_result['agent_name']}")
-                    click.echo(
-                        f"📋 Available tools: {len(connection_result.get('tools', []))}"
-                    )
+                    click.echo(f"📋 Available tools: {len(connection_result.get('tools', []))}")
 
                     # Store connection info
                     _save_connection_info(host, port, connection_result["agent_id"])
@@ -69,19 +65,13 @@ def connect(_ctx, host: str, port: int, timeout: int, retry: int):
                     if connection_result.get("tools"):
                         click.echo("\n🔧 Available tools:")
                         for tool in connection_result["tools"][:5]:  # Show first 5
-                            click.echo(
-                                f"  • {tool['name']}: {tool.get('description', 'No description')}"
-                            )
+                            click.echo(f"  • {tool['name']}: {tool.get('description', 'No description')}")
 
                         if len(connection_result["tools"]) > 5:
-                            click.echo(
-                                f"  ... and {len(connection_result['tools']) - 5} more"
-                            )
+                            click.echo(f"  ... and {len(connection_result['tools']) - 5} more")
 
                     return
-                click.echo(
-                    f"⚠️  Connection attempt failed: {connection_result.get('error', 'Unknown error')}"
-                )
+                click.echo(f"⚠️  Connection attempt failed: {connection_result.get('error', 'Unknown error')}")
 
             except Exception as e:
                 logger.warning(f"Connection attempt {attempt + 1} failed: {e}")
@@ -122,13 +112,7 @@ def list_agents(_ctx, status: str, detailed: bool):
             return
 
         for agent in agents:
-            status_icon = (
-                "🟢"
-                if agent["status"] == "active"
-                else "🔴"
-                if agent["status"] == "inactive"
-                else "🟡"
-            )
+            status_icon = "🟢" if agent["status"] == "active" else "🔴" if agent["status"] == "inactive" else "🟡"
 
             click.echo(f"{status_icon} {agent['name']} ({agent['id']})")
             click.echo(f"   Host: {agent['host']}:{agent['port']}")
@@ -138,9 +122,7 @@ def list_agents(_ctx, status: str, detailed: bool):
             if detailed:
                 click.echo(f"   Version: {agent.get('version', 'unknown')}")
                 click.echo(f"   Last seen: {agent.get('last_seen', 'never')}")
-                click.echo(
-                    f"   Capabilities: {', '.join(agent.get('capabilities', []))}"
-                )
+                click.echo(f"   Capabilities: {', '.join(agent.get('capabilities', []))}")
 
             click.echo()
 
@@ -203,9 +185,7 @@ def disconnect(_ctx, agent_id: str, force: bool):
 @click.option("--agent-id", required=True, help="MCP agent ID")
 @click.option("--tool", required=True, help="Tool name to execute")
 @click.option("--params", help="Tool parameters as JSON string")
-@click.option(
-    "--params-file", type=click.Path(exists=True), help="Tool parameters from JSON file"
-)
+@click.option("--params-file", type=click.Path(exists=True), help="Tool parameters from JSON file")
 @click.option("--async", "async_mode", is_flag=True, help="Execute asynchronously")
 @click.pass_context
 def execute(
@@ -248,14 +228,10 @@ def execute(
 
         if async_mode:
             # Async execution
-            execution_id = _execute_tool_async(
-                auth_manager, agent_id, tool, tool_params
-            )
+            execution_id = _execute_tool_async(auth_manager, agent_id, tool, tool_params)
             click.echo("🚀 Async execution started!")
             click.echo(f"🆔 Execution ID: {execution_id}")
-            click.echo(
-                f"📊 Monitor with: pixelated mcp-connect status --execution-id {execution_id}"
-            )
+            click.echo(f"📊 Monitor with: pixelated mcp-connect status --execution-id {execution_id}")
         else:
             # Sync execution
             click.echo("⏳ Executing tool (this may take a while)...")
@@ -428,9 +404,7 @@ def interactive(_ctx):
 # Helper functions
 
 
-def _connect_to_mcp_agent(
-    _auth_manager: AuthManager, host: str, port: int, _timeout: int
-) -> dict[str, Any]:
+def _connect_to_mcp_agent(_auth_manager: AuthManager, host: str, port: int, _timeout: int) -> dict[str, Any]:
     """Connect to MCP agent server."""
     logger.info(f"Connecting to MCP agent at {host}:{port}")
 
@@ -492,9 +466,7 @@ def _disconnect_from_agent(_auth_manager: AuthManager, agent_id: str) -> dict[st
     return {"success": True, "message": f"Successfully disconnected from {agent_id}"}
 
 
-def _get_agent_info(
-    auth_manager: AuthManager, agent_id: str
-) -> dict[str, Any] | None:
+def _get_agent_info(auth_manager: AuthManager, agent_id: str) -> dict[str, Any] | None:
     """Get information about a specific agent."""
     # This would call the actual API endpoint
     agents = _get_mcp_agents(auth_manager, "all")
@@ -518,9 +490,7 @@ def _remove_connection_info(agent_id: str) -> None:
     logger.info(f"Removed connection info for {agent_id}")
 
 
-def _execute_tool_sync(
-    _auth_manager: AuthManager, agent_id: str, tool: str, _params: dict[str, Any]
-) -> dict[str, Any]:
+def _execute_tool_sync(_auth_manager: AuthManager, agent_id: str, tool: str, _params: dict[str, Any]) -> dict[str, Any]:
     """Execute tool synchronously."""
     logger.info(f"Executing tool {tool} on agent {agent_id}")
 
@@ -539,9 +509,7 @@ def _execute_tool_sync(
     }
 
 
-def _execute_tool_async(
-    _auth_manager: AuthManager, agent_id: str, tool: str, _params: dict[str, Any]
-) -> str:
+def _execute_tool_async(_auth_manager: AuthManager, agent_id: str, tool: str, _params: dict[str, Any]) -> str:
     """Execute tool asynchronously."""
     logger.info(f"Async execution of tool {tool} on agent {agent_id}")
 
@@ -549,9 +517,7 @@ def _execute_tool_async(
     return f"exec_{int(time.time())}"
 
 
-def _get_execution_status(
-    _auth_manager: AuthManager, execution_id: str
-) -> dict[str, Any] | None:
+def _get_execution_status(_auth_manager: AuthManager, execution_id: str) -> dict[str, Any] | None:
     """Get execution status."""
     # This would call the actual API endpoint
     return {
@@ -564,9 +530,7 @@ def _get_execution_status(
     }
 
 
-def _list_executions(
-    _auth_manager: AuthManager, agent_id: str | None, limit: int
-) -> list[dict[str, Any]]:
+def _list_executions(_auth_manager: AuthManager, agent_id: str | None, limit: int) -> list[dict[str, Any]]:
     """List recent executions."""
     # This would call the actual API endpoint
     executions = [
@@ -615,21 +579,11 @@ def _display_executions_list(executions: list[dict[str, Any]]) -> None:
 
     click.echo("📋 Recent Executions:")
     for execution in executions:
-        status_icon = (
-            "🟢"
-            if execution["status"] == "completed"
-            else "🟡"
-            if execution["status"] == "running"
-            else "🔴"
-        )
-        click.echo(
-            f"  {status_icon} {execution['id']} - {execution['tool']} - {execution['status']}"
-        )
+        status_icon = "🟢" if execution["status"] == "completed" else "🟡" if execution["status"] == "running" else "🔴"
+        click.echo(f"  {status_icon} {execution['id']} - {execution['tool']} - {execution['status']}")
 
 
-def _test_agent_capability(
-    _auth_manager: AuthManager, agent_id: str, capability: str
-) -> dict[str, Any]:
+def _test_agent_capability(_auth_manager: AuthManager, agent_id: str, capability: str) -> dict[str, Any]:
     """Test agent capability."""
     logger.info(f"Testing capability {capability} on agent {agent_id}")
 

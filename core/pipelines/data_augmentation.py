@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-import hashlib
 import random
 import re
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable
 
 from .schemas.conversation_schema import Conversation
 
@@ -52,9 +51,7 @@ class SafetyGuardrails:
         "end my life",
     }
 
-    def validate_augmentation(
-        self, original: str, candidate: str
-    ) -> tuple[bool, list[str]]:
+    def validate_augmentation(self, original: str, candidate: str) -> tuple[bool, list[str]]:
         issues: list[str] = []
         original_lower = original.lower()
         candidate_lower = candidate.lower()
@@ -64,7 +61,9 @@ class SafetyGuardrails:
             if keyword in original_lower and keyword not in candidate_lower:
                 issues.append(f"CRITICAL: lost safety phrase '{keyword}'")
 
-        if re.search(r"\b(harm\b|hurt\b|die\b)", candidate_lower) and not re.search(r"\b(safety\b|support\b|help\b|resource\b)", candidate_lower):
+        if re.search(r"\b(harm\b|hurt\b|die\b)", candidate_lower) and not re.search(
+            r"\b(safety\b|support\b|help\b|resource\b)", candidate_lower
+        ):
             issues.append("CRITICAL: candidate may contain high-risk language without escalation cues")
 
         return len(issues) == 0, issues
@@ -105,7 +104,9 @@ class DataAugmenter:
         "so",
     )
 
-    def __init__(self, config: AugmentationConfig | None = None, *, random_fn: Callable[[], float] | None = None) -> None:
+    def __init__(
+        self, config: AugmentationConfig | None = None, *, random_fn: Callable[[], float] | None = None
+    ) -> None:
         self.config = config or AugmentationConfig()
         if self.config.random_seed is not None:
             random.seed(self.config.random_seed)
@@ -199,9 +200,7 @@ class DataAugmenter:
                 if not ok:
                     # Keep original and preserve safety-critical phrasing.
                     candidate = original
-                    target.metadata.setdefault("guardrail_rejections", []).append(
-                        {"text": original, "issues": issues}
-                    )
+                    target.metadata.setdefault("guardrail_rejections", []).append({"text": original, "issues": issues})
             target.messages.append(type(message)(role=message.role, content=candidate))
 
         return target
@@ -230,7 +229,7 @@ class DataAugmenter:
 
 __all__ = [
     "AugmentationConfig",
+    "AugmentationStats",
     "DataAugmenter",
     "SafetyGuardrails",
-    "AugmentationStats",
 ]

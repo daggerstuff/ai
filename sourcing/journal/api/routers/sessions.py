@@ -4,7 +4,6 @@ Session management API routes.
 This module provides endpoints for managing research sessions.
 """
 
-
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from ai.sourcing.journal.api.dependencies import (

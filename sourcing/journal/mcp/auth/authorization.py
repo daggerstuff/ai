@@ -108,9 +108,7 @@ class AuthorizationHandler(ABC):
     """Base class for authorization handlers."""
 
     @abstractmethod
-    async def authorize(
-        self, user: dict[str, Any], resource: str, action: str
-    ) -> bool:
+    async def authorize(self, user: dict[str, Any], resource: str, action: str) -> bool:
         """
         Check if user is authorized to perform action on resource.
 
@@ -124,9 +122,7 @@ class AuthorizationHandler(ABC):
         """
 
     @abstractmethod
-    async def require_authorization(
-        self, user: dict[str, Any], resource: str, action: str
-    ) -> None:
+    async def require_authorization(self, user: dict[str, Any], resource: str, action: str) -> None:
         """
         Require authorization, raise exception if not authorized.
 
@@ -252,9 +248,7 @@ class RBAC(AuthorizationHandler):
 
         return None
 
-    async def authorize(
-        self, user: dict[str, Any], resource: str, action: str
-    ) -> bool:
+    async def authorize(self, user: dict[str, Any], resource: str, action: str) -> bool:
         """
         Check if user is authorized to perform action on resource.
 
@@ -288,16 +282,12 @@ class RBAC(AuthorizationHandler):
 
         if not permission:
             # No permission mapping found, deny by default
-            logger.warning(
-                f"No permission mapping for resource: {resource}, action: {action}"
-            )
+            logger.warning(f"No permission mapping for resource: {resource}, action: {action}")
             return False
 
         return self.check_permission(user, permission)
 
-    async def require_authorization(
-        self, user: dict[str, Any], resource: str, action: str
-    ) -> None:
+    async def require_authorization(self, user: dict[str, Any], resource: str, action: str) -> None:
         """
         Require authorization, raise exception if not authorized.
 
@@ -332,4 +322,3 @@ def create_authorization_handler() -> AuthorizationHandler:
         Authorization handler instance (currently only RBAC is supported)
     """
     return RBAC()
-

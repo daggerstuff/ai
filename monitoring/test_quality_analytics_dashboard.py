@@ -11,7 +11,7 @@ import os
 import sqlite3
 import sys
 import tempfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pandas as pd
 import pytest
@@ -413,9 +413,7 @@ class TestQualityAnalyticsDashboard:
         start_date = datetime(2024, 8, 2)
         end_date = datetime(2024, 8, 4)
 
-        filtered_df = df[
-            (df["created_at"] >= start_date) & (df["created_at"] <= end_date)
-        ]
+        filtered_df = df[(df["created_at"] >= start_date) & (df["created_at"] <= end_date)]
 
         assert len(filtered_df) == 3  # Should include conversations 2, 3, 4
 
@@ -485,9 +483,7 @@ def run_comprehensive_test():
                 "research",
             ][i % 5]
             dataset = f"test_dataset_{i % 10}"
-            created_at = (datetime.now(timezone.utc) - timedelta(days=i % 30)).strftime(
-                "%Y-%m-%d %H:%M:%S"
-            )
+            created_at = (datetime.now(UTC) - timedelta(days=i % 30)).strftime("%Y-%m-%d %H:%M:%S")
             length = 100 + (i * 10)
 
             conversations_data.append((i, tier, dataset, created_at, length))
@@ -511,9 +507,7 @@ def run_comprehensive_test():
                 + safety_score
             ) / 7
 
-            validated_at = (datetime.now(timezone.utc) - timedelta(days=i % 30, hours=1)).strftime(
-                "%Y-%m-%d %H:%M:%S"
-            )
+            validated_at = (datetime.now(UTC) - timedelta(days=i % 30, hours=1)).strftime("%Y-%m-%d %H:%M:%S")
 
             quality_data.append(
                 (
@@ -579,9 +573,7 @@ def run_comprehensive_test():
             test_results["test_details"].append("✅ Analytics Calculation: PASSED")
         except Exception as e:
             test_results["failed_tests"] += 1
-            test_results["test_details"].append(
-                f"❌ Analytics Calculation: FAILED - {e}"
-            )
+            test_results["test_details"].append(f"❌ Analytics Calculation: FAILED - {e}")
         test_results["total_tests"] += 1
 
         # Test 3: Visualization Creation
@@ -598,9 +590,7 @@ def run_comprehensive_test():
             test_results["test_details"].append("✅ Visualization Creation: PASSED")
         except Exception as e:
             test_results["failed_tests"] += 1
-            test_results["test_details"].append(
-                f"❌ Visualization Creation: FAILED - {e}"
-            )
+            test_results["test_details"].append(f"❌ Visualization Creation: FAILED - {e}")
         test_results["total_tests"] += 1
 
         # Test 4: Quality Distribution
@@ -611,9 +601,7 @@ def run_comprehensive_test():
             test_results["test_details"].append("✅ Quality Distribution: PASSED")
         except Exception as e:
             test_results["failed_tests"] += 1
-            test_results["test_details"].append(
-                f"❌ Quality Distribution: FAILED - {e}"
-            )
+            test_results["test_details"].append(f"❌ Quality Distribution: FAILED - {e}")
         test_results["total_tests"] += 1
 
         # Test 5: Tier Performance
@@ -629,14 +617,12 @@ def run_comprehensive_test():
         test_results["total_tests"] += 1
 
         # Generate test report
-        success_rate = (
-            test_results["passed_tests"] / test_results["total_tests"]
-        ) * 100
+        success_rate = (test_results["passed_tests"] / test_results["total_tests"]) * 100
 
         report = {
             "test_suite": "Quality Analytics Dashboard",
             "task": "5.6.2.1",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "results": test_results,
             "success_rate": success_rate,
             "status": "PASSED" if success_rate >= 80 else "FAILED",
@@ -651,16 +637,12 @@ def run_comprehensive_test():
         }
 
         # Save test report
-        report_path = (
-            Path(__file__).parent / "quality_analytics_dashboard_test_report.json"
-        )
+        report_path = Path(__file__).parent / "quality_analytics_dashboard_test_report.json"
         with open(report_path, "w") as f:
             json.dump(report, f, indent=2)
 
-
         for _detail in test_results["test_details"]:
             pass
-
 
         return report
 

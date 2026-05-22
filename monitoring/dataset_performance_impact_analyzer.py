@@ -11,12 +11,13 @@ Comprehensive analysis of dataset performance and business impact:
 - Strategic recommendations for dataset optimization
 - Business value quantification
 """
+
 import json
 import re
 import sqlite3
 import traceback
 import warnings
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import matplotlib.pyplot as plt
@@ -32,9 +33,7 @@ warnings.simplefilter("default")
 
 
 class DatasetPerformanceImpactAnalyzer:
-    def __init__(
-        self, db_path: str = "/home/vivi/pixelated/ai/database/conversations.db"
-    ):
+    def __init__(self, db_path: str = "/home/vivi/pixelated/ai/database/conversations.db"):
         self.db_path = db_path
         self.performance_metrics = {}
         self.impact_analysis = {}
@@ -55,9 +54,7 @@ class DatasetPerformanceImpactAnalyzer:
             "quality_performance": self._analyze_quality_performance(datasets_info),
             "efficiency_metrics": self._analyze_efficiency_metrics(datasets_info),
             "utilization_analysis": self._analyze_utilization_patterns(datasets_info),
-            "comparative_performance": self._perform_comparative_analysis(
-                datasets_info
-            ),
+            "comparative_performance": self._perform_comparative_analysis(datasets_info),
             "trend_analysis": self._analyze_performance_trends(datasets_info),
         }
 
@@ -76,22 +73,16 @@ class DatasetPerformanceImpactAnalyzer:
         )
 
         # Create comprehensive visualizations
-        self._create_performance_impact_visualizations(
-            performance_analysis, impact_analysis, datasets_info
-        )
+        self._create_performance_impact_visualizations(performance_analysis, impact_analysis, datasets_info)
 
         return {
-            "analysis_timestamp": datetime.now(timezone.utc).isoformat(),
+            "analysis_timestamp": datetime.now(UTC).isoformat(),
             "datasets_analyzed": len(datasets_info),
             "performance_analysis": performance_analysis,
             "impact_analysis": impact_analysis,
             "strategic_recommendations": strategic_recommendations,
-            "executive_summary": self._generate_executive_summary(
-                performance_analysis, impact_analysis
-            ),
-            "action_priorities": self._define_action_priorities(
-                performance_analysis, impact_analysis
-            ),
+            "executive_summary": self._generate_executive_summary(performance_analysis, impact_analysis),
+            "action_priorities": self._define_action_priorities(performance_analysis, impact_analysis),
             "success_metrics": self._define_success_metrics(),
         }
 
@@ -117,18 +108,14 @@ class DatasetPerformanceImpactAnalyzer:
             df = pd.read_sql_query(query, conn)
 
         # Extract conversation text and calculate additional metrics
-        df["conversation_text"] = df["conversations_json"].apply(
-            self._extract_text_from_json
-        )
+        df["conversation_text"] = df["conversations_json"].apply(self._extract_text_from_json)
         df["quality_score"] = df.apply(self._calculate_quality_score, axis=1)
         df["complexity_score"] = df.apply(self._calculate_complexity_score, axis=1)
         df["engagement_score"] = df.apply(self._calculate_engagement_score, axis=1)
 
         # Add temporal features
         df["created_at"] = pd.to_datetime(df["created_at"], errors="coerce", utc=True)
-        df["processed_at"] = pd.to_datetime(
-            df["processed_at"], errors="coerce", utc=True
-        )
+        df["processed_at"] = pd.to_datetime(df["processed_at"], errors="coerce", utc=True)
         df["processing_time"] = df["processed_at"] - df["created_at"]
         df["processing_time_hours"] = df["processing_time"].dt.total_seconds() / 3600
 
@@ -137,7 +124,6 @@ class DatasetPerformanceImpactAnalyzer:
     def _extract_text_from_json(self, json_str: str) -> str:
         """Extract readable text from conversations JSON"""
         try:
-
             conversations = json.loads(json_str)
 
             if isinstance(conversations, list):
@@ -163,7 +149,6 @@ class DatasetPerformanceImpactAnalyzer:
 
         # Quality components
         try:
-
             readability = max(0, min(100, flesch_reading_ease(text))) / 100
         except:
             readability = 0.5
@@ -173,27 +158,14 @@ class DatasetPerformanceImpactAnalyzer:
         engagement = min(1.0, questions / word_count * 50)
 
         # Empathy indicators
-        empathy_words = len(
-            re.findall(
-                r"\b(understand|feel|sorry|empathize|support|care)\b", text.lower()
-            )
-        )
+        empathy_words = len(re.findall(r"\b(understand|feel|sorry|empathize|support|care)\b", text.lower()))
         empathy = min(1.0, empathy_words / word_count * 100)
 
         # Structure indicators
-        structure = (
-            0.8
-            if (
-                bool(re.search(r"\n\s*[-*•]\s+", text))
-                or bool(re.search(r"\n\s*\d+\.\s+", text))
-            )
-            else 0.4
-        )
+        structure = 0.8 if (bool(re.search(r"\n\s*[-*•]\s+", text)) or bool(re.search(r"\n\s*\d+\.\s+", text))) else 0.4
 
         # Weighted quality score
-        return (
-            readability * 0.3 + engagement * 0.25 + empathy * 0.25 + structure * 0.2
-        ) * 100
+        return (readability * 0.3 + engagement * 0.25 + empathy * 0.25 + structure * 0.2) * 100
 
     def _calculate_complexity_score(self, row: pd.Series) -> float:
         """Calculate complexity score for a conversation"""
@@ -245,26 +217,17 @@ class DatasetPerformanceImpactAnalyzer:
         exclamations = text.count("!")
 
         # Personal engagement
-        personal_pronouns = len(
-            re.findall(r"\b(I|you|we|us|your|my|our)\b", text.lower())
-        )
+        personal_pronouns = len(re.findall(r"\b(I|you|we|us|your|my|our)\b", text.lower()))
 
         # Conversational markers
-        markers = len(
-            re.findall(r"\b(well|so|now|then|actually|really|you know)\b", text.lower())
-        )
+        markers = len(re.findall(r"\b(well|so|now|then|actually|really|you know)\b", text.lower()))
 
         return min(
             100,
-            (questions * 10)
-            + (exclamations * 5)
-            + (personal_pronouns / word_count * 200)
-            + (markers * 3),
+            (questions * 10) + (exclamations * 5) + (personal_pronouns / word_count * 200) + (markers * 3),
         )
 
-    def _analyze_quality_performance(
-        self, datasets_info: pd.DataFrame
-    ) -> dict[str, Any]:
+    def _analyze_quality_performance(self, datasets_info: pd.DataFrame) -> dict[str, Any]:
         """Analyze quality performance across datasets"""
 
         quality_analysis = {}
@@ -284,9 +247,7 @@ class DatasetPerformanceImpactAnalyzer:
         )
 
         # Flatten column names
-        dataset_quality.columns = [
-            "_".join(col).strip() for col in dataset_quality.columns
-        ]
+        dataset_quality.columns = ["_".join(col).strip() for col in dataset_quality.columns]
 
         # Rank datasets by quality
         dataset_quality["overall_performance"] = (
@@ -295,45 +256,32 @@ class DatasetPerformanceImpactAnalyzer:
             + dataset_quality["engagement_score_mean"] * 0.25
         )
 
-        dataset_quality_ranked = dataset_quality.sort_values(
-            "overall_performance", ascending=False
-        )
+        dataset_quality_ranked = dataset_quality.sort_values("overall_performance", ascending=False)
 
         quality_analysis["dataset_rankings"] = dataset_quality_ranked.to_dict("index")
 
         # Quality distribution analysis
         quality_analysis["quality_distribution"] = {
-            "high_quality_datasets": len(
-                dataset_quality[dataset_quality["quality_score_mean"] >= 70]
-            ),
+            "high_quality_datasets": len(dataset_quality[dataset_quality["quality_score_mean"] >= 70]),
             "medium_quality_datasets": len(
                 dataset_quality[
-                    (dataset_quality["quality_score_mean"] >= 50)
-                    & (dataset_quality["quality_score_mean"] < 70)
+                    (dataset_quality["quality_score_mean"] >= 50) & (dataset_quality["quality_score_mean"] < 70)
                 ]
             ),
-            "low_quality_datasets": len(
-                dataset_quality[dataset_quality["quality_score_mean"] < 50]
-            ),
+            "low_quality_datasets": len(dataset_quality[dataset_quality["quality_score_mean"] < 50]),
             "total_datasets": len(dataset_quality),
         }
 
         # Quality consistency analysis
         quality_analysis["consistency_metrics"] = {
-            "most_consistent": dataset_quality.loc[
-                dataset_quality["quality_score_std"].idxmin()
-            ].name,
-            "least_consistent": dataset_quality.loc[
-                dataset_quality["quality_score_std"].idxmax()
-            ].name,
+            "most_consistent": dataset_quality.loc[dataset_quality["quality_score_std"].idxmin()].name,
+            "least_consistent": dataset_quality.loc[dataset_quality["quality_score_std"].idxmax()].name,
             "avg_quality_variance": dataset_quality["quality_score_std"].mean(),
         }
 
         return quality_analysis
 
-    def _analyze_efficiency_metrics(
-        self, datasets_info: pd.DataFrame
-    ) -> dict[str, Any]:
+    def _analyze_efficiency_metrics(self, datasets_info: pd.DataFrame) -> dict[str, Any]:
         """Analyze efficiency metrics for datasets"""
 
         efficiency_analysis = {}
@@ -352,47 +300,33 @@ class DatasetPerformanceImpactAnalyzer:
             .round(3)
         )
 
-        processing_efficiency.columns = [
-            "_".join(col).strip() for col in processing_efficiency.columns
-        ]
+        processing_efficiency.columns = ["_".join(col).strip() for col in processing_efficiency.columns]
 
         # Calculate efficiency ratios
-        processing_efficiency["words_per_hour"] = processing_efficiency[
-            "word_count_mean"
-        ] / processing_efficiency["processing_time_hours_mean"].replace(0, 1)
+        processing_efficiency["words_per_hour"] = processing_efficiency["word_count_mean"] / processing_efficiency[
+            "processing_time_hours_mean"
+        ].replace(0, 1)
 
-        processing_efficiency["conversations_per_day"] = processing_efficiency[
-            "conversation_id_count"
-        ] / (processing_efficiency["processing_time_hours_mean"] / 24).replace(0, 1)
+        processing_efficiency["conversations_per_day"] = processing_efficiency["conversation_id_count"] / (
+            processing_efficiency["processing_time_hours_mean"] / 24
+        ).replace(0, 1)
 
-        efficiency_analysis["processing_efficiency"] = processing_efficiency.to_dict(
-            "index"
-        )
+        efficiency_analysis["processing_efficiency"] = processing_efficiency.to_dict("index")
 
         # Resource utilization efficiency
-        datasets_info["quality_per_word"] = (
-            datasets_info["quality_score"] / datasets_info["word_count"]
-        )
-        datasets_info["engagement_per_turn"] = (
-            datasets_info["engagement_score"] / datasets_info["turn_count"]
-        )
+        datasets_info["quality_per_word"] = datasets_info["quality_score"] / datasets_info["word_count"]
+        datasets_info["engagement_per_turn"] = datasets_info["engagement_score"] / datasets_info["turn_count"]
 
         resource_efficiency = (
-            datasets_info.groupby("dataset")
-            .agg({"quality_per_word": "mean", "engagement_per_turn": "mean"})
-            .round(4)
+            datasets_info.groupby("dataset").agg({"quality_per_word": "mean", "engagement_per_turn": "mean"}).round(4)
         )
 
-        efficiency_analysis["resource_efficiency"] = resource_efficiency.to_dict(
-            "index"
-        )
+        efficiency_analysis["resource_efficiency"] = resource_efficiency.to_dict("index")
 
         # Efficiency rankings
         efficiency_scores = {}
         for dataset in processing_efficiency.index:
-            proc_score = 1 / (
-                processing_efficiency.loc[dataset, "processing_time_hours_mean"] + 0.1
-            )
+            proc_score = 1 / (processing_efficiency.loc[dataset, "processing_time_hours_mean"] + 0.1)
             quality_score = resource_efficiency.loc[dataset, "quality_per_word"]
             efficiency_scores[dataset] = proc_score * quality_score
 
@@ -402,9 +336,7 @@ class DatasetPerformanceImpactAnalyzer:
 
         return efficiency_analysis
 
-    def _analyze_utilization_patterns(
-        self, datasets_info: pd.DataFrame
-    ) -> dict[str, Any]:
+    def _analyze_utilization_patterns(self, datasets_info: pd.DataFrame) -> dict[str, Any]:
         """Analyze dataset utilization patterns"""
 
         utilization_analysis = {}
@@ -415,21 +347,13 @@ class DatasetPerformanceImpactAnalyzer:
 
         utilization_analysis["volume_distribution"] = {
             "dataset_volumes": dataset_volumes.to_dict(),
-            "volume_percentages": (dataset_volumes / total_conversations * 100)
-            .round(2)
-            .to_dict(),
-            "concentration_ratio": (
-                dataset_volumes.head(3).sum() / total_conversations * 100
-            ).round(2),
+            "volume_percentages": (dataset_volumes / total_conversations * 100).round(2).to_dict(),
+            "concentration_ratio": (dataset_volumes.head(3).sum() / total_conversations * 100).round(2),
         }
 
         # Tier utilization by dataset
-        tier_utilization = (
-            datasets_info.groupby(["dataset", "tier"]).size().unstack(fill_value=0)
-        )
-        tier_percentages = (
-            tier_utilization.div(tier_utilization.sum(axis=1), axis=0) * 100
-        )
+        tier_utilization = datasets_info.groupby(["dataset", "tier"]).size().unstack(fill_value=0)
+        tier_percentages = tier_utilization.div(tier_utilization.sum(axis=1), axis=0) * 100
 
         utilization_analysis["tier_distribution"] = {
             "tier_counts": tier_utilization.to_dict("index"),
@@ -438,12 +362,8 @@ class DatasetPerformanceImpactAnalyzer:
 
         # Temporal utilization patterns
         if "created_at" in datasets_info.columns:
-            datasets_info["month"] = (
-                datasets_info["created_at"].dt.to_period("M").astype(str)
-            )
-            temporal_utilization = (
-                datasets_info.groupby(["dataset", "month"]).size().unstack(fill_value=0)
-            )
+            datasets_info["month"] = datasets_info["created_at"].dt.to_period("M").astype(str)
+            temporal_utilization = datasets_info.groupby(["dataset", "month"]).size().unstack(fill_value=0)
 
             utilization_analysis["temporal_patterns"] = {
                 "monthly_activity": temporal_utilization.to_dict("index"),
@@ -452,9 +372,7 @@ class DatasetPerformanceImpactAnalyzer:
 
         return utilization_analysis
 
-    def _perform_comparative_analysis(
-        self, datasets_info: pd.DataFrame
-    ) -> dict[str, Any]:
+    def _perform_comparative_analysis(self, datasets_info: pd.DataFrame) -> dict[str, Any]:
         """Perform comparative analysis across datasets"""
 
         comparative_analysis = {}
@@ -466,12 +384,8 @@ class DatasetPerformanceImpactAnalyzer:
         quality_comparisons = {}
         for i, dataset1 in enumerate(datasets):
             for dataset2 in datasets[i + 1 :]:
-                data1 = datasets_info[datasets_info["dataset"] == dataset1][
-                    "quality_score"
-                ]
-                data2 = datasets_info[datasets_info["dataset"] == dataset2][
-                    "quality_score"
-                ]
+                data1 = datasets_info[datasets_info["dataset"] == dataset1]["quality_score"]
+                data2 = datasets_info[datasets_info["dataset"] == dataset2]["quality_score"]
 
                 # Perform t-test
                 if len(data1) > 1 and len(data2) > 1:
@@ -523,18 +437,14 @@ class DatasetPerformanceImpactAnalyzer:
 
         return comparative_analysis
 
-    def _analyze_performance_trends(
-        self, datasets_info: pd.DataFrame
-    ) -> dict[str, Any]:
+    def _analyze_performance_trends(self, datasets_info: pd.DataFrame) -> dict[str, Any]:
         """Analyze performance trends over time"""
 
         trends_analysis = {}
 
         if "created_at" in datasets_info.columns:
             # Monthly performance trends
-            datasets_info["month"] = (
-                datasets_info["created_at"].dt.to_period("M").astype(str)
-            )
+            datasets_info["month"] = datasets_info["created_at"].dt.to_period("M").astype(str)
 
             monthly_performance = (
                 datasets_info.groupby(["dataset", "month"])
@@ -552,18 +462,14 @@ class DatasetPerformanceImpactAnalyzer:
             # Calculate trend slopes for each dataset
             trend_slopes = {}
             for dataset in datasets_info["dataset"].unique():
-                dataset_data = monthly_performance[
-                    monthly_performance["dataset"] == dataset
-                ]
+                dataset_data = monthly_performance[monthly_performance["dataset"] == dataset]
 
                 if len(dataset_data) > 2:
                     # Calculate trend slopes
                     x = np.arange(len(dataset_data))
 
                     quality_slope, _ = np.polyfit(x, dataset_data["quality_score"], 1)
-                    engagement_slope, _ = np.polyfit(
-                        x, dataset_data["engagement_score"], 1
-                    )
+                    engagement_slope, _ = np.polyfit(x, dataset_data["engagement_score"], 1)
                     volume_slope, _ = np.polyfit(x, dataset_data["conversation_id"], 1)
 
                     trend_slopes[dataset] = {
@@ -576,30 +482,20 @@ class DatasetPerformanceImpactAnalyzer:
             trends_analysis["trend_slopes"] = trend_slopes
 
             # Identify improving and declining datasets
-            improving_datasets = [
-                d for d, trends in trend_slopes.items() if trends["overall_trend"] > 0.1
-            ]
-            declining_datasets = [
-                d
-                for d, trends in trend_slopes.items()
-                if trends["overall_trend"] < -0.1
-            ]
+            improving_datasets = [d for d, trends in trend_slopes.items() if trends["overall_trend"] > 0.1]
+            declining_datasets = [d for d, trends in trend_slopes.items() if trends["overall_trend"] < -0.1]
 
             trends_analysis["performance_trajectory"] = {
                 "improving_datasets": improving_datasets,
                 "declining_datasets": declining_datasets,
                 "stable_datasets": [
-                    d
-                    for d in trend_slopes
-                    if d not in improving_datasets and d not in declining_datasets
+                    d for d in trend_slopes if d not in improving_datasets and d not in declining_datasets
                 ],
             }
 
         return trends_analysis
 
-    def _measure_value_contribution(
-        self, datasets_info: pd.DataFrame
-    ) -> dict[str, Any]:
+    def _measure_value_contribution(self, datasets_info: pd.DataFrame) -> dict[str, Any]:
         """Measure value contribution of each dataset"""
 
         value_analysis = {}
@@ -617,17 +513,11 @@ class DatasetPerformanceImpactAnalyzer:
         )
 
         # Calculate value scores
-        dataset_value["content_value"] = (
-            dataset_value["word_count"] * dataset_value["quality_score"] / 100
-        )
+        dataset_value["content_value"] = dataset_value["word_count"] * dataset_value["quality_score"] / 100
 
-        dataset_value["engagement_value"] = (
-            dataset_value["conversation_id"] * dataset_value["engagement_score"] / 100
-        )
+        dataset_value["engagement_value"] = dataset_value["conversation_id"] * dataset_value["engagement_score"] / 100
 
-        dataset_value["complexity_value"] = (
-            dataset_value["turn_count"] * dataset_value["complexity_score"] / 100
-        )
+        dataset_value["complexity_value"] = dataset_value["turn_count"] * dataset_value["complexity_score"] / 100
 
         # Overall value score
         dataset_value["overall_value"] = (
@@ -638,21 +528,15 @@ class DatasetPerformanceImpactAnalyzer:
 
         # Normalize to percentage of total value
         total_value = dataset_value["overall_value"].sum()
-        dataset_value["value_percentage"] = (
-            dataset_value["overall_value"] / total_value * 100
-        ).round(2)
+        dataset_value["value_percentage"] = (dataset_value["overall_value"] / total_value * 100).round(2)
 
         value_analysis["dataset_value_scores"] = dataset_value.to_dict("index")
 
         # Value concentration analysis
-        top_3_value = dataset_value.nlargest(3, "overall_value")[
-            "value_percentage"
-        ].sum()
+        top_3_value = dataset_value.nlargest(3, "overall_value")["value_percentage"].sum()
         value_analysis["value_concentration"] = {
             "top_3_datasets_value_share": top_3_value,
-            "value_distribution_balance": "concentrated"
-            if top_3_value > 70
-            else "balanced",
+            "value_distribution_balance": "concentrated" if top_3_value > 70 else "balanced",
         }
 
         return value_analysis
@@ -692,31 +576,22 @@ class DatasetPerformanceImpactAnalyzer:
 
         dataset_costs["estimated_value"] = (
             dataset_quality * VALUE_PER_QUALITY_POINT * dataset_costs["conversation_id"]
-            + dataset_engagement
-            * VALUE_PER_ENGAGEMENT_POINT
-            * dataset_costs["conversation_id"]
+            + dataset_engagement * VALUE_PER_ENGAGEMENT_POINT * dataset_costs["conversation_id"]
         )
 
         # Calculate ROI
         dataset_costs["roi_percentage"] = (
-            (dataset_costs["estimated_value"] - dataset_costs["estimated_cost"])
-            / dataset_costs["estimated_cost"]
-            * 100
+            (dataset_costs["estimated_value"] - dataset_costs["estimated_cost"]) / dataset_costs["estimated_cost"] * 100
         ).round(2)
 
         roi_analysis["dataset_roi"] = dataset_costs.to_dict("index")
 
         # ROI categories
-        high_roi_datasets = dataset_costs[
-            dataset_costs["roi_percentage"] > 100
-        ].index.tolist()
+        high_roi_datasets = dataset_costs[dataset_costs["roi_percentage"] > 100].index.tolist()
         medium_roi_datasets = dataset_costs[
-            (dataset_costs["roi_percentage"] >= 50)
-            & (dataset_costs["roi_percentage"] <= 100)
+            (dataset_costs["roi_percentage"] >= 50) & (dataset_costs["roi_percentage"] <= 100)
         ].index.tolist()
-        low_roi_datasets = dataset_costs[
-            dataset_costs["roi_percentage"] < 50
-        ].index.tolist()
+        low_roi_datasets = dataset_costs[dataset_costs["roi_percentage"] < 50].index.tolist()
 
         roi_analysis["roi_categories"] = {
             "high_roi_datasets": high_roi_datasets,
@@ -788,9 +663,7 @@ class DatasetPerformanceImpactAnalyzer:
 
         return strategic_analysis
 
-    def _analyze_resource_efficiency(
-        self, datasets_info: pd.DataFrame
-    ) -> dict[str, Any]:
+    def _analyze_resource_efficiency(self, datasets_info: pd.DataFrame) -> dict[str, Any]:
         """Analyze resource efficiency across datasets"""
 
         efficiency_analysis = {}
@@ -806,21 +679,16 @@ class DatasetPerformanceImpactAnalyzer:
             }
         )
 
-        resource_metrics.columns = [
-            "_".join(col).strip() for col in resource_metrics.columns
-        ]
+        resource_metrics.columns = ["_".join(col).strip() for col in resource_metrics.columns]
 
         # Calculate efficiency ratios
-        resource_metrics["quality_per_resource_unit"] = resource_metrics[
-            "quality_score_mean"
-        ] / (
-            resource_metrics["processing_time_hours_sum"].fillna(1)
-            + resource_metrics["word_count_sum"] / 1000
+        resource_metrics["quality_per_resource_unit"] = resource_metrics["quality_score_mean"] / (
+            resource_metrics["processing_time_hours_sum"].fillna(1) + resource_metrics["word_count_sum"] / 1000
         )
 
-        resource_metrics["conversations_per_hour"] = resource_metrics[
-            "conversation_id_count"
-        ] / resource_metrics["processing_time_hours_sum"].fillna(1)
+        resource_metrics["conversations_per_hour"] = resource_metrics["conversation_id_count"] / resource_metrics[
+            "processing_time_hours_sum"
+        ].fillna(1)
 
         resource_metrics["quality_words_ratio"] = (
             resource_metrics["quality_score_mean"] / resource_metrics["word_count_mean"]
@@ -829,17 +697,13 @@ class DatasetPerformanceImpactAnalyzer:
         efficiency_analysis["resource_metrics"] = resource_metrics.to_dict("index")
 
         # Efficiency rankings
-        efficiency_rankings = resource_metrics.sort_values(
-            "quality_per_resource_unit", ascending=False
-        ).index.tolist()
+        efficiency_rankings = resource_metrics.sort_values("quality_per_resource_unit", ascending=False).index.tolist()
 
         efficiency_analysis["efficiency_rankings"] = efficiency_rankings
 
         return efficiency_analysis
 
-    def _analyze_scalability_potential(
-        self, datasets_info: pd.DataFrame
-    ) -> dict[str, Any]:
+    def _analyze_scalability_potential(self, datasets_info: pd.DataFrame) -> dict[str, Any]:
         """Analyze scalability potential of datasets"""
 
         scalability_analysis = {}
@@ -871,10 +735,7 @@ class DatasetPerformanceImpactAnalyzer:
 
             # Overall scalability score
             scalability_score = (
-                consistency_score * 0.30
-                + efficiency_score * 0.25
-                + resource_score * 0.20
-                + growth_potential * 0.25
+                consistency_score * 0.30 + efficiency_score * 0.25 + resource_score * 0.20 + growth_potential * 0.25
             )
 
             dataset_scalability[dataset] = {
@@ -889,21 +750,9 @@ class DatasetPerformanceImpactAnalyzer:
         scalability_analysis["scalability_scores"] = dataset_scalability
 
         # Scalability recommendations
-        high_scalability = [
-            d
-            for d, scores in dataset_scalability.items()
-            if scores["scalability_score"] > 70
-        ]
-        medium_scalability = [
-            d
-            for d, scores in dataset_scalability.items()
-            if 50 <= scores["scalability_score"] <= 70
-        ]
-        low_scalability = [
-            d
-            for d, scores in dataset_scalability.items()
-            if scores["scalability_score"] < 50
-        ]
+        high_scalability = [d for d, scores in dataset_scalability.items() if scores["scalability_score"] > 70]
+        medium_scalability = [d for d, scores in dataset_scalability.items() if 50 <= scores["scalability_score"] <= 70]
+        low_scalability = [d for d, scores in dataset_scalability.items() if scores["scalability_score"] < 50]
 
         scalability_analysis["scalability_categories"] = {
             "high_scalability": high_scalability,
@@ -951,14 +800,8 @@ class DatasetPerformanceImpactAnalyzer:
             )
 
         # Optimization opportunities
-        quality_rankings = performance_analysis["quality_performance"][
-            "dataset_rankings"
-        ]
-        low_quality_datasets = [
-            d
-            for d, metrics in quality_rankings.items()
-            if metrics["quality_score_mean"] < 50
-        ]
+        quality_rankings = performance_analysis["quality_performance"]["dataset_rankings"]
+        low_quality_datasets = [d for d, metrics in quality_rankings.items() if metrics["quality_score_mean"] < 50]
 
         if low_quality_datasets:
             recommendations["optimization_opportunities"].extend(
@@ -970,9 +813,7 @@ class DatasetPerformanceImpactAnalyzer:
             )
 
         # Resource reallocation
-        efficiency_data = performance_analysis["efficiency_metrics"][
-            "efficiency_rankings"
-        ]
+        efficiency_data = performance_analysis["efficiency_metrics"]["efficiency_rankings"]
         low_efficiency_datasets = list(efficiency_data.keys())[-3:]  # Bottom 3
 
         recommendations["resource_reallocation"].extend(
@@ -984,9 +825,7 @@ class DatasetPerformanceImpactAnalyzer:
         )
 
         # Strategic initiatives
-        scalability_data = impact_analysis["scalability_analysis"][
-            "scalability_categories"
-        ]
+        scalability_data = impact_analysis["scalability_analysis"]["scalability_categories"]
         high_scalability_datasets = scalability_data["high_scalability"]
 
         if high_scalability_datasets:
@@ -1006,9 +845,7 @@ class DatasetPerformanceImpactAnalyzer:
         """Generate executive summary of findings"""
 
         # Key performance indicators
-        quality_dist = performance_analysis["quality_performance"][
-            "quality_distribution"
-        ]
+        quality_dist = performance_analysis["quality_performance"]["quality_distribution"]
         roi_categories = impact_analysis["roi_assessment"]["roi_categories"]
 
         return {
@@ -1030,7 +867,6 @@ class DatasetPerformanceImpactAnalyzer:
                 "Establish continuous monitoring and optimization processes",
             ],
         }
-
 
     def _define_action_priorities(
         self, _performance_analysis: dict[str, Any], _impact_analysis: dict[str, Any]
@@ -1054,7 +890,6 @@ class DatasetPerformanceImpactAnalyzer:
                 "Build sustainable competitive advantages through data excellence",
             ],
         }
-
 
     def _define_success_metrics(self) -> dict[str, Any]:
         """Define success metrics for performance improvement"""
@@ -1087,26 +922,18 @@ class DatasetPerformanceImpactAnalyzer:
 
         plt.style.use("default")
         fig, axes = plt.subplots(3, 3, figsize=(20, 15))
-        fig.suptitle(
-            "Dataset Performance and Impact Analysis", fontsize=18, fontweight="bold"
-        )
+        fig.suptitle("Dataset Performance and Impact Analysis", fontsize=18, fontweight="bold")
 
         # 1. Quality Performance Rankings
-        quality_rankings = performance_analysis["quality_performance"][
-            "dataset_rankings"
-        ]
+        quality_rankings = performance_analysis["quality_performance"]["dataset_rankings"]
         datasets = list(quality_rankings.keys())[:10]  # Top 10
         quality_scores = [quality_rankings[d]["quality_score_mean"] for d in datasets]
 
-        bars = axes[0, 0].bar(
-            range(len(datasets)), quality_scores, color="skyblue", alpha=0.8
-        )
+        bars = axes[0, 0].bar(range(len(datasets)), quality_scores, color="skyblue", alpha=0.8)
         axes[0, 0].set_title("Dataset Quality Performance Rankings")
         axes[0, 0].set_ylabel("Average Quality Score")
         axes[0, 0].set_xticks(range(len(datasets)))
-        axes[0, 0].set_xticklabels(
-            [d[:15] + "..." if len(d) > 15 else d for d in datasets], rotation=45
-        )
+        axes[0, 0].set_xticklabels([d[:15] + "..." if len(d) > 15 else d for d in datasets], rotation=45)
 
         # Add value labels
         for bar, score in zip(bars, quality_scores, strict=False):
@@ -1125,32 +952,23 @@ class DatasetPerformanceImpactAnalyzer:
         roi_values = [roi_data[d]["roi_percentage"] for d in datasets_roi]
 
         colors = ["green" if roi > 0 else "red" for roi in roi_values]
-        bars = axes[0, 1].bar(
-            range(len(datasets_roi)), roi_values, color=colors, alpha=0.7
-        )
+        bars = axes[0, 1].bar(range(len(datasets_roi)), roi_values, color=colors, alpha=0.7)
         axes[0, 1].set_title("Dataset ROI Analysis")
         axes[0, 1].set_ylabel("ROI Percentage")
         axes[0, 1].set_xticks(range(len(datasets_roi)))
-        axes[0, 1].set_xticklabels(
-            [d[:12] + "..." if len(d) > 12 else d for d in datasets_roi], rotation=45
-        )
+        axes[0, 1].set_xticklabels([d[:12] + "..." if len(d) > 12 else d for d in datasets_roi], rotation=45)
         axes[0, 1].axhline(y=0, color="black", linestyle="-", alpha=0.3)
 
         # 3. Strategic Impact Scatter
         strategic_data = impact_analysis["strategic_impact"]["strategic_scores"]
         datasets_strategic = list(strategic_data.keys())
 
-        strategic_scores = [
-            strategic_data[d]["overall_strategic_score"] for d in datasets_strategic
-        ]
+        strategic_scores = [strategic_data[d]["overall_strategic_score"] for d in datasets_strategic]
         quality_scores_strategic = [
-            quality_rankings.get(d, {}).get("quality_score_mean", 0)
-            for d in datasets_strategic
+            quality_rankings.get(d, {}).get("quality_score_mean", 0) for d in datasets_strategic
         ]
 
-        axes[0, 2].scatter(
-            strategic_scores, quality_scores_strategic, alpha=0.7, s=60, c="purple"
-        )
+        axes[0, 2].scatter(strategic_scores, quality_scores_strategic, alpha=0.7, s=60, c="purple")
         axes[0, 2].set_title("Strategic Impact vs Quality")
         axes[0, 2].set_xlabel("Strategic Impact Score")
         axes[0, 2].set_ylabel("Quality Score")
@@ -1167,28 +985,20 @@ class DatasetPerformanceImpactAnalyzer:
         axes[1, 0].set_title("Dataset Volume Distribution")
 
         # 5. Efficiency Metrics
-        efficiency_data = performance_analysis["efficiency_metrics"][
-            "efficiency_rankings"
-        ]
+        efficiency_data = performance_analysis["efficiency_metrics"]["efficiency_rankings"]
         top_efficient = list(efficiency_data.keys())[:6]
         efficiency_scores = list(efficiency_data.values())[:6]
 
-        bars = axes[1, 1].barh(
-            range(len(top_efficient)), efficiency_scores, color="lightgreen", alpha=0.8
-        )
+        bars = axes[1, 1].barh(range(len(top_efficient)), efficiency_scores, color="lightgreen", alpha=0.8)
         axes[1, 1].set_title("Dataset Efficiency Rankings")
         axes[1, 1].set_xlabel("Efficiency Score")
         axes[1, 1].set_yticks(range(len(top_efficient)))
-        axes[1, 1].set_yticklabels(
-            [d[:20] + "..." if len(d) > 20 else d for d in top_efficient]
-        )
+        axes[1, 1].set_yticklabels([d[:20] + "..." if len(d) > 20 else d for d in top_efficient])
 
         # 6. Scalability Analysis
         scalability_data = impact_analysis["scalability_analysis"]["scalability_scores"]
         datasets_scalability = list(scalability_data.keys())[:8]
-        scalability_scores = [
-            scalability_data[d]["scalability_score"] for d in datasets_scalability
-        ]
+        scalability_scores = [scalability_data[d]["scalability_score"] for d in datasets_scalability]
 
         bars = axes[1, 2].bar(
             range(len(datasets_scalability)),
@@ -1205,9 +1015,7 @@ class DatasetPerformanceImpactAnalyzer:
         )
 
         # 7. Performance Distribution
-        quality_dist = performance_analysis["quality_performance"][
-            "quality_distribution"
-        ]
+        quality_dist = performance_analysis["quality_performance"]["quality_distribution"]
         categories = ["High Quality", "Medium Quality", "Low Quality"]
         values = [
             quality_dist["high_quality_datasets"],
@@ -1233,22 +1041,16 @@ class DatasetPerformanceImpactAnalyzer:
 
         # 8. Value Contribution
         value_data = impact_analysis["value_contribution"]["dataset_value_scores"]
-        top_value_datasets = sorted(
-            value_data.items(), key=lambda x: x[1]["overall_value"], reverse=True
-        )[:6]
+        top_value_datasets = sorted(value_data.items(), key=lambda x: x[1]["overall_value"], reverse=True)[:6]
 
         datasets_value = [item[0] for item in top_value_datasets]
         value_percentages = [item[1]["value_percentage"] for item in top_value_datasets]
 
-        bars = axes[2, 1].bar(
-            range(len(datasets_value)), value_percentages, color="gold", alpha=0.8
-        )
+        bars = axes[2, 1].bar(range(len(datasets_value)), value_percentages, color="gold", alpha=0.8)
         axes[2, 1].set_title("Top Value Contributing Datasets")
         axes[2, 1].set_ylabel("Value Contribution (%)")
         axes[2, 1].set_xticks(range(len(datasets_value)))
-        axes[2, 1].set_xticklabels(
-            [d[:12] + "..." if len(d) > 12 else d for d in datasets_value], rotation=45
-        )
+        axes[2, 1].set_xticklabels([d[:12] + "..." if len(d) > 12 else d for d in datasets_value], rotation=45)
 
         # 9. Performance Trends (if available)
         if "trend_slopes" in performance_analysis.get("trend_analysis", {}):
@@ -1257,9 +1059,7 @@ class DatasetPerformanceImpactAnalyzer:
             trend_values = [trend_data[d]["overall_trend"] for d in datasets_trend]
 
             colors = ["green" if trend > 0 else "red" for trend in trend_values]
-            bars = axes[2, 2].bar(
-                range(len(datasets_trend)), trend_values, color=colors, alpha=0.7
-            )
+            bars = axes[2, 2].bar(range(len(datasets_trend)), trend_values, color=colors, alpha=0.7)
             axes[2, 2].set_title("Performance Trend Analysis")
             axes[2, 2].set_ylabel("Trend Slope")
             axes[2, 2].set_xticks(range(len(datasets_trend)))
@@ -1282,14 +1082,13 @@ class DatasetPerformanceImpactAnalyzer:
         plt.tight_layout()
 
         # Save the plot
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         plt.savefig(
             f"/home/vivi/pixelated/ai/monitoring/dataset_performance_impact_{timestamp}.png",
             dpi=300,
             bbox_inches="tight",
         )
         plt.show()
-
 
     # Helper methods
     def _calculate_growth_trends(self, temporal_data: pd.DataFrame) -> dict[str, float]:
@@ -1319,12 +1118,11 @@ def main():
         results = analyzer.analyze_performance_impact()
 
         # Save results
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         output_file = f"/home/vivi/pixelated/ai/monitoring/dataset_performance_impact_{timestamp}.json"
 
         with open(output_file, "w") as f:
             json.dump(results, f, indent=2, default=str)
-
 
         # Display executive summary
         exec_summary = results["executive_summary"]
@@ -1348,7 +1146,6 @@ def main():
         return results
 
     except Exception:
-
         traceback.print_exc()
         return None
 

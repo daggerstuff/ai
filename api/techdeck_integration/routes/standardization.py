@@ -4,9 +4,10 @@ Standardization API routes for TechDeck-Python Pipeline Integration.
 This module implements REST API endpoints for data standardization operations,
 including schema validation, format conversion, and data normalization.
 """
+
 import logging
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from flask import Blueprint, g, jsonify, request
@@ -60,7 +61,7 @@ def list_schemas():
                 "data": {
                     "schemas": schemas,
                     "count": len(schemas),
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 },
             }
         ), 200
@@ -116,7 +117,7 @@ def get_schema(schema_id: str):
                 "success": True,
                 "data": {
                     "schema": schema,
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 },
             }
         ), 200
@@ -198,7 +199,7 @@ def validate_data():
                     "errors": validation_result.get("errors", []),
                     "warnings": validation_result.get("warnings", []),
                     "schema_id": schema_id,
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 },
             }
         ), 200
@@ -275,12 +276,10 @@ def transform_data():
                 "success": True,
                 "data": {
                     "transformed_data": transformation_result["data"],
-                    "transformations_applied": transformation_result.get(
-                        "transformations", []
-                    ),
+                    "transformations_applied": transformation_result.get("transformations", []),
                     "metadata": transformation_result.get("metadata", {}),
                     "schema_id": schema_id,
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 },
             }
         ), 200
@@ -344,9 +343,7 @@ def batch_transform_data():
         items = [sanitize_input(item) for item in items]
         schema_id = sanitize_input(schema_id)
 
-        request_logger.info(
-            f"Batch transforming {len(items)} items using schema: {schema_id}"
-        )
+        request_logger.info(f"Batch transforming {len(items)} items using schema: {schema_id}")
 
         # Get Redis client from app context
         redis_client = g.app.redis_client
@@ -380,8 +377,7 @@ def batch_transform_data():
                         {
                             "success": False,
                             "error": str(e),
-                            "item_index": i
-                            + batch_results.index({"success": False, "error": str(e)}),
+                            "item_index": i + batch_results.index({"success": False, "error": str(e)}),
                         }
                     )
 
@@ -391,9 +387,7 @@ def batch_transform_data():
         successful = sum(1 for r in results if r["success"])
         success_rate = successful / len(results) * 100
 
-        request_logger.info(
-            f"Batch transformation completed: {successful}/{len(results)} successful"
-        )
+        request_logger.info(f"Batch transformation completed: {successful}/{len(results)} successful")
 
         return jsonify(
             {
@@ -405,7 +399,7 @@ def batch_transform_data():
                     "failed_items": len(results) - successful,
                     "success_rate": success_rate,
                     "schema_id": schema_id,
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 },
             }
         ), 200
@@ -464,7 +458,7 @@ def get_schema_stats(schema_id: str):
                 "data": {
                     "schema_id": schema_id,
                     "statistics": stats,
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 },
             }
         ), 200
@@ -523,9 +517,7 @@ def _get_available_schemas(redis_client: RedisClient) -> list[dict[str, Any]]:
         return []
 
 
-def _get_schema_details(
-    redis_client: RedisClient, schema_id: str
-) -> dict[str, Any] | None:
+def _get_schema_details(redis_client: RedisClient, schema_id: str) -> dict[str, Any] | None:
     """Retrieve detailed information about a specific schema."""
     try:
         # Try to get from Redis cache first
@@ -689,9 +681,7 @@ def _get_transformation_rules(_schema_id: str) -> dict[str, Any]:
     }
 
 
-def _validate_against_schema(
-    data: dict[str, Any], schema: dict[str, Any], options: dict[str, Any]
-) -> dict[str, Any]:
+def _validate_against_schema(data: dict[str, Any], schema: dict[str, Any], options: dict[str, Any]) -> dict[str, Any]:
     """Validate data against a schema."""
     errors = []
     warnings = []
@@ -702,9 +692,7 @@ def _validate_against_schema(
         field_map = {field["name"]: field for field in fields}
 
         # Check required fields
-        required_fields = [
-            field["name"] for field in fields if field.get("required", False)
-        ]
+        required_fields = [field["name"] for field in fields if field.get("required", False)]
         missing_fields = [field for field in required_fields if field not in data]
 
         if missing_fields:
@@ -732,9 +720,7 @@ def _validate_against_schema(
         }
 
 
-def _validate_field(
-    field_name: str, field_value: Any, field_def: dict[str, Any]
-) -> list[str]:
+def _validate_field(field_name: str, field_value: Any, field_def: dict[str, Any]) -> list[str]:
     """Validate a single field against its definition."""
     errors = []
     field_type = field_def.get("type", "string")
@@ -757,9 +743,7 @@ def _validate_field(
         if field_type == "string":
             max_length = field_def.get("max_length")
             if max_length and len(field_value) > max_length:
-                errors.append(
-                    f"Field '{field_name}' must not exceed {max_length} characters"
-                )
+                errors.append(f"Field '{field_name}' must not exceed {max_length} characters")
 
             pattern = field_def.get("pattern")
             if pattern and not _matches_pattern(field_value, pattern):
@@ -781,12 +765,8 @@ def _validate_field(
                 if isinstance(field_value, dict):
                     for nested_name, nested_value in field_value.items():
                         if nested_name in nested_field_map:
-                            nested_errors = _validate_field(
-                                nested_name, nested_value, nested_field_map[nested_name]
-                            )
-                            errors.extend(
-                                [f"{field_name}.{err}" for err in nested_errors]
-                            )
+                            nested_errors = _validate_field(nested_name, nested_value, nested_field_map[nested_name])
+                            errors.extend([f"{field_name}.{err}" for err in nested_errors])
                 else:
                     errors.append(f"Field '{field_name}' must be an object")
 
@@ -797,9 +777,7 @@ def _validate_field(
         return [f"Error validating field '{field_name}': {e!s}"]
 
 
-def _transform_data(
-    data: dict[str, Any], schema: dict[str, Any], options: dict[str, Any]
-) -> dict[str, Any]:
+def _transform_data(data: dict[str, Any], schema: dict[str, Any], options: dict[str, Any]) -> dict[str, Any]:
     """Transform data according to schema rules."""
     try:
         # Get transformation rules
@@ -864,7 +842,6 @@ def _get_schema_statistics(_redis_client: RedisClient, schema_id: str) -> dict[s
                 "2024-01-10": 39,
             },
         }
-
 
     except Exception as e:
         logger.error(f"Error retrieving schema statistics for {schema_id}: {e}")

@@ -5,16 +5,14 @@
 
 from __future__ import annotations
 
-from typing import List
-
-from .reprioritization_engine import ReprioritizationEngine, EvidenceItem
 from .acquisition_rubric import AcquisitionScore
+from .reprioritization_engine import EvidenceItem, ReprioritizationEngine
 
 
 def adjust_acquisition_priorities(
     base_score: AcquisitionScore,
-    evidence: List[EvidenceItem],
-) -> List[str]:
+    evidence: list[EvidenceItem],
+) -> list[str]:
     """Return a reordered list of priority tier identifiers based on evidence.
 
     The function extracts the current priority tier from ``base_score.priority_tier``
@@ -26,6 +24,7 @@ def adjust_acquisition_priorities(
     engine = ReprioritizationEngine(base_priority=base_priority)
     new_order = engine.compute_new_order(evidence)
     return new_order
+
 
 # Example usage (will be exercised in tests)
 if __name__ == "__main__":

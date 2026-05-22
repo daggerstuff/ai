@@ -5,10 +5,10 @@ Implements safety checking for inputs and outputs in model inference.
 
 from __future__ import annotations
 
-import logging
-import re
-import os
 import importlib
+import logging
+import os
+import re
 from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
@@ -40,7 +40,7 @@ def _load_transformers_pipeline() -> Callable[..., Any] | None:
 
     try:
         module = importlib.import_module("transformers")
-        pipeline = getattr(module, "pipeline")
+        pipeline = module.pipeline
         _TRANSFORMERS_PIPELINE = pipeline
         return pipeline
     except Exception:
@@ -49,6 +49,7 @@ def _load_transformers_pipeline() -> Callable[..., Any] | None:
 
 class SafetyCategory(Enum):
     """Categories of safety content to filter"""
+
     CRISIS = "crisis"
     HARM = "harm"
     TOXICITY = "toxicity"
@@ -60,6 +61,7 @@ class SafetyCategory(Enum):
 @dataclass
 class SafetyCheckResult:
     """Result of a safety check"""
+
     is_safe: bool
     category: SafetyCategory
     confidence: float
@@ -70,6 +72,7 @@ class SafetyCheckResult:
 @dataclass
 class SafetyScore:
     """Safety scoring for content"""
+
     overall_score: float  # 0.0 to 1.0, where 1.0 is completely safe
     category_scores: dict[SafetyCategory, float]
     flagged_categories: list[SafetyCategory]
@@ -82,19 +85,43 @@ class SafetyFilter:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
         self.crisis_keywords = [
-            "kill myself", "suicide", "harm myself", "end it all", "not want to live",
-            "overdose", "cut", "hurt myself", "self-harm", "self injury",
-            "hurt others", "kill others", "murder", "violence", "attack"
+            "kill myself",
+            "suicide",
+            "harm myself",
+            "end it all",
+            "not want to live",
+            "overdose",
+            "cut",
+            "hurt myself",
+            "self-harm",
+            "self injury",
+            "hurt others",
+            "kill others",
+            "murder",
+            "violence",
+            "attack",
         ]
         self.toxicity_keywords = [
-            "hate", "angry", "furious", "kill", "destroy", "attack", "harm", "violence",
-            "stupid", "idiot", "worthless", "useless", "pathetic", "disgusting"
+            "hate",
+            "angry",
+            "furious",
+            "kill",
+            "destroy",
+            "attack",
+            "harm",
+            "violence",
+            "stupid",
+            "idiot",
+            "worthless",
+            "useless",
+            "pathetic",
+            "disgusting",
         ]
         self.privacy_patterns = [
             r"\b\d{3}-\d{2}-\d{4}\b",  # SSN pattern
             r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b",  # Email
             r"\b\d{10,15}\b",  # Phone number
-            r"\b\d{1,4} [A-Za-z ]+ [A-Za-z. ]+\b"  # Basic address pattern
+            r"\b\d{1,4} [A-Za-z ]+ [A-Za-z. ]+\b",  # Basic address pattern
         ]
 
         # Initialize safety models if available
@@ -129,11 +156,7 @@ class SafetyFilter:
     def _check_text_safety(self, text: str) -> SafetyScore:
         """Internal method to check text safety"""
         if not text or not isinstance(text, str):
-            return SafetyScore(
-                overall_score=1.0,
-                category_scores={},
-                flagged_categories=[]
-            )
+            return SafetyScore(overall_score=1.0, category_scores={}, flagged_categories=[])
 
         text_lower = text.lower()
         category_scores = {}
@@ -172,7 +195,7 @@ class SafetyFilter:
         return SafetyScore(
             overall_score=max(0.0, min(1.0, overall_score)),
             category_scores=category_scores,
-            flagged_categories=flagged_categories
+            flagged_categories=flagged_categories,
         )
 
     def _check_crisis_content(self, text: str) -> float:
@@ -307,8 +330,7 @@ class SafetyFilter:
                 elif safety_score.flagged_categories:
                     # Apply selective filtering
                     moderated_message["content"] = self._apply_redactions(
-                        message["content"],
-                        safety_score.flagged_categories
+                        message["content"], safety_score.flagged_categories
                     )
                 # Add safety metadata
                 moderated_message["safety_score"] = safety_score.overall_score
@@ -325,21 +347,47 @@ class CrisisDetector:
     def __init__(self):
         self.crisis_patterns = {
             "suicide": [
-                r"suicid", r"kill.*myself", r"end.*life", r"not.*want.*live",
-                r"hang myself", r"no reason to live", r"rather be dead"
+                r"suicid",
+                r"kill.*myself",
+                r"end.*life",
+                r"not.*want.*live",
+                r"hang myself",
+                r"no reason to live",
+                r"rather be dead",
             ],
             "harm_to_others": [
-                r"kill.*[a-z ]*other", r"hurt.*people", r"violence", r"attack",
-                r"harm.*others", r"murder", r"physically.*harm"
+                r"kill.*[a-z ]*other",
+                r"hurt.*people",
+                r"violence",
+                r"attack",
+                r"harm.*others",
+                r"murder",
+                r"physically.*harm",
             ],
             "self_harm": [
-                r"cut.*myself", r"hurt.*myself", r"self.*harm", r"self.*injury",
-                r"harm.*[a-z ]*self", r"overdose", r"self.*destruct"
-            ]
+                r"cut.*myself",
+                r"hurt.*myself",
+                r"self.*harm",
+                r"self.*injury",
+                r"harm.*[a-z ]*self",
+                r"overdose",
+                r"self.*destruct",
+            ],
         }
         self.crisis_keywords = [
-            "crisis", "emergency", "help", "immediate", "urgent", "danger",
-            "unsafe", "harm", "kill", "die", "death", "end it", "can't go on"
+            "crisis",
+            "emergency",
+            "help",
+            "immediate",
+            "urgent",
+            "danger",
+            "unsafe",
+            "harm",
+            "kill",
+            "die",
+            "death",
+            "end it",
+            "can't go on",
         ]
 
     def detect_crisis(self, text: str) -> dict[str, bool | float | list[str]]:
@@ -364,7 +412,7 @@ class CrisisDetector:
             "is_crisis": len(detected_types) > 0,
             "crisis_types": detected_types,
             "confidence": confidence,
-            "keywords_found": keyword_matches
+            "keywords_found": keyword_matches,
         }
 
 
@@ -405,11 +453,10 @@ def test_safety_filter():
         "This is a normal conversation about therapy",
         "I hate everyone and want to hurt people",
         "My phone number is 123-456-7890 and my email is test@example.com",
-        "I love helping people feel better"
+        "I love helping people feel better",
     ]
 
     for _i, text in enumerate(test_cases):
-
         # Check safety
         safety_filter.check_input_safety(text)
 
@@ -418,7 +465,6 @@ def test_safety_filter():
 
         # Filter the response
         safety_filter.filter_response(text)
-
 
 
 if __name__ == "__main__":

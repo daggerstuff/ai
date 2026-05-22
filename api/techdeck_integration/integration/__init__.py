@@ -8,9 +8,4 @@ from .bias_detection import BiasDetectionManager, detect_bias_in_dataset
 from .pipeline_orchestrator import PipelineOrchestrator
 from .redis_client import RedisClient
 
-__all__ = [
-    "BiasDetectionManager",
-    "PipelineOrchestrator",
-    "RedisClient",
-    "detect_bias_in_dataset"
-]
+__all__ = ["BiasDetectionManager", "PipelineOrchestrator", "RedisClient", "detect_bias_in_dataset"]

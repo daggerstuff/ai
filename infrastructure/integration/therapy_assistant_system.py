@@ -14,12 +14,10 @@ import asyncio
 import logging
 import re
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -197,9 +195,7 @@ class SessionAnalyzer:
             ],
         }
 
-    def analyze_session_content(
-        self, transcript_segment: str, session_context: dict
-    ) -> SessionAnalysis:
+    def analyze_session_content(self, transcript_segment: str, session_context: dict) -> SessionAnalysis:
         """Analyze a segment of session transcript"""
         segment_lower = transcript_segment.lower()
 
@@ -235,7 +231,7 @@ class SessionAnalyzer:
             progress_indicators=progress_indicators,
             concerns=concerns,
             suggested_interventions=suggested_interventions,
-            analysis_timestamp=datetime.now(timezone.utc),
+            analysis_timestamp=datetime.now(UTC),
         )
 
     def _detect_session_phase(self, text: str, context: dict) -> SessionPhase:
@@ -257,9 +253,7 @@ class SessionAnalyzer:
 
         # Return phase with highest score, default to exploration
         return (
-            max(phase_scores.items(), key=lambda x: x[1])[0]
-            if any(phase_scores.values())
-            else SessionPhase.EXPLORATION
+            max(phase_scores.items(), key=lambda x: x[1])[0] if any(phase_scores.values()) else SessionPhase.EXPLORATION
         )
 
     def _identify_themes(self, text: str) -> list[str]:
@@ -349,9 +343,7 @@ class SessionAnalyzer:
 
         for pattern in crisis_patterns:
             if re.search(pattern, text):
-                concerns.append(
-                    "CRISIS ALERT: Suicide risk detected - immediate assessment needed"
-                )
+                concerns.append("CRISIS ALERT: Suicide risk detected - immediate assessment needed")
                 break
 
         # Substance use concerns
@@ -376,9 +368,7 @@ class SessionAnalyzer:
                 {
                     "intervention": InterventionType.GROUNDING,
                     "description": "Grounding technique to manage anxiety",
-                    "timing": "immediate"
-                    if emotions.get("fear", 0) > 0.6
-                    else "later_in_session",
+                    "timing": "immediate" if emotions.get("fear", 0) > 0.6 else "later_in_session",
                 }
             )
 
@@ -478,7 +468,7 @@ class TherapyAssistantEngine:
         # Get or create session context
         if session_id not in self.active_sessions:
             self.active_sessions[session_id] = {
-                "start_time": datetime.now(timezone.utc),
+                "start_time": datetime.now(UTC),
                 "transcript_history": [],
                 "interventions_used": [],
                 "session_notes": [],
@@ -488,28 +478,20 @@ class TherapyAssistantEngine:
         session_context["transcript_history"].append(transcript_segment)
 
         # Calculate session duration
-        duration = (datetime.now(timezone.utc) - session_context["start_time"]).total_seconds() / 60
+        duration = (datetime.now(UTC) - session_context["start_time"]).total_seconds() / 60
         session_context["session_duration_minutes"] = duration
 
         # Analyze current segment
-        analysis = self.analyzer.analyze_session_content(
-            transcript_segment, session_context
-        )
+        analysis = self.analyzer.analyze_session_content(transcript_segment, session_context)
 
         # Generate AI-powered insights if available
-        ai_insights = await self._generate_ai_insights(
-            transcript_segment, analysis, session_context
-        )
+        ai_insights = await self._generate_ai_insights(transcript_segment, analysis, session_context)
 
         # Create intervention recommendations
-        intervention_recommendations = self._create_intervention_recommendations(
-            analysis
-        )
+        intervention_recommendations = self._create_intervention_recommendations(analysis)
 
         # Generate documentation assistance
-        documentation_assistance = self._generate_documentation_assistance(
-            analysis, session_context
-        )
+        documentation_assistance = self._generate_documentation_assistance(analysis, session_context)
 
         # Check for urgent concerns
         urgent_alerts = self._check_urgent_concerns(analysis)
@@ -533,18 +515,14 @@ class TherapyAssistantEngine:
             },
         }
 
-    async def _generate_ai_insights(
-        self, transcript: str, analysis: SessionAnalysis, _context: dict
-    ) -> dict:
+    async def _generate_ai_insights(self, transcript: str, analysis: SessionAnalysis, _context: dict) -> dict:
         """Generate AI-powered therapeutic insights"""
         if self.therapeutic_ai:
             # In production, this would use the trained H100 model
             # Request insights using therapeutic + educational experts
             ai_response = {
                 "therapeutic_observations": "AI-generated observations about client patterns and progress",
-                "suggested_questions": [
-                    "AI-suggested therapeutic questions based on content"
-                ],
+                "suggested_questions": ["AI-suggested therapeutic questions based on content"],
                 "client_strengths": ["AI-identified client strengths and resources"],
                 "treatment_recommendations": "AI recommendations for treatment approach adjustments",
             }
@@ -554,16 +532,12 @@ class TherapyAssistantEngine:
                 "therapeutic_observations": f"Client presenting with {', '.join(analysis.primary_themes)} themes",
                 "suggested_questions": self._generate_suggested_questions(analysis),
                 "client_strengths": self._identify_client_strengths(transcript),
-                "treatment_recommendations": self._generate_treatment_recommendations(
-                    analysis
-                ),
+                "treatment_recommendations": self._generate_treatment_recommendations(analysis),
             }
 
         return ai_response
 
-    def _create_intervention_recommendations(
-        self, analysis: SessionAnalysis
-    ) -> list[dict]:
+    def _create_intervention_recommendations(self, analysis: SessionAnalysis) -> list[dict]:
         """Create detailed intervention recommendations"""
         recommendations = []
 
@@ -585,23 +559,17 @@ class TherapyAssistantEngine:
 
         return recommendations
 
-    def _generate_documentation_assistance(
-        self, analysis: SessionAnalysis, _context: dict
-    ) -> dict:
+    def _generate_documentation_assistance(self, analysis: SessionAnalysis, _context: dict) -> dict:
         """Generate session documentation assistance"""
         return {
             "session_summary_draft": f"Client presented with {', '.join(analysis.primary_themes)} themes. "
             f"Primary emotions: {', '.join(analysis.emotional_state.keys())}. "
             f"Therapeutic alliance: {analysis.therapeutic_alliance:.1f}/1.0.",
             "progress_notes": analysis.progress_indicators,
-            "interventions_suggested": [
-                s.get("description", "") for s in analysis.suggested_interventions
-            ],
+            "interventions_suggested": [s.get("description", "") for s in analysis.suggested_interventions],
             "next_session_focus": self._suggest_next_session_focus(analysis),
             "risk_assessment": {
-                "suicide_risk": "low"
-                if not any("CRISIS" in c for c in analysis.concerns)
-                else "elevated",
+                "suicide_risk": "low" if not any("CRISIS" in c for c in analysis.concerns) else "elevated",
                 "substance_use": "assess"
                 if any("substance" in c.lower() for c in analysis.concerns)
                 else "none_reported",
@@ -641,14 +609,10 @@ class TherapyAssistantEngine:
 
         if "anxiety" in analysis.primary_themes:
             questions.append("What does the anxiety feel like in your body right now?")
-            questions.append(
-                "When you notice the anxiety starting, what thoughts go through your mind?"
-            )
+            questions.append("When you notice the anxiety starting, what thoughts go through your mind?")
 
         if "depression" in analysis.primary_themes:
-            questions.append(
-                "What has been giving you any sense of meaning or purpose lately?"
-            )
+            questions.append("What has been giving you any sense of meaning or purpose lately?")
             questions.append("How has your energy and motivation been this week?")
 
         if analysis.progress_indicators:
@@ -682,19 +646,11 @@ class TherapyAssistantEngine:
         if "anxiety" in analysis.primary_themes:
             recommendations.append("Consider CBT techniques for anxiety management")
         if "trauma" in analysis.primary_themes:
-            recommendations.append(
-                "Trauma-informed approach with grounding and safety focus"
-            )
+            recommendations.append("Trauma-informed approach with grounding and safety focus")
         if analysis.therapeutic_alliance < 0.6:
-            recommendations.append(
-                "Focus on strengthening therapeutic alliance before interventions"
-            )
+            recommendations.append("Focus on strengthening therapeutic alliance before interventions")
 
-        return (
-            "; ".join(recommendations)
-            if recommendations
-            else "Continue current therapeutic approach"
-        )
+        return "; ".join(recommendations) if recommendations else "Continue current therapeutic approach"
 
     def _suggest_next_session_focus(self, analysis: SessionAnalysis) -> list[str]:
         """Suggest focus areas for next session"""
@@ -705,9 +661,7 @@ class TherapyAssistantEngine:
         if "insight" in analysis.progress_indicators:
             focus_areas.append("Build on insights gained in this session")
         if analysis.therapeutic_alliance > 0.8 and analysis.primary_themes:
-            focus_areas.append(
-                f"Deeper exploration of {analysis.primary_themes[0]} theme"
-            )
+            focus_areas.append(f"Deeper exploration of {analysis.primary_themes[0]} theme")
 
         return focus_areas
 
@@ -739,9 +693,7 @@ def main():
 
             logger.info(f"Phase: {assistance['session_analysis']['current_phase']}")
             logger.info(f"Themes: {assistance['session_analysis']['primary_themes']}")
-            logger.info(
-                f"Emotions: {assistance['session_analysis']['emotional_state']}"
-            )
+            logger.info(f"Emotions: {assistance['session_analysis']['emotional_state']}")
 
             if assistance["intervention_recommendations"]:
                 logger.info(
@@ -753,9 +705,7 @@ def main():
 
     asyncio.run(run_demo())
 
-    logger.info(
-        "\n🎯 Therapy Assistant System ready for integration with therapeutic AI!"
-    )
+    logger.info("\n🎯 Therapy Assistant System ready for integration with therapeutic AI!")
 
 
 if __name__ == "__main__":

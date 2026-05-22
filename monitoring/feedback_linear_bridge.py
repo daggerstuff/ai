@@ -124,9 +124,7 @@ def execute_feedback_linear_bridge(
     # Step 4: Write artifact and dispatch.
     artifact_dir = Path(artifact_output_dir)
     artifact_dir.mkdir(parents=True, exist_ok=True)
-    artifact_path = write_linear_backlog_artifact(
-        linear_payload, artifact_dir / "feedback_linear_payload.json"
-    )
+    artifact_path = write_linear_backlog_artifact(linear_payload, artifact_dir / "feedback_linear_payload.json")
 
     if dispatcher is None:
         dispatcher = LinearBacklogDispatcher(
@@ -147,9 +145,7 @@ def execute_feedback_linear_bridge(
 
 def _main() -> None:
     """CLI entry point for ad-hoc execution."""
-    parser = argparse.ArgumentParser(
-        description="Execute feedback → Linear bridge pipeline"
-    )
+    parser = argparse.ArgumentParser(description="Execute feedback → Linear bridge pipeline")
     parser.add_argument(
         "--report",
         default="ai/lab/evals/feedback_output/feedback_report.json",

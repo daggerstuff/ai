@@ -3,6 +3,7 @@ MCP Resources for Journal Dataset Research System.
 
 This module provides resource implementations for research data access.
 """
+
 import fnmatch
 import logging
 from typing import Dict, List, Optional
@@ -10,137 +11,133 @@ from typing import Dict, List, Optional
 from ai.sourcing.journal.mcp.resources.base import MCPResource
 from ai.sourcing.journal.mcp.resources.metrics import SessionMetricsResource
 from ai.sourcing.journal.mcp.resources.progress import (
-  ProgressHistoryResource,
-  ProgressMetricsResource,
+    ProgressHistoryResource,
+    ProgressMetricsResource,
 )
 from ai.sourcing.journal.mcp.resources.sessions import SessionStateResource
 
 logger = logging.getLogger(__name__)
 
 __all__ = [
-  "MCPResource",
-  "ProgressHistoryResource",
-  "ProgressMetricsResource",
-  "ResourceRegistry",
-  "SessionMetricsResource",
-  "SessionStateResource",
+    "MCPResource",
+    "ProgressHistoryResource",
+    "ProgressMetricsResource",
+    "ResourceRegistry",
+    "SessionMetricsResource",
+    "SessionStateResource",
 ]
 
 
 class ResourceRegistry:
-  """Registry for MCP resources."""
+    """Registry for MCP resources."""
 
-  def __init__(self) -> None:
-    """Initialize resource registry."""
-    self._resources: dict[str, MCPResource] = {}
+    def __init__(self) -> None:
+        """Initialize resource registry."""
+        self._resources: dict[str, MCPResource] = {}
 
-  def register(self, resource: MCPResource) -> None:
-    """
-    Register an MCP resource.
+    def register(self, resource: MCPResource) -> None:
+        """
+        Register an MCP resource.
 
-    Args:
-      resource: Resource to register
+        Args:
+          resource: Resource to register
 
-    Raises:
-      ValueError: If resource with same URI already exists
-    """
-    if resource.uri in self._resources:
-      raise ValueError(f"Resource with URI '{resource.uri}' already registered")
+        Raises:
+          ValueError: If resource with same URI already exists
+        """
+        if resource.uri in self._resources:
+            raise ValueError(f"Resource with URI '{resource.uri}' already registered")
 
-    self._resources[resource.uri] = resource
-    logger.info(f"Registered resource: {resource.uri}")
+        self._resources[resource.uri] = resource
+        logger.info(f"Registered resource: {resource.uri}")
 
-  def unregister(self, uri: str) -> None:
-    """
-    Unregister an MCP resource.
+    def unregister(self, uri: str) -> None:
+        """
+        Unregister an MCP resource.
 
-    Args:
-      uri: Resource URI to unregister
-    """
-    if uri in self._resources:
-      del self._resources[uri]
-      logger.info(f"Unregistered resource: {uri}")
+        Args:
+          uri: Resource URI to unregister
+        """
+        if uri in self._resources:
+            del self._resources[uri]
+            logger.info(f"Unregistered resource: {uri}")
 
-  def get(self, uri: str) -> MCPResource | None:
-    """
-    Get resource by URI.
+    def get(self, uri: str) -> MCPResource | None:
+        """
+        Get resource by URI.
 
-    Args:
-      uri: Resource URI
+        Args:
+          uri: Resource URI
 
-    Returns:
-      Resource instance or None if not found
-    """
-    return self._resources.get(uri)
+        Returns:
+          Resource instance or None if not found
+        """
+        return self._resources.get(uri)
 
-  def list_resources(self) -> list[MCPResource]:
-    """
-    List all registered resources.
+    def list_resources(self) -> list[MCPResource]:
+        """
+        List all registered resources.
 
-    Returns:
-      List of registered resources
-    """
-    return list(self._resources.values())
+        Returns:
+          List of registered resources
+        """
+        return list(self._resources.values())
 
-  def list_resource_uris(self) -> list[str]:
-    """
-    List all registered resource URIs.
+    def list_resource_uris(self) -> list[str]:
+        """
+        List all registered resource URIs.
 
-    Returns:
-      List of resource URIs
-    """
-    return list(self._resources.keys())
+        Returns:
+          List of resource URIs
+        """
+        return list(self._resources.keys())
 
-  def get_resource_schemas(self) -> list[dict[str, any]]:
-    """
-    Get resource schemas for all registered resources.
+    def get_resource_schemas(self) -> list[dict[str, any]]:
+        """
+        Get resource schemas for all registered resources.
 
-    Returns:
-      List of resource schemas in MCP format
-    """
-    return [resource.resource_schema for resource in self._resources.values()]
+        Returns:
+          List of resource schemas in MCP format
+        """
+        return [resource.resource_schema for resource in self._resources.values()]
 
-  def has_resource(self, uri: str) -> bool:
-    """
-    Check if resource is registered.
+    def has_resource(self, uri: str) -> bool:
+        """
+        Check if resource is registered.
 
-    Args:
-      uri: Resource URI
+        Args:
+          uri: Resource URI
 
-    Returns:
-      True if resource is registered, False otherwise
-    """
-    return uri in self._resources
+        Returns:
+          True if resource is registered, False otherwise
+        """
+        return uri in self._resources
 
-  def find_by_pattern(self, pattern: str) -> list[MCPResource]:
-    """
-    Find resources matching URI pattern.
+    def find_by_pattern(self, pattern: str) -> list[MCPResource]:
+        """
+        Find resources matching URI pattern.
 
-    Args:
-      pattern: URI pattern to match (supports wildcards)
+        Args:
+          pattern: URI pattern to match (supports wildcards)
 
-    Returns:
-      List of matching resources
-    """
-    return [
-      resource
-      for uri, resource in self._resources.items()
-      if fnmatch.fnmatch(uri, pattern)
-    ]
+        Returns:
+          List of matching resources
+        """
+        return [resource for uri, resource in self._resources.items() if fnmatch.fnmatch(uri, pattern)]
 
-  def clear(self) -> None:
-    """Clear all registered resources."""
-    self._resources.clear()
-    logger.info("Cleared all resources")
+    def clear(self) -> None:
+        """Clear all registered resources."""
+        self._resources.clear()
+        logger.info("Cleared all resources")
 
-  def __len__(self) -> int:
-    """Get number of registered resources."""
-    return len(self._resources)
+    def __len__(self) -> int:
+        """Get number of registered resources."""
+        return len(self._resources)
 
-  def __contains__(self, uri: str) -> bool:
-    """Check if resource is registered."""
-    return uri in self._resources
+    def __contains__(self, uri: str) -> bool:
+        """Check if resource is registered."""
+        return uri in self._resources
 
-  def __repr__(self) -> str:
-    """String representation of registry."""
-    return f"<ResourceRegistry resources={len(self._resources)}>"
+    def __repr__(self) -> str:
+        """String representation of registry."""
+        return f"<ResourceRegistry resources={len(self._resources)}>"

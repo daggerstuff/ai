@@ -7,7 +7,7 @@ for all test modules.
 
 import json
 import tempfile
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from unittest.mock import Mock
 from uuid import uuid4
@@ -32,6 +32,7 @@ from ai.sourcing.journal.orchestrator.types import OrchestratorConfig
 # Dataset Source Fixtures
 # ============================================================================
 
+
 @pytest.fixture
 def sample_dataset_source() -> DatasetSource:
     """Create a sample dataset source."""
@@ -47,7 +48,7 @@ def sample_dataset_source() -> DatasetSource:
         keywords=["therapy", "counseling", "mental health", "transcripts"],
         open_access=True,
         data_availability="available",
-        discovery_date=datetime.now(timezone.utc),
+        discovery_date=datetime.now(UTC),
         discovery_method="pubmed_search",
     )
 
@@ -67,7 +68,7 @@ def high_quality_source() -> DatasetSource:
         keywords=["cbt", "cognitive behavioral therapy", "transcripts", "evidence-based"],
         open_access=True,
         data_availability="available",
-        discovery_date=datetime.now(timezone.utc),
+        discovery_date=datetime.now(UTC),
         discovery_method="repository_api",
     )
 
@@ -87,7 +88,7 @@ def low_quality_source() -> DatasetSource:
         keywords=[],
         open_access=False,
         data_availability="unknown",
-        discovery_date=datetime.now(timezone.utc),
+        discovery_date=datetime.now(UTC),
         discovery_method="citation",
     )
 
@@ -101,6 +102,7 @@ def multiple_sources(sample_dataset_source, high_quality_source, low_quality_sou
 # ============================================================================
 # Evaluation Fixtures
 # ============================================================================
+
 
 @pytest.fixture
 def sample_evaluation(sample_dataset_source) -> DatasetEvaluation:
@@ -117,7 +119,7 @@ def sample_evaluation(sample_dataset_source) -> DatasetEvaluation:
         ethical_notes="Open access and fully anonymized",
         overall_score=8.0,
         priority_tier="high",
-        evaluation_date=datetime.now(timezone.utc),
+        evaluation_date=datetime.now(UTC),
         evaluator="system",
         competitive_advantages=["Contains therapy transcripts", "Evidence-based"],
         compliance_checked=True,
@@ -140,7 +142,7 @@ def high_score_evaluation(high_quality_source) -> DatasetEvaluation:
         ethical_accessibility=9,
         overall_score=9.0,
         priority_tier="high",
-        evaluation_date=datetime.now(timezone.utc),
+        evaluation_date=datetime.now(UTC),
         evaluator="system",
     )
 
@@ -156,7 +158,7 @@ def low_score_evaluation(low_quality_source) -> DatasetEvaluation:
         ethical_accessibility=5,
         overall_score=3.5,
         priority_tier="low",
-        evaluation_date=datetime.now(timezone.utc),
+        evaluation_date=datetime.now(UTC),
         evaluator="system",
     )
 
@@ -165,18 +167,19 @@ def low_score_evaluation(low_quality_source) -> DatasetEvaluation:
 # Access Request Fixtures
 # ============================================================================
 
+
 @pytest.fixture
 def sample_access_request(sample_dataset_source) -> AccessRequest:
     """Create a sample access request."""
     return AccessRequest(
         source_id=sample_dataset_source.source_id,
         access_method="direct",
-        request_date=datetime.now(timezone.utc),
+        request_date=datetime.now(UTC),
         status="pending",
         access_url=sample_dataset_source.url,
         credentials_required=False,
         institutional_affiliation_required=False,
-        estimated_access_date=datetime.now(timezone.utc) + timedelta(hours=1),
+        estimated_access_date=datetime.now(UTC) + timedelta(hours=1),
         notes="Direct download available",
     )
 
@@ -187,7 +190,7 @@ def approved_access_request(sample_dataset_source) -> AccessRequest:
     return AccessRequest(
         source_id=sample_dataset_source.source_id,
         access_method="direct",
-        request_date=datetime.now(timezone.utc) - timedelta(days=1),
+        request_date=datetime.now(UTC) - timedelta(days=1),
         status="approved",
         access_url=sample_dataset_source.url,
     )
@@ -196,6 +199,7 @@ def approved_access_request(sample_dataset_source) -> AccessRequest:
 # ============================================================================
 # Acquired Dataset Fixtures
 # ============================================================================
+
 
 @pytest.fixture
 def sample_acquired_dataset(sample_dataset_source, tmp_path) -> AcquiredDataset:
@@ -206,7 +210,7 @@ def sample_acquired_dataset(sample_dataset_source, tmp_path) -> AcquiredDataset:
 
     return AcquiredDataset(
         source_id=sample_dataset_source.source_id,
-        acquisition_date=datetime.now(timezone.utc),
+        acquisition_date=datetime.now(UTC),
         storage_path=str(test_file),
         file_format="zip",
         file_size_mb=0.001,
@@ -225,6 +229,7 @@ def sample_acquired_dataset(sample_dataset_source, tmp_path) -> AcquiredDataset:
 # ============================================================================
 # Integration Plan Fixtures
 # ============================================================================
+
 
 @pytest.fixture
 def sample_integration_plan(sample_dataset_source) -> IntegrationPlan:
@@ -248,7 +253,7 @@ def sample_integration_plan(sample_dataset_source) -> IntegrationPlan:
         estimated_effort_hours=4,
         dependencies=[],
         integration_priority=1,
-        created_date=datetime.now(timezone.utc),
+        created_date=datetime.now(UTC),
     )
 
 
@@ -256,12 +261,13 @@ def sample_integration_plan(sample_dataset_source) -> IntegrationPlan:
 # Research Session Fixtures
 # ============================================================================
 
+
 @pytest.fixture
 def sample_research_session() -> ResearchSession:
     """Create a sample research session."""
     return ResearchSession(
         session_id=str(uuid4()),
-        start_date=datetime.now(timezone.utc),
+        start_date=datetime.now(UTC),
         target_sources=["pubmed", "zenodo", "dryad"],
         search_keywords={
             "therapy": ["cbt", "dbt", "act"],
@@ -281,16 +287,19 @@ def sample_research_session() -> ResearchSession:
 # Test Dataset Fixtures
 # ============================================================================
 
+
 @pytest.fixture
 def sample_csv_dataset(tmp_path) -> Path:
     """Create a sample CSV dataset file."""
     csv_path = tmp_path / "test_dataset.csv"
-    df = pd.DataFrame({
-        "id": [f"id_{i}" for i in range(10)],
-        "message": [f"Message {i}" for i in range(10)],
-        "role": ["user", "assistant"] * 5,
-        "timestamp": [datetime.now(timezone.utc).isoformat()] * 10,
-    })
+    df = pd.DataFrame(
+        {
+            "id": [f"id_{i}" for i in range(10)],
+            "message": [f"Message {i}" for i in range(10)],
+            "role": ["user", "assistant"] * 5,
+            "timestamp": [datetime.now(UTC).isoformat()] * 10,
+        }
+    )
     df.to_csv(csv_path, index=False)
     return csv_path
 
@@ -343,6 +352,7 @@ def sample_json_dataset(tmp_path) -> Path:
 # ============================================================================
 # Mock API Responses
 # ============================================================================
+
 
 @pytest.fixture
 def mock_pubmed_response():
@@ -435,6 +445,7 @@ def mock_clinical_trials_response():
 # Mock Services
 # ============================================================================
 
+
 @pytest.fixture
 def mock_discovery_service():
     """Create a mock discovery service."""
@@ -447,15 +458,17 @@ def mock_discovery_service():
 def mock_evaluation_engine():
     """Create a mock evaluation engine."""
     engine = Mock()
-    engine.evaluate_dataset = Mock(return_value=DatasetEvaluation(
-        source_id="test",
-        therapeutic_relevance=8,
-        data_structure_quality=7,
-        training_integration=8,
-        ethical_accessibility=9,
-        overall_score=8.0,
-        priority_tier="high",
-    ))
+    engine.evaluate_dataset = Mock(
+        return_value=DatasetEvaluation(
+            source_id="test",
+            therapeutic_relevance=8,
+            data_structure_quality=7,
+            training_integration=8,
+            ethical_accessibility=9,
+            overall_score=8.0,
+            priority_tier="high",
+        )
+    )
     return engine
 
 
@@ -463,15 +476,19 @@ def mock_evaluation_engine():
 def mock_acquisition_manager():
     """Create a mock acquisition manager."""
     manager = Mock()
-    manager.submit_access_request = Mock(return_value=AccessRequest(
-        source_id="test",
-        access_method="direct",
-        status="pending",
-    ))
-    manager.download_dataset = Mock(return_value=AcquiredDataset(
-        source_id="test",
-        storage_path="/tmp/test.zip",
-    ))
+    manager.submit_access_request = Mock(
+        return_value=AccessRequest(
+            source_id="test",
+            access_method="direct",
+            status="pending",
+        )
+    )
+    manager.download_dataset = Mock(
+        return_value=AcquiredDataset(
+            source_id="test",
+            storage_path="/tmp/test.zip",
+        )
+    )
     return manager
 
 
@@ -479,11 +496,13 @@ def mock_acquisition_manager():
 def mock_integration_engine():
     """Create a mock integration engine."""
     engine = Mock()
-    engine.create_integration_plan = Mock(return_value=IntegrationPlan(
-        source_id="test",
-        dataset_format="csv",
-        complexity="medium",
-    ))
+    engine.create_integration_plan = Mock(
+        return_value=IntegrationPlan(
+            source_id="test",
+            dataset_format="csv",
+            complexity="medium",
+        )
+    )
     return engine
 
 
@@ -515,6 +534,7 @@ def orchestrator(
 # ============================================================================
 # Temporary Directory Fixtures
 # ============================================================================
+
 
 @pytest.fixture
 def temp_dir():
@@ -551,6 +571,7 @@ def temp_storage_dir(temp_dir):
 # Configuration Fixtures
 # ============================================================================
 
+
 @pytest.fixture
 def test_config(temp_dir):
     """Create a test configuration dictionary."""
@@ -562,4 +583,3 @@ def test_config(temp_dir):
         "max_retries": 3,
         "retry_delay_seconds": 1.0,
     }
-

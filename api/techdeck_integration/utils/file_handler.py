@@ -4,12 +4,13 @@ File handling utilities for TechDeck-Python Pipeline Integration.
 This module provides secure file handling, storage management, and file processing
 capabilities with HIPAA++ compliance and encryption support.
 """
+
 import hashlib
 import logging
 import mimetypes
 import os
 import shutil
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from werkzeug.datastructures import FileStorage
@@ -72,9 +73,7 @@ class FileHandler:
             self._validate_uploaded_file(file_data)
 
             # Generate secure storage path
-            storage_path = self._generate_storage_path(
-                file_id, user_id, file_data.filename
-            )
+            storage_path = self._generate_storage_path(file_id, user_id, file_data.filename)
 
             # Save file
             file_data.save(storage_path)
@@ -174,7 +173,7 @@ class FileHandler:
 
             # Generate archive path
             filename = os.path.basename(storage_path)
-            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
             archive_filename = f"{timestamp}_{filename}"
             archive_path = os.path.join(self.storage_path, "archived", archive_filename)
 
@@ -204,7 +203,7 @@ class FileHandler:
             if not os.path.exists(temp_dir):
                 return 0
 
-            current_time = datetime.now(timezone.utc)
+            current_time = datetime.now(UTC)
             cleaned_count = 0
 
             for filename in os.listdir(temp_dir):
@@ -253,7 +252,7 @@ class FileHandler:
                 "total_size_human": self._format_file_size(total_size),
                 "file_counts": file_counts,
                 "storage_path": self.storage_path,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
         except Exception as e:
@@ -288,8 +287,7 @@ class FileHandler:
 
             if file_extension not in allowed_extensions:
                 raise ValidationError(
-                    f"File type '{file_extension}' not supported. "
-                    f"Allowed types: {allowed_extensions}"
+                    f"File type '{file_extension}' not supported. Allowed types: {allowed_extensions}"
                 )
 
             # Validate MIME type
@@ -301,10 +299,7 @@ class FileHandler:
                 "application/parquet",
             }
 
-            if (
-                file_data.content_type
-                and file_data.content_type not in allowed_mime_types
-            ):
+            if file_data.content_type and file_data.content_type not in allowed_mime_types:
                 self.logger.warning(f"Unusual MIME type: {file_data.content_type}")
 
         except ValidationError:
@@ -313,9 +308,7 @@ class FileHandler:
             self.logger.error(f"Error validating uploaded file: {e}")
             raise ValidationError(f"File validation failed: {e!s}") from e
 
-    def _generate_storage_path(
-        self, file_id: str, user_id: str, original_filename: str
-    ) -> str:
+    def _generate_storage_path(self, file_id: str, user_id: str, original_filename: str) -> str:
         """Generate secure storage path for file."""
         try:
             # Sanitize inputs
@@ -332,20 +325,17 @@ class FileHandler:
                 subdir = "temp"
 
             # Generate filename with user ID and timestamp for uniqueness
-            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
             safe_filename = f"{user_id}_{file_id}_{timestamp}{file_extension}"
 
             # Create full path
             return os.path.join(self.storage_path, subdir, safe_filename)
 
-
         except Exception as e:
             self.logger.error(f"Error generating storage path: {e}")
             raise StorageError(f"Failed to generate storage path: {e!s}") from e
 
-    def _verify_file_integrity(
-        self, storage_path: str, original_file: FileStorage
-    ) -> bool:
+    def _verify_file_integrity(self, storage_path: str, original_file: FileStorage) -> bool:
         """Verify file integrity after storage."""
         try:
             # Check file exists and has expected size
@@ -358,9 +348,7 @@ class FileHandler:
             original_file.stream.seek(0)  # Reset
 
             if stored_size != original_size:
-                self.logger.error(
-                    f"Size mismatch: stored={stored_size}, original={original_size}"
-                )
+                self.logger.error(f"Size mismatch: stored={stored_size}, original={original_size}")
                 return False
 
             # Optional: Verify file hash
@@ -405,7 +393,6 @@ def calculate_file_hash(file_path: str, algorithm: str = "sha256") -> str:
 def get_file_type_info(file_path: str) -> dict[str, Any]:
     """Get file type information."""
     try:
-
         filename = os.path.basename(file_path)
         file_extension = os.path.splitext(filename)[1].lower()
         mime_type, _ = mimetypes.guess_type(file_path)
@@ -414,9 +401,7 @@ def get_file_type_info(file_path: str) -> dict[str, Any]:
             "filename": filename,
             "extension": file_extension,
             "mime_type": mime_type or "application/octet-stream",
-            "size_bytes": os.path.getsize(file_path)
-            if os.path.exists(file_path)
-            else 0,
+            "size_bytes": os.path.getsize(file_path) if os.path.exists(file_path) else 0,
         }
 
     except Exception as e:

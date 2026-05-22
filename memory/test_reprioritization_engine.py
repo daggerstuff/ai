@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from ai.memory.reprioritization_engine import ReprioritizationEngine, EvidenceItem
+from ai.memory.reprioritization_engine import EvidenceItem, ReprioritizationEngine
 
 
 def test_reprioritization_engine_basic():
@@ -25,6 +25,7 @@ def test_evidence_item_has_timestamp():
     item = EvidenceItem(source_id="s1", evidence_type="gap", score=1.0, details={})
     assert item.timestamp is not None
     from datetime import datetime
+
     datetime.fromisoformat(item.timestamp)
 
 

@@ -26,10 +26,8 @@ def test_with_full_text():
 
     result = agent.process_segment(test_segment)
 
-
     if result["smart_analysis"].get("question_embedded"):
         pass
-
 
 
 if __name__ == "__main__":

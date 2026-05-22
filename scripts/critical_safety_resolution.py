@@ -14,7 +14,7 @@ import json
 import logging
 import time
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -22,16 +22,20 @@ from typing import Any
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class SafetyIssueStatus(Enum):
     """Safety issue resolution status"""
+
     RESOLVED = "resolved"
     IN_PROGRESS = "in_progress"
     PENDING = "pending"
     VERIFIED = "verified"
 
+
 @dataclass
 class CriticalSafetyIssue:
     """Critical safety issue record"""
+
     issue_id: str
     title: str
     description: str
@@ -41,6 +45,7 @@ class CriticalSafetyIssue:
     resolution_description: str = ""
     verification_date: datetime | None = None
     verification_notes: str = ""
+
 
 class CriticalSafetyResolutionSystem:
     """
@@ -69,56 +74,56 @@ class CriticalSafetyResolutionSystem:
                 title="Crisis Detection Pattern Coverage",
                 description="Ensure comprehensive coverage of all crisis detection patterns",
                 severity="critical",
-                identified_date=datetime.now(timezone.utc),
+                identified_date=datetime.now(UTC),
                 resolution_status=SafetyIssueStatus.RESOLVED,
                 resolution_description="Enhanced crisis detection patterns implemented with 100% accuracy",
-                verification_date=datetime.now(timezone.utc),
-                verification_notes="Verified through comprehensive testing - 100% accuracy achieved"
+                verification_date=datetime.now(UTC),
+                verification_notes="Verified through comprehensive testing - 100% accuracy achieved",
             ),
             CriticalSafetyIssue(
                 issue_id="SAFETY-002",
                 title="Incident Response Protocol Validation",
                 description="Validate all incident response protocols are functioning correctly",
                 severity="critical",
-                identified_date=datetime.now(timezone.utc),
+                identified_date=datetime.now(UTC),
                 resolution_status=SafetyIssueStatus.RESOLVED,
                 resolution_description="Incident response protocols tested and validated",
-                verification_date=datetime.now(timezone.utc),
-                verification_notes="All response protocols tested successfully"
+                verification_date=datetime.now(UTC),
+                verification_notes="All response protocols tested successfully",
             ),
             CriticalSafetyIssue(
                 issue_id="SAFETY-003",
                 title="Safety Monitoring System Integration",
                 description="Ensure safety monitoring system is fully integrated and operational",
                 severity="critical",
-                identified_date=datetime.now(timezone.utc),
+                identified_date=datetime.now(UTC),
                 resolution_status=SafetyIssueStatus.RESOLVED,
                 resolution_description="Safety monitoring system fully integrated with real-time capabilities",
-                verification_date=datetime.now(timezone.utc),
-                verification_notes="Real-time monitoring operational with automated alerting"
+                verification_date=datetime.now(UTC),
+                verification_notes="Real-time monitoring operational with automated alerting",
             ),
             CriticalSafetyIssue(
                 issue_id="SAFETY-004",
                 title="Crisis Intervention Resource Integration",
                 description="Integrate crisis intervention resources and hotlines",
                 severity="high",
-                identified_date=datetime.now(timezone.utc),
+                identified_date=datetime.now(UTC),
                 resolution_status=SafetyIssueStatus.RESOLVED,
                 resolution_description="Crisis intervention resources integrated with automated referral system",
-                verification_date=datetime.now(timezone.utc),
-                verification_notes="Crisis resources validated and tested"
+                verification_date=datetime.now(UTC),
+                verification_notes="Crisis resources validated and tested",
             ),
             CriticalSafetyIssue(
                 issue_id="SAFETY-005",
                 title="Safety Documentation and Procedures",
                 description="Complete all safety documentation and operational procedures",
                 severity="medium",
-                identified_date=datetime.now(timezone.utc),
+                identified_date=datetime.now(UTC),
                 resolution_status=SafetyIssueStatus.RESOLVED,
                 resolution_description="Comprehensive safety documentation completed",
-                verification_date=datetime.now(timezone.utc),
-                verification_notes="All safety procedures documented and reviewed"
-            )
+                verification_date=datetime.now(UTC),
+                verification_notes="All safety procedures documented and reviewed",
+            ),
         ]
 
         self.critical_issues = issues
@@ -136,16 +141,12 @@ class CriticalSafetyResolutionSystem:
         final_validation = await self._perform_final_safety_validation()
 
         # Generate safety clearance
-        safety_clearance = self._generate_production_safety_clearance(
-            resolution_results, final_validation
-        )
+        safety_clearance = self._generate_production_safety_clearance(resolution_results, final_validation)
 
         total_time = time.time() - start_time
 
         # Generate comprehensive report
-        report = self._generate_resolution_report(
-            total_time, resolution_results, final_validation, safety_clearance
-        )
+        report = self._generate_resolution_report(total_time, resolution_results, final_validation, safety_clearance)
 
         logger.info(f"Final safety resolution completed in {total_time:.2f} seconds")
         logger.info(f"Production safety clearance: {'GRANTED' if self.production_safety_clearance else 'DENIED'}")
@@ -180,7 +181,7 @@ class CriticalSafetyResolutionSystem:
             "pending_issues": pending_issues,
             "resolution_rate": resolution_rate,
             "verification_rate": verification_rate,
-            "resolution_complete": self.resolution_complete
+            "resolution_complete": self.resolution_complete,
         }
 
     async def _perform_final_safety_validation(self) -> dict[str, Any]:
@@ -195,7 +196,7 @@ class CriticalSafetyResolutionSystem:
             "staff_training_complete": True,
             "documentation_complete": True,
             "emergency_procedures_tested": True,
-            "safety_metrics_tracking": True
+            "safety_metrics_tracking": True,
         }
 
         passed_checks = sum(1 for check in validation_checks.values() if check)
@@ -209,11 +210,12 @@ class CriticalSafetyResolutionSystem:
             "passed_checks": passed_checks,
             "total_checks": total_checks,
             "validation_score": validation_score,
-            "validation_passed": validation_passed
+            "validation_passed": validation_passed,
         }
 
-    def _generate_production_safety_clearance(self, resolution_results: dict[str, Any],
-                                            final_validation: dict[str, Any]) -> dict[str, Any]:
+    def _generate_production_safety_clearance(
+        self, resolution_results: dict[str, Any], final_validation: dict[str, Any]
+    ) -> dict[str, Any]:
         """Generate production safety clearance"""
 
         # Safety clearance criteria
@@ -221,7 +223,7 @@ class CriticalSafetyResolutionSystem:
             "all_critical_issues_resolved": resolution_results["resolution_complete"],
             "final_validation_passed": final_validation["validation_passed"],
             "resolution_rate_100": resolution_results["resolution_rate"] == 100.0,
-            "verification_rate_100": resolution_results["verification_rate"] == 100.0
+            "verification_rate_100": resolution_results["verification_rate"] == 100.0,
         }
 
         # Grant clearance if all criteria met
@@ -239,24 +241,27 @@ class CriticalSafetyResolutionSystem:
             "clearance_status": clearance_status,
             "clearance_level": clearance_level,
             "clearance_criteria": clearance_criteria,
-            "clearance_date": datetime.now(timezone.utc).isoformat(),
-            "valid_until": (datetime.now(timezone.utc).replace(year=datetime.now(timezone.utc).year + 1)).isoformat()
+            "clearance_date": datetime.now(UTC).isoformat(),
+            "valid_until": (datetime.now(UTC).replace(year=datetime.now(UTC).year + 1)).isoformat(),
         }
 
-    def _generate_resolution_report(self, execution_time: float,
-                                   resolution_results: dict[str, Any],
-                                   final_validation: dict[str, Any],
-                                   safety_clearance: dict[str, Any]) -> dict[str, Any]:
+    def _generate_resolution_report(
+        self,
+        execution_time: float,
+        resolution_results: dict[str, Any],
+        final_validation: dict[str, Any],
+        safety_clearance: dict[str, Any],
+    ) -> dict[str, Any]:
         """Generate comprehensive resolution report"""
 
         return {
             "task_105_summary": {
                 "task_name": "Task 105: Critical Safety Issues Final Resolution",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "execution_time": execution_time,
                 "resolution_complete": self.resolution_complete,
                 "production_safety_clearance": self.production_safety_clearance,
-                "clearance_status": safety_clearance["clearance_status"]
+                "clearance_status": safety_clearance["clearance_status"],
             },
             "resolution_results": resolution_results,
             "final_validation": final_validation,
@@ -269,7 +274,7 @@ class CriticalSafetyResolutionSystem:
                     "status": issue.resolution_status.value,
                     "resolution_description": issue.resolution_description,
                     "verified": issue.verification_date is not None,
-                    "verification_notes": issue.verification_notes
+                    "verification_notes": issue.verification_notes,
                 }
                 for issue in self.critical_issues
             ],
@@ -279,7 +284,7 @@ class CriticalSafetyResolutionSystem:
                 "verified_issues": resolution_results["verified_count"],
                 "resolution_percentage": resolution_results["resolution_rate"],
                 "verification_percentage": resolution_results["verification_rate"],
-                "final_validation_score": final_validation["validation_score"]
+                "final_validation_score": final_validation["validation_score"],
             },
             "production_requirements": {
                 "all_issues_resolved_required": True,
@@ -288,11 +293,11 @@ class CriticalSafetyResolutionSystem:
                 "current_status": {
                     "all_issues_resolved": resolution_results["resolution_complete"],
                     "final_validation_passed": final_validation["validation_passed"],
-                    "safety_clearance_granted": self.production_safety_clearance
-                }
+                    "safety_clearance_granted": self.production_safety_clearance,
+                },
             },
             "recommendations": self._generate_safety_recommendations(),
-            "next_steps": self._generate_safety_next_steps()
+            "next_steps": self._generate_safety_next_steps(),
         }
 
     def _generate_safety_recommendations(self) -> list[str]:
@@ -300,20 +305,24 @@ class CriticalSafetyResolutionSystem:
         recommendations = []
 
         if self.production_safety_clearance:
-            recommendations.extend([
-                "Maintain continuous safety monitoring in production",
-                "Conduct regular safety audits and reviews",
-                "Keep crisis intervention resources updated",
-                "Monitor safety metrics and incident trends",
-                "Provide ongoing staff safety training"
-            ])
+            recommendations.extend(
+                [
+                    "Maintain continuous safety monitoring in production",
+                    "Conduct regular safety audits and reviews",
+                    "Keep crisis intervention resources updated",
+                    "Monitor safety metrics and incident trends",
+                    "Provide ongoing staff safety training",
+                ]
+            )
         else:
-            recommendations.extend([
-                "Address any remaining safety issues immediately",
-                "Complete final safety validation",
-                "Ensure all safety procedures are operational",
-                "Verify crisis intervention capabilities"
-            ])
+            recommendations.extend(
+                [
+                    "Address any remaining safety issues immediately",
+                    "Complete final safety validation",
+                    "Ensure all safety procedures are operational",
+                    "Verify crisis intervention capabilities",
+                ]
+            )
 
         return recommendations
 
@@ -324,17 +333,19 @@ class CriticalSafetyResolutionSystem:
                 "✅ Task 105: Critical Safety Issues Final Resolution COMPLETED",
                 "🚀 Ready to proceed with Task 106: Production Launch Coordination",
                 "📋 Continue with Phase 1 final tasks",
-                "🔄 Deploy safety systems to production environment"
+                "🔄 Deploy safety systems to production environment",
             ]
         return [
             "🔧 Complete resolution of remaining safety issues",
             "🧪 Re-run final safety validation",
             "📋 Address safety clearance requirements",
-            "🔄 Repeat process until clearance granted"
+            "🔄 Repeat process until clearance granted",
         ]
+
 
 # Example usage and testing
 if __name__ == "__main__":
+
     async def main():
         # Initialize critical safety resolution system
         safety_resolver = CriticalSafetyResolutionSystem()
@@ -347,10 +358,9 @@ if __name__ == "__main__":
         report["safety_metrics"]
 
         # Save report
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         report_file = f"task_105_safety_resolution_report_{timestamp}.json"
         with open(report_file, "w") as f:
             json.dump(report, f, indent=2)
-
 
     asyncio.run(main())

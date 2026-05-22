@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Forgetting Mechanisms — Sprint 3, Task 4.
 
 Ebbinghaus forgetting curve with therapeutic modifications,
@@ -13,9 +12,8 @@ import math
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Optional, Tuple
 
-from ..schema import ConsolidationPhase, MemoryBlock
+from ..schema import MemoryBlock
 
 log = logging.getLogger(__name__)
 
@@ -46,10 +44,10 @@ class ForgettingConfig:
 class ForgettingEngine:
     """Apply forgetting curve to memories with safety guarantees."""
 
-    def __init__(self, config: Optional[ForgettingConfig] = None) -> None:
+    def __init__(self, config: ForgettingConfig | None = None) -> None:
         self._config = config or ForgettingConfig()
 
-    def evaluate(self, memory: MemoryBlock, now_ms: Optional[int] = None) -> ForgetDecision:
+    def evaluate(self, memory: MemoryBlock, now_ms: int | None = None) -> ForgetDecision:
         """Evaluate a single memory for forgetting action."""
         if memory.gating.crisisFlag and self._config.crisis_preserve:
             return ForgetDecision(
@@ -92,42 +90,30 @@ class ForgettingEngine:
             retention_score=retention,
         )
 
-    def batch_evaluate(
-        self, memories: List[MemoryBlock], now_ms: Optional[int] = None
-    ) -> List[ForgetDecision]:
+    def batch_evaluate(self, memories: list[MemoryBlock], now_ms: int | None = None) -> list[ForgetDecision]:
         """Evaluate a batch of memories."""
         return [self.evaluate(m, now_ms) for m in memories]
 
     def get_pruning_candidates(
-        self, memories: List[MemoryBlock], now_ms: Optional[int] = None
-    ) -> List[Tuple[MemoryBlock, ForgetDecision]]:
+        self, memories: list[MemoryBlock], now_ms: int | None = None
+    ) -> list[tuple[MemoryBlock, ForgetDecision]]:
         """Return memories eligible for pruning, sorted by retention score (lowest first)."""
         decisions = self.batch_evaluate(memories, now_ms)
         candidates = [
-            (m, d)
-            for m, d in zip(memories, decisions)
-            if d.action in (ForgetAction.ARCHIVE, ForgetAction.DELETE)
+            (m, d) for m, d in zip(memories, decisions) if d.action in (ForgetAction.ARCHIVE, ForgetAction.DELETE)
         ]
         candidates.sort(key=lambda x: x[1].retention_score)
         return candidates
 
-    def apply_forgetting(
-        self, memory: MemoryBlock, now_ms: Optional[int] = None
-    ) -> MemoryBlock:
+    def apply_forgetting(self, memory: MemoryBlock, now_ms: int | None = None) -> MemoryBlock:
         """Apply forgetting decay to a memory's importance."""
         retention = self._retention_score(memory, now_ms)
         updated = memory.model_copy(deep=True)
-        updated.importance.recency = max(
-            updated.importance.recency * retention, 0.0
-        )
-        updated.importance.raw = max(
-            updated.importance.raw * retention, 0.0
-        )
+        updated.importance.recency = max(updated.importance.recency * retention, 0.0)
+        updated.importance.raw = max(updated.importance.raw * retention, 0.0)
         return updated
 
-    def _retention_score(
-        self, memory: MemoryBlock, now_ms: Optional[int] = None
-    ) -> float:
+    def _retention_score(self, memory: MemoryBlock, now_ms: int | None = None) -> float:
         """Compute retention score using Ebbinghaus curve with therapeutic modifications."""
         now = now_ms or int(time.time() * 1000)
         age_ms = max(now - memory.timestamp, 0)
@@ -139,10 +125,5 @@ class ForgettingEngine:
         emotional_boost = memory.importance.emotionalWeight / 5.0
         crisis_boost = 1.0 if memory.gating.crisisFlag else 0.0
 
-        retention = (
-            0.4 * ebbinghaus
-            + 0.3 * importance_factor
-            + 0.2 * emotional_boost
-            + 0.1 * crisis_boost
-        )
+        retention = 0.4 * ebbinghaus + 0.3 * importance_factor + 0.2 * emotional_boost + 0.1 * crisis_boost
         return min(max(retention, 0.0), 1.0)

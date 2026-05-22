@@ -64,9 +64,7 @@ def setup_logging(config: LoggingConfig) -> None:
             backupCount=10,  # Keep more audit logs
         )
         audit_handler.setLevel(logging.INFO)
-        audit_formatter = logging.Formatter(
-            "%(asctime)s - AUDIT - %(levelname)s - %(message)s"
-        )
+        audit_formatter = logging.Formatter("%(asctime)s - AUDIT - %(levelname)s - %(message)s")
         audit_handler.setFormatter(audit_formatter)
 
         audit_logger = logging.getLogger("mcp.audit")
@@ -88,4 +86,3 @@ def get_logger(name: str | None = None) -> logging.Logger:
     if name:
         return logging.getLogger(f"ai.sourcing.journal.mcp.{name}")
     return logging.getLogger("ai.sourcing.journal.mcp")
-

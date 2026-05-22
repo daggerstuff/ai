@@ -1,7 +1,6 @@
-
 import unittest
 from contextlib import suppress
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock, patch
 
 import jwt
@@ -32,9 +31,7 @@ class TestJWTAuthMiddleware(unittest.TestCase):
         self.config.RATE_LIMIT_PER_MINUTE = 100
 
         # We need to patch get_logger since we might not have the logging setup
-        self.logger_patcher = patch(
-            "ai.api.techdeck_integration.auth.middleware.get_logger"
-        )
+        self.logger_patcher = patch("ai.api.techdeck_integration.auth.middleware.get_logger")
         self.mock_get_logger = self.logger_patcher.start()
         self.mock_logger = MagicMock()
         self.mock_get_logger.return_value = self.mock_logger
@@ -65,12 +62,10 @@ class TestJWTAuthMiddleware(unittest.TestCase):
             "sub": "user123",
             "email": "test@example.com",
             "role": "admin",
-            "iat": datetime.now(timezone.utc).timestamp(),
-            "exp": (datetime.now(timezone.utc) + timedelta(hours=1)).timestamp(),
+            "iat": datetime.now(UTC).timestamp(),
+            "exp": (datetime.now(UTC) + timedelta(hours=1)).timestamp(),
         }
-        token = jwt.encode(
-            payload, self.config.JWT_SECRET_KEY, algorithm=self.config.JWT_ALGORITHM
-        )
+        token = jwt.encode(payload, self.config.JWT_SECRET_KEY, algorithm=self.config.JWT_ALGORITHM)
 
         environ = {
             "PATH_INFO": "/api/v1/protected/resource",
@@ -82,9 +77,7 @@ class TestJWTAuthMiddleware(unittest.TestCase):
         # Act
         # We need to patch the internal validation methods or just let them run
         # if pure logic. But Request object needs to be mocked or we rely on werkzeug
-        with patch(
-            "ai.api.techdeck_integration.auth.middleware.Request"
-        ) as MockRequest:
+        with patch("ai.api.techdeck_integration.auth.middleware.Request") as MockRequest:
             mock_request = MockRequest.return_value
             mock_request.path = "/api/v1/protected/resource"
             mock_request.headers = {"Authorization": f"Bearer {token}"}
@@ -94,9 +87,7 @@ class TestJWTAuthMiddleware(unittest.TestCase):
         # Assert
         self.app.assert_called()
         # Verify logger was called for success
-        self.mock_logger.info.assert_called_with(
-            "Authentication successful", extra=unittest.mock.ANY
-        )
+        self.mock_logger.info.assert_called_with("Authentication successful", extra=unittest.mock.ANY)
         # Verify g was populated
         assert g.user["role"] == "admin"
         assert g.user_id == "user123"
@@ -112,9 +103,7 @@ class TestJWTAuthMiddleware(unittest.TestCase):
         start_response = MagicMock()
 
         # Act
-        with patch(
-            "ai.api.techdeck_integration.auth.middleware.Request"
-        ) as MockRequest:
+        with patch("ai.api.techdeck_integration.auth.middleware.Request") as MockRequest:
             mock_request = MockRequest.return_value
             mock_request.path = "/api/v1/protected/resource"
             mock_request.headers = {}

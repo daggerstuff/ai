@@ -5,6 +5,7 @@ Enterprise Production Readiness Framework - Task 6.2
 
 Automated blue-green deployment with zero downtime and canary releases.
 """
+
 import json
 import logging
 import random
@@ -12,15 +13,13 @@ import sqlite3
 import time
 from collections.abc import Callable
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -41,7 +40,6 @@ class EnvironmentType(Enum):
 
 class CanaryMonitoringError(Exception):
     """Raised when canary deployment monitoring fails."""
-
 
 
 @dataclass
@@ -71,7 +69,7 @@ class ProductionDeployer:
         self.state_dir = Path(__file__).resolve().parent / "state"
         self.state_dir.mkdir(parents=True, exist_ok=True)
         self.db_path = str(self.state_dir / "production_deployment.db")
-        self.deployment_id = f"deploy_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
+        self.deployment_id = f"deploy_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}"
         self.steps: list[DeploymentStep] = []
         self.start_time = time.time()
         self._init_database()
@@ -164,7 +162,7 @@ class ProductionDeployer:
             step_id="6.2.1",
             name="Prepare Blue Environment",
             status=DeploymentStatus.IN_PROGRESS,
-            start_time=datetime.now(timezone.utc),
+            start_time=datetime.now(UTC),
             end_time=None,
             details="Preparing blue environment for new deployment",
             rollback_command="kubectl delete deployment pixelated-empathy-blue",
@@ -185,7 +183,7 @@ class ProductionDeployer:
             step_id="6.2.2",
             name="Database Migration",
             status=DeploymentStatus.IN_PROGRESS,
-            start_time=datetime.now(timezone.utc),
+            start_time=datetime.now(UTC),
             end_time=None,
             details="Executing database migration",
             rollback_command="python manage.py migrate --rollback",
@@ -206,12 +204,10 @@ class ProductionDeployer:
             step_id="6.2.3",
             name="Blue Environment Validation",
             status=DeploymentStatus.IN_PROGRESS,
-            start_time=datetime.now(timezone.utc),
+            start_time=datetime.now(UTC),
             end_time=None,
             details="Validating blue environment health",
-            rollback_command=(
-                "kubectl scale deployment pixelated-empathy-blue --replicas=0"
-            ),
+            rollback_command=("kubectl scale deployment pixelated-empathy-blue --replicas=0"),
         )
 
         try:
@@ -242,12 +238,11 @@ class ProductionDeployer:
             step_id="6.2.4",
             name="Canary Deployment",
             status=DeploymentStatus.IN_PROGRESS,
-            start_time=datetime.now(timezone.utc),
+            start_time=datetime.now(UTC),
             end_time=None,
             details="Executing canary deployment with traffic shifting",
             rollback_command=(
-                "kubectl patch service pixelated-empathy --patch "
-                '\'{"spec":{"selector":{"version":"green"}}}\''
+                'kubectl patch service pixelated-empathy --patch \'{"spec":{"selector":{"version":"green"}}}\''
             ),
         )
 
@@ -277,9 +272,7 @@ class ProductionDeployer:
                 monitoring_result = self._monitor_canary_metrics(duration)
 
                 if not monitoring_result["success"]:
-                    raise CanaryMonitoringError(
-                        f"Canary monitoring failed: {monitoring_result['error']}"
-                    )
+                    raise CanaryMonitoringError(f"Canary monitoring failed: {monitoring_result['error']}")
 
             logger.info(f"  - Stage {percentage}% completed successfully")
 
@@ -295,7 +288,7 @@ class ProductionDeployer:
             step_id="6.2.5",
             name="Finalize Deployment",
             status=DeploymentStatus.IN_PROGRESS,
-            start_time=datetime.now(timezone.utc),
+            start_time=datetime.now(UTC),
             end_time=None,
             details="Finalizing deployment and cleaning up",
             rollback_command="kubectl apply -f green-environment-backup.yaml",
@@ -307,8 +300,7 @@ class ProductionDeployer:
 
             self._mark_step_completed(
                 step,
-                "Deployment finalized successfully - "
-                "blue environment is now production",
+                "Deployment finalized successfully - blue environment is now production",
             )
         except Exception as e:
             self._mark_step_failed(step, "Deployment finalization failed", e)
@@ -317,18 +309,14 @@ class ProductionDeployer:
     def _mark_step_completed(self, step: DeploymentStep, details: str) -> None:
         self._update_step_status(step, DeploymentStatus.COMPLETED, details)
 
-    def _mark_step_failed(
-        self, step: DeploymentStep, message: str, exc: Exception
-    ) -> None:
+    def _mark_step_failed(self, step: DeploymentStep, message: str, exc: Exception) -> None:
         detail_message = f"{message}: {type(exc).__name__}: {exc}"
         logger.exception("%s", detail_message)
         self._update_step_status(step, DeploymentStatus.FAILED, detail_message)
 
-    def _update_step_status(
-        self, step: DeploymentStep, status: DeploymentStatus, details: str
-    ) -> None:
+    def _update_step_status(self, step: DeploymentStep, status: DeploymentStatus, details: str) -> None:
         step.status = status
-        step.end_time = datetime.now(timezone.utc)
+        step.end_time = datetime.now(UTC)
         step.details = details
 
     def _finalize_step(self, step: DeploymentStep) -> DeploymentStep:
@@ -439,9 +427,7 @@ class ProductionDeployer:
         """Monitor canary deployment metrics."""
         try:
             # Simulate monitoring
-            time.sleep(
-                min(duration, 10)
-            )  # Simulate monitoring (max 10 seconds for demo)
+            time.sleep(min(duration, 10))  # Simulate monitoring (max 10 seconds for demo)
 
             # Simulate metrics collection
             metrics = {
@@ -482,7 +468,7 @@ class ProductionDeployer:
                     step_id=f"rollback_{step.step_id}",
                     name=f"Rollback {step.name}",
                     status=DeploymentStatus.IN_PROGRESS,
-                    start_time=datetime.now(timezone.utc),
+                    start_time=datetime.now(UTC),
                     end_time=None,
                     details=f"Rolling back: {step.name}",
                 )
@@ -493,13 +479,13 @@ class ProductionDeployer:
                     time.sleep(1)
 
                     rollback_step.status = DeploymentStatus.COMPLETED
-                    rollback_step.end_time = datetime.now(timezone.utc)
+                    rollback_step.end_time = datetime.now(UTC)
                     rollback_step.details = f"Rollback completed: {step.name}"
 
                 except Exception as e:
                     logger.error(f"Rollback failed for {step.name}: {e}")
                     rollback_step.status = DeploymentStatus.FAILED
-                    rollback_step.end_time = datetime.now(timezone.utc)
+                    rollback_step.end_time = datetime.now(UTC)
                     rollback_step.details = f"Rollback failed: {e!s}"
 
                 rollback_steps.append(rollback_step)
@@ -509,7 +495,7 @@ class ProductionDeployer:
             "rollback_completed": True,
             "rollback_steps": len(rollback_steps),
             "reason": reason,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
     def run_deployment(self) -> dict[str, Any]:
@@ -523,7 +509,7 @@ class ProductionDeployer:
             return {
                 "deployment_id": self.deployment_id,
                 "error": str(e),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
     def _execute_deployment_pipeline(self) -> dict[str, Any]:
@@ -555,8 +541,8 @@ class ProductionDeployer:
                         step_id=f"pipeline_invalid_{index}",
                         name=f"Invalid step return type: {step_func.__name__}",
                         status=DeploymentStatus.FAILED,
-                        start_time=datetime.now(timezone.utc),
-                        end_time=datetime.now(timezone.utc),
+                        start_time=datetime.now(UTC),
+                        end_time=datetime.now(UTC),
                         details="Deployment step returned an invalid type",
                     )
                 )
@@ -566,13 +552,9 @@ class ProductionDeployer:
                 break  # Stop on first failure
 
         # Check if any step failed
-        if failed_steps := [
-            step for step in deployment_steps if step.status == DeploymentStatus.FAILED
-        ]:
+        if failed_steps := [step for step in deployment_steps if step.status == DeploymentStatus.FAILED]:
             # Rollback on failure
-            rollback_result = self.rollback_deployment(
-                f"Deployment failed at step: {failed_steps[0].name}"
-            )
+            rollback_result = self.rollback_deployment(f"Deployment failed at step: {failed_steps[0].name}")
             overall_status = DeploymentStatus.ROLLED_BACK
         else:
             rollback_result = None
@@ -580,18 +562,12 @@ class ProductionDeployer:
 
         # Calculate deployment metrics
         total_time = (time.time() - self.start_time) * 1000
-        successful_steps = len(
-            [
-                step
-                for step in deployment_steps
-                if step.status == DeploymentStatus.COMPLETED
-            ]
-        )
+        successful_steps = len([step for step in deployment_steps if step.status == DeploymentStatus.COMPLETED])
 
         # Generate deployment report
         report = {
             "deployment_id": self.deployment_id,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "overall_status": overall_status.value,
             "deployment_success": overall_status == DeploymentStatus.COMPLETED,
             "total_steps": len(deployment_steps),
@@ -603,9 +579,7 @@ class ProductionDeployer:
             "environment": "production",
             "version": "v2.0.0",
             "deployment_strategy": "blue-green with canary",
-            "recommendations": self._generate_deployment_recommendations(
-                deployment_steps, overall_status
-            ),
+            "recommendations": self._generate_deployment_recommendations(deployment_steps, overall_status),
         }
 
         # Save deployment record
@@ -640,7 +614,7 @@ class ProductionDeployer:
                         self.deployment_id,
                         report["overall_status"],
                         datetime.fromtimestamp(self.start_time).isoformat(),
-                        datetime.now(timezone.utc).isoformat(),
+                        datetime.now(UTC).isoformat(),
                         report["environment"],
                         report["version"],
                         json.dumps(report),
@@ -652,9 +626,7 @@ class ProductionDeployer:
         except Exception as e:
             logger.error(f"Failed to save deployment record: {e}")
 
-    def _generate_deployment_recommendations(
-        self, _steps: list[DeploymentStep], status: DeploymentStatus
-    ) -> list[str]:
+    def _generate_deployment_recommendations(self, _steps: list[DeploymentStep], status: DeploymentStatus) -> list[str]:
         """Generate deployment recommendations."""
         recommendations = []
 
@@ -675,9 +647,7 @@ class ProductionDeployer:
                 ]
             )
         else:
-            recommendations.append(
-                "Deployment status unclear - manual investigation required"
-            )
+            recommendations.append("Deployment status unclear - manual investigation required")
 
         return recommendations
 

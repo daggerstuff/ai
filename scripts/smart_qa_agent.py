@@ -20,7 +20,7 @@ class SmartQAAgent:
             "main_topic": None,
             "question_embedded": None,
             "response_portion": None,
-            "confidence": 0.0
+            "confidence": 0.0,
         }
 
         # Clean and prepare text
@@ -47,14 +47,17 @@ class SmartQAAgent:
             "can you tell us",
             "what would you say",
             "how would you",
-            "you've said"
+            "you've said",
         ]
 
         has_interview_setup = any(indicator in text.lower() for indicator in interview_indicators)
 
         # Look for embedded questions
-        question_sentences = [s for s in sentences if "?" in s or
-                            any(starter in s.lower() for starter in ["how can", "what should", "why do", "when does"])]
+        question_sentences = [
+            s
+            for s in sentences
+            if "?" in s or any(starter in s.lower() for starter in ["how can", "what should", "why do", "when does"])
+        ]
 
         # Analyze structure
         if has_interview_setup and question_sentences:
@@ -69,7 +72,15 @@ class SmartQAAgent:
                     # Look for response indicators after the question
                     response_start = i + 1
                     for j in range(i + 1, len(sentences)):
-                        response_indicators = ["that's", "well", "so", "the thing is", "what happens", "unfortunately", "look"]
+                        response_indicators = [
+                            "that's",
+                            "well",
+                            "so",
+                            "the thing is",
+                            "what happens",
+                            "unfortunately",
+                            "look",
+                        ]
                         if any(indicator in sentences[j].lower() for indicator in response_indicators):
                             response_start = j
                             break
@@ -82,23 +93,15 @@ class SmartQAAgent:
                             "dialogue_structure": "question_response_identified",
                             "question_embedded": question,
                             "response_portion": response,
-                            "confidence": 0.8
+                            "confidence": 0.8,
                         }
 
         # Check for monologue/teaching structure
         teaching_indicators = ["let me explain", "what happens is", "the key thing", "first", "second", "the reason"]
         if any(indicator in text.lower() for indicator in teaching_indicators):
-            return {
-                "content_type": "teaching_monologue",
-                "dialogue_structure": "single_speaker",
-                "confidence": 0.7
-            }
+            return {"content_type": "teaching_monologue", "dialogue_structure": "single_speaker", "confidence": 0.7}
 
-        return {
-            "content_type": "unclear",
-            "dialogue_structure": "unknown",
-            "confidence": 0.3
-        }
+        return {"content_type": "unclear", "dialogue_structure": "unknown", "confidence": 0.3}
 
     def analyze_semantic_content(self, text: str, _sentences: list[str]) -> dict:
         """Analyze the semantic meaning and main topic"""
@@ -112,7 +115,7 @@ class SmartQAAgent:
             "shame_guilt": ["shame", "guilt", "self-worth", "identity"],
             "healing_recovery": ["heal", "recover", "growth", "journey"],
             "relationships": ["relationship", "attachment", "trust", "intimacy"],
-            "mental_health": ["depression", "anxiety", "mental health", "emotional"]
+            "mental_health": ["depression", "anxiety", "mental health", "emotional"],
         }
 
         topic_scores = {}
@@ -125,7 +128,7 @@ class SmartQAAgent:
 
         return {
             "main_topic": main_topic,
-            "topic_confidence": max(topic_scores.values()) / len(topic_patterns[main_topic]) if topic_scores else 0.1
+            "topic_confidence": max(topic_scores.values()) / len(topic_patterns[main_topic]) if topic_scores else 0.1,
         }
 
     def generate_intelligent_question(self, analysis: dict, style: str) -> str:
@@ -149,26 +152,26 @@ class SmartQAAgent:
                 "therapeutic": "How can someone find proper trauma therapy and what should they look for?",
                 "educational": "What should people understand about trauma therapy?",
                 "empathetic": "I'm struggling to find help for trauma. What guidance can you offer?",
-                "practical": "What are the practical steps to finding trauma-informed therapy?"
+                "practical": "What are the practical steps to finding trauma-informed therapy?",
             },
             "narcissistic_behavior": {
                 "therapeutic": "Can you help me understand narcissistic behavior and its impact?",
                 "educational": "What are the key characteristics of narcissistic behavior?",
                 "empathetic": "I'm dealing with someone who seems narcissistic. Can you help me understand this?",
-                "practical": "How should someone handle narcissistic behavior?"
+                "practical": "How should someone handle narcissistic behavior?",
             },
             "shame_guilt": {
                 "therapeutic": "How does shame affect people and what can be done about it?",
                 "educational": "Can you explain the difference between shame and guilt?",
                 "empathetic": "I struggle with shame. Can you help me understand what's happening?",
-                "practical": "What are effective ways to deal with shame?"
+                "practical": "What are effective ways to deal with shame?",
             },
             "healing_recovery": {
                 "therapeutic": "What does the healing process look like for trauma survivors?",
                 "educational": "Can you explain how healing from trauma works?",
                 "empathetic": "I'm on a healing journey and need guidance. What should I know?",
-                "practical": "What are the practical steps in trauma recovery?"
-            }
+                "practical": "What are the practical steps in trauma recovery?",
+            },
         }
 
         if main_topic in topic_questions and style in topic_questions[main_topic]:
@@ -179,7 +182,7 @@ class SmartQAAgent:
             "therapeutic": "Can you share your therapeutic perspective on this?",
             "educational": "Can you explain this concept?",
             "empathetic": "I need help understanding this. Can you guide me?",
-            "practical": "What should I know about this situation?"
+            "practical": "What should I know about this situation?",
         }
 
         return fallback_questions.get(style, "Can you help me understand this?")
@@ -207,8 +210,9 @@ class SmartQAAgent:
             "quality": segment["quality"],
             "source": segment["source"],
             "file": segment["file"],
-            "smart_analysis": analysis
+            "smart_analysis": analysis,
         }
+
 
 def test_smart_agent():
     """Test the smart Q/A agent"""
@@ -220,14 +224,14 @@ def test_smart_agent():
         "confidence": 3.0,
         "quality": 0.7,
         "source": "interview",
-        "file": "test.txt"
+        "file": "test.txt",
     }
 
     result = agent.process_segment(test_segment)
 
-
     if result["smart_analysis"].get("question_embedded"):
         pass
+
 
 if __name__ == "__main__":
     test_smart_agent()

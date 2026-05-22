@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import random
 from dataclasses import dataclass
-from collections import Counter
 from typing import Any
 
 
@@ -38,7 +37,12 @@ class DataSplitter:
 
         n = len(payload)
         if n == 0:
-            return SplitResult(train=[], val=[], test=[], metadata={"counts": {"train": 0, "val": 0, "test": 0}, "ratios": self._ratios()})
+            return SplitResult(
+                train=[],
+                val=[],
+                test=[],
+                metadata={"counts": {"train": 0, "val": 0, "test": 0}, "ratios": self._ratios()},
+            )
 
         train_end = int(n * self.train_ratio)
         val_end = train_end + int(n * self.val_ratio)

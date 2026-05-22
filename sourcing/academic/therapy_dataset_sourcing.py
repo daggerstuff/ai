@@ -84,9 +84,7 @@ class TherapyDatasetSourcing:
     """
 
     def __init__(self, output_path: str | None = None):
-        self.output_path = Path(
-            output_path or "ai/training/ready_packages/datasets/sourced"
-        )
+        self.output_path = Path(output_path or "ai/training/ready_packages/datasets/sourced")
         self.output_path.mkdir(parents=True, exist_ok=True)
 
         # API Configuration
@@ -173,9 +171,7 @@ class TherapyDatasetSourcing:
         }
 
         try:
-            response = requests.get(
-                search_url, params=params, headers=headers, timeout=15
-            )
+            response = requests.get(search_url, params=params, headers=headers, timeout=15)
 
             if response.status_code != 200:
                 logger.error(f"HuggingFace Error: {response.status_code}")
@@ -198,10 +194,7 @@ class TherapyDatasetSourcing:
 
                 # Filter by conversation length if we can determine it
                 if metadata.avg_turns and metadata.avg_turns < min_turns:
-                    logger.debug(
-                        f"Skipping {dataset_id}: "
-                        f"avg_turns={metadata.avg_turns} < {min_turns}"
-                    )
+                    logger.debug(f"Skipping {dataset_id}: avg_turns={metadata.avg_turns} < {min_turns}")
                     continue
 
                 results.append(metadata)
@@ -213,9 +206,7 @@ class TherapyDatasetSourcing:
             logger.error(f"HuggingFace search exception: {e}")
             return []
 
-    def _get_hf_dataset_details(
-        self, dataset_id: str, headers: dict[str, str]
-    ) -> DatasetMetadata | None:
+    def _get_hf_dataset_details(self, dataset_id: str, headers: dict[str, str]) -> DatasetMetadata | None:
         """Get detailed information about a HuggingFace dataset"""
         try:
             # Get dataset info
@@ -232,9 +223,7 @@ class TherapyDatasetSourcing:
             card_data = data.get("cardData", {})
 
             # Try to determine conversation statistics
-            avg_turns, min_turns, max_turns = self._estimate_conversation_stats(
-                dataset_id, headers
-            )
+            avg_turns, min_turns, max_turns = self._estimate_conversation_stats(dataset_id, headers)
 
             # Determine conversation format
             conv_format = self._classify_conversation_format(avg_turns)
@@ -268,7 +257,6 @@ class TherapyDatasetSourcing:
                 therapeutic_relevance=therapeutic_relevance,
             )
 
-
         except Exception as e:
             logger.warning(f"Error getting details for {dataset_id}: {e}")
             return None
@@ -286,9 +274,7 @@ class TherapyDatasetSourcing:
             # Try to get first few rows
             rows_url = "https://datasets-server.huggingface.co/first-rows"
             params = {"dataset": dataset_id, "config": "default", "split": "train"}
-            response = requests.get(
-                rows_url, params=params, headers=headers, timeout=10
-            )
+            response = requests.get(rows_url, params=params, headers=headers, timeout=10)
 
             if response.status_code != 200:
                 return None, None, None
@@ -332,9 +318,7 @@ class TherapyDatasetSourcing:
             logger.debug(f"Could not estimate stats for {dataset_id}: {e}")
             return None, None, None
 
-    def _classify_conversation_format(
-        self, avg_turns: float | None
-    ) -> str | None:
+    def _classify_conversation_format(self, avg_turns: float | None) -> str | None:
         """Classify conversation format based on average turns"""
         if avg_turns is None:
             return None
@@ -384,13 +368,9 @@ class TherapyDatasetSourcing:
             score += 0.1
 
         # Quality indicators in description/tags (max 0.3)
-        text_to_check = " ".join(
-            [dataset.get("description", ""), " ".join(dataset.get("tags", []))]
-        ).lower()
+        text_to_check = " ".join([dataset.get("description", ""), " ".join(dataset.get("tags", []))]).lower()
 
-        quality_matches = sum(
-            1 for ind in self.quality_indicators if ind in text_to_check
-        )
+        quality_matches = sum(1 for ind in self.quality_indicators if ind in text_to_check)
         score += min(0.3, quality_matches * 0.1)
 
         # Has license (0.1)
@@ -399,12 +379,7 @@ class TherapyDatasetSourcing:
 
         # Recent update (0.1)
         last_modified = dataset.get("lastModified", "")
-        if (
-            (last_modified
-            and "2024" in last_modified)
-            or "2025" in last_modified
-            or "2026" in last_modified
-        ):
+        if (last_modified and "2024" in last_modified) or "2025" in last_modified or "2026" in last_modified:
             score += 0.1
 
         return min(score, 1.0)
@@ -424,7 +399,6 @@ class TherapyDatasetSourcing:
 
         # Normalize to 0-1 scale
         return min(matches / 10, 1.0)
-
 
     # ==================== Advanced Filtering ====================
 
@@ -449,14 +423,10 @@ class TherapyDatasetSourcing:
         logger.info(f"Filtered to {len(filtered)} datasets with {min_turns}+ turns")
         return filtered
 
-    def filter_by_quality(
-        self, datasets: list[DatasetMetadata], min_quality: float = 0.5
-    ) -> list[DatasetMetadata]:
+    def filter_by_quality(self, datasets: list[DatasetMetadata], min_quality: float = 0.5) -> list[DatasetMetadata]:
         """Filter datasets by quality score"""
         filtered = [d for d in datasets if d.quality_score >= min_quality]
-        logger.info(
-            f"Filtered to {len(filtered)} datasets with quality >= {min_quality}"
-        )
+        logger.info(f"Filtered to {len(filtered)} datasets with quality >= {min_quality}")
         return filtered
 
     def filter_by_therapeutic_relevance(
@@ -464,9 +434,7 @@ class TherapyDatasetSourcing:
     ) -> list[DatasetMetadata]:
         """Filter datasets by therapeutic relevance"""
         filtered = [d for d in datasets if d.therapeutic_relevance >= min_relevance]
-        logger.info(
-            f"Filtered to {len(filtered)} datasets with relevance >= {min_relevance}"
-        )
+        logger.info(f"Filtered to {len(filtered)} datasets with relevance >= {min_relevance}")
         return filtered
 
     def rank_datasets(
@@ -523,9 +491,7 @@ class TherapyDatasetSourcing:
 
     # ==================== Export & Reporting ====================
 
-    def export_results(
-        self, datasets: list[DatasetMetadata], filename: str = "therapy_datasets.json"
-    ) -> Path:
+    def export_results(self, datasets: list[DatasetMetadata], filename: str = "therapy_datasets.json") -> Path:
         """Export dataset results to JSON"""
         output_file = self.output_path / filename
 
@@ -554,10 +520,7 @@ class TherapyDatasetSourcing:
             avg_turns = sum(d.avg_turns for d in with_turns) / len(with_turns)
             max_turns_dataset = max(with_turns, key=lambda d: d.avg_turns)
             report.append(f"Average Conversation Turns: {avg_turns:.1f}")
-            report.append(
-                f"Max Turns Dataset: {max_turns_dataset.name} "
-                f"({max_turns_dataset.avg_turns:.0f} turns)\n"
-            )
+            report.append(f"Max Turns Dataset: {max_turns_dataset.name} ({max_turns_dataset.avg_turns:.0f} turns)\n")
 
         # Quality distribution
         high_quality = len([d for d in datasets if d.quality_score >= 0.7])
@@ -573,16 +536,9 @@ class TherapyDatasetSourcing:
         report.append("Top 10 Datasets:")
         report.append("-" * 60)
         for i, dataset in enumerate(datasets[:10], 1):
-            turns_info = (
-                f"{dataset.avg_turns:.0f} turns"
-                if dataset.avg_turns
-                else "unknown turns"
-            )
+            turns_info = f"{dataset.avg_turns:.0f} turns" if dataset.avg_turns else "unknown turns"
             report.append(f"{i}. {dataset.name}")
-            report.append(
-                f"   Score: {dataset.quality_score:.2f} | {turns_info} | "
-                f"{dataset.downloads} downloads"
-            )
+            report.append(f"   Score: {dataset.quality_score:.2f} | {turns_info} | {dataset.downloads} downloads")
             report.append(f"   {dataset.url}\n")
 
         return "\n".join(report)
@@ -613,11 +569,7 @@ class TherapyDatasetSourcing:
         logger.info("🚀 Starting therapy dataset sourcing pipeline...")
 
         # Search HuggingFace
-        search_query = (
-            query
-            if query and query.strip()
-            else "therapy conversation mental health counseling"
-        )
+        search_query = query if query and query.strip() else "therapy conversation mental health counseling"
         datasets = self.search_huggingface(
             query=search_query,
             min_turns=min_turns,
@@ -627,9 +579,7 @@ class TherapyDatasetSourcing:
         # Apply filters
         datasets = self.filter_by_conversation_length(datasets, min_turns=min_turns)
         datasets = self.filter_by_quality(datasets, min_quality=min_quality)
-        datasets = self.filter_by_therapeutic_relevance(
-            datasets, min_relevance=min_relevance
-        )
+        datasets = self.filter_by_therapeutic_relevance(datasets, min_relevance=min_relevance)
 
         # Rank by composite score
         datasets = self.rank_datasets(datasets)
@@ -643,9 +593,7 @@ class TherapyDatasetSourcing:
         # Generate report
         self.generate_report(datasets)
 
-        logger.info(
-            f"✅ Pipeline complete! Found {len(datasets)} high-quality datasets"
-        )
+        logger.info(f"✅ Pipeline complete! Found {len(datasets)} high-quality datasets")
         return datasets
 
 
@@ -669,6 +617,4 @@ def find_therapy_datasets(
         List of ranked datasets
     """
     sourcing = TherapyDatasetSourcing(output_path=output_path)
-    return sourcing.find_therapy_datasets(
-        query=query, min_turns=min_turns, min_quality=min_quality
-    )
+    return sourcing.find_therapy_datasets(query=query, min_turns=min_turns, min_quality=min_quality)

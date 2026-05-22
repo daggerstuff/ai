@@ -3,6 +3,7 @@
 Shared utilities for accessing datasets via rclone.
 Uses rclone instead of boto3 to work with Hetzner Object Storage.
 """
+
 import hashlib
 import json
 import os
@@ -14,9 +15,7 @@ from typing import Any
 
 def run_rclone(command: str, check: bool = True) -> subprocess.CompletedProcess:
     """Run rclone command and return result."""
-    result = subprocess.run(
-        f"rclone {command}", shell=True, capture_output=True, text=True
-    )
+    result = subprocess.run(f"rclone {command}", shell=True, capture_output=True, text=True)
     if check and result.returncode != 0:
         raise RuntimeError(f"rclone command failed: {result.stderr}")
     return result

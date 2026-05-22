@@ -5,13 +5,14 @@ Tasks 2.1, 2.2, 2.3: Validate Regulatory Compliance Implementation
 
 Comprehensive validation script to verify Phase 2 regulatory compliance implementation is enterprise-ready.
 """
+
 import json
 import logging
 import os
 import sys
 import tempfile
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -20,9 +21,7 @@ from hipaa_validator import hipaa_validator
 from soc2_validator import soc2_validator
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -32,7 +31,7 @@ class Phase2Validator:
     def __init__(self):
         """Initialize validator"""
         self.results = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "phase": "Phase 2 - Regulatory Compliance",
             "tasks": {
                 "2.1": {
@@ -163,9 +162,7 @@ class Phase2Validator:
 
                     # Test unencrypted PHI storage (should fail)
                     test_data = "Patient medical record with SSN: 123-45-6789"
-                    is_compliant, violations = validator.validate_data_storage(
-                        data=test_data, encrypted=False
-                    )
+                    is_compliant, violations = validator.validate_data_storage(data=test_data, encrypted=False)
 
                     # Should detect violation for unencrypted PHI
                     assert not is_compliant
@@ -292,7 +289,7 @@ class Phase2Validator:
                 # Simulate some metrics
                 monitor.metrics_history = [
                     {
-                        "timestamp": datetime.now(timezone.utc),
+                        "timestamp": datetime.now(UTC),
                         "cpu_usage": 50.0,
                         "memory_usage": 60.0,
                         "uptime": 86400,
@@ -374,10 +371,7 @@ class Phase2Validator:
 
                 assert len(detections) >= 2  # Should detect email and IP
                 categories = [category for category, _ in detections]
-                assert (
-                    DataCategory.PERSONAL_DATA in categories
-                    or DataCategory.ONLINE_IDENTIFIERS in categories
-                )
+                assert DataCategory.PERSONAL_DATA in categories or DataCategory.ONLINE_IDENTIFIERS in categories
 
                 score += 20
                 logger.info("✅ GDPR personal data detection works correctly")
@@ -400,7 +394,6 @@ class Phase2Validator:
 
             # Test 4: Data Processing Validation
             try:
-
                 with tempfile.NamedTemporaryFile(delete=False) as tmp:
                     validator = GDPRValidator(storage=GDPRStorage(db_path=tmp.name))
 
@@ -423,7 +416,6 @@ class Phase2Validator:
 
             # Test 5: Data Subject Request Processing
             try:
-
                 with tempfile.NamedTemporaryFile(delete=False) as tmp:
                     validator = GDPRValidator(storage=GDPRStorage(db_path=tmp.name))
 
@@ -431,7 +423,7 @@ class Phase2Validator:
                         request_id="req_123",
                         data_subject_id="subject_123",
                         request_type=DataSubjectRight.ACCESS,
-                        request_date=datetime.now(timezone.utc),
+                        request_date=datetime.now(UTC),
                         status="pending",
                         completed_date=None,
                         response_data=None,
@@ -444,9 +436,7 @@ class Phase2Validator:
                     assert "status" in response
 
                     score += 20
-                    logger.info(
-                        "✅ GDPR data subject request processing works correctly"
-                    )
+                    logger.info("✅ GDPR data subject request processing works correctly")
                     os.unlink(tmp.name)
             except Exception as e:
                 issues.append(f"GDPR data subject request processing failed: {e}")
@@ -485,7 +475,6 @@ class Phase2Validator:
         try:
             # Test 1: All frameworks can be imported together
             try:
-
                 score += 25
                 logger.info("✅ All compliance frameworks integrate successfully")
             except ImportError as e:
@@ -495,17 +484,13 @@ class Phase2Validator:
             # Test 2: Cross-framework compatibility
             try:
                 # Test that frameworks can work with the same data
-                test_data = (
-                    "Patient John Doe, email: john@example.com, SSN: 123-45-6789"
-                )
+                test_data = "Patient John Doe, email: john@example.com, SSN: 123-45-6789"
 
                 # HIPAA detection
                 hipaa_detections = hipaa_validator.phi_detector.detect_phi(test_data)
 
                 # GDPR detection
-                gdpr_detections = gdpr_validator.data_detector.detect_personal_data(
-                    test_data
-                )
+                gdpr_detections = gdpr_validator.data_detector.detect_personal_data(test_data)
 
                 # Both should detect personal data
                 assert len(hipaa_detections) > 0
@@ -571,42 +556,28 @@ class Phase2Validator:
         # Validate Task 2.1
         score_2_1, issues_2_1 = self.validate_task_2_1_hipaa()
         self.results["tasks"]["2.1"]["score"] = score_2_1
-        self.results["tasks"]["2.1"]["status"] = (
-            "passed" if score_2_1 >= 80 else "failed"
-        )
+        self.results["tasks"]["2.1"]["status"] = "passed" if score_2_1 >= 80 else "failed"
         if issues_2_1:
-            self.results["critical_issues"].extend(
-                [f"Task 2.1: {issue}" for issue in issues_2_1]
-            )
+            self.results["critical_issues"].extend([f"Task 2.1: {issue}" for issue in issues_2_1])
 
         # Validate Task 2.2
         score_2_2, issues_2_2 = self.validate_task_2_2_soc2()
         self.results["tasks"]["2.2"]["score"] = score_2_2
-        self.results["tasks"]["2.2"]["status"] = (
-            "passed" if score_2_2 >= 80 else "failed"
-        )
+        self.results["tasks"]["2.2"]["status"] = "passed" if score_2_2 >= 80 else "failed"
         if issues_2_2:
-            self.results["critical_issues"].extend(
-                [f"Task 2.2: {issue}" for issue in issues_2_2]
-            )
+            self.results["critical_issues"].extend([f"Task 2.2: {issue}" for issue in issues_2_2])
 
         # Validate Task 2.3
         score_2_3, issues_2_3 = self.validate_task_2_3_gdpr()
         self.results["tasks"]["2.3"]["score"] = score_2_3
-        self.results["tasks"]["2.3"]["status"] = (
-            "passed" if score_2_3 >= 80 else "failed"
-        )
+        self.results["tasks"]["2.3"]["status"] = "passed" if score_2_3 >= 80 else "failed"
         if issues_2_3:
-            self.results["critical_issues"].extend(
-                [f"Task 2.3: {issue}" for issue in issues_2_3]
-            )
+            self.results["critical_issues"].extend([f"Task 2.3: {issue}" for issue in issues_2_3])
 
         # Validate integration
         score_integration, issues_integration = self.validate_integration()
         if issues_integration:
-            self.results["critical_issues"].extend(
-                [f"Integration: {issue}" for issue in issues_integration]
-            )
+            self.results["critical_issues"].extend([f"Integration: {issue}" for issue in issues_integration])
 
         # Calculate overall score
         total_score = score_2_1 + score_2_2 + score_2_3 + score_integration
@@ -617,28 +588,20 @@ class Phase2Validator:
         self.results["enterprise_ready"] = (
             self.results["overall_score"] >= 95
             and len(self.results["critical_issues"]) == 0
-            and all(
-                task["status"] == "passed" for task in self.results["tasks"].values()
-            )
+            and all(task["status"] == "passed" for task in self.results["tasks"].values())
         )
 
         # Generate recommendations
         if not self.results["enterprise_ready"]:
             if self.results["overall_score"] < 95:
-                self.results["recommendations"].append(
-                    "Overall score below 95% - review failed components"
-                )
+                self.results["recommendations"].append("Overall score below 95% - review failed components")
 
             if len(self.results["critical_issues"]) > 0:
-                self.results["recommendations"].append(
-                    "Resolve all critical issues before production deployment"
-                )
+                self.results["recommendations"].append("Resolve all critical issues before production deployment")
 
             for task_id, task in self.results["tasks"].items():
                 if task["status"] == "failed":
-                    self.results["recommendations"].append(
-                        f"Task {task_id} failed - requires immediate attention"
-                    )
+                    self.results["recommendations"].append(f"Task {task_id} failed - requires immediate attention")
 
         return self.results
 
@@ -651,9 +614,7 @@ class Phase2Validator:
         report.append("=" * 80)
         report.append(f"Timestamp: {self.results['timestamp']}")
         report.append(f"Overall Score: {self.results['overall_score']:.1f}%")
-        report.append(
-            f"Enterprise Ready: {'✅ YES' if self.results['enterprise_ready'] else '❌ NO'}"
-        )
+        report.append(f"Enterprise Ready: {'✅ YES' if self.results['enterprise_ready'] else '❌ NO'}")
         report.append("")
 
         # Task results
@@ -721,7 +682,6 @@ def main():
     report_file = current_dir / "phase2_validation_report.txt"
     with open(report_file, "w") as f:
         f.write(report)
-
 
     # Exit with appropriate code
     exit_code = 0 if results["enterprise_ready"] else 1

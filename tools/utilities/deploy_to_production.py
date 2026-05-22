@@ -9,15 +9,13 @@ import logging
 import os
 import subprocess
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 # Setup logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - DEPLOY - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - DEPLOY - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
+
 
 class ProductionDeployment:
     """Production deployment orchestrator."""
@@ -62,7 +60,7 @@ class ProductionDeployment:
                 "production_deployment/security_policy.json",
                 "production_deployment/database_config.json",
                 "production_deployment/cache_config.json",
-                "emergency_security_config.json"
+                "emergency_security_config.json",
             ]
 
             for config_file in config_files:
@@ -74,9 +72,9 @@ class ProductionDeployment:
             # Create backup manifest
             backup_manifest = {
                 "deployment_id": self.deployment_id,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "backed_up_files": config_files,
-                "backup_location": str(backup_dir)
+                "backup_location": str(backup_dir),
             }
 
             with open(backup_dir / "backup_manifest.json", "w") as f:
@@ -106,7 +104,7 @@ class ProductionDeployment:
                 ("production_deployment/security_policy.json", "security_policy.json"),
                 ("production_deployment/database_config.json", "database.json"),
                 ("production_deployment/cache_config.json", "cache.json"),
-                ("emergency_security_config.json", "emergency.json")
+                ("emergency_security_config.json", "emergency.json"),
             ]
 
             for source, dest in config_deployments:
@@ -131,9 +129,7 @@ class ProductionDeployment:
 
         try:
             # Start health check service
-            health_service_cmd = [
-                "python", "/home/vivi/pixelated/ai/production_health_service.py"
-            ]
+            health_service_cmd = ["python", "/home/vivi/pixelated/ai/production_health_service.py"]
 
             # Test health service
             result = subprocess.run(health_service_cmd, capture_output=True, text=True, timeout=10)
@@ -158,9 +154,12 @@ class ProductionDeployment:
 
         try:
             # Run health check
-            result = subprocess.run([
-                "python", "/home/vivi/pixelated/ai/production_health_service.py"
-            ], capture_output=True, text=True, timeout=10)
+            result = subprocess.run(
+                ["python", "/home/vivi/pixelated/ai/production_health_service.py"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
 
             if result.returncode == 0:
                 health_data = json.loads(result.stdout)
@@ -169,7 +168,7 @@ class ProductionDeployment:
                     "health_status": health_data.get("status"),
                     "system_metrics": health_data.get("system", {}),
                     "dependencies": health_data.get("dependencies", {}),
-                    "timestamp": datetime.now(timezone.utc).isoformat()
+                    "timestamp": datetime.now(UTC).isoformat(),
                 }
 
                 # Write post-deployment test results
@@ -195,14 +194,14 @@ class ProductionDeployment:
 
         deployment_report = {
             "deployment_id": self.deployment_id,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "deployment_status": "SUCCESS",
             "deployment_log": self.deployment_log,
             "system_status": "PRODUCTION_READY",
             "monitoring_enabled": True,
             "security_enabled": True,
             "backup_created": True,
-            "post_deployment_tests": "PASSED"
+            "post_deployment_tests": "PASSED",
         }
 
         # Write deployment report
@@ -248,17 +247,18 @@ class ProductionDeployment:
 
             failure_report = {
                 "deployment_id": self.deployment_id,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "deployment_status": "FAILED",
                 "error": str(e),
                 "deployment_log": self.deployment_log,
-                "rollback_required": True
+                "rollback_required": True,
             }
 
             with open(f"/home/vivi/pixelated/ai/DEPLOYMENT_FAILURE_{self.deployment_id}.json", "w") as f:
                 json.dump(failure_report, f, indent=2)
 
             raise
+
 
 if __name__ == "__main__":
     deployer = ProductionDeployment()

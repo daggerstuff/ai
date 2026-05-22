@@ -3,17 +3,15 @@
 Lightning.ai Studio Setup Script
 Automated setup for H100 therapeutic AI training in Lightning.ai Studio environment.
 """
+
 import logging
 import subprocess
 from pathlib import Path
 
+import lightning
 from ai.utils.torch_proxy import torch
 
-import lightning
-
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -41,9 +39,7 @@ class LightningStudioSetup:
 
         try:
             # Check Python version
-            result = subprocess.run(
-                ["python", "--version"], capture_output=True, text=True
-            )
+            result = subprocess.run(["python", "--version"], capture_output=True, text=True)
             env_info["python_version"] = result.stdout.strip()
 
             # Check GPU availability
@@ -61,27 +57,20 @@ class LightningStudioSetup:
                     gpu_info = result.stdout.strip().split(", ")
                     env_info["gpu_available"] = True
                     env_info["gpu_type"] = gpu_info[0] if gpu_info else "Unknown"
-                    env_info["memory_available"] = (
-                        gpu_info[1] if len(gpu_info) > 1 else "Unknown"
-                    )
+                    env_info["memory_available"] = gpu_info[1] if len(gpu_info) > 1 else "Unknown"
             except:
                 pass
 
             # Check CUDA version
             try:
-                result = subprocess.run(
-                    ["nvcc", "--version"], capture_output=True, text=True
-                )
+                result = subprocess.run(["nvcc", "--version"], capture_output=True, text=True)
                 if "release" in result.stdout:
-                    env_info["cuda_version"] = result.stdout.split("release ")[1].split(
-                        ","
-                    )[0]
+                    env_info["cuda_version"] = result.stdout.split("release ")[1].split(",")[0]
             except:
                 pass
 
             # Check PyTorch
             try:
-
                 env_info["pytorch_available"] = True
                 env_info["pytorch_version"] = torch.__version__
                 env_info["cuda_available_pytorch"] = torch.cuda.is_available()
@@ -90,7 +79,6 @@ class LightningStudioSetup:
 
             # Check Lightning
             try:
-
                 env_info["lightning_available"] = True
                 env_info["lightning_version"] = lightning.__version__
             except:
@@ -101,9 +89,7 @@ class LightningStudioSetup:
 
         # Determine if studio is ready
         env_info["studio_ready"] = (
-            env_info["gpu_available"]
-            and env_info["pytorch_available"]
-            and "H100" in str(env_info["gpu_type"])
+            env_info["gpu_available"] and env_info["pytorch_available"] and "H100" in str(env_info["gpu_type"])
         )
 
         # Log environment info
@@ -111,9 +97,7 @@ class LightningStudioSetup:
         logger.info(f"   GPU: {env_info['gpu_type']} ({env_info['memory_available']})")
         logger.info(f"   CUDA: {env_info['cuda_version']}")
         logger.info(f"   PyTorch: {'✅' if env_info['pytorch_available'] else '❌'}")
-        logger.info(
-            f"   Lightning: {'✅' if env_info['lightning_available'] else '❌'}"
-        )
+        logger.info(f"   Lightning: {'✅' if env_info['lightning_available'] else '❌'}")
         logger.info(f"   H100 Ready: {'✅' if env_info['studio_ready'] else '❌'}")
 
         return env_info
@@ -138,13 +122,9 @@ class LightningStudioSetup:
         try:
             for requirement in requirements:
                 logger.info(f"   Installing {requirement}...")
-                result = subprocess.run(
-                    ["pip", "install", requirement], capture_output=True, text=True
-                )
+                result = subprocess.run(["pip", "install", requirement], capture_output=True, text=True)
                 if result.returncode != 0:
-                    logger.warning(
-                        f"   Warning installing {requirement}: {result.stderr}"
-                    )
+                    logger.warning(f"   Warning installing {requirement}: {result.stderr}")
 
             logger.info("✅ Dependencies installation completed")
             return True
@@ -179,9 +159,7 @@ class LightningStudioSetup:
 
         try:
             # Check if wandb is available
-            result = subprocess.run(
-                ["wandb", "--version"], capture_output=True, text=True
-            )
+            result = subprocess.run(["wandb", "--version"], capture_output=True, text=True)
             if result.returncode != 0:
                 logger.warning("⚠️  WandB not available, installing...")
                 subprocess.run(["pip", "install", "wandb"], check=True)

@@ -71,7 +71,9 @@ class TestQualityAssessment(unittest.TestCase):
 
     def test_linguistic_quality(self):
         """Test linguistic quality assessment (grammar, length, repeated chars)."""
-        good_text = "This is a well-structured sentence with appropriate length. It communicates clearly and effectively."
+        good_text = (
+            "This is a well-structured sentence with appropriate length. It communicates clearly and effectively."
+        )
         good_score = self.framework._assess_linguistic_quality(good_text)
         assert good_score > 0.4
 

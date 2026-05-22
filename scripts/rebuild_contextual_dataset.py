@@ -31,12 +31,10 @@ def rebuild_dataset():
     all_conversations = []
     processed_count = 0
 
-
     # Process all segment files
     for segment_dir in segment_dirs:
         if not segment_dir.exists():
             continue
-
 
         for segment_file in segment_dir.glob("*.json"):
             if "summary" in segment_file.name:
@@ -78,11 +76,8 @@ def rebuild_dataset():
                 except Exception:
                     pass
 
-
     # Create train/validation split
-    train_conversations, val_conversations = converter.create_training_split(
-        all_conversations
-    )
+    train_conversations, val_conversations = converter.create_training_split(all_conversations)
 
     # Save datasets
     train_file = output_dir / "train.json"
@@ -113,7 +108,6 @@ def rebuild_dataset():
         stats["by_quality"][quality_level] += 1
 
     converter.create_config_file(output_dir, stats)
-
 
 
 if __name__ == "__main__":

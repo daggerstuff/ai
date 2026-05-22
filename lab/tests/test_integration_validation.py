@@ -20,7 +20,7 @@ class TestIntegrationValidation(unittest.TestCase):
             "task_85_security_validation_results.json",
             "task_86_documentation_validation_results.json",
             "task_87_compliance_validation_results.json",
-            "task_88_usability_validation_results.json"
+            "task_88_usability_validation_results.json",
         ]
 
         for filename in required_files:
@@ -41,14 +41,13 @@ class TestIntegrationValidation(unittest.TestCase):
                     results = json.load(f)
 
                 if score_key in results:
-                    assert results[score_key] >= threshold, f"{filename} score {results[score_key]} below threshold {threshold}"
+                    assert results[score_key] >= threshold, (
+                        f"{filename} score {results[score_key]} below threshold {threshold}"
+                    )
 
     def test_production_readiness_flags(self):
         """Test that production readiness flags are set correctly"""
-        validation_files = [
-            "task_81_safety_validation_results.json",
-            "task_85_security_validation_results.json"
-        ]
+        validation_files = ["task_81_safety_validation_results.json", "task_85_security_validation_results.json"]
 
         for filename in validation_files:
             file_path = Path(f"/home/vivi/pixelated/ai/{filename}")
@@ -58,6 +57,7 @@ class TestIntegrationValidation(unittest.TestCase):
 
                 if "production_ready" in results:
                     assert results["production_ready"], f"{filename} not marked as production ready"
+
 
 if __name__ == "__main__":
     unittest.main()

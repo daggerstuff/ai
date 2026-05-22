@@ -60,9 +60,7 @@ def prompt_for_session_config() -> dict[str, Any]:
     }
 
 
-def prompt_for_dataset_review(
-    source_id: str, evaluation: dict[str, Any] | None = None
-) -> bool:
+def prompt_for_dataset_review(source_id: str, evaluation: dict[str, Any] | None = None) -> bool:
     """Prompt user to review and approve a dataset."""
     console.print(f"\n[bold yellow]Reviewing Dataset: {source_id}[/bold yellow]\n")
 
@@ -103,9 +101,7 @@ def prompt_for_dataset_review(
     return Confirm.ask("Approve this dataset for acquisition?", default=True)
 
 
-def prompt_for_acquisition_approval(
-    source_id: str, access_request: dict[str, Any] | None = None
-) -> bool:
+def prompt_for_acquisition_approval(source_id: str, access_request: dict[str, Any] | None = None) -> bool:
     """Prompt user to approve dataset acquisition."""
     console.print(f"\n[bold yellow]Acquisition Request: {source_id}[/bold yellow]\n")
 
@@ -118,30 +114,22 @@ def prompt_for_acquisition_approval(
     return Confirm.ask("Proceed with acquisition?", default=True)
 
 
-def prompt_for_integration_approval(
-    source_id: str, integration_plan: dict[str, Any] | None = None
-) -> bool:
+def prompt_for_integration_approval(source_id: str, integration_plan: dict[str, Any] | None = None) -> bool:
     """Prompt user to approve integration plan."""
     console.print(f"\n[bold yellow]Integration Plan: {source_id}[/bold yellow]\n")
 
     if integration_plan:
         console.print(f"Complexity: {integration_plan.get('complexity', 'N/A')}")
-        console.print(
-            f"Estimated Effort: {integration_plan.get('estimated_effort_hours', 'N/A')} hours"
-        )
+        console.print(f"Estimated Effort: {integration_plan.get('estimated_effort_hours', 'N/A')} hours")
         if integration_plan.get("required_transformations"):
-            console.print(
-                f"Transformations: {', '.join(integration_plan.get('required_transformations', []))}"
-            )
+            console.print(f"Transformations: {', '.join(integration_plan.get('required_transformations', []))}")
 
     return Confirm.ask("Approve this integration plan?", default=True)
 
 
 def prompt_for_phase_transition(current_phase: str, next_phase: str) -> bool:
     """Prompt user to approve phase transition."""
-    console.print(
-        f"\n[bold cyan]Phase Transition: {current_phase} → {next_phase}[/bold cyan]\n"
-    )
+    console.print(f"\n[bold cyan]Phase Transition: {current_phase} → {next_phase}[/bold cyan]\n")
     return Confirm.ask(f"Proceed to {next_phase} phase?", default=True)
 
 
@@ -228,4 +216,3 @@ def prompt_for_action(actions: list[str]) -> str:
         if choice.isdigit() and 1 <= int(choice) <= len(actions):
             return actions[int(choice) - 1]
         console.print("[red]Invalid choice. Please try again.[/red]")
-
