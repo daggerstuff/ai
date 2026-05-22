@@ -38,27 +38,6 @@ def test_format_as_markdown_missing_metadata():
     assert "Hello there. How are you? I am fine." in result
 
 
-def test_clean_vtt_removes_duplicates():
-def test_clean_vtt_empty_cleaned_line():
-def test_clean_vtt_removes_duplicates():
-def test_clean_vtt_empty_cleaned_line():
-def test_clean_vtt_removes_duplicates():
-def test_clean_vtt_empty_cleaned_line():
-def test_clean_vtt_removes_duplicates():
-def test_clean_vtt_empty_cleaned_line():
-def test_clean_vtt_removes_duplicates():
-def test_clean_vtt_empty_cleaned_line():
-def test_clean_vtt_removes_duplicates():
-def test_clean_vtt_empty_cleaned_line():
-def test_clean_vtt_removes_duplicates():
-def test_clean_vtt_empty_cleaned_line():
-def test_clean_vtt_removes_duplicates():
-def test_clean_vtt_empty_cleaned_line():
-def test_clean_vtt_removes_duplicates():
-def test_clean_vtt_empty_cleaned_line():
-def test_clean_vtt_removes_duplicates():
-def test_clean_vtt_empty_cleaned_line():
-def test_clean_vtt_removes_duplicates():
     vtt_content = """WEBVTT
 Kind: captions
 Language: en

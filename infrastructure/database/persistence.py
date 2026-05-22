@@ -844,6 +844,8 @@ class ConversationRepository(BaseModelRepository[dict]):
                     self.db_manager.cache.invalidate(f"conversation:{cid}")
 
             except Exception as e:
+                # Log but don't fail the chunk — proceed to next SQL batch
+                print(f"Cache invalidation error for conversation IDs: {e}")
 
         for i in range(0, len(ids), chunk_size):
             chunk = ids[i:i + chunk_size]

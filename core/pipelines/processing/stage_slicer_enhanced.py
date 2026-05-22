@@ -383,9 +383,6 @@ def validate_stage_slice(
         "empathy_avg": sum(empathy_scores) / len(empathy_scores) if empathy_scores else 0.0,
         "clinical_avg": sum(clinical_scores) / len(clinical_scores) if clinical_scores else 0.0,
         "safety_avg": sum(safety_scores) / len(safety_scores) if safety_scores else 0.0,
-        "total_records": len(records),
-        "dedup_retention": 0.85,  # Placeholder - would come from actual dedup analysis
-    }
         "clinical_validity_avg": (
             sum(clinical_validity_scores) / len(clinical_validity_scores)
             if clinical_validity_scores else 0.0
