@@ -4,11 +4,12 @@ Graceful Degradation for Pipeline Communication - Fallback Mechanisms.
 This module provides comprehensive graceful degradation with fallback mechanisms,
 circuit breakers, and service degradation strategies for the six-stage pipeline.
 """
+
 import asyncio
 import random
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any
 
@@ -193,12 +194,8 @@ class GracefulDegradationManager:
         try:
             # Check service health and circuit breaker
             if not await self._is_service_available(service_name):
-                self.logger.warning(
-                    f"Service {service_name} is not available, attempting fallback"
-                )
-                return await self._execute_fallback(
-                    service_name, fallback_func, context
-                )
+                self.logger.warning(f"Service {service_name} is not available, attempting fallback")
+                return await self._execute_fallback(service_name, fallback_func, context)
 
             # Execute primary function
             result = await primary_func()
@@ -209,9 +206,7 @@ class GracefulDegradationManager:
             return result
 
         except Exception as e:
-            self.logger.error(
-                f"Primary function failed for service {service_name}: {e}"
-            )
+            self.logger.error(f"Primary function failed for service {service_name}: {e}")
 
             # Record failure
             await self._record_service_failure(service_name, str(e))
@@ -229,9 +224,7 @@ class GracefulDegradationManager:
         try:
             # Check if fallback function is provided
             if fallback_func:
-                self.logger.info(
-                    f"Executing custom fallback for service {service_name}"
-                )
+                self.logger.info(f"Executing custom fallback for service {service_name}")
                 result = await fallback_func()
                 self.performance_metrics["successful_fallbacks"] += 1
                 return result
@@ -243,29 +236,18 @@ class GracefulDegradationManager:
 
             # No fallback available
             self.logger.error(f"No fallback available for service {service_name}")
-            raise ServiceUnavailableError(
-                f"Service {service_name} is unavailable and no fallback exists"
-            )
+            raise ServiceUnavailableError(f"Service {service_name} is unavailable and no fallback exists")
 
         except Exception as e:
-            self.logger.error(
-                f"Fallback execution failed for service {service_name}: {e}"
-            )
-            raise ServiceUnavailableError(
-                f"Fallback failed for service {service_name}: {e!s}"
-            )
+            self.logger.error(f"Fallback execution failed for service {service_name}: {e}")
+            raise ServiceUnavailableError(f"Fallback failed for service {service_name}: {e!s}")
 
-    async def _execute_degradation_strategy(
-        self, service_name: str, context: dict[str, Any] | None
-    ) -> Any:
+    async def _execute_degradation_strategy(self, service_name: str, context: dict[str, Any] | None) -> Any:
         """Execute predefined degradation strategy."""
         try:
             degradation_level = await self._get_service_degradation_level(service_name)
 
-            self.logger.info(
-                f"Executing degradation strategy for {service_name} "
-                f"at level {degradation_level.value}"
-            )
+            self.logger.info(f"Executing degradation strategy for {service_name} at level {degradation_level.value}")
 
             # Execute based on degradation level
             if degradation_level == DegradationLevel.NORMAL:
@@ -284,9 +266,7 @@ class GracefulDegradationManager:
             self.logger.error(f"Degradation strategy execution failed: {e}")
             raise
 
-    async def _execute_normal_strategy(
-        self, service_name: str, _context: dict[str, Any] | None
-    ) -> Any:
+    async def _execute_normal_strategy(self, service_name: str, _context: dict[str, Any] | None) -> Any:
         """Execute normal service strategy."""
         # Simulate normal operation
         if service_name == "bias_detection":
@@ -306,9 +286,7 @@ class GracefulDegradationManager:
 
         return {"status": "success", "strategy": "normal", "service": service_name}
 
-    async def _execute_degraded_strategy(
-        self, service_name: str, _context: dict[str, Any] | None
-    ) -> Any:
+    async def _execute_degraded_strategy(self, service_name: str, _context: dict[str, Any] | None) -> Any:
         """Execute degraded service strategy."""
         # Simulate degraded operation
         if service_name == "bias_detection":
@@ -335,9 +313,7 @@ class GracefulDegradationManager:
             "note": "Service operating in degraded mode",
         }
 
-    async def _execute_critical_strategy(
-        self, service_name: str, _context: dict[str, Any] | None
-    ) -> Any:
+    async def _execute_critical_strategy(self, service_name: str, _context: dict[str, Any] | None) -> Any:
         """Execute critical service strategy."""
         # Simulate critical/minimal operation
         if service_name == "bias_detection":
@@ -374,7 +350,7 @@ class GracefulDegradationManager:
                 health = ServiceHealth(
                     service_name=service_name,
                     status="unknown",
-                    last_check=datetime.now(timezone.utc),
+                    last_check=datetime.now(UTC),
                     failure_count=0,
                     success_count=0,
                     circuit_state=CircuitState.CLOSED,
@@ -384,10 +360,7 @@ class GracefulDegradationManager:
 
             # Check circuit breaker
             if health.circuit_state == CircuitState.OPEN:
-                if (
-                    health.next_retry_time
-                    and datetime.now(timezone.utc) < health.next_retry_time
-                ):
+                if health.next_retry_time and datetime.now(UTC) < health.next_retry_time:
                     return False
                 # Move to half-open state
                 health.circuit_state = CircuitState.HALF_OPEN
@@ -396,14 +369,10 @@ class GracefulDegradationManager:
             return health.circuit_state != CircuitState.OPEN
 
         except Exception as e:
-            self.logger.error(
-                f"Error checking service availability for {service_name}: {e}"
-            )
+            self.logger.error(f"Error checking service availability for {service_name}: {e}")
             return False
 
-    async def _get_service_degradation_level(
-        self, service_name: str
-    ) -> DegradationLevel:
+    async def _get_service_degradation_level(self, service_name: str) -> DegradationLevel:
         """Determine service degradation level based on health metrics."""
         try:
             health = self.service_health.get(service_name)
@@ -425,9 +394,7 @@ class GracefulDegradationManager:
             return DegradationLevel.NORMAL
 
         except Exception as e:
-            self.logger.error(
-                f"Error determining degradation level for {service_name}: {e}"
-            )
+            self.logger.error(f"Error determining degradation level for {service_name}: {e}")
             return DegradationLevel.NORMAL
 
     async def _record_service_success(self, service_name: str) -> None:
@@ -436,7 +403,7 @@ class GracefulDegradationManager:
             health = self.service_health.get(service_name)
             if health:
                 health.success_count += 1
-                health.last_check = datetime.now(timezone.utc)
+                health.last_check = datetime.now(UTC)
 
                 # Reset circuit breaker on success if in half-open state
                 if health.circuit_state == CircuitState.HALF_OPEN:
@@ -446,19 +413,15 @@ class GracefulDegradationManager:
                 self.logger.debug(f"Recorded success for service {service_name}")
 
         except Exception as e:
-            self.logger.error(
-                f"Error recording service success for {service_name}: {e}"
-            )
+            self.logger.error(f"Error recording service success for {service_name}: {e}")
 
-    async def _record_service_failure(
-        self, service_name: str, error_message: str
-    ) -> None:
+    async def _record_service_failure(self, service_name: str, error_message: str) -> None:
         """Record failed service execution."""
         try:
             health = self.service_health.get(service_name)
             if health:
                 health.failure_count += 1
-                health.last_check = datetime.now(timezone.utc)
+                health.last_check = datetime.now(UTC)
 
                 # Check circuit breaker threshold
                 if (
@@ -467,37 +430,30 @@ class GracefulDegradationManager:
                 ):
                     # Open circuit breaker
                     health.circuit_state = CircuitState.OPEN
-                    health.next_retry_time = datetime.now(timezone.utc) + timedelta(
+                    health.next_retry_time = datetime.now(UTC) + timedelta(
                         seconds=self.config.circuit_breaker_timeout_seconds
                     )
 
                     self.performance_metrics["circuit_breaker_activations"] += 1
 
                     self.logger.warning(
-                        f"Circuit breaker opened for service {service_name} after "
-                        f"{health.failure_count} failures"
+                        f"Circuit breaker opened for service {service_name} after {health.failure_count} failures"
                     )
 
-                self.logger.debug(
-                    f"Recorded failure for service {service_name}: {error_message}"
-                )
+                self.logger.debug(f"Recorded failure for service {service_name}: {error_message}")
 
         except Exception as e:
-            self.logger.error(
-                f"Error recording service failure for {service_name}: {e}"
-            )
+            self.logger.error(f"Error recording service failure for {service_name}: {e}")
 
     async def monitor_service_health(self) -> None:
         """Monitor service health and update status."""
         try:
             while True:
-                current_time = datetime.now(timezone.utc)
+                current_time = datetime.now(UTC)
 
                 for service_name, health in self.service_health.items():
                     # Check if it's time for health check
-                    if (
-                        current_time - health.last_check
-                    ).total_seconds() >= self.config.service_health_check_interval:
+                    if (current_time - health.last_check).total_seconds() >= self.config.service_health_check_interval:
                         # Perform health check
                         is_healthy = await self._perform_health_check(service_name)
 
@@ -509,16 +465,10 @@ class GracefulDegradationManager:
                                 success_rate = health.success_count / max(
                                     1, health.success_count + health.failure_count
                                 )
-                                if (
-                                    success_rate
-                                    >= self.config.half_open_success_threshold
-                                ):
+                                if success_rate >= self.config.half_open_success_threshold:
                                     health.circuit_state = CircuitState.CLOSED
                                     health.failure_count = 0
-                                    self.logger.info(
-                                        "Circuit breaker closed for "
-                                        f"service {service_name}"
-                                    )
+                                    self.logger.info(f"Circuit breaker closed for service {service_name}")
                         else:
                             health.status = "unhealthy"
 
@@ -559,7 +509,7 @@ class GracefulDegradationManager:
         """
         try:
             summary = {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "services": {},
                 "overall_status": "healthy",
                 "degraded_services": [],
@@ -574,9 +524,7 @@ class GracefulDegradationManager:
                     "failure_count": health.failure_count,
                     "success_count": health.success_count,
                     "last_check": health.last_check.isoformat(),
-                    "degradation_level": self._get_service_degradation_level(
-                        service_name
-                    ).value,
+                    "degradation_level": self._get_service_degradation_level(service_name).value,
                 }
 
                 summary["services"][service_name] = service_summary
@@ -600,7 +548,7 @@ class GracefulDegradationManager:
 
         except Exception as e:
             self.logger.error(f"Failed to generate service health summary: {e}")
-            return {"error": str(e), "timestamp": datetime.now(timezone.utc).isoformat()}
+            return {"error": str(e), "timestamp": datetime.now(UTC).isoformat()}
 
     def get_degradation_recommendations(self) -> list[str]:
         """
@@ -616,8 +564,7 @@ class GracefulDegradationManager:
             if self.performance_metrics["circuit_breaker_activations"] > 0:
                 count = self.performance_metrics["circuit_breaker_activations"]
                 recommendations.append(
-                    f"{count} circuit breaker activations detected. "
-                    "Review service configuration and error handling."
+                    f"{count} circuit breaker activations detected. Review service configuration and error handling."
                 )
 
             # Check for high failure rate
@@ -628,8 +575,7 @@ class GracefulDegradationManager:
                 success_rate = successful_fallbacks / total_fallbacks
                 if success_rate < 0.8:
                     recommendations.append(
-                        f"Fallback success rate is {success_rate:.1%}. "
-                        "Consider improving fallback mechanisms."
+                        f"Fallback success rate is {success_rate:.1%}. Consider improving fallback mechanisms."
                     )
 
             # Check for services in critical state
@@ -641,15 +587,12 @@ class GracefulDegradationManager:
 
             if critical_services:
                 recommendations.append(
-                    f"Services in critical state: {', '.join(critical_services)}. "
-                    "Immediate investigation required."
+                    f"Services in critical state: {', '.join(critical_services)}. Immediate investigation required."
                 )
 
             # General recommendations
             if not recommendations:
-                recommendations.append(
-                    "All services are operating within normal parameters."
-                )
+                recommendations.append("All services are operating within normal parameters.")
 
             return recommendations[:3]  # Limit to top 3
 
@@ -678,11 +621,7 @@ class GracefulDegradationManager:
             # Check strategies
             strategies_loaded = len(self.degradation_strategies) > 0
 
-            status = (
-                "healthy"
-                if all([config_healthy, services_healthy, strategies_loaded])
-                else "degraded"
-            )
+            status = "healthy" if all([config_healthy, services_healthy, strategies_loaded]) else "degraded"
 
             return {
                 "status": status,
@@ -690,13 +629,9 @@ class GracefulDegradationManager:
                 "services_configured": services_healthy,
                 "strategies_loaded": strategies_loaded,
                 "total_fallbacks": self.performance_metrics["total_fallbacks"],
-                "successful_fallbacks": self.performance_metrics[
-                    "successful_fallbacks"
-                ],
-                "circuit_breaker_activations": self.performance_metrics[
-                    "circuit_breaker_activations"
-                ],
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "successful_fallbacks": self.performance_metrics["successful_fallbacks"],
+                "circuit_breaker_activations": self.performance_metrics["circuit_breaker_activations"],
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
         except Exception as e:
@@ -704,5 +639,5 @@ class GracefulDegradationManager:
             return {
                 "status": "unhealthy",
                 "error": str(e),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }

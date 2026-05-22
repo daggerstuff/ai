@@ -11,6 +11,7 @@ def get_db_connection(db_path):
     conn = sqlite3.connect(db_path)
     return conn, conn.cursor()
 
+
 def check_database():
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     logger = logging.getLogger("db_schema_checker")
@@ -54,6 +55,7 @@ def log_conversations_summary(db_path, logger):
     logger.info(f"\n📈 Total Records: {count:,}")
 
     conn.close()
+
 
 if __name__ == "__main__":
     check_database()

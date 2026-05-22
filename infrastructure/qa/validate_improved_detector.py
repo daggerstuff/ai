@@ -19,9 +19,7 @@ from safety_accuracy_validator_simple import EnterpriseSafetyAccuracyValidator
 
 async def main():
     """Run full validation with improved crisis detector"""
-    logging.basicConfig(
-        level=logging.INFO, format="%(levelname)s: %(message)s"
-    )
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
     logger = logging.getLogger(__name__)
 
     # Initialize validator
@@ -57,22 +55,16 @@ async def main():
             f"Overall accuracy short by {95 - result.overall_accuracy:.2f}% (current: {result.overall_accuracy:.2f}%)."
         )
     if result.false_negative_rate >= 1:
-        blockers.append(
-            f"False-negative rate is too high: {result.false_negative_rate:.2f}% (max allowed: 1%)."
-        )
+        blockers.append(f"False-negative rate is too high: {result.false_negative_rate:.2f}% (max allowed: 1%).")
     if result.false_positive_rate >= 5:
-        blockers.append(
-            f"False-positive rate is too high: {result.false_positive_rate:.2f}% (max allowed: 5%)."
-        )
+        blockers.append(f"False-positive rate is too high: {result.false_positive_rate:.2f}% (max allowed: 5%).")
 
     logger.error("\nValidation outcome: FAILED")
     logger.error("Blocking issues:")
     for blocker in blockers:
         logger.error("- %s", blocker)
     logger.warning("Recommended remediation:")
-    logger.warning(
-        "- Review false-negative and false-positive cohorts in the generated JSON report."
-    )
+    logger.warning("- Review false-negative and false-positive cohorts in the generated JSON report.")
     logger.warning("- Tune crisis pattern weights and context filters in improved_crisis_detector.")
     logger.warning("- Re-run this validation and investigate outlier language/demographic buckets.")
     raise SystemExit(1)

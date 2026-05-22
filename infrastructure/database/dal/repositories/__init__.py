@@ -11,9 +11,9 @@ from ai.infrastructure.database.dal.repositories.business_documents import (
 
 __all__ = [
     "BusinessDocumentRepository",
-    "ProjectRepository",
-    "MarketResearchRepository",
-    "StrategicPlanRepository",
-    "SalesOpportunityRepository",
     "KnowledgeArticleRepository",
+    "MarketResearchRepository",
+    "ProjectRepository",
+    "SalesOpportunityRepository",
+    "StrategicPlanRepository",
 ]

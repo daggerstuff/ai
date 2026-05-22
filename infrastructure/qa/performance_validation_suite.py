@@ -27,7 +27,7 @@ import logging
 import statistics
 import time
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -39,23 +39,24 @@ import requests
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.FileHandler("/home/vivi/pixelated/ai/logs/performance_validation.log"),
-        logging.StreamHandler()
-    ]
+    handlers=[logging.FileHandler("/home/vivi/pixelated/ai/logs/performance_validation.log"), logging.StreamHandler()],
 )
 logger = logging.getLogger(__name__)
 
+
 class LoadTestType(Enum):
     """Types of load tests"""
+
     NORMAL_LOAD = "normal_load"
     PEAK_LOAD = "peak_load"
     STRESS_LOAD = "stress_load"
     SPIKE_LOAD = "spike_load"
     ENDURANCE_LOAD = "endurance_load"
 
+
 class PerformanceMetric(Enum):
     """Performance metrics to track"""
+
     RESPONSE_TIME = "response_time"
     THROUGHPUT = "throughput"
     ERROR_RATE = "error_rate"
@@ -63,9 +64,11 @@ class PerformanceMetric(Enum):
     MEMORY_UTILIZATION = "memory_utilization"
     DATABASE_CONNECTIONS = "database_connections"
 
+
 @dataclass
 class LoadTestConfig:
     """Load test configuration"""
+
     test_name: str
     test_type: LoadTestType
     concurrent_users: int
@@ -76,9 +79,11 @@ class LoadTestConfig:
     expected_response_time_ms: int
     max_error_rate_percent: float
 
+
 @dataclass
 class RequestResult:
     """Individual request result"""
+
     endpoint: str
     method: str
     status_code: int
@@ -88,9 +93,11 @@ class RequestResult:
     timestamp: datetime
     error_message: str | None = None
 
+
 @dataclass
 class LoadTestResult:
     """Load test execution result"""
+
     test_name: str
     test_type: LoadTestType
     start_time: datetime
@@ -110,9 +117,11 @@ class LoadTestResult:
     concurrent_users: int
     sla_compliance: bool
 
+
 @dataclass
 class PerformanceReport:
     """Comprehensive performance validation report"""
+
     report_id: str
     timestamp: datetime
     test_results: list[LoadTestResult]
@@ -121,6 +130,7 @@ class PerformanceReport:
     scalability_score: float
     recommendations: list[str]
     performance_summary: dict[str, Any]
+
 
 class LoadTestExecutor:
     """Executes load tests with concurrent requests"""
@@ -133,9 +143,11 @@ class LoadTestExecutor:
     async def execute_load_test(self, config: LoadTestConfig) -> LoadTestResult:
         """Execute a load test based on configuration"""
         logger.info(f"Starting load test: {config.test_name}")
-        logger.info(f"Config: {config.concurrent_users} users, {config.requests_per_minute} req/min, {config.duration_minutes} min")
+        logger.info(
+            f"Config: {config.concurrent_users} users, {config.requests_per_minute} req/min, {config.duration_minutes} min"
+        )
 
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
         self.results = []
         self.stop_test = False
 
@@ -158,13 +170,15 @@ class LoadTestExecutor:
             # Wait for all requests to complete
             concurrent.futures.wait(futures, timeout=60)
 
-        end_time = datetime.now(timezone.utc)
+        end_time = datetime.now(UTC)
 
         # Analyze results
         result = self._analyze_results(config, start_time, end_time)
 
         logger.info(f"Load test completed: {result.test_name}")
-        logger.info(f"Results: {result.total_requests} requests, {result.average_response_time_ms:.1f}ms avg, {result.error_rate_percent:.1f}% errors")
+        logger.info(
+            f"Results: {result.total_requests} requests, {result.average_response_time_ms:.1f}ms avg, {result.error_rate_percent:.1f}% errors"
+        )
 
         return result
 
@@ -209,7 +223,7 @@ class LoadTestExecutor:
     def _make_request(self, endpoint: str) -> RequestResult:
         """Make individual HTTP request"""
         start_time = time.time()
-        timestamp = datetime.now(timezone.utc)
+        timestamp = datetime.now(UTC)
 
         try:
             # Simulate different request types
@@ -218,13 +232,10 @@ class LoadTestExecutor:
                 payload = {
                     "message": "Hello, how are you?",
                     "user_id": f"user_{np.random.randint(1, 1000)}",
-                    "session_id": f"session_{np.random.randint(1, 100)}"
+                    "session_id": f"session_{np.random.randint(1, 100)}",
                 }
                 response = self.session.post(
-                    endpoint,
-                    json=payload,
-                    timeout=30,
-                    headers={"Content-Type": "application/json"}
+                    endpoint, json=payload, timeout=30, headers={"Content-Type": "application/json"}
                 )
                 method = "POST"
                 request_size = len(json.dumps(payload).encode())
@@ -244,7 +255,7 @@ class LoadTestExecutor:
                 response_time_ms=response_time_ms,
                 request_size_bytes=request_size,
                 response_size_bytes=response_size,
-                timestamp=timestamp
+                timestamp=timestamp,
             )
 
             self.results.append(result)
@@ -261,7 +272,7 @@ class LoadTestExecutor:
                 request_size_bytes=0,
                 response_size_bytes=0,
                 timestamp=timestamp,
-                error_message=str(e)
+                error_message=str(e),
             )
 
             self.results.append(result)
@@ -289,7 +300,7 @@ class LoadTestExecutor:
                 error_rate_percent=100,
                 throughput_mb_per_second=0,
                 concurrent_users=config.concurrent_users,
-                sla_compliance=False
+                sla_compliance=False,
             )
 
         # Basic metrics
@@ -324,8 +335,8 @@ class LoadTestExecutor:
 
         # SLA compliance
         sla_compliance = (
-            p95_response_time <= config.expected_response_time_ms and
-            error_rate_percent <= config.max_error_rate_percent
+            p95_response_time <= config.expected_response_time_ms
+            and error_rate_percent <= config.max_error_rate_percent
         )
 
         return LoadTestResult(
@@ -346,8 +357,9 @@ class LoadTestExecutor:
             error_rate_percent=error_rate_percent,
             throughput_mb_per_second=throughput_mb_per_second,
             concurrent_users=config.concurrent_users,
-            sla_compliance=sla_compliance
+            sla_compliance=sla_compliance,
         )
+
 
 class PerformanceValidationSuite:
     """Main performance validation and load testing suite"""
@@ -390,7 +402,7 @@ class PerformanceValidationSuite:
         base_endpoints = [
             "http://localhost:8000/api/v1/health",
             "http://localhost:8000/api/v1/chat",
-            "http://localhost:8000/api/v1/status"
+            "http://localhost:8000/api/v1/status",
         ]
 
         return [
@@ -403,7 +415,7 @@ class PerformanceValidationSuite:
                 ramp_up_minutes=1,
                 target_endpoints=base_endpoints,
                 expected_response_time_ms=200,
-                max_error_rate_percent=1.0
+                max_error_rate_percent=1.0,
             ),
             LoadTestConfig(
                 test_name="Peak Load Test",
@@ -414,7 +426,7 @@ class PerformanceValidationSuite:
                 ramp_up_minutes=2,
                 target_endpoints=base_endpoints,
                 expected_response_time_ms=500,
-                max_error_rate_percent=2.0
+                max_error_rate_percent=2.0,
             ),
             LoadTestConfig(
                 test_name="Stress Test",
@@ -425,7 +437,7 @@ class PerformanceValidationSuite:
                 ramp_up_minutes=1,
                 target_endpoints=base_endpoints,
                 expected_response_time_ms=1000,
-                max_error_rate_percent=5.0
+                max_error_rate_percent=5.0,
             ),
             LoadTestConfig(
                 test_name="Spike Test",
@@ -436,8 +448,8 @@ class PerformanceValidationSuite:
                 ramp_up_minutes=0,  # Immediate spike
                 target_endpoints=base_endpoints,
                 expected_response_time_ms=2000,
-                max_error_rate_percent=10.0
-            )
+                max_error_rate_percent=10.0,
+            ),
         ]
 
     async def _generate_performance_report(self) -> PerformanceReport:
@@ -445,14 +457,14 @@ class PerformanceValidationSuite:
 
         if not self.test_results:
             return PerformanceReport(
-                report_id=f"perf_report_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
-                timestamp=datetime.now(timezone.utc),
+                report_id=f"perf_report_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
+                timestamp=datetime.now(UTC),
                 test_results=[],
                 overall_performance_score=0,
                 sla_compliance_score=0,
                 scalability_score=0,
                 recommendations=["No test results available"],
-                performance_summary={}
+                performance_summary={},
             )
 
         # Calculate overall performance score
@@ -463,7 +475,7 @@ class PerformanceValidationSuite:
         scalability_score = self._calculate_scalability_score()
 
         # Overall performance score (weighted average)
-        overall_performance_score = (sla_compliance_score * 0.6 + scalability_score * 0.4)
+        overall_performance_score = sla_compliance_score * 0.6 + scalability_score * 0.4
 
         # Generate recommendations
         recommendations = self._generate_recommendations()
@@ -475,18 +487,18 @@ class PerformanceValidationSuite:
             "average_response_time": statistics.mean([r.average_response_time_ms for r in self.test_results]),
             "peak_throughput": max([r.requests_per_second for r in self.test_results]),
             "max_concurrent_users_tested": max([r.concurrent_users for r in self.test_results]),
-            "overall_error_rate": statistics.mean([r.error_rate_percent for r in self.test_results])
+            "overall_error_rate": statistics.mean([r.error_rate_percent for r in self.test_results]),
         }
 
         return PerformanceReport(
-            report_id=f"perf_report_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
-            timestamp=datetime.now(timezone.utc),
+            report_id=f"perf_report_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
+            timestamp=datetime.now(UTC),
             test_results=self.test_results,
             overall_performance_score=overall_performance_score,
             sla_compliance_score=sla_compliance_score,
             scalability_score=scalability_score,
             recommendations=recommendations,
-            performance_summary=performance_summary
+            performance_summary=performance_summary,
         )
 
     def _calculate_scalability_score(self) -> float:
@@ -563,6 +575,7 @@ class PerformanceValidationSuite:
 
         logger.info(f"Performance results saved to {self.results_path}")
 
+
 async def main():
     """Main execution function"""
     logger.info("Starting Performance Validation & Load Testing Suite...")
@@ -572,7 +585,6 @@ async def main():
     report = await suite.run_comprehensive_performance_validation()
 
     # Print results
-
 
     for _result in report.test_results:
         pass
@@ -586,7 +598,6 @@ async def main():
     sla_compliant = report.sla_compliance_score >= 95
     scalable = report.scalability_score >= 80
 
-
     overall_pass = performance_ready and sla_compliant and scalable
 
     if overall_pass:
@@ -595,6 +606,7 @@ async def main():
         pass
 
     return overall_pass
+
 
 if __name__ == "__main__":
     asyncio.run(main())

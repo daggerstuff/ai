@@ -8,7 +8,7 @@ including health checks, configuration management, and system status.
 import logging
 import os
 import platform
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from flask import Blueprint, g, jsonify, request
@@ -78,7 +78,7 @@ def health_check():
                     "overall_status": overall_status,
                     "services": health_status["services"],
                     "system_info": health_status.get("system_info", {}),
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 },
             }
         ), 200
@@ -123,7 +123,7 @@ def readiness_check():
                 "data": {
                     "ready": ready_status["ready"],
                     "checks": ready_status["checks"],
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 },
             }
         ), status_code
@@ -136,7 +136,7 @@ def readiness_check():
                 "data": {
                     "ready": False,
                     "error": str(e),
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 },
             }
         ), 503
@@ -160,7 +160,7 @@ def liveness_check():
         # Basic liveness check - just verify the application is responding
         liveness_status = {
             "alive": True,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "uptime_seconds": _get_uptime_seconds(),
         }
 
@@ -176,7 +176,7 @@ def liveness_check():
                 "data": {
                     "alive": False,
                     "error": str(e),
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 },
             }
         ), 500
@@ -224,7 +224,7 @@ def get_system_config():
                 "data": {
                     "config": config,
                     "section": section,
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 },
             }
         ), 200
@@ -283,9 +283,7 @@ def update_system_config():
         # Validate configuration
         validation_result = _validate_system_config(section, config)
         if not validation_result["valid"]:
-            raise ValidationError(
-                f"Configuration validation failed: {validation_result['errors']}"
-            )
+            raise ValidationError(f"Configuration validation failed: {validation_result['errors']}")
 
         if not validate_only:
             # Apply configuration changes
@@ -303,7 +301,7 @@ def update_system_config():
                     "section": section,
                     "validation_result": validation_result,
                     "applied": not validate_only,
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 },
             }
         ), 200
@@ -338,21 +336,15 @@ def get_system_status():
     try:
         # Get query parameters
         include_metrics = request.args.get("include_metrics", "true").lower() == "true"
-        include_resources = (
-            request.args.get("include_resources", "true").lower() == "true"
-        )
+        include_resources = request.args.get("include_resources", "true").lower() == "true"
 
-        request_logger.info(
-            f"Retrieving system status with metrics={include_metrics}, resources={include_resources}"
-        )
+        request_logger.info(f"Retrieving system status with metrics={include_metrics}, resources={include_resources}")
 
         # Get Redis client from app context
         redis_client = g.app.redis_client
 
         # Retrieve system status
-        status_data = _get_system_status(
-            redis_client, include_metrics, include_resources
-        )
+        status_data = _get_system_status(redis_client, include_metrics, include_resources)
 
         # Log successful retrieval
         request_logger.info("System status retrieved successfully")
@@ -361,7 +353,7 @@ def get_system_status():
             {
                 "success": True,
                 "data": status_data,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
         ), 200
 
@@ -404,9 +396,7 @@ def get_system_metrics():
         # Sanitize inputs
         metric_type = sanitize_input(metric_type)
 
-        request_logger.info(
-            f"Retrieving {metric_type} metrics for last {duration} minutes"
-        )
+        request_logger.info(f"Retrieving {metric_type} metrics for last {duration} minutes")
 
         # Get Redis client from app context
         redis_client = g.app.redis_client
@@ -415,9 +405,7 @@ def get_system_metrics():
         metrics_data = _get_system_metrics(redis_client, metric_type, duration)
 
         # Log successful retrieval
-        request_logger.info(
-            f"Retrieved {len(metrics_data.get('metrics', []))} metric data points"
-        )
+        request_logger.info(f"Retrieved {len(metrics_data.get('metrics', []))} metric data points")
 
         return jsonify(
             {
@@ -427,7 +415,7 @@ def get_system_metrics():
                     "summary": metrics_data.get("summary", {}),
                     "metric_type": metric_type,
                     "duration_minutes": duration,
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 },
             }
         ), 200
@@ -475,12 +463,12 @@ def get_system_logs():
         if start_date_str:
             start_date = datetime.fromisoformat(start_date_str.replace("Z", "+00:00"))
         else:
-            start_date = datetime.now(timezone.utc) - timedelta(hours=24)
+            start_date = datetime.now(UTC) - timedelta(hours=24)
 
         if end_date_str:
             end_date = datetime.fromisoformat(end_date_str.replace("Z", "+00:00"))
         else:
-            end_date = datetime.now(timezone.utc)
+            end_date = datetime.now(UTC)
 
         if start_date >= end_date:
             raise ValidationError("Start date must be before end date")
@@ -488,9 +476,7 @@ def get_system_logs():
         # Sanitize inputs
         log_level = sanitize_input(log_level)
 
-        request_logger.info(
-            f"Retrieving {log_level} logs from {start_date} to {end_date}"
-        )
+        request_logger.info(f"Retrieving {log_level} logs from {start_date} to {end_date}")
 
         # Get system logs
         logs_data = _get_system_logs(log_level, start_date, end_date, limit)
@@ -506,7 +492,7 @@ def get_system_logs():
                     "summary": logs_data.get("summary", {}),
                     "total_count": logs_data.get("total_count", 0),
                     "log_level": log_level,
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 },
             }
         ), 200
@@ -577,10 +563,8 @@ def system_maintenance():
                     "operation": operation,
                     "results": maintenance_result.get("results", {}),
                     "status": maintenance_result.get("status", "completed"),
-                    "affected_components": maintenance_result.get(
-                        "affected_components", []
-                    ),
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "affected_components": maintenance_result.get("affected_components", []),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 },
             }
         ), 200
@@ -593,9 +577,7 @@ def system_maintenance():
 
 
 # Helper Functions
-def _perform_health_checks(
-    services: list[str], redis_client: RedisClient | None, detailed: bool
-) -> dict[str, Any]:
+def _perform_health_checks(services: list[str], redis_client: RedisClient | None, detailed: bool) -> dict[str, Any]:
     """Perform health checks for specified services."""
     try:
         services_status = {}
@@ -606,7 +588,7 @@ def _perform_health_checks(
             services_status["api"] = {
                 "status": "healthy",
                 "response_time_ms": 45,
-                "last_check": datetime.now(timezone.utc).isoformat(),
+                "last_check": datetime.now(UTC).isoformat(),
             }
 
         # Check database connection
@@ -615,7 +597,7 @@ def _perform_health_checks(
                 "status": "healthy",
                 "connection_pool_size": 10,
                 "active_connections": 3,
-                "last_check": datetime.now(timezone.utc).isoformat(),
+                "last_check": datetime.now(UTC).isoformat(),
             }
 
         # Check Redis connection
@@ -628,10 +610,8 @@ def _perform_health_checks(
 
             services_status["redis"] = {
                 "status": redis_status,
-                "connection_status": "connected"
-                if redis_status == "healthy"
-                else "disconnected",
-                "last_check": datetime.now(timezone.utc).isoformat(),
+                "connection_status": "connected" if redis_status == "healthy" else "disconnected",
+                "last_check": datetime.now(UTC).isoformat(),
             }
 
         # Check pipeline service
@@ -640,7 +620,7 @@ def _perform_health_checks(
                 "status": "healthy",
                 "active_executions": 2,
                 "queue_size": 5,
-                "last_check": datetime.now(timezone.utc).isoformat(),
+                "last_check": datetime.now(UTC).isoformat(),
             }
 
         # Check storage service
@@ -649,7 +629,7 @@ def _perform_health_checks(
                 "status": "healthy",
                 "available_space_gb": 350,
                 "used_space_gb": 650,
-                "last_check": datetime.now(timezone.utc).isoformat(),
+                "last_check": datetime.now(UTC).isoformat(),
             }
 
         # Add system information if detailed
@@ -660,7 +640,7 @@ def _perform_health_checks(
                 "architecture": platform.architecture()[0],
                 "processor": platform.processor(),
                 "hostname": platform.node(),
-                "boot_time": datetime.now(timezone.utc).isoformat(),  # Placeholder
+                "boot_time": datetime.now(UTC).isoformat(),  # Placeholder
                 "load_average": [0.5, 0.3, 0.2],  # Placeholder
             }
 
@@ -717,9 +697,7 @@ def _check_readiness(redis_client: RedisClient | None) -> dict[str, Any]:
         }
 
 
-def _get_system_config(
-    section: str | None, include_sensitive: bool
-) -> dict[str, Any]:
+def _get_system_config(section: str | None, include_sensitive: bool) -> dict[str, Any]:
     """Retrieve system configuration."""
     try:
         # Base configuration (non-sensitive)
@@ -766,9 +744,7 @@ def _get_system_config(
         raise SystemError(f"Failed to retrieve system configuration: {e!s}") from e
 
 
-def _validate_system_config(
-    section: str | None, config: dict[str, Any]
-) -> dict[str, Any]:
+def _validate_system_config(section: str | None, config: dict[str, Any]) -> dict[str, Any]:
     """Validate system configuration."""
     try:
         errors = []
@@ -778,15 +754,11 @@ def _validate_system_config(
             api_config = config if not section else config.get("api", {})
 
             if "port" in api_config and (
-                not isinstance(api_config["port"], int)
-                or api_config["port"] < 1
-                or api_config["port"] > 65535
+                not isinstance(api_config["port"], int) or api_config["port"] < 1 or api_config["port"] > 65535
             ):
                 errors.append("API port must be an integer between 1 and 65535")
 
-            if "workers" in api_config and (
-                not isinstance(api_config["workers"], int) or api_config["workers"] < 1
-            ):
+            if "workers" in api_config and (not isinstance(api_config["workers"], int) or api_config["workers"] < 1):
                 errors.append("API workers must be a positive integer")
 
         if section == "security" or not section:
@@ -805,9 +777,7 @@ def _validate_system_config(
         return {"valid": False, "errors": [f"Validation error: {e!s}"]}
 
 
-def _apply_system_config(
-    section: str | None, config: dict[str, Any]
-) -> dict[str, Any]:
+def _apply_system_config(section: str | None, config: dict[str, Any]) -> dict[str, Any]:
     """Apply system configuration changes."""
     try:
         # In a real implementation, this would update configuration files or database
@@ -824,9 +794,7 @@ def _apply_system_config(
         raise SystemError(f"Failed to apply system configuration: {e!s}") from e
 
 
-def _get_system_status(
-    _redis_client: RedisClient, include_metrics: bool, include_resources: bool
-) -> dict[str, Any]:
+def _get_system_status(_redis_client: RedisClient, include_metrics: bool, include_resources: bool) -> dict[str, Any]:
     """Retrieve comprehensive system status."""
     try:
         status_data = {
@@ -834,7 +802,7 @@ def _get_system_status(
                 "uptime_seconds": _get_uptime_seconds(),
                 "version": "1.0.0",
                 "environment": os.getenv("ENVIRONMENT", "development"),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
         }
 
@@ -862,13 +830,11 @@ def _get_system_status(
         raise SystemError(f"Failed to retrieve system status: {e!s}") from e
 
 
-def _get_system_metrics(
-    _redis_client: RedisClient, metric_type: str, duration: int
-) -> dict[str, Any]:
+def _get_system_metrics(_redis_client: RedisClient, metric_type: str, duration: int) -> dict[str, Any]:
     """Retrieve system performance metrics."""
     try:
         metrics = []
-        end_time = datetime.now(timezone.utc)
+        end_time = datetime.now(UTC)
         start_time = end_time - timedelta(minutes=duration)
 
         # Generate sample metrics data
@@ -935,9 +901,7 @@ def _get_system_metrics(
         raise AnalyticsError(f"Failed to retrieve system metrics: {e!s}") from e
 
 
-def _get_system_logs(
-    log_level: str, start_date: datetime, end_date: datetime, limit: int
-) -> dict[str, Any]:
+def _get_system_logs(log_level: str, start_date: datetime, end_date: datetime, limit: int) -> dict[str, Any]:
     """Retrieve system logs and audit trail."""
     try:
         # Generate sample log entries
@@ -973,9 +937,7 @@ def _get_system_logs(
                     "timestamp": log_time.isoformat(),
                     "level": level,
                     "message": f"Sample {level.lower()} log message {i + 1}",
-                    "component": "api"
-                    if i % 3 == 0
-                    else ("pipeline" if i % 3 == 1 else "database"),
+                    "component": "api" if i % 3 == 0 else ("pipeline" if i % 3 == 1 else "database"),
                     "request_id": f"req_{i + 1:04d}",
                 }
             )
@@ -1001,9 +963,7 @@ def _get_system_logs(
         raise SystemError(f"Failed to retrieve system logs: {e!s}") from e
 
 
-def _execute_maintenance(
-    operation: str, _targets: list[str], _options: dict[str, Any]
-) -> dict[str, Any]:
+def _execute_maintenance(operation: str, _targets: list[str], _options: dict[str, Any]) -> dict[str, Any]:
     """Execute system maintenance operation."""
     try:
         results = {}
@@ -1049,6 +1009,6 @@ def _get_uptime_seconds() -> float:
     """Get system uptime in seconds."""
     try:
         # Placeholder - in real implementation, this would track actual uptime
-        return (datetime.now(timezone.utc) - datetime(2024, 1, 1)).total_seconds()
+        return (datetime.now(UTC) - datetime(2024, 1, 1)).total_seconds()
     except Exception:
         return 0.0

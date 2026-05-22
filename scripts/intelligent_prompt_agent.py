@@ -95,10 +95,7 @@ class MultiPatternAgent:
         }
 
         # Interview indicators
-        if any(
-            word in text_lower
-            for word in ["interviewer", "host", "question:", "q:", "asks"]
-        ):
+        if any(word in text_lower for word in ["interviewer", "host", "question:", "q:", "asks"]):
             indicators[ContentType.INTERVIEW] += 0.4
         if re.search(r"(?:how can|what should|can you|why do)", text_lower):
             indicators[ContentType.INTERVIEW] += 0.3
@@ -106,28 +103,19 @@ class MultiPatternAgent:
             indicators[ContentType.INTERVIEW] += 0.2
 
         # Podcast indicators
-        if any(
-            word in text_lower
-            for word in ["podcast", "episode", "today we", "our guest"]
-        ):
+        if any(word in text_lower for word in ["podcast", "episode", "today we", "our guest"]):
             indicators[ContentType.PODCAST] += 0.4
         if re.search(r"(?:welcome|today|discussion)", text_lower):
             indicators[ContentType.PODCAST] += 0.2
 
         # Speech indicators
-        if any(
-            word in text_lower
-            for word in ["audience", "thank you all", "gathered here", "presentation"]
-        ):
+        if any(word in text_lower for word in ["audience", "thank you all", "gathered here", "presentation"]):
             indicators[ContentType.SPEECH] += 0.4
         if text.count("\n") < 3 and len(text) > 500:  # Long continuous text
             indicators[ContentType.SPEECH] += 0.2
 
         # Monologue indicators (single speaker, continuous)
-        if not any(
-            word in text_lower
-            for word in ["interviewer", "host", "question", "asks", "you said"]
-        ):
+        if not any(word in text_lower for word in ["interviewer", "host", "question", "asks", "you said"]):
             indicators[ContentType.MONOLOGUE] += 0.3
         if len(text.split()) > 100 and text.count("?") == 0:
             indicators[ContentType.MONOLOGUE] += 0.2
@@ -166,15 +154,11 @@ class MultiPatternAgent:
                     confidence += 0.1
 
                 if confidence > best_match.confidence:
-                    best_match = PatternMatch(
-                        "interview_question", confidence, question, None, []
-                    )
+                    best_match = PatternMatch("interview_question", confidence, question, None, [])
 
         return best_match
 
-    def detect_response_boundaries(
-        self, text: str, _question: str = None
-    ) -> PatternMatch:
+    def detect_response_boundaries(self, text: str, _question: str = None) -> PatternMatch:
         """Detect where response begins using transition markers"""
         response_match = PatternMatch("response_boundary", 0.0)
 
@@ -190,9 +174,7 @@ class MultiPatternAgent:
                 # Find response start after marker
                 marker_pos = text_lower.find(marker)
                 response_start = text[marker_pos : marker_pos + 100].strip()
-                if not response_match.response_start or len(response_start) > len(
-                    response_match.response_start
-                ):
+                if not response_match.response_start or len(response_start) > len(response_match.response_start):
                     response_match.response_start = response_start
 
         # Look for response boundary patterns
@@ -305,17 +287,9 @@ class MultiPatternAgent:
                 break
 
         # Penalty for obvious mismatches
-        if (
-            "how" in question_lower
-            and "because" not in response_lower
-            and "by" not in response_lower
-        ):
+        if "how" in question_lower and "because" not in response_lower and "by" not in response_lower:
             coherence_score -= 0.1
-        if (
-            "what" in question_lower
-            and "is" not in response_lower
-            and "are" not in response_lower
-        ):
+        if "what" in question_lower and "is" not in response_lower and "are" not in response_lower:
             coherence_score -= 0.1
 
         return max(0.0, min(1.0, coherence_score))
@@ -348,17 +322,13 @@ class MultiPatternAgent:
 
             if question_match.extracted_question:
                 # Step 3: Detect response boundaries
-                boundary_match = self.detect_response_boundaries(
-                    segment_text, question_match.extracted_question
-                )
+                boundary_match = self.detect_response_boundaries(segment_text, question_match.extracted_question)
                 analysis["response_boundary"] = boundary_match.response_start
                 analysis["boundary_confidence"] = boundary_match.confidence
                 analysis["transition_markers"] = boundary_match.transition_markers
 
                 # Step 4: Validate semantic coherence
-                coherence = self.validate_semantic_coherence(
-                    question_match.extracted_question, segment_text
-                )
+                coherence = self.validate_semantic_coherence(question_match.extracted_question, segment_text)
                 analysis["semantic_coherence"] = coherence
 
         # Calculate overall confidence
@@ -368,23 +338,15 @@ class MultiPatternAgent:
             analysis["boundary_confidence"],
             analysis["semantic_coherence"],
         ]
-        analysis["overall_confidence"] = sum(confidence_factors) / len(
-            confidence_factors
-        )
+        analysis["overall_confidence"] = sum(confidence_factors) / len(confidence_factors)
 
         # Add processing notes
         if analysis["overall_confidence"] < 0.3:
-            analysis["processing_notes"].append(
-                "Low confidence - may need manual review"
-            )
+            analysis["processing_notes"].append("Low confidence - may need manual review")
         if not analysis["extracted_question"]:
-            analysis["processing_notes"].append(
-                "No clear question found - may be monologue/speech format"
-            )
+            analysis["processing_notes"].append("No clear question found - may be monologue/speech format")
         if analysis["semantic_coherence"] < 0.2:
-            analysis["processing_notes"].append(
-                "Potential semantic mismatch between question and response"
-            )
+            analysis["processing_notes"].append("Potential semantic mismatch between question and response")
 
         return analysis
 
@@ -456,9 +418,7 @@ class MultiPatternAgent:
         # Look for specific therapeutic concepts being discussed
         if "trauma" in text_lower:
             topics.append("trauma")
-        if any(
-            word in text_lower for word in ["narcissist", "manipulation", "gaslighting"]
-        ):
+        if any(word in text_lower for word in ["narcissist", "manipulation", "gaslighting"]):
             topics.append("narcissistic abuse")
         if any(word in text_lower for word in ["anxiety", "depression", "panic"]):
             topics.append("anxiety and depression")

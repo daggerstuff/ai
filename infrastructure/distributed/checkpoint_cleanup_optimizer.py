@@ -3,6 +3,7 @@
 Checkpoint Cleanup and Optimization System for Pixelated Empathy AI
 Advanced cleanup, optimization, and lifecycle management for checkpoints
 """
+
 import asyncio
 import gzip
 import json
@@ -10,7 +11,7 @@ import logging
 import threading
 import time
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -76,9 +77,7 @@ class CheckpointCleanupOptimizer:
 
     def __init__(self, checkpoint_manager, storage_path: str = None):
         self.checkpoint_manager = checkpoint_manager
-        self.storage_path = Path(
-            storage_path or checkpoint_manager.storage.storage_path
-        )
+        self.storage_path = Path(storage_path or checkpoint_manager.storage.storage_path)
 
         # Cleanup and optimization state
         self.cleanup_rules: dict[str, CleanupRule] = {}
@@ -161,9 +160,7 @@ class CheckpointCleanupOptimizer:
             return
 
         self.optimization_active = True
-        self.optimization_thread = threading.Thread(
-            target=self._optimization_loop, daemon=True
-        )
+        self.optimization_thread = threading.Thread(target=self._optimization_loop, daemon=True)
         self.optimization_thread.start()
 
         logger.info("Started checkpoint cleanup and optimization")
@@ -198,9 +195,7 @@ class CheckpointCleanupOptimizer:
 
             # Calculate current storage usage
             storage_stats = self.checkpoint_manager.storage.get_storage_stats()
-            storage_usage_percent = (
-                storage_stats["total_size_bytes"] / (self.max_storage_gb * 1024**3)
-            ) * 100
+            storage_usage_percent = (storage_stats["total_size_bytes"] / (self.max_storage_gb * 1024**3)) * 100
 
             # Apply cleanup rules in priority order
             sorted_rules = sorted(self.cleanup_rules.values(), key=lambda r: r.priority)
@@ -210,37 +205,23 @@ class CheckpointCleanupOptimizer:
                     continue
 
                 try:
-                    rule_results = self._apply_cleanup_rule(
-                        rule, all_checkpoints, storage_usage_percent
-                    )
+                    rule_results = self._apply_cleanup_rule(rule, all_checkpoints, storage_usage_percent)
 
                     if rule_results["checkpoints_affected"] > 0:
                         cleanup_results["rules_applied"].append(
                             {
                                 "rule_id": rule.rule_id,
                                 "rule_name": rule.name,
-                                "checkpoints_affected": rule_results[
-                                    "checkpoints_affected"
-                                ],
+                                "checkpoints_affected": rule_results["checkpoints_affected"],
                                 "actions_taken": rule_results["actions_taken"],
                             }
                         )
 
-                        cleanup_results["checkpoints_processed"] += rule_results[
-                            "checkpoints_affected"
-                        ]
-                        cleanup_results["checkpoints_deleted"] += rule_results.get(
-                            "deleted", 0
-                        )
-                        cleanup_results["checkpoints_archived"] += rule_results.get(
-                            "archived", 0
-                        )
-                        cleanup_results["checkpoints_compressed"] += rule_results.get(
-                            "compressed", 0
-                        )
-                        cleanup_results["space_freed_mb"] += rule_results.get(
-                            "space_freed_mb", 0
-                        )
+                        cleanup_results["checkpoints_processed"] += rule_results["checkpoints_affected"]
+                        cleanup_results["checkpoints_deleted"] += rule_results.get("deleted", 0)
+                        cleanup_results["checkpoints_archived"] += rule_results.get("archived", 0)
+                        cleanup_results["checkpoints_compressed"] += rule_results.get("compressed", 0)
+                        cleanup_results["space_freed_mb"] += rule_results.get("space_freed_mb", 0)
 
                 except Exception as e:
                     error_msg = f"Error applying rule {rule.rule_id}: {e}"
@@ -250,12 +231,10 @@ class CheckpointCleanupOptimizer:
             # Update metrics
             self.metrics.deleted_checkpoints += cleanup_results["checkpoints_deleted"]
             self.metrics.archived_checkpoints += cleanup_results["checkpoints_archived"]
-            self.metrics.compressed_checkpoints += cleanup_results[
-                "checkpoints_compressed"
-            ]
+            self.metrics.compressed_checkpoints += cleanup_results["checkpoints_compressed"]
             self.metrics.space_saved_mb += cleanup_results["space_freed_mb"]
             self.metrics.optimization_time_seconds = time.time() - start_time
-            self.metrics.last_optimization = datetime.now(timezone.utc)
+            self.metrics.last_optimization = datetime.now(UTC)
 
         except Exception as e:
             cleanup_results["errors"].append(f"Cleanup failed: {e}")
@@ -264,9 +243,7 @@ class CheckpointCleanupOptimizer:
         logger.info(f"Cleanup completed: {cleanup_results}")
         return cleanup_results
 
-    def _apply_cleanup_rule(
-        self, rule: CleanupRule, checkpoints: list, storage_usage_percent: float
-    ) -> dict[str, Any]:
+    def _apply_cleanup_rule(self, rule: CleanupRule, checkpoints: list, storage_usage_percent: float) -> dict[str, Any]:
         """Apply a specific cleanup rule"""
 
         rule_results = {
@@ -282,9 +259,7 @@ class CheckpointCleanupOptimizer:
         matching_checkpoints = []
 
         for checkpoint in checkpoints:
-            if self._checkpoint_matches_conditions(
-                checkpoint, rule.conditions, storage_usage_percent
-            ):
+            if self._checkpoint_matches_conditions(checkpoint, rule.conditions, storage_usage_percent):
                 matching_checkpoints.append(checkpoint)
 
         # Apply actions to matching checkpoints
@@ -304,14 +279,10 @@ class CheckpointCleanupOptimizer:
                         elif action == "compress":
                             rule_results["compressed"] += 1
 
-                        rule_results["space_freed_mb"] += action_result.get(
-                            "space_freed_mb", 0
-                        )
+                        rule_results["space_freed_mb"] += action_result.get("space_freed_mb", 0)
 
             except Exception as e:
-                logger.error(
-                    f"Failed to apply action to checkpoint {checkpoint.checkpoint_id}: {e}"
-                )
+                logger.error(f"Failed to apply action to checkpoint {checkpoint.checkpoint_id}: {e}")
 
         return rule_results
 
@@ -322,9 +293,7 @@ class CheckpointCleanupOptimizer:
 
         # Check age condition
         if "age_hours" in conditions:
-            age_hours = (
-                datetime.now(timezone.utc) - checkpoint.created_at
-            ).total_seconds() / 3600
+            age_hours = (datetime.now(UTC) - checkpoint.created_at).total_seconds() / 3600
             if not self._compare_value(age_hours, conditions["age_hours"]):
                 return False
 
@@ -349,15 +318,9 @@ class CheckpointCleanupOptimizer:
             # This would require more complex duplicate detection
             # For now, assume it matches if there are multiple checkpoints for same process
             same_process_count = len(
-                [
-                    c
-                    for c in self.checkpoint_manager.storage.list_checkpoints()
-                    if c.process_id == checkpoint.process_id
-                ]
+                [c for c in self.checkpoint_manager.storage.list_checkpoints() if c.process_id == checkpoint.process_id]
             )
-            if not self._compare_value(
-                same_process_count, conditions["duplicate_count"]
-            ):
+            if not self._compare_value(same_process_count, conditions["duplicate_count"]):
                 return False
 
         return True
@@ -368,7 +331,11 @@ class CheckpointCleanupOptimizer:
         for operator, threshold in condition.items():
             if (operator == ">=" and value < threshold) or (operator == ">" and value <= threshold):
                 return False
-            if (operator == "<=" and value > threshold) or (operator == "<" and value >= threshold) or (operator == "==" and value != threshold):
+            if (
+                (operator == "<=" and value > threshold)
+                or (operator == "<" and value >= threshold)
+                or (operator == "==" and value != threshold)
+            ):
                 return False
 
         return True
@@ -381,9 +348,7 @@ class CheckpointCleanupOptimizer:
         try:
             if action == "delete":
                 # Delete checkpoint
-                if self.checkpoint_manager.storage.delete_checkpoint(
-                    checkpoint.checkpoint_id
-                ):
+                if self.checkpoint_manager.storage.delete_checkpoint(checkpoint.checkpoint_id):
                     result["success"] = True
                     result["space_freed_mb"] = checkpoint.size_bytes / (1024 * 1024)
 
@@ -414,9 +379,7 @@ class CheckpointCleanupOptimizer:
                     result["success"] = True
 
         except Exception as e:
-            logger.error(
-                f"Failed to execute action {action} on checkpoint {checkpoint.checkpoint_id}: {e}"
-            )
+            logger.error(f"Failed to execute action {action} on checkpoint {checkpoint.checkpoint_id}: {e}")
 
         return result
 
@@ -425,9 +388,7 @@ class CheckpointCleanupOptimizer:
 
         try:
             # Load checkpoint data
-            metadata, data = self.checkpoint_manager.storage.load_checkpoint(
-                checkpoint.checkpoint_id
-            )
+            metadata, data = self.checkpoint_manager.storage.load_checkpoint(checkpoint.checkpoint_id)
 
             # Create archive file
             archive_file = self.archive_path / f"{checkpoint.checkpoint_id}.json"
@@ -442,10 +403,8 @@ class CheckpointCleanupOptimizer:
                     "size_bytes": metadata.size_bytes,
                     "description": metadata.description,
                 },
-                "data": data
-                if isinstance(data, (dict, list, str, int, float))
-                else str(data),
-                "archived_at": datetime.now(timezone.utc).isoformat(),
+                "data": data if isinstance(data, (dict, list, str, int, float)) else str(data),
+                "archived_at": datetime.now(UTC).isoformat(),
             }
 
             with open(archive_file, "w") as f:
@@ -464,9 +423,7 @@ class CheckpointCleanupOptimizer:
             return True
 
         except Exception as e:
-            logger.error(
-                f"Failed to archive checkpoint {checkpoint.checkpoint_id}: {e}"
-            )
+            logger.error(f"Failed to archive checkpoint {checkpoint.checkpoint_id}: {e}")
             return False
 
     def _compress_checkpoint(self, checkpoint) -> bool:
@@ -479,9 +436,7 @@ class CheckpointCleanupOptimizer:
             return True
 
         except Exception as e:
-            logger.error(
-                f"Failed to compress checkpoint {checkpoint.checkpoint_id}: {e}"
-            )
+            logger.error(f"Failed to compress checkpoint {checkpoint.checkpoint_id}: {e}")
             return False
 
     def _deduplicate_checkpoint(self, checkpoint) -> bool:
@@ -490,9 +445,7 @@ class CheckpointCleanupOptimizer:
         try:
             # Find checkpoints with same process and similar data
             similar_checkpoints = []
-            all_checkpoints = self.checkpoint_manager.storage.list_checkpoints(
-                process_id=checkpoint.process_id
-            )
+            all_checkpoints = self.checkpoint_manager.storage.list_checkpoints(process_id=checkpoint.process_id)
 
             for other_checkpoint in all_checkpoints:
                 if (
@@ -509,30 +462,22 @@ class CheckpointCleanupOptimizer:
 
                 # Delete all but the newest
                 for old_checkpoint in all_similar[1:]:
-                    self.checkpoint_manager.storage.delete_checkpoint(
-                        old_checkpoint.checkpoint_id
-                    )
+                    self.checkpoint_manager.storage.delete_checkpoint(old_checkpoint.checkpoint_id)
 
-                logger.info(
-                    f"Deduplicated {len(all_similar) - 1} checkpoints for process {checkpoint.process_id}"
-                )
+                logger.info(f"Deduplicated {len(all_similar) - 1} checkpoints for process {checkpoint.process_id}")
                 return True
 
             return False
 
         except Exception as e:
-            logger.error(
-                f"Failed to deduplicate checkpoint {checkpoint.checkpoint_id}: {e}"
-            )
+            logger.error(f"Failed to deduplicate checkpoint {checkpoint.checkpoint_id}: {e}")
             return False
 
     def _delete_oldest_checkpoints(self, process_id: str, keep_count: int = 3) -> bool:
         """Delete oldest checkpoints for a process, keeping only the newest ones"""
 
         try:
-            process_checkpoints = self.checkpoint_manager.storage.list_checkpoints(
-                process_id=process_id
-            )
+            process_checkpoints = self.checkpoint_manager.storage.list_checkpoints(process_id=process_id)
 
             if len(process_checkpoints) <= keep_count:
                 return False
@@ -543,20 +488,14 @@ class CheckpointCleanupOptimizer:
             # Delete oldest checkpoints
             deleted_count = 0
             for old_checkpoint in process_checkpoints[keep_count:]:
-                if self.checkpoint_manager.storage.delete_checkpoint(
-                    old_checkpoint.checkpoint_id
-                ):
+                if self.checkpoint_manager.storage.delete_checkpoint(old_checkpoint.checkpoint_id):
                     deleted_count += 1
 
-            logger.info(
-                f"Deleted {deleted_count} oldest checkpoints for process {process_id}"
-            )
+            logger.info(f"Deleted {deleted_count} oldest checkpoints for process {process_id}")
             return deleted_count > 0
 
         except Exception as e:
-            logger.error(
-                f"Failed to delete oldest checkpoints for process {process_id}: {e}"
-            )
+            logger.error(f"Failed to delete oldest checkpoints for process {process_id}: {e}")
             return False
 
     def _optimization_loop(self):
@@ -591,27 +530,19 @@ class CheckpointCleanupOptimizer:
             if self.compression_threshold_mb > 0:
                 compress_results = self._optimize_compression()
                 optimization_results["strategies_applied"].append("compression")
-                optimization_results["space_saved_mb"] += compress_results.get(
-                    "space_saved_mb", 0
-                )
-                optimization_results["checkpoints_optimized"] += compress_results.get(
-                    "checkpoints_compressed", 0
-                )
+                optimization_results["space_saved_mb"] += compress_results.get("space_saved_mb", 0)
+                optimization_results["checkpoints_optimized"] += compress_results.get("checkpoints_compressed", 0)
 
             # Deduplication optimization
             if self.deduplication_enabled:
                 dedup_results = self._optimize_deduplication()
                 optimization_results["strategies_applied"].append("deduplication")
-                optimization_results["checkpoints_optimized"] += dedup_results.get(
-                    "checkpoints_deduplicated", 0
-                )
+                optimization_results["checkpoints_optimized"] += dedup_results.get("checkpoints_deduplicated", 0)
 
             # Consolidation optimization
             consolidation_results = self._optimize_consolidation()
             optimization_results["strategies_applied"].append("consolidation")
-            optimization_results["checkpoints_optimized"] += consolidation_results.get(
-                "checkpoints_consolidated", 0
-            )
+            optimization_results["checkpoints_optimized"] += consolidation_results.get("checkpoints_consolidated", 0)
 
         except Exception as e:
             logger.error(f"Optimization failed: {e}")
@@ -653,9 +584,7 @@ class CheckpointCleanupOptimizer:
         # Deduplicate within each process group
         for _process_id, checkpoints in process_groups.items():
             if len(checkpoints) > 3:  # Only deduplicate if more than 3 checkpoints
-                if self._deduplicate_checkpoint(
-                    checkpoints[0]
-                ):  # Use first as reference
+                if self._deduplicate_checkpoint(checkpoints[0]):  # Use first as reference
                     results["checkpoints_deduplicated"] += len(checkpoints) - 1
 
         return results
@@ -668,7 +597,6 @@ class CheckpointCleanupOptimizer:
         # This would implement checkpoint consolidation logic
         # For now, just return empty results
 
-
     def get_optimization_status(self) -> dict[str, Any]:
         """Get comprehensive optimization status"""
 
@@ -677,9 +605,7 @@ class CheckpointCleanupOptimizer:
         return {
             "optimization_active": self.optimization_active,
             "cleanup_rules_count": len(self.cleanup_rules),
-            "enabled_rules": sum(
-                1 for rule in self.cleanup_rules.values() if rule.enabled
-            ),
+            "enabled_rules": sum(1 for rule in self.cleanup_rules.values() if rule.enabled),
             "storage_stats": storage_stats,
             "optimization_metrics": {
                 "total_checkpoints": self.metrics.total_checkpoints,
@@ -705,7 +631,6 @@ class CheckpointCleanupOptimizer:
 # Example usage
 async def example_cleanup_optimization():
     """Example of using checkpoint cleanup and optimization"""
-
 
     # Initialize checkpoint manager
     checkpoint_manager = CheckpointManager()

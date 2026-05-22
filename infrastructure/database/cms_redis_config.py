@@ -106,6 +106,7 @@ DEFAULT_TTLS: dict[RedisNamespace, int] = {
 # KEY BUILDER
 # ============================================================================
 
+
 class CMSRedisKeys:
     """Type-safe Redis key builder for CMS operations.
 
@@ -158,12 +159,13 @@ class CMSRedisKeys:
 # TTL LOOKUP
 # ============================================================================
 
+
 def get_ttl(key: str) -> int:
     """Derive TTL from a constructed key by matching its namespace prefix.
 
     Returns 0 for keys that should not expire (e.g., collab, feature flags).
     """
-    namespace_prefix = key.split(":")[0]
+    namespace_prefix = key.split(":", maxsplit=1)[0]
     try:
         ns = RedisNamespace(namespace_prefix)
     except ValueError:
@@ -175,9 +177,11 @@ def get_ttl(key: str) -> int:
 # COLLABORATION HELPERS
 # ============================================================================
 
+
 @dataclass
 class CollaborationState:
     """Snapshot of real-time collaboration state for a document."""
+
     document_id: str
     active_users: list[str] = field(default_factory=list)
     cursor_positions: dict[str, Any] = field(default_factory=dict)
@@ -188,9 +192,11 @@ class CollaborationState:
 # RATE LIMIT CONFIGURATION
 # ============================================================================
 
+
 @dataclass(frozen=True)
 class RateLimitRule:
     """Rate limit configuration for a specific action type."""
+
     action: str
     max_requests: int
     window_seconds: int

@@ -57,9 +57,7 @@ def main():
             if isinstance(category_data, dict):
                 for dataset_name, dataset_entry in category_data.items():
                     if isinstance(dataset_entry, dict):
-                        registry["datasets"][category_name][dataset_name] = (
-                            update_dataset_entry(dataset_entry)
-                        )
+                        registry["datasets"][category_name][dataset_name] = update_dataset_entry(dataset_entry)
                         updated_count += 1
 
     for section in [
@@ -74,16 +72,13 @@ def main():
         if section in registry:
             for dataset_name, dataset_entry in registry[section].items():
                 if isinstance(dataset_entry, dict):
-                    registry[section][dataset_name] = update_dataset_entry(
-                        dataset_entry
-                    )
+                    registry[section][dataset_name] = update_dataset_entry(dataset_entry)
                     updated_count += 1
 
     registry["last_updated"] = "2026-04-03T16:15:00.000000Z"
 
     with open(registry_path, "w") as f:
         json.dump(registry, f, indent=2, ensure_ascii=False)
-
 
 
 if __name__ == "__main__":

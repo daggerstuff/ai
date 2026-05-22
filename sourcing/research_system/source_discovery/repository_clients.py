@@ -9,7 +9,7 @@ Provides clients for:
 
 import hashlib
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from ai.sourcing.research_system.models import DatasetSource
@@ -36,11 +36,7 @@ class DryadClient(BaseAPIClient):
         if api_key:
             self._session.headers.update({"Authorization": f"Bearer {api_key}"})
 
-    def search_datasets(
-        self,
-        query: str,
-        max_results: int = 100
-    ) -> list[dict[str, Any]]:
+    def search_datasets(self, query: str, max_results: int = 100) -> list[dict[str, Any]]:
         """
         Search Dryad for datasets.
 
@@ -53,10 +49,7 @@ class DryadClient(BaseAPIClient):
         """
         logger.info(f"Searching Dryad with query: {query}")
 
-        params = {
-            "q": query,
-            "per_page": str(min(max_results, 100))
-        }
+        params = {"q": query, "per_page": str(min(max_results, 100))}
 
         try:
             response = self._make_request("search", params)
@@ -122,7 +115,7 @@ class DryadClient(BaseAPIClient):
             try:
                 pub_date = datetime.fromisoformat(pub_date_str.replace("Z", "+00:00"))
             except (ValueError, AttributeError):
-                pub_date = datetime.now(timezone.utc)
+                pub_date = datetime.now(UTC)
 
             # Extract identifiers
             doi = dataset.get("identifier", "")
@@ -149,19 +142,15 @@ class DryadClient(BaseAPIClient):
                 keywords=keywords,
                 open_access=True,  # Dryad is open access
                 data_availability="available",
-                discovery_date=datetime.now(timezone.utc),
-                discovery_method="repository_api"
+                discovery_date=datetime.now(UTC),
+                discovery_method="repository_api",
             )
 
         except Exception as e:
             logger.warning(f"Failed to convert Dryad dataset: {e}")
             return None
 
-    def search_therapeutic_datasets(
-        self,
-        keywords: list[str],
-        max_results: int = 100
-    ) -> list[DatasetSource]:
+    def search_therapeutic_datasets(self, keywords: list[str], max_results: int = 100) -> list[DatasetSource]:
         """
         Search for therapeutic datasets and convert to DatasetSource objects.
 
@@ -206,12 +195,7 @@ class ZenodoClient(BaseAPIClient):
         if access_token:
             self._session.params = {"access_token": access_token}
 
-    def search_records(
-        self,
-        query: str,
-        record_type: str = "dataset",
-        max_results: int = 100
-    ) -> list[dict[str, Any]]:
+    def search_records(self, query: str, record_type: str = "dataset", max_results: int = 100) -> list[dict[str, Any]]:
         """
         Search Zenodo for records.
 
@@ -225,11 +209,7 @@ class ZenodoClient(BaseAPIClient):
         """
         logger.info(f"Searching Zenodo with query: {query}")
 
-        params = {
-            "q": query,
-            "type": record_type,
-            "size": str(min(max_results, 100))
-        }
+        params = {"q": query, "type": record_type, "size": str(min(max_results, 100))}
 
         try:
             response = self._make_request("records", params)
@@ -296,7 +276,7 @@ class ZenodoClient(BaseAPIClient):
             try:
                 pub_date = datetime.fromisoformat(pub_date_str)
             except (ValueError, AttributeError):
-                pub_date = datetime.now(timezone.utc)
+                pub_date = datetime.now(UTC)
 
             # Extract identifiers
             doi = metadata.get("doi", "")
@@ -325,19 +305,15 @@ class ZenodoClient(BaseAPIClient):
                 keywords=keywords,
                 open_access=open_access,
                 data_availability="available" if open_access else "restricted",
-                discovery_date=datetime.now(timezone.utc),
-                discovery_method="repository_api"
+                discovery_date=datetime.now(UTC),
+                discovery_method="repository_api",
             )
 
         except Exception as e:
             logger.warning(f"Failed to convert Zenodo record: {e}")
             return None
 
-    def search_therapeutic_datasets(
-        self,
-        keywords: list[str],
-        max_results: int = 100
-    ) -> list[DatasetSource]:
+    def search_therapeutic_datasets(self, keywords: list[str], max_results: int = 100) -> list[DatasetSource]:
         """
         Search for therapeutic datasets and convert to DatasetSource objects.
 
@@ -377,12 +353,7 @@ class ClinicalTrialsClient(BaseAPIClient):
         """
         super().__init__("clinicaltrials", enable_cache=enable_cache)
 
-    def search_studies(
-        self,
-        query: str,
-        status: str = "COMPLETED",
-        max_results: int = 100
-    ) -> list[dict[str, Any]]:
+    def search_studies(self, query: str, status: str = "COMPLETED", max_results: int = 100) -> list[dict[str, Any]]:
         """
         Search ClinicalTrials.gov for studies.
 
@@ -400,7 +371,7 @@ class ClinicalTrialsClient(BaseAPIClient):
             "query.term": query,
             "filter.overallStatus": status,
             "pageSize": str(min(max_results, 100)),
-            "format": "json"
+            "format": "json",
         }
 
         try:
@@ -478,12 +449,12 @@ class ClinicalTrialsClient(BaseAPIClient):
             try:
                 # Parse date in format "YYYY-MM-DD" or "YYYY-MM" or "YYYY"
                 parts = start_date_str.split("-")
-                year = int(parts[0]) if len(parts) > 0 else datetime.now(timezone.utc).year
+                year = int(parts[0]) if len(parts) > 0 else datetime.now(UTC).year
                 month = int(parts[1]) if len(parts) > 1 else 1
                 day = int(parts[2]) if len(parts) > 2 else 1
                 pub_date = datetime(year, month, day)
             except (ValueError, IndexError):
-                pub_date = datetime.now(timezone.utc)
+                pub_date = datetime.now(UTC)
 
             # Extract keywords/conditions
             conditions_module = protocol.get("conditionsModule", {})
@@ -513,19 +484,15 @@ class ClinicalTrialsClient(BaseAPIClient):
                 keywords=keywords,
                 open_access=data_available,
                 data_availability="available" if data_available else "upon_request",
-                discovery_date=datetime.now(timezone.utc),
-                discovery_method="repository_api"
+                discovery_date=datetime.now(UTC),
+                discovery_method="repository_api",
             )
 
         except Exception as e:
             logger.warning(f"Failed to convert clinical trial: {e}")
             return None
 
-    def search_mental_health_studies(
-        self,
-        keywords: list[str],
-        max_results: int = 100
-    ) -> list[DatasetSource]:
+    def search_mental_health_studies(self, keywords: list[str], max_results: int = 100) -> list[DatasetSource]:
         """
         Search for mental health studies and convert to DatasetSource objects.
 

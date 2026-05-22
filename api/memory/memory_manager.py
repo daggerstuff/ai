@@ -7,7 +7,7 @@ managing user memory contexts, conversation history, and therapeutic sessions.
 
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
@@ -110,9 +110,7 @@ class MemoryManager:
             logger.error(f"Error adding message to memory backend: {e}")
             return False
 
-    def get_conversation_history(
-        self, user_id: str, session_id: str, limit: int = 50
-    ) -> list[MemoryMessage]:
+    def get_conversation_history(self, user_id: str, session_id: str, limit: int = 50) -> list[MemoryMessage]:
         try:
             if not hasattr(self.client, "get_all"):
                 return []
@@ -123,10 +121,7 @@ class MemoryManager:
 
             # Filter by session_id in metadata
             session_messages = [
-                m
-                for m in memories
-                if isinstance(m, dict)
-                and m.get("metadata", {}).get("session_id") == session_id
+                m for m in memories if isinstance(m, dict) and m.get("metadata", {}).get("session_id") == session_id
             ]
 
             # Convert to MemoryMessage
@@ -134,9 +129,7 @@ class MemoryManager:
                 MemoryMessage(
                     content=m.get("content", "") or m.get("memory", ""),
                     role=MessageRole(m.get("metadata", {}).get("role", "user")),
-                    timestamp=datetime.now(
-                        timezone.utc
-                    ),
+                    timestamp=datetime.now(UTC),
                     message_id=m.get("id"),
                     metadata=m.get("metadata", {}),
                 )
@@ -169,9 +162,7 @@ class MemoryManager:
             memory_type=MemoryType.SESSION_SUMMARY,
         )
 
-    def get_emotional_state(
-        self, user_id: str, session_id: str
-    ) -> dict[str, Any] | None:
+    def get_emotional_state(self, user_id: str, session_id: str) -> dict[str, Any] | None:
         if not hasattr(self.client, "search"):
             return None
 
@@ -200,9 +191,7 @@ class MemoryManager:
         context: str,
         triggers: list[str] = None,
     ) -> bool:
-        content = (
-            f"Emotional state: {emotions}. Context: {context}. Triggers: {triggers}"
-        )
+        content = f"Emotional state: {emotions}. Context: {context}. Triggers: {triggers}"
         return self.add_message(
             user_id=user_id,
             session_id=session_id,

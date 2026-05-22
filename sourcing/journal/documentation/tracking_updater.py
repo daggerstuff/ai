@@ -6,7 +6,7 @@ completed tasks, and status summaries.
 """
 
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from ai.sourcing.journal.models.dataset_models import (
@@ -56,15 +56,11 @@ class TrackingDocumentUpdater:
         content = self._read_document()
 
         progress_markdown = self._generate_progress_markdown(progress, session)
-        updated_content = self._replace_section(
-            content, "progress_section", progress_markdown
-        )
+        updated_content = self._replace_section(content, "progress_section", progress_markdown)
 
         self._write_document(updated_content)
 
-    def mark_task_completed(
-        self, task_id: str, task_description: str, completion_date: datetime | None = None
-    ) -> None:
+    def mark_task_completed(self, task_id: str, task_description: str, completion_date: datetime | None = None) -> None:
         """
         Mark a task as completed in the tracking document.
 
@@ -74,11 +70,13 @@ class TrackingDocumentUpdater:
             completion_date: Optional completion date (defaults to now)
         """
         if completion_date is None:
-            completion_date = datetime.now(timezone.utc)
+            completion_date = datetime.now(UTC)
 
         content = self._read_document()
 
-        task_entry = f"- [x] {task_id}: {task_description} (Completed: {completion_date.strftime('%Y-%m-%d %H:%M:%S')})\n"
+        task_entry = (
+            f"- [x] {task_id}: {task_description} (Completed: {completion_date.strftime('%Y-%m-%d %H:%M:%S')})\n"
+        )
         updated_content = self._append_to_section(content, "completed_tasks", task_entry)
 
         self._write_document(updated_content)
@@ -99,18 +97,12 @@ class TrackingDocumentUpdater:
         """
         content = self._read_document()
 
-        status_markdown = self._generate_status_summary_markdown(
-            progress, session, weekly_report
-        )
-        updated_content = self._replace_section(
-            content, "status_summary", status_markdown
-        )
+        status_markdown = self._generate_status_summary_markdown(progress, session, weekly_report)
+        updated_content = self._replace_section(content, "status_summary", status_markdown)
 
         self._write_document(updated_content)
 
-    def update_weekly_targets(
-        self, session: ResearchSession, progress: ResearchProgress
-    ) -> None:
+    def update_weekly_targets(self, session: ResearchSession, progress: ResearchProgress) -> None:
         """
         Update the weekly targets section with current progress.
 
@@ -121,9 +113,7 @@ class TrackingDocumentUpdater:
         content = self._read_document()
 
         targets_markdown = self._generate_weekly_targets_markdown(session, progress)
-        updated_content = self._replace_section(
-            content, "weekly_targets", targets_markdown
-        )
+        updated_content = self._replace_section(content, "weekly_targets", targets_markdown)
 
         self._write_document(updated_content)
 
@@ -190,7 +180,7 @@ Last Updated: {timestamp}
 ## Notes
 
 Add research notes and findings here.
-""".format(timestamp=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"))
+""".format(timestamp=datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S"))
 
         self._write_document(template)
 
@@ -208,7 +198,7 @@ Add research notes and findings here.
         """Write content to the tracking document."""
         # Update last updated timestamp
         timestamp_pattern = r"Last Updated: \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}"
-        new_timestamp = f"Last Updated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}"
+        new_timestamp = f"Last Updated: {datetime.now(UTC).strftime('%Y-%m-%d %H:%M:%S')}"
         content = re.sub(timestamp_pattern, new_timestamp, content)
 
         try:
@@ -216,9 +206,7 @@ Add research notes and findings here.
         except OSError as e:
             raise OSError(f"Failed to write tracking document: {e}") from e
 
-    def _replace_section(
-        self, content: str, section_name: str, new_content: str
-    ) -> str:
+    def _replace_section(self, content: str, section_name: str, new_content: str) -> str:
         """Replace a marked section in the document."""
         pattern = MARKER_PATTERNS.get(section_name)
         if not pattern:
@@ -288,17 +276,13 @@ Add research notes and findings here.
         ]
 
         if progress.last_updated:
-            lines.append(
-                f"**Last Updated**: {progress.last_updated.strftime('%Y-%m-%d %H:%M:%S')}"
-            )
+            lines.append(f"**Last Updated**: {progress.last_updated.strftime('%Y-%m-%d %H:%M:%S')}")
 
         if session:
             lines.extend(["", "### Session Information", ""])
             lines.append(f"- **Session ID**: {session.session_id}")
             lines.append(f"- **Current Phase**: {session.current_phase.title()}")
-            lines.append(
-                f"- **Session Start**: {session.start_date.strftime('%Y-%m-%d %H:%M:%S')}"
-            )
+            lines.append(f"- **Session Start**: {session.start_date.strftime('%Y-%m-%d %H:%M:%S')}")
 
         return "\n".join(lines)
 
@@ -324,18 +308,12 @@ Add research notes and findings here.
             lines.append(f"**Total Activities**: {total_activities}")
             lines.append("")
             lines.append("**Progress Breakdown**:")
-            lines.append(
-                f"- Discovery: {progress.sources_identified} sources identified"
-            )
-            lines.append(
-                f"- Evaluation: {progress.datasets_evaluated} datasets evaluated"
-            )
+            lines.append(f"- Discovery: {progress.sources_identified} sources identified")
+            lines.append(f"- Evaluation: {progress.datasets_evaluated} datasets evaluated")
             lines.append(
                 f"- Acquisition: {progress.access_established} access established, {progress.datasets_acquired} datasets acquired"
             )
-            lines.append(
-                f"- Integration: {progress.integration_plans_created} plans created"
-            )
+            lines.append(f"- Integration: {progress.integration_plans_created} plans created")
         else:
             lines.append("**Status**: Research has not yet started.")
             lines.append("")
@@ -343,7 +321,9 @@ Add research notes and findings here.
         # Weekly report summary
         if weekly_report:
             lines.extend(["", "### Weekly Summary", ""])
-            lines.append(f"**Week {weekly_report.week_number}** ({weekly_report.start_date.strftime('%Y-%m-%d')} to {weekly_report.end_date.strftime('%Y-%m-%d')})")
+            lines.append(
+                f"**Week {weekly_report.week_number}** ({weekly_report.start_date.strftime('%Y-%m-%d')} to {weekly_report.end_date.strftime('%Y-%m-%d')})"
+            )
             lines.append("")
 
             if weekly_report.key_findings:
@@ -366,9 +346,7 @@ Add research notes and findings here.
 
         return "\n".join(lines)
 
-    def _generate_weekly_targets_markdown(
-        self, session: ResearchSession, progress: ResearchProgress
-    ) -> str:
+    def _generate_weekly_targets_markdown(self, session: ResearchSession, progress: ResearchProgress) -> str:
         """Generate markdown for weekly targets section."""
         if not session.weekly_targets:
             return "No weekly targets set."
@@ -387,17 +365,10 @@ Add research notes and findings here.
         lines.append("")
 
         # Overall progress
-        total_achieved = sum(
-            getattr(progress, key, 0) for key in session.weekly_targets.keys()
-        )
+        total_achieved = sum(getattr(progress, key, 0) for key in session.weekly_targets.keys())
         total_targets = sum(session.weekly_targets.values())
-        overall_percentage = (
-            (total_achieved / total_targets * 100) if total_targets > 0 else 0
-        )
+        overall_percentage = (total_achieved / total_targets * 100) if total_targets > 0 else 0
 
-        lines.append(
-            f"**Overall Progress**: {total_achieved}/{total_targets} ({overall_percentage:.1f}%)"
-        )
+        lines.append(f"**Overall Progress**: {total_achieved}/{total_targets} ({overall_percentage:.1f}%)")
 
         return "\n".join(lines)
-

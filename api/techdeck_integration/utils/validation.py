@@ -39,6 +39,7 @@ SENSITIVE_PATTERNS = (
 COMPILED_SENSITIVE_PATTERNS = tuple(re.compile(pattern) for pattern in SENSITIVE_PATTERNS)
 RE_CONTROL_CHARS = re.compile(r"[\x00-\x1f\x7f-\x9f]")
 
+
 class ValidationError(Exception):
     """Custom validation error with detailed information."""
 
@@ -63,7 +64,6 @@ class InputValidator:
     SENSITIVE_FIELDS = ("ssn", "password", "secret", "key")
 
     # ⚡ Bolt Optimization: Precompile regex patterns globally to avoid the overhead of implicit compilation
-
 
     def __init__(self, max_string_length: int = 1000, max_file_size_mb: int = 100):
         """

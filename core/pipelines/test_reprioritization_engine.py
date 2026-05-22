@@ -25,7 +25,6 @@ from ai.core.pipelines.reprioritization_engine import (
     run_reprioritization_from_report,
 )
 
-
 SAMPLE_FEEDBACK_REPORT = {
     "evaluation_source": "test_eval",
     "generated_at": "2026-05-13T14:52:18+00:00",
@@ -807,6 +806,7 @@ class TestReprioritizationEngine(unittest.TestCase):
 
     def test_validation_criteria_generated(self):
         from ai.core.pipelines.reprioritization_engine import _generate_validation_criteria
+
         point = EvidencePoint(
             pattern_id="p1",
             pattern_type="test",

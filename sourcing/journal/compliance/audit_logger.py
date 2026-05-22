@@ -10,7 +10,7 @@ import json
 import logging
 import os
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
 
@@ -58,7 +58,7 @@ class AuditLogEntry:
         if self.details is None:
             self.details = {}
         if self.timestamp is None:
-            self.timestamp = datetime.now(timezone.utc)
+            self.timestamp = datetime.now(UTC)
 
 
 class AuditLogger:
@@ -129,7 +129,7 @@ class AuditLogger:
             AuditLogEntry that was created and logged
         """
         entry = AuditLogEntry(
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             event_type=event_type,
             source_id=source_id,
             user_id=user_id,
@@ -321,9 +321,7 @@ class AuditLogger:
                             if entry.previous_hash != previous_hash:
                                 entries_failed += 1
                                 results["hash_chain_valid"] = False
-                                logger.warning(
-                                    f"Hash chain mismatch at entry: {entry.timestamp}"
-                                )
+                                logger.warning(f"Hash chain mismatch at entry: {entry.timestamp}")
                             else:
                                 entries_verified += 1
                         else:

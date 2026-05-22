@@ -57,16 +57,17 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import TYPE_CHECKING, Any
 
-from .processing.pii_scrubber import PiiScrubber, PiiScrubberConfig
 from .crisis_intervention_detector import CrisisInterventionDetector
+from .processing.pii_scrubber import PiiScrubber, PiiScrubberConfig
 
 # Optional import for review queue (PIX-250) - only used if available
 try:
     from .human_review_queue import HumanReviewQueue, Reviewer, ReviewerRole  # type: ignore
+
     REVIEW_QUEUE_ENABLED = True
 except ImportError:
     REVIEW_QUEUE_ENABLED = False
@@ -85,18 +86,18 @@ if TYPE_CHECKING:
 class PrivacyTier(str, Enum):
     """How much identifiable information a source contains."""
 
-    NONE = "none"           # No identifiable information present
-    LOW = "low"             # Minimal risk; redaction is straightforward
-    MEDIUM = "medium"       # Identifiable; requires scrubbing before use
-    HIGH = "high"           # Contains PHI or sensitive identifiers; manual review required
+    NONE = "none"  # No identifiable information present
+    LOW = "low"  # Minimal risk; redaction is straightforward
+    MEDIUM = "medium"  # Identifiable; requires scrubbing before use
+    HIGH = "high"  # Contains PHI or sensitive identifiers; manual review required
     PROHIBITED = "prohibited"  # Cannot be included under any circumstances
 
 
 class ContentSensitivity(str, Enum):
     """Risk level of the content itself, independent of privacy classification."""
 
-    NORMAL = "normal"       # General therapeutic or educational content
-    SENSITIVE = "sensitive" # Topics that require additional care (trauma, addiction)
+    NORMAL = "normal"  # General therapeutic or educational content
+    SENSITIVE = "sensitive"  # Topics that require additional care (trauma, addiction)
     RESTRICTED = "restricted"  # Requires clinical oversight or specific expertise
     PROHIBITED = "prohibited"  # Cannot be included in training data
 
@@ -105,10 +106,10 @@ class RetentionPolicy(str, Enum):
     """Data-retention rules tied to privacy tier."""
 
     USE_IMMEDIATELY = "use_immediately"  # Tier NONE only
-    SCRUB_AND_USE = "scrub_and_use"     # Tier LOW, MEDIUM after scrubbing
-    REVIEW_THEN_USE = "review_then_use" # Tier HIGH; human review required
-    DO_NOT_USE = "do_not_use"           # Tier PROHIBITED
-    REJECT = "reject"                   # Explicit rejection; do not process
+    SCRUB_AND_USE = "scrub_and_use"  # Tier LOW, MEDIUM after scrubbing
+    REVIEW_THEN_USE = "review_then_use"  # Tier HIGH; human review required
+    DO_NOT_USE = "do_not_use"  # Tier PROHIBITED
+    REJECT = "reject"  # Explicit rejection; do not process
 
 
 class GateDecision(str, Enum):
@@ -132,7 +133,7 @@ class PiiFinding:
 @dataclass
 class CrisisFinding:
     crisis_type: str
-    severity: str      # critical, high, elevated, moderate, low
+    severity: str  # critical, high, elevated, moderate, low
     score: float
     requires_escalation: bool
 
@@ -140,7 +141,7 @@ class CrisisFinding:
 @dataclass
 class LicenseCheck:
     license_id: str
-    status: str           # approved, exception, blocked
+    status: str  # approved, exception, blocked
     requires_consent: bool
     consent_recorded: bool
 
@@ -168,7 +169,7 @@ class PrivacyContentReport:
     """Full gate report for a single source or item."""
 
     source_id: str
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     gate0_result: GateResult | None = None
     gate1_result: GateResult | None = None
@@ -237,13 +238,11 @@ class PrivacyContentReport:
             "gates": {
                 f"gate{i}": (r.to_dict() if r else None)
                 for i, r in enumerate(
-                    [self.gate0_result, self.gate1_result,
-                     self.gate2_result, self.gate3_result, self.gate4_result]
+                    [self.gate0_result, self.gate1_result, self.gate2_result, self.gate3_result, self.gate4_result]
                 )
             },
             "pii_findings": [
-                {"pii_type": f.pii_type, "count": f.count, "treatment": f.treatment}
-                for f in self.pii_findings
+                {"pii_type": f.pii_type, "count": f.count, "treatment": f.treatment} for f in self.pii_findings
             ],
             "crisis_findings": [
                 {
@@ -325,6 +324,7 @@ RESTRICTED_PATTERNS: list[str] = [
 # PrivacyContentGates
 # ---------------------------------------------------------------------------
 
+
 class PrivacyContentGates:
     """Evaluates data against the privacy and content-handling policy.
 
@@ -347,7 +347,7 @@ class PrivacyContentGates:
     def __init__(
         self,
         pii_config: PiiScrubberConfig | None = None,
-        review_queue: "HumanReviewQueue | None" = None,
+        review_queue: HumanReviewQueue | None = None,
     ) -> None:
         self._pii_scrubber = PiiScrubber(pii_config or PiiScrubberConfig())
         self._crisis_detector = CrisisInterventionDetector()
@@ -355,6 +355,7 @@ class PrivacyContentGates:
         if REVIEW_QUEUE_ENABLED and review_queue is None:
             try:
                 from .human_review_queue import HumanReviewQueue  # type: ignore
+
                 review_queue = HumanReviewQueue()
             except Exception:
                 # Queue initialization failed; debug logging recommended
@@ -413,18 +414,12 @@ class PrivacyContentGates:
             self._enqueue_for_review(report, text)
 
         # Gate 3 — License and consent
-        gate3 = self._gate3_license(
-            license_id, report.content_sensitivity, consent_recorded
-        )
+        gate3 = self._gate3_license(license_id, report.content_sensitivity, consent_recorded)
         report.gate3_result = gate3
         report.license_check = LicenseCheck(
             license_id=license_id,
             status=gate3.details[0] if gate3.details else "unknown",
-            requires_consent=(
-                gate3.details[1] == "consent_required"
-                if len(gate3.details) > 1
-                else False
-            ),
+            requires_consent=(gate3.details[1] == "consent_required" if len(gate3.details) > 1 else False),
             consent_recorded=consent_recorded,
         )
         # Enqueue for review if ESCALATE
@@ -472,16 +467,14 @@ class PrivacyContentGates:
         review_decision must be PASS (promotion approved) or BLOCK (rejected).
         """
         if review_decision not in (GateDecision.PASS, GateDecision.BLOCK):
-            raise ValueError(
-                f"review_decision must be PASS or BLOCK, got {review_decision.value}"
-            )
+            raise ValueError(f"review_decision must be PASS or BLOCK, got {review_decision.value}")
         report.gate4_result = GateResult(
             gate="gate4",
             decision=review_decision,
             reason=reason,
             details=[
                 f"reviewer: {reviewer}",
-                f"timestamp: {datetime.now(timezone.utc).isoformat()}",
+                f"timestamp: {datetime.now(UTC).isoformat()}",
             ],
         )
         return report
@@ -493,19 +486,14 @@ class PrivacyContentGates:
         REVIEW_THEN_USE.
         """
         result = self._pii_scrubber.scrub(text)
-        findings = [
-            PiiFinding(pii_type=k, count=c, treatment="scrubbed")
-            for k, c in result.pii_counts.items()
-        ]
+        findings = [PiiFinding(pii_type=k, count=c, treatment="scrubbed") for k, c in result.pii_counts.items()]
         return result.scrubbed_text, findings
 
     # ------------------------------------------------------------------
     # Gate 0 — Intake classification
     # ------------------------------------------------------------------
 
-    def _gate0_classify(
-        self, text: str
-    ) -> tuple[GateResult, list[PiiFinding]]:
+    def _gate0_classify(self, text: str) -> tuple[GateResult, list[PiiFinding]]:
         if not text or not isinstance(text, str) or not text.strip():
             return GateResult(
                 gate="gate0",
@@ -526,10 +514,7 @@ class PrivacyContentGates:
 
         pii_types = list(pii_result.pii_counts.keys())
         total_pii = pii_result.total_pii_count
-        findings = [
-            PiiFinding(pii_type=k, count=c, treatment="scrubbed")
-            for k, c in pii_result.pii_counts.items()
-        ]
+        findings = [PiiFinding(pii_type=k, count=c, treatment="scrubbed") for k, c in pii_result.pii_counts.items()]
 
         return GateResult(
             gate="gate0",
@@ -579,9 +564,7 @@ class PrivacyContentGates:
     # Gate 2 — Content safety
     # ------------------------------------------------------------------
 
-    def _gate2_safety(
-        self, text: str
-    ) -> tuple[GateResult, list[CrisisFinding]]:
+    def _gate2_safety(self, text: str) -> tuple[GateResult, list[CrisisFinding]]:
         crisis = self._crisis_detector.process(text)
         crisis_findings = self._collect_crisis_findings(crisis)
 
@@ -716,7 +699,8 @@ class PrivacyContentGates:
         }[tier]
 
     def _collect_crisis_findings(
-        self, crisis_result: "CrisisInterventionResult"  # type: ignore[name-defined]
+        self,
+        crisis_result: CrisisInterventionResult,  # type: ignore[name-defined]
     ) -> list[CrisisFinding]:
         if crisis_result.score == 0.0:
             return []
@@ -764,16 +748,16 @@ class PrivacyContentGates:
 
 
 __all__ = [
-    "PrivacyContentGates",
-    "PrivacyContentReport",
-    "GateResult",
-    "GateDecision",
-    "PrivacyTier",
-    "ContentSensitivity",
-    "RetentionPolicy",
-    "PiiFinding",
-    "CrisisFinding",
-    "LicenseCheck",
     "APPROVED_LICENSES",
     "EXCEPTION_LICENSES",
+    "ContentSensitivity",
+    "CrisisFinding",
+    "GateDecision",
+    "GateResult",
+    "LicenseCheck",
+    "PiiFinding",
+    "PrivacyContentGates",
+    "PrivacyContentReport",
+    "PrivacyTier",
+    "RetentionPolicy",
 ]

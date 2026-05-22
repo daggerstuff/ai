@@ -6,6 +6,7 @@ Can be run as:
 - Script: python ai/sourcing/youtube/__main__.py discovery --help
 - Direct function call
 """
+
 import argparse
 import json
 import logging
@@ -69,7 +70,6 @@ def command_test_connection(args) -> int:
     if hasattr(args, "api_key") and args.api_key:
         api_key = args.api_key
 
-
     success = test_api_connection(api_key)
     return 0 if success else 1
 
@@ -81,7 +81,6 @@ def command_check_quota(args) -> int:
     load_dotenv(".env.youtube.example", override=True)
 
     has_quota, _used, _limit = get_api_quota_status()
-
 
     if not has_quota:
         pass
@@ -100,7 +99,6 @@ def command_list_registry(args) -> int:
     if not Path(db_path).exists():
         return 1
 
-
     with ChannelRegistryDB(db_path) as registry:
         channels = registry.get_all_channels()
 
@@ -111,13 +109,9 @@ def command_list_registry(args) -> int:
 
         for _status, _count in sorted(stats["by_status"].items()):
             pass
-        for _lang, _count in sorted(stats["by_language"].items(), key=lambda x: -x[1])[
-            :10
-        ]:
+        for _lang, _count in sorted(stats["by_language"].items(), key=lambda x: -x[1])[:10]:
             pass
-        for _cat, _count in sorted(stats["by_category"].items(), key=lambda x: -x[1])[
-            :10
-        ]:
+        for _cat, _count in sorted(stats["by_category"].items(), key=lambda x: -x[1])[:10]:
             pass
 
         for _i, channel in enumerate(channels[:50]):
@@ -133,7 +127,6 @@ def command_list_registry(args) -> int:
             if len(channel.categories) > 3:
                 categories = f"{categories}, ..."
 
-
         return 0
 
 
@@ -143,10 +136,8 @@ def command_init_db(args) -> int:
 
     db_path = args.db or "channels.db"
 
-
     with ChannelRegistryDB(db_path) as registry:
         registry.get_statistics()
-
 
     return 0
 
@@ -164,8 +155,6 @@ def command_import_channels(args) -> int:
 
     if not args.registry:
         args.registry = "channels.db"
-
-
 
     with open(input_path) as f:
         channels_data = json.load(f)
@@ -215,10 +204,8 @@ def command_import_channels(args) -> int:
                 registry.add_channel(channel)
                 imported += 1
 
-
             except Exception:
                 skipped += 1
-
 
     return 0
 
@@ -249,55 +236,33 @@ Examples:
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # Test connection
-    test_parser = subparsers.add_parser(
-        "test-connection", help="Test YouTube API connection"
-    )
+    test_parser = subparsers.add_parser("test-connection", help="Test YouTube API connection")
     test_parser.add_argument("--api-key", help="YouTube API key")
-    test_parser.add_argument(
-        "--verbose", "-v", action="store_true", help="Verbose output"
-    )
+    test_parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
     test_parser.set_defaults(func=command_test_connection)
 
     # Check quota
     quota_parser = subparsers.add_parser("check-quota", help="Check YouTube API quota")
-    quota_parser.add_argument(
-        "--verbose", "-v", action="store_true", help="Verbose output"
-    )
+    quota_parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
     quota_parser.set_defaults(func=command_check_quota)
 
     # List registry
-    list_parser = subparsers.add_parser(
-        "list-registry", help="List channels in registry"
-    )
+    list_parser = subparsers.add_parser("list-registry", help="List channels in registry")
     list_parser.add_argument("--registry", "-r", help="Registry database file path")
-    list_parser.add_argument(
-        "--verbose", "-v", action="store_true", help="Verbose output"
-    )
+    list_parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
     list_parser.set_defaults(func=command_list_registry)
 
     # Import channels
-    import_parser = subparsers.add_parser(
-        "import-channels", help="Import channels from JSON file"
-    )
-    import_parser.add_argument(
-        "--input", "-i", required=True, help="Input JSON file path"
-    )
+    import_parser = subparsers.add_parser("import-channels", help="Import channels from JSON file")
+    import_parser.add_argument("--input", "-i", required=True, help="Input JSON file path")
     import_parser.add_argument("--registry", "-r", help="Target registry database file")
-    import_parser.add_argument(
-        "--verbose", "-v", action="store_true", help="Verbose output"
-    )
+    import_parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
     import_parser.set_defaults(func=command_import_channels)
 
     # Initialize database
-    init_parser = subparsers.add_parser(
-        "init-db", help="Initialize channel registry database"
-    )
-    init_parser.add_argument(
-        "--db", "-d", default="channels.db", help="Database file path"
-    )
-    init_parser.add_argument(
-        "--verbose", "-v", action="store_true", help="Verbose output"
-    )
+    init_parser = subparsers.add_parser("init-db", help="Initialize channel registry database")
+    init_parser.add_argument("--db", "-d", default="channels.db", help="Database file path")
+    init_parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
     init_parser.set_defaults(func=command_init_db)
 
     args = parser.parse_args()

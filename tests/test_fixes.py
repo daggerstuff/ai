@@ -9,13 +9,10 @@ import os
 import sys
 from typing import Any
 
-from ai.utils.torch_proxy import nn
-from ai.utils.torch_proxy import torch
+from ai.utils.torch_proxy import nn, torch
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -91,14 +88,8 @@ class TestTrainingPipelineFixes:
                 # In real scenario, this would call login(token=hf_token)
                 logger.info("✅ Would attempt Hugging Face login (simulated)")
             else:
-                logger.warning(
-                    "⚠️  No Hugging Face token found - this is expected in "
-                    "test environment"
-                )
-                logger.info(
-                    "✅ Authentication fix logic is working (would handle "
-                    "missing token gracefully)"
-                )
+                logger.warning("⚠️  No Hugging Face token found - this is expected in test environment")
+                logger.info("✅ Authentication fix logic is working (would handle missing token gracefully)")
             return True
         except Exception as e:
             logger.error(f"❌ Hugging Face auth test failed: {e}")
@@ -166,9 +157,7 @@ class TestTrainingPipelineFixes:
 
             # Overall success
             results["overall_success"] = (
-                results["huggingface_auth_fix"]
-                and results["onnx_export_fix"]
-                and results["fallback_strategies"]
+                results["huggingface_auth_fix"] and results["onnx_export_fix"] and results["fallback_strategies"]
             )
 
             return results
@@ -208,15 +197,9 @@ def _print_success_summary():
     """Print summary of successful fixes."""
     logger.info("🎉 All training pipeline fixes are working correctly!")
     logger.info("\n📋 Summary of fixes implemented:")
-    logger.info(
-        "1. ✅ Hugging Face authentication fix - handles missing tokens gracefully"
-    )
-    logger.info(
-        "2. ✅ ONNX export fix - comprehensive error handling and fallback strategies"
-    )
-    logger.info(
-        "3. ✅ Fallback strategies - multiple approaches for ONNX export failures"
-    )
+    logger.info("1. ✅ Hugging Face authentication fix - handles missing tokens gracefully")
+    logger.info("2. ✅ ONNX export fix - comprehensive error handling and fallback strategies")
+    logger.info("3. ✅ Fallback strategies - multiple approaches for ONNX export failures")
     return 0
 
 

@@ -11,13 +11,14 @@ Analyzes diversity and coverage patterns across conversations:
 - Conversation style diversity
 - Content gap identification
 """
+
 import json
 import re
 import sqlite3
 import traceback
 import warnings
 from collections import Counter, defaultdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import matplotlib.pyplot as plt
@@ -30,9 +31,7 @@ warnings.simplefilter("default")
 
 
 class ConversationDiversityCoverageAnalyzer:
-    def __init__(
-        self, db_path: str = "/home/vivi/pixelated/ai/database/conversations.db"
-    ):
+    def __init__(self, db_path: str = "/home/vivi/pixelated/ai/database/conversations.db"):
         self.db_path = db_path
         self.diversity_metrics = {}
         self.coverage_analysis = {}
@@ -53,9 +52,7 @@ class ConversationDiversityCoverageAnalyzer:
             "vocabulary_diversity": self._analyze_vocabulary_diversity(conversations),
             "topic_diversity": self._analyze_topic_diversity(conversations),
             "style_diversity": self._analyze_style_diversity(conversations),
-            "response_pattern_diversity": self._analyze_response_pattern_diversity(
-                conversations
-            ),
+            "response_pattern_diversity": self._analyze_response_pattern_diversity(conversations),
             "dataset_coverage": self._analyze_dataset_coverage(conversations),
             "content_gaps": self._identify_content_gaps(conversations),
             "diversity_trends": self._analyze_diversity_trends(conversations),
@@ -69,13 +66,11 @@ class ConversationDiversityCoverageAnalyzer:
         self._create_diversity_visualizations(diversity_results)
 
         return {
-            "analysis_timestamp": datetime.now(timezone.utc).isoformat(),
+            "analysis_timestamp": datetime.now(UTC).isoformat(),
             "total_conversations": len(conversations),
             "diversity_analysis": diversity_results,
             "insights": insights,
-            "recommendations": self._generate_diversity_recommendations(
-                diversity_results
-            ),
+            "recommendations": self._generate_diversity_recommendations(diversity_results),
         }
 
     def _load_conversation_data(self) -> pd.DataFrame:
@@ -95,18 +90,14 @@ class ConversationDiversityCoverageAnalyzer:
             df = pd.read_sql_query(query, conn)
 
         # Extract conversation text from JSON
-        df["conversation_text"] = df["conversations_json"].apply(
-            self._extract_text_from_json
-        )
+        df["conversation_text"] = df["conversations_json"].apply(self._extract_text_from_json)
 
         # Filter out empty conversations
         return df[df["conversation_text"].str.len() > 10]
 
-
     def _extract_text_from_json(self, json_str: str) -> str:
         """Extract readable text from conversations JSON"""
         try:
-
             conversations = json.loads(json_str)
 
             if isinstance(conversations, list):
@@ -122,9 +113,7 @@ class ConversationDiversityCoverageAnalyzer:
         except:
             return json_str
 
-    def _analyze_vocabulary_diversity(
-        self, conversations: pd.DataFrame
-    ) -> dict[str, Any]:
+    def _analyze_vocabulary_diversity(self, conversations: pd.DataFrame) -> dict[str, Any]:
         """Analyze vocabulary diversity across conversations"""
 
         vocabulary_stats = {}
@@ -155,14 +144,8 @@ class ConversationDiversityCoverageAnalyzer:
             if sum(word_frequencies.values()) > 0
             else 0,
             "most_common_words": word_frequencies.most_common(20),
-            "rare_words_count": sum(
-                1 for count in word_frequencies.values() if count == 1
-            ),
-            "rare_words_percentage": sum(
-                1 for count in word_frequencies.values() if count == 1
-            )
-            / len(all_words)
-            * 100
+            "rare_words_count": sum(1 for count in word_frequencies.values() if count == 1),
+            "rare_words_percentage": sum(1 for count in word_frequencies.values() if count == 1) / len(all_words) * 100
             if len(all_words) > 0
             else 0,
         }
@@ -172,15 +155,11 @@ class ConversationDiversityCoverageAnalyzer:
         for dataset, vocab in dataset_vocabularies.items():
             dataset_vocab_stats[dataset] = {
                 "unique_words": len(vocab),
-                "vocabulary_overlap_with_global": len(vocab.intersection(all_words))
-                / len(all_words)
-                * 100
+                "vocabulary_overlap_with_global": len(vocab.intersection(all_words)) / len(all_words) * 100
                 if len(all_words) > 0
                 else 0,
                 "unique_to_dataset": len(vocab - (all_words - vocab)),
-                "conversation_count": len(
-                    conversations[conversations["dataset"] == dataset]
-                ),
+                "conversation_count": len(conversations[conversations["dataset"] == dataset]),
             }
 
         # Tier vocabulary diversity
@@ -188,9 +167,7 @@ class ConversationDiversityCoverageAnalyzer:
         for tier, vocab in tier_vocabularies.items():
             tier_vocab_stats[tier] = {
                 "unique_words": len(vocab),
-                "vocabulary_overlap_with_global": len(vocab.intersection(all_words))
-                / len(all_words)
-                * 100
+                "vocabulary_overlap_with_global": len(vocab.intersection(all_words)) / len(all_words) * 100
                 if len(all_words) > 0
                 else 0,
                 "conversation_count": len(conversations[conversations["tier"] == tier]),
@@ -198,9 +175,7 @@ class ConversationDiversityCoverageAnalyzer:
 
         # Calculate vocabulary diversity index (Simpson's diversity)
         total_words = sum(word_frequencies.values())
-        simpson_diversity = 1 - sum(
-            (count / total_words) ** 2 for count in word_frequencies.values()
-        )
+        simpson_diversity = 1 - sum((count / total_words) ** 2 for count in word_frequencies.values())
 
         return {
             "global_vocabulary": vocabulary_stats,
@@ -240,9 +215,7 @@ class ConversationDiversityCoverageAnalyzer:
                 # Analyze clusters
                 cluster_analysis = {}
                 for i in range(n_clusters):
-                    cluster_docs = [
-                        j for j, label in enumerate(cluster_labels) if label == i
-                    ]
+                    cluster_docs = [j for j, label in enumerate(cluster_labels) if label == i]
                     cluster_center = kmeans.cluster_centers_[i]
 
                     # Get top terms for this cluster
@@ -254,29 +227,18 @@ class ConversationDiversityCoverageAnalyzer:
                         "percentage": len(cluster_docs) / len(texts) * 100,
                         "top_terms": top_terms,
                         "datasets_in_cluster": list(
-                            conversations.iloc[cluster_docs]["dataset"]
-                            .value_counts()
-                            .to_dict()
-                            .keys()
+                            conversations.iloc[cluster_docs]["dataset"].value_counts().to_dict().keys()
                         )[:5],
                     }
             else:
-                cluster_analysis = {
-                    "single_cluster": {"document_count": len(texts), "percentage": 100}
-                }
+                cluster_analysis = {"single_cluster": {"document_count": len(texts), "percentage": 100}}
 
             # Calculate topic diversity metrics
             topic_diversity = {
                 "cluster_count": n_clusters,
                 "cluster_analysis": cluster_analysis,
-                "topic_distribution_entropy": self._calculate_cluster_entropy(
-                    cluster_labels
-                )
-                if n_clusters > 1
-                else 0,
-                "average_cluster_size": len(texts) / n_clusters
-                if n_clusters > 0
-                else len(texts),
+                "topic_distribution_entropy": self._calculate_cluster_entropy(cluster_labels) if n_clusters > 1 else 0,
+                "average_cluster_size": len(texts) / n_clusters if n_clusters > 0 else len(texts),
             }
 
         except Exception as e:
@@ -298,12 +260,8 @@ class ConversationDiversityCoverageAnalyzer:
             text = conv["conversation_text"]
 
             # Style indicators
-            question_density = (
-                text.count("?") / len(text) * 1000 if len(text) > 0 else 0
-            )
-            exclamation_density = (
-                text.count("!") / len(text) * 1000 if len(text) > 0 else 0
-            )
+            question_density = text.count("?") / len(text) * 1000 if len(text) > 0 else 0
+            exclamation_density = text.count("!") / len(text) * 1000 if len(text) > 0 else 0
 
             # Sentence length variation
             sentences = [s.strip() for s in text.split(".") if s.strip()]
@@ -317,17 +275,11 @@ class ConversationDiversityCoverageAnalyzer:
                     text.lower(),
                 )
             )
-            informal_words = len(
-                re.findall(r"\b(yeah|okay|cool|awesome|wow|hey)\b", text.lower())
-            )
+            informal_words = len(re.findall(r"\b(yeah|okay|cool|awesome|wow|hey)\b", text.lower()))
 
             # Personal vs impersonal style
-            personal_pronouns = len(
-                re.findall(r"\b(I|you|we|my|your|our)\b", text.lower())
-            )
-            impersonal_indicators = len(
-                re.findall(r"\b(one|it|there|this|that)\b", text.lower())
-            )
+            personal_pronouns = len(re.findall(r"\b(I|you|we|my|your|our)\b", text.lower()))
+            impersonal_indicators = len(re.findall(r"\b(one|it|there|this|that)\b", text.lower()))
 
             style_metrics.append(
                 {
@@ -354,12 +306,8 @@ class ConversationDiversityCoverageAnalyzer:
             },
             "formality_distribution": {
                 "formal_conversations": len(style_df[style_df["formality_score"] > 0]),
-                "informal_conversations": len(
-                    style_df[style_df["formality_score"] < 0]
-                ),
-                "neutral_conversations": len(
-                    style_df[style_df["formality_score"] == 0]
-                ),
+                "informal_conversations": len(style_df[style_df["formality_score"] < 0]),
+                "neutral_conversations": len(style_df[style_df["formality_score"] == 0]),
             },
             "personal_style_distribution": {
                 "personal_style": len(style_df[style_df["personal_style_score"] > 0]),
@@ -378,10 +326,7 @@ class ConversationDiversityCoverageAnalyzer:
             "style_diversity_index": self._calculate_style_diversity_index(style_df),
         }
 
-
-    def _analyze_response_pattern_diversity(
-        self, conversations: pd.DataFrame
-    ) -> dict[str, Any]:
+    def _analyze_response_pattern_diversity(self, conversations: pd.DataFrame) -> dict[str, Any]:
         """Analyze diversity in response patterns"""
 
         pattern_analysis = {
@@ -440,9 +385,7 @@ class ConversationDiversityCoverageAnalyzer:
             if has_dialogue:
                 pattern.append("D")
 
-            structure_patterns.append(
-                "".join(pattern) if pattern else "P"
-            )  # P for plain text
+            structure_patterns.append("".join(pattern) if pattern else "P")  # P for plain text
 
         structure_distribution = Counter(structure_patterns)
         pattern_analysis["response_structure_patterns"] = {
@@ -467,9 +410,7 @@ class ConversationDiversityCoverageAnalyzer:
             "dataset_count": len(dataset_counts),
             "largest_dataset": dataset_counts.index[0],
             "smallest_dataset": dataset_counts.index[-1],
-            "size_ratio": dataset_counts.iloc[0] / dataset_counts.iloc[-1]
-            if len(dataset_counts) > 1
-            else 1,
+            "size_ratio": dataset_counts.iloc[0] / dataset_counts.iloc[-1] if len(dataset_counts) > 1 else 1,
         }
 
         # Tier coverage
@@ -483,25 +424,17 @@ class ConversationDiversityCoverageAnalyzer:
         }
 
         # Cross-coverage analysis (dataset x tier)
-        cross_coverage = (
-            conversations.groupby(["dataset", "tier"]).size().unstack(fill_value=0)
-        )
+        cross_coverage = conversations.groupby(["dataset", "tier"]).size().unstack(fill_value=0)
         coverage_analysis["cross_coverage"] = {
             "matrix": cross_coverage.to_dict(),
-            "coverage_completeness": (cross_coverage > 0).sum().sum()
-            / (len(dataset_counts) * len(tier_counts))
-            * 100,
+            "coverage_completeness": (cross_coverage > 0).sum().sum() / (len(dataset_counts) * len(tier_counts)) * 100,
             "empty_combinations": ((cross_coverage == 0).sum().sum()),
             "well_covered_combinations": ((cross_coverage >= 100).sum().sum()),
         }
 
         # Content length coverage by dataset
-        length_coverage = conversations.groupby("dataset")["text_length"].agg(
-            ["mean", "std", "min", "max", "count"]
-        )
-        coverage_analysis["length_coverage_by_dataset"] = length_coverage.to_dict(
-            "index"
-        )
+        length_coverage = conversations.groupby("dataset")["text_length"].agg(["mean", "std", "min", "max", "count"])
+        coverage_analysis["length_coverage_by_dataset"] = length_coverage.to_dict("index")
 
         return coverage_analysis
 
@@ -592,10 +525,7 @@ class ConversationDiversityCoverageAnalyzer:
         length_distribution = {}
         for range_name, (min_len, max_len) in length_ranges.items():
             count = len(
-                conversations[
-                    (conversations["text_length"] >= min_len)
-                    & (conversations["text_length"] <= max_len)
-                ]
+                conversations[(conversations["text_length"] >= min_len) & (conversations["text_length"] <= max_len)]
             )
             length_distribution[range_name] = {
                 "count": count,
@@ -636,9 +566,7 @@ class ConversationDiversityCoverageAnalyzer:
 
         # Convert created_at to datetime if available
         if "created_at" in conversations.columns:
-            conversations["created_at"] = pd.to_datetime(
-                conversations["created_at"], errors="coerce"
-            )
+            conversations["created_at"] = pd.to_datetime(conversations["created_at"], errors="coerce")
             conversations = conversations.dropna(subset=["created_at"])
 
             if len(conversations) > 0:
@@ -655,13 +583,10 @@ class ConversationDiversityCoverageAnalyzer:
                 )
 
                 # Flatten column names
-                monthly_stats.columns = [
-                    "_".join(col).strip() for col in monthly_stats.columns
-                ]
+                monthly_stats.columns = ["_".join(col).strip() for col in monthly_stats.columns]
 
                 trends_analysis["monthly_trends"] = {
-                    str(month): stats
-                    for month, stats in monthly_stats.to_dict("index").items()
+                    str(month): stats for month, stats in monthly_stats.to_dict("index").items()
                 }
 
                 # Calculate diversity trend
@@ -670,9 +595,7 @@ class ConversationDiversityCoverageAnalyzer:
                 )
 
                 trends_analysis["diversity_trend"] = {
-                    "monthly_diversity_scores": {
-                        str(k): v for k, v in monthly_diversity.to_dict().items()
-                    },
+                    "monthly_diversity_scores": {str(k): v for k, v in monthly_diversity.to_dict().items()},
                     "trend_direction": "increasing"
                     if monthly_diversity.iloc[-1] > monthly_diversity.iloc[0]
                     else "decreasing"
@@ -687,9 +610,7 @@ class ConversationDiversityCoverageAnalyzer:
 
         return trends_analysis
 
-    def _assess_coverage_completeness(
-        self, conversations: pd.DataFrame
-    ) -> dict[str, Any]:
+    def _assess_coverage_completeness(self, conversations: pd.DataFrame) -> dict[str, Any]:
         """Assess overall coverage completeness"""
 
         completeness_analysis = {}
@@ -704,9 +625,7 @@ class ConversationDiversityCoverageAnalyzer:
         completeness_analysis["combination_coverage"] = {
             "total_possible": total_possible_combinations,
             "actual_combinations": actual_combinations,
-            "coverage_percentage": actual_combinations
-            / total_possible_combinations
-            * 100
+            "coverage_percentage": actual_combinations / total_possible_combinations * 100
             if total_possible_combinations > 0
             else 0,
         }
@@ -717,12 +636,7 @@ class ConversationDiversityCoverageAnalyzer:
         # Size distribution assessment
         size_categories = {
             "small": len(conversations[conversations["text_length"] < 200]),
-            "medium": len(
-                conversations[
-                    (conversations["text_length"] >= 200)
-                    & (conversations["text_length"] < 1000)
-                ]
-            ),
+            "medium": len(conversations[(conversations["text_length"] >= 200) & (conversations["text_length"] < 1000)]),
             "large": len(conversations[conversations["text_length"] >= 1000]),
         }
 
@@ -730,48 +644,34 @@ class ConversationDiversityCoverageAnalyzer:
             category: {
                 "count": count,
                 "percentage": count / total_conversations * 100,
-                "adequacy": "good"
-                if count > total_conversations * 0.2
-                else "needs_improvement",
+                "adequacy": "good" if count > total_conversations * 0.2 else "needs_improvement",
             }
             for category, count in size_categories.items()
         }
 
         # Overall completeness score
-        combination_score = (
-            actual_combinations / total_possible_combinations
-            if total_possible_combinations > 0
-            else 0
-        )
+        combination_score = actual_combinations / total_possible_combinations if total_possible_combinations > 0 else 0
         size_balance_score = (
             1 - abs(0.33 - min(size_categories.values()) / total_conversations) * 3
         )  # Penalty for imbalance
 
-        completeness_analysis["overall_completeness_score"] = (
-            (combination_score + max(0, size_balance_score)) / 2 * 100
-        )
+        completeness_analysis["overall_completeness_score"] = (combination_score + max(0, size_balance_score)) / 2 * 100
 
         return completeness_analysis
 
-    def _generate_diversity_insights(
-        self, diversity_results: dict[str, Any]
-    ) -> list[str]:
+    def _generate_diversity_insights(self, diversity_results: dict[str, Any]) -> list[str]:
         """Generate insights from diversity analysis"""
         insights = []
 
         # Vocabulary diversity insights
         vocab_diversity = diversity_results["vocabulary_diversity"]
         if vocab_diversity["diversity_indices"]["simpson_diversity"] < 0.8:
-            insights.append(
-                "📚 Vocabulary diversity is low - consider expanding word variety across conversations"
-            )
+            insights.append("📚 Vocabulary diversity is low - consider expanding word variety across conversations")
 
         # Topic diversity insights
         topic_diversity = diversity_results["topic_diversity"]
         if topic_diversity.get("cluster_count", 0) < 5:
-            insights.append(
-                "🎯 Limited topic diversity detected - expand conversation themes and subjects"
-            )
+            insights.append("🎯 Limited topic diversity detected - expand conversation themes and subjects")
 
         # Coverage insights
         coverage = diversity_results["dataset_coverage"]
@@ -783,14 +683,10 @@ class ConversationDiversityCoverageAnalyzer:
         # Content gaps insights
         gaps = diversity_results["content_gaps"]
         low_coverage_domains = [
-            domain
-            for domain, data in gaps["vocabulary_gaps"].items()
-            if data["coverage_percentage"] < 50
+            domain for domain, data in gaps["vocabulary_gaps"].items() if data["coverage_percentage"] < 50
         ]
         if low_coverage_domains:
-            insights.append(
-                f"🔍 Low coverage in domains: {', '.join(low_coverage_domains)}"
-            )
+            insights.append(f"🔍 Low coverage in domains: {', '.join(low_coverage_domains)}")
 
         # Completeness insights
         completeness = diversity_results["coverage_completeness"]
@@ -801,39 +697,29 @@ class ConversationDiversityCoverageAnalyzer:
 
         return insights
 
-    def _generate_diversity_recommendations(
-        self, diversity_results: dict[str, Any]
-    ) -> list[str]:
+    def _generate_diversity_recommendations(self, diversity_results: dict[str, Any]) -> list[str]:
         """Generate recommendations for improving diversity and coverage"""
         recommendations = []
 
         # Vocabulary recommendations
         vocab_diversity = diversity_results["vocabulary_diversity"]
         if vocab_diversity["global_vocabulary"]["rare_words_percentage"] > 50:
-            recommendations.append(
-                "📝 High percentage of rare words - balance vocabulary with more common terms"
-            )
+            recommendations.append("📝 High percentage of rare words - balance vocabulary with more common terms")
 
         # Topic recommendations
         topic_diversity = diversity_results["topic_diversity"]
         if topic_diversity.get("cluster_count", 0) < 8:
-            recommendations.append(
-                "🎯 Increase topic diversity by adding conversations on underrepresented themes"
-            )
+            recommendations.append("🎯 Increase topic diversity by adding conversations on underrepresented themes")
 
         # Style recommendations
         style_diversity = diversity_results["style_diversity"]
-        formal_ratio = style_diversity["formality_distribution"][
-            "formal_conversations"
-        ] / (
+        formal_ratio = style_diversity["formality_distribution"]["formal_conversations"] / (
             style_diversity["formality_distribution"]["formal_conversations"]
             + style_diversity["formality_distribution"]["informal_conversations"]
             + 1
         )
         if formal_ratio > 0.8 or formal_ratio < 0.2:
-            recommendations.append(
-                "🎨 Balance formal and informal conversation styles for better diversity"
-            )
+            recommendations.append("🎨 Balance formal and informal conversation styles for better diversity")
 
         # Coverage recommendations
         gaps = diversity_results["content_gaps"]
@@ -845,9 +731,7 @@ class ConversationDiversityCoverageAnalyzer:
         # Completeness recommendations
         completeness = diversity_results["coverage_completeness"]
         if completeness["combination_coverage"]["coverage_percentage"] < 80:
-            recommendations.append(
-                "✅ Improve dataset-tier combination coverage to reach 80%+ completeness"
-            )
+            recommendations.append("✅ Improve dataset-tier combination coverage to reach 80%+ completeness")
 
         return recommendations
 
@@ -875,9 +759,7 @@ class ConversationDiversityCoverageAnalyzer:
             axes[0, 0].set_xlabel("Dataset")
             axes[0, 0].set_ylabel("Conversation Count")
             axes[0, 0].set_xticks(range(len(datasets)))
-            axes[0, 0].set_xticklabels(
-                [d[:15] + "..." if len(d) > 15 else d for d in datasets], rotation=45
-            )
+            axes[0, 0].set_xticklabels([d[:15] + "..." if len(d) > 15 else d for d in datasets], rotation=45)
 
         # 2. Vocabulary Diversity by Dataset
         vocab_diversity = diversity_results["vocabulary_diversity"]
@@ -887,26 +769,18 @@ class ConversationDiversityCoverageAnalyzer:
             datasets = list(dataset_vocab.keys())[:8]  # Top 8 for readability
             unique_words = [dataset_vocab[d]["unique_words"] for d in datasets]
 
-            axes[0, 1].bar(
-                range(len(datasets)), unique_words, color="lightcoral", alpha=0.7
-            )
+            axes[0, 1].bar(range(len(datasets)), unique_words, color="lightcoral", alpha=0.7)
             axes[0, 1].set_title("Vocabulary Diversity by Dataset")
             axes[0, 1].set_xlabel("Dataset")
             axes[0, 1].set_ylabel("Unique Words")
             axes[0, 1].set_xticks(range(len(datasets)))
-            axes[0, 1].set_xticklabels(
-                [d[:10] + "..." if len(d) > 10 else d for d in datasets], rotation=45
-            )
+            axes[0, 1].set_xticklabels([d[:10] + "..." if len(d) > 10 else d for d in datasets], rotation=45)
 
         # 3. Topic Diversity
         topic_diversity = diversity_results["topic_diversity"]
-        if (
-            topic_diversity.get("cluster_analysis")
-        ):
+        if topic_diversity.get("cluster_analysis"):
             clusters = list(topic_diversity["cluster_analysis"].keys())
-            percentages = [
-                topic_diversity["cluster_analysis"][c]["percentage"] for c in clusters
-            ]
+            percentages = [topic_diversity["cluster_analysis"][c]["percentage"] for c in clusters]
 
             axes[0, 2].pie(
                 percentages,
@@ -953,18 +827,11 @@ class ConversationDiversityCoverageAnalyzer:
         metrics = ["Combination\nCoverage", "Size\nBalance", "Overall\nCompleteness"]
         scores = [
             completeness["combination_coverage"]["coverage_percentage"],
-            np.mean(
-                [
-                    cat["percentage"]
-                    for cat in completeness["size_distribution"].values()
-                ]
-            ),
+            np.mean([cat["percentage"] for cat in completeness["size_distribution"].values()]),
             completeness["overall_completeness_score"],
         ]
 
-        bars = axes[1, 1].bar(
-            metrics, scores, color=["#96CEB4", "#FFEAA7", "#DDA0DD"], alpha=0.8
-        )
+        bars = axes[1, 1].bar(metrics, scores, color=["#96CEB4", "#FFEAA7", "#DDA0DD"], alpha=0.8)
         axes[1, 1].set_title("Coverage Completeness Metrics")
         axes[1, 1].set_ylabel("Score (%)")
         axes[1, 1].set_ylim(0, 100)
@@ -1022,14 +889,13 @@ class ConversationDiversityCoverageAnalyzer:
         plt.tight_layout()
 
         # Save the plot
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         plt.savefig(
             f"/home/vivi/pixelated/ai/monitoring/diversity_coverage_analysis_{timestamp}.png",
             dpi=300,
             bbox_inches="tight",
         )
         plt.show()
-
 
     # Helper methods
     def _calculate_shannon_entropy(self, word_frequencies: Counter) -> float:
@@ -1094,12 +960,11 @@ def main():
         results = analyzer.analyze_diversity_coverage()
 
         # Save results
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         output_file = f"/home/vivi/pixelated/ai/monitoring/diversity_coverage_analysis_{timestamp}.json"
 
         with open(output_file, "w") as f:
             json.dump(results, f, indent=2, default=str)
-
 
         # Display key insights
         for _insight in results["insights"][:5]:
@@ -1111,7 +976,6 @@ def main():
         return results
 
     except Exception:
-
         traceback.print_exc()
         return None
 

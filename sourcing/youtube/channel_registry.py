@@ -9,7 +9,7 @@ Uses SQLite for lightweight, embedded database storage.
 import json
 import logging
 import sqlite3
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from ai.sourcing.youtube.models import (
@@ -76,13 +76,9 @@ class ChannelRegistryDB:
         """)
 
         # Create indexes
-        self.conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_quality ON channels (quality_score)"
-        )
+        self.conn.execute("CREATE INDEX IF NOT EXISTS idx_quality ON channels (quality_score)")
         self.conn.execute("CREATE INDEX IF NOT EXISTS idx_status ON channels (status)")
-        self.conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_language ON channels (primary_language)"
-        )
+        self.conn.execute("CREATE INDEX IF NOT EXISTS idx_language ON channels (primary_language)")
 
         self.conn.commit()
 
@@ -96,7 +92,7 @@ class ChannelRegistryDB:
         Returns:
             Database row ID (integer)
         """
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
 
         data = {
             "channel_id": channel.channel_id,
@@ -105,31 +101,21 @@ class ChannelRegistryDB:
             "subscriber_count": channel.subscriber_count,
             "video_count": channel.video_count,
             "total_views": channel.total_views,
-            "created_date": channel.created_date.isoformat()
-            if channel.created_date
-            else None,
-            "last_updated": channel.last_updated.isoformat()
-            if channel.last_updated
-            else None,
+            "created_date": channel.created_date.isoformat() if channel.created_date else None,
+            "last_updated": channel.last_updated.isoformat() if channel.last_updated else None,
             "primary_language": channel.primary_language,
             "languages": json.dumps(list(channel.languages)),
             "categories": json.dumps([c.value for c in channel.categories]),
             "description": channel.description,
             "quality_score": channel.quality_score,
-            "quality_metrics": json.dumps(channel.quality_metrics.__dict__())
-            if channel.quality_metrics
-            else None,
+            "quality_metrics": json.dumps(channel.quality_metrics.__dict__()) if channel.quality_metrics else None,
             "is_professional": 1 if channel.is_professional else 0,
             "credentials": json.dumps(channel.credentials),
             "organization": channel.organization,
-            "licensing_info": json.dumps(channel.licensing.__dict__())
-            if channel.licensing
-            else None,
+            "licensing_info": json.dumps(channel.licensing.__dict__()) if channel.licensing else None,
             "status": channel.status.value,
             "health_score": channel.health_score,
-            "last_monitored": channel.last_monitored.isoformat()
-            if channel.last_monitored
-            else None,
+            "last_monitored": channel.last_monitored.isoformat() if channel.last_monitored else None,
             "tags": json.dumps(channel.tags),
             "notes": channel.notes,
             "source": channel.source,
@@ -223,9 +209,7 @@ class ChannelRegistryDB:
 
         return self._row_to_channel(row)
 
-    def get_all_channels(
-        self, status_filter: ChannelStatus | None = None
-    ) -> list[Channel]:
+    def get_all_channels(self, status_filter: ChannelStatus | None = None) -> list[Channel]:
         """
         Get all channels, optionally filtered by status.
 
@@ -319,7 +303,7 @@ class ChannelRegistryDB:
                 SET status = ?, last_monitored = ?
                 WHERE channel_id = ?
                 """,
-                (status.value, datetime.now(timezone.utc).isoformat(), channel_id),
+                (status.value, datetime.now(UTC).isoformat(), channel_id),
             )
 
             self.conn.commit()
@@ -349,7 +333,7 @@ class ChannelRegistryDB:
                 SET health_score = ?, last_monitored = ?
                 WHERE channel_id = ?
                 """,
-                (health_score, datetime.now(timezone.utc).isoformat(), channel_id),
+                (health_score, datetime.now(UTC).isoformat(), channel_id),
             )
 
             self.conn.commit()
@@ -382,10 +366,7 @@ class ChannelRegistryDB:
             "ORDER BY quality_bucket"
         )
         quality_dist_raw = cursor.fetchall()
-        quality_dist = {
-            f"{row[0] / 10:.1f}-{(row[0] + 1) / 10:.1f}": row[1]
-            for row in quality_dist_raw
-        }
+        quality_dist = {f"{row[0] / 10:.1f}-{(row[0] + 1) / 10:.1f}": row[1] for row in quality_dist_raw}
 
         # By language
         cursor.execute("""
@@ -424,17 +405,11 @@ class ChannelRegistryDB:
             subscriber_count=row["subscriber_count"],
             video_count=row["video_count"],
             total_views=row["total_views"],
-            created_date=datetime.fromisoformat(row["created_date"])
-            if row["created_date"]
-            else None,
-            last_updated=datetime.fromisoformat(row["last_updated"])
-            if row["last_updated"]
-            else None,
+            created_date=datetime.fromisoformat(row["created_date"]) if row["created_date"] else None,
+            last_updated=datetime.fromisoformat(row["last_updated"]) if row["last_updated"] else None,
             primary_language=row["primary_language"],
             languages=set(json.loads(row["languages"])) if row["languages"] else set(),
-            categories=[ContentCategory(c) for c in json.loads(row["categories"])]
-            if row["categories"]
-            else [],
+            categories=[ContentCategory(c) for c in json.loads(row["categories"])] if row["categories"] else [],
             description=row["description"],
             quality_score=row["quality_score"],
             is_professional=bool(row["is_professional"]),
@@ -442,9 +417,7 @@ class ChannelRegistryDB:
             organization=row["organization"],
             status=ChannelStatus(row["status"]),
             health_score=row["health_score"],
-            last_monitored=datetime.fromisoformat(row["last_monitored"])
-            if row["last_monitored"]
-            else None,
+            last_monitored=datetime.fromisoformat(row["last_monitored"]) if row["last_monitored"] else None,
             tags=json.loads(row["tags"]) if row["tags"] else [],
             notes=row["notes"],
             source=row["source"],

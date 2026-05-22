@@ -27,7 +27,7 @@ import time
 from collections import defaultdict, deque
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any
 
@@ -37,37 +37,42 @@ import numpy as np
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.FileHandler("/home/vivi/pixelated/ai/logs/api_monitoring.log"),
-        logging.StreamHandler()
-    ]
+    handlers=[logging.FileHandler("/home/vivi/pixelated/ai/logs/api_monitoring.log"), logging.StreamHandler()],
 )
 logger = logging.getLogger(__name__)
 
+
 class MetricType(Enum):
     """Types of metrics"""
+
     COUNTER = "counter"
     GAUGE = "gauge"
     HISTOGRAM = "histogram"
     TIMER = "timer"
 
+
 class AlertSeverity(Enum):
     """Alert severity levels"""
+
     INFO = "info"
     WARNING = "warning"
     ERROR = "error"
     CRITICAL = "critical"
 
+
 class ServiceHealth(Enum):
     """Service health status"""
+
     HEALTHY = "healthy"
     DEGRADED = "degraded"
     UNHEALTHY = "unhealthy"
     UNKNOWN = "unknown"
 
+
 @dataclass
 class Metric:
     """Individual metric data point"""
+
     name: str
     value: float
     metric_type: MetricType
@@ -75,9 +80,11 @@ class Metric:
     tags: dict[str, str]
     unit: str = ""
 
+
 @dataclass
 class PerformanceMetrics:
     """API performance metrics"""
+
     endpoint: str
     method: str
     status_code: int
@@ -89,9 +96,11 @@ class PerformanceMetrics:
     session_id: str | None = None
     trace_id: str | None = None
 
+
 @dataclass
 class ErrorEvent:
     """Error tracking event"""
+
     error_id: str
     error_type: str
     error_message: str
@@ -103,17 +112,21 @@ class ErrorEvent:
     context: dict[str, Any]
     resolved: bool = False
 
+
 @dataclass
 class BusinessMetrics:
     """Business-level metrics"""
+
     metric_name: str
     value: float
     timestamp: datetime
     dimensions: dict[str, str]
 
+
 @dataclass
 class Alert:
     """Monitoring alert"""
+
     alert_id: str
     severity: AlertSeverity
     title: str
@@ -124,6 +137,7 @@ class Alert:
     timestamp: datetime
     resolved: bool = False
     acknowledged: bool = False
+
 
 class MetricsCollector:
     """Collects and aggregates metrics"""
@@ -137,16 +151,12 @@ class MetricsCollector:
         # Time-series data storage (last 24 hours)
         self.time_series_data: dict[str, deque] = defaultdict(lambda: deque(maxlen=1440))  # 1 minute intervals
 
-    def record_metric(self, name: str, value: float, metric_type: MetricType,
-                     tags: dict[str, str] = None, unit: str = ""):
+    def record_metric(
+        self, name: str, value: float, metric_type: MetricType, tags: dict[str, str] = None, unit: str = ""
+    ):
         """Record a metric"""
         metric = Metric(
-            name=name,
-            value=value,
-            metric_type=metric_type,
-            timestamp=datetime.now(timezone.utc),
-            tags=tags or {},
-            unit=unit
+            name=name, value=value, metric_type=metric_type, timestamp=datetime.now(UTC), tags=tags or {}, unit=unit
         )
 
         self.metrics.append(metric)
@@ -155,10 +165,18 @@ class MetricsCollector:
         key = f"{name}:{':'.join(f'{k}={v}' for k, v in (tags or {}).items())}"
         self.time_series_data[key].append((metric.timestamp, value))
 
-    def record_performance(self, endpoint: str, method: str, status_code: int,
-                          response_time_ms: float, request_size: int = 0,
-                          response_size: int = 0, user_id: str = None,
-                          session_id: str = None, trace_id: str = None):
+    def record_performance(
+        self,
+        endpoint: str,
+        method: str,
+        status_code: int,
+        response_time_ms: float,
+        request_size: int = 0,
+        response_size: int = 0,
+        user_id: str = None,
+        session_id: str = None,
+        trace_id: str = None,
+    ):
         """Record API performance metrics"""
         perf_metric = PerformanceMetrics(
             endpoint=endpoint,
@@ -167,10 +185,10 @@ class MetricsCollector:
             response_time_ms=response_time_ms,
             request_size_bytes=request_size,
             response_size_bytes=response_size,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             user_id=user_id,
             session_id=session_id,
-            trace_id=trace_id
+            trace_id=trace_id,
         )
 
         self.performance_metrics.append(perf_metric)
@@ -181,19 +199,23 @@ class MetricsCollector:
             response_time_ms,
             MetricType.HISTOGRAM,
             {"endpoint": endpoint, "method": method, "status": str(status_code)},
-            "ms"
+            "ms",
         )
 
         self.record_metric(
-            "api.requests",
-            1,
-            MetricType.COUNTER,
-            {"endpoint": endpoint, "method": method, "status": str(status_code)}
+            "api.requests", 1, MetricType.COUNTER, {"endpoint": endpoint, "method": method, "status": str(status_code)}
         )
 
-    def record_error(self, error_type: str, error_message: str, stack_trace: str,
-                    endpoint: str, method: str, user_id: str = None,
-                    context: dict[str, Any] = None):
+    def record_error(
+        self,
+        error_type: str,
+        error_message: str,
+        stack_trace: str,
+        endpoint: str,
+        method: str,
+        user_id: str = None,
+        context: dict[str, Any] = None,
+    ):
         """Record error event"""
         error_event = ErrorEvent(
             error_id=f"error_{int(time.time() * 1000)}",
@@ -203,39 +225,28 @@ class MetricsCollector:
             endpoint=endpoint,
             method=method,
             user_id=user_id,
-            timestamp=datetime.now(timezone.utc),
-            context=context or {}
+            timestamp=datetime.now(UTC),
+            context=context or {},
         )
 
         self.error_events.append(error_event)
 
         # Record error metrics
         self.record_metric(
-            "api.errors",
-            1,
-            MetricType.COUNTER,
-            {"endpoint": endpoint, "method": method, "error_type": error_type}
+            "api.errors", 1, MetricType.COUNTER, {"endpoint": endpoint, "method": method, "error_type": error_type}
         )
 
-    def record_business_metric(self, metric_name: str, value: float,
-                              dimensions: dict[str, str] = None):
+    def record_business_metric(self, metric_name: str, value: float, dimensions: dict[str, str] = None):
         """Record business metric"""
         business_metric = BusinessMetrics(
-            metric_name=metric_name,
-            value=value,
-            timestamp=datetime.now(timezone.utc),
-            dimensions=dimensions or {}
+            metric_name=metric_name, value=value, timestamp=datetime.now(UTC), dimensions=dimensions or {}
         )
 
         self.business_metrics.append(business_metric)
 
         # Also record as regular metric
-        self.record_metric(
-            f"business.{metric_name}",
-            value,
-            MetricType.GAUGE,
-            dimensions
-        )
+        self.record_metric(f"business.{metric_name}", value, MetricType.GAUGE, dimensions)
+
 
 class PerformanceAnalyzer:
     """Analyzes performance metrics and generates insights"""
@@ -243,10 +254,9 @@ class PerformanceAnalyzer:
     def __init__(self, metrics_collector: MetricsCollector):
         self.collector = metrics_collector
 
-    def get_response_time_percentiles(self, endpoint: str = None,
-                                    time_window_minutes: int = 60) -> dict[str, float]:
+    def get_response_time_percentiles(self, endpoint: str = None, time_window_minutes: int = 60) -> dict[str, float]:
         """Calculate response time percentiles"""
-        cutoff_time = datetime.now(timezone.utc) - timedelta(minutes=time_window_minutes)
+        cutoff_time = datetime.now(UTC) - timedelta(minutes=time_window_minutes)
 
         # Filter metrics
         response_times = []
@@ -264,13 +274,12 @@ class PerformanceAnalyzer:
             "p99": np.percentile(response_times, 99),
             "mean": np.mean(response_times),
             "min": np.min(response_times),
-            "max": np.max(response_times)
+            "max": np.max(response_times),
         }
 
-    def get_error_rate(self, endpoint: str = None,
-                      time_window_minutes: int = 60) -> float:
+    def get_error_rate(self, endpoint: str = None, time_window_minutes: int = 60) -> float:
         """Calculate error rate percentage"""
-        cutoff_time = datetime.now(timezone.utc) - timedelta(minutes=time_window_minutes)
+        cutoff_time = datetime.now(UTC) - timedelta(minutes=time_window_minutes)
 
         total_requests = 0
         error_requests = 0
@@ -286,10 +295,9 @@ class PerformanceAnalyzer:
 
         return (error_requests / total_requests) * 100
 
-    def get_throughput(self, endpoint: str = None,
-                      time_window_minutes: int = 60) -> float:
+    def get_throughput(self, endpoint: str = None, time_window_minutes: int = 60) -> float:
         """Calculate requests per minute"""
-        cutoff_time = datetime.now(timezone.utc) - timedelta(minutes=time_window_minutes)
+        cutoff_time = datetime.now(UTC) - timedelta(minutes=time_window_minutes)
 
         request_count = 0
         for metric in self.collector.performance_metrics:
@@ -298,10 +306,9 @@ class PerformanceAnalyzer:
 
         return request_count / time_window_minutes
 
-    def get_top_errors(self, limit: int = 10,
-                      time_window_minutes: int = 60) -> list[dict[str, Any]]:
+    def get_top_errors(self, limit: int = 10, time_window_minutes: int = 60) -> list[dict[str, Any]]:
         """Get most frequent errors"""
-        cutoff_time = datetime.now(timezone.utc) - timedelta(minutes=time_window_minutes)
+        cutoff_time = datetime.now(UTC) - timedelta(minutes=time_window_minutes)
 
         error_counts = defaultdict(int)
         error_details = {}
@@ -315,7 +322,7 @@ class PerformanceAnalyzer:
                         "error_type": error.error_type,
                         "error_message": error.error_message,
                         "first_seen": error.timestamp,
-                        "endpoints": set()
+                        "endpoints": set(),
                     }
                 error_details[key]["endpoints"].add(error.endpoint)
                 error_details[key]["last_seen"] = error.timestamp
@@ -324,16 +331,19 @@ class PerformanceAnalyzer:
         top_errors = []
         for key, count in sorted(error_counts.items(), key=lambda x: x[1], reverse=True)[:limit]:
             details = error_details[key]
-            top_errors.append({
-                "error_type": details["error_type"],
-                "error_message": details["error_message"],
-                "count": count,
-                "first_seen": details["first_seen"].isoformat(),
-                "last_seen": details["last_seen"].isoformat(),
-                "affected_endpoints": list(details["endpoints"])
-            })
+            top_errors.append(
+                {
+                    "error_type": details["error_type"],
+                    "error_message": details["error_message"],
+                    "count": count,
+                    "first_seen": details["first_seen"].isoformat(),
+                    "last_seen": details["last_seen"].isoformat(),
+                    "affected_endpoints": list(details["endpoints"]),
+                }
+            )
 
         return top_errors
+
 
 class AlertManager:
     """Manages monitoring alerts with intelligent noise reduction"""
@@ -348,22 +358,22 @@ class AlertManager:
         self.alert_suppression: dict[str, datetime] = {}
         self.suppression_duration = timedelta(minutes=15)
 
-    def add_alert_rule(self, metric_name: str, threshold: float,
-                      comparison: str, severity: AlertSeverity,
-                      time_window_minutes: int = 5):
+    def add_alert_rule(
+        self, metric_name: str, threshold: float, comparison: str, severity: AlertSeverity, time_window_minutes: int = 5
+    ):
         """Add alert rule"""
         rule = {
             "metric_name": metric_name,
             "threshold": threshold,
             "comparison": comparison,  # "gt", "lt", "eq"
             "severity": severity,
-            "time_window_minutes": time_window_minutes
+            "time_window_minutes": time_window_minutes,
         }
         self.alert_rules.append(rule)
 
     def check_alerts(self):
         """Check all alert rules and trigger alerts if needed"""
-        current_time = datetime.now(timezone.utc)
+        current_time = datetime.now(UTC)
 
         for rule in self.alert_rules:
             metric_name = rule["metric_name"]
@@ -380,7 +390,11 @@ class AlertManager:
 
             # Check threshold
             should_alert = False
-            if (comparison == "gt" and current_value > threshold) or (comparison == "lt" and current_value < threshold) or (comparison == "eq" and current_value == threshold):
+            if (
+                (comparison == "gt" and current_value > threshold)
+                or (comparison == "lt" and current_value < threshold)
+                or (comparison == "eq" and current_value == threshold)
+            ):
                 should_alert = True
 
             if should_alert:
@@ -399,7 +413,7 @@ class AlertManager:
                     metric_name=metric_name,
                     current_value=current_value,
                     threshold=threshold,
-                    timestamp=current_time
+                    timestamp=current_time,
                 )
 
                 self.alerts.append(alert)
@@ -416,7 +430,7 @@ class AlertManager:
 
     def _get_metric_value(self, metric_name: str, time_window_minutes: int) -> float | None:
         """Get current metric value for alert checking"""
-        cutoff_time = datetime.now(timezone.utc) - timedelta(minutes=time_window_minutes)
+        cutoff_time = datetime.now(UTC) - timedelta(minutes=time_window_minutes)
 
         values = []
         for metric in self.collector.metrics:
@@ -433,24 +447,30 @@ class AlertManager:
         """Add callback for alert notifications"""
         self.alert_callbacks.append(callback)
 
+
 class DashboardGenerator:
     """Generates monitoring dashboards"""
 
-    def __init__(self, metrics_collector: MetricsCollector,
-                 performance_analyzer: PerformanceAnalyzer):
+    def __init__(self, metrics_collector: MetricsCollector, performance_analyzer: PerformanceAnalyzer):
         self.collector = metrics_collector
         self.analyzer = performance_analyzer
 
     def generate_executive_dashboard(self) -> dict[str, Any]:
         """Generate executive dashboard with high-level KPIs"""
-        current_time = datetime.now(timezone.utc)
+        current_time = datetime.now(UTC)
 
         # Business metrics
-        total_users = len(set(m.user_id for m in self.collector.performance_metrics
-                            if m.user_id and m.timestamp >= current_time - timedelta(hours=24)))
+        total_users = len(
+            set(
+                m.user_id
+                for m in self.collector.performance_metrics
+                if m.user_id and m.timestamp >= current_time - timedelta(hours=24)
+            )
+        )
 
-        total_requests = len([m for m in self.collector.performance_metrics
-                            if m.timestamp >= current_time - timedelta(hours=24)])
+        total_requests = len(
+            [m for m in self.collector.performance_metrics if m.timestamp >= current_time - timedelta(hours=24)]
+        )
 
         # System health
         error_rate = self.analyzer.get_error_rate(time_window_minutes=60)
@@ -473,18 +493,18 @@ class DashboardGenerator:
                 "total_requests_24h": total_requests,
                 "error_rate_1h": round(error_rate, 2),
                 "avg_response_time_1h": round(avg_response_time, 2),
-                "uptime_percentage": 99.9  # Would be calculated from actual uptime data
+                "uptime_percentage": 99.9,  # Would be calculated from actual uptime data
             },
             "trends": {
                 "user_growth": "stable",  # Would be calculated from historical data
                 "request_volume": "increasing",
-                "performance": "stable"
-            }
+                "performance": "stable",
+            },
         }
 
     def generate_technical_dashboard(self) -> dict[str, Any]:
         """Generate technical dashboard with detailed metrics"""
-        current_time = datetime.now(timezone.utc)
+        current_time = datetime.now(UTC)
 
         # Performance metrics
         response_times = self.analyzer.get_response_time_percentiles(time_window_minutes=60)
@@ -493,42 +513,38 @@ class DashboardGenerator:
         top_errors = self.analyzer.get_top_errors(limit=5, time_window_minutes=60)
 
         # Endpoint performance
-        endpoints = set(m.endpoint for m in self.collector.performance_metrics
-                       if m.timestamp >= current_time - timedelta(hours=1))
+        endpoints = set(
+            m.endpoint for m in self.collector.performance_metrics if m.timestamp >= current_time - timedelta(hours=1)
+        )
 
         endpoint_metrics = {}
         for endpoint in endpoints:
             endpoint_metrics[endpoint] = {
                 "response_times": self.analyzer.get_response_time_percentiles(endpoint, 60),
                 "error_rate": self.analyzer.get_error_rate(endpoint, 60),
-                "throughput": self.analyzer.get_throughput(endpoint, 60)
+                "throughput": self.analyzer.get_throughput(endpoint, 60),
             }
 
         return {
             "dashboard_type": "technical",
             "timestamp": current_time.isoformat(),
-            "performance": {
-                "response_times": response_times,
-                "error_rate": error_rate,
-                "throughput": throughput
-            },
+            "performance": {"response_times": response_times, "error_rate": error_rate, "throughput": throughput},
             "endpoints": endpoint_metrics,
             "top_errors": top_errors,
             "system_resources": {
                 "cpu_usage": 45.2,  # Would come from system metrics
                 "memory_usage": 67.8,
-                "disk_usage": 23.1
-            }
+                "disk_usage": 23.1,
+            },
         }
 
     def generate_business_dashboard(self) -> dict[str, Any]:
         """Generate business dashboard with business metrics"""
-        current_time = datetime.now(timezone.utc)
+        current_time = datetime.now(UTC)
 
         # Business metrics from last 24 hours
         recent_business_metrics = [
-            m for m in self.collector.business_metrics
-            if m.timestamp >= current_time - timedelta(hours=24)
+            m for m in self.collector.business_metrics if m.timestamp >= current_time - timedelta(hours=24)
         ]
 
         # Aggregate business metrics
@@ -545,7 +561,7 @@ class DashboardGenerator:
                 "current": values[-1] if values else 0,
                 "average": statistics.mean(values) if values else 0,
                 "total": sum(values) if values else 0,
-                "count": len(values)
+                "count": len(values),
             }
 
         return {
@@ -553,17 +569,19 @@ class DashboardGenerator:
             "timestamp": current_time.isoformat(),
             "business_kpis": aggregated_kpis,
             "user_engagement": {
-                "active_users": len(set(m.user_id for m in self.collector.performance_metrics
-                                      if m.user_id and m.timestamp >= current_time - timedelta(hours=1))),
+                "active_users": len(
+                    set(
+                        m.user_id
+                        for m in self.collector.performance_metrics
+                        if m.user_id and m.timestamp >= current_time - timedelta(hours=1)
+                    )
+                ),
                 "session_duration": 15.5,  # Would be calculated from session data
-                "api_usage_per_user": 12.3
+                "api_usage_per_user": 12.3,
             },
-            "conversion_metrics": {
-                "signup_rate": 3.2,
-                "activation_rate": 78.5,
-                "retention_rate": 85.2
-            }
+            "conversion_metrics": {"signup_rate": 3.2, "activation_rate": 78.5, "retention_rate": 85.2},
         }
+
 
 class APIMonitor:
     """Main API monitoring system"""
@@ -592,20 +610,12 @@ class APIMonitor:
     def _setup_default_alerts(self):
         """Set up default alert rules"""
         # Response time alerts
-        self.alert_manager.add_alert_rule(
-            "api.response_time", 500, "gt", AlertSeverity.WARNING, 5
-        )
-        self.alert_manager.add_alert_rule(
-            "api.response_time", 1000, "gt", AlertSeverity.ERROR, 5
-        )
+        self.alert_manager.add_alert_rule("api.response_time", 500, "gt", AlertSeverity.WARNING, 5)
+        self.alert_manager.add_alert_rule("api.response_time", 1000, "gt", AlertSeverity.ERROR, 5)
 
         # Error rate alerts
-        self.alert_manager.add_alert_rule(
-            "api.errors", 10, "gt", AlertSeverity.WARNING, 5
-        )
-        self.alert_manager.add_alert_rule(
-            "api.errors", 50, "gt", AlertSeverity.CRITICAL, 5
-        )
+        self.alert_manager.add_alert_rule("api.errors", 10, "gt", AlertSeverity.WARNING, 5)
+        self.alert_manager.add_alert_rule("api.errors", 50, "gt", AlertSeverity.CRITICAL, 5)
 
     async def _handle_alert(self, alert: Alert):
         """Handle alert notifications"""
@@ -636,24 +646,19 @@ class APIMonitor:
 
     async def _cleanup_old_data(self):
         """Clean up old monitoring data"""
-        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=24)
+        cutoff_time = datetime.now(UTC) - timedelta(hours=24)
 
         # Clean up metrics
-        self.metrics_collector.metrics = [
-            m for m in self.metrics_collector.metrics
-            if m.timestamp >= cutoff_time
-        ]
+        self.metrics_collector.metrics = [m for m in self.metrics_collector.metrics if m.timestamp >= cutoff_time]
 
         # Clean up performance metrics
         self.metrics_collector.performance_metrics = [
-            m for m in self.metrics_collector.performance_metrics
-            if m.timestamp >= cutoff_time
+            m for m in self.metrics_collector.performance_metrics if m.timestamp >= cutoff_time
         ]
 
         # Clean up error events
         self.metrics_collector.error_events = [
-            e for e in self.metrics_collector.error_events
-            if e.timestamp >= cutoff_time
+            e for e in self.metrics_collector.error_events if e.timestamp >= cutoff_time
         ]
 
     def get_monitoring_status(self) -> dict[str, Any]:
@@ -664,8 +669,9 @@ class APIMonitor:
             "total_performance_metrics": len(self.metrics_collector.performance_metrics),
             "total_errors": len(self.metrics_collector.error_events),
             "active_alerts": len([a for a in self.alert_manager.alerts if not a.resolved]),
-            "alert_rules": len(self.alert_manager.alert_rules)
+            "alert_rules": len(self.alert_manager.alert_rules),
         }
+
 
 async def main():
     """Main execution function for testing"""
@@ -688,7 +694,7 @@ async def main():
             request_size=1024,
             response_size=2048,
             user_id=f"user_{i % 10}",
-            session_id=f"session_{i % 20}"
+            session_id=f"session_{i % 20}",
         )
 
     # Simulate some errors
@@ -699,7 +705,7 @@ async def main():
             stack_trace="Traceback...",
             endpoint="/api/v1/chat",
             method="POST",
-            user_id=f"user_{i}"
+            user_id=f"user_{i}",
         )
 
     # Simulate business metrics
@@ -712,16 +718,13 @@ async def main():
     technical_dashboard = monitor.dashboard_generator.generate_technical_dashboard()
     monitor.dashboard_generator.generate_business_dashboard()
 
-
-
     technical_dashboard["performance"]
-
 
     # Show monitoring status
     monitor.get_monitoring_status()
 
-
     return True
+
 
 if __name__ == "__main__":
     asyncio.run(main())

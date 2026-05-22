@@ -1,4 +1,3 @@
-
 from datetime import datetime
 
 import pytest
@@ -33,6 +32,7 @@ warnings.simplefilter("default")
 # Add the monitoring directory to the path for imports
 sys.path.append("/home/vivi/pixelated/ai/monitoring")
 sys.path.append("/home/vivi/pixelated/ai")
+
 
 class TestDatabaseOperations(unittest.TestCase):
     """Test database connection and operations"""
@@ -73,20 +73,47 @@ class TestDatabaseOperations(unittest.TestCase):
 
         # Insert test data
         test_data = [
-            ("test_001", "test_dataset", "priority_1",
-             '[{"human": "Hello", "assistant": "Hi there!"}]',
-             25, 4, 2, "2025-08-07 10:00:00", "2025-08-07 10:01:00"),
-            ("test_002", "test_dataset", "standard",
-             '[{"human": "How are you?", "assistant": "I am doing well, thank you for asking."}]',
-             55, 12, 2, "2025-08-07 10:05:00", "2025-08-07 10:06:00"),
-            ("test_003", "professional_dataset", "priority_1",
-             '[{"human": "What is machine learning?", "assistant": "Machine learning is a subset of artificial intelligence."}]',
-             85, 15, 2, "2025-08-07 10:10:00", "2025-08-07 10:11:00")
+            (
+                "test_001",
+                "test_dataset",
+                "priority_1",
+                '[{"human": "Hello", "assistant": "Hi there!"}]',
+                25,
+                4,
+                2,
+                "2025-08-07 10:00:00",
+                "2025-08-07 10:01:00",
+            ),
+            (
+                "test_002",
+                "test_dataset",
+                "standard",
+                '[{"human": "How are you?", "assistant": "I am doing well, thank you for asking."}]',
+                55,
+                12,
+                2,
+                "2025-08-07 10:05:00",
+                "2025-08-07 10:06:00",
+            ),
+            (
+                "test_003",
+                "professional_dataset",
+                "priority_1",
+                '[{"human": "What is machine learning?", "assistant": "Machine learning is a subset of artificial intelligence."}]',
+                85,
+                15,
+                2,
+                "2025-08-07 10:10:00",
+                "2025-08-07 10:11:00",
+            ),
         ]
 
-        cursor.executemany("""
+        cursor.executemany(
+            """
             INSERT INTO conversations VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, test_data)
+        """,
+            test_data,
+        )
 
         conn.commit()
         conn.close()
@@ -121,41 +148,39 @@ class TestDatabaseOperations(unittest.TestCase):
         conn = sqlite3.connect(self.test_db_path)
 
         # Test filtering by dataset
-        df = pd.read_sql_query(
-            "SELECT * FROM conversations WHERE dataset_source = 'test_dataset'",
-            conn
-        )
+        df = pd.read_sql_query("SELECT * FROM conversations WHERE dataset_source = 'test_dataset'", conn)
         assert len(df) == 2
 
         # Test filtering by tier
-        df = pd.read_sql_query(
-            "SELECT * FROM conversations WHERE tier = 'priority_1'",
-            conn
-        )
+        df = pd.read_sql_query("SELECT * FROM conversations WHERE tier = 'priority_1'", conn)
         assert len(df) == 2
 
         conn.close()
+
 
 class TestDataProcessingFunctions(unittest.TestCase):
     """Test data processing and transformation functions"""
 
     def setUp(self):
         """Set up test data"""
-        self.sample_conversations = pd.DataFrame({
-            "conversation_id": ["test_001", "test_002", "test_003"],
-            "dataset_source": ["dataset_a", "dataset_b", "dataset_a"],
-            "tier": ["priority_1", "standard", "priority_1"],
-            "conversations_json": [
-                '[{"human": "Hello", "assistant": "Hi there!"}]',
-                '[{"human": "How are you?", "assistant": "I am doing well."}]',
-                '[{"human": "What is AI?", "assistant": "AI is artificial intelligence."}]'
-            ],
-            "word_count": [4, 8, 7],
-            "character_count": [25, 45, 40]
-        })
+        self.sample_conversations = pd.DataFrame(
+            {
+                "conversation_id": ["test_001", "test_002", "test_003"],
+                "dataset_source": ["dataset_a", "dataset_b", "dataset_a"],
+                "tier": ["priority_1", "standard", "priority_1"],
+                "conversations_json": [
+                    '[{"human": "Hello", "assistant": "Hi there!"}]',
+                    '[{"human": "How are you?", "assistant": "I am doing well."}]',
+                    '[{"human": "What is AI?", "assistant": "AI is artificial intelligence."}]',
+                ],
+                "word_count": [4, 8, 7],
+                "character_count": [25, 45, 40],
+            }
+        )
 
     def test_json_text_extraction(self):
         """Test JSON conversation text extraction"""
+
         def extract_text_from_json(json_str):
             try:
                 conversations = json.loads(json_str)
@@ -183,6 +208,7 @@ class TestDataProcessingFunctions(unittest.TestCase):
 
     def test_quality_score_calculation(self):
         """Test quality score calculation functions"""
+
         def calculate_basic_quality_score(text, word_count):
             if not text or word_count == 0:
                 return 0
@@ -209,10 +235,9 @@ class TestDataProcessingFunctions(unittest.TestCase):
     def test_data_aggregation(self):
         """Test data aggregation functions"""
         # Test groupby operations
-        dataset_stats = self.sample_conversations.groupby("dataset_source").agg({
-            "word_count": ["mean", "sum", "count"],
-            "character_count": "mean"
-        })
+        dataset_stats = self.sample_conversations.groupby("dataset_source").agg(
+            {"word_count": ["mean", "sum", "count"], "character_count": "mean"}
+        )
 
         assert len(dataset_stats) == 2
 
@@ -238,19 +263,22 @@ class TestDataProcessingFunctions(unittest.TestCase):
         assert percentile_25 == 3.25
         assert percentile_75 == 7.75
 
+
 class TestAnalyticsCalculations(unittest.TestCase):
     """Test analytics and metrics calculations"""
 
     def setUp(self):
         """Set up test data for analytics"""
         np.random.seed(42)  # For reproducible tests
-        self.test_data = pd.DataFrame({
-            "quality_score": np.random.normal(50, 15, 100),
-            "engagement_score": np.random.normal(60, 20, 100),
-            "complexity_score": np.random.normal(40, 10, 100),
-            "dataset": ["dataset_a"] * 50 + ["dataset_b"] * 50,
-            "tier": ["priority_1"] * 25 + ["standard"] * 25 + ["priority_1"] * 25 + ["standard"] * 25
-        })
+        self.test_data = pd.DataFrame(
+            {
+                "quality_score": np.random.normal(50, 15, 100),
+                "engagement_score": np.random.normal(60, 20, 100),
+                "complexity_score": np.random.normal(40, 10, 100),
+                "dataset": ["dataset_a"] * 50 + ["dataset_b"] * 50,
+                "tier": ["priority_1"] * 25 + ["standard"] * 25 + ["priority_1"] * 25 + ["standard"] * 25,
+            }
+        )
 
     def test_correlation_analysis(self):
         """Test correlation calculations"""
@@ -312,6 +340,7 @@ class TestAnalyticsCalculations(unittest.TestCase):
 
         assert r2 > 0.8  # Should be high for this test data
 
+
 class TestUtilityFunctions(unittest.TestCase):
     """Test utility and helper functions"""
 
@@ -335,6 +364,7 @@ class TestUtilityFunctions(unittest.TestCase):
 
     def test_data_validation(self):
         """Test data validation functions"""
+
         def validate_conversation_data(data):
             required_fields = ["conversation_id", "dataset_source", "tier"]
 
@@ -351,11 +381,7 @@ class TestUtilityFunctions(unittest.TestCase):
             return True, "Valid"
 
         # Test valid data
-        valid_data = {
-            "conversation_id": "test_001",
-            "dataset_source": "test_dataset",
-            "tier": "priority_1"
-        }
+        valid_data = {"conversation_id": "test_001", "dataset_source": "test_dataset", "tier": "priority_1"}
         is_valid, message = validate_conversation_data(valid_data)
         assert is_valid
 
@@ -366,6 +392,7 @@ class TestUtilityFunctions(unittest.TestCase):
 
     def test_text_processing(self):
         """Test text processing utility functions"""
+
         def clean_text(text):
             if not text:
                 return ""
@@ -389,6 +416,7 @@ class TestUtilityFunctions(unittest.TestCase):
 
     def test_date_time_operations(self):
         """Test date and time utility functions"""
+
         def parse_datetime(date_string):
             try:
                 return datetime.fromisoformat(date_string.replace("Z", "+00:00"))
@@ -405,11 +433,13 @@ class TestUtilityFunctions(unittest.TestCase):
         parsed = parse_datetime(invalid_date)
         assert parsed is None
 
+
 class TestErrorHandling(unittest.TestCase):
     """Test error handling and edge cases"""
 
     def test_database_error_handling(self):
         """Test database error handling"""
+
         def safe_database_operation(db_path, query):
             try:
                 conn = sqlite3.connect(db_path)
@@ -438,6 +468,7 @@ class TestErrorHandling(unittest.TestCase):
 
     def test_data_processing_errors(self):
         """Test data processing error handling"""
+
         def safe_division(a, b):
             try:
                 return a / b, None
@@ -458,6 +489,7 @@ class TestErrorHandling(unittest.TestCase):
 
     def test_json_parsing_errors(self):
         """Test JSON parsing error handling"""
+
         def safe_json_parse(json_string):
             try:
                 return json.loads(json_string), None
@@ -475,6 +507,7 @@ class TestErrorHandling(unittest.TestCase):
         result, error = safe_json_parse("invalid json")
         assert result is None
         assert "JSON decode error" in error
+
 
 class TestSystemIntegration(unittest.TestCase):
     """Test system integration components"""
@@ -502,6 +535,7 @@ class TestSystemIntegration(unittest.TestCase):
 
     def test_configuration_loading(self):
         """Test configuration loading and validation"""
+
         def load_config(config_data):
             required_keys = ["database_path", "processing_settings"]
 
@@ -515,16 +549,14 @@ class TestSystemIntegration(unittest.TestCase):
             return config_data
 
         # Test valid config
-        valid_config = {
-            "database_path": "/path/to/db",
-            "processing_settings": {"batch_size": 100}
-        }
+        valid_config = {"database_path": "/path/to/db", "processing_settings": {"batch_size": 100}}
         result = load_config(valid_config)
         assert result == valid_config
 
         # Test invalid config
         with self.assertRaises(KeyError):
             load_config({"database_path": "/path/to/db"})
+
 
 def run_all_tests():
     """Run all unit tests and return results"""
@@ -539,7 +571,7 @@ def run_all_tests():
         TestAnalyticsCalculations,
         TestUtilityFunctions,
         TestErrorHandling,
-        TestSystemIntegration
+        TestSystemIntegration,
     ]
 
     for test_class in test_classes:
@@ -554,7 +586,9 @@ def run_all_tests():
 
     if result.failures:
         for _test, traceback in result.failures:
-            traceback.split("AssertionError: ")[-1].split("\n")[0] if "AssertionError:" in traceback else "Unknown failure"
+            traceback.split("AssertionError: ")[-1].split("\n")[
+                0
+            ] if "AssertionError:" in traceback else "Unknown failure"
 
     if result.errors:
         for _test, traceback in result.errors:
@@ -564,6 +598,7 @@ def run_all_tests():
         pass
 
     return result
+
 
 if __name__ == "__main__":
     run_all_tests()

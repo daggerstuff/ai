@@ -9,6 +9,7 @@ import traceback
 # set up path to resolve 'ai.' imports
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
+
 async def test_provenance():
     # create dummy provenance.json
     data = {
@@ -18,18 +19,11 @@ async def test_provenance():
             "source_id": "src-123",
             "source_type": "HUGGINGFACE",
             "source_name": "Test Source",
-            "source_url": "https://example.com"
+            "source_url": "https://example.com",
         },
-        "license": {
-            "license_type": "MIT"
-        },
-        "metadata": {
-            "quality_tier": "GOLD",
-            "data_types": ["text"]
-        },
-        "timestamps": {
-            "created_at": "2023-10-27T10:00:00Z"
-        }
+        "license": {"license_type": "MIT"},
+        "metadata": {"quality_tier": "GOLD", "data_types": ["text"]},
+        "timestamps": {"created_at": "2023-10-27T10:00:00Z"},
     }
 
     # We will measure blocking vs non-blocking by checking how much other tasks are delayed
@@ -39,6 +33,7 @@ async def test_provenance():
         temp_file = f.name
 
     try:
+
         async def background_task(interval=0.01):
             """Task that runs continuously and measures delays between iterations."""
             max_delay = 0
@@ -59,7 +54,7 @@ async def test_provenance():
 
         # Run baseline
         bg_task = asyncio.create_task(background_task())
-        await asyncio.sleep(0.1) # Let bg task start
+        await asyncio.sleep(0.1)  # Let bg task start
         await run_baseline()
         await bg_task
 
@@ -67,12 +62,13 @@ async def test_provenance():
             def load_json():
                 with open(temp_file) as f:
                     return json.load(f)
+
             loaded = await asyncio.to_thread(load_json)
             return len(loaded)
 
         # Run optimized with just to_thread
         bg_task3 = asyncio.create_task(background_task())
-        await asyncio.sleep(0.1) # Let bg task start
+        await asyncio.sleep(0.1)  # Let bg task start
         await run_optimized_to_thread()
         await bg_task3
 
@@ -80,5 +76,6 @@ async def test_provenance():
         traceback.print_exc()
     finally:
         os.remove(temp_file)
+
 
 asyncio.run(test_provenance())

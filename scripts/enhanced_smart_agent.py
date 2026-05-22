@@ -20,7 +20,7 @@ class EnhancedSmartAgent:
             r"^[^.]*?you mentioned.*?earlier[^.]*?\.",
             r"^[^.]*?building on that[^.]*?\.",
             r"^[^.]*?following up on[^.]*?\.",
-            r"^[^.]*?you talked about[^.]*?\."
+            r"^[^.]*?you talked about[^.]*?\.",
         ]
 
         cleaned_text = text
@@ -42,7 +42,7 @@ class EnhancedSmartAgent:
             r"(Why do [^?]+\?)",
             r"(When does [^?]+\?)",
             r"(Can you [^?]+\?)",
-            r"([^.]*\?)"  # Any sentence ending with ?
+            r"([^.]*\?)",  # Any sentence ending with ?
         ]
 
         for pattern in question_patterns:
@@ -61,7 +61,7 @@ class EnhancedSmartAgent:
                     r"[,\s]*so[,\s]",
                     r"[,\s]*unfortunately[,\s]",
                     r"[,\s]*look[,\s]",
-                    r"[,\s]*the thing is[,\s]"
+                    r"[,\s]*the thing is[,\s]",
                 ]
 
                 for indicator_pattern in response_indicators:
@@ -105,7 +105,7 @@ class EnhancedSmartAgent:
                 "quality": segment["quality"],
                 "source": segment["source"],
                 "file": segment["file"],
-                "extraction_method": "embedded_qa_extracted"
+                "extraction_method": "embedded_qa_extracted",
             }
 
         # Fallback: create contextual question for cleaned text
@@ -129,8 +129,9 @@ class EnhancedSmartAgent:
             "quality": segment["quality"],
             "source": segment["source"],
             "file": segment["file"],
-            "extraction_method": "contextual_fallback"
+            "extraction_method": "contextual_fallback",
         }
+
 
 def test_enhanced_agent():
     """Test the enhanced smart agent"""
@@ -142,7 +143,7 @@ def test_enhanced_agent():
         "confidence": 3.076923076923077,
         "quality": 0.7,
         "source": "doug_bopst",
-        "file": "test.txt"
+        "file": "test.txt",
     }
 
     agent.process_segment(test_segment)

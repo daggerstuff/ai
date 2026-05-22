@@ -11,25 +11,42 @@ Acceptance: detection accuracy > 85% on therapeutic test set, latency < 50ms.
 
 from __future__ import annotations
 
+import importlib
 import logging
 import re
 import time
 from dataclasses import dataclass, field
 from typing import ClassVar
 
-import importlib
-
 logger = logging.getLogger(__name__)
 
 # ─── Plutchik wheel categories ────────────────────────────────────────────────
 
-PLUTCHIK_PRIMARY = frozenset([
-    "joy", "sadness", "anger", "fear", "surprise", "disgust", "trust", "anticipation",
-])
+PLUTCHIK_PRIMARY = frozenset(
+    [
+        "joy",
+        "sadness",
+        "anger",
+        "fear",
+        "surprise",
+        "disgust",
+        "trust",
+        "anticipation",
+    ]
+)
 
-PLUTCHIK_SECONDARY = frozenset([
-    "optimism", "love", "submission", "awe", "disapproval", "remorse", "contempt", "aggression",
-])
+PLUTCHIK_SECONDARY = frozenset(
+    [
+        "optimism",
+        "love",
+        "submission",
+        "awe",
+        "disapproval",
+        "remorse",
+        "contempt",
+        "aggression",
+    ]
+)
 
 ALL_EMOTION_CATEGORIES = PLUTCHIK_PRIMARY | PLUTCHIK_SECONDARY
 
@@ -45,30 +62,85 @@ class _VADLexicon:
     """
 
     HIGH_VALENCE: ClassVar[list[str]] = [
-        "happy", "joy", "grateful", "hopeful", "excited", "relieved", "peaceful",
-        "love", "appreciate", "wonderful", "better", "improving", "progress",
+        "happy",
+        "joy",
+        "grateful",
+        "hopeful",
+        "excited",
+        "relieved",
+        "peaceful",
+        "love",
+        "appreciate",
+        "wonderful",
+        "better",
+        "improving",
+        "progress",
     ]
     LOW_VALENCE: ClassVar[list[str]] = [
-        "sad", "depressed", "hopeless", "worthless", "anxious", "worried", "fear",
-        "terrible", "awful", "horrible", "devastated", "anguish", "despair",
+        "sad",
+        "depressed",
+        "hopeless",
+        "worthless",
+        "anxious",
+        "worried",
+        "fear",
+        "terrible",
+        "awful",
+        "horrible",
+        "devastated",
+        "anguish",
+        "despair",
     ]
 
     HIGH_AROUSAL: ClassVar[list[str]] = [
-        "panic", "overwhelmed", "shocked", "frantic", "intense", "overwhelmed",
-        "trembling", "racing", "heart pounding", "can't breathe", "screaming",
+        "panic",
+        "overwhelmed",
+        "shocked",
+        "frantic",
+        "intense",
+        "overwhelmed",
+        "trembling",
+        "racing",
+        "heart pounding",
+        "can't breathe",
+        "screaming",
     ]
     LOW_AROUSAL: ClassVar[list[str]] = [
-        "calm", "peaceful", "relaxed", "numb", "detached", "empty", "flat",
-        "indifferent", "still", "quiet", "resting",
+        "calm",
+        "peaceful",
+        "relaxed",
+        "numb",
+        "detached",
+        "empty",
+        "flat",
+        "indifferent",
+        "still",
+        "quiet",
+        "resting",
     ]
 
     HIGH_DOMINANCE: ClassVar[list[str]] = [
-        "in control", "confident", "capable", "strong", "determined", "empowered",
-        "I can handle", "I will", "standing up", "setting boundaries",
+        "in control",
+        "confident",
+        "capable",
+        "strong",
+        "determined",
+        "empowered",
+        "I can handle",
+        "I will",
+        "standing up",
+        "setting boundaries",
     ]
     LOW_DOMINANCE: ClassVar[list[str]] = [
-        "helpless", "out of control", "overwhelmed", "powerless", "trapped",
-        "stuck", "unable", "giving up", "surrendering",
+        "helpless",
+        "out of control",
+        "overwhelmed",
+        "powerless",
+        "trapped",
+        "stuck",
+        "unable",
+        "giving up",
+        "surrendering",
     ]
 
 
@@ -77,16 +149,36 @@ class _VADLexicon:
 
 EMOTION_MULTIPLIER: dict[str, float] = {
     # Crisis indicators (PIX-510 spec)
-    "suicide": 5.0, "self-harm": 5.0, "overdose": 5.0, "panic": 5.0, "psychosis": 5.0,
+    "suicide": 5.0,
+    "self-harm": 5.0,
+    "overdose": 5.0,
+    "panic": 5.0,
+    "psychosis": 5.0,
     # High-intensity therapeutic emotions
-    "grief": 2.5, "trauma": 2.5, "despair": 2.5, "hopelessness": 2.5,
-    "anxiety": 2.0, "fear": 2.0, "anger": 2.0, "terror": 2.0,
+    "grief": 2.5,
+    "trauma": 2.5,
+    "despair": 2.5,
+    "hopelessness": 2.5,
+    "anxiety": 2.0,
+    "fear": 2.0,
+    "anger": 2.0,
+    "terror": 2.0,
     # Standard Plutchik
-    "joy": 1.0, "sadness": 1.0, "surprise": 1.0, "disgust": 1.0,
-    "trust": 1.0, "anticipation": 1.0,
+    "joy": 1.0,
+    "sadness": 1.0,
+    "surprise": 1.0,
+    "disgust": 1.0,
+    "trust": 1.0,
+    "anticipation": 1.0,
     # Secondary
-    "optimism": 1.0, "love": 1.0, "submission": 1.0,
-    "awe": 1.0, "disapproval": 1.0, "remorse": 1.0, "contempt": 1.0, "aggression": 1.5,
+    "optimism": 1.0,
+    "love": 1.0,
+    "submission": 1.0,
+    "awe": 1.0,
+    "disapproval": 1.0,
+    "remorse": 1.0,
+    "contempt": 1.0,
+    "aggression": 1.5,
 }
 
 
@@ -166,9 +258,9 @@ class EmotionClassifier:
     # ── config ──────────────────────────────────────────────────────────────
 
     mode: str = field(default_factory=lambda: _get_env("EMOTION_CLASSIFIER_MODE", "lexicon"))
-    model_name: str = field(default_factory=lambda: _get_env(
-        "EMOTION_CLASSIFIER_MODEL", "j-hartmann/emotion-english-distilroberta-base"
-    ))
+    model_name: str = field(
+        default_factory=lambda: _get_env("EMOTION_CLASSIFIER_MODEL", "j-hartmann/emotion-english-distilroberta-base")
+    )
     device: str = field(default_factory=lambda: _get_env("EMOTION_CLASSIFIER_DEVICE", "cpu"))
     confidence_threshold: float = 0.5
 
@@ -223,11 +315,16 @@ class EmotionClassifier:
         """
         if not results:
             return EmotionTrajectory(
-                start_valence=0.5, end_valence=0.5,
-                start_arousal=0.5, end_arousal=0.5,
-                start_dominance=0.5, end_dominance=0.5,
-                trend="stable", max_intensity=0.0,
-                crisis_indicators=[], trajectory_scores=[],
+                start_valence=0.5,
+                end_valence=0.5,
+                start_arousal=0.5,
+                end_arousal=0.5,
+                start_dominance=0.5,
+                end_dominance=0.5,
+                trend="stable",
+                max_intensity=0.0,
+                crisis_indicators=[],
+                trajectory_scores=[],
             )
 
         first = results[0]
@@ -235,9 +332,9 @@ class EmotionClassifier:
         valences = [r.valence for r in results]
         dominances = [r.dominance for r in results]
 
-        crisis: list[str] = [r.top_category for r in results if r.top_category in [
-            "suicide", "self-harm", "panic", "psychosis"
-        ]]
+        crisis: list[str] = [
+            r.top_category for r in results if r.top_category in ["suicide", "self-harm", "panic", "psychosis"]
+        ]
 
         trend = _compute_trend(valences, dominances)
 
@@ -245,8 +342,7 @@ class EmotionClassifier:
         for r in results:
             if r.top_category is not None:
                 score = r.category_scores.get(r.top_category, 0.0)
-                if score > max_intensity:
-                    max_intensity = score
+                max_intensity = max(max_intensity, score)
 
         return EmotionTrajectory(
             start_valence=first.valence,
@@ -258,10 +354,7 @@ class EmotionClassifier:
             trend=trend,
             max_intensity=max_intensity,
             crisis_indicators=crisis,
-            trajectory_scores=[
-                {"valence": r.valence, "arousal": r.arousal, "dominance": r.dominance}
-                for r in results
-            ],
+            trajectory_scores=[{"valence": r.valence, "arousal": r.arousal, "dominance": r.dominance} for r in results],
         )
 
     def benchmark_latency(self, text: str, n: int = 100) -> float:
@@ -273,9 +366,7 @@ class EmotionClassifier:
 
     # ── internal ────────────────────────────────────────────────────────────
 
-    def _classify_lexicon(
-        self, text: str, multi_label: bool
-    ) -> EmotionClassificationResult:
+    def _classify_lexicon(self, text: str, multi_label: bool) -> EmotionClassificationResult:
         text_lower = text.lower()
         category_scores: dict[str, float] = {}
 
@@ -285,7 +376,17 @@ class EmotionClassifier:
             "joy": ["happy", "joy", "glad", "excited", "wonderful", "grateful", "love"],
             "sadness": ["sad", "unhappy", "depressed", "grief", "sorrow", "crying", "tears"],
             "anger": ["angry", "rage", "furious", "frustrated", "irritated", "mad"],
-            "fear": ["afraid", "scared", "fearful", "frightened", "terrified", "panic", "anxious", "worried", "nervous"],
+            "fear": [
+                "afraid",
+                "scared",
+                "fearful",
+                "frightened",
+                "terrified",
+                "panic",
+                "anxious",
+                "worried",
+                "nervous",
+            ],
             "surprise": ["surprised", "amazed", "shocked", "unexpected", "wow"],
             "disgust": ["disgusted", "revolted", "gross", "sickened", "repulsed"],
             "trust": ["trust", "believe", "confidence", "rely", "comfort"],
@@ -337,9 +438,7 @@ class EmotionClassifier:
             multiplier=multiplier,
         )
 
-    def _classify_model(
-        self, text: str, multi_label: bool
-    ) -> EmotionClassificationResult:
+    def _classify_model(self, text: str, multi_label: bool) -> EmotionClassificationResult:
         if self._pipeline is None:
             self._load_model()
         pipeline = self._pipeline
@@ -383,6 +482,7 @@ class EmotionClassifier:
         try:
             importlib.import_module("transformers")
             from transformers import pipeline
+
             self._pipeline = pipeline(
                 "text-classification",
                 model=self.model_name,
@@ -433,6 +533,7 @@ class EmotionTrajectory:
 
 def _get_env(key: str, fallback: str) -> str:
     import os
+
     return os.environ.get(key, fallback)
 
 

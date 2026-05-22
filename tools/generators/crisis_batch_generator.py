@@ -5,7 +5,7 @@ Batch Crisis Generator - Ultra-short prompts to avoid timeouts
 
 import json
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import requests
 
@@ -74,25 +74,19 @@ def generate_crisis_content():
 
     dataset = []
 
-
-    for i, (client_prompt, counselor_prompt) in enumerate(
-        zip(prompts, counselor_prompts, strict=False)
-    ):
-
+    for i, (client_prompt, counselor_prompt) in enumerate(zip(prompts, counselor_prompts, strict=False)):
         # Generate client message
         client_response = call_model(client_prompt, 50)
 
         if client_response:
-
             # Generate counselor response
             counselor_response = call_model(counselor_prompt, 50)
 
             if counselor_response:
-
                 # Save the pair
                 pair = {
                     "id": i + 1,
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                     "client_prompt": client_prompt,
                     "client_response": client_response,
                     "counselor_prompt": counselor_prompt,
@@ -109,12 +103,11 @@ def generate_crisis_content():
         time.sleep(5)
 
     # Save dataset
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
     filename = f"/home/vivi/pixelated/ai/crisis_dataset_{timestamp}.json"
 
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(dataset, f, indent=2, ensure_ascii=False)
-
 
     return dataset
 

@@ -60,22 +60,12 @@ class PrivacyVerifier:
     """
 
     # PII patterns
-    EMAIL_PATTERN = re.compile(
-        r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
-    )
-    PHONE_PATTERN = re.compile(
-        r"(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b"
-    )
+    EMAIL_PATTERN = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b")
+    PHONE_PATTERN = re.compile(r"(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b")
     SSN_PATTERN = re.compile(r"\b\d{3}-\d{2}-\d{4}\b|\b\d{9}\b")
-    CREDIT_CARD_PATTERN = re.compile(
-        r"\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b"
-    )
-    IP_ADDRESS_PATTERN = re.compile(
-        r"\b(?:\d{1,3}\.){3}\d{1,3}\b"
-    )
-    DATE_PATTERN = re.compile(
-        r"\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b|\b\d{4}[/-]\d{1,2}[/-]\d{1,2}\b"
-    )
+    CREDIT_CARD_PATTERN = re.compile(r"\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b")
+    IP_ADDRESS_PATTERN = re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b")
+    DATE_PATTERN = re.compile(r"\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b|\b\d{4}[/-]\d{1,2}[/-]\d{1,2}\b")
 
     # Common name patterns (first/last names)
     NAME_PATTERNS = [
@@ -112,12 +102,8 @@ class PrivacyVerifier:
             sample_size: Number of samples to analyze for PII detection
         """
         self.sample_size = sample_size
-        self._compiled_name_patterns = [
-            re.compile(pattern, re.IGNORECASE) for pattern in self.NAME_PATTERNS
-        ]
-        self._compiled_address_patterns = [
-            re.compile(pattern, re.IGNORECASE) for pattern in self.ADDRESS_PATTERNS
-        ]
+        self._compiled_name_patterns = [re.compile(pattern, re.IGNORECASE) for pattern in self.NAME_PATTERNS]
+        self._compiled_address_patterns = [re.compile(pattern, re.IGNORECASE) for pattern in self.ADDRESS_PATTERNS]
         self._compiled_medical_id_patterns = [
             re.compile(pattern, re.IGNORECASE) for pattern in self.MEDICAL_ID_PATTERNS
         ]
@@ -172,27 +158,19 @@ class PrivacyVerifier:
         pii_types, pii_count = self._detect_pii(text_to_analyze)
 
         # Assess anonymization quality
-        anonymization_quality = self._assess_anonymization_quality(
-            text_to_analyze, pii_types
-        )
+        anonymization_quality = self._assess_anonymization_quality(text_to_analyze, pii_types)
 
         # Assess re-identification risk
-        re_identification_risk = self._assess_re_identification_risk(
-            text_to_analyze, pii_types, anonymization_quality
-        )
+        re_identification_risk = self._assess_re_identification_risk(text_to_analyze, pii_types, anonymization_quality)
 
         # Generate issues and recommendations
         privacy_issues = self._generate_privacy_issues(
             pii_types, pii_count, anonymization_quality, re_identification_risk
         )
-        recommendations = self._generate_recommendations(
-            pii_types, anonymization_quality, re_identification_risk
-        )
+        recommendations = self._generate_recommendations(pii_types, anonymization_quality, re_identification_risk)
 
         # Calculate compliance score
-        compliance_score = self._calculate_compliance_score(
-            pii_count, anonymization_quality, re_identification_risk
-        )
+        compliance_score = self._calculate_compliance_score(pii_count, anonymization_quality, re_identification_risk)
 
         assessment = PrivacyAssessment(
             source_id=source_id,
@@ -274,28 +252,20 @@ class PrivacyVerifier:
 
         return pii_types, pii_count
 
-    def _assess_anonymization_quality(
-        self, text: str, pii_types: set[str]
-    ) -> AnonymizationQuality:
+    def _assess_anonymization_quality(self, text: str, pii_types: set[str]) -> AnonymizationQuality:
         """Assess anonymization quality of the dataset."""
         if not pii_types:
             # No PII detected - could be well anonymized or no PII present
             # Check for anonymization indicators
             anonymization_indicators = sum(
-                1
-                for pattern in self._compiled_anonymization_patterns
-                if pattern.search(text)
+                1 for pattern in self._compiled_anonymization_patterns if pattern.search(text)
             )
             if anonymization_indicators > 0:
                 return AnonymizationQuality.EXCELLENT
             return AnonymizationQuality.GOOD
 
         # PII detected - check if it's anonymized
-        anonymization_indicators = sum(
-            1
-            for pattern in self._compiled_anonymization_patterns
-            if pattern.search(text)
-        )
+        anonymization_indicators = sum(1 for pattern in self._compiled_anonymization_patterns if pattern.search(text))
 
         pii_ratio = len(pii_types) / 10.0  # Normalize to 0-1
         anonymization_ratio = anonymization_indicators / max(1, len(pii_types))
@@ -360,17 +330,13 @@ class PrivacyVerifier:
         issues = []
 
         if pii_types:
-            issues.append(
-                f"PII detected: {', '.join(sorted(pii_types))} ({pii_count} instances)"
-            )
+            issues.append(f"PII detected: {', '.join(sorted(pii_types))} ({pii_count} instances)")
 
         if anonymization_quality in [AnonymizationQuality.POOR, AnonymizationQuality.NONE]:
             issues.append(f"Poor anonymization quality: {anonymization_quality.value}")
 
         if re_identification_risk in [PrivacyRiskLevel.HIGH, PrivacyRiskLevel.CRITICAL]:
-            issues.append(
-                f"High re-identification risk: {re_identification_risk.value}"
-            )
+            issues.append(f"High re-identification risk: {re_identification_risk.value}")
 
         if "ssn" in pii_types or "credit_card" in pii_types:
             issues.append("Sensitive financial identifiers detected")
@@ -390,9 +356,7 @@ class PrivacyVerifier:
         recommendations = []
 
         if pii_types:
-            recommendations.append(
-                f"Remove or anonymize detected PII types: {', '.join(sorted(pii_types))}"
-            )
+            recommendations.append(f"Remove or anonymize detected PII types: {', '.join(sorted(pii_types))}")
 
         if anonymization_quality in [AnonymizationQuality.POOR, AnonymizationQuality.NONE]:
             recommendations.append(
@@ -400,15 +364,11 @@ class PrivacyVerifier:
             )
 
         if re_identification_risk in [PrivacyRiskLevel.HIGH, PrivacyRiskLevel.CRITICAL]:
-            recommendations.append(
-                "High re-identification risk - implement additional privacy protections"
-            )
+            recommendations.append("High re-identification risk - implement additional privacy protections")
             recommendations.append("Consider differential privacy or k-anonymity techniques")
 
         if "medical_id" in pii_types:
-            recommendations.append(
-                "Medical identifiers detected - ensure HIPAA compliance before use"
-            )
+            recommendations.append("Medical identifiers detected - ensure HIPAA compliance before use")
 
         if not pii_types and anonymization_quality == AnonymizationQuality.EXCELLENT:
             recommendations.append("Dataset appears well-anonymized - verify with full dataset sample")
@@ -459,4 +419,3 @@ class PrivacyVerifier:
         # 4. Return combined sample text
         logger.warning(f"File sampling not yet implemented for {file_path}")
         return ""
-

@@ -18,6 +18,7 @@ from typing import Any
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
+
 class ClientPersonality(Enum):
     RESISTANT = "resistant"
     ANXIOUS_AVOIDANT = "anxious_avoidant"
@@ -32,12 +33,14 @@ class ClientPersonality(Enum):
     SUICIDAL_IDEATION = "suicidal_ideation"
     PARANOID_SUSPICIOUS = "paranoid_suspicious"
 
+
 class DifficultyLevel(Enum):
     BEGINNER = 1
     INTERMEDIATE = 2
     ADVANCED = 3
     EXPERT = 4
     MASTER = 5
+
 
 class SessionObjective(Enum):
     RAPPORT_BUILDING = "rapport_building"
@@ -49,6 +52,7 @@ class SessionObjective(Enum):
     SAFETY_ASSESSMENT = "safety_assessment"
     TERMINATION_PLANNING = "termination_planning"
 
+
 class SupervisorEvaluation(Enum):
     NOVICE = "novice"
     DEVELOPING = "developing"
@@ -56,9 +60,11 @@ class SupervisorEvaluation(Enum):
     ADVANCED = "advanced"
     EXPERT = "expert"
 
+
 @dataclass
 class DifficultClientProfile:
     """Comprehensive profile for AI client role-play"""
+
     client_id: str
     name: str
     age: int
@@ -98,9 +104,11 @@ class DifficultClientProfile:
     escalation_triggers: list[str]
     de_escalation_responses: list[str]
 
+
 @dataclass
 class TrainingSession:
     """Training simulation session"""
+
     session_id: str
     trainee_id: str
     supervisor_id: str | None
@@ -125,9 +133,11 @@ class TrainingSession:
     areas_for_improvement: list[str] = field(default_factory=list)
     supervisor_rating: SupervisorEvaluation | None = None
 
+
 @dataclass
 class TherapistSkillAssessment:
     """Comprehensive skill assessment from training session"""
+
     assessment_id: str
     trainee_id: str
     session_id: str
@@ -162,6 +172,7 @@ class TherapistSkillAssessment:
     specific_recommendations: list[str]
     supervisor_comments: str
 
+
 class DifficultClientGenerator:
     """Generate complex, challenging client profiles for training"""
 
@@ -176,10 +187,9 @@ class DifficultClientGenerator:
                 "response_patterns": {
                     "opening": ["I don't know why I'm here", "This isn't going to help", "I've tried therapy before"],
                     "resistance": ["That's not relevant", "I don't see the point", "You don't understand"],
-                    "breakthrough": ["Maybe there's something to this", "I hadn't thought of it that way"]
-                }
+                    "breakthrough": ["Maybe there's something to this", "I hadn't thought of it that way"],
+                },
             },
-
             ClientPersonality.HOSTILE_AGGRESSIVE: {
                 "traits": ["Angry", "Blaming", "Intimidating", "Volatile"],
                 "communication": "Loud, aggressive, interrupting, blaming others",
@@ -188,10 +198,9 @@ class DifficultClientGenerator:
                 "response_patterns": {
                     "escalation": ["That's bullshit!", "You're just like everyone else", "This is a waste of time"],
                     "intimidation": ["I could find someone better", "You have no idea what you're talking about"],
-                    "vulnerability": ["I'm just so frustrated", "Nothing ever works out for me"]
-                }
+                    "vulnerability": ["I'm just so frustrated", "Nothing ever works out for me"],
+                },
             },
-
             ClientPersonality.BORDERLINE_TRAITS: {
                 "traits": ["Emotional instability", "Fear of abandonment", "Identity confusion", "Impulsive"],
                 "communication": "Intense, rapidly shifting emotions, crisis-focused",
@@ -200,10 +209,9 @@ class DifficultClientGenerator:
                 "response_patterns": {
                     "idealization": ["You're the only one who understands", "You're saving my life"],
                     "devaluation": ["You don't care about me", "I knew you'd abandon me too"],
-                    "crisis": ["I can't handle this", "I need to see you more", "Everything is falling apart"]
-                }
+                    "crisis": ["I can't handle this", "I need to see you more", "Everything is falling apart"],
+                },
             },
-
             ClientPersonality.NARCISSISTIC_TRAITS: {
                 "traits": ["Grandiose", "Entitled", "Lack of empathy", "Exploitative"],
                 "communication": "Superior tone, dismissive of others, expects special treatment",
@@ -212,10 +220,12 @@ class DifficultClientGenerator:
                 "response_patterns": {
                     "grandiosity": ["I'm obviously more intelligent than most people", "I shouldn't have to wait"],
                     "devaluation": ["You clearly don't understand someone of my caliber", "This is beneath me"],
-                    "manipulation": ["I could help you improve your practice", "I have connections that could help you"]
-                }
+                    "manipulation": [
+                        "I could help you improve your practice",
+                        "I have connections that could help you",
+                    ],
+                },
             },
-
             ClientPersonality.SUICIDAL_IDEATION: {
                 "traits": ["Hopeless", "Desperate", "Ambivalent", "Crisis-focused"],
                 "communication": "Flat affect, hopelessness expressions, crisis language",
@@ -224,10 +234,9 @@ class DifficultClientGenerator:
                 "response_patterns": {
                     "crisis": ["What's the point?", "Nothing will ever change", "I've thought about ending it"],
                     "ambivalence": ["Part of me wants to get better", "I don't know if I can do this"],
-                    "connection": ["You seem to care", "Maybe there's a small chance"]
-                }
+                    "connection": ["You seem to care", "Maybe there's a small chance"],
+                },
             },
-
             ClientPersonality.TRAUMA_REACTIVE: {
                 "traits": ["Hypervigilant", "Dissociative", "Triggered easily", "Avoidant"],
                 "communication": "Guarded, startles easily, may dissociate mid-session",
@@ -236,9 +245,9 @@ class DifficultClientGenerator:
                 "response_patterns": {
                     "triggered": ["I need to leave", "Something's wrong", "I can't breathe"],
                     "dissociation": ["I feel far away", "It's like I'm watching from outside"],
-                    "grounding": ["Can you help me feel safe?", "I'm here in this room with you"]
-                }
-            }
+                    "grounding": ["Can you help me feel safe?", "I'm here in this room with you"],
+                },
+            },
         }
 
         # Complexity factors that increase difficulty
@@ -249,7 +258,7 @@ class DifficultClientGenerator:
                 "Personality disorder comorbidity",
                 "Severe depression",
                 "Anxiety disorders",
-                "PTSD"
+                "PTSD",
             ],
             "social_stressors": [
                 "Domestic violence",
@@ -257,7 +266,7 @@ class DifficultClientGenerator:
                 "Legal problems",
                 "Family conflict",
                 "Work stress",
-                "Housing instability"
+                "Housing instability",
             ],
             "treatment_history": [
                 "Multiple treatment failures",
@@ -265,13 +274,16 @@ class DifficultClientGenerator:
                 "Medication non-compliance",
                 "Hospitalization history",
                 "Therapist shopping",
-                "Treatment dropout pattern"
-            ]
+                "Treatment dropout pattern",
+            ],
         }
 
-    def generate_difficult_client(self, personality_type: ClientPersonality,
-                                difficulty_level: DifficultyLevel,
-                                learning_objectives: list[SessionObjective]) -> DifficultClientProfile:
+    def generate_difficult_client(
+        self,
+        personality_type: ClientPersonality,
+        difficulty_level: DifficultyLevel,
+        learning_objectives: list[SessionObjective],
+    ) -> DifficultClientProfile:
         """Generate a comprehensive difficult client profile"""
 
         base_pattern = self.personality_patterns[personality_type]
@@ -305,33 +317,28 @@ class DifficultClientGenerator:
             gender=gender,
             personality_type=personality_type,
             difficulty_level=difficulty_level,
-
             presenting_problem=presenting_problem,
             trauma_history=self._generate_trauma_history(personality_type),
             personality_traits=base_pattern["traits"],
             defense_mechanisms=self._generate_defense_mechanisms(personality_type),
             triggers=base_pattern["triggers"],
             strengths=self._generate_client_strengths(),
-
             communication_style=base_pattern["communication"],
             resistance_patterns=base_pattern["resistance"],
             emotional_dysregulation=self._generate_emotional_patterns(personality_type),
             interpersonal_patterns=self._generate_interpersonal_patterns(personality_type),
-
             comorbidities=comorbidities,
             medication_issues=self._generate_medication_issues(comorbidities),
             social_factors=social_factors,
             legal_issues=self._generate_legal_issues(personality_type),
-
             learning_objectives=learning_objectives,
             common_therapist_mistakes=self._generate_therapist_mistakes(personality_type),
             therapeutic_challenges=self._generate_challenges(personality_type),
             success_indicators=self._generate_success_indicators(personality_type),
-
             ai_instructions=ai_instructions,
             response_patterns=base_pattern["response_patterns"],
             escalation_triggers=self._generate_escalation_triggers(personality_type),
-            de_escalation_responses=self._generate_de_escalation_responses(personality_type)
+            de_escalation_responses=self._generate_de_escalation_responses(personality_type),
         )
 
     def _generate_client_name(self) -> str:
@@ -340,8 +347,7 @@ class DifficultClientGenerator:
         last_names = ["Smith", "Johnson", "Brown", "Wilson", "Miller", "Davis", "Garcia", "Rodriguez"]
         return f"{random.choice(first_names)} {random.choice(last_names)}"
 
-    def _generate_presenting_problem(self, personality_type: ClientPersonality,
-                                   comorbidities: list[str]) -> str:
+    def _generate_presenting_problem(self, personality_type: ClientPersonality, comorbidities: list[str]) -> str:
         """Generate realistic presenting problems"""
         problems = {
             ClientPersonality.RESISTANT: "Mandated therapy due to work-related issues, denies needing help",
@@ -349,7 +355,7 @@ class DifficultClientGenerator:
             ClientPersonality.BORDERLINE_TRAITS: "Relationship instability and emotional crisis episodes",
             ClientPersonality.NARCISSISTIC_TRAITS: "Others don't appreciate their talents, relationship conflicts",
             ClientPersonality.SUICIDAL_IDEATION: "Overwhelming depression and thoughts of self-harm",
-            ClientPersonality.TRAUMA_REACTIVE: "PTSD symptoms interfering with daily functioning"
+            ClientPersonality.TRAUMA_REACTIVE: "PTSD symptoms interfering with daily functioning",
         }
 
         base_problem = problems.get(personality_type, "Complex psychological presentation")
@@ -365,7 +371,7 @@ class DifficultClientGenerator:
             ClientPersonality.BORDERLINE_TRAITS: ["Childhood emotional neglect", "Invalidating family environment"],
             ClientPersonality.NARCISSISTIC_TRAITS: ["Childhood emotional abuse", "Parentification"],
             ClientPersonality.TRAUMA_REACTIVE: ["Combat trauma", "Sexual assault", "Childhood abuse"],
-            ClientPersonality.HOSTILE_AGGRESSIVE: ["Domestic violence exposure", "Bullying victimization"]
+            ClientPersonality.HOSTILE_AGGRESSIVE: ["Domestic violence exposure", "Bullying victimization"],
         }
 
         return trauma_histories.get(personality_type, ["Unspecified trauma history"])
@@ -376,7 +382,7 @@ class DifficultClientGenerator:
             ClientPersonality.RESISTANT: ["Intellectualization", "Rationalization", "Denial"],
             ClientPersonality.HOSTILE_AGGRESSIVE: ["Projection", "Displacement", "Acting out"],
             ClientPersonality.BORDERLINE_TRAITS: ["Splitting", "Projection", "Emotional dysregulation"],
-            ClientPersonality.NARCISSISTIC_TRAITS: ["Grandiosity", "Devaluation", "Entitlement"]
+            ClientPersonality.NARCISSISTIC_TRAITS: ["Grandiosity", "Devaluation", "Entitlement"],
         }
 
         return mechanisms.get(personality_type, ["Avoidance", "Denial"])
@@ -391,12 +397,13 @@ class DifficultClientGenerator:
             "Creative problem solver",
             "Resilient despite challenges",
             "Caring towards family",
-            "Motivated when engaged"
+            "Motivated when engaged",
         ]
         return random.sample(strengths, 3)
 
-    def _create_ai_instructions(self, personality_type: ClientPersonality,
-                              difficulty_level: DifficultyLevel) -> dict[str, Any]:
+    def _create_ai_instructions(
+        self, personality_type: ClientPersonality, difficulty_level: DifficultyLevel
+    ) -> dict[str, Any]:
         """Create detailed AI behavior instructions"""
         return {
             "personality_adherence": f"Consistently embody {personality_type.value} traits throughout session",
@@ -408,7 +415,7 @@ class DifficultClientGenerator:
             "emotional_consistency": "Maintain emotional consistency with personality pattern",
             "boundary_testing": "Test therapist boundaries appropriately for personality type",
             "resistance_timing": "Time resistance patterns realistically within session flow",
-            "vulnerability_windows": "Allow moments of vulnerability when earned therapeutically"
+            "vulnerability_windows": "Allow moments of vulnerability when earned therapeutically",
         }
 
     def _generate_emotional_patterns(self, personality_type: ClientPersonality) -> list[str]:
@@ -417,7 +424,7 @@ class DifficultClientGenerator:
             ClientPersonality.BORDERLINE_TRAITS: ["Emotional flooding", "Rapid mood shifts", "Abandonment panic"],
             ClientPersonality.HOSTILE_AGGRESSIVE: ["Explosive anger", "Irritability", "Rage episodes"],
             ClientPersonality.TRAUMA_REACTIVE: ["Emotional numbing", "Hyperarousal", "Dissociation"],
-            ClientPersonality.SUICIDAL_IDEATION: ["Overwhelming despair", "Emotional emptiness", "Hopelessness"]
+            ClientPersonality.SUICIDAL_IDEATION: ["Overwhelming despair", "Emotional emptiness", "Hopelessness"],
         }
 
         return patterns.get(personality_type, ["Emotional avoidance", "Mood instability"])
@@ -428,7 +435,7 @@ class DifficultClientGenerator:
             ClientPersonality.BORDERLINE_TRAITS: ["Intense relationships", "Fear of abandonment", "Splitting"],
             ClientPersonality.NARCISSISTIC_TRAITS: ["Exploitative relationships", "Lack of empathy", "Entitlement"],
             ClientPersonality.HOSTILE_AGGRESSIVE: ["Conflictual relationships", "Intimidation", "Blame others"],
-            ClientPersonality.RESISTANT: ["Superficial relationships", "Mistrust", "Emotional distance"]
+            ClientPersonality.RESISTANT: ["Superficial relationships", "Mistrust", "Emotional distance"],
         }
 
         return patterns.get(personality_type, ["Relationship difficulties", "Trust issues"])
@@ -443,7 +450,7 @@ class DifficultClientGenerator:
             "Side effects affecting daily functioning",
             "Multiple medication interactions",
             "Substance use interfering with medication",
-            "Previous negative medication experiences"
+            "Previous negative medication experiences",
         ]
 
         return random.sample(issues, min(2, len(issues)))
@@ -453,7 +460,7 @@ class DifficultClientGenerator:
         legal_issues = {
             ClientPersonality.HOSTILE_AGGRESSIVE: ["Assault charges", "Domestic violence charges"],
             ClientPersonality.SUBSTANCE_DEPENDENT: ["DUI charges", "Drug possession"],
-            ClientPersonality.RESISTANT: ["Court-mandated treatment", "Probation requirements"]
+            ClientPersonality.RESISTANT: ["Court-mandated treatment", "Probation requirements"],
         }
 
         return legal_issues.get(personality_type, [])
@@ -464,23 +471,23 @@ class DifficultClientGenerator:
             ClientPersonality.RESISTANT: [
                 "Pushing too hard for emotional expression",
                 "Not acknowledging client's autonomy",
-                "Being overly directive too early"
+                "Being overly directive too early",
             ],
             ClientPersonality.HOSTILE_AGGRESSIVE: [
                 "Taking aggressive behavior personally",
                 "Becoming defensive or retaliatory",
-                "Not setting appropriate boundaries"
+                "Not setting appropriate boundaries",
             ],
             ClientPersonality.BORDERLINE_TRAITS: [
                 "Getting pulled into crisis mode",
                 "Not maintaining consistent boundaries",
-                "Becoming overwhelmed by emotional intensity"
+                "Becoming overwhelmed by emotional intensity",
             ],
             ClientPersonality.NARCISSISTIC_TRAITS: [
                 "Challenging grandiosity too directly",
                 "Not recognizing underlying vulnerability",
-                "Becoming frustrated with lack of empathy"
-            ]
+                "Becoming frustrated with lack of empathy",
+            ],
         }
 
         return mistakes.get(personality_type, ["Generic therapeutic mistakes"])
@@ -491,13 +498,13 @@ class DifficultClientGenerator:
             ClientPersonality.RESISTANT: [
                 "Building rapport with mistrustful client",
                 "Motivating change in unmotivated client",
-                "Managing therapeutic resistance"
+                "Managing therapeutic resistance",
             ],
             ClientPersonality.SUICIDAL_IDEATION: [
                 "Conducting thorough suicide risk assessment",
                 "Balancing hope with validation of pain",
-                "Creating effective safety planning"
-            ]
+                "Creating effective safety planning",
+            ],
         }
 
         return challenges.get(personality_type, ["Complex case management"])
@@ -508,13 +515,13 @@ class DifficultClientGenerator:
             ClientPersonality.RESISTANT: [
                 "Client begins to open up about real concerns",
                 "Reduction in challenging therapist competence",
-                "Increased session engagement"
+                "Increased session engagement",
             ],
             ClientPersonality.BORDERLINE_TRAITS: [
                 "Decreased crisis calls between sessions",
                 "Improved emotional regulation",
-                "More stable therapeutic relationship"
-            ]
+                "More stable therapeutic relationship",
+            ],
         }
 
         return indicators.get(personality_type, ["Improved therapeutic engagement"])
@@ -525,13 +532,13 @@ class DifficultClientGenerator:
             ClientPersonality.HOSTILE_AGGRESSIVE: [
                 "Therapist appears intimidated",
                 "Boundaries are inconsistent",
-                "Client feels judged or criticized"
+                "Client feels judged or criticized",
             ],
             ClientPersonality.BORDERLINE_TRAITS: [
                 "Therapist seems distracted or disconnected",
                 "Session ending approaches",
-                "Client feels misunderstood"
-            ]
+                "Client feels misunderstood",
+            ],
         }
 
         return triggers.get(personality_type, ["Poor therapeutic rapport"])
@@ -542,13 +549,13 @@ class DifficultClientGenerator:
             ClientPersonality.HOSTILE_AGGRESSIVE: [
                 "I can see you're really frustrated right now",
                 "Help me understand what's making you angry",
-                "Your feelings are valid, let's work with this together"
+                "Your feelings are valid, let's work with this together",
             ],
             ClientPersonality.TRAUMA_REACTIVE: [
                 "You're safe here with me right now",
                 "Let's focus on grounding - feel your feet on the floor",
-                "Take your time, there's no pressure"
-            ]
+                "Take your time, there's no pressure",
+            ],
         }
 
         return responses.get(personality_type, ["I hear you", "That sounds difficult"])

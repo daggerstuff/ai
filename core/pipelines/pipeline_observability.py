@@ -24,12 +24,11 @@ from __future__ import annotations
 import threading
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
 from ai.core.pipelines.training_readiness_gates import (
-    GateResult,
     ReadinessResult,
     ReadinessStatus,
 )
@@ -267,7 +266,7 @@ class PipelineMetricsCollector:
         """
         metric = StageMetric(
             stage_name=stage_name,
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             duration_ms=duration_ms,
             input_size=input_size,
             output_size=output_size,
@@ -366,7 +365,7 @@ class PipelineMetricsCollector:
 
         record = FailureRecord(
             failure_id=failure_id,
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             stage=stage,
             gate=gate,
             package_id=package_id,
@@ -395,12 +394,8 @@ class PipelineMetricsCollector:
             stage_metrics = list(self._stage_metrics)
 
         if window_seconds:
-            cutoff = datetime.now(timezone.utc).timestamp() - window_seconds
-            stage_metrics = [
-                m
-                for m in stage_metrics
-                if datetime.fromisoformat(m.timestamp).timestamp() >= cutoff
-            ]
+            cutoff = datetime.now(UTC).timestamp() - window_seconds
+            stage_metrics = [m for m in stage_metrics if datetime.fromisoformat(m.timestamp).timestamp() >= cutoff]
 
         if not stage_metrics:
             return ThroughputMetrics(
@@ -460,11 +455,9 @@ class PipelineMetricsCollector:
             readiness_metrics = list(self._readiness_metrics)
 
         if window_seconds:
-            cutoff = datetime.now(timezone.utc).timestamp() - window_seconds
+            cutoff = datetime.now(UTC).timestamp() - window_seconds
             readiness_metrics = [
-                m
-                for m in readiness_metrics
-                if datetime.fromisoformat(m.timestamp).timestamp() >= cutoff
+                m for m in readiness_metrics if datetime.fromisoformat(m.timestamp).timestamp() >= cutoff
             ]
 
         if not readiness_metrics:
@@ -520,12 +513,8 @@ class PipelineMetricsCollector:
             failures = list(self._failure_records)
 
         if window_seconds:
-            cutoff = datetime.now(timezone.utc).timestamp() - window_seconds
-            failures = [
-                f
-                for f in failures
-                if datetime.fromisoformat(f.timestamp).timestamp() >= cutoff
-            ]
+            cutoff = datetime.now(UTC).timestamp() - window_seconds
+            failures = [f for f in failures if datetime.fromisoformat(f.timestamp).timestamp() >= cutoff]
 
         if not failures:
             return FailureMetrics(
@@ -611,7 +600,7 @@ class PipelineMetricsCollector:
             throughput=throughput,
             readiness=readiness,
             failures=failures,
-            last_updated=datetime.now(timezone.utc).isoformat(),
+            last_updated=datetime.now(UTC).isoformat(),
         )
 
     def _determine_health_status(
@@ -783,21 +772,21 @@ def get_prometheus_metrics() -> str:
 
 
 __all__ = [
-    "PipelineMetricsCollector",
-    "PipelineHealthSummary",
-    "HealthStatus",
-    "FailureSeverity",
-    "StageMetric",
-    "ReadinessMetric",
-    "FailureRecord",
-    "RegressionAlert",
-    "ThroughputMetrics",
-    "ReadinessMetrics",
     "FailureMetrics",
-    "get_metrics_collector",
+    "FailureRecord",
+    "FailureSeverity",
+    "HealthStatus",
+    "PipelineHealthSummary",
+    "PipelineMetricsCollector",
+    "ReadinessMetric",
+    "ReadinessMetrics",
+    "RegressionAlert",
+    "StageMetric",
+    "ThroughputMetrics",
     "get_health_summary",
-    "record_stage_execution",
-    "record_readiness_result",
-    "record_failure",
+    "get_metrics_collector",
     "get_prometheus_metrics",
+    "record_failure",
+    "record_readiness_result",
+    "record_stage_execution",
 ]

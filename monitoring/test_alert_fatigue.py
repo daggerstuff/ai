@@ -11,7 +11,7 @@ import os
 import random
 import tempfile
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from alert_fatigue_prevention import (
     AlertFatiguePreventionSystem,
@@ -41,7 +41,6 @@ class AlertFatigueTestSuite:
 
     async def run_all_tests(self):
         """Run all test scenarios"""
-
 
         test_methods = [
             self.test_duplicate_detection,
@@ -82,7 +81,7 @@ class AlertFatigueTestSuite:
         results = []
         for i in range(5):
             alert = base_alert.copy()
-            alert["timestamp"] = (datetime.now(timezone.utc) + timedelta(minutes=i)).isoformat()
+            alert["timestamp"] = (datetime.now(UTC) + timedelta(minutes=i)).isoformat()
             result = await self.afp_system.process_alert(alert)
             results.append(result)
 
@@ -91,15 +90,11 @@ class AlertFatigueTestSuite:
         unique_groups = set(group_ids)
 
         assert len(unique_groups) == 1, f"Expected 1 group, got {len(unique_groups)}"
-        assert results[-1]["group_count"] == 5, (
-            f"Expected count 5, got {results[-1]['group_count']}"
-        )
+        assert results[-1]["group_count"] == 5, f"Expected count 5, got {results[-1]['group_count']}"
 
         # Check if suppression was applied
         suppressed_count = sum(1 for r in results if not r["should_notify"])
-        assert suppressed_count >= 2, (
-            f"Expected at least 2 suppressed alerts, got {suppressed_count}"
-        )
+        assert suppressed_count >= 2, f"Expected at least 2 suppressed alerts, got {suppressed_count}"
 
         self.test_results.append(
             {
@@ -145,9 +140,7 @@ class AlertFatigueTestSuite:
         group_ids = [r["group_id"] for r in results]
         unique_groups = set(group_ids)
 
-        assert len(unique_groups) <= 2, (
-            f"Expected at most 2 groups for similar alerts, got {len(unique_groups)}"
-        )
+        assert len(unique_groups) <= 2, f"Expected at most 2 groups for similar alerts, got {len(unique_groups)}"
 
         self.test_results.append(
             {
@@ -173,14 +166,12 @@ class AlertFatigueTestSuite:
         close_alerts = []
         for i in range(3):
             alert = base_alert.copy()
-            alert["timestamp"] = (datetime.now(timezone.utc) + timedelta(minutes=i)).isoformat()
+            alert["timestamp"] = (datetime.now(UTC) + timedelta(minutes=i)).isoformat()
             close_alerts.append(alert)
 
         # Alert outside time window
         distant_alert = base_alert.copy()
-        distant_alert["timestamp"] = (
-            datetime.now(timezone.utc) + timedelta(hours=2)
-        ).isoformat()
+        distant_alert["timestamp"] = (datetime.now(UTC) + timedelta(hours=2)).isoformat()
 
         # Process alerts
         results = []
@@ -196,9 +187,7 @@ class AlertFatigueTestSuite:
         assert len(set(close_group_ids)) == 1, "Close alerts should be in same group"
 
         # Distant alert should be in different group
-        assert distant_group_id not in close_group_ids, (
-            "Distant alert should be in different group"
-        )
+        assert distant_group_id not in close_group_ids, "Distant alert should be in different group"
 
         self.test_results.append(
             {
@@ -242,12 +231,8 @@ class AlertFatigueTestSuite:
         db_group_ids = [results[0]["group_id"], results[1]["group_id"]]
         network_group_id = results[2]["group_id"]
 
-        assert db_group_ids[0] == db_group_ids[1], (
-            "Database errors should be grouped together"
-        )
-        assert network_group_id != db_group_ids[0], (
-            "Network error should be in different group"
-        )
+        assert db_group_ids[0] == db_group_ids[1], "Database errors should be grouped together"
+        assert network_group_id != db_group_ids[0], "Network error should be in different group"
 
         self.test_results.append(
             {
@@ -459,16 +444,10 @@ class AlertFatigueTestSuite:
             results.append(result)
 
         # Critical alerts should be grouped together
-        critical_results = [
-            r
-            for i, r in enumerate(results)
-            if mixed_alerts[i]["priority"] == "critical"
-        ]
+        critical_results = [r for i, r in enumerate(results) if mixed_alerts[i]["priority"] == "critical"]
         critical_group_ids = [r["group_id"] for r in critical_results]
 
-        assert len(set(critical_group_ids)) == 1, (
-            "Critical alerts should be grouped together"
-        )
+        assert len(set(critical_group_ids)) == 1, "Critical alerts should be grouped together"
 
         self.test_results.append(
             {
@@ -573,14 +552,10 @@ class AlertFatigueTestSuite:
 
         for algorithm in algorithms:
             groups = await self.grouping_engine.suggest_groups(test_alerts, algorithm)
-            quality = await self.grouping_engine.evaluate_grouping_quality(
-                test_alerts, groups
-            )
+            quality = await self.grouping_engine.evaluate_grouping_quality(test_alerts, groups)
 
             assert len(groups) > 0, f"Algorithm {algorithm} should produce groups"
-            assert quality["silhouette_score"] >= 0, (
-                f"Algorithm {algorithm} should have non-negative quality score"
-            )
+            assert quality["silhouette_score"] >= 0, f"Algorithm {algorithm} should have non-negative quality score"
 
         self.test_results.append(
             {
@@ -616,12 +591,8 @@ class AlertFatigueTestSuite:
         avg_processing_time = batch_processing_time / len(batch_alerts)
 
         # Performance assertions
-        assert single_processing_time < 1.0, (
-            f"Single alert processing too slow: {single_processing_time:.3f}s"
-        )
-        assert avg_processing_time < 0.1, (
-            f"Average processing too slow: {avg_processing_time:.3f}s"
-        )
+        assert single_processing_time < 1.0, f"Single alert processing too slow: {single_processing_time:.3f}s"
+        assert avg_processing_time < 0.1, f"Average processing too slow: {avg_processing_time:.3f}s"
 
         self.test_results.append(
             {
@@ -634,10 +605,8 @@ class AlertFatigueTestSuite:
     def print_test_summary(self):
         """Print comprehensive test summary"""
 
-
         passed_tests = [r for r in self.test_results if r["status"] == "passed"]
         failed_tests = [r for r in self.test_results if r["status"] == "failed"]
-
 
         if passed_tests:
             for _test in passed_tests:

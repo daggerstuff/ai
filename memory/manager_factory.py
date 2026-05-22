@@ -38,8 +38,8 @@ class MemoryManagerFactory:
         try:
             settings = resolve_local_memory_settings()
             logger.info("Using LocalForesightMemoryManager")
-            
-            # For now, we use the local_manager_class if provided, 
+
+            # For now, we use the local_manager_class if provided,
             # otherwise we'll need to import the new Foresight manager.
             # Since we are removing Foresight, we should transition to the Foresight implementation.
             if self.local_manager_class:
@@ -47,9 +47,10 @@ class MemoryManagerFactory:
                     db_path=settings.db_path,
                     bank_id=settings.bank_id,
                 )
-            
+
             # Lazy import to avoid circular dependency and handle migration
             from .local_foresight_manager import LocalForesightMemoryManager
+
             return LocalForesightMemoryManager(
                 db_path=settings.db_path,
                 bank_id=settings.bank_id,

@@ -1,8 +1,7 @@
-
 import json
 import sqlite3
 from collections.abc import Iterable
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from .foresight_local_adapter import encode_tags_json, normalize_tags
@@ -20,7 +19,7 @@ class LocalForesightDocumentStore:
 
     @staticmethod
     def _now() -> str:
-        return datetime.now(timezone.utc).isoformat()
+        return datetime.now(UTC).isoformat()
 
     @staticmethod
     def parse_row(row: sqlite3.Row) -> dict[str, Any]:

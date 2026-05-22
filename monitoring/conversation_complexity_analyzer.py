@@ -10,7 +10,7 @@ import sqlite3
 import warnings
 from collections import Counter
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -76,9 +76,7 @@ class ConversationComplexityAnalyzer:
             "min_word_count": 10,
         }
 
-    def analyze_conversation_complexity(
-        self, dataset_name: str | None = None
-    ) -> dict[str, ComplexityAnalysis]:
+    def analyze_conversation_complexity(self, dataset_name: str | None = None) -> dict[str, ComplexityAnalysis]:
         """Analyze conversation length and complexity patterns"""
 
         try:
@@ -122,9 +120,7 @@ class ConversationComplexityAnalyzer:
         except Exception:
             return []
 
-    def _analyze_dataset_complexity(
-        self, dataset_name: str
-    ) -> ComplexityAnalysis | None:
+    def _analyze_dataset_complexity(self, dataset_name: str) -> ComplexityAnalysis | None:
         """Analyze complexity for specific dataset"""
         try:
             # Get conversations from dataset
@@ -144,10 +140,7 @@ class ConversationComplexityAnalyzer:
                 return None
 
             # Generate complexity analysis
-            return self._generate_complexity_analysis(
-                dataset_name, conversation_metrics
-            )
-
+            return self._generate_complexity_analysis(dataset_name, conversation_metrics)
 
         except Exception:
             return None
@@ -198,9 +191,7 @@ class ConversationComplexityAnalyzer:
         except Exception:
             return []
 
-    def _analyze_individual_conversation(
-        self, conversation_data: dict
-    ) -> ConversationMetrics | None:
+    def _analyze_individual_conversation(self, conversation_data: dict) -> ConversationMetrics | None:
         """Analyze individual conversation metrics"""
         try:
             conversation_id = conversation_data["conversation_id"]
@@ -315,7 +306,6 @@ class ConversationComplexityAnalyzer:
             # Normalize to 0-1 scale (assuming max 30 words per sentence)
             return min(1.0, avg_sentence_length / 30)
 
-
         except Exception:
             return 0.0
 
@@ -330,7 +320,6 @@ class ConversationComplexityAnalyzer:
 
             # Normalize to 0-1 scale (assuming max 20 turns for high depth)
             return min(1.0, turn_count / 20)
-
 
         except Exception:
             return 0.0
@@ -402,9 +391,7 @@ class ConversationComplexityAnalyzer:
                 "them",
             }
 
-            content_words = [
-                word for word in words if word not in stop_words and len(word) > 3
-            ]
+            content_words = [word for word in words if word not in stop_words and len(word) > 3]
 
             if not content_words:
                 return 0.0
@@ -412,12 +399,8 @@ class ConversationComplexityAnalyzer:
             content_word_counts = Counter(content_words)
 
             # Calculate coherence as ratio of repeated content words
-            repeated_words = sum(
-                1 for count in content_word_counts.values() if count > 1
-            )
-            coherence = (
-                repeated_words / len(content_word_counts) if content_word_counts else 0
-            )
+            repeated_words = sum(1 for count in content_word_counts.values() if count > 1)
+            coherence = repeated_words / len(content_word_counts) if content_word_counts else 0
 
             return min(1.0, coherence)
 
@@ -462,63 +445,33 @@ class ConversationComplexityAnalyzer:
 
             # Length distribution
             length_distribution = {}
-            for category, (min_turns, max_turns) in self.analysis_config[
-                "length_categories"
-            ].items():
-                count = len(
-                    [
-                        m
-                        for m in conversation_metrics
-                        if min_turns <= m.turn_count <= max_turns
-                    ]
-                )
+            for category, (min_turns, max_turns) in self.analysis_config["length_categories"].items():
+                count = len([m for m in conversation_metrics if min_turns <= m.turn_count <= max_turns])
                 length_distribution[category] = count
 
             # Complexity distribution
             complexity_distribution = {}
-            for category, (min_score, max_score) in self.analysis_config[
-                "complexity_categories"
-            ].items():
-                count = len(
-                    [
-                        m
-                        for m in conversation_metrics
-                        if min_score <= m.overall_complexity_score < max_score
-                    ]
-                )
+            for category, (min_score, max_score) in self.analysis_config["complexity_categories"].items():
+                count = len([m for m in conversation_metrics if min_score <= m.overall_complexity_score < max_score])
                 complexity_distribution[category] = count
 
             # Average metrics
             average_metrics = {
                 "avg_turn_count": np.mean([m.turn_count for m in conversation_metrics]),
                 "avg_word_count": np.mean([m.word_count for m in conversation_metrics]),
-                "avg_words_per_turn": np.mean(
-                    [m.avg_words_per_turn for m in conversation_metrics]
-                ),
-                "avg_vocabulary_diversity": np.mean(
-                    [m.vocabulary_diversity for m in conversation_metrics]
-                ),
-                "avg_sentence_complexity": np.mean(
-                    [m.sentence_complexity for m in conversation_metrics]
-                ),
-                "avg_dialogue_depth": np.mean(
-                    [m.dialogue_depth for m in conversation_metrics]
-                ),
-                "avg_topic_coherence": np.mean(
-                    [m.topic_coherence for m in conversation_metrics]
-                ),
-                "avg_overall_complexity": np.mean(
-                    [m.overall_complexity_score for m in conversation_metrics]
-                ),
+                "avg_words_per_turn": np.mean([m.avg_words_per_turn for m in conversation_metrics]),
+                "avg_vocabulary_diversity": np.mean([m.vocabulary_diversity for m in conversation_metrics]),
+                "avg_sentence_complexity": np.mean([m.sentence_complexity for m in conversation_metrics]),
+                "avg_dialogue_depth": np.mean([m.dialogue_depth for m in conversation_metrics]),
+                "avg_topic_coherence": np.mean([m.topic_coherence for m in conversation_metrics]),
+                "avg_overall_complexity": np.mean([m.overall_complexity_score for m in conversation_metrics]),
             }
 
             # Correlation analysis
             correlation_analysis = self._calculate_correlations(conversation_metrics)
 
             # Identify patterns
-            patterns = self._identify_complexity_patterns(
-                conversation_metrics, average_metrics
-            )
+            patterns = self._identify_complexity_patterns(conversation_metrics, average_metrics)
 
             # Generate recommendations
             recommendations = self._generate_complexity_recommendations(
@@ -550,9 +503,7 @@ class ConversationComplexityAnalyzer:
                 recommendations=[],
             )
 
-    def _calculate_correlations(
-        self, conversation_metrics: list[ConversationMetrics]
-    ) -> dict[str, float]:
+    def _calculate_correlations(self, conversation_metrics: list[ConversationMetrics]) -> dict[str, float]:
         """Calculate correlations between different metrics"""
         try:
             if len(conversation_metrics) < 10:  # Need sufficient data
@@ -561,25 +512,15 @@ class ConversationComplexityAnalyzer:
             # Extract metric arrays
             turn_counts = [m.turn_count for m in conversation_metrics]
             word_counts = [m.word_count for m in conversation_metrics]
-            complexity_scores = [
-                m.overall_complexity_score for m in conversation_metrics
-            ]
-            vocabulary_diversity = [
-                m.vocabulary_diversity for m in conversation_metrics
-            ]
+            complexity_scores = [m.overall_complexity_score for m in conversation_metrics]
+            vocabulary_diversity = [m.vocabulary_diversity for m in conversation_metrics]
 
             correlations = {}
 
             # Calculate correlations
-            correlations["length_complexity"] = np.corrcoef(
-                turn_counts, complexity_scores
-            )[0, 1]
-            correlations["words_complexity"] = np.corrcoef(
-                word_counts, complexity_scores
-            )[0, 1]
-            correlations["vocabulary_complexity"] = np.corrcoef(
-                vocabulary_diversity, complexity_scores
-            )[0, 1]
+            correlations["length_complexity"] = np.corrcoef(turn_counts, complexity_scores)[0, 1]
+            correlations["words_complexity"] = np.corrcoef(word_counts, complexity_scores)[0, 1]
+            correlations["vocabulary_complexity"] = np.corrcoef(vocabulary_diversity, complexity_scores)[0, 1]
             correlations["length_words"] = np.corrcoef(turn_counts, word_counts)[0, 1]
 
             # Handle NaN values
@@ -615,26 +556,18 @@ class ConversationComplexityAnalyzer:
             # Complexity patterns
             avg_complexity = average_metrics.get("avg_overall_complexity", 0)
             if avg_complexity > 0.7:
-                patterns.append(
-                    "High complexity conversations with rich vocabulary and deep dialogue"
-                )
+                patterns.append("High complexity conversations with rich vocabulary and deep dialogue")
             elif avg_complexity < 0.3:
-                patterns.append(
-                    "Simple conversations with basic vocabulary and structure"
-                )
+                patterns.append("Simple conversations with basic vocabulary and structure")
             else:
-                patterns.append(
-                    "Moderate complexity conversations with balanced characteristics"
-                )
+                patterns.append("Moderate complexity conversations with balanced characteristics")
 
             # Vocabulary patterns
             avg_vocab_diversity = average_metrics.get("avg_vocabulary_diversity", 0)
             if avg_vocab_diversity > 0.6:
                 patterns.append("Rich vocabulary diversity across conversations")
             elif avg_vocab_diversity < 0.3:
-                patterns.append(
-                    "Limited vocabulary diversity - repetitive language patterns"
-                )
+                patterns.append("Limited vocabulary diversity - repetitive language patterns")
 
             # Coherence patterns
             avg_coherence = average_metrics.get("avg_topic_coherence", 0)
@@ -661,72 +594,52 @@ class ConversationComplexityAnalyzer:
             # Length recommendations
             total_conversations = sum(length_distribution.values())
             if total_conversations > 0:
-                very_short_pct = (
-                    length_distribution.get("very_short", 0) / total_conversations
-                ) * 100
+                very_short_pct = (length_distribution.get("very_short", 0) / total_conversations) * 100
                 if very_short_pct > 50:
                     recommendations.append(
                         "High percentage of very short conversations - consider enhancing dialogue depth"
                     )
 
-                very_long_pct = (
-                    length_distribution.get("very_long", 0) / total_conversations
-                ) * 100
+                very_long_pct = (length_distribution.get("very_long", 0) / total_conversations) * 100
                 if very_long_pct > 30:
-                    recommendations.append(
-                        "Many very long conversations - monitor for potential verbosity issues"
-                    )
+                    recommendations.append("Many very long conversations - monitor for potential verbosity issues")
 
             # Complexity recommendations
             avg_complexity = average_metrics.get("avg_overall_complexity", 0)
             if avg_complexity < 0.4:
-                recommendations.append(
-                    "Low overall complexity - consider enriching conversation content and structure"
-                )
+                recommendations.append("Low overall complexity - consider enriching conversation content and structure")
             elif avg_complexity > 0.8:
-                recommendations.append(
-                    "Very high complexity - ensure conversations remain accessible to users"
-                )
+                recommendations.append("Very high complexity - ensure conversations remain accessible to users")
 
             # Vocabulary recommendations
             avg_vocab_diversity = average_metrics.get("avg_vocabulary_diversity", 0)
             if avg_vocab_diversity < 0.3:
-                recommendations.append(
-                    "Limited vocabulary diversity - expand language variety in conversations"
-                )
+                recommendations.append("Limited vocabulary diversity - expand language variety in conversations")
 
             # Coherence recommendations
             avg_coherence = average_metrics.get("avg_topic_coherence", 0)
             if avg_coherence < 0.4:
-                recommendations.append(
-                    "Improve topic coherence - ensure conversations maintain thematic consistency"
-                )
+                recommendations.append("Improve topic coherence - ensure conversations maintain thematic consistency")
 
             if not recommendations:
-                recommendations.append(
-                    "Conversation complexity appears well-balanced across all metrics"
-                )
+                recommendations.append("Conversation complexity appears well-balanced across all metrics")
 
             return recommendations
 
         except Exception:
             return ["Error generating complexity recommendations"]
 
-    def export_complexity_report(
-        self, complexity_analyses: dict[str, ComplexityAnalysis]
-    ) -> str:
+    def export_complexity_report(self, complexity_analyses: dict[str, ComplexityAnalysis]) -> str:
         """Export comprehensive complexity analysis report"""
 
         try:
-            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-            report_file = (
-                self.output_dir / f"complexity_analysis_report_{timestamp}.json"
-            )
+            timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
+            report_file = self.output_dir / f"complexity_analysis_report_{timestamp}.json"
 
             # Prepare export data
             export_data = {
                 "report_metadata": {
-                    "generated_at": datetime.now(timezone.utc).isoformat(),
+                    "generated_at": datetime.now(UTC).isoformat(),
                     "analyzer_version": "1.0.0",
                     "datasets_analyzed": len(complexity_analyses),
                     "analysis_type": "conversation_length_and_complexity",
@@ -743,9 +656,7 @@ class ConversationComplexityAnalyzer:
                     }
                     for dataset_name, analysis in complexity_analyses.items()
                 },
-                "summary_statistics": self._create_complexity_summary(
-                    complexity_analyses
-                ),
+                "summary_statistics": self._create_complexity_summary(complexity_analyses),
             }
 
             # Save report
@@ -757,30 +668,21 @@ class ConversationComplexityAnalyzer:
         except Exception:
             return ""
 
-    def _create_complexity_summary(
-        self, complexity_analyses: dict[str, ComplexityAnalysis]
-    ) -> dict[str, Any]:
+    def _create_complexity_summary(self, complexity_analyses: dict[str, ComplexityAnalysis]) -> dict[str, Any]:
         """Create summary statistics across all datasets"""
         try:
             if not complexity_analyses:
                 return {}
 
-            total_conversations = sum(
-                analysis.total_conversations
-                for analysis in complexity_analyses.values()
-            )
+            total_conversations = sum(analysis.total_conversations for analysis in complexity_analyses.values())
 
             # Average complexity across all datasets
             all_complexity_scores = []
             for analysis in complexity_analyses.values():
                 if "avg_overall_complexity" in analysis.average_metrics:
-                    all_complexity_scores.append(
-                        analysis.average_metrics["avg_overall_complexity"]
-                    )
+                    all_complexity_scores.append(analysis.average_metrics["avg_overall_complexity"])
 
-            avg_complexity = (
-                np.mean(all_complexity_scores) if all_complexity_scores else 0
-            )
+            avg_complexity = np.mean(all_complexity_scores) if all_complexity_scores else 0
 
             # Most complex dataset
             most_complex_dataset = None
@@ -819,16 +721,12 @@ def main():
     analyzer.export_complexity_report(complexity_analyses)
 
     # Display summary
-    sum(
-        analysis.total_conversations for analysis in complexity_analyses.values()
-    )
-
+    sum(analysis.total_conversations for analysis in complexity_analyses.values())
 
     # Show sample analysis
     if complexity_analyses:
         sample_dataset = list(complexity_analyses.keys())[0]
         sample_analysis = complexity_analyses[sample_dataset]
-
 
         if sample_analysis.patterns:
             for _pattern in sample_analysis.patterns[:3]:

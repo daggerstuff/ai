@@ -3,6 +3,7 @@
 Distributed Quality Validation System for Pixelated Empathy AI
 Parallelizes quality validation across multiple workers for high-performance processing
 """
+
 import argparse
 import glob
 import hashlib
@@ -14,7 +15,7 @@ import pickle
 import time
 from concurrent.futures import ProcessPoolExecutor
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -53,9 +54,7 @@ except Exception as e:
     logging.warning(f"Caching system not available due to error: {e}")
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -215,7 +214,7 @@ class ConversationQualityValidator(QualityValidator):
                 issues=issues,
                 processing_time=processing_time,
                 worker_id=self.worker_id,
-                timestamp=datetime.now(timezone.utc).isoformat(),
+                timestamp=datetime.now(UTC).isoformat(),
             )
 
         except Exception as e:
@@ -230,7 +229,7 @@ class ConversationQualityValidator(QualityValidator):
                 issues=[{"type": "error", "message": str(e)}],
                 processing_time=processing_time,
                 worker_id=self.worker_id,
-                timestamp=datetime.now(timezone.utc).isoformat(),
+                timestamp=datetime.now(UTC).isoformat(),
             )
 
     def _check_completeness(self, data: list[dict], issues: list[dict]) -> float:
@@ -250,9 +249,7 @@ class ConversationQualityValidator(QualityValidator):
         complete_records = 0
 
         for i, record in enumerate(data):
-            missing_fields = [
-                field for field in required_fields if not record.get(field)
-            ]
+            missing_fields = [field for field in required_fields if not record.get(field)]
 
             if not missing_fields:
                 complete_records += 1
@@ -473,11 +470,7 @@ class DistributedQualityValidator:
                     result_serializer="pickle",
                     timezone="UTC",
                     enable_utc=True,
-                    task_routes={
-                        "quality_validator.validate_task": {
-                            "queue": "quality_validation"
-                        }
-                    },
+                    task_routes={"quality_validator.validate_task": {"queue": "quality_validation"}},
                 )
                 logger.info("Initialized Celery for distributed processing")
             except Exception as e:
@@ -519,9 +512,7 @@ class DistributedQualityValidator:
 
         # Check cache if enabled
         if self.cached_validator:
-            cache_hit, cached_result = self.cached_validator.validate_with_cache(
-                data_path, validation_type, metadata
-            )
+            cache_hit, cached_result = self.cached_validator.validate_with_cache(data_path, validation_type, metadata)
             if cache_hit and cached_result:
                 # Deserialize cached result
                 try:
@@ -539,9 +530,9 @@ class DistributedQualityValidator:
                         validation_type=validation_type,
                         priority=priority,
                         metadata=metadata or {},
-                        created_at=datetime.now(timezone.utc).isoformat(),
+                        created_at=datetime.now(UTC).isoformat(),
                         status=ValidationStatus.COMPLETED,
-                        completed_at=datetime.now(timezone.utc).isoformat(),
+                        completed_at=datetime.now(UTC).isoformat(),
                         result=result_data,
                     )
                     self.tasks[task_id] = task
@@ -557,7 +548,7 @@ class DistributedQualityValidator:
             validation_type=validation_type,
             priority=priority,
             metadata=metadata or {},
-            created_at=datetime.now(timezone.utc).isoformat(),
+            created_at=datetime.now(UTC).isoformat(),
         )
 
         # Store task
@@ -579,7 +570,7 @@ class DistributedQualityValidator:
             task.worker_id = str(id(future))
 
         task.status = ValidationStatus.PROCESSING
-        task.started_at = datetime.now(timezone.utc).isoformat()
+        task.started_at = datetime.now(UTC).isoformat()
 
         logger.info(f"Submitted validation task: {task_id}")
         return task_id
@@ -592,9 +583,7 @@ class DistributedQualityValidator:
         """Get task result"""
         return self.results.get(task_id)
 
-    def wait_for_task(
-        self, task_id: str, timeout: float = None
-    ) -> ValidationResult | None:
+    def wait_for_task(self, task_id: str, timeout: float = None) -> ValidationResult | None:
         """Wait for task completion"""
         start_time = time.time()
 
@@ -627,16 +616,12 @@ class DistributedQualityValidator:
         if not max_workers:
             max_workers = min(len(data_paths), mp.cpu_count() * 2)
 
-        logger.info(
-            f"Starting batch validation of {len(data_paths)} files with {max_workers} workers"
-        )
+        logger.info(f"Starting batch validation of {len(data_paths)} files with {max_workers} workers")
 
         # Submit all tasks
         task_ids = []
         for i, data_path in enumerate(data_paths):
-            priority = (
-                ValidationPriority.HIGH if i < batch_size else ValidationPriority.NORMAL
-            )
+            priority = ValidationPriority.HIGH if i < batch_size else ValidationPriority.NORMAL
             task_id = self.submit_validation_task(data_path, validation_type, priority)
             task_ids.append(task_id)
 
@@ -653,9 +638,7 @@ class DistributedQualityValidator:
                         completed += 1
 
                         if completed % 10 == 0:
-                            logger.info(
-                                f"Completed {completed}/{len(task_ids)} validation tasks"
-                            )
+                            logger.info(f"Completed {completed}/{len(task_ids)} validation tasks")
 
             time.sleep(0.5)
 
@@ -680,12 +663,8 @@ class DistributedQualityValidator:
         success_rate = len(successful_results) / completed_tasks
 
         if successful_results:
-            avg_quality_score = sum(r.quality_score for r in successful_results) / len(
-                successful_results
-            )
-            avg_processing_time = sum(
-                r.processing_time for r in self.results.values()
-            ) / len(self.results.values())
+            avg_quality_score = sum(r.quality_score for r in successful_results) / len(successful_results)
+            avg_processing_time = sum(r.processing_time for r in self.results.values()) / len(self.results.values())
         else:
             avg_quality_score = 0.0
             avg_processing_time = 0.0
@@ -757,7 +736,7 @@ class DistributedQualityValidator:
 
             # Update task status
             task.status = ValidationStatus.COMPLETED
-            task.completed_at = datetime.now(timezone.utc).isoformat()
+            task.completed_at = datetime.now(UTC).isoformat()
 
             return result
 
@@ -773,7 +752,7 @@ class DistributedQualityValidator:
                 issues=[{"type": "error", "message": str(e)}],
                 processing_time=0.0,
                 worker_id="local",
-                timestamp=datetime.now(timezone.utc).isoformat(),
+                timestamp=datetime.now(UTC).isoformat(),
             )
 
             self.results[task.task_id] = result
@@ -784,7 +763,7 @@ class DistributedQualityValidator:
 
     def _generate_task_id(self, data_path: str) -> str:
         """Generate unique task ID"""
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         path_hash = hashlib.md5(data_path.encode()).hexdigest()[:8]
         return f"val_{timestamp}_{path_hash}"
 
@@ -825,9 +804,7 @@ if CELERY_AVAILABLE:
 def main():
     """Main CLI interface"""
 
-    parser = argparse.ArgumentParser(
-        description="Distributed Quality Validation System"
-    )
+    parser = argparse.ArgumentParser(description="Distributed Quality Validation System")
     parser.add_argument("--redis-url", help="Redis URL for task queue")
     parser.add_argument("--celery-broker", help="Celery broker URL")
 
@@ -836,23 +813,15 @@ def main():
     # Validate command
     validate_parser = subparsers.add_parser("validate", help="Validate a single file")
     validate_parser.add_argument("data_path", help="Path to data file")
-    validate_parser.add_argument(
-        "--type", default="conversation", help="Validation type"
-    )
-    validate_parser.add_argument(
-        "--priority", default="normal", choices=["low", "normal", "high", "critical"]
-    )
+    validate_parser.add_argument("--type", default="conversation", help="Validation type")
+    validate_parser.add_argument("--priority", default="normal", choices=["low", "normal", "high", "critical"])
 
     # Batch validate command
     batch_parser = subparsers.add_parser("batch", help="Validate multiple files")
     batch_parser.add_argument("data_dir", help="Directory containing data files")
     batch_parser.add_argument("--type", default="conversation", help="Validation type")
-    batch_parser.add_argument(
-        "--pattern", default="*.json", help="File pattern to match"
-    )
-    batch_parser.add_argument(
-        "--max-workers", type=int, help="Maximum number of workers"
-    )
+    batch_parser.add_argument("--pattern", default="*.json", help="File pattern to match")
+    batch_parser.add_argument("--max-workers", type=int, help="Maximum number of workers")
 
     # Status command
     subparsers.add_parser("status", help="Show validation statistics")
@@ -875,10 +844,7 @@ def main():
                 "critical": ValidationPriority.CRITICAL,
             }
 
-            task_id = validator.submit_validation_task(
-                args.data_path, args.type, priority_map[args.priority]
-            )
-
+            task_id = validator.submit_validation_task(args.data_path, args.type, priority_map[args.priority])
 
             # Wait for result
             result = validator.wait_for_task(task_id, timeout=300)
@@ -888,7 +854,6 @@ def main():
                 pass
 
         elif args.command == "batch":
-
             data_dir = Path(args.data_dir)
             if not data_dir.exists():
                 return
@@ -900,11 +865,8 @@ def main():
             if not data_files:
                 return
 
-
             # Run batch validation
-            results = validator.batch_validate(
-                data_files, args.type, max_workers=args.max_workers
-            )
+            results = validator.batch_validate(data_files, args.type, max_workers=args.max_workers)
 
             # Print summary
             successful = [r for r in results if r.success]

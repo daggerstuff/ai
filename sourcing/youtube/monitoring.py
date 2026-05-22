@@ -11,7 +11,7 @@ Provides:
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 
 from ai.sourcing.youtube.models import Channel, ChannelStatus
@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 class AlertSeverity(StrEnum):
     """Severity levels for alerts."""
+
     INFO = "info"
     WARNING = "warning"
     ERROR = "error"
@@ -30,6 +31,7 @@ class AlertSeverity(StrEnum):
 @dataclass
 class AlertCondition:
     """Condition that triggers an alert."""
+
     name: str
     severity: AlertSeverity
     description: str
@@ -44,6 +46,7 @@ class AlertCondition:
 @dataclass
 class HealthCheck:
     """Result of a health check on a channel."""
+
     channel_id: str
     timestamp: datetime
     status: ChannelStatus
@@ -78,10 +81,7 @@ class ChannelMonitor:
             name="low_activity",
             severity=AlertSeverity.WARNING,
             description="No new content in 30+ days",
-            check=lambda c: (
-                c.last_updated
-                and datetime.now(timezone.utc) - c.last_updated > timedelta(days=30)
-            ),
+            check=lambda c: c.last_updated and datetime.now(UTC) - c.last_updated > timedelta(days=30),
             action="Monitor for 14 more days, then consider replacement",
         ),
         AlertCondition(
@@ -106,9 +106,7 @@ class ChannelMonitor:
         alert_conditions: list[AlertCondition] | None = None,
     ):
         self.channels = channels
-        self.alert_conditions = (
-            alert_conditions or self.DEFAULT_ALERT_CONDITIONS[:]
-        )
+        self.alert_conditions = alert_conditions or self.DEFAULT_ALERT_CONDITIONS[:]
         self.health_history: dict[str, list[HealthCheck]] = {}
 
     def check_channel_health(self, channel: Channel) -> HealthCheck:
@@ -123,7 +121,7 @@ class ChannelMonitor:
         """
         health_check = HealthCheck(
             channel_id=channel.channel_id,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             status=channel.status,
             health_score=self._calculate_health_score(channel),
         )
@@ -134,24 +132,13 @@ class ChannelMonitor:
                 health_check.alerts.append(condition)
 
         # Categorize alert counts
-        critical_alerts = sum(
-            1 for a in health_check.alerts
-            if a.severity == AlertSeverity.CRITICAL
-        )
-        error_alerts = sum(
-            1 for a in health_check.alerts
-            if a.severity == AlertSeverity.ERROR
-        )
-        warning_alerts = sum(
-            1 for a in health_check.alerts
-            if a.severity == AlertSeverity.WARNING
-        )
+        critical_alerts = sum(1 for a in health_check.alerts if a.severity == AlertSeverity.CRITICAL)
+        error_alerts = sum(1 for a in health_check.alerts if a.severity == AlertSeverity.ERROR)
+        warning_alerts = sum(1 for a in health_check.alerts if a.severity == AlertSeverity.WARNING)
 
         # Calculate passed/failed checks
         total_checks = len(self.alert_conditions) + 5  # + base checks
-        health_check.checks_failed = (
-            critical_alerts + error_alerts + warning_alerts
-        )
+        health_check.checks_failed = critical_alerts + error_alerts + warning_alerts
         health_check.checks_passed = total_checks - health_check.checks_failed
 
         # Determine overall status
@@ -194,7 +181,7 @@ class ChannelMonitor:
 
         # Activity weight (20%)
         if channel.last_updated:
-            days_inactive = (datetime.now(timezone.utc) - channel.last_updated).days
+            days_inactive = (datetime.now(UTC) - channel.last_updated).days
             if days_inactive < 7:
                 score += 0.2
             elif days_inactive < 30:
@@ -212,9 +199,7 @@ class ChannelMonitor:
 
         return min(score, 1.0)
 
-    def _generate_notes(
-        self, channel: Channel, health_check: HealthCheck
-    ) -> list[str]:
+    def _generate_notes(self, channel: Channel, health_check: HealthCheck) -> list[str]:
         """Generate descriptive notes for the health check."""
         notes = []
 
@@ -223,7 +208,7 @@ class ChannelMonitor:
         notes.append(f"Quality Score: {channel.quality_score:.2f}")
 
         if channel.last_updated:
-            days_ago = (datetime.now(timezone.utc) - channel.last_updated).days
+            days_ago = (datetime.now(UTC) - channel.last_updated).days
             notes.append(f"Last update: {days_ago} days ago")
 
         if len(health_check.alerts) > 0:
@@ -261,48 +246,31 @@ class ChannelMonitor:
 
     def _trim_history(self, channel_id: str, days_to_keep: int = 30):
         """Trim health check history to specified days."""
-        cutoff_date = datetime.now(timezone.utc) - timedelta(days=days_to_keep)
+        cutoff_date = datetime.now(UTC) - timedelta(days=days_to_keep)
         self.health_history[channel_id] = [
-            check for check in self.health_history[channel_id]
-            if check.timestamp >= cutoff_date
+            check for check in self.health_history[channel_id] if check.timestamp >= cutoff_date
         ]
 
     def get_channels_at_risk(self) -> list[Channel]:
         """Get list of channels marked as at risk."""
-        return [
-            c for c in self.channels if c.status == ChannelStatus.AT_RISK
-        ]
+        return [c for c in self.channels if c.status == ChannelStatus.AT_RISK]
 
     def get_inactive_channels(self) -> list[Channel]:
         """Get list of inactive channels."""
-        return [
-            c for c in self.channels if c.status == ChannelStatus.INACTIVE
-        ]
+        return [c for c in self.channels if c.status == ChannelStatus.INACTIVE]
 
     def generate_health_report(self) -> str:
         """Generate comprehensive health report."""
         results = self.run_all_checks()
 
-        active = sum(
-            1 for r in results.values()
-            if r.status == ChannelStatus.ACTIVE
-        )
-        at_risk = sum(
-            1 for r in results.values()
-            if r.status == ChannelStatus.AT_RISK
-        )
-        inactive = sum(
-            1 for r in results.values()
-            if r.status == ChannelStatus.INACTIVE
-        )
-        unknown = sum(
-            1 for r in results.values()
-            if r.status == ChannelStatus.UNKNOWN
-        )
+        active = sum(1 for r in results.values() if r.status == ChannelStatus.ACTIVE)
+        at_risk = sum(1 for r in results.values() if r.status == ChannelStatus.AT_RISK)
+        inactive = sum(1 for r in results.values() if r.status == ChannelStatus.INACTIVE)
+        unknown = sum(1 for r in results.values() if r.status == ChannelStatus.UNKNOWN)
 
         report = f"""
 Channel Health Report
-Generated: {datetime.now(timezone.utc).isoformat()}
+Generated: {datetime.now(UTC).isoformat()}
 
 Overall Status:
   Active: {active}
@@ -316,9 +284,7 @@ Critical Alerts (Immediate Action Required):
 
         # Add critical alerts
         for channel_id, check in results.items():
-            critical = [
-                a for a in check.alerts if a.severity == AlertSeverity.CRITICAL
-            ]
+            critical = [a for a in check.alerts if a.severity == AlertSeverity.CRITICAL]
             if critical:
                 report += f"\n  {channel_id}: {len(critical)} critical alert(s)\n"
                 for alert in critical:
@@ -327,9 +293,7 @@ Critical Alerts (Immediate Action Required):
         # Add error alerts
         report += "\nError Alerts (Attention Required):\n"
         for channel_id, check in results.items():
-            errors = [
-                a for a in check.alerts if a.severity == AlertSeverity.ERROR
-            ]
+            errors = [a for a in check.alerts if a.severity == AlertSeverity.ERROR]
             if errors:
                 report += f"\n  {channel_id}: {len(errors)} error alert(s)\n"
                 for alert in errors:
@@ -352,7 +316,7 @@ def health_check_channel(channel: Channel) -> dict:
     monitor = ChannelMonitor([channel])
     health_check = monitor.check_channel_health(channel)
 
-    today = datetime.now(timezone.utc)
+    today = datetime.now(UTC)
 
     # Activity status
     activity_status = "active"

@@ -43,9 +43,7 @@ def get_manager() -> Any:
     return _manager_instance
 
 
-def get_recent_memories(
-    manager: Any, user_id: str, limit: int
-) -> list[dict[str, Any]]:
+def get_recent_memories(manager: Any, user_id: str, limit: int) -> list[dict[str, Any]]:
     """Retrieve a bounded slice of recent memories."""
     return manager.get_all_memories(user_id, limit=limit)
 
@@ -61,9 +59,7 @@ def authorize_tool_access(
     payload: dict[str, Any],
 ):
     """Authorize MCP tool invocations with the shared actor-policy model."""
-    request_body = (
-        json.dumps(payload, sort_keys=True, separators=(",", ":")
-    ).encode("utf-8"))
+    request_body = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
     return authorize_memory_access(
         actor_id=actor_id,
         user_id=user_id,
@@ -209,10 +205,7 @@ def stdio_trusted_tool_context(
     if policy is not None and not policy.allows_user(resolved_user):
         raise HTTPException(
             status_code=403,
-            detail=(
-                f"Stdio-trusted actor '{actor_id}' is not permitted"
-                f" to act for user '{resolved_user}'."
-            ),
+            detail=(f"Stdio-trusted actor '{actor_id}' is not permitted to act for user '{resolved_user}'."),
         )
     logger.info(
         "stdio-trusted MCP call accepted: actor=%s user=%s",
@@ -253,10 +246,7 @@ def authorized_tool_context_from_json(
             )
         raise HTTPException(
             status_code=401,
-            detail=(
-                "auth_context is required when"
-                " HINDSIGHT_MCP_STDIO_TRUST is not enabled."
-            ),
+            detail=("auth_context is required when HINDSIGHT_MCP_STDIO_TRUST is not enabled."),
         )
     auth = parse_auth_context(auth_context)
     scope = parse_scope_context(scope_context)

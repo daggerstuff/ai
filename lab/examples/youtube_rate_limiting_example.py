@@ -207,7 +207,6 @@ async def example_high_volume_processing():
         with open(report_path, "w", encoding="utf-8") as f:
             f.write(report)
 
-
     except Exception:
         pass
 
@@ -245,9 +244,7 @@ def example_configuration_templates():
                 backoff_factor=1.3,
                 max_backoff=300,
             ),
-            "proxy_config": ProxyConfig(
-                enabled=True, rotation_strategy="random", max_retries_per_proxy=2
-            ),
+            "proxy_config": ProxyConfig(enabled=True, rotation_strategy="random", max_retries_per_proxy=2),
             "description": "Optimized for high-volume processing with proxy rotation",
         },
         "Stealth Mode": {
@@ -288,7 +285,6 @@ async def main():
     # await example_conservative_rate_limiting()
     # await example_proxy_rotation()
     # await example_high_volume_processing()
-
 
 
 if __name__ == "__main__":

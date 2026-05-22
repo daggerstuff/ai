@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Memory Inventory System — Sprint 3, Task 1.
 
 Catalogs raw memories from sessions, sorts by importance, groups by
@@ -17,8 +16,7 @@ from __future__ import annotations
 import logging
 import time
 from collections import defaultdict
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from dataclasses import dataclass
 
 from ..schema import ConsolidationPhase, MemoryBlock
 
@@ -30,7 +28,7 @@ class InventoryGroup:
     """A group of memories sharing a common key (session, topic, or valence)."""
 
     key: str
-    memories: List[MemoryBlock]
+    memories: list[MemoryBlock]
     total_importance: float
     avg_valence: float
 
@@ -43,11 +41,11 @@ class InventoryGroup:
 class MemoryCatalog:
     """Full inventory catalog with multiple groupings."""
 
-    all_memories: List[MemoryBlock]
-    by_importance: List[MemoryBlock]
-    by_session: Dict[str, InventoryGroup]
-    by_topic: Dict[str, InventoryGroup]
-    by_valence: Dict[str, InventoryGroup]
+    all_memories: list[MemoryBlock]
+    by_importance: list[MemoryBlock]
+    by_session: dict[str, InventoryGroup]
+    by_topic: dict[str, InventoryGroup]
+    by_valence: dict[str, InventoryGroup]
     build_time_ms: float
     total_count: int
     total_importance: float
@@ -61,7 +59,7 @@ class MemoryInventory:
     """
 
     def __init__(self) -> None:
-        self._memories: List[MemoryBlock] = []
+        self._memories: list[MemoryBlock] = []
         self._tenant_ids: set[str] = set()
 
     # ------------------------------------------------------------------
@@ -72,7 +70,7 @@ class MemoryInventory:
         self._memories.append(memory)
         self._tenant_ids.add(memory.tenantId)
 
-    def add_memories(self, memories: List[MemoryBlock]) -> None:
+    def add_memories(self, memories: list[MemoryBlock]) -> None:
         """Add multiple memory blocks at once."""
         for m in memories:
             self.add_memory(m)
@@ -92,9 +90,7 @@ class MemoryInventory:
         """
         t0 = time.perf_counter()
 
-        by_importance = sorted(
-            self._memories, key=lambda m: m.importance.raw, reverse=True
-        )
+        by_importance = sorted(self._memories, key=lambda m: m.importance.raw, reverse=True)
         by_session = self._group_by_session()
         by_topic = self._group_by_topic()
         by_valence = self._group_by_valence()
@@ -122,49 +118,43 @@ class MemoryInventory:
     # ------------------------------------------------------------------
     # Filtering
     # ------------------------------------------------------------------
-    def get_tenant_memories(self, tenant_id: str) -> List[MemoryBlock]:
+    def get_tenant_memories(self, tenant_id: str) -> list[MemoryBlock]:
         """Return memories for a specific tenant (isolation guarantee)."""
         return [m for m in self._memories if m.tenantId == tenant_id]
 
-    def get_session_memories(self, session_id: str) -> List[MemoryBlock]:
+    def get_session_memories(self, session_id: str) -> list[MemoryBlock]:
         """Return all memories from a specific session."""
         return [m for m in self._memories if m.sessionId == session_id]
 
-    def get_crisis_memories(self) -> List[MemoryBlock]:
+    def get_crisis_memories(self) -> list[MemoryBlock]:
         """Return memories flagged as crisis content."""
         return [m for m in self._memories if m.gating.crisisFlag]
 
-    def get_phase_memories(self, phase: ConsolidationPhase) -> List[MemoryBlock]:
+    def get_phase_memories(self, phase: ConsolidationPhase) -> list[MemoryBlock]:
         """Return memories in a specific consolidation phase."""
         return [m for m in self._memories if m.consolidation.phase == phase]
 
     # ------------------------------------------------------------------
     # Internal grouping
     # ------------------------------------------------------------------
-    def _group_by_session(self) -> Dict[str, InventoryGroup]:
-        groups: Dict[str, List[MemoryBlock]] = defaultdict(list)
+    def _group_by_session(self) -> dict[str, InventoryGroup]:
+        groups: dict[str, list[MemoryBlock]] = defaultdict(list)
         for m in self._memories:
             groups[m.sessionId].append(m)
-        return {
-            sid: self._make_group(sid, memories)
-            for sid, memories in groups.items()
-        }
+        return {sid: self._make_group(sid, memories) for sid, memories in groups.items()}
 
-    def _group_by_topic(self) -> Dict[str, InventoryGroup]:
+    def _group_by_topic(self) -> dict[str, InventoryGroup]:
         """Group by emotional category labels as a proxy for topic."""
-        groups: Dict[str, List[MemoryBlock]] = defaultdict(list)
+        groups: dict[str, list[MemoryBlock]] = defaultdict(list)
         for m in self._memories:
             categories = m.emotions.categories or ["uncategorized"]
             for cat in categories:
                 groups[cat].append(m)
-        return {
-            cat: self._make_group(cat, memories)
-            for cat, memories in groups.items()
-        }
+        return {cat: self._make_group(cat, memories) for cat, memories in groups.items()}
 
-    def _group_by_valence(self) -> Dict[str, InventoryGroup]:
+    def _group_by_valence(self) -> dict[str, InventoryGroup]:
         """Group into negative / neutral / positive valence buckets."""
-        buckets: Dict[str, List[MemoryBlock]] = {
+        buckets: dict[str, list[MemoryBlock]] = {
             "negative": [],
             "neutral": [],
             "positive": [],
@@ -177,20 +167,12 @@ class MemoryInventory:
                 buckets["positive"].append(m)
             else:
                 buckets["neutral"].append(m)
-        return {
-            label: self._make_group(label, memories)
-            for label, memories in buckets.items()
-            if memories
-        }
+        return {label: self._make_group(label, memories) for label, memories in buckets.items() if memories}
 
     @staticmethod
-    def _make_group(key: str, memories: List[MemoryBlock]) -> InventoryGroup:
+    def _make_group(key: str, memories: list[MemoryBlock]) -> InventoryGroup:
         total_imp = sum(m.importance.raw for m in memories)
-        avg_val = (
-            sum(m.emotions.valence for m in memories) / len(memories)
-            if memories
-            else 0.0
-        )
+        avg_val = sum(m.emotions.valence for m in memories) / len(memories) if memories else 0.0
         return InventoryGroup(
             key=key,
             memories=memories,

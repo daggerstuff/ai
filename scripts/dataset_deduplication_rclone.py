@@ -3,12 +3,13 @@
 Dataset deduplication using rclone.
 Works with Hetzner Object Storage and identifies duplicate records within and across datasets.
 """
+
 import argparse
 import hashlib
 import json
 import sys
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -22,14 +23,10 @@ from rclone_dataset_accessor import (
 def compute_record_hash(record: dict[str, Any], key_fields: list[str] = None) -> str:
     """Compute SHA256 hash of a record for deduplication."""
     if key_fields:
-        hash_content = json.dumps(
-            {k: record.get(k) for k in key_fields if k in record}, sort_keys=True
-        )
+        hash_content = json.dumps({k: record.get(k) for k in key_fields if k in record}, sort_keys=True)
     else:
         exclude_fields = {"_id", "_hash", "_timestamp", "_source"}
-        hash_content = json.dumps(
-            {k: v for k, v in record.items() if k not in exclude_fields}, sort_keys=True
-        )
+        hash_content = json.dumps({k: v for k, v in record.items() if k not in exclude_fields}, sort_keys=True)
 
     return hashlib.sha256(hash_content.encode("utf-8")).hexdigest()
 
@@ -61,7 +58,6 @@ def deduplicate_dataset(
     s3_path = dataset_entry.get("path", "")
     if not s3_path:
         return {"error": "No path defined"}
-
 
     results = {
         "dataset": dataset_name,
@@ -106,9 +102,7 @@ def deduplicate_dataset(
         results["duplicate_groups"] = total_groups
 
         if total_original > 0:
-            results["deduplication_ratio"] = round(
-                total_duplicates / total_original * 100, 2
-            )
+            results["deduplication_ratio"] = round(total_duplicates / total_original * 100, 2)
 
     except Exception as e:
         results["error"] = str(e)
@@ -144,7 +138,6 @@ def main():
     if args.key_fields:
         key_fields = [f.strip() for f in args.key_fields.split(",")]
 
-
     with open(args.registry) as f:
         registry = json.load(f)
 
@@ -155,9 +148,7 @@ def main():
             if isinstance(category_data, dict):
                 for dataset_name, dataset_entry in category_data.items():
                     if isinstance(dataset_entry, dict) and "path" in dataset_entry:
-                        datasets.append(
-                            (f"datasets.{category_name}.{dataset_name}", dataset_entry)
-                        )
+                        datasets.append((f"datasets.{category_name}.{dataset_name}", dataset_entry))
 
     if args.limit:
         datasets = datasets[: args.limit]
@@ -193,14 +184,10 @@ def main():
                         if "quality_metrics" not in entry:
                             entry["quality_metrics"] = {}
 
-                        entry["quality_metrics"]["duplicate_count"] = result[
-                            "duplicates_found"
-                        ]
-                        entry["quality_metrics"]["deduplication_ratio"] = result[
-                            "deduplication_ratio"
-                        ]
+                        entry["quality_metrics"]["duplicate_count"] = result["duplicates_found"]
+                        entry["quality_metrics"]["deduplication_ratio"] = result["deduplication_ratio"]
 
-    registry["last_updated"] = datetime.now(timezone.utc).isoformat() + "Z"
+    registry["last_updated"] = datetime.now(UTC).isoformat() + "Z"
     with open(args.registry, "w") as f:
         json.dump(registry, f, indent=2, ensure_ascii=False)
 

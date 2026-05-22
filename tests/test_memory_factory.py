@@ -57,9 +57,7 @@ def test_factory_allows_provider_override_without_env(monkeypatch):
     monkeypatch.delenv("MEMORY_PROVIDER", raising=False)
     monkeypatch.setenv("HINDSIGHT_LOCAL_DB_PATH", "/tmp/pixelated-memory.db")
 
-    manager = MemoryManagerFactory(local_manager_class=FakeLocalManager).create_manager(
-        provider="local_foresight"
-    )
+    manager = MemoryManagerFactory(local_manager_class=FakeLocalManager).create_manager(provider="local_foresight")
 
     assert isinstance(manager, FakeLocalManager)
 

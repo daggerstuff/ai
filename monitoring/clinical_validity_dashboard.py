@@ -4,18 +4,15 @@ Clinical Validity Monitoring Dashboard
 Provides real-time visualization of clinical validity metrics for the Modern Dataset Project.
 """
 
-import json
 import logging
 import sqlite3
 import time
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
 import pandas as pd
-import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
-from plotly.subplots import make_subplots
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -53,19 +50,16 @@ class ClinicalValidityDashboard:
 
         logger.info("🩺 Clinical Validity Dashboard initialized")
 
-    def load_clinical_validity_data(
-        self, force_refresh: bool = False, hours_back: int = 24
-    ) -> pd.DataFrame:
+    def load_clinical_validity_data(self, force_refresh: bool = False, hours_back: int = 24) -> pd.DataFrame:
         """Load clinical validity data from database with caching."""
-        current_time = datetime.now(timezone.utc)
+        current_time = datetime.now(UTC)
 
         # Check cache validity
         if (
             not force_refresh
             and self._cached_data is not None
             and self._last_cache_time is not None
-            and (current_time - self._last_cache_time).total_seconds()
-            < self.cache_duration
+            and (current_time - self._last_cache_time).total_seconds() < self.cache_duration
         ):
             return self._cached_data
 
@@ -74,7 +68,7 @@ class ClinicalValidityDashboard:
             conn = sqlite3.connect(self.db_path)
 
             # Query clinical validity metrics from the last N hours
-            query = """
+            query = f"""
             SELECT 
                 timestamp,
                 clinical_validity_score,
@@ -83,11 +77,9 @@ class ClinicalValidityDashboard:
                 data_source,
                 notes
             FROM clinical_validity_metrics 
-            WHERE timestamp >= datetime('now', '-{} hours')
+            WHERE timestamp >= datetime('now', '-{hours_back} hours')
             ORDER BY timestamp DESC
-            """.format(
-                hours_back
-            )
+            """
 
             df = pd.read_sql_query(query, conn)
             conn.close()
@@ -100,9 +92,7 @@ class ClinicalValidityDashboard:
             self._cached_data = df
             self._last_cache_time = current_time
 
-            logger.info(
-                f"📊 Loaded {len(df)} clinical validity records from last {hours_back} hours"
-            )
+            logger.info(f"📊 Loaded {len(df)} clinical validity records from last {hours_back} hours")
             return df
 
         except Exception as e:
@@ -119,7 +109,7 @@ class ClinicalValidityDashboard:
                 ]
             )
 
-    def calculate_current_metrics(self, df: pd.DataFrame) -> Dict[str, Any]:
+    def calculate_current_metrics(self, df: pd.DataFrame) -> dict[str, Any]:
         """Calculate current clinical validity metrics."""
         if df.empty:
             return {
@@ -133,17 +123,13 @@ class ClinicalValidityDashboard:
                 "status": "no_data",
             }
 
-        current_time = datetime.now(timezone.utc)
+        current_time = datetime.now(UTC)
 
         # Current score (most recent)
-        current_score = (
-            df.iloc[0]["clinical_validity_score"] if len(df) > 0 else 0.0
-        )
+        current_score = df.iloc[0]["clinical_validity_score"] if len(df) > 0 else 0.0
 
         # Sample size (most recent)
-        sample_size = (
-            int(df.iloc[0]["sample_size"]) if len(df) > 0 and not pd.isna(df.iloc[0]["sample_size"]) else 0
-        )
+        sample_size = int(df.iloc[0]["sample_size"]) if len(df) > 0 and not pd.isna(df.iloc[0]["sample_size"]) else 0
 
         # Calculate trends
         trend_1h = 0.0
@@ -166,13 +152,9 @@ class ClinicalValidityDashboard:
 
         # Clinical validity rate (percentage meeting threshold)
         valid_threshold = self.quality_thresholds["good"]  # 0.6
-        valid_samples = df[
-            df["clinical_validity_score"] >= valid_threshold
-        ].shape[0]
+        valid_samples = df[df["clinical_validity_score"] >= valid_threshold].shape[0]
         total_samples = df.shape[0]
-        clinical_validity_rate = (
-            (valid_samples / total_samples * 100) if total_samples > 0 else 0.0
-        )
+        clinical_validity_rate = (valid_samples / total_samples * 100) if total_samples > 0 else 0.0
 
         # Determine status
         if current_score >= self.quality_thresholds["excellent"]:
@@ -329,7 +311,7 @@ class ClinicalValidityDashboard:
             annotation_text="Poor (0.0)",
             annotation_position="top left",
         )
-        
+
         fig.update_layout(
             title="Clinical Validity Trend (24 Hours)",
             xaxis_title="Time",
@@ -403,7 +385,7 @@ class ClinicalValidityDashboard:
             annotation_text="Fair",
             annotation_position="top",
         )
-        
+
         fig.update_layout(
             title="Clinical Validity Score Distribution",
             xaxis_title="Clinical Validity Score",
@@ -432,11 +414,13 @@ class ClinicalValidityDashboard:
         time_range = st.sidebar.selectbox(
             "Time Range",
             options=[1, 6, 12, 24, 48, 168],  # 1h, 6h, 12h, 24h, 48h, 1week
-            format_func=lambda x: f"{x} Hour{'s' if x > 1 else ''}"
-            if x < 24
-            else f"{x//24} Day{'s' if x > 24 else ''}"
-            if x < 168
-            else "1 Week",
+            format_func=lambda x: (
+                f"{x} Hour{'s' if x > 1 else ''}"
+                if x < 24
+                else f"{x // 24} Day{'s' if x > 24 else ''}"
+                if x < 168
+                else "1 Week"
+            ),
             index=3,  # Default to 24 hours
         )
 
@@ -467,20 +451,14 @@ class ClinicalValidityDashboard:
 
         # Main content
         st.title("🩺 Clinical Validity Monitoring Dashboard")
-        st.markdown(
-            "*Real-time monitoring of clinical quality metrics for therapeutic AI training data*"
-        )
+        st.markdown("*Real-time monitoring of clinical quality metrics for therapeutic AI training data*")
 
         # Load data
         df = self.load_clinical_validity_data(hours_back=time_range)
 
         if df.empty:
-            st.warning(
-                "⚠️ No clinical validity data available. Please check data collection pipeline."
-            )
-            st.info(
-                "💡 The dashboard will show data once the clinical validity monitoring pipeline is active."
-            )
+            st.warning("⚠️ No clinical validity data available. Please check data collection pipeline.")
+            st.info("💡 The dashboard will show data once the clinical validity monitoring pipeline is active.")
             return
 
         # Calculate metrics
@@ -490,11 +468,7 @@ class ClinicalValidityDashboard:
         col1, col2, col3, col4 = st.columns(4)
 
         with col1:
-            delta_color = (
-                "normal"
-                if metrics["trend_1h"] >= 0
-                else "inverse"
-            )
+            delta_color = "normal" if metrics["trend_1h"] >= 0 else "inverse"
             st.metric(
                 label="Current Score",
                 value=f"{metrics['current_score']:.3f}",
@@ -556,12 +530,8 @@ class ClinicalValidityDashboard:
         if not df.empty:
             # Format dataframe for display
             display_df = df.copy()
-            display_df["timestamp"] = display_df["timestamp"].dt.strftime(
-                "%Y-%m-%d %H:%M:%S"
-            )
-            display_df["clinical_validity_score"] = display_df[
-                "clinical_validity_score"
-            ].round(3)
+            display_df["timestamp"] = display_df["timestamp"].dt.strftime("%Y-%m-%d %H:%M:%S")
+            display_df["clinical_validity_score"] = display_df["clinical_validity_score"].round(3)
             display_df = display_df.rename(
                 columns={
                     "timestamp": "Timestamp",
@@ -587,8 +557,8 @@ class ClinicalValidityDashboard:
         st.markdown(
             f"""
         <div style='text-align: center; color: #666; font-size: 0.9em;'>
-            Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC<br>
-            Last updated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC<br>
+            Last updated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")} UTC<br>
+            Last updated: {datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S")} UTC<br>
             Clinical Validity Dashboard v1.0 • Modern Dataset Project
         </div>
         """,

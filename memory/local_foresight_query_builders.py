@@ -99,9 +99,7 @@ def filtered_query(
     layout = query_layout(fts=fts)
     filters: list[str] = []
     if required_tags:
-        filters.append(
-            tag_requirements_clause(table_alias=layout.table_alias, tags_match="all").strip()
-        )
+        filters.append(tag_requirements_clause(table_alias=layout.table_alias, tags_match="all").strip())
     if optional_tags:
         filters.append(
             tag_requirements_clause(

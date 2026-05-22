@@ -174,9 +174,7 @@ with tabs[2]:
             )
             chart = (
                 alt.Chart(length_df.reset_index())
-                .transform_fold(
-                    ["Prompt Length", "Response Length"], as_=["Type", "Length"]
-                )
+                .transform_fold(["Prompt Length", "Response Length"], as_=["Type", "Length"])
                 .mark_area(opacity=0.5, interpolate="step")
                 .encode(
                     x=alt.X(
@@ -189,9 +187,7 @@ with tabs[2]:
                         stack=None,
                         axis=alt.Axis(labelColor="#7df9ff", titleColor="#7df9ff"),
                     ),
-                    color=alt.Color(
-                        "Type:N", scale=alt.Scale(range=["#06b6d4", "#84cc16"])
-                    ),
+                    color=alt.Color("Type:N", scale=alt.Scale(range=["#06b6d4", "#84cc16"])),
                 )
                 .properties(background="#181825", width=400, height=250)
             )

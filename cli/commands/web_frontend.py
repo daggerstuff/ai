@@ -87,9 +87,7 @@ def launch(_ctx, port: int, browser: bool, profile: str | None):
 @click.option("--list", "list_sessions", is_flag=True, help="List active sessions")
 @click.option("--close", "close_session", help="Close specific session")
 @click.pass_context
-def session(
-    _ctx, session_id: str | None, list_sessions: bool, close_session: str | None
-):
+def session(_ctx, session_id: str | None, list_sessions: bool, close_session: str | None):
     """Manage web sessions and user interactions."""
     try:
         config = get_config()
@@ -101,9 +99,7 @@ def session(
             sessions = _get_active_sessions(auth_manager)
             if sessions:
                 for session in sessions:
-                    click.echo(
-                        f"  🔹 {session['id']} - {session['status']} - {session['user']}"
-                    )
+                    click.echo(f"  🔹 {session['id']} - {session['status']} - {session['user']}")
             else:
                 click.echo("  No active sessions found")
 
@@ -192,15 +188,11 @@ def monitor(_ctx, pipeline_id: str, refresh: int, output: str):
 )
 @click.option(
     "--pipeline-type",
-    type=click.Choice(
-        ["bias-detection", "dialogue-generation", "model-training", "data-analysis"]
-    ),
+    type=click.Choice(["bias-detection", "dialogue-generation", "model-training", "data-analysis"]),
     required=True,
     help="Type of pipeline to run",
 )
-@click.option(
-    "--async/--sync", default=True, help="Run asynchronously or wait for completion"
-)
+@click.option("--async/--sync", default=True, help="Run asynchronously or wait for completion")
 @click.pass_context
 def upload(_ctx, file: str, pipeline_type: str, async_run: bool):
     """Upload and process files through web interface."""
@@ -219,8 +211,7 @@ def upload(_ctx, file: str, pipeline_type: str, async_run: bool):
 
         if file_size > max_size:
             click.echo(
-                f"❌ File too large: {format_file_size(file_size)} > "
-                f"{format_file_size(max_size)}",
+                f"❌ File too large: {format_file_size(file_size)} > {format_file_size(max_size)}",
                 err=True,
             )
             return
@@ -239,9 +230,7 @@ def upload(_ctx, file: str, pipeline_type: str, async_run: bool):
 
             if async_run:
                 click.echo("🔄 Pipeline started asynchronously")
-                click.echo(
-                    f"📊 Monitor with: pixelated web-frontend monitor --pipeline-id {pipeline_id}"
-                )
+                click.echo(f"📊 Monitor with: pixelated web-frontend monitor --pipeline-id {pipeline_id}")
             else:
                 click.echo("⏳ Waiting for pipeline completion...")
                 _wait_for_pipeline_completion(auth_manager, pipeline_id)
@@ -259,9 +248,7 @@ def upload(_ctx, file: str, pipeline_type: str, async_run: bool):
 
 
 @web_frontend_group.command()
-@click.option(
-    "--output", "-o", type=click.Path(), help="Output directory for downloads"
-)
+@click.option("--output", "-o", type=click.Path(), help="Output directory for downloads")
 @click.option(
     "--format",
     type=click.Choice(["json", "csv", "parquet"]),
@@ -303,9 +290,7 @@ def downloads(
         click.echo(f"📋 Found {len(downloads_list)} available downloads:")
 
         for i, download in enumerate(downloads_list, 1):
-            click.echo(
-                f"  {i}. {download['name']} - {download['size']} - {download['date']}"
-            )
+            click.echo(f"  {i}. {download['name']} - {download['size']} - {download['date']}")
 
         # Download selected files
         for download in downloads_list:
@@ -347,9 +332,7 @@ def _close_session(_auth_manager: AuthManager, session_id: str) -> bool:
     return True
 
 
-def _get_session_info(
-    _auth_manager: AuthManager, session_id: str
-) -> dict[str, Any] | None:
+def _get_session_info(_auth_manager: AuthManager, session_id: str) -> dict[str, Any] | None:
     """Get detailed information about a session."""
     # This would call the actual API endpoint
     return {
@@ -380,27 +363,21 @@ def _display_pipeline_table(status: dict[str, Any]) -> None:
     click.echo(f"Status: {status['status']}")
     click.echo(f"Progress: {status['progress']}%")
     click.echo(f"Stage: {status['stage']}")
-    click.echo(
-        f"Items: {status['metrics']['items_processed']}/{status['metrics']['total_items']}"
-    )
+    click.echo(f"Items: {status['metrics']['items_processed']}/{status['metrics']['total_items']}")
     click.echo(f"Errors: {status['metrics']['errors']}")
     click.echo("-" * 30)
 
 
 def _display_pipeline_simple(status: dict[str, Any]) -> None:
     """Display pipeline status in simple format."""
-    progress_bar = "█" * (status["progress"] // 10) + "░" * (
-        10 - status["progress"] // 10
-    )
+    progress_bar = "█" * (status["progress"] // 10) + "░" * (10 - status["progress"] // 10)
     click.echo(
         f"[{progress_bar}] {status['progress']}% | {status['stage']} | "
         f"{status['metrics']['items_processed']}/{status['metrics']['total_items']}"
     )
 
 
-def _upload_file(
-    _auth_manager: AuthManager, file_path: Path, pipeline_type: str
-) -> dict[str, Any]:
+def _upload_file(_auth_manager: AuthManager, file_path: Path, pipeline_type: str) -> dict[str, Any]:
     """Upload file for processing."""
     # This would call the actual API endpoint
     logger.info(f"Uploading file: {file_path} for pipeline: {pipeline_type}")
@@ -419,9 +396,7 @@ def _wait_for_pipeline_completion(_auth_manager: AuthManager, _pipeline_id: str)
     click.echo("✅ Pipeline completed successfully")
 
 
-def _get_available_downloads(
-    _auth_manager: AuthManager, _date_from: str | None, _date_to: str | None
-) -> list:
+def _get_available_downloads(_auth_manager: AuthManager, _date_from: str | None, _date_to: str | None) -> list:
     """Get list of available downloads."""
     # This would call the actual API endpoint
     return [
@@ -440,9 +415,7 @@ def _get_available_downloads(
     ]
 
 
-def _download_file(
-    _auth_manager: AuthManager, download_id: str, file_path: Path, format: str
-) -> bool:
+def _download_file(_auth_manager: AuthManager, download_id: str, file_path: Path, format: str) -> bool:
     """Download a processed file."""
     # This would call the actual API endpoint
     logger.info(f"Downloading file: {download_id} to {file_path} in {format} format")

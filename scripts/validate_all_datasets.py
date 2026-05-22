@@ -8,7 +8,7 @@ conversations, checks role consistency, and outputs a manifest.
 import json
 import logging
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -197,9 +197,7 @@ def run_validation() -> dict[str, Any]:
             if file_path.is_dir():
                 continue
 
-            if file_path.suffix == ".json" and file_path.name not in (
-                "acquisition_summary.json",
-            ):
+            if file_path.suffix == ".json" and file_path.name not in ("acquisition_summary.json",):
                 # Skip stats/report files, only validate actual datasets
                 if "_stats" in file_path.name or "_report" in file_path.name:
                     continue
@@ -212,10 +210,7 @@ def run_validation() -> dict[str, Any]:
                 results.append(result)
                 total_conversations += result.get("conversations", 0)
 
-            elif (
-                file_path.suffix == ".md"
-                and file_path.name != "TRAINING_DATASET_GUIDE.md"
-            ):
+            elif file_path.suffix == ".md" and file_path.name != "TRAINING_DATASET_GUIDE.md":
                 result = validate_transcript_md(file_path)
                 results.append(result)
                 total_transcripts += 1
@@ -224,15 +219,13 @@ def run_validation() -> dict[str, Any]:
                 total_errors += 1
 
     return {
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(UTC).isoformat(),
         "summary": {
             "total_files_scanned": len(results),
             "total_conversations": total_conversations,
             "total_transcripts": total_transcripts,
             "files_with_errors": total_errors,
-            "scan_directories": [
-                str(d.relative_to(REPO_ROOT)) for d in SCAN_DIRS if d.exists()
-            ],
+            "scan_directories": [str(d.relative_to(REPO_ROOT)) for d in SCAN_DIRS if d.exists()],
         },
         "files": results,
     }
@@ -262,9 +255,7 @@ def main():
         logger.warning("Some files have validation errors. Check manifest for details.")
         for file_result in manifest["files"]:
             if not file_result.get("valid", True):
-                logger.warning(
-                    f"  ❌ {file_result['file']}: {file_result['errors'][:3]}"
-                )
+                logger.warning(f"  ❌ {file_result['file']}: {file_result['errors'][:3]}")
 
     return 0 if summary["files_with_errors"] == 0 else 1
 

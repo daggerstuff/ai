@@ -5,13 +5,14 @@ Tasks 3.1, 3.2, 3.3: Validate Safety Certification Implementation
 
 Comprehensive validation script to verify Phase 3 safety certification implementation is enterprise-ready.
 """
+
 import json
 import logging
 import os
 import sys
 import tempfile
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -20,9 +21,7 @@ from safety_accuracy_validator import safety_validator
 from safety_monitor_integration import AlertSeverity, safety_monitor
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -32,7 +31,7 @@ class Phase3Validator:
     def __init__(self):
         """Initialize validator"""
         self.results = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "phase": "Phase 3 - Safety Certification",
             "tasks": {
                 "3.1": {
@@ -126,9 +125,7 @@ class Phase3Validator:
                 assert len(safe_cases) > 0
 
                 score += 15
-                logger.info(
-                    f"✅ Safety test suite: {len(test_suite.test_cases)} test cases"
-                )
+                logger.info(f"✅ Safety test suite: {len(test_suite.test_cases)} test cases")
 
             except Exception as e:
                 issues.append(f"Safety test suite validation failed: {e}")
@@ -146,18 +143,14 @@ class Phase3Validator:
                     assert isinstance(report.certification_ready, bool)
 
                     score += 25
-                    logger.info(
-                        f"✅ Safety validation: {report.overall_accuracy:.1%} accuracy"
-                    )
+                    logger.info(f"✅ Safety validation: {report.overall_accuracy:.1%} accuracy")
 
                     # Check if meets >95% requirement
                     if report.overall_accuracy >= 0.95:
                         score += 10
                         logger.info("✅ Meets >95% accuracy requirement")
                     else:
-                        issues.append(
-                            f"Accuracy {report.overall_accuracy:.1%} below 95% requirement"
-                        )
+                        issues.append(f"Accuracy {report.overall_accuracy:.1%} below 95% requirement")
 
                     os.unlink(tmp.name)
 
@@ -246,9 +239,7 @@ class Phase3Validator:
                 assert len(critical_reqs) > 0
 
                 score += 15
-                logger.info(
-                    f"✅ Clinical requirements: {len(framework.requirements)} requirements"
-                )
+                logger.info(f"✅ Clinical requirements: {len(framework.requirements)} requirements")
 
             except Exception as e:
                 issues.append(f"Clinical requirements framework failed: {e}")
@@ -275,14 +266,11 @@ class Phase3Validator:
 
             # Test 4: Clinical Incident Simulation
             try:
-
                 with tempfile.NamedTemporaryFile(delete=False) as tmp:
                     certifier = ClinicalSafetyCertifier(db_path=tmp.name)
 
                     # Simulate incident
-                    incident = certifier.simulate_clinical_incident(
-                        "system_error", RiskLevel.HIGH
-                    )
+                    incident = certifier.simulate_clinical_incident("system_error", RiskLevel.HIGH)
 
                     assert incident.incident_id is not None
                     assert incident.severity == RiskLevel.HIGH
@@ -399,9 +387,7 @@ class Phase3Validator:
                 assert not alert.resolved
 
                 # Test acknowledgment
-                success = alert_manager.acknowledge_alert(
-                    alert.alert_id, "test_responder"
-                )
+                success = alert_manager.acknowledge_alert(alert.alert_id, "test_responder")
                 assert success
                 assert alert.acknowledged
 
@@ -504,9 +490,7 @@ class Phase3Validator:
                     time.sleep(2)
 
                     # Check that metrics are being collected
-                    monitor.metrics_collector.get_recent_metrics(
-                        hours=1
-                    )
+                    monitor.metrics_collector.get_recent_metrics(hours=1)
 
                     # Stop monitoring
                     monitor.stop_monitoring()
@@ -548,7 +532,6 @@ class Phase3Validator:
         try:
             # Test 1: All safety frameworks can be imported together
             try:
-
                 score += 25
                 logger.info("✅ All safety frameworks integrate successfully")
             except ImportError as e:
@@ -557,7 +540,6 @@ class Phase3Validator:
 
             # Test 2: Cross-framework compatibility
             try:
-
                 # Test that frameworks can work with the same data
                 test_message = "I'm having thoughts of suicide and self-harm"
 
@@ -584,7 +566,6 @@ class Phase3Validator:
 
             # Test 3: End-to-end safety pipeline
             try:
-
                 # Simulate complete safety pipeline
                 test_input = "I want to end my life"
 
@@ -616,7 +597,6 @@ class Phase3Validator:
 
             # Test 4: Performance under load
             try:
-
                 start_time = time.time()
 
                 # Perform multiple safety operations
@@ -657,42 +637,28 @@ class Phase3Validator:
         # Validate Task 3.1
         score_3_1, issues_3_1 = self.validate_task_3_1_safety_accuracy()
         self.results["tasks"]["3.1"]["score"] = score_3_1
-        self.results["tasks"]["3.1"]["status"] = (
-            "passed" if score_3_1 >= 80 else "failed"
-        )
+        self.results["tasks"]["3.1"]["status"] = "passed" if score_3_1 >= 80 else "failed"
         if issues_3_1:
-            self.results["critical_issues"].extend(
-                [f"Task 3.1: {issue}" for issue in issues_3_1]
-            )
+            self.results["critical_issues"].extend([f"Task 3.1: {issue}" for issue in issues_3_1])
 
         # Validate Task 3.2
         score_3_2, issues_3_2 = self.validate_task_3_2_clinical_certification()
         self.results["tasks"]["3.2"]["score"] = score_3_2
-        self.results["tasks"]["3.2"]["status"] = (
-            "passed" if score_3_2 >= 80 else "failed"
-        )
+        self.results["tasks"]["3.2"]["status"] = "passed" if score_3_2 >= 80 else "failed"
         if issues_3_2:
-            self.results["critical_issues"].extend(
-                [f"Task 3.2: {issue}" for issue in issues_3_2]
-            )
+            self.results["critical_issues"].extend([f"Task 3.2: {issue}" for issue in issues_3_2])
 
         # Validate Task 3.3
         score_3_3, issues_3_3 = self.validate_task_3_3_safety_monitoring()
         self.results["tasks"]["3.3"]["score"] = score_3_3
-        self.results["tasks"]["3.3"]["status"] = (
-            "passed" if score_3_3 >= 80 else "failed"
-        )
+        self.results["tasks"]["3.3"]["status"] = "passed" if score_3_3 >= 80 else "failed"
         if issues_3_3:
-            self.results["critical_issues"].extend(
-                [f"Task 3.3: {issue}" for issue in issues_3_3]
-            )
+            self.results["critical_issues"].extend([f"Task 3.3: {issue}" for issue in issues_3_3])
 
         # Validate integration
         score_integration, issues_integration = self.validate_integration()
         if issues_integration:
-            self.results["critical_issues"].extend(
-                [f"Integration: {issue}" for issue in issues_integration]
-            )
+            self.results["critical_issues"].extend([f"Integration: {issue}" for issue in issues_integration])
 
         # Calculate overall score
         total_score = score_3_1 + score_3_2 + score_3_3 + score_integration
@@ -703,28 +669,20 @@ class Phase3Validator:
         self.results["enterprise_ready"] = (
             self.results["overall_score"] >= 95
             and len(self.results["critical_issues"]) == 0
-            and all(
-                task["status"] == "passed" for task in self.results["tasks"].values()
-            )
+            and all(task["status"] == "passed" for task in self.results["tasks"].values())
         )
 
         # Generate recommendations
         if not self.results["enterprise_ready"]:
             if self.results["overall_score"] < 95:
-                self.results["recommendations"].append(
-                    "Overall score below 95% - review failed components"
-                )
+                self.results["recommendations"].append("Overall score below 95% - review failed components")
 
             if len(self.results["critical_issues"]) > 0:
-                self.results["recommendations"].append(
-                    "Resolve all critical issues before production deployment"
-                )
+                self.results["recommendations"].append("Resolve all critical issues before production deployment")
 
             for task_id, task in self.results["tasks"].items():
                 if task["status"] == "failed":
-                    self.results["recommendations"].append(
-                        f"Task {task_id} failed - requires immediate attention"
-                    )
+                    self.results["recommendations"].append(f"Task {task_id} failed - requires immediate attention")
 
         return self.results
 
@@ -737,9 +695,7 @@ class Phase3Validator:
         report.append("=" * 80)
         report.append(f"Timestamp: {self.results['timestamp']}")
         report.append(f"Overall Score: {self.results['overall_score']:.1f}%")
-        report.append(
-            f"Enterprise Ready: {'✅ YES' if self.results['enterprise_ready'] else '❌ NO'}"
-        )
+        report.append(f"Enterprise Ready: {'✅ YES' if self.results['enterprise_ready'] else '❌ NO'}")
         report.append("")
 
         # Task results
@@ -808,7 +764,6 @@ def main():
     report_file = current_dir / "phase3_validation_report.txt"
     with open(report_file, "w") as f:
         f.write(report)
-
 
     # Exit with appropriate code
     exit_code = 0 if results["enterprise_ready"] else 1

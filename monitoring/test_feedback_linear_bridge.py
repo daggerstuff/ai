@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import json
-import pytest
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
+
+import pytest
 
 from ai.monitoring.feedback_linear_bridge import (
     FeedbackLinearResult,
@@ -18,21 +19,25 @@ from ai.monitoring.performance_gap_backlog_converter import BacklogConversionRes
 @pytest.fixture
 def feedback_report(tmp_path: Path) -> Path:
     report = tmp_path / "feedback_report.json"
-    report.write_text(json.dumps({
-        "failure_patterns": [
+    report.write_text(
+        json.dumps(
             {
-                "pattern_id": "p1",
-                "pattern_type": "memory_deficiency",
-                "description": "Low recall",
-                "severity": "medium",
-                "frequency": 0.3,
-                "metrics_impacted": ["memory_recall_recall"],
-            },
-        ],
-        "upstream_mappings": [],
-        "interventions": [],
-        "summary": {"critical_issues": 0, "high_priority_issues": 0, "recommended_actions": 1},
-    }))
+                "failure_patterns": [
+                    {
+                        "pattern_id": "p1",
+                        "pattern_type": "memory_deficiency",
+                        "description": "Low recall",
+                        "severity": "medium",
+                        "frequency": 0.3,
+                        "metrics_impacted": ["memory_recall_recall"],
+                    },
+                ],
+                "upstream_mappings": [],
+                "interventions": [],
+                "summary": {"critical_issues": 0, "high_priority_issues": 0, "recommended_actions": 1},
+            }
+        )
+    )
     return report
 
 
@@ -153,12 +158,16 @@ class TestExecuteFeedbackLinearBridge:
 
     def test_no_patterns_generates_default_triggered_changes(self, tmp_path: Path, mock_dispatcher):
         report = tmp_path / "empty.json"
-        report.write_text(json.dumps({
-            "failure_patterns": [],
-            "upstream_mappings": [],
-            "interventions": [],
-            "summary": {"critical_issues": 0, "high_priority_issues": 0, "recommended_actions": 0},
-        }))
+        report.write_text(
+            json.dumps(
+                {
+                    "failure_patterns": [],
+                    "upstream_mappings": [],
+                    "interventions": [],
+                    "summary": {"critical_issues": 0, "high_priority_issues": 0, "recommended_actions": 0},
+                }
+            )
+        )
         result = execute_feedback_linear_bridge(
             feedback_report_path=report,
             artifact_output_dir=str(tmp_path),

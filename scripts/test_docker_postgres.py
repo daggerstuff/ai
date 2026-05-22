@@ -8,9 +8,7 @@ import logging
 
 import psycopg2
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -52,9 +50,7 @@ class TestModule(unittest.TestCase):
             cursor.execute("SELECT * FROM test_table ORDER BY id DESC LIMIT 1")
             result = cursor.fetchone()
 
-            logger.info(
-                f"✅ Test data: ID={result[0]}, Message='{result[1]}', Created={result[2]}"
-            )
+            logger.info(f"✅ Test data: ID={result[0]}, Message='{result[1]}', Created={result[2]}")
 
             conn.commit()
             cursor.close()

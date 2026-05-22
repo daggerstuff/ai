@@ -1,4 +1,3 @@
-
 import requests
 
 
@@ -7,11 +6,17 @@ def test_inference():
 
     payload = {
         "messages": [
-            {"role": "system", "content": "You are a highly empathetic therapeutic AI known as Wayfarer. You specialize in validating emotions and providing deep psychological insights."},
-            {"role": "user", "content": "I've been feeling so overwhelmed lately. It feels like I'm doing everything but accomplishing nothing."}
+            {
+                "role": "system",
+                "content": "You are a highly empathetic therapeutic AI known as Wayfarer. You specialize in validating emotions and providing deep psychological insights.",
+            },
+            {
+                "role": "user",
+                "content": "I've been feeling so overwhelmed lately. It feels like I'm doing everything but accomplishing nothing.",
+            },
         ],
         "temperature": 0.7,
-        "max_tokens": 150
+        "max_tokens": 150,
     }
 
     try:
@@ -24,6 +29,7 @@ def test_inference():
         pass
     except Exception:
         pass
+
 
 if __name__ == "__main__":
     test_inference()

@@ -12,9 +12,9 @@ import sys
 from pathlib import Path
 
 import numpy as np
-from ai.utils.torch_proxy import nn
-from ai.utils.torch_proxy import torch
 from transformers import AutoModel, AutoTokenizer
+
+from ai.utils.torch_proxy import nn, torch
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
@@ -129,9 +129,7 @@ class QualityMetricsComputer:
         self.model = ConversationQualityEvaluator().to(device)
         self.tokenizer = AutoTokenizer.from_pretrained("distilbert-base-uncased")
 
-    def encode_conversation(
-        self, conversation_text: str, max_length: int = 512
-    ) -> dict:
+    def encode_conversation(self, conversation_text: str, max_length: int = 512) -> dict:
         """Encode conversation for model."""
         encoding = self.tokenizer(
             conversation_text,
@@ -157,9 +155,7 @@ class QualityMetricsComputer:
             encoding = self.encode_conversation(conversation_text)
             scores = self.model(**encoding)
 
-            return {
-                dimension: score.cpu().item() for dimension, score in scores.items()
-            }
+            return {dimension: score.cpu().item() for dimension, score in scores.items()}
 
     def evaluate_batch(self, conversations: list[str]) -> list[dict[str, float]]:
         """Evaluate multiple conversations."""

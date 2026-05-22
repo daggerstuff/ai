@@ -402,14 +402,15 @@ class TieredModelSelector:
             base_model = self.config.model_tiers.get("routing", base_model)
 
         # Check latency constraints
-        if latency_budget_ms and (
-            model_caps := MODEL_REGISTRY.get(base_model)
-        ) and model_caps.typical_latency_ms > latency_budget_ms and tier_name == "reasoning":
+        if (
+            latency_budget_ms
+            and (model_caps := MODEL_REGISTRY.get(base_model))
+            and model_caps.typical_latency_ms > latency_budget_ms
+            and tier_name == "reasoning"
+        ):
             # Downgrade to faster model if budget exceeded
             base_model = self.config.model_tiers["generation"]
-            logger.info(
-                f"Downgrading to {base_model} due to latency budget ({latency_budget_ms}ms)"
-            )
+            logger.info(f"Downgrading to {base_model} due to latency budget ({latency_budget_ms}ms)")
 
         # Crisis detection always uses reasoning model for safety
         if task_complexity == TaskComplexity.CRISIS:
@@ -690,9 +691,7 @@ class EnhancedNvidiaNimManager:
 
         if legacy_options:
             if generation_options is not None:
-                raise TypeError(
-                    "Pass either `generation_options` or legacy kwargs, not both."
-                )
+                raise TypeError("Pass either `generation_options` or legacy kwargs, not both.")
             temperature = legacy_options.pop("temperature", None)
             max_tokens = legacy_options.pop("max_tokens", 2048)
             stream = legacy_options.pop("stream", False)
@@ -706,11 +705,7 @@ class EnhancedNvidiaNimManager:
             )
 
         generation_options = generation_options or GenerationOptions()
-        temp = (
-            generation_options.temperature
-            if generation_options.temperature is not None
-            else self.config.temperature
-        )
+        temp = generation_options.temperature if generation_options.temperature is not None else self.config.temperature
 
         messages = []
         if system_instruction:

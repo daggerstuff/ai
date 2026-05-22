@@ -6,13 +6,11 @@ Simplified Crisis Generator - Uses minimal prompts to avoid timeouts
 import json
 import logging
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import requests
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -72,7 +70,7 @@ class SimpleCrisisGenerator:
 
         conversation = {
             "crisis_type": crisis_type,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "exchanges": [],
         }
 
@@ -110,17 +108,15 @@ def main():
     conversation = generator.create_conversation("suicidal")
 
     if conversation["exchanges"]:
-
         for _ex in conversation["exchanges"]:
             pass
 
         # Save it
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         filename = f"/home/vivi/pixelated/ai/crisis_conv_{timestamp}.json"
 
         with open(filename, "w") as f:
             json.dump(conversation, f, indent=2)
-
 
     else:
         pass

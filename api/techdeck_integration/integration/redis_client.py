@@ -6,7 +6,7 @@ functionality with comprehensive error handling and performance monitoring.
 """
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import redis
@@ -255,9 +255,7 @@ class RedisClient:
         """
         return self.delete(f"cache:{key}")
 
-    def rate_limit_check(
-        self, identifier: str, limit: int, window_seconds: int = 60
-    ) -> dict[str, Any]:
+    def rate_limit_check(self, identifier: str, limit: int, window_seconds: int = 60) -> dict[str, Any]:
         """
         Check rate limit for identifier.
 
@@ -283,20 +281,18 @@ class RedisClient:
                 "current_count": current_count,
                 "limit": limit,
                 "remaining": max(0, limit - current_count),
-                "reset_time": datetime.now(timezone.utc).timestamp() + window_seconds,
+                "reset_time": datetime.now(UTC).timestamp() + window_seconds,
             }
 
         except (ConnectionError, TimeoutError) as e:
-            self.logger.error(
-                f"Redis connection error for rate limit {identifier}: {e}"
-            )
+            self.logger.error(f"Redis connection error for rate limit {identifier}: {e}")
             # Fail open - allow request if rate limiting fails
             return {
                 "allowed": True,
                 "current_count": 0,
                 "limit": limit,
                 "remaining": limit,
-                "reset_time": datetime.now(timezone.utc).timestamp() + window_seconds,
+                "reset_time": datetime.now(UTC).timestamp() + window_seconds,
             }
         except RedisError as e:
             self.logger.error(f"Redis error for rate limit {identifier}: {e}")
@@ -306,7 +302,7 @@ class RedisClient:
                 "current_count": 0,
                 "limit": limit,
                 "remaining": limit,
-                "reset_time": datetime.now(timezone.utc).timestamp() + window_seconds,
+                "reset_time": datetime.now(UTC).timestamp() + window_seconds,
             }
 
     def publish_message(self, channel: str, message: Any) -> int:
@@ -403,7 +399,7 @@ class RedisClient:
             Health check results
         """
         try:
-            start_time = datetime.now(timezone.utc)
+            start_time = datetime.now(UTC)
 
             # Test connection
             self.redis_client.ping()
@@ -411,9 +407,7 @@ class RedisClient:
             # Get connection info
             info = self.redis_client.info()
 
-            response_time = (
-                datetime.now(timezone.utc) - start_time
-            ).total_seconds() * 1000
+            response_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
 
             return {
                 "status": "healthy",
@@ -422,7 +416,7 @@ class RedisClient:
                 "used_memory_mb": info.get("used_memory_human", "unknown"),
                 "keyspace_hits": info.get("keyspace_hits", 0),
                 "keyspace_misses": info.get("keyspace_misses", 0),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
         except Exception as e:
@@ -430,7 +424,7 @@ class RedisClient:
             return {
                 "status": "unhealthy",
                 "error": str(e),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
     def get_connection_pool_stats(self) -> dict[str, Any]:
@@ -447,13 +441,13 @@ class RedisClient:
                 "created_connections": len(pool._created_connections),
                 "available_connections": len(pool._available_connections),
                 "in_use_connections": len(pool._in_use_connections),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
         except Exception as e:
             self.logger.error(f"Failed to get connection pool stats: {e}")
             return {
                 "error": str(e),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
     def close(self) -> None:
@@ -572,9 +566,7 @@ class RedisRateLimiter:
         result = self.redis_client.rate_limit_check(identifier, limit, window_seconds)
         return result["allowed"]
 
-    def get_rate_limit_info(
-        self, identifier: str, limit: int, window_seconds: int = 60
-    ) -> dict[str, Any]:
+    def get_rate_limit_info(self, identifier: str, limit: int, window_seconds: int = 60) -> dict[str, Any]:
         """
         Get detailed rate limit information.
 

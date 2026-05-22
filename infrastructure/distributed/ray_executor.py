@@ -25,6 +25,7 @@ Usage:
             checkpoint_interval=100
         )
 """
+
 import json
 import logging
 import os
@@ -33,7 +34,7 @@ import time
 import traceback
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
@@ -116,9 +117,7 @@ class TaskResult:
     worker_id: str | None = None
     memory_usage_mb: float = 0.0
     cpu_time: float = 0.0
-    timestamp: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
 
 @dataclass
@@ -173,9 +172,7 @@ class ExecutorStats:
 
         # Update progress
         if self.total_items > 0:
-            self.progress_percent = (
-                (self.completed_items + self.failed_items) / self.total_items
-            ) * 100
+            self.progress_percent = ((self.completed_items + self.failed_items) / self.total_items) * 100
 
     @property
     def avg_task_time(self) -> float:
@@ -276,10 +273,7 @@ class WorkerActor:
 
             execution_time = time.time() - start_time
 
-            self.logger.debug(
-                f"Task {task_id} completed in {execution_time:.2f}s, "
-                f"memory: {memory_usage_mb:.2f}MB"
-            )
+            self.logger.debug(f"Task {task_id} completed in {execution_time:.2f}s, memory: {memory_usage_mb:.2f}MB")
 
             return TaskResult(
                 task_id=task_id,
@@ -295,9 +289,7 @@ class WorkerActor:
             error_message = str(e)
             error_traceback = traceback.format_exc()
 
-            self.logger.error(
-                f"Task {task_id} failed: {error_message}\n{error_traceback}"
-            )
+            self.logger.error(f"Task {task_id} failed: {error_message}\n{error_traceback}")
 
             return TaskResult(
                 task_id=task_id,
@@ -351,7 +343,7 @@ class RayExecutor:
             return
 
         self.logger.info("Initializing Ray executor...")
-        self.stats.start_time = datetime.now(timezone.utc)
+        self.stats.start_time = datetime.now(UTC)
 
         # Initialize Ray
         ray_init_kwargs = {
@@ -363,31 +355,23 @@ class RayExecutor:
             ray_init_kwargs["address"] = self.config.ray_address
 
         if self.config.object_store_memory:
-            ray_init_kwargs["object_store_memory"] = self._parse_memory(
-                self.config.object_store_memory
-            )
+            ray_init_kwargs["object_store_memory"] = self._parse_memory(self.config.object_store_memory)
 
         if not ray.is_initialized():
             try:
                 ray.init(**ray_init_kwargs)
                 self.logger.info("Ray initialized successfully")
             except Exception as e:
-                self.logger.warning(
-                    f"Ray init returned an exception (likely already running): {e}"
-                )
+                self.logger.warning(f"Ray init returned an exception (likely already running): {e}")
 
         # Initialize checkpoint manager if enabled
         if self.config.enable_checkpointing:
             self.checkpoint_manager = CheckpointManager(self.config.checkpoint_dir)
-            self.logger.info(
-                f"Checkpoint manager initialized at {self.config.checkpoint_dir}"
-            )
+            self.logger.info(f"Checkpoint manager initialized at {self.config.checkpoint_dir}")
 
         # Initialize workers
         num_workers = (
-            self.config.num_workers
-            if self.config.num_workers > 0
-            else ray.available_resources().get("CPU", 1)
+            self.config.num_workers if self.config.num_workers > 0 else ray.available_resources().get("CPU", 1)
         )
 
         # Create worker actors with resource allocation
@@ -410,15 +394,13 @@ class RayExecutor:
         self.stats.workers_active = len(self.workers)
         self._initialized = True
 
-        self.logger.info(
-            f"Ray executor initialized with {self.stats.workers_total} workers"
-        )
+        self.logger.info(f"Ray executor initialized with {self.stats.workers_total} workers")
 
     def shutdown(self):
         """Shutdown Ray executor and cleanup."""
         self.logger.info("Shutting down Ray executor...")
 
-        self.stats.end_time = datetime.now(timezone.utc)
+        self.stats.end_time = datetime.now(UTC)
 
         # Log final stats
         self.logger.info(f"Final executor statistics: {self.stats.to_dict()}")
@@ -467,11 +449,7 @@ class RayExecutor:
             self.initialize()
 
         # Determine if checkpointing is enabled
-        checkpoint_enabled = (
-            checkpoint_enabled
-            if checkpoint_enabled is not None
-            else self.config.enable_checkpointing
-        )
+        checkpoint_enabled = checkpoint_enabled if checkpoint_enabled is not None else self.config.enable_checkpointing
 
         self.logger.info(f"Starting parallel map: {task_name}")
 
@@ -485,14 +463,10 @@ class RayExecutor:
             start_index = self._restore_from_checkpoint(task_name, items_list)
             if start_index > 0:
                 self.checkpoint_manager = self.checkpoint_manager
-                self.logger.info(
-                    f"Restored from checkpoint, starting at index {start_index}"
-                )
+                self.logger.info(f"Restored from checkpoint, starting at index {start_index}")
 
         # Process items in parallel
-        results = self._process_items_parallel(
-            func, items_list, start_index, task_name, checkpoint_enabled
-        )
+        results = self._process_items_parallel(func, items_list, start_index, task_name, checkpoint_enabled)
 
         self.logger.info(f"Parallel map completed: {len(results)} results")
         return results
@@ -523,21 +497,13 @@ class RayExecutor:
         batch_size = self.config.batch_size
         num_batches = (len(items_list) + batch_size - 1) // batch_size
 
-        self.logger.info(
-            f"Batch processing {len(items_list)} items in {num_batches} batches "
-            f"of size {batch_size}"
-        )
+        self.logger.info(f"Batch processing {len(items_list)} items in {num_batches} batches of size {batch_size}")
 
         # Create batches
-        batches = [
-            items_list[i : i + batch_size]
-            for i in range(0, len(items_list), batch_size)
-        ]
+        batches = [items_list[i : i + batch_size] for i in range(0, len(items_list), batch_size)]
 
         # Process batches in parallel
-        batch_results = self.map_parallel(
-            func, batches, task_name=f"{task_name}_batched"
-        )
+        batch_results = self.map_parallel(func, batches, task_name=f"{task_name}_batched")
 
         # Flatten results
         results = []
@@ -560,15 +526,9 @@ class RayExecutor:
         pending_futures: list[tuple[str, ray.ObjectRef]] = []
         completed_task_ids: set = set()
 
-        max_concurrent = (
-            self.config.max_concurrent_tasks
-            if self.config.max_concurrent_tasks
-            else len(self.workers)
-        )
+        max_concurrent = self.config.max_concurrent_tasks if self.config.max_concurrent_tasks else len(self.workers)
 
-        self.logger.info(
-            f"Processing {len(items_list)} items starting from index {start_index}"
-        )
+        self.logger.info(f"Processing {len(items_list)} items starting from index {start_index}")
 
         # Submit tasks
         for i in range(start_index, len(items_list)):
@@ -589,9 +549,7 @@ class RayExecutor:
 
             # Wait for some tasks to complete before submitting more
             while len(pending_futures) >= max_concurrent:
-                results.extend(
-                    self._collect_results(pending_futures, completed_task_ids)
-                )
+                results.extend(self._collect_results(pending_futures, completed_task_ids))
 
                 # Create checkpoint if enabled
                 if checkpoint_enabled and self._should_create_checkpoint(task_name):
@@ -633,16 +591,10 @@ class RayExecutor:
                         completed_task_ids.add(task_id)
                     # Retry failed task
                     elif task_result.retry_count < self.config.max_retries:
-                        self.logger.warning(
-                            f"Retrying task {task_id} (attempt {task_result.retry_count + 1})"
-                        )
-                        still_pending.append(
-                            (task_id, future)
-                        )  # Will be re-submitted
+                        self.logger.warning(f"Retrying task {task_id} (attempt {task_result.retry_count + 1})")
+                        still_pending.append((task_id, future))  # Will be re-submitted
                     else:
-                        self.logger.error(
-                            f"Task {task_id} failed after {self.config.max_retries} retries"
-                        )
+                        self.logger.error(f"Task {task_id} failed after {self.config.max_retries} retries")
                         # Append None for failed item
                         results.append(None)
                         completed_task_ids.add(task_id)
@@ -703,31 +655,23 @@ class RayExecutor:
 
         try:
             # Get latest checkpoint for task
-            checkpoints = self.checkpoint_manager.storage.list_checkpoints(
-                process_id=task_name
-            )
+            checkpoints = self.checkpoint_manager.storage.list_checkpoints(process_id=task_name)
 
             if not checkpoints:
                 return 0
 
             # Get most recent checkpoint
-            latest_checkpoint = sorted(
-                checkpoints, key=lambda c: c.created_at, reverse=True
-            )[0]
+            latest_checkpoint = sorted(checkpoints, key=lambda c: c.created_at, reverse=True)[0]
 
             # Load checkpoint data
-            _metadata, data = self.checkpoint_manager.storage.load_checkpoint(
-                latest_checkpoint.checkpoint_id
-            )
+            _metadata, data = self.checkpoint_manager.storage.load_checkpoint(latest_checkpoint.checkpoint_id)
 
             if data and "completed_task_ids" in data:
                 self.checkpoint_manager = self.checkpoint_manager
                 self.stats.checkpoints_restored += 1
 
                 completed_count = len(data["completed_task_ids"])
-                self.logger.info(
-                    f"Restored checkpoint: {completed_count} items already completed"
-                )
+                self.logger.info(f"Restored checkpoint: {completed_count} items already completed")
 
                 return completed_count
 

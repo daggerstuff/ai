@@ -176,5 +176,3 @@ acquire_datasets(
 - Download progress is tracked and reported in real-time
 - You can cancel in-progress acquisitions if needed
 """
-
-

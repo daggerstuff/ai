@@ -26,7 +26,7 @@ class MockTherapeuticResponseGenerator:
             "cognitive_reframe": "What if we looked at this situation from a different perspective?",
             "behavioral_intervention": "Let's explore some strategies that might help with {behavior}.",
             "validation": "Your feelings about this are completely understandable.",
-            "exploration": "Can you tell me more about {topic}?"
+            "exploration": "Can you tell me more about {topic}?",
         }
         self.generation_history = []
 
@@ -39,7 +39,7 @@ class MockTherapeuticResponseGenerator:
                 "error": "Invalid client input",
                 "therapeutic_quality": 0.0,
                 "techniques_used": [],
-                "safety_score": 0.0
+                "safety_score": 0.0,
             }
 
         # Analyze client input
@@ -62,7 +62,7 @@ class MockTherapeuticResponseGenerator:
             "approach": approach,
             "response": response,
             "quality_assessment": quality_assessment,
-            "timestamp": "2025-08-20T15:30:00Z"
+            "timestamp": "2025-08-20T15:30:00Z",
         }
 
         self.generation_history.append(generation_record)
@@ -77,7 +77,7 @@ class MockTherapeuticResponseGenerator:
             "empathy_score": quality_assessment["empathy_score"],
             "appropriateness_score": quality_assessment["appropriateness_score"],
             "analysis": analysis,
-            "approach": approach
+            "approach": approach,
         }
 
     def _analyze_client_input(self, input_text: str) -> dict[str, Any]:
@@ -118,7 +118,7 @@ class MockTherapeuticResponseGenerator:
             "therapeutic_needs": needs,
             "urgency_level": urgency,
             "input_length": len(input_text),
-            "complexity": "high" if len(input_text) > 200 else "medium" if len(input_text) > 50 else "low"
+            "complexity": "high" if len(input_text) > 200 else "medium" if len(input_text) > 50 else "low",
         }
 
     def _select_therapeutic_approach(self, analysis: dict[str, Any], context: dict[str, Any]) -> dict[str, Any]:
@@ -155,10 +155,12 @@ class MockTherapeuticResponseGenerator:
             "primary_technique": primary_technique,
             "supporting_techniques": supporting_techniques,
             "techniques": [primary_technique] + supporting_techniques,
-            "rationale": f"Selected {primary_technique} based on {analysis['therapeutic_needs']}"
+            "rationale": f"Selected {primary_technique} based on {analysis['therapeutic_needs']}",
         }
 
-    def _generate_contextual_response(self, analysis: dict[str, Any], approach: dict[str, Any], _context: dict[str, Any]) -> str:
+    def _generate_contextual_response(
+        self, analysis: dict[str, Any], approach: dict[str, Any], _context: dict[str, Any]
+    ) -> str:
         """Generate contextual therapeutic response."""
         primary_technique = approach["primary_technique"]
         emotions = analysis["emotions_detected"]
@@ -202,7 +204,9 @@ class MockTherapeuticResponseGenerator:
 
         return base_response.strip()
 
-    def _assess_response_quality(self, response: str, _analysis: dict[str, Any], _context: dict[str, Any]) -> dict[str, Any]:
+    def _assess_response_quality(
+        self, response: str, _analysis: dict[str, Any], _context: dict[str, Any]
+    ) -> dict[str, Any]:
         """Assess the quality of the generated response."""
         response_lower = response.lower()
 
@@ -236,8 +240,8 @@ class MockTherapeuticResponseGenerator:
                 "empathic_language": empathy_score > 0.6,
                 "collaborative_approach": "we" in response_lower or "together" in response_lower,
                 "non_directive": "should" not in response_lower,
-                "professionally_appropriate": safety_score > 0.8
-            }
+                "professionally_appropriate": safety_score > 0.8,
+            },
         }
 
     def generate_follow_up_questions(self, context: dict[str, Any]) -> list[str]:
@@ -248,29 +252,37 @@ class MockTherapeuticResponseGenerator:
         questions = []
 
         if session_number <= 3:  # Early sessions
-            questions.extend([
-                "How has your week been since we last met?",
-                "What would be most helpful to focus on today?",
-                "How are you feeling about our work together so far?"
-            ])
+            questions.extend(
+                [
+                    "How has your week been since we last met?",
+                    "What would be most helpful to focus on today?",
+                    "How are you feeling about our work together so far?",
+                ]
+            )
         elif modality == "cbt":
-            questions.extend([
-                "What thoughts went through your mind when that happened?",
-                "How did that thought make you feel?",
-                "What evidence supports or challenges that thought?"
-            ])
+            questions.extend(
+                [
+                    "What thoughts went through your mind when that happened?",
+                    "How did that thought make you feel?",
+                    "What evidence supports or challenges that thought?",
+                ]
+            )
         elif modality == "dbt":
-            questions.extend([
-                "What emotions are you noticing right now?",
-                "What skills have you been practicing?",
-                "How intense is that emotion on a scale of 1-10?"
-            ])
+            questions.extend(
+                [
+                    "What emotions are you noticing right now?",
+                    "What skills have you been practicing?",
+                    "How intense is that emotion on a scale of 1-10?",
+                ]
+            )
         else:
-            questions.extend([
-                "What does that experience mean to you?",
-                "How did that make you feel?",
-                "What comes up for you when you think about that?"
-            ])
+            questions.extend(
+                [
+                    "What does that experience mean to you?",
+                    "How did that make you feel?",
+                    "What comes up for you when you think about that?",
+                ]
+            )
 
         return questions[:3]  # Return top 3 questions
 
@@ -332,8 +344,9 @@ class MockTherapeuticResponseGenerator:
             "average_quality": round(avg_quality, 2),
             "technique_usage": technique_counts,
             "modality_distribution": modality_counts,
-            "high_quality_responses": sum(1 for gen in self.generation_history
-                                        if gen["quality_assessment"]["overall_quality"] >= 0.8)
+            "high_quality_responses": sum(
+                1 for gen in self.generation_history if gen["quality_assessment"]["overall_quality"] >= 0.8
+            ),
         }
 
 
@@ -349,20 +362,20 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
                 "therapeutic_modality": "cbt",
                 "session_number": 5,
                 "client_goals": ["reduce anxiety", "improve coping"],
-                "presenting_issue": "anxiety"
+                "presenting_issue": "anxiety",
             },
             "dbt_session": {
                 "therapeutic_modality": "dbt",
                 "session_number": 8,
                 "client_goals": ["emotion regulation", "distress tolerance"],
-                "presenting_issue": "emotional_dysregulation"
+                "presenting_issue": "emotional_dysregulation",
             },
             "early_session": {
                 "therapeutic_modality": "humanistic",
                 "session_number": 1,
                 "client_goals": ["build rapport", "explore concerns"],
-                "presenting_issue": "general_distress"
-            }
+                "presenting_issue": "general_distress",
+            },
         }
 
         self.test_inputs = {
@@ -370,7 +383,7 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
             "depression": "I feel so sad and hopeless. Nothing seems to matter anymore.",
             "anger": "I'm so frustrated with everything. I just want to scream.",
             "positive": "I had a really good day today and I'm feeling hopeful.",
-            "complex": "I'm dealing with anxiety about work, sadness about my relationship, and I'm not sure how to handle all these emotions at once."
+            "complex": "I'm dealing with anxiety about work, sadness about my relationship, and I'm not sure how to handle all these emotions at once.",
         }
 
     def test_initialization(self):
@@ -434,14 +447,13 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
             ("anxiety", ["anxious", "worried"], "anxiety"),
             ("depression", ["sad", "hopeless"], "sadness"),
             ("anger", ["frustrated", "scream"], "anger"),
-            ("positive", ["good", "hopeful"], "positive")
+            ("positive", ["good", "hopeful"], "positive"),
         ]
 
         for emotion_type, _expected_words, expected_emotion in emotion_tests:
             with self.subTest(emotion=emotion_type):
                 result = self.generator.generate_response(
-                    self.test_inputs[emotion_type],
-                    self.test_contexts["cbt_session"]
+                    self.test_inputs[emotion_type], self.test_contexts["cbt_session"]
                 )
 
                 assert result["success"]
@@ -502,7 +514,7 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
         communication_styles = [
             {"formality": "high", "pace": "slow", "emotional_expression": "low"},
             {"formality": "low", "pace": "fast", "emotional_expression": "high"},
-            {"formality": "medium", "pace": "medium", "emotional_expression": "moderate"}
+            {"formality": "medium", "pace": "medium", "emotional_expression": "moderate"},
         ]
 
         for style in communication_styles:
@@ -521,10 +533,7 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
     def test_response_quality_assessment(self):
         """Test response quality assessment accuracy."""
         # Generate a response
-        result = self.generator.generate_response(
-            self.test_inputs["anxiety"],
-            self.test_contexts["cbt_session"]
-        )
+        result = self.generator.generate_response(self.test_inputs["anxiety"], self.test_contexts["cbt_session"])
 
         assert result["success"]
 
@@ -572,7 +581,7 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
         inputs_and_contexts = [
             (self.test_inputs["anxiety"], self.test_contexts["cbt_session"]),
             (self.test_inputs["depression"], self.test_contexts["dbt_session"]),
-            (self.test_inputs["anger"], self.test_contexts["early_session"])
+            (self.test_inputs["anger"], self.test_contexts["early_session"]),
         ]
 
         results = []
@@ -598,14 +607,14 @@ class TestTherapeuticResponseGeneratorIntegration(unittest.TestCase):
                 "therapeutic_modality": "cbt",
                 "session_number": 5,
                 "client_goals": ["reduce anxiety", "improve coping"],
-                "presenting_issue": "anxiety"
+                "presenting_issue": "anxiety",
             },
             "early_session": {
                 "therapeutic_modality": "humanistic",
                 "session_number": 1,
                 "client_goals": ["build rapport", "explore concerns"],
-                "presenting_issue": "general_distress"
-            }
+                "presenting_issue": "general_distress",
+            },
         }
 
     def test_complete_therapeutic_conversation_flow(self):
@@ -615,7 +624,7 @@ class TestTherapeuticResponseGeneratorIntegration(unittest.TestCase):
             ("I'm not sure where to start today.", self.test_contexts["early_session"]),
             ("I've been having trouble sleeping because of work stress.", self.test_contexts["cbt_session"]),
             ("When I think about work, I immediately assume the worst will happen.", self.test_contexts["cbt_session"]),
-            ("I tried the thought challenging technique we discussed.", self.test_contexts["cbt_session"])
+            ("I tried the thought challenging technique we discussed.", self.test_contexts["cbt_session"]),
         ]
 
         responses = []
@@ -645,7 +654,7 @@ class TestTherapeuticResponseGeneratorIntegration(unittest.TestCase):
                 "therapeutic_modality": modality,
                 "session_number": 5,
                 "client_goals": ["emotion_regulation"],
-                "presenting_issue": "emotional_difficulties"
+                "presenting_issue": "emotional_difficulties",
             }
 
             result = self.generator.generate_response(client_input, context)

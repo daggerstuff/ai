@@ -9,7 +9,7 @@ pool from CMSPostgresConnection.
 import json
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -19,9 +19,11 @@ logger = logging.getLogger(__name__)
 # QUERY BUILDER
 # ============================================================================
 
+
 @dataclass
 class PgFilter:
     """A single WHERE clause filter."""
+
     column: str
     operator: str = "="
     value: Any = None
@@ -41,6 +43,7 @@ class PgFilter:
 @dataclass
 class PgQuery:
     """Builds a parameterized SQL query."""
+
     table: str
     columns: list[str] = field(default_factory=lambda: ["*"])
     filters: list[PgFilter] = field(default_factory=list)
@@ -123,6 +126,7 @@ class PgQuery:
 # BASE POSTGRES REPOSITORY
 # ============================================================================
 
+
 class PgBaseRepository:
     """Base repository for a PostgreSQL table."""
 
@@ -201,7 +205,7 @@ class PgBaseRepository:
         offset: int = 0,
     ) -> list[dict[str, Any]]:
         query = PgQuery(self.table_name)
-        for f in (filters or []):
+        for f in filters or []:
             query.filters.append(f)
         if order_by:
             query.order(order_by, order_desc)
@@ -211,7 +215,7 @@ class PgBaseRepository:
 
     def count(self, filters: list[PgFilter] | None = None) -> int:
         query = PgQuery(self.table_name)
-        for f in (filters or []):
+        for f in filters or []:
             query.filters.append(f)
         sql, params = query.count_sql()
         result = self._fetch_one(sql, params)
@@ -226,6 +230,7 @@ class PgBaseRepository:
 # ============================================================================
 # CONCRETE REPOSITORIES
 # ============================================================================
+
 
 class UserRepository(PgBaseRepository):
     table_name = "users"
@@ -293,10 +298,13 @@ class PermissionRepository(PgBaseRepository):
         return self._fetch_one(sql, [user_id, resource_type, resource_id, permission_level, granted_by, expires_at])
 
     def revoke(self, user_id: str, resource_type: str, resource_id: str) -> bool:
-        return self._execute(
-            "DELETE FROM permissions WHERE user_id = $1 AND resource_type = $2 AND resource_id = $3",
-            [user_id, resource_type, resource_id],
-        ) > 0
+        return (
+            self._execute(
+                "DELETE FROM permissions WHERE user_id = $1 AND resource_type = $2 AND resource_id = $3",
+                [user_id, resource_type, resource_id],
+            )
+            > 0
+        )
 
 
 class AuditLogRepository(PgBaseRepository):
@@ -317,8 +325,16 @@ class AuditLogRepository(PgBaseRepository):
             """INSERT INTO audit_logs
                (user_id, action, resource_type, resource_id, changes, ip_address, status, error_message)
                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)""",
-            [user_id, action, resource_type, resource_id, json.dumps(changes) if changes else None,
-             ip_address, status, error_message],
+            [
+                user_id,
+                action,
+                resource_type,
+                resource_id,
+                json.dumps(changes) if changes else None,
+                ip_address,
+                status,
+                error_message,
+            ],
         )
 
     def find_by_user(self, user_id: str, limit: int = 100) -> list[dict[str, Any]]:
@@ -329,9 +345,7 @@ class AuditLogRepository(PgBaseRepository):
             limit=limit,
         )
 
-    def find_by_resource(
-        self, resource_type: str, resource_id: str, limit: int = 100
-    ) -> list[dict[str, Any]]:
+    def find_by_resource(self, resource_type: str, resource_id: str, limit: int = 100) -> list[dict[str, Any]]:
         return self.find_many(
             filters=[
                 PgFilter("resource_type", "=", resource_type),
@@ -374,22 +388,28 @@ class ApprovalRequestRepository(PgBaseRepository):
         )
 
     def approve_step(self, step_id: str, reviewed_by: str, comments: str = "") -> bool:
-        now = datetime.now(timezone.utc)
-        return self._execute(
-            """UPDATE approval_steps
+        now = datetime.now(UTC)
+        return (
+            self._execute(
+                """UPDATE approval_steps
                SET status = 'approved', reviewed_by = $1, reviewed_at = $2, review_comments = $3
                WHERE id = $4""",
-            [reviewed_by, now, comments, step_id],
-        ) > 0
+                [reviewed_by, now, comments, step_id],
+            )
+            > 0
+        )
 
     def reject_step(self, step_id: str, reviewed_by: str, comments: str = "") -> bool:
-        now = datetime.now(timezone.utc)
-        return self._execute(
-            """UPDATE approval_steps
+        now = datetime.now(UTC)
+        return (
+            self._execute(
+                """UPDATE approval_steps
                SET status = 'rejected', reviewed_by = $1, reviewed_at = $2, review_comments = $3
                WHERE id = $4""",
-            [reviewed_by, now, comments, step_id],
-        ) > 0
+                [reviewed_by, now, comments, step_id],
+            )
+            > 0
+        )
 
 
 class NotificationRepository(PgBaseRepository):
@@ -404,10 +424,13 @@ class NotificationRepository(PgBaseRepository):
         )
 
     def mark_read(self, notification_id: str) -> bool:
-        return self._execute(
-            "UPDATE notifications SET read_at = NOW() WHERE id = $1",
-            [notification_id],
-        ) > 0
+        return (
+            self._execute(
+                "UPDATE notifications SET read_at = NOW() WHERE id = $1",
+                [notification_id],
+            )
+            > 0
+        )
 
     def mark_all_read(self, user_id: str) -> int:
         return self._execute(
@@ -443,11 +466,14 @@ class CommentRepository(PgBaseRepository):
         )
 
     def resolve(self, comment_id: str, resolved_by: str) -> bool:
-        now = datetime.now(timezone.utc)
-        return self._execute(
-            "UPDATE comments SET resolved = TRUE, resolved_by = $1, resolved_at = $2 WHERE id = $3",
-            [resolved_by, now, comment_id],
-        ) > 0
+        now = datetime.now(UTC)
+        return (
+            self._execute(
+                "UPDATE comments SET resolved = TRUE, resolved_by = $1, resolved_at = $2 WHERE id = $3",
+                [resolved_by, now, comment_id],
+            )
+            > 0
+        )
 
 
 class DocumentShareRepository(PgBaseRepository):

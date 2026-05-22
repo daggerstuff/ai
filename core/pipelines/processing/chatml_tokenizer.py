@@ -25,9 +25,7 @@ def tokenize_dataset(records: list[dict[str, Any]], *, tokeniser: Any | None = N
 
     for record in records:
         text_chunks = [
-            str(part.get("content", ""))
-            for part in record.get("chatml_messages", [])
-            if isinstance(part, dict)
+            str(part.get("content", "")) for part in record.get("chatml_messages", []) if isinstance(part, dict)
         ]
         text = "\n".join(text_chunks)
 
@@ -41,4 +39,4 @@ def tokenize_dataset(records: list[dict[str, Any]], *, tokeniser: Any | None = N
     return output
 
 
-__all__ = ["tokenize_dataset", "TokenizedRecord"]
+__all__ = ["TokenizedRecord", "tokenize_dataset"]

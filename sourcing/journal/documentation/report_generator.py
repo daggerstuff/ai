@@ -4,7 +4,8 @@ Report Generator
 Generates structured markdown reports for dataset evaluations, weekly progress,
 and final research summaries.
 """
-from datetime import datetime, timedelta, timezone
+
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from ai.sourcing.journal.models.dataset_models import (
@@ -53,14 +54,13 @@ class ReportGenerator:
         """
         if output_path is None:
             output_path = (
-                self.output_directory
-                / f"evaluation_{source.source_id}_{datetime.now(timezone.utc).strftime('%Y%m%d')}.md"
+                self.output_directory / f"evaluation_{source.source_id}_{datetime.now(UTC).strftime('%Y%m%d')}.md"
             )
 
         lines = [
             "# Dataset Evaluation Report",
             "",
-            f"**Generated**: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}",
+            f"**Generated**: {datetime.now(UTC).strftime('%Y-%m-%d %H:%M:%S')}",
             "",
             "## Dataset Information",
             "",
@@ -156,17 +156,11 @@ class ReportGenerator:
         )
 
         if evaluation.priority_tier == "high":
-            lines.append(
-                "**Priority**: HIGH - This dataset should be prioritized for acquisition and integration."
-            )
+            lines.append("**Priority**: HIGH - This dataset should be prioritized for acquisition and integration.")
         elif evaluation.priority_tier == "medium":
-            lines.append(
-                "**Priority**: MEDIUM - This dataset has value but may require additional consideration."
-            )
+            lines.append("**Priority**: MEDIUM - This dataset has value but may require additional consideration.")
         else:
-            lines.append(
-                "**Priority**: LOW - This dataset may have limited value for the training pipeline."
-            )
+            lines.append("**Priority**: LOW - This dataset may have limited value for the training pipeline.")
 
         output_path.write_text("\n".join(lines), encoding="utf-8")
         return output_path
@@ -196,8 +190,7 @@ class ReportGenerator:
         if weekly_report is None:
             # Create WeeklyReport from parameters
 
-
-            end_date = datetime.now(timezone.utc)
+            end_date = datetime.now(UTC)
             start_date = end_date - timedelta(days=7)
 
             # Handle both dict and ResearchProgress object
@@ -239,7 +232,7 @@ class ReportGenerator:
             "",
             f"**Week Number**: {weekly_report.week_number}",
             f"**Report Period**: {weekly_report.start_date.strftime('%Y-%m-%d')} to {weekly_report.end_date.strftime('%Y-%m-%d')}",
-            f"**Generated**: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}",
+            f"**Generated**: {datetime.now(UTC).strftime('%Y-%m-%d %H:%M:%S')}",
             "",
             "## Progress Metrics",
             "",
@@ -321,7 +314,7 @@ class ReportGenerator:
             "# Research Summary Report",
             "",
             f"**Report Period**: {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}",
-            f"**Generated**: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}",
+            f"**Generated**: {datetime.now(UTC).strftime('%Y-%m-%d %H:%M:%S')}",
             "",
             "## Summary",
             "",
@@ -333,10 +326,12 @@ class ReportGenerator:
         # High priority datasets
         high_priority = [e for e in evaluations if e.priority_tier == "high"]
         if high_priority:
-            lines.extend([
-                "## High Priority Datasets",
-                "",
-            ])
+            lines.extend(
+                [
+                    "## High Priority Datasets",
+                    "",
+                ]
+            )
             for evaluation in high_priority:
                 source = next((s for s in sources if s.source_id == evaluation.source_id), None)
                 if source:
@@ -346,15 +341,17 @@ class ReportGenerator:
         # Evaluation statistics
         if evaluations:
             avg_score = sum(e.overall_score for e in evaluations) / len(evaluations)
-            lines.extend([
-                "## Evaluation Statistics",
-                "",
-                f"- **Average Score**: {avg_score:.2f}/10",
-                f"- **High Priority**: {len([e for e in evaluations if e.priority_tier == 'high'])}",
-                f"- **Medium Priority**: {len([e for e in evaluations if e.priority_tier == 'medium'])}",
-                f"- **Low Priority**: {len([e for e in evaluations if e.priority_tier == 'low'])}",
-                "",
-            ])
+            lines.extend(
+                [
+                    "## Evaluation Statistics",
+                    "",
+                    f"- **Average Score**: {avg_score:.2f}/10",
+                    f"- **High Priority**: {len([e for e in evaluations if e.priority_tier == 'high'])}",
+                    f"- **Medium Priority**: {len([e for e in evaluations if e.priority_tier == 'medium'])}",
+                    f"- **Low Priority**: {len([e for e in evaluations if e.priority_tier == 'low'])}",
+                    "",
+                ]
+            )
 
         output_path.write_text("\n".join(lines), encoding="utf-8")
         return output_path
@@ -380,8 +377,7 @@ class ReportGenerator:
         """
         if output_path is None:
             output_path = (
-                self.output_directory
-                / f"final_summary_{session.session_id}_{datetime.now(timezone.utc).strftime('%Y%m%d')}.md"
+                self.output_directory / f"final_summary_{session.session_id}_{datetime.now(UTC).strftime('%Y%m%d')}.md"
             )
 
         lines = [
@@ -389,7 +385,7 @@ class ReportGenerator:
             "",
             f"**Session ID**: {session.session_id}",
             f"**Session Start**: {session.start_date.strftime('%Y-%m-%d %H:%M:%S')}",
-            f"**Generated**: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}",
+            f"**Generated**: {datetime.now(UTC).strftime('%Y-%m-%d %H:%M:%S')}",
             "",
             "## Executive Summary",
             "",
@@ -403,9 +399,7 @@ class ReportGenerator:
         # Sources by type
         source_types: dict[str, int] = {}
         for source in sources:
-            source_types[source.source_type] = (
-                source_types.get(source.source_type, 0) + 1
-            )
+            source_types[source.source_type] = source_types.get(source.source_type, 0) + 1
 
         lines.append("### Sources by Type")
         for source_type, count in source_types.items():
@@ -420,9 +414,7 @@ class ReportGenerator:
             # Priority breakdown
             priority_counts: dict[str, int] = {}
             for eval in evaluations:
-                priority_counts[eval.priority_tier] = (
-                    priority_counts.get(eval.priority_tier, 0) + 1
-                )
+                priority_counts[eval.priority_tier] = priority_counts.get(eval.priority_tier, 0) + 1
 
             lines.append("**Evaluations by Priority**:")
             for priority, count in priority_counts.items():
@@ -439,17 +431,13 @@ class ReportGenerator:
             lines.append("")
 
             # Top datasets
-            sorted_evaluations = sorted(
-                evaluations, key=lambda x: x.overall_score, reverse=True
-            )
+            sorted_evaluations = sorted(evaluations, key=lambda x: x.overall_score, reverse=True)
             lines.append("### Top Datasets by Score")
             lines.append("")
             for i, eval in enumerate(sorted_evaluations[:10], 1):
                 source = next((s for s in sources if s.source_id == eval.source_id), None)
                 title = source.title if source else eval.source_id
-                lines.append(
-                    f"{i}. {title} - Score: {eval.overall_score:.2f}/10 ({eval.priority_tier})"
-                )
+                lines.append(f"{i}. {title} - Score: {eval.overall_score:.2f}/10 ({eval.priority_tier})")
             lines.append("")
 
         # Session progress
@@ -476,9 +464,7 @@ class ReportGenerator:
             for key, target in session.weekly_targets.items():
                 achieved = session.progress_metrics.get(key, 0)
                 status = "✅" if achieved >= target else "🔄"
-                lines.append(
-                    f"{status} **{key.replace('_', ' ').title()}**: {achieved}/{target}"
-                )
+                lines.append(f"{status} **{key.replace('_', ' ').title()}**: {achieved}/{target}")
             lines.append("")
 
         output_path.write_text("\n".join(lines), encoding="utf-8")
@@ -502,15 +488,12 @@ class ReportGenerator:
             Path to the generated report
         """
         if output_path is None:
-            output_path = (
-                self.output_directory
-                / f"batch_evaluation_{datetime.now(timezone.utc).strftime('%Y%m%d')}.md"
-            )
+            output_path = self.output_directory / f"batch_evaluation_{datetime.now(UTC).strftime('%Y%m%d')}.md"
 
         lines = [
             "# Batch Dataset Evaluation Report",
             "",
-            f"**Generated**: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}",
+            f"**Generated**: {datetime.now(UTC).strftime('%Y-%m-%d %H:%M:%S')}",
             f"**Total Datasets Evaluated**: {len(evaluations)}",
             "",
             "## Summary Statistics",
@@ -528,9 +511,7 @@ class ReportGenerator:
         # Priority breakdown
         priority_counts: dict[str, int] = {}
         for eval in evaluations:
-            priority_counts[eval.priority_tier] = (
-                priority_counts.get(eval.priority_tier, 0) + 1
-            )
+            priority_counts[eval.priority_tier] = priority_counts.get(eval.priority_tier, 0) + 1
 
         lines.append("### Evaluations by Priority")
         for priority, count in priority_counts.items():
@@ -546,14 +527,10 @@ class ReportGenerator:
         )
 
         # Sort by score
-        sorted_evaluations = sorted(
-            evaluations, key=lambda x: x.overall_score, reverse=True
-        )
+        sorted_evaluations = sorted(evaluations, key=lambda x: x.overall_score, reverse=True)
 
         for evaluation in sorted_evaluations:
-            source = next(
-                (s for s in sources if s.source_id == evaluation.source_id), None
-            )
+            source = next((s for s in sources if s.source_id == evaluation.source_id), None)
             if source:
                 lines.extend(
                     [
@@ -582,4 +559,3 @@ class ReportGenerator:
 
         output_path.write_text("\n".join(lines), encoding="utf-8")
         return output_path
-

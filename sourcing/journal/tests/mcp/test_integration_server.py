@@ -1,6 +1,6 @@
 import html
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import pytest
@@ -33,7 +33,7 @@ def integration_server(
         "session_id": sample_research_session.session_id,
         "report_type": "summary_report",
         "format": "json",
-        "generated_date": datetime.now(timezone.utc).isoformat(),
+        "generated_date": datetime.now(UTC).isoformat(),
         "content": {"summary": "Test summary"},
         "file_path": None,
     }
@@ -45,7 +45,6 @@ def integration_server(
         integration_plans=[sample_integration_plan],
         report=report,
     )
-
 
     monkeypatch.setattr(
         server_module,
@@ -165,7 +164,7 @@ async def test_progress_streaming_broadcast(integration_server):
             status=ProgressStatus.RUNNING,
             progress_percent=50.0,
             message="Half way",
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             metadata={"step": "testing"},
         )
     )
@@ -192,4 +191,3 @@ async def test_tool_call_missing_name_returns_error(integration_server):
     payload = _decode_response(response)
 
     assert payload["error"]["code"] == -32602  # INVALID_PARAMS
-

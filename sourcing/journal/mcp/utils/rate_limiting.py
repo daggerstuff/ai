@@ -61,20 +61,14 @@ class RateLimiter:
         elapsed_minute = current_time - self.minute_last_refill
         if elapsed_minute > 0:
             tokens_to_add = elapsed_minute * self.minute_refill_rate
-            self.minute_tokens = min(
-                self.config.burst_size,
-                self.minute_tokens + tokens_to_add
-            )
+            self.minute_tokens = min(self.config.burst_size, self.minute_tokens + tokens_to_add)
             self.minute_last_refill = current_time
 
         # Refill hour bucket
         elapsed_hour = current_time - self.hour_last_refill
         if elapsed_hour > 0:
             tokens_to_add = elapsed_hour * self.hour_refill_rate
-            self.hour_tokens = min(
-                self.config.burst_size,
-                self.hour_tokens + tokens_to_add
-            )
+            self.hour_tokens = min(self.config.burst_size, self.hour_tokens + tokens_to_add)
             self.hour_last_refill = current_time
 
     async def check_rate_limit(self) -> bool:
@@ -298,4 +292,3 @@ async def check_rate_limit(
                 "identifier": identifier,
             },
         )
-

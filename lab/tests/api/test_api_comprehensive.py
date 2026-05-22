@@ -24,6 +24,7 @@ sys.path.insert(0, str(project_root))
 API_BASE_URL = "http://localhost:8000"
 TEST_API_KEY = "test_api_key_12345"
 
+
 class TestPixelatedEmpathyAPI:
     """Comprehensive test suite for the Pixelated Empathy AI API."""
 
@@ -31,10 +32,7 @@ class TestPixelatedEmpathyAPI:
     def setup(self):
         """Setup test environment."""
         self.base_url = API_BASE_URL
-        self.headers = {
-            "Authorization": f"Bearer {TEST_API_KEY}",
-            "Content-Type": "application/json"
-        }
+        self.headers = {"Authorization": f"Bearer {TEST_API_KEY}", "Content-Type": "application/json"}
 
     def test_root_endpoint(self):
         """Test the root endpoint."""
@@ -112,13 +110,8 @@ class TestPixelatedEmpathyAPI:
 
     def test_list_conversations_with_filters(self):
         """Test listing conversations with filters."""
-        params = {
-            "tier": "professional",
-            "min_quality": 0.7,
-            "limit": 5
-        }
-        response = requests.get(f"{self.base_url}/v1/conversations",
-                              headers=self.headers, params=params)
+        params = {"tier": "professional", "min_quality": 0.7, "limit": 5}
+        response = requests.get(f"{self.base_url}/v1/conversations", headers=self.headers, params=params)
         assert response.status_code == 200
 
         data = response.json()
@@ -128,8 +121,7 @@ class TestPixelatedEmpathyAPI:
     def test_get_conversation(self):
         """Test getting a specific conversation."""
         conversation_id = "conv_000001"
-        response = requests.get(f"{self.base_url}/v1/conversations/{conversation_id}",
-                              headers=self.headers)
+        response = requests.get(f"{self.base_url}/v1/conversations/{conversation_id}", headers=self.headers)
         assert response.status_code == 200
 
         data = response.json()
@@ -161,14 +153,16 @@ class TestPixelatedEmpathyAPI:
             "id": "test_conv_001",
             "messages": [
                 {"role": "user", "content": "I'm feeling anxious."},
-                {"role": "assistant", "content": "I understand. Can you tell me more about what's making you feel anxious?"}
+                {
+                    "role": "assistant",
+                    "content": "I understand. Can you tell me more about what's making you feel anxious?",
+                },
             ],
             "quality_score": 0.0,
-            "tier": "unknown"
+            "tier": "unknown",
         }
 
-        response = requests.post(f"{self.base_url}/v1/quality/validate",
-                               headers=self.headers, json=conversation)
+        response = requests.post(f"{self.base_url}/v1/quality/validate", headers=self.headers, json=conversation)
         assert response.status_code == 200
 
         data = response.json()
@@ -179,9 +173,14 @@ class TestPixelatedEmpathyAPI:
 
         # Check validation results structure
         results = data["data"]["validation_results"]
-        required_metrics = ["therapeutic_accuracy", "conversation_coherence",
-                          "emotional_authenticity", "clinical_compliance",
-                          "safety_score", "overall_quality"]
+        required_metrics = [
+            "therapeutic_accuracy",
+            "conversation_coherence",
+            "emotional_authenticity",
+            "clinical_compliance",
+            "safety_score",
+            "overall_quality",
+        ]
         for metric in required_metrics:
             assert metric in results
             assert 0.0 <= results[metric] <= 1.0
@@ -191,14 +190,10 @@ class TestPixelatedEmpathyAPI:
         job_request = {
             "dataset_name": "priority_complete_fixed",
             "processing_type": "quality_validation",
-            "parameters": {
-                "tier_filter": "professional",
-                "min_quality": 0.7
-            }
+            "parameters": {"tier_filter": "professional", "min_quality": 0.7},
         }
 
-        response = requests.post(f"{self.base_url}/v1/processing/submit",
-                               headers=self.headers, json=job_request)
+        response = requests.post(f"{self.base_url}/v1/processing/submit", headers=self.headers, json=job_request)
         assert response.status_code == 200
 
         data = response.json()
@@ -215,8 +210,7 @@ class TestPixelatedEmpathyAPI:
         job_id = self.test_submit_processing_job()
 
         # Then get its status
-        response = requests.get(f"{self.base_url}/v1/processing/jobs/{job_id}",
-                              headers=self.headers)
+        response = requests.get(f"{self.base_url}/v1/processing/jobs/{job_id}", headers=self.headers)
         assert response.status_code == 200
 
         data = response.json()
@@ -229,15 +223,11 @@ class TestPixelatedEmpathyAPI:
         """Test searching conversations."""
         search_request = {
             "query": "anxiety therapy",
-            "filters": {
-                "tier": "professional",
-                "min_quality": 0.7
-            },
-            "limit": 10
+            "filters": {"tier": "professional", "min_quality": 0.7},
+            "limit": 10,
         }
 
-        response = requests.post(f"{self.base_url}/v1/search",
-                               headers=self.headers, json=search_request)
+        response = requests.post(f"{self.base_url}/v1/search", headers=self.headers, json=search_request)
         assert response.status_code == 200
 
         data = response.json()
@@ -249,8 +239,7 @@ class TestPixelatedEmpathyAPI:
 
     def test_statistics_overview(self):
         """Test getting statistics overview."""
-        response = requests.get(f"{self.base_url}/v1/statistics/overview",
-                              headers=self.headers)
+        response = requests.get(f"{self.base_url}/v1/statistics/overview", headers=self.headers)
         assert response.status_code == 200
 
         data = response.json()
@@ -267,11 +256,10 @@ class TestPixelatedEmpathyAPI:
             "dataset": "priority_complete_fixed",
             "format": "jsonl",
             "tier": "professional",
-            "min_quality": 0.7
+            "min_quality": 0.7,
         }
 
-        response = requests.post(f"{self.base_url}/v1/export",
-                               headers=self.headers, data=export_data)
+        response = requests.post(f"{self.base_url}/v1/export", headers=self.headers, data=export_data)
         assert response.status_code == 200
 
         data = response.json()
@@ -284,14 +272,14 @@ class TestPixelatedEmpathyAPI:
     def test_error_handling(self):
         """Test error handling for various scenarios."""
         # Test 404 for non-existent resource
-        response = requests.get(f"{self.base_url}/v1/conversations/nonexistent",
-                              headers=self.headers)
+        response = requests.get(f"{self.base_url}/v1/conversations/nonexistent", headers=self.headers)
         assert response.status_code == 500  # Mock returns 500 for simplicity
 
         # Test invalid request data
         invalid_conversation = {"invalid": "data"}
-        response = requests.post(f"{self.base_url}/v1/quality/validate",
-                               headers=self.headers, json=invalid_conversation)
+        response = requests.post(
+            f"{self.base_url}/v1/quality/validate", headers=self.headers, json=invalid_conversation
+        )
         assert response.status_code in [400, 422, 500]
 
     def test_response_format_consistency(self):
@@ -302,13 +290,14 @@ class TestPixelatedEmpathyAPI:
             ("/v1/datasets", "GET"),
             ("/v1/conversations", "GET"),
             ("/v1/quality/metrics", "GET"),
-            ("/v1/statistics/overview", "GET")
+            ("/v1/statistics/overview", "GET"),
         ]
 
         for endpoint, method in endpoints:
             if method == "GET":
-                response = requests.get(f"{self.base_url}{endpoint}",
-                                      headers=self.headers if endpoint.startswith("/v1") else {})
+                response = requests.get(
+                    f"{self.base_url}{endpoint}", headers=self.headers if endpoint.startswith("/v1") else {}
+                )
 
             assert response.status_code == 200
             data = response.json()
@@ -327,14 +316,12 @@ class TestPixelatedEmpathyAPI:
     def test_pagination(self):
         """Test pagination functionality."""
         # Test first page
-        response1 = requests.get(f"{self.base_url}/v1/conversations?limit=5&offset=0",
-                               headers=self.headers)
+        response1 = requests.get(f"{self.base_url}/v1/conversations?limit=5&offset=0", headers=self.headers)
         assert response1.status_code == 200
         data1 = response1.json()
 
         # Test second page
-        response2 = requests.get(f"{self.base_url}/v1/conversations?limit=5&offset=5",
-                               headers=self.headers)
+        response2 = requests.get(f"{self.base_url}/v1/conversations?limit=5&offset=5", headers=self.headers)
         assert response2.status_code == 200
         data2 = response2.json()
 
@@ -346,16 +333,15 @@ class TestPixelatedEmpathyAPI:
     def test_input_validation(self):
         """Test input validation for various parameters."""
         # Test invalid limit
-        response = requests.get(f"{self.base_url}/v1/conversations?limit=2000",
-                              headers=self.headers)
+        response = requests.get(f"{self.base_url}/v1/conversations?limit=2000", headers=self.headers)
         # Should either work with capped limit or return error
         assert response.status_code in [200, 400, 422]
 
         # Test invalid quality score
-        response = requests.get(f"{self.base_url}/v1/conversations?min_quality=2.0",
-                              headers=self.headers)
+        response = requests.get(f"{self.base_url}/v1/conversations?min_quality=2.0", headers=self.headers)
         # Should either work with capped value or return error
         assert response.status_code in [200, 400, 422]
+
 
 # Performance tests
 class TestAPIPerformance:
@@ -365,10 +351,7 @@ class TestAPIPerformance:
     def setup(self):
         """Setup test environment."""
         self.base_url = API_BASE_URL
-        self.headers = {
-            "Authorization": f"Bearer {TEST_API_KEY}",
-            "Content-Type": "application/json"
-        }
+        self.headers = {"Authorization": f"Bearer {TEST_API_KEY}", "Content-Type": "application/json"}
 
     def test_response_time(self):
         """Test that API responses are reasonably fast."""
@@ -412,6 +395,7 @@ class TestAPIPerformance:
 
         # At least 80% should succeed
         assert success_count >= 8
+
 
 if __name__ == "__main__":
     # Run tests

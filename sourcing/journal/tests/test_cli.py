@@ -93,10 +93,7 @@ class TestCommandHandler:
         # Save the session state so it can be loaded
         orchestrator.save_session_state(session.session_id)
 
-        result = command_handler.evaluate(
-            session_id=session.session_id,
-            source_id=sample_dataset_source.source_id
-        )
+        result = command_handler.evaluate(session_id=session.session_id, source_id=sample_dataset_source.source_id)
 
         assert result is not None
         mock_evaluation_engine.evaluate_dataset.assert_called_once()
@@ -116,10 +113,7 @@ class TestCommandHandler:
         # Save the session state so it can be loaded
         orchestrator.save_session_state(session.session_id)
 
-        result = command_handler.acquire(
-            session_id=session.session_id,
-            source_id=sample_dataset_source.source_id
-        )
+        result = command_handler.acquire(session_id=session.session_id, source_id=sample_dataset_source.source_id)
 
         assert result is not None
         mock_acquisition_manager.submit_access_request.assert_called_once()
@@ -139,10 +133,7 @@ class TestCommandHandler:
         # Save the session state so it can be loaded
         orchestrator.save_session_state(session.session_id)
 
-        result = command_handler.integrate(
-            session_id=session.session_id,
-            dataset_id=sample_acquired_dataset.source_id
-        )
+        result = command_handler.integrate(session_id=session.session_id, dataset_id=sample_acquired_dataset.source_id)
 
         assert result is not None
         mock_integration_engine.create_integration_plan.assert_called_once()
@@ -235,4 +226,3 @@ class TestInteractiveMode:
         mock_prompt.side_effect = KeyboardInterrupt()
         with pytest.raises(KeyboardInterrupt):
             prompt_for_session_config()
-

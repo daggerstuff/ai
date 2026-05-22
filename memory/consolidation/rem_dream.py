@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """REM-Style Dream Scheduler — Sprint 3, Task 3.
 
 Four-phase dream processing: replay high-importance memories,
@@ -10,8 +9,8 @@ from __future__ import annotations
 
 import logging
 import time
-from dataclasses import dataclass, field
-from typing import Callable, Dict, List, Optional, Tuple
+from collections.abc import Callable
+from dataclasses import dataclass
 
 from ..schema import MemoryBlock
 
@@ -31,21 +30,21 @@ class Schema:
     schema_id: str
     title: str
     generalization: str
-    source_memory_ids: List[str]
+    source_memory_ids: list[str]
     confidence: float
 
 
 @dataclass
 class DreamResult:
-    replayed: List[MemoryBlock]
-    cross_links: List[CrossLink]
-    schemas: List[Schema]
-    summaries: Dict[str, str]
+    replayed: list[MemoryBlock]
+    cross_links: list[CrossLink]
+    schemas: list[Schema]
+    summaries: dict[str, str]
     elapsed_ms: float
     memories_processed: int
 
 
-SummarizerFn = Callable[[List[MemoryBlock]], str]
+SummarizerFn = Callable[[list[MemoryBlock]], str]
 
 
 class RemDreamScheduler:
@@ -53,19 +52,17 @@ class RemDreamScheduler:
 
     def __init__(
         self,
-        summarizer: Optional[SummarizerFn] = None,
+        summarizer: SummarizerFn | None = None,
         crosslink_threshold: float = 0.7,
     ) -> None:
         self._summarizer = summarizer or self._default_summarizer
         self._crosslink_threshold = crosslink_threshold
 
-    def process_session(self, memories: List[MemoryBlock]) -> DreamResult:
+    def process_session(self, memories: list[MemoryBlock]) -> DreamResult:
         """Run full four-phase dream processing on a session's memories."""
         t0 = time.perf_counter()
 
-        sorted_memories = sorted(
-            memories, key=lambda m: m.importance.raw, reverse=True
-        )
+        sorted_memories = sorted(memories, key=lambda m: m.importance.raw, reverse=True)
         replayed = self._replay(sorted_memories)
         cross_links = self._crosslink(sorted_memories)
         schemas = self._extract_schemas(sorted_memories)
@@ -90,21 +87,19 @@ class RemDreamScheduler:
         )
         return result
 
-    def _replay(self, memories: List[MemoryBlock]) -> List[MemoryBlock]:
+    def _replay(self, memories: list[MemoryBlock]) -> list[MemoryBlock]:
         """Phase 1: Replay high-importance memories first."""
         top_n = max(1, len(memories) // 3)
         replayed = memories[:top_n]
         for m in replayed:
             updated = m.model_copy(deep=True)
-            updated.consolidation.remCycles = max(
-                updated.consolidation.remCycles - 1, 0
-            )
+            updated.consolidation.remCycles = max(updated.consolidation.remCycles - 1, 0)
             updated.consolidation.lastProcessed = int(time.time() * 1000)
         return replayed
 
-    def _crosslink(self, memories: List[MemoryBlock]) -> List[CrossLink]:
+    def _crosslink(self, memories: list[MemoryBlock]) -> list[CrossLink]:
         """Phase 2: Create cross-links between semantically related memories."""
-        links: List[CrossLink] = []
+        links: list[CrossLink] = []
         from .dedup import SemanticDeduplicator
 
         dedup = SemanticDeduplicator(threshold=self._crosslink_threshold)
@@ -115,15 +110,8 @@ class RemDreamScheduler:
             for j in range(i + 1, len(memories)):
                 sim = dedup._cosine(vectors[i], vectors[j])
                 if sim >= self._crosslink_threshold:
-                    same_emotion = bool(
-                        set(memories[i].emotions.categories)
-                        & set(memories[j].emotions.categories)
-                    )
-                    link_type = (
-                        "emotional_co_occurrence"
-                        if same_emotion
-                        else "semantic_similarity"
-                    )
+                    same_emotion = bool(set(memories[i].emotions.categories) & set(memories[j].emotions.categories))
+                    link_type = "emotional_co_occurrence" if same_emotion else "semantic_similarity"
                     links.append(
                         CrossLink(
                             memory_a_id=memories[i].id,
@@ -134,25 +122,20 @@ class RemDreamScheduler:
                     )
         return links
 
-    def _extract_schemas(self, memories: List[MemoryBlock]) -> List[Schema]:
+    def _extract_schemas(self, memories: list[MemoryBlock]) -> list[Schema]:
         """Phase 3: Extract generalizations from episodic memories."""
-        from collections import Counter
 
-        category_groups: Dict[str, List[MemoryBlock]] = {}
+        category_groups: dict[str, list[MemoryBlock]] = {}
         for m in memories:
             for cat in m.emotions.categories or ["general"]:
                 category_groups.setdefault(cat, []).append(m)
 
-        schemas: List[Schema] = []
+        schemas: list[Schema] = []
         for idx, (category, group) in enumerate(category_groups.items()):
             if len(group) < 2:
                 continue
             avg_valence = sum(m.emotions.valence for m in group) / len(group)
-            valence_label = (
-                "positive" if avg_valence > 0.2
-                else "negative" if avg_valence < -0.2
-                else "neutral"
-            )
+            valence_label = "positive" if avg_valence > 0.2 else "negative" if avg_valence < -0.2 else "neutral"
             schemas.append(
                 Schema(
                     schema_id=f"schema_{idx}",
@@ -167,19 +150,19 @@ class RemDreamScheduler:
             )
         return schemas
 
-    def _summarize(self, memories: List[MemoryBlock]) -> Dict[str, str]:
+    def _summarize(self, memories: list[MemoryBlock]) -> dict[str, str]:
         """Phase 4: Compressive summarization per session."""
-        session_groups: Dict[str, List[MemoryBlock]] = {}
+        session_groups: dict[str, list[MemoryBlock]] = {}
         for m in memories:
             session_groups.setdefault(m.sessionId, []).append(m)
 
-        summaries: Dict[str, str] = {}
+        summaries: dict[str, str] = {}
         for session_id, group in session_groups.items():
             summaries[session_id] = self._summarizer(group)
         return summaries
 
     @staticmethod
-    def _default_summarizer(memories: List[MemoryBlock]) -> str:
+    def _default_summarizer(memories: list[MemoryBlock]) -> str:
         if not memories:
             return ""
         top = sorted(memories, key=lambda m: m.importance.raw, reverse=True)[:3]

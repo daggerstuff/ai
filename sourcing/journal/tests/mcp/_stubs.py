@@ -1,8 +1,7 @@
-
 from __future__ import annotations
 
 from copy import deepcopy
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from ai.sourcing.journal.mcp.auth.authorization import AuthorizationHandler
@@ -61,16 +60,14 @@ class FakeOrchestrator:
         self.progress = ResearchProgress(
             sources_identified=len(self.state.sources),
             datasets_evaluated=len(self.state.evaluations),
-            access_established=len(
-                [d for d in self.state.acquired_datasets if d.storage_path]
-            ),
+            access_established=len([d for d in self.state.acquired_datasets if d.storage_path]),
             datasets_acquired=len(self.state.acquired_datasets),
             integration_plans_created=len(self.state.integration_plans),
-            last_updated=datetime.now(timezone.utc),
+            last_updated=datetime.now(UTC),
         )
         self.history: list[ProgressSnapshot] = [
             ProgressSnapshot(
-                timestamp=self.progress.last_updated or datetime.now(timezone.utc),
+                timestamp=self.progress.last_updated or datetime.now(UTC),
                 progress=self.progress,
                 metrics={
                     "sources_identified": self.progress.sources_identified,
@@ -81,7 +78,7 @@ class FakeOrchestrator:
         ]
         self.activity_log: list[ResearchLog] = [
             ResearchLog(
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 activity_type="session_start",
                 description="Session initialized for testing",
                 outcome="success",
@@ -93,7 +90,7 @@ class FakeOrchestrator:
             "session_id": session.session_id,
             "report_type": "summary_report",
             "format": "json",
-            "generated_date": datetime.now(timezone.utc).isoformat(),
+            "generated_date": datetime.now(UTC).isoformat(),
             "content": {"summary": "Test report"},
         }
 
@@ -145,11 +142,9 @@ class FakeOrchestrator:
         self.progress.sources_identified = len(self.state.sources)
         self.progress.datasets_evaluated = len(self.state.evaluations)
         self.progress.datasets_acquired = len(self.state.acquired_datasets)
-        self.progress.access_established = len(
-            [d for d in self.state.acquired_datasets if d.storage_path]
-        )
+        self.progress.access_established = len([d for d in self.state.acquired_datasets if d.storage_path])
         self.progress.integration_plans_created = len(self.state.integration_plans)
-        self.progress.last_updated = datetime.now(timezone.utc)
+        self.progress.last_updated = datetime.now(UTC)
         self.history.append(
             ProgressSnapshot(
                 timestamp=self.progress.last_updated,
@@ -179,9 +174,7 @@ class FakeCommandHandlerService:
         self.sources = [deepcopy(source) for source in sources]
         self.evaluations = [deepcopy(evaluation) for evaluation in evaluations]
         self.acquisitions = [deepcopy(acquisition) for acquisition in acquisitions]
-        self.integration_plans = [
-            deepcopy(plan) for plan in integration_plans
-        ]
+        self.integration_plans = [deepcopy(plan) for plan in integration_plans]
         self.report = deepcopy(report) if report else None
         self.orchestrator = FakeOrchestrator(
             self.session,
@@ -193,9 +186,7 @@ class FakeCommandHandlerService:
         )
         self._reports: dict[str, dict[str, Any]] = {}
         if self.orchestrator.report:
-            self._reports[self.orchestrator.report["report_id"]] = deepcopy(
-                self.orchestrator.report
-            )
+            self._reports[self.orchestrator.report["report_id"]] = deepcopy(self.orchestrator.report)
 
     # Session management -------------------------------------------------
     def create_session(
@@ -211,7 +202,7 @@ class FakeCommandHandlerService:
         self.session.search_keywords = search_keywords
         if weekly_targets is not None:
             self.session.weekly_targets = weekly_targets
-        self.session.start_date = datetime.now(timezone.utc)
+        self.session.start_date = datetime.now(UTC)
         self.orchestrator.session = self.session
         self.orchestrator.state = SessionState()
         return self.session
@@ -286,9 +277,7 @@ class FakeCommandHandlerService:
     ) -> dict[str, Any]:
         self.orchestrator._validate_session_id(session_id)
         evaluations = [
-            evaluation
-            for evaluation in self.evaluations
-            if not source_ids or evaluation.source_id in source_ids
+            evaluation for evaluation in self.evaluations if not source_ids or evaluation.source_id in source_ids
         ]
         self.orchestrator.update_evaluations(evaluations)
         return {
@@ -346,9 +335,7 @@ class FakeCommandHandlerService:
     ) -> dict[str, Any]:
         self.orchestrator._validate_session_id(session_id)
         acquisitions = [
-            acquisition
-            for acquisition in self.acquisitions
-            if not source_ids or acquisition.source_id in source_ids
+            acquisition for acquisition in self.acquisitions if not source_ids or acquisition.source_id in source_ids
         ]
         self.orchestrator.update_acquisitions(acquisitions)
         return {
@@ -387,20 +374,13 @@ class FakeCommandHandlerService:
         target_format: str = "chatml",
     ) -> dict[str, Any]:
         self.orchestrator._validate_session_id(session_id)
-        plans = [
-            plan
-            for plan in self.integration_plans
-            if not source_ids or plan.source_id in source_ids
-        ]
+        plans = [plan for plan in self.integration_plans if not source_ids or plan.source_id in source_ids]
         for plan in plans:
             plan.dataset_format = target_format
         self.orchestrator.update_integration_plans(plans)
         return {
             "session_id": session_id,
-            "plans": [
-                {"source_id": plan.source_id, "target_format": target_format}
-                for plan in plans
-            ],
+            "plans": [{"source_id": plan.source_id, "target_format": target_format} for plan in plans],
         }
 
     def get_integration_plans(self, session_id: str) -> list[IntegrationPlan]:
@@ -429,7 +409,7 @@ class FakeCommandHandlerService:
             "session_id": session_id,
             "report_type": report_type,
             "format": format,
-            "generated_date": datetime.now(timezone.utc),
+            "generated_date": datetime.now(UTC),
             "content": {
                 "summary": f"{report_type} generated in {format}",
                 "date_range": date_range,
@@ -448,5 +428,3 @@ class FakeCommandHandlerService:
     def list_reports(self, session_id: str) -> list[dict[str, Any]]:
         self.orchestrator._validate_session_id(session_id)
         return [deepcopy(report) for report in self._reports.values()]
-
-

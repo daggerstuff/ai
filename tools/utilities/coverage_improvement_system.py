@@ -8,12 +8,13 @@ import json
 import logging
 import re
 import subprocess
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 class CoverageImprovementSystem:
     """System to systematically improve test coverage."""
@@ -31,17 +32,24 @@ class CoverageImprovementSystem:
 
         try:
             # Run coverage analysis
-            subprocess.run([
-                "python", "-m", "pytest",
-                "tests/test_working_components.py",
-                "--cov=dataset_pipeline",
-                "--cov=pixel",
-                "--cov=inference",
-                "--cov-report=json",
-                "--cov-report=term",
-                "--tb=no",
-                "-q"
-            ], capture_output=True, text=True, cwd=self.base_path)
+            subprocess.run(
+                [
+                    "python",
+                    "-m",
+                    "pytest",
+                    "tests/test_working_components.py",
+                    "--cov=dataset_pipeline",
+                    "--cov=pixel",
+                    "--cov=inference",
+                    "--cov-report=json",
+                    "--cov-report=term",
+                    "--tb=no",
+                    "-q",
+                ],
+                capture_output=True,
+                text=True,
+                cwd=self.base_path,
+            )
 
             # Parse coverage data
             coverage_file = self.base_path / "coverage.json"
@@ -68,18 +76,16 @@ class CoverageImprovementSystem:
             "dataset_pipeline/safety_ethics_validator.py",
             "pixel/validation/safety_ethics_validator.py",
             "dataset_pipeline/clinical_accuracy_validator.py",
-
             # Core business logic (must have >90% coverage)
             "dataset_pipeline/pipeline_orchestrator.py",
             "dataset_pipeline/production_exporter.py",
             "dataset_pipeline/adaptive_learner.py",
             "dataset_pipeline/quality_validator.py",
-
             # Production systems (must have >85% coverage)
             "dataset_pipeline/analytics_dashboard.py",
             "dataset_pipeline/automated_maintenance.py",
             "dataset_pipeline/realtime_quality_monitor.py",
-            "inference/pixelated_empathy_inference.py"
+            "inference/pixelated_empathy_inference.py",
         ]
 
         gaps = []
@@ -100,13 +106,15 @@ class CoverageImprovementSystem:
                     target = 85.0
 
                 if coverage_percent < target:
-                    gaps.append({
-                        "module": module,
-                        "current_coverage": coverage_percent,
-                        "target_coverage": target,
-                        "gap": target - coverage_percent,
-                        "priority": "CRITICAL" if target >= 95 else "HIGH" if target >= 90 else "MEDIUM"
-                    })
+                    gaps.append(
+                        {
+                            "module": module,
+                            "current_coverage": coverage_percent,
+                            "target_coverage": target,
+                            "gap": target - coverage_percent,
+                            "priority": "CRITICAL" if target >= 95 else "HIGH" if target >= 90 else "MEDIUM",
+                        }
+                    )
 
         # Sort by priority and gap size
         gaps.sort(key=lambda x: (x["priority"] == "CRITICAL", x["gap"]), reverse=True)
@@ -139,11 +147,11 @@ sys.path.append('/home/vivi/pixelated/ai/inference')
 sys.path.append('/home/vivi/pixelated/ai')
 
 try:
-    from {module_path.replace('/', '.').replace('.py', '')} import *
+    from {module_path.replace("/", ".").replace(".py", "")} import *
 except ImportError as e:
     pytest.skip(f"Required modules not available: {{e}}", allow_module_level=True)
 
-class Test{module_name.title().replace('_', '')}:
+class Test{module_name.title().replace("_", "")}:
     """Test suite for {module_name}."""
 
     def setup_method(self):
@@ -174,7 +182,6 @@ class Test{module_name.title().replace('_', '')}:
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
 '''
-
 
     def generate_missing_tests(self, gaps: list[dict[str, Any]]) -> list[str]:
         """Generate missing test files for coverage gaps."""
@@ -224,16 +231,23 @@ if __name__ == "__main__":
         if generated_tests:
             logger.info("🧪 Running tests with new coverage...")
             try:
-                result = subprocess.run([
-                    "python", "-m", "pytest",
-                    "tests/",
-                    "--cov=dataset_pipeline",
-                    "--cov=pixel",
-                    "--cov=inference",
-                    "--cov-report=term",
-                    "--tb=no",
-                    "-q"
-                ], capture_output=True, text=True, cwd=self.base_path)
+                result = subprocess.run(
+                    [
+                        "python",
+                        "-m",
+                        "pytest",
+                        "tests/",
+                        "--cov=dataset_pipeline",
+                        "--cov=pixel",
+                        "--cov=inference",
+                        "--cov-report=term",
+                        "--tb=no",
+                        "-q",
+                    ],
+                    capture_output=True,
+                    text=True,
+                    cwd=self.base_path,
+                )
 
                 # Parse new coverage
                 coverage_lines = result.stdout.split("\n")
@@ -244,7 +258,9 @@ if __name__ == "__main__":
                         if match:
                             new_coverage = float(match.group(1))
                             improvement = new_coverage - initial_percent
-                            logger.info(f"📈 Coverage improved: {initial_percent:.1f}% → {new_coverage:.1f}% (+{improvement:.1f}%)")
+                            logger.info(
+                                f"📈 Coverage improved: {initial_percent:.1f}% → {new_coverage:.1f}% (+{improvement:.1f}%)"
+                            )
                             self.current_coverage = new_coverage
                             break
 
@@ -253,7 +269,7 @@ if __name__ == "__main__":
 
         # Step 5: Generate improvement report
         return {
-            "timestamp": str(datetime.now(timezone.utc)),
+            "timestamp": str(datetime.now(UTC)),
             "initial_coverage": initial_percent,
             "final_coverage": self.current_coverage,
             "improvement": self.current_coverage - initial_percent,
@@ -261,9 +277,8 @@ if __name__ == "__main__":
             "remaining_gap": self.coverage_target - self.current_coverage,
             "critical_gaps": gaps,
             "generated_tests": generated_tests,
-            "production_ready": self.current_coverage >= self.coverage_target
+            "production_ready": self.current_coverage >= self.coverage_target,
         }
-
 
     def generate_coverage_report(self) -> str:
         """Generate comprehensive coverage improvement report."""
@@ -273,22 +288,22 @@ if __name__ == "__main__":
 
         report = f"""# 📊 TEST COVERAGE IMPROVEMENT REPORT
 
-**Generated**: {improvement_data['timestamp']}
+**Generated**: {improvement_data["timestamp"]}
 **Target Coverage**: {self.coverage_target}%
-**Current Coverage**: {improvement_data['final_coverage']:.1f}%
-**Improvement**: +{improvement_data['improvement']:.1f}%
-**Remaining Gap**: {improvement_data['remaining_gap']:.1f}%
+**Current Coverage**: {improvement_data["final_coverage"]:.1f}%
+**Improvement**: +{improvement_data["improvement"]:.1f}%
+**Remaining Gap**: {improvement_data["remaining_gap"]:.1f}%
 
 ## 🎯 COVERAGE ANALYSIS
 
 ### **Progress Summary**
-- **Initial Coverage**: {improvement_data['initial_coverage']:.1f}%
-- **Final Coverage**: {improvement_data['final_coverage']:.1f}%
-- **Improvement**: +{improvement_data['improvement']:.1f}%
-- **Production Ready**: {'✅ YES' if improvement_data['production_ready'] else '❌ NO'}
+- **Initial Coverage**: {improvement_data["initial_coverage"]:.1f}%
+- **Final Coverage**: {improvement_data["final_coverage"]:.1f}%
+- **Improvement**: +{improvement_data["improvement"]:.1f}%
+- **Production Ready**: {"✅ YES" if improvement_data["production_ready"] else "❌ NO"}
 
 ### **Critical Gaps Identified**
-{len(improvement_data['critical_gaps'])} critical modules need coverage improvement:
+{len(improvement_data["critical_gaps"])} critical modules need coverage improvement:
 
 """
 
@@ -297,7 +312,7 @@ if __name__ == "__main__":
 
         report += f"""
 ### **Generated Test Files**
-{len(improvement_data['generated_tests'])} test files generated:
+{len(improvement_data["generated_tests"])} test files generated:
 
 """
 
@@ -314,8 +329,8 @@ if __name__ == "__main__":
 4. Run comprehensive coverage analysis
 
 ### **Target Achievement**
-- **Current Gap**: {improvement_data['remaining_gap']:.1f}%
-- **Estimated Effort**: {int(improvement_data['remaining_gap'] / 10)} weeks
+- **Current Gap**: {improvement_data["remaining_gap"]:.1f}%
+- **Estimated Effort**: {int(improvement_data["remaining_gap"] / 10)} weeks
 - **Priority**: Focus on safety-critical modules first
 
 ## ✅ RECOMMENDATIONS
@@ -328,8 +343,8 @@ if __name__ == "__main__":
 
         return report
 
-if __name__ == "__main__":
 
+if __name__ == "__main__":
     system = CoverageImprovementSystem()
     report = system.generate_coverage_report()
 

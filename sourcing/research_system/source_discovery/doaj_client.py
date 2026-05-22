@@ -9,7 +9,7 @@ import hashlib
 import logging
 from abc import ABC, abstractmethod
 from collections.abc import Callable
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any, NotRequired, TypedDict
 
 from ai.sourcing.research_system.models import DatasetSource
@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 class ArticleMetadata(TypedDict):
     """Structured type for article metadata."""
+
     title: str
     abstract: str
     authors: list[str]
@@ -107,7 +108,7 @@ class DOAJMetadataExtractor(MetadataExtractor):
                 "url": url or f"https://doaj.org/article/{article.get('id', '')}",
                 "keywords": keywords,
                 "journal_title": journal_title,
-                "doaj_id": article.get("id", "")
+                "doaj_id": article.get("id", ""),
             }
 
             if doi:
@@ -149,10 +150,7 @@ class DOAJClient(BaseAPIClient):
     DEFAULT_DISCOVERY_METHOD = DISCOVERY_METHOD_AUTOMATED
 
     # Required metadata fields for DatasetSource creation
-    REQUIRED_METADATA_FIELDS = frozenset([
-        "title", "authors", "publication_date",
-        "url", "abstract", "keywords"
-    ])
+    REQUIRED_METADATA_FIELDS = frozenset(["title", "authors", "publication_date", "url", "abstract", "keywords"])
 
     # Search field names
     SEARCH_FIELDS = ["bibjson.title", "bibjson.abstract"]
@@ -236,13 +234,7 @@ class DOAJClient(BaseAPIClient):
 
         return cleaned
 
-    def _build_term_query(
-        self,
-        field: str,
-        value: str,
-        size: int,
-        sort_field: str = "created_date"
-    ) -> dict[str, Any]:
+    def _build_term_query(self, field: str, value: str, size: int, sort_field: str = "created_date") -> dict[str, Any]:
         """
         Build standard term query for DOAJ API.
 
@@ -256,19 +248,13 @@ class DOAJClient(BaseAPIClient):
             Query dictionary
         """
         return {
-            "query": {
-                "bool": {
-                    "must": [{"term": {field: value}}]
-                }
-            },
+            "query": {"bool": {"must": [{"term": {field: value}}]}},
             "size": size,
-            "sort": [{sort_field: {"order": "desc"}}]
+            "sort": [{sort_field: {"order": "desc"}}],
         }
 
     def _build_keyword_queries(
-        self,
-        keywords: list[str],
-        search_fields: list[str] | None = None
+        self, keywords: list[str], search_fields: list[str] | None = None
     ) -> list[dict[str, Any]]:
         """
         Build keyword match queries for multiple fields.
@@ -283,18 +269,10 @@ class DOAJClient(BaseAPIClient):
         if search_fields is None:
             search_fields = self.SEARCH_FIELDS
 
-        return [
-            {"match": {field: keyword}}
-            for keyword in keywords
-            for field in search_fields
-        ]
+        return [{"match": {field: keyword}} for keyword in keywords for field in search_fields]
 
     def _execute_search(
-        self,
-        endpoint: str,
-        query: dict[str, Any],
-        operation_name: str,
-        raise_on_error: bool = False
+        self, endpoint: str, query: dict[str, Any], operation_name: str, raise_on_error: bool = False
     ) -> list[dict[str, Any]]:
         """
         Execute search query with standardized error handling.
@@ -332,9 +310,7 @@ class DOAJClient(BaseAPIClient):
             return []
 
     def search_journals(
-        self,
-        subject: str | None = None,
-        max_results: int = DEFAULT_JOURNAL_RESULTS
+        self, subject: str | None = None, max_results: int = DEFAULT_JOURNAL_RESULTS
     ) -> list[dict[str, Any]]:
         """
         Search for journals by subject.
@@ -351,23 +327,12 @@ class DOAJClient(BaseAPIClient):
 
         max_results = self._validate_max_results(max_results)
 
-        query = self._build_term_query(
-            self.FIELD_SUBJECT_TERM,
-            subject,
-            max_results
-        )
+        query = self._build_term_query(self.FIELD_SUBJECT_TERM, subject, max_results)
 
-        return self._execute_search(
-            self.ENDPOINT_JOURNALS,
-            query,
-            f"DOAJ {subject} journal search"
-        )
+        return self._execute_search(self.ENDPOINT_JOURNALS, query, f"DOAJ {subject} journal search")
 
     def search_articles(
-        self,
-        keywords: list[str],
-        subject: str | None = None,
-        max_results: int = DEFAULT_ARTICLE_RESULTS
+        self, keywords: list[str], subject: str | None = None, max_results: int = DEFAULT_ARTICLE_RESULTS
     ) -> list[dict[str, Any]]:
         """
         Search for articles by keywords and subject.
@@ -396,32 +361,21 @@ class DOAJClient(BaseAPIClient):
 
         # Build full query
         query_parts = {
-            "query": {
-                "bool": {
-                    "should": keyword_queries,
-                    "minimum_should_match": 1
-                }
-            },
+            "query": {"bool": {"should": keyword_queries, "minimum_should_match": 1}},
             "size": max_results,
-            "sort": [{"created_date": {"order": "desc"}}]
+            "sort": [{"created_date": {"order": "desc"}}],
         }
 
         # Add subject filter if specified
         if subject:
-            query_parts["query"]["bool"]["must"] = [
-                {"term": {self.FIELD_SUBJECT_TERM: subject}}
-            ]
+            query_parts["query"]["bool"]["must"] = [{"term": {self.FIELD_SUBJECT_TERM: subject}}]
 
         return self._execute_search(
-            self.ENDPOINT_ARTICLES,
-            query_parts,
-            f"DOAJ article search with keywords: {keywords}"
+            self.ENDPOINT_ARTICLES, query_parts, f"DOAJ article search with keywords: {keywords}"
         )
 
     def get_journal_articles(
-        self,
-        journal_issn: str,
-        max_results: int = DEFAULT_ARTICLE_RESULTS
+        self, journal_issn: str, max_results: int = DEFAULT_ARTICLE_RESULTS
     ) -> list[dict[str, Any]]:
         """
         Get articles from a specific journal by ISSN.
@@ -441,17 +395,9 @@ class DOAJClient(BaseAPIClient):
 
         max_results = self._validate_max_results(max_results)
 
-        query = self._build_term_query(
-            self.FIELD_JOURNAL_ISSN,
-            journal_issn,
-            max_results
-        )
+        query = self._build_term_query(self.FIELD_JOURNAL_ISSN, journal_issn, max_results)
 
-        return self._execute_search(
-            self.ENDPOINT_ARTICLES,
-            query,
-            f"DOAJ articles from journal {journal_issn}"
-        )
+        return self._execute_search(self.ENDPOINT_ARTICLES, query, f"DOAJ articles from journal {journal_issn}")
 
     def _extract_article_metadata(self, article: dict[str, Any]) -> ArticleMetadata | None:
         """
@@ -470,7 +416,7 @@ class DOAJClient(BaseAPIClient):
         _article: dict[str, Any],
         metadata: ArticleMetadata,
         discovery_method: str = DEFAULT_DISCOVERY_METHOD,
-        skip_validation: bool = False
+        skip_validation: bool = False,
     ) -> DatasetSource | None:
         """
         Create DatasetSource from pre-extracted metadata.
@@ -487,10 +433,7 @@ class DOAJClient(BaseAPIClient):
         try:
             # Validate required fields unless skipped
             if not skip_validation:
-                missing_fields = [
-                    field for field in self.REQUIRED_METADATA_FIELDS
-                    if field not in metadata
-                ]
+                missing_fields = [field for field in self.REQUIRED_METADATA_FIELDS if field not in metadata]
 
                 if missing_fields:
                     logger.warning(f"Missing required metadata fields: {missing_fields}")
@@ -499,7 +442,7 @@ class DOAJClient(BaseAPIClient):
             # Use current date if publication date is missing
             pub_date = metadata.get("publication_date")
             if not pub_date:
-                pub_date = datetime.now(timezone.utc)
+                pub_date = datetime.now(UTC)
 
             # Generate source ID
             doaj_id = metadata.get("doaj_id", "")
@@ -521,17 +464,15 @@ class DOAJClient(BaseAPIClient):
                 keywords=metadata["keywords"],
                 open_access=True,
                 data_availability="unknown",
-                discovery_date=datetime.now(timezone.utc),
-                discovery_method=discovery_method
+                discovery_date=datetime.now(UTC),
+                discovery_method=discovery_method,
             )
         except (KeyError, TypeError) as e:
             logger.error(f"Failed to create DatasetSource from metadata: {e}", exc_info=True)
             return None
 
     def _convert_articles_to_sources(
-        self,
-        articles: list[dict[str, Any]],
-        filter_fn: Callable[[dict[str, Any]], bool] | None = None
+        self, articles: list[dict[str, Any]], filter_fn: Callable[[dict[str, Any]], bool] | None = None
     ) -> list[DatasetSource]:
         """
         Convert articles to DatasetSource objects with optional filtering.
@@ -577,9 +518,7 @@ class DOAJClient(BaseAPIClient):
         return self._create_source_from_metadata(article, metadata)
 
     def search_therapeutic_content(
-        self,
-        keywords: list[str],
-        max_results: int = DEFAULT_ARTICLE_RESULTS
+        self, keywords: list[str], max_results: int = DEFAULT_ARTICLE_RESULTS
     ) -> list[DatasetSource]:
         """
         Search for therapeutic content and convert to DatasetSource objects.
@@ -602,11 +541,7 @@ class DOAJClient(BaseAPIClient):
         logger.info(f"Searching therapeutic content: keywords={keywords}, max_results={max_results}")
 
         # Search articles
-        articles = self.search_articles(
-            keywords=keywords,
-            subject=self.DEFAULT_SUBJECT,
-            max_results=max_results
-        )
+        articles = self.search_articles(keywords=keywords, subject=self.DEFAULT_SUBJECT, max_results=max_results)
 
         # Convert to DatasetSource objects
         sources = self._convert_articles_to_sources(articles)
@@ -615,10 +550,7 @@ class DOAJClient(BaseAPIClient):
         return sources
 
     def investigate_journal(
-        self,
-        journal_issn: str,
-        therapeutic_keywords: list[str],
-        max_articles: int = DEFAULT_ARTICLE_RESULTS
+        self, journal_issn: str, therapeutic_keywords: list[str], max_articles: int = DEFAULT_ARTICLE_RESULTS
     ) -> list[DatasetSource]:
         """
         Investigate a specific journal for therapeutic content.
@@ -668,8 +600,5 @@ class DOAJClient(BaseAPIClient):
         # Convert and filter articles
         therapeutic_sources = self._convert_articles_to_sources(articles, has_therapeutic_content)
 
-        logger.info(
-            f"Found {len(therapeutic_sources)} articles with therapeutic content "
-            f"in journal {journal_issn}"
-        )
+        logger.info(f"Found {len(therapeutic_sources)} articles with therapeutic content in journal {journal_issn}")
         return therapeutic_sources

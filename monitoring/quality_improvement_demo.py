@@ -9,7 +9,7 @@ import random
 import sqlite3
 import warnings
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -105,9 +105,7 @@ class QualityImprovementDemo:
         except Exception:
             return []
 
-    def _create_synthetic_improvement(
-        self, base_data: list[dict], metric: str
-    ) -> QualityImprovement | None:
+    def _create_synthetic_improvement(self, base_data: list[dict], metric: str) -> QualityImprovement | None:
         """Create synthetic improvement for a metric"""
         try:
             # Calculate baseline value from actual data
@@ -125,9 +123,7 @@ class QualityImprovementDemo:
 
             # Weight scenarios (more likely to improve for demo)
             scenario_weights = [0.6, 0.2, 0.2]  # 60% improve, 20% decline, 20% stable
-            _direction, change_percent = random.choices(
-                improvement_scenarios, weights=scenario_weights
-            )[0]
+            _direction, change_percent = random.choices(improvement_scenarios, weights=scenario_weights)[0]
 
             # Calculate current value
             current_value = baseline_value * (1 + change_percent / 100)
@@ -143,9 +139,7 @@ class QualityImprovementDemo:
                 current_value = max(1, current_value)
 
             # Recalculate actual improvement percentage
-            improvement_percentage = (
-                (current_value - baseline_value) / baseline_value
-            ) * 100
+            improvement_percentage = ((current_value - baseline_value) / baseline_value) * 100
 
             # Determine final direction based on actual change
             if improvement_percentage > 2:
@@ -159,9 +153,7 @@ class QualityImprovementDemo:
             confidence_level = min(0.95, 0.6 + abs(improvement_percentage) / 100)
 
             # Generate recommendation
-            recommendation = self._generate_improvement_recommendation(
-                metric, improvement_percentage, final_direction
-            )
+            recommendation = self._generate_improvement_recommendation(metric, improvement_percentage, final_direction)
 
             return QualityImprovement(
                 metric=metric,
@@ -192,22 +184,16 @@ class QualityImprovementDemo:
 
             if metric == "processing_efficiency":
                 total = len(data)
-                successful = len(
-                    [r for r in data if r["processing_status"] == "processed"]
-                )
+                successful = len([r for r in data if r["processing_status"] == "processed"])
                 return (successful / total) * 100 if total > 0 else None
 
             if metric == "tier_quality":
                 total = len(data)
-                priority = len(
-                    [r for r in data if r["tier"] and "priority" in str(r["tier"])]
-                )
+                priority = len([r for r in data if r["tier"] and "priority" in str(r["tier"])])
                 return (priority / total) * 100 if total > 0 else None
 
             if metric == "dataset_diversity":
-                unique_datasets = len(
-                    set(r["dataset_source"] for r in data if r["dataset_source"])
-                )
+                unique_datasets = len(set(r["dataset_source"] for r in data if r["dataset_source"]))
                 return float(unique_datasets)
 
             return None
@@ -215,9 +201,7 @@ class QualityImprovementDemo:
         except Exception:
             return None
 
-    def _generate_improvement_recommendation(
-        self, metric: str, improvement_percentage: float, direction: str
-    ) -> str:
+    def _generate_improvement_recommendation(self, metric: str, improvement_percentage: float, direction: str) -> str:
         """Generate improvement recommendation"""
         try:
             if direction == "improving":
@@ -240,9 +224,7 @@ class QualityImprovementDemo:
         except Exception:
             return "Unable to generate recommendation"
 
-    def create_improvement_visualizations(
-        self, improvements: dict[str, QualityImprovement]
-    ) -> dict[str, str]:
+    def create_improvement_visualizations(self, improvements: dict[str, QualityImprovement]) -> dict[str, str]:
         """Create improvement tracking visualizations"""
 
         viz_files = {}
@@ -264,18 +246,14 @@ class QualityImprovementDemo:
             ax = axes[0, 0]
             metrics = list(improvements.keys())
             percentages = [imp.improvement_percentage for imp in improvements.values()]
-            colors = [
-                "green" if p > 2 else "red" if p < -2 else "orange" for p in percentages
-            ]
+            colors = ["green" if p > 2 else "red" if p < -2 else "orange" for p in percentages]
 
             bars = ax.bar(range(len(metrics)), percentages, color=colors, alpha=0.7)
             ax.set_title("Improvement Percentages by Metric")
             ax.set_xlabel("Metrics")
             ax.set_ylabel("Improvement %")
             ax.set_xticks(range(len(metrics)))
-            ax.set_xticklabels(
-                [m.replace("_", " ").title() for m in metrics], rotation=45, ha="right"
-            )
+            ax.set_xticklabels([m.replace("_", " ").title() for m in metrics], rotation=45, ha="right")
             ax.axhline(y=0, color="black", linestyle="-", alpha=0.3)
             ax.grid(True, alpha=0.3)
 
@@ -305,28 +283,20 @@ class QualityImprovementDemo:
             ax.set_xlabel("Metrics")
             ax.set_ylabel("Value")
             ax.set_xticks(x)
-            ax.set_xticklabels(
-                [m.replace("_", " ").title() for m in metrics], rotation=45, ha="right"
-            )
+            ax.set_xticklabels([m.replace("_", " ").title() for m in metrics], rotation=45, ha="right")
             ax.legend()
             ax.grid(True, alpha=0.3)
 
             # Confidence levels
             ax = axes[1, 0]
             confidence_levels = [imp.confidence_level for imp in improvements.values()]
-            bars = ax.bar(
-                range(len(metrics)), confidence_levels, alpha=0.7, color="skyblue"
-            )
+            bars = ax.bar(range(len(metrics)), confidence_levels, alpha=0.7, color="skyblue")
             ax.set_title("Confidence Levels")
             ax.set_xlabel("Metrics")
             ax.set_ylabel("Confidence Level")
             ax.set_xticks(range(len(metrics)))
-            ax.set_xticklabels(
-                [m.replace("_", " ").title() for m in metrics], rotation=45, ha="right"
-            )
-            ax.axhline(
-                y=0.8, color="red", linestyle="--", alpha=0.7, label="Threshold (0.8)"
-            )
+            ax.set_xticklabels([m.replace("_", " ").title() for m in metrics], rotation=45, ha="right")
+            ax.axhline(y=0.8, color="red", linestyle="--", alpha=0.7, label="Threshold (0.8)")
             ax.legend()
             ax.grid(True, alpha=0.3)
 
@@ -378,35 +348,21 @@ class QualityImprovementDemo:
         """Export demo improvement tracking report"""
 
         try:
-            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
             report_file = self.output_dir / f"quality_improvement_demo_{timestamp}.json"
 
             # Create executive summary
-            improving_count = sum(
-                1
-                for i in improvements.values()
-                if i.improvement_direction == "improving"
-            )
-            declining_count = sum(
-                1
-                for i in improvements.values()
-                if i.improvement_direction == "declining"
-            )
-            stable_count = sum(
-                1 for i in improvements.values() if i.improvement_direction == "stable"
-            )
+            improving_count = sum(1 for i in improvements.values() if i.improvement_direction == "improving")
+            declining_count = sum(1 for i in improvements.values() if i.improvement_direction == "declining")
+            stable_count = sum(1 for i in improvements.values() if i.improvement_direction == "stable")
 
-            avg_improvement = np.mean(
-                [i.improvement_percentage for i in improvements.values()]
-            )
-            avg_confidence = np.mean(
-                [i.confidence_level for i in improvements.values()]
-            )
+            avg_improvement = np.mean([i.improvement_percentage for i in improvements.values()])
+            avg_confidence = np.mean([i.confidence_level for i in improvements.values()])
 
             # Prepare export data
             export_data = {
                 "report_metadata": {
-                    "generated_at": datetime.now(timezone.utc).isoformat(),
+                    "generated_at": datetime.now(UTC).isoformat(),
                     "report_type": "demo",
                     "tracker_version": "1.0.0",
                     "total_metrics_tracked": len(improvements),
@@ -477,13 +433,8 @@ def main():
 
     # Show summary statistics
     np.mean([i.improvement_percentage for i in improvements.values()])
-    sum(
-        1 for i in improvements.values() if i.improvement_direction == "improving"
-    )
-    sum(
-        1 for i in improvements.values() if i.improvement_direction == "declining"
-    )
-
+    sum(1 for i in improvements.values() if i.improvement_direction == "improving")
+    sum(1 for i in improvements.values() if i.improvement_direction == "declining")
 
 
 if __name__ == "__main__":

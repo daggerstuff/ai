@@ -22,6 +22,7 @@ def test_load_torch_success():
         assert module2 == "mocked_torch"
         mock_import.assert_not_called()
 
+
 def test_load_torch_import_error():
     utils.torch_proxy._torch_module = None
     utils.torch_proxy._torch_import_error = None
@@ -40,6 +41,7 @@ def test_load_torch_import_error():
             _load_torch()
         mock_import.assert_not_called()
 
+
 def test_torch_module_proxy_getattr():
     utils.torch_proxy._torch_module = None
     utils.torch_proxy._torch_import_error = None
@@ -50,6 +52,7 @@ def test_torch_module_proxy_getattr():
     with patch("utils.torch_proxy.import_module", return_value=mock_torch):
         proxy = _TorchModuleProxy()
         assert proxy.tensor == "tensor_func"
+
 
 def test_torch_module_proxy_dir():
     utils.torch_proxy._torch_module = None
@@ -62,6 +65,7 @@ def test_torch_module_proxy_dir():
         proxy = _TorchModuleProxy()
         assert set(dir(proxy)).issuperset({"tensor", "nn"})
 
+
 def test_torch_module_proxy_dir_error():
     utils.torch_proxy._torch_module = None
     utils.torch_proxy._torch_import_error = None
@@ -69,6 +73,7 @@ def test_torch_module_proxy_dir_error():
     with patch("utils.torch_proxy.import_module", side_effect=ImportError):
         proxy = _TorchModuleProxy()
         assert dir(proxy) == []
+
 
 def test_torch_attr_proxy():
     utils.torch_proxy._torch_module = None

@@ -5,12 +5,13 @@ Task 5.6.2.4: Quality Improvement Reporting System
 Enterprise-grade reporting system for quality improvement tracking with
 comprehensive analysis, visualizations, and executive summaries.
 """
+
 import json
 import logging
 import sqlite3
 import warnings
 from dataclasses import asdict
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -63,26 +64,20 @@ class QualityImprovementReporter:
         self, report_period_days: int = 90, _include_visualizations: bool = True
     ) -> ImprovementReport:
         """Generate comprehensive quality improvement report."""
-        logger.info(
-            f"📈 Generating comprehensive improvement report ({report_period_days} days)"
-        )
+        logger.info(f"📈 Generating comprehensive improvement report ({report_period_days} days)")
 
         try:
             # Get interventions from the specified period
-            end_date = datetime.now(timezone.utc)
+            end_date = datetime.now(UTC)
             start_date = end_date - timedelta(days=report_period_days)
 
             active_interventions = self._get_interventions_by_status("active")
-            completed_interventions = self._get_interventions_by_period(
-                start_date, end_date, "completed"
-            )
+            completed_interventions = self._get_interventions_by_period(start_date, end_date, "completed")
 
             # Analyze each completed intervention
             improvement_analyses = []
             for intervention in completed_interventions:
-                analysis = self.tracker.analyze_intervention_impact(
-                    intervention.intervention_id
-                )
+                analysis = self.tracker.analyze_intervention_impact(intervention.intervention_id)
                 if analysis:
                     improvement_analyses.append(analysis)
 
@@ -99,16 +94,12 @@ class QualityImprovementReporter:
                 improvement_analyses,
                 overall_impact,
             )
-            detailed_insights = self._generate_detailed_insights(
-                improvement_analyses, overall_impact, success_metrics
-            )
-            action_items = self._generate_action_items(
-                active_interventions, improvement_analyses, success_metrics
-            )
+            detailed_insights = self._generate_detailed_insights(improvement_analyses, overall_impact, success_metrics)
+            action_items = self._generate_action_items(active_interventions, improvement_analyses, success_metrics)
 
             # Create comprehensive report
             report = ImprovementReport(
-                generated_at=datetime.now(timezone.utc).isoformat(),
+                generated_at=datetime.now(UTC).isoformat(),
                 report_period=f"{report_period_days}_days",
                 active_interventions=active_interventions,
                 completed_interventions=completed_interventions,
@@ -130,7 +121,6 @@ class QualityImprovementReporter:
     def _get_interventions_by_status(self, status: str) -> list[QualityIntervention]:
         """Get interventions by status."""
         try:
-
             conn = sqlite3.connect(str(self.tracker.interventions_db))
             cursor = conn.cursor()
 
@@ -156,7 +146,6 @@ class QualityImprovementReporter:
     ) -> list[QualityIntervention]:
         """Get interventions completed within a specific period."""
         try:
-
             conn = sqlite3.connect(str(self.tracker.interventions_db))
             cursor = conn.cursor()
 
@@ -186,9 +175,7 @@ class QualityImprovementReporter:
             logger.error(f"❌ Error getting interventions by period: {e}")
             return []
 
-    def _calculate_overall_impact(
-        self, analyses: list[ImprovementAnalysis]
-    ) -> dict[str, Any]:
+    def _calculate_overall_impact(self, analyses: list[ImprovementAnalysis]) -> dict[str, Any]:
         """Calculate overall impact across all interventions."""
         if not analyses:
             return {
@@ -201,36 +188,23 @@ class QualityImprovementReporter:
 
         # Calculate aggregate metrics
         total_interventions = len(analyses)
-        improvements = [
-            analysis.improvement_metrics["absolute_improvement"]
-            for analysis in analyses
-        ]
+        improvements = [analysis.improvement_metrics["absolute_improvement"] for analysis in analyses]
         average_improvement = np.mean(improvements)
         total_improvement = np.sum(improvements)
 
         # Success rate (interventions that met their targets)
         successful_interventions = sum(
-            1
-            for analysis in analyses
-            if analysis.improvement_metrics["target_achievement"] >= 1.0
+            1 for analysis in analyses if analysis.improvement_metrics["target_achievement"] >= 1.0
         )
-        success_rate = (
-            successful_interventions / total_interventions
-            if total_interventions > 0
-            else 0
-        )
+        success_rate = successful_interventions / total_interventions if total_interventions > 0 else 0
 
         # Components that showed improvement
         component_improvements = {}
         for analysis in analyses:
-            component = analysis.intervention_name.split()[
-                -1
-            ].lower()  # Simplified component extraction
+            component = analysis.intervention_name.split()[-1].lower()  # Simplified component extraction
             if component not in component_improvements:
                 component_improvements[component] = []
-            component_improvements[component].append(
-                analysis.improvement_metrics["absolute_improvement"]
-            )
+            component_improvements[component].append(analysis.improvement_metrics["absolute_improvement"])
 
         components_improved = [
             {
@@ -251,9 +225,7 @@ class QualityImprovementReporter:
             "components_improved": components_improved,
         }
 
-    def _calculate_success_metrics(
-        self, analyses: list[ImprovementAnalysis]
-    ) -> dict[str, float]:
+    def _calculate_success_metrics(self, analyses: list[ImprovementAnalysis]) -> dict[str, float]:
         """Calculate success metrics for interventions."""
         if not analyses:
             return {
@@ -264,44 +236,30 @@ class QualityImprovementReporter:
             }
 
         # Target achievement rate
-        target_achievements = [
-            analysis.improvement_metrics["target_achievement"] for analysis in analyses
-        ]
-        target_achievement_rate = sum(
-            1 for ta in target_achievements if ta >= 1.0
-        ) / len(target_achievements)
+        target_achievements = [analysis.improvement_metrics["target_achievement"] for analysis in analyses]
+        target_achievement_rate = sum(1 for ta in target_achievements if ta >= 1.0) / len(target_achievements)
 
         # Statistical significance rate
         significant_analyses = sum(
-            1
-            for analysis in analyses
-            if any(
-                test.get("significant", False) for test in analysis.statistical_tests
-            )
+            1 for analysis in analyses if any(test.get("significant", False) for test in analysis.statistical_tests)
         )
         statistical_significance_rate = significant_analyses / len(analyses)
 
         # Practical significance rate
         practical_significant = sum(
-            1
-            for analysis in analyses
-            if analysis.impact_assessment.get("practical_significance", False)
+            1 for analysis in analyses if analysis.impact_assessment.get("practical_significance", False)
         )
         practical_significance_rate = practical_significant / len(analyses)
 
         # Average effect size
-        effect_sizes = [
-            analysis.impact_assessment.get("effect_size", 0) for analysis in analyses
-        ]
+        effect_sizes = [analysis.impact_assessment.get("effect_size", 0) for analysis in analyses]
         average_effect_size = np.mean([es for es in effect_sizes if es is not None])
 
         return {
             "target_achievement_rate": float(target_achievement_rate),
             "statistical_significance_rate": float(statistical_significance_rate),
             "practical_significance_rate": float(practical_significance_rate),
-            "average_effect_size": float(average_effect_size)
-            if not np.isnan(average_effect_size)
-            else 0.0,
+            "average_effect_size": float(average_effect_size) if not np.isnan(average_effect_size) else 0.0,
         }
 
     def _generate_executive_summary(
@@ -330,9 +288,7 @@ class QualityImprovementReporter:
             summary.append(
                 f"📈 Average improvement: {avg_improvement:.3f} points across {overall_impact['total_interventions']} interventions"
             )
-            summary.append(
-                f"🎯 Success rate: {success_rate:.1f}% of interventions met their targets"
-            )
+            summary.append(f"🎯 Success rate: {success_rate:.1f}% of interventions met their targets")
 
             if overall_impact["successful_interventions"] > 0:
                 summary.append(
@@ -376,15 +332,11 @@ class QualityImprovementReporter:
         # Statistical insights
         if success_metrics["statistical_significance_rate"] > 0:
             sig_rate = success_metrics["statistical_significance_rate"] * 100
-            insights.append(
-                f"📊 {sig_rate:.1f}% of interventions showed statistically significant improvements"
-            )
+            insights.append(f"📊 {sig_rate:.1f}% of interventions showed statistically significant improvements")
 
         if success_metrics["practical_significance_rate"] > 0:
             prac_rate = success_metrics["practical_significance_rate"] * 100
-            insights.append(
-                f"💡 {prac_rate:.1f}% of interventions achieved practically significant improvements"
-            )
+            insights.append(f"💡 {prac_rate:.1f}% of interventions achieved practically significant improvements")
 
         # Effect size insights
         avg_effect_size = success_metrics["average_effect_size"]
@@ -404,19 +356,13 @@ class QualityImprovementReporter:
         # Individual intervention insights
         if analyses:
             # Best performing intervention
-            best_intervention = max(
-                analyses, key=lambda x: x.improvement_metrics["absolute_improvement"]
-            )
+            best_intervention = max(analyses, key=lambda x: x.improvement_metrics["absolute_improvement"])
             insights.append(
                 f"🏆 Best intervention: {best_intervention.intervention_name} (+{best_intervention.improvement_metrics['absolute_improvement']:.3f})"
             )
 
             # Interventions with declining trends
-            declining_interventions = [
-                a
-                for a in analyses
-                if a.trend_analysis.get("trend_direction") == "declining"
-            ]
+            declining_interventions = [a for a in analyses if a.trend_analysis.get("trend_direction") == "declining"]
             if declining_interventions:
                 insights.append(
                     f"⚠️ {len(declining_interventions)} interventions show declining trends requiring attention"
@@ -449,7 +395,7 @@ class QualityImprovementReporter:
             overdue_interventions = []
             for intervention in active_interventions:
                 start_date = datetime.fromisoformat(intervention.start_date)
-                if (datetime.now(timezone.utc) - start_date).days > 60:  # 60 days threshold
+                if (datetime.now(UTC) - start_date).days > 60:  # 60 days threshold
                     overdue_interventions.append(intervention)
 
             if overdue_interventions:
@@ -459,18 +405,12 @@ class QualityImprovementReporter:
 
         # Success rate actions
         if success_metrics["target_achievement_rate"] < 0.5:
-            actions.append(
-                "🎯 Review intervention targets - less than 50% are being achieved"
-            )
-            actions.append(
-                "📊 Analyze successful interventions to identify best practices"
-            )
+            actions.append("🎯 Review intervention targets - less than 50% are being achieved")
+            actions.append("📊 Analyze successful interventions to identify best practices")
 
         # Statistical significance actions
         if success_metrics["statistical_significance_rate"] < 0.3:
-            actions.append(
-                "📈 Increase sample sizes or measurement frequency for better statistical power"
-            )
+            actions.append("📈 Increase sample sizes or measurement frequency for better statistical power")
 
         # Component-specific actions
         if analyses:
@@ -480,9 +420,7 @@ class QualityImprovementReporter:
                 component = analysis.intervention_name.split()[-1].lower()
                 if component not in component_performance:
                     component_performance[component] = []
-                component_performance[component].append(
-                    analysis.improvement_metrics["absolute_improvement"]
-                )
+                component_performance[component].append(analysis.improvement_metrics["absolute_improvement"])
 
             poor_components = [
                 component
@@ -497,19 +435,13 @@ class QualityImprovementReporter:
 
         # Intervention type actions
         if active_interventions:
-            training_interventions = [
-                i for i in active_interventions if i.intervention_type == "training"
-            ]
+            training_interventions = [i for i in active_interventions if i.intervention_type == "training"]
             if len(training_interventions) > len(active_interventions) * 0.7:
-                actions.append(
-                    "🎓 Consider diversifying intervention types beyond training"
-                )
+                actions.append("🎓 Consider diversifying intervention types beyond training")
 
         return actions
 
-    def create_improvement_visualizations(
-        self, report: ImprovementReport
-    ) -> dict[str, go.Figure]:
+    def create_improvement_visualizations(self, report: ImprovementReport) -> dict[str, go.Figure]:
         """Create comprehensive improvement visualizations."""
         visualizations = {}
 
@@ -517,17 +449,11 @@ class QualityImprovementReporter:
         if report.completed_interventions or report.active_interventions:
             fig = go.Figure()
 
-            all_interventions = (
-                report.completed_interventions + report.active_interventions
-            )
+            all_interventions = report.completed_interventions + report.active_interventions
 
             for i, intervention in enumerate(all_interventions):
                 start_date = datetime.fromisoformat(intervention.start_date)
-                end_date = (
-                    datetime.fromisoformat(intervention.end_date)
-                    if intervention.end_date
-                    else datetime.now(timezone.utc)
-                )
+                end_date = datetime.fromisoformat(intervention.end_date) if intervention.end_date else datetime.now(UTC)
 
                 color = "green" if intervention.status == "completed" else "blue"
 
@@ -553,10 +479,7 @@ class QualityImprovementReporter:
                 yaxis=dict(
                     tickmode="array",
                     tickvals=list(range(len(all_interventions))),
-                    ticktext=[
-                        i.name[:30] + "..." if len(i.name) > 30 else i.name
-                        for i in all_interventions
-                    ],
+                    ticktext=[i.name[:30] + "..." if len(i.name) > 30 else i.name for i in all_interventions],
                 ),
                 height=max(400, len(all_interventions) * 40),
             )
@@ -567,26 +490,18 @@ class QualityImprovementReporter:
         if report.improvement_analyses:
             fig = go.Figure()
 
-            intervention_names = [
-                analysis.intervention_name for analysis in report.improvement_analyses
-            ]
+            intervention_names = [analysis.intervention_name for analysis in report.improvement_analyses]
             improvements = [
-                analysis.improvement_metrics["absolute_improvement"]
-                for analysis in report.improvement_analyses
+                analysis.improvement_metrics["absolute_improvement"] for analysis in report.improvement_analyses
             ]
-            targets = [
-                analysis.improvement_metrics["target_achievement"]
-                for analysis in report.improvement_analyses
-            ]
+            targets = [analysis.improvement_metrics["target_achievement"] for analysis in report.improvement_analyses]
 
             fig.add_trace(
                 go.Bar(
                     x=intervention_names,
                     y=improvements,
                     name="Actual Improvement",
-                    marker_color=[
-                        "green" if imp > 0 else "red" for imp in improvements
-                    ],
+                    marker_color=["green" if imp > 0 else "red" for imp in improvements],
                 )
             )
 
@@ -708,7 +623,7 @@ class QualityImprovementReporter:
 
     def save_report(self, report: ImprovementReport, format: str = "json") -> str:
         """Save improvement report to file."""
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
 
         if format == "json":
             filename = f"quality_improvement_report_{timestamp}.json"
@@ -737,14 +652,12 @@ class QualityImprovementReporter:
         """Generate HTML report from improvement analysis."""
         template = Template(self.report_templates["detailed"])
 
-        return template.render(
-            report=report, generated_at=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
-        )
+        return template.render(report=report, generated_at=datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S"))
 
     def _create_empty_report(self) -> ImprovementReport:
         """Create empty report when no data is available."""
         return ImprovementReport(
-            generated_at=datetime.now(timezone.utc).isoformat(),
+            generated_at=datetime.now(UTC).isoformat(),
             report_period="no_data",
             active_interventions=[],
             completed_interventions=[],
@@ -752,9 +665,7 @@ class QualityImprovementReporter:
             overall_impact={},
             success_metrics={},
             executive_summary=["No improvement data available for analysis"],
-            detailed_insights=[
-                "Please create and track quality improvement interventions"
-            ],
+            detailed_insights=["Please create and track quality improvement interventions"],
             action_items=["Set up quality improvement interventions to begin tracking"],
         )
 
@@ -875,7 +786,6 @@ def main():
     # Save report
     reporter.save_report(report, format="json")
     reporter.save_report(report, format="html")
-
 
     # Display summary
     for _item in report.executive_summary:

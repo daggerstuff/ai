@@ -28,6 +28,7 @@ Usage:
     exporter = DatasetExporter(config)
     result = exporter.export()
 """
+
 import fcntl
 import gzip
 import hashlib
@@ -38,7 +39,7 @@ import time
 from collections.abc import Iterator
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -124,9 +125,7 @@ class ExportResult:
     errors: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
     checksum: str = ""
-    timestamp: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
@@ -173,9 +172,7 @@ class DatasetValidator:
 
         return True, errors
 
-    def validate_record(
-        self, record: dict[str, Any], index: int
-    ) -> tuple[bool, list[str]]:
+    def validate_record(self, record: dict[str, Any], index: int) -> tuple[bool, list[str]]:
         """Validate a single record."""
         errors = []
 
@@ -196,15 +193,9 @@ class DatasetValidator:
                 # Validate message structure
                 for msg_idx, msg in enumerate(messages):
                     if not isinstance(msg, dict):
-                        errors.append(
-                            f"Record {index}, message {msg_idx}: "
-                            "Message must be a dictionary"
-                        )
+                        errors.append(f"Record {index}, message {msg_idx}: Message must be a dictionary")
                     elif "role" not in msg or "content" not in msg:
-                        errors.append(
-                            f"Record {index}, message {msg_idx}: "
-                            "Message missing 'role' or 'content'"
-                        )
+                        errors.append(f"Record {index}, message {msg_idx}: Message missing 'role' or 'content'")
 
         return len(errors) == 0, errors
 
@@ -224,13 +215,8 @@ class DatasetValidator:
                 all_errors.extend(errors)
 
                 if len(all_errors) >= 100:  # Limit error collection
-                    self.logger.warning(
-                        f"Too many validation errors, "
-                        f"stopping at {len(all_errors)} errors"
-                    )
-                    all_errors.append(
-                        f"... and {len(records) - idx - 1} more records not validated"
-                    )
+                    self.logger.warning(f"Too many validation errors, stopping at {len(all_errors)} errors")
+                    all_errors.append(f"... and {len(records) - idx - 1} more records not validated")
                     break
 
         return valid_count, invalid_count, all_errors
@@ -280,14 +266,12 @@ class DatasetExporter:
             with open(self._lock_file, "w") as f:
                 fcntl.flock(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
                 f.write(f"{os.getpid()}\n")
-                f.write(f"{datetime.now(timezone.utc).isoformat()}\n")
+                f.write(f"{datetime.now(UTC).isoformat()}\n")
 
             self.logger.info(f"Acquired lock: {self._lock_file}")
 
         except OSError:
-            raise RuntimeError(
-                f"Export already in progress for {self.config.dataset_name}"
-            )
+            raise RuntimeError(f"Export already in progress for {self.config.dataset_name}")
 
     def _calculate_checksum(self, file_path: Path) -> str:
         """Calculate SHA256 checksum of file."""
@@ -327,9 +311,7 @@ class DatasetExporter:
         else:
             raise ValueError(f"Unsupported source format: {suffix}")
 
-    def _write_output(
-        self, output_path: Path, records: Iterator[dict[str, Any]]
-    ) -> ExportResult:
+    def _write_output(self, output_path: Path, records: Iterator[dict[str, Any]]) -> ExportResult:
         """Write records to output file in specified format."""
         exported_records = 0
         skipped_records = 0
@@ -344,7 +326,6 @@ class DatasetExporter:
         encoding = None if self.config.compress_output else "utf-8"
 
         if self.config.compress_output and self.config.compression_format == "gzip":
-
             open_func = lambda: gzip.open(output_path, mode, encoding=encoding)
         else:
             open_func = lambda: open(output_path, mode, encoding=encoding)
@@ -352,18 +333,14 @@ class DatasetExporter:
         with open_func() as f:
             for record in records:
                 if self.config.validate_before_export:
-                    is_valid, record_errors = self.validator.validate_record(
-                        record, exported_records
-                    )
+                    is_valid, record_errors = self.validator.validate_record(record, exported_records)
 
                     if not is_valid:
                         failed_records += 1
                         errors.extend(record_errors[:3])  # Limit errors per record
 
                         if failed_records >= 100:
-                            errors.append(
-                                "... and more validation errors (stopped recording)"
-                            )
+                            errors.append("... and more validation errors (stopped recording)")
                             break
 
                         continue
@@ -403,21 +380,15 @@ class DatasetExporter:
             export_time_seconds=export_time,
             errors=errors,
             warnings=warnings,
-            checksum=self._calculate_checksum(output_path)
-            if output_path.exists()
-            else "",
+            checksum=self._calculate_checksum(output_path) if output_path.exists() else "",
         )
 
-    def _create_manifest(
-        self, export_result: ExportResult, metadata: ExportMetadata | None = None
-    ) -> Path | None:
+    def _create_manifest(self, export_result: ExportResult, metadata: ExportMetadata | None = None) -> Path | None:
         """Create manifest for exported dataset."""
         if not self.config.create_manifest:
             return None
 
-        manifest_path = (
-            self.config.export_dir / f"{self.config.dataset_name}_manifest.json"
-        )
+        manifest_path = self.config.export_dir / f"{self.config.dataset_name}_manifest.json"
 
         # Load source metadata if needed
         source_checksum = ""
@@ -478,9 +449,7 @@ class DatasetExporter:
             ExportResult containing export details
         """
         self.logger.info(
-            f"Starting export: {self.config.source_path} "
-            f"-> {self.config.export_dir} "
-            f"({self.config.export_format})"
+            f"Starting export: {self.config.source_path} -> {self.config.export_dir} ({self.config.export_format})"
         )
 
         start_time = time.time()
@@ -504,9 +473,7 @@ class DatasetExporter:
 
             # Add metadata
             export_result.total_records = (
-                export_result.exported_records
-                + export_result.skipped_records
-                + export_result.failed_records
+                export_result.exported_records + export_result.skipped_records + export_result.failed_records
             )
 
             if export_result.export_time_seconds == 0:
@@ -520,17 +487,12 @@ class DatasetExporter:
                     f"({export_result.file_size_bytes / (1024 * 1024):.2f} MB)"
                 )
             else:
-                self.logger.error(
-                    f"Export completed with errors: "
-                    f"{export_result.failed_records} failed records"
-                )
+                self.logger.error(f"Export completed with errors: {export_result.failed_records} failed records")
                 if export_result.errors:
                     for error in export_result.errors[:5]:
                         self.logger.error(f"  - {error}")
                     if len(export_result.errors) > 5:
-                        self.logger.error(
-                            f"  ... and {len(export_result.errors) - 5} more"
-                        )
+                        self.logger.error(f"  ... and {len(export_result.errors) - 5} more")
 
             return export_result
 
@@ -659,8 +621,7 @@ def export_batch(
     total_records = sum(r.exported_records for r in results if r.success)
 
     logger.info(
-        f"Batch export complete: {successful}/{len(sources)} successful, "
-        f"{total_records} total records exported"
+        f"Batch export complete: {successful}/{len(sources)} successful, {total_records} total records exported"
     )
 
     return results
@@ -695,9 +656,7 @@ def list_exported_datasets(
     return datasets
 
 
-def get_dataset_status(
-    dataset_name: str, export_dir: str | Path | None = None
-) -> dict[str, Any] | None:
+def get_dataset_status(dataset_name: str, export_dir: str | Path | None = None) -> dict[str, Any] | None:
     """
     Get status of a specific exported dataset.
 
@@ -738,6 +697,5 @@ if __name__ == "__main__":
         export_format="jsonl",
         validate=True,
     )
-
 
     sys.exit(0 if result.success else 1)

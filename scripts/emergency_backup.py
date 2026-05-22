@@ -9,7 +9,7 @@ import json
 import logging
 import shutil
 import tarfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -17,12 +17,10 @@ from typing import Any
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.FileHandler("emergency_backup.log"),
-        logging.StreamHandler()
-    ]
+    handlers=[logging.FileHandler("emergency_backup.log"), logging.StreamHandler()],
 )
 logger = logging.getLogger(__name__)
+
 
 class EmergencyBackupSystem:
     """Emergency backup system for conversation data."""
@@ -30,7 +28,7 @@ class EmergencyBackupSystem:
     def __init__(self, source_dir: str = "data", backup_dir: str = "backups"):
         self.source_dir = Path(source_dir)
         self.backup_dir = Path(backup_dir)
-        self.timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        self.timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         self.backup_name = f"emergency_backup_{self.timestamp}"
 
         # Create backup directory
@@ -53,7 +51,7 @@ class EmergencyBackupSystem:
             "total_files": len(backed_up_files),
             "files": backed_up_files,
             "backup_size_bytes": sum(f["size_bytes"] for f in backed_up_files),
-            "backup_completed": datetime.now(timezone.utc).isoformat()
+            "backup_completed": datetime.now(UTC).isoformat(),
         }
 
     def backup_processed_conversations(self) -> bool:
@@ -79,12 +77,14 @@ class EmergencyBackupSystem:
                     if file_path.is_file():
                         checksum = self.calculate_checksum(file_path)
                         relative_path = file_path.relative_to(backup_path)
-                        backed_up_files.append({
-                            "path": str(relative_path),
-                            "size_bytes": file_path.stat().st_size,
-                            "checksum": checksum,
-                            "backup_time": datetime.now(timezone.utc).isoformat()
-                        })
+                        backed_up_files.append(
+                            {
+                                "path": str(relative_path),
+                                "size_bytes": file_path.stat().st_size,
+                                "checksum": checksum,
+                                "backup_time": datetime.now(UTC).isoformat(),
+                            }
+                        )
 
             # Backup batch processing data
             batch_dir = self.source_dir / "batch_processing"
@@ -98,12 +98,14 @@ class EmergencyBackupSystem:
                     if file_path.is_file():
                         checksum = self.calculate_checksum(file_path)
                         relative_path = file_path.relative_to(backup_path)
-                        backed_up_files.append({
-                            "path": str(relative_path),
-                            "size_bytes": file_path.stat().st_size,
-                            "checksum": checksum,
-                            "backup_time": datetime.now(timezone.utc).isoformat()
-                        })
+                        backed_up_files.append(
+                            {
+                                "path": str(relative_path),
+                                "size_bytes": file_path.stat().st_size,
+                                "checksum": checksum,
+                                "backup_time": datetime.now(UTC).isoformat(),
+                            }
+                        )
 
             # Backup psychology knowledge base
             psychology_dir = self.source_dir / "psychology"
@@ -117,12 +119,14 @@ class EmergencyBackupSystem:
                     if file_path.is_file():
                         checksum = self.calculate_checksum(file_path)
                         relative_path = file_path.relative_to(backup_path)
-                        backed_up_files.append({
-                            "path": str(relative_path),
-                            "size_bytes": file_path.stat().st_size,
-                            "checksum": checksum,
-                            "backup_time": datetime.now(timezone.utc).isoformat()
-                        })
+                        backed_up_files.append(
+                            {
+                                "path": str(relative_path),
+                                "size_bytes": file_path.stat().st_size,
+                                "checksum": checksum,
+                                "backup_time": datetime.now(UTC).isoformat(),
+                            }
+                        )
 
             # Create manifest
             manifest = self.create_manifest(backed_up_files)
@@ -145,8 +149,8 @@ class EmergencyBackupSystem:
                 "archive_path": str(archive_path),
                 "archive_size_bytes": archive_path.stat().st_size,
                 "archive_checksum": archive_checksum,
-                "created": datetime.now(timezone.utc).isoformat(),
-                "contains": manifest
+                "created": datetime.now(UTC).isoformat(),
+                "contains": manifest,
             }
 
             archive_manifest_path = self.backup_dir / f"{self.backup_name}_archive_manifest.json"
@@ -158,7 +162,7 @@ class EmergencyBackupSystem:
 
             logger.info("Emergency backup completed successfully!")
             logger.info(f"Archive: {archive_path}")
-            logger.info(f"Size: {archive_path.stat().st_size / (1024*1024*1024):.2f} GB")
+            logger.info(f"Size: {archive_path.stat().st_size / (1024 * 1024 * 1024):.2f} GB")
             logger.info(f"Files backed up: {len(backed_up_files)}")
             logger.info(f"Checksum: {archive_checksum}")
 
@@ -193,6 +197,7 @@ class EmergencyBackupSystem:
             logger.error(f"Backup verification failed: {e}")
             return False
 
+
 def main():
     """Run emergency backup."""
     backup_system = EmergencyBackupSystem()
@@ -210,6 +215,7 @@ def main():
         logger.error("CRITICAL: Data remains at risk!")
 
     return success
+
 
 if __name__ == "__main__":
     main()

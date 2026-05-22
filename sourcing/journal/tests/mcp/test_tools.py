@@ -1,4 +1,3 @@
-
 from datetime import datetime
 from typing import Any
 
@@ -342,4 +341,3 @@ async def test_tool_executor_missing_tool_raises() -> None:
         await executor.execute_tool("missing_tool")
 
     assert exc.value.code == MCPErrorCode.TOOL_EXECUTION_ERROR
-

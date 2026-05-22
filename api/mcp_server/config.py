@@ -4,6 +4,7 @@ Configuration management for MCP (Management Control Panel) Server.
 This module provides comprehensive configuration management with environment-based
 settings, validation, and secure handling of sensitive data for HIPAA++ compliance.
 """
+
 import logging
 import os
 from dataclasses import dataclass, field
@@ -24,200 +25,111 @@ class MCPConfig:
     """
 
     # Flask Configuration
-    SECRET_KEY: str = field(
-        default_factory=lambda: os.environ.get("MCP_SECRET_KEY", "mcp-dev-secret-key")
-    )
+    SECRET_KEY: str = field(default_factory=lambda: os.environ.get("MCP_SECRET_KEY", "mcp-dev-secret-key"))
     HOST: str = field(default_factory=lambda: os.environ.get("MCP_HOST", "0.0.0.0"))
     PORT: int = field(default_factory=lambda: int(os.environ.get("MCP_PORT", "5001")))
-    DEBUG: bool = field(
-        default_factory=lambda: os.environ.get("MCP_DEBUG", "False").lower() == "true"
-    )
-    TESTING: bool = field(
-        default_factory=lambda: os.environ.get("MCP_TESTING", "False").lower() == "true"
-    )
+    DEBUG: bool = field(default_factory=lambda: os.environ.get("MCP_DEBUG", "False").lower() == "true")
+    TESTING: bool = field(default_factory=lambda: os.environ.get("MCP_TESTING", "False").lower() == "true")
 
     # Security Configuration
-    JWT_SECRET_KEY: str = field(
-        default_factory=lambda: os.environ.get("JWT_SECRET_KEY", "mcp-jwt-secret-key")
-    )
-    JWT_ALGORITHM: str = field(
-        default_factory=lambda: os.environ.get("JWT_ALGORITHM", "HS256")
-    )
+    JWT_SECRET_KEY: str = field(default_factory=lambda: os.environ.get("JWT_SECRET_KEY", "mcp-jwt-secret-key"))
+    JWT_ALGORITHM: str = field(default_factory=lambda: os.environ.get("JWT_ALGORITHM", "HS256"))
     JWT_ACCESS_TOKEN_EXPIRES: int = field(
         default_factory=lambda: int(os.environ.get("JWT_ACCESS_TOKEN_EXPIRES", "3600"))
     )
     JWT_REFRESH_TOKEN_EXPIRES: int = field(
-        default_factory=lambda: int(
-            os.environ.get("JWT_REFRESH_TOKEN_EXPIRES", "86400")
-        )
+        default_factory=lambda: int(os.environ.get("JWT_REFRESH_TOKEN_EXPIRES", "86400"))
     )
 
     # Agent Authentication
-    AGENT_TOKEN_EXPIRES: int = field(
-        default_factory=lambda: int(os.environ.get("AGENT_TOKEN_EXPIRES", "7200"))
-    )
+    AGENT_TOKEN_EXPIRES: int = field(default_factory=lambda: int(os.environ.get("AGENT_TOKEN_EXPIRES", "7200")))
     AGENT_REFRESH_TOKEN_EXPIRES: int = field(
-        default_factory=lambda: int(
-            os.environ.get("AGENT_REFRESH_TOKEN_EXPIRES", "86400")
-        )
+        default_factory=lambda: int(os.environ.get("AGENT_REFRESH_TOKEN_EXPIRES", "86400"))
     )
-    AGENT_TOKEN_HEADER: str = field(
-        default_factory=lambda: os.environ.get("AGENT_TOKEN_HEADER", "Agent")
-    )
+    AGENT_TOKEN_HEADER: str = field(default_factory=lambda: os.environ.get("AGENT_TOKEN_HEADER", "Agent"))
 
     # Rate Limiting Configuration
     RATE_LIMIT_STORAGE_URL: str = field(
-        default_factory=lambda: os.environ.get(
-            "RATE_LIMIT_STORAGE_URL", "redis://localhost:6380"
-        )
+        default_factory=lambda: os.environ.get("RATE_LIMIT_STORAGE_URL", "redis://localhost:6380")
     )
-    RATE_LIMIT_PER_MINUTE: int = field(
-        default_factory=lambda: int(os.environ.get("RATE_LIMIT_PER_MINUTE", "120"))
-    )
-    RATE_LIMIT_PER_HOUR: int = field(
-        default_factory=lambda: int(os.environ.get("RATE_LIMIT_PER_HOUR", "2000"))
-    )
-    RATE_LIMIT_PER_DAY: int = field(
-        default_factory=lambda: int(os.environ.get("RATE_LIMIT_PER_DAY", "20000"))
-    )
+    RATE_LIMIT_PER_MINUTE: int = field(default_factory=lambda: int(os.environ.get("RATE_LIMIT_PER_MINUTE", "120")))
+    RATE_LIMIT_PER_HOUR: int = field(default_factory=lambda: int(os.environ.get("RATE_LIMIT_PER_HOUR", "2000")))
+    RATE_LIMIT_PER_DAY: int = field(default_factory=lambda: int(os.environ.get("RATE_LIMIT_PER_DAY", "20000")))
 
     # Database Configuration
-    MONGODB_URI: str = field(
-        default_factory=lambda: os.environ.get(
-            "MONGODB_URI", "mongodb://localhost:27018/mcp"
-        )
-    )
-    MONGODB_DATABASE: str = field(
-        default_factory=lambda: os.environ.get("MONGODB_DATABASE", "mcp")
-    )
-    MONGODB_MAX_POOL_SIZE: int = field(
-        default_factory=lambda: int(os.environ.get("MONGODB_MAX_POOL_SIZE", "50"))
-    )
-    MONGODB_MIN_POOL_SIZE: int = field(
-        default_factory=lambda: int(os.environ.get("MONGODB_MIN_POOL_SIZE", "5"))
-    )
+    MONGODB_URI: str = field(default_factory=lambda: os.environ.get("MONGODB_URI", "mongodb://localhost:27018/mcp"))
+    MONGODB_DATABASE: str = field(default_factory=lambda: os.environ.get("MONGODB_DATABASE", "mcp"))
+    MONGODB_MAX_POOL_SIZE: int = field(default_factory=lambda: int(os.environ.get("MONGODB_MAX_POOL_SIZE", "50")))
+    MONGODB_MIN_POOL_SIZE: int = field(default_factory=lambda: int(os.environ.get("MONGODB_MIN_POOL_SIZE", "5")))
 
     # Redis Configuration (Separate from main TechDeck Redis)
-    REDIS_URL: str = field(
-        default_factory=lambda: os.environ.get("REDIS_URL", "redis://localhost:6380")
-    )
+    REDIS_URL: str = field(default_factory=lambda: os.environ.get("REDIS_URL", "redis://localhost:6380"))
     REDIS_DB: int = field(default_factory=lambda: int(os.environ.get("REDIS_DB", "0")))
-    REDIS_PASSWORD: str | None = field(
-        default_factory=lambda: os.environ.get("REDIS_PASSWORD")
-    )
-    REDIS_SOCKET_TIMEOUT: int = field(
-        default_factory=lambda: int(os.environ.get("REDIS_SOCKET_TIMEOUT", "5"))
-    )
+    REDIS_PASSWORD: str | None = field(default_factory=lambda: os.environ.get("REDIS_PASSWORD"))
+    REDIS_SOCKET_TIMEOUT: int = field(default_factory=lambda: int(os.environ.get("REDIS_SOCKET_TIMEOUT", "5")))
     REDIS_CONNECTION_POOL_SIZE: int = field(
         default_factory=lambda: int(os.environ.get("REDIS_CONNECTION_POOL_SIZE", "20"))
     )
 
     # WebSocket Configuration
     WEBSOCKET_ENABLED: bool = field(
-        default_factory=lambda: os.environ.get("WEBSOCKET_ENABLED", "True").lower()
-        == "true"
+        default_factory=lambda: os.environ.get("WEBSOCKET_ENABLED", "True").lower() == "true"
     )
-    WEBSOCKET_PORT: int = field(
-        default_factory=lambda: int(os.environ.get("WEBSOCKET_PORT", "5002"))
-    )
-    WEBSOCKET_PING_INTERVAL: int = field(
-        default_factory=lambda: int(os.environ.get("WEBSOCKET_PING_INTERVAL", "30"))
-    )
-    WEBSOCKET_PING_TIMEOUT: int = field(
-        default_factory=lambda: int(os.environ.get("WEBSOCKET_PING_TIMEOUT", "10"))
-    )
+    WEBSOCKET_PORT: int = field(default_factory=lambda: int(os.environ.get("WEBSOCKET_PORT", "5002")))
+    WEBSOCKET_PING_INTERVAL: int = field(default_factory=lambda: int(os.environ.get("WEBSOCKET_PING_INTERVAL", "30")))
+    WEBSOCKET_PING_TIMEOUT: int = field(default_factory=lambda: int(os.environ.get("WEBSOCKET_PING_TIMEOUT", "10")))
     WEBSOCKET_MAX_CONNECTIONS: int = field(
         default_factory=lambda: int(os.environ.get("WEBSOCKET_MAX_CONNECTIONS", "1000"))
     )
 
     # Agent Management Configuration
-    MAX_AGENTS_PER_USER: int = field(
-        default_factory=lambda: int(os.environ.get("MAX_AGENTS_PER_USER", "10"))
-    )
-    AGENT_HEARTBEAT_INTERVAL: int = field(
-        default_factory=lambda: int(os.environ.get("AGENT_HEARTBEAT_INTERVAL", "60"))
-    )
-    AGENT_TIMEOUT_SECONDS: int = field(
-        default_factory=lambda: int(os.environ.get("AGENT_TIMEOUT_SECONDS", "300"))
-    )
+    MAX_AGENTS_PER_USER: int = field(default_factory=lambda: int(os.environ.get("MAX_AGENTS_PER_USER", "10")))
+    AGENT_HEARTBEAT_INTERVAL: int = field(default_factory=lambda: int(os.environ.get("AGENT_HEARTBEAT_INTERVAL", "60")))
+    AGENT_TIMEOUT_SECONDS: int = field(default_factory=lambda: int(os.environ.get("AGENT_TIMEOUT_SECONDS", "300")))
     AGENT_CAPABILITY_VALIDATION: bool = field(
-        default_factory=lambda: os.environ.get(
-            "AGENT_CAPABILITY_VALIDATION", "True"
-        ).lower()
-        == "true"
+        default_factory=lambda: os.environ.get("AGENT_CAPABILITY_VALIDATION", "True").lower() == "true"
     )
 
     # Task Management Configuration
     MAX_CONCURRENT_TASKS_PER_AGENT: int = field(
-        default_factory=lambda: int(
-            os.environ.get("MAX_CONCURRENT_TASKS_PER_AGENT", "5")
-        )
+        default_factory=lambda: int(os.environ.get("MAX_CONCURRENT_TASKS_PER_AGENT", "5"))
     )
-    TASK_EXECUTION_TIMEOUT: int = field(
-        default_factory=lambda: int(os.environ.get("TASK_EXECUTION_TIMEOUT", "1800"))
-    )
-    TASK_RETRY_ATTEMPTS: int = field(
-        default_factory=lambda: int(os.environ.get("TASK_RETRY_ATTEMPTS", "3"))
-    )
-    TASK_RETRY_DELAY: int = field(
-        default_factory=lambda: int(os.environ.get("TASK_RETRY_DELAY", "5"))
-    )
+    TASK_EXECUTION_TIMEOUT: int = field(default_factory=lambda: int(os.environ.get("TASK_EXECUTION_TIMEOUT", "1800")))
+    TASK_RETRY_ATTEMPTS: int = field(default_factory=lambda: int(os.environ.get("TASK_RETRY_ATTEMPTS", "3")))
+    TASK_RETRY_DELAY: int = field(default_factory=lambda: int(os.environ.get("TASK_RETRY_DELAY", "5")))
 
     # Pipeline Integration Configuration
     PIPELINE_ORCHESTRATOR_URL: str = field(
-        default_factory=lambda: os.environ.get(
-            "PIPELINE_ORCHESTRATOR_URL", "http://localhost:5000"
-        )
+        default_factory=lambda: os.environ.get("PIPELINE_ORCHESTRATOR_URL", "http://localhost:5000")
     )
     PIPELINE_INTEGRATION_TIMEOUT: int = field(
-        default_factory=lambda: int(
-            os.environ.get("PIPELINE_INTEGRATION_TIMEOUT", "300")
-        )
+        default_factory=lambda: int(os.environ.get("PIPELINE_INTEGRATION_TIMEOUT", "300"))
     )
     ENABLE_PIPELINE_AGENT_ORCHESTRATION: bool = field(
-        default_factory=lambda: os.environ.get(
-            "ENABLE_PIPELINE_AGENT_ORCHESTRATION", "True"
-        ).lower()
-        == "true"
+        default_factory=lambda: os.environ.get("ENABLE_PIPELINE_AGENT_ORCHESTRATION", "True").lower() == "true"
     )
 
     # Bias Detection Configuration
     BIAS_DETECTION_ENABLED: bool = field(
-        default_factory=lambda: os.environ.get("BIAS_DETECTION_ENABLED", "True").lower()
-        == "true"
+        default_factory=lambda: os.environ.get("BIAS_DETECTION_ENABLED", "True").lower() == "true"
     )
     BIAS_DETECTION_THRESHOLD: float = field(
         default_factory=lambda: float(os.environ.get("BIAS_DETECTION_THRESHOLD", "0.7"))
     )
-    BIAS_DETECTION_TIMEOUT: int = field(
-        default_factory=lambda: int(os.environ.get("BIAS_DETECTION_TIMEOUT", "30"))
-    )
+    BIAS_DETECTION_TIMEOUT: int = field(default_factory=lambda: int(os.environ.get("BIAS_DETECTION_TIMEOUT", "30")))
 
     # Logging Configuration
     LOG_LEVEL: str = field(default_factory=lambda: os.environ.get("LOG_LEVEL", "INFO"))
-    LOG_FORMAT: str = field(
-        default_factory=lambda: os.environ.get("LOG_FORMAT", "json")
-    )
-    LOG_FILE_PATH: str | None = field(
-        default_factory=lambda: os.environ.get("LOG_FILE_PATH")
-    )
-    LOG_MAX_FILE_SIZE_MB: int = field(
-        default_factory=lambda: int(os.environ.get("LOG_MAX_FILE_SIZE_MB", "100"))
-    )
-    LOG_BACKUP_COUNT: int = field(
-        default_factory=lambda: int(os.environ.get("LOG_BACKUP_COUNT", "5"))
-    )
+    LOG_FORMAT: str = field(default_factory=lambda: os.environ.get("LOG_FORMAT", "json"))
+    LOG_FILE_PATH: str | None = field(default_factory=lambda: os.environ.get("LOG_FILE_PATH"))
+    LOG_MAX_FILE_SIZE_MB: int = field(default_factory=lambda: int(os.environ.get("LOG_MAX_FILE_SIZE_MB", "100")))
+    LOG_BACKUP_COUNT: int = field(default_factory=lambda: int(os.environ.get("LOG_BACKUP_COUNT", "5")))
 
     # Performance Configuration
-    RESPONSE_TIMEOUT: int = field(
-        default_factory=lambda: int(os.environ.get("RESPONSE_TIMEOUT", "50"))
-    )
-    CACHE_TTL_SECONDS: int = field(
-        default_factory=lambda: int(os.environ.get("CACHE_TTL_SECONDS", "3600"))
-    )
+    RESPONSE_TIMEOUT: int = field(default_factory=lambda: int(os.environ.get("RESPONSE_TIMEOUT", "50")))
+    CACHE_TTL_SECONDS: int = field(default_factory=lambda: int(os.environ.get("CACHE_TTL_SECONDS", "3600")))
     ENABLE_COMPRESSION: bool = field(
-        default_factory=lambda: os.environ.get("ENABLE_COMPRESSION", "True").lower()
-        == "true"
+        default_factory=lambda: os.environ.get("ENABLE_COMPRESSION", "True").lower() == "true"
     )
 
     # CORS Configuration
@@ -228,9 +140,7 @@ class MCPConfig:
         ).split(",")
     )
     ALLOWED_METHODS: list[str] = field(
-        default_factory=lambda: os.environ.get(
-            "ALLOWED_METHODS", "GET,POST,PUT,DELETE,OPTIONS"
-        ).split(",")
+        default_factory=lambda: os.environ.get("ALLOWED_METHODS", "GET,POST,PUT,DELETE,OPTIONS").split(",")
     )
     ALLOWED_HEADERS: list[str] = field(
         default_factory=lambda: os.environ.get(
@@ -240,113 +150,69 @@ class MCPConfig:
 
     # Security Headers
     ENABLE_SECURITY_HEADERS: bool = field(
-        default_factory=lambda: os.environ.get(
-            "ENABLE_SECURITY_HEADERS", "True"
-        ).lower()
-        == "true"
+        default_factory=lambda: os.environ.get("ENABLE_SECURITY_HEADERS", "True").lower() == "true"
     )
     CONTENT_SECURITY_POLICY: str = field(
-        default_factory=lambda: os.environ.get(
-            "CONTENT_SECURITY_POLICY", "default-src 'self'"
-        )
+        default_factory=lambda: os.environ.get("CONTENT_SECURITY_POLICY", "default-src 'self'")
     )
 
     # HIPAA Compliance Configuration
     ENABLE_AUDIT_LOGGING: bool = field(
-        default_factory=lambda: os.environ.get("ENABLE_AUDIT_LOGGING", "True").lower()
-        == "true"
+        default_factory=lambda: os.environ.get("ENABLE_AUDIT_LOGGING", "True").lower() == "true"
     )
-    AUDIT_LOG_RETENTION_DAYS: int = field(
-        default_factory=lambda: int(os.environ.get("AUDIT_LOG_RETENTION_DAYS", "90"))
-    )
+    AUDIT_LOG_RETENTION_DAYS: int = field(default_factory=lambda: int(os.environ.get("AUDIT_LOG_RETENTION_DAYS", "90")))
     ENCRYPT_SENSITIVE_DATA: bool = field(
-        default_factory=lambda: os.environ.get("ENCRYPT_SENSITIVE_DATA", "True").lower()
-        == "true"
+        default_factory=lambda: os.environ.get("ENCRYPT_SENSITIVE_DATA", "True").lower() == "true"
     )
-    DATA_RETENTION_DAYS: int = field(
-        default_factory=lambda: int(os.environ.get("DATA_RETENTION_DAYS", "365"))
-    )
+    DATA_RETENTION_DAYS: int = field(default_factory=lambda: int(os.environ.get("DATA_RETENTION_DAYS", "365")))
 
     # Integration Configuration
     TECHDECK_FLASK_API_URL: str = field(
-        default_factory=lambda: os.environ.get(
-            "TECHDECK_FLASK_API_URL", "http://localhost:5000"
-        )
+        default_factory=lambda: os.environ.get("TECHDECK_FLASK_API_URL", "http://localhost:5000")
     )
     SHARED_SECRET_KEY: str = field(
-        default_factory=lambda: os.environ.get(
-            "SHARED_SECRET_KEY", "shared-secret-between-services"
-        )
+        default_factory=lambda: os.environ.get("SHARED_SECRET_KEY", "shared-secret-between-services")
     )
 
     # Health Check Configuration
-    HEALTH_CHECK_TIMEOUT: int = field(
-        default_factory=lambda: int(os.environ.get("HEALTH_CHECK_TIMEOUT", "5"))
-    )
-    HEALTH_CHECK_INTERVAL: int = field(
-        default_factory=lambda: int(os.environ.get("HEALTH_CHECK_INTERVAL", "30"))
-    )
+    HEALTH_CHECK_TIMEOUT: int = field(default_factory=lambda: int(os.environ.get("HEALTH_CHECK_TIMEOUT", "5")))
+    HEALTH_CHECK_INTERVAL: int = field(default_factory=lambda: int(os.environ.get("HEALTH_CHECK_INTERVAL", "30")))
 
     # Circuit Breaker Configuration
     CIRCUIT_BREAKER_ENABLED: bool = field(
-        default_factory=lambda: os.environ.get(
-            "CIRCUIT_BREAKER_ENABLED", "True"
-        ).lower()
-        == "true"
+        default_factory=lambda: os.environ.get("CIRCUIT_BREAKER_ENABLED", "True").lower() == "true"
     )
     CIRCUIT_BREAKER_FAILURE_THRESHOLD: int = field(
-        default_factory=lambda: int(
-            os.environ.get("CIRCUIT_BREAKER_FAILURE_THRESHOLD", "5")
-        )
+        default_factory=lambda: int(os.environ.get("CIRCUIT_BREAKER_FAILURE_THRESHOLD", "5"))
     )
     CIRCUIT_BREAKER_RECOVERY_TIMEOUT: int = field(
-        default_factory=lambda: int(
-            os.environ.get("CIRCUIT_BREAKER_RECOVERY_TIMEOUT", "60")
-        )
+        default_factory=lambda: int(os.environ.get("CIRCUIT_BREAKER_RECOVERY_TIMEOUT", "60"))
     )
 
     # Monitoring Configuration
     ENABLE_DETAILED_METRICS: bool = field(
-        default_factory=lambda: os.environ.get(
-            "ENABLE_DETAILED_METRICS", "True"
-        ).lower()
-        == "true"
+        default_factory=lambda: os.environ.get("ENABLE_DETAILED_METRICS", "True").lower() == "true"
     )
     METRICS_COLLECTION_INTERVAL: int = field(
         default_factory=lambda: int(os.environ.get("METRICS_COLLECTION_INTERVAL", "60"))
     )
     ALERT_THRESHOLD_ERROR_RATE: float = field(
-        default_factory=lambda: float(
-            os.environ.get("ALERT_THRESHOLD_ERROR_RATE", "0.05")
-        )
+        default_factory=lambda: float(os.environ.get("ALERT_THRESHOLD_ERROR_RATE", "0.05"))
     )
     ALERT_THRESHOLD_RESPONSE_TIME: int = field(
-        default_factory=lambda: int(
-            os.environ.get("ALERT_THRESHOLD_RESPONSE_TIME", "50")
-        )
+        default_factory=lambda: int(os.environ.get("ALERT_THRESHOLD_RESPONSE_TIME", "50"))
     )
 
     # Zep Cloud Configuration
-    ZEP_API_KEY: str | None = field(
-        default_factory=lambda: os.environ.get("ZEP_API_KEY")
-    )
-    ZEP_API_URL: str | None = field(
-        default_factory=lambda: os.environ.get("ZEP_API_URL")
-    )
-    ZEP_ENABLED: bool = field(
-        default_factory=lambda: os.environ.get("ZEP_ENABLED", "True").lower() == "true"
-    )
+    ZEP_API_KEY: str | None = field(default_factory=lambda: os.environ.get("ZEP_API_KEY"))
+    ZEP_API_URL: str | None = field(default_factory=lambda: os.environ.get("ZEP_API_URL"))
+    ZEP_ENABLED: bool = field(default_factory=lambda: os.environ.get("ZEP_ENABLED", "True").lower() == "true")
 
     # Memory Server Configuration
-    MEMORY_SERVER_PORT: int = field(
-        default_factory=lambda: int(os.environ.get("MEMORY_SERVER_PORT", "54321"))
-    )
-    MEMORY_SERVER_HOST: str = field(
-        default_factory=lambda: os.environ.get("MEMORY_SERVER_HOST", "0.0.0.0")
-    )
+    MEMORY_SERVER_PORT: int = field(default_factory=lambda: int(os.environ.get("MEMORY_SERVER_PORT", "54321")))
+    MEMORY_SERVER_HOST: str = field(default_factory=lambda: os.environ.get("MEMORY_SERVER_HOST", "0.0.0.0"))
     MEMORY_CACHE_ENABLED: bool = field(
-        default_factory=lambda: os.environ.get("MEMORY_CACHE_ENABLED", "True").lower()
-        == "true"
+        default_factory=lambda: os.environ.get("MEMORY_CACHE_ENABLED", "True").lower() == "true"
     )
     MEMORY_CACHE_TTL_SECONDS: int = field(
         default_factory=lambda: int(os.environ.get("MEMORY_CACHE_TTL_SECONDS", "3600"))
@@ -370,9 +236,7 @@ class MCPConfig:
                 missing_settings.append(setting)
 
         if missing_settings:
-            raise ValueError(
-                f"Missing required configuration settings: {missing_settings}"
-            )
+            raise ValueError(f"Missing required configuration settings: {missing_settings}")
 
     def _validate_file_paths(self) -> None:
         """Validate file paths and create directories if needed."""
@@ -419,10 +283,7 @@ class MCPConfig:
         for setting, (min_val, max_val) in numeric_validations.items():
             value = getattr(self, setting)
             if not (min_val <= value <= max_val):
-                raise ValueError(
-                    f"Configuration {setting} must be between {min_val} and "
-                    f"{max_val}, got {value}"
-                )
+                raise ValueError(f"Configuration {setting} must be between {min_val} and {max_val}, got {value}")
 
     def _setup_logging(self) -> None:
         """Setup basic logging configuration."""

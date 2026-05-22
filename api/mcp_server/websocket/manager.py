@@ -15,6 +15,7 @@ from ai.api.mcp_server.config import MCPConfig
 
 logger = logging.getLogger(__name__)
 
+
 class WebSocketManager:
     """Manage WebSocket connections and real-time events."""
 
@@ -27,10 +28,7 @@ class WebSocketManager:
         """Handle agent status subscription."""
         agent_id = data.get("agent_id")
         if not agent_id:
-            logger.warning(
-                f"Client {sid} attempted to subscribe to agent status "
-                "without agent_id"
-            )
+            logger.warning(f"Client {sid} attempted to subscribe to agent status without agent_id")
             return
 
         join_room(f"agent_status_{agent_id}", sid=sid)
@@ -43,78 +41,46 @@ class WebSocketManager:
         """Handle task progress subscription."""
         task_id = data.get("task_id")
         if not task_id:
-            logger.warning(
-                f"Client {sid} attempted to subscribe to task progress "
-                "without task_id"
-            )
+            logger.warning(f"Client {sid} attempted to subscribe to task progress without task_id")
             return
 
         join_room(f"task_progress_{task_id}", sid=sid)
         logger.info(f"Client {sid} subscribed to task {task_id} progress updates")
 
-        emit(
-            "subscription_confirmed",
-            {"target": f"task_progress_{task_id}"},
-            to=sid
-        )
+        emit("subscription_confirmed", {"target": f"task_progress_{task_id}"}, to=sid)
 
     def handle_pipeline_updates_subscribe(self, sid: str, data: dict[str, Any]) -> None:
         """Handle pipeline updates subscription."""
         execution_id = data.get("execution_id")
         if not execution_id:
-            logger.warning(
-                f"Client {sid} attempted to subscribe to pipeline updates "
-                "without execution_id"
-            )
+            logger.warning(f"Client {sid} attempted to subscribe to pipeline updates without execution_id")
             return
 
         join_room(f"pipeline_updates_{execution_id}", sid=sid)
-        logger.info(
-            f"Client {sid} subscribed to pipeline {execution_id} status updates"
-        )
+        logger.info(f"Client {sid} subscribed to pipeline {execution_id} status updates")
 
-        emit(
-            "subscription_confirmed",
-            {"target": f"pipeline_updates_{execution_id}"},
-            to=sid
-        )
+        emit("subscription_confirmed", {"target": f"pipeline_updates_{execution_id}"}, to=sid)
 
-    def broadcast_agent_update(
-        self, agent_id: str, update_data: dict[str, Any]
-    ) -> None:
+    def broadcast_agent_update(self, agent_id: str, update_data: dict[str, Any]) -> None:
         """Broadcast agent status update to registered observers."""
-        self.socketio.emit(
-            "agent_status_update",
-            update_data,
-            to=f"agent_status_{agent_id}"
-        )
+        self.socketio.emit("agent_status_update", update_data, to=f"agent_status_{agent_id}")
         logger.debug(f"Broadcasted status update for agent {agent_id}")
 
     def broadcast_task_update(self, task_id: str, update_data: dict[str, Any]) -> None:
         """Broadcast task progress update to registered observers."""
-        self.socketio.emit(
-            "task_progress_update",
-            update_data,
-            to=f"task_progress_{task_id}"
-        )
+        self.socketio.emit("task_progress_update", update_data, to=f"task_progress_{task_id}")
         logger.debug(f"Broadcasted progress update for task {task_id}")
 
-    def broadcast_pipeline_update(
-        self, execution_id: str, update_data: dict[str, Any]
-    ) -> None:
+    def broadcast_pipeline_update(self, execution_id: str, update_data: dict[str, Any]) -> None:
         """Broadcast pipeline update to registered observers."""
-        self.socketio.emit(
-            "pipeline_update",
-            update_data,
-            to=f"pipeline_updates_{execution_id}"
-        )
+        self.socketio.emit("pipeline_update", update_data, to=f"pipeline_updates_{execution_id}")
         logger.debug(f"Broadcasted update for pipeline {execution_id}")
 
     def handle_client_connect(self, sid: str, environ: dict[str, Any]) -> None:
         """Process new WebSocket client connection."""
         self.active_clients[sid] = {
             "connected_at": environ.get("REMOTE_ADDR"),
-            "user_agent": environ.get("HTTP_USER_AGENT")
+            "user_agent": environ.get("HTTP_USER_AGENT"),
         }
         logger.info(f"WebSocket client {sid} connected")
 

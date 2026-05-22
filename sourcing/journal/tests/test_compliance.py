@@ -6,7 +6,7 @@ and encryption functionality.
 """
 
 import tempfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -336,7 +336,7 @@ class TestComplianceChecker:
             source_id="test-1",
             title="Test Dataset",
             authors=["Author 1"],
-            publication_date=datetime.now(timezone.utc),
+            publication_date=datetime.now(UTC),
             source_type="journal",
             url="https://example.com/dataset",
             open_access=True,
@@ -360,7 +360,7 @@ class TestComplianceChecker:
                 source_id="test-2",
                 title="Test Dataset",
                 authors=["Author 1"],
-                publication_date=datetime.now(timezone.utc),
+                publication_date=datetime.now(UTC),
                 source_type="clinical_trial",
                 url="https://example.com/dataset",
                 abstract="Patient therapy session data",
@@ -382,7 +382,7 @@ class TestComplianceChecker:
                 source_id="test-3",
                 title="Test Dataset",
                 authors=["Author 1"],
-                publication_date=datetime.now(timezone.utc),
+                publication_date=datetime.now(UTC),
                 source_type="repository",
                 url="https://example.com/dataset",
             )
@@ -398,4 +398,3 @@ class TestComplianceChecker:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
-

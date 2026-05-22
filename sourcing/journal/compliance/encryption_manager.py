@@ -4,6 +4,7 @@ Encryption Manager
 Implements encryption for sensitive data at rest and in transit. Provides secure
 key management and encryption/decryption operations for datasets and configuration data.
 """
+
 import json
 import logging
 import os
@@ -57,9 +58,7 @@ class EncryptionManager:
 
         logger.info(f"Encryption manager initialized: {self.key_directory}")
 
-    def encrypt_file(
-        self, file_path: str, output_path: str | None = None
-    ) -> str:
+    def encrypt_file(self, file_path: str, output_path: str | None = None) -> str:
         """
         Encrypt a file at rest.
 
@@ -98,9 +97,7 @@ class EncryptionManager:
             logger.error(f"Error encrypting file {file_path}: {e}")
             raise
 
-    def decrypt_file(
-        self, encrypted_file_path: str, output_path: str | None = None
-    ) -> str:
+    def decrypt_file(self, encrypted_file_path: str, output_path: str | None = None) -> str:
         """
         Decrypt a file.
 
@@ -218,9 +215,7 @@ class EncryptionManager:
         """
         try:
             # Generate private key
-            private_key = rsa.generate_private_key(
-                public_exponent=65537, key_size=2048, backend=default_backend()
-            )
+            private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048, backend=default_backend())
 
             # Get public key
             public_key = private_key.public_key()
@@ -256,9 +251,7 @@ class EncryptionManager:
         """
         try:
             # Load public key
-            public_key = serialization.load_pem_public_key(
-                public_key_pem, backend=default_backend()
-            )
+            public_key = serialization.load_pem_public_key(public_key_pem, backend=default_backend())
 
             # Encrypt data
             return public_key.encrypt(
@@ -270,14 +263,11 @@ class EncryptionManager:
                 ),
             )
 
-
         except Exception as e:
             logger.error(f"Error encrypting with public key: {e}")
             raise
 
-    def decrypt_with_private_key(
-        self, encrypted_data: bytes, private_key_pem: bytes
-    ) -> bytes:
+    def decrypt_with_private_key(self, encrypted_data: bytes, private_key_pem: bytes) -> bytes:
         """
         Decrypt data with RSA private key.
 
@@ -290,9 +280,7 @@ class EncryptionManager:
         """
         try:
             # Load private key
-            private_key = serialization.load_pem_private_key(
-                private_key_pem, password=None, backend=default_backend()
-            )
+            private_key = serialization.load_pem_private_key(private_key_pem, password=None, backend=default_backend())
 
             # Decrypt data
             return private_key.decrypt(
@@ -303,7 +291,6 @@ class EncryptionManager:
                     label=None,
                 ),
             )
-
 
         except Exception as e:
             logger.error(f"Error decrypting with private key: {e}")
@@ -327,7 +314,6 @@ class EncryptionManager:
             # Encrypt
             return self.encrypt_string(config_json)
 
-
         except Exception as e:
             logger.error(f"Error encrypting configuration: {e}")
             raise
@@ -349,7 +335,6 @@ class EncryptionManager:
 
             # Deserialize
             return json.loads(decrypted_config_json)
-
 
         except Exception as e:
             logger.error(f"Error decrypting configuration: {e}")
@@ -415,4 +400,3 @@ class EncryptionManager:
             backend=default_backend(),
         )
         return kdf.derive(password.encode("utf-8"))
-

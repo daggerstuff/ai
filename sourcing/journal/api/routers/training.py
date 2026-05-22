@@ -111,7 +111,6 @@ async def integrate_dataset(
             auto_integrate=auto_integrate,
         )
 
-
     except HTTPException:
         raise
     except Exception as e:
@@ -150,7 +149,6 @@ async def get_training_status(
 
         # Get training status for all datasets in session
         return await training_service.get_session_status(session_id, state)
-
 
     except Exception as e:
         logger.error(
@@ -253,9 +251,7 @@ async def integrate_all_datasets(
                     failed_count += 1
 
             except Exception as e:
-                logger.error(
-                    f"Error integrating dataset {source_id}: {e}", exc_info=True
-                )
+                logger.error(f"Error integrating dataset {source_id}: {e}", exc_info=True)
                 results.append(
                     {
                         "source_id": source_id,

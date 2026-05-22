@@ -191,5 +191,3 @@ evaluate_sources(
 - Compliance checks are performed automatically during evaluation
 - You can manually override evaluation scores if needed
 """
-
-

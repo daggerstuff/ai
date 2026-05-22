@@ -3,6 +3,7 @@
 Dataset deduplication script that identifies and removes duplicate entries
 within and across datasets.
 """
+
 import argparse
 import hashlib
 import json
@@ -30,6 +31,7 @@ DATASET_SECTION_NAMES = [
     "voice_persona",
     "supplementary",
 ]
+
 
 class DatasetDeduplicator:
     """Identifies and removes duplicate entries in datasets."""
@@ -61,9 +63,7 @@ class DatasetDeduplicator:
         """Compute hash of content for deduplication."""
         return hashlib.sha256(content.encode("utf-8")).hexdigest()
 
-    def compute_record_hash(
-        self, record: dict[str, Any], key_fields: list[str] | None = None
-    ) -> str:
+    def compute_record_hash(self, record: dict[str, Any], key_fields: list[str] | None = None) -> str:
         """
         Compute hash of a record for deduplication.
 
@@ -75,9 +75,7 @@ class DatasetDeduplicator:
             Hash string
         """
         if key_fields:
-            hash_content = json.dumps(
-                {k: record.get(k) for k in key_fields if k in record}, sort_keys=True
-            )
+            hash_content = json.dumps({k: record.get(k) for k in key_fields if k in record}, sort_keys=True)
         else:
             # Exclude metadata fields
             exclude_fields = {"_id", "_hash", "_timestamp", "_source"}
@@ -103,11 +101,7 @@ class DatasetDeduplicator:
 
             # Detect format
             if s3_path.endswith(".jsonl"):
-                records = [
-                    json.loads(line)
-                    for line in content.strip().split("\n")
-                    if line.strip()
-                ]
+                records = [json.loads(line) for line in content.strip().split("\n") if line.strip()]
             elif s3_path.endswith(".json"):
                 data = json.loads(content)
                 if isinstance(data, list):
@@ -181,9 +175,7 @@ class DatasetDeduplicator:
         )
 
         if source_key_lower.endswith(JSONL_EXTENSION):
-            content = "\n".join(
-                json.dumps(record, ensure_ascii=False) for record in deduplicated_records
-            )
+            content = "\n".join(json.dumps(record, ensure_ascii=False) for record in deduplicated_records)
             if content:
                 content += "\n"
             content_type = "application/x-ndjson"
@@ -228,7 +220,6 @@ class DatasetDeduplicator:
             if len({loc.split(":")[0] for loc in locations}) > 1
         }
 
-
     def deduplicate_dataset(
         self,
         _dataset_name: str,
@@ -261,9 +252,7 @@ class DatasetDeduplicator:
         original_count = len(records)
 
         # Find duplicates
-        deduplicated, duplicate_groups = self.find_duplicates_in_dataset(
-            records, key_fields
-        )
+        deduplicated, duplicate_groups = self.find_duplicates_in_dataset(records, key_fields)
 
         duplicate_count = original_count - len(deduplicated)
 
@@ -272,17 +261,13 @@ class DatasetDeduplicator:
             "deduplicated_count": len(deduplicated),
             "duplicates_found": duplicate_count,
             "duplicate_groups": len(duplicate_groups),
-            "deduplication_ratio": round(duplicate_count / original_count * 100, 2)
-            if original_count > 0
-            else 0,
+            "deduplication_ratio": round(duplicate_count / original_count * 100, 2) if original_count > 0 else 0,
         }
 
         # Write deduplicated dataset if requested
         if write_output and duplicate_count > 0:
             try:
-                output_path, output_bytes = self._write_deduplicated_to_s3(
-                    s3_path, deduplicated
-                )
+                output_path, output_bytes = self._write_deduplicated_to_s3(s3_path, deduplicated)
                 stats["output_path"] = output_path
                 stats["output_bytes"] = output_bytes
             except Exception as exc:
@@ -297,9 +282,7 @@ class DatasetDeduplicator:
 
         return stats
 
-    def _collect_nested_datasets(
-        self, section_data: dict[str, Any], prefix: str
-    ) -> list[tuple[str, dict[str, Any]]]:
+    def _collect_nested_datasets(self, section_data: dict[str, Any], prefix: str) -> list[tuple[str, dict[str, Any]]]:
         if not isinstance(section_data, dict):
             return []
         return [
@@ -308,9 +291,7 @@ class DatasetDeduplicator:
             if isinstance(dataset_entry, dict) and "path" in dataset_entry
         ]
 
-    def _collect_deduplication_datasets(
-        self, registry: dict[str, Any]
-    ) -> list[tuple[str, dict[str, Any]]]:
+    def _collect_deduplication_datasets(self, registry: dict[str, Any]) -> list[tuple[str, dict[str, Any]]]:
         datasets: list[tuple[str, dict[str, Any]]] = []
 
         category_data = registry.get("datasets")
@@ -325,27 +306,17 @@ class DatasetDeduplicator:
                     )
 
         for section_name in DATASET_SECTION_NAMES:
-            datasets.extend(
-                self._collect_nested_datasets(
-                    registry.get(section_name, {}), section_name
-                )
-            )
+            datasets.extend(self._collect_nested_datasets(registry.get(section_name, {}), section_name))
 
         return datasets
 
-    def _lookup_dataset_entry(
-        self, registry: dict[str, Any], dataset_name: str
-    ) -> dict[str, Any] | None:
+    def _lookup_dataset_entry(self, registry: dict[str, Any], dataset_name: str) -> dict[str, Any] | None:
         parts = dataset_name.split(".")
         if len(parts) < MIN_DATASET_NAME_PARTS:
             return None
 
         if parts[0] == "datasets" and len(parts) == DATASETS_SECTION_PARTS:
-            return (
-                registry.get("datasets", {})
-                .get(parts[1], {})
-                .get(parts[2], {})
-            )
+            return registry.get("datasets", {}).get(parts[1], {}).get(parts[2], {})
 
         return registry.get(parts[0], {}).get(parts[1], {})
 
@@ -386,12 +357,8 @@ class DatasetDeduplicator:
 
                 # Update registry with dedup metadata
                 if "quality_metrics" in dataset_entry:
-                    dataset_entry["quality_metrics"]["duplicate_count"] = (
-                        dedup_result.get("duplicates_found", 0)
-                    )
-                    dataset_entry["quality_metrics"]["deduplication_ratio"] = (
-                        dedup_result.get("deduplication_ratio", 0)
-                    )
+                    dataset_entry["quality_metrics"]["duplicate_count"] = dedup_result.get("duplicates_found", 0)
+                    dataset_entry["quality_metrics"]["deduplication_ratio"] = dedup_result.get("deduplication_ratio", 0)
 
             except Exception as e:
                 results[dataset_path_key] = {"error": str(e)}
@@ -441,18 +408,14 @@ class DatasetDeduplicator:
                 loaded_datasets[name] = records
 
         # Find cross-dataset duplicates
-        cross_duplicates = self.find_duplicates_across_datasets(
-            loaded_datasets, key_fields
-        )
+        cross_duplicates = self.find_duplicates_across_datasets(loaded_datasets, key_fields)
 
         # Analyze results
         duplicate_stats = {
             "total_unique_hashes": len(cross_duplicates),
             "datasets_analyzed": len(loaded_datasets),
             "total_records_analyzed": sum(len(r) for r in loaded_datasets.values()),
-            "cross_dataset_duplicate_count": sum(
-                len(locs) for locs in cross_duplicates.values()
-            ),
+            "cross_dataset_duplicate_count": sum(len(locs) for locs in cross_duplicates.values()),
         }
 
         # Group by which datasets share duplicates
@@ -462,17 +425,12 @@ class DatasetDeduplicator:
             dataset_overlap[datasets_involved] += 1
 
         duplicate_stats["dataset_overlaps"] = {
-            "->".join(k): v
-            for k, v in sorted(
-                dataset_overlap.items(), key=lambda x: x[1], reverse=True
-            )[:20]
+            "->".join(k): v for k, v in sorted(dataset_overlap.items(), key=lambda x: x[1], reverse=True)[:20]
         }
 
         return {
             "statistics": duplicate_stats,
-            "sample_duplicates": dict(
-                list(cross_duplicates.items())[:10]
-            ),  # Show first 10
+            "sample_duplicates": dict(list(cross_duplicates.items())[:10]),  # Show first 10
         }
 
 
@@ -492,9 +450,7 @@ def main():
         default="dedupe",
         help="Deduplication action to perform",
     )
-    parser.add_argument(
-        "--limit", type=int, default=None, help="Maximum number of datasets to process"
-    )
+    parser.add_argument("--limit", type=int, default=None, help="Maximum number of datasets to process")
     parser.add_argument(
         "--key-fields",
         type=str,
@@ -523,7 +479,6 @@ def main():
     deduplicator = DatasetDeduplicator(args.registry)
 
     if args.action in ["dedupe", "both"]:
-
         results = deduplicator.deduplicate_all_datasets(
             limit=args.limit, key_fields=key_fields, write_output=args.write_output
         )
@@ -537,7 +492,6 @@ def main():
                 pass
 
     if args.action in ["cross-dataset", "both"]:
-
         dataset_names = None
         if args.datasets:
             dataset_names = [d.strip() for d in args.datasets.split(",")]

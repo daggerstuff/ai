@@ -4,6 +4,7 @@ Pixelated Empathy AI - ASGI Entry Point
 Exports a Starlette ASGI app for production deployment.
 FastAPI/Starlette are ASGI-native and work with any ASGI server.
 """
+
 import json
 import logging
 from contextlib import asynccontextmanager
@@ -83,13 +84,16 @@ async def _run_reflection(request) -> JSONResponse:
         user_id=authorized_user_id,
     )
 
-    return JSONResponse({
-        "status": "success",
-        "crisis_detected": result.crisis_detected,
-        "requires_review": result.requires_manual_review,
-        "memories_preserved": len(result.memories_preserved),
-        "memories_consolidated": len(result.memories_consolidated),
-    })
+    return JSONResponse(
+        {
+            "status": "success",
+            "crisis_detected": result.crisis_detected,
+            "requires_review": result.requires_manual_review,
+            "memories_preserved": len(result.memories_preserved),
+            "memories_consolidated": len(result.memories_consolidated),
+        }
+    )
+
 
 @asynccontextmanager
 async def lifespan(_app):

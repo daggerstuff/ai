@@ -1,7 +1,6 @@
-
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from ai.memory.local_memory_adapter import normalize_tags
 
@@ -29,7 +28,7 @@ class InMemoryStore:
 
     @staticmethod
     def _now() -> str:
-        return datetime.now(timezone.utc).isoformat()
+        return datetime.now(UTC).isoformat()
 
     def user_revision(self, user_id: str) -> int:
         return self._coordination.user_revision(user_id)

@@ -202,7 +202,6 @@ class _MemorySearchAdapter:
         raise NotImplementedError  # subclasses must override
 
 
-
 @dataclass(frozen=True)
 class _BasicMemorySearchAdapter(_MemorySearchAdapter):
     manager: BasicMemorySearcher

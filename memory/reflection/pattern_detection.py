@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Cross-Session Pattern Detection — Sprint 4, Task 3.
 
 Detects recurring themes, progress trends, trigger correlations,
@@ -10,8 +9,7 @@ from __future__ import annotations
 import logging
 import time
 from collections import Counter, defaultdict
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple
+from dataclasses import dataclass
 
 from ..schema import MemoryBlock
 from .session_consolidation import SessionSummary
@@ -23,7 +21,7 @@ log = logging.getLogger(__name__)
 class RecurringTheme:
     theme: str
     frequency: int
-    sessions: List[str]
+    sessions: list[str]
     avg_valence: float
     trend: str
 
@@ -33,7 +31,7 @@ class ProgressTrend:
     metric: str
     direction: str  # "improving", "declining", "stable"
     confidence: float
-    data_points: List[float]
+    data_points: list[float]
     slope: float
 
 
@@ -43,7 +41,7 @@ class TriggerPattern:
     response: str
     co_occurrence_count: int
     confidence: float
-    example_sessions: List[str]
+    example_sessions: list[str]
 
 
 @dataclass(frozen=True)
@@ -57,10 +55,10 @@ class InterventionResult:
 
 @dataclass
 class PatternReport:
-    recurring_themes: List[RecurringTheme]
-    progress_trends: List[ProgressTrend]
-    trigger_patterns: List[TriggerPattern]
-    intervention_results: List[InterventionResult]
+    recurring_themes: list[RecurringTheme]
+    progress_trends: list[ProgressTrend]
+    trigger_patterns: list[TriggerPattern]
+    intervention_results: list[InterventionResult]
     elapsed_ms: float
 
 
@@ -77,8 +75,8 @@ class PatternDetector:
 
     def analyze(
         self,
-        sessions: List[SessionSummary],
-        raw_memories: Optional[List[MemoryBlock]] = None,
+        sessions: list[SessionSummary],
+        raw_memories: list[MemoryBlock] | None = None,
     ) -> PatternReport:
         """Run full pattern analysis across sessions."""
         t0 = time.perf_counter()
@@ -107,30 +105,24 @@ class PatternDetector:
         )
         return report
 
-    def _detect_recurring_themes(
-        self, sessions: List[SessionSummary]
-    ) -> List[RecurringTheme]:
+    def _detect_recurring_themes(self, sessions: list[SessionSummary]) -> list[RecurringTheme]:
         """Find themes that appear across multiple sessions."""
-        theme_sessions: Dict[str, List[str]] = defaultdict(list)
-        theme_valences: Dict[str, List[float]] = defaultdict(list)
+        theme_sessions: dict[str, list[str]] = defaultdict(list)
+        theme_valences: dict[str, list[float]] = defaultdict(list)
 
         for s in sessions:
             for theme in s.themes:
                 theme_sessions[theme].append(s.session_id)
                 theme_valences[theme].append(s.emotional_arc.avg_valence)
 
-        results: List[RecurringTheme] = []
+        results: list[RecurringTheme] = []
         for theme, session_list in theme_sessions.items():
             if len(session_list) < self._min_freq:
                 continue
             valences = theme_valences[theme]
             if len(valences) >= 2:
-                first_half = sum(valences[: len(valences) // 2]) / (
-                    len(valences) // 2
-                )
-                second_half = sum(valences[len(valences) // 2 :]) / (
-                    len(valences) - len(valences) // 2
-                )
+                first_half = sum(valences[: len(valences) // 2]) / (len(valences) // 2)
+                second_half = sum(valences[len(valences) // 2 :]) / (len(valences) - len(valences) // 2)
                 if second_half > first_half + 0.05:
                     trend = "improving"
                 elif second_half < first_half - 0.05:
@@ -153,9 +145,7 @@ class PatternDetector:
         results.sort(key=lambda t: t.frequency, reverse=True)
         return results
 
-    def _detect_progress_trends(
-        self, sessions: List[SessionSummary]
-    ) -> List[ProgressTrend]:
+    def _detect_progress_trends(self, sessions: list[SessionSummary]) -> list[ProgressTrend]:
         """Detect improvement/decline trends in emotional metrics."""
         if len(sessions) < 2:
             return []
@@ -164,11 +154,7 @@ class PatternDetector:
         valences = [s.emotional_arc.avg_valence for s in sorted_sessions]
 
         slope = self._linear_slope(valences)
-        direction = (
-            "improving" if slope > 0.02
-            else "declining" if slope < -0.02
-            else "stable"
-        )
+        direction = "improving" if slope > 0.02 else "declining" if slope < -0.02 else "stable"
         confidence = min(abs(slope) * 10, 1.0)
 
         return [
@@ -183,9 +169,9 @@ class PatternDetector:
 
     def _detect_triggers(
         self,
-        sessions: List[SessionSummary],
-        raw_memories: Optional[List[MemoryBlock]] = None,
-    ) -> List[TriggerPattern]:
+        sessions: list[SessionSummary],
+        raw_memories: list[MemoryBlock] | None = None,
+    ) -> list[TriggerPattern]:
         """Find co-occurring trigger-response patterns."""
         if raw_memories is None:
             return []
@@ -195,8 +181,8 @@ class PatternDetector:
             if m.gating.crisisFlag:
                 crisis_sessions.add(m.sessionId)
 
-        theme_counts: Dict[str, int] = Counter()
-        theme_crisis: Dict[str, int] = Counter()
+        theme_counts: dict[str, int] = Counter()
+        theme_crisis: dict[str, int] = Counter()
 
         for s in sessions:
             for theme in s.themes:
@@ -204,7 +190,7 @@ class PatternDetector:
                 if s.session_id in crisis_sessions:
                     theme_crisis[theme] += 1
 
-        patterns: List[TriggerPattern] = []
+        patterns: list[TriggerPattern] = []
         for theme, count in theme_counts.items():
             crisis_count = theme_crisis.get(theme, 0)
             if crisis_count >= self._min_freq:
@@ -217,19 +203,14 @@ class PatternDetector:
                             co_occurrence_count=crisis_count,
                             confidence=round(confidence, 2),
                             example_sessions=[
-                                s.session_id
-                                for s in sessions
-                                if theme in s.themes
-                                and s.session_id in crisis_sessions
+                                s.session_id for s in sessions if theme in s.themes and s.session_id in crisis_sessions
                             ][:3],
                         )
                     )
 
         return patterns
 
-    def _analyze_interventions(
-        self, sessions: List[SessionSummary]
-    ) -> List[InterventionResult]:
+    def _analyze_interventions(self, sessions: list[SessionSummary]) -> list[InterventionResult]:
         """Track intervention effectiveness via valence changes."""
         if len(sessions) < 2:
             return []
@@ -256,7 +237,7 @@ class PatternDetector:
         ]
 
     @staticmethod
-    def _linear_slope(values: List[float]) -> float:
+    def _linear_slope(values: list[float]) -> float:
         """Simple linear regression slope."""
         n = len(values)
         if n < 2:

@@ -8,6 +8,7 @@ Provides integration with Letta Code SDK for autonomous agent capabilities:
 - Autonomous memory updates
 - Multi-project memory sharing
 """
+
 import asyncio
 import contextlib
 import json
@@ -15,7 +16,7 @@ import logging
 import os
 import stat
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -43,6 +44,7 @@ def retry_on_failure(max_retries=MAX_RETRIES, delay=RETRY_DELAY, backoff=RETRY_B
         delay: Initial delay between retries
         backoff: Multiplier for delay after each retry
     """
+
     def decorator(func):
         async def wrapper(*args, **kwargs):
             last_exception = None
@@ -54,20 +56,25 @@ def retry_on_failure(max_retries=MAX_RETRIES, delay=RETRY_DELAY, backoff=RETRY_B
                 except Exception as e:
                     last_exception = e
                     if attempt < max_retries - 1:
-                        logger.warning(f"Attempt {attempt + 1}/{max_retries} failed: {e}. Retrying in {current_delay}s...")
+                        logger.warning(
+                            f"Attempt {attempt + 1}/{max_retries} failed: {e}. Retrying in {current_delay}s..."
+                        )
                         await asyncio.sleep(current_delay)
                         current_delay *= backoff
                     else:
                         logger.error(f"All {max_retries} attempts failed: {e}")
 
             raise last_exception or Exception("Unknown error")
+
         return wrapper
+
     return decorator
 
 
 @dataclass
 class LettaConfig:
     """Configuration for Letta SDK integration."""
+
     api_key: str | None = None
     base_url: str = DEFAULT_BASE_URL
     agent_id: str | None = None
@@ -80,7 +87,17 @@ class LettaConfig:
             if self.mode == "read-only":
                 self.sdk_tools = ["Read", "Grep", "Glob", "web_search", "fetch_webpage"]
             elif self.mode == "full":
-                self.sdk_tools = ["Read", "Grep", "Glob", "web_search", "fetch_webpage", "Bash", "Edit", "Write", "Task"]
+                self.sdk_tools = [
+                    "Read",
+                    "Grep",
+                    "Glob",
+                    "web_search",
+                    "fetch_webpage",
+                    "Bash",
+                    "Edit",
+                    "Write",
+                    "Task",
+                ]
             else:
                 self.sdk_tools = []
 
@@ -187,7 +204,7 @@ class LettaClient:
                 config_data = json.loads(CONFIG_FILE.read_text())
 
         config_data["agent_id"] = agent_id
-        config_data["last_updated"] = datetime.now(timezone.utc).isoformat()
+        config_data["last_updated"] = datetime.now(UTC).isoformat()
 
         # P0 Fix: Set secure permissions on config file (owner read/write only)
         CONFIG_FILE.write_text(json.dumps(config_data, indent=2))
@@ -214,7 +231,7 @@ class LettaClient:
             # P0 Fix: Add timeout to prevent hanging
             await asyncio.wait_for(
                 self._stream_messages(messages, session_id),
-                timeout=60.0  # 60 second timeout for entire transcript
+                timeout=60.0,  # 60 second timeout for entire transcript
             )
             logger.info(f"Streamed {len(messages)} messages to Letta agent")
 
@@ -232,7 +249,7 @@ class LettaClient:
                 content=message.get("content", ""),
                 metadata={
                     "session_id": session_id,
-                    "timestamp": message.get("timestamp", datetime.now(timezone.utc).isoformat()),
+                    "timestamp": message.get("timestamp", datetime.now(UTC).isoformat()),
                 },
             )
 

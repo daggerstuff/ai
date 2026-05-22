@@ -30,25 +30,23 @@ import logging
 import math
 import sys
 import time
-import urllib.request
-import urllib.parse
 import urllib.error
-from dataclasses import dataclass, asdict
+import urllib.parse
+import urllib.request
+from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any
 
 # Ensure ai.core.pipelines is on path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from ai.core.pipelines.acquisition_rubric import (
-    AcquisitionRubric,
-    GateDecision,
-    GATE_1_SCHEMA_FLOOR,
     GATE_1_DEDUP_CEILING,
-    GATE_1_SCORE_FLOOR,
     GATE_1_RELEVANCE_FLOOR,
+    GATE_1_SCHEMA_FLOOR,
+    GATE_1_SCORE_FLOOR,
     GATE_2_RETENTION_FLOOR,
     GATE_2_SCHEMA_FLOOR,
+    AcquisitionRubric,
     PilotReport,
 )
 
@@ -60,6 +58,7 @@ log = logging.getLogger("pilot")
 
 
 # ── RedditConverter (same implementation as ai/sourcing/convert_reddit_to_training.py) ──
+
 
 def _anon_id(raw: str) -> str:
     digest = hashlib.sha256(raw.encode()).hexdigest()[:12]
@@ -74,6 +73,7 @@ class RedditConverter:
 
     def _scrub(self, text: str) -> str:
         import re
+
         text = re.sub(r"/u/\w+", "[user]", text)
         text = re.sub(r"/r/\w+", "[subreddit]", text)
         return text
@@ -112,37 +112,41 @@ class RedditConverter:
             comment_body = self._scrub(top_comment.get("body", ""))
             comment_author = top_comment.get("author", "")
             if comment_body and comment_body != "[deleted]" and comment_body != "[removed]":
-                pairs.append({
-                    "messages": [
-                        {"role": "user", "content": prompt.strip()},
-                        {"role": "assistant", "content": comment_body}
-                    ],
-                    "meta": {
-                        "source": "reddit",
-                        "author_anon": self._canonical_anon(author),
-                        "commenter_anon": self._canonical_anon(comment_author),
-                        "subreddit": self._scrub(post.get("subreddit", "")),
-                        "score": post.get("score", 0),
-                        "num_comments": post.get("num_comments", 0),
+                pairs.append(
+                    {
+                        "messages": [
+                            {"role": "user", "content": prompt.strip()},
+                            {"role": "assistant", "content": comment_body},
+                        ],
+                        "meta": {
+                            "source": "reddit",
+                            "author_anon": self._canonical_anon(author),
+                            "commenter_anon": self._canonical_anon(comment_author),
+                            "subreddit": self._scrub(post.get("subreddit", "")),
+                            "score": post.get("score", 0),
+                            "num_comments": post.get("num_comments", 0),
+                        },
                     }
-                })
+                )
         elif prompt:
             # Fallback: use selftext as a self-response for Q&A style posts
             fallback = post.get("fallback_self", "")
             if fallback:
-                pairs.append({
-                    "messages": [
-                        {"role": "user", "content": prompt.strip()},
-                        {"role": "assistant", "content": self._scrub(fallback)}
-                    ],
-                    "meta": {
-                        "source": "reddit",
-                        "author_anon": self._canonical_anon(author),
-                        "subreddit": self._scrub(post.get("subreddit", "")),
-                        "score": post.get("score", 0),
-                        "response_source": "selftext_fallback",
+                pairs.append(
+                    {
+                        "messages": [
+                            {"role": "user", "content": prompt.strip()},
+                            {"role": "assistant", "content": self._scrub(fallback)},
+                        ],
+                        "meta": {
+                            "source": "reddit",
+                            "author_anon": self._canonical_anon(author),
+                            "subreddit": self._scrub(post.get("subreddit", "")),
+                            "score": post.get("score", 0),
+                            "response_source": "selftext_fallback",
+                        },
                     }
-                })
+                )
 
         return pairs
 
@@ -230,6 +234,7 @@ def fetch_subreddit_posts(subreddit: str, limit: int, after: int | None = None) 
 
 # ── Gate evaluation ───────────────────────────────────────────────────────────
 
+
 @dataclass
 class Gate1Results:
     schema_coverage_pct: float
@@ -251,9 +256,12 @@ def evaluate_schema_coverage(samples: list[dict]) -> float:
     if not samples:
         return 0.0
     valid = sum(
-        1 for s in samples
-        if isinstance(s, dict) and "messages" in s
-        and isinstance(s["messages"], list) and len(s["messages"]) >= 2
+        1
+        for s in samples
+        if isinstance(s, dict)
+        and "messages" in s
+        and isinstance(s["messages"], list)
+        and len(s["messages"]) >= 2
         and s["messages"][0].get("content", "").strip()
         and s["messages"][1].get("content", "").strip()
     )
@@ -267,9 +275,7 @@ def evaluate_dedup_rate(samples: list[dict]) -> float:
 
     def _hash(s: dict) -> str:
         msgs = s.get("messages", [])
-        return hashlib.sha256(
-            (msgs[0].get("content", "") if msgs else "").encode()
-        ).hexdigest()
+        return hashlib.sha256((msgs[0].get("content", "") if msgs else "").encode()).hexdigest()
 
     seen: set[str] = set()
     dups = 0
@@ -289,18 +295,37 @@ def evaluate_therapeutic_relevance(samples: list[dict]) -> int:
     Production would use a model-based classifier.
     """
     THERAPEUTIC_KEYWORDS = {
-        "therapy", "therapist", "trauma", "anxiety", "depression", "grief",
-        "ptsd", "cptsd", "narcissist", "narcissism", "abuse", "survivor",
-        "boundaries", "codependency", "attachment", "healing", "processing",
-        "coping", "emotional", "regulation", "inner child", "dysfunction",
-        "toxic", "enmeshment", "gaslighting", "family system", "therapeutic",
+        "therapy",
+        "therapist",
+        "trauma",
+        "anxiety",
+        "depression",
+        "grief",
+        "ptsd",
+        "cptsd",
+        "narcissist",
+        "narcissism",
+        "abuse",
+        "survivor",
+        "boundaries",
+        "codependency",
+        "attachment",
+        "healing",
+        "processing",
+        "coping",
+        "emotional",
+        "regulation",
+        "inner child",
+        "dysfunction",
+        "toxic",
+        "enmeshment",
+        "gaslighting",
+        "family system",
+        "therapeutic",
     }
     score_buckets = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     for sample in samples:
-        text = " ".join(
-            msg.get("content", "").lower()
-            for msg in sample.get("messages", [])
-        )
+        text = " ".join(msg.get("content", "").lower() for msg in sample.get("messages", []))
         keywords_found = sum(1 for kw in THERAPEUTIC_KEYWORDS if kw in text)
         if keywords_found >= 5:
             score_buckets[9] += 1
@@ -329,12 +354,7 @@ def evaluate_gate1(
     training_integration = 8
     # Ethical accessibility: public, anonymized, CC-licensed
     ethical = 8
-    score = (
-        relevance * 0.35
-        + structure * 0.25
-        + training_integration * 0.20
-        + ethical * 0.20
-    )
+    score = relevance * 0.35 + structure * 0.25 + training_integration * 0.20 + ethical * 0.20
     report = PilotReport(
         source_id="reddit-mentalhealth-public",
         sample_size=len(samples),
@@ -387,8 +407,11 @@ def evaluate_gate2(
             if r is not None and "messages" in r:
                 msgs = r["messages"]
                 if isinstance(msgs, list) and len(msgs) >= 2:
-                    if all(isinstance(m, dict) and "content" in m and m["content"].strip()
-                           for m in msgs if m.get("role") in ("user", "assistant")):
+                    if all(
+                        isinstance(m, dict) and "content" in m and m["content"].strip()
+                        for m in msgs
+                        if m.get("role") in ("user", "assistant")
+                    ):
                         schema_valid += 1
         except Exception:
             pass
@@ -425,11 +448,15 @@ def run_pilot(limit: int, output_dir: Path, max_per_sub: int = 200) -> tuple[lis
         comment_map: dict[str, dict] = {}
         BATCH_SIZE = 50
         for i in range(0, len(post_ids), BATCH_SIZE):
-            batch_ids = post_ids[i:i + BATCH_SIZE]
+            batch_ids = post_ids[i : i + BATCH_SIZE]
             batch = fetch_comments_batch(batch_ids)
             comment_map.update(batch)
-            log.debug("Fetched comments for batch %d/%d (r/%s)", i // BATCH_SIZE + 1,
-                       math.ceil(len(post_ids) / BATCH_SIZE), subreddit)
+            log.debug(
+                "Fetched comments for batch %d/%d (r/%s)",
+                i // BATCH_SIZE + 1,
+                math.ceil(len(post_ids) / BATCH_SIZE),
+                subreddit,
+            )
             time.sleep(2)  # polite delay between batches
 
         for post in posts:
@@ -461,20 +488,27 @@ def run_pilot(limit: int, output_dir: Path, max_per_sub: int = 200) -> tuple[lis
     log.info("Conversion complete: %d training samples from %d raw posts", len(all_samples), posts_collected)
 
     gate1 = evaluate_gate1(all_samples, rubric)
-    log.info("Gate 1: overall=%.2f, relevance=%d, schema=%.1f%%, dedup=%.1f%% → %s",
-             gate1.overall_pilot_score, gate1.therapeutic_relevance_score,
-             gate1.schema_coverage_pct, gate1.dedup_rate, "PASS" if gate1.passed else "FAIL")
+    log.info(
+        "Gate 1: overall=%.2f, relevance=%d, schema=%.1f%%, dedup=%.1f%% → %s",
+        gate1.overall_pilot_score,
+        gate1.therapeutic_relevance_score,
+        gate1.schema_coverage_pct,
+        gate1.dedup_rate,
+        "PASS" if gate1.passed else "FAIL",
+    )
 
     gate2 = evaluate_gate2(all_samples, gate1.schema_coverage_pct)
-    log.info("Gate 2: retention=%.1f%%, schema_val=%.1f%% → %s",
-             gate2.net_retention_pct, gate2.schema_validation_pct,
-             "PASS" if gate2.passed else "FAIL")
+    log.info(
+        "Gate 2: retention=%.1f%%, schema_val=%.1f%% → %s",
+        gate2.net_retention_pct,
+        gate2.schema_validation_pct,
+        "PASS" if gate2.passed else "FAIL",
+    )
 
     return all_samples, gate1, gate2
 
 
-def write_output(samples: list[dict], gate1: Gate1Results, gate2: Gate2Results,
-                 output_dir: Path, limit: int) -> None:
+def write_output(samples: list[dict], gate1: Gate1Results, gate2: Gate2Results, output_dir: Path, limit: int) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Write training samples
@@ -506,18 +540,20 @@ def write_output(samples: list[dict], gate1: Gate1Results, gate2: Gate2Results,
     log.info("  train.jsonl     : %d samples", split_idx)
     log.info("  val.jsonl       : %d samples", len(samples) - split_idx)
     log.info("  gate_results.json: written")
-    log.info("OVERALL: %s (%s)",
-             "✅ PASS — recommendation: GO" if results["overall_passed"]
-             else f"⚠️  FAIL — recommendation: {results['recommendation']}",
-             f"G1={'pass' if gate1.passed else 'FAIL'} G2={'pass' if gate2.passed else 'FAIL'}")
+    log.info(
+        "OVERALL: %s (%s)",
+        "✅ PASS — recommendation: GO"
+        if results["overall_passed"]
+        else f"⚠️  FAIL — recommendation: {results['recommendation']}",
+        f"G1={'pass' if gate1.passed else 'FAIL'} G2={'pass' if gate2.passed else 'FAIL'}",
+    )
 
 
-def generate_report(samples: list[dict], gate1: Gate1Results, gate2: Gate2Results,
-                     limit: int) -> str:
+def generate_report(samples: list[dict], gate1: Gate1Results, gate2: Gate2Results, limit: int) -> str:
     lines = [
         "# PIX-181: Public-Web Acquisition Pilot — Execution Report",
         "",
-        f"**Issue**: [PIX-181](https://linear.app/pixelated/issue/PIX-181)",
+        "**Issue**: [PIX-181](https://linear.app/pixelated/issue/PIX-181)",
         f"**Status**: {'✅ PASS — GO' if (gate1.passed and gate2.passed) else '⚠️  FAIL — HOLD'}",
         f"**Date**: {time.strftime('%Y-%m-%d')}",
         "",
@@ -525,7 +561,7 @@ def generate_report(samples: list[dict], gate1: Gate1Results, gate2: Gate2Result
         "",
         "## Executive Summary",
         "",
-        f"A bounded acquisition pilot was executed against Reddit mental health communities",
+        "A bounded acquisition pilot was executed against Reddit mental health communities",
         f"({', '.join(SUBREDDITS)}), fetching and converting {len(samples)} training samples",
         f"from a target of {limit} posts.",
         "",
@@ -535,8 +571,8 @@ def generate_report(samples: list[dict], gate1: Gate1Results, gate2: Gate2Result
         "",
         "## Gate 1 Results (Pilot Evaluation)",
         "",
-        f"| Criterion | Threshold | Actual | Result |",
-        f"|-----------|-----------|--------|--------|",
+        "| Criterion | Threshold | Actual | Result |",
+        "|-----------|-----------|--------|--------|",
         f"| Overall score | ≥{GATE_1_SCORE_FLOOR} | {gate1.overall_pilot_score:.2f} | {'✅' if gate1.overall_pilot_score >= GATE_1_SCORE_FLOOR else '❌'} |",
         f"| Therapeutic relevance | ≥{GATE_1_RELEVANCE_FLOOR} | {gate1.therapeutic_relevance_score} | {'✅' if gate1.therapeutic_relevance_score >= GATE_1_RELEVANCE_FLOOR else '❌'} |",
         f"| Schema coverage | ≥{GATE_1_SCHEMA_FLOOR}% | {gate1.schema_coverage_pct:.1f}% | {'✅' if gate1.schema_coverage_pct >= GATE_1_SCHEMA_FLOOR else '❌'} |",
@@ -546,8 +582,8 @@ def generate_report(samples: list[dict], gate1: Gate1Results, gate2: Gate2Result
         "",
         "## Gate 2 Results (Curation Exit)",
         "",
-        f"| Criterion | Threshold | Actual | Result |",
-        f"|-----------|-----------|--------|--------|",
+        "| Criterion | Threshold | Actual | Result |",
+        "|-----------|-----------|--------|--------|",
         f"| Net retention | ≥{GATE_2_RETENTION_FLOOR}% | {gate2.net_retention_pct:.1f}% | {'✅' if gate2.net_retention_pct >= GATE_2_RETENTION_FLOOR else '❌'} |",
         f"| Schema validation | ≥{GATE_2_SCHEMA_FLOOR}% | {gate2.schema_validation_pct:.1f}% | {'✅' if gate2.schema_validation_pct >= GATE_2_SCHEMA_FLOOR else '❌'} |",
         "",
@@ -555,9 +591,9 @@ def generate_report(samples: list[dict], gate1: Gate1Results, gate2: Gate2Result
         "",
         "## Sample Quality Notes",
         "",
-        f"- Anonymization: all usernames replaced with stable `anon_<hash>` IDs",
-        f"- `/u/` and `/r/` references replaced with `[user]` and `[subreddit]`",
-        f"- Each sample includes `meta` block with anonymized author/commenter IDs",
+        "- Anonymization: all usernames replaced with stable `anon_<hash>` IDs",
+        "- `/u/` and `/r/` references replaced with `[user]` and `[subreddit]`",
+        "- Each sample includes `meta` block with anonymized author/commenter IDs",
         f"- Deduplication: prompt-level hash dedup at {gate1.dedup_rate:.1f}%",
         "",
         "## What Changed Since Deferred Report",
@@ -575,7 +611,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="PIX-181 Public-Web Acquisition Pilot")
     parser.add_argument("--limit", type=int, default=500, help="Target number of samples (default: 500)")
     parser.add_argument("--output-dir", "-o", type=str, default="ai/data/pilot-output", help="Output directory")
-    parser.add_argument("--dry-run", action="store_true", help="Skip network fetch; use cached data from ai/data/pilot-cache/ if present")
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Skip network fetch; use cached data from ai/data/pilot-cache/ if present",
+    )
     args = parser.parse_args()
 
     output_dir = Path(args.output_dir)
@@ -593,11 +633,13 @@ def main() -> None:
             rubric = AcquisitionRubric()
             gate1 = evaluate_gate1(samples, rubric)
             gate2 = evaluate_gate2(samples, gate1.schema_coverage_pct)
-            log.info("Gate 1: overall=%.2f → %s", gate1.overall_pilot_score,
-                     "PASS" if gate1.passed else "FAIL")
-            log.info("Gate 2: retention=%.1f%%, schema_val=%.1f%% → %s",
-                     gate2.net_retention_pct, gate2.schema_validation_pct,
-                     "PASS" if gate2.passed else "FAIL")
+            log.info("Gate 1: overall=%.2f → %s", gate1.overall_pilot_score, "PASS" if gate1.passed else "FAIL")
+            log.info(
+                "Gate 2: retention=%.1f%%, schema_val=%.1f%% → %s",
+                gate2.net_retention_pct,
+                gate2.schema_validation_pct,
+                "PASS" if gate2.passed else "FAIL",
+            )
         else:
             log.error("Dry-run requested but no cache found at %s", cache_path)
             sys.exit(2)

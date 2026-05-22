@@ -17,7 +17,7 @@ def validate_security_configurations():
         "authorization_config": True,
         "monitoring_config": True,
         "incident_response_config": True,
-        "compliance_config": True
+        "compliance_config": True,
     }
 
 

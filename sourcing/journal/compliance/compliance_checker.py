@@ -52,10 +52,7 @@ class ComplianceResult:
 
     def is_compliant(self, threshold: float = 0.7) -> bool:
         """Check if dataset meets compliance threshold."""
-        return (
-            self.compliance_status == "compliant"
-            and self.overall_compliance_score >= threshold
-        )
+        return self.compliance_status == "compliant" and self.overall_compliance_score >= threshold
 
 
 class ComplianceChecker:
@@ -114,9 +111,7 @@ class ComplianceChecker:
         # 1. Check license compatibility
         try:
             license_text_to_check = license_text or source.url or ""
-            result.license_check = self.license_checker.check_license(
-                license_text_to_check
-            )
+            result.license_check = self.license_checker.check_license(license_text_to_check)
 
             # Log license check
             if self.audit_logger:
@@ -199,15 +194,11 @@ class ComplianceChecker:
                 )
 
         except Exception as e:
-            logger.error(
-                f"Error validating HIPAA compliance for {source.source_id}: {e}"
-            )
+            logger.error(f"Error validating HIPAA compliance for {source.source_id}: {e}")
             result.issues.append(f"HIPAA validation failed: {e!s}")
 
         # 4. Calculate overall compliance score
-        result.overall_compliance_score = self._calculate_overall_compliance_score(
-            result
-        )
+        result.overall_compliance_score = self._calculate_overall_compliance_score(result)
 
         # 5. Determine compliance status
         result.compliance_status = self._determine_compliance_status(result)
@@ -237,10 +228,7 @@ class ComplianceChecker:
             license_score = 0.0
             if result.license_check.ai_training_compatible.value == "compatible":
                 license_score = 1.0
-            elif (
-                result.license_check.ai_training_compatible.value
-                == "compatible_with_conditions"
-            ):
+            elif result.license_check.ai_training_compatible.value == "compatible_with_conditions":
                 license_score = 0.7
             elif result.license_check.ai_training_compatible.value == "requires_review":
                 license_score = 0.5
@@ -336,8 +324,7 @@ class ComplianceChecker:
         # 2. Privacy issues detected
         if result.privacy_assessment and (
             result.privacy_assessment.pii_detected
-            and result.privacy_assessment.re_identification_risk.value
-            in ["high", "critical"]
+            and result.privacy_assessment.re_identification_risk.value in ["high", "critical"]
         ):
             return True
 

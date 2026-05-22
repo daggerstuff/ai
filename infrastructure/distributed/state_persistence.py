@@ -3,6 +3,7 @@
 Progress State Persistence System for Pixelated Empathy AI
 Maintains processing state across system restarts and failures
 """
+
 import asyncio
 import gzip
 import hashlib
@@ -14,7 +15,7 @@ import threading
 import time
 import uuid
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -80,9 +81,7 @@ class PersistenceConfig:
     compression_enabled: bool = True
     encryption_enabled: bool = False
     redundancy_copies: int = 2
-    storage_path: str = (
-        "/home/vivi/pixelated/ai/infrastructure/distributed/persistent_state"
-    )
+    storage_path: str = "/home/vivi/pixelated/ai/infrastructure/distributed/persistent_state"
     lock_timeout_seconds: int = 30
 
 
@@ -170,9 +169,7 @@ class StatePersistenceManager:
             return
 
         self.persistence_active = True
-        self.persistence_thread = threading.Thread(
-            target=self._persistence_loop, daemon=True
-        )
+        self.persistence_thread = threading.Thread(target=self._persistence_loop, daemon=True)
         self.persistence_thread.start()
 
         logger.info("Started state persistence system")
@@ -198,9 +195,7 @@ class StatePersistenceManager:
     ) -> str:
         """Register a new persistent state"""
 
-        state_id = (
-            f"{scope.value}_{process_id}_{int(time.time())}_{uuid.uuid4().hex[:8]}"
-        )
+        state_id = f"{scope.value}_{process_id}_{int(time.time())}_{uuid.uuid4().hex[:8]}"
 
         persistent_state = PersistentState(
             state_id=state_id,
@@ -209,11 +204,11 @@ class StatePersistenceManager:
             task_id=task_id,
             state_data=initial_data or {},
             metadata={
-                "registered_at": datetime.now(timezone.utc).isoformat(),
+                "registered_at": datetime.now(UTC).isoformat(),
                 "persistence_level": self.config.persistence_level.value,
             },
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
 
         self.active_states[state_id] = persistent_state
@@ -249,7 +244,7 @@ class StatePersistenceManager:
 
             # Update version and timestamp
             state.version += 1
-            state.updated_at = datetime.now(timezone.utc)
+            state.updated_at = datetime.now(UTC)
 
             # Mark for persistence
             state.metadata["needs_persistence"] = True
@@ -311,9 +306,7 @@ class StatePersistenceManager:
 
                         restoration_results["restored_states"] += 1
                         if persistent_state.process_id:
-                            restoration_results["restored_processes"].append(
-                                persistent_state.process_id
-                            )
+                            restoration_results["restored_processes"].append(persistent_state.process_id)
 
                         logger.info(f"Restored persistent state {state_id}")
 
@@ -323,9 +316,7 @@ class StatePersistenceManager:
                         logger.error(f"Failed to restore state {state_id}: {e}")
 
                 # Update metrics
-                self.persistence_metrics["states_restored"] = restoration_results[
-                    "restored_states"
-                ]
+                self.persistence_metrics["states_restored"] = restoration_results["restored_states"]
 
         except Exception as e:
             logger.error(f"Failed to restore system state: {e}")
@@ -344,7 +335,7 @@ class StatePersistenceManager:
             # Collect all system state
             system_state = {
                 "snapshot_id": snapshot_id,
-                "created_at": datetime.now(timezone.utc).isoformat(),
+                "created_at": datetime.now(UTC).isoformat(),
                 "active_states": {},
                 "checkpoint_stats": self.checkpoint_manager.get_system_stats(),
                 "persistence_metrics": self.persistence_metrics.copy(),
@@ -370,7 +361,6 @@ class StatePersistenceManager:
 
             # Compress if enabled
             if self.config.compression_enabled:
-
                 with open(snapshot_path, "rb") as f_in, gzip.open(f"{snapshot_path}.gz", "wb") as f_out:
                     f_out.writelines(f_in)
                 snapshot_path.unlink()  # Remove uncompressed version
@@ -405,7 +395,6 @@ class StatePersistenceManager:
 
             # Load snapshot data
             if snapshot_path.suffix == ".gz":
-
                 with gzip.open(snapshot_path, "rt") as f:
                     system_state = json.load(f)
             else:
@@ -454,17 +443,14 @@ class StatePersistenceManager:
                 if persisted_count > 0:
                     persistence_time = time.time() - start_time
                     self.persistence_metrics["states_persisted"] += persisted_count
-                    self.persistence_metrics["last_persistence"] = datetime.now(timezone.utc)
+                    self.persistence_metrics["last_persistence"] = datetime.now(UTC)
 
                     # Update average persistence time
                     if self.persistence_metrics["avg_persistence_time"] == 0:
-                        self.persistence_metrics["avg_persistence_time"] = (
-                            persistence_time
-                        )
+                        self.persistence_metrics["avg_persistence_time"] = persistence_time
                     else:
                         self.persistence_metrics["avg_persistence_time"] = (
-                            self.persistence_metrics["avg_persistence_time"] * 0.9
-                            + persistence_time * 0.1
+                            self.persistence_metrics["avg_persistence_time"] * 0.9 + persistence_time * 0.1
                         )
 
                 # Cleanup old states
@@ -585,15 +571,11 @@ class StatePersistenceManager:
             # Include checkpoint data if available
             if state.process_id:
                 try:
-                    checkpoints = self.checkpoint_manager.storage.list_checkpoints(
-                        process_id=state.process_id
-                    )
+                    checkpoints = self.checkpoint_manager.storage.list_checkpoints(process_id=state.process_id)
                     if checkpoints:
                         latest_checkpoint = checkpoints[0]
-                        _, checkpoint_data = (
-                            self.checkpoint_manager.storage.load_checkpoint(
-                                latest_checkpoint.checkpoint_id
-                            )
+                        _, checkpoint_data = self.checkpoint_manager.storage.load_checkpoint(
+                            latest_checkpoint.checkpoint_id
                         )
                         comprehensive_data["checkpoint_data"] = checkpoint_data
                 except Exception as e:
@@ -629,9 +611,7 @@ class StatePersistenceManager:
     def _cleanup_old_states(self):
         """Clean up old persistent states"""
 
-        cutoff_time = datetime.now(timezone.utc) - timedelta(
-            hours=self.config.state_retention_hours
-        )
+        cutoff_time = datetime.now(UTC) - timedelta(hours=self.config.state_retention_hours)
 
         try:
             with sqlite3.connect(self.db_path) as conn:
@@ -658,12 +638,8 @@ class StatePersistenceManager:
                             file_path_obj.unlink()
 
                     # Remove from database
-                    conn.execute(
-                        "DELETE FROM persistent_states WHERE state_id = ?", (state_id,)
-                    )
-                    conn.execute(
-                        "DELETE FROM state_history WHERE state_id = ?", (state_id,)
-                    )
+                    conn.execute("DELETE FROM persistent_states WHERE state_id = ?", (state_id,))
+                    conn.execute("DELETE FROM state_history WHERE state_id = ?", (state_id,))
 
                 if old_states:
                     logger.info(f"Cleaned up {len(old_states)} old persistent states")
@@ -687,10 +663,8 @@ class StatePersistenceManager:
                     last_backup_str = f.read().strip()
                 last_backup = datetime.fromisoformat(last_backup_str)
 
-                time_since_backup = datetime.now(timezone.utc) - last_backup
-                should_backup = time_since_backup.total_seconds() > (
-                    self.config.backup_interval_hours * 3600
-                )
+                time_since_backup = datetime.now(UTC) - last_backup
+                should_backup = time_since_backup.total_seconds() > (self.config.backup_interval_hours * 3600)
             except Exception:
                 should_backup = True
 
@@ -706,7 +680,7 @@ class StatePersistenceManager:
 
                 # Update last backup time
                 with open(last_backup_file, "w") as f:
-                    f.write(datetime.now(timezone.utc).isoformat())
+                    f.write(datetime.now(UTC).isoformat())
 
                 logger.info(f"Created backup snapshot {snapshot_id}")
 
@@ -723,12 +697,8 @@ class StatePersistenceManager:
             "metrics": self.persistence_metrics.copy(),
             "storage_info": {
                 "storage_path": str(self.storage_path),
-                "db_size_mb": self.db_path.stat().st_size / (1024 * 1024)
-                if self.db_path.exists()
-                else 0,
-                "backup_count": len(list(self.backup_path.glob("*")))
-                if self.backup_path.exists()
-                else 0,
+                "db_size_mb": self.db_path.stat().st_size / (1024 * 1024) if self.db_path.exists() else 0,
+                "backup_count": len(list(self.backup_path.glob("*"))) if self.backup_path.exists() else 0,
             },
         }
 
@@ -736,7 +706,6 @@ class StatePersistenceManager:
 # Example usage
 async def example_state_persistence():
     """Example of using state persistence system"""
-
 
     # Initialize systems
     checkpoint_manager = CheckpointManager()
@@ -771,7 +740,7 @@ async def example_state_persistence():
                     "current_batch": f"batch_{i}",
                 },
                 metadata_updates={
-                    "last_update": datetime.now(timezone.utc).isoformat(),
+                    "last_update": datetime.now(UTC).isoformat(),
                     "update_count": i + 1,
                 },
             )

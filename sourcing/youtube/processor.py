@@ -9,10 +9,11 @@ Coordinates the full workflow:
 5. Score and rank channels
 6. Generate report
 """
+
 import json
 import logging
-from datetime import datetime
 import time
+from datetime import datetime
 
 from ai.sourcing.youtube.api import (
     ChannelAnalyzer,
@@ -91,7 +92,13 @@ class ChannelProcessor:
     ):
         self.api = YouTubeAPI(api_key)
         self.config = hunter_config or ChannelHunterConfig()
-        self.thresholds = quality_thresholds or ChannelQualityThresholds()
+        self.thresholds = quality_thresholds or ChannelQualityThresholds(
+            content_quality=0.55,
+            clinical_accuracy=0.50,
+            production_quality=0.40,
+            credibility_score=0.05,
+            overall_minimum=0.40,
+        )
         self.analyzer = ChannelAnalyzer()
 
     def run_discovery(
@@ -114,13 +121,13 @@ class ChannelProcessor:
 
         results = ChannelDiscoveryResults()
 
-        hunter = YouTubeChannelHunter(self.config)
+        hunter = YouTubeChannelHunter(self.config, api_key=self.api.api_key)
 
         # Phase 1: Discover channels
         logger.info("Phase 1: Channel Discovery")
         discovered = hunter.discover_channels(progress_callback)
         if _max_searches > 0:
-            discovered = discovered[: _max_searches]
+            discovered = discovered[:_max_searches]
 
         for channel in discovered:
             if progress_callback:
@@ -166,6 +173,12 @@ class ChannelProcessor:
         channel.created_date = self._parse_iso8601(details.get("publishedAt"))
         channel.last_updated = self._parse_iso8601(details.get("publishedAt"))
 
+        # InnerTube returns 0 for unavailable stats; skip checks in that case
+        if channel.subscriber_count > 0 and channel.subscriber_count < self.config.min_subscribers:
+            return False
+        if channel.video_count > 0 and channel.video_count < self.config.min_videos:
+            return False
+
         # Get sample videos for analysis
         videos = self.api.get_channel_videos(channel.channel_id, max_results=10)
         if not videos:
@@ -173,21 +186,11 @@ class ChannelProcessor:
             return False
 
         # Extract features from videos
-        video_titles = [
-            v.get("snippet", {}).get("title", v.get("title", ""))
-            for v in videos
-        ]
-        video_descriptions = [
-            v.get("snippet", {}).get("description", v.get("description", ""))
-            for v in videos
-        ]
+        video_titles = [v.get("snippet", {}).get("title", v.get("title", "")) for v in videos]
+        video_descriptions = [v.get("snippet", {}).get("description", v.get("description", "")) for v in videos]
         video_tags = [v.get("snippet", {}).get("tags", v.get("tags", [])) for v in videos]
 
-        all_text = (
-            f"{details.get('description', '')}\n\n"
-            f"{' '.join(video_titles)}\n"
-            f"{' '.join(video_descriptions)}"
-        )
+        all_text = f"{details.get('description', '')}\n\n{' '.join(video_titles)}\n{' '.join(video_descriptions)}"
 
         # Analyze quality metrics
         metrics = QualityMetrics()
@@ -220,9 +223,7 @@ class ChannelProcessor:
         channel.credentials = credentials
 
         # Extract licensing info
-        channel.licensing = self.analyzer.extract_licensing_info(
-            details.get("description", ""), video_descriptions
-        )
+        channel.licensing = self.analyzer.extract_licensing_info(details.get("description", ""), video_descriptions)
 
         # Set status
         channel.status = ChannelStatus.ACTIVE
@@ -285,15 +286,15 @@ class ChannelProcessor:
         metrics.content_quality = (metrics.content_quality * sample_count + min(1.0, content_quality)) / (
             sample_count + 1
         )
-        metrics.clinical_accuracy = (
-            metrics.clinical_accuracy * sample_count + min(1.0, clinical_accuracy)
-        ) / (sample_count + 1)
-        metrics.production_quality = (
-            metrics.production_quality * sample_count + min(1.0, production_quality)
-        ) / (sample_count + 1)
-        metrics.engagement_quality = (
-            metrics.engagement_quality * sample_count + min(1.0, engagement_quality)
-        ) / (sample_count + 1)
+        metrics.clinical_accuracy = (metrics.clinical_accuracy * sample_count + min(1.0, clinical_accuracy)) / (
+            sample_count + 1
+        )
+        metrics.production_quality = (metrics.production_quality * sample_count + min(1.0, production_quality)) / (
+            sample_count + 1
+        )
+        metrics.engagement_quality = (metrics.engagement_quality * sample_count + min(1.0, engagement_quality)) / (
+            sample_count + 1
+        )
         metrics.consistency_score = min(1.0, max(0.2, 0.35 + 0.65 * (sample_count + 1) / 5))
         metrics.credibility_score = min(
             1.0, metrics.credibility_score + 0.02 + (0.05 if any(len(tag) > 8 for tag in tags) else 0)
@@ -398,15 +399,9 @@ class ChannelProcessor:
                 "credentials": channel.credentials,
                 "organization": channel.organization,
                 "licensing": {
-                    "cc_license": channel.licensing.cc_license
-                    if channel.licensing
-                    else False,
-                    "cc_type": channel.licensing.cc_type
-                    if channel.licensing
-                    else None,
-                    "commercial_use": channel.licensing.commercial_use
-                    if channel.licensing
-                    else False,
+                    "cc_license": channel.licensing.cc_license if channel.licensing else False,
+                    "cc_type": channel.licensing.cc_type if channel.licensing else None,
+                    "commercial_use": channel.licensing.commercial_use if channel.licensing else False,
                 }
                 if channel.licensing
                 else None,

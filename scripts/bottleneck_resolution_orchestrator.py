@@ -3,11 +3,12 @@
 Bottleneck Resolution Orchestrator
 Master script to execute the complete 3-week emergency resolution plan.
 """
+
 import json
 import logging
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -15,19 +16,17 @@ from typing import Any
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.FileHandler("bottleneck_resolution.log"),
-        logging.StreamHandler()
-    ]
+    handlers=[logging.FileHandler("bottleneck_resolution.log"), logging.StreamHandler()],
 )
 logger = logging.getLogger(__name__)
+
 
 class BottleneckResolutionOrchestrator:
     """Master orchestrator for the 3-week emergency resolution plan."""
 
     def __init__(self):
         self.scripts_dir = Path(__file__).parent
-        self.start_time = datetime.now(timezone.utc)
+        self.start_time = datetime.now(UTC)
         self.completed_phases = []
         self.failed_phases = []
 
@@ -37,9 +36,7 @@ class BottleneckResolutionOrchestrator:
 
         try:
             script_path = self.scripts_dir / script_name
-            result = subprocess.run([
-                sys.executable, str(script_path)
-            ], capture_output=True, text=True)
+            result = subprocess.run([sys.executable, str(script_path)], capture_output=True, text=True)
 
             if result.returncode == 0:
                 logger.info(f"✅ Completed: {description}")
@@ -108,7 +105,7 @@ class BottleneckResolutionOrchestrator:
 
         tasks = [
             ("emergency_backup.py", "Create emergency backup of all processed conversations"),
-            ("setup_production_database.py", "Setup PostgreSQL database and migrate data")
+            ("setup_production_database.py", "Setup PostgreSQL database and migrate data"),
         ]
 
         for script, description in tasks:
@@ -130,15 +127,15 @@ class BottleneckResolutionOrchestrator:
         # The Dockerfiles already exist, so we just need to build them
         docker_builds = [
             (".", "pixel-empathy-main", "Main application container"),
-            ("pixel_voice", "pixel-voice", "Voice processing container")
+            ("pixel_voice", "pixel-voice", "Voice processing container"),
         ]
 
         for build_context, image_name, description in docker_builds:
             logger.info(f"Building {description}...")
             try:
-                result = subprocess.run([
-                    "docker", "build", "-t", image_name, build_context
-                ], capture_output=True, text=True)
+                result = subprocess.run(
+                    ["docker", "build", "-t", image_name, build_context], capture_output=True, text=True
+                )
 
                 if result.returncode == 0:
                     logger.info(f"✅ {description} built successfully")
@@ -233,7 +230,7 @@ if __name__ == "__main__":
 
     def generate_completion_report(self) -> dict[str, Any]:
         """Generate completion report."""
-        end_time = datetime.now(timezone.utc)
+        end_time = datetime.now(UTC)
         duration = end_time - self.start_time
 
         report = {
@@ -242,8 +239,10 @@ if __name__ == "__main__":
             "duration_hours": duration.total_seconds() / 3600,
             "completed_phases": self.completed_phases,
             "failed_phases": self.failed_phases,
-            "success_rate": len(self.completed_phases) / (len(self.completed_phases) + len(self.failed_phases)) if (self.completed_phases or self.failed_phases) else 0,
-            "next_steps": []
+            "success_rate": len(self.completed_phases) / (len(self.completed_phases) + len(self.failed_phases))
+            if (self.completed_phases or self.failed_phases)
+            else 0,
+            "next_steps": [],
         }
 
         # Add next steps based on what was completed
@@ -263,12 +262,14 @@ if __name__ == "__main__":
             report["next_steps"].append("📊 Deploy monitoring systems")
 
         # Always add these as they're not automated yet
-        report["next_steps"].extend([
-            "🔄 Implement Redis task queue for distributed processing",
-            "🛡️ Add fault tolerance and circuit breaker patterns",
-            "🚀 Build REST API for dataset access",
-            "📋 Create operational runbooks and documentation"
-        ])
+        report["next_steps"].extend(
+            [
+                "🔄 Implement Redis task queue for distributed processing",
+                "🛡️ Add fault tolerance and circuit breaker patterns",
+                "🚀 Build REST API for dataset access",
+                "📋 Create operational runbooks and documentation",
+            ]
+        )
 
         return report
 
@@ -288,13 +289,13 @@ if __name__ == "__main__":
             (self.phase_1a_emergency_data_persistence, "Phase 1A: Emergency Data Persistence"),
             (self.phase_1b_core_infrastructure, "Phase 1B: Core Production Infrastructure"),
             (self.phase_1c_integration_testing, "Phase 1C: Integration Testing Framework"),
-            (self.phase_2a_monitoring_systems, "Phase 2A: Monitoring Systems")
+            (self.phase_2a_monitoring_systems, "Phase 2A: Monitoring Systems"),
         ]
 
         for phase_func, phase_name in phases:
-            logger.info(f"\n{'='*60}")
+            logger.info(f"\n{'=' * 60}")
             logger.info(f"EXECUTING: {phase_name}")
-            logger.info(f"{'='*60}")
+            logger.info(f"{'=' * 60}")
 
             if not phase_func():
                 logger.error(f"❌ {phase_name} FAILED")
@@ -311,14 +312,14 @@ if __name__ == "__main__":
             json.dump(report, f, indent=2)
 
         # Print summary
-        logger.info(f"\n{'='*60}")
+        logger.info(f"\n{'=' * 60}")
         logger.info("BOTTLENECK RESOLUTION SUMMARY")
-        logger.info(f"{'='*60}")
+        logger.info(f"{'=' * 60}")
         logger.info(f"Duration: {report['duration_hours']:.2f} hours")
         logger.info(f"Completed phases: {', '.join(report['completed_phases'])}")
         if report["failed_phases"]:
             logger.info(f"Failed phases: {', '.join(report['failed_phases'])}")
-        logger.info(f"Success rate: {report['success_rate']*100:.1f}%")
+        logger.info(f"Success rate: {report['success_rate'] * 100:.1f}%")
 
         logger.info("\nNext Steps:")
         for step in report["next_steps"]:
@@ -327,6 +328,7 @@ if __name__ == "__main__":
         logger.info(f"\nDetailed report saved to: {report_path}")
 
         return len(report["failed_phases"]) == 0
+
 
 def main():
     """Main orchestrator entry point."""
@@ -339,6 +341,7 @@ def main():
         logger.error("❌ BOTTLENECK RESOLUTION INCOMPLETE - MANUAL INTERVENTION REQUIRED")
 
     return success
+
 
 if __name__ == "__main__":
     success = main()

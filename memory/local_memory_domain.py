@@ -43,11 +43,7 @@ def resolve_user_id_from_payload(
     tags: Iterable[Any] = (),
     fallback_user_id: str | None = None,
 ) -> str | None:
-    return (
-        resolve_user_id_from_context(context)
-        or resolve_user_id_from_tags(tags)
-        or fallback_user_id
-    )
+    return resolve_user_id_from_context(context) or resolve_user_id_from_tags(tags) or fallback_user_id
 
 
 def resolve_user_id_from_record(record: dict[str, Any]) -> str | None:

@@ -9,7 +9,7 @@ therapist training and supervisor evaluation.
 
 import logging
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from pixelated_empathy_core import (
     ClientPersonality,
@@ -21,9 +21,7 @@ from pixelated_empathy_core import (
 from supervisor_evaluation_system import CompetencyLevel, SupervisorEvaluationEngine
 from therapeutic_simulation_engine import TherapeuticSimulationEngine
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -159,9 +157,7 @@ class PixelatedEmpathyPlatform:
     ) -> dict:
         """Create a new therapeutic training session"""
 
-        logger.info(
-            f"Creating training session: {personality_type.value} level {difficulty_level.value}"
-        )
+        logger.info(f"Creating training session: {personality_type.value} level {difficulty_level.value}")
 
         # Generate or use custom client profile
         if custom_profile:
@@ -172,9 +168,7 @@ class PixelatedEmpathyPlatform:
             )
 
         # Start simulation
-        training_session = await self.simulation_engine.start_simulation(
-            client_profile, trainee_id, supervisor_id
-        )
+        training_session = await self.simulation_engine.start_simulation(client_profile, trainee_id, supervisor_id)
 
         # Start evaluation
         evaluation_session = self.evaluation_engine.start_evaluation_session(
@@ -193,9 +187,7 @@ class PixelatedEmpathyPlatform:
                 "difficulty_level": client_profile.difficulty_level.value,
                 "presenting_problem": client_profile.presenting_problem,
                 "key_challenges": client_profile.therapeutic_challenges,
-                "learning_objectives": [
-                    obj.value for obj in client_profile.learning_objectives
-                ],
+                "learning_objectives": [obj.value for obj in client_profile.learning_objectives],
             },
             "training_info": {
                 "trainee_id": trainee_id,
@@ -218,9 +210,7 @@ class PixelatedEmpathyPlatform:
             "session_log": [],
         }
 
-        logger.info(
-            f"✅ Training session {training_session.session_id} created successfully"
-        )
+        logger.info(f"✅ Training session {training_session.session_id} created successfully")
 
         return session_info
 
@@ -238,9 +228,7 @@ class PixelatedEmpathyPlatform:
         session_data = self.active_sessions[session_id]
 
         # Process therapist response through simulation engine
-        client_response = await self.simulation_engine.process_therapist_response(
-            session_id, therapist_input
-        )
+        client_response = await self.simulation_engine.process_therapist_response(session_id, therapist_input)
 
         # Record supervisor observations if provided
         supervisor_feedback = []
@@ -257,7 +245,7 @@ class PixelatedEmpathyPlatform:
 
         # Log interaction
         interaction_log = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "therapist_input": therapist_input,
             "client_response": client_response.content,
             "client_emotional_state": client_response.emotional_state,
@@ -289,21 +277,13 @@ class PixelatedEmpathyPlatform:
             },
             "session_status": {
                 "breakthrough_achieved": client_response.breakthrough_achieved,
-                "crisis_indicators": [
-                    flag
-                    for flag in client_response.red_flags
-                    if "crisis" in flag.lower()
-                ],
-                "intervention_suggestions": self._generate_intervention_suggestions(
-                    client_response
-                ),
+                "crisis_indicators": [flag for flag in client_response.red_flags if "crisis" in flag.lower()],
+                "intervention_suggestions": self._generate_intervention_suggestions(client_response),
                 "session_phase": session_data["training_session"].current_phase,
             },
         }
 
-        logger.info(
-            f"Processed interaction {interaction_log['timestamp']} for session {session_id}"
-        )
+        logger.info(f"Processed interaction {interaction_log['timestamp']} for session {session_id}")
 
         return response
 
@@ -322,13 +302,9 @@ class PixelatedEmpathyPlatform:
             if ratings:
                 skill_summary[skill] = {
                     "current_average": statistics.mean(ratings),
-                    "trend": "improving"
-                    if len(ratings) > 1 and ratings[-1] > ratings[0]
-                    else "stable",
+                    "trend": "improving" if len(ratings) > 1 and ratings[-1] > ratings[0] else "stable",
                     "total_observations": len(ratings),
-                    "target_level": evaluation_session["thresholds"][
-                        "target_level"
-                    ].value,
+                    "target_level": evaluation_session["thresholds"]["target_level"].value,
                 }
 
         # Generate development recommendations
@@ -343,9 +319,7 @@ class PixelatedEmpathyPlatform:
                     "therapist_action": log_entry["therapist_input"][:100] + "...",
                     "client_emotional_state": log_entry["client_emotional_state"],
                     "therapeutic_progress": log_entry["therapeutic_progress"],
-                    "key_feedback": log_entry["supervisor_feedback"][:2]
-                    if log_entry["supervisor_feedback"]
-                    else [],
+                    "key_feedback": log_entry["supervisor_feedback"][:2] if log_entry["supervisor_feedback"] else [],
                 }
             )
 
@@ -354,37 +328,24 @@ class PixelatedEmpathyPlatform:
                 "session_id": session_id,
                 "trainee_id": evaluation_session["trainee_id"],
                 "trainee_level": evaluation_session["trainee_level"],
-                "session_duration": str(
-                    datetime.now(timezone.utc) - evaluation_session["start_time"]
-                ),
+                "session_duration": str(datetime.now(UTC) - evaluation_session["start_time"]),
                 "total_interactions": len(session_data["session_log"]),
             },
             "skill_assessment": {
                 "current_ratings": skill_summary,
-                "overall_competency": self._calculate_overall_competency(
-                    evaluation_session
-                ),
+                "overall_competency": self._calculate_overall_competency(evaluation_session),
                 "target_thresholds": {
-                    "minimum_passing": evaluation_session["thresholds"][
-                        "minimum_passing"
-                    ].value,
-                    "target_level": evaluation_session["thresholds"][
-                        "target_level"
-                    ].value,
+                    "minimum_passing": evaluation_session["thresholds"]["minimum_passing"].value,
+                    "target_level": evaluation_session["thresholds"]["target_level"].value,
                 },
             },
-            "real_time_observations": evaluation_session["observations"][
-                -10:
-            ],  # Last 10
+            "real_time_observations": evaluation_session["observations"][-10:],  # Last 10
             "development_recommendations": recommendations,
             "session_timeline": timeline[-20:],  # Last 20 interactions
             "intervention_alerts": self._get_intervention_alerts(evaluation_session),
         }
 
-
-    def complete_training_session(
-        self, session_id: str, supervisor_final_assessment: dict
-    ) -> dict:
+    def complete_training_session(self, session_id: str, supervisor_final_assessment: dict) -> dict:
         """Complete training session with final supervisor assessment"""
 
         if session_id not in self.active_sessions:
@@ -394,9 +355,7 @@ class PixelatedEmpathyPlatform:
         evaluation_session = session_data["evaluation_session"]
 
         # Generate comprehensive final assessment
-        final_assessment = self._generate_final_assessment(
-            session_data, supervisor_final_assessment
-        )
+        final_assessment = self._generate_final_assessment(session_data, supervisor_final_assessment)
 
         # Update trainee profile
         self._update_trainee_profile(evaluation_session["trainee_id"], final_assessment)
@@ -450,9 +409,7 @@ class PixelatedEmpathyPlatform:
         suggestions = []
 
         if client_response.resistance_level > 0.8:
-            suggestions.append(
-                "Consider reflecting resistance rather than challenging it"
-            )
+            suggestions.append("Consider reflecting resistance rather than challenging it")
             suggestions.append("Validate client's autonomy and right to feel resistant")
 
         if client_response.breakthrough_achieved:
@@ -465,9 +422,7 @@ class PixelatedEmpathyPlatform:
 
         return suggestions
 
-    def _generate_development_recommendations(
-        self, evaluation_session: dict
-    ) -> list[str]:
+    def _generate_development_recommendations(self, evaluation_session: dict) -> list[str]:
         """Generate personalized development recommendations"""
         recommendations = []
 
@@ -504,9 +459,7 @@ class PixelatedEmpathyPlatform:
             if obs.intervention_needed in ["immediate", "session_break"]:
                 alerts.append(
                     {
-                        "severity": "high"
-                        if obs.intervention_needed == "immediate"
-                        else "medium",
+                        "severity": "high" if obs.intervention_needed == "immediate" else "medium",
                         "skill_area": obs.skill_area,
                         "description": obs.description,
                         "recommended_action": f"Intervention needed: {obs.intervention_needed.value}",
@@ -515,9 +468,7 @@ class PixelatedEmpathyPlatform:
 
         return alerts
 
-    def _generate_final_assessment(
-        self, session_data: dict, supervisor_assessment: dict
-    ) -> dict:
+    def _generate_final_assessment(self, session_data: dict, supervisor_assessment: dict) -> dict:
         """Generate comprehensive final assessment"""
         evaluation_session = session_data["evaluation_session"]
 
@@ -526,38 +477,27 @@ class PixelatedEmpathyPlatform:
         for skill, ratings in evaluation_session["skill_ratings"].items():
             if ratings:
                 final_skills[skill] = {
-                    "final_rating": statistics.mean(ratings[-3:])
-                    if len(ratings) >= 3
-                    else statistics.mean(ratings),
+                    "final_rating": statistics.mean(ratings[-3:]) if len(ratings) >= 3 else statistics.mean(ratings),
                     "improvement": ratings[-1] - ratings[0] if len(ratings) > 1 else 0,
-                    "consistency": 1.0
-                    - (statistics.stdev(ratings) if len(ratings) > 1 else 0),
+                    "consistency": 1.0 - (statistics.stdev(ratings) if len(ratings) > 1 else 0),
                 }
 
         return {
             "session_id": session_data["training_session"].session_id,
-            "completion_time": datetime.now(timezone.utc).isoformat(),
+            "completion_time": datetime.now(UTC).isoformat(),
             "final_skill_ratings": final_skills,
-            "overall_competency": self._calculate_overall_competency(
-                evaluation_session
-            ),
+            "overall_competency": self._calculate_overall_competency(evaluation_session),
             "supervisor_assessment": supervisor_assessment,
             "session_statistics": {
                 "total_interactions": len(session_data["session_log"]),
-                "breakthrough_moments": sum(
-                    1
-                    for log in session_data["session_log"]
-                    if log["breakthrough_achieved"]
-                ),
+                "breakthrough_moments": sum(1 for log in session_data["session_log"] if log["breakthrough_achieved"]),
                 "crisis_interventions": sum(
                     1
                     for log in session_data["session_log"]
                     if any("crisis" in flag.lower() for flag in log["red_flags"])
                 ),
             },
-            "development_plan": self._generate_development_recommendations(
-                evaluation_session
-            ),
+            "development_plan": self._generate_development_recommendations(evaluation_session),
         }
 
     def _update_trainee_profile(self, trainee_id: str, _assessment: dict):

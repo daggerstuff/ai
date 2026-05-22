@@ -14,7 +14,7 @@ import threading
 import time
 import uuid
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from pathlib import Path
 from typing import Any
@@ -23,16 +23,20 @@ import psutil
 
 logger = logging.getLogger(__name__)
 
+
 class SOC2Principle(StrEnum):
     """SOC2 Trust Service Principles"""
+
     SECURITY = "security"
     AVAILABILITY = "availability"
     PROCESSING_INTEGRITY = "processing_integrity"
     CONFIDENTIALITY = "confidentiality"
     PRIVACY = "privacy"
 
+
 class ControlCategory(StrEnum):
     """SOC2 control categories"""
+
     ACCESS_CONTROLS = "access_controls"
     SYSTEM_OPERATIONS = "system_operations"
     CHANGE_MANAGEMENT = "change_management"
@@ -42,16 +46,20 @@ class ControlCategory(StrEnum):
     BACKUP_RECOVERY = "backup_recovery"
     VENDOR_MANAGEMENT = "vendor_management"
 
+
 class ComplianceStatus(StrEnum):
     """SOC2 compliance status"""
+
     COMPLIANT = "compliant"
     NON_COMPLIANT = "non_compliant"
     PARTIALLY_COMPLIANT = "partially_compliant"
     NOT_APPLICABLE = "not_applicable"
 
+
 @dataclass
 class SOC2Control:
     """SOC2 control definition"""
+
     control_id: str
     principle: SOC2Principle
     category: ControlCategory
@@ -60,9 +68,11 @@ class SOC2Control:
     testing_procedures: list[str]
     frequency: str  # daily, weekly, monthly, quarterly, annually
 
+
 @dataclass
 class ControlTest:
     """SOC2 control test result"""
+
     test_id: str
     control_id: str
     timestamp: datetime
@@ -72,9 +82,11 @@ class ControlTest:
     remediation_required: bool
     next_test_date: datetime
 
+
 @dataclass
 class SOC2Assessment:
     """SOC2 compliance assessment"""
+
     assessment_id: str
     timestamp: datetime
     period_start: datetime
@@ -84,6 +96,7 @@ class SOC2Assessment:
     control_results: list[ControlTest]
     exceptions_count: int
     recommendations: list[str]
+
 
 class SystemMonitor:
     """System monitoring for SOC2 availability and performance"""
@@ -96,7 +109,7 @@ class SystemMonitor:
             "cpu_usage": 80.0,
             "memory_usage": 85.0,
             "disk_usage": 90.0,
-            "response_time": 5.0  # seconds
+            "response_time": 5.0,  # seconds
         }
 
     def start_monitoring(self):
@@ -119,11 +132,8 @@ class SystemMonitor:
                 self.metrics_history.append(metrics)
 
                 # Keep only last 24 hours of metrics
-                cutoff_time = datetime.now(timezone.utc) - timedelta(hours=24)
-                self.metrics_history = [
-                    m for m in self.metrics_history
-                    if m["timestamp"] > cutoff_time
-                ]
+                cutoff_time = datetime.now(UTC) - timedelta(hours=24)
+                self.metrics_history = [m for m in self.metrics_history if m["timestamp"] > cutoff_time]
 
                 # Check for alerts
                 self._check_alerts(metrics)
@@ -137,13 +147,13 @@ class SystemMonitor:
     def _collect_metrics(self) -> dict[str, Any]:
         """Collect system metrics"""
         return {
-            "timestamp": datetime.now(timezone.utc),
+            "timestamp": datetime.now(UTC),
             "cpu_usage": psutil.cpu_percent(interval=1),
             "memory_usage": psutil.virtual_memory().percent,
             "disk_usage": psutil.disk_usage("/").percent,
             "network_io": psutil.net_io_counters()._asdict(),
             "process_count": len(psutil.pids()),
-            "uptime": time.time() - psutil.boot_time()
+            "uptime": time.time() - psutil.boot_time(),
         }
 
     def _check_alerts(self, metrics: dict[str, Any]):
@@ -164,21 +174,15 @@ class SystemMonitor:
 
     def get_availability_metrics(self, hours: int = 24) -> dict[str, Any]:
         """Get availability metrics for specified period"""
-        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=hours)
-        recent_metrics = [
-            m for m in self.metrics_history
-            if m["timestamp"] > cutoff_time
-        ]
+        cutoff_time = datetime.now(UTC) - timedelta(hours=hours)
+        recent_metrics = [m for m in self.metrics_history if m["timestamp"] > cutoff_time]
 
         if not recent_metrics:
             return {"availability": 0.0, "uptime": 0.0, "incidents": 0}
 
         # Calculate availability (simplified)
         total_measurements = len(recent_metrics)
-        available_measurements = sum(
-            1 for m in recent_metrics
-            if m["cpu_usage"] < 95 and m["memory_usage"] < 95
-        )
+        available_measurements = sum(1 for m in recent_metrics if m["cpu_usage"] < 95 and m["memory_usage"] < 95)
 
         availability = (available_measurements / total_measurements) * 100
 
@@ -187,8 +191,9 @@ class SystemMonitor:
             "uptime": recent_metrics[-1]["uptime"] if recent_metrics else 0,
             "incidents": total_measurements - available_measurements,
             "avg_cpu": sum(m["cpu_usage"] for m in recent_metrics) / total_measurements,
-            "avg_memory": sum(m["memory_usage"] for m in recent_metrics) / total_measurements
+            "avg_memory": sum(m["memory_usage"] for m in recent_metrics) / total_measurements,
         }
+
 
 class SOC2Storage:
     """SOC2 compliance data storage"""
@@ -276,6 +281,7 @@ class SOC2Storage:
             logger.error(f"Failed to initialize SOC2 database: {e}")
             raise
 
+
 class SOC2Validator:
     """SOC2 compliance validator"""
 
@@ -304,14 +310,10 @@ class SOC2Validator:
                 "Implement user authentication",
                 "Enforce role-based access controls",
                 "Monitor access attempts",
-                "Regular access reviews"
+                "Regular access reviews",
             ],
-            testing_procedures=[
-                "Review user access lists",
-                "Test authentication mechanisms",
-                "Verify access logging"
-            ],
-            frequency="monthly"
+            testing_procedures=["Review user access lists", "Test authentication mechanisms", "Verify access logging"],
+            frequency="monthly",
         )
 
         controls["CC7.1"] = SOC2Control(
@@ -323,14 +325,10 @@ class SOC2Validator:
                 "Continuous system monitoring",
                 "Automated alerting",
                 "Performance tracking",
-                "Capacity planning"
+                "Capacity planning",
             ],
-            testing_procedures=[
-                "Review monitoring logs",
-                "Test alert mechanisms",
-                "Verify performance metrics"
-            ],
-            frequency="daily"
+            testing_procedures=["Review monitoring logs", "Test alert mechanisms", "Verify performance metrics"],
+            frequency="daily",
         )
 
         # Availability controls
@@ -339,18 +337,9 @@ class SOC2Validator:
             principle=SOC2Principle.AVAILABILITY,
             category=ControlCategory.SYSTEM_OPERATIONS,
             description="System availability monitoring",
-            requirements=[
-                "99.9% uptime target",
-                "Automated failover",
-                "Backup systems",
-                "Incident response"
-            ],
-            testing_procedures=[
-                "Calculate uptime metrics",
-                "Test failover procedures",
-                "Verify backup systems"
-            ],
-            frequency="daily"
+            requirements=["99.9% uptime target", "Automated failover", "Backup systems", "Incident response"],
+            testing_procedures=["Calculate uptime metrics", "Test failover procedures", "Verify backup systems"],
+            frequency="daily",
         )
 
         # Processing Integrity controls
@@ -359,18 +348,9 @@ class SOC2Validator:
             principle=SOC2Principle.PROCESSING_INTEGRITY,
             category=ControlCategory.MONITORING,
             description="Data processing integrity",
-            requirements=[
-                "Input validation",
-                "Processing controls",
-                "Output verification",
-                "Error handling"
-            ],
-            testing_procedures=[
-                "Test input validation",
-                "Verify processing logic",
-                "Check error handling"
-            ],
-            frequency="weekly"
+            requirements=["Input validation", "Processing controls", "Output verification", "Error handling"],
+            testing_procedures=["Test input validation", "Verify processing logic", "Check error handling"],
+            frequency="weekly",
         )
 
         return controls
@@ -382,7 +362,7 @@ class SOC2Validator:
 
         control = self.controls[control_id]
         test_id = str(uuid.uuid4())
-        timestamp = datetime.now(timezone.utc)
+        timestamp = datetime.now(UTC)
 
         # Perform control testing based on control type
         status, evidence, exceptions = self._perform_control_test(control)
@@ -398,7 +378,7 @@ class SOC2Validator:
             evidence=evidence,
             exceptions=exceptions,
             remediation_required=status != ComplianceStatus.COMPLIANT,
-            next_test_date=next_test_date
+            next_test_date=next_test_date,
         )
 
         # Store test result
@@ -478,21 +458,24 @@ class SOC2Validator:
             conn = sqlite3.connect(self.storage.db_path)
             cursor = conn.cursor()
 
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO control_tests
                 (test_id, control_id, timestamp, status, evidence, exceptions,
                  remediation_required, next_test_date)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                test_result.test_id,
-                test_result.control_id,
-                test_result.timestamp,
-                test_result.status.value,
-                json.dumps(test_result.evidence),
-                json.dumps(test_result.exceptions),
-                test_result.remediation_required,
-                test_result.next_test_date
-            ))
+            """,
+                (
+                    test_result.test_id,
+                    test_result.control_id,
+                    test_result.timestamp,
+                    test_result.status.value,
+                    json.dumps(test_result.evidence),
+                    json.dumps(test_result.exceptions),
+                    test_result.remediation_required,
+                    test_result.next_test_date,
+                ),
+            )
 
             conn.commit()
             conn.close()
@@ -504,7 +487,7 @@ class SOC2Validator:
     def generate_soc2_assessment(self, period_days: int = 30) -> SOC2Assessment:
         """Generate SOC2 compliance assessment"""
         assessment_id = str(uuid.uuid4())
-        timestamp = datetime.now(timezone.utc)
+        timestamp = datetime.now(UTC)
         period_start = timestamp - timedelta(days=period_days)
         period_end = timestamp
 
@@ -538,7 +521,7 @@ class SOC2Validator:
             principle_scores=principle_scores,
             control_results=control_results,
             exceptions_count=exceptions_count,
-            recommendations=recommendations
+            recommendations=recommendations,
         )
 
         # Store assessment
@@ -552,18 +535,14 @@ class SOC2Validator:
 
         for principle in SOC2Principle:
             relevant_controls = [
-                result for result in control_results
-                if self.controls[result.control_id].principle == principle
+                result for result in control_results if self.controls[result.control_id].principle == principle
             ]
 
             if not relevant_controls:
                 principle_scores[principle] = 100.0
                 continue
 
-            compliant_count = sum(
-                1 for result in relevant_controls
-                if result.status == ComplianceStatus.COMPLIANT
-            )
+            compliant_count = sum(1 for result in relevant_controls if result.status == ComplianceStatus.COMPLIANT)
 
             score = (compliant_count / len(relevant_controls)) * 100
             principle_scores[principle] = score
@@ -588,24 +567,19 @@ class SOC2Validator:
         recommendations = []
 
         # Check for failed controls
-        failed_controls = [
-            result for result in control_results
-            if result.status != ComplianceStatus.COMPLIANT
-        ]
+        failed_controls = [result for result in control_results if result.status != ComplianceStatus.COMPLIANT]
 
         if failed_controls:
             recommendations.append(f"Address {len(failed_controls)} non-compliant controls")
 
         # Check for availability issues
         availability_controls = [
-            result for result in control_results
+            result
+            for result in control_results
             if self.controls[result.control_id].principle == SOC2Principle.AVAILABILITY
         ]
 
-        availability_issues = [
-            result for result in availability_controls
-            if result.exceptions
-        ]
+        availability_issues = [result for result in availability_controls if result.exceptions]
 
         if availability_issues:
             recommendations.append("Improve system availability and monitoring")
@@ -625,21 +599,24 @@ class SOC2Validator:
             conn = sqlite3.connect(self.storage.db_path)
             cursor = conn.cursor()
 
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO soc2_assessments
                 (assessment_id, timestamp, period_start, period_end, overall_status,
                  principle_scores, exceptions_count, assessment_data)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                assessment.assessment_id,
-                assessment.timestamp,
-                assessment.period_start,
-                assessment.period_end,
-                assessment.overall_status.value,
-                json.dumps({k.value: v for k, v in assessment.principle_scores.items()}),
-                assessment.exceptions_count,
-                json.dumps(asdict(assessment), default=str)
-            ))
+            """,
+                (
+                    assessment.assessment_id,
+                    assessment.timestamp,
+                    assessment.period_start,
+                    assessment.period_end,
+                    assessment.overall_status.value,
+                    json.dumps({k.value: v for k, v in assessment.principle_scores.items()}),
+                    assessment.exceptions_count,
+                    json.dumps(asdict(assessment), default=str),
+                ),
+            )
 
             conn.commit()
             conn.close()
@@ -648,13 +625,13 @@ class SOC2Validator:
             logger.error(f"Failed to store SOC2 assessment: {e}")
             raise
 
+
 # Global SOC2 validator instance
 soc2_validator = SOC2Validator()
 
 if __name__ == "__main__":
     # Test SOC2 validator
     validator = SOC2Validator()
-
 
     # Test individual control
     test_result = validator.test_control("CC6.1")

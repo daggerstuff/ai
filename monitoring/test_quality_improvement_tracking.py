@@ -5,6 +5,7 @@ Test Suite for Quality Improvement Tracking System (Task 5.6.2.4)
 Comprehensive testing of improvement tracking, analysis, and reporting
 functionality with intervention simulation and impact validation.
 """
+
 import json
 import os
 import shutil
@@ -12,7 +13,7 @@ import sqlite3
 import sys
 import tempfile
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import numpy as np
 
@@ -66,7 +67,7 @@ def run_comprehensive_test():
         """)
 
         # Generate test data with improvement pattern
-        base_date = datetime.now(timezone.utc) - timedelta(days=60)
+        base_date = datetime.now(UTC) - timedelta(days=60)
         conversations_data = []
         quality_data = []
 
@@ -86,29 +87,15 @@ def run_comprehensive_test():
             base_quality = max(0.1, min(0.95, base_quality))
 
             # Generate component scores
-            therapeutic_accuracy = max(
-                0.1, min(0.95, base_quality + np.random.normal(0, 0.05))
-            )
-            conversation_coherence = max(
-                0.1, min(0.95, base_quality + np.random.normal(0, 0.05))
-            )
-            emotional_authenticity = max(
-                0.1, min(0.95, base_quality + np.random.normal(0, 0.05))
-            )
-            clinical_compliance = max(
-                0.1, min(0.95, base_quality + np.random.normal(0, 0.05))
-            )
-            personality_consistency = max(
-                0.1, min(0.95, base_quality + np.random.normal(0, 0.05))
-            )
-            language_quality = max(
-                0.1, min(0.95, base_quality + np.random.normal(0, 0.05))
-            )
+            therapeutic_accuracy = max(0.1, min(0.95, base_quality + np.random.normal(0, 0.05)))
+            conversation_coherence = max(0.1, min(0.95, base_quality + np.random.normal(0, 0.05)))
+            emotional_authenticity = max(0.1, min(0.95, base_quality + np.random.normal(0, 0.05)))
+            clinical_compliance = max(0.1, min(0.95, base_quality + np.random.normal(0, 0.05)))
+            personality_consistency = max(0.1, min(0.95, base_quality + np.random.normal(0, 0.05)))
+            language_quality = max(0.1, min(0.95, base_quality + np.random.normal(0, 0.05)))
             safety_score = max(0.1, min(0.95, base_quality + np.random.normal(0, 0.05)))
 
-            conversations_data.append(
-                (i + 1, tier, dataset, conversation_date.isoformat(), 150 + (i % 100))
-            )
+            conversations_data.append((i + 1, tier, dataset, conversation_date.isoformat(), 150 + (i % 100)))
 
             quality_data.append(
                 (
@@ -162,9 +149,7 @@ def run_comprehensive_test():
             test_results["test_details"].append("✅ Tracker Initialization: PASSED")
         except Exception as e:
             test_results["failed_tests"] += 1
-            test_results["test_details"].append(
-                f"❌ Tracker Initialization: FAILED - {e}"
-            )
+            test_results["test_details"].append(f"❌ Tracker Initialization: FAILED - {e}")
         test_results["total_tests"] += 1
 
         # Test 2: Create Intervention
@@ -198,19 +183,13 @@ def run_comprehensive_test():
 
         # Test 4: Record Progress Measurement
         try:
-            success = tracker.record_progress_measurement(
-                intervention_id, "Test measurement"
-            )
+            success = tracker.record_progress_measurement(intervention_id, "Test measurement")
             assert success == True
             test_results["passed_tests"] += 1
-            test_results["test_details"].append(
-                "✅ Record Progress Measurement: PASSED"
-            )
+            test_results["test_details"].append("✅ Record Progress Measurement: PASSED")
         except Exception as e:
             test_results["failed_tests"] += 1
-            test_results["test_details"].append(
-                f"❌ Record Progress Measurement: FAILED - {e}"
-            )
+            test_results["test_details"].append(f"❌ Record Progress Measurement: FAILED - {e}")
         test_results["total_tests"] += 1
 
         # Test 5: Complete Intervention
@@ -224,9 +203,7 @@ def run_comprehensive_test():
             test_results["test_details"].append("✅ Complete Intervention: PASSED")
         except Exception as e:
             test_results["failed_tests"] += 1
-            test_results["test_details"].append(
-                f"❌ Complete Intervention: FAILED - {e}"
-            )
+            test_results["test_details"].append(f"❌ Complete Intervention: FAILED - {e}")
         test_results["total_tests"] += 1
 
         # Test 6: Analyze Intervention Impact
@@ -244,14 +221,10 @@ def run_comprehensive_test():
                 assert analysis.intervention_id == intervention_id
                 assert "improvement_metrics" in analysis.__dict__
                 test_results["passed_tests"] += 1
-                test_results["test_details"].append(
-                    "✅ Analyze Intervention Impact: PASSED"
-                )
+                test_results["test_details"].append("✅ Analyze Intervention Impact: PASSED")
         except Exception as e:
             test_results["failed_tests"] += 1
-            test_results["test_details"].append(
-                f"❌ Analyze Intervention Impact: FAILED - {e}"
-            )
+            test_results["test_details"].append(f"❌ Analyze Intervention Impact: FAILED - {e}")
         test_results["total_tests"] += 1
 
         # Test 7: Reporter Initialization
@@ -263,9 +236,7 @@ def run_comprehensive_test():
             test_results["test_details"].append("✅ Reporter Initialization: PASSED")
         except Exception as e:
             test_results["failed_tests"] += 1
-            test_results["test_details"].append(
-                f"❌ Reporter Initialization: FAILED - {e}"
-            )
+            test_results["test_details"].append(f"❌ Reporter Initialization: FAILED - {e}")
         test_results["total_tests"] += 1
 
         # Test 8: Generate Comprehensive Report
@@ -277,14 +248,10 @@ def run_comprehensive_test():
             assert report is not None
             assert len(report.executive_summary) > 0
             test_results["passed_tests"] += 1
-            test_results["test_details"].append(
-                "✅ Generate Comprehensive Report: PASSED"
-            )
+            test_results["test_details"].append("✅ Generate Comprehensive Report: PASSED")
         except Exception as e:
             test_results["failed_tests"] += 1
-            test_results["test_details"].append(
-                f"❌ Generate Comprehensive Report: FAILED - {e}"
-            )
+            test_results["test_details"].append(f"❌ Generate Comprehensive Report: FAILED - {e}")
         test_results["total_tests"] += 1
 
         # Test 9: Save Report
@@ -309,69 +276,44 @@ def run_comprehensive_test():
             test_results["test_details"].append("✅ Visualization Creation: PASSED")
         except Exception as e:
             test_results["failed_tests"] += 1
-            test_results["test_details"].append(
-                f"❌ Visualization Creation: FAILED - {e}"
-            )
+            test_results["test_details"].append(f"❌ Visualization Creation: FAILED - {e}")
         test_results["total_tests"] += 1
 
         # Generate test report
-        success_rate = (
-            test_results["passed_tests"] / test_results["total_tests"]
-        ) * 100
+        success_rate = (test_results["passed_tests"] / test_results["total_tests"]) * 100
 
         report_data = {
             "test_suite": "Quality Improvement Tracking System",
             "task": "5.6.2.4",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "results": test_results,
             "success_rate": success_rate,
             "status": "PASSED" if success_rate >= 80 else "FAILED",
             "improvement_tracking_sample": {
                 "intervention_id": intervention_id,
-                "intervention_name": getattr(analysis, "intervention_name", "N/A")
-                if analysis
-                else "N/A",
-                "improvement_achieved": getattr(
-                    analysis, "improvement_metrics", {}
-                ).get("absolute_improvement", 0)
+                "intervention_name": getattr(analysis, "intervention_name", "N/A") if analysis else "N/A",
+                "improvement_achieved": getattr(analysis, "improvement_metrics", {}).get("absolute_improvement", 0)
                 if analysis
                 else 0,
-                "target_achievement": getattr(analysis, "improvement_metrics", {}).get(
-                    "target_achievement", 0
-                )
+                "target_achievement": getattr(analysis, "improvement_metrics", {}).get("target_achievement", 0)
                 if analysis
                 else 0,
-                "statistical_tests": len(getattr(analysis, "statistical_tests", []))
-                if analysis
-                else 0,
-                "recommendations_count": len(getattr(analysis, "recommendations", []))
-                if analysis
-                else 0,
+                "statistical_tests": len(getattr(analysis, "statistical_tests", [])) if analysis else 0,
+                "recommendations_count": len(getattr(analysis, "recommendations", [])) if analysis else 0,
             },
             "report_sample": {
-                "active_interventions": len(report.active_interventions)
-                if "report" in locals()
-                else 0,
-                "completed_interventions": len(report.completed_interventions)
-                if "report" in locals()
-                else 0,
-                "improvement_analyses": len(report.improvement_analyses)
-                if "report" in locals()
-                else 0,
-                "executive_summary_items": len(report.executive_summary)
-                if "report" in locals()
-                else 0,
+                "active_interventions": len(report.active_interventions) if "report" in locals() else 0,
+                "completed_interventions": len(report.completed_interventions) if "report" in locals() else 0,
+                "improvement_analyses": len(report.improvement_analyses) if "report" in locals() else 0,
+                "executive_summary_items": len(report.executive_summary) if "report" in locals() else 0,
                 "action_items": len(report.action_items) if "report" in locals() else 0,
             },
         }
 
         # Save test report
-        report_path = (
-            Path(__file__).parent / "quality_improvement_tracking_test_report.json"
-        )
+        report_path = Path(__file__).parent / "quality_improvement_tracking_test_report.json"
         with open(report_path, "w") as f:
             json.dump(report_data, f, indent=2)
-
 
         for _detail in test_results["test_details"]:
             pass
@@ -379,7 +321,6 @@ def run_comprehensive_test():
         sample = report_data["improvement_tracking_sample"]
 
         report_sample = report_data["report_sample"]
-
 
         return report_data
 

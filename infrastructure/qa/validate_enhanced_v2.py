@@ -19,7 +19,6 @@ from safety_accuracy_validator_simple import EnterpriseSafetyAccuracyValidator
 async def main():
     """Run full validation with enhanced V2 crisis detector"""
 
-
     # Initialize validator
     validator = EnterpriseSafetyAccuracyValidator()
 
@@ -27,9 +26,7 @@ async def main():
     result = await validator.validate_safety_accuracy(enhanced_model_predictor_v2_fixed)
 
     # Save results
-    _json_path, _report_path = validator.save_validation_results(
-        result, "enhanced_v2_validation_results"
-    )
+    _json_path, _report_path = validator.save_validation_results(result, "enhanced_v2_validation_results")
 
     # Print detailed comparison
 
@@ -47,8 +44,6 @@ async def main():
         # Calculate progress toward target
         ((result.overall_accuracy - 52.94) / (95 - 52.94)) * 100
         ((84.44 - result.false_negative_rate) / (84.44 - 1)) * 100
-
-
 
 
 if __name__ == "__main__":

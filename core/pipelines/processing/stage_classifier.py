@@ -240,9 +240,7 @@ class StageClassifier:
             return stage3_result
 
         # Check Stage 2: Therapeutic Expertise
-        stage2_result = self._check_stage2(
-            therapeutic_modality, topic_tags, content_type, source
-        )
+        stage2_result = self._check_stage2(therapeutic_modality, topic_tags, content_type, source)
         if stage2_result is not None:
             return stage2_result
 
@@ -286,8 +284,7 @@ class StageClassifier:
                         stage=Stage.SUPPLEMENTARY,
                         confidence=0.3,
                         reasons=[
-                            f"Stage {result.stage.value} target reached "
-                            f"({current}/{target})",
+                            f"Stage {result.stage.value} target reached ({current}/{target})",
                         ],
                     )
                 else:
@@ -302,9 +299,7 @@ class StageClassifier:
     # Stage-specific checkers
     # ------------------------------------------------------------------
 
-    def _check_stage4(
-        self, source: str, topic_tags: list[str]
-    ) -> ClassificationResult | None:
+    def _check_stage4(self, source: str, topic_tags: list[str]) -> ClassificationResult | None:
         """Check for voice/persona content (Stage 4)."""
         reasons: list[str] = []
 
@@ -324,9 +319,7 @@ class StageClassifier:
             )
         return None
 
-    def _check_stage3(
-        self, source: str, topic_tags: list[str], content_type: str
-    ) -> ClassificationResult | None:
+    def _check_stage3(self, source: str, topic_tags: list[str], content_type: str) -> ClassificationResult | None:
         """Check for edge case/stress test content (Stage 3)."""
         reasons: list[str] = []
 
@@ -366,9 +359,7 @@ class StageClassifier:
         if matching_tags:
             reasons.append(f"Topic tags match therapeutic: {matching_tags}")
 
-        has_modality_match = (
-            therapeutic_modality and therapeutic_modality in _THERAPEUTIC_MODALITIES
-        )
+        has_modality_match = therapeutic_modality and therapeutic_modality in _THERAPEUTIC_MODALITIES
         if has_modality_match or len(matching_tags) >= 2:
             confidence = 0.9 if len(reasons) > 1 else 0.75
             return ClassificationResult(
@@ -378,9 +369,7 @@ class StageClassifier:
             )
         return None
 
-    def _check_stage1(
-        self, content_type: str, topic_tags: list[str], source: str
-    ) -> ClassificationResult | None:
+    def _check_stage1(self, content_type: str, topic_tags: list[str], source: str) -> ClassificationResult | None:
         """Check for foundation content (Stage 1)."""
         reasons: list[str] = []
 

@@ -11,13 +11,14 @@ Provides intelligent recommendations and optimization strategies:
 - Quality improvement pathways
 - Personalized optimization plans
 """
+
 import json
 import re
 import sqlite3
 import traceback
 import warnings
 from collections import Counter
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import matplotlib.pyplot as plt
@@ -29,9 +30,7 @@ warnings.simplefilter("default")
 
 
 class ConversationRecommendationOptimizer:
-    def __init__(
-        self, db_path: str = "/home/vivi/pixelated/ai/database/conversations.db"
-    ):
+    def __init__(self, db_path: str = "/home/vivi/pixelated/ai/database/conversations.db"):
         self.db_path = db_path
         self.optimization_rules = {}
         self.recommendations = {}
@@ -51,58 +50,36 @@ class ConversationRecommendationOptimizer:
         benchmarks = self._establish_quality_benchmarks(conversations)
 
         # Analyze current performance
-        performance_analysis = self._analyze_current_performance(
-            conversations, benchmarks
-        )
+        performance_analysis = self._analyze_current_performance(conversations, benchmarks)
 
         # Generate specific recommendations
         recommendations = {
-            "content_optimization": self._generate_content_recommendations(
-                conversations, benchmarks
-            ),
-            "style_optimization": self._generate_style_recommendations(
-                conversations, benchmarks
-            ),
-            "structure_optimization": self._generate_structure_recommendations(
-                conversations, benchmarks
-            ),
-            "engagement_optimization": self._generate_engagement_recommendations(
-                conversations, benchmarks
-            ),
-            "quality_improvement": self._generate_quality_improvement_plans(
-                conversations, benchmarks
-            ),
-            "personalized_optimization": self._generate_personalized_recommendations(
-                conversations, benchmarks
-            ),
+            "content_optimization": self._generate_content_recommendations(conversations, benchmarks),
+            "style_optimization": self._generate_style_recommendations(conversations, benchmarks),
+            "structure_optimization": self._generate_structure_recommendations(conversations, benchmarks),
+            "engagement_optimization": self._generate_engagement_recommendations(conversations, benchmarks),
+            "quality_improvement": self._generate_quality_improvement_plans(conversations, benchmarks),
+            "personalized_optimization": self._generate_personalized_recommendations(conversations, benchmarks),
         }
 
         # Create optimization strategies
-        optimization_strategies = self._create_optimization_strategies(
-            recommendations, performance_analysis
-        )
+        optimization_strategies = self._create_optimization_strategies(recommendations, performance_analysis)
 
         # Generate implementation roadmap
-        implementation_roadmap = self._create_implementation_roadmap(
-            optimization_strategies
-        )
+        implementation_roadmap = self._create_implementation_roadmap(optimization_strategies)
 
         # Create visualizations
-        self._create_recommendation_visualizations(
-            performance_analysis, recommendations, benchmarks
-        )
+        self._create_recommendation_visualizations(performance_analysis, recommendations, benchmarks)
 
         return {
-            "analysis_timestamp": datetime.now(timezone.utc).isoformat(),
+            "analysis_timestamp": datetime.now(UTC).isoformat(),
             "total_conversations": len(conversations),
             "benchmarks": benchmarks,
             "performance_analysis": performance_analysis,
             "recommendations": recommendations,
             "optimization_strategies": optimization_strategies,
             "implementation_roadmap": implementation_roadmap,
-            "insights": self._generate_optimization_insights(
-                performance_analysis, recommendations
-            ),
+            "insights": self._generate_optimization_insights(performance_analysis, recommendations),
             "success_metrics": self._define_success_metrics(benchmarks),
         }
 
@@ -123,18 +100,14 @@ class ConversationRecommendationOptimizer:
             df = pd.read_sql_query(query, conn)
 
         # Extract conversation text from JSON
-        df["conversation_text"] = df["conversations_json"].apply(
-            self._extract_text_from_json
-        )
+        df["conversation_text"] = df["conversations_json"].apply(self._extract_text_from_json)
 
         # Filter out empty conversations
         return df[df["conversation_text"].str.len() > 10]
 
-
     def _extract_text_from_json(self, json_str: str) -> str:
         """Extract readable text from conversations JSON"""
         try:
-
             conversations = json.loads(json_str)
 
             if isinstance(conversations, list):
@@ -150,9 +123,7 @@ class ConversationRecommendationOptimizer:
         except:
             return json_str
 
-    def _establish_quality_benchmarks(
-        self, conversations: pd.DataFrame
-    ) -> dict[str, Any]:
+    def _establish_quality_benchmarks(self, conversations: pd.DataFrame) -> dict[str, Any]:
         """Establish quality benchmarks based on top-performing conversations"""
 
         benchmarks = {}
@@ -166,9 +137,7 @@ class ConversationRecommendationOptimizer:
         conversations["quality_score"] = quality_scores
 
         # Get top 10% as benchmark
-        top_10_percent = conversations.nlargest(
-            int(len(conversations) * 0.1), "quality_score"
-        )
+        top_10_percent = conversations.nlargest(int(len(conversations) * 0.1), "quality_score")
 
         # Extract benchmark characteristics
         benchmarks["length"] = {
@@ -224,15 +193,9 @@ class ConversationRecommendationOptimizer:
             content_metrics.append(
                 {
                     "flesch_score": flesch_score,
-                    "questions_per_100_words": questions / conv["word_count"] * 100
-                    if conv["word_count"] > 0
-                    else 0,
-                    "empathy_density": empathy_words / conv["word_count"] * 100
-                    if conv["word_count"] > 0
-                    else 0,
-                    "positive_sentiment": positive_words / conv["word_count"] * 100
-                    if conv["word_count"] > 0
-                    else 0,
+                    "questions_per_100_words": questions / conv["word_count"] * 100 if conv["word_count"] > 0 else 0,
+                    "empathy_density": empathy_words / conv["word_count"] * 100 if conv["word_count"] > 0 else 0,
+                    "positive_sentiment": positive_words / conv["word_count"] * 100 if conv["word_count"] > 0 else 0,
                 }
             )
 
@@ -274,17 +237,11 @@ class ConversationRecommendationOptimizer:
         engagement_component = min(1.0, (questions + exclamations) / word_count * 50)
 
         # Empathy component
-        empathy_words = len(
-            re.findall(
-                r"\b(understand|feel|sorry|empathize|support|care)\b", text.lower()
-            )
-        )
+        empathy_words = len(re.findall(r"\b(understand|feel|sorry|empathize|support|care)\b", text.lower()))
         empathy_component = min(1.0, empathy_words / word_count * 100)
 
         # Structure component
-        has_structure = bool(re.search(r"\n\s*[-*•]\s+", text)) or bool(
-            re.search(r"\n\s*\d+\.\s+", text)
-        )
+        has_structure = bool(re.search(r"\n\s*[-*•]\s+", text)) or bool(re.search(r"\n\s*\d+\.\s+", text))
         structure_component = 0.8 if has_structure else 0.4
 
         # Length appropriateness component
@@ -301,12 +258,8 @@ class ConversationRecommendationOptimizer:
             + length_component * 0.15
         ) * 100
 
-
-    def _analyze_current_performance(
-        self, conversations: pd.DataFrame, benchmarks: dict[str, Any]
-    ) -> dict[str, Any]:
+    def _analyze_current_performance(self, conversations: pd.DataFrame, benchmarks: dict[str, Any]) -> dict[str, Any]:
         """Analyze current performance against benchmarks"""
-
 
         # Calculate current metrics
         current_metrics = {
@@ -326,11 +279,7 @@ class ConversationRecommendationOptimizer:
                 flesch_score = 50
 
             questions = text.count("?")
-            empathy_words = len(
-                re.findall(
-                    r"\b(understand|feel|sorry|empathize|support|care)\b", text.lower()
-                )
-            )
+            empathy_words = len(re.findall(r"\b(understand|feel|sorry|empathize|support|care)\b", text.lower()))
             positive_words = len(
                 re.findall(
                     r"\b(good|great|excellent|wonderful|amazing|helpful)\b",
@@ -341,15 +290,9 @@ class ConversationRecommendationOptimizer:
             content_scores.append(
                 {
                     "flesch_score": flesch_score,
-                    "questions_per_100_words": questions / conv["word_count"] * 100
-                    if conv["word_count"] > 0
-                    else 0,
-                    "empathy_density": empathy_words / conv["word_count"] * 100
-                    if conv["word_count"] > 0
-                    else 0,
-                    "positive_sentiment": positive_words / conv["word_count"] * 100
-                    if conv["word_count"] > 0
-                    else 0,
+                    "questions_per_100_words": questions / conv["word_count"] * 100 if conv["word_count"] > 0 else 0,
+                    "empathy_density": empathy_words / conv["word_count"] * 100 if conv["word_count"] > 0 else 0,
+                    "positive_sentiment": positive_words / conv["word_count"] * 100 if conv["word_count"] > 0 else 0,
                 }
             )
 
@@ -366,12 +309,10 @@ class ConversationRecommendationOptimizer:
         # Performance gaps
         performance_gaps = {
             "length_gap": current_metrics["avg_length"] - benchmarks["length"]["mean"],
-            "readability_gap": current_metrics["avg_flesch_score"]
-            - benchmarks["readability"]["target_flesch_score"],
+            "readability_gap": current_metrics["avg_flesch_score"] - benchmarks["readability"]["target_flesch_score"],
             "engagement_gap": current_metrics["avg_question_density"]
             - benchmarks["engagement"]["target_question_density"],
-            "empathy_gap": current_metrics["avg_empathy_density"]
-            - benchmarks["engagement"]["target_empathy_density"],
+            "empathy_gap": current_metrics["avg_empathy_density"] - benchmarks["engagement"]["target_empathy_density"],
             "sentiment_gap": current_metrics["avg_positive_sentiment"]
             - benchmarks["engagement"]["target_positive_sentiment"],
         }
@@ -387,14 +328,9 @@ class ConversationRecommendationOptimizer:
             "current_metrics": current_metrics,
             "benchmark_comparison": performance_gaps,
             "improvement_needed_count": conversations_needing_improvement,
-            "improvement_needed_percentage": conversations_needing_improvement
-            / len(conversations)
-            * 100,
-            "performance_distribution": self._analyze_performance_distribution(
-                conversations, benchmarks
-            ),
+            "improvement_needed_percentage": conversations_needing_improvement / len(conversations) * 100,
+            "performance_distribution": self._analyze_performance_distribution(conversations, benchmarks),
         }
-
 
     def _generate_content_recommendations(
         self, conversations: pd.DataFrame, benchmarks: dict[str, Any]
@@ -495,16 +431,12 @@ class ConversationRecommendationOptimizer:
                     text,
                 )
             )
-            informal_words = len(
-                re.findall(r"\b(yeah|okay|cool|awesome|wow|hey)\b", text)
-            )
+            informal_words = len(re.findall(r"\b(yeah|okay|cool|awesome|wow|hey)\b", text))
 
             formal_indicators += formal_words
             informal_indicators += informal_words
 
-        formality_ratio = formal_indicators / (
-            formal_indicators + informal_indicators + 1
-        )
+        formality_ratio = formal_indicators / (formal_indicators + informal_indicators + 1)
 
         if formality_ratio > 0.8:
             recommendations["formality_balance"].extend(
@@ -612,9 +544,7 @@ class ConversationRecommendationOptimizer:
         }
 
         # Analyze question usage
-        total_questions = sum(
-            conv["conversation_text"].count("?") for _, conv in conversations.iterrows()
-        )
+        total_questions = sum(conv["conversation_text"].count("?") for _, conv in conversations.iterrows())
         avg_question_density = total_questions / conversations["word_count"].sum() * 100
 
         if avg_question_density < benchmarks["engagement"]["target_question_density"]:
@@ -634,9 +564,7 @@ class ConversationRecommendationOptimizer:
             personal_pronouns = len(re.findall(r"\b(you|your|we|us|our)\b", text))
             personal_engagement += personal_pronouns
 
-        avg_personal_engagement = (
-            personal_engagement / conversations["word_count"].sum() * 100
-        )
+        avg_personal_engagement = personal_engagement / conversations["word_count"].sum() * 100
 
         if avg_personal_engagement < 2.0:  # Threshold for good personal engagement
             recommendations["personalization_enhancements"].extend(
@@ -663,9 +591,7 @@ class ConversationRecommendationOptimizer:
         }
 
         # Identify priority areas based on performance gaps
-        performance_analysis = self._analyze_current_performance(
-            conversations, benchmarks
-        )
+        performance_analysis = self._analyze_current_performance(conversations, benchmarks)
         gaps = performance_analysis["benchmark_comparison"]
 
         # Sort gaps by magnitude to prioritize
@@ -681,9 +607,7 @@ class ConversationRecommendationOptimizer:
                 {
                     "area": area,
                     "gap_size": gap_size,
-                    "improvement_needed": self._get_improvement_description(
-                        area, gaps[area]
-                    ),
+                    "improvement_needed": self._get_improvement_description(area, gaps[area]),
                 }
             )
 
@@ -745,10 +669,7 @@ class ConversationRecommendationOptimizer:
 
             # Calculate dataset-specific metrics
             avg_quality = np.mean(
-                [
-                    self._calculate_conversation_quality_score(conv)
-                    for _, conv in dataset_convs.iterrows()
-                ]
+                [self._calculate_conversation_quality_score(conv) for _, conv in dataset_convs.iterrows()]
             )
 
             dataset_recs = []
@@ -764,9 +685,7 @@ class ConversationRecommendationOptimizer:
                 )
 
                 if avg_flesch < benchmarks["readability"]["target_flesch_score"]:
-                    dataset_recs.append(
-                        "Focus on improving readability - simplify language and sentence structure"
-                    )
+                    dataset_recs.append("Focus on improving readability - simplify language and sentence structure")
 
                 avg_questions = np.mean(
                     [
@@ -789,10 +708,7 @@ class ConversationRecommendationOptimizer:
             tier_convs = conversations[conversations["tier"] == tier]
 
             avg_quality = np.mean(
-                [
-                    self._calculate_conversation_quality_score(conv)
-                    for _, conv in tier_convs.iterrows()
-                ]
+                [self._calculate_conversation_quality_score(conv) for _, conv in tier_convs.iterrows()]
             )
 
             tier_recs = []
@@ -800,16 +716,10 @@ class ConversationRecommendationOptimizer:
             # Tier-specific optimization based on expected standards
             if "priority" in tier.lower():
                 if avg_quality < 70:
-                    tier_recs.append(
-                        "Priority tier requires higher quality - focus on comprehensive responses"
-                    )
-                    tier_recs.append(
-                        "Ensure expert-level content and professional tone"
-                    )
+                    tier_recs.append("Priority tier requires higher quality - focus on comprehensive responses")
+                    tier_recs.append("Ensure expert-level content and professional tone")
             elif "standard" in tier.lower() and avg_quality < 50:
-                tier_recs.append(
-                    "Improve basic conversation quality - focus on clarity and helpfulness"
-                )
+                tier_recs.append("Improve basic conversation quality - focus on clarity and helpfulness")
 
             personalized_recs["by_tier"][tier] = {
                 "current_quality": avg_quality,
@@ -907,9 +817,7 @@ class ConversationRecommendationOptimizer:
 
         return strategies
 
-    def _create_implementation_roadmap(
-        self, _optimization_strategies: dict[str, Any]
-    ) -> dict[str, Any]:
+    def _create_implementation_roadmap(self, _optimization_strategies: dict[str, Any]) -> dict[str, Any]:
         """Create detailed implementation roadmap"""
 
         roadmap = {
@@ -969,9 +877,7 @@ class ConversationRecommendationOptimizer:
 
         # Add success criteria for each phase
         for phase_name, phase_data in roadmap.items():
-            phase_data["success_criteria"] = self._define_phase_success_criteria(
-                phase_name
-            )
+            phase_data["success_criteria"] = self._define_phase_success_criteria(phase_name)
 
         return roadmap
 
@@ -984,13 +890,9 @@ class ConversationRecommendationOptimizer:
         # Performance insights
         improvement_needed = performance_analysis["improvement_needed_percentage"]
         if improvement_needed > 60:
-            insights.append(
-                f"🚨 {improvement_needed:.1f}% of conversations need significant improvement"
-            )
+            insights.append(f"🚨 {improvement_needed:.1f}% of conversations need significant improvement")
         elif improvement_needed > 30:
-            insights.append(
-                f"⚠️ {improvement_needed:.1f}% of conversations have room for improvement"
-            )
+            insights.append(f"⚠️ {improvement_needed:.1f}% of conversations have room for improvement")
         else:
             insights.append(
                 f"✅ Only {improvement_needed:.1f}% of conversations need improvement - good baseline quality"
@@ -999,9 +901,7 @@ class ConversationRecommendationOptimizer:
         # Gap analysis insights
         gaps = performance_analysis["benchmark_comparison"]
         largest_gap = max(gaps.items(), key=lambda x: abs(x[1]))
-        insights.append(
-            f"📊 Largest improvement opportunity: {largest_gap[0]} (gap: {largest_gap[1]:.1f})"
-        )
+        insights.append(f"📊 Largest improvement opportunity: {largest_gap[0]} (gap: {largest_gap[1]:.1f})")
 
         # Recommendation insights
         total_recommendations = sum(
@@ -1010,9 +910,7 @@ class ConversationRecommendationOptimizer:
             for rec_list in rec_category.values()
             if isinstance(rec_list, list)
         )
-        insights.append(
-            f"💡 Generated {total_recommendations} specific optimization recommendations"
-        )
+        insights.append(f"💡 Generated {total_recommendations} specific optimization recommendations")
 
         # Priority insights
         content_recs = len(
@@ -1024,9 +922,7 @@ class ConversationRecommendationOptimizer:
             ]
         )
         if content_recs > 5:
-            insights.append(
-                "📝 Content optimization is a major focus area - significant improvements needed"
-            )
+            insights.append("📝 Content optimization is a major focus area - significant improvements needed")
 
         return insights
 
@@ -1036,9 +932,7 @@ class ConversationRecommendationOptimizer:
             "quality_metrics": {
                 "target_quality_score": benchmarks["overall_quality_threshold"],
                 "readability_target": benchmarks["readability"]["target_flesch_score"],
-                "engagement_target": benchmarks["engagement"][
-                    "target_question_density"
-                ],
+                "engagement_target": benchmarks["engagement"]["target_question_density"],
             },
             "improvement_targets": {
                 "conversations_meeting_quality_threshold": "75%",
@@ -1076,15 +970,11 @@ class ConversationRecommendationOptimizer:
         gap_values = list(gaps.values())
 
         colors = ["red" if gap < 0 else "green" for gap in gap_values]
-        bars = axes[0, 0].bar(
-            range(len(gap_names)), gap_values, color=colors, alpha=0.7
-        )
+        bars = axes[0, 0].bar(range(len(gap_names)), gap_values, color=colors, alpha=0.7)
         axes[0, 0].set_title("Performance Gaps vs Benchmarks")
         axes[0, 0].set_ylabel("Gap Size")
         axes[0, 0].set_xticks(range(len(gap_names)))
-        axes[0, 0].set_xticklabels(
-            [name.replace("_", " ").title() for name in gap_names], rotation=45
-        )
+        axes[0, 0].set_xticklabels([name.replace("_", " ").title() for name in gap_names], rotation=45)
         axes[0, 0].axhline(y=0, color="black", linestyle="-", alpha=0.3)
 
         # Add value labels
@@ -1103,22 +993,14 @@ class ConversationRecommendationOptimizer:
         rec_counts = []
 
         for category in rec_categories:
-            count = sum(
-                len(rec_list)
-                for rec_list in recommendations[category].values()
-                if isinstance(rec_list, list)
-            )
+            count = sum(len(rec_list) for rec_list in recommendations[category].values() if isinstance(rec_list, list))
             rec_counts.append(count)
 
-        axes[0, 1].bar(
-            range(len(rec_categories)), rec_counts, color="skyblue", alpha=0.8
-        )
+        axes[0, 1].bar(range(len(rec_categories)), rec_counts, color="skyblue", alpha=0.8)
         axes[0, 1].set_title("Recommendations by Category")
         axes[0, 1].set_ylabel("Number of Recommendations")
         axes[0, 1].set_xticks(range(len(rec_categories)))
-        axes[0, 1].set_xticklabels(
-            [cat.replace("_", " ").title() for cat in rec_categories], rotation=45
-        )
+        axes[0, 1].set_xticklabels([cat.replace("_", " ").title() for cat in rec_categories], rotation=45)
 
         # Add count labels
         for i, count in enumerate(rec_counts):
@@ -1171,9 +1053,7 @@ class ConversationRecommendationOptimizer:
         axes[1, 0].set_title("Current vs Benchmark Metrics")
         axes[1, 0].set_ylabel("Metric Value")
         axes[1, 0].set_xticks(x)
-        axes[1, 0].set_xticklabels(
-            [m.replace("avg_", "").replace("_", " ").title() for m in metrics]
-        )
+        axes[1, 0].set_xticklabels([m.replace("avg_", "").replace("_", " ").title() for m in metrics])
         axes[1, 0].legend()
 
         # Add value labels
@@ -1226,9 +1106,7 @@ class ConversationRecommendationOptimizer:
             "Structure",
             "Quality",
         ]
-        priority_scores = [
-            abs(gaps.get(f"{area.lower()}_gap", 0)) for area in priority_areas
-        ]
+        priority_scores = [abs(gaps.get(f"{area.lower()}_gap", 0)) for area in priority_areas]
 
         # Normalize scores for heatmap
         max_score = max(priority_scores) if priority_scores else 1
@@ -1247,7 +1125,7 @@ class ConversationRecommendationOptimizer:
         plt.tight_layout()
 
         # Save the plot
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         plt.savefig(
             f"/home/vivi/pixelated/ai/monitoring/recommendation_optimization_{timestamp}.png",
             dpi=300,
@@ -1255,25 +1133,19 @@ class ConversationRecommendationOptimizer:
         )
         plt.show()
 
-
     # Helper methods
     def _analyze_performance_distribution(
         self, conversations: pd.DataFrame, benchmarks: dict[str, Any]
     ) -> dict[str, Any]:
         """Analyze the distribution of performance levels"""
-        quality_scores = [
-            self._calculate_conversation_quality_score(conv)
-            for _, conv in conversations.iterrows()
-        ]
+        quality_scores = [self._calculate_conversation_quality_score(conv) for _, conv in conversations.iterrows()]
 
         threshold = benchmarks["overall_quality_threshold"]
 
         return {
             "excellent": len([s for s in quality_scores if s >= threshold + 20]),
             "good": len([s for s in quality_scores if threshold <= s < threshold + 20]),
-            "needs_improvement": len(
-                [s for s in quality_scores if threshold - 20 <= s < threshold]
-            ),
+            "needs_improvement": len([s for s in quality_scores if threshold - 20 <= s < threshold]),
             "poor": len([s for s in quality_scores if s < threshold - 20]),
         }
 
@@ -1325,12 +1197,11 @@ def main():
         results = optimizer.generate_recommendations()
 
         # Save results
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         output_file = f"/home/vivi/pixelated/ai/monitoring/recommendation_optimization_{timestamp}.json"
 
         with open(output_file, "w") as f:
             json.dump(results, f, indent=2, default=str)
-
 
         # Display performance summary
         results["performance_analysis"]
@@ -1360,7 +1231,6 @@ def main():
         return results
 
     except Exception:
-
         traceback.print_exc()
         return None
 

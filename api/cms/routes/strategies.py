@@ -24,6 +24,7 @@ def _research_repo(request: Request) -> MarketResearchRepository:
 
 # --- Strategic Plans ---
 
+
 @router.get("/plans")
 async def list_plans(
     request: Request,
@@ -85,6 +86,7 @@ async def delete_plan(request: Request, plan_id: str) -> dict[str, Any]:
 
 
 # --- Market Research ---
+
 
 @router.get("/research")
 async def list_research(

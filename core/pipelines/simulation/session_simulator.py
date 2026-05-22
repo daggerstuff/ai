@@ -20,8 +20,7 @@ class SessionSimulator:
 
     def generate_session(self, index: int) -> Session:
         turns = [
-            {"role": "user", "content": f"I am feeling mood {self.rng.randint(1, 10)} at turn {i}"}
-            for i in range(2)
+            {"role": "user", "content": f"I am feeling mood {self.rng.randint(1, 10)} at turn {i}"} for i in range(2)
         ]
         turns.append({"role": "assistant", "content": "Thank you for sharing"})
         return Session(session_id=f"sim-{index}", turns=turns)
@@ -30,4 +29,4 @@ class SessionSimulator:
         return [self.generate_session(i) for i in range(count)]
 
 
-__all__ = ["SessionSimulator", "Session"]
+__all__ = ["Session", "SessionSimulator"]

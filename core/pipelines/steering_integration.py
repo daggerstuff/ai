@@ -17,17 +17,17 @@ from __future__ import annotations
 
 import json
 import threading
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 from ai.core.pipelines.reprioritization_engine import (
     DEFAULT_ACTION_THRESHOLD,
     BacklogItem,
     InterventionType,
-    PriorityChange,
     PriorityTier,
     ReprioritizationReport,
     UpstreamDomain,
@@ -72,9 +72,7 @@ class SteeringAction:
     status: ApplicationStatus = ApplicationStatus.PENDING
     applied_at: str | None = None
     rejection_reason: str | None = None
-    created_at: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -100,9 +98,7 @@ class WorkstreamState:
     active_rules: list[dict[str, Any]] = field(default_factory=list)
     pending_actions: list[str] = field(default_factory=list)
     applied_actions: list[str] = field(default_factory=list)
-    last_updated: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    last_updated: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -141,9 +137,7 @@ class SteeringReport:
             "actions_pending": self.actions_pending,
             "actions_rejected": self.actions_rejected,
             "actions": [a.to_dict() for a in self.actions],
-            "workstream_states": {
-                k: v.to_dict() for k, v in self.workstream_states.items()
-            },
+            "workstream_states": {k: v.to_dict() for k, v in self.workstream_states.items()},
             "audit_trail": self.audit_trail,
         }
 
@@ -165,9 +159,7 @@ def _domain_to_workstream(domain: UpstreamDomain) -> Workstream:
     return mapping.get(domain, Workstream.CURATION)
 
 
-def _intervention_to_action_type(
-    intervention: InterventionType, domain: UpstreamDomain
-) -> SteeringActionType:
+def _intervention_to_action_type(intervention: InterventionType, domain: UpstreamDomain) -> SteeringActionType:
     mapping = {
         InterventionType.SOURCE_INTAKE: SteeringActionType.ADD_SOURCE_PRIORITY,
         InterventionType.RULE_UPDATE: SteeringActionType.UPDATE_PRIVACY_RULE,
@@ -190,9 +182,7 @@ def _generate_action_id(item_id: str, workstream: Workstream) -> str:
     return f"steer-{workstream.value[:3]}-{item_id}"
 
 
-def _generate_action_details(
-    item: BacklogItem, action_type: SteeringActionType
-) -> dict[str, Any]:
+def _generate_action_details(item: BacklogItem, action_type: SteeringActionType) -> dict[str, Any]:
     details = {
         "root_cause": item.root_cause_hypothesis,
         "validation_criteria": item.validation_criteria,
@@ -233,9 +223,7 @@ class SteeringIntegration:
         self._audit_trail: list[dict[str, Any]] = []
         self._handlers: dict[SteeringActionType, Callable] = {}
 
-    def register_handler(
-        self, action_type: SteeringActionType, handler: Callable
-    ) -> None:
+    def register_handler(self, action_type: SteeringActionType, handler: Callable) -> None:
         self._handlers[action_type] = handler
 
     def process_report(self, report: ReprioritizationReport) -> SteeringReport:
@@ -250,7 +238,7 @@ class SteeringIntegration:
             type_key = action.action_type.value
             actions_by_type[type_key] = actions_by_type.get(type_key, 0) + 1
 
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         steering_report = SteeringReport(
             run_id=f"steer-{report.run_id}",
             timestamp=now,
@@ -262,27 +250,25 @@ class SteeringIntegration:
             actions_pending=len(pending),
             actions_rejected=len(rejected),
             actions=actions,
-            workstream_states={
-                ws.value: state for ws, state in self._workstream_states.items()
-            },
+            workstream_states={ws.value: state for ws, state in self._workstream_states.items()},
             audit_trail=list(self._audit_trail),
         )
 
-        self._audit_trail.append({
-            "event": "steering_report_processed",
-            "timestamp": now,
-            "source_report_id": report.run_id,
-            "actions_generated": len(actions),
-            "actions_applied": len(applied),
-            "actions_pending": len(pending),
-            "actions_rejected": len(rejected),
-        })
+        self._audit_trail.append(
+            {
+                "event": "steering_report_processed",
+                "timestamp": now,
+                "source_report_id": report.run_id,
+                "actions_generated": len(actions),
+                "actions_applied": len(applied),
+                "actions_pending": len(pending),
+                "actions_rejected": len(rejected),
+            }
+        )
 
         return steering_report
 
-    def _generate_actions(
-        self, report: ReprioritizationReport
-    ) -> list[SteeringAction]:
+    def _generate_actions(self, report: ReprioritizationReport) -> list[SteeringAction]:
         actions: list[SteeringAction] = []
         all_items = report.new_backlog_items + report.reprioritized_items
 
@@ -297,12 +283,14 @@ class SteeringIntegration:
                     ApplicationStatus.APPLIED,
                     ApplicationStatus.PENDING,
                 ):
-                    self._audit_trail.append({
-                        "event": "action_skipped_idempotent",
-                        "timestamp": datetime.now(timezone.utc).isoformat(),
-                        "action_id": action_id,
-                        "status": existing.status.value,
-                    })
+                    self._audit_trail.append(
+                        {
+                            "event": "action_skipped_idempotent",
+                            "timestamp": datetime.now(UTC).isoformat(),
+                            "action_id": action_id,
+                            "status": existing.status.value,
+                        }
+                    )
                     continue
 
             details = _generate_action_details(item, action_type)
@@ -324,7 +312,7 @@ class SteeringIntegration:
                 self._actions[action_id] = action
                 ws_state = self._workstream_states[workstream]
                 ws_state.pending_actions.append(action_id)
-                ws_state.last_updated = datetime.now(timezone.utc).isoformat()
+                ws_state.last_updated = datetime.now(UTC).isoformat()
 
         return actions
 
@@ -340,51 +328,59 @@ class SteeringIntegration:
             if handler is None:
                 action.status = ApplicationStatus.PENDING
                 pending.append(action)
-                self._audit_trail.append({
-                    "event": "action_pending_no_handler",
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
-                    "action_id": action.action_id,
-                    "action_type": action.action_type.value,
-                })
+                self._audit_trail.append(
+                    {
+                        "event": "action_pending_no_handler",
+                        "timestamp": datetime.now(UTC).isoformat(),
+                        "action_id": action.action_id,
+                        "action_type": action.action_type.value,
+                    }
+                )
                 continue
 
             try:
                 result = handler(action)
                 if result.get("status") == "applied":
                     action.status = ApplicationStatus.APPLIED
-                    action.applied_at = datetime.now(timezone.utc).isoformat()
+                    action.applied_at = datetime.now(UTC).isoformat()
                     applied.append(action)
                     with self._lock:
                         ws_state = self._workstream_states[action.workstream]
                         if action.action_id in ws_state.pending_actions:
                             ws_state.pending_actions.remove(action.action_id)
                         ws_state.applied_actions.append(action.action_id)
-                        ws_state.last_updated = datetime.now(timezone.utc).isoformat()
-                    self._audit_trail.append({
-                        "event": "action_applied",
-                        "timestamp": action.applied_at,
-                        "action_id": action.action_id,
-                        "workstream": action.workstream.value,
-                    })
+                        ws_state.last_updated = datetime.now(UTC).isoformat()
+                    self._audit_trail.append(
+                        {
+                            "event": "action_applied",
+                            "timestamp": action.applied_at,
+                            "action_id": action.action_id,
+                            "workstream": action.workstream.value,
+                        }
+                    )
                 else:
                     action.status = ApplicationStatus.REJECTED
                     action.rejection_reason = result.get("reason", "Handler rejected")
                     rejected.append(action)
-                    self._audit_trail.append({
-                        "event": "action_rejected",
-                        "timestamp": datetime.now(timezone.utc).isoformat(),
-                        "action_id": action.action_id,
-                        "reason": action.rejection_reason,
-                    })
+                    self._audit_trail.append(
+                        {
+                            "event": "action_rejected",
+                            "timestamp": datetime.now(UTC).isoformat(),
+                            "action_id": action.action_id,
+                            "reason": action.rejection_reason,
+                        }
+                    )
             except Exception as e:
                 action.status = ApplicationStatus.PENDING
                 pending.append(action)
-                self._audit_trail.append({
-                    "event": "action_error",
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
-                    "action_id": action.action_id,
-                    "error": str(e),
-                })
+                self._audit_trail.append(
+                    {
+                        "event": "action_error",
+                        "timestamp": datetime.now(UTC).isoformat(),
+                        "action_id": action.action_id,
+                        "error": str(e),
+                    }
+                )
 
         return applied, pending, rejected
 
@@ -392,9 +388,7 @@ class SteeringIntegration:
         return self._actions.get(action_id)
 
     def get_actions_by_workstream(self, workstream: Workstream) -> list[SteeringAction]:
-        return [
-            a for a in self._actions.values() if a.workstream == workstream
-        ]
+        return [a for a in self._actions.values() if a.workstream == workstream]
 
     def get_actions_by_status(self, status: ApplicationStatus) -> list[SteeringAction]:
         return [a for a in self._actions.values() if a.status == status]
@@ -418,10 +412,7 @@ class SteeringIntegration:
                 "total_actions": len(self._actions),
                 "by_status": by_status,
                 "by_workstream": by_workstream,
-                "workstream_states": {
-                    ws.value: state.to_dict()
-                    for ws, state in self._workstream_states.items()
-                },
+                "workstream_states": {ws.value: state.to_dict() for ws, state in self._workstream_states.items()},
             }
 
 
@@ -456,13 +447,13 @@ def run_steering_from_report(
 
 
 __all__ = [
-    "Workstream",
-    "SteeringActionType",
     "ApplicationStatus",
     "SteeringAction",
-    "WorkstreamState",
-    "SteeringReport",
+    "SteeringActionType",
     "SteeringIntegration",
+    "SteeringReport",
+    "Workstream",
+    "WorkstreamState",
     "create_steering_integration",
     "run_steering_from_report",
 ]

@@ -3,11 +3,12 @@
 FINAL PRODUCTION VALIDATION
 Complete system validation and deployment readiness check
 """
+
 import json
 import logging
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import bcrypt
@@ -16,9 +17,7 @@ from cryptography.fernet import Fernet
 from prometheus_client import Counter, Gauge
 
 # Setup logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - VALIDATION - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - VALIDATION - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -39,7 +38,6 @@ class FinalProductionValidation:
 
             # Test bcrypt availability
 
-
             test_password = "test_password_123"
             hashed = bcrypt.hashpw(test_password.encode("utf-8"), bcrypt.gensalt())
             verified = bcrypt.checkpw(test_password.encode("utf-8"), hashed)
@@ -58,7 +56,6 @@ class FinalProductionValidation:
 
         # Test 2: Monitoring System
         try:
-
             # Test metrics creation
             test_counter = Counter("test_counter", "Test counter")
             test_gauge = Gauge("test_gauge", "Test gauge")
@@ -80,7 +77,6 @@ class FinalProductionValidation:
 
         # Test 3: Caching System
         try:
-
             # Test Redis connection (with fallback)
             try:
                 r = redis.Redis(host="localhost", port=6379, decode_responses=True)
@@ -116,7 +112,6 @@ class FinalProductionValidation:
 
         # Test 5: Configuration System
         try:
-
             # Test encryption
             key = Fernet.generate_key()
             f = Fernet(key)
@@ -154,9 +149,7 @@ class FinalProductionValidation:
                     "status": "PASS",
                     "service_functional": True,
                     "health_status": health_data.get("status", "unknown"),
-                    "dependencies_check": health_data.get("dependencies", {}).get(
-                        "status", "unknown"
-                    ),
+                    "dependencies_check": health_data.get("dependencies", {}).get("status", "unknown"),
                 }
                 logger.info("✅ Health Check System: PASS")
             else:
@@ -214,22 +207,14 @@ class FinalProductionValidation:
 
         # Count passing systems
         total_systems = len(self.validation_results)
-        passing_systems = sum(
-            1
-            for result in self.validation_results.values()
-            if result.get("status") == "PASS"
-        )
+        passing_systems = sum(1 for result in self.validation_results.values() if result.get("status") == "PASS")
 
-        readiness_percentage = (
-            (passing_systems / total_systems) * 100 if total_systems > 0 else 0
-        )
+        readiness_percentage = (passing_systems / total_systems) * 100 if total_systems > 0 else 0
 
         # Deployment readiness criteria
         critical_systems = ["security", "monitoring", "configuration", "health_checks"]
         critical_passing = sum(
-            1
-            for system in critical_systems
-            if self.validation_results.get(system, {}).get("status") == "PASS"
+            1 for system in critical_systems if self.validation_results.get(system, {}).get("status") == "PASS"
         )
 
         critical_percentage = (critical_passing / len(critical_systems)) * 100
@@ -253,17 +238,13 @@ class FinalProductionValidation:
             "passing_systems": passing_systems,
             "total_systems": total_systems,
             "critical_systems_status": {
-                system: self.validation_results.get(system, {}).get(
-                    "status", "NOT_TESTED"
-                )
+                system: self.validation_results.get(system, {}).get("status", "NOT_TESTED")
                 for system in critical_systems
             },
         }
 
         logger.critical(f"🎯 DEPLOYMENT READINESS: {deployment_status}")
-        logger.critical(
-            f"📊 Overall: {readiness_percentage:.1f}% | Critical: {critical_percentage:.1f}%"
-        )
+        logger.critical(f"📊 Overall: {readiness_percentage:.1f}% | Critical: {critical_percentage:.1f}%")
 
         return deployment_assessment
 
@@ -274,7 +255,7 @@ class FinalProductionValidation:
         deployment_assessment = self.check_deployment_readiness()
 
         final_report = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "validation_type": "FINAL_PRODUCTION_VALIDATION",
             "system_tests": self.validation_results,
             "deployment_assessment": deployment_assessment,
@@ -283,9 +264,7 @@ class FinalProductionValidation:
         }
 
         # Write report
-        report_path = Path(
-            "/home/vivi/pixelated/ai/FINAL_PRODUCTION_VALIDATION_REPORT.json"
-        )
+        report_path = Path("/home/vivi/pixelated/ai/FINAL_PRODUCTION_VALIDATION_REPORT.json")
         with open(report_path, "w") as f:
             json.dump(final_report, f, indent=2)
 
@@ -297,18 +276,12 @@ class FinalProductionValidation:
 
         for system, result in self.validation_results.items():
             if result.get("status") == "FAIL":
-                recommendations.append(
-                    f"CRITICAL: Fix {system} system - {result.get('error', 'Unknown error')}"
-                )
+                recommendations.append(f"CRITICAL: Fix {system} system - {result.get('error', 'Unknown error')}")
             elif result.get("status") == "PARTIAL":
-                recommendations.append(
-                    f"WARNING: Monitor {system} system - partial functionality"
-                )
+                recommendations.append(f"WARNING: Monitor {system} system - partial functionality")
 
         if not recommendations:
-            recommendations.append(
-                "All systems passing - ready for production deployment"
-            )
+            recommendations.append("All systems passing - ready for production deployment")
 
         return recommendations
 
@@ -339,12 +312,8 @@ class FinalProductionValidation:
         # Summary
         logger.critical("🚨 FINAL VALIDATION SUMMARY:")
         logger.critical(f"🎯 Deployment Ready: {self.deployment_ready}")
-        logger.critical(
-            f"📊 System Health: {final_report['deployment_assessment']['overall_percentage']:.1f}%"
-        )
-        logger.critical(
-            f"🔒 Critical Systems: {final_report['deployment_assessment']['critical_percentage']:.1f}%"
-        )
+        logger.critical(f"📊 System Health: {final_report['deployment_assessment']['overall_percentage']:.1f}%")
+        logger.critical(f"🔒 Critical Systems: {final_report['deployment_assessment']['critical_percentage']:.1f}%")
 
         if self.deployment_ready:
             logger.critical("✅ SYSTEM IS PRODUCTION READY - DEPLOY NOW")

@@ -6,7 +6,7 @@ credential storage with HIPAA++ compliance.
 """
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import requests
@@ -21,10 +21,8 @@ class AuthenticationError(Exception):
     """Custom exception for authentication errors"""
 
 
-
 class TokenExpiredError(AuthenticationError):
     """Exception for expired tokens"""
-
 
 
 class AuthManager:
@@ -54,9 +52,7 @@ class AuthManager:
         if config.auth.jwt_token:
             self._load_token_info()
 
-    def authenticate(
-        self, username: str, password: str, client_id: str | None = None
-    ) -> bool:
+    def authenticate(self, username: str, password: str, client_id: str | None = None) -> bool:
         """
         Authenticate with username and password
 
@@ -107,7 +103,7 @@ class AuthManager:
                     self.config.auth.refresh_token = refresh_token
 
                 # Calculate expiry
-                expiry_time = datetime.now(timezone.utc) + timedelta(seconds=expires_in)
+                expiry_time = datetime.now(UTC) + timedelta(seconds=expires_in)
                 self.config.auth.token_expiry = expiry_time.isoformat()
 
                 # Load token info
@@ -179,7 +175,7 @@ class AuthManager:
                     self.config.auth.refresh_token = new_refresh_token
 
                 # Update expiry
-                expiry_time = datetime.now(timezone.utc) + timedelta(seconds=expires_in)
+                expiry_time = datetime.now(UTC) + timedelta(seconds=expires_in)
                 self.config.auth.token_expiry = expiry_time.isoformat()
 
                 # Reload token info
@@ -191,9 +187,7 @@ class AuthManager:
                 logger.info("Token refresh successful")
                 return True
 
-            raise AuthenticationError(
-                f"Token refresh failed: HTTP {response.status_code}"
-            )
+            raise AuthenticationError(f"Token refresh failed: HTTP {response.status_code}")
 
         except requests.exceptions.RequestException as e:
             raise AuthenticationError(f"Network error during token refresh: {e}") from e
@@ -246,7 +240,7 @@ class AuthManager:
 
         try:
             expiry_time = datetime.fromisoformat(self.config.auth.token_expiry)
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
 
             # Consider token expired if it expires within 5 minutes
             buffer_minutes = 5
@@ -388,9 +382,7 @@ class AuthManager:
             user_info = self.get_user_info()
 
             if user_info:
-                username = (
-                    user_info.get("username") or user_info.get("email") or "Unknown"
-                )
+                username = user_info.get("username") or user_info.get("email") or "Unknown"
                 return f"Authenticated as {username}"
             return "Authenticated (user info unavailable)"
 
@@ -413,9 +405,7 @@ class AuthManager:
             logger.warning(f"Failed to load token info: {e}")
             self._token_info = None
 
-    def make_authenticated_request(
-        self, method: str, endpoint: str, **kwargs
-    ) -> requests.Response:
+    def make_authenticated_request(self, method: str, endpoint: str, **kwargs) -> requests.Response:
         """
         Make an authenticated HTTP request
 
@@ -474,7 +464,7 @@ class AuthManager:
 
         try:
             expiry_time = datetime.fromisoformat(self.config.auth.token_expiry)
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             remaining = int((expiry_time - now).total_seconds())
             return max(0, remaining)
         except Exception as e:
@@ -497,9 +487,7 @@ def require_auth(auth_manager: AuthManager):
     def decorator(func):
         def wrapper(*args, **kwargs):
             if not auth_manager.config.auth.jwt_token:
-                raise AuthenticationError(
-                    "Authentication required. Please login first."
-                )
+                raise AuthenticationError("Authentication required. Please login first.")
 
             # Validate token before executing command
             if auth_manager.is_token_expired():

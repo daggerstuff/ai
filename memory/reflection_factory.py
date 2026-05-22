@@ -5,6 +5,7 @@ Usage:
     from ai.memory.reflection_factory import create_reflection_subagent
     subagent = await create_reflection_subagent()
 """
+
 import asyncio
 import logging
 import os
@@ -99,7 +100,6 @@ async def main():
         conversation_text=conversation,
         user_id="user-123",
     )
-
 
     if not result.crisis_detected:
         await subagent.consolidate_memories("user-123", result)

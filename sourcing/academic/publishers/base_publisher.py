@@ -19,8 +19,10 @@ from urllib3.util.retry import Retry
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class BookFormat(Enum):
     """Supported book formats for academic sourcing"""
+
     PDF = "pdf"
     EPUB = "epub"
     HTML = "html"
@@ -28,9 +30,11 @@ class BookFormat(Enum):
     PLAIN_TEXT = "txt"
     JSON = "json"
 
+
 @dataclass
 class BookMetadata:
     """Metadata for an academic book"""
+
     title: str
     authors: list[str]
     publisher: str
@@ -52,15 +56,18 @@ class BookMetadata:
     source_publisher: str | None = None
     raw_metadata: dict[str, Any] | None = None
 
+
 @dataclass
 class BookContent:
     """Content of an academic book with metadata"""
+
     metadata: BookMetadata
     content: str
     format: BookFormat
     chapter_contents: list[tuple[str, str]] | None = None  # List of (chapter_title, chapter_content)
     therapeutic_concepts: list[str] | None = None
     anonymized_content: str | None = None
+
 
 class BasePublisher(abc.ABC):
     """Abstract base class for academic publisher integrations"""
@@ -91,7 +98,7 @@ class BasePublisher(abc.ABC):
             total=3,
             backoff_factor=1,
             status_forcelist=[429, 500, 502, 503, 504],
-            allowed_methods=["HEAD", "GET", "OPTIONS", "POST"]
+            allowed_methods=["HEAD", "GET", "OPTIONS", "POST"],
         )
 
         adapter = HTTPAdapter(max_retries=retry_strategy)
@@ -105,7 +112,7 @@ class BasePublisher(abc.ABC):
         headers = {
             "User-Agent": f"PixelatedEmpathyAcademicSourcing/1.0 ({self.name} Integration)",
             "Accept": "application/json",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         }
 
         if self._auth_token:
@@ -150,7 +157,7 @@ class BasePublisher(abc.ABC):
         year_range: tuple[int, int] | None = None,
         therapeutic_topics: list[str] | None = None,
         limit: int = 20,
-        offset: int = 0
+        offset: int = 0,
     ) -> list[BookMetadata]:
         """
         Search for books in the publisher's catalog
@@ -218,15 +225,45 @@ class BasePublisher(abc.ABC):
 
         # Check for therapeutic keywords in title, abstract, and keywords
         therapeutic_keywords = [
-            "psychology", "psychotherapy", "therapy", "therapeutic", "mental health",
-            "counseling", "clinical psychology", "psychiatry", "trauma", "anxiety",
-            "depression", "cognitive behavioral therapy", "cbt", "dialectical behavior therapy",
-            "dbt", "mindfulness", "emotional regulation", "personality disorders",
-            "crisis intervention", "suicide prevention", "addiction", "substance abuse",
-            "eating disorders", "ptsd", "post-traumatic stress", "neuropsychology",
-            "child psychology", "adolescent psychology", "family therapy", "group therapy",
-            "evidence-based practice", "clinical techniques", "diagnostic", "dsm-5",
-            "assessment", "intervention", "treatment planning", "ethics", "cultural competence"
+            "psychology",
+            "psychotherapy",
+            "therapy",
+            "therapeutic",
+            "mental health",
+            "counseling",
+            "clinical psychology",
+            "psychiatry",
+            "trauma",
+            "anxiety",
+            "depression",
+            "cognitive behavioral therapy",
+            "cbt",
+            "dialectical behavior therapy",
+            "dbt",
+            "mindfulness",
+            "emotional regulation",
+            "personality disorders",
+            "crisis intervention",
+            "suicide prevention",
+            "addiction",
+            "substance abuse",
+            "eating disorders",
+            "ptsd",
+            "post-traumatic stress",
+            "neuropsychology",
+            "child psychology",
+            "adolescent psychology",
+            "family therapy",
+            "group therapy",
+            "evidence-based practice",
+            "clinical techniques",
+            "diagnostic",
+            "dsm-5",
+            "assessment",
+            "intervention",
+            "treatment planning",
+            "ethics",
+            "cultural competence",
         ]
 
         # Check title
@@ -269,7 +306,7 @@ class BasePublisher(abc.ABC):
         params: dict[str, Any] | None = None,
         data: dict[str, Any] | None = None,
         json: dict[str, Any] | None = None,
-        timeout: int = 30
+        timeout: int = 30,
     ) -> dict[str, Any] | None:
         """
         Make an API request to the publisher's API
@@ -295,7 +332,7 @@ class BasePublisher(abc.ABC):
                 params=params,
                 data=data,
                 json=json,
-                timeout=timeout
+                timeout=timeout,
             )
 
             response.raise_for_status()

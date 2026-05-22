@@ -4,6 +4,7 @@ Configuration management for TechDeck-Python Pipeline Integration Service.
 This module provides comprehensive configuration management with environment-based
 settings, validation, and secure handling of sensitive data for HIPAA++ compliance.
 """
+
 import logging
 import os
 from dataclasses import dataclass, field
@@ -33,17 +34,25 @@ class TechDeckServiceConfig:
     # Security Configuration
     JWT_SECRET_KEY: str = field(default_factory=lambda: os.environ.get("JWT_SECRET_KEY", "jwt-secret-key"))
     JWT_ALGORITHM: str = field(default_factory=lambda: os.environ.get("JWT_ALGORITHM", "HS256"))
-    JWT_ACCESS_TOKEN_EXPIRES: int = field(default_factory=lambda: int(os.environ.get("JWT_ACCESS_TOKEN_EXPIRES", "3600")))
-    JWT_REFRESH_TOKEN_EXPIRES: int = field(default_factory=lambda: int(os.environ.get("JWT_REFRESH_TOKEN_EXPIRES", "86400")))
+    JWT_ACCESS_TOKEN_EXPIRES: int = field(
+        default_factory=lambda: int(os.environ.get("JWT_ACCESS_TOKEN_EXPIRES", "3600"))
+    )
+    JWT_REFRESH_TOKEN_EXPIRES: int = field(
+        default_factory=lambda: int(os.environ.get("JWT_REFRESH_TOKEN_EXPIRES", "86400"))
+    )
 
     # Rate Limiting Configuration
-    RATE_LIMIT_STORAGE_URL: str = field(default_factory=lambda: os.environ.get("RATE_LIMIT_STORAGE_URL", "redis://localhost:6379"))
+    RATE_LIMIT_STORAGE_URL: str = field(
+        default_factory=lambda: os.environ.get("RATE_LIMIT_STORAGE_URL", "redis://localhost:6379")
+    )
     RATE_LIMIT_PER_MINUTE: int = field(default_factory=lambda: int(os.environ.get("RATE_LIMIT_PER_MINUTE", "60")))
     RATE_LIMIT_PER_HOUR: int = field(default_factory=lambda: int(os.environ.get("RATE_LIMIT_PER_HOUR", "1000")))
     RATE_LIMIT_PER_DAY: int = field(default_factory=lambda: int(os.environ.get("RATE_LIMIT_PER_DAY", "10000")))
 
     # Database Configuration
-    MONGODB_URI: str = field(default_factory=lambda: os.environ.get("MONGODB_URI", "mongodb://localhost:27017/techdeck"))
+    MONGODB_URI: str = field(
+        default_factory=lambda: os.environ.get("MONGODB_URI", "mongodb://localhost:27017/techdeck")
+    )
     MONGODB_DATABASE: str = field(default_factory=lambda: os.environ.get("MONGODB_DATABASE", "techdeck"))
     MONGODB_MAX_POOL_SIZE: int = field(default_factory=lambda: int(os.environ.get("MONGODB_MAX_POOL_SIZE", "100")))
     MONGODB_MIN_POOL_SIZE: int = field(default_factory=lambda: int(os.environ.get("MONGODB_MIN_POOL_SIZE", "10")))
@@ -53,13 +62,16 @@ class TechDeckServiceConfig:
     REDIS_DB: int = field(default_factory=lambda: int(os.environ.get("REDIS_DB", "0")))
     REDIS_PASSWORD: str | None = field(default_factory=lambda: os.environ.get("REDIS_PASSWORD"))
     REDIS_SOCKET_TIMEOUT: int = field(default_factory=lambda: int(os.environ.get("REDIS_SOCKET_TIMEOUT", "5")))
-    REDIS_CONNECTION_POOL_SIZE: int = field(default_factory=lambda: int(os.environ.get("REDIS_CONNECTION_POOL_SIZE", "50")))
+    REDIS_CONNECTION_POOL_SIZE: int = field(
+        default_factory=lambda: int(os.environ.get("REDIS_CONNECTION_POOL_SIZE", "50"))
+    )
 
     # File Upload Configuration
     MAX_FILE_SIZE_MB: int = field(default_factory=lambda: int(os.environ.get("MAX_FILE_SIZE_MB", "100")))
     UPLOAD_FOLDER: str = field(default_factory=lambda: os.environ.get("UPLOAD_FOLDER", "/tmp/techdeck_uploads"))
-    ALLOWED_EXTENSIONS: list[str] = field(default_factory=lambda:
-        os.environ.get("ALLOWED_EXTENSIONS", "csv,json,jsonl,parquet").split(","))
+    ALLOWED_EXTENSIONS: list[str] = field(
+        default_factory=lambda: os.environ.get("ALLOWED_EXTENSIONS", "csv,json,jsonl,parquet").split(",")
+    )
     FILE_UPLOAD_TIMEOUT: int = field(default_factory=lambda: int(os.environ.get("FILE_UPLOAD_TIMEOUT", "300")))
 
     # Pipeline Configuration
@@ -69,18 +81,23 @@ class TechDeckServiceConfig:
     PIPELINE_RETRY_DELAY: int = field(default_factory=lambda: int(os.environ.get("PIPELINE_RETRY_DELAY", "5")))
 
     # Bias Detection Configuration
-    BIAS_DETECTION_ENABLED: bool = field(default_factory=lambda:
-        os.environ.get("BIAS_DETECTION_ENABLED", "True").lower() == "true")
-    BIAS_DETECTION_THRESHOLD: float = field(default_factory=lambda:
-        float(os.environ.get("BIAS_DETECTION_THRESHOLD", "0.7")))
+    BIAS_DETECTION_ENABLED: bool = field(
+        default_factory=lambda: os.environ.get("BIAS_DETECTION_ENABLED", "True").lower() == "true"
+    )
+    BIAS_DETECTION_THRESHOLD: float = field(
+        default_factory=lambda: float(os.environ.get("BIAS_DETECTION_THRESHOLD", "0.7"))
+    )
     BIAS_DETECTION_TIMEOUT: int = field(default_factory=lambda: int(os.environ.get("BIAS_DETECTION_TIMEOUT", "30")))
 
     # WebSocket Configuration
-    WEBSOCKET_ENABLED: bool = field(default_factory=lambda:
-        os.environ.get("WEBSOCKET_ENABLED", "True").lower() == "true")
+    WEBSOCKET_ENABLED: bool = field(
+        default_factory=lambda: os.environ.get("WEBSOCKET_ENABLED", "True").lower() == "true"
+    )
     WEBSOCKET_PING_INTERVAL: int = field(default_factory=lambda: int(os.environ.get("WEBSOCKET_PING_INTERVAL", "30")))
     WEBSOCKET_PING_TIMEOUT: int = field(default_factory=lambda: int(os.environ.get("WEBSOCKET_PING_TIMEOUT", "10")))
-    WEBSOCKET_MAX_CONNECTIONS: int = field(default_factory=lambda: int(os.environ.get("WEBSOCKET_MAX_CONNECTIONS", "1000")))
+    WEBSOCKET_MAX_CONNECTIONS: int = field(
+        default_factory=lambda: int(os.environ.get("WEBSOCKET_MAX_CONNECTIONS", "1000"))
+    )
 
     # Logging Configuration
     LOG_LEVEL: str = field(default_factory=lambda: os.environ.get("LOG_LEVEL", "INFO"))
@@ -92,50 +109,66 @@ class TechDeckServiceConfig:
     # Performance Configuration
     RESPONSE_TIMEOUT: int = field(default_factory=lambda: int(os.environ.get("RESPONSE_TIMEOUT", "50")))
     CACHE_TTL_SECONDS: int = field(default_factory=lambda: int(os.environ.get("CACHE_TTL_SECONDS", "3600")))
-    ENABLE_COMPRESSION: bool = field(default_factory=lambda:
-        os.environ.get("ENABLE_COMPRESSION", "True").lower() == "true")
+    ENABLE_COMPRESSION: bool = field(
+        default_factory=lambda: os.environ.get("ENABLE_COMPRESSION", "True").lower() == "true"
+    )
 
     # CORS Configuration
-    ALLOWED_ORIGINS: list[str] = field(default_factory=lambda:
-        os.environ.get("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:4321").split(","))
-    ALLOWED_METHODS: list[str] = field(default_factory=lambda:
-        os.environ.get("ALLOWED_METHODS", "GET,POST,PUT,DELETE,OPTIONS").split(","))
-    ALLOWED_HEADERS: list[str] = field(default_factory=lambda:
-        os.environ.get("ALLOWED_HEADERS", "Content-Type,Authorization,X-Request-ID").split(","))
+    ALLOWED_ORIGINS: list[str] = field(
+        default_factory=lambda: os.environ.get("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:4321").split(
+            ","
+        )
+    )
+    ALLOWED_METHODS: list[str] = field(
+        default_factory=lambda: os.environ.get("ALLOWED_METHODS", "GET,POST,PUT,DELETE,OPTIONS").split(",")
+    )
+    ALLOWED_HEADERS: list[str] = field(
+        default_factory=lambda: os.environ.get("ALLOWED_HEADERS", "Content-Type,Authorization,X-Request-ID").split(",")
+    )
 
     # Security Headers
-    ENABLE_SECURITY_HEADERS: bool = field(default_factory=lambda:
-        os.environ.get("ENABLE_SECURITY_HEADERS", "True").lower() == "true")
-    CONTENT_SECURITY_POLICY: str = field(default_factory=lambda:
-        os.environ.get("CONTENT_SECURITY_POLICY", "default-src 'self'"))
+    ENABLE_SECURITY_HEADERS: bool = field(
+        default_factory=lambda: os.environ.get("ENABLE_SECURITY_HEADERS", "True").lower() == "true"
+    )
+    CONTENT_SECURITY_POLICY: str = field(
+        default_factory=lambda: os.environ.get("CONTENT_SECURITY_POLICY", "default-src 'self'")
+    )
 
     # HIPAA Compliance Configuration
-    ENABLE_AUDIT_LOGGING: bool = field(default_factory=lambda:
-        os.environ.get("ENABLE_AUDIT_LOGGING", "True").lower() == "true")
+    ENABLE_AUDIT_LOGGING: bool = field(
+        default_factory=lambda: os.environ.get("ENABLE_AUDIT_LOGGING", "True").lower() == "true"
+    )
     AUDIT_LOG_RETENTION_DAYS: int = field(default_factory=lambda: int(os.environ.get("AUDIT_LOG_RETENTION_DAYS", "90")))
-    ENCRYPT_SENSITIVE_DATA: bool = field(default_factory=lambda:
-        os.environ.get("ENCRYPT_SENSITIVE_DATA", "True").lower() == "true")
+    ENCRYPT_SENSITIVE_DATA: bool = field(
+        default_factory=lambda: os.environ.get("ENCRYPT_SENSITIVE_DATA", "True").lower() == "true"
+    )
     DATA_RETENTION_DAYS: int = field(default_factory=lambda: int(os.environ.get("DATA_RETENTION_DAYS", "365")))
 
     # Integration Configuration
-    PIPELINE_ORCHESTRATOR_URL: str = field(default_factory=lambda:
-        os.environ.get("PIPELINE_ORCHESTRATOR_URL", "http://localhost:8080"))
-    BIAS_DETECTION_SERVICE_URL: str = field(default_factory=lambda:
-        os.environ.get("BIAS_DETECTION_SERVICE_URL", "http://localhost:8081"))
-    ANALYTICS_SERVICE_URL: str = field(default_factory=lambda:
-        os.environ.get("ANALYTICS_SERVICE_URL", "http://localhost:8082"))
+    PIPELINE_ORCHESTRATOR_URL: str = field(
+        default_factory=lambda: os.environ.get("PIPELINE_ORCHESTRATOR_URL", "http://localhost:8080")
+    )
+    BIAS_DETECTION_SERVICE_URL: str = field(
+        default_factory=lambda: os.environ.get("BIAS_DETECTION_SERVICE_URL", "http://localhost:8081")
+    )
+    ANALYTICS_SERVICE_URL: str = field(
+        default_factory=lambda: os.environ.get("ANALYTICS_SERVICE_URL", "http://localhost:8082")
+    )
 
     # Health Check Configuration
     HEALTH_CHECK_TIMEOUT: int = field(default_factory=lambda: int(os.environ.get("HEALTH_CHECK_TIMEOUT", "5")))
     HEALTH_CHECK_INTERVAL: int = field(default_factory=lambda: int(os.environ.get("HEALTH_CHECK_INTERVAL", "30")))
 
     # Circuit Breaker Configuration
-    CIRCUIT_BREAKER_ENABLED: bool = field(default_factory=lambda:
-        os.environ.get("CIRCUIT_BREAKER_ENABLED", "True").lower() == "true")
-    CIRCUIT_BREAKER_FAILURE_THRESHOLD: int = field(default_factory=lambda:
-        int(os.environ.get("CIRCUIT_BREAKER_FAILURE_THRESHOLD", "5")))
-    CIRCUIT_BREAKER_RECOVERY_TIMEOUT: int = field(default_factory=lambda:
-        int(os.environ.get("CIRCUIT_BREAKER_RECOVERY_TIMEOUT", "60")))
+    CIRCUIT_BREAKER_ENABLED: bool = field(
+        default_factory=lambda: os.environ.get("CIRCUIT_BREAKER_ENABLED", "True").lower() == "true"
+    )
+    CIRCUIT_BREAKER_FAILURE_THRESHOLD: int = field(
+        default_factory=lambda: int(os.environ.get("CIRCUIT_BREAKER_FAILURE_THRESHOLD", "5"))
+    )
+    CIRCUIT_BREAKER_RECOVERY_TIMEOUT: int = field(
+        default_factory=lambda: int(os.environ.get("CIRCUIT_BREAKER_RECOVERY_TIMEOUT", "60"))
+    )
 
     def __post_init__(self):
         """Validate configuration after initialization."""
@@ -146,12 +179,7 @@ class TechDeckServiceConfig:
 
     def _validate_required_settings(self) -> None:
         """Validate required configuration settings."""
-        required_settings = [
-            "SECRET_KEY",
-            "JWT_SECRET_KEY",
-            "MONGODB_URI",
-            "REDIS_URL"
-        ]
+        required_settings = ["SECRET_KEY", "JWT_SECRET_KEY", "MONGODB_URI", "REDIS_URL"]
 
         missing_settings = []
         for setting in required_settings:
@@ -199,7 +227,7 @@ class TechDeckServiceConfig:
             "HEALTH_CHECK_TIMEOUT": (1, 60),
             "HEALTH_CHECK_INTERVAL": (10, 300),
             "CIRCUIT_BREAKER_FAILURE_THRESHOLD": (1, 20),
-            "CIRCUIT_BREAKER_RECOVERY_TIMEOUT": (30, 600)
+            "CIRCUIT_BREAKER_RECOVERY_TIMEOUT": (30, 600),
         }
 
         for setting, (min_val, max_val) in numeric_validations.items():
@@ -211,7 +239,7 @@ class TechDeckServiceConfig:
         """Setup basic logging configuration."""
         logging.basicConfig(
             level=getattr(logging, self.LOG_LEVEL.upper()),
-            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         )
 
     @classmethod
@@ -259,7 +287,7 @@ class TechDeckServiceConfig:
             "db": self.REDIS_DB,
             "password": self.REDIS_PASSWORD,
             "socket_timeout": self.REDIS_SOCKET_TIMEOUT,
-            "connection_pool_size": self.REDIS_CONNECTION_POOL_SIZE
+            "connection_pool_size": self.REDIS_CONNECTION_POOL_SIZE,
         }
 
     def get_mongodb_config(self) -> dict[str, Any]:
@@ -268,7 +296,7 @@ class TechDeckServiceConfig:
             "uri": self.MONGODB_URI,
             "database": self.MONGODB_DATABASE,
             "maxPoolSize": self.MONGODB_MAX_POOL_SIZE,
-            "minPoolSize": self.MONGODB_MIN_POOL_SIZE
+            "minPoolSize": self.MONGODB_MIN_POOL_SIZE,
         }
 
 
@@ -328,11 +356,7 @@ def get_config(env: str | None = None) -> TechDeckServiceConfig:
     if env is None:
         env = os.environ.get("FLASK_ENV", "development").lower()
 
-    config_classes = {
-        "development": DevelopmentConfig,
-        "production": ProductionConfig,
-        "testing": TestingConfig
-    }
+    config_classes = {"development": DevelopmentConfig, "production": ProductionConfig, "testing": TestingConfig}
 
     config_class = config_classes.get(env, TechDeckServiceConfig)
     return config_class()

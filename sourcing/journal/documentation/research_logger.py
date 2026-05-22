@@ -8,7 +8,7 @@ archival, and structured log management.
 import json
 import logging
 import threading
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from ai.sourcing.journal.models.dataset_models import ResearchLog
@@ -82,7 +82,7 @@ class ResearchLogger:
             ResearchLog: The created log entry
         """
         log_entry = ResearchLog(
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             activity_type=activity_type,
             source_id=source_id,
             description=description,
@@ -116,9 +116,7 @@ class ResearchLogger:
 
         return log_entry
 
-    def get_session_logs(
-        self, session_id: str, limit: int | None = None
-    ) -> list[ResearchLog]:
+    def get_session_logs(self, session_id: str, limit: int | None = None) -> list[ResearchLog]:
         """
         Get all logs for a specific session.
 
@@ -135,9 +133,7 @@ class ResearchLogger:
                 return logs[-limit:]
             return logs.copy()
 
-    def get_logs_by_activity_type(
-        self, activity_type: str, session_id: str | None = None
-    ) -> list[ResearchLog]:
+    def get_logs_by_activity_type(self, activity_type: str, session_id: str | None = None) -> list[ResearchLog]:
         """
         Get all logs of a specific activity type.
 
@@ -171,15 +167,11 @@ class ResearchLogger:
         with self._lock:
             logs = []
             for session_logs in self._session_logs.values():
-                logs.extend(
-                    [log for log in session_logs if log.source_id == source_id]
-                )
+                logs.extend([log for log in session_logs if log.source_id == source_id])
 
             return logs
 
-    def get_logs_by_time_range(
-        self, start_date: datetime, end_date: datetime
-    ) -> list[ResearchLog]:
+    def get_logs_by_time_range(self, start_date: datetime, end_date: datetime) -> list[ResearchLog]:
         """
         Get all logs within a time range.
 
@@ -193,13 +185,7 @@ class ResearchLogger:
         with self._lock:
             logs = []
             for session_logs in self._session_logs.values():
-                logs.extend(
-                    [
-                        log
-                        for log in session_logs
-                        if start_date <= log.timestamp <= end_date
-                    ]
-                )
+                logs.extend([log for log in session_logs if start_date <= log.timestamp <= end_date])
 
             return sorted(logs, key=lambda x: x.timestamp)
 
@@ -277,9 +263,7 @@ class ResearchLogger:
         """
         return self._archive_old_logs()
 
-    def _write_log_entry(
-        self, log_entry: ResearchLog, session_id: str | None = None
-    ) -> None:
+    def _write_log_entry(self, log_entry: ResearchLog, session_id: str | None = None) -> None:
         """Write a log entry to the current log file."""
         if not self._current_log_file:
             self._current_log_file = self._get_current_log_file()
@@ -302,7 +286,7 @@ class ResearchLogger:
 
     def _get_current_log_file(self) -> Path:
         """Get the current log file path, creating it if necessary."""
-        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        today = datetime.now(UTC).strftime("%Y-%m-%d")
         log_file = self.log_directory / f"research_activity_{today}.jsonl"
 
         if not log_file.exists():
@@ -326,9 +310,7 @@ class ResearchLogger:
                 return  # Don't check age if we just rotated
 
             # Check file age
-            file_age = datetime.now(timezone.utc) - datetime.fromtimestamp(
-                self._current_log_file.stat().st_mtime
-            )
+            file_age = datetime.now(UTC) - datetime.fromtimestamp(self._current_log_file.stat().st_mtime)
             if file_age.days >= self.rotation_interval_days:
                 self._rotate_log()
         except (OSError, AttributeError) as e:
@@ -339,7 +321,7 @@ class ResearchLogger:
         if not self._current_log_file:
             return
 
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         # Use .log extension for rotated files (test compatibility)
         rotated_file = self.log_directory / f"research_activity_{timestamp}.log"
 
@@ -361,7 +343,7 @@ class ResearchLogger:
         Returns:
             Number of files archived
         """
-        cutoff_date = datetime.now(timezone.utc) - timedelta(days=self.max_log_age_days)
+        cutoff_date = datetime.now(UTC) - timedelta(days=self.max_log_age_days)
         archived_count = 0
 
         for log_file in self.log_directory.glob("research_activity_*.jsonl"):
@@ -386,17 +368,13 @@ class ResearchLogger:
             Dictionary with statistics about logs
         """
         with self._lock:
-            total_logs = sum(
-                len(logs) for logs in self._session_logs.values()
-            )
+            total_logs = sum(len(logs) for logs in self._session_logs.values())
             activity_counts: dict[str, int] = {}
             total_duration = 0
 
             for session_logs in self._session_logs.values():
                 for log in session_logs:
-                    activity_counts[log.activity_type] = (
-                        activity_counts.get(log.activity_type, 0) + 1
-                    )
+                    activity_counts[log.activity_type] = activity_counts.get(log.activity_type, 0) + 1
                     total_duration += log.duration_minutes
 
             return {
@@ -404,9 +382,7 @@ class ResearchLogger:
                 "sessions": len(self._session_logs),
                 "activity_counts": activity_counts,
                 "total_duration_minutes": total_duration,
-                "average_duration_minutes": (
-                    total_duration / total_logs if total_logs > 0 else 0
-                ),
+                "average_duration_minutes": (total_duration / total_logs if total_logs > 0 else 0),
             }
 
     def clear_session_logs(self, session_id: str) -> None:
@@ -421,9 +397,7 @@ class ResearchLogger:
                 del self._session_logs[session_id]
                 logger.info(f"Cleared logs for session: {session_id}")
 
-    def export_logs(
-        self, output_path: Path, session_id: str | None = None
-    ) -> None:
+    def export_logs(self, output_path: Path, session_id: str | None = None) -> None:
         """
         Export logs to a JSON file.
 
@@ -457,4 +431,3 @@ class ResearchLogger:
                 logger.info(f"Exported {len(log_data)} logs to {output_path}")
             except OSError as e:
                 logger.error(f"Failed to export logs: {e}")
-

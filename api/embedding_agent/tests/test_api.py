@@ -95,10 +95,7 @@ class TestEmbedEndpoint:
 
     def test_embed_valid_text(self, client: TestClient):
         """Test embedding generation for valid text."""
-        response = client.post(
-            "/api/v1/embeddings/embed",
-            json={"text": "Hello, world!"}
-        )
+        response = client.post("/api/v1/embeddings/embed", json={"text": "Hello, world!"})
 
         assert response.status_code == 200
         data = response.json()
@@ -111,39 +108,26 @@ class TestEmbedEndpoint:
     def test_embed_with_knowledge_type(self, client: TestClient):
         """Test embedding with knowledge type."""
         response = client.post(
-            "/api/v1/embeddings/embed",
-            json={
-                "text": "Major Depressive Disorder symptoms",
-                "knowledge_type": "dsm5"
-            }
+            "/api/v1/embeddings/embed", json={"text": "Major Depressive Disorder symptoms", "knowledge_type": "dsm5"}
         )
 
         assert response.status_code == 200
 
     def test_embed_empty_text_returns_400(self, client: TestClient):
         """Test that empty text returns 400."""
-        response = client.post(
-            "/api/v1/embeddings/embed",
-            json={"text": ""}
-        )
+        response = client.post("/api/v1/embeddings/embed", json={"text": ""})
 
         assert response.status_code == 422  # Validation error
 
     def test_embed_whitespace_only_returns_400(self, client: TestClient):
         """Test that whitespace-only text returns 400."""
-        response = client.post(
-            "/api/v1/embeddings/embed",
-            json={"text": "   "}
-        )
+        response = client.post("/api/v1/embeddings/embed", json={"text": "   "})
 
         assert response.status_code == 422
 
     def test_embed_missing_text_returns_422(self, client: TestClient):
         """Test that missing text field returns 422."""
-        response = client.post(
-            "/api/v1/embeddings/embed",
-            json={}
-        )
+        response = client.post("/api/v1/embeddings/embed", json={})
 
         assert response.status_code == 422
 
@@ -153,12 +137,7 @@ class TestBatchEmbedEndpoint:
 
     def test_batch_embed_multiple_texts(self, client: TestClient):
         """Test batch embedding of multiple texts."""
-        response = client.post(
-            "/api/v1/embeddings/embed/batch",
-            json={
-                "texts": ["Text one", "Text two", "Text three"]
-            }
-        )
+        response = client.post("/api/v1/embeddings/embed/batch", json={"texts": ["Text one", "Text two", "Text three"]})
 
         assert response.status_code == 200
         data = response.json()
@@ -168,19 +147,13 @@ class TestBatchEmbedEndpoint:
 
     def test_batch_embed_empty_list_returns_422(self, client: TestClient):
         """Test that empty list returns 422."""
-        response = client.post(
-            "/api/v1/embeddings/embed/batch",
-            json={"texts": []}
-        )
+        response = client.post("/api/v1/embeddings/embed/batch", json={"texts": []})
 
         assert response.status_code == 422
 
     def test_batch_embed_too_many_texts_returns_422(self, client: TestClient):
         """Test that too many texts returns 422."""
-        response = client.post(
-            "/api/v1/embeddings/embed/batch",
-            json={"texts": ["text"] * 101}
-        )
+        response = client.post("/api/v1/embeddings/embed/batch", json={"texts": ["text"] * 101})
 
         assert response.status_code == 422
 
@@ -190,10 +163,7 @@ class TestSearchEndpoint:
 
     def test_search_valid_query(self, client: TestClient):
         """Test search with valid query."""
-        response = client.post(
-            "/api/v1/embeddings/search",
-            json={"query": "depression treatment"}
-        )
+        response = client.post("/api/v1/embeddings/search", json={"query": "depression treatment"})
 
         assert response.status_code == 200
         data = response.json()
@@ -204,13 +174,7 @@ class TestSearchEndpoint:
 
     def test_search_with_top_k(self, client: TestClient):
         """Test search with custom top_k."""
-        response = client.post(
-            "/api/v1/embeddings/search",
-            json={
-                "query": "therapy techniques",
-                "top_k": 5
-            }
-        )
+        response = client.post("/api/v1/embeddings/search", json={"query": "therapy techniques", "top_k": 5})
 
         assert response.status_code == 200
         data = response.json()
@@ -218,13 +182,7 @@ class TestSearchEndpoint:
 
     def test_search_with_min_similarity(self, client: TestClient):
         """Test search with minimum similarity."""
-        response = client.post(
-            "/api/v1/embeddings/search",
-            json={
-                "query": "test query",
-                "min_similarity": 0.5
-            }
-        )
+        response = client.post("/api/v1/embeddings/search", json={"query": "test query", "min_similarity": 0.5})
 
         assert response.status_code == 200
         data = response.json()
@@ -249,10 +207,7 @@ class TestCacheEndpoints:
     def test_clear_cache(self, client: TestClient):
         """Test clearing cache."""
         # First generate some cached embeddings
-        client.post(
-            "/api/v1/embeddings/embed",
-            json={"text": "Cache test text"}
-        )
+        client.post("/api/v1/embeddings/embed", json={"text": "Cache test text"})
 
         # Clear cache
         response = client.delete("/api/v1/embeddings/cache")
@@ -299,4 +254,3 @@ class TestModelsEndpoint:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
-

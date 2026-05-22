@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 import argparse
-import re
 import sys
-from dataclasses import dataclass, field, asdict
-from enum import Enum, StrEnum
+from dataclasses import dataclass
+from enum import StrEnum
 from typing import Any
 
 
@@ -66,8 +65,7 @@ class CurationExitReport:
 
     def __str__(self) -> str:
         return (
-            f"CurationExitReport({self.source_id}: "
-            f"retention={self.net_retention_pct}%, signed={self.manifest_signed})"
+            f"CurationExitReport({self.source_id}: retention={self.net_retention_pct}%, signed={self.manifest_signed})"
         )
 
 
@@ -220,8 +218,9 @@ def calculate_overall_score(
     )
 
 
-def score_from_evaluation(therapeutic_relevance: int, data_structure_quality: int,
-                          training_integration: int, ethical_accessibility: int) -> AcquisitionScore:
+def score_from_evaluation(
+    therapeutic_relevance: int, data_structure_quality: int, training_integration: int, ethical_accessibility: int
+) -> AcquisitionScore:
     return calculate_overall_score(
         therapeutic_relevance=therapeutic_relevance,
         data_structure_quality=data_structure_quality,
@@ -287,8 +286,7 @@ class AcquisitionRubric:
             ok = False
 
         blocked_after_exception = [
-            b for b in base.blocking
-            if "license" not in b.lower() and "exception" not in b.lower()
+            b for b in base.blocking if "license" not in b.lower() and "exception" not in b.lower()
         ]
         if blocked_after_exception:
             base.blocking[:] = blocked_after_exception
@@ -305,32 +303,68 @@ class AcquisitionRubric:
         gates: list[GateResult] = []
 
         if report.overall_pilot_score >= GATE_1_SCORE_FLOOR:
-            gates.append(GateResult("pilot_score_floor", GateDecision.PASS,
-                f"overall score {report.overall_pilot_score} >= {GATE_1_SCORE_FLOOR}"))
+            gates.append(
+                GateResult(
+                    "pilot_score_floor",
+                    GateDecision.PASS,
+                    f"overall score {report.overall_pilot_score} >= {GATE_1_SCORE_FLOOR}",
+                )
+            )
         else:
-            gates.append(GateResult("pilot_score_floor", GateDecision.BLOCK,
-                f"overall score {report.overall_pilot_score} < {GATE_1_SCORE_FLOOR}; floor is non-exceptable"))
+            gates.append(
+                GateResult(
+                    "pilot_score_floor",
+                    GateDecision.BLOCK,
+                    f"overall score {report.overall_pilot_score} < {GATE_1_SCORE_FLOOR}; floor is non-exceptable",
+                )
+            )
 
         if report.therapeutic_relevance_score >= GATE_1_RELEVANCE_FLOOR:
-            gates.append(GateResult("therapeutic_relevance", GateDecision.PASS,
-                f"relevance {report.therapeutic_relevance_score} >= {GATE_1_RELEVANCE_FLOOR}"))
+            gates.append(
+                GateResult(
+                    "therapeutic_relevance",
+                    GateDecision.PASS,
+                    f"relevance {report.therapeutic_relevance_score} >= {GATE_1_RELEVANCE_FLOOR}",
+                )
+            )
         else:
-            gates.append(GateResult("therapeutic_relevance", GateDecision.BLOCK,
-                f"Therapeutic Relevance {report.therapeutic_relevance_score} < {GATE_1_RELEVANCE_FLOOR}"))
+            gates.append(
+                GateResult(
+                    "therapeutic_relevance",
+                    GateDecision.BLOCK,
+                    f"Therapeutic Relevance {report.therapeutic_relevance_score} < {GATE_1_RELEVANCE_FLOOR}",
+                )
+            )
 
         if report.schema_coverage_pct >= GATE_1_SCHEMA_FLOOR:
-            gates.append(GateResult("schema_coverage", GateDecision.PASS,
-                f"coverage {report.schema_coverage_pct}% >= {GATE_1_SCHEMA_FLOOR}%"))
+            gates.append(
+                GateResult(
+                    "schema_coverage",
+                    GateDecision.PASS,
+                    f"coverage {report.schema_coverage_pct}% >= {GATE_1_SCHEMA_FLOOR}%",
+                )
+            )
         else:
-            gates.append(GateResult("schema_coverage", GateDecision.BLOCK,
-                f"schema coverage {report.schema_coverage_pct}% < {GATE_1_SCHEMA_FLOOR}%"))
+            gates.append(
+                GateResult(
+                    "schema_coverage",
+                    GateDecision.BLOCK,
+                    f"schema coverage {report.schema_coverage_pct}% < {GATE_1_SCHEMA_FLOOR}%",
+                )
+            )
 
         if report.dedup_rate < GATE_1_DEDUP_CEILING:
-            gates.append(GateResult("dedup_rate", GateDecision.PASS,
-                f"dedup rate {report.dedup_rate}% < {GATE_1_DEDUP_CEILING}%"))
+            gates.append(
+                GateResult(
+                    "dedup_rate", GateDecision.PASS, f"dedup rate {report.dedup_rate}% < {GATE_1_DEDUP_CEILING}%"
+                )
+            )
         else:
-            gates.append(GateResult("dedup_rate", GateDecision.BLOCK,
-                f"dedup rate {report.dedup_rate}% >= {GATE_1_DEDUP_CEILING}%"))
+            gates.append(
+                GateResult(
+                    "dedup_rate", GateDecision.BLOCK, f"dedup rate {report.dedup_rate}% >= {GATE_1_DEDUP_CEILING}%"
+                )
+            )
 
         passed = all(g.decision == GateDecision.PASS for g in gates)
 
@@ -340,18 +374,38 @@ class AcquisitionRubric:
         gates: list[GateResult] = []
 
         if report.net_retention_pct >= GATE_2_RETENTION_FLOOR:
-            gates.append(GateResult("net_retention", GateDecision.PASS,
-                f"net retention {report.net_retention_pct}% >= {GATE_2_RETENTION_FLOOR}%"))
+            gates.append(
+                GateResult(
+                    "net_retention",
+                    GateDecision.PASS,
+                    f"net retention {report.net_retention_pct}% >= {GATE_2_RETENTION_FLOOR}%",
+                )
+            )
         else:
-            gates.append(GateResult("net_retention", GateDecision.BLOCK,
-                f"net retention {report.net_retention_pct}% < {GATE_2_RETENTION_FLOOR}%"))
+            gates.append(
+                GateResult(
+                    "net_retention",
+                    GateDecision.BLOCK,
+                    f"net retention {report.net_retention_pct}% < {GATE_2_RETENTION_FLOOR}%",
+                )
+            )
 
         if report.schema_validation_pct >= GATE_2_SCHEMA_FLOOR:
-            gates.append(GateResult("schema_validation", GateDecision.PASS,
-                f"schema validation {report.schema_validation_pct}% >= {GATE_2_SCHEMA_FLOOR}%"))
+            gates.append(
+                GateResult(
+                    "schema_validation",
+                    GateDecision.PASS,
+                    f"schema validation {report.schema_validation_pct}% >= {GATE_2_SCHEMA_FLOOR}%",
+                )
+            )
         else:
-            gates.append(GateResult("schema_validation", GateDecision.BLOCK,
-                f"schema validation {report.schema_validation_pct}% < {GATE_2_SCHEMA_FLOOR}%"))
+            gates.append(
+                GateResult(
+                    "schema_validation",
+                    GateDecision.BLOCK,
+                    f"schema validation {report.schema_validation_pct}% < {GATE_2_SCHEMA_FLOOR}%",
+                )
+            )
 
         if report.manifest_signed:
             gates.append(GateResult("manifest_signed", GateDecision.PASS, "batch manifest signed"))
@@ -362,24 +416,29 @@ class AcquisitionRubric:
 
         return CurationExitDecision(report=report, gates=gates, passed=passed)
 
-    def promote(self, intake: SourceIntake, pilot: PilotReport | None = None,
-                curation_exit: CurationExitReport | None = None) -> list[GateResult]:
+    def promote(
+        self, intake: SourceIntake, pilot: PilotReport | None = None, curation_exit: CurationExitReport | None = None
+    ) -> list[GateResult]:
         gates: list[GateResult] = []
 
         intake_result = self.evaluate_intake(intake)
         if intake_result.passed:
             gates.append(GateResult("intake", GateDecision.PASS, "intake passed all qualifying checks"))
         else:
-            gates.append(GateResult("intake", GateDecision.BLOCK,
-                f"intake blocked: {'; '.join(intake_result.blocking)}"))
+            gates.append(
+                GateResult("intake", GateDecision.BLOCK, f"intake blocked: {'; '.join(intake_result.blocking)}")
+            )
             return gates
 
         if pilot is not None:
             pilot_result = self.evaluate_pilot(pilot)
             gates.append(
-                GateResult("pilot", GateDecision.PASS if pilot_result.passed else GateDecision.BLOCK,
+                GateResult(
+                    "pilot",
+                    GateDecision.PASS if pilot_result.passed else GateDecision.BLOCK,
                     f"pilot {'passed' if pilot_result.passed else 'failed'} "
-                    f"({pilot.sample_size}/{pilot.population_size} samples)")
+                    f"({pilot.sample_size}/{pilot.population_size} samples)",
+                )
             )
             if not pilot_result.passed:
                 return gates
@@ -387,8 +446,11 @@ class AcquisitionRubric:
         if curation_exit is not None:
             exit_result = self.evaluate_curation_exit(curation_exit)
             gates.append(
-                GateResult("curation_exit", GateDecision.PASS if exit_result.passed else GateDecision.BLOCK,
-                    f"curation exit {'passed' if exit_result.passed else 'failed'}")
+                GateResult(
+                    "curation_exit",
+                    GateDecision.PASS if exit_result.passed else GateDecision.BLOCK,
+                    f"curation exit {'passed' if exit_result.passed else 'failed'}",
+                )
             )
 
         return gates
@@ -400,8 +462,7 @@ def _run_cli() -> None:
 
     score_p = sub.add_parser("score", help="Calculate overall score for 4 dimensions")
     for dim in ("therapeutic_relevance", "data_structure_quality", "training_integration", "ethical_accessibility"):
-        score_p.add_argument("--data-structure-quality", type=int, required=True,
-                          help="data structure quality (1-10)")
+        score_p.add_argument("--data-structure-quality", type=int, required=True, help="data structure quality (1-10)")
 
     intake_p = sub.add_parser("intake", help="Evaluate Gate 0 intake for a source")
     intake_p.add_argument("--source-id", required=True)
@@ -458,19 +519,19 @@ if __name__ == "__main__":
 
 
 __all__ = [
+    "APPROVED_LICENSES",
+    "EXCEPTION_LICENSES",
     "AcquisitionRubric",
     "AcquisitionScore",
-    "APPROVED_LICENSES",
     "CurationExitDecision",
     "CurationExitReport",
-    "EXCEPTION_LICENSES",
     "GateDecision",
     "GateResult",
     "IntakeDecision",
     "PilotDecision",
     "PilotReport",
     "PriorityTier",
+    "SourceIntake",
     "calculate_overall_score",
     "score_from_evaluation",
-    "SourceIntake",
 ]

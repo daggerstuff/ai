@@ -5,7 +5,7 @@ This module provides JWT token creation, validation, and decoding.
 """
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import jwt as pyjwt
@@ -17,29 +17,21 @@ logger = logging.getLogger(__name__)
 settings = get_settings()
 
 
-def create_access_token(
-    data: dict[str, Any], expires_delta: timedelta | None = None
-) -> str:
+def create_access_token(data: dict[str, Any], expires_delta: timedelta | None = None) -> str:
     """Create a JWT access token."""
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
+        expire = datetime.now(UTC) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(
-            minutes=settings.jwt_expiration_minutes
-        )
-    to_encode.update({"exp": expire, "iat": datetime.now(timezone.utc)})
-    return pyjwt.encode(
-        to_encode, settings.jwt_secret, algorithm=settings.jwt_algorithm
-    )
+        expire = datetime.now(UTC) + timedelta(minutes=settings.jwt_expiration_minutes)
+    to_encode.update({"exp": expire, "iat": datetime.now(UTC)})
+    return pyjwt.encode(to_encode, settings.jwt_secret, algorithm=settings.jwt_algorithm)
 
 
 def decode_access_token(token: str) -> dict[str, Any]:
     """Decode a JWT access token."""
     try:
-        return pyjwt.decode(
-            token, settings.jwt_secret, algorithms=[settings.jwt_algorithm]
-        )
+        return pyjwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
     except ExpiredSignatureError:
         raise ValueError("Token has expired") from None
     except DecodeError:
@@ -66,4 +58,3 @@ def get_user_from_token(token: str) -> dict[str, Any]:
         "role": payload.get("role", "viewer"),
         "permissions": payload.get("permissions", []),
     }
-

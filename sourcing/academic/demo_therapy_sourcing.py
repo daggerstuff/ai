@@ -28,9 +28,7 @@ def demo_basic_search():
     sourcing = TherapyDatasetSourcing()
 
     # Search for datasets
-    datasets = sourcing.search_huggingface(
-        query="therapy conversation mental health", min_turns=20, limit=20
-    )
+    datasets = sourcing.search_huggingface(query="therapy conversation mental health", min_turns=20, limit=20)
 
     for _i, _dataset in enumerate(datasets[:5], 1):
         pass
@@ -42,9 +40,7 @@ def demo_filtered_search():
     sourcing = TherapyDatasetSourcing()
 
     # Search
-    datasets = sourcing.search_huggingface(
-        query="therapy counseling dialogue", min_turns=15, limit=30
-    )
+    datasets = sourcing.search_huggingface(query="therapy counseling dialogue", min_turns=15, limit=30)
 
     # Apply filters
     datasets = sourcing.filter_by_quality(datasets, min_quality=0.6)
@@ -62,16 +58,13 @@ def demo_full_pipeline():
     find_therapy_datasets(min_turns=20, min_quality=0.5)
 
 
-
 def demo_custom_ranking():
     """Demo: Custom ranking weights"""
 
     sourcing = TherapyDatasetSourcing()
 
     # Search
-    datasets = sourcing.search_huggingface(
-        query="mental health conversation", min_turns=10, limit=25
-    )
+    datasets = sourcing.search_huggingface(query="mental health conversation", min_turns=10, limit=25)
 
     # Rank with custom weights (prioritize conversation length)
     custom_weights = {
@@ -95,7 +88,6 @@ def main():
         demo_filtered_search()
         demo_full_pipeline()
         demo_custom_ranking()
-
 
     except Exception as e:
         logger.error(f"Demo failed: {e}", exc_info=True)

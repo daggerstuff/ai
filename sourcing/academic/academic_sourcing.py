@@ -115,12 +115,8 @@ class AcademicSourcingEngine:
         output_base_path: str | None = None,
         strategy: SourcingStrategy = SourcingStrategy.HYBRID,
     ):
-        self.output_base_path = Path(
-            output_base_path or "ai/training/ready_packages/datasets"
-        )
-        self.academic_literature_path = (
-            self.output_base_path / "stage2_reasoning" / "academic_literature"
-        )
+        self.output_base_path = Path(output_base_path or "ai/training/ready_packages/datasets")
+        self.academic_literature_path = self.output_base_path / "stage2_reasoning" / "academic_literature"
         self._ensure_directories()
         self.strategy = strategy
 
@@ -131,9 +127,7 @@ class AcademicSourcingEngine:
         self.core_api_key = os.getenv("CORE_API_KEY")
 
         # API Endpoints
-        self.semantic_scholar_endpoint = (
-            "https://api.semanticscholar.org/graph/v1/paper/search"
-        )
+        self.semantic_scholar_endpoint = "https://api.semanticscholar.org/graph/v1/paper/search"
         self.arxiv_endpoint = "http://export.arxiv.org/api/query"
         self.crossref_endpoint = "https://api.crossref.org/works"
         self.pubmed_endpoint = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
@@ -147,9 +141,7 @@ class AcademicSourcingEngine:
         self._init_publishers()
 
         # Web scraping configuration
-        self.scraping_headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-        }
+        self.scraping_headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
 
         # Psychology-specific search terms
         self.therapeutic_keywords = [
@@ -194,9 +186,7 @@ class AcademicSourcingEngine:
             "cultural competence",
         ]
 
-        logger.info(
-            f"Initialized AcademicSourcingEngine with strategy: {strategy.value}"
-        )
+        logger.info(f"Initialized AcademicSourcingEngine with strategy: {strategy.value}")
         logger.info(f"Output path: {self.academic_literature_path}")
 
     def _ensure_directories(self):
@@ -223,9 +213,7 @@ class AcademicSourcingEngine:
 
     # ==================== API-Based Sources ====================
 
-    def fetch_arxiv_papers(
-        self, query: str = "psychotherapy", limit: int = 10
-    ) -> list[BookMetadata]:
+    def fetch_arxiv_papers(self, query: str = "psychotherapy", limit: int = 10) -> list[BookMetadata]:
         """
         Fetch papers from ArXiv API (Open Access)
 
@@ -284,9 +272,7 @@ class AcademicSourcingEngine:
                 )
 
                 # Score therapeutic relevance
-                metadata.therapeutic_relevance_score = (
-                    self._score_therapeutic_relevance(metadata)
-                )
+                metadata.therapeutic_relevance_score = self._score_therapeutic_relevance(metadata)
 
                 papers.append(metadata)
 
@@ -368,9 +354,7 @@ class AcademicSourcingEngine:
                 )
 
                 # Score therapeutic relevance
-                metadata.therapeutic_relevance_score = (
-                    self._score_therapeutic_relevance(metadata)
-                )
+                metadata.therapeutic_relevance_score = self._score_therapeutic_relevance(metadata)
 
                 papers.append(metadata)
 
@@ -448,9 +432,7 @@ class AcademicSourcingEngine:
                 )
 
                 # Score therapeutic relevance
-                metadata.therapeutic_relevance_score = (
-                    self._score_therapeutic_relevance(metadata)
-                )
+                metadata.therapeutic_relevance_score = self._score_therapeutic_relevance(metadata)
 
                 papers.append(metadata)
 
@@ -479,10 +461,7 @@ class AcademicSourcingEngine:
             search_url = f"{self.pubmed_endpoint}/esearch.fcgi"
             search_params = {
                 "db": "pubmed",
-                "term": (
-                    f"{query} AND (psychology[MeSH] OR "
-                    "therapy[MeSH] OR mental health[MeSH])"
-                ),
+                "term": (f"{query} AND (psychology[MeSH] OR therapy[MeSH] OR mental health[MeSH])"),
                 "retmax": limit,
                 "retmode": "json",
             }
@@ -560,9 +539,7 @@ class AcademicSourcingEngine:
                 )
 
                 # Score therapeutic relevance
-                metadata.therapeutic_relevance_score = (
-                    self._score_therapeutic_relevance(metadata)
-                )
+                metadata.therapeutic_relevance_score = self._score_therapeutic_relevance(metadata)
 
                 papers.append(metadata)
 
@@ -597,9 +574,7 @@ class AcademicSourcingEngine:
             headers["Authorization"] = f"Bearer {self.openalex_api_key}"
 
         try:
-            response = requests.get(
-                self.openalex_endpoint, params=params, headers=headers, timeout=10
-            )
+            response = requests.get(self.openalex_endpoint, params=params, headers=headers, timeout=10)
 
             if response.status_code != 200:
                 logger.error(f"OpenAlex Error: {response.status_code}")
@@ -630,9 +605,7 @@ class AcademicSourcingEngine:
                 metadata = BookMetadata(
                     title=work.get("title", "Unknown Title"),
                     authors=authors,
-                    publisher=work.get("primary_location", {})
-                    .get("source", {})
-                    .get("display_name", "Unknown"),
+                    publisher=work.get("primary_location", {}).get("source", {}).get("display_name", "Unknown"),
                     publication_year=year,
                     doi=doi,
                     url=work.get("id", ""),
@@ -644,9 +617,7 @@ class AcademicSourcingEngine:
                 )
 
                 # Score therapeutic relevance
-                metadata.therapeutic_relevance_score = (
-                    self._score_therapeutic_relevance(metadata)
-                )
+                metadata.therapeutic_relevance_score = self._score_therapeutic_relevance(metadata)
 
                 papers.append(metadata)
 
@@ -685,9 +656,7 @@ class AcademicSourcingEngine:
         }
 
         try:
-            response = requests.get(
-                self.core_endpoint, params=params, headers=headers, timeout=10
-            )
+            response = requests.get(self.core_endpoint, params=params, headers=headers, timeout=10)
 
             if response.status_code != 200:
                 logger.error(f"CORE Error: {response.status_code}")
@@ -718,8 +687,7 @@ class AcademicSourcingEngine:
                     publisher=work.get("publisher", "Unknown"),
                     publication_year=year,
                     doi=work.get("doi", None),
-                    url=work.get("downloadUrl")
-                    or work.get("sourceFulltextUrls", [""])[0],
+                    url=work.get("downloadUrl") or work.get("sourceFulltextUrls", [""])[0],
                     source=SourceType.CORE.value,
                     abstract=work.get("abstract", None),
                     subject_areas=[query],
@@ -728,9 +696,7 @@ class AcademicSourcingEngine:
                 )
 
                 # Score therapeutic relevance
-                metadata.therapeutic_relevance_score = (
-                    self._score_therapeutic_relevance(metadata)
-                )
+                metadata.therapeutic_relevance_score = self._score_therapeutic_relevance(metadata)
 
                 papers.append(metadata)
 
@@ -793,10 +759,7 @@ class AcademicSourcingEngine:
                     publisher=article.get("journalTitle", "Europe PMC"),
                     publication_year=year,
                     doi=article.get("doi", None),
-                    url=(
-                        f"https://europepmc.org/article/{article.get('source', 'MED')}/"
-                        f"{article.get('id', '')}"
-                    ),
+                    url=(f"https://europepmc.org/article/{article.get('source', 'MED')}/{article.get('id', '')}"),
                     source=SourceType.EUROPE_PMC.value,
                     abstract=article.get("abstractText", None),
                     subject_areas=[query],
@@ -805,9 +768,7 @@ class AcademicSourcingEngine:
                 )
 
                 # Score therapeutic relevance
-                metadata.therapeutic_relevance_score = (
-                    self._score_therapeutic_relevance(metadata)
-                )
+                metadata.therapeutic_relevance_score = self._score_therapeutic_relevance(metadata)
 
                 papers.append(metadata)
 
@@ -820,9 +781,7 @@ class AcademicSourcingEngine:
 
     # ==================== Publisher Integrations ====================
 
-    def fetch_from_publisher(
-        self, publisher: SourceType, query: str, limit: int = 10
-    ) -> list[BookMetadata]:
+    def fetch_from_publisher(self, publisher: SourceType, query: str, limit: int = 10) -> list[BookMetadata]:
         """
         Fetch books from a specific publisher integration
 
@@ -891,9 +850,7 @@ class AcademicSourcingEngine:
         params = {"q": query, "hl": "en", "as_sdt": "0,5", "num": limit}
 
         try:
-            response = requests.get(
-                url, params=params, headers=self.scraping_headers, timeout=10
-            )
+            response = requests.get(url, params=params, headers=self.scraping_headers, timeout=10)
 
             if response.status_code != 200:
                 logger.error(f"Google Scholar Error: {response.status_code}")
@@ -922,9 +879,7 @@ class AcademicSourcingEngine:
                         if " and " in authors_part:
                             authors = [a.strip() for a in authors_part.split(" and ")]
                         else:
-                            authors = [
-                                a.strip() for a in authors_part.split(",") if a.strip()
-                            ]
+                            authors = [a.strip() for a in authors_part.split(",") if a.strip()]
 
                     # Extract year
                     year = 0
@@ -947,9 +902,7 @@ class AcademicSourcingEngine:
                     )
 
                     # Score therapeutic relevance
-                    metadata.therapeutic_relevance_score = (
-                        self._score_therapeutic_relevance(metadata)
-                    )
+                    metadata.therapeutic_relevance_score = self._score_therapeutic_relevance(metadata)
 
                     papers.append(metadata)
 
@@ -1071,19 +1024,14 @@ class AcademicSourcingEngine:
         # Check abstract
         if metadata.abstract:
             abstract_lower = metadata.abstract.lower()
-            abstract_matches = sum(
-                1 for kw in self.therapeutic_keywords if kw in abstract_lower
-            )
+            abstract_matches = sum(1 for kw in self.therapeutic_keywords if kw in abstract_lower)
             if abstract_matches > 0:
                 score += min(0.4, abstract_matches * 0.05)
 
         # Check subject areas
         if metadata.subject_areas:
             subject_matches = sum(
-                1
-                for subject in metadata.subject_areas
-                for kw in self.therapeutic_keywords
-                if kw in subject.lower()
+                1 for subject in metadata.subject_areas for kw in self.therapeutic_keywords if kw in subject.lower()
             )
             if subject_matches > 0:
                 score += min(0.2, subject_matches * 0.1)
@@ -1106,9 +1054,7 @@ class AcademicSourcingEngine:
         for result in results:
             # Create unique key
             title_key = result.title.lower().strip()
-            author_key = (
-                result.authors[0].lower().strip() if result.authors else "unknown"
-            )
+            author_key = result.authors[0].lower().strip() if result.authors else "unknown"
             key = (title_key, author_key)
 
             if key not in seen:
@@ -1117,9 +1063,7 @@ class AcademicSourcingEngine:
 
         return deduplicated
 
-    def export_data(
-        self, data: list[BookMetadata], filename: str = "academic_batch_001.json"
-    ) -> Path:
+    def export_data(self, data: list[BookMetadata], filename: str = "academic_batch_001.json") -> Path:
         """
         Export literature data to JSON file
 
@@ -1146,9 +1090,7 @@ class AcademicSourcingEngine:
             logger.error(f"Failed to export data: {e}")
             raise
 
-    def run_sourcing_pipeline(
-        self, queries: list[str] | None = None, limit_per_query: int = 10
-    ) -> Path:
+    def run_sourcing_pipeline(self, queries: list[str] | None = None, limit_per_query: int = 10) -> Path:
         """
         Run complete sourcing pipeline
 
@@ -1190,9 +1132,7 @@ class AcademicSourcingEngine:
 
 
 # Convenience function for backward compatibility
-def create_academic_sourcing_engine(
-    output_path: str | None = None, strategy: str = "hybrid"
-) -> AcademicSourcingEngine:
+def create_academic_sourcing_engine(output_path: str | None = None, strategy: str = "hybrid") -> AcademicSourcingEngine:
     """
     Create AcademicSourcingEngine with specified configuration
 

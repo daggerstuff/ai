@@ -3,9 +3,10 @@
 Dataset sync verification script that checks consistency between
 source (Google Drive) and canonical (S3) storage.
 """
+
 import argparse
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -27,7 +28,7 @@ class DatasetSyncVerifier:
 
     def save_registry(self, registry: dict[str, Any]) -> None:
         """Save the updated registry."""
-        registry["last_updated"] = datetime.now(timezone.utc).isoformat() + "Z"
+        registry["last_updated"] = datetime.now(UTC).isoformat() + "Z"
         with open(self.registry_path, "w") as f:
             json.dump(registry, f, indent=2, ensure_ascii=False)
 
@@ -75,9 +76,7 @@ class DatasetSyncVerifier:
 
             return {
                 "size": response.get("ContentLength"),
-                "last_modified": response.get("LastModified").isoformat()
-                if response.get("LastModified")
-                else None,
+                "last_modified": response.get("LastModified").isoformat() if response.get("LastModified") else None,
                 "etag": response.get("ETag", "").strip('"'),
                 "content_type": response.get("ContentType"),
             }
@@ -132,16 +131,8 @@ class DatasetSyncVerifier:
 
         # Compare sizes if both exist
         if comparison["s3_exists"] and comparison["gdrive_exists"]:
-            s3_size = (
-                comparison["s3_metadata"].get("size")
-                if comparison["s3_metadata"]
-                else None
-            )
-            gdrive_size = (
-                comparison["gdrive_metadata"].get("size")
-                if comparison["gdrive_metadata"]
-                else None
-            )
+            s3_size = comparison["s3_metadata"].get("size") if comparison["s3_metadata"] else None
+            gdrive_size = comparison["gdrive_metadata"].get("size") if comparison["gdrive_metadata"] else None
 
             if s3_size and gdrive_size:
                 comparison["sizes_match"] = s3_size == gdrive_size
@@ -175,9 +166,7 @@ class DatasetSyncVerifier:
 
         return comparison
 
-    def verify_dataset_sync(
-        self, dataset_name: str, dataset_entry: dict[str, Any]
-    ) -> dict[str, Any]:
+    def verify_dataset_sync(self, dataset_name: str, dataset_entry: dict[str, Any]) -> dict[str, Any]:
         """
         Verify sync status for a single dataset.
 
@@ -198,14 +187,11 @@ class DatasetSyncVerifier:
         return {
             "gdrive_synced": comparison["gdrive_exists"],
             "s3_synced": comparison["s3_exists"],
-            "last_sync_timestamp": datetime.now(timezone.utc).isoformat() + "Z",
+            "last_sync_timestamp": datetime.now(UTC).isoformat() + "Z",
             "sync_discrepancies": comparison["discrepancies"],
             "sync_verified": comparison["s3_exists"]
-            and (
-                not comparison["gdrive_exists"] or comparison.get("sizes_match", False)
-            ),
+            and (not comparison["gdrive_exists"] or comparison.get("sizes_match", False)),
         }
-
 
     def verify_all_datasets(self, limit: int | None = None) -> dict[str, Any]:
         """
@@ -259,9 +245,7 @@ class DatasetSyncVerifier:
                 if isinstance(section_data, dict):
                     for dataset_name, dataset_entry in section_data.items():
                         if isinstance(dataset_entry, dict) and "path" in dataset_entry:
-                            datasets_to_verify.append(
-                                (f"{section_name}.{dataset_name}", dataset_entry)
-                            )
+                            datasets_to_verify.append((f"{section_name}.{dataset_name}", dataset_entry))
 
         # Apply limit
         if limit:
@@ -277,9 +261,7 @@ class DatasetSyncVerifier:
                 if len(parts) == 3:
                     if "sync_status" not in registry["datasets"][parts[1]][parts[2]]:
                         registry["datasets"][parts[1]][parts[2]]["sync_status"] = {}
-                    registry["datasets"][parts[1]][parts[2]]["sync_status"] = (
-                        sync_status
-                    )
+                    registry["datasets"][parts[1]][parts[2]]["sync_status"] = sync_status
                 elif len(parts) == 2:
                     if "sync_status" not in registry[parts[0]][parts[1]]:
                         registry[parts[0]][parts[1]]["sync_status"] = {}
@@ -311,12 +293,8 @@ class DatasetSyncVerifier:
 
         # Update source_staging sync info
         if "source_staging" in registry:
-            registry["source_staging"]["sync_configuration"]["last_sync_check"] = (
-                datetime.now(timezone.utc).isoformat() + "Z"
-            )
-            registry["source_staging"]["sync_configuration"][
-                "automated_verification"
-            ] = True
+            registry["source_staging"]["sync_configuration"]["last_sync_check"] = datetime.now(UTC).isoformat() + "Z"
+            registry["source_staging"]["sync_configuration"]["automated_verification"] = True
 
         # Save updated registry
         self.save_registry(registry)
@@ -334,16 +312,12 @@ def main():
         default=Path("/home/vivi/pixelated/ai/config/dataset_registry.json"),
         help="Path to dataset registry",
     )
-    parser.add_argument(
-        "--limit", type=int, default=None, help="Maximum number of datasets to verify"
-    )
+    parser.add_argument("--limit", type=int, default=None, help="Maximum number of datasets to verify")
 
     args = parser.parse_args()
 
-
     verifier = DatasetSyncVerifier(args.registry)
     verifier.verify_all_datasets(limit=args.limit)
-
 
 
 if __name__ == "__main__":

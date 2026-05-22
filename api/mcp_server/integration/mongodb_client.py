@@ -34,19 +34,13 @@ class MCPMongoDBClient:
         """Get an async collection."""
         return self.async_db[name]
 
-    async def find_one(
-        self, collection: str, query: dict[str, Any]
-    ) -> dict[str, Any] | None:
+    async def find_one(self, collection: str, query: dict[str, Any]) -> dict[str, Any] | None:
         """Find a single document asynchronously."""
         # Type hint for basedpyright which sometimes misses motor's return types
         return await self.async_db[collection].find_one(query)
 
     async def find_many(
-        self,
-        collection: str,
-        query: dict[str, Any],
-        sort: list[tuple] | None = None,
-        limit: int | None = None
+        self, collection: str, query: dict[str, Any], sort: list[tuple] | None = None, limit: int | None = None
     ) -> list[dict[str, Any]]:
         """Find multiple documents asynchronously with optional sorting and limit."""
         cursor = self.async_db[collection].find(query)
@@ -57,9 +51,7 @@ class MCPMongoDBClient:
         # Using length=None returns all documents matching the query
         return await cursor.to_list(length=None)
 
-    async def update_one(
-        self, collection: str, query: dict[str, Any], update: dict[str, Any]
-    ) -> bool:
+    async def update_one(self, collection: str, query: dict[str, Any], update: dict[str, Any]) -> bool:
         """Update a single document asynchronously."""
         result = await self.async_db[collection].update_one(query, update)
         return getattr(result, "modified_count", 0) > 0

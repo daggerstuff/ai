@@ -9,7 +9,6 @@ import json
 from unittest.mock import MagicMock
 
 import pytest
-from ai.utils.torch_proxy import torch
 
 from ai.training.defense_mechanisms import (
     DEFENSE_LABELS,
@@ -30,6 +29,7 @@ from ai.training.defense_mechanisms.model import (
     FocalLoss,
     compute_r_drop_loss,
 )
+from ai.utils.torch_proxy import torch
 
 # -- Fixtures --
 
@@ -49,8 +49,7 @@ def sample_turns():
         },
         {
             "speaker": "Seeker",
-            "text": "It's work. Everything is fine, I just need "
-            "to try harder. It's my own fault really.",
+            "text": "It's work. Everything is fine, I just need to try harder. It's my own fault really.",
         },
         {
             "speaker": "Supporter",
@@ -58,8 +57,7 @@ def sample_turns():
         },
         {
             "speaker": "Seeker",
-            "text": "No, it's fine. I don't want to talk about "
-            "it actually. Let's discuss something else.",
+            "text": "No, it's fine. I don't want to talk about it actually. Let's discuss something else.",
         },
     ]
 
@@ -169,8 +167,7 @@ class TestDialogueFormatting:
     def test_basic_formatting(self, sample_turns):
         result = format_dialogue(
             turns=sample_turns,
-            target_text="No, it's fine. I don't want to talk about "
-            "it actually. Let's discuss something else.",
+            target_text="No, it's fine. I don't want to talk about it actually. Let's discuss something else.",
         )
         assert "<t>" in result
         assert "</t>" in result
@@ -290,9 +287,7 @@ class TestCrossValidation:
         )
         train_ids = set(train_ds.get_dialogue_ids())
         val_ids = set(val_ds.get_dialogue_ids())
-        assert len(train_ids & val_ids) == 0, (
-            "Dialogue leakage detected between train and val"
-        )
+        assert len(train_ids & val_ids) == 0, "Dialogue leakage detected between train and val"
 
     def test_all_samples_covered(self, sample_dialogue_samples, mock_tokenizer):
         total_samples = 0
@@ -401,15 +396,11 @@ class TestPredictionOutput:
     def test_maturity_score_normalization(self):
         for label, maturity in DEFENSE_MATURITY.items():
             if maturity is not None:
-                assert 0.0 <= maturity <= 1.0, (
-                    f"Label {label} maturity {maturity} out of range"
-                )
+                assert 0.0 <= maturity <= 1.0, f"Label {label} maturity {maturity} out of range"
 
     def test_all_labels_have_names(self):
         for label_id in range(9):
-            assert label_id in DEFENSE_LABELS, (
-                f"Label {label_id} missing from DEFENSE_LABELS"
-            )
+            assert label_id in DEFENSE_LABELS, f"Label {label_id} missing from DEFENSE_LABELS"
 
     def test_maturity_monotonic(self):
         """Defense maturity should increase with label number (1-7)."""

@@ -49,12 +49,9 @@ class OpenAIDriver(LLMDriver):
 
     def __init__(self):
 
-
         # Load config from env or defaults
         self.api_key = os.environ.get("LLM_API_KEY", os.environ.get("OPENAI_API_KEY"))
-        self.base_url = os.environ.get(
-            "LLM_BASE_URL", "https://integrate.api.nvidia.com/v1"
-        )
+        self.base_url = os.environ.get("LLM_BASE_URL", "https://integrate.api.nvidia.com/v1")
         self.model = os.environ.get("LLM_MODEL", "meta/llama-3.1-405b-instruct")
 
         if not self.api_key:
@@ -62,9 +59,7 @@ class OpenAIDriver(LLMDriver):
 
         self.client = OpenAI(api_key=self.api_key, base_url=self.base_url)
 
-    def generate(
-        self, prompt: str, system_prompt: str | None = None, max_tokens: int = 8192
-    ) -> str:
+    def generate(self, prompt: str, system_prompt: str | None = None, max_tokens: int = 8192) -> str:
         messages = []
         if system_prompt:
             messages.append({"role": "system", "content": system_prompt})
@@ -91,9 +86,7 @@ class OpenAIDriver(LLMDriver):
         """
 
         # Append schema instruction
-        schema_prompt = (
-            f"\nOutput strictly valid JSON matching this schema: {json.dumps(schema)}"
-        )
+        schema_prompt = f"\nOutput strictly valid JSON matching this schema: {json.dumps(schema)}"
         full_prompt = prompt + schema_prompt
 
         try:

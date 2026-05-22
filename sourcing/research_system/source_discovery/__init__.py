@@ -89,9 +89,7 @@ def create_all_clients(enable_cache: bool = True) -> dict[str, Any]:
         ImportError: If required clients could not be imported
     """
     if _import_errors:
-        raise ImportError(
-            f"Cannot create clients due to import errors: {', '.join(_import_errors)}"
-        )
+        raise ImportError(f"Cannot create clients due to import errors: {', '.join(_import_errors)}")
 
     return {
         "pubmed": PubMedClient(enable_cache=enable_cache),

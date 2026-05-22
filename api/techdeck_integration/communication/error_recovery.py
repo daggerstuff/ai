@@ -9,7 +9,7 @@ import asyncio
 import json
 import time
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any
 
@@ -22,6 +22,7 @@ from .event_bus import EventMessage, EventType
 
 class RecoveryStrategy(Enum):
     """Available recovery strategies."""
+
     RETRY = "retry"
     FALLBACK = "fallback"
     SKIP = "skip"
@@ -31,6 +32,7 @@ class RecoveryStrategy(Enum):
 
 class ErrorSeverity(Enum):
     """Error severity levels."""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -40,6 +42,7 @@ class ErrorSeverity(Enum):
 @dataclass
 class RecoveryConfig:
     """Configuration for error recovery."""
+
     max_retries: int = 3
     retry_delay_seconds: float = 2.0
     exponential_backoff: bool = True
@@ -55,6 +58,7 @@ class RecoveryConfig:
 @dataclass
 class RecoveryAttempt:
     """Individual recovery attempt record."""
+
     attempt_number: int
     timestamp: datetime
     strategy: RecoveryStrategy
@@ -67,6 +71,7 @@ class RecoveryAttempt:
 @dataclass
 class RecoveryResult:
     """Result of recovery operation."""
+
     recovered: bool
     final_strategy: RecoveryStrategy
     attempts: list[RecoveryAttempt]
@@ -100,7 +105,7 @@ class ErrorRecoveryManager:
             RecoveryStrategy.FALLBACK: self._execute_fallback_strategy,
             RecoveryStrategy.SKIP: self._execute_skip_strategy,
             RecoveryStrategy.ROLLBACK: self._execute_rollback_strategy,
-            RecoveryStrategy.ESCALATE: self._execute_escalation_strategy
+            RecoveryStrategy.ESCALATE: self._execute_escalation_strategy,
         }
 
         # Stage-specific recovery configurations
@@ -115,84 +120,68 @@ class ErrorRecoveryManager:
                 "patterns": ["ValidationError", "validation_failed", "invalid_input"],
                 "severity": ErrorSeverity.LOW,
                 "recoverable": True,
-                "recommended_strategy": RecoveryStrategy.RETRY
+                "recommended_strategy": RecoveryStrategy.RETRY,
             },
             "timeout_errors": {
                 "patterns": ["TimeoutError", "timeout", "timed_out"],
                 "severity": ErrorSeverity.MEDIUM,
                 "recoverable": True,
-                "recommended_strategy": RecoveryStrategy.RETRY
+                "recommended_strategy": RecoveryStrategy.RETRY,
             },
             "resource_errors": {
                 "patterns": ["ResourceNotFoundError", "not_found", "missing_resource"],
                 "severity": ErrorSeverity.MEDIUM,
                 "recoverable": True,
-                "recommended_strategy": RecoveryStrategy.FALLBACK
+                "recommended_strategy": RecoveryStrategy.FALLBACK,
             },
             "bias_detection_errors": {
                 "patterns": ["BiasDetectionError", "bias_threshold_exceeded"],
                 "severity": ErrorSeverity.HIGH,
                 "recoverable": True,
-                "recommended_strategy": RecoveryStrategy.FALLBACK
+                "recommended_strategy": RecoveryStrategy.FALLBACK,
             },
             "pipeline_errors": {
                 "patterns": ["PipelineExecutionError", "pipeline_failed"],
                 "severity": ErrorSeverity.HIGH,
                 "recoverable": True,
-                "recommended_strategy": RecoveryStrategy.ROLLBACK
+                "recommended_strategy": RecoveryStrategy.ROLLBACK,
             },
             "critical_errors": {
                 "patterns": ["critical", "fatal", "unrecoverable"],
                 "severity": ErrorSeverity.CRITICAL,
                 "recoverable": False,
-                "recommended_strategy": RecoveryStrategy.ESCALATE
-            }
+                "recommended_strategy": RecoveryStrategy.ESCALATE,
+            },
         }
 
     def _load_stage_recovery_configs(self) -> dict[str, RecoveryConfig]:
         """Load stage-specific recovery configurations."""
         return {
             "ingestion": RecoveryConfig(
-                max_retries=2,
-                retry_delay_seconds=1.0,
-                fallback_enabled=True,
-                skip_enabled=False
+                max_retries=2, retry_delay_seconds=1.0, fallback_enabled=True, skip_enabled=False
             ),
             "validation": RecoveryConfig(
-                max_retries=3,
-                retry_delay_seconds=2.0,
-                fallback_enabled=True,
-                skip_enabled=False
+                max_retries=3, retry_delay_seconds=2.0, fallback_enabled=True, skip_enabled=False
             ),
             "processing": RecoveryConfig(
                 max_retries=3,
                 retry_delay_seconds=3.0,
                 fallback_enabled=True,
                 skip_enabled=False,
-                timeout_seconds=600.0  # 10 minutes for processing
+                timeout_seconds=600.0,  # 10 minutes for processing
             ),
             "standardization": RecoveryConfig(
-                max_retries=2,
-                retry_delay_seconds=2.0,
-                fallback_enabled=True,
-                skip_enabled=True
+                max_retries=2, retry_delay_seconds=2.0, fallback_enabled=True, skip_enabled=True
             ),
             "quality": RecoveryConfig(
-                max_retries=3,
-                retry_delay_seconds=2.0,
-                fallback_enabled=True,
-                skip_enabled=False
+                max_retries=3, retry_delay_seconds=2.0, fallback_enabled=True, skip_enabled=False
             ),
-            "export": RecoveryConfig(
-                max_retries=2,
-                retry_delay_seconds=1.0,
-                fallback_enabled=True,
-                skip_enabled=False
-            )
+            "export": RecoveryConfig(max_retries=2, retry_delay_seconds=1.0, fallback_enabled=True, skip_enabled=False),
         }
 
-    async def attempt_stage_recovery(self, context: "PipelineContext",
-                                   stage_name: str, error: Exception) -> RecoveryResult:
+    async def attempt_stage_recovery(
+        self, context: "PipelineContext", stage_name: str, error: Exception
+    ) -> RecoveryResult:
         """
         Attempt recovery for a failed stage.
 
@@ -210,28 +199,19 @@ class ErrorRecoveryManager:
         start_time = time.time()
 
         try:
-            self.logger.info(
-                f"Starting recovery for stage {stage_name} in execution "
-                f"{context.execution_id}: {error}"
-            )
+            self.logger.info(f"Starting recovery for stage {stage_name} in execution {context.execution_id}: {error}")
 
             # Classify the error
             error_classification = self._classify_error(error)
 
             # Get stage-specific recovery configuration
-            stage_config = self.stage_recovery_configs.get(
-                stage_name, self.recovery_config
-            )
+            stage_config = self.stage_recovery_configs.get(stage_name, self.recovery_config)
 
             # Determine recovery strategy
-            strategy = self._determine_recovery_strategy(
-                error_classification, stage_config, context.retry_count
-            )
+            strategy = self._determine_recovery_strategy(error_classification, stage_config, context.retry_count)
 
             # Execute recovery attempts
-            recovery_result = await self._execute_recovery_strategy(
-                context, stage_name, error, strategy, stage_config
-            )
+            recovery_result = await self._execute_recovery_strategy(context, stage_name, error, strategy, stage_config)
 
             # Log recovery result
             duration_seconds = time.time() - start_time
@@ -271,7 +251,7 @@ class ErrorRecoveryManager:
                     "category": category,
                     "severity": rules["severity"],
                     "recoverable": rules["recoverable"],
-                    "recommended_strategy": rules["recommended_strategy"]
+                    "recommended_strategy": rules["recommended_strategy"],
                 }
 
         # Default classification
@@ -279,12 +259,12 @@ class ErrorRecoveryManager:
             "category": "unknown",
             "severity": ErrorSeverity.MEDIUM,
             "recoverable": True,
-            "recommended_strategy": RecoveryStrategy.RETRY
+            "recommended_strategy": RecoveryStrategy.RETRY,
         }
 
-    def _determine_recovery_strategy(self, error_classification: dict[str, Any],
-                                   stage_config: RecoveryConfig,
-                                   retry_count: int) -> RecoveryStrategy:
+    def _determine_recovery_strategy(
+        self, error_classification: dict[str, Any], stage_config: RecoveryConfig, retry_count: int
+    ) -> RecoveryStrategy:
         """Determine the best recovery strategy based on error and context."""
         # Check if we've exceeded retry threshold
         if retry_count >= stage_config.escalation_threshold:
@@ -297,10 +277,14 @@ class ErrorRecoveryManager:
         # Non-recoverable errors should escalate
         return RecoveryStrategy.ESCALATE
 
-    async def _execute_recovery_strategy(self, context: "PipelineContext",
-                                       stage_name: str, original_error: Exception,
-                                       strategy: RecoveryStrategy,
-                                       config: RecoveryConfig) -> RecoveryResult:
+    async def _execute_recovery_strategy(
+        self,
+        context: "PipelineContext",
+        stage_name: str,
+        original_error: Exception,
+        strategy: RecoveryStrategy,
+        config: RecoveryConfig,
+    ) -> RecoveryResult:
         """Execute the determined recovery strategy."""
         attempts = []
         current_strategy = strategy
@@ -319,12 +303,12 @@ class ErrorRecoveryManager:
                 # Create successful attempt record
                 attempt = RecoveryAttempt(
                     attempt_number=attempt_number,
-                    timestamp=datetime.now(timezone.utc),
+                    timestamp=datetime.now(UTC),
                     strategy=current_strategy,
                     result="success",
                     error_info=None,
                     duration_seconds=attempt_duration,
-                    recovery_data=recovery_data
+                    recovery_data=recovery_data,
                 )
                 attempts.append(attempt)
 
@@ -335,9 +319,7 @@ class ErrorRecoveryManager:
                     attempts=attempts,
                     result_data=recovery_data,
                     error=None,
-                    recommendations=self._generate_recommendations(
-                        current_strategy, recovery_data
-                    )
+                    recommendations=self._generate_recommendations(current_strategy, recovery_data),
                 )
 
             except Exception as e:
@@ -346,26 +328,19 @@ class ErrorRecoveryManager:
                 # Create failed attempt record
                 attempt = RecoveryAttempt(
                     attempt_number=attempt_number,
-                    timestamp=datetime.now(timezone.utc),
+                    timestamp=datetime.now(UTC),
                     strategy=current_strategy,
                     result="failed",
-                    error_info={
-                        "error_type": type(e).__name__,
-                        "error_message": str(e)
-                    },
+                    error_info={"error_type": type(e).__name__, "error_message": str(e)},
                     duration_seconds=attempt_duration,
-                    recovery_data=None
+                    recovery_data=None,
                 )
                 attempts.append(attempt)
 
-                self.logger.warning(
-                    f"Recovery attempt {attempt_number} failed for stage {stage_name}: {e}"
-                )
+                self.logger.warning(f"Recovery attempt {attempt_number} failed for stage {stage_name}: {e}")
 
                 # Determine next strategy
-                next_strategy = self._get_next_recovery_strategy(
-                    current_strategy, attempt_number, config, e
-                )
+                next_strategy = self._get_next_recovery_strategy(current_strategy, attempt_number, config, e)
 
                 if next_strategy == RecoveryStrategy.ESCALATE:
                     break
@@ -386,17 +361,20 @@ class ErrorRecoveryManager:
             recommendations=[
                 f"Stage {stage_name} failed after {len(attempts)} recovery attempts",
                 "Consider reviewing input data quality and pipeline configuration",
-                "Manual intervention may be required"
-            ]
+                "Manual intervention may be required",
+            ],
         )
 
-    async def _execute_retry_strategy(self, _context: "PipelineContext",
-                                    stage_name: str, error: Exception,
-                                    attempt_number: int, _config: RecoveryConfig) -> dict[str, Any]:
+    async def _execute_retry_strategy(
+        self,
+        _context: "PipelineContext",
+        stage_name: str,
+        error: Exception,
+        attempt_number: int,
+        _config: RecoveryConfig,
+    ) -> dict[str, Any]:
         """Execute retry recovery strategy."""
-        self.logger.info(
-            f"Executing retry strategy for stage {stage_name}, attempt {attempt_number}"
-        )
+        self.logger.info(f"Executing retry strategy for stage {stage_name}, attempt {attempt_number}")
 
         # Simulate retry logic - in real implementation, this would retry the stage
         # For now, we'll simulate success on certain conditions
@@ -407,30 +385,25 @@ class ErrorRecoveryManager:
         if error_classification["category"] == "timeout_errors" and attempt_number <= 2:
             # Simulate timeout recovery
             await asyncio.sleep(0.1)  # Simulate retry delay
-            return {
-                "retry_successful": True,
-                "attempt_number": attempt_number,
-                "error_resolved": "timeout_resolved"
-            }
+            return {"retry_successful": True, "attempt_number": attempt_number, "error_resolved": "timeout_resolved"}
 
         if error_classification["category"] == "validation_errors" and attempt_number == 1:
             # Simulate validation error recovery
-            return {
-                "retry_successful": True,
-                "attempt_number": attempt_number,
-                "error_resolved": "validation_fixed"
-            }
+            return {"retry_successful": True, "attempt_number": attempt_number, "error_resolved": "validation_fixed"}
 
         # Simulate retry failure
         raise PipelineExecutionError(f"Retry attempt {attempt_number} failed")
 
-    async def _execute_fallback_strategy(self, _context: "PipelineContext",
-                                       stage_name: str, error: Exception,
-                                       attempt_number: int, _config: RecoveryConfig) -> dict[str, Any]:
+    async def _execute_fallback_strategy(
+        self,
+        _context: "PipelineContext",
+        stage_name: str,
+        error: Exception,
+        attempt_number: int,
+        _config: RecoveryConfig,
+    ) -> dict[str, Any]:
         """Execute fallback recovery strategy."""
-        self.logger.info(
-            f"Executing fallback strategy for stage {stage_name}, attempt {attempt_number}"
-        )
+        self.logger.info(f"Executing fallback strategy for stage {stage_name}, attempt {attempt_number}")
 
         # Simulate fallback logic
         error_classification = self._classify_error(error)
@@ -440,7 +413,7 @@ class ErrorRecoveryManager:
             return {
                 "fallback_successful": True,
                 "fallback_type": "alternative_resource",
-                "resource_used": "backup_dataset"
+                "resource_used": "backup_dataset",
             }
 
         if error_classification["category"] == "bias_detection_errors":
@@ -448,19 +421,22 @@ class ErrorRecoveryManager:
             return {
                 "fallback_successful": True,
                 "fallback_type": "bias_mitigation",
-                "mitigation_applied": "demographic_rebalancing"
+                "mitigation_applied": "demographic_rebalancing",
             }
 
         # Simulate fallback failure
         raise PipelineExecutionError("Fallback strategy failed")
 
-    async def _execute_skip_strategy(self, _context: "PipelineContext",
-                                   stage_name: str, _error: Exception,
-                                   attempt_number: int, _config: RecoveryConfig) -> dict[str, Any]:
+    async def _execute_skip_strategy(
+        self,
+        _context: "PipelineContext",
+        stage_name: str,
+        _error: Exception,
+        attempt_number: int,
+        _config: RecoveryConfig,
+    ) -> dict[str, Any]:
         """Execute skip recovery strategy."""
-        self.logger.info(
-            f"Executing skip strategy for stage {stage_name}, attempt {attempt_number}"
-        )
+        self.logger.info(f"Executing skip strategy for stage {stage_name}, attempt {attempt_number}")
 
         # Check if stage can be skipped
         skippable_stages = ["standardization"]  # Some stages can be safely skipped
@@ -470,17 +446,20 @@ class ErrorRecoveryManager:
                 "skip_successful": True,
                 "skipped_stage": stage_name,
                 "impact": "minimal",
-                "recommendation": "Manual review recommended"
+                "recommendation": "Manual review recommended",
             }
         raise PipelineExecutionError(f"Stage {stage_name} cannot be skipped")
 
-    async def _execute_rollback_strategy(self, _context: "PipelineContext",
-                                       stage_name: str, _error: Exception,
-                                       attempt_number: int, _config: RecoveryConfig) -> dict[str, Any]:
+    async def _execute_rollback_strategy(
+        self,
+        _context: "PipelineContext",
+        stage_name: str,
+        _error: Exception,
+        attempt_number: int,
+        _config: RecoveryConfig,
+    ) -> dict[str, Any]:
         """Execute rollback recovery strategy."""
-        self.logger.info(
-            f"Executing rollback strategy for stage {stage_name}, attempt {attempt_number}"
-        )
+        self.logger.info(f"Executing rollback strategy for stage {stage_name}, attempt {attempt_number}")
 
         # Simulate rollback to previous checkpoint
         try:
@@ -489,20 +468,22 @@ class ErrorRecoveryManager:
                 "rollback_successful": True,
                 "rolled_back_stage": stage_name,
                 "checkpoint_restored": f"{stage_name}_checkpoint_v1",
-                "data_integrity": "maintained"
+                "data_integrity": "maintained",
             }
-
 
         except Exception as e:
             raise PipelineExecutionError(f"Rollback failed: {e!s}") from e
 
-    async def _execute_escalation_strategy(self, context: "PipelineContext",
-                                         stage_name: str, error: Exception,
-                                         attempt_number: int, _config: RecoveryConfig) -> dict[str, Any]:
+    async def _execute_escalation_strategy(
+        self,
+        context: "PipelineContext",
+        stage_name: str,
+        error: Exception,
+        attempt_number: int,
+        _config: RecoveryConfig,
+    ) -> dict[str, Any]:
         """Execute escalation recovery strategy."""
-        self.logger.warning(
-            f"Executing escalation strategy for stage {stage_name}, attempt {attempt_number}"
-        )
+        self.logger.warning(f"Executing escalation strategy for stage {stage_name}, attempt {attempt_number}")
 
         # This represents escalation to human intervention or higher-level systems
         escalation_data = {
@@ -512,20 +493,19 @@ class ErrorRecoveryManager:
             "error_message": str(error),
             "attempts_made": attempt_number,
             "requires_manual_intervention": True,
-            "escalation_timestamp": datetime.now(timezone.utc).isoformat()
+            "escalation_timestamp": datetime.now(UTC).isoformat(),
         }
 
         # In real implementation, this would trigger alerts, notifications, etc.
         self.logger.critical(
-            f"ESCALATION REQUIRED: Stage {stage_name} in execution "
-            f"{context.execution_id} requires manual intervention"
+            f"ESCALATION REQUIRED: Stage {stage_name} in execution {context.execution_id} requires manual intervention"
         )
 
         return escalation_data
 
-    def _get_next_recovery_strategy(self, current_strategy: RecoveryStrategy,
-                                  attempt_number: int, config: RecoveryConfig,
-                                  _last_error: Exception) -> RecoveryStrategy:
+    def _get_next_recovery_strategy(
+        self, current_strategy: RecoveryStrategy, attempt_number: int, config: RecoveryConfig, _last_error: Exception
+    ) -> RecoveryStrategy:
         """Determine the next recovery strategy to try."""
         # If we've hit max retries, escalate
         if attempt_number >= config.max_retries:
@@ -536,7 +516,7 @@ class ErrorRecoveryManager:
             RecoveryStrategy.RETRY: RecoveryStrategy.FALLBACK,
             RecoveryStrategy.FALLBACK: RecoveryStrategy.SKIP if config.skip_enabled else RecoveryStrategy.ROLLBACK,
             RecoveryStrategy.SKIP: RecoveryStrategy.ROLLBACK,
-            RecoveryStrategy.ROLLBACK: RecoveryStrategy.ESCALATE
+            RecoveryStrategy.ROLLBACK: RecoveryStrategy.ESCALATE,
         }
 
         return strategy_progression.get(current_strategy, RecoveryStrategy.ESCALATE)
@@ -546,7 +526,7 @@ class ErrorRecoveryManager:
         if config.exponential_backoff:
             delay = min(
                 config.retry_delay_seconds * (config.backoff_multiplier ** (attempt_number - 1)),
-                config.max_retry_delay_seconds
+                config.max_retry_delay_seconds,
             )
         else:
             delay = config.retry_delay_seconds
@@ -554,8 +534,9 @@ class ErrorRecoveryManager:
         self.logger.info(f"Waiting {delay:.1f} seconds before retry attempt {attempt_number + 1}")
         await asyncio.sleep(delay)
 
-    def _generate_recommendations(self, final_strategy: RecoveryStrategy,
-                                recovery_data: dict[str, Any] | None) -> list[str]:
+    def _generate_recommendations(
+        self, final_strategy: RecoveryStrategy, recovery_data: dict[str, Any] | None
+    ) -> list[str]:
         """Generate recommendations based on recovery result."""
         recommendations = []
 
@@ -579,8 +560,9 @@ class ErrorRecoveryManager:
 
         return recommendations
 
-    async def _publish_recovery_event(self, context: "PipelineContext",
-                                    stage_name: str, recovery_result: RecoveryResult) -> None:
+    async def _publish_recovery_event(
+        self, context: "PipelineContext", stage_name: str, recovery_result: RecoveryResult
+    ) -> None:
         """Publish recovery event for monitoring and alerting."""
         try:
             event = EventMessage(
@@ -592,10 +574,10 @@ class ErrorRecoveryManager:
                     "final_strategy": recovery_result.final_strategy.value,
                     "attempts_count": len(recovery_result.attempts),
                     "recommendations": recovery_result.recommendations,
-                    "recovery_timestamp": datetime.now(timezone.utc).isoformat()
+                    "recovery_timestamp": datetime.now(UTC).isoformat(),
                 },
                 source="error_recovery_manager",
-                target="monitoring_system"
+                target="monitoring_system",
             )
 
             await self.event_bus.publish_event(event)
@@ -603,8 +585,9 @@ class ErrorRecoveryManager:
         except Exception as e:
             self.logger.error(f"Failed to publish recovery event: {e}")
 
-    async def create_error_checkpoint(self, execution_id: str, stage_name: str,
-                                    error: Exception, context_data: dict[str, Any]) -> str:
+    async def create_error_checkpoint(
+        self, execution_id: str, stage_name: str, error: Exception, context_data: dict[str, Any]
+    ) -> str:
         """
         Create an error checkpoint for debugging and recovery.
 
@@ -632,10 +615,10 @@ class ErrorRecoveryManager:
                 "stage_name": stage_name,
                 "error_type": type(error).__name__,
                 "error_message": str(error),
-                "error_timestamp": datetime.now(timezone.utc).isoformat(),
+                "error_timestamp": datetime.now(UTC).isoformat(),
                 "context_data": sanitized_context,
                 "environment_info": self._get_environment_info(),
-                "recovery_suggestions": self._generate_recovery_suggestions(error)
+                "recovery_suggestions": self._generate_recovery_suggestions(error),
             }
 
             # Store checkpoint in Redis
@@ -643,12 +626,11 @@ class ErrorRecoveryManager:
             await self.redis_client.setex(
                 key,
                 86400 * 7,  # 7 days retention
-                json.dumps(error_checkpoint, default=str)
+                json.dumps(error_checkpoint, default=str),
             )
 
             self.logger.info(
-                f"Error checkpoint created: {checkpoint_id} for execution {execution_id}, "
-                f"stage {stage_name}"
+                f"Error checkpoint created: {checkpoint_id} for execution {execution_id}, stage {stage_name}"
             )
 
             return checkpoint_id
@@ -660,11 +642,11 @@ class ErrorRecoveryManager:
     def _get_environment_info(self) -> dict[str, Any]:
         """Get environment information for debugging."""
         return {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "python_version": "3.13",  # Would be actual Python version
             "platform": "linux",  # Would be actual platform
             "memory_usage": "normal",  # Would be actual memory usage
-            "cpu_usage": "normal"  # Would be actual CPU usage
+            "cpu_usage": "normal",  # Would be actual CPU usage
         }
 
     def _generate_recovery_suggestions(self, error: Exception) -> list[str]:
@@ -673,7 +655,7 @@ class ErrorRecoveryManager:
 
         suggestions = [
             f"Error type: {error_classification['category']}",
-            f"Severity: {error_classification['severity'].value}"
+            f"Severity: {error_classification['severity'].value}",
         ]
 
         if error_classification["recoverable"]:
@@ -685,23 +667,29 @@ class ErrorRecoveryManager:
         # Add specific suggestions based on error category
         category = error_classification["category"]
         if category == "timeout_errors":
-            suggestions.extend([
-                "Check system resources and network connectivity",
-                "Consider increasing timeout values",
-                "Verify external service availability"
-            ])
+            suggestions.extend(
+                [
+                    "Check system resources and network connectivity",
+                    "Consider increasing timeout values",
+                    "Verify external service availability",
+                ]
+            )
         elif category == "validation_errors":
-            suggestions.extend([
-                "Review input data quality and format",
-                "Check validation rules configuration",
-                "Verify data preprocessing steps"
-            ])
+            suggestions.extend(
+                [
+                    "Review input data quality and format",
+                    "Check validation rules configuration",
+                    "Verify data preprocessing steps",
+                ]
+            )
         elif category == "bias_detection_errors":
-            suggestions.extend([
-                "Review dataset for demographic representation",
-                "Consider bias mitigation techniques",
-                "Check bias detection thresholds"
-            ])
+            suggestions.extend(
+                [
+                    "Review dataset for demographic representation",
+                    "Consider bias mitigation techniques",
+                    "Check bias detection thresholds",
+                ]
+            )
 
         return suggestions
 
@@ -749,7 +737,7 @@ class ErrorRecoveryManager:
             keys = await self.redis_client.keys(pattern)
 
             cleaned_count = 0
-            cutoff_time = datetime.now(timezone.utc) - timedelta(days=max_age_days)
+            cutoff_time = datetime.now(UTC) - timedelta(days=max_age_days)
 
             for key in keys:
                 try:
@@ -782,9 +770,9 @@ class ErrorRecoveryManager:
         try:
             # Check configuration
             config_healthy = (
-                self.recovery_config.max_retries > 0 and
-                self.recovery_config.retry_delay_seconds > 0 and
-                self.recovery_config.timeout_seconds > 0
+                self.recovery_config.max_retries > 0
+                and self.recovery_config.retry_delay_seconds > 0
+                and self.recovery_config.timeout_seconds > 0
             )
 
             # Check error classification rules
@@ -801,13 +789,9 @@ class ErrorRecoveryManager:
                 "error_rules_loaded": rules_healthy,
                 "stage_configs_loaded": stages_healthy,
                 "recovery_strategies_available": len(self.recovery_strategies),
-                "timestamp": datetime.now(timezone.utc).isoformat()
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
         except Exception as e:
             self.logger.error(f"ErrorRecoveryManager health check failed: {e}")
-            return {
-                "status": "unhealthy",
-                "error": str(e),
-                "timestamp": datetime.now(timezone.utc).isoformat()
-            }
+            return {"status": "unhealthy", "error": str(e), "timestamp": datetime.now(UTC).isoformat()}

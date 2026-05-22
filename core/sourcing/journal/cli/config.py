@@ -6,7 +6,6 @@ from typing import Any
 
 from ai.sourcing.journal.cli.config import (
     ConfigManager,
-    _config_manager,
     get_config_value,
     load_config,
     save_config,
@@ -24,4 +23,4 @@ class Config(ConfigManager):
         return load_config(self.config_path)
 
 
-__all__ = ["Config", "load_config", "save_config", "get_config_value", "ConfigManager"]
+__all__ = ["Config", "ConfigManager", "get_config_value", "load_config", "save_config"]

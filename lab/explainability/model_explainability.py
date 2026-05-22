@@ -8,15 +8,16 @@ import hashlib
 import logging
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
 import numpy as np
 import shap
-from ai.utils.torch_proxy import torch
 from lime import lime_text
 from transformers import AutoTokenizer
+
+from ai.utils.torch_proxy import torch
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +55,7 @@ class ExplanationResult:
     explanation_output: dict[str, Any]
     confidence_score: float
     computation_time_ms: float
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     metadata: dict[str, Any] | None = None
 
 
@@ -87,9 +88,7 @@ class ExplainabilityEngine:
         self.tokenizers: dict[str, Any] = {}  # Tokenizer cache
         self.logger = logging.getLogger(__name__)
 
-    def register_model(
-        self, model_name: str, model: Any, tokenizer: Any | None = None
-    ):
+    def register_model(self, model_name: str, model: Any, tokenizer: Any | None = None):
         """Register a model for explainability"""
         self.models[model_name] = model
         if tokenizer:
@@ -112,23 +111,15 @@ class ExplainabilityEngine:
         model = self.models[model_name]
         tokenizer = self.tokenizers.get(model_name)
 
-        explanation_id = self._generate_explanation_id(
-            model_name, input_text, "feature_importance"
-        )
+        explanation_id = self._generate_explanation_id(model_name, input_text, "feature_importance")
 
         try:
             if method == "gradient":
-                importance_scores = self._gradient_based_importance(
-                    model, tokenizer, input_text, target_class
-                )
+                importance_scores = self._gradient_based_importance(model, tokenizer, input_text, target_class)
             elif method == "lime":
-                importance_scores = self._lime_importance(
-                    model, tokenizer, input_text, target_class
-                )
+                importance_scores = self._lime_importance(model, tokenizer, input_text, target_class)
             elif method == "shap":
-                importance_scores = self._shap_importance(
-                    model, tokenizer, input_text, target_class
-                )
+                importance_scores = self._shap_importance(model, tokenizer, input_text, target_class)
             else:
                 raise ValueError(f"Unsupported feature importance method: {method}")
 
@@ -147,9 +138,7 @@ class ExplainabilityEngine:
                 model_name=model_name,
                 input_data=input_text,
                 explanation_output=explanation_output,
-                confidence_score=self._calculate_explanation_confidence(
-                    importance_scores.importance_scores
-                ),
+                confidence_score=self._calculate_explanation_confidence(importance_scores.importance_scores),
                 computation_time_ms=computation_time,
                 metadata={
                     "method": method,
@@ -158,9 +147,7 @@ class ExplainabilityEngine:
             )
 
             self.explanations[explanation_id] = result
-            self.logger.info(
-                f"Generated feature importance explanation for {model_name} in {computation_time:.2f}ms"
-            )
+            self.logger.info(f"Generated feature importance explanation for {model_name} in {computation_time:.2f}ms")
 
             return result
 
@@ -181,9 +168,7 @@ class ExplainabilityEngine:
             return self._simple_token_importance(input_text)
 
         # Tokenize input
-        inputs = tokenizer(
-            input_text, return_tensors="pt", padding=True, truncation=True
-        )
+        inputs = tokenizer(input_text, return_tensors="pt", padding=True, truncation=True)
         input_ids = inputs["input_ids"]
         attention_mask = inputs.get("attention_mask")
 
@@ -208,9 +193,7 @@ class ExplainabilityEngine:
 
         # Extract gradients
         gradients = input_ids.grad[0].detach().cpu().numpy()
-        input_embeddings = (
-            model.get_input_embeddings()(input_ids).detach().cpu().numpy()[0]
-        )
+        input_embeddings = model.get_input_embeddings()(input_ids).detach().cpu().numpy()[0]
 
         # Calculate importance scores
         importance_scores = np.abs(gradients * input_embeddings).sum(axis=1)
@@ -222,9 +205,7 @@ class ExplainabilityEngine:
             features=tokens,
             importance_scores=importance_scores.tolist(),
             feature_types=["token"] * len(tokens),
-            confidence_intervals=[
-                (score * 0.9, score * 1.1) for score in importance_scores.tolist()
-            ],
+            confidence_intervals=[(score * 0.9, score * 1.1) for score in importance_scores.tolist()],
         )
 
     def _lime_importance(
@@ -237,30 +218,22 @@ class ExplainabilityEngine:
         """Calculate feature importance using LIME"""
         try:
             # Create LIME explainer
-            explainer = lime_text.LimeTextExplainer(
-                class_names=["negative", "positive"]
-            )
+            explainer = lime_text.LimeTextExplainer(class_names=["negative", "positive"])
 
             # Define prediction function for LIME
             def predict_fn(texts):
                 results = []
                 for text in texts:
-                    inputs = tokenizer(
-                        text, return_tensors="pt", padding=True, truncation=True
-                    )
+                    inputs = tokenizer(text, return_tensors="pt", padding=True, truncation=True)
                     with torch.no_grad():
                         outputs = model(**inputs)
-                        logits = (
-                            outputs.logits if hasattr(outputs, "logits") else outputs[0]
-                        )
+                        logits = outputs.logits if hasattr(outputs, "logits") else outputs[0]
                         probs = torch.softmax(logits, dim=-1).cpu().numpy()
                         results.append(probs[0])
                 return np.array(results)
 
             # Generate explanation
-            explanation = explainer.explain_instance(
-                input_text, predict_fn, num_features=10, num_samples=1000
-            )
+            explanation = explainer.explain_instance(input_text, predict_fn, num_features=10, num_samples=1000)
 
             # Extract feature importance
             feature_weights = explanation.as_list()
@@ -274,9 +247,7 @@ class ExplainabilityEngine:
             )
 
         except Exception as e:
-            self.logger.warning(
-                f"LIME explanation failed, falling back to simple method: {e}"
-            )
+            self.logger.warning(f"LIME explanation failed, falling back to simple method: {e}")
             return self._simple_token_importance(input_text)
 
     def _shap_importance(
@@ -292,14 +263,10 @@ class ExplainabilityEngine:
             def model_predict(texts):
                 results = []
                 for text in texts:
-                    inputs = tokenizer(
-                        text, return_tensors="pt", padding=True, truncation=True
-                    )
+                    inputs = tokenizer(text, return_tensors="pt", padding=True, truncation=True)
                     with torch.no_grad():
                         outputs = model(**inputs)
-                        logits = (
-                            outputs.logits if hasattr(outputs, "logits") else outputs[0]
-                        )
+                        logits = outputs.logits if hasattr(outputs, "logits") else outputs[0]
                         probs = torch.softmax(logits, dim=-1).cpu().numpy()
                         results.append(probs[0])
                 return np.array(results)
@@ -326,9 +293,7 @@ class ExplainabilityEngine:
                 )
 
         except Exception as e:
-            self.logger.warning(
-                f"SHAP explanation failed, falling back to simple method: {e}"
-            )
+            self.logger.warning(f"SHAP explanation failed, falling back to simple method: {e}")
 
         return self._simple_token_importance(input_text)
 
@@ -362,19 +327,13 @@ class ExplainabilityEngine:
         model = self.models[model_name]
         tokenizer = self.tokenizers.get(model_name)
 
-        explanation_id = self._generate_explanation_id(
-            model_name, input_text, "attention_visualization"
-        )
+        explanation_id = self._generate_explanation_id(model_name, input_text, "attention_visualization")
 
         try:
-            attention_weights = self._extract_attention_weights(
-                model, tokenizer, input_text, layer_idx
-            )
+            attention_weights = self._extract_attention_weights(model, tokenizer, input_text, layer_idx)
 
             # Generate visualization data
-            visualization_data = self._create_attention_visualization(
-                attention_weights, tokenizer, input_text
-            )
+            visualization_data = self._create_attention_visualization(attention_weights, tokenizer, input_text)
 
             explanation_output = {
                 "attention_weights": attention_weights.__dict__,
@@ -395,16 +354,12 @@ class ExplainabilityEngine:
                 computation_time_ms=computation_time,
                 metadata={
                     "layers_analyzed": len(attention_weights.layer_weights),
-                    "heads_per_layer": len(attention_weights.head_weights)
-                    if attention_weights.head_weights
-                    else 0,
+                    "heads_per_layer": len(attention_weights.head_weights) if attention_weights.head_weights else 0,
                 },
             )
 
             self.explanations[explanation_id] = result
-            self.logger.info(
-                f"Generated attention visualization for {model_name} in {computation_time:.2f}ms"
-            )
+            self.logger.info(f"Generated attention visualization for {model_name} in {computation_time:.2f}ms")
 
             return result
 
@@ -429,9 +384,7 @@ class ExplainabilityEngine:
             )
 
         # Tokenize input
-        inputs = tokenizer(
-            input_text, return_tensors="pt", padding=True, truncation=True
-        )
+        inputs = tokenizer(input_text, return_tensors="pt", padding=True, truncation=True)
         input_ids = inputs["input_ids"]
         inputs.get("attention_mask")
 
@@ -443,9 +396,7 @@ class ExplainabilityEngine:
             else:
                 # Try to get attention weights from standard model
                 outputs = model(**inputs, output_attentions=True)
-                attentions = (
-                    outputs.attentions if hasattr(outputs, "attentions") else None
-                )
+                attentions = outputs.attentions if hasattr(outputs, "attentions") else None
 
         if attentions is None:
             # Fallback if no attention weights available
@@ -466,18 +417,14 @@ class ExplainabilityEngine:
 
             # Convert to numpy and process
             layer_attention_np = layer_attention.cpu().numpy()
-            layer_weights.append(
-                layer_attention_np[0].mean(axis=0)
-            )  # Average across heads
+            layer_weights.append(layer_attention_np[0].mean(axis=0))  # Average across heads
 
             if layer_attention_np.shape[1] > 1:  # Multiple heads
                 head_weights.append(layer_attention_np[0])  # First batch item
 
         # Calculate token-level importance
         if layer_weights:
-            token_weights = (
-                layer_weights[-1].mean(axis=0).tolist()
-            )  # Last layer, averaged across rows
+            token_weights = layer_weights[-1].mean(axis=0).tolist()  # Last layer, averaged across rows
         else:
             seq_len = input_ids.shape[1]
             token_weights = [float(i) / seq_len for i in range(seq_len)]
@@ -529,15 +476,11 @@ class ExplainabilityEngine:
         """Generate counterfactual explanation showing what changes would lead to a different outcome"""
         start_time = time.time()
 
-        explanation_id = self._generate_explanation_id(
-            model_name, input_text, "counterfactual"
-        )
+        explanation_id = self._generate_explanation_id(model_name, input_text, "counterfactual")
 
         try:
             # Generate counterfactual examples
-            counterfactuals = self._generate_counterfactuals(
-                model_name, input_text, target_outcome, max_changes
-            )
+            counterfactuals = self._generate_counterfactuals(model_name, input_text, target_outcome, max_changes)
 
             explanation_output = {
                 "counterfactuals": counterfactuals,
@@ -563,9 +506,7 @@ class ExplainabilityEngine:
             )
 
             self.explanations[explanation_id] = result
-            self.logger.info(
-                f"Generated counterfactual explanation for {model_name} in {computation_time:.2f}ms"
-            )
+            self.logger.info(f"Generated counterfactual explanation for {model_name} in {computation_time:.2f}ms")
 
             return result
 
@@ -604,9 +545,7 @@ class ExplainabilityEngine:
                     )
                     with torch.no_grad():
                         outputs = model(**inputs)
-                        logits = (
-                            outputs.logits if hasattr(outputs, "logits") else outputs[0]
-                        )
+                        logits = outputs.logits if hasattr(outputs, "logits") else outputs[0]
 
                         # Check if modification moves toward target
                         predicted_class = torch.argmax(logits[0]).item()
@@ -616,9 +555,7 @@ class ExplainabilityEngine:
                                     "modification": f"removed word '{words[i]}'",
                                     "modified_text": modified_text,
                                     "predicted_class": predicted_class,
-                                    "confidence": float(
-                                        torch.softmax(logits[0], dim=-1).max().item()
-                                    ),
+                                    "confidence": float(torch.softmax(logits[0], dim=-1).max().item()),
                                 }
                             )
 
@@ -627,9 +564,7 @@ class ExplainabilityEngine:
                     break
 
             except Exception as e:
-                self.logger.warning(
-                    f"Failed to generate counterfactual for word {i}: {e}"
-                )
+                self.logger.warning(f"Failed to generate counterfactual for word {i}: {e}")
                 continue
 
         return counterfactuals
@@ -640,9 +575,7 @@ class ExplainabilityEngine:
         """Analyze similarity between input and reference texts"""
         start_time = time.time()
 
-        explanation_id = self._generate_explanation_id(
-            model_name, input_text, "similarity_analysis"
-        )
+        explanation_id = self._generate_explanation_id(model_name, input_text, "similarity_analysis")
 
         try:
             similarities = self._calculate_similarities(input_text, reference_texts)
@@ -667,9 +600,7 @@ class ExplainabilityEngine:
             )
 
             self.explanations[explanation_id] = result
-            self.logger.info(
-                f"Generated similarity analysis for {model_name} in {computation_time:.2f}ms"
-            )
+            self.logger.info(f"Generated similarity analysis for {model_name} in {computation_time:.2f}ms")
 
             return result
 
@@ -677,9 +608,7 @@ class ExplainabilityEngine:
             self.logger.error(f"Failed to generate similarity analysis: {e}")
             raise
 
-    def _calculate_similarities(
-        self, input_text: str, reference_texts: list[str]
-    ) -> list[dict[str, Any]]:
+    def _calculate_similarities(self, input_text: str, reference_texts: list[str]) -> list[dict[str, Any]]:
         """Calculate similarity scores using simple text similarity"""
         similarities = []
 
@@ -699,17 +628,13 @@ class ExplainabilityEngine:
             magnitude_input = len(input_words) ** 0.5
             magnitude_ref = len(ref_words) ** 0.5
             cosine_similarity = (
-                dot_product / (magnitude_input * magnitude_ref)
-                if magnitude_input * magnitude_ref > 0
-                else 0.0
+                dot_product / (magnitude_input * magnitude_ref) if magnitude_input * magnitude_ref > 0 else 0.0
             )
 
             similarities.append(
                 {
                     "reference_index": i,
-                    "reference_text_preview": ref_text[:100] + "..."
-                    if len(ref_text) > 100
-                    else ref_text,
+                    "reference_text_preview": ref_text[:100] + "..." if len(ref_text) > 100 else ref_text,
                     "jaccard_similarity": jaccard_similarity,
                     "cosine_similarity": cosine_similarity,
                     "word_overlap": intersection,
@@ -722,15 +647,11 @@ class ExplainabilityEngine:
 
         return similarities
 
-    def get_global_model_behavior(
-        self, model_name: str, sample_inputs: list[str]
-    ) -> ExplanationResult:
+    def get_global_model_behavior(self, model_name: str, sample_inputs: list[str]) -> ExplanationResult:
         """Analyze global model behavior across sample inputs"""
         start_time = time.time()
 
-        explanation_id = self._generate_explanation_id(
-            model_name, "global", "global_behavior"
-        )
+        explanation_id = self._generate_explanation_id(model_name, "global", "global_behavior")
 
         try:
             # Analyze model behavior across samples
@@ -759,9 +680,7 @@ class ExplainabilityEngine:
             )
 
             self.explanations[explanation_id] = result
-            self.logger.info(
-                f"Generated global behavior analysis for {model_name} in {computation_time:.2f}ms"
-            )
+            self.logger.info(f"Generated global behavior analysis for {model_name} in {computation_time:.2f}ms")
 
             return result
 
@@ -769,9 +688,7 @@ class ExplainabilityEngine:
             self.logger.error(f"Failed to generate global behavior analysis: {e}")
             raise
 
-    def _analyze_global_behavior(
-        self, model_name: str, sample_inputs: list[str]
-    ) -> dict[str, Any]:
+    def _analyze_global_behavior(self, model_name: str, sample_inputs: list[str]) -> dict[str, Any]:
         """Analyze global model behavior"""
         if model_name not in self.models:
             return {"error": "Model not registered"}
@@ -786,24 +703,16 @@ class ExplainabilityEngine:
         for sample_text in sample_inputs[:100]:  # Limit for performance
             try:
                 if tokenizer and hasattr(model, "forward"):
-                    inputs = tokenizer(
-                        sample_text, return_tensors="pt", padding=True, truncation=True
-                    )
+                    inputs = tokenizer(sample_text, return_tensors="pt", padding=True, truncation=True)
                     with torch.no_grad():
                         outputs = model(**inputs)
-                        logits = (
-                            outputs.logits if hasattr(outputs, "logits") else outputs[0]
-                        )
+                        logits = outputs.logits if hasattr(outputs, "logits") else outputs[0]
                         predicted_class = torch.argmax(logits[0]).item()
-                        confidence = float(
-                            torch.softmax(logits[0], dim=-1).max().item()
-                        )
+                        confidence = float(torch.softmax(logits[0], dim=-1).max().item())
 
                         predictions.append(
                             {
-                                "text_preview": sample_text[:50] + "..."
-                                if len(sample_text) > 50
-                                else sample_text,
+                                "text_preview": sample_text[:50] + "..." if len(sample_text) > 50 else sample_text,
                                 "predicted_class": predicted_class,
                                 "confidence": confidence,
                             }
@@ -811,9 +720,7 @@ class ExplainabilityEngine:
 
                         # Get feature importance for this sample
                         try:
-                            importance = self._gradient_based_importance(
-                                model, tokenizer, sample_text, predicted_class
-                            )
+                            importance = self._gradient_based_importance(model, tokenizer, sample_text, predicted_class)
                             feature_importances.append(importance.importance_scores)
                         except:
                             pass
@@ -837,24 +744,19 @@ class ExplainabilityEngine:
 
             # Normalize class distribution
             normalized_distribution = {
-                str(class_id): count / total_samples
-                for class_id, count in class_distribution.items()
+                str(class_id): count / total_samples for class_id, count in class_distribution.items()
             }
 
             return {
                 "class_distribution": normalized_distribution,
                 "average_confidence": avg_confidence,
                 "total_samples_analyzed": total_samples,
-                "feature_importance_patterns": self._aggregate_feature_importances(
-                    feature_importances
-                ),
+                "feature_importance_patterns": self._aggregate_feature_importances(feature_importances),
             }
 
         return {"error": "No samples analyzed successfully"}
 
-    def _aggregate_feature_importances(
-        self, importance_lists: list[list[float]]
-    ) -> dict[str, float]:
+    def _aggregate_feature_importances(self, importance_lists: list[list[float]]) -> dict[str, float]:
         """Aggregate feature importance scores"""
         if not importance_lists:
             return {}
@@ -868,9 +770,7 @@ class ExplainabilityEngine:
                 aggregated_importance[i] += score
 
         # Calculate averages
-        avg_importance = [
-            score / len(importance_lists) for score in aggregated_importance
-        ]
+        avg_importance = [score / len(importance_lists) for score in aggregated_importance]
 
         # Return top features with their importance
         top_features = {}
@@ -879,10 +779,7 @@ class ExplainabilityEngine:
                 top_features[f"feature_{i}"] = round(importance, 4)
 
         # Sort by importance
-        return dict(
-            sorted(top_features.items(), key=lambda x: x[1], reverse=True)[:10]
-        )
-
+        return dict(sorted(top_features.items(), key=lambda x: x[1], reverse=True)[:10])
 
     def _calculate_explanation_confidence(self, scores: list[float]) -> float:
         """Calculate confidence score for explanation based on importance scores"""
@@ -897,12 +794,10 @@ class ExplainabilityEngine:
         confidence = min(1.0, variance * 10 + max_score * 0.5)
         return max(0.0, min(1.0, confidence))
 
-    def _generate_explanation_id(
-        self, model_name: str, input_data: str, explanation_type: str
-    ) -> str:
+    def _generate_explanation_id(self, model_name: str, input_data: str, explanation_type: str) -> str:
         """Generate unique ID for explanation"""
         input_hash = hashlib.md5(str(input_data).encode()).hexdigest()[:16]
-        return f"exp_{model_name}_{explanation_type}_{input_hash}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
+        return f"exp_{model_name}_{explanation_type}_{input_hash}_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}"
 
     def get_explanation(self, explanation_id: str) -> ExplanationResult | None:
         """Retrieve a stored explanation by ID"""
@@ -920,9 +815,7 @@ class ExplainabilityEngine:
             explanations = [exp for exp in explanations if exp.model_name == model_name]
 
         if explanation_type:
-            explanations = [
-                exp for exp in explanations if exp.explanation_type == explanation_type
-            ]
+            explanations = [exp for exp in explanations if exp.explanation_type == explanation_type]
 
         # Sort by creation time (newest first)
         explanations.sort(key=lambda x: x.created_at, reverse=True)
@@ -937,12 +830,11 @@ class ExplainabilityEngine:
             return count
 
         # Clear only older explanations
-        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=older_than_hours)
+        cutoff_time = datetime.now(UTC) - timedelta(hours=older_than_hours)
         expired_ids = [
             exp_id
             for exp_id, exp in self.explanations.items()
-            if datetime.fromisoformat(exp.created_at.replace("Z", "+00:00"))
-            < cutoff_time
+            if datetime.fromisoformat(exp.created_at.replace("Z", "+00:00")) < cutoff_time
         ]
 
         for exp_id in expired_ids:
@@ -959,11 +851,11 @@ class LimitedAccessExplainability:
         self.access_log: list[dict[str, Any]] = []
         self.max_daily_requests = 1000
         self.requests_today = 0
-        self.daily_reset_time = datetime.now(timezone.utc).date()
+        self.daily_reset_time = datetime.now(UTC).date()
 
     def _check_access_limits(self) -> bool:
         """Check if access limits have been reached"""
-        today = datetime.now(timezone.utc).date()
+        today = datetime.now(UTC).date()
 
         # Reset daily counter if new day
         if today != self.daily_reset_time:
@@ -980,7 +872,7 @@ class LimitedAccessExplainability:
         """Log access for auditing"""
         self.access_log.append(
             {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "user_id": user_id,
                 "action": action,
                 "details": details,
@@ -993,9 +885,7 @@ class LimitedAccessExplainability:
     ) -> ExplanationResult | None:
         """Get feature importance with access restrictions"""
         if not self._check_access_limits():
-            self._log_access(
-                user_id, "denied_feature_importance", {"reason": "daily_limit_exceeded"}
-            )
+            self._log_access(user_id, "denied_feature_importance", {"reason": "daily_limit_exceeded"})
             return None
 
         try:
@@ -1057,9 +947,7 @@ limited_access_explainability = LimitedAccessExplainability(explainability_engin
 
 
 # Utility functions for API integration
-def register_model_for_explainability(
-    model_name: str, model: Any, tokenizer: Any | None = None
-):
+def register_model_for_explainability(model_name: str, model: Any, tokenizer: Any | None = None):
     """Register a model for explainability analysis"""
     explainability_engine.register_model(model_name, model, tokenizer)
 
@@ -1109,11 +997,7 @@ def test_explainability_system():
             return torch.nn.Embedding(1000, 768)
 
     mock_model = MockModel()
-    mock_tokenizer = (
-        AutoTokenizer.from_pretrained("bert-base-uncased")
-        if torch.cuda.is_available()
-        else None
-    )
+    mock_tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased") if torch.cuda.is_available() else None
 
     # Register model
     explainability_engine.register_model("test_model", mock_model, mock_tokenizer)
@@ -1123,21 +1007,15 @@ def test_explainability_system():
 
     # Test feature importance
     with contextlib.suppress(Exception):
-        explainability_engine.get_feature_importance(
-            "test_model", test_input, method="gradient"
-        )
+        explainability_engine.get_feature_importance("test_model", test_input, method="gradient")
 
     # Test attention visualization
     with contextlib.suppress(Exception):
-        explainability_engine.get_attention_visualization(
-            "test_model", test_input
-        )
+        explainability_engine.get_attention_visualization("test_model", test_input)
 
     # Test counterfactual explanation
     with contextlib.suppress(Exception):
-        explainability_engine.get_counterfactual_explanation(
-            "test_model", test_input, target_outcome=1, max_changes=3
-        )
+        explainability_engine.get_counterfactual_explanation("test_model", test_input, target_outcome=1, max_changes=3)
 
     # Test similarity analysis
     reference_texts = [
@@ -1147,9 +1025,7 @@ def test_explainability_system():
     ]
 
     with contextlib.suppress(Exception):
-        explainability_engine.get_similarity_analysis(
-            "test_model", test_input, reference_texts
-        )
+        explainability_engine.get_similarity_analysis("test_model", test_input, reference_texts)
 
     # Test global behavior analysis
     sample_inputs = [
@@ -1160,9 +1036,7 @@ def test_explainability_system():
     ]
 
     try:
-        global_result = explainability_engine.get_global_model_behavior(
-            "test_model", sample_inputs
-        )
+        global_result = explainability_engine.get_global_model_behavior("test_model", sample_inputs)
         if "behavior_analysis" in global_result.explanation_output:
             global_result.explanation_output["behavior_analysis"]
     except Exception:
@@ -1179,7 +1053,6 @@ def test_explainability_system():
 
     # Test audit log
     limited_access_explainability.get_audit_log()
-
 
 
 if __name__ == "__main__":

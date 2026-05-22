@@ -7,12 +7,13 @@ This service wraps the ClinicalKnowledgeEmbedder and provides:
 - Caching and performance optimization
 - GPU acceleration support
 """
+
 import hashlib
 import logging
 import random
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from threading import Lock
 from typing import TYPE_CHECKING, Any
@@ -117,7 +118,7 @@ class EmbeddingAgentService:
         self._lock = Lock()
 
         # Statistics tracking
-        self._start_time = datetime.now(timezone.utc)
+        self._start_time = datetime.now(UTC)
         self._requests_processed = 0
         self._total_response_time_ms = 0.0
         self._last_request_at: datetime | None = None
@@ -134,9 +135,7 @@ class EmbeddingAgentService:
         # Load model on initialization
         self._initialize_model()
 
-        logger.info(
-            f"EmbeddingAgentService initialized with model: {self.config.model_name}"
-        )
+        logger.info(f"EmbeddingAgentService initialized with model: {self.config.model_name}")
 
     def _initialize_model(self) -> None:
         """Initialize the embedding model."""
@@ -150,21 +149,14 @@ class EmbeddingAgentService:
             # Check CUDA availability if GPU requested
             if self.config.use_gpu:
                 try:
-
                     if not torch.cuda.is_available():
-                        logger.warning(
-                            "GPU requested but CUDA not available. Falling back to CPU."
-                        )
+                        logger.warning("GPU requested but CUDA not available. Falling back to CPU.")
                         device = "cpu"
                 except ImportError:
-                    logger.warning(
-                        "PyTorch not available. Cannot check GPU. Using CPU."
-                    )
+                    logger.warning("PyTorch not available. Cannot check GPU. Using CPU.")
                     device = "cpu"
 
-            self._embedding_model = SentenceTransformer(
-                self.config.model_name.value, device=device
-            )
+            self._embedding_model = SentenceTransformer(self.config.model_name.value, device=device)
 
             # Update dimension from actual model
             actual_dim = self._embedding_model.get_sentence_embedding_dimension()
@@ -174,13 +166,10 @@ class EmbeddingAgentService:
                     f"{self.config.embedding_dimension} "
                     f"to {actual_dim} based on loaded model"
                 )
-                self.config = self.config.model_copy(
-                    update={"embedding_dimension": int(actual_dim)}
-                )
+                self.config = self.config.model_copy(update={"embedding_dimension": int(actual_dim)})
 
             logger.info(
-                f"Loaded embedding model: {self.config.model_name.value} "
-                f"on {device} with dimension {actual_dim}"
+                f"Loaded embedding model: {self.config.model_name.value} on {device} with dimension {actual_dim}"
             )
 
         except Exception as e:
@@ -195,9 +184,7 @@ class EmbeddingAgentService:
 
         try:
             if EmbeddingConfig is None or ClinicalKnowledgeEmbedder is None:
-                logger.warning(
-                    "EmbeddingConfig or ClinicalKnowledgeEmbedder is None"
-                )
+                logger.warning("EmbeddingConfig or ClinicalKnowledgeEmbedder is None")
                 return
 
             embedding_config = EmbeddingConfig(
@@ -232,7 +219,7 @@ class EmbeddingAgentService:
         with self._lock:
             self._requests_processed += 1
             self._total_response_time_ms += response_time_ms
-            self._last_request_at = datetime.now(timezone.utc)
+            self._last_request_at = datetime.now(UTC)
 
     def embed_text(self, request: EmbeddingRequest) -> EmbeddingResponse:
         """
@@ -343,9 +330,7 @@ class EmbeddingAgentService:
         # Simple deterministic mock
 
         random.seed(hash_int)
-        embedding = [
-            random.gauss(0, 1) for _ in range(self.config.embedding_dimension)
-        ]
+        embedding = [random.gauss(0, 1) for _ in range(self.config.embedding_dimension)]
         # Simple normalization
         norm = sum(x**2 for x in embedding) ** 0.5
         if norm > 0:
@@ -557,14 +542,10 @@ class EmbeddingAgentService:
                 similarity = float(np.dot(query_np, item_np))
             else:
                 # Simple cosine similarity
-                dot_product = sum(
-                    a * b for a, b in zip(query_embedding, item_embedding, strict=False)
-                )
+                dot_product = sum(a * b for a, b in zip(query_embedding, item_embedding, strict=False))
                 norm_q = sum(x**2 for x in query_embedding) ** 0.5
                 norm_i = sum(x**2 for x in item_embedding) ** 0.5
-                similarity = (
-                    dot_product / (norm_q * norm_i) if norm_q * norm_i > 0 else 0.0
-                )
+                similarity = dot_product / (norm_q * norm_i) if norm_q * norm_i > 0 else 0.0
 
             # Apply threshold
             if similarity >= min_similarity:
@@ -572,13 +553,9 @@ class EmbeddingAgentService:
                     item_id=getattr(item, "id", str(uuid.uuid4())),
                     content=getattr(item, "content", "")[:500],  # Truncate content
                     similarity_score=similarity,
-                    knowledge_type=KnowledgeType(
-                        getattr(item, "knowledge_type", "general")
-                    ),
+                    knowledge_type=KnowledgeType(getattr(item, "knowledge_type", "general")),
                     source=getattr(item, "source", "unknown"),
-                    metadata=getattr(item, "metadata", {})
-                    if include_metadata
-                    else None,
+                    metadata=getattr(item, "metadata", {}) if include_metadata else None,
                 )
                 matches.append(match)
 
@@ -622,11 +599,9 @@ class EmbeddingAgentService:
         Returns:
             EmbeddingAgentStatus with current metrics
         """
-        uptime = (datetime.now(timezone.utc) - self._start_time).total_seconds()
+        uptime = (datetime.now(UTC) - self._start_time).total_seconds()
         avg_response_time = (
-            self._total_response_time_ms / self._requests_processed
-            if self._requests_processed > 0
-            else 0.0
+            self._total_response_time_ms / self._requests_processed if self._requests_processed > 0 else 0.0
         )
 
         # Check GPU memory if available
@@ -634,7 +609,6 @@ class EmbeddingAgentService:
         gpu_available = False
         if self.config.use_gpu:
             try:
-
                 if torch.cuda.is_available():
                     gpu_available = True
                     gpu_memory = torch.cuda.memory_allocated() / (1024 * 1024)

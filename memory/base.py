@@ -116,9 +116,7 @@ class CategoryScopedMemoryManager(ScopedMemoryManager, Protocol):
 
 @runtime_checkable
 class ForesightCompatibleMemoryManager(Protocol):
-    def retain_items(
-        self, bank_id: str, items: list[dict[str, Any]]
-    ) -> dict[str, Any]:
+    def retain_items(self, bank_id: str, items: list[dict[str, Any]]) -> dict[str, Any]:
         """Store Foresight-compatible memory items."""
         ...
 
@@ -205,4 +203,3 @@ class HealthReportingMemoryManager(Protocol):
     def get_health_status(self) -> dict[str, Any]:
         """Return a health payload for the memory manager."""
         ...
-

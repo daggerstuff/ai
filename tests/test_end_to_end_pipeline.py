@@ -13,7 +13,7 @@ class TestEndToEndPipeline(unittest.TestCase):
             "extract_all_youtube_transcripts.py",
             "extract_academic_findings.py",
             "extract_all_books_to_training.py",
-            "generate_nemo_synthetic_data.py"
+            "generate_nemo_synthetic_data.py",
         ]
         for script in required_scripts:
             assert (self.scripts_dir / script).exists(), f"Missing {script}"
@@ -30,6 +30,7 @@ class TestEndToEndPipeline(unittest.TestCase):
         content = prod_script.read_text()
         assert "ai/training/scripts" in content
         assert "ai/training_ready/scripts" not in content, "Legacy path detected in production script"
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -105,15 +105,11 @@ class RoutledgePublisher(BasePublisher):
             logger.error(f"Routledge search error: {e}")
             return []
 
-    def _parse_record(
-        self, record: dict[str, Any], _query: str
-    ) -> BookMetadata | None:
+    def _parse_record(self, record: dict[str, Any], _query: str) -> BookMetadata | None:
         """Parse Routledge record"""
         try:
             title = record.get("title", "Unknown Title")
-            authors = [
-                a.get("name", "") for a in record.get("authors", []) if a.get("name")
-            ]
+            authors = [a.get("name", "") for a in record.get("authors", []) if a.get("name")]
             year = record.get("publicationYear", 0)
 
             metadata = BookMetadata(
@@ -149,9 +145,7 @@ class RoutledgePublisher(BasePublisher):
             return None
         try:
             headers = {"Authorization": f"Bearer {self._auth_token}"}
-            response = self.session.get(
-                f"{self.api_base_url}/products/{book_id}", headers=headers, timeout=10
-            )
+            response = self.session.get(f"{self.api_base_url}/products/{book_id}", headers=headers, timeout=10)
             if response.status_code == 200:
                 return self._parse_record(response.json(), "")
             return None
@@ -159,9 +153,7 @@ class RoutledgePublisher(BasePublisher):
             logger.error(f"Error getting metadata: {e}")
             return None
 
-    def get_book_content(
-        self, _book_id: str, _format: BookFormat = BookFormat.PDF
-    ) -> BookContent | None:
+    def get_book_content(self, _book_id: str, _format: BookFormat = BookFormat.PDF) -> BookContent | None:
         """Get book content (requires institutional access)"""
         logger.warning("Routledge content requires institutional access")
         return None

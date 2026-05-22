@@ -16,7 +16,7 @@ import sqlite3
 import time
 import warnings
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -31,9 +31,7 @@ from plotly.subplots import make_subplots
 warnings.simplefilter("default")
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -66,9 +64,7 @@ class QualityAnalyticsDashboard:
     - Audit logging and compliance tracking
     """
 
-    def __init__(
-        self, db_path: str = "/home/vivi/pixelated/ai/database/conversations.db"
-    ):
+    def __init__(self, db_path: str = "/home/vivi/pixelated/ai/database/conversations.db"):
         """Initialize the quality analytics dashboard with enterprise configuration."""
         self.db_path = Path(db_path)
         self.cache_duration = 300  # 5 minutes cache TTL
@@ -198,9 +194,7 @@ class QualityAnalyticsDashboard:
             # Add date range filter
             if date_range and len(date_range) == 2:
                 base_query += " AND DATE(c.created_at) >= DATE(?) AND DATE(c.created_at) <= DATE(?)"
-                params.extend(
-                    [date_range[0].date().isoformat(), date_range[1].date().isoformat()]
-                )
+                params.extend([date_range[0].date().isoformat(), date_range[1].date().isoformat()])
 
             # Add quality filter
             if min_quality is not None:
@@ -285,7 +279,7 @@ class QualityAnalyticsDashboard:
                 anomalies=[],
                 recommendations=["No quality data available for analysis"],
                 data_freshness="No data",
-                analysis_timestamp=datetime.now(timezone.utc).isoformat(),
+                analysis_timestamp=datetime.now(UTC).isoformat(),
             )
 
         try:
@@ -296,16 +290,10 @@ class QualityAnalyticsDashboard:
             # Quality distribution
             quality_distribution = df["quality_category"].value_counts().to_dict()
             # Convert to strings for JSON serialization
-            quality_distribution = {
-                str(k): int(v) for k, v in quality_distribution.items()
-            }
+            quality_distribution = {str(k): int(v) for k, v in quality_distribution.items()}
 
             # Tier performance
-            tier_performance = (
-                df.groupby("tier")["overall_quality"]
-                .agg(["mean", "count"])
-                .to_dict("index")
-            )
+            tier_performance = df.groupby("tier")["overall_quality"].agg(["mean", "count"]).to_dict("index")
             tier_performance = {
                 tier: {
                     "average_quality": float(stats["mean"]),
@@ -324,9 +312,7 @@ class QualityAnalyticsDashboard:
                         component_performance[name] = {
                             "average_score": float(non_zero_values.mean()),
                             "sample_count": len(non_zero_values),
-                            "coverage_percent": float(
-                                len(non_zero_values) / len(df) * 100
-                            ),
+                            "coverage_percent": float(len(non_zero_values) / len(df) * 100),
                         }
                     else:
                         component_performance[name] = {
@@ -336,14 +322,14 @@ class QualityAnalyticsDashboard:
                         }
 
             # Trend data (last 30 days)
-            thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
+            thirty_days_ago = datetime.now(UTC) - timedelta(days=30)
             recent_df = df[df["created_at"] >= thirty_days_ago]
 
             trend_data = []
             if not recent_df.empty:
-                daily_quality = recent_df.groupby(recent_df["created_at"].dt.date)[
-                    "overall_quality"
-                ].agg(["mean", "count"])
+                daily_quality = recent_df.groupby(recent_df["created_at"].dt.date)["overall_quality"].agg(
+                    ["mean", "count"]
+                )
                 # OPTIMIZATION: Avoid iterrows() for performance by using zip on column arrays
                 trend_data = [
                     {
@@ -352,9 +338,7 @@ class QualityAnalyticsDashboard:
                         "conversation_count": int(count_val),
                     }
                     for date, mean_val, count_val in zip(
-                        daily_quality.index,
-                        daily_quality["mean"],
-                        daily_quality["count"], strict=False
+                        daily_quality.index, daily_quality["mean"], daily_quality["count"], strict=False
                     )
                 ]
                 # Sort by date
@@ -371,7 +355,7 @@ class QualityAnalyticsDashboard:
             # Data freshness
             if not df.empty:
                 latest_date = df["created_at"].max()
-                data_age = datetime.now(timezone.utc) - latest_date
+                data_age = datetime.now(UTC) - latest_date
                 if data_age.days == 0:
                     data_freshness = "Current (today)"
                 elif data_age.days == 1:
@@ -391,7 +375,7 @@ class QualityAnalyticsDashboard:
                 anomalies=anomalies,
                 recommendations=recommendations,
                 data_freshness=data_freshness,
-                analysis_timestamp=datetime.now(timezone.utc).isoformat(),
+                analysis_timestamp=datetime.now(UTC).isoformat(),
             )
 
         except Exception as e:
@@ -406,12 +390,10 @@ class QualityAnalyticsDashboard:
                 anomalies=[],
                 recommendations=[f"Error in analysis: {e!s}"],
                 data_freshness="Error",
-                analysis_timestamp=datetime.now(timezone.utc).isoformat(),
+                analysis_timestamp=datetime.now(UTC).isoformat(),
             )
 
-    def _detect_quality_anomalies(
-        self, df: pd.DataFrame, method: str = "iqr"
-    ) -> list[dict[str, Any]]:
+    def _detect_quality_anomalies(self, df: pd.DataFrame, method: str = "iqr") -> list[dict[str, Any]]:
         """
         Detect quality anomalies using statistical methods.
 
@@ -425,9 +407,7 @@ class QualityAnalyticsDashboard:
         anomalies = []
 
         try:
-            if (
-                len(df) < 3
-            ):  # Need at least 3 data points for meaningful anomaly detection
+            if len(df) < 3:  # Need at least 3 data points for meaningful anomaly detection
                 return anomalies
 
             if method == "iqr":
@@ -449,10 +429,7 @@ class QualityAnalyticsDashboard:
                     lower_bound = Q1 - 1.5 * IQR
                     upper_bound = Q3 + 1.5 * IQR
 
-                anomaly_df = df[
-                    (df["overall_quality"] < lower_bound)
-                    | (df["overall_quality"] > upper_bound)
-                ]
+                anomaly_df = df[(df["overall_quality"] < lower_bound) | (df["overall_quality"] > upper_bound)]
 
             elif method == "zscore":
                 mean_quality = df["overall_quality"].mean()
@@ -474,7 +451,8 @@ class QualityAnalyticsDashboard:
                 top_anomalies["tier"],
                 top_anomalies["dataset_source"],
                 top_anomalies["overall_quality"],
-                top_anomalies["created_at"], strict=False
+                top_anomalies["created_at"],
+                strict=False,
             ):
                 anomalies.append(
                     {
@@ -528,9 +506,7 @@ class QualityAnalyticsDashboard:
                     "📈 IMPROVEMENT: Overall quality is fair but could be enhanced. Consider quality optimization measures."
                 )
             else:
-                recommendations.append(
-                    "✅ GOOD: Overall quality is acceptable. Continue monitoring for consistency."
-                )
+                recommendations.append("✅ GOOD: Overall quality is acceptable. Continue monitoring for consistency.")
 
             # Tier-specific recommendations
             for tier, metrics in tier_performance.items():
@@ -555,18 +531,14 @@ class QualityAnalyticsDashboard:
             for component, metrics in component_performance.items():
                 if metrics["sample_count"] > 0:
                     if metrics["average_score"] < 0.5:
-                        component_issues.append(
-                            f"{component} ({metrics['average_score']:.3f})"
-                        )
+                        component_issues.append(f"{component} ({metrics['average_score']:.3f})")
                     elif metrics["coverage_percent"] < 50:
                         recommendations.append(
                             f"📋 DATA: {component} has low coverage ({metrics['coverage_percent']:.1f}%). Consider expanding validation."
                         )
 
             if component_issues:
-                recommendations.append(
-                    f"🔧 FOCUS: Improve these components: {', '.join(component_issues)}"
-                )
+                recommendations.append(f"🔧 FOCUS: Improve these components: {', '.join(component_issues)}")
 
             # Data quality recommendations
             total_conversations = len(df)
@@ -577,12 +549,10 @@ class QualityAnalyticsDashboard:
 
             # Trend-based recommendations
             if len(df) > 7:  # Need at least a week of data
-                recent_week = df[
-                    df["created_at"] >= (datetime.now(timezone.utc) - timedelta(days=7))
-                ]
+                recent_week = df[df["created_at"] >= (datetime.now(UTC) - timedelta(days=7))]
                 older_week = df[
-                    (df["created_at"] >= (datetime.now(timezone.utc) - timedelta(days=14)))
-                    & (df["created_at"] < (datetime.now(timezone.utc) - timedelta(days=7)))
+                    (df["created_at"] >= (datetime.now(UTC) - timedelta(days=14)))
+                    & (df["created_at"] < (datetime.now(UTC) - timedelta(days=7)))
                 ]
 
                 if len(recent_week) > 0 and len(older_week) > 0:
@@ -655,23 +625,14 @@ class QualityAnalyticsDashboard:
             # 2. Tier Performance (Bar Chart)
             if analytics.tier_performance:
                 tiers = list(analytics.tier_performance.keys())
-                qualities = [
-                    metrics["average_quality"]
-                    for metrics in analytics.tier_performance.values()
-                ]
-                counts = [
-                    metrics["conversation_count"]
-                    for metrics in analytics.tier_performance.values()
-                ]
+                qualities = [metrics["average_quality"] for metrics in analytics.tier_performance.values()]
+                counts = [metrics["conversation_count"] for metrics in analytics.tier_performance.values()]
 
                 fig.add_trace(
                     go.Bar(
                         x=tiers,
                         y=qualities,
-                        text=[
-                            f"{q:.3f}<br>({c:,} conv)"
-                            for q, c in zip(qualities, counts, strict=False)
-                        ],
+                        text=[f"{q:.3f}<br>({c:,} conv)" for q, c in zip(qualities, counts, strict=False)],
                         textposition="auto",
                         marker_color=self.color_schemes["tiers"][: len(tiers)],
                         hovertemplate="<b>%{x}</b><br>Quality: %{y:.3f}<br>Conversations: %{text}<extra></extra>",
@@ -703,14 +664,8 @@ class QualityAnalyticsDashboard:
             # 4. Component Performance (Horizontal Bar Chart)
             if analytics.component_performance:
                 components = list(analytics.component_performance.keys())
-                scores = [
-                    metrics["average_score"]
-                    for metrics in analytics.component_performance.values()
-                ]
-                coverages = [
-                    metrics["coverage_percent"]
-                    for metrics in analytics.component_performance.values()
-                ]
+                scores = [metrics["average_score"] for metrics in analytics.component_performance.values()]
+                coverages = [metrics["coverage_percent"] for metrics in analytics.component_performance.values()]
 
                 fig.add_trace(
                     go.Bar(
@@ -719,9 +674,7 @@ class QualityAnalyticsDashboard:
                         orientation="h",
                         text=[f"{s:.3f} ({c:.1f}%)" for s, c in zip(scores, coverages, strict=False)],
                         textposition="auto",
-                        marker_color=self.color_schemes["components"][
-                            : len(components)
-                        ],
+                        marker_color=self.color_schemes["components"][: len(components)],
                         hovertemplate="<b>%{y}</b><br>Score: %{x:.3f}<br>Coverage: %{text}<extra></extra>",
                     ),
                     row=2,
@@ -763,9 +716,7 @@ class QualityAnalyticsDashboard:
                 showarrow=False,
             )
 
-    def create_detailed_analysis_charts(
-        self, df: pd.DataFrame
-    ) -> tuple[go.Figure, go.Figure]:
+    def create_detailed_analysis_charts(self, df: pd.DataFrame) -> tuple[go.Figure, go.Figure]:
         """
         Create detailed analysis charts for deeper insights.
 
@@ -780,18 +731,10 @@ class QualityAnalyticsDashboard:
             if not df.empty and len(df) > 1:
                 # Create weekly aggregation
                 df_weekly = df.copy()
-                df_weekly["week"] = (
-                    df_weekly["created_at"].dt.to_period("W").astype(str)
-                )
+                df_weekly["week"] = df_weekly["created_at"].dt.to_period("W").astype(str)
 
-                heatmap_data = (
-                    df_weekly.groupby(["tier", "week"])["overall_quality"]
-                    .mean()
-                    .reset_index()
-                )
-                heatmap_pivot = heatmap_data.pivot(
-                    index="tier", columns="week", values="overall_quality"
-                )
+                heatmap_data = df_weekly.groupby(["tier", "week"])["overall_quality"].mean().reset_index()
+                heatmap_pivot = heatmap_data.pivot(index="tier", columns="week", values="overall_quality")
 
                 heatmap_fig = go.Figure(
                     data=go.Heatmap(
@@ -823,9 +766,7 @@ class QualityAnalyticsDashboard:
                 )
 
             # 2. Component Correlation Matrix
-            quality_cols = [
-                col for col in self.quality_components.keys() if col in df.columns
-            ]
+            quality_cols = [col for col in self.quality_components.keys() if col in df.columns]
             if len(quality_cols) > 1:
                 # Filter out zero values for correlation
                 corr_df = df[quality_cols].replace(0, np.nan)
@@ -834,14 +775,8 @@ class QualityAnalyticsDashboard:
                 corr_fig = go.Figure(
                     data=go.Heatmap(
                         z=correlation_matrix.values,
-                        x=[
-                            self.quality_components[col]
-                            for col in correlation_matrix.columns
-                        ],
-                        y=[
-                            self.quality_components[col]
-                            for col in correlation_matrix.index
-                        ],
+                        x=[self.quality_components[col] for col in correlation_matrix.columns],
+                        y=[self.quality_components[col] for col in correlation_matrix.index],
                         colorscale="RdBu",
                         zmin=-1,
                         zmax=1,
@@ -950,8 +885,8 @@ class QualityAnalyticsDashboard:
         st.sidebar.subheader("📅 Date Range")
         date_range = st.sidebar.date_input(
             "Select date range",
-            value=(datetime.now(timezone.utc) - timedelta(days=30), datetime.now(timezone.utc)),
-            max_value=datetime.now(timezone.utc),
+            value=(datetime.now(UTC) - timedelta(days=30), datetime.now(UTC)),
+            max_value=datetime.now(UTC),
             help="Filter conversations by creation date",
         )
 
@@ -986,15 +921,9 @@ class QualityAnalyticsDashboard:
 
         # Advanced options
         with st.sidebar.expander("🔧 Advanced Options"):
-            force_refresh = st.checkbox(
-                "Force data refresh", help="Bypass cache and reload from database"
-            )
-            show_anomalies = st.checkbox(
-                "Show anomalies", value=True, help="Display quality anomalies"
-            )
-            show_detailed_analysis = st.checkbox(
-                "Show detailed analysis", value=True, help="Display additional charts"
-            )
+            force_refresh = st.checkbox("Force data refresh", help="Bypass cache and reload from database")
+            show_anomalies = st.checkbox("Show anomalies", value=True, help="Display quality anomalies")
+            show_detailed_analysis = st.checkbox("Show detailed analysis", value=True, help="Display additional charts")
 
         # Load and process data
         with st.spinner("🔄 Loading quality data..."):
@@ -1069,9 +998,7 @@ class QualityAnalyticsDashboard:
             )
 
         # Data freshness indicator
-        st.info(
-            f"📅 Data freshness: {analytics.data_freshness} | Last analysis: {analytics.analysis_timestamp[:19]}"
-        )
+        st.info(f"📅 Data freshness: {analytics.data_freshness} | Last analysis: {analytics.analysis_timestamp[:19]}")
 
         # Main visualizations
         st.subheader("📊 Quality Overview")
@@ -1106,12 +1033,8 @@ class QualityAnalyticsDashboard:
             pd.DataFrame(analytics.anomalies)
 
             # Group by anomaly type
-            low_anomalies = [
-                a for a in analytics.anomalies if a["anomaly_type"] == "low"
-            ]
-            high_anomalies = [
-                a for a in analytics.anomalies if a["anomaly_type"] == "high"
-            ]
+            low_anomalies = [a for a in analytics.anomalies if a["anomaly_type"] == "low"]
+            high_anomalies = [a for a in analytics.anomalies if a["anomaly_type"] == "high"]
 
             col1, col2 = st.columns(2)
 
@@ -1166,7 +1089,7 @@ class QualityAnalyticsDashboard:
                 st.download_button(
                     "💾 Download Analytics",
                     data=json.dumps(analytics_dict, indent=2),
-                    file_name=f"quality_analytics_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.json",
+                    file_name=f"quality_analytics_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.json",
                     mime="application/json",
                 )
 
@@ -1176,7 +1099,7 @@ class QualityAnalyticsDashboard:
                 st.download_button(
                     "💾 Download CSV",
                     data=csv_data,
-                    file_name=f"quality_data_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.csv",
+                    file_name=f"quality_data_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.csv",
                     mime="text/csv",
                 )
 
@@ -1200,7 +1123,7 @@ Generated: {analytics.analysis_timestamp}
                 st.download_button(
                     "💾 Download Report",
                     data=report,
-                    file_name=f"quality_report_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.md",
+                    file_name=f"quality_report_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.md",
                     mime="text/markdown",
                 )
 

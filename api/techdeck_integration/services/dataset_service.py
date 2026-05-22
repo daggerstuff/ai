@@ -9,7 +9,7 @@ import hashlib
 import logging
 import os
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from werkzeug.datastructures import FileStorage
@@ -92,8 +92,8 @@ class DatasetService:
                 "file_info": file_info,
                 "metadata": metadata or {},
                 "status": "active",
-                "created_at": datetime.now(timezone.utc).isoformat(),
-                "updated_at": datetime.now(timezone.utc).isoformat(),
+                "created_at": datetime.now(UTC).isoformat(),
+                "updated_at": datetime.now(UTC).isoformat(),
                 "version": 1,
                 "tags": [],
                 "permissions": {
@@ -106,9 +106,7 @@ class DatasetService:
 
             # Store in Redis
             dataset_key = f"dataset:{dataset_id}"
-            self.redis_client.set_json(
-                dataset_key, dataset_record, ex=86400
-            )  # 24 hours
+            self.redis_client.set_json(dataset_key, dataset_record, ex=86400)  # 24 hours
 
             # Add to user's dataset list
             user_datasets_key = f"user_datasets:{user_id}"
@@ -165,9 +163,7 @@ class DatasetService:
             request_logger.error(f"Error retrieving dataset: {e}")
             raise StorageError(f"Failed to retrieve dataset: {e!s}") from e
 
-    def update_dataset(
-        self, dataset_id: str, user_id: str, updates: dict[str, Any]
-    ) -> dict[str, Any]:
+    def update_dataset(self, dataset_id: str, user_id: str, updates: dict[str, Any]) -> dict[str, Any]:
         """
         Update dataset information.
 
@@ -200,23 +196,19 @@ class DatasetService:
             sanitized_updates = {}
             for field, value in updates.items():
                 if field in ["name", "description"]:
-                    sanitized_updates[field] = (
-                        sanitize_input(value.strip()) if value else ""
-                    )
+                    sanitized_updates[field] = sanitize_input(value.strip()) if value else ""
                 elif field == "metadata":
                     validate_dataset_metadata(value)
                     sanitized_updates[field] = sanitize_input(value)
                 elif field == "tags":
                     if isinstance(value, list):
-                        sanitized_updates[field] = [
-                            sanitize_input(tag) for tag in value
-                        ]
+                        sanitized_updates[field] = [sanitize_input(tag) for tag in value]
                     else:
                         raise ValidationError("Tags must be a list")
 
             # Apply updates
             dataset_record.update(sanitized_updates)
-            dataset_record["updated_at"] = datetime.now(timezone.utc).isoformat()
+            dataset_record["updated_at"] = datetime.now(UTC).isoformat()
             dataset_record["version"] += 1
 
             # Store updated record
@@ -339,9 +331,7 @@ class DatasetService:
             total_pages = (total_count + limit - 1) // limit
             current_page = (offset // limit) + 1
 
-            request_logger.info(
-                f"Retrieved {len(datasets)} datasets for user {user_id}"
-            )
+            request_logger.info(f"Retrieved {len(datasets)} datasets for user {user_id}")
 
             return {
                 "datasets": datasets,
@@ -362,9 +352,7 @@ class DatasetService:
             request_logger.error(f"Error listing datasets: {e}")
             raise StorageError(f"Failed to list datasets: {e!s}") from e
 
-    def upload_dataset_file(
-        self, dataset_id: str, user_id: str, file_data: FileStorage
-    ) -> dict[str, Any]:
+    def upload_dataset_file(self, dataset_id: str, user_id: str, file_data: FileStorage) -> dict[str, Any]:
         """
         Upload a file to an existing dataset.
 
@@ -382,9 +370,7 @@ class DatasetService:
             FileProcessingError: If file processing fails
         """
         request_logger = get_request_logger()
-        request_logger.info(
-            f"Uploading file to dataset {dataset_id} for user {user_id}"
-        )
+        request_logger.info(f"Uploading file to dataset {dataset_id} for user {user_id}")
 
         try:
             # Get dataset to verify access
@@ -395,7 +381,7 @@ class DatasetService:
 
             # Update dataset with file information
             dataset_record["file_info"] = file_info
-            dataset_record["updated_at"] = datetime.now(timezone.utc).isoformat()
+            dataset_record["updated_at"] = datetime.now(UTC).isoformat()
             dataset_record["version"] += 1
 
             # Store updated record
@@ -436,23 +422,19 @@ class DatasetService:
 
             validation_results = {
                 "dataset_id": dataset_id,
-                "validation_timestamp": datetime.now(timezone.utc).isoformat(),
+                "validation_timestamp": datetime.now(UTC).isoformat(),
                 "checks": {},
             }
 
             # Check basic metadata
             validation_results["checks"]["metadata"] = {
-                "passed": bool(
-                    dataset_record.get("name") and dataset_record.get("user_id")
-                ),
+                "passed": bool(dataset_record.get("name") and dataset_record.get("user_id")),
                 "message": "Basic metadata validation",
             }
 
             # Check file integrity if file exists
             if dataset_record.get("file_info"):
-                file_validation = self._validate_dataset_file(
-                    dataset_record["file_info"]
-                )
+                file_validation = self._validate_dataset_file(dataset_record["file_info"])
                 validation_results["checks"]["file_integrity"] = file_validation
 
             # Check permissions
@@ -463,17 +445,11 @@ class DatasetService:
             }
 
             # Overall validation result
-            all_checks_passed = all(
-                check["passed"] for check in validation_results["checks"].values()
-            )
-            validation_results["overall_status"] = (
-                "valid" if all_checks_passed else "invalid"
-            )
+            all_checks_passed = all(check["passed"] for check in validation_results["checks"].values())
+            validation_results["overall_status"] = "valid" if all_checks_passed else "invalid"
             validation_results["passed"] = all_checks_passed
 
-            request_logger.info(
-                f"Dataset validation completed: {validation_results['overall_status']}"
-            )
+            request_logger.info(f"Dataset validation completed: {validation_results['overall_status']}")
 
             return validation_results
 
@@ -499,9 +475,7 @@ class DatasetService:
             ValidationError: If access is denied
         """
         request_logger = get_request_logger()
-        request_logger.info(
-            f"Getting statistics for dataset {dataset_id} for user {user_id}"
-        )
+        request_logger.info(f"Getting statistics for dataset {dataset_id} for user {user_id}")
 
         try:
             # Get dataset
@@ -528,9 +502,7 @@ class DatasetService:
                 file_stats = self._get_file_statistics(dataset_record["file_info"])
                 statistics["file_statistics"] = file_stats
 
-            request_logger.info(
-                f"Dataset statistics retrieved successfully: {dataset_id}"
-            )
+            request_logger.info(f"Dataset statistics retrieved successfully: {dataset_id}")
 
             return statistics
 
@@ -540,9 +512,7 @@ class DatasetService:
             request_logger.error(f"Error getting dataset statistics: {e}")
             raise ValidationError(f"Failed to get dataset statistics: {e!s}") from e
 
-    def search_datasets(
-        self, user_id: str, query: str, limit: int = 20
-    ) -> list[dict[str, Any]]:
+    def search_datasets(self, user_id: str, query: str, limit: int = 20) -> list[dict[str, Any]]:
         """
         Search datasets by name, description, or tags.
 
@@ -558,9 +528,7 @@ class DatasetService:
             ValidationError: If query is invalid
         """
         request_logger = get_request_logger()
-        request_logger.info(
-            f"Searching datasets for user {user_id} with query: {query}"
-        )
+        request_logger.info(f"Searching datasets for user {user_id} with query: {query}")
 
         try:
             # Validate query
@@ -579,9 +547,7 @@ class DatasetService:
                 # Search in name, description, and tags
                 name_match = query in dataset.get("name", "").lower()
                 desc_match = query in dataset.get("description", "").lower()
-                tags_match = any(
-                    query in tag.lower() for tag in dataset.get("tags", [])
-                )
+                tags_match = any(query in tag.lower() for tag in dataset.get("tags", []))
 
                 if name_match or desc_match or tags_match:
                     matching_datasets.append(dataset)
@@ -599,9 +565,7 @@ class DatasetService:
             request_logger.error(f"Error searching datasets: {e}")
             raise ValidationError(f"Failed to search datasets: {e!s}") from e
 
-    def _process_uploaded_file(
-        self, file_data: FileStorage, _dataset_id: str, user_id: str
-    ) -> dict[str, Any]:
+    def _process_uploaded_file(self, file_data: FileStorage, _dataset_id: str, user_id: str) -> dict[str, Any]:
         """Process uploaded file and store it."""
         try:
             # Validate file
@@ -616,17 +580,13 @@ class DatasetService:
             # Validate file size (max 100MB)
             max_size = 100 * 1024 * 1024  # 100MB
             if file_size > max_size:
-                raise ValidationError(
-                    f"File size exceeds maximum allowed size of {max_size // (1024 * 1024)}MB"
-                )
+                raise ValidationError(f"File size exceeds maximum allowed size of {max_size // (1024 * 1024)}MB")
 
             # Validate file extension
             allowed_extensions = {".csv", ".json", ".jsonl", ".parquet", ".txt"}
             file_extension = os.path.splitext(filename)[1].lower()
             if file_extension not in allowed_extensions:
-                raise ValidationError(
-                    f"File type '{file_extension}' not supported. Allowed: {allowed_extensions}"
-                )
+                raise ValidationError(f"File type '{file_extension}' not supported. Allowed: {allowed_extensions}")
 
             # Generate file ID and path
             file_id = str(uuid.uuid4())
@@ -644,13 +604,11 @@ class DatasetService:
                 "file_extension": file_extension,
                 "file_hash": file_hash,
                 "storage_path": storage_path,
-                "upload_timestamp": datetime.now(timezone.utc).isoformat(),
+                "upload_timestamp": datetime.now(UTC).isoformat(),
                 "mime_type": file_data.content_type or "application/octet-stream",
             }
 
-            self.logger.info(
-                f"File processed successfully: {filename} ({file_size} bytes)"
-            )
+            self.logger.info(f"File processed successfully: {filename} ({file_size} bytes)")
 
             return file_info
 
@@ -718,9 +676,7 @@ class DatasetService:
 
             stats = {
                 "file_size_bytes": file_info.get("file_size", 0),
-                "file_size_human": self._format_file_size(
-                    file_info.get("file_size", 0)
-                ),
+                "file_size_human": self._format_file_size(file_info.get("file_size", 0)),
                 "file_extension": file_info.get("file_extension", ""),
                 "upload_timestamp": file_info.get("upload_timestamp", ""),
                 "file_hash": file_info.get("file_hash", ""),
@@ -728,9 +684,7 @@ class DatasetService:
             }
 
             # Add storage-specific information if available
-            storage_stats = self.file_handler.get_file_statistics(
-                file_info["storage_path"]
-            )
+            storage_stats = self.file_handler.get_file_statistics(file_info["storage_path"])
             stats.update(storage_stats)
 
             return stats

@@ -16,13 +16,12 @@ def sample_random_examples(dataset_file: Path, _num_samples: int = 5):
     # Get random samples from different parts of dataset
     total = len(conversations)
     indices = [
-        random.randint(0, total//5),           # Early part
-        random.randint(total//5, 2*total//5),  # Early-mid
-        random.randint(2*total//5, 3*total//5), # Middle
-        random.randint(3*total//5, 4*total//5), # Mid-late
-        random.randint(4*total//5, total-1)     # Late part
+        random.randint(0, total // 5),  # Early part
+        random.randint(total // 5, 2 * total // 5),  # Early-mid
+        random.randint(2 * total // 5, 3 * total // 5),  # Middle
+        random.randint(3 * total // 5, 4 * total // 5),  # Mid-late
+        random.randint(4 * total // 5, total - 1),  # Late part
     ]
-
 
     for _i, idx in enumerate(indices, 1):
         conversations[idx]

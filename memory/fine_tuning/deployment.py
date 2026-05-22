@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Deployment Packaging & Monitoring — Sprint 5, Task 4.
 
 Packages the winning fine-tuning approach for deployment,
@@ -10,13 +9,12 @@ from __future__ import annotations
 import json
 import logging
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List, Optional
 
 from ..schema import MemoryBlock
-from .evaluation import EvaluationReport, MemorySystemEvaluator
+from .evaluation import EvaluationReport
 
 log = logging.getLogger(__name__)
 
@@ -35,7 +33,7 @@ class DeploymentPackage:
     version: str
     approach: str
     evaluation_report: EvaluationReport
-    artifacts: Dict[str, str]
+    artifacts: dict[str, str]
     created_at_ms: int
 
 
@@ -44,27 +42,27 @@ class MonitoringMetric:
     name: str
     value: float
     timestamp_ms: int
-    tags: Dict[str, str]
+    tags: dict[str, str]
 
 
 @dataclass
 class MonitoringDashboard:
-    metrics: List[MonitoringMetric]
-    alerts: List[str]
+    metrics: list[MonitoringMetric]
+    alerts: list[str]
     status: str
 
 
 @dataclass
 class RollbackPlan:
-    steps: List[str]
-    preconditions: List[str]
-    postconditions: List[str]
+    steps: list[str]
+    preconditions: list[str]
+    postconditions: list[str]
 
 
 class DeploymentPackager:
     """Package and deploy the memory system."""
 
-    def __init__(self, output_dir: Optional[Path] = None) -> None:
+    def __init__(self, output_dir: Path | None = None) -> None:
         self._output_dir = output_dir
         self._counter = 0
 
@@ -72,7 +70,7 @@ class DeploymentPackager:
         self,
         approach: str,
         evaluation_report: EvaluationReport,
-        artifacts: Optional[Dict[str, str]] = None,
+        artifacts: dict[str, str] | None = None,
     ) -> DeploymentPackage:
         """Create a deployment package."""
         self._counter += 1
@@ -96,9 +94,9 @@ class DeploymentPackager:
         )
         return package
 
-    def validate_pre_deploy(self, package: DeploymentPackage) -> List[str]:
+    def validate_pre_deploy(self, package: DeploymentPackage) -> list[str]:
         """Run pre-deployment validation checks."""
-        issues: List[str] = []
+        issues: list[str] = []
 
         if not package.evaluation_report.overall_pass:
             issues.append("Evaluation did not pass all gates")
@@ -140,12 +138,10 @@ class DeploymentPackager:
             ],
         )
 
-    def create_monitoring_dashboard(
-        self, memories: List[MemoryBlock]
-    ) -> MonitoringDashboard:
+    def create_monitoring_dashboard(self, memories: list[MemoryBlock]) -> MonitoringDashboard:
         """Create monitoring dashboard with key metrics."""
-        metrics: List[MonitoringMetric] = []
-        alerts: List[str] = []
+        metrics: list[MonitoringMetric] = []
+        alerts: list[str] = []
         now = int(time.time() * 1000)
 
         metrics.append(
@@ -167,11 +163,7 @@ class DeploymentPackager:
             )
         )
 
-        avg_valence = (
-            sum(m.emotions.valence for m in memories) / len(memories)
-            if memories
-            else 0
-        )
+        avg_valence = sum(m.emotions.valence for m in memories) / len(memories) if memories else 0
         metrics.append(
             MonitoringMetric(
                 name="avg_valence",
@@ -181,9 +173,7 @@ class DeploymentPackager:
             )
         )
 
-        raw_count = sum(
-            1 for m in memories if m.consolidation.phase.value == "raw"
-        )
+        raw_count = sum(1 for m in memories if m.consolidation.phase.value == "raw")
         metrics.append(
             MonitoringMetric(
                 name="raw_memory_ratio",

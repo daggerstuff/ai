@@ -149,9 +149,7 @@ class SpringerPublisher(BasePublisher):
             logger.error(f"Springer search error: {e}")
             return []
 
-    def _parse_springer_record(
-        self, record: dict[str, Any], _original_query: str
-    ) -> BookMetadata | None:
+    def _parse_springer_record(self, record: dict[str, Any], _original_query: str) -> BookMetadata | None:
         """Parse a Springer API record into BookMetadata"""
         try:
             # Extract basic info
@@ -284,9 +282,7 @@ class SpringerPublisher(BasePublisher):
             logger.error(f"Error getting Springer metadata: {e}")
             return None
 
-    def get_book_content(
-        self, book_id: str, format: BookFormat = BookFormat.PDF
-    ) -> BookContent | None:
+    def get_book_content(self, book_id: str, format: BookFormat = BookFormat.PDF) -> BookContent | None:
         """
         Get book content (Note: Springer typically requires institutional access)
 
@@ -298,8 +294,7 @@ class SpringerPublisher(BasePublisher):
             BookContent object or None
         """
         logger.warning(
-            "Springer book content typically requires institutional access. "
-            "This method returns metadata only."
+            "Springer book content typically requires institutional access. This method returns metadata only."
         )
 
         # Get metadata instead
@@ -311,9 +306,7 @@ class SpringerPublisher(BasePublisher):
                 format=format,
                 content=None,  # Content not available without institutional access
                 metadata=metadata.raw_metadata,
-                download_url=metadata.raw_metadata.get("url")
-                if metadata.raw_metadata
-                else None,
+                download_url=metadata.raw_metadata.get("url") if metadata.raw_metadata else None,
                 file_size=None,
                 checksum=None,
             )
@@ -335,7 +328,6 @@ class SpringerPublisher(BasePublisher):
             BookContent object or None
         """
         logger.warning(
-            "Springer chapter content requires institutional access. "
-            "Metadata only available through public API."
+            "Springer chapter content requires institutional access. Metadata only available through public API."
         )
         return None

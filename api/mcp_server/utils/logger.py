@@ -1,4 +1,3 @@
-
 import json
 import logging
 import sys
@@ -8,6 +7,7 @@ from typing import Any
 
 class JSONFormatter(logging.Formatter):
     """JSON log formatter for structured logging."""
+
     def format(self, record: logging.LogRecord) -> str:
         log_data: dict[str, Any] = {
             "timestamp": datetime.fromtimestamp(record.created).isoformat(),
@@ -16,11 +16,12 @@ class JSONFormatter(logging.Formatter):
             "message": record.getMessage(),
             "module": record.module,
             "function": record.funcName,
-            "line": record.lineno
+            "line": record.lineno,
         }
         if record.exc_info:
             log_data["exception"] = self.formatException(record.exc_info)
         return json.dumps(log_data)
+
 
 def setup_logging(config: Any) -> None:
     """
@@ -43,9 +44,7 @@ def setup_logging(config: Any) -> None:
     if getattr(config, "LOG_FORMAT", "json") == "json":
         console_handler.setFormatter(JSONFormatter())
     else:
-        console_handler.setFormatter(logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        ))
+        console_handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
 
     root_logger.addHandler(console_handler)
 
@@ -55,9 +54,7 @@ def setup_logging(config: Any) -> None:
         if getattr(config, "LOG_FORMAT", "json") == "json":
             file_handler.setFormatter(JSONFormatter())
         else:
-            file_handler.setFormatter(logging.Formatter(
-                "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-            ))
+            file_handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
         root_logger.addHandler(file_handler)
 
     logging.getLogger("werkzeug").setLevel(logging.WARNING)

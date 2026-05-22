@@ -12,12 +12,10 @@ import logging
 import os
 import re
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -189,9 +187,7 @@ class CrisisDetectionEngine:
 
         # Analyze conversation history for escalation patterns
         if conversation_history:
-            risk_score += self._assess_conversation_history(
-                conversation_history, risk_factors
-            )
+            risk_score += self._assess_conversation_history(conversation_history, risk_factors)
 
         # Determine risk level and intervention type
         risk_level, intervention = self._determine_risk_level(risk_score)
@@ -209,9 +205,7 @@ class CrisisDetectionEngine:
                 try:
                     confidence = float(env_conf)
                 except ValueError:
-                    logger.warning(
-                        "Invalid CRISIS_CONFIDENCE_THRESHOLD value: %s", env_conf
-                    )
+                    logger.warning("Invalid CRISIS_CONFIDENCE_THRESHOLD value: %s", env_conf)
 
         return CrisisAssessment(
             risk_level=risk_level,
@@ -221,12 +215,10 @@ class CrisisDetectionEngine:
             immediate_actions=immediate_actions,
             intervention_needed=intervention,
             confidence=confidence,
-            assessment_timestamp=datetime.now(timezone.utc),
+            assessment_timestamp=datetime.now(UTC),
         )
 
-    def _assess_suicide_indicators(
-        self, message_lower: str, risk_factors: list[str]
-    ) -> float:
+    def _assess_suicide_indicators(self, message_lower: str, risk_factors: list[str]) -> float:
         """Assess suicide-related indicators and return risk score"""
         score_map = {
             "direct_statements": self.DIRECT_STATEMENT_SCORE,
@@ -242,20 +234,14 @@ class CrisisDetectionEngine:
                     if re.search(pattern, message_lower):
                         score = score_map.get(category, 0.0)
                         risk_score += score
-                        risk_factors.append(
-                            f"{category.replace('_', ' ').title()}: {pattern}"
-                        )
+                        risk_factors.append(f"{category.replace('_', ' ').title()}: {pattern}")
                 except re.error as e:
-                    logger.error(
-                        "Regex error in suicide indicator pattern '%s': %s", pattern, e
-                    )
+                    logger.error("Regex error in suicide indicator pattern '%s': %s", pattern, e)
                     continue
 
         return risk_score
 
-    def _assess_self_harm_indicators(
-        self, message_lower: str, risk_factors: list[str]
-    ) -> float:
+    def _assess_self_harm_indicators(self, message_lower: str, risk_factors: list[str]) -> float:
         """Assess self-harm indicators and return risk score"""
         risk_score = 0.0
         for pattern in self.self_harm_indicators:
@@ -264,16 +250,12 @@ class CrisisDetectionEngine:
                     risk_score += self.SELF_HARM_SCORE
                     risk_factors.append(f"Self-harm indication: {pattern}")
             except re.error as e:
-                logger.error(
-                    "Regex error in self-harm indicator pattern '%s': %s", pattern, e
-                )
+                logger.error("Regex error in self-harm indicator pattern '%s': %s", pattern, e)
                 continue
 
         return risk_score
 
-    def _assess_protective_factors(
-        self, message_lower: str, protective_factors: list[str]
-    ) -> float:
+    def _assess_protective_factors(self, message_lower: str, protective_factors: list[str]) -> float:
         """Assess protective factors and return score adjustment"""
         score_adjustment = 0.0
         for factor in self.protective_factors_keywords:
@@ -283,15 +265,9 @@ class CrisisDetectionEngine:
 
         return score_adjustment
 
-    def _assess_conversation_history(
-        self, conversation_history: list[str], risk_factors: list[str]
-    ) -> float:
+    def _assess_conversation_history(self, conversation_history: list[str], risk_factors: list[str]) -> float:
         """Assess conversation history for escalating risk patterns"""
-        recent_messages = (
-            conversation_history[-3:]
-            if len(conversation_history) > 3
-            else conversation_history
-        )
+        recent_messages = conversation_history[-3:] if len(conversation_history) > 3 else conversation_history
 
         risk_score = 0.0
         for msg in recent_messages:
@@ -304,15 +280,9 @@ class CrisisDetectionEngine:
 
     def _contains_suicide_indicators(self, message: str) -> bool:
         """Check if message contains any suicide indicators"""
-        return any(
-            re.search(pattern, message)
-            for patterns in self.suicide_indicators.values()
-            for pattern in patterns
-        )
+        return any(re.search(pattern, message) for patterns in self.suicide_indicators.values() for pattern in patterns)
 
-    def _determine_risk_level(
-        self, risk_score: float
-    ) -> tuple[RiskLevel, InterventionType]:
+    def _determine_risk_level(self, risk_score: float) -> tuple[RiskLevel, InterventionType]:
         """Determine risk level and intervention type based on score"""
         if risk_score >= self.CRITICAL_THRESHOLD:
             return RiskLevel.CRITICAL, InterventionType.EMERGENCY_SERVICES
@@ -322,9 +292,7 @@ class CrisisDetectionEngine:
             return RiskLevel.MEDIUM, InterventionType.CRISIS_HOTLINE
         return RiskLevel.LOW, InterventionType.AI_SUPPORT
 
-    def _generate_immediate_actions(
-        self, risk_level: RiskLevel, _risk_factors: list[str]
-    ) -> list[str]:
+    def _generate_immediate_actions(self, risk_level: RiskLevel, _risk_factors: list[str]) -> list[str]:
         """Generate immediate action recommendations based on risk level"""
         actions = []
 
@@ -490,9 +458,7 @@ class TherapeuticCrisisResponder:
 
         # Generate response using therapeutic AI (if available)
         if self.therapeutic_ai:
-            ai_response = await self._generate_ai_response(
-                message, assessment, expert_preference, conversation_context
-            )
+            ai_response = await self._generate_ai_response(message, assessment, expert_preference, conversation_context)
         else:
             # Fallback to template-based response
             ai_response = self._generate_template_response(assessment)
@@ -524,7 +490,7 @@ class TherapeuticCrisisResponder:
             resources_provided=resources,
             escalation_triggered=escalation_triggered,
             follow_up_scheduled=follow_up,
-            response_timestamp=datetime.now(timezone.utc),
+            response_timestamp=datetime.now(UTC),
         )
 
     async def _generate_ai_response(
@@ -537,24 +503,15 @@ class TherapeuticCrisisResponder:
         """Generate response using therapeutic AI model"""
         # This would integrate with the trained H100 model
         # For now, return a placeholder
-        return (
-            "AI therapeutic response would be generated here using the trained "
-            "H100 model"
-        )
+        return "AI therapeutic response would be generated here using the trained H100 model"
 
     def _generate_template_response(self, assessment: CrisisAssessment) -> str:
         """Generate template-based response as fallback"""
         templates = self.crisis_response_templates[assessment.risk_level]
         # In production, would use more sophisticated selection
-        return (
-            templates[0]
-            if templates
-            else "I'm here to support you through this difficult time."
-        )
+        return templates[0] if templates else "I'm here to support you through this difficult time."
 
-    def _generate_empathic_lead(
-        self, message: str, assessment: CrisisAssessment
-    ) -> str:
+    def _generate_empathic_lead(self, message: str, assessment: CrisisAssessment) -> str:
         """Construct an empathy-first lead.
 
         Reflects, validates, and invites collaboration. Centers reflective
@@ -580,13 +537,9 @@ class TherapeuticCrisisResponder:
 
         # Risk-aware tone without minimizing urgency
         if assessment.risk_level in {RiskLevel.CRITICAL, RiskLevel.HIGH}:
-            presence_line = (
-                "I'm here with you right now. We can take this one step at a time."
-            )
+            presence_line = "I'm here with you right now. We can take this one step at a time."
         else:
-            presence_line = (
-                "I'm here with you. Together we can figure out what helps most."
-            )
+            presence_line = "I'm here with you. Together we can figure out what helps most."
 
         if reflected:
             lead = (
@@ -594,11 +547,7 @@ class TherapeuticCrisisResponder:
                 f"What you're feeling matters to me. {presence_line}"
             )
         else:
-            lead = (
-                "Thank you for telling me what's going on. "
-                "What you're feeling matters to me. "
-                f"{presence_line}"
-            )
+            lead = f"Thank you for telling me what's going on. What you're feeling matters to me. {presence_line}"
 
         # Integrate noted protective factors if any
         if assessment.protective_factors:
@@ -609,9 +558,7 @@ class TherapeuticCrisisResponder:
         lead += " Would you be open to sharing what feels hardest in this moment?"
         return lead
 
-    def _enhance_with_safety_elements(
-        self, base_response: str, assessment: CrisisAssessment
-    ) -> str:
+    def _enhance_with_safety_elements(self, base_response: str, assessment: CrisisAssessment) -> str:
         """Enhance response with safety-specific elements"""
         safety_additions = []
 
@@ -622,21 +569,15 @@ class TherapeuticCrisisResponder:
         }:
             safety_additions.extend(
                 [
-                    "I'm concerned about your safety. "
-                    "If you're in immediate danger, please call 911.",
-                    "I can stay with you while we contact the 988 "
-                    "Suicide & Crisis Lifeline or text 741741.",
+                    "I'm concerned about your safety. If you're in immediate danger, please call 911.",
+                    "I can stay with you while we contact the 988 Suicide & Crisis Lifeline or text 741741.",
                     "Is there someone you trust nearby we can involve for support?",
                 ]
             )
 
         if assessment.protective_factors:
             safety_additions.append(
-
-                    "I notice you mentioned "
-                    f"{assessment.protective_factors[0]} "
-                    "- that's an important source of strength."
-
+                f"I notice you mentioned {assessment.protective_factors[0]} - that's an important source of strength."
             )
 
         enhanced_response = base_response
@@ -672,12 +613,7 @@ class TherapeuticCrisisResponder:
 
         # Add protective factor reinforcement
         if assessment.protective_factors:
-            elements.append(
-
-                    "Remember your sources of strength: "
-                    f"{', '.join(assessment.protective_factors)}"
-
-            )
+            elements.append(f"Remember your sources of strength: {', '.join(assessment.protective_factors)}")
 
         return elements
 
@@ -710,9 +646,7 @@ class TherapeuticCrisisResponder:
             resources.append(
                 {
                     "name": "Mental Health Resources",
-                    "description": (
-                        "Professional mental health support is available if you need it"
-                    ),
+                    "description": ("Professional mental health support is available if you need it"),
                     "phone": "988 for crisis support",
                 }
             )
@@ -721,7 +655,7 @@ class TherapeuticCrisisResponder:
 
     def _schedule_follow_up(self, assessment: CrisisAssessment) -> datetime | None:
         """Schedule appropriate follow-up based on risk level"""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         if assessment.risk_level == RiskLevel.CRITICAL:
             return now + timedelta(hours=1)  # 1 hour follow-up
@@ -740,15 +674,11 @@ class CrisisInterventionSystem:
         self.responder = TherapeuticCrisisResponder()
         self.active_crisis_sessions = {}
 
-    async def handle_crisis_message(
-        self, user_id: str, message: str, conversation_history: list[str] = None
-    ) -> dict:
+    async def handle_crisis_message(self, user_id: str, message: str, conversation_history: list[str] = None) -> dict:
         """Handle incoming message with crisis assessment and response"""
 
         # Step 1: Crisis assessment
-        assessment = self.detection_engine.assess_crisis_risk(
-            message, conversation_history
-        )
+        assessment = self.detection_engine.assess_crisis_risk(message, conversation_history)
 
         logger.info(
             "Crisis assessment for user %s: %s (score: %s)",
@@ -758,9 +688,7 @@ class CrisisInterventionSystem:
         )
 
         # Step 2: Generate therapeutic response
-        response = await self.responder.generate_crisis_response(
-            message, assessment, conversation_history
-        )
+        response = await self.responder.generate_crisis_response(message, assessment, conversation_history)
 
         # Step 3: Handle escalation if needed
         if response.escalation_triggered:
@@ -771,7 +699,7 @@ class CrisisInterventionSystem:
             self.active_crisis_sessions[user_id] = {
                 "assessment": assessment,
                 "response": response,
-                "started": datetime.now(timezone.utc),
+                "started": datetime.now(UTC),
                 "status": "active",
             }
 
@@ -802,9 +730,7 @@ class CrisisInterventionSystem:
             },
         }
 
-    async def _handle_crisis_escalation(
-        self, user_id: str, assessment: CrisisAssessment, _response: CrisisResponse
-    ):
+    async def _handle_crisis_escalation(self, user_id: str, assessment: CrisisAssessment, _response: CrisisResponse):
         """Handle crisis escalation procedures"""
         logger.warning(
             "Crisis escalation triggered for user %s: %s",
@@ -831,7 +757,7 @@ class CrisisInterventionSystem:
         # Log crisis event for monitoring and improvement
         crisis_event = {
             "user_id": user_id,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "risk_level": assessment.risk_level.value,
             "risk_score": assessment.risk_score,
             "risk_factors": assessment.risk_factors,
@@ -872,15 +798,11 @@ def main():
             logger.info("\n--- Test Scenario %s ---", i + 1)
             logger.info("Message: %s", scenario["message"])
 
-            result = await crisis_system.handle_crisis_message(
-                user_id=f"test_user_{i}", message=scenario["message"]
-            )
+            result = await crisis_system.handle_crisis_message(user_id=f"test_user_{i}", message=scenario["message"])
 
             logger.info("Risk Level: %s", result["crisis_assessment"]["risk_level"])
             logger.info("Risk Score: %s", result["crisis_assessment"]["risk_score"])
-            logger.info(
-                "Escalation: %s", result["escalation_info"]["escalation_triggered"]
-            )
+            logger.info("Escalation: %s", result["escalation_info"]["escalation_triggered"])
             logger.info(
                 "Response: %s...",
                 result["therapeutic_response"]["message"][:100],
@@ -888,9 +810,7 @@ def main():
 
     asyncio.run(run_tests())
 
-    logger.info(
-        "\n🎯 Crisis Intervention System ready for integration with therapeutic AI!"
-    )
+    logger.info("\n🎯 Crisis Intervention System ready for integration with therapeutic AI!")
 
 
 if __name__ == "__main__":

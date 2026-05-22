@@ -12,7 +12,7 @@ priority adjustments without the overhead of the full pipeline integration.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 
@@ -24,9 +24,7 @@ class EvidenceItem:
     evidence_type: str  # e.g., 'performance_gap', 'quality_issue'
     score: float  # magnitude of impact, >0
     details: dict[str, Any] = field(default_factory=dict)
-    timestamp: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
 
 class ReprioritizationEngine:
@@ -60,11 +58,13 @@ class ReprioritizationEngine:
         """
         # Combine base list with any new tasks discovered in adjustments
         all_tasks = list(dict.fromkeys(self.base_priority + list(self.adjustments)))
+
         # Sort by adjustment descending, then original index
         def sort_key(tid: str) -> tuple[float, float]:
             # negative because higher scores should come first
             base_idx = self.base_priority.index(tid) if tid in self.base_priority else float("inf")
             return (-self.adjustments.get(tid, 0.0), base_idx)
+
         return sorted(all_tasks, key=sort_key)
 
     def compute_new_order(self, evidence: list[EvidenceItem]) -> list[str]:

@@ -2,6 +2,7 @@
 """
 Unit tests for Quality Validation Caching System
 """
+
 import json
 import os
 import shutil
@@ -74,15 +75,11 @@ class TestQualityValidationCache(unittest.TestCase):
         validation_type = "conversation"
 
         # Cache the result
-        success = self.cache.cache_result(
-            str(self.cache_file), validation_type, metadata, test_result
-        )
+        success = self.cache.cache_result(str(self.cache_file), validation_type, metadata, test_result)
         assert success
 
         # Retrieve the cached result
-        cached_result = self.cache.get_cached_result(
-            str(self.cache_file), validation_type, metadata
-        )
+        cached_result = self.cache.get_cached_result(str(self.cache_file), validation_type, metadata)
         assert cached_result == test_result
 
     def test_cache_miss(self):
@@ -91,9 +88,7 @@ class TestQualityValidationCache(unittest.TestCase):
         validation_type = "conversation"
 
         # Try to get result that doesn't exist
-        cached_result = self.cache.get_cached_result(
-            str(self.cache_file), validation_type, metadata
-        )
+        cached_result = self.cache.get_cached_result(str(self.cache_file), validation_type, metadata)
         assert cached_result is None
 
     def test_invalidate_cache(self):
@@ -103,14 +98,10 @@ class TestQualityValidationCache(unittest.TestCase):
         validation_type = "conversation"
 
         # Cache the result
-        self.cache.cache_result(
-            str(self.cache_file), validation_type, metadata, test_result
-        )
+        self.cache.cache_result(str(self.cache_file), validation_type, metadata, test_result)
 
         # Verify it's cached
-        cached_result = self.cache.get_cached_result(
-            str(self.cache_file), validation_type, metadata
-        )
+        cached_result = self.cache.get_cached_result(str(self.cache_file), validation_type, metadata)
         assert cached_result == test_result
 
         # For this test, we'll just test that the invalidate method doesn't crash
@@ -128,18 +119,12 @@ class TestQualityValidationCache(unittest.TestCase):
         metadata = {"version": "1.0"}
 
         # Cache multiple results
-        self.cache.cache_result(
-            str(self.cache_file), "conversation", metadata, test_result1
-        )
+        self.cache.cache_result(str(self.cache_file), "conversation", metadata, test_result1)
         self.cache.cache_result(str(self.cache_file), "text", metadata, test_result2)
 
         # Verify they're cached
-        cached_result1 = self.cache.get_cached_result(
-            str(self.cache_file), "conversation", metadata
-        )
-        cached_result2 = self.cache.get_cached_result(
-            str(self.cache_file), "text", metadata
-        )
+        cached_result1 = self.cache.get_cached_result(str(self.cache_file), "conversation", metadata)
+        cached_result2 = self.cache.get_cached_result(str(self.cache_file), "text", metadata)
         assert cached_result1 == test_result1
         assert cached_result2 == test_result2
 
@@ -148,12 +133,8 @@ class TestQualityValidationCache(unittest.TestCase):
         assert success
 
         # Verify they're no longer cached
-        cached_result1 = self.cache.get_cached_result(
-            str(self.cache_file), "conversation", metadata
-        )
-        cached_result2 = self.cache.get_cached_result(
-            str(self.cache_file), "text", metadata
-        )
+        cached_result1 = self.cache.get_cached_result(str(self.cache_file), "conversation", metadata)
+        cached_result2 = self.cache.get_cached_result(str(self.cache_file), "text", metadata)
         assert cached_result1 is None
         assert cached_result2 is None
 
@@ -208,14 +189,10 @@ class TestCachedQualityValidator(unittest.TestCase):
         validation_type = "conversation"
 
         # Cache the result first
-        self.cache.cache_result(
-            str(self.cache_file), validation_type, metadata, test_result
-        )
+        self.cache.cache_result(str(self.cache_file), validation_type, metadata, test_result)
 
         # Validate with cache
-        cache_hit, cached_result = self.validator.validate_with_cache(
-            str(self.cache_file), validation_type, metadata
-        )
+        cache_hit, cached_result = self.validator.validate_with_cache(str(self.cache_file), validation_type, metadata)
 
         assert cache_hit
         assert cached_result == test_result
@@ -226,9 +203,7 @@ class TestCachedQualityValidator(unittest.TestCase):
         validation_type = "conversation"
 
         # Validate with cache (should miss)
-        cache_hit, cached_result = self.validator.validate_with_cache(
-            str(self.cache_file), validation_type, metadata
-        )
+        cache_hit, cached_result = self.validator.validate_with_cache(str(self.cache_file), validation_type, metadata)
 
         assert not cache_hit
         assert cached_result is None
@@ -240,15 +215,11 @@ class TestCachedQualityValidator(unittest.TestCase):
         validation_type = "conversation"
 
         # Cache the result
-        success = self.validator.cache_validation_result(
-            str(self.cache_file), validation_type, metadata, test_result
-        )
+        success = self.validator.cache_validation_result(str(self.cache_file), validation_type, metadata, test_result)
         assert success
 
         # Verify it was cached
-        cached_result = self.cache.get_cached_result(
-            str(self.cache_file), validation_type, metadata
-        )
+        cached_result = self.cache.get_cached_result(str(self.cache_file), validation_type, metadata)
         assert cached_result == test_result
 
 
