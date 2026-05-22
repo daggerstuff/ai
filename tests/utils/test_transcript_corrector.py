@@ -40,7 +40,6 @@ def test_apply_terminology_fixes_edge_cases(_mock_file, _mock_exists):  # noqa: 
 @patch("utils.transcript_corrector.Path.exists", return_value=True)
 @patch("builtins.open", new_callable=mock_open, read_data="{}")
 def test_correct_transcript_with_punctuation_and_capitalization(_mock_file, _mock_exists):  # noqa: PT019
-def test_correct_transcript_with_punctuation_and_capitalization(_mock_file, _mock_exists):
     corrector = TranscriptCorrector("mock.json")
 
     # Tests repeated punctuation collapse and sentence capitalization

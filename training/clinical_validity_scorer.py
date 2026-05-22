@@ -1,8 +1,15 @@
 """Clinical validity scoring for therapeutic training data.
 
-Measures the clinical quality of therapeutic responses across multiple
+Measures the *keyword density* of therapeutic responses across multiple
 dimensions: therapeutic technique usage, therapeutic alliance, clinical
 structure, cultural competence, and evidence-based practice.
+
+LIMITATION: This scorer uses regex keyword matching — it measures how densely
+a response uses therapeutic vocabulary, NOT how clinically sound the content
+is. A long, generic transcript dump with therapeutic buzzwords may score
+higher than a concise, clinically precise response. Use the per-message
+averaging approach (see score_conversations in extract_therapist_voice.py)
+to mitigate verbosity inflation.
 
 This is a measurement and quality-assessment tool — it does not filter
 or remove content from the training pipeline.
@@ -267,6 +274,10 @@ class ClinicalValidityScorer:
         Weight normalization: when used in GRPO training with clinical_weight > 0,
         all three weights (empathy, crisis, clinical) are normalized to sum 1.0.
         The ClinicalValidityScorer's internal WEIGHTS always sum to 1.0 independently.
+
+        Note: This measures keyword *density*, not true clinical quality.
+        Very long responses may inflate match counts. Prefer scoring individual
+        messages and averaging (see extract_therapist_voice.py score_conversations).
         """
         if not response or not isinstance(response, str):
             return 0.0
@@ -277,10 +288,42 @@ class ClinicalValidityScorer:
 
     @classmethod
     def score_detail(cls, response: str) -> dict:
-        """Compute per-dimension clinical validity scores."""
+        """Compute per-dimension clinical validity scores.
+
+        For a density-normalized alternative see score_density_detail().
+        """
         if not response or not isinstance(response, str):
             return {d: 0.0 for d in cls.WEIGHTS}
         return {
             dimension: cls._score_dimension(response, dimension)
             for dimension in cls.WEIGHTS
         }
+
+    @classmethod
+    def score_density_detail(cls, response: str) -> dict:
+        """Per-dimension scores normalized by response length (density instead of raw count).
+
+        Returns scores penalized by verbosity: a short, dense clinical response
+        scores higher than a long rambling one with the same absolute matches.
+        """
+        if not response or not isinstance(response, str):
+            return {d: 0.0 for d in cls.WEIGHTS}
+        results = {}
+        token_count = max(1, len(response.split()))
+        for dimension in cls.WEIGHTS:
+            raw = cls._score_dimension(response, dimension)
+            density_penalty = min(token_count / 250, 1.0)
+            density_factor = 1.0 - density_penalty * 0.5
+            results[dimension] = round(raw * density_factor, 4)
+        return results
+
+    @classmethod
+    def score_density(cls, response: str) -> float:
+        """Overall score normalized by response length (density instead of raw count)."""
+        if not response or not isinstance(response, str):
+            return 0.0
+        total = 0.0
+        detail = cls.score_density_detail(response)
+        for dimension, weight in cls.WEIGHTS.items():
+            total += detail[dimension] * weight
+        return total

@@ -365,6 +365,7 @@ class TrainingReadinessGates:
         if safety < thresholds["safety_floor"]:
             violations.append(
                 f"safety {safety:.2f} < floor {thresholds['safety_floor']}"
+            )
         if clinical_validity < thresholds["safety_floor"]:
             violations.append(
                 f"clinical validity {clinical_validity:.2f} < floor "
