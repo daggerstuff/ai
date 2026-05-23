@@ -14,9 +14,9 @@ from typing import Any
 
 import click
 
-from ai.cli.auth import AuthManager
-from ai.cli.config import get_config
-from ai.cli.utils import (
+from cli.auth import AuthManager
+from cli.config import get_config
+from cli.utils import (
     check_api_health,
     format_file_size,
     get_logger,

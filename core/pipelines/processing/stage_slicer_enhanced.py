@@ -406,6 +406,7 @@ def validate_stage_slice(
     if result.metrics["safety_avg"] < stage_config.safety_floor:
         result.violations.append(
             f"Safety {result.metrics['safety_avg']:.2f} < floor {stage_config.safety_floor:.2f}"
+        )
     if result.metrics["clinical_validity_avg"] < stage_config.safety_floor:
         result.violations.append(
             "Clinical validity "

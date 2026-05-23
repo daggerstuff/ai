@@ -81,7 +81,6 @@ def ingest_channel(
     language: str,
     compiled_hashes: set[str],
 ) -> tuple[list[dict], int, int, int]:
-) -> tuple[list[dict], int, int]:
     """Ingest one channel directory.
 
     Returns (samples, total_read, skipped_duplicate).
@@ -159,7 +158,6 @@ def run_ingestion(args: argparse.Namespace) -> None:
         channel_name = channel_dir.name
         language = "de" if _is_german_channel(channel_name, german_override) else "en"
 
-        samples, n_read, n_unsafe, n_dup = ingest_channel(
         samples, n_read, n_dup = ingest_channel(
             channel_dir, language, compiled_hashes
         )
