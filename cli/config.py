@@ -173,6 +173,80 @@ class CLIConfig(BaseModel):
         """Get API base URL"""
         return self.api.base_url
 
+    @api_base_url.setter
+    def api_base_url(self, value: str) -> None:
+        self.api.base_url = value
+
+    @property
+    def timeout(self) -> int:
+        """Get request timeout in seconds"""
+        return self.api.timeout
+
+    @timeout.setter
+    def timeout(self, value: int) -> None:
+        self.api.timeout = value
+
+    @property
+    def max_retries(self) -> int:
+        """Get maximum number of retries"""
+        return self.api.max_retries
+
+    @max_retries.setter
+    def max_retries(self, value: int) -> None:
+        self.api.max_retries = value
+
+    @property
+    def log_level(self) -> str:
+        """Get logging level"""
+        return self.logging.level
+
+    @log_level.setter
+    def log_level(self, value: str) -> None:
+        self.logging.level = value
+
+    @property
+    def auth(self) -> AuthConfig:
+        """Get auth configuration"""
+        return self._auth
+
+    @auth.setter
+    def auth(self, value: AuthConfig) -> None:
+        self._auth = value
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert configuration to dictionary."""
+        return {
+            "profile": self.profile,
+            "api_base_url": self.api_base_url,
+            "timeout": self.timeout,
+            "max_retries": self.max_retries,
+            "log_level": self.log_level,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "CLIConfig":
+        """Create configuration from dictionary."""
+        instance = cls(profile=data.get("profile", "default"))
+        if "api_base_url" in data:
+            instance.api_base_url = data["api_base_url"]
+        if "timeout" in data:
+            instance.timeout = data["timeout"]
+        if "max_retries" in data:
+            instance.max_retries = data["max_retries"]
+        if "log_level" in data:
+            instance.log_level = data["log_level"]
+        return instance
+
+    def save(self, encrypt: bool = False) -> None:
+        """Save configuration to file."""
+        self.save_configuration(profile=None)
+
+    def validate(self) -> bool:
+        """Validate auth configuration."""
+        if self.auth is None:
+            return False
+        return True
+
     def _load_configuration(self) -> None:
         """Load configuration from files and environment variables"""
         # Load from default locations
@@ -428,3 +502,68 @@ security:
   sanitize_outputs: true
   rate_limit: 100
 """
+
+
+class ConfigProfile(BaseModel):
+    """A named configuration profile with pipeline-specific settings."""
+
+    name: str = Field(..., description="Profile name")
+    api_base_url: str = Field(default="http://localhost:8000", description="API base URL")
+    auth_endpoint: str = Field(default="/auth", description="Auth endpoint")
+    pipeline_endpoint: str = Field(default="/api/pipelines", description="Pipeline endpoint")
+    timeout: int = Field(default=30, description="Request timeout")
+    max_retries: int = Field(default=3, description="Max retries")
+
+    @validator("name")
+    def validate_name(cls, v):
+        if not v or not v.strip():
+            raise ValueError("Profile name cannot be empty")
+        return v
+
+    @validator("api_base_url")
+    def validate_url(cls, v):
+        if v and not (v.startswith("http://") or v.startswith("https://")):
+            raise ValueError(f"Invalid URL: {v}")
+        return v
+
+    def validate(self) -> bool:
+        try:
+            self.name  # triggers validators
+            return True
+        except Exception:
+            return False
+
+
+# Module-level config singleton
+_config_instance: CLIConfig | None = None
+
+
+def get_config(config_file=None, profile: str = "default") -> CLIConfig:
+    """Get or create the global CLIConfig instance."""
+    global _config_instance
+    if _config_instance is None:
+        _config_instance = CLIConfig(config_file=config_file, profile=profile)
+    return _config_instance
+
+
+def save_config(config: CLIConfig | None = None, profile: str | None = None) -> None:
+    """Save the configuration to disk."""
+    cfg = config or _config_instance
+    if cfg is None:
+        raise CLIConfigError("No configuration to save")
+    cfg.save_configuration(profile=profile)
+
+
+__all__ = [
+    "CLIConfig",
+    "APIConfig",
+    "AuthConfig",
+    "PipelineConfig",
+    "LoggingConfig",
+    "SecurityConfig",
+    "ConfigProfile",
+    "CLIConfigError",
+    "get_config",
+    "save_config",
+    "DEFAULT_CONFIG",
+]

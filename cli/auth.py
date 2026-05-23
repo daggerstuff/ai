@@ -503,6 +503,50 @@ def require_auth(auth_manager: AuthManager):
     return decorator
 
 
+def login(self, username: str, password: str) -> dict[str, Any]:
+    """Alias for authenticate() — authenticates and returns user info."""
+    self.authenticate(username, password)
+    return {"status": "authenticated", "user": username}
+
+
+def revoke(self) -> None:
+    """Revoke session — alias for logout."""
+    self.logout()
+
+
+AuthManager.login = login
+AuthManager.revoke = revoke
+
+setattr(AuthManager, "_access_token", property(
+    lambda self: self.config.auth.jwt_token,
+    lambda self, v: setattr(self.config.auth, "jwt_token", v),
+))
+setattr(AuthManager, "_refresh_token", property(
+    lambda self: self.config.auth.refresh_token,
+    lambda self, v: setattr(self.config.auth, "refresh_token", v),
+))
+
+
+def _get_token_expiry(self):
+    if not self.config.auth.token_expiry:
+        return 0.0
+    try:
+        from datetime import datetime
+
+        return datetime.fromisoformat(self.config.auth.token_expiry).timestamp()
+    except Exception:
+        return 0.0
+
+
+def _set_token_expiry(self, value: float) -> None:
+    from datetime import UTC, datetime
+
+    self.config.auth.token_expiry = datetime.fromtimestamp(value, tz=UTC).isoformat()
+
+
+setattr(AuthManager, "_token_expiry", property(_get_token_expiry, _set_token_expiry))
+
+
 __all__ = [
     "AuthManager",
     "AuthenticationError",

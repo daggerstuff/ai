@@ -73,6 +73,7 @@ class StageConfig:
     empathy_floor: float
     clinical_floor: float
     safety_floor: float
+    clinical_validity_floor: float
     dedup_retention_floor: float
     source_files: list[str] = field(default_factory=list)
     output_file: str = ""
@@ -87,7 +88,7 @@ STAGE_CONFIGS: dict[str, StageConfig] = {
         empathy_floor=0.70,
         clinical_floor=0.30,
         safety_floor=1.0,
-        safety_floor=0.70,
+        clinical_validity_floor=0.70,
         dedup_retention_floor=0.50,
         source_files=[
             "data/normalized/mental_health_counseling_normalized.jsonl",
@@ -103,7 +104,7 @@ STAGE_CONFIGS: dict[str, StageConfig] = {
         empathy_floor=0.75,
         clinical_floor=0.50,
         safety_floor=1.0,
-        safety_floor=0.75,
+        clinical_validity_floor=0.75,
         dedup_retention_floor=0.50,
         source_files=[
             "data/normalized/cot_reasoning_normalized.jsonl",
@@ -119,7 +120,7 @@ STAGE_CONFIGS: dict[str, StageConfig] = {
         empathy_floor=0.60,
         clinical_floor=0.40,
         safety_floor=1.0,
-        safety_floor=0.65,
+        clinical_validity_floor=0.65,
         dedup_retention_floor=0.40,
         source_files=[
             "pipelines/edge_case/output/edge_cases_training_format.jsonl",
@@ -135,7 +136,7 @@ STAGE_CONFIGS: dict[str, StageConfig] = {
         empathy_floor=0.80,
         clinical_floor=0.35,
         safety_floor=1.0,
-        safety_floor=0.75,
+        clinical_validity_floor=0.75,
         dedup_retention_floor=0.60,
         source_files=[
             "data/tim_fletcher_voice/exports/tim_fletcher_conversations.jsonl",
@@ -193,9 +194,9 @@ def route_low_clinical_validity_records_to_human_review(
         if clinical_score is None:
             continue
 
-        if clinical_score < stage_config.safety_floor:
+        if clinical_score < stage_config.clinical_validity_floor:
             border_status = "failed"
-        elif clinical_score < stage_config.safety_floor + borderline_margin:
+        elif clinical_score < stage_config.clinical_validity_floor + borderline_margin:
             border_status = "borderline"
         else:
             continue
@@ -205,7 +206,7 @@ def route_low_clinical_validity_records_to_human_review(
             "stage_id": stage_config.stage_id,
             "review_reason": "clinical_validity_review",
             "stage_clinical_validity_score": clinical_score,
-            "stage_clinical_validity_floor": stage_config.safety_floor,
+            "stage_clinical_validity_floor": stage_config.clinical_validity_floor,
             "clinical_validity_border_status": border_status,
             "review_type": "clinical_validity",
         }
@@ -390,7 +391,7 @@ def validate_stage_slice(
         "total_records": len(records),
         "dedup_retention": 0.85,  # Placeholder - would come from actual dedup analysis
     }
-    result.metrics["safety_avg"] = result.metrics["clinical_validity_avg"]
+    result.metrics["safety_avg"] = result.metrics.get("safety_avg", 1.0)
 
     # Check against floors
     if result.metrics["empathy_avg"] < stage_config.empathy_floor:
@@ -406,11 +407,12 @@ def validate_stage_slice(
     if result.metrics["safety_avg"] < stage_config.safety_floor:
         result.violations.append(
             f"Safety {result.metrics['safety_avg']:.2f} < floor {stage_config.safety_floor:.2f}"
-    if result.metrics["clinical_validity_avg"] < stage_config.safety_floor:
+        )
+    if result.metrics["clinical_validity_avg"] < stage_config.clinical_validity_floor:
         result.violations.append(
             "Clinical validity "
             f"{result.metrics['clinical_validity_avg']:.2f} < floor "
-            f"{stage_config.safety_floor:.2f}"
+            f"{stage_config.clinical_validity_floor:.2f}"
         )
 
     if result.metrics["dedup_retention"] < stage_config.dedup_retention_floor:
@@ -429,7 +431,7 @@ def validate_stage_slice(
                         f"Clinical close to floor: {result.metrics['clinical_avg']:.2f} (floor + 0.1)"
         )
 
-    if result.metrics["clinical_validity_avg"] < stage_config.safety_floor + 0.1:
+    if result.metrics["clinical_validity_avg"] < stage_config.clinical_validity_floor + 0.1:
         result.warnings.append(
             "Clinical validity close to floor: "
             f"{result.metrics['clinical_validity_avg']:.2f} (floor + 0.1)"
