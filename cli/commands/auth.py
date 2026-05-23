@@ -9,9 +9,9 @@ import datetime
 
 import click
 
-from ai.cli.auth import AuthManager
-from ai.cli.config import get_config
-from ai.cli.utils import get_logger, setup_logging
+from cli.auth import AuthManager
+from cli.config import get_config
+from cli.utils import get_logger, setup_logging
 
 logger = get_logger(__name__)
 
