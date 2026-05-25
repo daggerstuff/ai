@@ -497,3 +497,23 @@ describe('PixelatedEmpathyAPI Method getJobStatus', () => {
         expect(result).toEqual(mockStatus);
     });
 });
+
+describe('PixelatedEmpathyAPI Method safeParseResponse', () => {
+    it('should return parsed object if valid JSON object is passed', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const jsonStr = '{"success": true, "data": {"id": 1}}';
+        expect(api.safeParseResponse(jsonStr)).toEqual({ success: true, data: { id: 1 } });
+    });
+
+    it('should return error object if string is not valid JSON', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const invalidJsonStr = '<html><body>error</body></html>';
+        expect(api.safeParseResponse(invalidJsonStr)).toEqual({ success: false, message: 'Invalid JSON response' });
+    });
+
+    it('should return error object if parsed JSON is not a plain object (e.g. array)', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const jsonStr = '[{"id": 1}]';
+        expect(api.safeParseResponse(jsonStr)).toEqual({ success: false, message: 'Invalid JSON response' });
+    });
+});
