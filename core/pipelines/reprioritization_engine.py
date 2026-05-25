@@ -19,29 +19,47 @@ import math
 import threading
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
+from decimal import Decimal
 from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_ACTION_THRESHOLD = 0.3
+DEFAULT_ACTION_THRESHOLD = Decimal("0.3")
+
+# Helpers for Decimal-aware formatting in to_dict()
+_DECIMAL_ZERO = Decimal("0")
+
+
+def _decimal_to_float(d: Decimal) -> float:
+    """Convert a Decimal to float for JSON serialization."""
+    return float(d)
+
+
+def _float_to_decimal(f: float) -> Decimal:
+    """Convert a float to Decimal with reasonable precision."""
+    return Decimal(str(f))
 
 
 @dataclass
 class ReprioritizationConfig:
-    """Runtime-tunable parameters for PIX-536 reprioritization."""
+    """Runtime-tunable parameters for PIX-536 reprioritization.
 
-    action_threshold: float = DEFAULT_ACTION_THRESHOLD
+    All threshold values use Decimal for precise comparisons
+    and accumulation arithmetic (Gilfoyle review remediation).
+    """
+
+    action_threshold: Decimal = DEFAULT_ACTION_THRESHOLD
     churn_prevention_window_days: int = 7
-    evidence_decay_rate: float = 0.05
+    evidence_decay_rate: Decimal = Decimal("0.05")
     max_tracked_patterns: int = 10_000
     max_evidence_age_days: int = 30
-    urgent_threshold: float = 3.0
-    high_threshold: float = 2.0
-    medium_threshold: float = 1.0
-    low_threshold: float = 0.5
-    reprioritize_score_delta_ratio: float = 0.2
+    urgent_threshold: Decimal = Decimal("3.0")
+    high_threshold: Decimal = Decimal("2.0")
+    medium_threshold: Decimal = Decimal("1.0")
+    low_threshold: Decimal = Decimal("0.5")
+    reprioritize_score_delta_ratio: Decimal = Decimal("0.2")
 
 
 class UpstreamDomain(StrEnum):
@@ -91,6 +109,9 @@ class EvidencePoint:
     metrics_impacted: list[str] = field(default_factory=list)
     timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
+    # NOTE: frequency and confidence remain float because they originate from
+    # JSON input and are converted to Decimal in weight calculations.
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "pattern_id": self.pattern_id,
@@ -111,13 +132,14 @@ class EvidenceAccumulation:
     pattern_id: str
     domain: UpstreamDomain
     description: str
+    total_weight: Decimal = Decimal("0")
+    last_updated: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+    action_threshold: Decimal = DEFAULT_ACTION_THRESHOLD
+    evidence_decay_rate: Decimal = Decimal("0.05")
+    max_evidence_age_days: int = 30
     evidence_points: list[EvidencePoint] = field(default_factory=list)
     first_seen: str = ""
     last_seen: str = ""
-    total_weight: float = 0.0
-    action_threshold: float = 0.0
-    evidence_decay_rate: float = 0.05
-    max_evidence_age_days: int = 30
     is_actionable: bool = False
 
     def add_evidence(self, point: EvidencePoint) -> None:
@@ -138,15 +160,15 @@ class EvidenceAccumulation:
 
     def _recalculate_weight(self) -> None:
         now = datetime.now(UTC)
-        total = 0.0
+        total = Decimal("0")
         for point in self.evidence_points:
             point_time = datetime.fromisoformat(point.timestamp)
             age_days = (now - point_time).total_seconds() / 86400.0
-            decay = math.exp(-self.evidence_decay_rate * age_days)
+            decay = Decimal(str(math.exp(-float(self.evidence_decay_rate) * age_days)))
             severity_weight = _severity_weight(point.severity)
-            point_weight = severity_weight * point.frequency * point.confidence * decay
+            point_weight = severity_weight * Decimal(str(point.frequency)) * Decimal(str(point.confidence)) * decay
             total += point_weight
-        self.total_weight = round(total, 4)
+        self.total_weight = total.quantize(Decimal("0.0001"))
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -156,8 +178,8 @@ class EvidenceAccumulation:
             "evidence_count": len(self.evidence_points),
             "first_seen": self.first_seen,
             "last_seen": self.last_seen,
-            "total_weight": self.total_weight,
-            "action_threshold": self.action_threshold,
+            "total_weight": _decimal_to_float(self.total_weight),
+            "action_threshold": _decimal_to_float(self.action_threshold),
             "is_actionable": self.is_actionable,
             "latest_severity": self.evidence_points[-1].severity.value if self.evidence_points else None,
         }
@@ -171,7 +193,7 @@ class BacklogItem:
     title: str
     description: str
     priority_tier: PriorityTier
-    priority_score: float
+    priority_score: Decimal
     evidence_pattern_ids: list[str]
     root_cause_hypothesis: str
     validation_criteria: list[str] = field(default_factory=list)
@@ -187,7 +209,7 @@ class BacklogItem:
             "title": self.title,
             "description": self.description,
             "priority_tier": self.priority_tier.value,
-            "priority_score": self.priority_score,
+            "priority_score": _decimal_to_float(self.priority_score),
             "evidence_pattern_ids": self.evidence_pattern_ids,
             "root_cause_hypothesis": self.root_cause_hypothesis,
             "validation_criteria": self.validation_criteria,
@@ -203,8 +225,8 @@ class PriorityChange:
     domain: UpstreamDomain
     previous_tier: PriorityTier | None
     new_tier: PriorityTier
-    previous_score: float
-    new_score: float
+    previous_score: Decimal
+    new_score: Decimal
     reason: str
     evidence_pattern_ids: list[str]
     changed_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
@@ -215,8 +237,8 @@ class PriorityChange:
             "domain": self.domain.value,
             "previous_tier": self.previous_tier.value if self.previous_tier else None,
             "new_tier": self.new_tier.value,
-            "previous_score": self.previous_score,
-            "new_score": self.new_score,
+            "previous_score": _decimal_to_float(self.previous_score),
+            "new_score": _decimal_to_float(self.new_score),
             "reason": self.reason,
             "evidence_pattern_ids": self.evidence_pattern_ids,
             "changed_at": self.changed_at,
@@ -264,7 +286,7 @@ class ReprioritizationReport:
 class EvidenceAccumulator:
     def __init__(
         self,
-        action_threshold: float = DEFAULT_ACTION_THRESHOLD,
+        action_threshold: Decimal = DEFAULT_ACTION_THRESHOLD,
         config: ReprioritizationConfig | None = None,
     ) -> None:
         self._lock = threading.Lock()
@@ -400,43 +422,43 @@ class PriorityCalculator:
     def __init__(self, config: ReprioritizationConfig | None = None) -> None:
         self._config = config or ReprioritizationConfig()
 
-    DOMAIN_URGENCY: dict[UpstreamDomain, float] = {
-        UpstreamDomain.PRIVACY: 1.5,
-        UpstreamDomain.ACQUISITION: 1.2,
-        UpstreamDomain.CURATION: 1.0,
-        UpstreamDomain.REVIEW: 1.1,
-        UpstreamDomain.PACKAGING: 0.9,
+    DOMAIN_URGENCY: dict[UpstreamDomain, Decimal] = {
+        UpstreamDomain.PRIVACY: Decimal("1.5"),
+        UpstreamDomain.ACQUISITION: Decimal("1.2"),
+        UpstreamDomain.CURATION: Decimal("1.0"),
+        UpstreamDomain.REVIEW: Decimal("1.1"),
+        UpstreamDomain.PACKAGING: Decimal("0.9"),
     }
 
     @property
-    def urgent_threshold(self) -> float:
+    def urgent_threshold(self) -> Decimal:
         return self._config.urgent_threshold
 
     @property
-    def high_threshold(self) -> float:
+    def high_threshold(self) -> Decimal:
         return self._config.high_threshold
 
     @property
-    def medium_threshold(self) -> float:
+    def medium_threshold(self) -> Decimal:
         return self._config.medium_threshold
 
     @property
-    def low_threshold(self) -> float:
+    def low_threshold(self) -> Decimal:
         return self._config.low_threshold
 
     def calculate_priority(
         self,
-        evidence_weight: float,
+        evidence_weight: Decimal,
         severity: EvidenceSeverity,
         frequency: float,
         domain: UpstreamDomain,
-        coverage_gap: float = 0.0,
-    ) -> tuple[float, PriorityTier]:
-        urgency_score = _severity_weight(severity) * self.DOMAIN_URGENCY.get(domain, 1.0)
-        evidence_component = evidence_weight * 0.4
-        urgency_component = urgency_score * frequency * 0.3
-        coverage_component = coverage_gap * 0.3
-        priority_score = round(evidence_component + urgency_component + coverage_component, 4)
+        coverage_gap: Decimal = Decimal("0"),
+    ) -> tuple[Decimal, PriorityTier]:
+        urgency_score = _severity_weight(severity) * self.DOMAIN_URGENCY.get(domain, Decimal("1.0"))
+        evidence_component = evidence_weight * Decimal("0.4")
+        urgency_component = urgency_score * Decimal(str(frequency)) * Decimal("0.3")
+        coverage_component = coverage_gap * Decimal("0.3")
+        priority_score = (evidence_component + urgency_component + coverage_component).quantize(Decimal("0.0001"))
         tier = self._score_to_tier(priority_score)
         return priority_score, tier
 
@@ -464,7 +486,7 @@ class PriorityCalculator:
             return InterventionType.THRESHOLD_ADJUSTMENT
         return pattern_intervention_map.get(pattern_type, InterventionType.PRIORITY_CHANGE)
 
-    def _score_to_tier(self, score: float) -> PriorityTier:
+    def _score_to_tier(self, score: Decimal) -> PriorityTier:
         if score >= self.urgent_threshold:
             return PriorityTier.URGENT
         if score >= self.high_threshold:
@@ -479,7 +501,7 @@ class PriorityCalculator:
 class ReprioritizationEngine:
     def __init__(
         self,
-        action_threshold: float = DEFAULT_ACTION_THRESHOLD,
+        action_threshold: Decimal = DEFAULT_ACTION_THRESHOLD,
         churn_prevention_window_days: int = 7,
         config: ReprioritizationConfig | None = None,
     ) -> None:
@@ -609,23 +631,13 @@ class ReprioritizationEngine:
             by_domain=by_domain,
         )
 
-    def _should_reprioritize(self, existing: BacklogItem, new_tier: PriorityTier, new_score: float) -> bool:
-        """Determine if an existing backlog item should be reprioritized.
-
-        Args:
-            existing: The existing backlog item.
-            new_tier: The new priority tier calculated from evidence.
-            new_score: The new priority score calculated from evidence.
-
-        Returns:
-            True if the item should be reprioritized, False otherwise.
-        """
+    def _should_reprioritize(self, existing: BacklogItem, new_tier: PriorityTier, new_score: Decimal) -> bool:
         # Always reprioritize if the tier changes
         if existing.priority_tier != new_tier:
             return True
         # If the existing score is zero, any positive new score triggers reprioritization
-        if existing.priority_score == 0:
-            return new_score > 0
+        if existing.priority_score == Decimal("0"):
+            return new_score > Decimal("0")
         # Calculate relative change in score
         score_change = abs(new_score - existing.priority_score) / existing.priority_score
         # Reprioritize if the relative change exceeds the configured threshold
@@ -684,19 +696,19 @@ class ReprioritizationEngine:
         return list(self._priority_changes)
 
 
-def _severity_weight(severity: EvidenceSeverity | str) -> float:
+def _severity_weight(severity: EvidenceSeverity | str) -> Decimal:
     if isinstance(severity, str):
         try:
             severity = EvidenceSeverity(severity)
         except ValueError:
-            return 1.0
-    weights = {
-        EvidenceSeverity.CRITICAL: 4.0,
-        EvidenceSeverity.HIGH: 3.0,
-        EvidenceSeverity.MEDIUM: 2.0,
-        EvidenceSeverity.LOW: 1.0,
+            return Decimal("1.0")
+    weights: dict[EvidenceSeverity, Decimal] = {
+        EvidenceSeverity.CRITICAL: Decimal("4.0"),
+        EvidenceSeverity.HIGH: Decimal("3.0"),
+        EvidenceSeverity.MEDIUM: Decimal("2.0"),
+        EvidenceSeverity.LOW: Decimal("1.0"),
     }
-    return weights.get(severity, 1.0)
+    return weights.get(severity, Decimal("1.0"))
 
 
 def _generate_item_id(pattern_id: str, domain: UpstreamDomain) -> str:
@@ -723,7 +735,7 @@ def _generate_description(point: EvidencePoint, accumulation: EvidenceAccumulati
         f"**Severity**: {point.severity.value}",
         f"**Frequency**: {point.frequency:.1%}",
         f"**Confidence**: {point.confidence:.2f}",
-        f"**Evidence Weight**: {accumulation.total_weight:.4f}",
+        f"**Evidence Weight**: {_decimal_to_float(accumulation.total_weight):.4f}",
         f"**Evidence Points**: {len(accumulation.evidence_points)}",
         f"**First Seen**: {accumulation.first_seen}",
         f"**Last Seen**: {accumulation.last_seen}",
@@ -780,20 +792,20 @@ def _generate_validation_criteria(point: EvidencePoint, intervention_type: Inter
 def _generate_change_reason(
     existing: BacklogItem,
     new_tier: PriorityTier,
-    new_score: float,
+    new_score: Decimal,
     accumulation: EvidenceAccumulation,
 ) -> str:
     direction = "increased" if new_score > existing.priority_score else "decreased"
     evidence_count = len(accumulation.evidence_points)
     return (
         f"Priority {direction} from {existing.priority_tier.value} to {new_tier.value} "
-        f"(score: {existing.priority_score:.4f} -> {new_score:.4f}) "
+        f"(score: {_decimal_to_float(existing.priority_score):.4f} -> {_decimal_to_float(new_score):.4f}) "
         f"based on {evidence_count} accumulated evidence points for pattern {accumulation.pattern_id}"
     )
 
 
 def create_engine(
-    action_threshold: float = DEFAULT_ACTION_THRESHOLD,
+    action_threshold: Decimal = DEFAULT_ACTION_THRESHOLD,
     churn_prevention_window_days: int = 7,
     config: ReprioritizationConfig | None = None,
 ) -> ReprioritizationEngine:
@@ -807,7 +819,7 @@ def create_engine(
 def run_reprioritization_from_report(
     feedback_report_path: str | Path,
     output_path: str | Path | None = None,
-    action_threshold: float = DEFAULT_ACTION_THRESHOLD,
+    action_threshold: Decimal = DEFAULT_ACTION_THRESHOLD,
 ) -> ReprioritizationReport:
     engine = create_engine(action_threshold=action_threshold)
     engine.load_feedback_report(feedback_report_path)

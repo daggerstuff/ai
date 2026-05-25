@@ -9,7 +9,6 @@ from ai.core.pipelines.processing.normalization_pipeline import (
 )
 
 
-def _write_jsonl(path, records: list[dict]) -> None:
 from pathlib import Path
 
 from ai.core.pipelines.processing.data_normalizer import (
