@@ -1,0 +1,50 @@
+{
+  "test_summary": {
+    "start_time": "2026-05-23T10:44:48.209546+00:00",
+    "end_time": "2026-05-23T10:44:57.053012+00:00",
+    "duration_seconds": 8.843466,
+    "total_conversations_processed": 0,
+    "successful_operations": 12,
+    "failed_operations": 5,
+    "success_rate": 70.58823529411765
+  },
+  "performance_metrics": {
+    "db_query_1_ms": 100.28219223022461,
+    "db_query_2_ms": 100.2345085144043,
+    "db_query_3_ms": 100.2359390258789,
+    "export_jsonl_ms": 500.4544258117676,
+    "export_parquet_ms": 500.9751319885254,
+    "export_csv_ms": 500.63228607177734,
+    "export_huggingface_ms": 501.3270378112793,
+    "workflow_dataset_discovery_and_query_ms": 1001.13844871521,
+    "workflow_quality_validation_workflow_ms": 1000.8172988891602,
+    "workflow_export_and_download_workflow_ms": 1001.1298656463623,
+    "workflow_monitoring_and_analytics_workflow_ms": 1001.8460750579834,
+    "stress_test_duration_seconds": 0.10146665573120117,
+    "stress_test_success_rate": 100.0
+  },
+  "resource_usage": {
+    "db_test": {
+      "cpu_percent": 45.7,
+      "memory_percent": 15.9,
+      "duration_seconds": 1.301314115524292
+    },
+    "stress_test": {
+      "cpu_percent": 70.9,
+      "memory_percent": 16.2,
+      "concurrent_tasks": 50,
+      "success_rate": 100.0
+    }
+  },
+  "errors": [
+    "2026-05-23 10:44:48.220592+00:00: API service check failed: All connection attempts failed",
+    "2026-05-23 10:44:49.533481+00:00: API GET /v1/datasets failed: All connection attempts failed",
+    "2026-05-23 10:44:49.635069+00:00: API GET /v1/conversations failed: All connection attempts failed",
+    "2026-05-23 10:44:49.736623+00:00: API GET /v1/quality/metrics failed: All connection attempts failed",
+    "2026-05-23 10:44:49.838195+00:00: API GET /v1/monitoring/usage failed: All connection attempts failed"
+  ],
+  "warnings": [
+    "2026-05-23 10:44:48.222904+00:00: Limited test data available: 0 (target: 4,200,000)",
+    "2026-05-23 10:44:57.052852+00:00: Monitoring configuration not found"
+  ]
+}
