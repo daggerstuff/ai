@@ -210,6 +210,9 @@ class InteractiveDashboardSystem:
 
         function startAutoRefresh(intervalMs = 30000) {
             refreshInterval = setInterval(() => {
+                // ⚡ Bolt: Prevent unnecessary API calls and re-renders when tab is inactive
+                if (document.hidden) return;
+
                 showRefreshIndicator();
                 refreshDashboardData();
             }, intervalMs);
