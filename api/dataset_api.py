@@ -26,10 +26,11 @@ auth_deps = AuthenticationDependencies(auth_system)
 
 # Create a test API key for demonstration purposes
 # In a real application, API keys would be managed securely (e.g., via admin interface)
+API_KEY_EXPIRY_DAYS = int(os.getenv("API_KEY_EXPIRY_DAYS", "365"))
 TEST_API_KEY, _ = auth_system.create_api_key(
     "test_dataset_api_key",
     [PermissionLevel.READ, PermissionLevel.WRITE],
-    expires_in_days=365,
+    expires_in_days=API_KEY_EXPIRY_DAYS,
 )
 
 app = FastAPI(title="Dataset Access API", description="API for accessing and querying datasets.")
