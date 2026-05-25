@@ -355,8 +355,8 @@ class FatigueDashboard:
                 y=counts,
                 mode="lines+markers",
                 name="Alert Count",
-                line={"color": "#1f77b4", "width": 2},
-                marker={"size": 6},
+                line=dict(color="#1f77b4", width=2),
+                marker=dict(size=6),
             )
         )
 
@@ -365,7 +365,7 @@ class FatigueDashboard:
             xaxis_title="Time",
             yaxis_title="Alert Count",
             height=400,
-            margin={"l": 50, "r": 50, "t": 50, "b": 50},
+            margin=dict(l=50, r=50, t=50, b=50),
         )
 
         return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
@@ -412,7 +412,7 @@ class FatigueDashboard:
             xaxis_title="Rule Name",
             yaxis_title="Suppression Count",
             height=400,
-            margin={"l": 50, "r": 50, "t": 50, "b": 50},
+            margin=dict(l=50, r=50, t=50, b=50),
         )
 
         return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
@@ -647,8 +647,7 @@ DASHBOARD_TEMPLATE = """
             $.get('/api/charts/alert_trends')
                 .done(function(data) {
                     if (data.status === 'success') {
-                        const chartData = JSON.parse(data.chart);
-                        Plotly.newPlot('alert-trends-chart', chartData.data, chartData.layout);
+                        Plotly.newPlot('alert-trends-chart', JSON.parse(data.chart).data, JSON.parse(data.chart).layout);
                     }
                 });
 
@@ -656,8 +655,7 @@ DASHBOARD_TEMPLATE = """
             $.get('/api/charts/suppression_stats')
                 .done(function(data) {
                     if (data.status === 'success') {
-                        const chartData = JSON.parse(data.chart);
-                        Plotly.newPlot('suppression-stats-chart', chartData.data, chartData.layout);
+                        Plotly.newPlot('suppression-stats-chart', JSON.parse(data.chart).data, JSON.parse(data.chart).layout);
                     }
                 });
         }
@@ -668,8 +666,8 @@ DASHBOARD_TEMPLATE = """
         }
 
         // Auto-refresh every 30 seconds
-        setInterval(function() {
-            // ⚡ Bolt: Pause background API polling and DOM re-renders when the dashboard tab is inactive
+        setInterval(() => {
+            // ⚡ Bolt: Prevent unnecessary API calls and re-renders when tab is inactive
             if (document.hidden) return;
             loadDashboard();
         }, 30000);
