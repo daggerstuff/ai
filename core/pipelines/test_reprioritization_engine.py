@@ -3,6 +3,7 @@
 import json
 import tempfile
 import unittest
+from decimal import Decimal
 from pathlib import Path
 
 from ai.core.pipelines.reprioritization_engine import (
@@ -126,6 +127,7 @@ class TestEvidenceAccumulation(unittest.TestCase):
             pattern_id="p1",
             domain=UpstreamDomain.ACQUISITION,
             description="Test",
+            action_threshold=Decimal("0.5"),
         )
         point = EvidencePoint(
             pattern_id="p1",
@@ -147,7 +149,7 @@ class TestEvidenceAccumulation(unittest.TestCase):
             pattern_id="p1",
             domain=UpstreamDomain.ACQUISITION,
             description="Test",
-            action_threshold=0.5,
+            action_threshold=Decimal("0.5"),
         )
         point = EvidencePoint(
             pattern_id="p1",
@@ -168,7 +170,7 @@ class TestEvidenceAccumulation(unittest.TestCase):
             pattern_id="p1",
             domain=UpstreamDomain.ACQUISITION,
             description="Test",
-            action_threshold=10.0,
+            action_threshold=Decimal("10"),
         )
         point = EvidencePoint(
             pattern_id="p1",
@@ -188,7 +190,7 @@ class TestEvidenceAccumulation(unittest.TestCase):
             pattern_id="p1",
             domain=UpstreamDomain.ACQUISITION,
             description="Test",
-            action_threshold=0.5,
+            action_threshold=Decimal("0.5"),
         )
         for i in range(3):
             point = EvidencePoint(
@@ -210,7 +212,7 @@ class TestEvidenceAccumulation(unittest.TestCase):
             pattern_id="p1",
             domain=UpstreamDomain.CURATION,
             description="Test",
-            action_threshold=1.0,
+            action_threshold=Decimal("1"),
         )
         point = EvidencePoint(
             pattern_id="p1",
@@ -231,7 +233,7 @@ class TestEvidenceAccumulation(unittest.TestCase):
 
 class TestEvidenceAccumulator(unittest.TestCase):
     def setUp(self):
-        self.accumulator = EvidenceAccumulator(action_threshold=0.5)
+        self.accumulator = EvidenceAccumulator(action_threshold=Decimal("0.5"))
 
     def test_ingest_feedback_dict(self):
         points = self.accumulator.ingest_feedback_dict(SAMPLE_FEEDBACK_REPORT)
@@ -390,7 +392,7 @@ class TestPriorityCalculator(unittest.TestCase):
 
     def test_urgent_priority(self):
         score, tier = self.calculator.calculate_priority(
-            evidence_weight=5.0,
+            evidence_weight=Decimal("5"),
             severity=EvidenceSeverity.CRITICAL,
             frequency=0.8,
             domain=UpstreamDomain.PRIVACY,
@@ -400,7 +402,7 @@ class TestPriorityCalculator(unittest.TestCase):
 
     def test_high_priority(self):
         score, tier = self.calculator.calculate_priority(
-            evidence_weight=4.0,
+            evidence_weight=Decimal("4"),
             severity=EvidenceSeverity.HIGH,
             frequency=0.5,
             domain=UpstreamDomain.ACQUISITION,
@@ -409,7 +411,7 @@ class TestPriorityCalculator(unittest.TestCase):
 
     def test_medium_priority(self):
         score, tier = self.calculator.calculate_priority(
-            evidence_weight=2.5,
+            evidence_weight=Decimal("2.5"),
             severity=EvidenceSeverity.MEDIUM,
             frequency=0.3,
             domain=UpstreamDomain.CURATION,
@@ -418,7 +420,7 @@ class TestPriorityCalculator(unittest.TestCase):
 
     def test_low_priority(self):
         score, tier = self.calculator.calculate_priority(
-            evidence_weight=1.2,
+            evidence_weight=Decimal("1.2"),
             severity=EvidenceSeverity.LOW,
             frequency=0.1,
             domain=UpstreamDomain.PACKAGING,
@@ -427,7 +429,7 @@ class TestPriorityCalculator(unittest.TestCase):
 
     def test_backlog_priority(self):
         score, tier = self.calculator.calculate_priority(
-            evidence_weight=0.1,
+            evidence_weight=Decimal("0.1"),
             severity=EvidenceSeverity.LOW,
             frequency=0.05,
             domain=UpstreamDomain.PACKAGING,
@@ -436,30 +438,30 @@ class TestPriorityCalculator(unittest.TestCase):
 
     def test_coverage_gap_increases_priority(self):
         score_no_gap, _ = self.calculator.calculate_priority(
-            evidence_weight=1.0,
+            evidence_weight=Decimal("1"),
             severity=EvidenceSeverity.MEDIUM,
             frequency=0.3,
             domain=UpstreamDomain.CURATION,
-            coverage_gap=0.0,
+            coverage_gap=Decimal("0"),
         )
         score_with_gap, _ = self.calculator.calculate_priority(
-            evidence_weight=1.0,
+            evidence_weight=Decimal("1"),
             severity=EvidenceSeverity.MEDIUM,
             frequency=0.3,
             domain=UpstreamDomain.CURATION,
-            coverage_gap=0.8,
+            coverage_gap=Decimal("0.8"),
         )
         assert score_with_gap > score_no_gap
 
     def test_privacy_domain_has_higher_urgency(self):
         score_privacy, _ = self.calculator.calculate_priority(
-            evidence_weight=1.0,
+            evidence_weight=Decimal("1"),
             severity=EvidenceSeverity.MEDIUM,
             frequency=0.3,
             domain=UpstreamDomain.PRIVACY,
         )
         score_packaging, _ = self.calculator.calculate_priority(
-            evidence_weight=1.0,
+            evidence_weight=Decimal("1"),
             severity=EvidenceSeverity.MEDIUM,
             frequency=0.3,
             domain=UpstreamDomain.PACKAGING,
@@ -516,7 +518,7 @@ class TestBacklogItem(unittest.TestCase):
             title="Test item",
             description="Test description",
             priority_tier=PriorityTier.HIGH,
-            priority_score=2.5,
+            priority_score=Decimal("2.5"),
             evidence_pattern_ids=["p1"],
             root_cause_hypothesis="Test",
             validation_criteria=["Criterion 1"],
@@ -536,7 +538,7 @@ class TestBacklogItem(unittest.TestCase):
             title="Test",
             description="Test",
             priority_tier=PriorityTier.MEDIUM,
-            priority_score=1.0,
+            priority_score=Decimal("1"),
             evidence_pattern_ids=["p1"],
             root_cause_hypothesis="Test",
         )
@@ -552,8 +554,8 @@ class TestPriorityChange(unittest.TestCase):
             domain=UpstreamDomain.ACQUISITION,
             previous_tier=PriorityTier.MEDIUM,
             new_tier=PriorityTier.HIGH,
-            previous_score=1.0,
-            new_score=2.5,
+            previous_score=Decimal("1"),
+            new_score=Decimal("2.5"),
             reason="Evidence accumulated",
             evidence_pattern_ids=["p1"],
         )
@@ -568,8 +570,8 @@ class TestPriorityChange(unittest.TestCase):
             domain=UpstreamDomain.ACQUISITION,
             previous_tier=None,
             new_tier=PriorityTier.HIGH,
-            previous_score=0.0,
-            new_score=2.5,
+            previous_score=Decimal("0"),
+            new_score=Decimal("2.5"),
             reason="New item",
             evidence_pattern_ids=["p1"],
         )
@@ -622,7 +624,7 @@ class TestReprioritizationReport(unittest.TestCase):
 
 class TestReprioritizationEngine(unittest.TestCase):
     def setUp(self):
-        self.engine = ReprioritizationEngine(action_threshold=0.3)
+        self.engine = ReprioritizationEngine(action_threshold=Decimal("0.3"))
 
     def test_load_feedback_report(self):
         points = self.engine.load_feedback_dict(SAMPLE_FEEDBACK_REPORT)
@@ -680,7 +682,7 @@ class TestReprioritizationEngine(unittest.TestCase):
             title="Existing item",
             description="Existing",
             priority_tier=PriorityTier.LOW,
-            priority_score=0.5,
+            priority_score=Decimal("0.5"),
             evidence_pattern_ids=["old_pattern"],
             root_cause_hypothesis="Old",
         )
@@ -710,7 +712,7 @@ class TestReprioritizationEngine(unittest.TestCase):
             title="Stable item",
             description="Stable",
             priority_tier=PriorityTier.HIGH,
-            priority_score=2.5,
+            priority_score=Decimal("2.5"),
             evidence_pattern_ids=["p1"],
             root_cause_hypothesis="Test",
         )
@@ -736,7 +738,7 @@ class TestReprioritizationEngine(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             json.dump(SAMPLE_FEEDBACK_REPORT, f)
             f.flush()
-            report = run_reprioritization_from_report(f.name, action_threshold=0.5)
+            report = run_reprioritization_from_report(f.name, action_threshold=Decimal("0.5"))
         assert report.backlog_items_created > 0
 
     def test_run_reprioritization_from_report_with_output(self):
@@ -751,8 +753,8 @@ class TestReprioritizationEngine(unittest.TestCase):
                 assert loaded["run_id"] == report.run_id
 
     def test_create_engine(self):
-        engine = create_engine(action_threshold=2.0, churn_prevention_window_days=14)
-        assert engine.accumulator._config.action_threshold == 2.0
+        engine = create_engine(action_threshold=Decimal("2"), churn_prevention_window_days=14)
+        assert engine.accumulator._config.action_threshold == Decimal("2")
         assert engine._churn_window.days == 14
 
     def test_empty_report_produces_empty_report(self):
@@ -845,7 +847,7 @@ class TestReprioritizationEngine(unittest.TestCase):
             pattern_id="p1",
             domain=UpstreamDomain.ACQUISITION,
             description="Test",
-            action_threshold=0.5,
+            action_threshold=Decimal("0.5"),
         )
         point = EvidencePoint(
             pattern_id="p1",
@@ -881,6 +883,115 @@ class TestReprioritizationEngine(unittest.TestCase):
         self.engine.run_reprioritization()
         changes = self.engine.get_priority_changes()
         assert isinstance(changes, list)
+
+
+class TestDecimalPrecision(unittest.TestCase):
+    def test_small_weight_preserves_precision(self):
+        """Very small values that lose precision in float stay exact in Decimal."""
+        acc = EvidenceAccumulation(
+            pattern_id="p1",
+            domain=UpstreamDomain.ACQUISITION,
+            description="Small values",
+            action_threshold=Decimal("0.00001"),
+        )
+        point = EvidencePoint(
+            pattern_id="p1",
+            pattern_type="memory_deficiency",
+            description="Small value test",
+            domain=UpstreamDomain.ACQUISITION,
+            severity=EvidenceSeverity.CRITICAL,
+            frequency=0.0001,
+            confidence=0.0001,
+            root_cause_hypothesis="Test",
+        )
+        acc.add_evidence(point)
+        self.assertIsInstance(acc.total_weight, Decimal)
+        for _ in range(100):
+            acc.add_evidence(point)
+        self.assertIsInstance(acc.total_weight, Decimal)
+        self.assertEqual(acc.total_weight, acc.total_weight.quantize(Decimal("0.0001")))
+
+    def test_high_frequency_accumulation_no_drift(self):
+        """100 identical evidence points accumulate without drift."""
+        acc = EvidenceAccumulation(
+            pattern_id="p1",
+            domain=UpstreamDomain.ACQUISITION,
+            description="High frequency",
+            action_threshold=Decimal("100"),
+        )
+        point = EvidencePoint(
+            pattern_id="p1",
+            pattern_type="memory_deficiency",
+            description="Hundred points",
+            domain=UpstreamDomain.ACQUISITION,
+            severity=EvidenceSeverity.LOW,
+            frequency=1.0,
+            confidence=1.0,
+            root_cause_hypothesis="Test",
+        )
+        acc.add_evidence(point)
+        single_weight = acc.total_weight
+        for _ in range(99):
+            acc.add_evidence(point)
+        self.assertGreater(acc.total_weight, single_weight * 99)
+        self.assertAlmostEqual(float(acc.total_weight), 100.0 * float(single_weight), delta=0.02 * float(single_weight))
+
+    def test_to_dict_decimal_roundtrip(self):
+        """to_dict() converts Decimal→float without exceptions."""
+        acc = EvidenceAccumulation(
+            pattern_id="p1",
+            domain=UpstreamDomain.ACQUISITION,
+            description="Roundtrip test",
+            action_threshold=Decimal("0.5"),
+        )
+        point = EvidencePoint(
+            pattern_id="p1",
+            pattern_type="memory_deficiency",
+            description="Roundtrip",
+            domain=UpstreamDomain.ACQUISITION,
+            severity=EvidenceSeverity.HIGH,
+            frequency=0.75,
+            confidence=0.9,
+            root_cause_hypothesis="Test",
+        )
+        acc.add_evidence(point)
+        d = acc.to_dict()
+        self.assertIsInstance(d["total_weight"], float)
+        self.assertIsInstance(d["action_threshold"], float)
+        self.assertGreater(d["total_weight"], 0)
+        self.assertEqual(d["action_threshold"], 0.5)
+
+    def test_to_dict_large_priority_score(self):
+        """PriorityCalculator produces Decimal scores; to_dict handles large values."""
+        calculator = PriorityCalculator()
+        score, _ = calculator.calculate_priority(
+            evidence_weight=Decimal("1000"),
+            severity=EvidenceSeverity.CRITICAL,
+            frequency=1.0,
+            domain=UpstreamDomain.PRIVACY,
+        )
+        self.assertIsInstance(score, Decimal)
+        item = BacklogItem(
+            item_id="test-large",
+            domain=UpstreamDomain.PRIVACY,
+            intervention_type=InterventionType.RULE_UPDATE,
+            title="Large score",
+            description="Large score test",
+            priority_tier=PriorityTier.URGENT,
+            priority_score=score,
+            evidence_pattern_ids=["p1"],
+            root_cause_hypothesis="Test",
+        )
+        d = item.to_dict()
+        self.assertIsInstance(d["priority_score"], float)
+        self.assertGreater(d["priority_score"], 0)
+
+    def test_severity_weight_returns_decimal(self):
+        """_severity_weight returns Decimal (not float) for all severities."""
+        for severity in EvidenceSeverity:
+            w = _severity_weight(severity)
+            self.assertIsInstance(w, Decimal)
+            self.assertGreater(w, 0)
 
 
 if __name__ == "__main__":

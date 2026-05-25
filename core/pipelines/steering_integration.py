@@ -20,6 +20,7 @@ import threading
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from decimal import Decimal
 from enum import StrEnum
 from pathlib import Path
 from typing import Any
@@ -187,7 +188,7 @@ def _generate_action_details(item: BacklogItem, action_type: SteeringActionType)
         "root_cause": item.root_cause_hypothesis,
         "validation_criteria": item.validation_criteria,
         "evidence_patterns": item.evidence_pattern_ids,
-        "priority_score": item.priority_score,
+        "priority_score": float(item.priority_score),
     }
     if action_type == SteeringActionType.ADD_SOURCE_PRIORITY:
         details["action"] = "Prioritize acquisition of sources matching identified gap"
@@ -303,7 +304,7 @@ class SteeringIntegration:
                 details=details,
                 source_item_id=item.item_id,
                 source_pattern_id=item.evidence_pattern_ids[0] if item.evidence_pattern_ids else "",
-                evidence_weight=item.priority_score,
+                evidence_weight=float(item.priority_score),
                 priority_tier=item.priority_tier,
             )
             actions.append(action)
@@ -423,7 +424,7 @@ def create_steering_integration() -> SteeringIntegration:
 def run_steering_from_report(
     feedback_report_path: str | Path,
     steering_output_path: str | Path | None = None,
-    action_threshold: float = DEFAULT_ACTION_THRESHOLD,
+    action_threshold: Decimal = DEFAULT_ACTION_THRESHOLD,
     handlers: dict[SteeringActionType, Callable] | None = None,
 ) -> SteeringReport:
     from ai.core.pipelines.reprioritization_engine import run_reprioritization_from_report
