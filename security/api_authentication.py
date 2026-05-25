@@ -489,14 +489,9 @@ if __name__ == "__main__":
     test_results = tester.run_security_tests()
 
     for _test_name, result in test_results.items():
-        status = "PASSED" if result else "FAILED"
+        logger.info(f"  {_test_name}: {'PASSED' if result else 'FAILED'}")
 
-    # Calculate overall security score
     passed_tests = sum(test_results.values())
     total_tests = len(test_results)
     security_score = (passed_tests / total_tests) * 100
-
-    if security_score >= 90:
-        pass
-    else:
-        pass
+    logger.info(f"Security score: {security_score:.0f}%")
