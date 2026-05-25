@@ -26,7 +26,7 @@ import logging
 import os
 import time
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -124,7 +124,7 @@ class ValidationResult:
 
     def __post_init__(self):
         if self.timestamp is None:
-            self.timestamp = datetime.now(timezone.utc)
+            self.timestamp = datetime.now(UTC)
 
 
 @dataclass
@@ -213,21 +213,15 @@ class SecurityValidator:
             # to prevent blocking the event loop and improve throughput
             async with httpx.AsyncClient() as client:
                 # Test unauthenticated request
-                response = await client.get(
-                    "http://localhost:8000/api/v1/protected", timeout=10
-                )
+                response = await client.get("http://localhost:8000/api/v1/protected", timeout=10)
                 if response.status_code != 401:
                     raise Exception(f"Expected 401, got {response.status_code}")
 
                 # Test with invalid token
                 headers = {"Authorization": "Bearer invalid_token"}
-                response = await client.get(
-                    "http://localhost:8000/api/v1/protected", headers=headers, timeout=10
-                )
+                response = await client.get("http://localhost:8000/api/v1/protected", headers=headers, timeout=10)
                 if response.status_code != 401:
-                    raise Exception(
-                        f"Expected 401 for invalid token, got {response.status_code}"
-                    )
+                    raise Exception(f"Expected 401 for invalid token, got {response.status_code}")
 
             # Test with valid token (simulated)
             valid_token = os.environ.get("VALID_AUTH_TOKEN", "dummy_test_token")
@@ -275,9 +269,7 @@ class SecurityValidator:
             # and httpx.AsyncClient to drastically reduce execution time of multiple network calls.
             async def make_request(client):
                 try:
-                    response = await client.get(
-                        "http://localhost:8000/api/v1/test", timeout=5
-                    )
+                    response = await client.get("http://localhost:8000/api/v1/test", timeout=5)
                     return response.status_code
                 except httpx.RequestError:
                     return None
@@ -303,9 +295,7 @@ class SecurityValidator:
                 validation_id=f"val_{int(time.time())}",
                 suite_id="security_suite",
                 test_id=test.test_id,
-                status=ValidationStatus.PASSED
-                if rate_limiting_active
-                else ValidationStatus.WARNING,
+                status=ValidationStatus.PASSED if rate_limiting_active else ValidationStatus.WARNING,
                 execution_time_ms=execution_time,
                 result_data={
                     "total_requests": request_count + blocked_count,
@@ -351,9 +341,7 @@ class SecurityValidator:
                 validation_id=f"val_{int(time.time())}",
                 suite_id="security_suite",
                 test_id=test.test_id,
-                status=ValidationStatus.PASSED
-                if critical_issues == 0
-                else ValidationStatus.FAILED,
+                status=ValidationStatus.PASSED if critical_issues == 0 else ValidationStatus.FAILED,
                 execution_time_ms=execution_time,
                 result_data={
                     "vulnerabilities": vulnerabilities,
@@ -456,9 +444,7 @@ class ComplianceValidator:
                 validation_id=f"val_{int(time.time())}",
                 suite_id="compliance_suite",
                 test_id=test.test_id,
-                status=ValidationStatus.PASSED
-                if compliance_score >= 95
-                else ValidationStatus.WARNING,
+                status=ValidationStatus.PASSED if compliance_score >= 95 else ValidationStatus.WARNING,
                 execution_time_ms=execution_time,
                 result_data={
                     "compliance_checks": compliance_checks,
@@ -542,9 +528,7 @@ class PerformanceValidator:
             async def make_request(client):
                 request_start = time.time()
                 try:
-                    response = await client.get(
-                        "http://localhost:8000/api/v1/health", timeout=10
-                    )
+                    response = await client.get("http://localhost:8000/api/v1/health", timeout=10)
                     request_time = (time.time() - request_start) * 1000
                     if response.status_code == 200:
                         return request_time
@@ -576,9 +560,7 @@ class PerformanceValidator:
                 validation_id=f"val_{int(time.time())}",
                 suite_id="performance_suite",
                 test_id=test.test_id,
-                status=ValidationStatus.PASSED
-                if sla_compliant
-                else ValidationStatus.WARNING,
+                status=ValidationStatus.PASSED if sla_compliant else ValidationStatus.WARNING,
                 execution_time_ms=execution_time,
                 result_data={
                     "response_times": {
@@ -611,9 +593,7 @@ class EnterpriseValidator:
     """Main enterprise validation system"""
 
     def __init__(self):
-        self.validation_path = Path(
-            "/home/vivi/pixelated/ai/infrastructure/qa/validation_results"
-        )
+        self.validation_path = Path("/home/vivi/pixelated/ai/infrastructure/qa/validation_results")
         self.validation_path.mkdir(parents=True, exist_ok=True)
 
         # Initialize validators
@@ -653,9 +633,7 @@ class EnterpriseValidator:
         # Save results
         await self._save_validation_results(report)
 
-        logger.info(
-            f"Enterprise validation completed. Overall score: {report.overall_score:.1f}/100"
-        )
+        logger.info(f"Enterprise validation completed. Overall score: {report.overall_score:.1f}/100")
         return report
 
     async def _run_security_validation(self) -> list[ValidationResult]:
@@ -696,25 +674,15 @@ class EnterpriseValidator:
 
         return results
 
-    async def _generate_validation_report(
-        self, execution_time_ms: float
-    ) -> EnterpriseValidationReport:
+    async def _generate_validation_report(self, execution_time_ms: float) -> EnterpriseValidationReport:
         """Generate comprehensive validation report"""
 
         # Count test results by status
         total_tests = len(self.validation_results)
-        passed_tests = len(
-            [r for r in self.validation_results if r.status == ValidationStatus.PASSED]
-        )
-        failed_tests = len(
-            [r for r in self.validation_results if r.status == ValidationStatus.FAILED]
-        )
-        warning_tests = len(
-            [r for r in self.validation_results if r.status == ValidationStatus.WARNING]
-        )
-        skipped_tests = len(
-            [r for r in self.validation_results if r.status == ValidationStatus.SKIPPED]
-        )
+        passed_tests = len([r for r in self.validation_results if r.status == ValidationStatus.PASSED])
+        failed_tests = len([r for r in self.validation_results if r.status == ValidationStatus.FAILED])
+        warning_tests = len([r for r in self.validation_results if r.status == ValidationStatus.WARNING])
+        skipped_tests = len([r for r in self.validation_results if r.status == ValidationStatus.SKIPPED])
 
         # Calculate overall score
         overall_score = (passed_tests / total_tests * 100) if total_tests > 0 else 0
@@ -735,26 +703,16 @@ class EnterpriseValidator:
             ]
 
             if category_results:
-                category_passed = len(
-                    [r for r in category_results if r.status == ValidationStatus.PASSED]
-                )
-                category_scores[category.value] = (
-                    category_passed / len(category_results)
-                ) * 100
+                category_passed = len([r for r in category_results if r.status == ValidationStatus.PASSED])
+                category_scores[category.value] = (category_passed / len(category_results)) * 100
             else:
                 category_scores[category.value] = 0
 
         # Compliance status
         compliance_status = {
-            "HIPAA": "COMPLIANT"
-            if category_scores.get("compliance", 0) >= 95
-            else "NON_COMPLIANT",
-            "SOC2": "COMPLIANT"
-            if category_scores.get("security", 0) >= 95
-            else "NON_COMPLIANT",
-            "GDPR": "COMPLIANT"
-            if category_scores.get("compliance", 0) >= 95
-            else "NON_COMPLIANT",
+            "HIPAA": "COMPLIANT" if category_scores.get("compliance", 0) >= 95 else "NON_COMPLIANT",
+            "SOC2": "COMPLIANT" if category_scores.get("security", 0) >= 95 else "NON_COMPLIANT",
+            "GDPR": "COMPLIANT" if category_scores.get("compliance", 0) >= 95 else "NON_COMPLIANT",
         }
 
         # Generate recommendations
@@ -769,8 +727,8 @@ class EnterpriseValidator:
             recommendations.append("Optimize system performance")
 
         return EnterpriseValidationReport(
-            report_id=f"enterprise_validation_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
-            timestamp=datetime.now(timezone.utc),
+            report_id=f"enterprise_validation_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
+            timestamp=datetime.now(UTC),
             overall_score=overall_score,
             category_scores=category_scores,
             total_tests=total_tests,
@@ -781,7 +739,7 @@ class EnterpriseValidator:
             execution_time_ms=execution_time_ms,
             compliance_status=compliance_status,
             recommendations=recommendations,
-            next_validation_date=datetime.now(timezone.utc) + timedelta(days=30),
+            next_validation_date=datetime.now(UTC) + timedelta(days=30),
         )
 
     async def _save_validation_results(self, report: EnterpriseValidationReport):
@@ -821,10 +779,7 @@ async def main():
 
     # Validation status
     enterprise_ready = report.overall_score >= 95
-    compliance_ready = all(
-        status == "COMPLIANT" for status in report.compliance_status.values()
-    )
-
+    compliance_ready = all(status == "COMPLIANT" for status in report.compliance_status.values())
 
     overall_pass = enterprise_ready and compliance_ready
 

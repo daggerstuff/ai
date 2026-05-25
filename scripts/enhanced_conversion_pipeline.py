@@ -19,9 +19,7 @@ sys.path.append(str(Path(__file__).parent))
 from intelligent_prompt_agent import MultiPatternAgent
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -204,9 +202,7 @@ class EnhancedConversionPipeline:
         with open(output_path, "w", encoding="utf-8") as f:
             json.dump(training_pairs, f, indent=2, ensure_ascii=False)
 
-        logger.info(
-            f"  Completed {input_path.name}: {file_stats.processed}/{file_stats.total_segments} segments"
-        )
+        logger.info(f"  Completed {input_path.name}: {file_stats.processed}/{file_stats.total_segments} segments")
         logger.info(
             f"  Quality: High={file_stats.high_quality}, Medium={file_stats.medium_quality}, Low={file_stats.low_quality}"
         )
@@ -218,9 +214,7 @@ class EnhancedConversionPipeline:
             "file": input_path.name,
             "total": file_stats.total_segments,
             "processed": file_stats.processed,
-            "success_rate": file_stats.processed / file_stats.total_segments
-            if file_stats.total_segments > 0
-            else 0,
+            "success_rate": file_stats.processed / file_stats.total_segments if file_stats.total_segments > 0 else 0,
             "quality_distribution": {
                 "high": file_stats.high_quality,
                 "medium": file_stats.medium_quality,
@@ -290,19 +284,14 @@ class EnhancedConversionPipeline:
             "data_config": {
                 "train_file": "train.json",
                 "validation_file": "validation.json",
-                "expert_files": {
-                    f"expert_{style}": f"expert_{style}.json"
-                    for style in experts
-                },
+                "expert_files": {f"expert_{style}": f"expert_{style}.json" for style in experts},
             },
             "expert_mapping": experts,
             "dataset_stats": {
                 "total_conversations": total_pairs,
                 "train_conversations": len(train_data),
                 "validation_conversations": len(val_data),
-                "expert_distribution": {
-                    style: len(data) for style, data in expert_data.items()
-                },
+                "expert_distribution": {style: len(data) for style, data in expert_data.items()},
             },
         }
 
@@ -318,26 +307,17 @@ class EnhancedConversionPipeline:
                 "total_files": len(all_stats),
                 "total_segments": sum(s["total"] for s in all_stats),
                 "total_processed": sum(s["processed"] for s in all_stats),
-                "overall_success_rate": sum(s["processed"] for s in all_stats)
-                / sum(s["total"] for s in all_stats),
+                "overall_success_rate": sum(s["processed"] for s in all_stats) / sum(s["total"] for s in all_stats),
                 "total_errors": sum(s["errors"] for s in all_stats),
             },
             "quality_analysis": {
-                "high_quality": sum(
-                    s["quality_distribution"]["high"] for s in all_stats
-                ),
-                "medium_quality": sum(
-                    s["quality_distribution"]["medium"] for s in all_stats
-                ),
+                "high_quality": sum(s["quality_distribution"]["high"] for s in all_stats),
+                "medium_quality": sum(s["quality_distribution"]["medium"] for s in all_stats),
                 "low_quality": sum(s["quality_distribution"]["low"] for s in all_stats),
             },
             "generation_methods": {
-                "extracted_questions": sum(
-                    s["generation_methods"]["extracted"] for s in all_stats
-                ),
-                "contextual_questions": sum(
-                    s["generation_methods"]["contextual"] for s in all_stats
-                ),
+                "extracted_questions": sum(s["generation_methods"]["extracted"] for s in all_stats),
+                "contextual_questions": sum(s["generation_methods"]["contextual"] for s in all_stats),
             },
             "file_details": all_stats,
             "improvements_over_original": [
@@ -352,14 +332,10 @@ class EnhancedConversionPipeline:
             ],
         }
 
-        with open(
-            output_dir / "conversion_quality_report.json", "w", encoding="utf-8"
-        ) as f:
+        with open(output_dir / "conversion_quality_report.json", "w", encoding="utf-8") as f:
             json.dump(report, f, indent=2)
 
-        logger.info(
-            f"Quality report saved to {output_dir / 'conversion_quality_report.json'}"
-        )
+        logger.info(f"Quality report saved to {output_dir / 'conversion_quality_report.json'}")
         return report
 
 
@@ -430,9 +406,7 @@ def main():
     # Create Lightning.ai dataset
     if all_training_pairs:
         pipeline.create_lightning_dataset(all_training_pairs, lightning_dir)
-        logger.info(
-            f"Created Lightning.ai dataset with {len(all_training_pairs)} conversations"
-        )
+        logger.info(f"Created Lightning.ai dataset with {len(all_training_pairs)} conversations")
 
         # Generate quality report
         report = pipeline.generate_quality_report(all_file_stats, lightning_dir)
@@ -440,18 +414,12 @@ def main():
         # Log final summary
         logger.info("🎯 Enhanced Conversion Pipeline Complete!")
         logger.info(f"✅ Total Conversations: {len(all_training_pairs)}")
-        logger.info(
-            f"✅ Success Rate: {report['conversion_summary']['overall_success_rate']:.1%}"
-        )
+        logger.info(f"✅ Success Rate: {report['conversion_summary']['overall_success_rate']:.1%}")
         logger.info(
             f"✅ Quality Distribution: High={report['quality_analysis']['high_quality']}, Medium={report['quality_analysis']['medium_quality']}, Low={report['quality_analysis']['low_quality']}"
         )
-        logger.info(
-            f"✅ Extracted Questions: {report['generation_methods']['extracted_questions']}"
-        )
-        logger.info(
-            f"✅ Contextual Questions: {report['generation_methods']['contextual_questions']}"
-        )
+        logger.info(f"✅ Extracted Questions: {report['generation_methods']['extracted_questions']}")
+        logger.info(f"✅ Contextual Questions: {report['generation_methods']['contextual_questions']}")
         logger.info(f"🚀 Ready for Lightning.ai H100 Training: {lightning_dir}")
 
     else:

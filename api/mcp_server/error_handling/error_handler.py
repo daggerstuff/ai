@@ -1,7 +1,6 @@
-
 import logging
 import traceback
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 
@@ -16,29 +15,23 @@ class MCPErrorRecoveryManager:
         self.logger = logging.getLogger(__name__)
         self.error_registry: dict[str, Any] = {}
 
-    def handle_error(
-        self, error: Exception, context: dict[str, Any] | None = None
-    ) -> str:
+    def handle_error(self, error: Exception, context: dict[str, Any] | None = None) -> str:
         """
         Handle an error, log it, and return an error ID.
         """
-        error_id = f"ERR-{int(datetime.now(timezone.utc).timestamp())}"
+        error_id = f"ERR-{int(datetime.now(UTC).timestamp())}"
         error_msg = str(error)
         stack_trace = traceback.format_exc()
 
-        self.logger.error(
-            f"MCP Error {error_id}: {error_msg}\n"
-            f"Context: {context}\n"
-            f"Traceback: {stack_trace}"
-        )
+        self.logger.error(f"MCP Error {error_id}: {error_msg}\nContext: {context}\nTraceback: {stack_trace}")
 
         # Store for analysis/recovery
         self.error_registry[error_id] = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "error_type": type(error).__name__,
             "message": error_msg,
             "context": context,
-            "recovered": False
+            "recovered": False,
         }
 
         return error_id
@@ -56,7 +49,7 @@ class MCPErrorRecoveryManager:
         self.logger.info(f"Attempting recovery for {error_id}...")
 
         # Placeholder for real recovery logic
-        recovered = True # Assume success for now
+        recovered = True  # Assume success for now
 
         error_info["recovered"] = recovered
         return recovered

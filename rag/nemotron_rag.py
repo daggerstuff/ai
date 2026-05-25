@@ -32,7 +32,7 @@ import logging
 import os
 import warnings
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
@@ -82,8 +82,10 @@ def _load_faiss() -> Any | None:
 # Enums and Constants
 # =============================================================================
 
+
 class KnowledgeCategory(StrEnum):
     """Categories of therapeutic knowledge."""
+
     TREATMENT_PROTOCOLS = "treatment_protocols"
     CRISIS_PROTOCOLS = "crisis_protocols"
     PSYCHOEDUCATION = "psychoeducation"
@@ -94,9 +96,10 @@ class KnowledgeCategory(StrEnum):
 
 class IndexType(StrEnum):
     """FAISS index types for different scales."""
-    FLAT = "flat"         # <10K documents, real-time updates
-    IVF = "ivf"           # 10K-1M documents, hourly batch
-    HNSW = "hnsw"         # >1M documents, daily batch
+
+    FLAT = "flat"  # <10K documents, real-time updates
+    IVF = "ivf"  # 10K-1M documents, hourly batch
+    HNSW = "hnsw"  # >1M documents, daily batch
 
 
 # Default knowledge base configuration
@@ -142,6 +145,7 @@ EMBEDDING_DIMENSION = 2048  # Nemotron-Embed-VL produces 2048-dim vectors
 # =============================================================================
 # Configuration Classes
 # =============================================================================
+
 
 class QueryComplexity(StrEnum):
     """Query complexity levels for model selection in RAG."""
@@ -233,8 +237,8 @@ class DocumentMetadata(BaseModel):
     category: KnowledgeCategory
     source: str
     title: str | None = None
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     tags: list[str] = Field(default_factory=list)
     url: str | None = None
     author: str | None = None
@@ -266,9 +270,11 @@ class RAGResponse(BaseModel):
 # Document Store
 # =============================================================================
 
+
 @dataclass
 class Document:
     """Internal document representation."""
+
     doc_id: str
     content: str
     metadata: DocumentMetadata
@@ -305,6 +311,7 @@ class DocumentStore:
 # Main RAG Pipeline
 # =============================================================================
 
+
 class TherapeuticRAGPipeline:
     """
     RAG pipeline for therapeutic knowledge retrieval.
@@ -340,15 +347,10 @@ class TherapeuticRAGPipeline:
             config: Pipeline configuration
         """
         self.config = config
-        self.client = AsyncOpenAI(
-            base_url=config.base_url,
-            api_key=config.api_key
-        )
+        self.client = AsyncOpenAI(base_url=config.base_url, api_key=config.api_key)
         self.store = DocumentStore()
 
-        logger.info(
-            f"Initialized TherapeuticRAGPipeline with {config.index_type} index"
-        )
+        logger.info(f"Initialized TherapeuticRAGPipeline with {config.index_type} index")
 
     def _initialize_vector_store(self) -> None:
         """Initialize FAISS vector index based on configuration."""
@@ -358,8 +360,7 @@ class TherapeuticRAGPipeline:
         faiss_lib = _load_faiss()
         if faiss_lib is None:
             logger.warning(
-                "FAISS not available. Using in-memory search only. "
-                "Install faiss-cpu or faiss-gpu for vector search."
+                "FAISS not available. Using in-memory search only. Install faiss-cpu or faiss-gpu for vector search."
             )
             return
 
@@ -388,12 +389,7 @@ class TherapeuticRAGPipeline:
 
         logger.debug(f"Initialized {self.config.index_type} FAISS index")
 
-    async def ingest_document(
-        self,
-        document: str,
-        metadata: dict[str, Any],
-        doc_id: str | None = None
-    ) -> str:
+    async def ingest_document(self, document: str, metadata: dict[str, Any], doc_id: str | None = None) -> str:
         """
         Ingest a document into the knowledge base.
 
@@ -430,11 +426,7 @@ class TherapeuticRAGPipeline:
 
         # Create document
         doc = Document(
-            doc_id=doc_id,
-            content=document,
-            metadata=doc_metadata,
-            embedding=embedding,
-            embedding_id=len(self.store)
+            doc_id=doc_id, content=document, metadata=doc_metadata, embedding=embedding, embedding_id=len(self.store)
         )
 
         # Add to store
@@ -455,10 +447,7 @@ class TherapeuticRAGPipeline:
             extra_body={"input_type": input_type},
         )
 
-        embedding = np.array(
-            [response.data[0].embedding],
-            dtype=np.float32
-        )
+        embedding = np.array([response.data[0].embedding], dtype=np.float32)
 
         # Normalize for inner product search
         embedding_norm = np.linalg.norm(embedding)
@@ -486,31 +475,63 @@ class TherapeuticRAGPipeline:
 
         # Crisis indicators - safety-critical (check first)
         crisis_keywords = [
-            "suicide", "kill myself", "end my life", "hurt myself",
-            "self-harm", "overdose", "crisis", "emergency", "danger",
-            "unsafe", "hopeless", "want to die", "can't go on",
-            "ending my life", "end it all", "take my life"
+            "suicide",
+            "kill myself",
+            "end my life",
+            "hurt myself",
+            "self-harm",
+            "overdose",
+            "crisis",
+            "emergency",
+            "danger",
+            "unsafe",
+            "hopeless",
+            "want to die",
+            "can't go on",
+            "ending my life",
+            "end it all",
+            "take my life",
         ]
         if any(kw in query_lower for kw in crisis_keywords):
             return QueryComplexity.CRISIS
 
         # Complex therapeutic reasoning indicators
         complex_keywords = [
-			"why do i feel", "understand my", "relationship between",
-			"pattern in my", "trauma", "underlying", "deeper issue",
-			"connection between", "emotional root", "psychological",
-			"therapy process", "treatment approach", "nuanced",
-			"subtle", "complex", " vs ", "versus"
-		]
+            "why do i feel",
+            "understand my",
+            "relationship between",
+            "pattern in my",
+            "trauma",
+            "underlying",
+            "deeper issue",
+            "connection between",
+            "emotional root",
+            "psychological",
+            "therapy process",
+            "treatment approach",
+            "nuanced",
+            "subtle",
+            "complex",
+            " vs ",
+            "versus",
+        ]
         if any(kw in query_lower for kw in complex_keywords):
             return QueryComplexity.COMPLEX
 
         # Moderate complexity - synthesis and multi-concept
         moderate_keywords = [
-			"how does", "what are the differences",
-			"multiple", "various", "several", "both", "combination",
-			"together", "integrate", "compare", "comparison"
-		]
+            "how does",
+            "what are the differences",
+            "multiple",
+            "various",
+            "several",
+            "both",
+            "combination",
+            "together",
+            "integrate",
+            "compare",
+            "comparison",
+        ]
         if any(kw in query_lower for kw in moderate_keywords):
             return QueryComplexity.MODERATE
 
@@ -527,10 +548,7 @@ class TherapeuticRAGPipeline:
             Model identifier from ModelTier enum
         """
         complexity = self._classify_query_complexity(query)
-        return self.config.complexity_model_mapping.get(
-            complexity.value,
-            self.config.generation_model
-        )
+        return self.config.complexity_model_mapping.get(complexity.value, self.config.generation_model)
 
     def _add_to_index(self, embedding: np.ndarray) -> None:
         """Add embedding to FAISS index."""
@@ -543,10 +561,9 @@ class TherapeuticRAGPipeline:
         if self.config.index_type == IndexType.IVF and not self.store.is_trained:
             if len(self.store) >= self.config.n_clusters:
                 # Gather all embeddings for training
-                embeddings = np.vstack([
-                    doc.embedding for doc in self.store.documents.values()
-                    if doc.embedding is not None
-                ])
+                embeddings = np.vstack(
+                    [doc.embedding for doc in self.store.documents.values() if doc.embedding is not None]
+                )
                 self.store.index.train(embeddings)
                 self.store.is_trained = True
                 logger.info("Trained IVF index with {len(embeddings)} vectors")
@@ -556,10 +573,7 @@ class TherapeuticRAGPipeline:
             self.store.index.add(embedding)
 
     async def retrieve(
-        self,
-        query: str,
-        category: KnowledgeCategory | None = None,
-        n_results: int | None = None
+        self, query: str, category: KnowledgeCategory | None = None, n_results: int | None = None
     ) -> list[Document]:
         """
         Retrieve relevant documents for a query.
@@ -585,24 +599,13 @@ class TherapeuticRAGPipeline:
             candidates = self._search_memory(query_embedding, category)
 
         # Rerank candidates (simplified - use similarity scores)
-        ranked = sorted(
-            candidates,
-            key=lambda x: x.get("score", 0),
-            reverse=True
-        )
+        ranked = sorted(candidates, key=lambda x: x.get("score", 0), reverse=True)
 
         return [c["document"] for c in ranked[:n_results]]
 
-    def _search_faiss(
-        self,
-        query_embedding: np.ndarray,
-        category: KnowledgeCategory | None
-    ) -> list[dict]:
+    def _search_faiss(self, query_embedding: np.ndarray, category: KnowledgeCategory | None) -> list[dict]:
         """Search using FAISS index."""
-        distances, indices = self.store.index.search(
-            query_embedding,
-            self.config.retrieval_top_k
-        )
+        distances, indices = self.store.index.search(query_embedding, self.config.retrieval_top_k)
 
         candidates = []
         for dist, idx in zip(distances[0], indices[0], strict=False):
@@ -614,18 +617,11 @@ class TherapeuticRAGPipeline:
             if category and doc.metadata.category != category:
                 continue
 
-            candidates.append({
-                "document": doc,
-                "score": float(dist)
-            })
+            candidates.append({"document": doc, "score": float(dist)})
 
         return candidates
 
-    def _search_memory(
-        self,
-        query_embedding: np.ndarray,
-        category: KnowledgeCategory | None
-    ) -> list[dict]:
+    def _search_memory(self, query_embedding: np.ndarray, category: KnowledgeCategory | None) -> list[dict]:
         """Fallback in-memory search when FAISS is unavailable."""
         candidates = []
 
@@ -639,10 +635,7 @@ class TherapeuticRAGPipeline:
 
             # Compute cosine similarity
             similarity = float(np.dot(query_embedding, doc.embedding.T)[0, 0])
-            candidates.append({
-                "document": doc,
-                "score": similarity
-            })
+            candidates.append({"document": doc, "score": similarity})
 
         return candidates
 
@@ -651,7 +644,7 @@ class TherapeuticRAGPipeline:
         query: str,
         category: KnowledgeCategory | None = None,
         _user_id: str | None = None,
-        include_citations: bool = True
+        include_citations: bool = True,
     ) -> RAGResponse:
         """
         Query the knowledge base and generate a response.
@@ -671,7 +664,7 @@ class TherapeuticRAGPipeline:
         Returns:
             RAGResponse with generated text and sources
         """
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
 
         # Select appropriate model based on query complexity
         selected_model = self._select_model_for_query(query)
@@ -683,7 +676,7 @@ class TherapeuticRAGPipeline:
         if not context_docs:
             # No relevant documents found
             response_text = await self._generate_without_context(query, selected_model)
-            latency = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+            latency = (datetime.now(UTC) - start_time).total_seconds() * 1000
 
             return RAGResponse(
                 response=response_text,
@@ -691,7 +684,7 @@ class TherapeuticRAGPipeline:
                 model=selected_model,
                 retrieved_count=0,
                 latency_ms=latency,
-                citations=[]
+                citations=[],
             )
 
         # Build context string
@@ -705,7 +698,7 @@ class TherapeuticRAGPipeline:
         if include_citations:
             citations = [doc.metadata.source for doc in context_docs]
 
-        latency = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+        latency = (datetime.now(UTC) - start_time).total_seconds() * 1000
 
         return RAGResponse(
             response=response_text,
@@ -713,7 +706,7 @@ class TherapeuticRAGPipeline:
             model=selected_model,
             retrieved_count=len(context_docs),
             latency_ms=latency,
-            citations=citations
+            citations=citations,
         )
 
     def _build_context(self, documents: list[Document]) -> str:
@@ -725,18 +718,11 @@ class TherapeuticRAGPipeline:
             title = doc.metadata.title or "Untitled"
             content_preview = doc.content[:500]
 
-            context_parts.append(
-                f"[Source {i+1}: {source} - {title}]\n{content_preview}"
-            )
+            context_parts.append(f"[Source {i + 1}: {source} - {title}]\n{content_preview}")
 
         return "\n\n".join(context_parts)
 
-    async def _generate_with_context(
-        self,
-        query: str,
-        context: str,
-        model: str | None = None
-    ) -> str:
+    async def _generate_with_context(self, query: str, context: str, model: str | None = None) -> str:
         """Generate response using retrieved context.
 
         Args:
@@ -751,26 +737,16 @@ class TherapeuticRAGPipeline:
         response = await self.client.chat.completions.create(
             model=model,
             messages=[
-                {
-                    "role": "system",
-                    "content": self._get_rag_system_prompt()
-                },
-                {
-                    "role": "user",
-                    "content": f"Context:\n{context}\n\nQuestion: {query}"
-                }
+                {"role": "system", "content": self._get_rag_system_prompt()},
+                {"role": "user", "content": f"Context:\n{context}\n\nQuestion: {query}"},
             ],
             temperature=self.config.generation_temperature,
-            max_tokens=self.config.max_generation_tokens
+            max_tokens=self.config.max_generation_tokens,
         )
 
         return response.choices[0].message.content
 
-    async def _generate_without_context(
-        self,
-        query: str,
-        model: str | None = None
-    ) -> str:
+    async def _generate_without_context(self, query: str, model: str | None = None) -> str:
         """Generate response when no relevant context is found.
 
         Args:
@@ -784,17 +760,14 @@ class TherapeuticRAGPipeline:
         response = await self.client.chat.completions.create(
             model=model,
             messages=[
-                {
-                    "role": "system",
-                    "content": self._get_rag_system_prompt()
-                },
+                {"role": "system", "content": self._get_rag_system_prompt()},
                 {
                     "role": "user",
-                    "content": f"No relevant context was found in the knowledge base.\n\nQuestion: {query}"
-                }
+                    "content": f"No relevant context was found in the knowledge base.\n\nQuestion: {query}",
+                },
             ],
             temperature=self.config.generation_temperature,
-            max_tokens=self.config.max_generation_tokens
+            max_tokens=self.config.max_generation_tokens,
         )
 
         return response.choices[0].message.content
@@ -821,10 +794,7 @@ Important safety considerations:
 - Recommend professional help for serious concerns
 - Validate emotions while maintaining appropriate boundaries"""
 
-    async def batch_ingest(
-        self,
-        documents: list[dict[str, Any]]
-    ) -> list[str]:
+    async def batch_ingest(self, documents: list[dict[str, Any]]) -> list[str]:
         """
         Batch ingest multiple documents.
 
@@ -835,11 +805,7 @@ Important safety considerations:
             List of ingested document IDs
         """
         tasks = [
-            self.ingest_document(
-                document=doc["document"],
-                metadata=doc.get("metadata", {}),
-                doc_id=doc.get("doc_id")
-            )
+            self.ingest_document(document=doc["document"], metadata=doc.get("metadata", {}), doc_id=doc.get("doc_id"))
             for doc in documents
         ]
 
@@ -853,12 +819,9 @@ Important safety considerations:
             "index_trained": self.store.is_trained,
             "embedding_dimension": self.config.embedding_dimension,
             "categories": {
-                cat.value: sum(
-                    1 for doc in self.store.documents.values()
-                    if doc.metadata.category == cat
-                )
+                cat.value: sum(1 for doc in self.store.documents.values() if doc.metadata.category == cat)
                 for cat in KnowledgeCategory
-            }
+            },
         }
 
 
@@ -866,10 +829,9 @@ Important safety considerations:
 # Factory Function
 # =============================================================================
 
+
 def create_rag_pipeline(
-    api_key: str | None = None,
-    index_type: IndexType = IndexType.IVF,
-    **kwargs
+    api_key: str | None = None, index_type: IndexType = IndexType.IVF, **kwargs
 ) -> TherapeuticRAGPipeline:
     """
     Create a RAG pipeline with sensible defaults.
@@ -882,11 +844,7 @@ def create_rag_pipeline(
     Returns:
         Configured TherapeuticRAGPipeline instance
     """
-    config = NemotronRAGConfig(
-        api_key=api_key or os.environ.get("NVIDIA_API_KEY", ""),
-        index_type=index_type,
-        **kwargs
-    )
+    config = NemotronRAGConfig(api_key=api_key or os.environ.get("NVIDIA_API_KEY", ""), index_type=index_type, **kwargs)
 
     return TherapeuticRAGPipeline(config)
 
@@ -894,6 +852,7 @@ def create_rag_pipeline(
 # =============================================================================
 # Convenience Functions
 # =============================================================================
+
 
 async def embed_text(text: str, api_key: str | None = None) -> np.ndarray:
     """
@@ -906,10 +865,7 @@ async def embed_text(text: str, api_key: str | None = None) -> np.ndarray:
     Returns:
         Normalized embedding vector
     """
-    client = AsyncOpenAI(
-        base_url=NIM_BASE_URL,
-        api_key=api_key or os.environ.get("NVIDIA_API_KEY", "")
-    )
+    client = AsyncOpenAI(base_url=NIM_BASE_URL, api_key=api_key or os.environ.get("NVIDIA_API_KEY", ""))
 
     response = await client.embeddings.create(
         model=NIM_EMBEDDING_MODEL,
@@ -918,10 +874,7 @@ async def embed_text(text: str, api_key: str | None = None) -> np.ndarray:
         extra_body={"input_type": "query"},
     )
 
-    embedding = np.array(
-        [response.data[0].embedding],
-        dtype=np.float32
-    )
+    embedding = np.array([response.data[0].embedding], dtype=np.float32)
 
     embedding_norm = np.linalg.norm(embedding, axis=1, keepdims=True)
     if embedding_norm.size and float(embedding_norm.item()) > 0:

@@ -8,7 +8,6 @@ import asyncio
 from typing import Any
 
 from .reflection_types import Memory, MemoryCategory, MemoryMetadata
-from .unified_memory import MemoryProvider
 
 
 class LettaMemoryProvider:

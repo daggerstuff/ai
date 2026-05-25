@@ -361,9 +361,7 @@ class ParameterValidator:
                 continue
 
             prop_schema = properties[field_name]
-            ParameterValidator._validate_property(
-                field_name, value, prop_schema, context
-            )
+            ParameterValidator._validate_property(field_name, value, prop_schema, context)
 
     @staticmethod
     def _validate_property(
@@ -455,14 +453,10 @@ class ParameterValidator:
 
         # Validate enum if specified
         if "enum" in prop_schema:
-            ParameterValidator.validate_enum(
-                value, prop_schema["enum"], field_name
-            )
+            ParameterValidator.validate_enum(value, prop_schema["enum"], field_name)
 
 
-def validate_tool_parameters(
-    params: dict[str, Any], schema: dict[str, Any]
-) -> None:
+def validate_tool_parameters(params: dict[str, Any], schema: dict[str, Any]) -> None:
     """
     Validate tool parameters against schema.
 
@@ -476,9 +470,7 @@ def validate_tool_parameters(
     ParameterValidator.validate_json_schema(params, schema, "tool parameter")
 
 
-def validate_resource_parameters(
-    params: dict[str, Any], schema: dict[str, Any] | None = None
-) -> None:
+def validate_resource_parameters(params: dict[str, Any], schema: dict[str, Any] | None = None) -> None:
     """
     Validate resource parameters.
 
@@ -499,9 +491,7 @@ def validate_resource_parameters(
         )
 
 
-def validate_prompt_arguments(
-    args: dict[str, Any], schema: dict[str, Any]
-) -> None:
+def validate_prompt_arguments(args: dict[str, Any], schema: dict[str, Any]) -> None:
     """
     Validate prompt arguments against schema.
 
@@ -513,4 +503,3 @@ def validate_prompt_arguments(
         ValidationError: If validation fails
     """
     ParameterValidator.validate_json_schema(args, schema, "prompt argument")
-

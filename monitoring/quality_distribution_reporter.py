@@ -10,7 +10,7 @@ import json
 import logging
 import warnings
 from dataclasses import asdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -67,9 +67,7 @@ class QualityDistributionReporter:
         include_comparisons: bool = True,
     ) -> QualityDistributionReport:
         """Generate comprehensive quality distribution report."""
-        logger.info(
-            f"📈 Generating comprehensive distribution report ({days_back} days)"
-        )
+        logger.info(f"📈 Generating comprehensive distribution report ({days_back} days)")
 
         # Load quality data
         df = self.analyzer.load_quality_data(days_back=days_back)
@@ -79,9 +77,7 @@ class QualityDistributionReporter:
             return self._create_empty_report()
 
         # Overall distribution analysis
-        overall_distribution = self.analyzer.analyze_quality_distribution(
-            df["overall_quality"], "overall_quality"
-        )
+        overall_distribution = self.analyzer.analyze_quality_distribution(df["overall_quality"], "overall_quality")
 
         # Component-wise distribution analysis
         component_distributions = {}
@@ -89,25 +85,19 @@ class QualityDistributionReporter:
             if component in df.columns:
                 component_series = df[component].dropna()
                 if len(component_series) >= self.analyzer.min_sample_size:
-                    component_analysis = self.analyzer.analyze_quality_distribution(
-                        component_series, component
-                    )
+                    component_analysis = self.analyzer.analyze_quality_distribution(component_series, component)
                     component_distributions[component] = component_analysis
 
         # Comparative analyses
         comparative_analyses = {}
         if include_comparisons:
             # Tier comparison
-            tier_comparison = self.comparator.compare_across_tiers(
-                df, "overall_quality"
-            )
+            tier_comparison = self.comparator.compare_across_tiers(df, "overall_quality")
             if tier_comparison.groups:
                 comparative_analyses["tier"] = tier_comparison
 
             # Dataset comparison
-            dataset_comparison = self.comparator.compare_across_datasets(
-                df, "overall_quality"
-            )
+            dataset_comparison = self.comparator.compare_across_datasets(df, "overall_quality")
             if dataset_comparison.groups:
                 comparative_analyses["dataset"] = dataset_comparison
 
@@ -117,9 +107,7 @@ class QualityDistributionReporter:
                 comparative_analyses["component"] = component_comparison
 
             # Time period comparison
-            time_comparison = self.comparator.compare_across_time_periods(
-                df, "overall_quality", "month"
-            )
+            time_comparison = self.comparator.compare_across_time_periods(df, "overall_quality", "month")
             if time_comparison.groups:
                 comparative_analyses["time_period"] = time_comparison
 
@@ -136,13 +124,11 @@ class QualityDistributionReporter:
             comparative_analyses,
             correlation_analysis,
         )
-        action_items = self._generate_action_items(
-            overall_distribution, component_distributions, comparative_analyses
-        )
+        action_items = self._generate_action_items(overall_distribution, component_distributions, comparative_analyses)
 
         # Create comprehensive report
         report = QualityDistributionReport(
-            generated_at=datetime.now(timezone.utc).isoformat(),
+            generated_at=datetime.now(UTC).isoformat(),
             analysis_period=f"{days_back}_days",
             overall_distribution=overall_distribution,
             component_distributions=component_distributions,
@@ -197,19 +183,15 @@ class QualityDistributionReporter:
         )
 
         return QualityDistributionReport(
-            generated_at=datetime.now(timezone.utc).isoformat(),
+            generated_at=datetime.now(UTC).isoformat(),
             analysis_period="no_data",
             overall_distribution=empty_distribution,
             component_distributions={},
             comparative_analyses={},
             correlation_analysis={},
             executive_summary=["No quality data available for distribution analysis"],
-            detailed_insights=[
-                "Please ensure quality validation has been run on conversations"
-            ],
-            action_items=[
-                "Run quality validation pipeline to generate distribution data"
-            ],
+            detailed_insights=["Please ensure quality validation has been run on conversations"],
+            action_items=["Run quality validation pipeline to generate distribution data"],
         )
 
     def _generate_executive_summary(
@@ -223,24 +205,18 @@ class QualityDistributionReporter:
 
         # Overall distribution summary
         if overall_distribution.sample_size > 0:
-            summary.append(
-                f"📊 Analyzed {overall_distribution.sample_size:,} conversations for quality distribution"
-            )
+            summary.append(f"📊 Analyzed {overall_distribution.sample_size:,} conversations for quality distribution")
             summary.append(
                 f"📈 Overall quality: Mean={overall_distribution.statistics.mean:.3f}, Median={overall_distribution.statistics.median:.3f}"
             )
-            summary.append(
-                f"📊 Distribution type: {overall_distribution.distribution_type.replace('_', ' ').title()}"
-            )
+            summary.append(f"📊 Distribution type: {overall_distribution.distribution_type.replace('_', ' ').title()}")
 
             # Variability assessment
             cv = overall_distribution.statistics.coefficient_of_variation
             if cv > 0.3:
                 summary.append(f"⚠️ High quality variability detected (CV={cv:.3f})")
             elif cv < 0.1:
-                summary.append(
-                    f"✅ Low quality variability - consistent performance (CV={cv:.3f})"
-                )
+                summary.append(f"✅ Low quality variability - consistent performance (CV={cv:.3f})")
 
             # Outlier summary
             if len(overall_distribution.outliers) > 10:
@@ -250,25 +226,17 @@ class QualityDistributionReporter:
 
         # Normality assessment
         if overall_distribution.normality_tests:
-            normal_tests_passed = sum(
-                1 for test in overall_distribution.normality_tests if test.is_normal
-            )
+            normal_tests_passed = sum(1 for test in overall_distribution.normality_tests if test.is_normal)
             total_tests = len(overall_distribution.normality_tests)
             if normal_tests_passed / total_tests >= 0.5:
                 summary.append("✅ Quality distribution is approximately normal")
             else:
-                summary.append(
-                    "⚠️ Quality distribution deviates from normality - consider non-parametric methods"
-                )
+                summary.append("⚠️ Quality distribution deviates from normality - consider non-parametric methods")
 
         # Component insights
         if component_distributions:
-            best_component = max(
-                component_distributions.items(), key=lambda x: x[1].statistics.mean
-            )
-            worst_component = min(
-                component_distributions.items(), key=lambda x: x[1].statistics.mean
-            )
+            best_component = max(component_distributions.items(), key=lambda x: x[1].statistics.mean)
+            worst_component = min(component_distributions.items(), key=lambda x: x[1].statistics.mean)
 
             summary.append(
                 f"🏆 Best performing component: {best_component[0].replace('_', ' ')} (mean: {best_component[1].statistics.mean:.3f})"
@@ -281,19 +249,11 @@ class QualityDistributionReporter:
         if "tier" in comparative_analyses:
             tier_analysis = comparative_analyses["tier"]
             if tier_analysis.statistical_tests:
-                significant_tests = [
-                    test
-                    for test in tier_analysis.statistical_tests
-                    if test.get("significant", False)
-                ]
+                significant_tests = [test for test in tier_analysis.statistical_tests if test.get("significant", False)]
                 if significant_tests:
-                    summary.append(
-                        "📊 Significant quality differences detected between tiers"
-                    )
+                    summary.append("📊 Significant quality differences detected between tiers")
                 else:
-                    summary.append(
-                        "✅ No significant quality differences between tiers"
-                    )
+                    summary.append("✅ No significant quality differences between tiers")
 
         return summary
 
@@ -310,15 +270,11 @@ class QualityDistributionReporter:
         # Statistical insights
         if overall_distribution.sample_size > 0:
             stats = overall_distribution.statistics
-            insights.append(
-                f"📊 Distribution Statistics: Skewness={stats.skewness:.3f}, Kurtosis={stats.kurtosis:.3f}"
-            )
+            insights.append(f"📊 Distribution Statistics: Skewness={stats.skewness:.3f}, Kurtosis={stats.kurtosis:.3f}")
             insights.append(
                 f"📈 Quality Range: {stats.min_value:.3f} to {stats.max_value:.3f} (range: {stats.range_value:.3f})"
             )
-            insights.append(
-                f"📊 Quartiles: Q1={stats.q1:.3f}, Q3={stats.q3:.3f}, IQR={stats.iqr:.3f}"
-            )
+            insights.append(f"📊 Quartiles: Q1={stats.q1:.3f}, Q3={stats.q3:.3f}, IQR={stats.iqr:.3f}")
 
         # Normality test insights
         if overall_distribution.normality_tests:
@@ -348,15 +304,9 @@ class QualityDistributionReporter:
         # Comparative insights
         for dimension, analysis in comparative_analyses.items():
             if hasattr(analysis, "statistical_tests") and analysis.statistical_tests:
-                significant_tests = [
-                    test
-                    for test in analysis.statistical_tests
-                    if test.get("significant", False)
-                ]
+                significant_tests = [test for test in analysis.statistical_tests if test.get("significant", False)]
                 if significant_tests:
-                    insights.append(
-                        f"🔍 {dimension.title()} comparison: {significant_tests[0]['interpretation']}"
-                    )
+                    insights.append(f"🔍 {dimension.title()} comparison: {significant_tests[0]['interpretation']}")
 
         # Correlation insights
         if correlation_analysis and "strongest_correlations" in correlation_analysis:
@@ -387,25 +337,17 @@ class QualityDistributionReporter:
             "skewed_right",
             "highly_skewed",
         ]:
-            actions.append(
-                "📊 Consider data transformation to normalize skewed distribution"
-            )
+            actions.append("📊 Consider data transformation to normalize skewed distribution")
 
         if len(overall_distribution.outliers) > 10:
-            actions.append(
-                "🔍 Investigate quality outliers for data quality issues or process improvements"
-            )
+            actions.append("🔍 Investigate quality outliers for data quality issues or process improvements")
 
         # Component-specific actions
         if component_distributions:
             # Focus on worst performing component
-            worst_component = min(
-                component_distributions.items(), key=lambda x: x[1].statistics.mean
-            )
+            worst_component = min(component_distributions.items(), key=lambda x: x[1].statistics.mean)
             if worst_component[1].statistics.mean < 0.6:  # Assuming 0-1 scale
-                actions.append(
-                    f"🎯 Focus improvement efforts on {worst_component[0].replace('_', ' ')} component"
-                )
+                actions.append(f"🎯 Focus improvement efforts on {worst_component[0].replace('_', ' ')} component")
 
             # Address high variability
             high_variability_components = [
@@ -414,41 +356,28 @@ class QualityDistributionReporter:
                 if analysis.statistics.coefficient_of_variation > 0.3
             ]
             if high_variability_components:
-                actions.append(
-                    f"📈 Reduce variability in: {', '.join(high_variability_components[:3])}"
-                )
+                actions.append(f"📈 Reduce variability in: {', '.join(high_variability_components[:3])}")
 
         # Comparative analysis actions
         if "tier" in comparative_analyses:
             tier_analysis = comparative_analyses["tier"]
             if tier_analysis.groups:
                 # Find worst performing tier
-                tier_means = {
-                    name: analysis.statistics.mean
-                    for name, analysis in tier_analysis.groups.items()
-                }
+                tier_means = {name: analysis.statistics.mean for name, analysis in tier_analysis.groups.items()}
                 worst_tier = min(tier_means.items(), key=lambda x: x[1])
                 if worst_tier[1] < 0.6:
-                    actions.append(
-                        f"📋 Review and improve quality processes for {worst_tier[0]} tier"
-                    )
+                    actions.append(f"📋 Review and improve quality processes for {worst_tier[0]} tier")
 
         # Statistical method recommendations
         if overall_distribution.normality_tests:
-            normal_tests_passed = sum(
-                1 for test in overall_distribution.normality_tests if test.is_normal
-            )
+            normal_tests_passed = sum(1 for test in overall_distribution.normality_tests if test.is_normal)
             total_tests = len(overall_distribution.normality_tests)
             if normal_tests_passed / total_tests < 0.5:
-                actions.append(
-                    "📊 Use non-parametric statistical methods for quality analysis"
-                )
+                actions.append("📊 Use non-parametric statistical methods for quality analysis")
 
         return actions
 
-    def create_distribution_visualizations(
-        self, report: QualityDistributionReport
-    ) -> dict[str, go.Figure]:
+    def create_distribution_visualizations(self, report: QualityDistributionReport) -> dict[str, go.Figure]:
         """Create comprehensive distribution visualizations."""
         visualizations = {}
 
@@ -499,9 +428,7 @@ class QualityDistributionReporter:
                 # Create synthetic data for box plot (since we don't store raw data)
                 stats = analysis.statistics
                 synthetic_data = np.random.normal(stats.mean, stats.std_dev, 100)
-                synthetic_data = np.clip(
-                    synthetic_data, stats.min_value, stats.max_value
-                )
+                synthetic_data = np.clip(synthetic_data, stats.min_value, stats.max_value)
 
                 fig.add_trace(
                     go.Box(
@@ -526,14 +453,8 @@ class QualityDistributionReporter:
                 fig = go.Figure()
 
                 tiers = list(tier_analysis.groups.keys())
-                means = [
-                    analysis.statistics.mean
-                    for analysis in tier_analysis.groups.values()
-                ]
-                stds = [
-                    analysis.statistics.std_dev
-                    for analysis in tier_analysis.groups.values()
-                ]
+                means = [analysis.statistics.mean for analysis in tier_analysis.groups.values()]
+                stds = [analysis.statistics.std_dev for analysis in tier_analysis.groups.values()]
 
                 fig.add_trace(
                     go.Bar(
@@ -555,10 +476,7 @@ class QualityDistributionReporter:
                 visualizations["tier_comparison"] = fig
 
         # Correlation heatmap
-        if (
-            report.correlation_analysis
-            and "correlation_matrix" in report.correlation_analysis
-        ):
+        if report.correlation_analysis and "correlation_matrix" in report.correlation_analysis:
             corr_matrix = report.correlation_analysis["correlation_matrix"]
 
             # Convert to DataFrame for easier handling
@@ -588,11 +506,9 @@ class QualityDistributionReporter:
 
         return visualizations
 
-    def save_report(
-        self, report: QualityDistributionReport, format: str = "json"
-    ) -> str:
+    def save_report(self, report: QualityDistributionReport, format: str = "json") -> str:
         """Save distribution report to file."""
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
 
         if format == "json":
             filename = f"quality_distribution_report_{timestamp}.json"
@@ -621,9 +537,7 @@ class QualityDistributionReporter:
         """Generate HTML report from distribution analysis."""
         template = Template(self.report_templates["detailed"])
 
-        return template.render(
-            report=report, generated_at=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
-        )
+        return template.render(report=report, generated_at=datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S"))
 
     def _get_executive_template(self) -> str:
         """Get executive summary template."""
@@ -757,7 +671,6 @@ def main():
     # Save report
     reporter.save_report(report, format="json")
     reporter.save_report(report, format="html")
-
 
     # Display summary
     for _item in report.executive_summary:

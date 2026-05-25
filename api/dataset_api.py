@@ -8,9 +8,9 @@ from fastapi import Depends, FastAPI, HTTPException, Query, Request, Security, s
 from pydantic import BaseModel
 
 from security.api_authentication import (
-    UserRole,
     AuthenticationSystem,
     PermissionLevel,
+    UserRole,
 )
 from security.fastapi_auth_middleware import (
     AuthenticationDependencies,
@@ -26,15 +26,14 @@ auth_deps = AuthenticationDependencies(auth_system)
 
 # Create a test API key for demonstration purposes
 # In a real application, API keys would be managed securely (e.g., via admin interface)
+API_KEY_EXPIRY_DAYS = int(os.getenv("API_KEY_EXPIRY_DAYS", "365"))
 TEST_API_KEY, _ = auth_system.create_api_key(
     "test_dataset_api_key",
     [PermissionLevel.READ, PermissionLevel.WRITE],
-    expires_in_days=365,
+    expires_in_days=API_KEY_EXPIRY_DAYS,
 )
 
-app = FastAPI(
-    title="Dataset Access API", description="API for accessing and querying datasets."
-)
+app = FastAPI(title="Dataset Access API", description="API for accessing and querying datasets.")
 
 DATABASE_URL = "/home/vivi/pixelated/ai/data/conversation_system.db"
 
@@ -76,16 +75,12 @@ class QueryResult(BaseModel):
 async def get_api_key_user(api_key: str = Security(api_key_header)) -> dict[str, Any]:
     """Dedicated API key authentication dependency"""
     if not api_key:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="API key required"
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="API key required")
 
     # Validate API key using the authentication system
     api_key_obj = auth_system.authenticate_api_key(api_key)
     if not api_key_obj:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid API key"
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid API key")
 
     return {
         "username": api_key_obj.name,
@@ -94,9 +89,7 @@ async def get_api_key_user(api_key: str = Security(api_key_header)) -> dict[str,
     }
 
 
-async def get_current_active_user_or_api_key(
-    request: Request, api_key: str | None = Depends(api_key_header)
-):
+async def get_current_active_user_or_api_key(request: Request, api_key: str | None = Depends(api_key_header)):
     """Modified authentication function that supports both user tokens and API keys"""
     # First try to get authenticated user from request state (JWT token auth)
     user = getattr(request.state, "authenticated_user", None)
@@ -317,9 +310,7 @@ async def query_dataset(
             for col, val in filters.items():
                 # Check if column exists in table (sanitization allow-list)
                 if col not in valid_columns:
-                    raise HTTPException(
-                        status_code=400, detail=f"Invalid filter column: {col}"
-                    )
+                    raise HTTPException(status_code=400, detail=f"Invalid filter column: {col}")
 
                 # Since col is verified to be in valid_columns (from DB metadata),
                 # it is safe to use in the query as a column identifier.
@@ -344,9 +335,7 @@ async def query_dataset(
         for row in rows:
             results.append(dict(row))
 
-        return QueryResult(
-            data=results, total_rows=total_rows, page=page, page_size=page_size
-        )
+        return QueryResult(data=results, total_rows=total_rows, page=page, page_size=page_size)
 
     except sqlite3.Error as e:
         logger.error(f"Database error: {e}")

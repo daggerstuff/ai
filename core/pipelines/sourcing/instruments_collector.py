@@ -33,4 +33,4 @@ class InstrumentsCollector:
         return {"total": len(self._instruments), "valid": sum(1 for i in self._instruments if i.valid)}
 
 
-__all__ = ["InstrumentsCollector", "InstrumentResult"]
+__all__ = ["InstrumentResult", "InstrumentsCollector"]

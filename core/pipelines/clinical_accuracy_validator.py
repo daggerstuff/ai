@@ -63,12 +63,8 @@ class ClinicalAccuracyValidator:
                 if isinstance(value, str):
                     return value
             if isinstance(data.get("messages"), list):
-                return " ".join(
-                    msg.get("content", "")
-                    for msg in data["messages"]
-                    if isinstance(msg, dict)
-                )
+                return " ".join(msg.get("content", "") for msg in data["messages"] if isinstance(msg, dict))
         raise TypeError("Unsupported payload type for ClinicalAccuracyValidator")
 
 
-__all__ = ["ClinicalAccuracyValidator", "ClinicalAccuracyResult"]
+__all__ = ["ClinicalAccuracyResult", "ClinicalAccuracyValidator"]

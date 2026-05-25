@@ -4,7 +4,6 @@ Report API routes.
 This module provides endpoints for report generation.
 """
 
-
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from ai.sourcing.journal.api.dependencies import (

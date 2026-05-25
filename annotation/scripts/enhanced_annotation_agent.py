@@ -12,6 +12,7 @@ Key Enhancements:
 3. Agent evaluation and profiling capabilities
 4. Multi-agent orchestration patterns
 """
+
 import argparse
 import json
 import os
@@ -145,9 +146,7 @@ class EnhancedAnnotationAgent:
 
     def _get_system_prompt(self, name: str) -> str:
         """Get system prompt with enhanced reasoning instructions"""
-        base_prompt = {"Dr. A": DR_A_PERSONA, "Dr. B": DR_B_PERSONA}.get(
-            name, "You are a helpful annotator."
-        )
+        base_prompt = {"Dr. A": DR_A_PERSONA, "Dr. B": DR_B_PERSONA}.get(name, "You are a helpful annotator.")
 
         # Add reasoning enhancement (Llama Nemotron pattern)
         reasoning_enhancement = """
@@ -186,17 +185,13 @@ GUARDRAILS:
         # Emotional safety check
         if self.guardrail_config.check_emotional_safety:
             emotion_intensity = annotation.get("emotion_intensity", 0)
-            checks["emotional_safety"] = (
-                0 <= emotion_intensity <= self.guardrail_config.max_emotion_intensity
-            )
+            checks["emotional_safety"] = 0 <= emotion_intensity <= self.guardrail_config.max_emotion_intensity
 
         # Clinical accuracy check
         if self.guardrail_config.check_clinical_accuracy:
             crisis_label = annotation.get("crisis_label", 0)
             crisis_confidence = annotation.get("crisis_confidence", 0)
-            checks["clinical_accuracy"] = (
-                0 <= crisis_label <= 5 and 1 <= crisis_confidence <= 5
-            )
+            checks["clinical_accuracy"] = 0 <= crisis_label <= 5 and 1 <= crisis_confidence <= 5
 
         # Bias detection check
         if self.guardrail_config.check_bias_detection:
@@ -357,9 +352,7 @@ Respond ONLY with valid JSON in this exact format:
         except Exception:
             return self._mock_annotation(data, error=False)
 
-    def _mock_annotation(
-        self, data: dict[str, Any], error: bool = False
-    ) -> dict[str, Any]:
+    def _mock_annotation(self, data: dict[str, Any], error: bool = False) -> dict[str, Any]:
         """Generate mock annotation for testing"""
 
         time.sleep(0.01)
@@ -383,19 +376,14 @@ Respond ONLY with valid JSON in this exact format:
         return {
             "crisis_label": random.randint(1, 4) if is_crisis else 0,
             "crisis_confidence": random.randint(3, 5),
-            "primary_emotion": random.choice(
-                ["Positive", "Sadness", "Anxiety", "Anger", "Neutral"]
-            ),
+            "primary_emotion": random.choice(["Positive", "Sadness", "Anxiety", "Anger", "Neutral"]),
             "secondary_emotions": ["Anxiety", "Neutral"] if random.random() < 0.2 else [],
             "emotion_intensity": min(10, max(1, int(random.gauss(avg_intensity, 2)))),
             "valence": round(random.uniform(-1.0, 1.0), 2),
             "arousal": round(random.uniform(0.0, 1.0), 2),
             "empathy_score": random.randint(1, 5),
             "safety_pass": True,
-            "notes": (
-                f"Mock annotation by {self.persona_name}. "
-                f"Guardrails: {self.guardrail_config}"
-            ),
+            "notes": (f"Mock annotation by {self.persona_name}. Guardrails: {self.guardrail_config}"),
         }
 
     def export_metrics(self, output_path: Path) -> None:
@@ -410,15 +398,10 @@ Respond ONLY with valid JSON in this exact format:
                     "role": self.role.value,
                     "total_tasks": len(self.metrics),
                     "avg_processing_time": (
-                        sum(m.processing_time for m in self.metrics) / len(self.metrics)
-                        if self.metrics
-                        else 0
+                        sum(m.processing_time for m in self.metrics) / len(self.metrics) if self.metrics else 0
                     ),
                     "avg_confidence": (
-                        sum(m.confidence_score for m in self.metrics)
-                        / len(self.metrics)
-                        if self.metrics
-                        else 0
+                        sum(m.confidence_score for m in self.metrics) / len(self.metrics) if self.metrics else 0
                     ),
                     "guardrail_pass_rate": self._calculate_guardrail_pass_rate(),
                     "metrics": metrics_data,
@@ -426,7 +409,6 @@ Respond ONLY with valid JSON in this exact format:
                 f,
                 indent=2,
             )
-
 
     def _calculate_guardrail_pass_rate(self) -> float:
         """Calculate percentage of annotations passing all guardrails"""
@@ -447,7 +429,6 @@ def process_batch(
     input_path = Path(input_file)
     output_path = Path(output_file)
 
-
     if not input_path.exists():
         return
 
@@ -466,9 +447,7 @@ def process_batch(
                 # Create result record
                 result = {
                     "task_id": task.get("task_id", task.get("id")),
-                    "annotator_id": agent.persona_name.lower()
-                    .replace(" ", "_")
-                    .replace(".", ""),
+                    "annotator_id": agent.persona_name.lower().replace(" ", "_").replace(".", ""),
                     "annotations": annotations,
                     "metadata": {
                         "model": agent.model,
@@ -487,7 +466,6 @@ def process_batch(
             except json.JSONDecodeError:
                 continue
 
-
     # Export metrics
     if export_metrics:
         metrics_path = output_path.parent / f"{output_path.stem}_metrics.json"
@@ -495,14 +473,10 @@ def process_batch(
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Enhanced AI Annotation Agent with NVIDIA Blueprint Patterns"
-    )
+    parser = argparse.ArgumentParser(description="Enhanced AI Annotation Agent with NVIDIA Blueprint Patterns")
     parser.add_argument("--input", required=True, help="Input batch JSONL file")
     parser.add_argument("--output", required=True, help="Output results JSONL file")
-    parser.add_argument(
-        "--persona", choices=["Dr. A", "Dr. B"], required=True, help="Agent persona"
-    )
+    parser.add_argument("--persona", choices=["Dr. A", "Dr. B"], required=True, help="Agent persona")
     parser.add_argument(
         "--model",
         default="nvidia/llama-3.3-nemotron-super-49b-v1",
@@ -524,9 +498,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Create enhanced agent
-    agent = EnhancedAnnotationAgent(
-        persona_name=args.persona, model=args.model, role=AgentRole(args.role)
-    )
+    agent = EnhancedAnnotationAgent(persona_name=args.persona, model=args.model, role=AgentRole(args.role))
 
     # Process batch
     process_batch(args.input, args.output, agent, export_metrics=args.export_metrics)

@@ -5,6 +5,7 @@ This script orchestrates the complete data pipeline for therapeutic conversation
 generation, from sourcing to deployment. Run from project root:
     uv run python -m ai.main
 """
+
 import json
 import logging
 
@@ -99,7 +100,6 @@ def run_synthesis():
     for split, items in splits.items():
         output = synth.output_path / f"final_{split}.jsonl"
         with open(output, "w") as f:
-
             for item in items:
                 f.write(json.dumps(item) + "\n")
         results.append(f"{split}: {len(items)}")
@@ -111,10 +111,7 @@ def run_synthesis():
 def run_dpo_generation():
     """Run DPO Pair Generation."""
     dpo = DPOGenerator()
-    voice_file = (
-        "ai/training/ready_packages/datasets/stage4_voice/"
-        "processed_transcripts/voice_training_data_001.json"
-    )
+    voice_file = "ai/training/ready_packages/datasets/stage4_voice/processed_transcripts/voice_training_data_001.json"
     data = dpo.process_voice_data(voice_file)
     if data:
         return dpo.export_dpo(data)

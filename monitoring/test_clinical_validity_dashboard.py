@@ -4,7 +4,7 @@
 import os
 import sys
 import types
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
 
 import pandas as pd
 import pytest
@@ -18,7 +18,7 @@ from clinical_validity_dashboard import ClinicalValidityDashboard
 
 def test_calculate_current_metrics_with_recent_data():
     dashboard = ClinicalValidityDashboard(db_path=":memory:")
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     df = pd.DataFrame(
         [

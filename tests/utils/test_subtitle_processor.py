@@ -39,26 +39,6 @@ def test_format_as_markdown_missing_metadata():
 
 
 def test_clean_vtt_removes_duplicates():
-def test_clean_vtt_empty_cleaned_line():
-def test_clean_vtt_removes_duplicates():
-def test_clean_vtt_empty_cleaned_line():
-def test_clean_vtt_removes_duplicates():
-def test_clean_vtt_empty_cleaned_line():
-def test_clean_vtt_removes_duplicates():
-def test_clean_vtt_empty_cleaned_line():
-def test_clean_vtt_removes_duplicates():
-def test_clean_vtt_empty_cleaned_line():
-def test_clean_vtt_removes_duplicates():
-def test_clean_vtt_empty_cleaned_line():
-def test_clean_vtt_removes_duplicates():
-def test_clean_vtt_empty_cleaned_line():
-def test_clean_vtt_removes_duplicates():
-def test_clean_vtt_empty_cleaned_line():
-def test_clean_vtt_removes_duplicates():
-def test_clean_vtt_empty_cleaned_line():
-def test_clean_vtt_removes_duplicates():
-def test_clean_vtt_empty_cleaned_line():
-def test_clean_vtt_removes_duplicates():
     vtt_content = """WEBVTT
 Kind: captions
 Language: en
@@ -77,9 +57,7 @@ Language: en
 
 
 def test_clean_vtt_empty_content():
-    vtt_content = ""
-    result = SubtitleProcessor.clean_vtt(vtt_content)
-    assert result == ""
+    assert SubtitleProcessor.clean_vtt("") == ""
 
 
 def test_clean_vtt_empty_cleaned_line():
@@ -92,10 +70,6 @@ Language: en
 """
     result = SubtitleProcessor.clean_vtt(vtt_content)
     assert result == ""
-
-
-def test_clean_vtt_empty_content():
-    assert SubtitleProcessor.clean_vtt("") == ""
 
 
 def test_clean_vtt_empty_and_whitespace():
@@ -116,11 +90,6 @@ Hello world
 """
     result = SubtitleProcessor.clean_vtt(vtt_content)
     assert result == "Hello world"
-
-
-def test_clean_vtt_empty_and_whitespace():
-    assert SubtitleProcessor.clean_vtt("") == ""
-    assert SubtitleProcessor.clean_vtt("   \n   \n") == ""
 
 
 def test_clean_vtt_no_header():

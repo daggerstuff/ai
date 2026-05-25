@@ -5,6 +5,7 @@ Task 5.6.2.3: Quality Distribution Comparative Analysis
 Enterprise-grade comparative analysis system for quality distributions
 across different dimensions (tiers, datasets, components, time periods).
 """
+
 import logging
 import warnings
 from typing import Any
@@ -47,9 +48,7 @@ class QualityDistributionComparator:
 
         logger.info("🔍 Quality Distribution Comparator initialized")
 
-    def compare_across_tiers(
-        self, df: pd.DataFrame, metric: str
-    ) -> ComparativeDistributionAnalysis:
+    def compare_across_tiers(self, df: pd.DataFrame, metric: str) -> ComparativeDistributionAnalysis:
         """Compare quality distributions across different tiers."""
         if df.empty or metric not in df.columns:
             return self._create_empty_comparative_analysis("tier")
@@ -61,9 +60,7 @@ class QualityDistributionComparator:
         for tier in df["tier"].unique():
             tier_df = df[df["tier"] == tier]
             if len(tier_df) >= self.analyzer.min_sample_size:
-                tier_analysis = self.analyzer.analyze_quality_distribution(
-                    tier_df[metric], f"{metric}_{tier}"
-                )
+                tier_analysis = self.analyzer.analyze_quality_distribution(tier_df[metric], f"{metric}_{tier}")
                 tier_groups[tier] = tier_analysis
                 tier_data[tier] = tier_df[metric].dropna()
 
@@ -74,9 +71,7 @@ class QualityDistributionComparator:
                 statistical_tests=[],
                 effect_sizes={},
                 pairwise_comparisons=[],
-                recommendations=[
-                    "Insufficient tiers with adequate sample sizes for comparison"
-                ],
+                recommendations=["Insufficient tiers with adequate sample sizes for comparison"],
             )
 
         # Perform statistical tests
@@ -102,9 +97,7 @@ class QualityDistributionComparator:
             recommendations=recommendations,
         )
 
-    def compare_across_datasets(
-        self, df: pd.DataFrame, metric: str
-    ) -> ComparativeDistributionAnalysis:
+    def compare_across_datasets(self, df: pd.DataFrame, metric: str) -> ComparativeDistributionAnalysis:
         """Compare quality distributions across different datasets."""
         if df.empty or metric not in df.columns:
             return self._create_empty_comparative_analysis("dataset")
@@ -116,9 +109,7 @@ class QualityDistributionComparator:
         for dataset in df["dataset_name"].unique():
             dataset_df = df[df["dataset_name"] == dataset]
             if len(dataset_df) >= self.analyzer.min_sample_size:
-                dataset_analysis = self.analyzer.analyze_quality_distribution(
-                    dataset_df[metric], f"{metric}_{dataset}"
-                )
+                dataset_analysis = self.analyzer.analyze_quality_distribution(dataset_df[metric], f"{metric}_{dataset}")
                 dataset_groups[dataset] = dataset_analysis
                 dataset_data[dataset] = dataset_df[metric].dropna()
 
@@ -129,9 +120,7 @@ class QualityDistributionComparator:
                 statistical_tests=[],
                 effect_sizes={},
                 pairwise_comparisons=[],
-                recommendations=[
-                    "Insufficient datasets with adequate sample sizes for comparison"
-                ],
+                recommendations=["Insufficient datasets with adequate sample sizes for comparison"],
             )
 
         # Perform statistical tests
@@ -141,9 +130,7 @@ class QualityDistributionComparator:
         effect_sizes = self._calculate_effect_sizes(dataset_data)
 
         # Perform pairwise comparisons
-        pairwise_comparisons = self._perform_pairwise_comparisons(
-            dataset_data, "dataset"
-        )
+        pairwise_comparisons = self._perform_pairwise_comparisons(dataset_data, "dataset")
 
         # Generate recommendations
         recommendations = self._generate_comparative_recommendations(
@@ -159,9 +146,7 @@ class QualityDistributionComparator:
             recommendations=recommendations,
         )
 
-    def compare_across_components(
-        self, df: pd.DataFrame
-    ) -> ComparativeDistributionAnalysis:
+    def compare_across_components(self, df: pd.DataFrame) -> ComparativeDistributionAnalysis:
         """Compare distributions across different quality components."""
         if df.empty:
             return self._create_empty_comparative_analysis("component")
@@ -174,9 +159,7 @@ class QualityDistributionComparator:
             if component in df.columns:
                 component_series = df[component].dropna()
                 if len(component_series) >= self.analyzer.min_sample_size:
-                    component_analysis = self.analyzer.analyze_quality_distribution(
-                        component_series, component
-                    )
+                    component_analysis = self.analyzer.analyze_quality_distribution(component_series, component)
                     component_groups[component] = component_analysis
                     component_data[component] = component_series
 
@@ -187,9 +170,7 @@ class QualityDistributionComparator:
                 statistical_tests=[],
                 effect_sizes={},
                 pairwise_comparisons=[],
-                recommendations=[
-                    "Insufficient components with adequate data for comparison"
-                ],
+                recommendations=["Insufficient components with adequate data for comparison"],
             )
 
         # Perform statistical tests
@@ -199,9 +180,7 @@ class QualityDistributionComparator:
         effect_sizes = self._calculate_effect_sizes(component_data)
 
         # Perform pairwise comparisons
-        pairwise_comparisons = self._perform_pairwise_comparisons(
-            component_data, "component"
-        )
+        pairwise_comparisons = self._perform_pairwise_comparisons(component_data, "component")
 
         # Generate recommendations
         recommendations = self._generate_comparative_recommendations(
@@ -235,9 +214,7 @@ class QualityDistributionComparator:
         for period in df[period_column].unique():
             period_df = df[df[period_column] == period]
             if len(period_df) >= self.analyzer.min_sample_size:
-                period_analysis = self.analyzer.analyze_quality_distribution(
-                    period_df[metric], f"{metric}_{period}"
-                )
+                period_analysis = self.analyzer.analyze_quality_distribution(period_df[metric], f"{metric}_{period}")
                 period_groups[period] = period_analysis
                 period_data[period] = period_df[metric].dropna()
 
@@ -248,9 +225,7 @@ class QualityDistributionComparator:
                 statistical_tests=[],
                 effect_sizes={},
                 pairwise_comparisons=[],
-                recommendations=[
-                    "Insufficient time periods with adequate sample sizes for comparison"
-                ],
+                recommendations=["Insufficient time periods with adequate sample sizes for comparison"],
             )
 
         # Perform statistical tests
@@ -260,9 +235,7 @@ class QualityDistributionComparator:
         effect_sizes = self._calculate_effect_sizes(period_data)
 
         # Perform pairwise comparisons
-        pairwise_comparisons = self._perform_pairwise_comparisons(
-            period_data, "time_period"
-        )
+        pairwise_comparisons = self._perform_pairwise_comparisons(period_data, "time_period")
 
         # Generate recommendations
         recommendations = self._generate_comparative_recommendations(
@@ -278,9 +251,7 @@ class QualityDistributionComparator:
             recommendations=recommendations,
         )
 
-    def _perform_group_comparisons(
-        self, group_data: dict[str, pd.Series], dimension: str
-    ) -> list[dict[str, Any]]:
+    def _perform_group_comparisons(self, group_data: dict[str, pd.Series], dimension: str) -> list[dict[str, Any]]:
         """Perform statistical tests for group comparisons."""
         tests = []
 
@@ -337,9 +308,7 @@ class QualityDistributionComparator:
 
         return tests
 
-    def _calculate_effect_sizes(
-        self, group_data: dict[str, pd.Series]
-    ) -> dict[str, float]:
+    def _calculate_effect_sizes(self, group_data: dict[str, pd.Series]) -> dict[str, float]:
         """Calculate effect sizes for group comparisons."""
         effect_sizes = {}
 
@@ -356,24 +325,17 @@ class QualityDistributionComparator:
 
                 # Cohen's d
                 pooled_std = np.sqrt(
-                    (
-                        (len(group1) - 1) * group1.var()
-                        + (len(group2) - 1) * group2.var()
-                    )
+                    ((len(group1) - 1) * group1.var() + (len(group2) - 1) * group2.var())
                     / (len(group1) + len(group2) - 2)
                 )
 
                 if pooled_std > 0:
                     cohens_d = (group1.mean() - group2.mean()) / pooled_std
-                    effect_sizes[f"{group1_name}_vs_{group2_name}"] = float(
-                        abs(cohens_d)
-                    )
+                    effect_sizes[f"{group1_name}_vs_{group2_name}"] = float(abs(cohens_d))
 
         return effect_sizes
 
-    def _perform_pairwise_comparisons(
-        self, group_data: dict[str, pd.Series], _dimension: str
-    ) -> list[dict[str, Any]]:
+    def _perform_pairwise_comparisons(self, group_data: dict[str, pd.Series], _dimension: str) -> list[dict[str, Any]]:
         """Perform pairwise comparisons between groups."""
         comparisons = []
 
@@ -389,15 +351,11 @@ class QualityDistributionComparator:
                 group2 = group_data[group2_name]
 
                 try:
-                    statistic, p_value = mannwhitneyu(
-                        group1, group2, alternative="two-sided"
-                    )
+                    statistic, p_value = mannwhitneyu(group1, group2, alternative="two-sided")
 
                     # Calculate effect size (r = Z / sqrt(N))
                     n1, n2 = len(group1), len(group2)
-                    z_score = stats.norm.ppf(
-                        1 - p_value / 2
-                    )  # Approximate Z from p-value
+                    z_score = stats.norm.ppf(1 - p_value / 2)  # Approximate Z from p-value
                     effect_size_r = abs(z_score) / np.sqrt(n1 + n2)
 
                     comparisons.append(
@@ -415,9 +373,7 @@ class QualityDistributionComparator:
                     )
 
                 except Exception as e:
-                    logger.warning(
-                        f"Mann-Whitney U test failed for {group1_name} vs {group2_name}: {e}"
-                    )
+                    logger.warning(f"Mann-Whitney U test failed for {group1_name} vs {group2_name}: {e}")
 
         return comparisons
 
@@ -438,16 +394,10 @@ class QualityDistributionComparator:
                 f"📊 Significant differences detected between {dimension}s. Further investigation recommended."
             )
         else:
-            recommendations.append(
-                f"✅ No significant differences detected between {dimension}s."
-            )
+            recommendations.append(f"✅ No significant differences detected between {dimension}s.")
 
         # Effect size recommendations
-        large_effects = [
-            name
-            for name, size in effect_sizes.items()
-            if size > self.effect_size_thresholds["large"]
-        ]
+        large_effects = [name for name, size in effect_sizes.items() if size > self.effect_size_thresholds["large"]]
         if large_effects:
             recommendations.append(
                 f"🔍 Large effect sizes detected: {', '.join(large_effects[:3])}. Investigate practical significance."
@@ -456,43 +406,28 @@ class QualityDistributionComparator:
         # Group-specific recommendations
         if groups:
             # Find best and worst performing groups
-            group_means = {
-                name: analysis.statistics.mean for name, analysis in groups.items()
-            }
+            group_means = {name: analysis.statistics.mean for name, analysis in groups.items()}
             best_group = max(group_means.items(), key=lambda x: x[1])
             worst_group = min(group_means.items(), key=lambda x: x[1])
 
             if len(groups) > 1:
-                recommendations.append(
-                    f"🏆 Best performing {dimension}: {best_group[0]} (mean: {best_group[1]:.3f})"
-                )
-                recommendations.append(
-                    f"⚠️ Worst performing {dimension}: {worst_group[0]} (mean: {worst_group[1]:.3f})"
-                )
+                recommendations.append(f"🏆 Best performing {dimension}: {best_group[0]} (mean: {best_group[1]:.3f})")
+                recommendations.append(f"⚠️ Worst performing {dimension}: {worst_group[0]} (mean: {worst_group[1]:.3f})")
 
         # Variability recommendations
         if groups:
-            cvs = {
-                name: analysis.statistics.coefficient_of_variation
-                for name, analysis in groups.items()
-            }
+            cvs = {name: analysis.statistics.coefficient_of_variation for name, analysis in groups.items()}
             most_variable = max(cvs.items(), key=lambda x: x[1])
             least_variable = min(cvs.items(), key=lambda x: x[1])
 
             if most_variable[1] > 0.3:
-                recommendations.append(
-                    f"📈 High variability in {most_variable[0]} (CV: {most_variable[1]:.3f})"
-                )
+                recommendations.append(f"📈 High variability in {most_variable[0]} (CV: {most_variable[1]:.3f})")
             if least_variable[1] < 0.1:
-                recommendations.append(
-                    f"📊 Low variability in {least_variable[0]} (CV: {least_variable[1]:.3f})"
-                )
+                recommendations.append(f"📊 Low variability in {least_variable[0]} (CV: {least_variable[1]:.3f})")
 
         return recommendations
 
-    def _create_empty_comparative_analysis(
-        self, dimension: str
-    ) -> ComparativeDistributionAnalysis:
+    def _create_empty_comparative_analysis(self, dimension: str) -> ComparativeDistributionAnalysis:
         """Create empty comparative analysis for insufficient data."""
         return ComparativeDistributionAnalysis(
             dimension=dimension,
@@ -509,9 +444,7 @@ class QualityDistributionComparator:
             return {}
 
         # Select quality components that exist in the data
-        available_components = [
-            comp for comp in self.analyzer.quality_components if comp in df.columns
-        ]
+        available_components = [comp for comp in self.analyzer.quality_components if comp in df.columns]
 
         if len(available_components) < 2:
             return {"error": "Insufficient components for correlation analysis"}
@@ -530,9 +463,7 @@ class QualityDistributionComparator:
                             "component1": comp1,
                             "component2": comp2,
                             "correlation": float(corr_value),
-                            "strength": self._interpret_correlation_strength(
-                                abs(corr_value)
-                            ),
+                            "strength": self._interpret_correlation_strength(abs(corr_value)),
                         }
                     )
 
@@ -556,9 +487,7 @@ class QualityDistributionComparator:
             return "weak"
         return "negligible"
 
-    def _generate_correlation_summary(
-        self, correlations: list[dict[str, Any]]
-    ) -> list[str]:
+    def _generate_correlation_summary(self, correlations: list[dict[str, Any]]) -> list[str]:
         """Generate correlation analysis summary."""
         summary = []
 
@@ -590,16 +519,13 @@ class QualityDistributionComparator:
         # Count strong correlations
         strong_correlations = [c for c in correlations if c["strength"] == "strong"]
         if strong_correlations:
-            summary.append(
-                f"💪 {len(strong_correlations)} strong correlations detected"
-            )
+            summary.append(f"💪 {len(strong_correlations)} strong correlations detected")
 
         return summary
 
 
 def main():
     """Main function for testing the distribution comparator."""
-
 
     analyzer = QualityDistributionAnalyzer()
     comparator = QualityDistributionComparator(analyzer)
@@ -612,7 +538,6 @@ def main():
 
     # Compare across tiers
     tier_comparison = comparator.compare_across_tiers(df, "overall_quality")
-
 
     for _i, _rec in enumerate(tier_comparison.recommendations, 1):
         pass

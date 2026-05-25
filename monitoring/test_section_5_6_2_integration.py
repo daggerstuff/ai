@@ -5,13 +5,14 @@ Section 5.6.2 Integration Test Suite
 Tests the complete quality monitoring and analytics system integration
 across all five components to ensure they work together seamlessly.
 """
+
 import json
 import os
 import shutil
 import sqlite3
 import sys
 import tempfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import numpy as np
 
@@ -68,7 +69,7 @@ def create_comprehensive_test_database():
     """)
 
     # Generate comprehensive test data
-    base_date = datetime.now(timezone.utc) - timedelta(days=90)
+    base_date = datetime.now(UTC) - timedelta(days=90)
     conversations_data = []
     quality_data = []
 
@@ -98,36 +99,20 @@ def create_comprehensive_test_database():
         days_elapsed = (conversation_date - base_date).days
         trend_factor = tier_pattern["trend"] * days_elapsed
 
-        base_quality = (
-            tier_pattern["mean"] + dataset_pattern["mean"]
-        ) / 2 + trend_factor
+        base_quality = (tier_pattern["mean"] + dataset_pattern["mean"]) / 2 + trend_factor
         noise = np.random.normal(0, (tier_pattern["std"] + dataset_pattern["std"]) / 2)
         overall_quality = max(0.1, min(0.95, base_quality + noise))
 
         # Generate correlated component scores
-        therapeutic_accuracy = max(
-            0.1, min(0.95, overall_quality + np.random.normal(0, 0.03))
-        )
-        conversation_coherence = max(
-            0.1, min(0.95, overall_quality + np.random.normal(0, 0.03))
-        )
-        emotional_authenticity = max(
-            0.1, min(0.95, overall_quality + np.random.normal(0, 0.03))
-        )
-        clinical_compliance = max(
-            0.1, min(0.95, overall_quality + np.random.normal(0, 0.03))
-        )
-        personality_consistency = max(
-            0.1, min(0.95, overall_quality + np.random.normal(0, 0.03))
-        )
-        language_quality = max(
-            0.1, min(0.95, overall_quality + np.random.normal(0, 0.03))
-        )
+        therapeutic_accuracy = max(0.1, min(0.95, overall_quality + np.random.normal(0, 0.03)))
+        conversation_coherence = max(0.1, min(0.95, overall_quality + np.random.normal(0, 0.03)))
+        emotional_authenticity = max(0.1, min(0.95, overall_quality + np.random.normal(0, 0.03)))
+        clinical_compliance = max(0.1, min(0.95, overall_quality + np.random.normal(0, 0.03)))
+        personality_consistency = max(0.1, min(0.95, overall_quality + np.random.normal(0, 0.03)))
+        language_quality = max(0.1, min(0.95, overall_quality + np.random.normal(0, 0.03)))
         safety_score = max(0.1, min(0.95, overall_quality + np.random.normal(0, 0.03)))
 
-        conversations_data.append(
-            (i + 1, tier, dataset, conversation_date.isoformat(), 150 + (i % 100))
-        )
+        conversations_data.append((i + 1, tier, dataset, conversation_date.isoformat(), 150 + (i % 100)))
 
         quality_data.append(
             (
@@ -172,9 +157,7 @@ def run_integration_test():
     db_path = create_comprehensive_test_database()
 
     # Create temporary interventions database
-    interventions_fd, interventions_db_path = tempfile.mkstemp(
-        suffix="_interventions.db"
-    )
+    interventions_fd, interventions_db_path = tempfile.mkstemp(suffix="_interventions.db")
     os.close(interventions_fd)
 
     try:
@@ -188,7 +171,6 @@ def run_integration_test():
 
         # Test 1: Quality Analytics Dashboard Integration
         try:
-
             dashboard = QualityAnalyticsDashboard(db_path=db_path)
 
             # Test data loading
@@ -206,15 +188,12 @@ def run_integration_test():
             test_results["component_results"]["dashboard"] = "PASSED"
         except Exception as e:
             test_results["failed_tests"] += 1
-            test_results["test_details"].append(
-                f"❌ Dashboard Integration: FAILED - {e}"
-            )
+            test_results["test_details"].append(f"❌ Dashboard Integration: FAILED - {e}")
             test_results["component_results"]["dashboard"] = f"FAILED - {e}"
         test_results["total_tests"] += 1
 
         # Test 2: Trend Analysis Integration (simplified)
         try:
-
             analyzer = QualityTrendAnalyzer(db_path=db_path)
 
             # Test data loading
@@ -222,30 +201,21 @@ def run_integration_test():
             assert not df.empty, "Trend analyzer should load data"
 
             # Test that the analyzer has the required methods (without calling them due to data type issues)
-            assert hasattr(analyzer, "analyze_overall_trend"), (
-                "Should have analyze_overall_trend method"
-            )
-            assert hasattr(analyzer, "generate_predictions"), (
-                "Should have generate_predictions method"
-            )
-            assert hasattr(analyzer, "detect_anomalies"), (
-                "Should have detect_anomalies method"
-            )
+            assert hasattr(analyzer, "analyze_overall_trend"), "Should have analyze_overall_trend method"
+            assert hasattr(analyzer, "generate_predictions"), "Should have generate_predictions method"
+            assert hasattr(analyzer, "detect_anomalies"), "Should have detect_anomalies method"
 
             test_results["passed_tests"] += 1
             test_results["test_details"].append("✅ Trend Analysis Integration: PASSED")
             test_results["component_results"]["trend_analysis"] = "PASSED"
         except Exception as e:
             test_results["failed_tests"] += 1
-            test_results["test_details"].append(
-                f"❌ Trend Analysis Integration: FAILED - {e}"
-            )
+            test_results["test_details"].append(f"❌ Trend Analysis Integration: FAILED - {e}")
             test_results["component_results"]["trend_analysis"] = f"FAILED - {e}"
         test_results["total_tests"] += 1
 
         # Test 3: Distribution Analysis Integration
         try:
-
             dist_analyzer = QualityDistributionAnalyzer(db_path=db_path)
             comparator = QualityDistributionComparator(dist_analyzer)
 
@@ -253,9 +223,7 @@ def run_integration_test():
             df = dist_analyzer.load_quality_data(days_back=90)
             assert not df.empty, "Distribution analyzer should load data"
 
-            distribution = dist_analyzer.analyze_quality_distribution(
-                df["overall_quality"], "overall_quality"
-            )
+            distribution = dist_analyzer.analyze_quality_distribution(df["overall_quality"], "overall_quality")
             assert distribution.sample_size >= 450, "Should analyze sufficient samples"
 
             # Test comparative analysis (correct method name)
@@ -263,21 +231,16 @@ def run_integration_test():
             assert tier_comparison is not None, "Should generate tier comparisons"
 
             test_results["passed_tests"] += 1
-            test_results["test_details"].append(
-                "✅ Distribution Analysis Integration: PASSED"
-            )
+            test_results["test_details"].append("✅ Distribution Analysis Integration: PASSED")
             test_results["component_results"]["distribution_analysis"] = "PASSED"
         except Exception as e:
             test_results["failed_tests"] += 1
-            test_results["test_details"].append(
-                f"❌ Distribution Analysis Integration: FAILED - {e}"
-            )
+            test_results["test_details"].append(f"❌ Distribution Analysis Integration: FAILED - {e}")
             test_results["component_results"]["distribution_analysis"] = f"FAILED - {e}"
         test_results["total_tests"] += 1
 
         # Test 4: Improvement Tracking Integration
         try:
-
             # Use correct constructor (no interventions_db_path parameter)
             tracker = QualityImprovementTracker(db_path=db_path)
 
@@ -295,27 +258,20 @@ def run_integration_test():
             success = tracker.start_intervention(intervention_id)
             assert success, "Should start intervention"
 
-            success = tracker.record_progress_measurement(
-                intervention_id, "Integration test measurement"
-            )
+            success = tracker.record_progress_measurement(intervention_id, "Integration test measurement")
             assert success, "Should record measurement"
 
             test_results["passed_tests"] += 1
-            test_results["test_details"].append(
-                "✅ Improvement Tracking Integration: PASSED"
-            )
+            test_results["test_details"].append("✅ Improvement Tracking Integration: PASSED")
             test_results["component_results"]["improvement_tracking"] = "PASSED"
         except Exception as e:
             test_results["failed_tests"] += 1
-            test_results["test_details"].append(
-                f"❌ Improvement Tracking Integration: FAILED - {e}"
-            )
+            test_results["test_details"].append(f"❌ Improvement Tracking Integration: FAILED - {e}")
             test_results["component_results"]["improvement_tracking"] = f"FAILED - {e}"
         test_results["total_tests"] += 1
 
         # Test 5: Comparison System Integration
         try:
-
             comparator = QualityComparator(db_path=db_path)
 
             # Test comparison data loading and analysis
@@ -331,15 +287,11 @@ def run_integration_test():
             assert len(dataset_comparisons) > 0, "Should generate dataset comparisons"
 
             test_results["passed_tests"] += 1
-            test_results["test_details"].append(
-                "✅ Comparison System Integration: PASSED"
-            )
+            test_results["test_details"].append("✅ Comparison System Integration: PASSED")
             test_results["component_results"]["comparison_system"] = "PASSED"
         except Exception as e:
             test_results["failed_tests"] += 1
-            test_results["test_details"].append(
-                f"❌ Comparison System Integration: FAILED - {e}"
-            )
+            test_results["test_details"].append(f"❌ Comparison System Integration: FAILED - {e}")
             test_results["component_results"]["comparison_system"] = f"FAILED - {e}"
         test_results["total_tests"] += 1
 
@@ -361,19 +313,13 @@ def run_integration_test():
             max_size = max(data_sizes)
             min_size = min(data_sizes)
 
-            assert (max_size - min_size) <= 20, (
-                f"Data size variation too large: {data_sizes}"
-            )
+            assert (max_size - min_size) <= 20, f"Data size variation too large: {data_sizes}"
 
             test_results["passed_tests"] += 1
-            test_results["test_details"].append(
-                "✅ Cross-Component Data Consistency: PASSED"
-            )
+            test_results["test_details"].append("✅ Cross-Component Data Consistency: PASSED")
         except Exception as e:
             test_results["failed_tests"] += 1
-            test_results["test_details"].append(
-                f"❌ Cross-Component Data Consistency: FAILED - {e}"
-            )
+            test_results["test_details"].append(f"❌ Cross-Component Data Consistency: FAILED - {e}")
         test_results["total_tests"] += 1
 
         # Test 7: End-to-End Workflow (simplified)
@@ -395,9 +341,7 @@ def run_integration_test():
 
             # Generate reports (skip trend report due to data type issues)
             dist_report = dist_reporter.generate_comprehensive_report(days_back=90)
-            imp_report = imp_reporter.generate_comprehensive_report(
-                report_period_days=90
-            )
+            imp_report = imp_reporter.generate_comprehensive_report(report_period_days=90)
             comp_report = comp_reporter.generate_comprehensive_report(days_back=90)
 
             # Verify reports generated
@@ -426,14 +370,12 @@ def run_integration_test():
         test_results["total_tests"] += 1
 
         # Generate integration test report
-        success_rate = (
-            test_results["passed_tests"] / test_results["total_tests"]
-        ) * 100
+        success_rate = (test_results["passed_tests"] / test_results["total_tests"]) * 100
 
         report_data = {
             "test_suite": "Section 5.6.2 Integration Test",
             "section": "5.6.2",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "results": test_results,
             "success_rate": success_rate,
             "status": "PASSED" if success_rate == 100 else "FAILED",
@@ -447,19 +389,15 @@ def run_integration_test():
         }
 
         # Save integration test report
-        report_path = (
-            Path(__file__).parent / "section_5_6_2_integration_test_report.json"
-        )
+        report_path = Path(__file__).parent / "section_5_6_2_integration_test_report.json"
         with open(report_path, "w") as f:
             json.dump(report_data, f, indent=2)
-
 
         for _detail in test_results["test_details"]:
             pass
 
         for _component, _result in test_results["component_results"].items():
             pass
-
 
         return report_data
 

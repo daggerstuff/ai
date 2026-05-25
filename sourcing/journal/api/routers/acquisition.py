@@ -4,7 +4,6 @@ Acquisition API routes.
 This module provides endpoints for dataset acquisition operations.
 """
 
-
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from ai.sourcing.journal.api.dependencies import (

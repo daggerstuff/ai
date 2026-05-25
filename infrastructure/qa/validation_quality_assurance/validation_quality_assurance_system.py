@@ -3,13 +3,14 @@
 Validation & Quality Assurance System - Task 5.7.2 Complete Implementation
 Comprehensive system implementing all remaining subtasks for Task 5.7.2.
 """
+
 import hashlib
 import json
 import logging
 import re
 import time
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import numpy as np
@@ -74,9 +75,7 @@ class ValidationQualityAssuranceSystem:
             "cache_hit_rate": 0.0,
         }
 
-        logger.info(
-            "✅ Initialized comprehensive validation and quality assurance system"
-        )
+        logger.info("✅ Initialized comprehensive validation and quality assurance system")
 
     def process_conversation_qa(
         self,
@@ -95,27 +94,19 @@ class ValidationQualityAssuranceSystem:
 
         # Check cache first (Task 5.7.2.7: Performance optimization)
         cache_key = self._generate_cache_key(conversation)
-        if cache_key in self.processing_cache and not options.get(
-            "force_refresh", False
-        ):
+        if cache_key in self.processing_cache and not options.get("force_refresh", False):
             logger.info(f"📋 Using cached QA result for {conversation_id}")
             self.system_stats["cache_hit_rate"] = (
-                self.system_stats["cache_hit_rate"]
-                * self.system_stats["total_processed"]
-                + 1
+                self.system_stats["cache_hit_rate"] * self.system_stats["total_processed"] + 1
             ) / (self.system_stats["total_processed"] + 1)
             return self.processing_cache[cache_key]
 
         try:
             # Task 5.7.2.1: Clinical standards validation
-            clinical_result = self.clinical_validator.validate_conversation(
-                conversation
-            )
+            clinical_result = self.clinical_validator.validate_conversation(conversation)
 
             # Task 5.7.2.2: Quality assurance workflows
-            workflow_result = self.workflow_system.execute_workflow(
-                "comprehensive_qa", conversation, options
-            )
+            workflow_result = self.workflow_system.execute_workflow("comprehensive_qa", conversation, options)
 
             # Task 5.7.2.4: Automated quality checking
             automated_checks = self._perform_automated_checks(conversation)
@@ -126,14 +117,10 @@ class ValidationQualityAssuranceSystem:
             )
 
             # Task 5.7.2.9: Quality validation monitoring and alerting
-            monitoring_alerts = self._check_monitoring_alerts(
-                clinical_result, workflow_result, automated_checks
-            )
+            monitoring_alerts = self._check_monitoring_alerts(clinical_result, workflow_result, automated_checks)
 
             # Calculate overall QA score
-            overall_score = self._calculate_overall_qa_score(
-                clinical_result, workflow_result, automated_checks
-            )
+            overall_score = self._calculate_overall_qa_score(clinical_result, workflow_result, automated_checks)
 
             # Determine QA status
             qa_status = self._determine_qa_status(overall_score, monitoring_alerts)
@@ -170,7 +157,7 @@ class ValidationQualityAssuranceSystem:
                 overall_qa_score=overall_score,
                 qa_status=qa_status,
                 processing_time=processing_time,
-                timestamp=datetime.now(timezone.utc).isoformat(),
+                timestamp=datetime.now(UTC).isoformat(),
             )
 
             # Cache result for performance optimization
@@ -193,9 +180,7 @@ class ValidationQualityAssuranceSystem:
         except Exception as e:
             logger.error(f"❌ QA processing failed for {conversation_id}: {e}")
             # Task 5.7.2.8: Error handling and recovery
-            return self._handle_qa_error(
-                conversation_id, str(e), time.time() - start_time
-            )
+            return self._handle_qa_error(conversation_id, str(e), time.time() - start_time)
 
     def _perform_automated_checks(self, conversation: dict[str, Any]) -> dict[str, Any]:
         """Task 5.7.2.4: Perform comprehensive automated quality checks"""
@@ -248,14 +233,10 @@ class ValidationQualityAssuranceSystem:
             improvements.append("Increase empathetic language and validation")
 
         if automated_checks.get("question_ratio", 0) < 0.1:
-            improvements.append(
-                "Add more open-ended questions to encourage exploration"
-            )
+            improvements.append("Add more open-ended questions to encourage exploration")
 
         if len(automated_checks.get("therapeutic_techniques", [])) < 2:
-            improvements.append(
-                "Incorporate more evidence-based therapeutic techniques"
-            )
+            improvements.append("Incorporate more evidence-based therapeutic techniques")
 
         return list(set(improvements))  # Remove duplicates
 
@@ -267,13 +248,8 @@ class ValidationQualityAssuranceSystem:
         alerts = []
 
         # Clinical score alerts
-        if (
-            clinical_result.overall_clinical_score
-            < self.alert_thresholds["clinical_score_min"]
-        ):
-            alerts.append(
-                f"LOW_CLINICAL_SCORE: {clinical_result.overall_clinical_score:.3f}"
-            )
+        if clinical_result.overall_clinical_score < self.alert_thresholds["clinical_score_min"]:
+            alerts.append(f"LOW_CLINICAL_SCORE: {clinical_result.overall_clinical_score:.3f}")
 
         # Safety score alerts
         if clinical_result.safety_protocols < self.alert_thresholds["safety_score_min"]:
@@ -297,9 +273,7 @@ class ValidationQualityAssuranceSystem:
 
         return alerts
 
-    def _calculate_overall_qa_score(
-        self, clinical_result, workflow_result, automated_checks: dict[str, Any]
-    ) -> float:
+    def _calculate_overall_qa_score(self, clinical_result, workflow_result, automated_checks: dict[str, Any]) -> float:
         """Calculate weighted overall QA score"""
 
         # Component scores with weights
@@ -325,12 +299,7 @@ class ValidationQualityAssuranceSystem:
 
         if alerts:
             critical_alerts = [
-                a
-                for a in alerts
-                if any(
-                    keyword in a
-                    for keyword in ["CRISIS", "HARMFUL", "PRIVACY", "VIOLATIONS"]
-                )
+                a for a in alerts if any(keyword in a for keyword in ["CRISIS", "HARMFUL", "PRIVACY", "VIOLATIONS"])
             ]
             return "CRITICAL_ISSUES" if critical_alerts else "NEEDS_ATTENTION"
 
@@ -342,28 +311,22 @@ class ValidationQualityAssuranceSystem:
             return "ACCEPTABLE"
         return "NEEDS_IMPROVEMENT"
 
-    def _apply_quality_improvements(
-        self, conversation_id: str, improvements: list[str]
-    ):
+    def _apply_quality_improvements(self, conversation_id: str, improvements: list[str]):
         """Task 5.7.2.5: Apply quality improvement feedback loops"""
 
         improvement_record = {
             "conversation_id": conversation_id,
             "improvements": improvements,
-            "applied_at": datetime.now(timezone.utc).isoformat(),
+            "applied_at": datetime.now(UTC).isoformat(),
             "status": "pending_implementation",
         }
 
         self.improvement_history.append(improvement_record)
         self.system_stats["quality_improvements_made"] += len(improvements)
 
-        logger.info(
-            f"📈 Applied {len(improvements)} quality improvements for {conversation_id}"
-        )
+        logger.info(f"📈 Applied {len(improvements)} quality improvements for {conversation_id}")
 
-    def _handle_qa_error(
-        self, conversation_id: str, error: str, processing_time: float
-    ) -> QualityAssuranceResult:
+    def _handle_qa_error(self, conversation_id: str, error: str, processing_time: float) -> QualityAssuranceResult:
         """Task 5.7.2.8: Error handling and recovery"""
 
         logger.error(f"🚨 QA Error Recovery for {conversation_id}: {error}")
@@ -379,7 +342,7 @@ class ValidationQualityAssuranceSystem:
             overall_qa_score=0.0,
             qa_status="ERROR",
             processing_time=processing_time,
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
         )
 
     def process_batch_qa(
@@ -392,9 +355,7 @@ class ValidationQualityAssuranceSystem:
         results = []
         batch_start = time.time()
 
-        logger.info(
-            f"🔄 Starting batch QA processing for {len(conversations)} conversations"
-        )
+        logger.info(f"🔄 Starting batch QA processing for {len(conversations)} conversations")
 
         for i, conversation in enumerate(conversations):
             try:
@@ -402,9 +363,7 @@ class ValidationQualityAssuranceSystem:
                 results.append(result)
 
                 if (i + 1) % 10 == 0:
-                    logger.info(
-                        f"✅ Processed {i + 1}/{len(conversations)} conversations"
-                    )
+                    logger.info(f"✅ Processed {i + 1}/{len(conversations)} conversations")
 
             except Exception as e:
                 logger.error(f"❌ Error processing conversation {i}: {e}")
@@ -419,9 +378,7 @@ class ValidationQualityAssuranceSystem:
 
         return results
 
-    def generate_qa_report(
-        self, results: list[QualityAssuranceResult]
-    ) -> dict[str, Any]:
+    def generate_qa_report(self, results: list[QualityAssuranceResult]) -> dict[str, Any]:
         """Task 5.7.2.6: Generate comprehensive QA reporting"""
 
         if not results:
@@ -473,23 +430,15 @@ class ValidationQualityAssuranceSystem:
                 },
             },
             "status_analysis": status_counts,
-            "alert_analysis": dict(
-                sorted(alert_counts.items(), key=lambda x: x[1], reverse=True)
-            ),
-            "improvement_analysis": dict(
-                sorted(improvement_counts.items(), key=lambda x: x[1], reverse=True)[
-                    :10
-                ]
-            ),
+            "alert_analysis": dict(sorted(alert_counts.items(), key=lambda x: x[1], reverse=True)),
+            "improvement_analysis": dict(sorted(improvement_counts.items(), key=lambda x: x[1], reverse=True)[:10]),
             "performance_metrics": {
                 "average_processing_time": round(average_processing_time, 3),
                 "total_processing_time": round(sum(processing_times), 3),
-                "conversations_per_second": round(
-                    total_conversations / sum(processing_times), 3
-                ),
+                "conversations_per_second": round(total_conversations / sum(processing_times), 3),
             },
             "system_statistics": self.get_system_statistics(),
-            "report_timestamp": datetime.now(timezone.utc).isoformat(),
+            "report_timestamp": datetime.now(UTC).isoformat(),
         }
 
     def get_system_statistics(self) -> dict[str, Any]:
@@ -500,12 +449,10 @@ class ValidationQualityAssuranceSystem:
             "cache_size": len(self.processing_cache),
             "improvement_history_count": len(self.improvement_history),
             "quality_trends_count": len(self.quality_trends),
-            "statistics_timestamp": datetime.now(timezone.utc).isoformat(),
+            "statistics_timestamp": datetime.now(UTC).isoformat(),
         }
 
-    def export_qa_results(
-        self, results: list[QualityAssuranceResult], output_path: str
-    ) -> bool:
+    def export_qa_results(self, results: list[QualityAssuranceResult], output_path: str) -> bool:
         """Task 5.7.2.6: Export QA results and documentation"""
 
         try:
@@ -516,7 +463,7 @@ class ValidationQualityAssuranceSystem:
                     "alert_thresholds": self.alert_thresholds,
                     "batch_size": self.batch_size,
                 },
-                "export_timestamp": datetime.now(timezone.utc).isoformat(),
+                "export_timestamp": datetime.now(UTC).isoformat(),
             }
 
             with open(output_path, "w", encoding="utf-8") as f:
@@ -685,9 +632,7 @@ class ValidationQualityAssuranceSystem:
             "solutions",
         ]
         text_lower = text.lower()
-        solution_count = sum(
-            indicator in text_lower for indicator in solution_indicators
-        )
+        solution_count = sum(indicator in text_lower for indicator in solution_indicators)
         return min(solution_count / 3.0, 1.0)  # Normalize to 0-1
 
     def _update_system_stats(self, result: QualityAssuranceResult):
@@ -700,9 +645,7 @@ class ValidationQualityAssuranceSystem:
         # Update average processing time
         total = self.system_stats["total_processed"]
         current_avg = self.system_stats["average_processing_time"]
-        self.system_stats["average_processing_time"] = (
-            current_avg * (total - 1) + result.processing_time
-        ) / total
+        self.system_stats["average_processing_time"] = (current_avg * (total - 1) + result.processing_time) / total
 
 
 def main():
@@ -744,9 +687,7 @@ def main():
     report["performance_metrics"]["conversations_per_second"]
 
     # Export results
-    output_path = (
-        "/home/vivi/pixelated/ai/validation_quality_assurance/qa_results_test.json"
-    )
+    output_path = "/home/vivi/pixelated/ai/validation_quality_assurance/qa_results_test.json"
     qa_system.export_qa_results(results, output_path)
 
 

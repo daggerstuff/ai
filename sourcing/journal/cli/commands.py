@@ -44,9 +44,7 @@ class CommandHandler:
     def _get_orchestrator(self) -> ResearchOrchestrator:
         """Get or create orchestrator instance."""
         if self.orchestrator is None:
-            orchestrator_config = OrchestratorConfig(
-                **self.config.get("orchestrator", {})
-            )
+            orchestrator_config = OrchestratorConfig(**self.config.get("orchestrator", {}))
             # Initialize discovery service
             discovery_service = DiscoveryService(config=self.config)
             self.orchestrator = ResearchOrchestrator(
@@ -103,12 +101,8 @@ class CommandHandler:
             try:
                 sources_list = orchestrator.discovery_service.discover_sources(session)
                 state.sources = sources_list
-                orchestrator.update_progress(
-                    session_id, {"sources_identified": len(state.sources)}
-                )
-                console.print(
-                    f"[green]Found {len(sources_list)} dataset sources[/green]"
-                )
+                orchestrator.update_progress(session_id, {"sources_identified": len(state.sources)})
+                console.print(f"[green]Found {len(sources_list)} dataset sources[/green]")
             except Exception as e:
                 console.print(f"[red]Error during discovery: {e}[/red]")
                 logger.exception("Discovery error")
@@ -160,11 +154,7 @@ class CommandHandler:
             session_id = session.session_id
 
         state = orchestrator.get_session_state(session_id)
-        sources_to_evaluate = (
-            [s for s in state.sources if s.source_id in source_ids]
-            if source_ids
-            else state.sources
-        )
+        sources_to_evaluate = [s for s in state.sources if s.source_id in source_ids] if source_ids else state.sources
 
         if not sources_to_evaluate:
             console.print("[yellow]No sources to evaluate[/yellow]")
@@ -181,9 +171,7 @@ class CommandHandler:
                         continue
 
                 try:
-                    evaluation = orchestrator.evaluation_engine.evaluate_dataset(
-                        source, evaluator="system"
-                    )
+                    evaluation = orchestrator.evaluation_engine.evaluate_dataset(source, evaluator="system")
 
                     if interactive:
                         # Allow manual override
@@ -202,17 +190,13 @@ class CommandHandler:
                     evaluations.append(evaluation)
                     console.print(f"[green]Evaluated: {source.source_id}[/green]")
                 except Exception as e:
-                    console.print(
-                        f"[red]Error evaluating {source.source_id}: {e}[/red]"
-                    )
+                    console.print(f"[red]Error evaluating {source.source_id}: {e}[/red]")
                     logger.exception("Evaluation error")
         else:
             console.print("[yellow]Warning: No evaluation engine configured[/yellow]")
 
         state.evaluations.extend(evaluations)
-        orchestrator.update_progress(
-            session_id, {"datasets_evaluated": len(state.evaluations)}
-        )
+        orchestrator.update_progress(session_id, {"datasets_evaluated": len(state.evaluations)})
         orchestrator.save_session_state(session_id)
 
         return {
@@ -259,11 +243,7 @@ class CommandHandler:
         state = orchestrator.get_session_state(session_id)
 
         # Filter sources if source_ids provided
-        sources_to_acquire = (
-            [s for s in state.sources if s.source_id in source_ids]
-            if source_ids
-            else state.sources
-        )
+        sources_to_acquire = [s for s in state.sources if s.source_id in source_ids] if source_ids else state.sources
 
         if not sources_to_acquire:
             console.print("[yellow]No sources to acquire[/yellow]")
@@ -278,34 +258,22 @@ class CommandHandler:
 
                 try:
                     # Submit access request
-                    access_request = orchestrator.acquisition_manager.submit_access_request(
-                        source
-                    )
+                    access_request = orchestrator.acquisition_manager.submit_access_request(source)
                     state.access_requests.append(access_request)
 
                     # Download dataset
-                    acquired_dataset = orchestrator.acquisition_manager.download_dataset(
-                        source, access_request
-                    )
+                    acquired_dataset = orchestrator.acquisition_manager.download_dataset(source, access_request)
                     state.acquired_datasets.append(acquired_dataset)
                     acquired_count += 1
 
-                    console.print(
-                        f"[green]Acquired: {source.source_id}[/green]"
-                    )
+                    console.print(f"[green]Acquired: {source.source_id}[/green]")
                 except Exception as e:
-                    console.print(
-                        f"[red]Error acquiring {source.source_id}: {e}[/red]"
-                    )
+                    console.print(f"[red]Error acquiring {source.source_id}: {e}[/red]")
                     logger.exception("Acquisition error")
         else:
-            console.print(
-                "[yellow]Warning: No acquisition manager configured[/yellow]"
-            )
+            console.print("[yellow]Warning: No acquisition manager configured[/yellow]")
 
-        orchestrator.update_progress(
-            session_id, {"datasets_acquired": len(state.acquired_datasets)}
-        )
+        orchestrator.update_progress(session_id, {"datasets_acquired": len(state.acquired_datasets)})
         orchestrator.save_session_state(session_id)
 
         return {
@@ -354,9 +322,7 @@ class CommandHandler:
 
         # Filter datasets if source_ids provided
         datasets_to_integrate = (
-            [d for d in state.acquired_datasets if d.source_id in source_ids]
-            if source_ids
-            else state.acquired_datasets
+            [d for d in state.acquired_datasets if d.source_id in source_ids] if source_ids else state.acquired_datasets
         )
 
         if not datasets_to_integrate:
@@ -372,34 +338,22 @@ class CommandHandler:
                     console.print(f"\n[cyan]Creating plan for: {dataset.source_id}[/cyan]")
 
                 try:
-                    plan = orchestrator.integration_engine.create_integration_plan(
-                        dataset, target_format
-                    )
+                    plan = orchestrator.integration_engine.create_integration_plan(dataset, target_format)
 
-                    if interactive and not prompt_for_integration_approval(
-                        dataset.source_id, self._plan_to_dict(plan)
-                    ):
+                    if interactive and not prompt_for_integration_approval(dataset.source_id, self._plan_to_dict(plan)):
                         continue
 
                     state.integration_plans.append(plan)
                     plans_count += 1
 
-                    console.print(
-                        f"[green]Created plan: {dataset.source_id}[/green]"
-                    )
+                    console.print(f"[green]Created plan: {dataset.source_id}[/green]")
                 except Exception as e:
-                    console.print(
-                        f"[red]Error creating plan for {dataset.source_id}: {e}[/red]"
-                    )
+                    console.print(f"[red]Error creating plan for {dataset.source_id}: {e}[/red]")
                     logger.exception("Integration planning error")
         else:
-            console.print(
-                "[yellow]Warning: No integration engine configured[/yellow]"
-            )
+            console.print("[yellow]Warning: No integration engine configured[/yellow]")
 
-        orchestrator.update_progress(
-            session_id, {"integration_plans_created": len(state.integration_plans)}
-        )
+        orchestrator.update_progress(session_id, {"integration_plans_created": len(state.integration_plans)})
         orchestrator.save_session_state(session_id)
 
         return {
@@ -498,9 +452,7 @@ class CommandHandler:
             "progress_metrics": session.progress_metrics,
             "weekly_targets": session.weekly_targets,
             "sources": [self._source_to_dict(s) for s in state.sources],
-            "evaluations": [
-                self._evaluation_to_dict(e) for e in state.evaluations
-            ],
+            "evaluations": [self._evaluation_to_dict(e) for e in state.evaluations],
             "acquired_datasets": [
                 {
                     "source_id": d.source_id,
@@ -510,9 +462,7 @@ class CommandHandler:
                 }
                 for d in state.acquired_datasets
             ],
-            "integration_plans": [
-                self._plan_to_dict(p) for p in state.integration_plans
-            ],
+            "integration_plans": [self._plan_to_dict(p) for p in state.integration_plans],
         }
 
         # Save report
@@ -563,4 +513,3 @@ class CommandHandler:
             "estimated_effort_hours": plan.estimated_effort_hours,
             "required_transformations": plan.required_transformations,
         }
-

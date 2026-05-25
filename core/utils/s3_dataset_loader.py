@@ -60,9 +60,7 @@ class S3DatasetLoader:
             or os.getenv("AWS_SECRET_ACCESS_KEY")
         )
 
-        if not (aws_access_key_id or aws_secret_access_key) and not any(
-            os.getenv(key) for key in _CREDENTIAL_ENV_KEYS
-        ):
+        if not (aws_access_key_id or aws_secret_access_key) and not any(os.getenv(key) for key in _CREDENTIAL_ENV_KEYS):
             raise ValueError("S3 credentials not found")
 
         self._client = None
@@ -221,7 +219,7 @@ class S3DatasetLoader:
             if botocore and hasattr(botocore.exceptions, "ClientError"):
                 if isinstance(
                     exc,
-                    getattr(botocore.exceptions, "ClientError"),
+                    botocore.exceptions.ClientError,
                 ):
                     code = exc.response.get("Error", {}).get("Code", "")
                     if code in {"404", "NotFound", "NoSuchKey"}:

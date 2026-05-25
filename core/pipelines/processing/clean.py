@@ -16,7 +16,6 @@ from typing import Any
 
 import pandas as pd
 
-
 _PII_NAME_PATTERNS = (
     r"ssn",
     r"social",
@@ -32,9 +31,7 @@ _PII_NAME_PATTERNS = (
 
 # Basic regexes for regex-backed redaction
 _SSN_PATTERN = re.compile(r"\b\d{3}-\d{2}-\d{4}\b")
-_PHONE_PATTERN = re.compile(
-    r"\b(?:\+\d{1,3}[-. ]?)?(?:\(?\d{3}\)?[-. ]?)?\d{3}[-. ]?\d{4}\b"
-)
+_PHONE_PATTERN = re.compile(r"\b(?:\+\d{1,3}[-. ]?)?(?:\(?\d{3}\)?[-. ]?)?\d{3}[-. ]?\d{4}\b")
 _EMAIL_PATTERN = re.compile(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+")
 
 

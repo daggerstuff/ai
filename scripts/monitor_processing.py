@@ -3,6 +3,7 @@
 Monitor Multi-Dataset Processing Progress
 Track the intelligent agent processing and prepare for next steps.
 """
+
 import json
 import subprocess
 import time
@@ -26,7 +27,6 @@ def check_processing_status():
 def check_output_progress():
     """Check progress in output directory"""
 
-
     output_dir = get_unified_training_dir()
 
     if not output_dir.exists():
@@ -45,9 +45,7 @@ def check_output_progress():
             continue
 
     return {
-        "status": "completed"
-        if any(f.name == "unified_lightning_config.json" for f in files)
-        else "processing",
+        "status": "completed" if any(f.name == "unified_lightning_config.json" for f in files) else "processing",
         "files": [f.name for f in files],
         "total_conversations": total_conversations,
     }
@@ -59,14 +57,11 @@ def main():
         is_running = check_processing_status()
         progress = check_output_progress()
 
-
         if progress["files"]:
             pass
 
         if not is_running and progress["status"] == "completed":
-
             # Show final results
-
 
             config_file = get_unified_training_dir() / "unified_lightning_config.json"
             if config_file.exists():
@@ -74,7 +69,6 @@ def main():
                     config = json.load(f)
 
                 config.get("dataset_stats", {}).get("processing_stats", {})
-
 
             break
 

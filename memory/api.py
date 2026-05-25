@@ -39,8 +39,8 @@ from ai.memory.schema import (
     PIIStatus,
 )
 
-
 # ─── In-memory store ───────────────────────────────────────────────────────────
+
 
 class MemoryStore:
     """Simple in-memory store — replace with Redis/PostgreSQL backend for production."""
@@ -87,8 +87,7 @@ class MemoryStore:
             if filters.maxImportance is not None and block.importance.raw > filters.maxImportance:
                 continue
             if filters.emotions:
-                if not any(c.lower() in [e.lower() for e in filters.emotions]
-                           for c in block.emotions.categories):
+                if not any(c.lower() in [e.lower() for e in filters.emotions] for c in block.emotions.categories):
                     continue
             if filters.crisisOnly and not block.gating.crisisFlag:
                 continue
@@ -104,7 +103,7 @@ class MemoryStore:
         results.sort(key=lambda b: b.importance.raw, reverse=True)
         offset = filters.offset or 0
         limit = filters.limit or 50
-        return results[offset:offset + limit]
+        return results[offset : offset + limit]
 
     @property
     def total_count(self) -> int:
@@ -276,7 +275,9 @@ async def search_memories(
     crisis_only: Annotated[bool, Query()] = False,
     date_from: Annotated[int | None, Query(description="Unix ms")] = None,
     date_to: Annotated[int | None, Query(description="Unix ms")] = None,
-    consolidation_phases: Annotated[str | None, Query(description="Comma-separated: raw,consolidated,archived,forgotten")] = None,
+    consolidation_phases: Annotated[
+        str | None, Query(description="Comma-separated: raw,consolidated,archived,forgotten")
+    ] = None,
     limit: Annotated[int, Query(ge=1, le=1000)] = 50,
     offset: Annotated[int, Query(ge=0)] = 0,
 ):
@@ -290,7 +291,8 @@ async def search_memories(
         dateFrom=date_from,
         dateTo=date_to,
         consolidationPhases=[ConsolidationPhase(p.strip()) for p in consolidation_phases.split(",")]
-        if consolidation_phases else None,
+        if consolidation_phases
+        else None,
         limit=limit,
         offset=offset,
     )
@@ -396,12 +398,14 @@ async def get_trajectory(
     classifier: ClassifierDep,
     limit: Annotated[int, Query(ge=1, le=500)] = 50,
 ):
-    results = store.search(MemorySearchFilters(
-        tenantId=tenant_id,
-        sessionId=session_id,
-        limit=limit,
-        offset=0,
-    ))
+    results = store.search(
+        MemorySearchFilters(
+            tenantId=tenant_id,
+            sessionId=session_id,
+            limit=limit,
+            offset=0,
+        )
+    )
 
     if not results:
         return {
@@ -437,4 +441,5 @@ async def get_trajectory(
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -4,6 +4,7 @@ JWT Authentication middleware for TechDeck Flask service.
 This module implements JWT-based authentication with role-based access control,
 rate limiting, and comprehensive security measures for HIPAA++ compliance.
 """
+
 import uuid
 from collections.abc import Callable
 from datetime import UTC, datetime
@@ -205,9 +206,7 @@ class JWTAuthMiddleware:
 
         # Check token issued time (prevent future tokens)
         iat_timestamp = payload.get("iat", 0)
-        if (
-            datetime.now(UTC).timestamp() < iat_timestamp - 60
-        ):  # 1 minute grace period
+        if datetime.now(UTC).timestamp() < iat_timestamp - 60:  # 1 minute grace period
             return {"valid": False, "error": "Token issued in the future"}
 
         return {"valid": True}
@@ -342,9 +341,7 @@ class JWTAuthMiddleware:
 
         return [response_body]
 
-    def _handle_rate_limit_error(
-        self, rate_limit_result: dict[str, Any], start_response: Callable
-    ) -> Any:
+    def _handle_rate_limit_error(self, rate_limit_result: dict[str, Any], start_response: Callable) -> Any:
         """
         Handle rate limit errors.
 
@@ -381,9 +378,7 @@ class JWTAuthMiddleware:
 
         return [response_body]
 
-    def _handle_internal_error(
-        self, error_message: str, start_response: Callable
-    ) -> Any:
+    def _handle_internal_error(self, error_message: str, start_response: Callable) -> Any:
         """
         Handle internal server errors.
 
@@ -448,9 +443,7 @@ def require_auth(roles: Any | None = None):
 
             # Check role requirements
             if actual_roles and g.user_role not in actual_roles:
-                raise Forbidden(
-                    f"Insufficient permissions. Required roles: {actual_roles}"
-                )
+                raise Forbidden(f"Insufficient permissions. Required roles: {actual_roles}")
 
             return f(*args, **kwargs)
 

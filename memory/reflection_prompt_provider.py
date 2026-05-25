@@ -8,9 +8,7 @@ class ReflectionPromptProvider:
 
     @staticmethod
     def crisis_detection_prompt(conversation_text: str) -> str:
-        return CRISIS_DETECTION_PROMPT.template.format(
-            conversation_text=conversation_text[:5000]
-        )
+        return CRISIS_DETECTION_PROMPT.template.format(conversation_text=conversation_text[:5000])
 
     @staticmethod
     def reflection_prompt(

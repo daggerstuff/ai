@@ -12,7 +12,6 @@ from pathlib import Path
 from statistics import mean
 from typing import Any
 
-
 MAX_SECONDARY_EMOTIONS = 2
 PREFERENCE_ORDER = [
     "Fear",
@@ -28,9 +27,7 @@ PREFERENCE_ORDER = [
 ]
 
 
-def normalize_secondary_emotions(
-    raw_values: Any, primary_emotion: str | None = None
-) -> list[str]:
+def normalize_secondary_emotions(raw_values: Any, primary_emotion: str | None = None) -> list[str]:
     """Normalize secondary emotion annotations into a deterministic ordered list."""
     if raw_values is None:
         return []
@@ -92,9 +89,7 @@ class ConsensusAgent:
         """Resolve crisis label using confidence-weighted voting"""
         if self.strategy == "weighted":
             # Weight by confidence score
-            weighted_sum = sum(
-                a["crisis_label"] * a["crisis_confidence"] for a in annotations
-            )
+            weighted_sum = sum(a["crisis_label"] * a["crisis_confidence"] for a in annotations)
             total_weight = sum(a["crisis_confidence"] for a in annotations)
             consensus_label = round(weighted_sum / total_weight)
             consensus_confidence = round(total_weight / len(annotations))
@@ -102,9 +97,7 @@ class ConsensusAgent:
             # Simple majority
             labels = [a["crisis_label"] for a in annotations]
             consensus_label = Counter(labels).most_common(1)[0][0]
-            consensus_confidence = round(
-                mean([a["crisis_confidence"] for a in annotations])
-            )
+            consensus_confidence = round(mean([a["crisis_confidence"] for a in annotations]))
 
         return {
             "crisis_label": consensus_label,
@@ -122,13 +115,9 @@ class ConsensusAgent:
         if len(top_emotions) == 1:
             consensus_emotion = top_emotions[0]
             agreed_intensities = [
-                a.get("emotion_intensity", 0)
-                for a in annotations
-                if a.get("primary_emotion") == consensus_emotion
+                a.get("emotion_intensity", 0) for a in annotations if a.get("primary_emotion") == consensus_emotion
             ]
-            consensus_intensity = (
-                round(mean(agreed_intensities)) if agreed_intensities else 0
-            )
+            consensus_intensity = round(mean(agreed_intensities)) if agreed_intensities else 0
         else:
             tie_resolved = True
             preference_order = [
@@ -146,13 +135,8 @@ class ConsensusAgent:
             preference_rank = {emotion: index for index, emotion in enumerate(preference_order)}
             ranked = []
             for emotion in top_emotions:
-                supporting = [
-                    a for a in annotations if a.get("primary_emotion") == emotion
-                ]
-                confidence_scores = [
-                    float(a.get("confidence_scores", {}).get("emotion", 0.0))
-                    for a in supporting
-                ]
+                supporting = [a for a in annotations if a.get("primary_emotion") == emotion]
+                confidence_scores = [float(a.get("confidence_scores", {}).get("emotion", 0.0)) for a in supporting]
                 confidence = mean(confidence_scores) if confidence_scores else 0.0
                 intensity = mean(a.get("emotion_intensity", 0) for a in supporting)
                 rank = preference_rank.get(emotion, len(preference_order))
@@ -160,9 +144,7 @@ class ConsensusAgent:
 
             ranked.sort(key=lambda item: item[1:], reverse=True)
             consensus_emotion = ranked[0][0]
-            consensus_intensity = round(
-                mean(a.get("emotion_intensity", 0) for a in annotations)
-            )
+            consensus_intensity = round(mean(a.get("emotion_intensity", 0) for a in annotations))
 
         return {
             "primary_emotion": consensus_emotion,
@@ -195,22 +177,13 @@ class ConsensusAgent:
             supporting = [
                 ann
                 for ann in annotations
-                if emotion in normalize_secondary_emotions(
-                    ann.get("secondary_emotions"), primary_emotion=primary_emotion
-                )
+                if emotion
+                in normalize_secondary_emotions(ann.get("secondary_emotions"), primary_emotion=primary_emotion)
             ]
-            confidence_scores = [
-                float(ann.get("confidence_scores", {}).get("emotion", 0.0))
-                for ann in supporting
-            ]
-            confidence = (
-                sum(confidence_scores) / len(confidence_scores)
-                if confidence_scores
-                else 0.0
-            )
+            confidence_scores = [float(ann.get("confidence_scores", {}).get("emotion", 0.0)) for ann in supporting]
+            confidence = sum(confidence_scores) / len(confidence_scores) if confidence_scores else 0.0
             intensity = (
-                sum(float(ann.get("emotion_intensity", 0)) for ann in supporting)
-                / len(supporting)
+                sum(float(ann.get("emotion_intensity", 0)) for ann in supporting) / len(supporting)
                 if supporting
                 else 0.0
             )
@@ -220,34 +193,24 @@ class ConsensusAgent:
         scored.sort(key=lambda item: item[1], reverse=True)
         return [emotion for emotion, _ in scored[:MAX_SECONDARY_EMOTIONS]]
 
-    def resolve_valence_arousal(
-        self, annotations: list[dict[str, Any]]
-    ) -> dict[str, float]:
+    def resolve_valence_arousal(self, annotations: list[dict[str, Any]]) -> dict[str, float]:
         """Resolve valence and arousal by averaging"""
         return {
             "valence": round(mean([a["valence"] for a in annotations]), 2),
             "arousal": round(mean([a["arousal"] for a in annotations]), 2),
         }
 
-    def resolve_empathy_safety(
-        self, annotations: list[dict[str, Any]]
-    ) -> dict[str, Any]:
+    def resolve_empathy_safety(self, annotations: list[dict[str, Any]]) -> dict[str, Any]:
         """Resolve empathy score and safety pass"""
-        empathy_scores = [
-            a["empathy_score"] for a in annotations if a["empathy_score"] is not None
-        ]
-        safety_passes = [
-            a["safety_pass"] for a in annotations if a["safety_pass"] is not None
-        ]
+        empathy_scores = [a["empathy_score"] for a in annotations if a["empathy_score"] is not None]
+        safety_passes = [a["safety_pass"] for a in annotations if a["safety_pass"] is not None]
 
         return {
             "empathy_score": round(mean(empathy_scores)) if empathy_scores else None,
             "safety_pass": all(safety_passes) if safety_passes else None,
         }
 
-    def merge_notes(
-        self, annotations: list[dict[str, Any]], annotator_ids: list[str]
-    ) -> str:
+    def merge_notes(self, annotations: list[dict[str, Any]], annotator_ids: list[str]) -> str:
         """Merge clinical notes from all annotators"""
         merged = "CONSENSUS ANNOTATION\n\n"
 
@@ -318,10 +281,7 @@ class ConsensusAgent:
         }
 
         if emotion_result.get("emotion_tie_resolved"):
-            consensus["notes"] = (
-                f"{consensus['notes']} "
-                "| Emotion tie resolved via confidence/intensity tie-break"
-            )
+            consensus["notes"] = f"{consensus['notes']} | Emotion tie resolved via confidence/intensity tie-break"
 
         self.consensus_count += 1
 
@@ -345,17 +305,10 @@ class ConsensusAgent:
         if self.agreement_stats["total_tasks"] == 0:
             return {"error": "No tasks processed"}
 
-        crisis_agreement_rate = (
-            sum(self.agreement_stats["crisis_label"])
-            / self.agreement_stats["total_tasks"]
-        )
-        emotion_agreement_rate = (
-            sum(self.agreement_stats["primary_emotion"])
-            / self.agreement_stats["total_tasks"]
-        )
+        crisis_agreement_rate = sum(self.agreement_stats["crisis_label"]) / self.agreement_stats["total_tasks"]
+        emotion_agreement_rate = sum(self.agreement_stats["primary_emotion"]) / self.agreement_stats["total_tasks"]
         secondary_emotion_agreement_rate = (
-            sum(self.agreement_stats["secondary_emotion"])
-            / self.agreement_stats["total_tasks"]
+            sum(self.agreement_stats["secondary_emotion"]) / self.agreement_stats["total_tasks"]
         )
 
         return {
@@ -363,12 +316,8 @@ class ConsensusAgent:
             "emotion_tie_breaks": self.agreement_stats["emotion_tie_breaks"],
             "crisis_agreement_rate": round(crisis_agreement_rate, 3),
             "emotion_agreement_rate": round(emotion_agreement_rate, 3),
-            "secondary_emotion_agreement_rate": round(
-                secondary_emotion_agreement_rate, 3
-            ),
-            "overall_agreement_rate": round(
-                (crisis_agreement_rate + emotion_agreement_rate) / 2, 3
-            ),
+            "secondary_emotion_agreement_rate": round(secondary_emotion_agreement_rate, 3),
+            "overall_agreement_rate": round((crisis_agreement_rate + emotion_agreement_rate) / 2, 3),
         }
 
 
@@ -388,9 +337,7 @@ def load_annotations(file_path: Path) -> dict[str, dict[str, Any]]:
     return annotations
 
 
-def create_consensus_annotations(
-    file1: str, file2: str, output_file: str, strategy: str = "weighted"
-):
+def create_consensus_annotations(file1: str, file2: str, output_file: str, strategy: str = "weighted"):
     """
     Create consensus annotations from two annotator files
 
@@ -431,7 +378,6 @@ def create_consensus_annotations(
 
             f_out.write(json.dumps(consensus) + "\n")
 
-
     # Print agreement report
     report = agent.get_agreement_report()
 
@@ -442,18 +388,10 @@ def create_consensus_annotations(
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Consensus Agent - Resolve disagreements between annotators"
-    )
-    parser.add_argument(
-        "--file1", required=True, help="First annotator's results (JSONL)"
-    )
-    parser.add_argument(
-        "--file2", required=True, help="Second annotator's results (JSONL)"
-    )
-    parser.add_argument(
-        "--output", required=True, help="Output file for consensus annotations (JSONL)"
-    )
+    parser = argparse.ArgumentParser(description="Consensus Agent - Resolve disagreements between annotators")
+    parser.add_argument("--file1", required=True, help="First annotator's results (JSONL)")
+    parser.add_argument("--file2", required=True, help="Second annotator's results (JSONL)")
+    parser.add_argument("--output", required=True, help="Output file for consensus annotations (JSONL)")
     parser.add_argument(
         "--strategy",
         choices=["weighted", "majority", "average"],

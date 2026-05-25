@@ -6,7 +6,7 @@ Real-time monitoring and alerting system
 
 import json
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 
@@ -45,11 +45,7 @@ class ProductionMonitor:
 
     def _check_system_health(self):
         """Check system health"""
-        return {
-            "status": "healthy",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "uptime": "active"
-        }
+        return {"status": "healthy", "timestamp": datetime.now(UTC).isoformat(), "uptime": "active"}
 
     def _collect_metrics(self):
         """Collect production metrics"""
@@ -58,7 +54,7 @@ class ProductionMonitor:
             "crisis_detections": 0,
             "average_confidence": 0.0,
             "error_rate": 0.0,
-            "response_time_ms": 0
+            "response_time_ms": 0,
         }
 
     def _check_alerts(self, metrics):
@@ -75,12 +71,7 @@ class ProductionMonitor:
 
     def _log_status(self, health, metrics, alerts):
         """Log monitoring status"""
-        status = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "health": health,
-            "metrics": metrics,
-            "alerts": alerts
-        }
+        status = {"timestamp": datetime.now(UTC).isoformat(), "health": health, "metrics": metrics, "alerts": alerts}
 
         # Save to metrics file
         with open(self.metrics_file, "a") as f:
@@ -91,6 +82,7 @@ class ProductionMonitor:
             pass
         else:
             pass
+
 
 if __name__ == "__main__":
     monitor = ProductionMonitor()

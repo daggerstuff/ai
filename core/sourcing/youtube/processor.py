@@ -2,20 +2,19 @@
 
 from __future__ import annotations
 
-from typing import Any
 import os
+from typing import Any
 
 
 def _load_core_processor():
     """Import the actual processor module lazily to avoid hard dependency errors."""
+    from ai.sourcing.youtube.models import (
+        ChannelHunterConfig,
+        ChannelQualityThresholds,
+    )
     from ai.sourcing.youtube.processor import (
         ChannelProcessor,
         run_pipeline,
-    )
-
-    from ai.sourcing.youtube.models import (
-        ChannelQualityThresholds,
-        ChannelHunterConfig,
     )
 
     return ChannelProcessor, ChannelQualityThresholds, ChannelHunterConfig, run_pipeline
@@ -46,9 +45,7 @@ class Processor:
         if api_key is None:
             api_key = os.environ.get("YOUTUBE_API_KEY") or os.environ.get("YOUTUBE_DATA_API_KEY")
         if not api_key:
-            raise ValueError(
-                "Missing YouTube API key. Set YOUTUBE_API_KEY or pass api_key explicitly."
-            )
+            raise ValueError("Missing YouTube API key. Set YOUTUBE_API_KEY or pass api_key explicitly.")
         processor_cls, quality_thresholds_cls, hunter_config_cls, _ = _require_dependency()
         if hunter_config is not None and not isinstance(hunter_config, hunter_config_cls):
             hunter_config = None
@@ -74,5 +71,6 @@ def run_pipeline(api_key: str, *args, **kwargs):
     """Compatibility wrapper around :func:`ai.sourcing.youtube.processor.run_pipeline`."""
     _, _, _, run_pipeline_impl = _require_dependency()
     return run_pipeline_impl(api_key, *args, **kwargs)
+
 
 __all__ = ["Processor", "run_pipeline"]

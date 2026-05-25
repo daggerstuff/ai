@@ -21,9 +21,7 @@ class StressTest:
     async def _make_request(self, session: aiohttp.ClientSession) -> bool:
         try:
             async with session.post(
-                self.endpoint,
-                json={"messages": [{"role": "user", "content": "Test"}]},
-                timeout=10
+                self.endpoint, json={"messages": [{"role": "user", "content": "Test"}]}, timeout=10
             ) as response:
                 return response.status == 200
         except Exception:
@@ -41,12 +39,7 @@ class StressTest:
                 successful += sum(1 for r in batch_results if r)
                 failed += sum(1 for r in batch_results if not r)
 
-        return {
-            "concurrency": concurrency,
-            "successful": successful,
-            "failed": failed,
-            "duration": duration
-        }
+        return {"concurrency": concurrency, "successful": successful, "failed": failed, "duration": duration}
 
     async def ramp_up_test(self):
         for c in [1, 5, 10, 20, 50]:
@@ -61,6 +54,7 @@ class StressTest:
     async def endurance_test(self):
         res = await self.run_batch(10, 60)
         return res
+
 
 async def main():
     parser = argparse.ArgumentParser(description="AI Stress Test")
@@ -85,6 +79,7 @@ async def main():
     finally:
         with open(args.output, "w") as f:
             json.dump(results, f, indent=4)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

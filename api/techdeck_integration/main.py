@@ -10,6 +10,7 @@ import signal
 import sys
 
 from ai.api.sentry_logging import initialize_sentry_logging
+
 from .app import create_app
 from .config import get_config
 from .utils.logger import get_logger, setup_logging
@@ -22,6 +23,7 @@ def setup_signal_handlers(app) -> None:
     Args:
         app: Flask application instance
     """
+
     def signal_handler(signum, _frame):
         """Handle shutdown signals."""
         logger = get_logger(__name__)
@@ -53,12 +55,7 @@ def validate_environment() -> None:
     Raises:
         ValueError: If required configuration is missing
     """
-    required_vars = [
-        "SECRET_KEY",
-        "JWT_SECRET_KEY",
-        "MONGODB_URI",
-        "REDIS_URL"
-    ]
+    required_vars = ["SECRET_KEY", "JWT_SECRET_KEY", "MONGODB_URI", "REDIS_URL"]
 
     missing_vars = []
     for var in required_vars:
@@ -120,7 +117,7 @@ def main(host: str | None = None, port: int | None = None, debug: bool | None = 
             port=config.PORT,
             debug=config.DEBUG,
             threaded=True,
-            use_reloader=False  # Disable reloader for production stability
+            use_reloader=False,  # Disable reloader for production stability
         )
 
     except KeyboardInterrupt:
@@ -141,8 +138,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    main(
-        host=args.host,
-        port=args.port,
-        debug=args.debug
-    )
+    main(host=args.host, port=args.port, debug=args.debug)

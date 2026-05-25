@@ -165,7 +165,7 @@ class LocalForesightRepository:
                 bank_id=bank_id,
                 fts_query=fts_query,
                 fetch_limit=fetch_limit,
-normalized_tags=normalized_tags,
+                normalized_tags=normalized_tags,
                 required_tags=required_tags,
                 tags_match=tags_match,
             )
@@ -177,7 +177,7 @@ normalized_tags=normalized_tags,
             bank_id=bank_id,
             query=query,
             fetch_limit=fetch_limit,
-normalized_tags=normalized_tags,
+            normalized_tags=normalized_tags,
             required_tags=required_tags,
             tags_match=tags_match,
         )

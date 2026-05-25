@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Enterprise‑grade in‑memory inventory engine.
 
 The engine stores arbitrary items identified by a UUID. It provides a simple
@@ -33,12 +32,13 @@ from __future__ import annotations
 import json
 import logging
 import uuid
+from collections.abc import Iterable, Mapping
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from threading import RLock
-from typing import Dict, Iterable, List, Mapping, Optional
 
 log = logging.getLogger(__name__)
+
 
 @dataclass(frozen=True, slots=True)
 class InventoryItem:
@@ -53,11 +53,12 @@ class InventoryItem:
     metadata:
         Optional free‑form mapping with additional details.
     """
+
     id: str
     name: str
     metadata: Mapping[str, object] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, object]:
+    def to_dict(self) -> dict[str, object]:
         """Return a JSON‑serialisable representation.
         ``asdict`` works for dataclasses but does not guarantee that ``metadata``
         is a plain ``dict``; we explicitly cast it for safety.
@@ -66,6 +67,7 @@ class InventoryItem:
         data["metadata"] = dict(self.metadata)
         return data
 
+
 class InventoryEngine:
     """Manage a collection of :class:`InventoryItem` objects.
 
@@ -73,10 +75,11 @@ class InventoryEngine:
     decide whether to keep the data in‑memory only or persist it to a JSON file
     via :meth:`save`/:meth:`load`.
     """
-    def __init__(self, *, storage_path: Optional[Path | str] = None) -> None:
-        self._items: Dict[str, InventoryItem] = {}
+
+    def __init__(self, *, storage_path: Path | str | None = None) -> None:
+        self._items: dict[str, InventoryItem] = {}
         self._lock = RLock()
-        self._storage_path: Optional[Path] = Path(storage_path) if storage_path else None
+        self._storage_path: Path | None = Path(storage_path) if storage_path else None
         if self._storage_path and self._storage_path.is_file():
             self.load()
 
@@ -96,7 +99,7 @@ class InventoryEngine:
         if not self._storage_path:
             raise FileNotFoundError("No storage_path configured for InventoryEngine")
         with self._storage_path.open("r", encoding="utf-8") as f:
-            raw_items: List[Dict[str, object]] = json.load(f)
+            raw_items: list[dict[str, object]] = json.load(f)
         with self._lock:
             self._items = {
                 str(item["id"]): InventoryItem(
@@ -124,7 +127,7 @@ class InventoryEngine:
     # ---------------------------------------------------------------------
     # CRUD API
     # ---------------------------------------------------------------------
-    def add_item(self, *, name: str, metadata: Optional[Mapping[str, object]] = None) -> InventoryItem:
+    def add_item(self, *, name: str, metadata: Mapping[str, object] | None = None) -> InventoryItem:
         """Create a new :class:`InventoryItem` and store it.
 
         Parameters
@@ -159,8 +162,8 @@ class InventoryEngine:
         self,
         item_id: str,
         *,
-        name: Optional[str] = None,
-        metadata: Optional[Mapping[str, object]] = None,
+        name: str | None = None,
+        metadata: Mapping[str, object] | None = None,
     ) -> InventoryItem:
         """Update ``name`` and/or ``metadata`` of an existing item.
 
@@ -169,7 +172,7 @@ class InventoryEngine:
         with self._lock:
             existing = self.get_item(item_id)
             new_name = name if name is not None else existing.name
-            new_meta: Dict[str, object] = dict(existing.metadata)
+            new_meta: dict[str, object] = dict(existing.metadata)
             if metadata:
                 new_meta.update(metadata)
             updated = InventoryItem(id=item_id, name=new_name, metadata=new_meta)
@@ -189,7 +192,7 @@ class InventoryEngine:
                 raise KeyError(f"Inventory item {item_id!r} not found") from exc
         log.info("Removed inventory item %s", item_id)
 
-    def list_items(self) -> List[InventoryItem]:
+    def list_items(self) -> list[InventoryItem]:
         """Return a list of all stored items (order is undefined)."""
         with self._lock:
             return list(self._items.values())

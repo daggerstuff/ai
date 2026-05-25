@@ -6,6 +6,7 @@ API to power the reflection subagent with qwen/qwen3.5-397b-a17b.
 
 Uses NVIDIA_API_KEY from environment (already present in .env).
 """
+
 import logging
 import os
 
@@ -41,9 +42,7 @@ class NvidiaNIMCallback:
         self.model = model
 
         if not self.api_key:
-            raise ValueError(
-                "NVIDIA_API_KEY not found. Set NVIDIA_API_KEY environment variable."
-            )
+            raise ValueError("NVIDIA_API_KEY not found. Set NVIDIA_API_KEY environment variable.")
 
         # Lazy init
         self._client = None
@@ -71,9 +70,7 @@ class NvidiaNIMCallback:
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
-                messages=[
-                    {"role": "user", "content": prompt}
-                ],
+                messages=[{"role": "user", "content": prompt}],
                 temperature=0.7,
                 max_tokens=4096,
             )

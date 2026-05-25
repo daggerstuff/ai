@@ -7,7 +7,7 @@ Analyzes quality score distributions across datasets, tiers, and time periods
 import json
 import sqlite3
 import warnings
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -41,18 +41,10 @@ class SimpleQualityDistributionAnalyzer:
 
             # Analyze different metrics
             results = {
-                "conversation_length": self._analyze_metric(
-                    df, "turn_count", "Conversation Length"
-                ),
-                "content_richness": self._analyze_metric(
-                    df, "word_count", "Content Richness"
-                ),
-                "tier_distribution": self._analyze_categorical(
-                    df, "tier", "Tier Distribution"
-                ),
-                "dataset_distribution": self._analyze_categorical(
-                    df, "dataset_source", "Dataset Distribution"
-                ),
+                "conversation_length": self._analyze_metric(df, "turn_count", "Conversation Length"),
+                "content_richness": self._analyze_metric(df, "word_count", "Content Richness"),
+                "tier_distribution": self._analyze_categorical(df, "tier", "Tier Distribution"),
+                "dataset_distribution": self._analyze_categorical(df, "dataset_source", "Dataset Distribution"),
             }
 
             return results
@@ -92,9 +84,7 @@ class SimpleQualityDistributionAnalyzer:
         except Exception:
             return []
 
-    def _analyze_metric(
-        self, df: pd.DataFrame, column: str, title: str
-    ) -> dict[str, Any]:
+    def _analyze_metric(self, df: pd.DataFrame, column: str, title: str) -> dict[str, Any]:
         """Analyze a numeric metric"""
         try:
             values = df[column].dropna().astype(float)
@@ -153,9 +143,7 @@ class SimpleQualityDistributionAnalyzer:
         except Exception as e:
             return {"error": str(e)}
 
-    def _analyze_categorical(
-        self, df: pd.DataFrame, column: str, title: str
-    ) -> dict[str, Any]:
+    def _analyze_categorical(self, df: pd.DataFrame, column: str, title: str) -> dict[str, Any]:
         """Analyze a categorical variable"""
         try:
             value_counts = df[column].value_counts()
@@ -165,9 +153,7 @@ class SimpleQualityDistributionAnalyzer:
                 "total_count": len(df),
                 "unique_values": len(value_counts),
                 "distribution": {str(k): int(v) for k, v in value_counts.items()},
-                "percentages": {
-                    str(k): float(v / len(df) * 100) for k, v in value_counts.items()
-                },
+                "percentages": {str(k): float(v / len(df) * 100) for k, v in value_counts.items()},
             }
 
         except Exception as e:
@@ -192,10 +178,7 @@ class SimpleQualityDistributionAnalyzer:
             )
 
             # Conversation Length Distribution
-            if (
-                "conversation_length" in results
-                and "values" in results["conversation_length"]
-            ):
+            if "conversation_length" in results and "values" in results["conversation_length"]:
                 ax = axes[0, 0]
                 values = results["conversation_length"]["values"]
                 ax.hist(values, bins=30, alpha=0.7, edgecolor="black")
@@ -206,16 +189,11 @@ class SimpleQualityDistributionAnalyzer:
 
                 # Add statistics
                 mean_val = results["conversation_length"]["statistics"]["mean"]
-                ax.axvline(
-                    mean_val, color="red", linestyle="--", label=f"Mean: {mean_val:.1f}"
-                )
+                ax.axvline(mean_val, color="red", linestyle="--", label=f"Mean: {mean_val:.1f}")
                 ax.legend()
 
             # Content Richness Distribution
-            if (
-                "content_richness" in results
-                and "values" in results["content_richness"]
-            ):
+            if "content_richness" in results and "values" in results["content_richness"]:
                 ax = axes[0, 1]
                 values = results["content_richness"]["values"]
                 ax.hist(values, bins=30, alpha=0.7, edgecolor="black")
@@ -226,26 +204,18 @@ class SimpleQualityDistributionAnalyzer:
 
                 # Add statistics
                 mean_val = results["content_richness"]["statistics"]["mean"]
-                ax.axvline(
-                    mean_val, color="red", linestyle="--", label=f"Mean: {mean_val:.1f}"
-                )
+                ax.axvline(mean_val, color="red", linestyle="--", label=f"Mean: {mean_val:.1f}")
                 ax.legend()
 
             # Tier Distribution
-            if (
-                "tier_distribution" in results
-                and "distribution" in results["tier_distribution"]
-            ):
+            if "tier_distribution" in results and "distribution" in results["tier_distribution"]:
                 ax = axes[1, 0]
                 dist = results["tier_distribution"]["distribution"]
                 ax.pie(dist.values(), labels=dist.keys(), autopct="%1.1f%%")
                 ax.set_title("Tier Distribution")
 
             # Dataset Distribution
-            if (
-                "dataset_distribution" in results
-                and "distribution" in results["dataset_distribution"]
-            ):
+            if "dataset_distribution" in results and "distribution" in results["dataset_distribution"]:
                 ax = axes[1, 1]
                 dist = results["dataset_distribution"]["distribution"]
                 # Show top 10 datasets
@@ -272,19 +242,17 @@ class SimpleQualityDistributionAnalyzer:
         except Exception:
             return {}
 
-    def export_report(
-        self, results: dict[str, Any], visualizations: dict[str, str]
-    ) -> str:
+    def export_report(self, results: dict[str, Any], visualizations: dict[str, str]) -> str:
         """Export distribution analysis report"""
 
         try:
-            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
             report_file = self.output_dir / f"distribution_report_{timestamp}.json"
 
             # Prepare export data
             export_data = {
                 "report_metadata": {
-                    "generated_at": datetime.now(timezone.utc).isoformat(),
+                    "generated_at": datetime.now(UTC).isoformat(),
                     "analyzer_version": "1.0.0",
                 },
                 "analysis_results": results,

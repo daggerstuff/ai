@@ -5,13 +5,14 @@ Quality Analytics Dashboard Launcher (Task 5.6.2.1)
 Enterprise-grade launcher for the quality analytics dashboard with
 comprehensive setup, validation, and monitoring capabilities.
 """
+
 import argparse
 import json
 import logging
 import sqlite3
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 # Configure logging
@@ -54,7 +55,15 @@ class QualityAnalyticsDashboardLauncher:
 
         for package in self.required_packages:
             try:
-                if package == "sqlite3" or package == "streamlit" or package == "pandas" or package == "plotly" or package == "numpy" or package == "seaborn" or package == "matplotlib":
+                if (
+                    package == "sqlite3"
+                    or package == "streamlit"
+                    or package == "pandas"
+                    or package == "plotly"
+                    or package == "numpy"
+                    or package == "seaborn"
+                    or package == "matplotlib"
+                ):
                     pass
 
                 logger.info(f"  ✅ {package}: Available")
@@ -65,10 +74,7 @@ class QualityAnalyticsDashboardLauncher:
 
         if missing_packages:
             logger.error(f"❌ Missing packages: {', '.join(missing_packages)}")
-            logger.info(
-                "💡 Install missing packages with: pip install "
-                + " ".join(missing_packages)
-            )
+            logger.info("💡 Install missing packages with: pip install " + " ".join(missing_packages))
             return False
 
         logger.info("✅ All dependencies available")
@@ -84,7 +90,6 @@ class QualityAnalyticsDashboardLauncher:
             return False
 
         try:
-
             conn = sqlite3.connect(str(self.db_path))
             cursor = conn.cursor()
 
@@ -101,9 +106,7 @@ class QualityAnalyticsDashboardLauncher:
                 return False
 
             # Check if quality data exists
-            cursor.execute(
-                "SELECT COUNT(*) FROM quality_metrics WHERE overall_quality IS NOT NULL"
-            )
+            cursor.execute("SELECT COUNT(*) FROM quality_metrics WHERE overall_quality IS NOT NULL")
             quality_count = cursor.fetchone()[0]
 
             if quality_count == 0:
@@ -152,7 +155,7 @@ class QualityAnalyticsDashboardLauncher:
             "port": 8501,
             "host": "localhost",
             "db_path": str(self.db_path),
-            "launch_time": datetime.now(timezone.utc).isoformat(),
+            "launch_time": datetime.now(UTC).isoformat(),
             "project_root": str(self.project_root),
             "monitoring_dir": str(self.monitoring_dir),
         }
@@ -252,9 +255,7 @@ class QualityAnalyticsDashboardLauncher:
             logger.error(f"❌ Error running pre-launch tests: {e}")
             return False
 
-    def launch(
-        self, port: int = 8501, host: str = "localhost", skip_tests: bool = False
-    ) -> bool:
+    def launch(self, port: int = 8501, host: str = "localhost", skip_tests: bool = False) -> bool:
         """
         Complete launch sequence for the quality analytics dashboard.
 
@@ -304,22 +305,14 @@ def main():
     """Main function to launch the quality analytics dashboard."""
 
     parser = argparse.ArgumentParser(description="Launch Quality Analytics Dashboard")
-    parser.add_argument(
-        "--port", type=int, default=8501, help="Port to run dashboard on"
-    )
-    parser.add_argument(
-        "--host", type=str, default="localhost", help="Host to bind dashboard to"
-    )
-    parser.add_argument(
-        "--skip-tests", action="store_true", help="Skip pre-launch tests"
-    )
+    parser.add_argument("--port", type=int, default=8501, help="Port to run dashboard on")
+    parser.add_argument("--host", type=str, default="localhost", help="Host to bind dashboard to")
+    parser.add_argument("--skip-tests", action="store_true", help="Skip pre-launch tests")
 
     args = parser.parse_args()
 
     launcher = QualityAnalyticsDashboardLauncher()
-    success = launcher.launch(
-        port=args.port, host=args.host, skip_tests=args.skip_tests
-    )
+    success = launcher.launch(port=args.port, host=args.host, skip_tests=args.skip_tests)
 
     if not success:
         sys.exit(1)

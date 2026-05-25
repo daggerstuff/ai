@@ -5,7 +5,7 @@ Comprehensive health monitoring for production deployment
 """
 
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import psutil
 
@@ -28,19 +28,14 @@ class ProductionHealthService:
                 "cpu_percent": cpu_percent,
                 "memory_percent": memory.percent,
                 "disk_percent": disk.percent,
-                "uptime": time.time() - self.start_time
+                "uptime": time.time() - self.start_time,
             }
         except Exception as e:
             return {"status": "unhealthy", "error": str(e)}
 
     def check_dependencies(self):
         """Check critical dependencies."""
-        dependencies = {
-            "bcrypt": False,
-            "prometheus_client": False,
-            "redis": False,
-            "cryptography": False
-        }
+        dependencies = {"bcrypt": False, "prometheus_client": False, "redis": False, "cryptography": False}
 
         for dep in dependencies:
             try:
@@ -50,10 +45,7 @@ class ProductionHealthService:
                 dependencies[dep] = False
 
         all_available = all(dependencies.values())
-        return {
-            "status": "healthy" if all_available else "degraded",
-            "dependencies": dependencies
-        }
+        return {"status": "healthy" if all_available else "degraded", "dependencies": dependencies}
 
     def get_comprehensive_health(self):
         """Get comprehensive health status."""
@@ -66,12 +58,13 @@ class ProductionHealthService:
 
         return {
             "status": overall_status,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "system": system_health,
             "dependencies": dependency_health,
             "version": "1.0.0",
-            "environment": "production"
+            "environment": "production",
         }
+
 
 if __name__ == "__main__":
     health_service = ProductionHealthService()

@@ -18,7 +18,6 @@ from dataclasses import dataclass
 
 from ai.memory.schema import MemoryBlock, ScoringWeights
 
-
 # ─── Cosine similarity ────────────────────────────────────────────────────────
 
 
@@ -76,8 +75,7 @@ def exponential_decay(
         now_ms = time.time_ns() // 1_000_000
 
     age_ms = now_ms - timestamp_ms
-    if age_ms < 0:
-        age_ms = 0  # future timestamps clamp to 1.0
+    age_ms = max(age_ms, 0)  # future timestamps clamp to 1.0
 
     tau_ms = tau_days * 86400 * 1000
     return math.exp(-age_ms / tau_ms)
@@ -142,7 +140,7 @@ class ImportanceScorer:
     Scoring is deterministic — same MemoryBlock always produces the same score.
     """
 
-    __slots__ = ("_weights", "_emotions")
+    __slots__ = ("_emotions", "_weights")
 
     def __init__(self, weights: ScoringWeights | None = None) -> None:
         self._weights = weights or ScoringWeights()
@@ -167,25 +165,19 @@ class ImportanceScorer:
         Returns:
             Composite importance score in [0.0, 1.0].
         """
-        recency = exponential_decay(
-            memory.timestamp, tau_days=self._weights.decay_tau_days
-        )
+        recency = exponential_decay(memory.timestamp, tau_days=self._weights.decay_tau_days)
         relevance = self._compute_relevance(memory.content, context)
         emotional = self._emotions.get_weight(memory.emotions.categories)
         actionability = memory.importance.actionability
 
         return self._weights.compute_importance(recency, relevance, emotional, actionability)
 
-    def score_components(
-        self, memory: MemoryBlock, context: str = ""
-    ) -> dict[str, float]:
+    def score_components(self, memory: MemoryBlock, context: str = "") -> dict[str, float]:
         """
         Return the individual scoring components for debugging/inspection.
         Useful for understanding why a memory scored a certain way.
         """
-        recency = exponential_decay(
-            memory.timestamp, tau_days=self._weights.decay_tau_days
-        )
+        recency = exponential_decay(memory.timestamp, tau_days=self._weights.decay_tau_days)
         relevance = self._compute_relevance(memory.content, context)
         emotional = self._emotions.get_weight(memory.emotions.categories)
         actionability = memory.importance.actionability

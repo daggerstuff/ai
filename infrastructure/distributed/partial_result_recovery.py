@@ -13,7 +13,7 @@ import sqlite3
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -22,23 +22,29 @@ from typing import Any
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class ResultType(Enum):
     """Types of partial results"""
+
     INTERMEDIATE = "intermediate"
     BATCH = "batch"
     CHECKPOINT = "checkpoint"
     FINAL = "final"
 
+
 class RecoveryStrategy(Enum):
     """Strategies for result recovery"""
+
     MERGE_RESULTS = "merge_results"
     REPLACE_RESULTS = "replace_results"
     APPEND_RESULTS = "append_results"
     VALIDATE_AND_MERGE = "validate_and_merge"
 
+
 @dataclass
 class PartialResult:
     """Container for partial processing results"""
+
     result_id: str
     process_id: str
     task_id: str
@@ -55,6 +61,7 @@ class PartialResult:
             self.created_at = datetime.fromisoformat(self.created_at)
         if isinstance(self.result_type, str):
             self.result_type = ResultType(self.result_type)
+
 
 class PartialResultManager:
     """Manages partial results for recovery and continuation"""
@@ -95,10 +102,15 @@ class PartialResultManager:
                 ON partial_results (process_id, sequence_number)
             """)
 
-    def store_partial_result(self, process_id: str, task_id: str,
-                           result_type: ResultType, data: Any,
-                           metadata: dict[str, Any] = None,
-                           sequence_number: int = 0) -> str:
+    def store_partial_result(
+        self,
+        process_id: str,
+        task_id: str,
+        result_type: ResultType,
+        data: Any,
+        metadata: dict[str, Any] = None,
+        sequence_number: int = 0,
+    ) -> str:
         """Store a partial result"""
 
         result_id = f"{process_id}_{result_type.value}_{sequence_number}_{uuid.uuid4().hex[:8]}"
@@ -111,8 +123,8 @@ class PartialResultManager:
             result_type=result_type,
             data=data,
             metadata=metadata or {},
-            created_at=datetime.now(timezone.utc),
-            sequence_number=sequence_number
+            created_at=datetime.now(UTC),
+            sequence_number=sequence_number,
         )
 
         # Calculate checksum
@@ -126,23 +138,32 @@ class PartialResultManager:
 
         # Save metadata to database
         with sqlite3.connect(self.db_path) as conn:
-            conn.execute("""
+            conn.execute(
+                """
                 INSERT INTO partial_results
                 (result_id, process_id, task_id, result_type, sequence_number,
                  created_at, checksum, file_path, metadata, dependencies)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                result_id, process_id, task_id, result_type.value, sequence_number,
-                partial_result.created_at.isoformat(), partial_result.checksum,
-                str(file_path), json.dumps(metadata or {}), json.dumps([])
-            ))
+            """,
+                (
+                    result_id,
+                    process_id,
+                    task_id,
+                    result_type.value,
+                    sequence_number,
+                    partial_result.created_at.isoformat(),
+                    partial_result.checksum,
+                    str(file_path),
+                    json.dumps(metadata or {}),
+                    json.dumps([]),
+                ),
+            )
 
         self.active_results[result_id] = partial_result
         logger.info(f"Stored partial result {result_id}")
         return result_id
 
-    def recover_partial_results(self, process_id: str,
-                              result_types: list[ResultType] = None) -> list[PartialResult]:
+    def recover_partial_results(self, process_id: str, result_types: list[ResultType] = None) -> list[PartialResult]:
         """Recover partial results for a process"""
 
         with sqlite3.connect(self.db_path) as conn:
@@ -186,7 +207,7 @@ class PartialResultManager:
                         created_at=datetime.fromisoformat(row[5]),
                         sequence_number=row[4],
                         checksum=row[6],
-                        dependencies=json.loads(row[9]) if row[9] else []
+                        dependencies=json.loads(row[9]) if row[9] else [],
                     )
 
                     recovered_results.append(partial_result)
@@ -197,8 +218,9 @@ class PartialResultManager:
             logger.info(f"Recovered {len(recovered_results)} partial results for {process_id}")
             return recovered_results
 
-    def merge_partial_results(self, results: list[PartialResult],
-                            strategy: RecoveryStrategy = RecoveryStrategy.MERGE_RESULTS) -> Any:
+    def merge_partial_results(
+        self, results: list[PartialResult], strategy: RecoveryStrategy = RecoveryStrategy.MERGE_RESULTS
+    ) -> Any:
         """Merge multiple partial results into a single result"""
 
         if not results:
@@ -273,9 +295,9 @@ class PartialResultManager:
 
         return self._merge_results_data(valid_results)
 
-    def continue_processing_from_results(self, process_id: str,
-                                       continuation_handler: Callable,
-                                       result_types: list[ResultType] = None) -> Any:
+    def continue_processing_from_results(
+        self, process_id: str, continuation_handler: Callable, result_types: list[ResultType] = None
+    ) -> Any:
         """Continue processing from recovered partial results"""
 
         # Recover partial results
@@ -306,11 +328,10 @@ class PartialResultManager:
             logger.error(f"Continuation handler failed for {process_id}: {e}")
             raise
 
-    def cleanup_partial_results(self, process_id: str = None,
-                              older_than_hours: int = 24) -> int:
+    def cleanup_partial_results(self, process_id: str = None, older_than_hours: int = 24) -> int:
         """Clean up old partial results"""
 
-        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=older_than_hours)
+        cutoff_time = datetime.now(UTC) - timedelta(hours=older_than_hours)
 
         with sqlite3.connect(self.db_path) as conn:
             if process_id:
@@ -354,8 +375,7 @@ class PartialResultManager:
             type_counts = {}
             for result_type in ResultType:
                 count = conn.execute(
-                    "SELECT COUNT(*) FROM partial_results WHERE result_type = ?",
-                    (result_type.value,)
+                    "SELECT COUNT(*) FROM partial_results WHERE result_type = ?", (result_type.value,)
                 ).fetchone()[0]
                 type_counts[result_type.value] = count
 
@@ -378,9 +398,10 @@ class PartialResultManager:
             "total_results": total_results,
             "results_by_type": type_counts,
             "top_processes": [{"process_id": p[0], "count": p[1]} for p in process_counts],
-            "storage_size_mb": round(storage_size / (1024*1024), 2),
-            "active_results": len(self.active_results)
+            "storage_size_mb": round(storage_size / (1024 * 1024), 2),
+            "active_results": len(self.active_results),
         }
+
 
 # Example usage
 async def example_partial_result_recovery():
@@ -396,8 +417,8 @@ async def example_partial_result_recovery():
     for i in range(5):
         batch_data = {
             "batch_id": i,
-            "processed_items": list(range(i*10, (i+1)*10)),
-            "batch_stats": {"count": 10, "errors": 0}
+            "processed_items": list(range(i * 10, (i + 1) * 10)),
+            "batch_stats": {"count": 10, "errors": 0},
         }
 
         manager.store_partial_result(
@@ -405,15 +426,15 @@ async def example_partial_result_recovery():
             task_id=task_id,
             result_type=ResultType.BATCH,
             data=batch_data,
-            metadata={"batch_number": i, "timestamp": datetime.now(timezone.utc).isoformat()},
-            sequence_number=i
+            metadata={"batch_number": i, "timestamp": datetime.now(UTC).isoformat()},
+            sequence_number=i,
         )
 
     # Store an intermediate checkpoint
     checkpoint_data = {
         "total_processed": 50,
         "current_position": "batch_4",
-        "accumulated_stats": {"total_items": 50, "total_errors": 0}
+        "accumulated_stats": {"total_items": 50, "total_errors": 0},
     }
 
     manager.store_partial_result(
@@ -422,37 +443,30 @@ async def example_partial_result_recovery():
         result_type=ResultType.CHECKPOINT,
         data=checkpoint_data,
         metadata={"checkpoint_type": "progress"},
-        sequence_number=100
+        sequence_number=100,
     )
 
     # Simulate recovery after interruption
-    def continuation_handler(merged_results: dict[str, Any],
-                           all_results: list[PartialResult]) -> dict[str, Any]:
+    def continuation_handler(merged_results: dict[str, Any], all_results: list[PartialResult]) -> dict[str, Any]:
         """Handle continuation from partial results"""
-
 
         # Get batch results
         merged_results.get("batch", [])
         checkpoint_data = merged_results.get("checkpoint", {})
 
-
         # Continue processing from where we left off
         return {
             "recovered_batches": len(all_results) - 1,  # Exclude checkpoint
             "last_checkpoint": checkpoint_data,
-            "continuation_successful": True
+            "continuation_successful": True,
         }
 
-
     # Test recovery
-    manager.continue_processing_from_results(
-        process_id=process_id,
-        continuation_handler=continuation_handler
-    )
-
+    manager.continue_processing_from_results(process_id=process_id, continuation_handler=continuation_handler)
 
     # Get statistics
     manager.get_recovery_statistics()
+
 
 if __name__ == "__main__":
     asyncio.run(example_partial_result_recovery())

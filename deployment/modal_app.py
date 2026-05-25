@@ -6,9 +6,10 @@ from contextlib import suppress
 from pathlib import Path
 
 import modal
-from ai.utils.torch_proxy import torch
 from vllm import LLM, SamplingParams
 from vllm.distributed.parallel_state import destroy_model_parallel
+
+from ai.utils.torch_proxy import torch
 
 # ============================================================================
 # Configuration
@@ -83,10 +84,8 @@ class EvaluationRunner:
     @modal.exit()
     def stop_engine(self):
         if hasattr(self, "llm"):
-
             destroy_model_parallel()
             del self.llm
-
 
         gc.collect()
         torch.cuda.empty_cache()
@@ -116,10 +115,7 @@ class EvaluationRunner:
         ]
 
         formatted_prompts = [
-            tokenizer.apply_chat_template(
-                msgs, tokenize=False, add_generation_prompt=True
-            )
-            for msgs in messages_list
+            tokenizer.apply_chat_template(msgs, tokenize=False, add_generation_prompt=True) for msgs in messages_list
         ]
 
         outputs = self.llm.generate(formatted_prompts, self.sampling)
@@ -182,7 +178,6 @@ def main(
     except Exception:
         return
 
-
     # Checkpoint/resume logic
     existing_results = []
     start_idx = 0
@@ -203,7 +198,6 @@ def main(
     batch_size = 8  # Smaller batches for better checkpointing
     remaining_prompts = prompts[start_idx:]
     remaining_ids = prompt_ids[start_idx:]
-
 
     all_results = existing_results.copy()
     has_errors = False
@@ -243,5 +237,4 @@ def main(
         pass
 
     if has_errors:
-
         sys.exit(1)

@@ -24,37 +24,25 @@ class MockAnalyticsDashboard:
         self.reports_generated = []
         self.alert_thresholds = {
             "response_time": 100,  # ms
-            "error_rate": 0.05,    # 5%
-            "user_satisfaction": 0.7  # 70%
+            "error_rate": 0.05,  # 5%
+            "user_satisfaction": 0.7,  # 70%
         }
         self.monitoring_active = True
 
     def collect_metrics(self, metric_type: str, data: dict[str, Any]) -> dict[str, Any]:
         """Collect system metrics."""
         if not metric_type or not isinstance(metric_type, str):
-            return {
-                "success": False,
-                "error": "Invalid metric type",
-                "metrics_collected": 0
-            }
+            return {"success": False, "error": "Invalid metric type", "metrics_collected": 0}
 
         if not data or not isinstance(data, dict):
-            return {
-                "success": False,
-                "error": "Invalid metric data",
-                "metrics_collected": 0
-            }
+            return {"success": False, "error": "Invalid metric data", "metrics_collected": 0}
 
         # Initialize metric type if not exists
         if metric_type not in self.metrics_data:
             self.metrics_data[metric_type] = []
 
         # Add timestamp to data
-        metric_entry = {
-            **data,
-            "timestamp": "2025-08-20T16:00:00Z",
-            "metric_type": metric_type
-        }
+        metric_entry = {**data, "timestamp": "2025-08-20T16:00:00Z", "metric_type": metric_type}
 
         self.metrics_data[metric_type].append(metric_entry)
 
@@ -62,17 +50,13 @@ class MockAnalyticsDashboard:
             "success": True,
             "error": None,
             "metrics_collected": len(self.metrics_data[metric_type]),
-            "metric_type": metric_type
+            "metric_type": metric_type,
         }
 
     def generate_performance_report(self, time_period: str = "last_24h") -> dict[str, Any]:
         """Generate performance report for specified time period."""
         if not self.metrics_data:
-            return {
-                "success": False,
-                "error": "No metrics data available",
-                "report": None
-            }
+            return {"success": False, "error": "No metrics data available", "report": None}
 
         # Aggregate metrics
         report_data = {}
@@ -89,21 +73,25 @@ class MockAnalyticsDashboard:
                     "avg_response_time_ms": round(avg_response_time, 2),
                     "error_rate": round(error_rate, 4),
                     "total_requests": len(perf_metrics),
-                    "error_count": error_count
+                    "error_count": error_count,
                 }
 
         # User engagement metrics
         if "user_engagement" in self.metrics_data:
             engagement_metrics = self.metrics_data["user_engagement"]
             if engagement_metrics:
-                avg_session_duration = sum(m.get("session_duration", 0) for m in engagement_metrics) / len(engagement_metrics)
-                avg_satisfaction = sum(m.get("satisfaction_score", 0) for m in engagement_metrics) / len(engagement_metrics)
+                avg_session_duration = sum(m.get("session_duration", 0) for m in engagement_metrics) / len(
+                    engagement_metrics
+                )
+                avg_satisfaction = sum(m.get("satisfaction_score", 0) for m in engagement_metrics) / len(
+                    engagement_metrics
+                )
 
                 report_data["user_engagement"] = {
                     "avg_session_duration_min": round(avg_session_duration, 2),
                     "avg_satisfaction_score": round(avg_satisfaction, 2),
                     "total_sessions": len(engagement_metrics),
-                    "active_users": len(set(m.get("user_id") for m in engagement_metrics if m.get("user_id")))
+                    "active_users": len(set(m.get("user_id") for m in engagement_metrics if m.get("user_id"))),
                 }
 
         # Therapeutic effectiveness metrics
@@ -117,7 +105,7 @@ class MockAnalyticsDashboard:
                     "avg_effectiveness_score": round(avg_effectiveness, 2),
                     "positive_outcome_rate": round(positive_outcomes / len(therapy_metrics), 2),
                     "total_interactions": len(therapy_metrics),
-                    "positive_outcomes": positive_outcomes
+                    "positive_outcomes": positive_outcomes,
                 }
 
         # Generate report
@@ -126,25 +114,16 @@ class MockAnalyticsDashboard:
             "time_period": time_period,
             "generated_at": "2025-08-20T16:00:00Z",
             "data": report_data,
-            "summary": self._generate_report_summary(report_data)
+            "summary": self._generate_report_summary(report_data),
         }
 
         self.reports_generated.append(report)
 
-        return {
-            "success": True,
-            "error": None,
-            "report": report
-        }
+        return {"success": True, "error": None, "report": report}
 
     def _generate_report_summary(self, report_data: dict[str, Any]) -> dict[str, Any]:
         """Generate summary insights from report data."""
-        summary = {
-            "overall_health": "good",
-            "key_insights": [],
-            "recommendations": [],
-            "alerts": []
-        }
+        summary = {"overall_health": "good", "key_insights": [], "recommendations": [], "alerts": []}
 
         # Analyze system performance
         if "system_performance" in report_data:
@@ -188,11 +167,7 @@ class MockAnalyticsDashboard:
     def monitor_real_time_metrics(self) -> dict[str, Any]:
         """Monitor real-time system metrics."""
         if not self.monitoring_active:
-            return {
-                "success": False,
-                "error": "Monitoring is not active",
-                "metrics": None
-            }
+            return {"success": False, "error": "Monitoring is not active", "metrics": None}
 
         # Simulate real-time metrics
         current_metrics = {
@@ -202,7 +177,7 @@ class MockAnalyticsDashboard:
             "memory_usage_percent": 68,
             "cpu_usage_percent": 42,
             "error_count_last_hour": 2,
-            "user_satisfaction_current": 0.85
+            "user_satisfaction_current": 0.85,
         }
 
         # Check for alerts
@@ -218,25 +193,17 @@ class MockAnalyticsDashboard:
             "error": None,
             "metrics": current_metrics,
             "alerts": alerts,
-            "monitoring_status": "active"
+            "monitoring_status": "active",
         }
 
     def create_custom_dashboard(self, dashboard_config: dict[str, Any]) -> dict[str, Any]:
         """Create custom dashboard with specified configuration."""
         if not dashboard_config or not isinstance(dashboard_config, dict):
-            return {
-                "success": False,
-                "error": "Invalid dashboard configuration",
-                "dashboard_id": None
-            }
+            return {"success": False, "error": "Invalid dashboard configuration", "dashboard_id": None}
 
         required_fields = ["name", "widgets"]
         if not all(field in dashboard_config for field in required_fields):
-            return {
-                "success": False,
-                "error": "Missing required dashboard configuration fields",
-                "dashboard_id": None
-            }
+            return {"success": False, "error": "Missing required dashboard configuration fields", "dashboard_id": None}
 
         # Create dashboard
         dashboard_id = f"dashboard_{len(self.reports_generated) + 1}"
@@ -246,24 +213,15 @@ class MockAnalyticsDashboard:
             "name": dashboard_config["name"],
             "widgets": dashboard_config["widgets"],
             "created_at": "2025-08-20T16:00:00Z",
-            "status": "active"
+            "status": "active",
         }
 
-        return {
-            "success": True,
-            "error": None,
-            "dashboard_id": dashboard_id,
-            "dashboard": dashboard
-        }
+        return {"success": True, "error": None, "dashboard_id": dashboard_id, "dashboard": dashboard}
 
     def get_user_analytics(self, user_id: str) -> dict[str, Any]:
         """Get analytics for specific user."""
         if not user_id:
-            return {
-                "success": False,
-                "error": "User ID required",
-                "analytics": None
-            }
+            return {"success": False, "error": "User ID required", "analytics": None}
 
         # Collect user-specific metrics from all metric types
         user_metrics = {}
@@ -277,11 +235,7 @@ class MockAnalyticsDashboard:
             return {
                 "success": True,
                 "error": None,
-                "analytics": {
-                    "user_id": user_id,
-                    "total_interactions": 0,
-                    "metrics": {}
-                }
+                "analytics": {"user_id": user_id, "total_interactions": 0, "metrics": {}},
             }
 
         # Calculate user analytics
@@ -294,31 +248,23 @@ class MockAnalyticsDashboard:
             "summary": {
                 "engagement_level": "medium",  # Simplified calculation
                 "satisfaction_trend": "stable",
-                "therapeutic_progress": "positive"
-            }
+                "therapeutic_progress": "positive",
+            },
         }
 
-        return {
-            "success": True,
-            "error": None,
-            "analytics": analytics
-        }
+        return {"success": True, "error": None, "analytics": analytics}
 
     def export_analytics_data(self, export_format: str = "json") -> dict[str, Any]:
         """Export analytics data in specified format."""
         if export_format not in ["json", "csv", "xlsx"]:
-            return {
-                "success": False,
-                "error": "Unsupported export format",
-                "export_path": None
-            }
+            return {"success": False, "error": "Unsupported export format", "export_path": None}
 
         # Prepare export data
         export_data = {
             "metrics_data": self.metrics_data,
             "reports_generated": self.reports_generated,
             "export_timestamp": "2025-08-20T16:00:00Z",
-            "total_metrics": sum(len(metrics) for metrics in self.metrics_data.values())
+            "total_metrics": sum(len(metrics) for metrics in self.metrics_data.values()),
         }
 
         # Simulate export
@@ -329,28 +275,20 @@ class MockAnalyticsDashboard:
             "error": None,
             "export_path": export_path,
             "export_format": export_format,
-            "records_exported": export_data["total_metrics"]
+            "records_exported": export_data["total_metrics"],
         }
 
     def set_alert_thresholds(self, thresholds: dict[str, float]) -> dict[str, Any]:
         """Set custom alert thresholds."""
         if not thresholds or not isinstance(thresholds, dict):
-            return {
-                "success": False,
-                "error": "Invalid thresholds configuration",
-                "updated_thresholds": None
-            }
+            return {"success": False, "error": "Invalid thresholds configuration", "updated_thresholds": None}
 
         # Update thresholds
         for key, value in thresholds.items():
             if key in self.alert_thresholds and isinstance(value, (int, float)):
                 self.alert_thresholds[key] = value
 
-        return {
-            "success": True,
-            "error": None,
-            "updated_thresholds": self.alert_thresholds.copy()
-        }
+        return {"success": True, "error": None, "updated_thresholds": self.alert_thresholds.copy()}
 
     def get_dashboard_statistics(self) -> dict[str, Any]:
         """Get dashboard usage and performance statistics."""
@@ -362,7 +300,7 @@ class MockAnalyticsDashboard:
             "reports_generated": len(self.reports_generated),
             "monitoring_status": "active" if self.monitoring_active else "inactive",
             "alert_thresholds": self.alert_thresholds.copy(),
-            "data_retention_days": 30  # Simulated
+            "data_retention_days": 30,  # Simulated
         }
 
 
@@ -374,24 +312,19 @@ class TestAnalyticsDashboard(unittest.TestCase):
         self.dashboard = MockAnalyticsDashboard()
 
         self.test_metrics = {
-            "system_performance": {
-                "response_time": 45,
-                "memory_usage": 0.68,
-                "cpu_usage": 0.42,
-                "error": False
-            },
+            "system_performance": {"response_time": 45, "memory_usage": 0.68, "cpu_usage": 0.42, "error": False},
             "user_engagement": {
                 "user_id": "user123",
                 "session_duration": 25.5,
                 "satisfaction_score": 0.85,
-                "interactions_count": 12
+                "interactions_count": 12,
             },
             "therapeutic_effectiveness": {
                 "user_id": "user123",
                 "effectiveness_score": 0.88,
                 "outcome": "positive",
-                "technique_used": "cbt"
-            }
+                "technique_used": "cbt",
+            },
         }
 
     def test_initialization(self):
@@ -420,7 +353,7 @@ class TestAnalyticsDashboard(unittest.TestCase):
             ("valid_type", None),
             ("valid_type", []),
             ("valid_type", "invalid"),
-            (123, {"data": "test"})
+            (123, {"data": "test"}),
         ]
 
         for metric_type, data in invalid_cases:
@@ -484,8 +417,8 @@ class TestAnalyticsDashboard(unittest.TestCase):
             "widgets": [
                 {"type": "chart", "metric": "effectiveness_score"},
                 {"type": "gauge", "metric": "user_satisfaction"},
-                {"type": "table", "metric": "recent_interactions"}
-            ]
+                {"type": "table", "metric": "recent_interactions"},
+            ],
         }
 
         result = self.dashboard.create_custom_dashboard(dashboard_config)
@@ -501,8 +434,8 @@ class TestAnalyticsDashboard(unittest.TestCase):
             None,
             {},
             {"name": "Test"},  # Missing widgets
-            {"widgets": []},   # Missing name
-            "invalid_config"
+            {"widgets": []},  # Missing name
+            "invalid_config",
         ]
 
         for config in invalid_configs:
@@ -520,7 +453,7 @@ class TestAnalyticsDashboard(unittest.TestCase):
 
         user_metrics = [
             ("user_engagement", {**self.test_metrics["user_engagement"], "user_id": user_id}),
-            ("therapeutic_effectiveness", {**self.test_metrics["therapeutic_effectiveness"], "user_id": user_id})
+            ("therapeutic_effectiveness", {**self.test_metrics["therapeutic_effectiveness"], "user_id": user_id}),
         ]
 
         for metric_type, data in user_metrics:
@@ -581,11 +514,7 @@ class TestAnalyticsDashboard(unittest.TestCase):
 
     def test_alert_thresholds_configuration(self):
         """Test setting custom alert thresholds."""
-        new_thresholds = {
-            "response_time": 150,
-            "error_rate": 0.03,
-            "user_satisfaction": 0.8
-        }
+        new_thresholds = {"response_time": 150, "error_rate": 0.03, "user_satisfaction": 0.8}
 
         result = self.dashboard.set_alert_thresholds(new_thresholds)
 
@@ -629,7 +558,7 @@ class TestAnalyticsDashboard(unittest.TestCase):
             ("system_performance", {"response_time": 50, "error": False}),
             ("system_performance", {"response_time": 60, "error": False}),
             ("user_engagement", {"user_id": "user1", "satisfaction_score": 0.9}),
-            ("user_engagement", {"user_id": "user2", "satisfaction_score": 0.8})
+            ("user_engagement", {"user_id": "user2", "satisfaction_score": 0.8}),
         ]
 
         results = []
@@ -660,7 +589,7 @@ class TestAnalyticsDashboardIntegration(unittest.TestCase):
         metrics_to_collect = [
             ("system_performance", {"response_time": 45, "error": False}),
             ("user_engagement", {"user_id": "user123", "satisfaction_score": 0.85}),
-            ("therapeutic_effectiveness", {"effectiveness_score": 0.88, "outcome": "positive"})
+            ("therapeutic_effectiveness", {"effectiveness_score": 0.88, "outcome": "positive"}),
         ]
 
         for metric_type, data in metrics_to_collect:
@@ -691,11 +620,10 @@ class TestAnalyticsDashboardIntegration(unittest.TestCase):
         # Collect metrics for multiple users
         for user_id in users:
             for i in range(3):  # 3 interactions per user
-                self.dashboard.collect_metrics("user_engagement", {
-                    "user_id": user_id,
-                    "session_duration": 20 + i * 5,
-                    "satisfaction_score": 0.7 + i * 0.1
-                })
+                self.dashboard.collect_metrics(
+                    "user_engagement",
+                    {"user_id": user_id, "session_duration": 20 + i * 5, "satisfaction_score": 0.7 + i * 0.1},
+                )
 
         # Generate analytics for each user
         user_analytics = []

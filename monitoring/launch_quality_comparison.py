@@ -46,9 +46,7 @@ Examples:
         """,
     )
 
-    parser.add_argument(
-        "--days", type=int, default=30, help="Number of days to analyze (default: 30)"
-    )
+    parser.add_argument("--days", type=int, default=30, help="Number of days to analyze (default: 30)")
 
     parser.add_argument(
         "--db-path",
@@ -84,9 +82,7 @@ Examples:
         help="Focus analysis on specific tier",
     )
 
-    parser.add_argument(
-        "--dataset", type=str, help="Focus analysis on specific dataset"
-    )
+    parser.add_argument("--dataset", type=str, help="Focus analysis on specific dataset")
 
     parser.add_argument(
         "--benchmark",
@@ -139,34 +135,22 @@ def interactive_mode():
     days = input("📅 Analysis period (days) [30]: ").strip()
     days = int(days) if days else 30
 
-    db_path = input(
-        "🗄️ Database path [/home/vivi/pixelated/ai/database/conversations.db]: "
-    ).strip()
-    db_path = (
-        db_path if db_path else "/home/vivi/pixelated/ai/database/conversations.db"
-    )
+    db_path = input("🗄️ Database path [/home/vivi/pixelated/ai/database/conversations.db]: ").strip()
+    db_path = db_path if db_path else "/home/vivi/pixelated/ai/database/conversations.db"
 
     output_dir = input("📁 Output directory [temp]: ").strip()
     output_dir = output_dir if output_dir else None
 
     format_choice = input("📄 Report format (json/html/both) [both]: ").strip()
-    format_choice = (
-        format_choice if format_choice in ["json", "html", "both"] else "both"
-    )
+    format_choice = format_choice if format_choice in ["json", "html", "both"] else "both"
 
-    tier_focus = input(
-        "🎯 Focus on specific tier (priority_1/priority_2/priority_3) [all]: "
-    ).strip()
-    tier_focus = (
-        tier_focus if tier_focus in ["priority_1", "priority_2", "priority_3"] else None
-    )
+    tier_focus = input("🎯 Focus on specific tier (priority_1/priority_2/priority_3) [all]: ").strip()
+    tier_focus = tier_focus if tier_focus in ["priority_1", "priority_2", "priority_3"] else None
 
     dataset_focus = input("📊 Focus on specific dataset [all]: ").strip()
     dataset_focus = dataset_focus if dataset_focus else None
 
-    include_benchmark = (
-        input("📈 Include benchmark analysis? (y/n) [y]: ").strip().lower()
-    )
+    include_benchmark = input("📈 Include benchmark analysis? (y/n) [y]: ").strip().lower()
     include_benchmark = include_benchmark != "n"
 
     return {
@@ -220,9 +204,7 @@ def run_comparison_analysis(args):
 
         if args.get("dataset"):
             df = df[df["dataset_name"] == args["dataset"]]
-            logger.info(
-                f"📊 Filtered to dataset: {args['dataset']} ({len(df)} records)"
-            )
+            logger.info(f"📊 Filtered to dataset: {args['dataset']} ({len(df)} records)")
 
         if df.empty:
             logger.error("❌ No data remaining after filtering")
@@ -262,7 +244,6 @@ def run_comparison_analysis(args):
 
         if args.get("visualizations", True):
             pass
-
 
         return True
 

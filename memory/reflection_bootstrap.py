@@ -4,6 +4,7 @@ Reflection Bootstrap - Auto-start reflection subagent.
 This module provides functions to bootstrap and auto-run the reflection subagent
 as a background task or on-demand.
 """
+
 import asyncio
 import hashlib
 import logging
@@ -125,9 +126,7 @@ class ReflectionBootstrap:
                             conversation_text=conversation,
                             user_id="system",
                         )
-                        logger.info(
-                            f"Reflection complete: crisis={result.crisis_detected}"
-                        )
+                        logger.info(f"Reflection complete: crisis={result.crisis_detected}")
 
                 await asyncio.sleep(interval_seconds)
             except asyncio.CancelledError:

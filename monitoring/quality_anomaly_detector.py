@@ -8,7 +8,7 @@ import json
 import sqlite3
 import warnings
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -93,9 +93,7 @@ class QualityAnomalyDetector:
             all_anomalies = []
 
             for metric in self.quality_metrics:
-                anomalies = self._detect_metric_anomalies(
-                    recent_data, baseline_data, metric
-                )
+                anomalies = self._detect_metric_anomalies(recent_data, baseline_data, metric)
                 all_anomalies.extend(anomalies)
 
             # Sort by severity and timestamp
@@ -118,7 +116,7 @@ class QualityAnomalyDetector:
             conn = sqlite3.connect(self.db_path)
 
             # Calculate time threshold
-            time_threshold = datetime.now(timezone.utc) - timedelta(hours=hours_back)
+            time_threshold = datetime.now(UTC) - timedelta(hours=hours_back)
 
             query = """
             SELECT
@@ -158,7 +156,7 @@ class QualityAnomalyDetector:
             conn = sqlite3.connect(self.db_path)
 
             # Calculate time range (excluding recent data)
-            end_time = datetime.now(timezone.utc) - timedelta(hours=24)  # Exclude last 24 hours
+            end_time = datetime.now(UTC) - timedelta(hours=24)  # Exclude last 24 hours
             start_time = end_time - timedelta(days=days_back)
 
             query = """
@@ -226,9 +224,7 @@ class QualityAnomalyDetector:
                     continue
 
                 # Determine anomaly type
-                anomaly_type = self._determine_anomaly_type(
-                    value, baseline_mean, baseline_std
-                )
+                anomaly_type = self._determine_anomaly_type(value, baseline_mean, baseline_std)
 
                 # Calculate confidence
                 confidence = min(0.99, z_score / 4.0)  # Normalize to 0-1
@@ -236,8 +232,7 @@ class QualityAnomalyDetector:
                 # Create anomaly
                 anomaly = QualityAnomaly(
                     metric=metric,
-                    timestamp=datetime.now(timezone.utc)
-                    - timedelta(minutes=i * 10),  # Synthetic timestamps
+                    timestamp=datetime.now(UTC) - timedelta(minutes=i * 10),  # Synthetic timestamps
                     value=value,
                     expected_value=baseline_mean,
                     deviation=value - baseline_mean,
@@ -276,9 +271,7 @@ class QualityAnomalyDetector:
                 for i in range(0, len(data), batch_size):
                     batch = data[i : i + batch_size]
                     total = len(batch)
-                    successful = len(
-                        [r for r in batch if r["processing_status"] == "processed"]
-                    )
+                    successful = len([r for r in batch if r["processing_status"] == "processed"])
                     efficiencies.append(100.0 * successful / total if total > 0 else 0)
                 return efficiencies
             if metric == "tier_quality":
@@ -288,9 +281,7 @@ class QualityAnomalyDetector:
                 for i in range(0, len(data), batch_size):
                     batch = data[i : i + batch_size]
                     total = len(batch)
-                    priority = len(
-                        [r for r in batch if r["tier"] and "priority" in str(r["tier"])]
-                    )
+                    priority = len([r for r in batch if r["tier"] and "priority" in str(r["tier"])])
                     qualities.append(100.0 * priority / total if total > 0 else 0)
                 return qualities
             if metric == "dataset_diversity":
@@ -299,9 +290,7 @@ class QualityAnomalyDetector:
                 diversities = []
                 for i in range(0, len(data), window_size):
                     window = data[i : i + window_size]
-                    unique_datasets = len(
-                        set(r["dataset_source"] for r in window if r["dataset_source"])
-                    )
+                    unique_datasets = len(set(r["dataset_source"] for r in window if r["dataset_source"]))
                     diversities.append(float(unique_datasets))
                 return diversities
 
@@ -322,9 +311,7 @@ class QualityAnomalyDetector:
             return "low"
         return None  # Not anomalous
 
-    def _determine_anomaly_type(
-        self, value: float, baseline_mean: float, baseline_std: float
-    ) -> str:
+    def _determine_anomaly_type(self, value: float, baseline_mean: float, baseline_std: float) -> str:
         """Determine the type of anomaly"""
         deviation = value - baseline_mean
 
@@ -355,9 +342,7 @@ class QualityAnomalyDetector:
         except Exception:
             return []
 
-    def _group_anomalies(
-        self, anomalies: list[QualityAnomaly]
-    ) -> dict[str, list[QualityAnomaly]]:
+    def _group_anomalies(self, anomalies: list[QualityAnomaly]) -> dict[str, list[QualityAnomaly]]:
         """Group anomalies for alert generation"""
         groups = {}
 
@@ -370,9 +355,7 @@ class QualityAnomalyDetector:
 
         return groups
 
-    def _create_alert(
-        self, group_key: str, anomalies: list[QualityAnomaly]
-    ) -> Alert | None:
+    def _create_alert(self, group_key: str, anomalies: list[QualityAnomaly]) -> Alert | None:
         """Create alert from grouped anomalies"""
         try:
             if not anomalies:
@@ -381,7 +364,7 @@ class QualityAnomalyDetector:
             severity, metric = group_key.split("_", 1)
 
             # Generate alert ID
-            alert_id = f"QA_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{group_key}"
+            alert_id = f"QA_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}_{group_key}"
 
             # Create title and message
             title = f"{severity.upper()} Quality Anomaly: {metric.replace('_', ' ').title()}"
@@ -398,13 +381,11 @@ Quality anomaly detected in {metric.replace("_", " ")}.
             """.strip()
 
             # Generate recommended actions
-            recommended_actions = self._generate_recommended_actions(
-                metric, severity, anomalies
-            )
+            recommended_actions = self._generate_recommended_actions(metric, severity, anomalies)
 
             return Alert(
                 alert_id=alert_id,
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 severity=severity,
                 title=title,
                 message=message,
@@ -416,9 +397,7 @@ Quality anomaly detected in {metric.replace("_", " ")}.
         except Exception:
             return None
 
-    def _generate_recommended_actions(
-        self, metric: str, severity: str, anomalies: list[QualityAnomaly]
-    ) -> list[str]:
+    def _generate_recommended_actions(self, metric: str, severity: str, anomalies: list[QualityAnomaly]) -> list[str]:
         """Generate recommended actions for alerts"""
         actions = []
 
@@ -480,9 +459,7 @@ Quality anomaly detected in {metric.replace("_", " ")}.
 
         return actions
 
-    def create_anomaly_visualizations(
-        self, anomalies: list[QualityAnomaly]
-    ) -> dict[str, str]:
+    def create_anomaly_visualizations(self, anomalies: list[QualityAnomaly]) -> dict[str, str]:
         """Create anomaly detection visualizations"""
 
         viz_files = {}
@@ -497,9 +474,7 @@ Quality anomaly detected in {metric.replace("_", " ")}.
 
             # Create anomaly dashboard
             fig, axes = plt.subplots(2, 2, figsize=(16, 12))
-            fig.suptitle(
-                "Quality Anomaly Detection Dashboard", fontsize=16, fontweight="bold"
-            )
+            fig.suptitle("Quality Anomaly Detection Dashboard", fontsize=16, fontweight="bold")
 
             # Anomalies by severity
             ax = axes[0, 0]
@@ -590,7 +565,7 @@ Quality anomaly detected in {metric.replace("_", " ")}.
         """Export comprehensive anomaly detection report"""
 
         try:
-            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
             report_file = self.output_dir / f"quality_anomaly_report_{timestamp}.json"
 
             # Create summary statistics
@@ -599,7 +574,7 @@ Quality anomaly detected in {metric.replace("_", " ")}.
             # Prepare export data
             export_data = {
                 "report_metadata": {
-                    "generated_at": datetime.now(timezone.utc).isoformat(),
+                    "generated_at": datetime.now(UTC).isoformat(),
                     "detector_version": "1.0.0",
                     "total_anomalies": len(anomalies),
                     "total_alerts": len(alerts),
@@ -644,28 +619,20 @@ Quality anomaly detected in {metric.replace("_", " ")}.
         except Exception:
             return ""
 
-    def _create_anomaly_summary(
-        self, anomalies: list[QualityAnomaly], alerts: list[Alert]
-    ) -> dict[str, Any]:
+    def _create_anomaly_summary(self, anomalies: list[QualityAnomaly], alerts: list[Alert]) -> dict[str, Any]:
         """Create anomaly detection summary"""
         try:
             if not anomalies:
                 return {"status": "no_anomalies"}
 
             # Severity distribution
-            severity_counts = (
-                pd.Series([a.severity for a in anomalies]).value_counts().to_dict()
-            )
+            severity_counts = pd.Series([a.severity for a in anomalies]).value_counts().to_dict()
 
             # Metric distribution
-            metric_counts = (
-                pd.Series([a.metric for a in anomalies]).value_counts().to_dict()
-            )
+            metric_counts = pd.Series([a.metric for a in anomalies]).value_counts().to_dict()
 
             # Anomaly type distribution
-            type_counts = (
-                pd.Series([a.anomaly_type for a in anomalies]).value_counts().to_dict()
-            )
+            type_counts = pd.Series([a.anomaly_type for a in anomalies]).value_counts().to_dict()
 
             # Statistics
             avg_confidence = np.mean([a.confidence for a in anomalies])
@@ -681,9 +648,7 @@ Quality anomaly detected in {metric.replace("_", " ")}.
                 "average_confidence": float(avg_confidence),
                 "average_deviation": float(avg_deviation),
                 "critical_alerts": len([a for a in alerts if a.severity == "critical"]),
-                "high_priority_alerts": len(
-                    [a for a in alerts if a.severity in ["critical", "high"]]
-                ),
+                "high_priority_alerts": len([a for a in alerts if a.severity in ["critical", "high"]]),
             }
 
         except Exception as e:

@@ -114,11 +114,9 @@ def compare_annotations(dr_a_file, dr_b_file):
         disagree_count = len(disagreements[field])
         (agree_count / total * 100) if total > 0 else 0
 
-
         if disagree_count > 0 and disagree_count <= 10:
             for _item in disagreements[field][:5]:
                 pass
-
 
     # Save detailed report
     report = {
@@ -133,7 +131,6 @@ def compare_annotations(dr_a_file, dr_b_file):
     output_path = Path("ai/annotation/results/disagreement_analysis.json")
     with open(output_path, "w") as f:
         json.dump(report, f, indent=2)
-
 
 
 if __name__ == "__main__":

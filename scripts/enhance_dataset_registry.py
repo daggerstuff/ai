@@ -3,9 +3,10 @@
 Script to enhance dataset registry with automated validation, usage analytics,
 lineage tracking, quality metrics, sync verification, and version control fields.
 """
+
 import argparse
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -98,9 +99,7 @@ def create_enhanced_dataset_entry(original_entry: dict[str, Any]) -> dict[str, A
     return enhanced_entry
 
 
-def enhance_registry(
-    input_path: Path, output_path: Path, limit: int = None
-) -> dict[str, Any]:
+def enhance_registry(input_path: Path, output_path: Path, limit: int = None) -> dict[str, Any]:
     """
     Enhance the dataset registry with new fields for all datasets.
 
@@ -137,9 +136,7 @@ def enhance_registry(
             if isinstance(category_data, dict):
                 for dataset_name, dataset_entry in category_data.items():
                     if isinstance(dataset_entry, dict) and "path" in dataset_entry:
-                        all_datasets.append(
-                            (category_name, dataset_name, dataset_entry)
-                        )
+                        all_datasets.append((category_name, dataset_name, dataset_entry))
 
     # Apply limit if specified
     if limit:
@@ -151,9 +148,7 @@ def enhance_registry(
 
         # Only enhance if not already enhanced
         if "validation" not in dataset_entry:
-            registry["datasets"][category_name][dataset_name] = (
-                create_enhanced_dataset_entry(dataset_entry)
-            )
+            registry["datasets"][category_name][dataset_name] = create_enhanced_dataset_entry(dataset_entry)
             stats["enhanced_datasets"] += 1
 
             # Track by stage
@@ -181,9 +176,7 @@ def enhance_registry(
                         stats["total_datasets"] += 1
 
                         if "validation" not in dataset_entry:
-                            registry[category_name][dataset_name] = (
-                                create_enhanced_dataset_entry(dataset_entry)
-                            )
+                            registry[category_name][dataset_name] = create_enhanced_dataset_entry(dataset_entry)
                             stats["enhanced_datasets"] += 1
 
                             stage = dataset_entry.get("stage", "unknown")
@@ -212,7 +205,7 @@ def enhance_registry(
         },
     }
 
-    registry["last_updated"] = datetime.now(timezone.utc).isoformat() + "Z"
+    registry["last_updated"] = datetime.now(UTC).isoformat() + "Z"
 
     # Write enhanced registry
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -225,9 +218,7 @@ def enhance_registry(
 def main():
     """Main entry point."""
 
-    parser = argparse.ArgumentParser(
-        description="Enhance dataset registry with new fields"
-    )
+    parser = argparse.ArgumentParser(description="Enhance dataset registry with new fields")
     parser.add_argument(
         "--input",
         type=Path,
@@ -249,12 +240,10 @@ def main():
 
     args = parser.parse_args()
 
-
     stats = enhance_registry(args.input, args.output, limit=args.limit)
 
     for _stage, _count in stats["datasets_by_stage"].items():
         pass
-
 
 
 if __name__ == "__main__":

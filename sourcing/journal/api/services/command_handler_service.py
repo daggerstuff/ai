@@ -4,8 +4,9 @@ CommandHandler service for API endpoints.
 This module provides a service layer that wraps CommandHandler functionality
 for use by API endpoints.
 """
+
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -116,9 +117,7 @@ class CommandHandlerService:
             session.weekly_targets = weekly_targets
         if current_phase is not None:
             if current_phase not in ResearchOrchestrator.PHASE_ORDER:
-                raise ValueError(
-                    f"Invalid phase: {current_phase}. Must be one of {ResearchOrchestrator.PHASE_ORDER}"
-                )
+                raise ValueError(f"Invalid phase: {current_phase}. Must be one of {ResearchOrchestrator.PHASE_ORDER}")
             session.current_phase = current_phase
 
         orchestrator.save_session_state(session_id)
@@ -260,9 +259,7 @@ class CommandHandlerService:
             try:
                 sources_list = orchestrator.discovery_service.discover_sources(session)
                 state.sources = sources_list
-                orchestrator.update_progress(
-                    session_id, {"sources_identified": len(state.sources)}
-                )
+                orchestrator.update_progress(session_id, {"sources_identified": len(state.sources)})
             except Exception as e:
                 logger.exception(f"Discovery error for session {session_id}: {e}")
                 raise
@@ -304,11 +301,7 @@ class CommandHandlerService:
         state = orchestrator.get_session_state(session_id)
 
         # Filter sources if source_ids provided
-        sources_to_evaluate = (
-            [s for s in state.sources if s.source_id in source_ids]
-            if source_ids
-            else state.sources
-        )
+        sources_to_evaluate = [s for s in state.sources if s.source_id in source_ids] if source_ids else state.sources
 
         if not sources_to_evaluate:
             return {
@@ -321,18 +314,14 @@ class CommandHandlerService:
         if orchestrator.evaluation_engine:
             for source in sources_to_evaluate:
                 try:
-                    evaluation = orchestrator.evaluation_engine.evaluate_dataset(
-                        source, evaluator="system"
-                    )
+                    evaluation = orchestrator.evaluation_engine.evaluate_dataset(source, evaluator="system")
                     evaluations.append(evaluation)
                 except Exception as e:
                     logger.exception(f"Error evaluating {source.source_id}: {e}")
                     raise
 
         state.evaluations.extend(evaluations)
-        orchestrator.update_progress(
-            session_id, {"datasets_evaluated": len(state.evaluations)}
-        )
+        orchestrator.update_progress(session_id, {"datasets_evaluated": len(state.evaluations)})
         orchestrator.save_session_state(session_id)
 
         # Broadcast progress update via WebSocket (fire-and-forget)
@@ -358,9 +347,7 @@ class CommandHandlerService:
         for evaluation in evaluations:
             if evaluation.source_id == source_id:
                 return evaluation
-        raise ValueError(
-            f"Evaluation {evaluation_id} not found in session {session_id}"
-        )
+        raise ValueError(f"Evaluation {evaluation_id} not found in session {session_id}")
 
     def update_evaluation(
         self,
@@ -415,11 +402,7 @@ class CommandHandlerService:
         state = orchestrator.get_session_state(session_id)
 
         # Filter sources if source_ids provided
-        sources_to_acquire = (
-            [s for s in state.sources if s.source_id in source_ids]
-            if source_ids
-            else state.sources
-        )
+        sources_to_acquire = [s for s in state.sources if s.source_id in source_ids] if source_ids else state.sources
 
         if not sources_to_acquire:
             return {
@@ -433,15 +416,11 @@ class CommandHandlerService:
             for source in sources_to_acquire:
                 try:
                     # Submit access request
-                    access_request = orchestrator.acquisition_manager.submit_access_request(
-                        source
-                    )
+                    access_request = orchestrator.acquisition_manager.submit_access_request(source)
                     state.access_requests.append(access_request)
 
                     # Download dataset
-                    acquired_dataset = orchestrator.acquisition_manager.download_dataset(
-                        source, access_request
-                    )
+                    acquired_dataset = orchestrator.acquisition_manager.download_dataset(source, access_request)
                     state.acquired_datasets.append(acquired_dataset)
                     acquired_count += 1
                 except Exception as e:
@@ -450,9 +429,7 @@ class CommandHandlerService:
         else:
             raise ValueError("No acquisition manager configured")
 
-        orchestrator.update_progress(
-            session_id, {"datasets_acquired": len(state.acquired_datasets)}
-        )
+        orchestrator.update_progress(session_id, {"datasets_acquired": len(state.acquired_datasets)})
         orchestrator.save_session_state(session_id)
 
         # Broadcast progress update via WebSocket (fire-and-forget)
@@ -478,9 +455,7 @@ class CommandHandlerService:
         for acquisition in acquisitions:
             if acquisition.source_id == source_id:
                 return acquisition
-        raise ValueError(
-            f"Acquisition {acquisition_id} not found in session {session_id}"
-        )
+        raise ValueError(f"Acquisition {acquisition_id} not found in session {session_id}")
 
     def update_acquisition(
         self,
@@ -510,9 +485,7 @@ class CommandHandlerService:
 
         # Filter datasets if source_ids provided
         datasets_to_integrate = (
-            [d for d in state.acquired_datasets if d.source_id in source_ids]
-            if source_ids
-            else state.acquired_datasets
+            [d for d in state.acquired_datasets if d.source_id in source_ids] if source_ids else state.acquired_datasets
         )
 
         if not datasets_to_integrate:
@@ -526,9 +499,7 @@ class CommandHandlerService:
         if orchestrator.integration_engine:
             for dataset in datasets_to_integrate:
                 try:
-                    plan = orchestrator.integration_engine.create_integration_plan(
-                        dataset, target_format
-                    )
+                    plan = orchestrator.integration_engine.create_integration_plan(dataset, target_format)
                     state.integration_plans.append(plan)
                     plans_count += 1
                 except Exception as e:
@@ -537,9 +508,7 @@ class CommandHandlerService:
         else:
             raise ValueError("No integration engine configured")
 
-        orchestrator.update_progress(
-            session_id, {"integration_plans_created": len(state.integration_plans)}
-        )
+        orchestrator.update_progress(session_id, {"integration_plans_created": len(state.integration_plans)})
         orchestrator.save_session_state(session_id)
 
         # Broadcast progress update via WebSocket (fire-and-forget)
@@ -557,9 +526,7 @@ class CommandHandlerService:
         state = orchestrator.get_session_state(session_id)
         return state.integration_plans
 
-    def get_integration_plan(
-        self, session_id: str, plan_id: str
-    ) -> IntegrationPlan:
+    def get_integration_plan(self, session_id: str, plan_id: str) -> IntegrationPlan:
         """Get integration plan details by ID."""
         plans = self.get_integration_plans(session_id)
         # plan_id format is "plan_{source_id}"
@@ -581,9 +548,7 @@ class CommandHandlerService:
         # Calculate progress percentage
         total_metrics = sum(session.progress_metrics.values())
         total_targets = sum(session.weekly_targets.values()) if session.weekly_targets else 1
-        progress_percentage = (
-            (total_metrics / total_targets * 100) if total_targets > 0 else 0.0
-        )
+        progress_percentage = (total_metrics / total_targets * 100) if total_targets > 0 else 0.0
 
         return {
             "session_id": session_id,
@@ -635,26 +600,20 @@ class CommandHandlerService:
             "progress_metrics": session.progress_metrics,
             "weekly_targets": session.weekly_targets,
             "sources": [self._source_to_dict(s) for s in state.sources],
-            "evaluations": [
-                self._evaluation_to_dict(e) for e in state.evaluations
-            ],
-            "acquired_datasets": [
-                self._acquisition_to_dict(d) for d in state.acquired_datasets
-            ],
-            "integration_plans": [
-                self._integration_plan_to_dict(p) for p in state.integration_plans
-            ],
+            "evaluations": [self._evaluation_to_dict(e) for e in state.evaluations],
+            "acquired_datasets": [self._acquisition_to_dict(d) for d in state.acquired_datasets],
+            "integration_plans": [self._integration_plan_to_dict(p) for p in state.integration_plans],
         }
 
         # Generate report ID
-        report_id = f"report_{session_id}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
+        report_id = f"report_{session_id}_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}"
 
         return {
             "report_id": report_id,
             "session_id": session_id,
             "report_type": report_type,
             "format": format,
-            "generated_date": datetime.now(timezone.utc),
+            "generated_date": datetime.now(UTC),
             "content": report_data,
         }
 
@@ -697,7 +656,6 @@ class CommandHandlerService:
     async def _async_broadcast_progress_update(self, session_id: str) -> None:
         """Async helper to broadcast progress update to WebSocket connections."""
         try:
-
             # Get current progress
             progress_data = self.get_progress(session_id)
             metrics_data = self.get_progress_metrics(session_id)
@@ -708,7 +666,7 @@ class CommandHandlerService:
                 {
                     "type": "progress_update",
                     "session_id": session_id,
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                     "data": {
                         **progress_data,
                         "metrics": metrics_data,
@@ -718,4 +676,3 @@ class CommandHandlerService:
         except Exception as e:
             # Don't fail the request if WebSocket broadcast fails
             logger.warning(f"Failed to broadcast progress update: {e}")
-

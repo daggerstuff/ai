@@ -12,9 +12,9 @@ from typing import Any
 
 import click
 
-from ai.cli.auth import AuthManager
-from ai.cli.config import get_config
-from ai.cli.utils import get_logger, setup_logging
+from cli.auth import AuthManager
+from cli.config import get_config
+from cli.utils import get_logger, setup_logging
 
 logger = get_logger(__name__)
 
@@ -112,9 +112,7 @@ def start(
             pipeline_id = pipeline_info["pipeline_id"]
             click.echo("✅ Pipeline started successfully!")
             click.echo(f"🆔 Pipeline ID: {pipeline_id}")
-            click.echo(
-                f"📊 Monitor with: pixelated pipeline monitor --pipeline-id {pipeline_id}"
-            )
+            click.echo(f"📊 Monitor with: pixelated pipeline monitor --pipeline-id {pipeline_id}")
 
             # Save pipeline info for later reference
             _save_pipeline_info(pipeline_id, pipeline_info)
@@ -143,9 +141,7 @@ def stop(_ctx, pipeline_id: str | None, stop_all: bool, force: bool):
         auth_manager = AuthManager(config_obj)
 
         if stop_all:
-            if not force and not click.confirm(
-                "⚠️  Are you sure you want to stop ALL running pipelines?"
-            ):
+            if not force and not click.confirm("⚠️  Are you sure you want to stop ALL running pipelines?"):
                 click.echo("❌ Operation cancelled")
                 return
 
@@ -161,9 +157,7 @@ def stop(_ctx, pipeline_id: str | None, stop_all: bool, force: bool):
                 )
 
         elif pipeline_id:
-            if not force and not click.confirm(
-                f"⚠️  Are you sure you want to stop pipeline {pipeline_id}?"
-            ):
+            if not force and not click.confirm(f"⚠️  Are you sure you want to stop pipeline {pipeline_id}?"):
                 click.echo("❌ Operation cancelled")
                 return
 
@@ -190,9 +184,7 @@ def stop(_ctx, pipeline_id: str | None, stop_all: bool, force: bool):
 @pipeline_group.command()
 @click.option("--pipeline-id", required=True, help="Pipeline ID to monitor")
 @click.option("--refresh", "-r", default=5, help="Refresh interval in seconds")
-@click.option(
-    "--verbose", "-v", is_flag=True, help="Show detailed progress information"
-)
+@click.option("--verbose", "-v", is_flag=True, help="Show detailed progress information")
 @click.option(
     "--output",
     type=click.Choice(["simple", "detailed", "json"]),
@@ -241,9 +233,7 @@ def monitor(_ctx, pipeline_id: str, refresh: int, verbose: bool, output: str):
                         if "results" in status:
                             click.echo(f"📊 Results: {status['results']}")
                     elif status["status"] == "failed":
-                        click.echo(
-                            f"❌ Pipeline failed: {status.get('error', 'Unknown error')}"
-                        )
+                        click.echo(f"❌ Pipeline failed: {status.get('error', 'Unknown error')}")
 
                     break
 
@@ -288,9 +278,7 @@ def list_executions(_ctx, status: str, limit: int, detailed: bool):
         # Summary
         status_counts = {}
         for execution in executions:
-            status_counts[execution["status"]] = (
-                status_counts.get(execution["status"], 0) + 1
-            )
+            status_counts[execution["status"]] = status_counts.get(execution["status"], 0) + 1
 
         click.echo("\n📊 Summary:")
         for status_type, count in status_counts.items():
@@ -305,15 +293,11 @@ def list_executions(_ctx, status: str, limit: int, detailed: bool):
 
 @pipeline_group.command()
 @click.option("--pipeline-id", required=True, help="Pipeline ID to configure")
-@click.option(
-    "--config-file", type=click.Path(exists=True), help="New configuration file"
-)
+@click.option("--config-file", type=click.Path(exists=True), help="New configuration file")
 @click.option("--param", multiple=True, help="Set parameter (key=value)")
 @click.option("--restart", is_flag=True, help="Restart pipeline after configuration")
 @click.pass_context
-def configure(
-    _ctx, pipeline_id: str, config_file: str | None, param: tuple, restart: bool
-):
+def configure(_ctx, pipeline_id: str, config_file: str | None, param: tuple, restart: bool):
     """Configure pipeline parameters."""
     try:
         config_obj = get_config()
@@ -332,9 +316,7 @@ def configure(
         # Parse individual parameters
         for param_str in param:
             if "=" not in param_str:
-                click.echo(
-                    f"❌ Invalid parameter format: {param_str}. Use key=value", err=True
-                )
+                click.echo(f"❌ Invalid parameter format: {param_str}. Use key=value", err=True)
                 continue
 
             key, value = param_str.split("=", 1)
@@ -387,9 +369,7 @@ def configure(
     default="all",
     help="Metrics to analyze",
 )
-@click.option(
-    "--output", "-o", type=click.Path(), help="Output file for analysis results"
-)
+@click.option("--output", "-o", type=click.Path(), help="Output file for analysis results")
 @click.pass_context
 def analyze(_ctx, pipeline_id: str, metric: str, output: str | None):
     """Analyze pipeline performance and results."""
@@ -425,9 +405,7 @@ def analyze(_ctx, pipeline_id: str, metric: str, output: str | None):
 
 
 @pipeline_group.command()
-@click.option(
-    "--input", "-i", type=click.Path(exists=True), required=True, help="Input data file"
-)
+@click.option("--input", "-i", type=click.Path(exists=True), required=True, help="Input data file")
 @click.option("--output", "-o", type=click.Path(), help="Output file")
 @click.option(
     "--format",
@@ -471,9 +449,7 @@ def validate_input(_ctx, input: str, output: str | None, _format: str):
         click.echo("\n📊 Validation Summary:")
         click.echo(f"  Records: {validation_result.get('record_count', 0)}")
         click.echo(f"  Columns: {validation_result.get('column_count', 0)}")
-        click.echo(
-            f"  Missing data: {validation_result.get('missing_data_ratio', 0) * 100:.1f}%"
-        )
+        click.echo(f"  Missing data: {validation_result.get('missing_data_ratio', 0) * 100:.1f}%")
 
         # Save detailed results if output specified
         if output:
@@ -532,9 +508,7 @@ def _stop_all_pipelines(_auth_manager: AuthManager) -> dict[str, Any]:
     }
 
 
-def _get_pipeline_status(
-    _auth_manager: AuthManager, pipeline_id: str
-) -> dict[str, Any] | None:
+def _get_pipeline_status(_auth_manager: AuthManager, pipeline_id: str) -> dict[str, Any] | None:
     """Get pipeline status information."""
     # This would call the actual API endpoint
     # For now, return mock data
@@ -559,20 +533,14 @@ def _get_pipeline_status(
 
 def _display_simple_status(status: dict[str, Any], verbose: bool) -> None:
     """Display simple pipeline status."""
-    progress_bar = "█" * (status["progress"] // 10) + "░" * (
-        10 - status["progress"] // 10
-    )
+    progress_bar = "█" * (status["progress"] // 10) + "░" * (10 - status["progress"] // 10)
 
     click.echo(f"[{progress_bar}] {status['progress']}% | {status['stage']}")
     click.echo(f"Status: {status['status']}")
 
     if verbose:
-        click.echo(
-            f"Processed: {status['metrics']['items_processed']}/{status['metrics']['total_items']}"
-        )
-        click.echo(
-            f"Errors: {status['metrics']['errors']}, Warnings: {status['metrics']['warnings']}"
-        )
+        click.echo(f"Processed: {status['metrics']['items_processed']}/{status['metrics']['total_items']}")
+        click.echo(f"Errors: {status['metrics']['errors']}, Warnings: {status['metrics']['warnings']}")
 
         if "performance" in status:
             perf = status["performance"]
@@ -595,9 +563,7 @@ def _display_detailed_status(status: dict[str, Any], verbose: bool) -> None:
         click.echo(f"Estimated Completion: {status['estimated_completion']}")
 
     click.echo("\nMetrics:")
-    click.echo(
-        f"  Items Processed: {status['metrics']['items_processed']}/{status['metrics']['total_items']}"
-    )
+    click.echo(f"  Items Processed: {status['metrics']['items_processed']}/{status['metrics']['total_items']}")
     click.echo(f"  Errors: {status['metrics']['errors']}")
     click.echo(f"  Warnings: {status['metrics']['warnings']}")
 
@@ -612,9 +578,7 @@ def _display_detailed_status(status: dict[str, Any], verbose: bool) -> None:
             click.echo(f"  Estimated Time Remaining: {minutes}m {seconds}s")
 
 
-def _list_pipeline_executions(
-    _auth_manager: AuthManager, status: str, limit: int
-) -> list[dict[str, Any]]:
+def _list_pipeline_executions(_auth_manager: AuthManager, status: str, limit: int) -> list[dict[str, Any]]:
     """List pipeline executions."""
     # This would call the actual API endpoint
     # For now, return mock data
@@ -678,9 +642,7 @@ def _get_status_icon(status: str) -> str:
     return icons.get(status, "❓")
 
 
-def _configure_pipeline(
-    _auth_manager: AuthManager, pipeline_id: str, config_updates: dict[str, Any]
-) -> dict[str, Any]:
+def _configure_pipeline(_auth_manager: AuthManager, pipeline_id: str, config_updates: dict[str, Any]) -> dict[str, Any]:
     """Configure pipeline parameters."""
     logger.info(f"Configuring pipeline {pipeline_id} with updates: {config_updates}")
 
@@ -699,9 +661,7 @@ def _restart_pipeline(_auth_manager: AuthManager, pipeline_id: str) -> dict[str,
     }
 
 
-def _analyze_pipeline(
-    _auth_manager: AuthManager, pipeline_id: str, metric: str
-) -> dict[str, Any]:
+def _analyze_pipeline(_auth_manager: AuthManager, pipeline_id: str, metric: str) -> dict[str, Any]:
     """Analyze pipeline performance and results."""
     logger.info(f"Analyzing pipeline {pipeline_id} for metrics: {metric}")
 
@@ -746,12 +706,8 @@ def _display_analysis_results(analysis_result: dict[str, Any], metric: str) -> N
     if metric in ["performance", "all"] and "performance" in analysis:
         perf = analysis["performance"]
         click.echo("📊 Performance Analysis:")
-        click.echo(
-            f"  Total execution time: {perf['total_execution_time'] / 60:.1f} minutes"
-        )
-        click.echo(
-            f"  Average stage time: {perf['average_stage_time'] / 60:.1f} minutes"
-        )
+        click.echo(f"  Total execution time: {perf['total_execution_time'] / 60:.1f} minutes")
+        click.echo(f"  Average stage time: {perf['average_stage_time'] / 60:.1f} minutes")
 
         if perf.get("bottleneck_stages"):
             click.echo("  Bottleneck stages:")
@@ -789,9 +745,7 @@ def _display_analysis_results(analysis_result: dict[str, Any], metric: str) -> N
         click.echo()
 
 
-def _validate_pipeline_input(
-    _auth_manager: AuthManager, input_path: Path
-) -> dict[str, Any]:
+def _validate_pipeline_input(_auth_manager: AuthManager, input_path: Path) -> dict[str, Any]:
     """Validate input data for pipeline compatibility."""
     logger.info(f"Validating pipeline input: {input_path}")
 

@@ -10,7 +10,7 @@ import logging
 import random
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any
 
@@ -69,9 +69,7 @@ class ErrorRecoveryManager:
         """Register recovery handler for specific error types"""
         self.recovery_handlers[error_type] = handler
 
-    async def execute_with_retry(
-        self, operation_name: str, func: Callable, *args, **kwargs
-    ) -> Any:
+    async def execute_with_retry(self, operation_name: str, func: Callable, *args, **kwargs) -> Any:
         """Execute function with retry logic"""
 
         config = self.retry_configs.get(operation_name, self.default_config)
@@ -85,9 +83,7 @@ class ErrorRecoveryManager:
             try:
                 # Execute with timeout if configured
                 if config.timeout_seconds:
-                    result = await asyncio.wait_for(
-                        func(*args, **kwargs), timeout=config.timeout_seconds
-                    )
+                    result = await asyncio.wait_for(func(*args, **kwargs), timeout=config.timeout_seconds)
                 else:
                     result = await func(*args, **kwargs)
 
@@ -112,9 +108,7 @@ class ErrorRecoveryManager:
                 # If not last attempt, wait before retry
                 if attempt < config.max_attempts:
                     delay = self._calculate_delay(attempt, config)
-                    logger.info(
-                        f"Retrying {operation_name} in {delay:.2f}s (attempt {attempt}/{config.max_attempts})"
-                    )
+                    logger.info(f"Retrying {operation_name} in {delay:.2f}s (attempt {attempt}/{config.max_attempts})")
                     await asyncio.sleep(delay)
 
         # All attempts failed
@@ -185,9 +179,7 @@ class ErrorRecoveryManager:
                 await recovery_handler(exception)
                 logger.info(f"Recovery handler executed for {error_type}")
             except Exception as recovery_error:
-                logger.error(
-                    f"Recovery handler failed for {error_type}: {recovery_error}"
-                )
+                logger.error(f"Recovery handler failed for {error_type}: {recovery_error}")
 
     def _record_success(self, operation_name: str, attempt: int):
         """Record successful operation"""
@@ -195,7 +187,7 @@ class ErrorRecoveryManager:
         self.error_history.append(
             {
                 "operation": operation_name,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "success": True,
                 "attempt": attempt,
                 "total_attempts": attempt,
@@ -205,15 +197,13 @@ class ErrorRecoveryManager:
         # Keep only recent history
         self._cleanup_history()
 
-    def _record_failure(
-        self, operation_name: str, attempt: int, exception: Exception, retryable: bool
-    ):
+    def _record_failure(self, operation_name: str, attempt: int, exception: Exception, retryable: bool):
         """Record failed operation"""
 
         self.error_history.append(
             {
                 "operation": operation_name,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "success": False,
                 "attempt": attempt,
                 "error_type": type(exception).__name__,
@@ -227,20 +217,16 @@ class ErrorRecoveryManager:
     def _cleanup_history(self):
         """Clean up old error history"""
 
-        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=24)
+        cutoff_time = datetime.now(UTC) - timedelta(hours=24)
         self.error_history = [
-            entry
-            for entry in self.error_history
-            if datetime.fromisoformat(entry["timestamp"]) > cutoff_time
+            entry for entry in self.error_history if datetime.fromisoformat(entry["timestamp"]) > cutoff_time
         ]
 
     def get_error_statistics(self) -> dict[str, Any]:
         """Get error and recovery statistics"""
 
         total_operations = len(self.error_history)
-        successful_operations = sum(
-            1 for entry in self.error_history if entry["success"]
-        )
+        successful_operations = sum(1 for entry in self.error_history if entry["success"])
         failed_operations = total_operations - successful_operations
 
         # Group by operation
@@ -258,9 +244,7 @@ class ErrorRecoveryManager:
 
         # Calculate success rates
         for stats in operation_stats.values():
-            stats["success_rate"] = (
-                stats["success"] / stats["total"] if stats["total"] > 0 else 0
-            )
+            stats["success_rate"] = stats["success"] / stats["total"] if stats["total"] > 0 else 0
 
         # Error type distribution
         error_types = {}
@@ -273,9 +257,7 @@ class ErrorRecoveryManager:
             "total_operations": total_operations,
             "successful_operations": successful_operations,
             "failed_operations": failed_operations,
-            "overall_success_rate": successful_operations / total_operations
-            if total_operations > 0
-            else 0,
+            "overall_success_rate": successful_operations / total_operations if total_operations > 0 else 0,
             "operation_statistics": operation_stats,
             "error_type_distribution": error_types,
             "registered_configs": len(self.retry_configs),
@@ -315,9 +297,7 @@ async def example_error_recovery():
         logger.info("Attempting connection recovery...")
         await asyncio.sleep(0.1)  # Simulate recovery action
 
-    recovery_manager.register_recovery_handler(
-        "ConnectionError", connection_recovery_handler
-    )
+    recovery_manager.register_recovery_handler("ConnectionError", connection_recovery_handler)
 
     # Test functions
     call_count = 0
@@ -342,16 +322,12 @@ async def example_error_recovery():
     # Test error recovery
 
     with contextlib.suppress(Exception):
-        await recovery_manager.execute_with_retry(
-            "api_call", unreliable_api_call
-        )
+        await recovery_manager.execute_with_retry("api_call", unreliable_api_call)
 
     # Test multiple database queries
     for _i in range(5):
         with contextlib.suppress(Exception):
-            await recovery_manager.execute_with_retry(
-                "database_query", unreliable_db_query
-            )
+            await recovery_manager.execute_with_retry("database_query", unreliable_db_query)
 
     # Get statistics
     recovery_manager.get_error_statistics()

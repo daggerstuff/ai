@@ -4,8 +4,9 @@ Unit tests for documentation module.
 Tests research logger, report generator, dataset catalog, tracking updater,
 and progress visualization components.
 """
+
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pandas as pd
 import pytest
@@ -186,9 +187,7 @@ class TestReportGenerator:
         assert "10" in content  # sources_identified
         assert "5" in content  # datasets_evaluated
 
-    def test_generate_research_summary_report(
-        self, temp_report_dir, multiple_sources, sample_evaluation
-    ):
+    def test_generate_research_summary_report(self, temp_report_dir, multiple_sources, sample_evaluation):
         """Test generating a research summary report."""
         generator = ReportGenerator(output_directory=str(temp_report_dir))
 
@@ -197,8 +196,8 @@ class TestReportGenerator:
         report_path = generator.generate_research_summary_report(
             sources=multiple_sources,
             evaluations=evaluations,
-            start_date=datetime.now(timezone.utc) - timedelta(days=7),
-            end_date=datetime.now(timezone.utc),
+            start_date=datetime.now(UTC) - timedelta(days=7),
+            end_date=datetime.now(UTC),
         )
 
         assert report_path.exists()
@@ -308,9 +307,9 @@ class TestProgressVisualization:
         viz = ProgressVisualization()
 
         progress_history = [
-            ResearchProgress(sources_identified=5, last_updated=datetime.now(timezone.utc) - timedelta(days=2)),
-            ResearchProgress(sources_identified=10, last_updated=datetime.now(timezone.utc) - timedelta(days=1)),
-            ResearchProgress(sources_identified=15, last_updated=datetime.now(timezone.utc)),
+            ResearchProgress(sources_identified=5, last_updated=datetime.now(UTC) - timedelta(days=2)),
+            ResearchProgress(sources_identified=10, last_updated=datetime.now(UTC) - timedelta(days=1)),
+            ResearchProgress(sources_identified=15, last_updated=datetime.now(UTC)),
         ]
 
         chart_data = viz.generate_progress_chart_data(
@@ -327,7 +326,7 @@ class TestProgressVisualization:
         viz = ProgressVisualization()
 
         progress_history = [
-            ResearchProgress(sources_identified=i, last_updated=datetime.now(timezone.utc) - timedelta(days=10-i))
+            ResearchProgress(sources_identified=i, last_updated=datetime.now(UTC) - timedelta(days=10 - i))
             for i in range(10)
         ]
 
@@ -356,7 +355,7 @@ class TestProgressVisualization:
         viz = ProgressVisualization()
 
         progress_history = [
-            ResearchProgress(sources_identified=10, last_updated=datetime.now(timezone.utc)),
+            ResearchProgress(sources_identified=10, last_updated=datetime.now(UTC)),
         ]
 
         output_path = temp_dir / "visualization.html"
@@ -459,8 +458,8 @@ Old status
 
         weekly_report = WeeklyReport(
             week_number=1,
-            start_date=datetime.now(timezone.utc),
-            end_date=datetime.now(timezone.utc),
+            start_date=datetime.now(UTC),
+            end_date=datetime.now(UTC),
             sources_identified=10,
             datasets_evaluated=5,
         )
@@ -473,4 +472,3 @@ Old status
 
         content = tracking_file.read_text()
         assert "Week 1" in content or "10" in content
-

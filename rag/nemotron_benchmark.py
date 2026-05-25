@@ -29,6 +29,7 @@ from tqdm import tqdm
 
 class TaskType(StrEnum):
     """Therapeutic task types for benchmarking"""
+
     EMPATHY = "empathy"
     SAFETY = "safety"
     PSYCHOEDUCATION = "psychoeducation"
@@ -39,6 +40,7 @@ class TaskType(StrEnum):
 @dataclass
 class BenchmarkPrompt:
     """A benchmark prompt with expected characteristics"""
+
     task_type: TaskType
     prompt: str
     complexity: str  # "simple", "moderate", "complex"
@@ -48,6 +50,7 @@ class BenchmarkPrompt:
 @dataclass
 class ModelResult:
     """Results for a single model"""
+
     model_name: str
     task_type: TaskType
     avg_latency_ms: float
@@ -149,6 +152,7 @@ THERAPEUTIC_BENCHMARK_DATASET = {
 @dataclass
 class BenchmarkConfig:
     """Benchmark configuration"""
+
     api_key: str
     base_url: str = "https://integrate.api.nvidia.com/v1"
     timeout: float = 30.0
@@ -241,9 +245,7 @@ class NemotronBenchmark:
     ) -> dict[str, ModelResult]:
         """Benchmark a single model across all task types"""
 
-        task_results: dict[str, list[dict[str, Any]]] = {
-            task_type.value: [] for task_type in TaskType
-        }
+        task_results: dict[str, list[dict[str, Any]]] = {task_type.value: [] for task_type in TaskType}
 
         # Collect all prompts
         all_prompts: list[tuple] = []
@@ -356,10 +358,7 @@ class NemotronBenchmark:
 
         print("\nMODEL LEADERBOARD")
         for rank, (model, scores) in enumerate(sorted_models, 1):
-            print(
-                f"{rank}. {model} | success={scores['success_rate']:.1f}% "
-                f"avg_latency={scores['avg_latency']:.1f}ms"
-            )
+            print(f"{rank}. {model} | success={scores['success_rate']:.1f}% avg_latency={scores['avg_latency']:.1f}ms")
 
     def save_results(
         self,
@@ -396,7 +395,6 @@ class NemotronBenchmark:
 
         with open(output_file, "w") as f:
             json.dump(output, f, indent=2)
-
 
 
 async def main():
@@ -465,4 +463,5 @@ async def main():
 
 if __name__ == "__main__":
     import numpy as np
+
     asyncio.run(main())

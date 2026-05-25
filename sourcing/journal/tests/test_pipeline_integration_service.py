@@ -331,7 +331,9 @@ class TestPipelineIntegrationService:
         assert "merge" in result
         assert result["merge"]["success"]
 
-    def test_integrate_dataset_validation_failure(self, service, sample_acquired_dataset, sample_integration_plan, temp_dir):
+    def test_integrate_dataset_validation_failure(
+        self, service, sample_acquired_dataset, sample_integration_plan, temp_dir
+    ):
         """Test integration with validation failure."""
         # Create invalid dataset file
         invalid_file = temp_dir / "invalid.csv"
@@ -353,4 +355,3 @@ class TestPipelineIntegrationService:
         # Should handle validation failure gracefully
         assert "conversion" in result
         assert "validation" in result
-

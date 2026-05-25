@@ -34,9 +34,7 @@ class ComprehensiveDatasetProcessor:
 
     def process_v2_enhanced_data(self):
         """Process 61,548 segments from pixelated-v2"""
-        v2_dir = Path(
-            "/root/pixelated/ai/lightning/pixelated-v2/training_data/enhanced"
-        )
+        v2_dir = Path("/root/pixelated/ai/lightning/pixelated-v2/training_data/enhanced")
         output_dir = Path("/root/pixelated/ai/data/training_segments_v2")
         output_dir.mkdir(exist_ok=True)
 
@@ -45,7 +43,6 @@ class ComprehensiveDatasetProcessor:
         for enhanced_file in v2_dir.glob("*.json"):
             if "summary" in enhanced_file.name:
                 continue
-
 
             with open(enhanced_file, encoding="utf-8") as f:
                 segments = json.load(f)
@@ -57,9 +54,7 @@ class ComprehensiveDatasetProcessor:
                     normalized_segment = self.normalize_segment(segment, "pixelated_v2")
 
                     # Create training pair
-                    training_pair = self.generator.create_training_pair(
-                        normalized_segment
-                    )
+                    training_pair = self.generator.create_training_pair(normalized_segment)
                     training_pairs.append(training_pair)
                     total_processed += 1
                 except Exception:
@@ -70,27 +65,17 @@ class ComprehensiveDatasetProcessor:
             with open(output_file, "w", encoding="utf-8") as f:
                 json.dump(training_pairs, f, indent=2, ensure_ascii=False)
 
-
         return total_processed
 
     def classify_style(self, text: str) -> str:
         """Basic style classification for raw datasets"""
         text_lower = text.lower()
 
-        if any(
-            word in text_lower
-            for word in ["trauma", "heal", "therapy", "recover", "therapeutic"]
-        ):
+        if any(word in text_lower for word in ["trauma", "heal", "therapy", "recover", "therapeutic"]):
             return "therapeutic"
-        if any(
-            word in text_lower
-            for word in ["understand", "explain", "learn", "study", "education"]
-        ):
+        if any(word in text_lower for word in ["understand", "explain", "learn", "study", "education"]):
             return "educational"
-        if any(
-            word in text_lower
-            for word in ["feel", "hurt", "pain", "support", "empathy"]
-        ):
+        if any(word in text_lower for word in ["feel", "hurt", "pain", "support", "empathy"]):
             return "empathetic"
         return "practical"
 
@@ -106,7 +91,6 @@ class ComprehensiveDatasetProcessor:
         filtered_dir = raw_dir / "filtered_datasets"
         if filtered_dir.exists():
             for dataset_file in filtered_dir.glob("*.json"):
-
                 with open(dataset_file, encoding="utf-8") as f:
                     data = json.load(f)
 
@@ -124,10 +108,7 @@ class ComprehensiveDatasetProcessor:
                 for conv in conversations:
                     if "messages" in conv:
                         for msg in conv["messages"]:
-                            if (
-                                msg.get("role") == "assistant"
-                                and len(msg.get("content", "")) > 100
-                            ):
+                            if msg.get("role") == "assistant" and len(msg.get("content", "")) > 100:
                                 segment = {
                                     "text": msg["content"],
                                     "style": self.classify_style(msg["content"]),
@@ -153,13 +134,9 @@ class ComprehensiveDatasetProcessor:
                     with open(output_file, "w", encoding="utf-8") as f:
                         json.dump(training_pairs, f, indent=2, ensure_ascii=False)
 
-
         # Process natural conversations
-        natural_file = (
-            raw_dir / "natural_conversations" / "natural_multi_turn_conversations.json"
-        )
+        natural_file = raw_dir / "natural_conversations" / "natural_multi_turn_conversations.json"
         if natural_file.exists():
-
             with open(natural_file, encoding="utf-8") as f:
                 data = json.load(f)
 
@@ -169,10 +146,7 @@ class ComprehensiveDatasetProcessor:
             for conv in conversations:
                 if "messages" in conv:
                     for msg in conv["messages"]:
-                        if (
-                            msg.get("role") == "assistant"
-                            and len(msg.get("content", "")) > 100
-                        ):
+                        if msg.get("role") == "assistant" and len(msg.get("content", "")) > 100:
                             segment = {
                                 "text": msg["content"],
                                 "style": self.classify_style(msg["content"]),
@@ -196,7 +170,6 @@ class ComprehensiveDatasetProcessor:
                 output_file = output_dir / "raw_natural_conversations.json"
                 with open(output_file, "w", encoding="utf-8") as f:
                     json.dump(training_pairs, f, indent=2, ensure_ascii=False)
-
 
         return total_segments
 
@@ -229,7 +202,6 @@ class ComprehensiveDatasetProcessor:
             if not training_dir.exists():
                 continue
 
-
             for training_file in training_dir.glob("*.json"):
                 if "summary" in training_file.name:
                     continue
@@ -246,20 +218,14 @@ class ComprehensiveDatasetProcessor:
                     total_stats["by_style"][pair["style"]] += 1
 
                     # Track quality
-                    quality_level = (
-                        "high" if pair.get("quality", 0.7) >= 0.75 else "medium"
-                    )
+                    quality_level = "high" if pair.get("quality", 0.7) >= 0.75 else "medium"
                     total_stats["by_quality"][quality_level] += 1
 
                     source = pair.get("source", "unknown")
-                    total_stats["by_source"][source] = (
-                        total_stats["by_source"].get(source, 0) + 1
-                    )
+                    total_stats["by_source"][source] = total_stats["by_source"].get(source, 0) + 1
 
         # Create train/validation split
-        train_conversations, val_conversations = self.converter.create_training_split(
-            all_conversations
-        )
+        train_conversations, val_conversations = self.converter.create_training_split(all_conversations)
 
         # Save final datasets
         train_file = output_dir / "train.json"
@@ -283,7 +249,6 @@ class ComprehensiveDatasetProcessor:
 def main():
     """Process all datasets and create comprehensive training data"""
     processor = ComprehensiveDatasetProcessor()
-
 
     # Process v2 enhanced data (61,548 segments)
     processor.process_v2_enhanced_data()

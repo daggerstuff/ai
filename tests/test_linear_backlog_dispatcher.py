@@ -2,7 +2,6 @@
 """Tests for Linear backlog dispatch behavior."""
 
 import time
-from pathlib import Path
 
 from ai.monitoring.linear_backlog_action_builder import build_linear_backlog_payload
 from ai.monitoring.linear_backlog_dispatcher import LinearBacklogDispatcher

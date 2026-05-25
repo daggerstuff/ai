@@ -110,4 +110,3 @@ async def test_rbac_require_authorization_raises_for_missing_permission() -> Non
         await rbac.require_authorization(user, "create_session", "execute")
 
     assert exc.value.code == MCPErrorCode.AUTHORIZATION_ERROR
-

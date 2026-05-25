@@ -50,7 +50,6 @@ def e2e_server(
         report=report,
     )
 
-
     monkeypatch.setattr(
         server_module,
         "CommandHandlerService",
@@ -111,12 +110,12 @@ async def test_agent_workflow_end_to_end(
                 "id": "discover",
                 "method": "tools/call",
                 "params": {
-                        "name": "discover_sources",
-                        "arguments": {
-                            "session_id": session_id,
-                            "keywords": ["therapy"],
-                            "sources": ["pubmed"],
-                        },
+                    "name": "discover_sources",
+                    "arguments": {
+                        "session_id": session_id,
+                        "keywords": ["therapy"],
+                        "sources": ["pubmed"],
+                    },
                 },
             }
         )
@@ -218,9 +217,7 @@ async def test_agent_workflow_end_to_end(
         )
     )
     progress_data = json.loads(progress_response)
-    progress_payload = json.loads(
-        html.unescape(progress_data["result"]["contents"][0]["text"])
-    )
+    progress_payload = json.loads(html.unescape(progress_data["result"]["contents"][0]["text"]))
     assert progress_payload["sources_identified"] >= 1
     assert progress_payload["integration_plans_created"] >= 1
 
@@ -237,4 +234,3 @@ async def test_agent_workflow_end_to_end(
     )
     payload = json.loads(error_response)
     assert payload["error"]["code"] == -32000  # Tool execution error
-

@@ -39,10 +39,7 @@ class TestConfig:
 
         pubmed_config = config.get_api_endpoint("pubmed")
         assert "base_url" in pubmed_config
-        assert (
-            pubmed_config["base_url"]
-            == "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/"
-        )
+        assert pubmed_config["base_url"] == "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/"
 
     def test_get_search_keywords(self):
         """Test getting search keywords for dataset type."""

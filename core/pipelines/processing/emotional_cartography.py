@@ -64,4 +64,4 @@ class EmotionalCartographer:
         }
 
 
-__all__ = ["EmotionalCartographer", "EmotionalState", "PlutchikEmotion", "EmotionalMap"]
+__all__ = ["EmotionalCartographer", "EmotionalMap", "EmotionalState", "PlutchikEmotion"]

@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 
 class ChannelStatus(StrEnum):
     """Health status of a channel."""
+
     ACTIVE = "active"
     INACTIVE = "inactive"
     AT_RISK = "at_risk"
@@ -22,6 +23,7 @@ class ChannelStatus(StrEnum):
 
 class ContentCategory(StrEnum):
     """Therapeutic content categories."""
+
     CPTSD_EDUCATION = "cptsd_education"
     TRAUMA_INFORMED = "trauma_informed"
     DBT_SKILLS = "dbt_skills"
@@ -38,6 +40,7 @@ class ContentCategory(StrEnum):
 @dataclass
 class QualityMetrics:
     """Comprehensive quality metrics for a channel."""
+
     content_quality: float = 0.0  # 0.0-1.0, educational value
     clinical_accuracy: float = 0.0  # 0.0-1.0, evidence-based
     production_quality: float = 0.0  # 0.0-1.0, audio/video
@@ -55,15 +58,13 @@ class QualityMetrics:
             "credibility_score": 0.15,
             "consistency_score": 0.05,
         }
-        return sum(
-            getattr(self, metric) * weights[metric]
-            for metric in weights
-        )
+        return sum(getattr(self, metric) * weights[metric] for metric in weights)
 
 
 @dataclass
 class LicensingInfo:
     """Licensing and copyright information."""
+
     cc_license: bool = False
     cc_type: str | None = None  # BY, BY-SA, BY-NC, etc.
     commercial_use: bool = False
@@ -77,6 +78,7 @@ class LicensingInfo:
 @dataclass
 class Channel:
     """YouTube channel representation with all metadata."""
+
     channel_id: str
     channel_name: str
     channel_url: str

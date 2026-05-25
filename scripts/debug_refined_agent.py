@@ -18,7 +18,6 @@ def debug_question_extraction():
 
     agent = RefinedIntelligentAgent()
 
-
     # Test each question pattern
     question_patterns = [
         r"(How can [^?]+find[^?]+trained[^?]+\?)",

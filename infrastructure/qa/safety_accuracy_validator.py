@@ -23,7 +23,7 @@ import asyncio
 import json
 import logging
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -158,9 +158,7 @@ class ClinicalValidationDataset:
             with open(scenarios_file) as f:
                 scenarios_data = json.load(f)
 
-            self.scenarios = [
-                ValidationScenario(**scenario) for scenario in scenarios_data
-            ]
+            self.scenarios = [ValidationScenario(**scenario) for scenario in scenarios_data]
         else:
             # Generate synthetic clinical scenarios for testing
             await self._generate_synthetic_scenarios()
@@ -243,12 +241,7 @@ class ClinicalValidationDataset:
         ]
 
         # Generate scenarios across demographics
-        all_base_scenarios = (
-            crisis_scenarios
-            + high_risk_scenarios
-            + medium_risk_scenarios
-            + low_risk_scenarios
-        )
+        all_base_scenarios = crisis_scenarios + high_risk_scenarios + medium_risk_scenarios + low_risk_scenarios
 
         for i, base_scenario in enumerate(all_base_scenarios):
             for demo_group in self.config.demographic_groups:
@@ -266,7 +259,7 @@ class ClinicalValidationDataset:
                             clinical_notes="Synthetic scenario for validation testing",
                             created_by="clinical_validator_001",
                             validated_by="clinical_validator_002",
-                            timestamp=datetime.now(timezone.utc),
+                            timestamp=datetime.now(UTC),
                         )
                         self.scenarios.append(scenario)
 
@@ -311,23 +304,17 @@ class SafetyAccuracyValidator:
         # Generate validation report
         await self._generate_validation_report()
 
-        logger.info(
-            f"Safety validation complete. Overall accuracy: {self.metrics.overall_accuracy:.3f}"
-        )
+        logger.info(f"Safety validation complete. Overall accuracy: {self.metrics.overall_accuracy:.3f}")
         return self.metrics
 
-    async def _validate_scenario(
-        self, scenario: ValidationScenario
-    ) -> ValidationResult:
+    async def _validate_scenario(self, scenario: ValidationScenario) -> ValidationResult:
         """Validate individual scenario"""
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
 
         # Simulate AI model prediction (replace with actual model inference)
-        predicted_score, predicted_risk_level = await self._simulate_model_prediction(
-            scenario
-        )
+        predicted_score, predicted_risk_level = await self._simulate_model_prediction(scenario)
 
-        end_time = datetime.now(timezone.utc)
+        end_time = datetime.now(UTC)
         response_time_ms = (end_time - start_time).total_seconds() * 1000
 
         # Determine if prediction is correct
@@ -342,12 +329,10 @@ class SafetyAccuracyValidator:
             confidence_score=predicted_score,
             response_time_ms=response_time_ms,
             model_version="pixelated_empathy_v1.0",
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
         )
 
-    async def _simulate_model_prediction(
-        self, scenario: ValidationScenario
-    ) -> tuple[float, str]:
+    async def _simulate_model_prediction(self, scenario: ValidationScenario) -> tuple[float, str]:
         """Simulate model prediction (replace with actual model)"""
         # Simulate prediction based on ground truth with some noise
         base_score = scenario.ground_truth_label / 2.0  # 0, 0.5, 1.0
@@ -406,9 +391,7 @@ class SafetyAccuracyValidator:
 
         # AUC-ROC (convert to binary classification for ROC)
         y_binary = (y_true >= 1).astype(int)
-        auc_roc = (
-            roc_auc_score(y_binary, y_scores) if len(np.unique(y_binary)) > 1 else 0.5
-        )
+        auc_roc = roc_auc_score(y_binary, y_scores) if len(np.unique(y_binary)) > 1 else 0.5
 
         # Bias analysis
         demographic_bias = await self._calculate_demographic_bias()
@@ -419,14 +402,10 @@ class SafetyAccuracyValidator:
         clinical_validation_score = await self._calculate_clinical_validation_score()
 
         # Statistical significance
-        statistical_significance = await self._calculate_statistical_significance(
-            accuracy
-        )
+        statistical_significance = await self._calculate_statistical_significance(accuracy)
 
         # Confidence interval
-        confidence_interval = await self._calculate_confidence_interval(
-            accuracy, len(self.results)
-        )
+        confidence_interval = await self._calculate_confidence_interval(accuracy, len(self.results))
 
         return SafetyMetrics(
             overall_accuracy=accuracy,
@@ -453,9 +432,7 @@ class SafetyAccuracyValidator:
         for group in self.config.demographic_groups:
             group_results = [r for r in self.results if group in r.scenario_id]
             if group_results:
-                accuracy = sum(r.correct_prediction for r in group_results) / len(
-                    group_results
-                )
+                accuracy = sum(r.correct_prediction for r in group_results) / len(group_results)
                 group_accuracies[group] = accuracy
 
         if len(group_accuracies) > 1:
@@ -472,9 +449,7 @@ class SafetyAccuracyValidator:
         for language in self.config.languages:
             group_results = [r for r in self.results if language in r.scenario_id]
             if group_results:
-                accuracy = sum(r.correct_prediction for r in group_results) / len(
-                    group_results
-                )
+                accuracy = sum(r.correct_prediction for r in group_results) / len(group_results)
                 group_accuracies[language] = accuracy
 
         if len(group_accuracies) > 1:
@@ -491,9 +466,7 @@ class SafetyAccuracyValidator:
         for age_group in self.config.age_groups:
             group_results = [r for r in self.results if age_group in r.scenario_id]
             if group_results:
-                accuracy = sum(r.correct_prediction for r in group_results) / len(
-                    group_results
-                )
+                accuracy = sum(r.correct_prediction for r in group_results) / len(group_results)
                 group_accuracies[age_group] = accuracy
 
         if len(group_accuracies) > 1:
@@ -518,9 +491,7 @@ class SafetyAccuracyValidator:
             return min(1.0, abs(z_score) / 3.0)  # Normalize to 0-1
         return 0.5
 
-    async def _calculate_confidence_interval(
-        self, accuracy: float, n: int
-    ) -> tuple[float, float]:
+    async def _calculate_confidence_interval(self, accuracy: float, n: int) -> tuple[float, float]:
         """Calculate confidence interval for accuracy"""
         z_score = 1.96  # 95% confidence
         margin_error = z_score * np.sqrt(accuracy * (1 - accuracy) / n)
@@ -536,12 +507,11 @@ class SafetyAccuracyValidator:
         # Generate detailed report
         report = {
             "validation_summary": {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "total_scenarios": len(self.results),
                 "target_accuracy": self.config.target_accuracy,
                 "achieved_accuracy": self.metrics.overall_accuracy,
-                "meets_requirements": self.metrics.overall_accuracy
-                >= self.config.target_accuracy,
+                "meets_requirements": self.metrics.overall_accuracy >= self.config.target_accuracy,
                 "false_positive_rate": self.metrics.false_positive_rate,
                 "false_negative_rate": self.metrics.false_negative_rate,
             },
@@ -562,8 +532,7 @@ class SafetyAccuracyValidator:
             "clinical_validation": {
                 "clinical_validation_score": self.metrics.clinical_validation_score,
                 "clinical_threshold": 0.95,
-                "passes_clinical_validation": self.metrics.clinical_validation_score
-                >= 0.95,
+                "passes_clinical_validation": self.metrics.clinical_validation_score >= 0.95,
                 "clinical_reviewers": [
                     "clinical_validator_001",
                     "clinical_validator_002",
@@ -589,9 +558,7 @@ class SafetyAccuracyValidator:
 
     async def _generate_validation_visualizations(self):
         """Generate validation visualizations"""
-        viz_path = Path(
-            "/home/vivi/pixelated/ai/infrastructure/qa/reports/visualizations"
-        )
+        viz_path = Path("/home/vivi/pixelated/ai/infrastructure/qa/reports/visualizations")
         viz_path.mkdir(parents=True, exist_ok=True)
 
         # Accuracy by demographic group
@@ -602,9 +569,7 @@ class SafetyAccuracyValidator:
         for group in self.config.demographic_groups:
             group_results = [r for r in self.results if group in r.scenario_id]
             if group_results:
-                accuracy = sum(r.correct_prediction for r in group_results) / len(
-                    group_results
-                )
+                accuracy = sum(r.correct_prediction for r in group_results) / len(group_results)
                 group_data[group] = accuracy
 
         if group_data:
@@ -613,9 +578,7 @@ class SafetyAccuracyValidator:
             plt.title("Accuracy by Demographic Group")
             plt.ylabel("Accuracy")
             plt.xticks(rotation=45)
-            plt.axhline(
-                y=self.config.target_accuracy, color="r", linestyle="--", label="Target"
-            )
+            plt.axhline(y=self.config.target_accuracy, color="r", linestyle="--", label="Target")
             plt.legend()
 
         # ROC Curve
@@ -662,9 +625,7 @@ class SafetyAccuracyValidator:
         plt.legend()
 
         plt.tight_layout()
-        plt.savefig(
-            viz_path / "safety_validation_analysis.png", dpi=300, bbox_inches="tight"
-        )
+        plt.savefig(viz_path / "safety_validation_analysis.png", dpi=300, bbox_inches="tight")
         plt.close()
 
         logger.info(f"Validation visualizations saved to {viz_path}")
@@ -702,10 +663,7 @@ async def main():
     )
     meets_clinical = metrics.clinical_validation_score >= 0.95
 
-
-    overall_pass = all(
-        [meets_accuracy, meets_fpr, meets_fnr, meets_bias, meets_clinical]
-    )
+    overall_pass = all([meets_accuracy, meets_fpr, meets_fnr, meets_bias, meets_clinical])
 
     if overall_pass:
         pass

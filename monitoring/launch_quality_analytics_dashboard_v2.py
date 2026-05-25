@@ -5,6 +5,7 @@ Quality Analytics Dashboard V2 Launcher (Task 5.6.2.1)
 Enterprise-grade launcher for the quality analytics dashboard with
 comprehensive validation, dependency checking, and production deployment.
 """
+
 import argparse
 import json
 import logging
@@ -13,19 +14,17 @@ import sqlite3
 import subprocess
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.StreamHandler(sys.stdout),
-        logging.FileHandler(Path(__file__).parent / "dashboard_launcher.log")
-    ]
+    handlers=[logging.StreamHandler(sys.stdout), logging.FileHandler(Path(__file__).parent / "dashboard_launcher.log")],
 )
 logger = logging.getLogger(__name__)
+
 
 class QualityAnalyticsDashboardLauncher:
     """
@@ -54,7 +53,7 @@ class QualityAnalyticsDashboardLauncher:
             "numpy": "1.20.0",
             "seaborn": "0.11.0",
             "matplotlib": "3.3.0",
-            "sqlite3": None  # Built-in
+            "sqlite3": None,  # Built-in
         }
 
         # Process tracking
@@ -132,6 +131,7 @@ class QualityAnalyticsDashboardLauncher:
         Returns:
             int: -1 if current < required, 0 if equal, 1 if current > required
         """
+
         def version_tuple(v):
             return tuple(map(int, (v.split("."))))
 
@@ -213,8 +213,10 @@ class QualityAnalyticsDashboardLauncher:
             cursor.execute("SELECT MAX(created_at) FROM conversations")
             latest_date = cursor.fetchone()[0]
             if latest_date:
-                latest_datetime = datetime.fromisoformat(latest_date.replace("Z", "+00:00") if "Z" in latest_date else latest_date)
-                days_old = (datetime.now(timezone.utc) - latest_datetime).days
+                latest_datetime = datetime.fromisoformat(
+                    latest_date.replace("Z", "+00:00") if "Z" in latest_date else latest_date
+                )
+                days_old = (datetime.now(UTC) - latest_datetime).days
                 if days_old > 30:
                     logger.warning(f"⚠️ Latest data is {days_old} days old")
                 else:
@@ -250,7 +252,7 @@ class QualityAnalyticsDashboardLauncher:
                     "QualityAnalyticsDashboard",
                     "run_streamlit_dashboard",
                     "load_quality_data",
-                    "calculate_quality_analytics"
+                    "calculate_quality_analytics",
                 ]
 
                 missing_components = [comp for comp in required_components if comp not in content]
@@ -287,7 +289,7 @@ class QualityAnalyticsDashboardLauncher:
                 cwd=str(self.project_root),
                 capture_output=True,
                 text=True,
-                timeout=120  # 2 minutes timeout
+                timeout=120,  # 2 minutes timeout
             )
 
             if result.returncode == 0:
@@ -322,11 +324,11 @@ class QualityAnalyticsDashboardLauncher:
             "port": port,
             "host": host,
             "db_path": str(self.db_path),
-            "launch_time": datetime.now(timezone.utc).isoformat(),
+            "launch_time": datetime.now(UTC).isoformat(),
             "project_root": str(self.project_root),
             "monitoring_dir": str(self.monitoring_dir),
             "dashboard_file": str(self.dashboard_file),
-            "launcher_version": "2.0.0"
+            "launcher_version": "2.0.0",
         }
 
         # Save config for reference
@@ -353,25 +355,30 @@ class QualityAnalyticsDashboardLauncher:
         try:
             # Prepare streamlit command
             cmd = [
-                sys.executable, "-m", "streamlit", "run",
+                sys.executable,
+                "-m",
+                "streamlit",
+                "run",
                 str(self.dashboard_file),
-                "--server.port", str(port),
-                "--server.address", host,
-                "--server.headless", "true",
-                "--browser.gatherUsageStats", "false",
-                "--server.enableCORS", "false",
-                "--server.enableXsrfProtection", "true"
+                "--server.port",
+                str(port),
+                "--server.address",
+                host,
+                "--server.headless",
+                "true",
+                "--browser.gatherUsageStats",
+                "false",
+                "--server.enableCORS",
+                "false",
+                "--server.enableXsrfProtection",
+                "true",
             ]
 
             logger.info(f"📋 Command: {' '.join(cmd)}")
 
             # Launch dashboard
             self.dashboard_process = subprocess.Popen(
-                cmd,
-                cwd=str(self.project_root),
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
+                cmd, cwd=str(self.project_root), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
             )
 
             # Wait a moment to check if process started successfully
@@ -477,6 +484,7 @@ class QualityAnalyticsDashboardLauncher:
         logger.error("❌ Dashboard launch failed")
         return False
 
+
 def main():
     """Main function to launch the quality analytics dashboard."""
     parser = argparse.ArgumentParser(
@@ -487,17 +495,13 @@ Examples:
   python launch_quality_analytics_dashboard_v2.py
   python launch_quality_analytics_dashboard_v2.py --port 8502 --host 0.0.0.0
   python launch_quality_analytics_dashboard_v2.py --skip-tests
-        """
+        """,
     )
 
-    parser.add_argument("--port", type=int, default=8501,
-                       help="Port to run dashboard on (default: 8501)")
-    parser.add_argument("--host", type=str, default="localhost",
-                       help="Host to bind dashboard to (default: localhost)")
-    parser.add_argument("--skip-tests", action="store_true",
-                       help="Skip pre-launch tests")
-    parser.add_argument("--verbose", "-v", action="store_true",
-                       help="Enable verbose logging")
+    parser.add_argument("--port", type=int, default=8501, help="Port to run dashboard on (default: 8501)")
+    parser.add_argument("--host", type=str, default="localhost", help="Host to bind dashboard to (default: localhost)")
+    parser.add_argument("--skip-tests", action="store_true", help="Skip pre-launch tests")
+    parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose logging")
 
     args = parser.parse_args()
 
@@ -505,13 +509,10 @@ Examples:
         logging.getLogger().setLevel(logging.DEBUG)
 
     launcher = QualityAnalyticsDashboardLauncher()
-    success = launcher.launch(
-        port=args.port,
-        host=args.host,
-        skip_tests=args.skip_tests
-    )
+    success = launcher.launch(port=args.port, host=args.host, skip_tests=args.skip_tests)
 
     sys.exit(0 if success else 1)
+
 
 if __name__ == "__main__":
     main()

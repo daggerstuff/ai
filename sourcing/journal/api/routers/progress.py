@@ -3,6 +3,7 @@ Progress API routes.
 
 This module provides endpoints for progress tracking.
 """
+
 import asyncio
 import json
 import logging
@@ -224,7 +225,6 @@ async def stream_progress_events(
     # Authenticate if token provided in query params
     if token:
         try:
-
             user = get_user_from_token(token)
             logger.info(f"SSE authenticated for user {user.get('user_id')}")
         except Exception as e:

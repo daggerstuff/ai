@@ -6,6 +6,7 @@ acquisition, and integration planning phases. Provides research session
 management, progress tracking, reporting, and robust error recovery with retry
 logic.
 """
+
 from __future__ import annotations
 
 import json
@@ -15,7 +16,7 @@ import time
 from collections.abc import Callable, Sequence
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import asdict
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
@@ -47,6 +48,7 @@ from ai.sourcing.journal.orchestrator.types import (
 
 logger = logging.getLogger(__name__)
 
+
 class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
     """Coordinates the journal dataset research workflow."""
 
@@ -73,9 +75,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         self.activity_logs: dict[str, list[ResearchLog]] = {}
         self.error_log: dict[str, list[dict[str, Any]]] = {}
 
-        self._session_storage_path = self._resolve_session_storage_path(
-            self.config.session_storage_path
-        )
+        self._session_storage_path = self._resolve_session_storage_path(self.config.session_storage_path)
         self._lock = threading.Lock()
 
     def start_research_session(
@@ -92,7 +92,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         """
         session_identifier = session_id or f"session_{uuid4().hex[:8]}"
         session = ResearchSession(session_id=session_identifier)
-        session.start_date = datetime.now(timezone.utc)
+        session.start_date = datetime.now(UTC)
         session.target_sources = target_sources
         session.search_keywords = search_keywords
         session.weekly_targets = weekly_targets or {}
@@ -129,9 +129,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
 
         if current_index < len(self.PHASE_ORDER) - 1:
             session.current_phase = self.PHASE_ORDER[current_index + 1]
-            session.progress_metrics["phase_transitions"] = (
-                session.progress_metrics.get("phase_transitions", 0) + 1
-            )
+            session.progress_metrics["phase_transitions"] = session.progress_metrics.get("phase_transitions", 0) + 1
             self.log_activity(
                 session_id,
                 activity_type="phase_transition",
@@ -148,7 +146,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         self._ensure_session_tracking(session_id)
         session = self._get_session(session_id)
         progress = self.progress_states[session_id]
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         with self._lock:
             for key, value in metrics.items():
@@ -189,15 +187,11 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
 
         return state
 
-    def _run_discovery_phase(
-        self, session_id: str, session: ResearchSession, state: SessionState
-    ) -> None:
+    def _run_discovery_phase(self, session_id: str, session: ResearchSession, state: SessionState) -> None:
         if not self.discovery_service or state.sources:
             return
 
-        self.log_activity(
-            session_id, "search", "Starting source discovery", "in_progress"
-        )
+        self.log_activity(session_id, "search", "Starting source discovery", "in_progress")
         try:
             sources = self._execute_with_retries(
                 session_id,
@@ -237,25 +231,15 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         )
         self.advance_phase(session_id)
 
-    def _run_evaluation_phase(
-        self, session_id: str, state: SessionState, evaluator: str
-    ) -> None:
-        if (
-            not self.evaluation_engine
-            or not state.sources
-            or state.evaluations
-        ):
+    def _run_evaluation_phase(self, session_id: str, state: SessionState, evaluator: str) -> None:
+        if not self.evaluation_engine or not state.sources or state.evaluations:
             return
 
-        self.log_activity(
-            session_id, "evaluation", "Evaluating dataset sources", "in_progress"
-        )
+        self.log_activity(session_id, "evaluation", "Evaluating dataset sources", "in_progress")
         evaluations = self._evaluate_sources(session_id, state.sources, evaluator)
         state.evaluations.extend(evaluations)
         if evaluations:
-            self.update_progress(
-                session_id, {"datasets_evaluated": len(state.evaluations)}
-            )
+            self.update_progress(session_id, {"datasets_evaluated": len(state.evaluations)})
         self.log_activity(
             session_id,
             "evaluation",
@@ -264,30 +248,17 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         )
         self.advance_phase(session_id)
 
-    def _run_acquisition_phase(
-        self, session_id: str, state: SessionState, auto_acquire: bool
-    ) -> None:
-        if (
-            not auto_acquire
-            or not self.acquisition_manager
-            or not state.sources
-            or state.acquired_datasets
-        ):
+    def _run_acquisition_phase(self, session_id: str, state: SessionState, auto_acquire: bool) -> None:
+        if not auto_acquire or not self.acquisition_manager or not state.sources or state.acquired_datasets:
             return
 
-        self.log_activity(
-            session_id, "acquisition", "Starting dataset acquisition", "in_progress"
-        )
+        self.log_activity(session_id, "acquisition", "Starting dataset acquisition", "in_progress")
         self._acquire_datasets(session_id, state)
 
         if state.access_requests:
-            self.update_progress(
-                session_id, {"access_established": len(state.access_requests)}
-            )
+            self.update_progress(session_id, {"access_established": len(state.access_requests)})
         if state.acquired_datasets:
-            self.update_progress(
-                session_id, {"datasets_acquired": len(state.acquired_datasets)}
-            )
+            self.update_progress(session_id, {"datasets_acquired": len(state.acquired_datasets)})
 
         outcome = (
             f"{len(state.acquired_datasets)} datasets acquired"
@@ -302,14 +273,8 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         )
         self.advance_phase(session_id)
 
-    def _run_integration_phase(
-        self, session_id: str, state: SessionState, target_format: str
-    ) -> None:
-        if (
-            not self.integration_engine
-            or not state.acquired_datasets
-            or state.integration_plans
-        ):
+    def _run_integration_phase(self, session_id: str, state: SessionState, target_format: str) -> None:
+        if not self.integration_engine or not state.acquired_datasets or state.integration_plans:
             return
 
         self.log_activity(
@@ -321,9 +286,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         plans = self._create_integration_plans(session_id, state, target_format)
         state.integration_plans.extend(plans)
         if plans:
-            self.update_progress(
-                session_id, {"integration_plans_created": len(state.integration_plans)}
-            )
+            self.update_progress(session_id, {"integration_plans_created": len(state.integration_plans)})
         self.log_activity(
             session_id,
             "integration",
@@ -368,9 +331,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         """
         self._ensure_session_tracking(session_id)
         bundle = self._build_session_bundle(session_id)
-        storage_dir = self._resolve_session_storage_path(
-            directory or self._session_storage_path
-        )
+        storage_dir = self._resolve_session_storage_path(directory or self._session_storage_path)
         storage_dir.mkdir(parents=True, exist_ok=True)
         file_path = storage_dir / f"{session_id}.json"
         file_path.write_text(json.dumps(bundle, indent=2), encoding="utf-8")
@@ -386,9 +347,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
 
         Returns the restored `ResearchSession`.
         """
-        storage_dir = self._resolve_session_storage_path(
-            directory or self._session_storage_path
-        )
+        storage_dir = self._resolve_session_storage_path(directory or self._session_storage_path)
         file_path = storage_dir / f"{session_id}.json"
         if not file_path.exists():
             raise FileNotFoundError(f"Persisted session not found at {file_path}")
@@ -409,9 +368,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
             self.sessions[session_id] = session
             self.session_states[session_id] = state
             self.progress_states[session_id] = progress
-            self.progress_history[session_id] = history[
-                -self.config.progress_history_limit :
-            ]
+            self.progress_history[session_id] = history[-self.config.progress_history_limit :]
             self.activity_logs[session_id] = activity_logs
             self.error_log[session_id] = error_entries
 
@@ -431,9 +388,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         self._ensure_session_tracking(session_id)
         session = self._get_session(session_id)
         progress = self.progress_states[session_id]
-        max_points = (
-            limit if limit is not None else self.config.visualization_max_points
-        )
+        max_points = limit if limit is not None else self.config.visualization_max_points
         series = self._build_visualization_series(session_id, session, max_points)
         targets = self._calculate_target_progress(session)
 
@@ -443,9 +398,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
             "series": series,
             "targets": targets,
             "current_metrics": dict(session.progress_metrics),
-            "last_updated": progress.last_updated.isoformat()
-            if progress.last_updated
-            else None,
+            "last_updated": progress.last_updated.isoformat() if progress.last_updated else None,
         }
 
     def log_activity(
@@ -459,7 +412,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
     ) -> None:
         """Record a research activity entry for the session."""
         log_entry = ResearchLog(
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             activity_type=activity_type,
             source_id=source_id,
             description=description,
@@ -514,9 +467,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         evaluations: list[DatasetEvaluation] = []
         with ThreadPoolExecutor(max_workers=self.config.max_workers) as executor:
             futures = {
-                executor.submit(
-                    self._evaluate_single_source, session_id, source, evaluator
-                ): source
+                executor.submit(self._evaluate_single_source, session_id, source, evaluator): source
                 for source in sources
             }
             for future in as_completed(futures):
@@ -540,9 +491,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
                 evaluator,
             )
         except Exception as exc:
-            self._log_error(
-                session_id, f"evaluate:{source.source_id}", exc, self.config.max_retries
-            )
+            self._log_error(session_id, f"evaluate:{source.source_id}", exc, self.config.max_retries)
             return None
 
     def _acquire_datasets(self, session_id: str, state: SessionState) -> None:
@@ -595,9 +544,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
 
         plans: list[IntegrationPlan] = []
         for dataset in datasets:
-            plan = self._create_single_integration_plan(
-                session_id, state, dataset, target_format
-            )
+            plan = self._create_single_integration_plan(session_id, state, dataset, target_format)
             if plan:
                 plans.append(plan)
         return plans
@@ -712,7 +659,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
     ) -> None:
         """Record an error entry for diagnostics and retry tracking."""
         entry = {
-            "timestamp": datetime.now(timezone.utc),
+            "timestamp": datetime.now(UTC),
             "operation": operation,
             "attempt": str(attempt),
             "message": str(error),
@@ -745,16 +692,14 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         if not series:
             series.append(
                 {
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                     "metrics": dict(session.progress_metrics),
                 }
             )
 
         return series
 
-    def _calculate_target_progress(
-        self, session: ResearchSession
-    ) -> dict[str, dict[str, Any]]:
+    def _calculate_target_progress(self, session: ResearchSession) -> dict[str, dict[str, Any]]:
         targets: dict[str, dict[str, Any]] = {}
         for key, target in session.weekly_targets.items():
             achieved = session.progress_metrics.get(key, 0)
@@ -779,12 +724,8 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
             "session": self._convert_datetimes(asdict(session)),
             "state": self._convert_datetimes(asdict(state)),
             "progress": self._convert_datetimes(asdict(progress)),
-            "progress_history": [
-                self._convert_datetimes(asdict(snapshot)) for snapshot in history
-            ],
-            "activity_logs": [
-                self._convert_datetimes(asdict(entry)) for entry in activity_logs
-            ],
+            "progress_history": [self._convert_datetimes(asdict(snapshot)) for snapshot in history],
+            "activity_logs": [self._convert_datetimes(asdict(entry)) for entry in activity_logs],
             "error_log": self._convert_datetimes(error_entries),
         }
 
@@ -804,25 +745,11 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
 
         state_data = bundle.get("state", {})
         state = SessionState(
-            sources=[
-                DatasetSource(**item) for item in state_data.get("sources", [])
-            ],
-            evaluations=[
-                DatasetEvaluation(**item)
-                for item in state_data.get("evaluations", [])
-            ],
-            access_requests=[
-                AccessRequest(**item)
-                for item in state_data.get("access_requests", [])
-            ],
-            acquired_datasets=[
-                AcquiredDataset(**item)
-                for item in state_data.get("acquired_datasets", [])
-            ],
-            integration_plans=[
-                IntegrationPlan(**item)
-                for item in state_data.get("integration_plans", [])
-            ],
+            sources=[DatasetSource(**item) for item in state_data.get("sources", [])],
+            evaluations=[DatasetEvaluation(**item) for item in state_data.get("evaluations", [])],
+            access_requests=[AccessRequest(**item) for item in state_data.get("access_requests", [])],
+            acquired_datasets=[AcquiredDataset(**item) for item in state_data.get("acquired_datasets", [])],
+            integration_plans=[IntegrationPlan(**item) for item in state_data.get("integration_plans", [])],
             integration_feasibility=state_data.get("integration_feasibility", {}),
         )
 
@@ -838,9 +765,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
                 )
             )
 
-        activity_logs = [
-            ResearchLog(**log_entry) for log_entry in bundle.get("activity_logs", [])
-        ]
+        activity_logs = [ResearchLog(**log_entry) for log_entry in bundle.get("activity_logs", [])]
 
         error_entries: list[dict[str, Any]] = []
         for error_entry in bundle.get("error_log", []):
@@ -856,9 +781,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         return session, state, progress, history, activity_logs, error_entries
 
     @staticmethod
-    def _resolve_session_storage_path(
-        path: str | Path | None
-    ) -> Path:
+    def _resolve_session_storage_path(path: str | Path | None) -> Path:
         if path is None:
             return Path.cwd() / "ai" / "journal_dataset_research" / "sessions"
         return Path(path).expanduser()
@@ -870,10 +793,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         if isinstance(value, list):
             return [ResearchOrchestrator._convert_datetimes(item) for item in value]
         if isinstance(value, dict):
-            return {
-                key: ResearchOrchestrator._convert_datetimes(item)
-                for key, item in value.items()
-            }
+            return {key: ResearchOrchestrator._convert_datetimes(item) for key, item in value.items()}
         return value
 
     @staticmethod
@@ -886,10 +806,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         if isinstance(value, list):
             return [ResearchOrchestrator._restore_datetimes(item) for item in value]
         if isinstance(value, dict):
-            return {
-                key: ResearchOrchestrator._restore_datetimes(item)
-                for key, item in value.items()
-            }
+            return {key: ResearchOrchestrator._restore_datetimes(item) for key, item in value.items()}
         return value
 
     def _normalize_report_window(
@@ -898,7 +815,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         end_date: datetime | None,
     ) -> tuple[datetime, datetime]:
         if start_date is None or end_date is None:
-            resolved_end = datetime.now(timezone.utc)
+            resolved_end = datetime.now(UTC)
             resolved_start = resolved_end - timedelta(days=7)
         else:
             resolved_start, resolved_end = start_date, end_date
@@ -908,11 +825,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         self, session_id: str, start_date: datetime, end_date: datetime
     ) -> list[ProgressSnapshot]:
         history = self.progress_history.get(session_id, [])
-        return [
-            snapshot
-            for snapshot in history
-            if start_date <= snapshot.timestamp <= end_date
-        ]
+        return [snapshot for snapshot in history if start_date <= snapshot.timestamp <= end_date]
 
     def _resolve_progress_bounds(
         self,
@@ -927,9 +840,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         return current, current
 
     @staticmethod
-    def _compute_progress_deltas(
-        start_progress: ResearchProgress, end_progress: ResearchProgress
-    ) -> dict[str, int]:
+    def _compute_progress_deltas(start_progress: ResearchProgress, end_progress: ResearchProgress) -> dict[str, int]:
         deltas = {
             "sources_identified": end_progress.sources_identified - start_progress.sources_identified,
             "datasets_evaluated": end_progress.datasets_evaluated - start_progress.datasets_evaluated,
@@ -954,30 +865,20 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
             findings.append("Maintained research infrastructure with no new datasets processed")
         return findings
 
-    def _build_challenges(
-        self, session_id: str, start_date: datetime, end_date: datetime
-    ) -> list[str]:
-        errors = [
-            entry
-            for entry in self.error_log.get(session_id, [])
-            if start_date <= entry["timestamp"] <= end_date
-        ]
+    def _build_challenges(self, session_id: str, start_date: datetime, end_date: datetime) -> list[str]:
+        errors = [entry for entry in self.error_log.get(session_id, []) if start_date <= entry["timestamp"] <= end_date]
         if not errors:
             return []
         return [f"Encountered {len(errors)} errors requiring manual review"]
 
-    def _build_next_week_priorities(
-        self, session: ResearchSession, deltas: dict[str, int]
-    ) -> list[str]:
+    def _build_next_week_priorities(self, session: ResearchSession, deltas: dict[str, int]) -> list[str]:
         priorities: list[str] = []
         if session.weekly_targets:
             for key, target in session.weekly_targets.items():
                 achieved = session.progress_metrics.get(key, 0)
                 if achieved < target:
                     remaining = target - achieved
-                    priorities.append(
-                        f"Complete remaining {remaining} {key.replace('_', ' ')} to meet weekly target"
-                    )
+                    priorities.append(f"Complete remaining {remaining} {key.replace('_', ' ')} to meet weekly target")
 
         if not priorities:
             if deltas["datasets_acquired"]:
@@ -1023,4 +924,3 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
             "datasets_acquired": 0,
             "integration_plans_created": 0,
         }
-

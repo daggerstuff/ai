@@ -3,11 +3,12 @@
 Quality Distribution Analysis System
 Analyzes quality score distributions across datasets, tiers, and time periods
 """
+
 import json
 import sqlite3
 import warnings
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -100,9 +101,7 @@ class QualityDistributionAnalyzer:
 
                 for category in self.analysis_categories:
                     if category in df.columns:
-                        analysis = self._analyze_distribution_by_category(
-                            df, f"{metric}_value", category
-                        )
+                        analysis = self._analyze_distribution_by_category(df, f"{metric}_value", category)
                         if analysis:
                             results[metric][category] = analysis
 
@@ -165,10 +164,7 @@ class QualityDistributionAnalyzer:
 
             if metric == "processing_efficiency":
                 # Simple efficiency score based on processing status
-                return [
-                    1.0 if status == "processed" else 0.0
-                    for status in df["processing_status"].fillna("unknown")
-                ]
+                return [1.0 if status == "processed" else 0.0 for status in df["processing_status"].fillna("unknown")]
 
             return [0.0] * len(df)
 
@@ -222,9 +218,7 @@ class QualityDistributionAnalyzer:
         except Exception:
             return {}
 
-    def _calculate_distribution_statistics(
-        self, values: list[float]
-    ) -> dict[str, float]:
+    def _calculate_distribution_statistics(self, values: list[float]) -> dict[str, float]:
         """Calculate comprehensive distribution statistics"""
         try:
             values_array = np.array(values)
@@ -254,9 +248,7 @@ class QualityDistributionAnalyzer:
             values_array = np.array(values)
 
             # Test for normality
-            _shapiro_stat, shapiro_p = stats.shapiro(
-                values_array[:5000]
-            )  # Limit for shapiro test
+            _shapiro_stat, shapiro_p = stats.shapiro(values_array[:5000])  # Limit for shapiro test
 
             if shapiro_p > 0.05:
                 return "normal"
@@ -303,9 +295,7 @@ class QualityDistributionAnalyzer:
             lower_bound = q1 - 1.5 * iqr
             upper_bound = q3 + 1.5 * iqr
 
-            iqr_outliers = values_array[
-                (values_array < lower_bound) | (values_array > upper_bound)
-            ]
+            iqr_outliers = values_array[(values_array < lower_bound) | (values_array > upper_bound)]
 
             # Z-score method
             z_scores = np.abs(stats.zscore(values_array))
@@ -363,9 +353,7 @@ class QualityDistributionAnalyzer:
                         values1 = metric_distributions[cat1].values
                         values2 = metric_distributions[cat2].values
 
-                        comparison = self._compare_two_distributions(
-                            values1, values2, [cat1, cat2], metric
-                        )
+                        comparison = self._compare_two_distributions(values1, values2, [cat1, cat2], metric)
 
                         if comparison:
                             comparisons[metric].append(comparison)
@@ -385,16 +373,13 @@ class QualityDistributionAnalyzer:
         """Compare two distributions using statistical tests"""
         try:
             # Mann-Whitney U test (non-parametric)
-            statistic, p_value = stats.mannwhitneyu(
-                values1, values2, alternative="two-sided"
-            )
+            statistic, p_value = stats.mannwhitneyu(values1, values2, alternative="two-sided")
 
             # Calculate effect size (Cohen's d)
             mean1, mean2 = np.mean(values1), np.mean(values2)
             std1, std2 = np.std(values1), np.std(values2)
             pooled_std = np.sqrt(
-                ((len(values1) - 1) * std1**2 + (len(values2) - 1) * std2**2)
-                / (len(values1) + len(values2) - 2)
+                ((len(values1) - 1) * std1**2 + (len(values2) - 1) * std2**2) / (len(values1) + len(values2) - 2)
             )
 
             effect_size = abs(mean1 - mean2) / pooled_std if pooled_std > 0 else 0
@@ -418,9 +403,7 @@ class QualityDistributionAnalyzer:
             else:
                 effect_interpretation = "large"
 
-            interpretation = (
-                f"{significance} difference with {effect_interpretation} effect size"
-            )
+            interpretation = f"{significance} difference with {effect_interpretation} effect size"
 
             return ComparisonResult(
                 metric=metric,
@@ -455,9 +438,7 @@ class QualityDistributionAnalyzer:
                 n_cols = min(3, n_categories)
                 n_rows = (n_categories + n_cols - 1) // n_cols
 
-                fig, axes = plt.subplots(
-                    n_rows, n_cols, figsize=(5 * n_cols, 4 * n_rows)
-                )
+                fig, axes = plt.subplots(n_rows, n_cols, figsize=(5 * n_cols, 4 * n_rows))
                 if n_rows == 1 and n_cols == 1:
                     axes = [axes]
                 elif n_rows == 1:
@@ -488,11 +469,8 @@ class QualityDistributionAnalyzer:
 
                     # Add KDE curve
                     try:
-
                         kde = gaussian_kde(analysis.values)
-                        x_range = np.linspace(
-                            min(analysis.values), max(analysis.values), 100
-                        )
+                        x_range = np.linspace(min(analysis.values), max(analysis.values), 100)
                         ax.plot(x_range, kde(x_range), "r-", linewidth=2, label="KDE")
                     except:
                         pass
@@ -515,9 +493,7 @@ class QualityDistributionAnalyzer:
                         label=f"Median: {median_val:.2f}",
                     )
 
-                    ax.set_title(
-                        f"{category} ({analysis.distribution_type})", fontsize=12
-                    )
+                    ax.set_title(f"{category} ({analysis.distribution_type})", fontsize=12)
                     ax.set_xlabel("Value")
                     ax.set_ylabel("Density")
                     ax.legend(fontsize=8)
@@ -568,20 +544,16 @@ class QualityDistributionAnalyzer:
         """Export comprehensive distribution analysis report"""
 
         try:
-            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-            report_file = (
-                self.output_dir / f"quality_distribution_report_{timestamp}.json"
-            )
+            timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
+            report_file = self.output_dir / f"quality_distribution_report_{timestamp}.json"
 
             # Prepare export data
             export_data = {
                 "report_metadata": {
-                    "generated_at": datetime.now(timezone.utc).isoformat(),
+                    "generated_at": datetime.now(UTC).isoformat(),
                     "analyzer_version": "1.0.0",
                     "total_metrics": len(distributions),
-                    "total_categories": sum(
-                        len(cats) for cats in distributions.values()
-                    ),
+                    "total_categories": sum(len(cats) for cats in distributions.values()),
                 },
                 "distribution_analysis": {
                     metric: {
@@ -641,9 +613,7 @@ def main():
     visualizations = analyzer.create_distribution_visualizations(distributions)
 
     # Export report
-    analyzer.export_distribution_report(
-        distributions, comparisons, visualizations
-    )
+    analyzer.export_distribution_report(distributions, comparisons, visualizations)
 
     # Display summary
 

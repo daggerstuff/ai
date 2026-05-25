@@ -1,13 +1,13 @@
 from ai.memory.base import (
     BaseMemoryManager,
-    HealthReportingMemoryManager,
     ForesightCompatibleMemoryManager,
+    HealthReportingMemoryManager,
     ScopedMemoryManager,
 )
 
 __all__ = [
     "BaseMemoryManager",
-    "HealthReportingMemoryManager",
     "ForesightCompatibleMemoryManager",
+    "HealthReportingMemoryManager",
     "ScopedMemoryManager",
 ]

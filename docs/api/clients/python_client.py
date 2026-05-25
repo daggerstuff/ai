@@ -19,28 +19,35 @@ import requests
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class APIResponse:
     """Standard API response wrapper."""
+
     success: bool
     data: Any
     message: str
     timestamp: str
     error: dict[str, Any] | None = None
 
+
 class PixelatedEmpathyAPIError(Exception):
     """Base exception for API errors."""
+
     def __init__(self, message: str, error_code: str = None, status_code: int = None):
         self.message = message
         self.error_code = error_code
         self.status_code = status_code
         super().__init__(self.message)
 
+
 class RateLimitError(PixelatedEmpathyAPIError):
     """Exception raised when rate limit is exceeded."""
+
     def __init__(self, retry_after: int):
         self.retry_after = retry_after
         super().__init__(f"Rate limit exceeded. Retry after {retry_after} seconds.")
+
 
 class PixelatedEmpathyAPI:
     """
@@ -50,11 +57,13 @@ class PixelatedEmpathyAPI:
     quality validation, real-time processing, and advanced search capabilities.
     """
 
-    def __init__(self,
-                 api_key: str,
-                 base_url: str = "https://api.pixelatedempathy.com/v1",
-                 timeout: int = 30,
-                 max_retries: int = 3):
+    def __init__(
+        self,
+        api_key: str,
+        base_url: str = "https://api.pixelatedempathy.com/v1",
+        timeout: int = 30,
+        max_retries: int = 3,
+    ):
         """
         Initialize the API client.
 
@@ -70,11 +79,13 @@ class PixelatedEmpathyAPI:
         self.max_retries = max_retries
 
         self.session = requests.Session()
-        self.session.headers.update({
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-            "User-Agent": "PixelatedEmpathyAPI-Python/1.0.0"
-        })
+        self.session.headers.update(
+            {
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+                "User-Agent": "PixelatedEmpathyAPI-Python/1.0.0",
+            }
+        )
 
     def _make_request(self, method: str, endpoint: str, **kwargs) -> APIResponse:
         """Make an HTTP request with error handling and retries."""
@@ -82,9 +93,7 @@ class PixelatedEmpathyAPI:
 
         for attempt in range(self.max_retries + 1):
             try:
-                response = self.session.request(
-                    method, url, timeout=self.timeout, **kwargs
-                )
+                response = self.session.request(method, url, timeout=self.timeout, **kwargs)
 
                 # Handle rate limiting
                 if response.status_code == 429:
@@ -105,22 +114,20 @@ class PixelatedEmpathyAPI:
                 if not response.ok:
                     error_message = data.get("error", {}).get("message", "Unknown error")
                     error_code = data.get("error", {}).get("code", "UNKNOWN_ERROR")
-                    raise PixelatedEmpathyAPIError(
-                        error_message, error_code, response.status_code
-                    )
+                    raise PixelatedEmpathyAPIError(error_message, error_code, response.status_code)
 
                 return APIResponse(
                     success=data.get("success", False),
                     data=data.get("data"),
                     message=data.get("message", ""),
                     timestamp=data.get("timestamp", ""),
-                    error=data.get("error")
+                    error=data.get("error"),
                 )
 
             except requests.exceptions.RequestException as e:
                 if attempt < self.max_retries:
                     logger.warning(f"Request failed (attempt {attempt + 1}): {e}")
-                    time.sleep(2 ** attempt)  # Exponential backoff
+                    time.sleep(2**attempt)  # Exponential backoff
                     continue
                 raise PixelatedEmpathyAPIError(f"Request failed: {e}") from e
 
@@ -149,12 +156,14 @@ class PixelatedEmpathyAPI:
         return response.data
 
     # Conversation methods
-    def get_conversations(self,
-                         dataset: str | None = None,
-                         tier: str | None = None,
-                         min_quality: float | None = None,
-                         limit: int = 100,
-                         offset: int = 0) -> dict[str, Any]:
+    def get_conversations(
+        self,
+        dataset: str | None = None,
+        tier: str | None = None,
+        min_quality: float | None = None,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> dict[str, Any]:
         """
         Get conversations with optional filtering.
 
@@ -192,11 +201,13 @@ class PixelatedEmpathyAPI:
         response = self._make_request("GET", f"/conversations/{conversation_id}")
         return response.data
 
-    def iter_conversations(self,
-                          dataset: str | None = None,
-                          tier: str | None = None,
-                          min_quality: float | None = None,
-                          batch_size: int = 100) -> Iterator[dict[str, Any]]:
+    def iter_conversations(
+        self,
+        dataset: str | None = None,
+        tier: str | None = None,
+        min_quality: float | None = None,
+        batch_size: int = 100,
+    ) -> Iterator[dict[str, Any]]:
         """
         Iterate through all conversations with automatic pagination.
 
@@ -212,8 +223,7 @@ class PixelatedEmpathyAPI:
         offset = 0
         while True:
             batch = self.get_conversations(
-                dataset=dataset, tier=tier, min_quality=min_quality,
-                limit=batch_size, offset=offset
+                dataset=dataset, tier=tier, min_quality=min_quality, limit=batch_size, offset=offset
             )
 
             conversations = batch.get("conversations", [])
@@ -230,9 +240,7 @@ class PixelatedEmpathyAPI:
                 break
 
     # Quality methods
-    def get_quality_metrics(self,
-                           dataset: str | None = None,
-                           tier: str | None = None) -> dict[str, Any]:
+    def get_quality_metrics(self, dataset: str | None = None, tier: str | None = None) -> dict[str, Any]:
         """
         Get quality metrics for datasets or tiers.
 
@@ -266,10 +274,9 @@ class PixelatedEmpathyAPI:
         return response.data
 
     # Processing methods
-    def submit_processing_job(self,
-                             dataset_name: str,
-                             processing_type: str,
-                             parameters: dict[str, Any] = None) -> dict[str, Any]:
+    def submit_processing_job(
+        self, dataset_name: str, processing_type: str, parameters: dict[str, Any] = None
+    ) -> dict[str, Any]:
         """
         Submit a processing job for dataset analysis or export.
 
@@ -281,11 +288,7 @@ class PixelatedEmpathyAPI:
         Returns:
             Job information dictionary
         """
-        job_data = {
-            "dataset_name": dataset_name,
-            "processing_type": processing_type,
-            "parameters": parameters or {}
-        }
+        job_data = {"dataset_name": dataset_name, "processing_type": processing_type, "parameters": parameters or {}}
 
         response = self._make_request("POST", "/processing/submit", json=job_data)
         return response.data
@@ -303,9 +306,7 @@ class PixelatedEmpathyAPI:
         response = self._make_request("GET", f"/processing/jobs/{job_id}")
         return response.data
 
-    def wait_for_job(self, job_id: str,
-                     poll_interval: int = 30,
-                     timeout: int = 3600) -> dict[str, Any]:
+    def wait_for_job(self, job_id: str, poll_interval: int = 30, timeout: int = 3600) -> dict[str, Any]:
         """
         Wait for a processing job to complete.
 
@@ -325,18 +326,15 @@ class PixelatedEmpathyAPI:
             if status["status"] in ["completed", "failed", "cancelled"]:
                 return status
 
-            logger.info(f"Job {job_id} status: {status['status']} "
-                       f"({status.get('progress', 0)}%)")
+            logger.info(f"Job {job_id} status: {status['status']} ({status.get('progress', 0)}%)")
             time.sleep(poll_interval)
 
         raise PixelatedEmpathyAPIError(f"Job {job_id} did not complete within {timeout} seconds")
 
     # Search methods
-    def search_conversations(self,
-                           query: str,
-                           filters: dict[str, Any] = None,
-                           limit: int = 100,
-                           offset: int = 0) -> dict[str, Any]:
+    def search_conversations(
+        self, query: str, filters: dict[str, Any] = None, limit: int = 100, offset: int = 0
+    ) -> dict[str, Any]:
         """
         Search conversations using advanced filters and full-text search.
 
@@ -349,12 +347,7 @@ class PixelatedEmpathyAPI:
         Returns:
             Search results dictionary
         """
-        search_data = {
-            "query": query,
-            "filters": filters or {},
-            "limit": limit,
-            "offset": offset
-        }
+        search_data = {"query": query, "filters": filters or {}, "limit": limit, "offset": offset}
 
         response = self._make_request("POST", "/search", json=search_data)
         return response.data
@@ -371,11 +364,9 @@ class PixelatedEmpathyAPI:
         return response.data
 
     # Export methods
-    def export_data(self,
-                   dataset: str,
-                   format: str = "jsonl",
-                   tier: str | None = None,
-                   min_quality: float | None = None) -> dict[str, Any]:
+    def export_data(
+        self, dataset: str, format: str = "jsonl", tier: str | None = None, min_quality: float | None = None
+    ) -> dict[str, Any]:
         """
         Export data in specified format with optional filtering.
 
@@ -388,10 +379,7 @@ class PixelatedEmpathyAPI:
         Returns:
             Export information dictionary
         """
-        export_data = {
-            "dataset": dataset,
-            "format": format
-        }
+        export_data = {"dataset": dataset, "format": format}
         if tier:
             export_data["tier"] = tier
         if min_quality is not None:
@@ -414,6 +402,7 @@ class PixelatedEmpathyAPI:
         except Exception:
             return False
 
+
 # Example usage
 if __name__ == "__main__":
     # Initialize client
@@ -433,8 +422,7 @@ if __name__ == "__main__":
 
     # Search for anxiety-related conversations
     search_results = api.search_conversations(
-        "anxiety therapy techniques",
-        filters={"tier": "professional", "min_quality": 0.7}
+        "anxiety therapy techniques", filters={"tier": "professional", "min_quality": 0.7}
     )
 
     # Get quality metrics
@@ -445,10 +433,13 @@ if __name__ == "__main__":
         "id": "test_conv_001",
         "messages": [
             {"role": "user", "content": "I'm feeling anxious about my job interview tomorrow."},
-            {"role": "assistant", "content": "It's completely natural to feel anxious before an important interview. Can you tell me what specific aspects are making you most worried?"}
+            {
+                "role": "assistant",
+                "content": "It's completely natural to feel anxious before an important interview. Can you tell me what specific aspects are making you most worried?",
+            },
         ],
         "quality_score": 0.0,
-        "tier": "unknown"
+        "tier": "unknown",
     }
 
     validation_result = api.validate_conversation_quality(sample_conversation)

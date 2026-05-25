@@ -3,6 +3,7 @@ Integration planning tools for MCP Server.
 
 This module provides tools for creating and managing integration plans through the MCP protocol.
 """
+
 import logging
 from pathlib import Path
 from typing import Any
@@ -240,9 +241,7 @@ class GetIntegrationPlansTool(MCPTool):
                 {"params": params, "error": str(e)},
             ) from e
 
-    def _apply_filters(
-        self, plans: list[IntegrationPlan], filters: dict[str, Any]
-    ) -> list[IntegrationPlan]:
+    def _apply_filters(self, plans: list[IntegrationPlan], filters: dict[str, Any]) -> list[IntegrationPlan]:
         """Apply filters to integration plans list."""
         filtered = plans
 
@@ -264,9 +263,7 @@ class GetIntegrationPlansTool(MCPTool):
 
         return filtered
 
-    def _apply_sorting(
-        self, plans: list[IntegrationPlan], sort_by: str, sort_order: str
-    ) -> list[IntegrationPlan]:
+    def _apply_sorting(self, plans: list[IntegrationPlan], sort_by: str, sort_order: str) -> list[IntegrationPlan]:
         """Apply sorting to integration plans list."""
         reverse = sort_order == "desc"
 
@@ -453,15 +450,12 @@ class GeneratePreprocessingScriptTool(MCPTool):
 
             # Generate default output path if not provided
             if not output_path:
-
                 scripts_dir = Path("data/integration_scripts")
                 scripts_dir.mkdir(parents=True, exist_ok=True)
                 output_path = str(scripts_dir / f"preprocess_{plan.source_id}.py")
 
             # Generate preprocessing script
-            script_path = orchestrator.integration_engine.generate_preprocessing_script(
-                plan, output_path
-            )
+            script_path = orchestrator.integration_engine.generate_preprocessing_script(plan, output_path)
 
             # Read script content
             with open(script_path, encoding="utf-8") as f:
@@ -489,4 +483,3 @@ class GeneratePreprocessingScriptTool(MCPTool):
                 f"Failed to generate preprocessing script: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
-

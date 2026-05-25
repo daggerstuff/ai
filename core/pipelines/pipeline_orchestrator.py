@@ -5,10 +5,11 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 
 @dataclass
@@ -66,7 +67,7 @@ class PipelineOrchestrator:
         if data is None:
             raise ValueError("data must not be None")
 
-        started = datetime.now(tz=timezone.utc)
+        started = datetime.now(tz=UTC)
         started_iso = started.isoformat()
         errors: list[str] = []
         stage_results: list[PipelineStageResult] = []
@@ -75,7 +76,7 @@ class PipelineOrchestrator:
         input_size = self._safe_len(current_payload)
 
         for stage_name, stage_callable in self.stages.items():
-            stage_start = datetime.now(tz=timezone.utc)
+            stage_start = datetime.now(tz=UTC)
             message: str | None = None
             status = "completed"
 
@@ -93,7 +94,7 @@ class PipelineOrchestrator:
                 # Carry forward with diagnostic envelope so later stages can still run.
                 current_payload = {"error": message, "data": current_payload}
 
-            stage_end = datetime.now(tz=timezone.utc)
+            stage_end = datetime.now(tz=UTC)
             duration_ms = (stage_end - stage_start).total_seconds() * 1000
             stage_results.append(
                 PipelineStageResult(
@@ -116,7 +117,7 @@ class PipelineOrchestrator:
                 )
             input_size = output_size
 
-        finished = datetime.now(tz=timezone.utc)
+        finished = datetime.now(tz=UTC)
         return PipelineResult(
             success=not errors,
             input_hash=self._hash_payload(data),
@@ -156,7 +157,7 @@ class PipelineOrchestrator:
             enriched.setdefault("pipeline", {})
             enriched["pipeline"].update(
                 {
-                    "enriched_at": datetime.now(tz=timezone.utc).isoformat(),
+                    "enriched_at": datetime.now(tz=UTC).isoformat(),
                     "element_count": self._safe_len(payload),
                 }
             )

@@ -22,19 +22,20 @@ Token Validation
 
 from __future__ import annotations
 
-import json
 import hashlib
+import json
 from dataclasses import dataclass, field
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
-from .packaging import DatasetManifest, PackageBundle
+from .packaging import DatasetManifest
 
 
 class PromotionStatus(StrEnum):
     """Promotion lifecycle status."""
+
     ELIGIBLE = "eligible"  # Has valid token, can be promoted
     PROMOTING = "promoting"  # Currently being promoted
     PROMOTED = "promoted"  # Successfully promoted to training
@@ -44,12 +45,12 @@ class PromotionStatus(StrEnum):
 
 class PromotionError(Exception):
     """Promotion validation or execution error."""
-    pass
 
 
 @dataclass
 class PromotionToken:
     """Promotion eligibility token from package creation."""
+
     package_id: str
     promoted_at: str
     status: str
@@ -64,7 +65,7 @@ class PromotionToken:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "PromotionToken":
+    def from_dict(cls, data: dict[str, Any]) -> PromotionToken:
         return cls(
             package_id=data["package_id"],
             promoted_at=data["promoted_at"],
@@ -76,15 +77,14 @@ class PromotionToken:
 @dataclass
 class PromotionResult:
     """Result of promotion validation."""
+
     status: PromotionStatus
     package_id: str
     stage_id: str
     token: PromotionToken | None = None
     manifest: DatasetManifest | None = None
     error_message: str = ""
-    validated_at: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    validated_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -216,7 +216,7 @@ class PromotionService:
         # Check token expiry
         try:
             promoted_at = datetime.fromisoformat(token.promoted_at)
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             if now - promoted_at > timedelta(hours=self.token_expiry_hours):
                 return PromotionResult(
                     status=PromotionStatus.EXPIRED,
@@ -278,7 +278,7 @@ class PromotionService:
         promoted_data = {
             **token_data,
             "training_run_id": training_run_id,
-            "marked_promoted_at": datetime.now(timezone.utc).isoformat(),
+            "marked_promoted_at": datetime.now(UTC).isoformat(),
         }
 
         with open(promoted_path, "w") as f:
@@ -300,10 +300,10 @@ def check_promotion_eligibility(package_path: Path) -> PromotionResult:
 
 
 __all__ = [
-    "PromotionStatus",
     "PromotionError",
-    "PromotionToken",
     "PromotionResult",
     "PromotionService",
+    "PromotionStatus",
+    "PromotionToken",
     "check_promotion_eligibility",
 ]

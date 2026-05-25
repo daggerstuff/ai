@@ -80,9 +80,7 @@ async def delete_project(request: Request, project_id: str) -> dict[str, Any]:
 
 
 @router.get("/search/{query}")
-async def search_projects(
-    request: Request, query: str, skip: int = 0, limit: int = 25
-) -> dict[str, Any]:
+async def search_projects(request: Request, query: str, skip: int = 0, limit: int = 25) -> dict[str, Any]:
     repo = _repo(request)
     results = await repo.search(query, skip=skip, limit=limit)
     for doc in results:

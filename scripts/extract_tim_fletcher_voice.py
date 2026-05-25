@@ -42,10 +42,7 @@ class TimFletcherVoiceExtractor:
         self.dotenv_values = self._load_dotenv()
         self.nim_api_key = self._resolve_env("NVIDIA_NIM_API_KEY") or self._resolve_env("NVIDIA_API_KEY")
         self.nim_base_url = self._resolve_env("NVIDIA_NIM_BASE_URL") or "https://integrate.api.nvidia.com/v1"
-        model_from_env = (
-            self._resolve_env("TIM_FLETCHER_NIM_MODEL")
-            or self._resolve_env("NVIDIA_NIM_MODEL")
-        )
+        model_from_env = self._resolve_env("TIM_FLETCHER_NIM_MODEL") or self._resolve_env("NVIDIA_NIM_MODEL")
         self.openai_model = model_from_env or os.getenv(
             "OPENAI_MODEL",
             "meta/llama-3.1-8b-instruct",
@@ -105,9 +102,19 @@ class TimFletcherVoiceExtractor:
 
             # Transition phrases
             transitions = [
-                "And so", "Now", "So", "But", "And then", "What happens",
-                "Let me", "Think about", "Imagine", "What I find",
-                "One of the things", "The reality is", "What we see"
+                "And so",
+                "Now",
+                "So",
+                "But",
+                "And then",
+                "What happens",
+                "Let me",
+                "Think about",
+                "Imagine",
+                "What I find",
+                "One of the things",
+                "The reality is",
+                "What we see",
             ]
             for transition in transitions:
                 if sentence.lower().startswith(transition.lower()):
@@ -115,9 +122,16 @@ class TimFletcherVoiceExtractor:
 
             # Empathy markers
             empathy_patterns = [
-                "I understand", "I know", "I get it", "That's painful",
-                "That's hard", "You might feel", "Many people",
-                "Some of you", "For many", "What you're going through"
+                "I understand",
+                "I know",
+                "I get it",
+                "That's painful",
+                "That's hard",
+                "You might feel",
+                "Many people",
+                "Some of you",
+                "For many",
+                "What you're going through",
             ]
             for pattern in empathy_patterns:
                 if pattern.lower() in sentence.lower():
@@ -125,20 +139,14 @@ class TimFletcherVoiceExtractor:
 
             # Analogies (look for "like", "as if", "imagine")
             if (
-                any(
-                    marker in sentence.lower()
-                    for marker in ["like a", "as if", "imagine", "think of"]
-                )
+                any(marker in sentence.lower() for marker in ["like a", "as if", "imagine", "think of"])
                 and len(sentence) < MAX_MARKED_SENTENCE_LENGTH  # Keep reasonable length
             ):
                 self.voice_profile["analogies"].append(sentence)
 
             # Examples (look for "let's say", "for example")
             if (
-                any(
-                    marker in sentence.lower()
-                    for marker in ["let's say", "for example", "think back to"]
-                )
+                any(marker in sentence.lower() for marker in ["let's say", "for example", "think back to"])
                 and len(sentence) < MAX_MARKED_SENTENCE_LENGTH
             ):
                 self.voice_profile["examples"].append(sentence)
@@ -148,24 +156,27 @@ class TimFletcherVoiceExtractor:
         # Common multi-word phrases
         words = text.lower().split()
         for i in range(len(words) - 2):
-            phrase = " ".join(words[i:i + 3])
+            phrase = " ".join(words[i : i + 3])
             self.voice_profile["common_phrases"][phrase] += 1
 
         # Teaching patterns (how he structures explanations)
         patterns = [
-            "First", "Second", "Third",  # Numbered points
-            "What happens is", "The reality is", "What we find",
-            "One of the key", "It's important to understand",
-            "Let me give you an example", "Think about this",
+            "First",
+            "Second",
+            "Third",  # Numbered points
+            "What happens is",
+            "The reality is",
+            "What we find",
+            "One of the key",
+            "It's important to understand",
+            "Let me give you an example",
+            "Think about this",
         ]
 
         for pattern in patterns:
             count = text.lower().count(pattern.lower())
             if count > 0:
-                self.voice_profile["teaching_patterns"].append({
-                    "pattern": pattern,
-                    "frequency": count
-                })
+                self.voice_profile["teaching_patterns"].append({"pattern": pattern, "frequency": count})
 
     def generate_voice_profile_report(self) -> str:
         """Generate a comprehensive voice profile report"""
@@ -395,9 +406,7 @@ class TimFletcherVoiceExtractor:
         starters = list(profile.get("sentence_starters", {}).keys()) or ["Let's take this step by step"]
         transitions = list(profile.get("transition_phrases", {}).keys()) or ["Now", "Let's look at this"]
         empathy = list(profile.get("empathy_markers", {}).keys()) or ["I understand", "That sounds hard"]
-        analogy = random.choice(
-            profile.get("analogies") or ["Like retraining a nervous system takes time."]
-        )
+        analogy = random.choice(profile.get("analogies") or ["Like retraining a nervous system takes time."])
         example = random.choice(
             profile.get("examples") or ["Imagine your alarm system is extra sensitive for a while."]
         )
@@ -453,9 +462,7 @@ class TimFletcherVoiceExtractor:
             return None
 
         if not self.nim_base_url:
-            logger.warning(
-                "⚠️ NVIDIA NIM base URL not configured; defaulting to https://integrate.api.nvidia.com/v1"
-            )
+            logger.warning("⚠️ NVIDIA NIM base URL not configured; defaulting to https://integrate.api.nvidia.com/v1")
             self.nim_base_url = "https://integrate.api.nvidia.com/v1"
 
         if not self.nim_api_key:

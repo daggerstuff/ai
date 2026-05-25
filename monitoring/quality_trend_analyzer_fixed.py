@@ -7,7 +7,7 @@ Analyzes quality trends based on conversation content and metadata
 import sqlite3
 import warnings
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -65,9 +65,7 @@ class QualityTrendAnalyzer:
         self.min_data_points = 5
         self.significance_threshold = 0.05
 
-    def analyze_quality_trends(
-        self, period: str = "weekly", days_back: int = 90
-    ) -> dict[str, QualityTrend]:
+    def analyze_quality_trends(self, period: str = "weekly", days_back: int = 90) -> dict[str, QualityTrend]:
         """Analyze quality trends over specified period"""
 
         try:
@@ -98,7 +96,7 @@ class QualityTrendAnalyzer:
             conn = sqlite3.connect(self.db_path)
 
             # Calculate date threshold
-            date_threshold = datetime.now(timezone.utc) - timedelta(days=days_back)
+            date_threshold = datetime.now(UTC) - timedelta(days=days_back)
 
             query = """
             SELECT
@@ -174,17 +172,13 @@ class QualityTrendAnalyzer:
                     if period == "daily" or period == "weekly":
                         timestamps.append(datetime.strptime(period_key, "%Y-%m-%d"))
                     elif period == "monthly":
-                        timestamps.append(
-                            datetime.strptime(f"{period_key}-01", "%Y-%m-%d")
-                        )
+                        timestamps.append(datetime.strptime(f"{period_key}-01", "%Y-%m-%d"))
 
             if len(period_values) < self.min_data_points:
                 return None
 
             # Perform trend analysis
-            trend_direction, trend_strength, p_value = self._calculate_trend_statistics(
-                period_values
-            )
+            trend_direction, trend_strength, p_value = self._calculate_trend_statistics(period_values)
 
             return QualityTrend(
                 metric=metric,
@@ -199,9 +193,7 @@ class QualityTrendAnalyzer:
         except Exception:
             return None
 
-    def _calculate_metric_value(
-        self, records: list[dict], metric: str
-    ) -> float | None:
+    def _calculate_metric_value(self, records: list[dict], metric: str) -> float | None:
         """Calculate metric value for a period"""
         try:
             if not records:
@@ -220,17 +212,13 @@ class QualityTrendAnalyzer:
             if metric == "processing_success":
                 # Percentage of successful processing
                 total = len(records)
-                successful = len(
-                    [r for r in records if r["processing_status"] == "processed"]
-                )
+                successful = len([r for r in records if r["processing_status"] == "processed"])
                 return (successful / total) * 100 if total > 0 else None
 
             if metric == "tier_distribution":
                 # Priority tier percentage (higher is better)
                 total = len(records)
-                priority = len(
-                    [r for r in records if r["tier"] and "priority" in r["tier"]]
-                )
+                priority = len([r for r in records if r["tier"] and "priority" in r["tier"]])
                 return (priority / total) * 100 if total > 0 else None
 
             if metric == "language_consistency":
@@ -250,9 +238,7 @@ class QualityTrendAnalyzer:
         except Exception:
             return None
 
-    def _calculate_trend_statistics(
-        self, values: list[float]
-    ) -> tuple[str, float, float]:
+    def _calculate_trend_statistics(self, values: list[float]) -> tuple[str, float, float]:
         """Calculate trend statistics using linear regression"""
         try:
             x = np.arange(len(values))
@@ -277,9 +263,7 @@ class QualityTrendAnalyzer:
         except Exception:
             return "unknown", 0.0, 1.0
 
-    def generate_trend_report(
-        self, trends: dict[str, QualityTrend], period: str = "weekly"
-    ) -> TrendReport:
+    def generate_trend_report(self, trends: dict[str, QualityTrend], period: str = "weekly") -> TrendReport:
         """Generate comprehensive trend report"""
 
         try:
@@ -383,8 +367,7 @@ class QualityTrendAnalyzer:
         volatile_metrics = [
             name
             for name, trend in trends.items()
-            if np.std(trend.values)
-            > np.mean(trend.values) * 0.2  # High coefficient of variation
+            if np.std(trend.values) > np.mean(trend.values) * 0.2  # High coefficient of variation
         ]
 
         if volatile_metrics:
@@ -402,61 +385,41 @@ class QualityTrendAnalyzer:
         declining_metrics = [
             name
             for name, trend in trends.items()
-            if trend.trend_direction == "declining"
-            and trend.statistical_significance < self.significance_threshold
+            if trend.trend_direction == "declining" and trend.statistical_significance < self.significance_threshold
         ]
 
         for metric in declining_metrics:
             if metric == "conversation_length":
-                recommendations.append(
-                    "Review conversation depth - consider enhancing multi-turn dialogue training"
-                )
+                recommendations.append("Review conversation depth - consider enhancing multi-turn dialogue training")
             elif metric == "content_richness":
-                recommendations.append(
-                    "Improve content quality - focus on more detailed and informative responses"
-                )
+                recommendations.append("Improve content quality - focus on more detailed and informative responses")
             elif metric == "processing_success":
-                recommendations.append(
-                    "URGENT: Address processing failures - review data pipeline stability"
-                )
+                recommendations.append("URGENT: Address processing failures - review data pipeline stability")
             elif metric == "tier_distribution":
-                recommendations.append(
-                    "Optimize dataset prioritization - ensure high-quality data sources"
-                )
+                recommendations.append("Optimize dataset prioritization - ensure high-quality data sources")
             elif metric == "language_consistency":
-                recommendations.append(
-                    "Review language detection and filtering processes"
-                )
+                recommendations.append("Review language detection and filtering processes")
             elif metric == "batch_quality":
-                recommendations.append(
-                    "Improve batch processing efficiency and organization"
-                )
+                recommendations.append("Improve batch processing efficiency and organization")
 
         # Find improving metrics to reinforce
         improving_metrics = [
             name
             for name, trend in trends.items()
-            if trend.trend_direction == "improving"
-            and trend.statistical_significance < self.significance_threshold
+            if trend.trend_direction == "improving" and trend.statistical_significance < self.significance_threshold
         ]
 
         if improving_metrics:
             improving_names = [m.replace("_", " ") for m in improving_metrics]
-            recommendations.append(
-                f"Continue successful practices that improved: {', '.join(improving_names)}"
-            )
+            recommendations.append(f"Continue successful practices that improved: {', '.join(improving_names)}")
 
         # General recommendations
         if len(declining_metrics) > len(improving_metrics):
-            recommendations.append(
-                "Consider comprehensive data quality review and pipeline optimization"
-            )
+            recommendations.append("Consider comprehensive data quality review and pipeline optimization")
 
         return recommendations
 
-    def _create_metrics_summary(
-        self, trends: dict[str, QualityTrend]
-    ) -> dict[str, Any]:
+    def _create_metrics_summary(self, trends: dict[str, QualityTrend]) -> dict[str, Any]:
         """Create metrics summary"""
         summary = {}
 
@@ -466,24 +429,19 @@ class QualityTrendAnalyzer:
                 "trend_direction": trend.trend_direction,
                 "trend_strength": trend.trend_strength,
                 "statistical_significance": trend.statistical_significance,
-                "is_significant": trend.statistical_significance
-                < self.significance_threshold,
+                "is_significant": trend.statistical_significance < self.significance_threshold,
                 "volatility": np.std(trend.values) if trend.values else 0,
                 "min_value": min(trend.values) if trend.values else 0,
                 "max_value": max(trend.values) if trend.values else 0,
                 "mean_value": np.mean(trend.values) if trend.values else 0,
-                "coefficient_of_variation": (
-                    np.std(trend.values) / np.mean(trend.values)
-                )
+                "coefficient_of_variation": (np.std(trend.values) / np.mean(trend.values))
                 if trend.values and np.mean(trend.values) > 0
                 else 0,
             }
 
         return summary
 
-    def _perform_statistical_tests(
-        self, trends: dict[str, QualityTrend]
-    ) -> dict[str, Any]:
+    def _perform_statistical_tests(self, trends: dict[str, QualityTrend]) -> dict[str, Any]:
         """Perform statistical tests on trends"""
         tests = {}
 
@@ -528,7 +486,6 @@ def main():
     periods = ["daily", "weekly"]
 
     for period in periods:
-
         # Analyze trends
         trends = analyzer.analyze_quality_trends(period=period, days_back=30)
 
@@ -537,7 +494,6 @@ def main():
 
         # Generate report
         report = analyzer.generate_trend_report(trends, period)
-
 
         # Show key insights
         if report.key_insights:

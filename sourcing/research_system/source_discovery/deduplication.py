@@ -66,9 +66,7 @@ class DatasetDeduplicator:
             normalized_title = self.parser.normalize_title(source.title)
 
             for existing_title, existing_source in title_index:
-                if self._is_duplicate_by_title_and_authors(
-                    source, existing_source, normalized_title, existing_title
-                ):
+                if self._is_duplicate_by_title_and_authors(source, existing_source, normalized_title, existing_title):
                     logger.debug(f"Duplicate by title/authors: {source.title}")
                     # Merge metadata from duplicate
                     self._merge_duplicate_metadata(existing_source, source)
@@ -83,11 +81,7 @@ class DatasetDeduplicator:
         return unique_sources
 
     def _is_duplicate_by_title_and_authors(
-        self,
-        source1: DatasetSource,
-        source2: DatasetSource,
-        normalized_title1: str,
-        normalized_title2: str
+        self, source1: DatasetSource, source2: DatasetSource, normalized_title1: str, normalized_title2: str
     ) -> bool:
         """
         Check if two sources are duplicates based on title and author similarity.
@@ -102,10 +96,7 @@ class DatasetDeduplicator:
             True if sources are duplicates
         """
         # Calculate title similarity
-        title_similarity = self.parser.calculate_text_similarity(
-            normalized_title1,
-            normalized_title2
-        )
+        title_similarity = self.parser.calculate_text_similarity(normalized_title1, normalized_title2)
 
         if title_similarity < self.title_similarity_threshold:
             return False
@@ -126,19 +117,13 @@ class DatasetDeduplicator:
                     return False
 
         # Check publication year similarity (within 1 year)
-        year_diff = abs(
-            source1.publication_date.year - source2.publication_date.year
-        )
+        year_diff = abs(source1.publication_date.year - source2.publication_date.year)
         if year_diff > 1:
             return False
 
         return True
 
-    def _merge_duplicate_metadata(
-        self,
-        primary: DatasetSource,
-        duplicate: DatasetSource
-    ) -> None:
+    def _merge_duplicate_metadata(self, primary: DatasetSource, duplicate: DatasetSource) -> None:
         """
         Merge metadata from duplicate into primary source.
 
@@ -163,34 +148,23 @@ class DatasetDeduplicator:
             primary.abstract = duplicate.abstract
 
         # Merge authors
-        existing_authors = set(
-            self.parser.normalize_author_name(author)
-            for author in primary.authors
-        )
+        existing_authors = set(self.parser.normalize_author_name(author) for author in primary.authors)
         for author in duplicate.authors:
             normalized = self.parser.normalize_author_name(author)
             if normalized not in existing_authors:
                 primary.authors.append(author)
 
         # Update data availability if duplicate has better info
-        availability_priority = {
-            "available": 3,
-            "upon_request": 2,
-            "restricted": 1,
-            "unknown": 0
-        }
+        availability_priority = {"available": 3, "upon_request": 2, "restricted": 1, "unknown": 0}
 
-        if (availability_priority.get(duplicate.data_availability, 0) >
-            availability_priority.get(primary.data_availability, 0)):
+        if availability_priority.get(duplicate.data_availability, 0) > availability_priority.get(
+            primary.data_availability, 0
+        ):
             primary.data_availability = duplicate.data_availability
 
         logger.debug(f"Merged metadata from duplicate into {primary.source_id}")
 
-    def find_duplicates_by_doi(
-        self,
-        sources: list[DatasetSource],
-        doi: str
-    ) -> list[DatasetSource]:
+    def find_duplicates_by_doi(self, sources: list[DatasetSource], doi: str) -> list[DatasetSource]:
         """
         Find all sources with matching DOI.
 
@@ -215,10 +189,7 @@ class DatasetDeduplicator:
         return matches
 
     def find_similar_sources(
-        self,
-        target: DatasetSource,
-        sources: list[DatasetSource],
-        min_similarity: float = 0.7
+        self, target: DatasetSource, sources: list[DatasetSource], min_similarity: float = 0.7
     ) -> list[tuple[DatasetSource, float]]:
         """
         Find sources similar to target based on title and authors.
@@ -242,10 +213,7 @@ class DatasetDeduplicator:
 
             # Calculate title similarity
             normalized_title = self.parser.normalize_title(source.title)
-            title_sim = self.parser.calculate_text_similarity(
-                normalized_target_title,
-                normalized_title
-            )
+            title_sim = self.parser.calculate_text_similarity(normalized_target_title, normalized_title)
 
             # Calculate author similarity
             author_sim = 0.0
@@ -267,10 +235,7 @@ class DatasetDeduplicator:
 
         return similar
 
-    def create_unified_source(
-        self,
-        duplicates: list[DatasetSource]
-    ) -> DatasetSource | None:
+    def create_unified_source(self, duplicates: list[DatasetSource]) -> DatasetSource | None:
         """
         Create a unified source from multiple duplicates.
 
@@ -295,9 +260,7 @@ class DatasetDeduplicator:
         return unified
 
     def group_by_similarity(
-        self,
-        sources: list[DatasetSource],
-        similarity_threshold: float = 0.8
+        self, sources: list[DatasetSource], similarity_threshold: float = 0.8
     ) -> list[list[DatasetSource]]:
         """
         Group sources by similarity.
@@ -324,11 +287,7 @@ class DatasetDeduplicator:
             assigned.add(source.source_id)
 
             # Find similar sources
-            similar = self.find_similar_sources(
-                source,
-                sources,
-                similarity_threshold
-            )
+            similar = self.find_similar_sources(source, sources, similarity_threshold)
 
             for similar_source, _ in similar:
                 if similar_source.source_id not in assigned:
@@ -339,11 +298,7 @@ class DatasetDeduplicator:
 
         return groups
 
-    def get_deduplication_stats(
-        self,
-        original_count: int,
-        deduplicated_count: int
-    ) -> dict[str, any]:
+    def get_deduplication_stats(self, original_count: int, deduplicated_count: int) -> dict[str, any]:
         """
         Calculate deduplication statistics.
 
@@ -361,5 +316,5 @@ class DatasetDeduplicator:
             "original_count": original_count,
             "deduplicated_count": deduplicated_count,
             "duplicates_removed": duplicates_removed,
-            "duplicate_rate_percent": round(duplicate_rate, 2)
+            "duplicate_rate_percent": round(duplicate_rate, 2),
         }

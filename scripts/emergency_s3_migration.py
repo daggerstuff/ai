@@ -34,12 +34,8 @@ PROJECT_ROOT = Path("/home/vivi/pixelated")
 
 def get_s3_client():
     # Attempt to get credentials from env vars
-    access_key = os.environ.get("HETZNER_S3_ACCESS_KEY") or os.environ.get(
-        "AWS_ACCESS_KEY_ID"
-    )
-    secret_key = os.environ.get("HETZNER_S3_SECRET_KEY") or os.environ.get(
-        "AWS_SECRET_ACCESS_KEY"
-    )
+    access_key = os.environ.get("HETZNER_S3_ACCESS_KEY") or os.environ.get("AWS_ACCESS_KEY_ID")
+    secret_key = os.environ.get("HETZNER_S3_SECRET_KEY") or os.environ.get("AWS_SECRET_ACCESS_KEY")
 
     if not access_key or not secret_key:
         sys.exit(1)
@@ -104,12 +100,10 @@ def main():
     files, size_bytes = collect_files(PROJECT_ROOT, FILES_TO_UPLOAD)
     size_bytes / (1024**3)
 
-
     if len(files) == 0:
         return
 
     s3 = get_s3_client()
-
 
     # Simple threaded uploader
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:

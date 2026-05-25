@@ -8,7 +8,7 @@ import json
 import logging
 import re
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import numpy as np
@@ -172,9 +172,7 @@ class ClinicalStandardsValidator:
 
         logger.info("✅ Loaded clinical validation patterns")
 
-    def validate_conversation(
-        self, conversation: dict[str, Any]
-    ) -> ClinicalValidationResult:
+    def validate_conversation(self, conversation: dict[str, Any]) -> ClinicalValidationResult:
         """Validate a conversation against clinical standards"""
 
         conversation_id = conversation.get("id", "unknown")
@@ -220,7 +218,7 @@ class ClinicalStandardsValidator:
             overall_clinical_score=overall_score,
             violations=violations,
             recommendations=recommendations,
-            validation_timestamp=datetime.now(timezone.utc).isoformat(),
+            validation_timestamp=datetime.now(UTC).isoformat(),
         )
 
     def _extract_conversation_text(self, conversation: dict[str, Any]) -> str:
@@ -305,8 +303,7 @@ class ClinicalStandardsValidator:
 
         # Check if crisis content is present
         crisis_present = any(
-            re.search(pattern, text, re.IGNORECASE)
-            for pattern in self.crisis_patterns["suicide_assessment"]
+            re.search(pattern, text, re.IGNORECASE) for pattern in self.crisis_patterns["suicide_assessment"]
         )
 
         if crisis_present:
@@ -403,9 +400,7 @@ class ClinicalStandardsValidator:
 
         return violations
 
-    def _generate_recommendations(
-        self, scores: list[float], violations: list[str]
-    ) -> list[str]:
+    def _generate_recommendations(self, scores: list[float], violations: list[str]) -> list[str]:
         """Generate improvement recommendations"""
         recommendations = []
 
@@ -422,9 +417,7 @@ class ClinicalStandardsValidator:
         # Recommend improvements for low scores
         for i, score in enumerate(scores):
             if score < 0.6:
-                recommendations.append(
-                    f"Improve {score_names[i]} (current: {score:.2f})"
-                )
+                recommendations.append(f"Improve {score_names[i]} (current: {score:.2f})")
 
         # Add specific recommendations based on violations
         if violations:
@@ -453,19 +446,13 @@ class ClinicalStandardsValidator:
         # Update running average
         total = self.validation_stats["total_validated"]
         current_avg = self.validation_stats["average_clinical_score"]
-        self.validation_stats["average_clinical_score"] = (
-            (current_avg * (total - 1)) + score
-        ) / total
+        self.validation_stats["average_clinical_score"] = ((current_avg * (total - 1)) + score) / total
 
-    def validate_batch(
-        self, conversations: list[dict[str, Any]]
-    ) -> list[ClinicalValidationResult]:
+    def validate_batch(self, conversations: list[dict[str, Any]]) -> list[ClinicalValidationResult]:
         """Validate a batch of conversations"""
         results = []
 
-        logger.info(
-            f"🔍 Starting clinical validation of {len(conversations)} conversations..."
-        )
+        logger.info(f"🔍 Starting clinical validation of {len(conversations)} conversations...")
 
         for i, conversation in enumerate(conversations):
             try:
@@ -473,17 +460,13 @@ class ClinicalStandardsValidator:
                 results.append(result)
 
                 if (i + 1) % 100 == 0:
-                    logger.info(
-                        f"✅ Validated {i + 1}/{len(conversations)} conversations"
-                    )
+                    logger.info(f"✅ Validated {i + 1}/{len(conversations)} conversations")
 
             except Exception as e:
                 logger.error(f"❌ Error validating conversation {i}: {e}")
                 continue
 
-        logger.info(
-            f"🎯 Clinical validation complete: {len(results)} conversations validated"
-        )
+        logger.info(f"🎯 Clinical validation complete: {len(results)} conversations validated")
         return results
 
     def get_validation_statistics(self) -> dict[str, Any]:
@@ -499,12 +482,10 @@ class ClinicalStandardsValidator:
                 "cultural_patterns": len(self.cultural_patterns),
                 "safety_patterns": len(self.safety_patterns),
             },
-            "validation_timestamp": datetime.now(timezone.utc).isoformat(),
+            "validation_timestamp": datetime.now(UTC).isoformat(),
         }
 
-    def export_validation_results(
-        self, results: list[ClinicalValidationResult], output_path: str
-    ) -> bool:
+    def export_validation_results(self, results: list[ClinicalValidationResult], output_path: str) -> bool:
         """Export validation results to JSON file"""
         try:
             output_data = {
@@ -528,7 +509,7 @@ class ClinicalStandardsValidator:
                     for result in results
                 ],
                 "summary_statistics": self.get_validation_statistics(),
-                "export_timestamp": datetime.now(timezone.utc).isoformat(),
+                "export_timestamp": datetime.now(UTC).isoformat(),
             }
 
             with open(output_path, "w", encoding="utf-8") as f:
@@ -563,7 +544,6 @@ def main():
 
     # Validate conversation
     result = validator.validate_conversation(test_conversation)
-
 
     if result.violations:
         for _violation in result.violations:

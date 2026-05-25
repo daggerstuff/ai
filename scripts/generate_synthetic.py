@@ -5,7 +5,7 @@ import os
 import re
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import requests
 from dotenv import load_dotenv
@@ -28,7 +28,6 @@ def log(msg, log_file=None):
 def slack_alert(message, args, slack_available, log_file=None):
     if args.slack_webhook and slack_available:
         try:
-
             webhook = WebhookClient(args.slack_webhook)
             webhook.send(text=message)
         except Exception as e:
@@ -161,18 +160,12 @@ def parse_dialogue(text):
     last_speaker = None
     last_line = ""
     for line in lines:
-        if therapist_match := re.match(
-            r"(?:\*\*|__)?Therapist(?:\*\*|__)?[:\-\s]*(.+)", line, re.IGNORECASE
-        ):
+        if therapist_match := re.match(r"(?:\*\*|__)?Therapist(?:\*\*|__)?[:\-\s]*(.+)", line, re.IGNORECASE):
             if last_speaker == "client" and last_line:
-                pairs.append(
-                    {"prompt": last_line, "response": therapist_match[1].strip()}
-                )
+                pairs.append({"prompt": last_line, "response": therapist_match[1].strip()})
             last_speaker = "therapist"
             last_line = therapist_match[1].strip()
-        elif client_match := re.match(
-            r"(?:\*\*|__)?Client(?:\*\*|__)?[:\-\s]*(.+)", line, re.IGNORECASE
-        ):
+        elif client_match := re.match(r"(?:\*\*|__)?Client(?:\*\*|__)?[:\-\s]*(.+)", line, re.IGNORECASE):
             if last_speaker == "therapist" and last_line:
                 pairs.append({"prompt": last_line, "response": client_match[1].strip()})
             last_speaker = "client"
@@ -181,12 +174,8 @@ def parse_dialogue(text):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Generate synthetic therapy dialogues using Ollama."
-    )
-    parser.add_argument(
-        "--model", type=str, default=DEFAULT_MODEL, help="Ollama model name"
-    )
+    parser = argparse.ArgumentParser(description="Generate synthetic therapy dialogues using Ollama.")
+    parser.add_argument("--model", type=str, default=DEFAULT_MODEL, help="Ollama model name")
     parser.add_argument(
         "--output",
         type=str,
@@ -199,15 +188,9 @@ if __name__ == "__main__":
         default=None,
         help="Raw model output file (default: auto-named)",
     )
-    parser.add_argument(
-        "--max_retries", type=int, default=3, help="Max retries for API calls"
-    )
-    parser.add_argument(
-        "--timeout", type=int, default=120, help="Timeout for API calls (seconds)"
-    )
-    parser.add_argument(
-        "--log", type=str, default=None, help="Log file name (default: auto-named)"
-    )
+    parser.add_argument("--max_retries", type=int, default=3, help="Max retries for API calls")
+    parser.add_argument("--timeout", type=int, default=120, help="Timeout for API calls (seconds)")
+    parser.add_argument("--log", type=str, default=None, help="Log file name (default: auto-named)")
     parser.add_argument(
         "--templates",
         type=str,
@@ -243,18 +226,12 @@ if __name__ == "__main__":
     slack_available = False
     if args.slack_webhook:
         slack_available = bool(importlib.util.find_spec("slack_sdk.webhook"))
-    now_str = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    now_str = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
     model_safe = args.model.replace("/", "_").replace(":", "_")
-    output_path = (
-        args.output or f"synthetic_therapy_dialogues_{model_safe}_{now_str}.jsonl"
-    )
-    raw_output_path = (
-        args.raw_output or f"raw_model_outputs_{model_safe}_{now_str}.jsonl"
-    )
+    output_path = args.output or f"synthetic_therapy_dialogues_{model_safe}_{now_str}.jsonl"
+    raw_output_path = args.raw_output or f"raw_model_outputs_{model_safe}_{now_str}.jsonl"
     log_path = args.log or f"generation_log_{model_safe}_{now_str}.log"
-    chained_output_path = (
-        f"chained_outputs_{model_safe}_{now_str}.jsonl" if args.chain else None
-    )
+    chained_output_path = f"chained_outputs_{model_safe}_{now_str}.jsonl" if args.chain else None
 
     # Ensure output directory exists
     for path in [output_path, raw_output_path, log_path, chained_output_path]:
@@ -266,9 +243,7 @@ if __name__ == "__main__":
     with open(log_path, "w", encoding="utf-8") as log_file:
         try:
             # Use the new JSONL extraction function
-            prompt_ids, prompts = extract_prompts_jsonl(
-                "ai/data/prompts/edge_case_prompts_improved.jsonl", log_file
-            )
+            prompt_ids, prompts = extract_prompts_jsonl("ai/data/prompts/edge_case_prompts_improved.jsonl", log_file)
             with open(
                 "ai/data/prompts/edge_case_prompts_improved.jsonl.json",
                 "w",
@@ -282,11 +257,7 @@ if __name__ == "__main__":
                 )
 
             templates = load_templates(args.templates)
-            chain_templates = (
-                load_chain_templates(args.chain_templates, args.chain_type)
-                if args.chain
-                else None
-            )
+            chain_templates = load_chain_templates(args.chain_templates, args.chain_type) if args.chain else None
 
             with (
                 open(output_path, "w", encoding="utf-8") as outfile,
@@ -345,17 +316,10 @@ if __name__ == "__main__":
                             outfile.write(json.dumps(pair, ensure_ascii=False) + "\n")
                             total_pairs += 1
                         if args.chain and pairs and chainfile and chain_templates:
-                            dialogue = "\n".join(
-                                [
-                                    f"Therapist: {p['prompt']}\nClient: {p['response']}"
-                                    for p in pairs
-                                ]
-                            )
+                            dialogue = "\n".join([f"Therapist: {p['prompt']}\nClient: {p['response']}" for p in pairs])
                             for chain_template in chain_templates:
                                 chain_template_id = chain_template["id"]
-                                chain_prompt = apply_chain_template(
-                                    chain_template, dialogue
-                                )
+                                chain_prompt = apply_chain_template(chain_template, dialogue)
                                 log(
                                     f"Chaining for scenario {prompt_id} (template {template_id}, chain {chain_template_id})...",
                                     log_file,

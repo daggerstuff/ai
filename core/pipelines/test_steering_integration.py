@@ -7,12 +7,9 @@ from pathlib import Path
 
 from ai.core.pipelines.reprioritization_engine import (
     BacklogItem,
-    EvidencePoint,
-    EvidenceSeverity,
     InterventionType,
     PriorityTier,
     ReprioritizationEngine,
-    ReprioritizationReport,
     UpstreamDomain,
 )
 from ai.core.pipelines.steering_integration import (
@@ -30,7 +27,6 @@ from ai.core.pipelines.steering_integration import (
     create_steering_integration,
     run_steering_from_report,
 )
-
 
 SAMPLE_FEEDBACK_REPORT = {
     "evaluation_source": "test_eval",
@@ -109,44 +105,52 @@ class TestDomainMapping(unittest.TestCase):
 
 class TestInterventionMapping(unittest.TestCase):
     def test_source_intake_maps_correctly(self):
-        assert _intervention_to_action_type(
-            InterventionType.SOURCE_INTAKE, UpstreamDomain.ACQUISITION
-        ) == SteeringActionType.ADD_SOURCE_PRIORITY
+        assert (
+            _intervention_to_action_type(InterventionType.SOURCE_INTAKE, UpstreamDomain.ACQUISITION)
+            == SteeringActionType.ADD_SOURCE_PRIORITY
+        )
 
     def test_privacy_domain_overrides_to_rule_update(self):
-        assert _intervention_to_action_type(
-            InterventionType.NORMALIZATION_UPDATE, UpstreamDomain.PRIVACY
-        ) == SteeringActionType.UPDATE_PRIVACY_RULE
+        assert (
+            _intervention_to_action_type(InterventionType.NORMALIZATION_UPDATE, UpstreamDomain.PRIVACY)
+            == SteeringActionType.UPDATE_PRIVACY_RULE
+        )
 
     def test_acquisition_domain_overrides_to_source_priority(self):
-        assert _intervention_to_action_type(
-            InterventionType.RULE_UPDATE, UpstreamDomain.ACQUISITION
-        ) == SteeringActionType.ADD_SOURCE_PRIORITY
+        assert (
+            _intervention_to_action_type(InterventionType.RULE_UPDATE, UpstreamDomain.ACQUISITION)
+            == SteeringActionType.ADD_SOURCE_PRIORITY
+        )
 
     def test_normalization_update_maps_correctly(self):
-        assert _intervention_to_action_type(
-            InterventionType.NORMALIZATION_UPDATE, UpstreamDomain.CURATION
-        ) == SteeringActionType.UPDATE_NORMALIZATION_RULE
+        assert (
+            _intervention_to_action_type(InterventionType.NORMALIZATION_UPDATE, UpstreamDomain.CURATION)
+            == SteeringActionType.UPDATE_NORMALIZATION_RULE
+        )
 
     def test_review_focus_maps_correctly(self):
-        assert _intervention_to_action_type(
-            InterventionType.REVIEW_FOCUS, UpstreamDomain.REVIEW
-        ) == SteeringActionType.UPDATE_REVIEW_FOCUS
+        assert (
+            _intervention_to_action_type(InterventionType.REVIEW_FOCUS, UpstreamDomain.REVIEW)
+            == SteeringActionType.UPDATE_REVIEW_FOCUS
+        )
 
     def test_threshold_adjustment_maps_correctly(self):
-        assert _intervention_to_action_type(
-            InterventionType.THRESHOLD_ADJUSTMENT, UpstreamDomain.CURATION
-        ) == SteeringActionType.ADJUST_THRESHOLD
+        assert (
+            _intervention_to_action_type(InterventionType.THRESHOLD_ADJUSTMENT, UpstreamDomain.CURATION)
+            == SteeringActionType.ADJUST_THRESHOLD
+        )
 
     def test_dataset_filter_maps_correctly(self):
-        assert _intervention_to_action_type(
-            InterventionType.DATASET_FILTER, UpstreamDomain.CURATION
-        ) == SteeringActionType.UPDATE_DATASET_FILTER
+        assert (
+            _intervention_to_action_type(InterventionType.DATASET_FILTER, UpstreamDomain.CURATION)
+            == SteeringActionType.UPDATE_DATASET_FILTER
+        )
 
     def test_validation_gate_update_maps_correctly(self):
-        assert _intervention_to_action_type(
-            InterventionType.VALIDATION_GATE_UPDATE, UpstreamDomain.CURATION
-        ) == SteeringActionType.UPDATE_VALIDATION_GATE
+        assert (
+            _intervention_to_action_type(InterventionType.VALIDATION_GATE_UPDATE, UpstreamDomain.CURATION)
+            == SteeringActionType.UPDATE_VALIDATION_GATE
+        )
 
 
 class TestActionGeneration(unittest.TestCase):
@@ -267,11 +271,7 @@ class TestSteeringIntegration(unittest.TestCase):
         second = self.steering.process_report(self.report)
         assert second.total_actions_generated == 0
         assert len(self.steering.get_all_actions()) == action_count
-        skipped = [
-            entry
-            for entry in self.steering._audit_trail
-            if entry.get("event") == "action_skipped_idempotent"
-        ]
+        skipped = [entry for entry in self.steering._audit_trail if entry.get("event") == "action_skipped_idempotent"]
         assert len(skipped) >= first.total_actions_generated
 
     def test_process_report_has_correct_source_id(self):

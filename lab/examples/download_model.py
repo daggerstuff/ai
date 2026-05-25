@@ -4,6 +4,7 @@ This is intentionally tiny and dependency-free; it demonstrates best
 practices for reading an API token from the environment and calling the
 client in a script.
 """
+
 from __future__ import annotations
 
 import argparse

@@ -19,7 +19,7 @@ import os
 import re
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import pandas as pd
@@ -78,7 +78,7 @@ class ConversionResult:
     errors: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
     conversion_time: float = 0.0
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -91,7 +91,7 @@ class ValidationResult:
     records_failed: int
     errors: list[dict[str, Any]] = field(default_factory=list)
     validation_time: float = 0.0
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -106,7 +106,7 @@ class MergeResult:
     errors: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
     merge_time: float = 0.0
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     @property
     def total_records(self) -> int:
@@ -128,7 +128,7 @@ class QualityCheckResult:
     errors: list[dict[str, Any]] = field(default_factory=list)
     quality_score: float = 0.0
     check_time: float = 0.0
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     therapeutic_content_score: float = 0.0
     pii_types: list[str] = field(default_factory=list)
     structure_valid: bool = True
@@ -161,10 +161,8 @@ class PipelineFormatConverter:
         Returns:
             ConversionResult with conversion statistics
         """
-        logger.info(
-            f"Converting dataset {dataset.source_id} to {target_format} format"
-        )
-        start_time = datetime.now(timezone.utc)
+        logger.info(f"Converting dataset {dataset.source_id} to {target_format} format")
+        start_time = datetime.now(UTC)
 
         errors = []
         warnings = []
@@ -179,9 +177,7 @@ class PipelineFormatConverter:
             converted_records = []
             for idx, record in enumerate(raw_data):
                 try:
-                    converted = self._convert_record(
-                        record, integration_plan, dataset, target_format
-                    )
+                    converted = self._convert_record(record, integration_plan, dataset, target_format)
                     if converted:
                         converted_records.append(converted)
                         records_converted += 1
@@ -197,7 +193,7 @@ class PipelineFormatConverter:
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
             self._save_converted_dataset(converted_records, output_path, target_format)
 
-            conversion_time = (datetime.now(timezone.utc) - start_time).total_seconds()
+            conversion_time = (datetime.now(UTC) - start_time).total_seconds()
 
             result = ConversionResult(
                 success=len(errors) == 0,
@@ -211,13 +207,12 @@ class PipelineFormatConverter:
             )
 
             logger.info(
-                f"Conversion complete: {records_converted} converted, "
-                f"{records_failed} failed in {conversion_time:.2f}s"
+                f"Conversion complete: {records_converted} converted, {records_failed} failed in {conversion_time:.2f}s"
             )
             return result
 
         except Exception as e:
-            conversion_time = (datetime.now(timezone.utc) - start_time).total_seconds()
+            conversion_time = (datetime.now(UTC) - start_time).total_seconds()
             errors.append(f"Conversion failed: {e!s}")
             logger.error(f"Dataset conversion failed: {e}", exc_info=True)
 
@@ -232,9 +227,7 @@ class PipelineFormatConverter:
                 timestamp=start_time,
             )
 
-    def _load_dataset(
-        self, file_path: str, dataset_format: str
-    ) -> list[dict[str, Any]]:
+    def _load_dataset(self, file_path: str, dataset_format: str) -> list[dict[str, Any]]:
         """Load dataset from file based on format."""
         if dataset_format == "csv":
             df = pd.read_csv(file_path)
@@ -273,9 +266,7 @@ class PipelineFormatConverter:
             if target_format == "chatml":
                 return self._convert_to_chatml(record, integration_plan, dataset)
             if target_format == "conversation_record":
-                return self._convert_to_conversation_record(
-                    record, integration_plan, dataset
-                )
+                return self._convert_to_conversation_record(record, integration_plan, dataset)
             raise ValueError(f"Unsupported target format: {target_format}")
         except Exception as e:
             logger.warning(f"Record conversion failed: {e}")
@@ -302,7 +293,7 @@ class PipelineFormatConverter:
             "id": record_id,
             "source": dataset.source_id,
             "messages": messages,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
         # Add optional fields if available
@@ -339,15 +330,12 @@ class PipelineFormatConverter:
             "source_type": integration_plan.dataset_format,
             "source_id": dataset.source_id,
             "metadata": {
-                "conversion_timestamp": datetime.now(timezone.utc).isoformat(),
+                "conversion_timestamp": datetime.now(UTC).isoformat(),
                 "integration_plan": integration_plan.source_id,
             },
         }
 
-
-    def _extract_messages(
-        self, record: dict[str, Any], schema_mapping: dict[str, str]
-    ) -> list[dict[str, str]]:
+    def _extract_messages(self, record: dict[str, Any], schema_mapping: dict[str, str]) -> list[dict[str, str]]:
         """Extract messages from record using schema mapping."""
         messages = []
 
@@ -384,7 +372,11 @@ class PipelineFormatConverter:
             for dataset_field, pipeline_field in schema_mapping.items():
                 if "role" in pipeline_field.lower() or "role" in dataset_field.lower():
                     role_field = dataset_field
-                if "content" in pipeline_field.lower() or "text" in dataset_field.lower() or "message" in dataset_field.lower():
+                if (
+                    "content" in pipeline_field.lower()
+                    or "text" in dataset_field.lower()
+                    or "message" in dataset_field.lower()
+                ):
                     content_field = dataset_field
 
             # If not found in mapping, try direct field names
@@ -423,9 +415,7 @@ class PipelineFormatConverter:
 
         return messages
 
-    def _extract_turns(
-        self, record: dict[str, Any], schema_mapping: dict[str, str]
-    ) -> list[dict[str, Any]]:
+    def _extract_turns(self, record: dict[str, Any], schema_mapping: dict[str, str]) -> list[dict[str, Any]]:
         """Extract turns from record using schema mapping."""
         turns = []
 
@@ -445,23 +435,27 @@ class PipelineFormatConverter:
                         speaker_id = turn.get("speaker_id") or turn.get("speaker", "unknown")
                         content = turn.get("content") or turn.get("text", "")
                         if content:
-                            turns.append({
-                                "speaker_id": self._normalize_speaker(speaker_id),
-                                "content": content,
-                                "timestamp": turn.get("timestamp"),
-                                "metadata": turn.get("metadata", {}),
-                            })
+                            turns.append(
+                                {
+                                    "speaker_id": self._normalize_speaker(speaker_id),
+                                    "content": content,
+                                    "timestamp": turn.get("timestamp"),
+                                    "metadata": turn.get("metadata", {}),
+                                }
+                            )
         else:
             # Try to extract from message structure
             messages = self._extract_messages(record, schema_mapping)
             for msg in messages:
                 speaker_id = "therapist" if msg["role"] == "assistant" else "client"
-                turns.append({
-                    "speaker_id": speaker_id,
-                    "content": msg["content"],
-                    "timestamp": None,
-                    "metadata": {},
-                })
+                turns.append(
+                    {
+                        "speaker_id": speaker_id,
+                        "content": msg["content"],
+                        "timestamp": None,
+                        "metadata": {},
+                    }
+                )
 
         return turns
 
@@ -498,9 +492,7 @@ class PipelineFormatConverter:
         namespace = uuid.UUID("6ba7b810-9dad-11d1-80b4-00c04fd430c8")
         return str(uuid.uuid5(namespace, f"{source_id}:{content_hash}"))
 
-    def _save_converted_dataset(
-        self, records: list[dict[str, Any]], output_path: str, target_format: str
-    ) -> None:
+    def _save_converted_dataset(self, records: list[dict[str, Any]], output_path: str, target_format: str) -> None:
         """Save converted dataset to file."""
         if target_format == "chatml":
             # Save as JSONL for ChatML format
@@ -543,7 +535,7 @@ class PipelineSchemaValidator:
             target_format = format
 
         logger.info(f"Validating dataset {dataset_path} against {target_format} schema")
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
 
         errors = []
         records_validated = 0
@@ -569,22 +561,24 @@ class PipelineSchemaValidator:
                         records_passed += 1
                     else:
                         records_failed += 1
-                        errors.append({
-                            "record_index": idx,
-                            "record_id": record.get("id", "unknown"),
-                            "error": "Record failed validation",
-                        })
+                        errors.append(
+                            {
+                                "record_index": idx,
+                                "record_id": record.get("id", "unknown"),
+                                "error": "Record failed validation",
+                            }
+                        )
                 except Exception as e:
                     records_failed += 1
-                    errors.append({
-                        "record_index": idx,
-                        "record_id": record.get("id", "unknown"),
-                        "error": str(e),
-                    })
+                    errors.append(
+                        {
+                            "record_index": idx,
+                            "record_id": record.get("id", "unknown"),
+                            "error": str(e),
+                        }
+                    )
 
-            validation_time = (
-                datetime.now(timezone.utc) - start_time
-            ).total_seconds()
+            validation_time = (datetime.now(UTC) - start_time).total_seconds()
 
             result = ValidationResult(
                 valid=records_failed == 0,
@@ -597,18 +591,17 @@ class PipelineSchemaValidator:
             )
 
             logger.info(
-                f"Validation complete: {records_passed} passed, "
-                f"{records_failed} failed in {validation_time:.2f}s"
+                f"Validation complete: {records_passed} passed, {records_failed} failed in {validation_time:.2f}s"
             )
             return result
 
         except Exception as e:
-            validation_time = (
-                datetime.now(timezone.utc) - start_time
-            ).total_seconds()
-            errors.append({
-                "error": f"Validation failed: {e!s}",
-            })
+            validation_time = (datetime.now(UTC) - start_time).total_seconds()
+            errors.append(
+                {
+                    "error": f"Validation failed: {e!s}",
+                }
+            )
             logger.error(f"Dataset validation failed: {e}", exc_info=True)
 
             return ValidationResult(
@@ -743,12 +736,12 @@ class DatasetMerger:
             existing_dataset_path = dataset2_path
 
         if not new_dataset_path or not existing_dataset_path:
-            raise ValueError("Both new_dataset_path and existing_dataset_path (or dataset1_path and dataset2_path) must be provided")
+            raise ValueError(
+                "Both new_dataset_path and existing_dataset_path (or dataset1_path and dataset2_path) must be provided"
+            )
 
-        logger.info(
-            f"Merging datasets: {new_dataset_path} + {existing_dataset_path} -> {output_path}"
-        )
-        start_time = datetime.now(timezone.utc)
+        logger.info(f"Merging datasets: {new_dataset_path} + {existing_dataset_path} -> {output_path}")
+        start_time = datetime.now(UTC)
 
         errors = []
         warnings = []
@@ -760,9 +753,7 @@ class DatasetMerger:
             new_records = self._load_dataset(new_dataset_path)
             existing_records = self._load_dataset(existing_dataset_path)
 
-            logger.info(
-                f"Loaded {len(new_records)} new records and {len(existing_records)} existing records"
-            )
+            logger.info(f"Loaded {len(new_records)} new records and {len(existing_records)} existing records")
 
             # Create content hashes for deduplication
             existing_hashes = self._create_content_hashes(existing_records, target_format)
@@ -777,34 +768,20 @@ class DatasetMerger:
                     duplicates_removed += 1
 
             # Remove duplicates from new records
-            unique_new_records = [
-                record
-                for idx, record in enumerate(new_records)
-                if idx not in duplicate_indices
-            ]
+            unique_new_records = [record for idx, record in enumerate(new_records) if idx not in duplicate_indices]
 
-            logger.info(
-                f"Removed {duplicates_removed} duplicates, {len(unique_new_records)} unique new records"
-            )
+            logger.info(f"Removed {duplicates_removed} duplicates, {len(unique_new_records)} unique new records")
 
             # Find similar records (fuzzy deduplication)
-            similar_records = self._find_similar_records(
-                unique_new_records, existing_records, target_format
-            )
+            similar_records = self._find_similar_records(unique_new_records, existing_records, target_format)
 
             # Remove similar records
-            final_new_records = [
-                record
-                for idx, record in enumerate(unique_new_records)
-                if idx not in similar_records
-            ]
+            final_new_records = [record for idx, record in enumerate(unique_new_records) if idx not in similar_records]
 
             similar_removed = len(unique_new_records) - len(final_new_records)
             duplicates_removed += similar_removed
 
-            logger.info(
-                f"Removed {similar_removed} similar records, {len(final_new_records)} final new records"
-            )
+            logger.info(f"Removed {similar_removed} similar records, {len(final_new_records)} final new records")
 
             # Merge datasets (existing first, then new)
             merged_records = existing_records + final_new_records
@@ -816,7 +793,7 @@ class DatasetMerger:
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
             self._save_merged_dataset(merged_records, output_path, target_format)
 
-            merge_time = (datetime.now(timezone.utc) - start_time).total_seconds()
+            merge_time = (datetime.now(UTC) - start_time).total_seconds()
 
             result = MergeResult(
                 success=len(errors) == 0,
@@ -837,7 +814,7 @@ class DatasetMerger:
             return result
 
         except Exception as e:
-            merge_time = (datetime.now(timezone.utc) - start_time).total_seconds()
+            merge_time = (datetime.now(UTC) - start_time).total_seconds()
             errors.append(f"Merge failed: {e!s}")
             logger.error(f"Dataset merge failed: {e}", exc_info=True)
 
@@ -863,9 +840,7 @@ class DatasetMerger:
                     records.append(json.loads(line))
         return records
 
-    def _create_content_hashes(
-        self, records: list[dict[str, Any]], target_format: str
-    ) -> dict[str, int]:
+    def _create_content_hashes(self, records: list[dict[str, Any]], target_format: str) -> dict[str, int]:
         """Create content hashes for deduplication."""
         hashes = {}
         for idx, record in enumerate(records):
@@ -875,9 +850,7 @@ class DatasetMerger:
             hashes[content_hash] = idx
         return hashes
 
-    def _extract_content_for_hashing(
-        self, record: dict[str, Any], target_format: str
-    ) -> str:
+    def _extract_content_for_hashing(self, record: dict[str, Any], target_format: str) -> str:
         """Extract content from record for hashing."""
         if target_format == "chatml":
             messages = record.get("messages", [])
@@ -912,9 +885,7 @@ class DatasetMerger:
             new_words = set(new_content.lower().split())
 
             for existing_record in existing_records:
-                existing_content = self._extract_content_for_hashing(
-                    existing_record, target_format
-                )
+                existing_content = self._extract_content_for_hashing(existing_record, target_format)
                 existing_words = set(existing_content.lower().split())
 
                 # Calculate Jaccard similarity
@@ -931,9 +902,7 @@ class DatasetMerger:
 
         return similar_indices
 
-    def _resolve_conflicts(
-        self, records: list[dict[str, Any]], _target_format: str
-    ) -> int:
+    def _resolve_conflicts(self, records: list[dict[str, Any]], _target_format: str) -> int:
         """Resolve conflicts in merged dataset (e.g., duplicate IDs)."""
         conflicts_resolved = 0
         seen_ids = set()
@@ -949,17 +918,13 @@ class DatasetMerger:
 
         return conflicts_resolved
 
-    def _save_merged_dataset(
-        self, records: list[dict[str, Any]], output_path: str, _target_format: str
-    ) -> None:
+    def _save_merged_dataset(self, records: list[dict[str, Any]], output_path: str, _target_format: str) -> None:
         """Save merged dataset to file."""
         with open(output_path, "w", encoding="utf-8") as f:
             for record in records:
                 f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
-    def deduplicate_dataset(
-        self, dataset_path: str, output_path: str, target_format: str = "chatml"
-    ) -> MergeResult:
+    def deduplicate_dataset(self, dataset_path: str, output_path: str, target_format: str = "chatml") -> MergeResult:
         """
         Deduplicate records within a single dataset.
 
@@ -972,7 +937,7 @@ class DatasetMerger:
             MergeResult with deduplication statistics
         """
         logger.info(f"Deduplicating dataset: {dataset_path} -> {output_path}")
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
 
         errors = []
         warnings = []
@@ -1002,7 +967,7 @@ class DatasetMerger:
             # Save deduplicated dataset
             self._save_merged_dataset(unique_records, output_path, target_format)
 
-            merge_time = (datetime.now(timezone.utc) - start_time).total_seconds()
+            merge_time = (datetime.now(UTC) - start_time).total_seconds()
 
             return MergeResult(
                 success=True,
@@ -1017,7 +982,7 @@ class DatasetMerger:
             )
 
         except Exception as e:
-            merge_time = (datetime.now(timezone.utc) - start_time).total_seconds()
+            merge_time = (datetime.now(UTC) - start_time).total_seconds()
             errors.append(f"Deduplication failed: {e!s}")
             logger.error(f"Dataset deduplication failed: {e}", exc_info=True)
 
@@ -1041,9 +1006,7 @@ class QualityChecker:
         """Initialize the quality checker."""
         logger.info("Initialized Quality Checker")
 
-    def check_quality(
-        self, dataset_path: str, target_format: str = "chatml"
-    ) -> QualityCheckResult:
+    def check_quality(self, dataset_path: str, target_format: str = "chatml") -> QualityCheckResult:
         """
         Perform quality checks on integrated dataset.
 
@@ -1055,7 +1018,7 @@ class QualityChecker:
             QualityCheckResult with quality statistics
         """
         logger.info(f"Checking quality of dataset {dataset_path}")
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
 
         errors = []
         records_checked = 0
@@ -1091,20 +1054,20 @@ class QualityChecker:
 
                 if record_errors:
                     records_failed += 1
-                    errors.append({
-                        "record_index": idx,
-                        "record_id": record.get("id", "unknown"),
-                        "errors": record_errors,
-                    })
+                    errors.append(
+                        {
+                            "record_index": idx,
+                            "record_id": record.get("id", "unknown"),
+                            "errors": record_errors,
+                        }
+                    )
                 else:
                     records_passed += 1
 
             # Calculate quality score
-            quality_score = (
-                records_passed / records_checked if records_checked > 0 else 0.0
-            )
+            quality_score = records_passed / records_checked if records_checked > 0 else 0.0
 
-            check_time = (datetime.now(timezone.utc) - start_time).total_seconds()
+            check_time = (datetime.now(UTC) - start_time).total_seconds()
 
             result = QualityCheckResult(
                 passed=records_failed == 0,
@@ -1127,10 +1090,12 @@ class QualityChecker:
             return result
 
         except Exception as e:
-            check_time = (datetime.now(timezone.utc) - start_time).total_seconds()
-            errors.append({
-                "error": f"Quality check failed: {e!s}",
-            })
+            check_time = (datetime.now(UTC) - start_time).total_seconds()
+            errors.append(
+                {
+                    "error": f"Quality check failed: {e!s}",
+                }
+            )
             logger.error(f"Quality check failed: {e}", exc_info=True)
 
             return QualityCheckResult(
@@ -1307,4 +1272,3 @@ class QualityChecker:
 
         except Exception:
             return False
-

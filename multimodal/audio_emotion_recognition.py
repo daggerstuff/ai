@@ -29,6 +29,7 @@ from pathlib import Path
 import librosa
 import numpy as np
 from transformers import AutoFeatureExtractor, AutoModelForSequenceClassification
+
 from ai.utils.torch_proxy import torch
 
 logger = logging.getLogger(__name__)
@@ -116,9 +117,7 @@ class AudioEmotionRecognizer:
         warnings.simplefilter("default")
 
         # Load feature extractor
-        self.feature_extractor = AutoFeatureExtractor.from_pretrained(
-            f"facebook/{self.model_type}-base"
-        )
+        self.feature_extractor = AutoFeatureExtractor.from_pretrained(f"facebook/{self.model_type}-base")
 
         # Load emotion classification model
         model_id = "techiepedia/wav2vec2-emotion-recognition"
@@ -252,8 +251,7 @@ class AudioEmotionRecognizer:
             ]
 
             emotion_probs = {
-                label: float(prob)
-                for label, prob in zip(emotion_labels, probs.cpu().numpy(), strict=False)
+                label: float(prob) for label, prob in zip(emotion_labels, probs.cpu().numpy(), strict=False)
             }
 
             # Get primary emotion
@@ -287,9 +285,9 @@ class AudioEmotionRecognizer:
         # ⚡ Bolt: Consolidated four separate list comprehensions into a single
         # comprehension using zip to reduce iterations from O(4N) to O(N),
         # avoiding Python for-loop and append overhead.
-        valences, arousals, dominances, confidences = zip(*[
-            (e.valence, e.arousal, e.dominance, e.confidence) for e in emotions
-        ], strict=False)
+        valences, arousals, dominances, confidences = zip(
+            *[(e.valence, e.arousal, e.dominance, e.confidence) for e in emotions], strict=False
+        )
 
         avg_valence = np.mean(valences)
         avg_arousal = np.mean(arousals)

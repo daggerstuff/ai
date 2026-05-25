@@ -9,7 +9,7 @@ import asyncio
 import logging
 import os
 from collections.abc import AsyncGenerator
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
@@ -50,7 +50,7 @@ def create_graphiti_server() -> FastAPI:
                 while True:
                     # Send heartbeat event to keep connection alive
                     event_data = {
-                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                        "timestamp": datetime.now(UTC).isoformat(),
                         "status": "connected",
                     }
                     yield f"data: {event_data}\n\n"
@@ -80,7 +80,7 @@ def create_graphiti_server() -> FastAPI:
         """Health check endpoint."""
         return {
             "status": "healthy",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "service": "graphiti-context",
         }
 

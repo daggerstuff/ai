@@ -25,8 +25,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
 
         # Log request
         logger.info(
-            f"Request: {request.method} {request.url.path} "
-            f"from {request.client.host if request.client else 'unknown'}"
+            f"Request: {request.method} {request.url.path} from {request.client.host if request.client else 'unknown'}"
         )
 
         # Process request
@@ -41,10 +40,6 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         duration = time.time() - start_time
 
         # Log response
-        logger.info(
-            f"Response: {response.status_code} "
-            f"in {duration:.3f}s for {request.method} {request.url.path}"
-        )
+        logger.info(f"Response: {response.status_code} in {duration:.3f}s for {request.method} {request.url.path}")
 
         return response
-

@@ -7,7 +7,7 @@ therapeutic datasets from PubMed Central.
 
 import logging
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from xml.etree import ElementTree as ET
 
 import requests
@@ -140,9 +140,7 @@ class PubMedClient:
 
         try:
             # Step 1: ESearch - Get article IDs
-            search_query = self._build_search_query(
-                keywords, mesh_terms, open_access_only, has_data
-            )
+            search_query = self._build_search_query(keywords, mesh_terms, open_access_only, has_data)
             article_ids = self._esearch(search_query, max_results)
 
             if not article_ids:
@@ -315,7 +313,7 @@ class PubMedClient:
                 keywords=keywords,
                 open_access=True,  # PMC is open access
                 data_availability=data_availability,
-                discovery_date=datetime.now(timezone.utc),
+                discovery_date=datetime.now(UTC),
                 discovery_method="pubmed_search",
             )
 
@@ -326,7 +324,7 @@ class PubMedClient:
     def _parse_date(self, date_elem: ET.Element | None) -> datetime:
         """Parse publication date from XML element."""
         if date_elem is None:
-            return datetime.now(timezone.utc)
+            return datetime.now(UTC)
 
         try:
             year = date_elem.findtext("Year", "")
@@ -341,7 +339,7 @@ class PubMedClient:
         except (ValueError, AttributeError):
             pass
 
-        return datetime.now(timezone.utc)
+        return datetime.now(UTC)
 
     def _detect_data_availability(self, abstract: str, title: str) -> str:
         """Detect data availability from abstract and title."""
@@ -384,4 +382,3 @@ class PubMedClient:
             return "restricted"
 
         return "unknown"
-

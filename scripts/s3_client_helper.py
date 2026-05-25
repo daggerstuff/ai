@@ -36,9 +36,7 @@ def get_s3_client() -> boto3.client:
 
     region = os.environ.get("AWS_REGION", "sfo3")
 
-    config = Config(
-        signature_version="s3v4", retries={"max_attempts": 3, "mode": "standard"}
-    )
+    config = Config(signature_version="s3v4", retries={"max_attempts": 3, "mode": "standard"})
 
     client_kwargs = {
         "region_name": region,
@@ -63,8 +61,4 @@ def get_s3_bucket_name() -> str:
     Returns:
         Bucket name
     """
-    return (
-        os.environ.get("HETZNER_S3_BUCKET")
-        or os.environ.get("AWS_S3_BUCKET")
-        or "pixel-data"
-    )
+    return os.environ.get("HETZNER_S3_BUCKET") or os.environ.get("AWS_S3_BUCKET") or "pixel-data"

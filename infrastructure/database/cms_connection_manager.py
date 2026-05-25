@@ -13,7 +13,7 @@ Reuses patterns from:
 import logging
 import os
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import redis
@@ -108,13 +108,13 @@ class CMSMongoConnection:
             return {
                 "status": "healthy",
                 "database": self._db_name,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
         except Exception as e:
             return {
                 "status": "unhealthy",
                 "error": str(e),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
     async def close(self) -> None:
@@ -170,9 +170,9 @@ class CMSRedisConnection:
             return {"status": "disconnected", "error": "Not initialized"}
 
         try:
-            start = datetime.now(timezone.utc)
+            start = datetime.now(UTC)
             self._client.ping()
-            latency_ms = (datetime.now(timezone.utc) - start).total_seconds() * 1000
+            latency_ms = (datetime.now(UTC) - start).total_seconds() * 1000
 
             raw_info = self._client.info()
             # redis-py's sync info() returns dict[str, Any] but stubs use
@@ -185,13 +185,13 @@ class CMSRedisConnection:
                 "latency_ms": round(latency_ms, 2),
                 "connected_clients": connected_clients,
                 "used_memory_human": used_memory,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
         except Exception as e:
             return {
                 "status": "unhealthy",
                 "error": str(e),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
     def close(self) -> None:
@@ -234,8 +234,7 @@ class CMSPostgresConnection:
             logger.info(f"PostgreSQL pool initialized (size {self._pool_size})")
         except ImportError:
             logger.warning(
-                "psycopg2 not installed — PostgreSQL operations unavailable. "
-                "Install with: pip install psycopg2-binary"
+                "psycopg2 not installed — PostgreSQL operations unavailable. Install with: pip install psycopg2-binary"
             )
             raise
 
@@ -267,7 +266,7 @@ class CMSPostgresConnection:
                     cur.fetchone()
                 return {
                     "status": "healthy",
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 }
             finally:
                 self.pool.putconn(conn)
@@ -275,7 +274,7 @@ class CMSPostgresConnection:
             return {
                 "status": "unhealthy",
                 "error": str(e),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
     def close(self) -> None:
@@ -356,7 +355,7 @@ class CMSConnectionManager:
     async def health_check(self) -> dict[str, Any]:
         """Aggregate health status from all connected databases."""
         results: dict[str, Any] = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
         if self._mongo is not None:

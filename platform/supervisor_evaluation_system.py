@@ -9,12 +9,10 @@ performance and provide structured feedback during AI client role-play sessions.
 
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -180,20 +178,16 @@ class SupervisorEvaluationEngine:
             "trainee_id": trainee_id,
             "supervisor_id": supervisor_id,
             "trainee_level": trainee_level,
-            "start_time": datetime.now(timezone.utc),
+            "start_time": datetime.now(UTC),
             "observations": [],
             "skill_ratings": {},
             "intervention_notes": [],
             "overall_assessment": None,
-            "thresholds": self.competency_thresholds.get(
-                trainee_level, self.competency_thresholds["student"]
-            ),
+            "thresholds": self.competency_thresholds.get(trainee_level, self.competency_thresholds["student"]),
         }
 
         self.active_evaluations[session_id] = evaluation_session
-        logger.info(
-            f"Started evaluation session {session_id} for {trainee_level} trainee"
-        )
+        logger.info(f"Started evaluation session {session_id} for {trainee_level} trainee")
 
         return evaluation_session
 
@@ -217,14 +211,11 @@ class SupervisorEvaluationEngine:
         intervention_timing = InterventionTiming.POST_SESSION
         if competency_level == CompetencyLevel.UNSATISFACTORY:
             intervention_timing = InterventionTiming.IMMEDIATE
-        elif (
-            observation_type == "mistake"
-            and competency_level <= CompetencyLevel.DEVELOPING
-        ):
+        elif observation_type == "mistake" and competency_level <= CompetencyLevel.DEVELOPING:
             intervention_timing = InterventionTiming.SESSION_BREAK
 
         observation = RealTimeObservation(
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             observation_type=observation_type,
             description=description,
             skill_area=skill_area,
@@ -240,8 +231,6 @@ class SupervisorEvaluationEngine:
             evaluation_session["skill_ratings"][skill_area] = []
         evaluation_session["skill_ratings"][skill_area].append(competency_level.value)
 
-        logger.info(
-            f"Recorded {observation_type} in {skill_area}: {competency_level.name}"
-        )
+        logger.info(f"Recorded {observation_type} in {skill_area}: {competency_level.name}")
 
         return observation

@@ -8,7 +8,7 @@ import os
 import time
 import urllib.error
 import urllib.request
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -45,16 +45,14 @@ class LinearBacklogDispatcher:
         self.request_timeout = request_timeout
         self.max_retries = max(1, max_retries)
         self.state_path = (
-            Path(issue_state_path)
-            if issue_state_path
-            else self.queue_path.parent / "linear_backlog_issue_state.json"
+            Path(issue_state_path) if issue_state_path else self.queue_path.parent / "linear_backlog_issue_state.json"
         )
         self._cached_team_id = None
         # Circuit breaker settings
         self.failure_threshold = 5
         self.recovery_timeout = 30  # seconds
         self.failure_count = 0
-        self.state = 'closed'  # closed, open, half-open
+        self.state = "closed"  # closed, open, half-open
         self.last_failure_time = None
 
     def _load_issue_state(self) -> dict[str, str]:
@@ -156,9 +154,7 @@ class LinearBacklogDispatcher:
 
         return issue_input
 
-    def _build_linear_issue_update_input(
-        self, action: dict[str, Any], issue_id: str
-    ) -> dict[str, Any]:
+    def _build_linear_issue_update_input(self, action: dict[str, Any], issue_id: str) -> dict[str, Any]:
         update_input: dict[str, Any] = {
             "id": issue_id,
             "title": action.get("title", "Untitled backlog action"),
@@ -217,15 +213,9 @@ class LinearBacklogDispatcher:
         if not error:
             return False
         normalized = error.lower()
-        return (
-            "not found" in normalized
-            or "does not exist" in normalized
-            or "cannot find" in normalized
-        )
+        return "not found" in normalized or "does not exist" in normalized or "cannot find" in normalized
 
-    def _dispatch_update(
-        self, action: dict[str, Any], issue_id: str
-    ) -> tuple[str, dict[str, Any] | None, str | None]:
+    def _dispatch_update(self, action: dict[str, Any], issue_id: str) -> tuple[str, dict[str, Any] | None, str | None]:
         mutation, variables = self._mutation_update(action, issue_id)
         mutation_payload = {
             "query": mutation,
@@ -276,7 +266,7 @@ class LinearBacklogDispatcher:
             actions = []
 
         result = {
-            "dispatched_at": datetime.now(timezone.utc).isoformat(),
+            "dispatched_at": datetime.now(UTC).isoformat(),
             "attempted": len(actions),
             "created": 0,
             "queued": 0,
@@ -292,10 +282,13 @@ class LinearBacklogDispatcher:
 
         for index, action in enumerate(actions):
             # Check circuit breaker state
-            if self.state == 'open':
+            if self.state == "open":
                 # Check if recovery timeout has passed
-                if self.last_failure_time and (datetime.now(timezone.utc) - self.last_failure_time).total_seconds() > self.recovery_timeout:
-                    self.state = 'half-open'
+                if (
+                    self.last_failure_time
+                    and (datetime.now(UTC) - self.last_failure_time).total_seconds() > self.recovery_timeout
+                ):
+                    self.state = "half-open"
                 else:
                     # Circuit is open, fail fast
                     record = {
@@ -303,7 +296,7 @@ class LinearBacklogDispatcher:
                         "change_id": action.get("change_id"),
                         "title": action.get("title"),
                         "status": "failed",
-                        "queued_at": datetime.now(timezone.utc).isoformat(),
+                        "queued_at": datetime.now(UTC).isoformat(),
                         "error": "Circuit breaker is open",
                     }
                     self._append_queue_record({**record, "payload": action})
@@ -316,7 +309,7 @@ class LinearBacklogDispatcher:
                 "change_id": action.get("change_id"),
                 "title": action.get("title"),
                 "status": "queued",
-                "queued_at": datetime.now(timezone.utc).isoformat(),
+                "queued_at": datetime.now(UTC).isoformat(),
                 "error": None,
             }
 
@@ -328,9 +321,7 @@ class LinearBacklogDispatcher:
                 continue
 
             try:
-                status, issue, error = self._resolve_dispatch_status(
-                    action, issue_state
-                )
+                status, issue, error = self._resolve_dispatch_status(action, issue_state)
 
                 if status == "updated":
                     record["status"] = "updated"
@@ -347,9 +338,7 @@ class LinearBacklogDispatcher:
                         continue
                     if action.get("change_id"):
                         existing_issue_id = issue_state.get(action["change_id"])
-                        issue_state[action["change_id"]] = issue.get(
-                            "id", existing_issue_id
-                        )
+                        issue_state[action["change_id"]] = issue.get("id", existing_issue_id)
                     self.failure_count = 0
                     self.state = "closed"
                 elif status == "created":
@@ -383,7 +372,7 @@ class LinearBacklogDispatcher:
                 result["failed"] += 1
 
                 self.failure_count += 1
-                self.last_failure_time = datetime.now(timezone.utc)
+                self.last_failure_time = datetime.now(UTC)
                 if self.failure_count >= self.failure_threshold:
                     self.state = "open"
 

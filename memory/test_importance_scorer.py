@@ -6,8 +6,8 @@ import math
 import time
 
 from ai.memory.importance_scorer import (
-    ImportanceScorer,
     EmotionalWeights,
+    ImportanceScorer,
     cosine_similarity,
     exponential_decay,
 )
@@ -20,7 +20,6 @@ from ai.memory.schema import (
     MemoryImportance,
     ScoringWeights,
 )
-
 
 # ─── Cosine similarity ────────────────────────────────────────────────────────
 
@@ -64,16 +63,12 @@ class TestExponentialDecay:
     def test_seven_day_old_memory(self) -> None:
         now = int(time.time() * 1000)
         seven_days_ms = 7 * 86_400 * 1000
-        assert math.isclose(
-            exponential_decay(now - seven_days_ms, now, 7.0), 0.3679, abs_tol=0.01
-        )
+        assert math.isclose(exponential_decay(now - seven_days_ms, now, 7.0), 0.3679, abs_tol=0.01)
 
     def test_fourteen_day_old_memory(self) -> None:
         now = int(time.time() * 1000)
         fourteen_days_ms = 14 * 86_400 * 1000
-        assert math.isclose(
-            exponential_decay(now - fourteen_days_ms, now, 7.0), 0.1353, abs_tol=0.01
-        )
+        assert math.isclose(exponential_decay(now - fourteen_days_ms, now, 7.0), 0.1353, abs_tol=0.01)
 
     def test_future_timestamp_clamps_to_one(self) -> None:
         now = int(time.time() * 1000)
@@ -84,9 +79,7 @@ class TestExponentialDecay:
         now = int(time.time() * 1000)
         one_day_ms = 86_400 * 1000
         # With τ=1 day, 1-day-old memory should have decay ≈ e^-1 ≈ 0.3679
-        assert math.isclose(
-            exponential_decay(now - one_day_ms, now, tau_days=1.0), 0.3679, abs_tol=0.01
-        )
+        assert math.isclose(exponential_decay(now - one_day_ms, now, tau_days=1.0), 0.3679, abs_tol=0.01)
 
     def test_zero_age(self) -> None:
         now = int(time.time() * 1000)

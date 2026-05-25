@@ -7,7 +7,7 @@ configuration management, execution control, progress tracking, and monitoring.
 
 import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -25,6 +25,7 @@ from ai.api.techdeck_integration.websocket.progress_tracker import ProgressTrack
 
 class PipelineStatus(Enum):
     """Pipeline execution status enumeration."""
+
     PENDING = "pending"
     CONFIGURING = "configuring"
     VALIDATING = "validating"
@@ -36,6 +37,7 @@ class PipelineStatus(Enum):
 
 class PipelineStage(Enum):
     """Six-stage pipeline stages."""
+
     DATA_INGESTION = "data_ingestion"
     PREPROCESSING = "preprocessing"
     BIAS_DETECTION = "bias_detection"
@@ -52,8 +54,9 @@ class PipelineService:
         self.progress_tracker = progress_tracker
         self.logger = logging.getLogger(__name__)
 
-    def create_pipeline_config(self, user_id: str, name: str, description: str,
-                             config_data: dict[str, Any]) -> dict[str, Any]:
+    def create_pipeline_config(
+        self, user_id: str, name: str, description: str, config_data: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Create a new pipeline configuration.
 
@@ -97,8 +100,8 @@ class PipelineService:
                 "config": config_data,
                 "version": 1,
                 "is_active": True,
-                "created_at": datetime.now(timezone.utc).isoformat(),
-                "updated_at": datetime.now(timezone.utc).isoformat(),
+                "created_at": datetime.now(UTC).isoformat(),
+                "updated_at": datetime.now(UTC).isoformat(),
                 "last_used": None,
                 "usage_count": 0,
                 "tags": config_data.get("tags", []),
@@ -106,8 +109,8 @@ class PipelineService:
                     "source_format": config_data.get("source_format", "unknown"),
                     "target_format": config_data.get("target_format", "unknown"),
                     "estimated_processing_time": self._estimate_processing_time(config_data),
-                    "complexity_level": self._determine_complexity_level(config_data)
-                }
+                    "complexity_level": self._determine_complexity_level(config_data),
+                },
             }
 
             # Store in Redis
@@ -216,17 +219,19 @@ class PipelineService:
 
             # Apply updates
             config_record.update(sanitized_updates)
-            config_record["updated_at"] = datetime.now(timezone.utc).isoformat()
+            config_record["updated_at"] = datetime.now(UTC).isoformat()
             config_record["version"] += 1
 
             # Update metadata if config changed
             if "config" in sanitized_updates:
-                config_record["metadata"].update({
-                    "source_format": sanitized_updates["config"].get("source_format", "unknown"),
-                    "target_format": sanitized_updates["config"].get("target_format", "unknown"),
-                    "estimated_processing_time": self._estimate_processing_time(sanitized_updates["config"]),
-                    "complexity_level": self._determine_complexity_level(sanitized_updates["config"])
-                })
+                config_record["metadata"].update(
+                    {
+                        "source_format": sanitized_updates["config"].get("source_format", "unknown"),
+                        "target_format": sanitized_updates["config"].get("target_format", "unknown"),
+                        "estimated_processing_time": self._estimate_processing_time(sanitized_updates["config"]),
+                        "complexity_level": self._determine_complexity_level(sanitized_updates["config"]),
+                    }
+                )
 
             # Store updated record
             config_key = f"pipeline_config:{config_id}"
@@ -282,8 +287,9 @@ class PipelineService:
             request_logger.error(f"Error deleting pipeline configuration: {e}")
             raise ConfigurationError(f"Failed to delete pipeline configuration: {e!s}") from e
 
-    def list_user_configs(self, user_id: str, limit: int = 50, offset: int = 0,
-                         is_active: bool | None = None) -> dict[str, Any]:
+    def list_user_configs(
+        self, user_id: str, limit: int = 50, offset: int = 0, is_active: bool | None = None
+    ) -> dict[str, Any]:
         """
         List pipeline configurations for a user.
 
@@ -325,7 +331,7 @@ class PipelineService:
 
             # Apply pagination
             total_count = len(configs)
-            paginated_configs = configs[offset:offset + limit]
+            paginated_configs = configs[offset : offset + limit]
 
             # Calculate pagination metadata
             total_pages = (total_count + limit - 1) // limit
@@ -342,8 +348,8 @@ class PipelineService:
                     "total_pages": total_pages,
                     "current_page": current_page,
                     "has_next": offset + limit < total_count,
-                    "has_previous": offset > 0
-                }
+                    "has_previous": offset > 0,
+                },
             }
 
         except ValidationError:
@@ -352,8 +358,9 @@ class PipelineService:
             request_logger.error(f"Error listing pipeline configurations: {e}")
             raise ConfigurationError(f"Failed to list pipeline configurations: {e!s}") from e
 
-    def execute_pipeline(self, config_id: str, user_id: str, dataset_id: str,
-                        execution_options: dict[str, Any] | None = None) -> dict[str, Any]:
+    def execute_pipeline(
+        self, config_id: str, user_id: str, dataset_id: str, execution_options: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """
         Execute a pipeline with the given configuration and dataset.
 
@@ -394,13 +401,13 @@ class PipelineService:
                 "status": PipelineStatus.PENDING.value,
                 "current_stage": None,
                 "progress_percent": 0.0,
-                "started_at": datetime.now(timezone.utc).isoformat(),
+                "started_at": datetime.now(UTC).isoformat(),
                 "completed_at": None,
                 "error_message": None,
                 "execution_options": execution_options or {},
                 "results": {},
                 "logs": [],
-                "metrics": {}
+                "metrics": {},
             }
 
             # Store execution record
@@ -486,12 +493,16 @@ class PipelineService:
             execution_record = self.get_execution_status(execution_id, user_id)
 
             # Check if execution can be cancelled
-            if execution_record["status"] in [PipelineStatus.COMPLETED.value, PipelineStatus.FAILED.value, PipelineStatus.CANCELLED.value]:
+            if execution_record["status"] in [
+                PipelineStatus.COMPLETED.value,
+                PipelineStatus.FAILED.value,
+                PipelineStatus.CANCELLED.value,
+            ]:
                 raise ValidationError("Execution cannot be cancelled in current status")
 
             # Update execution status
             execution_record["status"] = PipelineStatus.CANCELLED.value
-            execution_record["completed_at"] = datetime.now(timezone.utc).isoformat()
+            execution_record["completed_at"] = datetime.now(UTC).isoformat()
             execution_record["error_message"] = "Execution cancelled by user"
 
             # Store updated record
@@ -511,8 +522,9 @@ class PipelineService:
             request_logger.error(f"Error cancelling execution: {e}")
             raise PipelineExecutionError(f"Failed to cancel execution: {e!s}") from e
 
-    def list_user_executions(self, user_id: str, limit: int = 50, offset: int = 0,
-                           status: str | None = None) -> dict[str, Any]:
+    def list_user_executions(
+        self, user_id: str, limit: int = 50, offset: int = 0, status: str | None = None
+    ) -> dict[str, Any]:
         """
         List pipeline executions for a user.
 
@@ -549,24 +561,26 @@ class PipelineService:
                 if execution_record and execution_record["user_id"] == user_id:
                     # Apply status filter if provided
                     if status is None or execution_record.get("status") == status:
-                        user_executions.append({
-                            "id": execution_record["id"],
-                            "config_id": execution_record["config_id"],
-                            "dataset_id": execution_record["dataset_id"],
-                            "status": execution_record["status"],
-                            "progress_percent": execution_record["progress_percent"],
-                            "current_stage": execution_record["current_stage"],
-                            "started_at": execution_record["started_at"],
-                            "completed_at": execution_record.get("completed_at"),
-                            "error_message": execution_record.get("error_message")
-                        })
+                        user_executions.append(
+                            {
+                                "id": execution_record["id"],
+                                "config_id": execution_record["config_id"],
+                                "dataset_id": execution_record["dataset_id"],
+                                "status": execution_record["status"],
+                                "progress_percent": execution_record["progress_percent"],
+                                "current_stage": execution_record["current_stage"],
+                                "started_at": execution_record["started_at"],
+                                "completed_at": execution_record.get("completed_at"),
+                                "error_message": execution_record.get("error_message"),
+                            }
+                        )
 
             # Sort by started_at (newest first)
             user_executions.sort(key=lambda x: x["started_at"], reverse=True)
 
             # Apply pagination
             total_count = len(user_executions)
-            paginated_executions = user_executions[offset:offset + limit]
+            paginated_executions = user_executions[offset : offset + limit]
 
             # Calculate pagination metadata
             total_pages = (total_count + limit - 1) // limit
@@ -583,8 +597,8 @@ class PipelineService:
                     "total_pages": total_pages,
                     "current_page": current_page,
                     "has_next": offset + limit < total_count,
-                    "has_previous": offset > 0
-                }
+                    "has_previous": offset > 0,
+                },
             }
 
         except ValidationError:
@@ -664,33 +678,28 @@ class PipelineService:
                 avg_progress = progress_sum / total_executions
 
                 # Recent executions (last 7 days)
-                cutoff_date = datetime.now(timezone.utc).timestamp() - (7 * 24 * 3600)
+                cutoff_date = datetime.now(UTC).timestamp() - (7 * 24 * 3600)
                 recent_executions = sum(
-                    1 for exec in executions
+                    1
+                    for exec in executions
                     if datetime.fromisoformat(exec["started_at"].replace("Z", "+00:00")).timestamp() > cutoff_date
                 )
 
             # Get configuration statistics
             configs_data = self.list_user_configs(user_id, limit=1000)
             total_configs = configs_data["pagination"]["total_count"]
-            active_configs = sum(
-                1 for config in configs_data["configs"]
-                if config.get("is_active", False)
-            )
+            active_configs = sum(1 for config in configs_data["configs"] if config.get("is_active", False))
 
             statistics = {
                 "user_id": user_id,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "executions": {
                     "total_count": total_executions,
                     "status_distribution": status_counts,
                     "average_progress_percent": round(avg_progress, 2),
-                    "recent_executions_7d": recent_executions
+                    "recent_executions_7d": recent_executions,
                 },
-                "configurations": {
-                    "total_count": total_configs,
-                    "active_count": active_configs
-                }
+                "configurations": {"total_count": total_configs, "active_count": active_configs},
             }
 
             request_logger.info(f"Pipeline statistics retrieved successfully for user {user_id}")
@@ -701,8 +710,13 @@ class PipelineService:
             request_logger.error(f"Error getting pipeline statistics: {e}")
             raise PipelineExecutionError(f"Failed to get pipeline statistics: {e!s}") from e
 
-    def _execute_pipeline_stages(self, execution_id: str, config_record: dict[str, Any],
-                               dataset_record: dict[str, Any], execution_options: dict[str, Any] | None):
+    def _execute_pipeline_stages(
+        self,
+        execution_id: str,
+        config_record: dict[str, Any],
+        dataset_record: dict[str, Any],
+        execution_options: dict[str, Any] | None,
+    ):
         """Execute pipeline stages asynchronously."""
         try:
             # This would be implemented with proper async execution
@@ -715,7 +729,7 @@ class PipelineService:
                 PipelineStage.BIAS_DETECTION,
                 PipelineStage.STANDARDIZATION,
                 PipelineStage.VALIDATION,
-                PipelineStage.OUTPUT_GENERATION
+                PipelineStage.OUTPUT_GENERATION,
             ]
 
             total_stages = len(stages)
@@ -732,7 +746,7 @@ class PipelineService:
                     progress_percent=progress_percent,
                     current_step=f"Stage {stage_number}: {stage.value.replace('_', ' ').title()}",
                     message=f"Processing {stage.value.replace('_', ' ')} stage",
-                    details={"stage": stage.value, "stage_number": stage_number}
+                    details={"stage": stage.value, "stage_number": stage_number},
                 )
 
                 # Simulate stage processing
@@ -743,7 +757,7 @@ class PipelineService:
                 operation_id=execution_id,
                 user_id=config_record["user_id"],
                 message="Pipeline execution completed successfully",
-                details={"total_stages": total_stages, "config_id": config_record["id"]}
+                details={"total_stages": total_stages, "config_id": config_record["id"]},
             )
 
             # Update execution record
@@ -751,7 +765,7 @@ class PipelineService:
             execution_record = self.redis_client.get_json(execution_key)
             if execution_record:
                 execution_record["status"] = PipelineStatus.COMPLETED.value
-                execution_record["completed_at"] = datetime.now(timezone.utc).isoformat()
+                execution_record["completed_at"] = datetime.now(UTC).isoformat()
                 execution_record["progress_percent"] = 100.0
                 execution_record["current_stage"] = PipelineStage.OUTPUT_GENERATION.value
                 self.redis_client.set_json(execution_key, execution_record, ex=86400)
@@ -764,7 +778,7 @@ class PipelineService:
                 operation_id=execution_id,
                 user_id=config_record["user_id"],
                 error_message=f"Pipeline execution failed: {e!s}",
-                error_details={"stage": stage.value if "stage" in locals() else "unknown"}
+                error_details={"stage": stage.value if "stage" in locals() else "unknown"},
             )
 
             # Update execution record
@@ -772,12 +786,13 @@ class PipelineService:
             execution_record = self.redis_client.get_json(execution_key)
             if execution_record:
                 execution_record["status"] = PipelineStatus.FAILED.value
-                execution_record["completed_at"] = datetime.now(timezone.utc).isoformat()
+                execution_record["completed_at"] = datetime.now(UTC).isoformat()
                 execution_record["error_message"] = str(e)
                 self.redis_client.set_json(execution_key, execution_record, ex=86400)
 
-    def _process_stage(self, stage: PipelineStage, config: dict[str, Any],
-                      dataset_record: dict[str, Any], execution_id: str):
+    def _process_stage(
+        self, stage: PipelineStage, config: dict[str, Any], dataset_record: dict[str, Any], execution_id: str
+    ):
         """Process a single pipeline stage."""
         try:
             self.logger.info(f"Processing stage: {stage.value} for execution {execution_id}")
@@ -841,11 +856,7 @@ class PipelineService:
                 "id": dataset_id,
                 "user_id": user_id,
                 "name": "Sample Dataset",
-                "file_info": {
-                    "filename": "sample_data.csv",
-                    "file_size": 1024,
-                    "file_extension": ".csv"
-                }
+                "file_info": {"filename": "sample_data.csv", "file_size": 1024, "file_extension": ".csv"},
             }
         except Exception as e:
             self.logger.error(f"Error getting dataset record: {e}")
@@ -858,7 +869,7 @@ class PipelineService:
             config_record = self.redis_client.get_json(config_key)
 
             if config_record:
-                config_record["last_used"] = datetime.now(timezone.utc).isoformat()
+                config_record["last_used"] = datetime.now(UTC).isoformat()
                 config_record["usage_count"] = config_record.get("usage_count", 0) + 1
                 self.redis_client.set_json(config_key, config_record, ex=604800)
 
@@ -949,8 +960,8 @@ class PipelineService:
 
             validation_results = {
                 "config_id": config_id,
-                "validation_timestamp": datetime.now(timezone.utc).isoformat(),
-                "checks": {}
+                "validation_timestamp": datetime.now(UTC).isoformat(),
+                "checks": {},
             }
 
             # Validate configuration structure
@@ -960,7 +971,7 @@ class PipelineService:
             validation_results["checks"]["structure"] = {
                 "passed": len(missing_fields) == 0,
                 "message": "Configuration structure validation",
-                "details": {"missing_fields": missing_fields} if missing_fields else {}
+                "details": {"missing_fields": missing_fields} if missing_fields else {},
             }
 
             # Validate processing stages
@@ -971,7 +982,7 @@ class PipelineService:
             validation_results["checks"]["stages"] = {
                 "passed": len(invalid_stages) == 0,
                 "message": "Processing stages validation",
-                "details": {"invalid_stages": invalid_stages} if invalid_stages else {}
+                "details": {"invalid_stages": invalid_stages} if invalid_stages else {},
             }
 
             # Validate data formats
@@ -979,7 +990,7 @@ class PipelineService:
             target_format = config.get("target_format", "")
             supported_formats = ["csv", "json", "jsonl", "parquet", "txt"]
 
-            format_valid = (source_format in supported_formats and target_format in supported_formats)
+            format_valid = source_format in supported_formats and target_format in supported_formats
 
             validation_results["checks"]["formats"] = {
                 "passed": format_valid,
@@ -987,8 +998,8 @@ class PipelineService:
                 "details": {
                     "source_format": source_format,
                     "target_format": target_format,
-                    "supported_formats": supported_formats
-                }
+                    "supported_formats": supported_formats,
+                },
             }
 
             # Overall validation result

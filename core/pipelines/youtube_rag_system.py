@@ -55,4 +55,4 @@ class YouTubeRAGSystem:
         }
 
 
-__all__ = ["YouTubeRAGSystem", "RAGMatch"]
+__all__ = ["RAGMatch", "YouTubeRAGSystem"]

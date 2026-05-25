@@ -4,7 +4,6 @@ import json
 from collections.abc import Iterable
 from typing import Any
 
-
 NON_PRIVATE_VISIBILITY_TAGS = (
     "visibility:shared",
     "visibility:org",
@@ -29,11 +28,7 @@ def resolve_user_id_from_payload(
     tags: Iterable[Any] = (),
     fallback_user_id: str | None = None,
 ) -> str | None:
-    return (
-        resolve_user_id_from_context(context)
-        or resolve_user_id_from_tags(tags)
-        or fallback_user_id
-    )
+    return resolve_user_id_from_context(context) or resolve_user_id_from_tags(tags) or fallback_user_id
 
 
 def resolve_user_id_from_context(context: str | None) -> str | None:

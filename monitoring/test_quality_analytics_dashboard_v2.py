@@ -13,7 +13,7 @@ import sqlite3
 import sys
 import tempfile
 import unittest
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pandas as pd
@@ -77,6 +77,7 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
 
         # Insert test data
         from datetime import timedelta
+
         base_time = datetime.now() - timedelta(days=15)
         test_conversations = [
             (
@@ -290,6 +291,7 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
 
         # Test date range filter
         from datetime import timedelta
+
         base_time = datetime.now() - timedelta(days=15)
         start_date = base_time + timedelta(days=1)
         end_date = base_time + timedelta(days=3)
@@ -308,9 +310,7 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
 
         assert isinstance(analytics, QualityAnalytics)
         assert analytics.total_conversations == 5
-        self.assertAlmostEqual(
-            analytics.average_quality, 0.73, places=2
-        )  # (0.85+0.65+0.92+0.45+0.78)/5
+        self.assertAlmostEqual(analytics.average_quality, 0.73, places=2)  # (0.85+0.65+0.92+0.45+0.78)/5
 
         # Check quality distribution
         assert isinstance(analytics.quality_distribution, dict)
@@ -375,23 +375,21 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
 
         # Should have overall quality assessment
         overall_rec = [
-            r
-            for r in analytics.recommendations
-            if "Overall quality" in r or "GOOD:" in r or "WARNING:" in r
+            r for r in analytics.recommendations if "Overall quality" in r or "GOOD:" in r or "WARNING:" in r
         ]
         assert len(overall_rec) > 0
 
     def test_09_caching_functionality(self):
         """Test data caching functionality."""
         # First load
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
         df1 = self.dashboard.load_quality_data()
-        first_load_time = (datetime.now(timezone.utc) - start_time).total_seconds()
+        first_load_time = (datetime.now(UTC) - start_time).total_seconds()
 
         # Second load (should be cached)
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
         df2 = self.dashboard.load_quality_data()
-        second_load_time = (datetime.now(timezone.utc) - start_time).total_seconds()
+        second_load_time = (datetime.now(UTC) - start_time).total_seconds()
 
         # Cached load should be faster
         assert second_load_time < first_load_time
@@ -469,17 +467,17 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
     def test_15_performance_benchmarks(self):
         """Test performance benchmarks."""
         # Test loading performance
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
         df = self.dashboard.load_quality_data(force_refresh=True)
-        load_time = (datetime.now(timezone.utc) - start_time).total_seconds()
+        load_time = (datetime.now(UTC) - start_time).total_seconds()
 
         # Should load quickly (under 1 second for test data)
         assert load_time < 1.0
 
         # Test analytics calculation performance
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
         self.dashboard.calculate_quality_analytics(df)
-        calc_time = (datetime.now(timezone.utc) - start_time).total_seconds()
+        calc_time = (datetime.now(UTC) - start_time).total_seconds()
 
         # Should calculate quickly (under 0.5 seconds for test data)
         assert calc_time < 0.5
@@ -500,7 +498,7 @@ def run_comprehensive_test():
     test_report = {
         "test_suite": "Quality Analytics Dashboard V2",
         "task": "5.6.2.1",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "results": {
             "total_tests": result.testsRun,
             "passed_tests": result.testsRun - len(result.failures) - len(result.errors),
@@ -508,11 +506,7 @@ def run_comprehensive_test():
             "error_tests": len(result.errors),
             "test_details": [],
         },
-        "success_rate": (
-            (result.testsRun - len(result.failures) - len(result.errors))
-            / result.testsRun
-            * 100
-        )
+        "success_rate": ((result.testsRun - len(result.failures) - len(result.errors)) / result.testsRun * 100)
         if result.testsRun > 0
         else 0,
         "status": "PASSED" if result.wasSuccessful() else "FAILED",
@@ -528,12 +522,9 @@ def run_comprehensive_test():
         test_report["results"]["test_details"].append(f"✅ Test {i + 1}: PASSED")
 
     # Save test report
-    report_path = (
-        Path(__file__).parent / "quality_analytics_dashboard_v2_test_report.json"
-    )
+    report_path = Path(__file__).parent / "quality_analytics_dashboard_v2_test_report.json"
     with open(report_path, "w") as f:
         json.dump(test_report, f, indent=2)
-
 
     return result.wasSuccessful()
 

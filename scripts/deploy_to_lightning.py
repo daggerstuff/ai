@@ -9,12 +9,13 @@ This script orchestrates the complete deployment pipeline:
 3. Generates all required scripts and configurations
 4. Provides upload instructions for Lightning.ai Studio
 """
+
 import json
 import logging
 import shutil
 import sys
 import zipfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from lightning_h100_deployment import LightningH100Deployer
@@ -29,9 +30,7 @@ from path_utils import (
 from validate_deployment_readiness import DeploymentValidator
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -53,7 +52,6 @@ class LightningDeploymentOrchestrator:
         logger.info("🔍 Running deployment readiness validation...")
 
         try:
-
             validator = DeploymentValidator()
             report = validator.generate_readiness_report()
 
@@ -75,7 +73,6 @@ class LightningDeploymentOrchestrator:
         logger.info("📦 Preparing Lightning.ai H100 deployment package...")
 
         try:
-
             deployer = LightningH100Deployer(self.unified_dataset_path)
 
             # Validate dataset
@@ -89,9 +86,7 @@ class LightningDeploymentOrchestrator:
             config_file = deployer.create_deployment_config(validation_results)
             requirements_file = deployer.create_requirements_file()
             data_prep_script = deployer.create_data_preparation_script()
-            deployment_guide = deployer.create_deployment_instructions(
-                validation_results
-            )
+            deployment_guide = deployer.create_deployment_instructions(validation_results)
 
             # Package everything
             package_dir = deployer.package_for_deployment()
@@ -119,9 +114,7 @@ class LightningDeploymentOrchestrator:
 
         try:
             # Copy studio setup script to deployment
-            studio_script_source = (
-                self.workspace_root / "ai/scripts/lightning_studio_setup.py"
-            )
+            studio_script_source = self.workspace_root / "ai/scripts/lightning_studio_setup.py"
             studio_script_target = self.deployment_dir / "lightning_studio_setup.py"
 
             if studio_script_source.exists():
@@ -138,7 +131,7 @@ class LightningDeploymentOrchestrator:
         """Create deployable archive for easy upload"""
         logger.info("🗜️  Creating deployment archive...")
 
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         archive_name = f"therapeutic_ai_h100_deployment_{timestamp}.zip"
         archive_path = self.deployment_dir / archive_name
 
@@ -157,9 +150,7 @@ class LightningDeploymentOrchestrator:
         logger.info(f"✅ Deployment archive created: {archive_path}")
         return archive_path
 
-    def generate_upload_instructions(
-        self, archive_path: Path, validation_results: dict
-    ) -> Path:
+    def generate_upload_instructions(self, archive_path: Path, validation_results: dict) -> Path:
         """Generate detailed upload and deployment instructions"""
         logger.info("📋 Generating upload instructions...")
 
@@ -367,7 +358,7 @@ tokenizer.push_to_hub('your-username/therapeutic-ai-breakthrough')
 ### Archive Info
 - **Archive:** `{archive_path.name}`
 - **Size:** {archive_path.stat().st_size / (1024 * 1024):.1f} MB
-- **Created:** {datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")}
+- **Created:** {datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S")}
 """
 
         instructions_path = self.deployment_dir / "LIGHTNING_DEPLOYMENT_INSTRUCTIONS.md"
@@ -380,7 +371,7 @@ tokenizer.push_to_hub('your-username/therapeutic-ai-breakthrough')
     def create_deployment_summary(self, results: dict) -> dict:
         """Create final deployment summary"""
         summary = {
-            "deployment_timestamp": datetime.now(timezone.utc).isoformat(),
+            "deployment_timestamp": datetime.now(UTC).isoformat(),
             "status": "ready"
             if results.get("readiness_validation", {}).get("overall_ready", False)
             else "requires_attention",
@@ -389,16 +380,12 @@ tokenizer.push_to_hub('your-username/therapeutic-ai-breakthrough')
                 .get("validations", {})
                 .get("dataset", {})
                 .get("ready_for_deployment", False),
-                "lightning_scripts": results.get("package_preparation", {}).get(
-                    "success", False
-                ),
+                "lightning_scripts": results.get("package_preparation", {}).get("success", False),
                 "studio_setup": results.get("studio_setup", {}).get("success", False),
                 "deployment_archive": results.get("archive_path") is not None,
                 "instructions": results.get("instructions_path") is not None,
             },
-            "dataset_stats": results.get("package_preparation", {}).get(
-                "validation_results", {}
-            ),
+            "dataset_stats": results.get("package_preparation", {}).get("validation_results", {}),
             "next_actions": [],
             "files_created": results.get("files_created", []),
         }
@@ -469,9 +456,7 @@ tokenizer.push_to_hub('your-username/therapeutic-ai-breakthrough')
         # Step 5: Generate upload instructions
         logger.info("Step 5/5: Generating upload instructions...")
         validation_results = package_results["validation_results"]
-        instructions_path = self.generate_upload_instructions(
-            archive_path, validation_results
-        )
+        instructions_path = self.generate_upload_instructions(archive_path, validation_results)
         results["instructions_path"] = str(instructions_path)
         results["files_created"].append(str(instructions_path))
 
@@ -490,9 +475,7 @@ tokenizer.push_to_hub('your-username/therapeutic-ai-breakthrough')
         logger.info("=" * 80)
 
         dataset_stats = validation_results
-        logger.info(
-            f"📊 Dataset Ready: {dataset_stats['total_conversations']:,} conversations"
-        )
+        logger.info(f"📊 Dataset Ready: {dataset_stats['total_conversations']:,} conversations")
         logger.info(f"🧠 Expert Distribution: {dataset_stats['expert_distribution']}")
         logger.info(
             f"📦 Deployment Archive: {archive_path.name} ({archive_path.stat().st_size / (1024 * 1024):.1f} MB)"
@@ -511,9 +494,7 @@ tokenizer.push_to_hub('your-username/therapeutic-ai-breakthrough')
 def main():
     """Main deployment orchestration function"""
     logger.info("🎯 Lightning.ai H100 Therapeutic AI Deployment Orchestrator")
-    logger.info(
-        "   Preparing breakthrough intelligent therapeutic dataset for H100 training..."
-    )
+    logger.info("   Preparing breakthrough intelligent therapeutic dataset for H100 training...")
 
     orchestrator = LightningDeploymentOrchestrator()
     results = orchestrator.run_complete_deployment_preparation()

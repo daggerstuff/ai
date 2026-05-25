@@ -40,10 +40,7 @@ class HIPAAComplianceResult:
 
     def is_compliant(self, threshold: float = 0.8) -> bool:
         """Check if dataset meets HIPAA compliance threshold."""
-        return (
-            self.compliance_status == HIPAAComplianceStatus.COMPLIANT
-            and self.compliance_score >= threshold
-        )
+        return self.compliance_status == HIPAAComplianceStatus.COMPLIANT and self.compliance_score >= threshold
 
 
 class HIPAAValidator:
@@ -141,9 +138,7 @@ class HIPAAValidator:
 
         # Generate issues and recommendations
         issues = self._generate_issues(checklist_items, compliance_status)
-        recommendations = self._generate_recommendations(
-            checklist_items, compliance_status
-        )
+        recommendations = self._generate_recommendations(checklist_items, compliance_status)
 
         # Calculate compliance score
         compliance_score = self._calculate_compliance_score(checklist_items)
@@ -204,24 +199,17 @@ class HIPAAValidator:
 
         # Encryption at rest
         checklist["encryption_at_rest"] = (
-            encryption_status is not None
-            and encryption_status.get("at_rest", False)
-            if encryption_status
-            else False
+            encryption_status is not None and encryption_status.get("at_rest", False) if encryption_status else False
         )
 
         # Encryption in transit
         checklist["encryption_in_transit"] = (
-            encryption_status is not None
-            and encryption_status.get("in_transit", False)
-            if encryption_status
-            else False
+            encryption_status is not None and encryption_status.get("in_transit", False) if encryption_status else False
         )
 
         # Access controls
         checklist["access_controls"] = (
-            access_control_status is not None
-            and access_control_status.get("implemented", False)
+            access_control_status is not None and access_control_status.get("implemented", False)
             if access_control_status
             else False
         )
@@ -236,9 +224,7 @@ class HIPAAValidator:
 
         return checklist
 
-    def _determine_compliance_status(
-        self, checklist_items: dict[str, bool]
-    ) -> HIPAAComplianceStatus:
+    def _determine_compliance_status(self, checklist_items: dict[str, bool]) -> HIPAAComplianceStatus:
         """Determine overall HIPAA compliance status."""
         required_items = [
             "encryption_at_rest",
@@ -247,9 +233,7 @@ class HIPAAValidator:
             "audit_logging",
         ]
 
-        implemented_count = sum(
-            1 for item in required_items if checklist_items.get(item, False)
-        )
+        implemented_count = sum(1 for item in required_items if checklist_items.get(item, False))
         total_required = len(required_items)
 
         if implemented_count == total_required:
@@ -259,9 +243,7 @@ class HIPAAValidator:
                 "secure_disposal",
                 "risk_assessment",
             ]
-            other_implemented = sum(
-                1 for item in other_items if checklist_items.get(item, False)
-            )
+            other_implemented = sum(1 for item in other_items if checklist_items.get(item, False))
             if other_implemented >= 2:
                 return HIPAAComplianceStatus.COMPLIANT
             return HIPAAComplianceStatus.PARTIALLY_COMPLIANT
@@ -314,61 +296,41 @@ class HIPAAValidator:
         recommendations = []
 
         if compliance_status != HIPAAComplianceStatus.COMPLIANT:
-            recommendations.append(
-                "Implement all required HIPAA security and privacy safeguards"
-            )
+            recommendations.append("Implement all required HIPAA security and privacy safeguards")
 
         if not checklist_items.get("encryption_at_rest", False):
-            recommendations.append(
-                "Implement encryption at rest for all PHI storage"
-            )
+            recommendations.append("Implement encryption at rest for all PHI storage")
 
         if not checklist_items.get("encryption_in_transit", False):
-            recommendations.append(
-                "Implement encryption in transit (TLS/SSL) for all PHI transmission"
-            )
+            recommendations.append("Implement encryption in transit (TLS/SSL) for all PHI transmission")
 
         if not checklist_items.get("access_controls", False):
-            recommendations.append(
-                "Implement access controls (authentication, authorization, role-based access)"
-            )
+            recommendations.append("Implement access controls (authentication, authorization, role-based access)")
 
         if not checklist_items.get("audit_logging", False):
-            recommendations.append(
-                "Implement comprehensive audit logging for all PHI access"
-            )
+            recommendations.append("Implement comprehensive audit logging for all PHI access")
 
         if not checklist_items.get("data_backup", False):
-            recommendations.append(
-                "Establish data backup and recovery procedures"
-            )
+            recommendations.append("Establish data backup and recovery procedures")
 
         if not checklist_items.get("secure_disposal", False):
-            recommendations.append(
-                "Establish secure data disposal procedures"
-            )
+            recommendations.append("Establish secure data disposal procedures")
 
         if not checklist_items.get("risk_assessment", False):
             recommendations.append("Conduct comprehensive risk assessment")
 
         if not checklist_items.get("business_associate_agreement", False):
-            recommendations.append(
-                "Establish business associate agreements if using third-party services"
-            )
+            recommendations.append("Establish business associate agreements if using third-party services")
 
         if not checklist_items.get("incident_response_plan", False):
             recommendations.append("Develop incident response plan")
 
         if not checklist_items.get("workforce_training", False):
-            recommendations.append(
-                "Provide HIPAA training to all workforce members"
-            )
+            recommendations.append("Provide HIPAA training to all workforce members")
 
         return recommendations
 
-    def _calculate_compliance_score(
-        self, checklist_items: dict[str, bool]
-    ) -> float:
+    def _calculate_compliance_score(self, checklist_items: dict[str, bool]) -> float:
         """Calculate HIPAA compliance score (0.0-1.0)."""
         if not checklist_items:
             return 0.0
@@ -383,24 +345,13 @@ class HIPAAValidator:
         critical_weight = 0.6
         other_weight = 0.4
 
-        critical_score = sum(
-            1 for item in critical_items if checklist_items.get(item, False)
-        ) / len(critical_items)
+        critical_score = sum(1 for item in critical_items if checklist_items.get(item, False)) / len(critical_items)
 
-        other_items = [
-            item
-            for item in self.REQUIRED_CHECKLIST_ITEMS
-            if item not in critical_items
-        ]
+        other_items = [item for item in self.REQUIRED_CHECKLIST_ITEMS if item not in critical_items]
         other_score = (
-            sum(1 for item in other_items if checklist_items.get(item, False))
-            / len(other_items)
+            sum(1 for item in other_items if checklist_items.get(item, False)) / len(other_items)
             if other_items
             else 0.0
         )
 
-        return (
-            critical_score * critical_weight + other_score * other_weight
-        )
-
-
+        return critical_score * critical_weight + other_score * other_weight

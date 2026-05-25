@@ -3,21 +3,22 @@
 from __future__ import annotations
 
 import pytest
+
 from core.pipelines.privacy_content_gates import (
-    PrivacyContentGates,
-    GateResult,
-    GateDecision,
-    PrivacyTier,
-    ContentSensitivity,
-    RetentionPolicy,
     APPROVED_LICENSES,
     EXCEPTION_LICENSES,
+    ContentSensitivity,
+    GateDecision,
+    GateResult,
+    PrivacyContentGates,
+    PrivacyTier,
+    RetentionPolicy,
 )
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def gates() -> PrivacyContentGates:
@@ -27,6 +28,7 @@ def gates() -> PrivacyContentGates:
 # ---------------------------------------------------------------------------
 # Gate 0 — Classification
 # ---------------------------------------------------------------------------
+
 
 class TestGate0Classification:
     def test_empty_text_blocks(self, gates: PrivacyContentGates) -> None:
@@ -57,6 +59,7 @@ class TestGate0Classification:
     def test_crisis_text_sensitivity_classified(self, gates: PrivacyContentGates) -> None:
         report = gates.evaluate("t", "I've been having suicidal thoughts.", "cc-by-4.0")
         assert report.gate0_result is not None
+
     def test_text_with_email_gets_low_tier(self, gates: PrivacyContentGates) -> None:
         # 1 PII item = LOW (MEDIUM requires 2+ items; spaCy not available for names)
         report = gates.evaluate("t", "Contact me at john@example.com for help.", "cc-by-4.0")
@@ -82,6 +85,7 @@ class TestGate0Classification:
 # Gate 1 — PII treatment
 # ---------------------------------------------------------------------------
 
+
 class TestGate1PII:
     def test_none_tier_passes_gate1(self, gates: PrivacyContentGates) -> None:
         report = gates.evaluate("t", "Therapy helps with anxiety.", "cc-by-4.0")
@@ -100,15 +104,11 @@ class TestGate1PII:
         assert report.gate1_result.decision == GateDecision.ESCALATE
         assert report.privacy_tier == PrivacyTier.HIGH
 
-    def test_retention_policy_none_means_use_immediately(
-        self, gates: PrivacyContentGates
-    ) -> None:
+    def test_retention_policy_none_means_use_immediately(self, gates: PrivacyContentGates) -> None:
         report = gates.evaluate("t", "General counseling principles apply here.", "cc-by-4.0")
         assert report.retention_policy == RetentionPolicy.USE_IMMEDIATELY
 
-    def test_retention_policy_medium_means_scrub_and_use(
-        self, gates: PrivacyContentGates
-    ) -> None:
+    def test_retention_policy_medium_means_scrub_and_use(self, gates: PrivacyContentGates) -> None:
         report = gates.evaluate("t", "My email is a@b.com and my phone 555-123-4567.", "cc-by-4.0")
         assert report.retention_policy == RetentionPolicy.SCRUB_AND_USE
 
@@ -116,6 +116,7 @@ class TestGate1PII:
 # ---------------------------------------------------------------------------
 # Gate 2 — Content safety
 # ---------------------------------------------------------------------------
+
 
 class TestGate2Safety:
     def test_clean_text_passes_gate2(self, gates: PrivacyContentGates) -> None:
@@ -149,13 +150,12 @@ class TestGate2Safety:
         assert report.gate2_result.decision == GateDecision.BLOCK
         assert "unsafe" in report.gate2_result.reason
 
-    def test_crisis_findings_populated_for_elevated(
-        self, gates: PrivacyContentGates
-    ) -> None:
+    def test_crisis_findings_populated_for_elevated(self, gates: PrivacyContentGates) -> None:
         report = gates.evaluate("t", "I can barely go on.", "cc-by-4.0")
         # "can't go on" is a crisis pattern
         assert report.gate2_result is not None
         assert len(report.crisis_findings) >= 0  # either blocked/escalated or passed
+
     def test_gate0_blocks_whitespace(self, gates: PrivacyContentGates) -> None:
         report = gates.evaluate("t", "  ", "cc-by-4.0")
         assert report.gate0_result is not None
@@ -167,6 +167,7 @@ class TestGate2Safety:
 # ---------------------------------------------------------------------------
 # Gate 3 — License and consent
 # ---------------------------------------------------------------------------
+
 
 class TestGate3License:
     def test_approved_license_passes(self, gates: PrivacyContentGates) -> None:
@@ -186,9 +187,7 @@ class TestGate3License:
             assert report.gate3_result is not None
             assert report.gate3_result.decision == GateDecision.PASS, f"failed for {lic}"
 
-    def test_exception_license_needs_consent_for_sensitive(
-        self, gates: PrivacyContentGates
-    ) -> None:
+    def test_exception_license_needs_consent_for_sensitive(self, gates: PrivacyContentGates) -> None:
         # Sensitive content + NC license + no consent = ESCALATE
         report = gates.evaluate(
             "t",
@@ -199,9 +198,7 @@ class TestGate3License:
         assert report.gate3_result is not None
         assert report.gate3_result.decision == GateDecision.ESCALATE
 
-    def test_exception_license_consent_sufficient(
-        self, gates: PrivacyContentGates
-    ) -> None:
+    def test_exception_license_consent_sufficient(self, gates: PrivacyContentGates) -> None:
         report = gates.evaluate(
             "t",
             "I've been dealing with trauma from abuse.",
@@ -221,6 +218,7 @@ class TestGate3License:
 # Full pipeline — report properties
 # ---------------------------------------------------------------------------
 
+
 class TestReportProperties:
     def test_clean_item_passes(self, gates: PrivacyContentGates) -> None:
         report = gates.evaluate("t", "What is CBT therapy?", "cc-by-4.0")
@@ -233,9 +231,7 @@ class TestReportProperties:
         assert report.blocked
         assert not report.passed
 
-    def test_escalated_item_not_passed_until_review(
-        self, gates: PrivacyContentGates
-    ) -> None:
+    def test_escalated_item_not_passed_until_review(self, gates: PrivacyContentGates) -> None:
         text = (
             "Hi, I'm John Smith, call me at 555-123-4567 "
             "or email jsmith@corp.com, SSN 123-45-6789, "
@@ -245,34 +241,27 @@ class TestReportProperties:
         assert report.needs_review
         assert not report.passed
         # After human review override...
-        report = gates.override_with_review(
-            report, GateDecision.PASS, "chad", "verified scrubbing manually"
-        )
+        report = gates.override_with_review(report, GateDecision.PASS, "chad", "verified scrubbing manually")
         assert report.passed
         assert report.gate4_result is not None
         assert report.gate4_result.decision == GateDecision.PASS
 
     def test_review_override_reject(self, gates: PrivacyContentGates) -> None:
         report = gates.evaluate("t", "General content.", "cc-by-4.0")
-        report = gates.override_with_review(
-            report, GateDecision.BLOCK, "chad", "insufficient therapeutic value"
-        )
+        report = gates.override_with_review(report, GateDecision.BLOCK, "chad", "insufficient therapeutic value")
         assert not report.passed
         assert report.blocked
 
-    def test_review_override_invalid_decision_raises(
-        self, gates: PrivacyContentGates
-    ) -> None:
+    def test_review_override_invalid_decision_raises(self, gates: PrivacyContentGates) -> None:
         report = gates.evaluate("t", "General content.", "cc-by-4.0")
         with pytest.raises(ValueError, match="PASS or BLOCK"):
-            gates.override_with_review(
-                report, GateDecision.ESCALATE, "chad", "invalid"
-            )
+            gates.override_with_review(report, GateDecision.ESCALATE, "chad", "invalid")
 
 
 # ---------------------------------------------------------------------------
 # Batch evaluation
 # ---------------------------------------------------------------------------
+
 
 class TestBatchEvaluation:
     def test_evaluate_batch_reports(self, gates: PrivacyContentGates) -> None:
@@ -302,6 +291,7 @@ class TestBatchEvaluation:
 # apply_scrub
 # ---------------------------------------------------------------------------
 
+
 class TestApplyScrub:
     def test_scrub_removes_email(self, gates: PrivacyContentGates) -> None:
         text = "Contact me at jane@example.com please."
@@ -318,15 +308,14 @@ class TestApplyScrub:
     def test_apply_scrub_after_evaluate(self, gates: PrivacyContentGates) -> None:
         report = gates.evaluate("t", "My email is test@test.com.", "cc-by-4.0")
         assert report.retention_policy == RetentionPolicy.SCRUB_AND_USE
-        clean, _ = gates.apply_scrub(
-            "My email is test@test.com."
-        )
+        clean, _ = gates.apply_scrub("My email is test@test.com.")
         assert "test@test.com" not in clean
 
 
 # ---------------------------------------------------------------------------
 # to_dict / serialization
 # ---------------------------------------------------------------------------
+
 
 class TestSerialization:
     def test_report_to_dict(self, gates: PrivacyContentGates) -> None:
@@ -363,6 +352,7 @@ class TestSerialization:
 # Retention policy mapping
 # ---------------------------------------------------------------------------
 
+
 class TestRetentionPolicy:
     def test_none_tier_uses_immediately(self, gates: PrivacyContentGates) -> None:
         report = gates.evaluate("t", "Breathing exercises.", "cc-by-4.0")
@@ -373,9 +363,6 @@ class TestRetentionPolicy:
         assert report.retention_policy == RetentionPolicy.SCRUB_AND_USE
 
     def test_high_tier_review_then_use(self, gates: PrivacyContentGates) -> None:
-        text = (
-            "I'm John Smith, SSN 123-45-6789, call 555-123-4567, "
-            "email me@j.com, DOB 01/01/1980, MRN MRN123456789."
-        )
+        text = "I'm John Smith, SSN 123-45-6789, call 555-123-4567, email me@j.com, DOB 01/01/1980, MRN MRN123456789."
         report = gates.evaluate("t", text, "cc-by-4.0")
         assert report.retention_policy == RetentionPolicy.REVIEW_THEN_USE

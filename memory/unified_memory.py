@@ -51,5 +51,3 @@ class MemoryProvider(Protocol):
         user_id: str | None = ...,
         limit: int = 100,
     ) -> list[Memory]: ...
-
-

@@ -63,9 +63,7 @@ class TestUnslothFinetunePipeline:
             f.flush()
             path = f.name
         try:
-            config = unsloth_mod.load_training_config(
-                config_path=path, overrides={"epochs": 10}
-            )
+            config = unsloth_mod.load_training_config(config_path=path, overrides={"epochs": 10})
             assert config["epochs"] == 10
         finally:
             os.remove(path)
@@ -83,9 +81,7 @@ class TestUnslothFinetunePipeline:
     def test_finetune_with_unsloth_valueerror(self):
         """If config is missing required fields, finetune_with_unsloth raises ValueError."""
         with patch.object(unsloth_mod, "unsloth", MagicMock()), pytest.raises(ValueError):
-            unsloth_mod.finetune_with_unsloth(
-                tokenized_data=[], config={"batch_size": 1}
-            )
+            unsloth_mod.finetune_with_unsloth(tokenized_data=[], config={"batch_size": 1})
 
     def test_finetune_with_unsloth_runtime_error(self):
         """If model loading fails, finetune_with_unsloth logs and raises."""
@@ -126,9 +122,7 @@ class TestUnslothFinetunePipeline:
         config = {"batch_size": 1, "epochs": 1, "learning_rate": 1e-4}
         logger = logging.getLogger("test_logger")
         with patch.object(unsloth_mod, "unsloth", mock_unsloth), caplog.at_level(logging.INFO):
-            unsloth_mod.finetune_with_unsloth(
-                tokenized_data=[], config=config, logger=logger
-            )
+            unsloth_mod.finetune_with_unsloth(tokenized_data=[], config=config, logger=logger)
         assert any("Loaded training config" in m for m in caplog.messages)
         assert any("Fine-tuning completed successfully" in m for m in caplog.messages)
 
@@ -139,9 +133,7 @@ class TestUnslothFinetunePipeline:
         config = {"batch_size": 1, "epochs": 1, "learning_rate": 1e-4}
         with patch.object(unsloth_mod, "unsloth", mock_unsloth):
             # Should not raise
-            unsloth_mod.finetune_with_unsloth(
-                tokenized_data=[], config=config, extra_param="foo"
-            )
+            unsloth_mod.finetune_with_unsloth(tokenized_data=[], config=config, extra_param="foo")
 
 
 # TDD anchor: Add more tests for training loop, metrics, and compliance edge cases as implementation grows.

@@ -2,8 +2,9 @@ import json
 import logging
 import re
 import string
-from typing import Any, Callable
+from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -50,8 +51,7 @@ class TranscriptCorrector:
                     self.config_path = alt_path
                 else:
                     logger.warning(
-                        f"Terminology config not found at {self.config_path} or "
-                        f"{alt_path}. Using empty config."
+                        f"Terminology config not found at {self.config_path} or {alt_path}. Using empty config."
                     )
                     return {
                         "cptsd_terms": [],
@@ -92,7 +92,6 @@ class TranscriptCorrector:
         # Pass 3: LLM Contextual Correction (Mocked)
         return self._llm_contextual_correction(text, context)
 
-
     def _clean_structure(self, text: str) -> str:
         """Remove filler words and normalize whitespace."""
         # Common filler words in speech, optionally followed by a comma
@@ -103,7 +102,6 @@ class TranscriptCorrector:
 
         # Normalize whitespace (replace multiple spaces with single space)
         return re.sub(r"\s+", " ", cleaned).strip()
-
 
     def _apply_terminology_fixes(self, text: str) -> str:
         """Apply deterministic terminology fixes from config."""
@@ -174,9 +172,7 @@ class TranscriptCorrector:
         found_total = found_cptsd + found_medical
 
         # This is a naive metric, just for basic validation
-        coverage_score = (
-            found_total / total_domain_terms if total_domain_terms > 0 else 0.0
-        )
+        coverage_score = found_total / total_domain_terms if total_domain_terms > 0 else 0.0
 
         return {
             "cptsd_term_count": found_cptsd,

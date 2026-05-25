@@ -10,7 +10,7 @@ Provides tools for:
 
 import logging
 from dataclasses import dataclass, field as dataclass_field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any, cast
 
 from ai.sourcing.youtube.models import (
@@ -32,52 +32,100 @@ logger = logging.getLogger(__name__)
 # Therapeutic search keywords by content category
 CATEGORY_KEYWORDS = {
     ContentCategory.CPTSD_EDUCATION: [
-        "cptsd", "complex ptsd", "trauma symptoms", "c-ptsd recovery",
-        "developmental trauma", "childhood trauma", "narcissistic abuse",
+        "cptsd",
+        "complex ptsd",
+        "trauma symptoms",
+        "c-ptsd recovery",
+        "developmental trauma",
+        "childhood trauma",
+        "narcissistic abuse",
     ],
     ContentCategory.TRAUMA_INFORMED: [
-        "trauma informed", "trauma-informed care", "safety techniques",
-        "window of tolerance", "nervous system regulation", "polyvagal",
+        "trauma informed",
+        "trauma-informed care",
+        "safety techniques",
+        "window of tolerance",
+        "nervous system regulation",
+        "polyvagal",
     ],
     ContentCategory.DBT_SKILLS: [
-        "dbt", "dialectical behavior therapy", "distress tolerance",
-        "emotion regulation", "mindfulness dbt", "wise mind",
-        "opposite action", "radical acceptance",
+        "dbt",
+        "dialectical behavior therapy",
+        "distress tolerance",
+        "emotion regulation",
+        "mindfulness dbt",
+        "wise mind",
+        "opposite action",
+        "radical acceptance",
     ],
     ContentCategory.CBT_TECHNIQUES: [
-        "cbt", "cognitive behavioral therapy", "cognitive restructuring",
-        "behavioral activation", "exposure therapy", "automatic thoughts",
+        "cbt",
+        "cognitive behavioral therapy",
+        "cognitive restructuring",
+        "behavioral activation",
+        "exposure therapy",
+        "automatic thoughts",
     ],
     ContentCategory.SOMATIC_THERAPY: [
-        "somatic experiencing", "somatic therapy", "body-based therapy",
-        "polyvagal theory", "nervous system", "trauma release",
-        "breathwork", "somatic exercises",
+        "somatic experiencing",
+        "somatic therapy",
+        "body-based therapy",
+        "polyvagal theory",
+        "nervous system",
+        "trauma release",
+        "breathwork",
+        "somatic exercises",
     ],
     ContentCategory.EMDR_THERAPY: [
-        "emdr", "eye movement desensitization", "emdr therapy",
-        "trauma processing", "bilateral stimulation", "emdr preparation",
+        "emdr",
+        "eye movement desensitization",
+        "emdr therapy",
+        "trauma processing",
+        "bilateral stimulation",
+        "emdr preparation",
     ],
     ContentCategory.MINDFULNESS: [
-        "mindfulness", "guided meditation", "meditation for trauma",
-        "grounding techniques", "5-4-3-2-1", "body scan",
+        "mindfulness",
+        "guided meditation",
+        "meditation for trauma",
+        "grounding techniques",
+        "5-4-3-2-1",
+        "body scan",
     ],
     ContentCategory.CR_SUPPORT: [
-        "crisis support", "suicide prevention", "help resources",
-        "crisis hotline", "safety plan", "emergency mental health",
+        "crisis support",
+        "suicide prevention",
+        "help resources",
+        "crisis hotline",
+        "safety plan",
+        "emergency mental health",
         "crisis intervention",
     ],
     ContentCategory.PROFESSIONAL_TRAINING: [
-        "therapist training", "clinical supervision", "trauma therapy training",
-        "ce credits", "professional development", "licensing exam",
+        "therapist training",
+        "clinical supervision",
+        "trauma therapy training",
+        "ce credits",
+        "professional development",
+        "licensing exam",
         "ethical guidelines",
     ],
     ContentCategory.PATIENT_STORIES: [
-        "recovery story", "trauma recovery", "healing journey",
-        "ptsd recovery", "cptsd survivor", "trauma survivor", "my story",
+        "recovery story",
+        "trauma recovery",
+        "healing journey",
+        "ptsd recovery",
+        "cptsd survivor",
+        "trauma survivor",
+        "my story",
     ],
     ContentCategory.RECOVERY_JOURNEY: [
-        "progress update", "therapy progress", "healing timeline",
-        "recovery milestones", "mental health journey", "wellness journey",
+        "progress update",
+        "therapy progress",
+        "healing timeline",
+        "recovery milestones",
+        "mental health journey",
+        "wellness journey",
     ],
 }
 
@@ -119,12 +167,8 @@ class ChannelHunterConfig:
     min_subscribers: int = 1_000
     min_videos: int = 20
     target_channels: int = 50
-    target_languages: set[str] = dataclass_field(
-        default_factory=lambda: {"en", "es", "fr", "de", "pt", "zh"}
-    )
-    categories: list[ContentCategory] = dataclass_field(
-        default_factory=lambda: list(ContentCategory)
-    )
+    target_languages: set[str] = dataclass_field(default_factory=lambda: {"en", "es", "fr", "de", "pt", "zh"})
+    categories: list[ContentCategory] = dataclass_field(default_factory=lambda: list(ContentCategory))
     require_professional: bool = True
     quality_threshold: float = 0.8
 
@@ -140,11 +184,9 @@ class YouTubeChannelHunter:
     - Language detection
     """
 
-    def __init__(
-        self, config: ChannelHunterConfig | None = None
-    ):
+    def __init__(self, config: ChannelHunterConfig | None = None, api_key: str | None = None):
         self.config = config or ChannelHunterConfig()
-        self.api = YouTubeAPI()
+        self.api = YouTubeAPI(api_key=api_key)
         self.discovered_channels: list[Channel] = []
         self.registry_stats = {
             "searched": 0,
@@ -170,10 +212,7 @@ class YouTubeChannelHunter:
 
         for i, term in enumerate(search_terms):
             if progress_callback:
-                progress_callback(
-                    i / len(search_terms),
-                    f'Searching for "{term}" ({i+1}/{len(search_terms)})'
-                )
+                progress_callback(i / len(search_terms), f'Searching for "{term}" ({i + 1}/{len(search_terms)})')
 
             self.registry_stats["searched"] += 1
             channels = self._search_by_term(term)
@@ -212,18 +251,22 @@ class YouTubeChannelHunter:
                 terms.append(keyword)
 
         # Cross-category therapeutic terms
-        terms.extend([
-            "trauma therapy explained",
-            "mental health education",
-            "cptsd recovery guide",
-        ])
+        terms.extend(
+            [
+                "trauma therapy explained",
+                "mental health education",
+                "cptsd recovery guide",
+            ]
+        )
 
         # Professional-specific terms
-        terms.extend([
-            "clinical psychologist trauma",
-            "licensed therapist cbt",
-            "trauma specialist emdr",
-        ])
+        terms.extend(
+            [
+                "clinical psychologist trauma",
+                "licensed therapist cbt",
+                "trauma specialist emdr",
+            ]
+        )
 
         return terms
 
@@ -261,10 +304,7 @@ class YouTubeChannelHunter:
                     sample
                     for sample in SAMPLE_CHANNELS
                     if lowered_term in sample["name"].lower()
-                    or any(
-                        lowered_term in str(category).lower()
-                        for category in sample.get("categories", [])
-                    )
+                    or any(lowered_term in str(category).lower() for category in sample.get("categories", []))
                 ]
                 if not fallback_samples:
                     fallback_samples = SAMPLE_CHANNELS[:3]
@@ -306,12 +346,14 @@ class YouTubeChannelHunter:
         if not payload:
             return None
 
-        channel_id = payload.get("channel_id") or payload.get("channelId")
+        channel_id = payload.get("channel_id") or payload.get("channelId") or payload.get("id")
         if not channel_id:
             return None
 
         channel_name = payload.get("channelTitle") or payload.get("channel_name") or "Unknown"
-        raw_url = payload.get("channel_url") or payload.get("customUrl") or f"https://www.youtube.com/channel/{channel_id}"
+        raw_url = (
+            payload.get("channel_url") or payload.get("customUrl") or f"https://www.youtube.com/channel/{channel_id}"
+        )
         url = (
             raw_url
             if isinstance(raw_url, str) and raw_url.startswith("http")
@@ -343,7 +385,9 @@ class YouTubeChannelHunter:
 
         raw_categories = payload.get("categories", [])
         categories = [
-            cat if isinstance(cat, ContentCategory) else ContentCategory(cat)
+            cat
+            if isinstance(cat, ContentCategory)
+            else ContentCategory(cat)
             if isinstance(cat, str) and cat in {c.value for c in ContentCategory}
             else ContentCategory.TRAUMA_INFORMED
             for cat in raw_categories
@@ -357,7 +401,7 @@ class YouTubeChannelHunter:
             video_count=videos,
             total_views=views,
             created_date=created,
-            last_updated=datetime.now(timezone.utc),
+            last_updated=datetime.now(UTC),
             categories=categories,
             primary_language="en",
             languages={"en"},
@@ -368,40 +412,22 @@ class YouTubeChannelHunter:
         )
 
     def _evaluate_channel_quality(self, channel: Channel) -> bool:
-        """
-        Evaluate if channel meets quality criteria.
-
-        Args:
-            channel: Channel to evaluate
-
-        Returns:
-            True if channel meets minimum quality standards
-        """
-        # Check subscriber threshold
-        if channel.subscriber_count < self.config.min_subscribers:
+        if channel.subscriber_count > 0 and channel.subscriber_count < self.config.min_subscribers:
             return False
-
-        # Check video count
-        if channel.video_count < self.config.min_videos:
+        if channel.video_count > 0 and channel.video_count < self.config.min_videos:
             return False
-
-        # Check language support
-        if not any(
-            lang in self.config.target_languages
-            for lang in channel.languages
+        if not any(lang in self.config.target_languages for lang in channel.languages):
+            return False
+        if (
+            channel.source == "api_search"
+            and self.config.require_professional
+            and not (channel.is_professional or channel.verified_professional)
         ):
+            pass
+        elif self.config.require_professional and not (channel.is_professional or channel.verified_professional):
             return False
-
-        # Check professional requirement (if configured)
-        if self.config.require_professional and not (
-            channel.is_professional or channel.verified_professional
-        ):
+        if channel.quality_score > 0 and channel.quality_score < self.config.quality_threshold:
             return False
-
-        # Check quality score
-        if channel.quality_score < self.config.quality_threshold:
-            return False
-
         return True
 
 
@@ -429,9 +455,7 @@ class YouTubeAPI:
                 )
                 self._impl = None
 
-    def search_channels(
-        self, query: str, max_results: int = 25
-    ) -> list[dict]:
+    def search_channels(self, query: str, max_results: int = 25) -> list[dict]:
         """
         Search for channels by query.
 
@@ -484,9 +508,7 @@ class YouTubeAPI:
                 }
         return None
 
-    def get_channel_videos(
-        self, channel_id: str, max_results: int = 50
-    ) -> list[dict]:
+    def get_channel_videos(self, channel_id: str, max_results: int = 50) -> list[dict]:
         """
         Get videos from a channel.
 
@@ -561,7 +583,11 @@ class ChannelAnalyzer:
             tags = video.get("tags", video.get("snippet", {}).get("tags", []))
             tags_text = " ".join(str(item) for item in tags).lower()
 
-            clinical_scores.append(0.85 if any(keyword in (text + " " + tags_text) for keyword in ("therapy", "trauma", "cptsd", "cbt", "dbt")) else 0.55)
+            clinical_scores.append(
+                0.85
+                if any(keyword in (text + " " + tags_text) for keyword in ("therapy", "trauma", "cptsd", "cbt", "dbt"))
+                else 0.55
+            )
             content_scores.append(0.8 if len(description) > 25 else 0.55)
 
             metrics_block = video.get("statistics", {})
@@ -571,7 +597,9 @@ class ChannelAnalyzer:
             engagement = (likes + comments) / max(views, 1)
             engagement_scores.append(min(1.0, engagement))
 
-            production_scores.append(0.75 if any(kw in text for kw in ("guid", "step", "exercise", "practice")) else 0.65)
+            production_scores.append(
+                0.75 if any(kw in text for kw in ("guid", "step", "exercise", "practice")) else 0.65
+            )
             consistency_scores.append(0.65 if len(_videos) > 0 else 0.4)
 
         stats.content_quality = sum(content_scores) / len(content_scores)
@@ -604,9 +632,7 @@ class ChannelAnalyzer:
             return "pt"
         return "en"
 
-    def classify_category(
-        self, title: str, description: str, tags: list[str]
-    ) -> set[ContentCategory]:
+    def classify_category(self, title: str, description: str, tags: list[str]) -> set[ContentCategory]:
         """
         Classify channel into therapeutic categories.
 
@@ -630,9 +656,7 @@ class ChannelAnalyzer:
 
         return categories
 
-    def verify_professional(
-        self, description: str, _channel_id: str
-    ) -> tuple[bool, list[str]]:
+    def verify_professional(self, description: str, _channel_id: str) -> tuple[bool, list[str]]:
         """
         Verify professional credentials.
 
@@ -643,7 +667,7 @@ class ChannelAnalyzer:
         Returns:
             Tuple of (is_professional, list of found credentials)
         """
-        text = description.lower()
+        text = (description or "").lower()
         found_credentials = []
 
         # Check credential keywords
@@ -658,9 +682,7 @@ class ChannelAnalyzer:
 
         return is_professional, found_credentials
 
-    def extract_licensing_info(
-        self, _description: str, _video_descriptions: list[str]
-    ) -> LicensingInfo:
+    def extract_licensing_info(self, _description: str, _video_descriptions: list[str]) -> LicensingInfo:
         """
         Extract licensing information from descriptions.
 
@@ -671,7 +693,7 @@ class ChannelAnalyzer:
         Returns:
             LicensingInfo object
         """
-        text = " ".join([_description, *(_video_descriptions or [])]).lower()
+        text = " ".join([_description or "", *((d or "") for d in (_video_descriptions or []))]).lower()
         if "creative commons" in text or "cc by" in text:
             cc_type = "BY-SA" if "sa" in text else ("BY-NC" if "non-commercial" in text else "BY")
             return LicensingInfo(
@@ -682,7 +704,7 @@ class ChannelAnalyzer:
                 modification_allowed="no derivatives" not in text,
                 share_alike="by-sa" in text,
                 notes="Detected Creative Commons pattern in content.",
-                verified_date=datetime.now(timezone.utc),
+                verified_date=datetime.now(UTC),
             )
         return LicensingInfo(notes="No explicit licensing statement found.")
 

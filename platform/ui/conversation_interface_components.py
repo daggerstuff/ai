@@ -12,6 +12,7 @@ import logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
+
 class ConversationInterfaceBuilder:
     """Builder for immersive conversation interface components"""
 
@@ -33,8 +34,8 @@ class ConversationInterfaceBuilder:
                 "Message composition",
                 "Therapeutic response suggestions",
                 "Crisis detection alerts",
-                "Session timing"
-            ]
+                "Session timing",
+            ],
         }
 
         # Client Avatar with Emotional Display
@@ -48,8 +49,8 @@ class ConversationInterfaceBuilder:
                 "Voice tone visualization",
                 "Eye contact patterns",
                 "Stress level indicators",
-                "Breakthrough moment celebrations"
-            ]
+                "Breakthrough moment celebrations",
+            ],
         }
 
         # Message Composer with AI Assistance
@@ -63,8 +64,8 @@ class ConversationInterfaceBuilder:
                 "Intervention type selection",
                 "Character count and guidance",
                 "Send confidence indicator",
-                "Emergency intervention button"
-            ]
+                "Emergency intervention button",
+            ],
         }
 
         # Real-time Feedback Overlay
@@ -78,8 +79,8 @@ class ConversationInterfaceBuilder:
                 "Resistance level monitoring",
                 "Crisis risk alerts",
                 "Breakthrough opportunity highlights",
-                "Supervisor notifications"
-            ]
+                "Supervisor notifications",
+            ],
         }
 
     def _generate_chat_interface_react(self) -> str:
@@ -610,7 +611,6 @@ export const MessageComposer = ({
 
         # Save React components
         for _component_name, component_data in self.conversation_components.items():
-
             # Save React component
             react_file = components_dir / f"{component_data['component_type']}.jsx"
             with open(react_file, "w") as f:
@@ -632,7 +632,7 @@ export const MessageComposer = ({
         return {
             "components_saved": len(self.conversation_components),
             "output_directory": str(components_dir),
-            "react_components": list(self.conversation_components.keys())
+            "react_components": list(self.conversation_components.keys()),
         }
 
     def _generate_component_documentation(self) -> str:
@@ -693,6 +693,7 @@ import { MessageComposer } from './MessageComposer';
 Each component includes responsive CSS with the Pixelated Empathy theme colors and professional therapeutic design.
 """
 
+
 def main():
     """Generate conversation interface components"""
     logger.info("🎨 Generating Conversation Interface Components")
@@ -703,6 +704,7 @@ def main():
     logger.info("✅ Conversation Interface Components Complete!")
     logger.info(f"📱 Components created: {result['components_saved']}")
     logger.info(f"📁 Saved to: {result['output_directory']}")
+
 
 if __name__ == "__main__":
     main()

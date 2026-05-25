@@ -26,7 +26,7 @@ class CriticalTestFixer:
             "pipeline_orchestrator",
             "adaptive_learner",
             "therapeutic_response_generator",
-            "analytics_dashboard"
+            "analytics_dashboard",
         ]
 
     def get_critical_test_files(self) -> list[Path]:
@@ -35,11 +35,7 @@ class CriticalTestFixer:
 
         # Find test files for critical modules
         for module in self.critical_modules:
-            test_patterns = [
-                f"test_{module}.py",
-                f"test_{module}_*.py",
-                f"*test_{module}.py"
-            ]
+            test_patterns = [f"test_{module}.py", f"test_{module}_*.py", f"*test_{module}.py"]
 
             for pattern in test_patterns:
                 critical_tests.extend(self.project_root.rglob(pattern))
@@ -50,7 +46,7 @@ class CriticalTestFixer:
             "**/test_safety_*.py",
             "**/test_clinical_*.py",
             "**/test_production_*.py",
-            "**/test_therapeutic_*.py"
+            "**/test_therapeutic_*.py",
         ]
 
         for pattern in critical_patterns:
@@ -99,7 +95,7 @@ class CriticalTestFixer:
                 "pipeline_orchestrator": "from ai.pipelines.orchestrator.pipeline_orchestrator import PipelineOrchestrator",
                 "adaptive_learner": "from ai.pipelines.orchestrator.adaptive_learner import AdaptiveLearner",
                 "therapeutic_response_generator": "from ai.pipelines.orchestrator.therapeutic_response_generator import TherapeuticResponseGenerator",
-                "analytics_dashboard": "from ai.pipelines.orchestrator.analytics_dashboard import AnalyticsDashboard"
+                "analytics_dashboard": "from ai.pipelines.orchestrator.analytics_dashboard import AnalyticsDashboard",
             }
 
             for module, import_line in module_fixes.items():
@@ -133,16 +129,16 @@ from typing import Dict, List, Optional, Union, Any
 
 # Import the module being tested
 try:
-    from ai.pipelines.orchestrator.{module_name} import {module_name.title().replace('_', '')}
+    from ai.pipelines.orchestrator.{module_name} import {module_name.title().replace("_", "")}
 except ImportError:
     try:
-        from ai.models.pixel_core.validation.{module_name} import {module_name.title().replace('_', '')}
+        from ai.models.pixel_core.validation.{module_name} import {module_name.title().replace("_", "")}
     except ImportError:
         try:
-            from ai.inference.{module_name} import {module_name.title().replace('_', '')}
+            from ai.inference.{module_name} import {module_name.title().replace("_", "")}
         except ImportError:
             # Create a mock class for testing
-            class {module_name.title().replace('_', '')}:
+            class {module_name.title().replace("_", "")}:
                 def __init__(self):
                     pass
 
@@ -150,12 +146,12 @@ except ImportError:
                     return data
 
 
-class Test{module_name.title().replace('_', '')}(unittest.TestCase):
-    """Test suite for {module_name.title().replace('_', '')} class."""
+class Test{module_name.title().replace("_", "")}(unittest.TestCase):
+    """Test suite for {module_name.title().replace("_", "")} class."""
 
     def setUp(self):
         """Set up test fixtures."""
-        self.module = {module_name.title().replace('_', '')}()
+        self.module = {module_name.title().replace("_", "")}()
         self.test_data = {{"test": "data"}}
 
     def test_initialization(self):
@@ -179,12 +175,12 @@ class Test{module_name.title().replace('_', '')}(unittest.TestCase):
         # Add specific logging tests here
 
 
-class Test{module_name.title().replace('_', '')}Integration(unittest.TestCase):
-    """Integration tests for {module_name.title().replace('_', '')}."""
+class Test{module_name.title().replace("_", "")}Integration(unittest.TestCase):
+    """Integration tests for {module_name.title().replace("_", "")}."""
 
     def setUp(self):
         """Set up integration test fixtures."""
-        self.module = {module_name.title().replace('_', '')}()
+        self.module = {module_name.title().replace("_", "")}()
 
     def test_integration_workflow(self):
         """Test complete integration workflow."""
@@ -202,12 +198,7 @@ if __name__ == '__main__':
 
     def run_specific_tests(self, test_files: list[Path]) -> dict[str, int]:
         """Run specific test files and return results."""
-        results = {
-            "passed": 0,
-            "failed": 0,
-            "errors": 0,
-            "collected": 0
-        }
+        results = {"passed": 0, "failed": 0, "errors": 0, "collected": 0}
 
         for test_file in test_files[:5]:  # Test first 5 files
             try:
@@ -216,7 +207,7 @@ if __name__ == '__main__':
                     cwd=self.project_root,
                     capture_output=True,
                     text=True,
-                    timeout=30
+                    timeout=30,
                 )
 
                 output = result.stdout + result.stderr
@@ -247,12 +238,11 @@ if __name__ == '__main__':
 
                 # Run coverage on specific module
                 result = subprocess.run(
-                    [sys.executable, "-m", "pytest", f"--cov={module_file.parent}",
-                     "--cov-report=term", "-k", module],
+                    [sys.executable, "-m", "pytest", f"--cov={module_file.parent}", "--cov-report=term", "-k", module],
                     cwd=self.project_root,
                     capture_output=True,
                     text=True,
-                    timeout=60
+                    timeout=60,
                 )
 
                 # Extract coverage percentage
@@ -279,7 +269,6 @@ if __name__ == '__main__':
             if self.fix_import_errors(test_file):
                 fixed_count += 1
 
-
         # Step 3: Create basic test structures for missing tests
         for module in self.critical_modules:
             test_file = self.project_root / "tests" / f"test_{module}.py"
@@ -299,14 +288,10 @@ if __name__ == '__main__':
         report_file = self.project_root / "qa" / "reports" / "critical_test_fix_report.md"
         report_file.write_text(report)
 
-
     def generate_critical_report(self, test_results: dict, coverage_results: dict) -> str:
         """Generate a report for critical test fixes."""
 
-        coverage_summary = "\n".join([
-            f"- {module}: {coverage:.1f}%"
-            for module, coverage in coverage_results.items()
-        ])
+        coverage_summary = "\n".join([f"- {module}: {coverage:.1f}%" for module, coverage in coverage_results.items()])
 
         avg_coverage = sum(coverage_results.values()) / len(coverage_results) if coverage_results else 0
 
@@ -319,16 +304,16 @@ if __name__ == '__main__':
 - Average coverage: {avg_coverage:.1f}%
 
 ## Test Results
-- Tests collected: {test_results['collected']}
-- Tests passed: {test_results['passed']}
-- Tests failed: {test_results['failed']}
-- Test errors: {test_results['errors']}
+- Tests collected: {test_results["collected"]}
+- Tests passed: {test_results["passed"]}
+- Tests failed: {test_results["failed"]}
+- Test errors: {test_results["errors"]}
 
 ## Coverage by Critical Module
 {coverage_summary}
 
 ## Critical Modules Status
-{'✅ Ready for production' if avg_coverage > 80 else '❌ Needs more coverage'}
+{"✅ Ready for production" if avg_coverage > 80 else "❌ Needs more coverage"}
 
 ## Next Steps
 1. Implement comprehensive tests for modules with <80% coverage
@@ -337,9 +322,9 @@ if __name__ == '__main__':
 4. Validate safety-critical functionality
 
 ## Production Readiness Assessment
-- Safety Systems: {'✅ Covered' if coverage_results.get('safety_ethics_validator', 0) > 90 else '❌ Insufficient coverage'}
-- Crisis Detection: {'✅ Covered' if coverage_results.get('crisis_intervention_detector', 0) > 90 else '❌ Insufficient coverage'}
-- Clinical Validation: {'✅ Covered' if coverage_results.get('clinical_accuracy_validator', 0) > 90 else '❌ Insufficient coverage'}
+- Safety Systems: {"✅ Covered" if coverage_results.get("safety_ethics_validator", 0) > 90 else "❌ Insufficient coverage"}
+- Crisis Detection: {"✅ Covered" if coverage_results.get("crisis_intervention_detector", 0) > 90 else "❌ Insufficient coverage"}
+- Clinical Validation: {"✅ Covered" if coverage_results.get("clinical_accuracy_validator", 0) > 90 else "❌ Insufficient coverage"}
 """
 
 

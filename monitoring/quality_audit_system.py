@@ -9,7 +9,7 @@ import logging
 import sqlite3
 import warnings
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -139,15 +139,13 @@ class QualityAuditSystem:
             remediation_plan = self._generate_remediation_plan(audit_records)
 
             # Determine certification status
-            certification_status = self._determine_certification_status(
-                compliance_score, audit_records
-            )
+            certification_status = self._determine_certification_status(compliance_score, audit_records)
 
             # Create comprehensive report
             report = ComplianceReport(
-                report_id=f"QAR_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
-                generated_at=datetime.now(timezone.utc),
-                reporting_period=f"{datetime.now(timezone.utc).strftime('%Y-%m')}",
+                report_id=f"QAR_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
+                generated_at=datetime.now(UTC),
+                reporting_period=f"{datetime.now(UTC).strftime('%Y-%m')}",
                 compliance_framework=framework,
                 overall_compliance_score=compliance_score,
                 audit_records=audit_records,
@@ -157,16 +155,14 @@ class QualityAuditSystem:
                 certification_status=certification_status,
             )
 
-            logger.info(
-                f"Audit complete: {len(audit_records)} findings, {compliance_score:.1f}% compliance"
-            )
+            logger.info(f"Audit complete: {len(audit_records)} findings, {compliance_score:.1f}% compliance")
             return report
 
         except Exception:
             logger.exception(f"Error conducting audit for framework: {framework}")
             return ComplianceReport(
                 report_id="ERROR",
-                generated_at=datetime.now(timezone.utc),
+                generated_at=datetime.now(UTC),
                 reporting_period="",
                 compliance_framework=framework,
                 overall_compliance_score=0.0,
@@ -224,9 +220,7 @@ class QualityAuditSystem:
             cursor = conn.execute("SELECT COUNT(DISTINCT dataset_source) FROM conversations")
             unique_datasets = cursor.fetchone()[0]
 
-            cursor = conn.execute(
-                "SELECT COUNT(*) FROM conversations WHERE processing_status = 'processed'"
-            )
+            cursor = conn.execute("SELECT COUNT(*) FROM conversations WHERE processing_status = 'processed'")
             processed_conversations = cursor.fetchone()[0]
 
             conn.close()
@@ -247,16 +241,14 @@ class QualityAuditSystem:
                 "unique_datasets": unique_datasets,
                 "processed_conversations": processed_conversations,
                 "quality_metrics": quality_metrics,
-                "audit_timestamp": datetime.now(timezone.utc),
+                "audit_timestamp": datetime.now(UTC),
             }
 
         except Exception:
             logger.exception("Error getting audit data from database")
             return {}
 
-    def _audit_quality_metrics(
-        self, quality_data: dict[str, Any], framework: str
-    ) -> list[AuditRecord]:
+    def _audit_quality_metrics(self, quality_data: dict[str, Any], framework: str) -> list[AuditRecord]:
         """Audit quality metrics against framework requirements"""
         audit_records = []
 
@@ -277,9 +269,7 @@ class QualityAuditSystem:
                     status = "warning"
                     risk_level = "medium"
                     finding = f"{metric.replace('_', ' ').title()} approaching compliance threshold"
-                    recommendation = (
-                        f"Implement improvements to strengthen {metric.replace('_', ' ')}"
-                    )
+                    recommendation = f"Implement improvements to strengthen {metric.replace('_', ' ')}"
                 else:
                     status = "fail"
                     risk_level = "high" if metric == "safety_score" else "medium"
@@ -287,8 +277,8 @@ class QualityAuditSystem:
                     recommendation = f"URGENT: Address {metric.replace('_', ' ')} compliance gap"
 
                 audit_record = AuditRecord(
-                    audit_id=f"QM_{metric}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
-                    timestamp=datetime.now(timezone.utc),
+                    audit_id=f"QM_{metric}_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
+                    timestamp=datetime.now(UTC),
                     audit_type="quality_check",
                     component=f"quality_metrics.{metric}",
                     status=status,
@@ -297,7 +287,7 @@ class QualityAuditSystem:
                         "current_value": value,
                         "required_threshold": threshold,
                         "compliance_gap": threshold - value if value < threshold else 0,
-                        "measurement_date": datetime.now(timezone.utc).isoformat(),
+                        "measurement_date": datetime.now(UTC).isoformat(),
                     },
                     risk_level=risk_level,
                     recommendation=recommendation,
@@ -319,8 +309,8 @@ class QualityAuditSystem:
         # Data retention audit
         audit_records.append(
             AuditRecord(
-                audit_id=f"DG_RETENTION_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
-                timestamp=datetime.now(timezone.utc),
+                audit_id=f"DG_RETENTION_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
+                timestamp=datetime.now(UTC),
                 audit_type="compliance_review",
                 component="data_governance.retention",
                 status="pass",
@@ -339,8 +329,8 @@ class QualityAuditSystem:
         # Data lineage audit
         audit_records.append(
             AuditRecord(
-                audit_id=f"DG_LINEAGE_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
-                timestamp=datetime.now(timezone.utc),
+                audit_id=f"DG_LINEAGE_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
+                timestamp=datetime.now(UTC),
                 audit_type="compliance_review",
                 component="data_governance.lineage",
                 status="warning",
@@ -365,8 +355,8 @@ class QualityAuditSystem:
         # Access control audit
         audit_records.append(
             AuditRecord(
-                audit_id=f"SEC_ACCESS_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
-                timestamp=datetime.now(timezone.utc),
+                audit_id=f"SEC_ACCESS_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
+                timestamp=datetime.now(UTC),
                 audit_type="security_audit",
                 component="security.access_control",
                 status="pass",
@@ -386,8 +376,8 @@ class QualityAuditSystem:
         # Encryption audit
         audit_records.append(
             AuditRecord(
-                audit_id=f"SEC_ENCRYPTION_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
-                timestamp=datetime.now(timezone.utc),
+                audit_id=f"SEC_ENCRYPTION_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
+                timestamp=datetime.now(UTC),
                 audit_type="security_audit",
                 component="security.encryption",
                 status="pass",
@@ -413,8 +403,8 @@ class QualityAuditSystem:
         # Backup and recovery audit
         audit_records.append(
             AuditRecord(
-                audit_id=f"OPS_BACKUP_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
-                timestamp=datetime.now(timezone.utc),
+                audit_id=f"OPS_BACKUP_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
+                timestamp=datetime.now(UTC),
                 audit_type="operational_audit",
                 component="operations.backup_recovery",
                 status="pass",
@@ -423,7 +413,7 @@ class QualityAuditSystem:
                     "backup_frequency": "daily",
                     "backup_retention": "90_days",
                     "recovery_testing": "monthly",
-                    "last_recovery_test": (datetime.now(timezone.utc) - timedelta(days=15)).isoformat(),
+                    "last_recovery_test": (datetime.now(UTC) - timedelta(days=15)).isoformat(),
                 },
                 risk_level="low",
                 recommendation="Maintain current backup and recovery schedule",
@@ -434,8 +424,8 @@ class QualityAuditSystem:
         # Monitoring audit
         audit_records.append(
             AuditRecord(
-                audit_id=f"OPS_MONITORING_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
-                timestamp=datetime.now(timezone.utc),
+                audit_id=f"OPS_MONITORING_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
+                timestamp=datetime.now(UTC),
                 audit_type="operational_audit",
                 component="operations.monitoring",
                 status="warning",
@@ -482,8 +472,8 @@ class QualityAuditSystem:
                 recommendation = f"URGENT: Address {requirement.lower()} compliance gaps"
 
             audit_record = AuditRecord(
-                audit_id=f"COMP_{framework.upper()}_{i}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
-                timestamp=datetime.now(timezone.utc),
+                audit_id=f"COMP_{framework.upper()}_{i}_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
+                timestamp=datetime.now(UTC),
                 audit_type="compliance_review",
                 component=f"compliance.{framework}.{requirement.lower().replace(' ', '_')}",
                 status=status,
@@ -492,7 +482,7 @@ class QualityAuditSystem:
                     "compliance_score": compliance_score,
                     "framework": framework,
                     "requirement": requirement,
-                    "assessment_date": datetime.now(timezone.utc).isoformat(),
+                    "assessment_date": datetime.now(UTC).isoformat(),
                 },
                 risk_level=risk_level,
                 recommendation=recommendation,
@@ -503,9 +493,7 @@ class QualityAuditSystem:
 
         return audit_records
 
-    def _calculate_compliance_score(
-        self, audit_records: list[AuditRecord], framework: str
-    ) -> float:
+    def _calculate_compliance_score(self, audit_records: list[AuditRecord], framework: str) -> float:
         """Calculate overall compliance score"""
         try:
             if not audit_records:
@@ -538,9 +526,7 @@ class QualityAuditSystem:
             logger.exception(f"Error calculating compliance score for framework: {framework}")
             return 0.0
 
-    def _create_compliance_summary(
-        self, audit_records: list[AuditRecord], framework: str
-    ) -> dict[str, Any]:
+    def _create_compliance_summary(self, audit_records: list[AuditRecord], framework: str) -> dict[str, Any]:
         """Create compliance summary"""
         try:
             status_counts = pd.Series([r.status for r in audit_records]).value_counts().to_dict()
@@ -550,13 +536,11 @@ class QualityAuditSystem:
                 "total_audits": len(audit_records),
                 "status_distribution": status_counts,
                 "risk_distribution": risk_counts,
-                "pass_rate": (status_counts.get("pass", 0) / len(audit_records)) * 100
-                if audit_records
-                else 0,
+                "pass_rate": (status_counts.get("pass", 0) / len(audit_records)) * 100 if audit_records else 0,
                 "critical_findings": len([r for r in audit_records if r.risk_level == "critical"]),
                 "high_risk_findings": len([r for r in audit_records if r.risk_level == "high"]),
                 "framework_compliance": framework,
-                "audit_date": datetime.now(timezone.utc).isoformat(),
+                "audit_date": datetime.now(UTC).isoformat(),
             }
 
         except Exception:
@@ -572,9 +556,7 @@ class QualityAuditSystem:
             total_risk_score = sum(risk_scores.get(r.risk_level, 0) for r in audit_records)
             max_possible_score = len(audit_records) * 10
 
-            risk_percentage = (
-                (total_risk_score / max_possible_score) * 100 if max_possible_score > 0 else 0
-            )
+            risk_percentage = (total_risk_score / max_possible_score) * 100 if max_possible_score > 0 else 0
 
             # Risk level determination
             if risk_percentage >= 70:
@@ -632,13 +614,9 @@ class QualityAuditSystem:
 
         return remediation_items[:10]  # Top 10 items
 
-    def _determine_certification_status(
-        self, compliance_score: float, audit_records: list[AuditRecord]
-    ) -> str:
+    def _determine_certification_status(self, compliance_score: float, audit_records: list[AuditRecord]) -> str:
         """Determine certification status"""
-        critical_failures = len(
-            [r for r in audit_records if r.status == "fail" and r.risk_level == "critical"]
-        )
+        critical_failures = len([r for r in audit_records if r.status == "fail" and r.risk_level == "critical"])
 
         if critical_failures > 0:
             return "failed"
@@ -653,7 +631,7 @@ class QualityAuditSystem:
         logger.info("Exporting audit report...")
 
         try:
-            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
             report_file = self.output_dir / f"quality_audit_report_{timestamp}.json"
 
             # Prepare export data
@@ -669,12 +647,8 @@ class QualityAuditSystem:
                     "overall_compliance_score": report.overall_compliance_score,
                     "certification_status": report.certification_status,
                     "total_audit_findings": len(report.audit_records),
-                    "critical_findings": len(
-                        [r for r in report.audit_records if r.risk_level == "critical"]
-                    ),
-                    "high_risk_findings": len(
-                        [r for r in report.audit_records if r.risk_level == "high"]
-                    ),
+                    "critical_findings": len([r for r in report.audit_records if r.risk_level == "critical"]),
+                    "high_risk_findings": len([r for r in report.audit_records if r.risk_level == "high"]),
                     "remediation_items": len(report.remediation_plan),
                 },
                 "compliance_summary": report.compliance_summary,
@@ -697,8 +671,8 @@ class QualityAuditSystem:
                 "remediation_plan": report.remediation_plan,
                 "certification_details": {
                     "status": report.certification_status,
-                    "valid_until": (datetime.now(timezone.utc) + timedelta(days=365)).isoformat(),
-                    "next_audit_due": (datetime.now(timezone.utc) + timedelta(days=90)).isoformat(),
+                    "valid_until": (datetime.now(UTC) + timedelta(days=365)).isoformat(),
+                    "next_audit_due": (datetime.now(UTC) + timedelta(days=90)).isoformat(),
                 },
             }
 
@@ -743,15 +717,7 @@ def main():
     status_counts = pd.Series([r.status for r in report.audit_records]).value_counts()
     logger.info("\n📊 Audit Summary:")
     for status, count in status_counts.items():
-        icon = (
-            "✅"
-            if status == "pass"
-            else "⚠️"
-            if status == "warning"
-            else "❌"
-            if status == "fail"
-            else "ℹ️"
-        )
+        icon = "✅" if status == "pass" else "⚠️" if status == "warning" else "❌" if status == "fail" else "ℹ️"
         logger.info(f"   {icon} {status.title()}: {count}")
 
     # Show top risks

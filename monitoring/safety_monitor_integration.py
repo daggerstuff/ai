@@ -24,7 +24,7 @@ import logging
 import time
 from collections.abc import Callable
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -35,15 +35,14 @@ import numpy as np
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.FileHandler("/home/vivi/pixelated/ai/logs/safety_monitoring.log"),
-        logging.StreamHandler()
-    ]
+    handlers=[logging.FileHandler("/home/vivi/pixelated/ai/logs/safety_monitoring.log"), logging.StreamHandler()],
 )
 logger = logging.getLogger(__name__)
 
+
 class SafetyLevel(Enum):
     """Safety risk levels"""
+
     SAFE = "safe"
     LOW_RISK = "low_risk"
     MEDIUM_RISK = "medium_risk"
@@ -51,8 +50,10 @@ class SafetyLevel(Enum):
     CRITICAL_RISK = "critical_risk"
     EMERGENCY = "emergency"
 
+
 class AlertChannel(Enum):
     """Alert delivery channels"""
+
     SMS = "sms"
     EMAIL = "email"
     PUSH_NOTIFICATION = "push"
@@ -60,9 +61,11 @@ class AlertChannel(Enum):
     DASHBOARD = "dashboard"
     WEBHOOK = "webhook"
 
+
 @dataclass
 class SafetyMetrics:
     """Real-time safety metrics"""
+
     user_id: str
     session_id: str
     timestamp: datetime
@@ -73,9 +76,11 @@ class SafetyMetrics:
     anomaly_detected: bool
     context_factors: dict[str, Any]
 
+
 @dataclass
 class SafetyAlert:
     """Safety alert information"""
+
     alert_id: str
     user_id: str
     safety_level: SafetyLevel
@@ -87,9 +92,11 @@ class SafetyAlert:
     response_required: bool
     clinical_notes: str
 
+
 @dataclass
 class ClinicalContact:
     """Clinical staff contact information"""
+
     contact_id: str
     name: str
     role: str
@@ -99,6 +106,7 @@ class ClinicalContact:
     availability_hours: dict[str, str]
     escalation_level: int
     response_time_sla: int  # minutes
+
 
 class SafetyMonitor:
     """Real-time safety monitoring system"""
@@ -119,7 +127,7 @@ class SafetyMonitor:
             SafetyLevel.MEDIUM_RISK: 0.4,
             SafetyLevel.HIGH_RISK: 0.6,
             SafetyLevel.CRITICAL_RISK: 0.8,
-            SafetyLevel.EMERGENCY: 0.9
+            SafetyLevel.EMERGENCY: 0.9,
         }
 
         # Alert callbacks
@@ -159,7 +167,7 @@ class SafetyMonitor:
                     specialization=["Crisis Intervention", "Suicide Prevention"],
                     availability_hours={"24/7": "Always available"},
                     escalation_level=1,
-                    response_time_sla=5
+                    response_time_sla=5,
                 ),
                 ClinicalContact(
                     contact_id="clinical_002",
@@ -170,7 +178,7 @@ class SafetyMonitor:
                     specialization=["Clinical Oversight", "Risk Assessment"],
                     availability_hours={"business": "8AM-6PM EST", "emergency": "24/7"},
                     escalation_level=2,
-                    response_time_sla=15
+                    response_time_sla=15,
                 ),
                 ClinicalContact(
                     contact_id="medical_003",
@@ -181,8 +189,8 @@ class SafetyMonitor:
                     specialization=["Medical Oversight", "Emergency Response"],
                     availability_hours={"emergency": "24/7"},
                     escalation_level=3,
-                    response_time_sla=30
-                )
+                    response_time_sla=30,
+                ),
             ]
 
             # Save contacts
@@ -211,11 +219,12 @@ class SafetyMonitor:
             AlertChannel.PUSH_NOTIFICATION: self._send_push_alert,
             AlertChannel.PHONE_CALL: self._make_phone_call,
             AlertChannel.DASHBOARD: self._update_dashboard,
-            AlertChannel.WEBHOOK: self._send_webhook
+            AlertChannel.WEBHOOK: self._send_webhook,
         }
 
-    async def process_user_interaction(self, user_id: str, session_id: str,
-                                     interaction_data: dict[str, Any]) -> SafetyMetrics:
+    async def process_user_interaction(
+        self, user_id: str, session_id: str, interaction_data: dict[str, Any]
+    ) -> SafetyMetrics:
         """Process user interaction and calculate safety metrics"""
 
         # Calculate risk score (simplified ML model simulation)
@@ -234,13 +243,13 @@ class SafetyMonitor:
         metrics = SafetyMetrics(
             user_id=user_id,
             session_id=session_id,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             risk_score=risk_score,
             safety_level=safety_level,
             confidence=0.85,  # Simplified confidence score
             trend_direction=trend_direction,
             anomaly_detected=anomaly_detected,
-            context_factors=interaction_data.get("context", {})
+            context_factors=interaction_data.get("context", {}),
         )
 
         # Store metrics
@@ -259,15 +268,9 @@ class SafetyMonitor:
         text = interaction_data.get("text", "").lower()
 
         # Crisis keywords with different weights
-        high_risk_keywords = [
-            "suicide", "kill myself", "end it all", "ending it all", "can't take this anymore"
-        ]
-        medium_risk_keywords = [
-            "hurt myself", "hurting myself", "die", "death", "hopeless", "worthless"
-        ]
-        low_risk_keywords = [
-            "stressed", "overwhelmed", "anxious", "depressed", "sad"
-        ]
+        high_risk_keywords = ["suicide", "kill myself", "end it all", "ending it all", "can't take this anymore"]
+        medium_risk_keywords = ["hurt myself", "hurting myself", "die", "death", "hopeless", "worthless"]
+        low_risk_keywords = ["stressed", "overwhelmed", "anxious", "depressed", "sad"]
 
         # Calculate base risk from keywords
         risk_score = 0.0
@@ -358,7 +361,7 @@ class SafetyMonitor:
         conditions = [
             metrics.safety_level in [SafetyLevel.CRITICAL_RISK, SafetyLevel.EMERGENCY],
             metrics.anomaly_detected and metrics.safety_level == SafetyLevel.HIGH_RISK,
-            metrics.trend_direction == "increasing" and metrics.risk_score > 0.6
+            metrics.trend_direction == "increasing" and metrics.risk_score > 0.6,
         ]
 
         return any(conditions)
@@ -377,7 +380,7 @@ class SafetyMonitor:
             escalation_level=1,
             channels_notified=[],
             response_required=True,
-            clinical_notes=f"Automated alert triggered. Anomaly: {metrics.anomaly_detected}, Trend: {metrics.trend_direction}"
+            clinical_notes=f"Automated alert triggered. Anomaly: {metrics.anomaly_detected}, Trend: {metrics.trend_direction}",
         )
 
         # Determine escalation level based on safety level
@@ -458,18 +461,18 @@ class SafetyMonitor:
     async def get_safety_dashboard_data(self) -> dict[str, Any]:
         """Get data for safety monitoring dashboard"""
 
-        current_time = datetime.now(timezone.utc)
+        current_time = datetime.now(UTC)
 
         # Active high-risk sessions
         high_risk_sessions = [
-            metrics for metrics in self.active_sessions.values()
+            metrics
+            for metrics in self.active_sessions.values()
             if metrics.safety_level in [SafetyLevel.HIGH_RISK, SafetyLevel.CRITICAL_RISK, SafetyLevel.EMERGENCY]
         ]
 
         # Recent alerts (last 24 hours)
         recent_alerts = [
-            alert for alert in self.alert_history
-            if (current_time - alert.timestamp).total_seconds() < 86400
+            alert for alert in self.alert_history if (current_time - alert.timestamp).total_seconds() < 86400
         ]
 
         # Calculate statistics
@@ -489,7 +492,7 @@ class SafetyMonitor:
                     "risk_score": metrics.risk_score,
                     "safety_level": metrics.safety_level.value,
                     "trend": metrics.trend_direction,
-                    "last_update": metrics.timestamp.isoformat()
+                    "last_update": metrics.timestamp.isoformat(),
                 }
                 for metrics in high_risk_sessions
             ],
@@ -500,7 +503,7 @@ class SafetyMonitor:
                     "safety_level": alert.safety_level.value,
                     "risk_score": alert.risk_score,
                     "timestamp": alert.timestamp.isoformat(),
-                    "channels_notified": [c.value for c in alert.channels_notified]
+                    "channels_notified": [c.value for c in alert.channels_notified],
                 }
                 for alert in recent_alerts[-10:]  # Last 10 alerts
             ],
@@ -508,9 +511,10 @@ class SafetyMonitor:
                 "anomaly_detection": "OPERATIONAL",
                 "alert_system": "OPERATIONAL",
                 "clinical_contacts": len(self.clinical_contacts),
-                "response_time_sla": "5 minutes"
-            }
+                "response_time_sla": "5 minutes",
+            },
         }
+
 
 async def main():
     """Main execution function for testing"""
@@ -527,40 +531,35 @@ async def main():
             "session_id": "session_001",
             "interaction_data": {
                 "text": "I'm feeling a bit stressed about work today",
-                "context": {"time_of_day": "morning", "previous_risk_level": "low"}
-            }
+                "context": {"time_of_day": "morning", "previous_risk_level": "low"},
+            },
         },
         {
             "user_id": "user_002",
             "session_id": "session_002",
             "interaction_data": {
                 "text": "I can't take this anymore. I'm thinking about ending it all",
-                "context": {"time_of_day": "night", "previous_risk_level": "medium"}
-            }
+                "context": {"time_of_day": "night", "previous_risk_level": "medium"},
+            },
         },
         {
             "user_id": "user_003",
             "session_id": "session_003",
             "interaction_data": {
                 "text": "I've been having thoughts of hurting myself",
-                "context": {"time_of_day": "evening", "previous_risk_level": "high"}
-            }
-        }
+                "context": {"time_of_day": "evening", "previous_risk_level": "high"},
+            },
+        },
     ]
-
 
     # Process interactions
     for interaction in test_interactions:
         await monitor.process_user_interaction(
-            interaction["user_id"],
-            interaction["session_id"],
-            interaction["interaction_data"]
+            interaction["user_id"], interaction["session_id"], interaction["interaction_data"]
         )
-
 
     # Get dashboard data
     dashboard_data = await monitor.get_safety_dashboard_data()
-
 
     if dashboard_data["high_risk_users"]:
         for _user in dashboard_data["high_risk_users"]:
@@ -570,8 +569,8 @@ async def main():
         for _alert in dashboard_data["recent_alerts"]:
             pass
 
-
     return True
+
 
 if __name__ == "__main__":
     asyncio.run(main())

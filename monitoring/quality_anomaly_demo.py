@@ -9,7 +9,7 @@ import random
 import sqlite3
 import warnings
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -130,9 +130,7 @@ class QualityAnomalyDemo:
         except Exception:
             return []
 
-    def _create_metric_anomalies(
-        self, base_data: list[dict], metric: str
-    ) -> list[QualityAnomaly]:
+    def _create_metric_anomalies(self, base_data: list[dict], metric: str) -> list[QualityAnomaly]:
         """Create synthetic anomalies for a metric"""
         try:
             # Calculate baseline statistics
@@ -155,9 +153,7 @@ class QualityAnomalyDemo:
         except Exception:
             return []
 
-    def _calculate_baseline_value(
-        self, data: list[dict], metric: str
-    ) -> float | None:
+    def _calculate_baseline_value(self, data: list[dict], metric: str) -> float | None:
         """Calculate baseline value for a metric"""
         try:
             if metric == "conversation_length":
@@ -168,20 +164,14 @@ class QualityAnomalyDemo:
                 return np.mean(values) if values else None
             if metric == "processing_efficiency":
                 total = len(data)
-                successful = len(
-                    [r for r in data if r["processing_status"] == "processed"]
-                )
+                successful = len([r for r in data if r["processing_status"] == "processed"])
                 return (successful / total) * 100 if total > 0 else None
             if metric == "tier_quality":
                 total = len(data)
-                priority = len(
-                    [r for r in data if r["tier"] and "priority" in str(r["tier"])]
-                )
+                priority = len([r for r in data if r["tier"] and "priority" in str(r["tier"])])
                 return (priority / total) * 100 if total > 0 else None
             if metric == "dataset_diversity":
-                unique_datasets = len(
-                    set(r["dataset_source"] for r in data if r["dataset_source"])
-                )
+                unique_datasets = len(set(r["dataset_source"] for r in data if r["dataset_source"]))
                 return float(unique_datasets)
 
             return None
@@ -189,9 +179,7 @@ class QualityAnomalyDemo:
         except Exception:
             return None
 
-    def _create_synthetic_anomaly(
-        self, metric: str, baseline_value: float, _index: int
-    ) -> QualityAnomaly | None:
+    def _create_synthetic_anomaly(self, metric: str, baseline_value: float, _index: int) -> QualityAnomaly | None:
         """Create a synthetic anomaly"""
         try:
             # Define anomaly scenarios
@@ -224,7 +212,7 @@ class QualityAnomalyDemo:
             deviation = anomalous_value - baseline_value
 
             # Create timestamp (recent)
-            timestamp = datetime.now(timezone.utc) - timedelta(hours=random.randint(1, 24))
+            timestamp = datetime.now(UTC) - timedelta(hours=random.randint(1, 24))
 
             # Calculate confidence
             confidence = min(0.99, abs(z_score) / 4.0)
@@ -274,9 +262,7 @@ class QualityAnomalyDemo:
         except Exception:
             return []
 
-    def _create_demo_alert(
-        self, group_key: str, anomalies: list[QualityAnomaly]
-    ) -> Alert | None:
+    def _create_demo_alert(self, group_key: str, anomalies: list[QualityAnomaly]) -> Alert | None:
         """Create demo alert from grouped anomalies"""
         try:
             if not anomalies:
@@ -285,7 +271,7 @@ class QualityAnomalyDemo:
             severity, metric = group_key.split("_", 1)
 
             # Generate alert ID
-            alert_id = f"DEMO_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{group_key}"
+            alert_id = f"DEMO_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}_{group_key}"
 
             # Create title and message
             title = f"{severity.upper()} Quality Anomaly: {metric.replace('_', ' ').title()}"
@@ -306,7 +292,7 @@ DEMO ALERT: Quality anomaly detected in {metric.replace("_", " ")}.
 
             return Alert(
                 alert_id=alert_id,
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 severity=severity,
                 title=title,
                 message=message,
@@ -374,9 +360,7 @@ DEMO ALERT: Quality anomaly detected in {metric.replace("_", " ")}.
 
         return actions
 
-    def create_demo_visualizations(
-        self, anomalies: list[QualityAnomaly]
-    ) -> dict[str, str]:
+    def create_demo_visualizations(self, anomalies: list[QualityAnomaly]) -> dict[str, str]:
         """Create demo anomaly visualizations"""
 
         viz_files = {}
@@ -458,9 +442,7 @@ DEMO ALERT: Quality anomaly detected in {metric.replace("_", " ")}.
                 "low": "blue",
             }
             for severity in set(severities):
-                severity_times = [
-                    t for t, s in zip(timestamps, severities, strict=False) if s == severity
-                ]
+                severity_times = [t for t, s in zip(timestamps, severities, strict=False) if s == severity]
                 severity_values = [1] * len(severity_times)  # Just for plotting
                 ax.scatter(
                     severity_times,
@@ -517,31 +499,21 @@ DEMO ALERT: Quality anomaly detected in {metric.replace("_", " ")}.
         """Export demo anomaly detection report"""
 
         try:
-            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
             report_file = self.output_dir / f"quality_anomaly_demo_{timestamp}.json"
 
             # Create summary statistics
-            severity_counts = (
-                pd.Series([a.severity for a in anomalies]).value_counts().to_dict()
-            )
-            metric_counts = (
-                pd.Series([a.metric for a in anomalies]).value_counts().to_dict()
-            )
-            type_counts = (
-                pd.Series([a.anomaly_type for a in anomalies]).value_counts().to_dict()
-            )
+            severity_counts = pd.Series([a.severity for a in anomalies]).value_counts().to_dict()
+            metric_counts = pd.Series([a.metric for a in anomalies]).value_counts().to_dict()
+            type_counts = pd.Series([a.anomaly_type for a in anomalies]).value_counts().to_dict()
 
-            avg_confidence = (
-                np.mean([a.confidence for a in anomalies]) if anomalies else 0
-            )
-            avg_deviation = (
-                np.mean([abs(a.deviation) for a in anomalies]) if anomalies else 0
-            )
+            avg_confidence = np.mean([a.confidence for a in anomalies]) if anomalies else 0
+            avg_deviation = np.mean([abs(a.deviation) for a in anomalies]) if anomalies else 0
 
             # Prepare export data
             export_data = {
                 "report_metadata": {
-                    "generated_at": datetime.now(timezone.utc).isoformat(),
+                    "generated_at": datetime.now(UTC).isoformat(),
                     "report_type": "demo",
                     "detector_version": "1.0.0",
                     "total_anomalies": len(anomalies),
@@ -554,12 +526,8 @@ DEMO ALERT: Quality anomaly detected in {metric.replace("_", " ")}.
                     "type_distribution": type_counts,
                     "average_confidence": float(avg_confidence),
                     "average_deviation": float(avg_deviation),
-                    "critical_alerts": len(
-                        [a for a in alerts if a.severity == "critical"]
-                    ),
-                    "high_priority_alerts": len(
-                        [a for a in alerts if a.severity in ["critical", "high"]]
-                    ),
+                    "critical_alerts": len([a for a in alerts if a.severity == "critical"]),
+                    "high_priority_alerts": len([a for a in alerts if a.severity in ["critical", "high"]]),
                 },
                 "anomalies": [
                     {

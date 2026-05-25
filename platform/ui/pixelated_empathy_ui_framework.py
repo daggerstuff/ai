@@ -19,9 +19,11 @@ from typing import Any
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class UIComponent:
     """Base UI component definition"""
+
     component_id: str
     component_type: str
     title: str
@@ -30,14 +32,17 @@ class UIComponent:
     styling: dict[str, str]
     interactions: list[dict]
 
+
 @dataclass
 class UILayout:
     """UI layout configuration"""
+
     layout_id: str
     layout_type: str  # trainee, supervisor, admin
     components: list[UIComponent]
     responsive_breakpoints: dict[str, dict]
     theme_config: dict[str, str]
+
 
 class PixelatedEmpathyUIFramework:
     """Complete UI/UX framework for Pixelated Empathy platform"""
@@ -58,37 +63,33 @@ class PixelatedEmpathyUIFramework:
         """Initialize platform visual theme"""
         return {
             # Color Palette
-            "primary_color": "#2563eb",        # Professional blue
-            "secondary_color": "#7c3aed",      # Empathy purple
-            "success_color": "#10b981",        # Progress green
-            "warning_color": "#f59e0b",        # Caution amber
-            "danger_color": "#ef4444",         # Crisis red
-            "neutral_color": "#6b7280",        # Calm gray
-
+            "primary_color": "#2563eb",  # Professional blue
+            "secondary_color": "#7c3aed",  # Empathy purple
+            "success_color": "#10b981",  # Progress green
+            "warning_color": "#f59e0b",  # Caution amber
+            "danger_color": "#ef4444",  # Crisis red
+            "neutral_color": "#6b7280",  # Calm gray
             # Therapeutic Colors
-            "therapeutic_blue": "#3b82f6",     # Trust and calm
-            "empathy_purple": "#8b5cf6",       # Understanding
-            "growth_green": "#22c55e",         # Progress and hope
-            "crisis_red": "#dc2626",           # Emergency attention
-            "neutral_warm": "#f3f4f6",         # Safe background
-
+            "therapeutic_blue": "#3b82f6",  # Trust and calm
+            "empathy_purple": "#8b5cf6",  # Understanding
+            "growth_green": "#22c55e",  # Progress and hope
+            "crisis_red": "#dc2626",  # Emergency attention
+            "neutral_warm": "#f3f4f6",  # Safe background
             # Typography
             "font_primary": "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
             "font_therapeutic": "'Source Sans Pro', sans-serif",
             "font_monospace": "'JetBrains Mono', monospace",
-
             # Spacing
             "spacing_xs": "0.25rem",
             "spacing_sm": "0.5rem",
             "spacing_md": "1rem",
             "spacing_lg": "1.5rem",
             "spacing_xl": "2rem",
-
             # Borders & Shadows
             "border_radius": "0.5rem",
             "shadow_sm": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
             "shadow_md": "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-            "shadow_lg": "0 10px 15px -3px rgba(0, 0, 0, 0.1)"
+            "shadow_lg": "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
         }
 
     def _initialize_trainee_components(self):
@@ -104,31 +105,22 @@ class PixelatedEmpathyUIFramework:
                 "collapsible": True,
                 "default_expanded": True,
                 "sections": [
-                    {
-                        "title": "Demographics",
-                        "fields": ["name", "age", "gender", "background"]
-                    },
-                    {
-                        "title": "Presenting Problem",
-                        "fields": ["presenting_problem", "duration", "severity"]
-                    },
-                    {
-                        "title": "Key Considerations",
-                        "fields": ["triggers", "strengths", "therapy_goals"]
-                    }
-                ]
+                    {"title": "Demographics", "fields": ["name", "age", "gender", "background"]},
+                    {"title": "Presenting Problem", "fields": ["presenting_problem", "duration", "severity"]},
+                    {"title": "Key Considerations", "fields": ["triggers", "strengths", "therapy_goals"]},
+                ],
             },
             styling={
                 "background": "neutral_warm",
                 "border": "1px solid #e5e7eb",
                 "border_radius": "border_radius",
                 "padding": "spacing_lg",
-                "margin_bottom": "spacing_md"
+                "margin_bottom": "spacing_md",
             },
             interactions=[
                 {"event": "toggle_expand", "action": "toggle_panel_visibility"},
-                {"event": "info_hover", "action": "show_detailed_tooltip"}
-            ]
+                {"event": "info_hover", "action": "show_detailed_tooltip"},
+            ],
         )
 
         # Conversation Interface
@@ -144,7 +136,7 @@ class PixelatedEmpathyUIFramework:
                 "emoji_support": False,  # Professional context
                 "audio_cues": True,
                 "client_avatar": True,
-                "timestamp_display": True
+                "timestamp_display": True,
             },
             styling={
                 "background": "#ffffff",
@@ -152,13 +144,13 @@ class PixelatedEmpathyUIFramework:
                 "border_radius": "spacing_md",
                 "min_height": "500px",
                 "display": "flex",
-                "flex_direction": "column"
+                "flex_direction": "column",
             },
             interactions=[
                 {"event": "send_message", "action": "process_therapist_input"},
                 {"event": "typing_start", "action": "show_typing_indicator"},
-                {"event": "message_receive", "action": "display_client_response"}
-            ]
+                {"event": "message_receive", "action": "display_client_response"},
+            ],
         )
 
         # Client Visual Representation
@@ -173,7 +165,7 @@ class PixelatedEmpathyUIFramework:
                 "body_language_cues": True,
                 "eye_contact_visualization": True,
                 "voice_tone_indicators": True,
-                "real_time_updates": True
+                "real_time_updates": True,
             },
             styling={
                 "width": "200px",
@@ -183,12 +175,12 @@ class PixelatedEmpathyUIFramework:
                 "background": "linear-gradient(135deg, #f3f4f6, #e5e7eb)",
                 "display": "flex",
                 "align_items": "center",
-                "justify_content": "center"
+                "justify_content": "center",
             },
             interactions=[
                 {"event": "emotion_change", "action": "update_avatar_expression"},
-                {"event": "hover_avatar", "action": "show_nonverbal_details"}
-            ]
+                {"event": "hover_avatar", "action": "show_nonverbal_details"},
+            ],
         )
 
         # Real-time Feedback Panel
@@ -198,28 +190,23 @@ class PixelatedEmpathyUIFramework:
             title="Real-time Guidance",
             description="Live feedback and skill assessment",
             props={
-                "skill_meters": [
-                    "rapport_building",
-                    "active_listening",
-                    "empathy",
-                    "therapeutic_response"
-                ],
+                "skill_meters": ["rapport_building", "active_listening", "empathy", "therapeutic_response"],
                 "progress_indicators": True,
                 "suggestion_alerts": True,
                 "crisis_warnings": True,
-                "breakthrough_celebrations": True
+                "breakthrough_celebrations": True,
             },
             styling={
                 "background": "linear-gradient(to bottom, #f8fafc, #f1f5f9)",
                 "border": "1px solid #cbd5e1",
                 "border_radius": "border_radius",
                 "padding": "spacing_lg",
-                "min_height": "300px"
+                "min_height": "300px",
             },
             interactions=[
                 {"event": "skill_update", "action": "animate_progress_meter"},
-                {"event": "feedback_receive", "action": "highlight_new_feedback"}
-            ]
+                {"event": "feedback_receive", "action": "highlight_new_feedback"},
+            ],
         )
 
         # Session Controls
@@ -234,7 +221,7 @@ class PixelatedEmpathyUIFramework:
                 "emergency_stop": True,
                 "note_taking": True,
                 "supervisor_call": True,
-                "session_summary": True
+                "session_summary": True,
             },
             styling={
                 "background": "#ffffff",
@@ -243,13 +230,13 @@ class PixelatedEmpathyUIFramework:
                 "padding": "spacing_md",
                 "display": "flex",
                 "justify_content": "space-between",
-                "align_items": "center"
+                "align_items": "center",
             },
             interactions=[
                 {"event": "pause_session", "action": "pause_simulation"},
                 {"event": "emergency_stop", "action": "trigger_emergency_protocols"},
-                {"event": "call_supervisor", "action": "notify_supervisor"}
-            ]
+                {"event": "call_supervisor", "action": "notify_supervisor"},
+            ],
         )
 
     def _initialize_supervisor_components(self):
@@ -267,7 +254,7 @@ class PixelatedEmpathyUIFramework:
                 "intervention_alerts": True,
                 "recording_controls": True,
                 "annotation_tools": True,
-                "multi_session_support": True
+                "multi_session_support": True,
             },
             styling={
                 "background": "#ffffff",
@@ -276,13 +263,13 @@ class PixelatedEmpathyUIFramework:
                 "min_height": "600px",
                 "display": "grid",
                 "grid_template_columns": "2fr 1fr",
-                "gap": "spacing_md"
+                "gap": "spacing_md",
             },
             interactions=[
                 {"event": "add_observation", "action": "record_supervisor_note"},
                 {"event": "trigger_intervention", "action": "send_intervention_alert"},
-                {"event": "update_rating", "action": "update_skill_assessment"}
-            ]
+                {"event": "update_rating", "action": "update_skill_assessment"},
+            ],
         )
 
         # Competency Assessment Grid
@@ -300,25 +287,25 @@ class PixelatedEmpathyUIFramework:
                     "resistance_handling",
                     "boundary_setting",
                     "therapeutic_confrontation",
-                    "cultural_competence"
+                    "cultural_competence",
                 ],
                 "rating_scale": "1-5",
                 "rubric_integration": True,
                 "real_time_updates": True,
-                "evidence_collection": True
+                "evidence_collection": True,
             },
             styling={
                 "background": "#f9fafb",
                 "border": "1px solid #e5e7eb",
                 "border_radius": "border_radius",
                 "padding": "spacing_lg",
-                "overflow": "auto"
+                "overflow": "auto",
             },
             interactions=[
                 {"event": "rate_skill", "action": "update_competency_score"},
                 {"event": "view_rubric", "action": "display_detailed_rubric"},
-                {"event": "add_evidence", "action": "record_skill_evidence"}
-            ]
+                {"event": "add_evidence", "action": "record_skill_evidence"},
+            ],
         )
 
         # Intervention Panel
@@ -333,19 +320,19 @@ class PixelatedEmpathyUIFramework:
                 "send_suggestions": True,
                 "emergency_takeover": True,
                 "post_session_debrief": True,
-                "development_planning": True
+                "development_planning": True,
             },
             styling={
                 "background": "linear-gradient(to right, #fef3c7, #fde68a)",
                 "border": "2px solid warning_color",
                 "border_radius": "border_radius",
-                "padding": "spacing_lg"
+                "padding": "spacing_lg",
             },
             interactions=[
                 {"event": "send_coaching", "action": "deliver_live_feedback"},
                 {"event": "schedule_intervention", "action": "plan_session_break"},
-                {"event": "emergency_intervention", "action": "take_session_control"}
-            ]
+                {"event": "emergency_intervention", "action": "take_session_control"},
+            ],
         )
 
         # Analytics Dashboard
@@ -360,20 +347,20 @@ class PixelatedEmpathyUIFramework:
                 "cohort_benchmarking": True,
                 "development_recommendations": True,
                 "certification_tracking": True,
-                "export_capabilities": True
+                "export_capabilities": True,
             },
             styling={
                 "background": "#ffffff",
                 "border": "1px solid #d1d5db",
                 "border_radius": "border_radius",
                 "padding": "spacing_lg",
-                "min_height": "400px"
+                "min_height": "400px",
             },
             interactions=[
                 {"event": "filter_data", "action": "update_analytics_view"},
                 {"event": "export_report", "action": "generate_progress_report"},
-                {"event": "drill_down", "action": "show_detailed_analysis"}
-            ]
+                {"event": "drill_down", "action": "show_detailed_analysis"},
+            ],
         )
 
     def _initialize_admin_components(self):
@@ -391,19 +378,19 @@ class PixelatedEmpathyUIFramework:
                 "assessment_configuration": True,
                 "client_profile_library": True,
                 "competency_mapping": True,
-                "certification_workflows": True
+                "certification_workflows": True,
             },
             styling={
                 "background": "#ffffff",
                 "border": "1px solid #d1d5db",
                 "border_radius": "border_radius",
-                "padding": "spacing_xl"
+                "padding": "spacing_xl",
             },
             interactions=[
                 {"event": "create_program", "action": "launch_program_wizard"},
                 {"event": "edit_curriculum", "action": "open_curriculum_editor"},
-                {"event": "configure_assessment", "action": "setup_evaluation_criteria"}
-            ]
+                {"event": "configure_assessment", "action": "setup_evaluation_criteria"},
+            ],
         )
 
         # User Management
@@ -418,19 +405,19 @@ class PixelatedEmpathyUIFramework:
                 "progress_tracking": True,
                 "permission_management": True,
                 "audit_logging": True,
-                "integration_apis": True
+                "integration_apis": True,
             },
             styling={
                 "background": "#f8fafc",
                 "border": "1px solid #e2e8f0",
                 "border_radius": "border_radius",
-                "padding": "spacing_lg"
+                "padding": "spacing_lg",
             },
             interactions=[
                 {"event": "add_user", "action": "create_new_user_account"},
                 {"event": "assign_role", "action": "update_user_permissions"},
-                {"event": "view_progress", "action": "display_user_analytics"}
-            ]
+                {"event": "view_progress", "action": "display_user_analytics"},
+            ],
         )
 
     def create_trainee_layout(self) -> UILayout:
@@ -444,32 +431,31 @@ class PixelatedEmpathyUIFramework:
                 self.ui_components["conversation_interface"],
                 self.ui_components["client_avatar"],
                 self.ui_components["feedback_panel"],
-                self.ui_components["session_controls"]
+                self.ui_components["session_controls"],
             ],
             responsive_breakpoints={
                 "mobile": {
                     "max_width": "768px",
                     "layout": "single_column",
-                    "component_order": ["client_info_panel", "conversation_interface", "feedback_panel"]
+                    "component_order": ["client_info_panel", "conversation_interface", "feedback_panel"],
                 },
                 "tablet": {
                     "min_width": "769px",
                     "max_width": "1024px",
                     "layout": "two_column",
                     "main_column": ["conversation_interface", "session_controls"],
-                    "side_column": ["client_info_panel", "client_avatar", "feedback_panel"]
+                    "side_column": ["client_info_panel", "client_avatar", "feedback_panel"],
                 },
                 "desktop": {
                     "min_width": "1025px",
                     "layout": "three_column",
                     "left_column": ["client_info_panel", "client_avatar"],
                     "center_column": ["conversation_interface", "session_controls"],
-                    "right_column": ["feedback_panel"]
-                }
+                    "right_column": ["feedback_panel"],
+                },
             },
-            theme_config=self.theme_config
+            theme_config=self.theme_config,
         )
-
 
     def create_supervisor_layout(self) -> UILayout:
         """Create complete layout for supervisor dashboard"""
@@ -481,14 +467,14 @@ class PixelatedEmpathyUIFramework:
                 self.ui_components["session_monitor"],
                 self.ui_components["competency_grid"],
                 self.ui_components["intervention_panel"],
-                self.ui_components["analytics_dashboard"]
+                self.ui_components["analytics_dashboard"],
             ],
             responsive_breakpoints={
                 "tablet": {
                     "min_width": "768px",
                     "max_width": "1023px",
                     "layout": "stacked",
-                    "component_order": ["session_monitor", "competency_grid", "intervention_panel"]
+                    "component_order": ["session_monitor", "competency_grid", "intervention_panel"],
                 },
                 "desktop": {
                     "min_width": "1024px",
@@ -497,13 +483,12 @@ class PixelatedEmpathyUIFramework:
                         "session_monitor": "1 / 1 / 3 / 3",
                         "competency_grid": "1 / 3 / 2 / 4",
                         "intervention_panel": "2 / 3 / 3 / 4",
-                        "analytics_dashboard": "3 / 1 / 4 / 4"
-                    }
-                }
+                        "analytics_dashboard": "3 / 1 / 4 / 4",
+                    },
+                },
             },
-            theme_config=self.theme_config
+            theme_config=self.theme_config,
         )
-
 
     def generate_react_components(self) -> dict[str, str]:
         """Generate React component code for the UI framework"""
@@ -601,10 +586,11 @@ export const TraineeInterface = ({ sessionId, clientProfile }) => {
         # Save component definitions
         components_file = ui_dir / "ui_components.json"
         with open(components_file, "w") as f:
-            json.dump({
-                "components": {k: asdict(v) for k, v in self.ui_components.items()},
-                "theme": self.theme_config
-            }, f, indent=2)
+            json.dump(
+                {"components": {k: asdict(v) for k, v in self.ui_components.items()}, "theme": self.theme_config},
+                f,
+                indent=2,
+            )
 
         # Save layout configurations
         layouts_file = ui_dir / "ui_layouts.json"
@@ -612,12 +598,9 @@ export const TraineeInterface = ({ sessionId, clientProfile }) => {
         supervisor_layout = self.create_supervisor_layout()
 
         with open(layouts_file, "w") as f:
-            json.dump({
-                "layouts": {
-                    "trainee": asdict(trainee_layout),
-                    "supervisor": asdict(supervisor_layout)
-                }
-            }, f, indent=2)
+            json.dump(
+                {"layouts": {"trainee": asdict(trainee_layout), "supervisor": asdict(supervisor_layout)}}, f, indent=2
+            )
 
         # Save React components
         react_components = self.generate_react_components()
@@ -631,6 +614,7 @@ export const TraineeInterface = ({ sessionId, clientProfile }) => {
 
         logger.info(f"✅ UI Framework saved to {ui_dir}")
         return ui_dir
+
 
 def main():
     """Generate complete Pixelated Empathy UI/UX framework"""
@@ -652,6 +636,7 @@ def main():
     logger.info(f"📁 Framework saved to: {saved_path}")
     logger.info(f"🎭 Components created: {len(ui_framework.ui_components)}")
     logger.info(f"📱 React components generated: {len(react_components)}")
+
 
 if __name__ == "__main__":
     main()

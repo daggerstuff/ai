@@ -3,18 +3,17 @@
 EMERGENCY PRODUCTION HOTFIX
 Critical fixes for live production system with security vulnerabilities
 """
+
 import json
 import logging
 import os
 import secrets
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 # Setup logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - EMERGENCY - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - EMERGENCY - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
+
 
 class EmergencyProductionHotfix:
     """Emergency hotfix for critical production issues."""
@@ -36,7 +35,7 @@ class EmergencyProductionHotfix:
                 "encryption_key": encryption_key,
                 "security_enabled": True,
                 "emergency_mode": True,
-                "timestamp": datetime.now(timezone.utc).isoformat()
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
             # Write emergency config
@@ -91,7 +90,7 @@ if __name__ == "__main__":
 
         rollback_plan = f"""
 # EMERGENCY ROLLBACK PLAN
-Generated: {datetime.now(timezone.utc).isoformat()}
+Generated: {datetime.now(UTC).isoformat()}
 
 ## CRITICAL SITUATION
 - Production system deployed with major security vulnerabilities
@@ -143,6 +142,7 @@ Generated: {datetime.now(timezone.utc).isoformat()}
             logger.critical("⚠️ SYSTEM STILL HAS CRITICAL ISSUES - MANUAL INTERVENTION REQUIRED")
         else:
             logger.critical("✅ Emergency hotfixes applied - SYSTEM NEEDS FULL AUDIT")
+
 
 if __name__ == "__main__":
     hotfix = EmergencyProductionHotfix()

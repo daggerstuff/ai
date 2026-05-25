@@ -7,13 +7,11 @@ Uses the functional OpenAI-compatible endpoint to generate authentic crisis trai
 import json
 import logging
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import requests
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -90,9 +88,7 @@ class CrisisGenerator:
                     return content
                 logger.error(f"No choices in response: {result}")
                 return ""
-            logger.error(
-                f"API call failed: {response.status_code} - {response.text}"
-            )
+            logger.error(f"API call failed: {response.status_code} - {response.text}")
             return ""
 
         except Exception as e:
@@ -101,13 +97,7 @@ class CrisisGenerator:
 
     def generate_client_message(self, scenario: dict, exchange_num: int) -> str:
         """Generate a client message for the crisis scenario"""
-        stage = (
-            "initial"
-            if exchange_num <= 2
-            else "middle"
-            if exchange_num <= 5
-            else "resolution"
-        )
+        stage = "initial" if exchange_num <= 2 else "middle" if exchange_num <= 5 else "resolution"
 
         prompt = f"""Generate a realistic message from someone in a {scenario["name"]} crisis.
 
@@ -154,7 +144,7 @@ Keep response under 100 words and show best practices in crisis intervention."""
 
         conversation = {
             "scenario": scenario,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "exchanges": [],
             "model_used": self.model_name,
         }
@@ -171,16 +161,14 @@ Keep response under 100 words and show best practices in crisis intervention."""
             # Generate counselor response
             counselor_msg = self.generate_counselor_response(scenario, client_msg)
             if not counselor_msg:
-                logger.error(
-                    f"Failed to generate counselor response for exchange {i + 1}"
-                )
+                logger.error(f"Failed to generate counselor response for exchange {i + 1}")
                 break
 
             exchange = {
                 "exchange_number": i + 1,
                 "client": client_msg,
                 "counselor": counselor_msg,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
             conversation["exchanges"].append(exchange)
@@ -190,21 +178,15 @@ Keep response under 100 words and show best practices in crisis intervention."""
 
         return conversation
 
-    def generate_training_dataset(
-        self, conversations_per_scenario: int = 2
-    ) -> list[dict]:
+    def generate_training_dataset(self, conversations_per_scenario: int = 2) -> list[dict]:
         """Generate complete training dataset"""
-        logger.info(
-            f"Generating {conversations_per_scenario} conversations per scenario"
-        )
+        logger.info(f"Generating {conversations_per_scenario} conversations per scenario")
 
         dataset = []
 
         for scenario in self.scenarios:
             for i in range(conversations_per_scenario):
-                logger.info(
-                    f"Scenario: {scenario['name']} - Conversation {i + 1}/{conversations_per_scenario}"
-                )
+                logger.info(f"Scenario: {scenario['name']} - Conversation {i + 1}/{conversations_per_scenario}")
 
                 conversation = self.generate_conversation(scenario)
                 if conversation["exchanges"]:  # Only add if we got exchanges
@@ -218,7 +200,7 @@ Keep response under 100 words and show best practices in crisis intervention."""
     def save_dataset(self, dataset: list[dict], filename: str = None) -> str:
         """Save dataset to file"""
         if filename is None:
-            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
             filename = f"crisis_training_dataset_{timestamp}.json"
 
         filepath = f"/home/vivi/pixelated/ai/{filename}"
@@ -241,19 +223,16 @@ def main():
     conversation = generator.generate_conversation(test_scenario, num_exchanges=3)
 
     if conversation["exchanges"]:
-
         for _exchange in conversation["exchanges"]:
             pass
 
-
         # Save single conversation
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         filename = f"test_crisis_conversation_{timestamp}.json"
         filepath = f"/home/vivi/pixelated/ai/{filename}"
 
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(conversation, f, indent=2, ensure_ascii=False)
-
 
         # Ask if user wants to generate full dataset
 

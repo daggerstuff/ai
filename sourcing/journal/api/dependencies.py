@@ -3,6 +3,7 @@ FastAPI dependencies for authentication and authorization.
 
 This module provides dependency injection for authentication and authorization.
 """
+
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
@@ -118,4 +119,5 @@ def get_training_pipeline_service():
     from ai.sourcing.journal.api.services.training_pipeline_service import (
         TrainingPipelineService,
     )
+
     return TrainingPipelineService()

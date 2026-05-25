@@ -25,15 +25,11 @@ class TranscriptCorrector:
                     return {
                         "cptsd_terms": data if isinstance(data, list) else [],
                         "medical_terms": [],
-                        "common_misinterpretations": {}
+                        "common_misinterpretations": {},
                     }
             except (json.JSONDecodeError, FileNotFoundError):
                 pass
-        return {
-            "cptsd_terms": [],
-            "medical_terms": [],
-            "common_misinterpretations": {}
-        }
+        return {"cptsd_terms": [], "medical_terms": [], "common_misinterpretations": {}}
 
     def _clean_structure(self, text: str) -> str:
         """Clean filler words and structure from text."""
@@ -82,7 +78,7 @@ class TranscriptCorrector:
         return {
             "cptsd_term_count": cptsd_count,
             "medical_term_count": medical_count,
-            "domain_coverage_score": round(score, 4)
+            "domain_coverage_score": round(score, 4),
         }
 
 

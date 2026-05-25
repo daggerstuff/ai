@@ -36,11 +36,12 @@ def cmd_discover(args):
     if not args.api_key:
         return 1
 
-
     if args.verbose:
+
         def progress_callback(percent, step):
             pass
     else:
+
         def progress_callback(percent, step):
             # No output during progress to keep it clean
             pass
@@ -52,7 +53,6 @@ def cmd_discover(args):
             output_path=args.output,
             progress_callback=progress_callback,
         )
-
 
         if args.report:
             report_path = Path(args.report)
@@ -76,7 +76,6 @@ def cmd_check(args):
 
     if not args.channel_id:
         return 1
-
 
     # Create a minimal channel object for checking
     # In practice, you'd fetch actual channel data
@@ -109,7 +108,6 @@ def cmd_import(args):
     if not input_path.exists():
         return 1
 
-
     with open(input_path) as f:
         channels_data = json.load(f)
 
@@ -132,7 +130,6 @@ def cmd_import(args):
 
         registry.add_channel(channel)
 
-
     return 0
 
 
@@ -148,17 +145,13 @@ def cmd_list(args):
     else:
         registry_path = Path(args.registry)
 
-
     with open(registry_path) as f:
         channels_data = json.load(f)
-
 
     for _i, data in enumerate(channels_data):
         # Get licensing info
         lic = data.get("licensing", {})
         "CC" if lic and lic.get("cc_license") else "Unknown"
-
-
 
     return 0
 
@@ -181,7 +174,7 @@ Examples:
 
   # List channels in registry
   python -m ai.sourcing.youtube.cli list
-        """
+        """,
     )
 
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
@@ -199,7 +192,8 @@ Examples:
         help="Target number of channels to discover (default: 50)",
     )
     discover_parser.add_argument(
-        "--min-subs", "--min-subscribers",
+        "--min-subs",
+        "--min-subscribers",
         type=int,
         default=1000,
         dest="min_subscribers",
@@ -223,7 +217,8 @@ Examples:
         help="Save markdown report to file",
     )
     discover_parser.add_argument(
-        "--verbose", "-v",
+        "--verbose",
+        "-v",
         action="store_true",
         help="Verbose output",
     )
@@ -235,7 +230,8 @@ Examples:
         help="YouTube channel ID",
     )
     check_parser.add_argument(
-        "--verbose", "-v",
+        "--verbose",
+        "-v",
         action="store_true",
         help="Verbose output",
     )
@@ -248,7 +244,8 @@ Examples:
         help="Input JSON file path",
     )
     import_parser.add_argument(
-        "--verbose", "-v",
+        "--verbose",
+        "-v",
         action="store_true",
         help="Verbose output",
     )
@@ -260,7 +257,8 @@ Examples:
         help="Registry JSON file path (default: qualified_channels.json)",
     )
     list_parser.add_argument(
-        "--verbose", "-v",
+        "--verbose",
+        "-v",
         action="store_true",
         help="Verbose output",
     )
@@ -286,4 +284,5 @@ Examples:
 
 if __name__ == "__main__":
     import sys
+
     sys.exit(main())

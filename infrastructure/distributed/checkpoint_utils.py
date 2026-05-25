@@ -11,7 +11,7 @@ import sqlite3
 import threading
 import time
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -127,7 +127,7 @@ class CheckpointOptimizer:
             return 0
 
         archived_count = 0
-        cutoff_date = datetime.now(tz=timezone.utc) - timedelta(days=days_old)
+        cutoff_date = datetime.now(tz=UTC) - timedelta(days=days_old)
 
         # Create backup directory
         backup_path = Path(self.config.backup_path)
@@ -148,9 +148,7 @@ class CheckpointOptimizer:
                         json.dump(
                             {
                                 "metadata": asdict(metadata),
-                                "data": data
-                                if isinstance(data, (dict, list, str, int, float))
-                                else str(data),
+                                "data": data if isinstance(data, (dict, list, str, int, float)) else str(data),
                             },
                             f,
                             indent=2,
@@ -292,11 +290,7 @@ class CheckpointOptimizer:
         storage_path = Path(self.config.storage_path)
         if storage_path.exists():
             total_files = len(list(storage_path.rglob("*")))
-            data_files = (
-                len(list((storage_path / "data").glob("*")))
-                if (storage_path / "data").exists()
-                else 0
-            )
+            data_files = len(list((storage_path / "data").glob("*"))) if (storage_path / "data").exists() else 0
             fragmentation_ratio = (total_files - data_files) / total_files if total_files > 0 else 0
         else:
             fragmentation_ratio = 0
@@ -304,8 +298,7 @@ class CheckpointOptimizer:
         return {
             "compression_ratio": compression_ratio,
             "fragmentation_ratio": fragmentation_ratio,
-            "storage_utilization": stats["total_size_mb"]
-            / (self.config.max_storage_size_gb * 1024),
+            "storage_utilization": stats["total_size_mb"] / (self.config.max_storage_size_gb * 1024),
         }
 
     def _analyze_access_patterns(self) -> dict[str, float]:
@@ -378,11 +371,9 @@ class CheckpointMonitor:
                 self.metrics_history.append(metrics)
 
                 # Keep only last 24 hours of metrics
-                cutoff_time = datetime.now(tz=timezone.utc) - timedelta(hours=24)
+                cutoff_time = datetime.now(tz=UTC) - timedelta(hours=24)
                 self.metrics_history = [
-                    m
-                    for m in self.metrics_history
-                    if datetime.fromisoformat(m["timestamp"]) > cutoff_time
+                    m for m in self.metrics_history if datetime.fromisoformat(m["timestamp"]) > cutoff_time
                 ]
 
                 # Check for issues
@@ -405,7 +396,7 @@ class CheckpointMonitor:
         stats = self.manager.get_system_stats()
 
         return {
-            "timestamp": datetime.now(tz=timezone.utc).isoformat(),
+            "timestamp": datetime.now(tz=UTC).isoformat(),
             "storage_stats": stats["storage"],
             "active_processes": stats["active_processes"],
             "system_resources": {
@@ -430,9 +421,7 @@ class CheckpointMonitor:
             issues.append(f"High CPU usage: {metrics['system_resources']['cpu_percent']:.1f}%")
 
         if metrics["system_resources"]["memory_percent"] > 90:
-            issues.append(
-                f"High memory usage: {metrics['system_resources']['memory_percent']:.1f}%"
-            )
+            issues.append(f"High memory usage: {metrics['system_resources']['memory_percent']:.1f}%")
 
         if metrics["system_resources"]["disk_percent"] > 90:
             issues.append(f"High disk usage: {metrics['system_resources']['disk_percent']:.1f}%")
@@ -465,8 +454,7 @@ class CheckpointMonitor:
         if len(self.metrics_history) >= 2:
             prev_metrics = self.metrics_history[-2]
             storage_trend = (
-                latest_metrics["storage_stats"]["total_size_bytes"]
-                - prev_metrics["storage_stats"]["total_size_bytes"]
+                latest_metrics["storage_stats"]["total_size_bytes"] - prev_metrics["storage_stats"]["total_size_bytes"]
             ) / (1024**2)  # MB change
         else:
             storage_trend = 0
