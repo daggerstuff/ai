@@ -669,7 +669,11 @@ DASHBOARD_TEMPLATE = """
         }
 
         // Auto-refresh every 30 seconds
-        setInterval(loadDashboard, 30000);
+        setInterval(() => {
+            // ⚡ Bolt: Prevent unnecessary API calls and re-renders when tab is inactive
+            if (document.hidden) return;
+            loadDashboard();
+        }, 30000);
 
         // Initial load
         $(document).ready(function() {
