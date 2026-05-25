@@ -160,6 +160,23 @@ describe('PixelatedEmpathyAPI Method waitForJob', () => {
         expect(result).toEqual({ status: 'completed', progress: 100 });
     });
 
+    it('should poll until job is completed', async () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        let callCount = 0;
+
+        api.getJobStatus = async (jobId: string) => {
+            callCount++;
+            if (callCount === 1) return { status: 'processing', progress: 50 };
+            return { status: 'completed', progress: 100 };
+        };
+
+        api.sleep = async (ms: number) => {};
+
+        const result = await api.waitForJob('job-123', { timeout: 10, pollInterval: 0.01 });
+        expect(result).toEqual({ status: 'completed', progress: 100 });
+        expect(callCount).toBe(2);
+    });
+
     it('should throw error if timeout is exceeded', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
 
